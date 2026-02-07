@@ -62,6 +62,30 @@ function MyPredictionsPage() {
     );
   }
 
-  // Signed in but waiting for username to redirect
+  // Signed in but no username — can't redirect to profile
+  if (me && !me.username) {
+    return (
+      <div className="bg-page">
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          <div className="rounded-xl border border-border bg-surface p-8 text-center">
+            <h1 className="mb-2 text-2xl font-bold text-text">
+              Set a Username
+            </h1>
+            <p className="mb-4 text-text-muted">
+              You need a username to view your predictions.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => void navigate({ to: '/settings' })}
+            >
+              Go to Settings
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Signed in, waiting for me query or redirect
   return <PageLoader />;
 }

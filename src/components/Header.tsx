@@ -60,7 +60,7 @@ export function Header({
           params: { username: me.username },
           label: 'My Picks',
         }
-      : { to: '/my-predictions', label: 'My Picks' };
+      : { to: '/me', label: 'My Picks' };
     return [...staticNavLinks, myPicksLink];
   }, [me?.username]);
 

@@ -8,7 +8,7 @@ import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
 
-export const Route = createFileRoute('/my-predictions')({
+export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
   head: () => ({
     meta: [

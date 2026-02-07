@@ -15,20 +15,20 @@ type WeekendWithSessions = {
 
 /**
  * Compute "favorite pick": driver with highest weighted score (P1=5 … P5=1).
- * Tiebreaker: most 1sts, then most 2nds, … then earliest pick at that position.
+ * Tiebreaker: most 1sts, then most 2nds, … then latest pick at that position.
  */
 export function computeFavoritePick(
   weekends: ReadonlyArray<WeekendWithSessions>,
 ): { driverId: Id<'drivers'>; favoritePoints: number } | null {
   if (weekends.length === 0) return null;
 
-  // Chronological order (oldest first) for "initial" tiebreaker
+  // Chronological order (oldest first) so globalOrder reflects pick time
   const sorted = [...weekends].sort((a, b) => a.raceDate - b.raceDate);
 
   type DriverStats = {
     totalPoints: number;
     countByPosition: [number, number, number, number, number]; // P1..P5
-    firstOrderAtPosition: [number, number, number, number, number]; // global order index
+    lastOrderAtPosition: [number, number, number, number, number]; // global order of latest pick at each position
   };
 
   const stats = new Map<Id<'drivers'>, DriverStats>();
@@ -40,13 +40,7 @@ export function computeFavoritePick(
       s = {
         totalPoints: 0,
         countByPosition: [0, 0, 0, 0, 0],
-        firstOrderAtPosition: [
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-          Number.POSITIVE_INFINITY,
-        ],
+        lastOrderAtPosition: [-1, -1, -1, -1, -1],
       };
       stats.set(driverId, s);
     }
@@ -64,8 +58,8 @@ export function computeFavoritePick(
         const s = getOrCreate(pick.driverId);
         s.totalPoints += POSITION_POINTS[pos];
         s.countByPosition[pos]++;
-        if (globalOrder < s.firstOrderAtPosition[pos]) {
-          s.firstOrderAtPosition[pos] = globalOrder;
+        if (globalOrder > s.lastOrderAtPosition[pos]) {
+          s.lastOrderAtPosition[pos] = globalOrder;
         }
         globalOrder++;
       }
@@ -86,8 +80,8 @@ export function computeFavoritePick(
         return b.countByPosition[pos] - a.countByPosition[pos];
     }
     for (let pos = 0; pos < 5; pos++) {
-      if (a.firstOrderAtPosition[pos] !== b.firstOrderAtPosition[pos])
-        return a.firstOrderAtPosition[pos] - b.firstOrderAtPosition[pos];
+      if (a.lastOrderAtPosition[pos] !== b.lastOrderAtPosition[pos])
+        return b.lastOrderAtPosition[pos] - a.lastOrderAtPosition[pos];
     }
     return String(a.driverId).localeCompare(String(b.driverId));
   });

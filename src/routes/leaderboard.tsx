@@ -1,7 +1,16 @@
+import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
-import { Loader2, Medal, Swords, Trophy, User } from 'lucide-react';
+import {
+  Globe,
+  Loader2,
+  Medal,
+  Swords,
+  Trophy,
+  User,
+  Users,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
@@ -47,13 +56,15 @@ type H2HLeaderboardEntry = LeaderboardEntry & {
   totalPicks: number;
 };
 
-type ActiveTab = 'top5' | 'h2h';
+type Scope = 'global' | 'following';
+type GameMode = 'top5' | 'h2h';
 
 function LeaderboardPage() {
   const { initialLeaderboard } = Route.useLoaderData();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('top5');
+  const [scope, setScope] = useState<Scope>('global');
+  const [gameMode, setGameMode] = useState<GameMode>('top5');
 
-  // Top 5 leaderboard state
+  // Top 5 global leaderboard state (with SSR + pagination)
   const [entries, setEntries] = useState<Array<LeaderboardEntry>>(
     initialLeaderboard.entries,
   );
@@ -99,26 +110,72 @@ function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        {/* Header with viewer position */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
-            <p className="text-text-muted">
-              2026 Season Standings · {totalCount.toLocaleString()} players
-            </p>
-          </div>
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
+          <p className="text-text-muted">
+            2026 Season Standings · {totalCount.toLocaleString()} players
+          </p>
+        </div>
 
-          {activeTab === 'top5' && viewerEntry && (
-            <div className="-mb-3 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
+        {/* Tabs + contextual result (e.g. Your Rank for Global Top 5) */}
+        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex gap-1 sm:border-r sm:border-border sm:pr-4">
+            <Button
+              variant="tab"
+              size="tab"
+              active={scope === 'global'}
+              onClick={() => setScope('global')}
+              className="flex-1 sm:flex-initial"
+            >
+              <Globe className="h-4 w-4" />
+              Global
+            </Button>
+            <Button
+              variant="tab"
+              size="tab"
+              active={scope === 'following'}
+              onClick={() => setScope('following')}
+              className="flex-1 sm:flex-initial"
+            >
+              <Users className="h-4 w-4" />
+              Following
+            </Button>
+          </div>
+          <div className="flex flex-1 gap-1">
+            <Button
+              variant="tab"
+              size="tab"
+              active={gameMode === 'top5'}
+              onClick={() => setGameMode('top5')}
+              className="flex-1"
+            >
+              <Trophy className="h-4 w-4" />
+              Top 5
+            </Button>
+            <Button
+              variant="tab"
+              size="tab"
+              active={gameMode === 'h2h'}
+              onClick={() => setGameMode('h2h')}
+              className="flex-1"
+            >
+              <Swords className="h-4 w-4" />
+              Head to Head
+            </Button>
+          </div>
+          {/* Result summary: changes by tab; only Global Top 5 has viewerEntry at this level */}
+          {scope === 'global' && gameMode === 'top5' && viewerEntry && (
+            <div className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2 sm:ml-auto">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                 {viewerEntry.rank}
               </span>
               <div>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-text">
-                  <User className="h-3.5 w-3.5 text-accent" />
+                <div className="flex items-center gap-1.5 text-xs font-medium text-text">
+                  <User className="h-3 w-3 text-accent" />
                   Your Rank
                 </div>
-                <div className="text-lg font-bold text-accent">
+                <div className="text-base font-bold text-accent">
                   {viewerEntry.points} pts
                 </div>
               </div>
@@ -126,34 +183,16 @@ function LeaderboardPage() {
           )}
         </div>
 
-        {/* Tab bar */}
-        <div
-          className="mb-6 flex gap-1 rounded-lg border border-border bg-surface-muted/50 p-1"
-          role="tablist"
-        >
-          <Button
-            variant="tab"
-            size="tab"
-            active={activeTab === 'top5'}
-            onClick={() => setActiveTab('top5')}
-            className="flex-1"
-          >
-            <Trophy className="h-4 w-4" />
-            Top 5
-          </Button>
-          <Button
-            variant="tab"
-            size="tab"
-            active={activeTab === 'h2h'}
-            onClick={() => setActiveTab('h2h')}
-            className="flex-1"
-          >
-            <Swords className="h-4 w-4" />
-            Head to Head
-          </Button>
-        </div>
-
-        {activeTab === 'top5' ? (
+        {/* Content */}
+        {scope === 'following' ? (
+          gameMode === 'top5' ? (
+            <FollowingTop5Content />
+          ) : (
+            <FollowingH2HContent />
+          )
+        ) : gameMode === 'h2h' ? (
+          <GlobalH2HContent />
+        ) : (
           <>
             {entries.length === 0 ? (
               <div
@@ -242,17 +281,15 @@ function LeaderboardPage() {
               </div>
             )}
           </>
-        ) : (
-          <H2HLeaderboardContent />
         )}
       </div>
     </div>
   );
 }
 
-// ───────────────────────── H2H Leaderboard Tab ─────────────────────────
+// ──────────────────── Global H2H ────────────────────
 
-function H2HLeaderboardContent() {
+function GlobalH2HContent() {
   const h2hData = useQuery(api.h2h.getH2HSeasonLeaderboard, {
     limit: PAGE_SIZE,
   });
@@ -285,8 +322,221 @@ function H2HLeaderboardContent() {
   }
 
   return (
+    <H2HLeaderboardLayout
+      entries={entries}
+      viewerEntry={viewerEntry}
+      podiumEntries={podiumEntries}
+      tableEntries={tableEntries}
+    />
+  );
+}
+
+// ──────────────────── Following: shared guard & empty state ────────────────────
+
+function FollowingGuard({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, isLoaded } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="rounded-xl border border-border bg-surface p-8 text-center">
+        <Users className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+        <h2 className="mb-2 text-xl font-semibold text-text">
+          Sign in to see your friends
+        </h2>
+        <p className="mb-4 text-text-muted">
+          Follow other players to compete against them on a private leaderboard.
+        </p>
+        <SignInButton mode="modal">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+          >
+            Sign In
+          </button>
+        </SignInButton>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+function FollowingEmptyState() {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-8 text-center">
+      <Users className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+      <h2 className="mb-2 text-xl font-semibold text-text">No one here yet</h2>
+      <p className="mb-4 text-text-muted">
+        Follow other players from their profile to see them on this leaderboard.
+      </p>
+      <p className="text-sm text-text-muted">
+        Browse the global leaderboard to find players to follow.
+      </p>
+    </div>
+  );
+}
+
+// ──────────────────── Following Top 5 ────────────────────
+
+function FollowingTop5Content() {
+  return (
+    <FollowingGuard>
+      <FollowingTop5Inner />
+    </FollowingGuard>
+  );
+}
+
+function FollowingTop5Inner() {
+  const data = useQuery(api.leaderboards.getFriendsLeaderboard, {
+    limit: PAGE_SIZE,
+  });
+
+  if (data === undefined) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
+      </div>
+    );
+  }
+
+  const entries = data.entries;
+  const viewerEntry = data.viewerEntry;
+
+  if (entries.length === 0) {
+    return <FollowingEmptyState />;
+  }
+
+  const podiumEntries = entries.slice(0, 3);
+  const tableEntries = entries.slice(3);
+
+  return (
     <div className="space-y-3">
-      {/* Viewer's H2H rank */}
+      {viewerEntry && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
+            {viewerEntry.rank}
+          </span>
+          <div>
+            <div className="flex items-center gap-1.5 text-sm font-medium text-text">
+              <User className="h-3.5 w-3.5 text-accent" />
+              Your Rank
+            </div>
+            <div className="text-lg font-bold text-accent">
+              {viewerEntry.points} pts
+            </div>
+          </div>
+        </div>
+      )}
+
+      {podiumEntries.length >= 3 && (
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <PodiumCard entry={podiumEntries[1]} place={2} />
+          <PodiumCard entry={podiumEntries[0]} place={1} />
+          <PodiumCard entry={podiumEntries[2]} place={3} />
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
+                Rank
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
+                Player
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
+                Races
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
+                Points
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableEntries.length > 0
+              ? tableEntries.map((entry) => (
+                  <LeaderboardRow key={entry.userId} entry={entry} />
+                ))
+              : null}
+          </tbody>
+        </table>
+
+        {entries.length <= 3 && entries.length > 0 && (
+          <SmallLeaderboard entries={entries} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────── Following H2H ────────────────────
+
+function FollowingH2HContent() {
+  return (
+    <FollowingGuard>
+      <FollowingH2HInner />
+    </FollowingGuard>
+  );
+}
+
+function FollowingH2HInner() {
+  const data = useQuery(api.leaderboards.getFriendsH2HLeaderboard, {
+    limit: PAGE_SIZE,
+  });
+
+  if (data === undefined) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
+      </div>
+    );
+  }
+
+  const entries = data.entries as Array<H2HLeaderboardEntry>;
+  const viewerEntry = data.viewerEntry as H2HLeaderboardEntry | null;
+
+  if (entries.length === 0) {
+    return <FollowingEmptyState />;
+  }
+
+  const podiumEntries = entries.slice(0, 3);
+  const tableEntries = entries.slice(3);
+
+  return (
+    <H2HLeaderboardLayout
+      entries={entries}
+      viewerEntry={viewerEntry}
+      podiumEntries={podiumEntries}
+      tableEntries={tableEntries}
+    />
+  );
+}
+
+// ───────────────────────── Shared H2H Layout ─────────────────────────
+
+function H2HLeaderboardLayout({
+  entries,
+  viewerEntry,
+  podiumEntries,
+  tableEntries,
+}: {
+  entries: Array<H2HLeaderboardEntry>;
+  viewerEntry: H2HLeaderboardEntry | null;
+  podiumEntries: Array<H2HLeaderboardEntry>;
+  tableEntries: Array<H2HLeaderboardEntry>;
+}) {
+  return (
+    <div className="space-y-3">
       {viewerEntry && (
         <div className="mb-4 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
@@ -307,7 +557,6 @@ function H2HLeaderboardContent() {
         </div>
       )}
 
-      {/* Podium */}
       {podiumEntries.length >= 3 && (
         <div className="mb-6 grid grid-cols-3 gap-3">
           <PodiumCard entry={podiumEntries[1]} place={2} />
@@ -316,7 +565,6 @@ function H2HLeaderboardContent() {
         </div>
       )}
 
-      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
         <table className="w-full">
           <thead>
@@ -488,7 +736,7 @@ function SmallLeaderboard({ entries }: { entries: Array<LeaderboardEntry> }) {
           key={entry.userId}
           to="/p/$username"
           params={{ username: entry.username }}
-          className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors hover:opacity-90 last:border-0 ${
+          className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors last:border-0 hover:opacity-90 ${
             entry.isViewer ? 'rounded-lg bg-accent-muted px-2' : ''
           }`}
         >
@@ -563,7 +811,7 @@ function PodiumCard({
     <Link
       to="/p/$username"
       params={{ username: entry.username }}
-      className={`${marginTop} block cursor-pointer rounded-xl border p-4 text-center transition-[box-shadow,transform] hover:shadow-lg hover:-translate-y-0.5 ${borderStyle}`}
+      className={`${marginTop} block cursor-pointer rounded-xl border p-4 text-center transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-lg ${borderStyle}`}
     >
       <div
         className={`mx-auto mb-2 flex items-center justify-center rounded-full ${bgColor} ${

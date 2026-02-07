@@ -1,9 +1,21 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
-import { useQuery } from 'convex/react';
-import { Hash, History, Info, Settings, Star, User } from 'lucide-react';
+import { useMutation, useQuery } from 'convex/react';
+import {
+  Hash,
+  History,
+  Info,
+  Settings,
+  Star,
+  Trophy,
+  User,
+  UserCheck,
+  UserPlus,
+} from 'lucide-react';
+import { useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { Avatar } from '../../components/Avatar';
 import { primaryButtonStyles } from '../../components/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
@@ -94,6 +106,10 @@ function ProfilePage() {
     );
   }
 
+  const followCounts = useQuery(api.follows.getFollowCounts, {
+    userId: currentProfile._id,
+  });
+
   const isOwner = currentProfile.isOwner;
   const displayName =
     currentProfile.displayName ?? currentProfile.username ?? 'Anonymous';
@@ -103,13 +119,25 @@ function ProfilePage() {
     ? drivers?.find((d) => d._id === favoritePick.driverId)
     : null;
 
+  /** Best scoring weekend (max totalPoints; tiebreak: most recent race). */
+  const bestRace =
+    weekends && weekends.length > 0
+      ? [...weekends]
+          .filter((w) => w.hasScores && w.totalPoints > 0)
+          .sort((a, b) => {
+            if (a.totalPoints !== b.totalPoints)
+              return b.totalPoints - a.totalPoints;
+            return b.raceDate - a.raceDate;
+          })[0] ?? null
+      : null;
+
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Profile header */}
         <div className="mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <Avatar
                 avatarUrl={currentProfile.avatarUrl}
                 username={currentProfile.username}
@@ -117,7 +145,7 @@ function ProfilePage() {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="truncate text-3xl font-bold text-text">
+                  <h1 className="truncate text-xl font-bold text-text sm:text-2xl lg:text-3xl">
                     {displayName}
                   </h1>
                   {isOwner && (
@@ -133,13 +161,33 @@ function ProfilePage() {
                 {currentProfile.username && (
                   <p className="text-text-muted">@{currentProfile.username}</p>
                 )}
+                {followCounts && (
+                  <p className="text-sm text-text-muted">
+                    <span className="font-medium text-text">
+                      {followCounts.followerCount}
+                    </span>{' '}
+                    {followCounts.followerCount === 1
+                      ? 'follower'
+                      : 'followers'}{' '}
+                    &middot;{' '}
+                    <span className="font-medium text-text">
+                      {followCounts.followingCount}
+                    </span>{' '}
+                    following
+                  </p>
+                )}
               </div>
             </div>
+            {!isOwner && (
+              <div className="shrink-0">
+                <FollowButton followeeId={currentProfile._id} />
+              </div>
+            )}
           </div>
         </div>
 
         {/* Stats grid */}
-        <div className="mb-4 grid grid-cols-4 gap-3">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-xl border border-border bg-surface p-3 text-center">
             <div className="text-2xl font-bold text-accent">
               {stats?.totalPoints ?? '—'}
@@ -150,13 +198,7 @@ function ProfilePage() {
             <div className="text-2xl font-bold text-text">
               {stats?.weekendCount ?? '—'}
             </div>
-            <div className="text-xs text-text-muted">Weekends</div>
-          </div>
-          <div className="rounded-xl border border-border bg-surface p-3 text-center">
-            <div className="text-2xl font-bold text-text">
-              {stats?.scoredWeekends ?? '—'}
-            </div>
-            <div className="text-xs text-text-muted">Scored</div>
+            <div className="text-xs text-text-muted">Weekends predicted</div>
           </div>
           <div className="rounded-xl border border-border bg-surface p-3 text-center">
             <div className="flex items-center justify-center gap-1">
@@ -166,71 +208,115 @@ function ProfilePage() {
               </span>
             </div>
             <div className="text-xs text-text-muted">
-              {stats ? `of ${stats.totalPlayers}` : 'Rank'}
+              {stats ? `Top 5 · of ${stats.totalPlayers}` : 'Top 5 rank'}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-surface p-3 text-center">
+            <div className="flex items-center justify-center gap-1">
+              <Hash className="h-4 w-4 text-accent" />
+              <span className="text-2xl font-bold text-accent">
+                {stats?.h2hSeasonRank ?? '—'}
+              </span>
+            </div>
+            <div className="text-xs text-text-muted">
+              {stats ? `H2H · of ${stats.h2hTotalPlayers}` : 'H2H rank'}
             </div>
           </div>
         </div>
 
-        {/* Favorite Pick */}
-        {favoritePick && favoriteDriver && (
-          <div className="mb-4 overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-            <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
-              <Star className="h-5 w-5 shrink-0 text-accent" />
-              <h2 className="text-sm font-semibold text-text">
-                {isOwner ? 'Your Favorite Pick' : 'Favorite Pick'}
-              </h2>
-              <Tooltip
-                placement="top"
-                content={
-                  <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
-                    Weighted by where they were picked: P1 = 5 pts, P2 = 4, P3 =
-                    3, P4 = 2, P5 = 1. The driver picked in top positions most.
-                  </span>
-                }
-              >
-                <Info className="h-4 w-4 shrink-0 text-text-muted" />
-              </Tooltip>
-            </div>
-            <div className="flex items-stretch">
-              <div
-                className="flex w-16 shrink-0 flex-col items-center justify-center py-4 text-white"
-                style={{
-                  backgroundColor:
-                    favoriteDriver.team &&
-                    (TEAM_COLORS[favoriteDriver.team] ?? '#666'),
-                }}
-              >
-                {favoriteDriver.number != null && (
-                  <span className="font-mono text-2xl font-bold">
-                    {favoriteDriver.number}
-                  </span>
-                )}
-                <span className="font-mono text-xs font-bold tracking-wider text-white/90">
-                  {favoriteDriver.code}
-                </span>
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  {favoriteDriver.nationality && (
-                    <Flag
-                      code={favoriteDriver.nationality}
-                      size="md"
-                      className="shrink-0"
-                    />
-                  )}
-                  {favoriteDriver.displayName && (
-                    <span className="text-lg font-semibold text-text">
-                      {favoriteDriver.displayName}
-                    </span>
-                  )}
+        {/* Favorite Pick + Best Race: side by side on desktop */}
+        {(favoritePick && favoriteDriver || bestRace) && (
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {favoritePick && favoriteDriver && (
+              <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+                <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
+                  <Star className="h-5 w-5 shrink-0 text-accent" />
+                  <h2 className="text-sm font-semibold text-text">
+                    {isOwner ? 'Your Favorite Top 5 Pick' : 'Favorite Top 5 Pick'}
+                  </h2>
+                  <Tooltip
+                    placement="top"
+                    content={
+                      <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
+                        Weighted by where they were picked: P1 = 5 pts, P2 = 4, P3 =
+                        3, P4 = 2, P5 = 1. The driver picked in top positions most.
+                      </span>
+                    }
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-text-muted" />
+                  </Tooltip>
                 </div>
-                {favoriteDriver.team && (
-                  <span className="text-sm text-text-muted">
-                    {favoriteDriver.team}
-                  </span>
-                )}
+                <div className="flex items-stretch">
+                  <div
+                    className="flex w-16 shrink-0 flex-col items-center justify-center py-4 text-white"
+                    style={{
+                      backgroundColor:
+                        favoriteDriver.team &&
+                        (TEAM_COLORS[favoriteDriver.team] ?? '#666'),
+                    }}
+                  >
+                    {favoriteDriver.number != null && (
+                      <span className="font-mono text-2xl font-bold">
+                        {favoriteDriver.number}
+                      </span>
+                    )}
+                    <span className="font-mono text-xs font-bold tracking-wider text-white/90">
+                      {favoriteDriver.code}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {favoriteDriver.nationality && (
+                        <Flag
+                          code={favoriteDriver.nationality}
+                          size="md"
+                          className="shrink-0"
+                        />
+                      )}
+                      {favoriteDriver.displayName && (
+                        <span className="text-lg font-semibold text-text">
+                          {favoriteDriver.displayName}
+                        </span>
+                      )}
+                    </div>
+                    {favoriteDriver.team && (
+                      <span className="text-sm text-text-muted">
+                        {favoriteDriver.team}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+            {bestRace && (
+              <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+                <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
+                  <Trophy className="h-5 w-5 shrink-0 text-accent" />
+                  <h2 className="text-sm font-semibold text-text">
+                    {isOwner ? 'Your Best Top 5 Result' : 'Best Top 5 Result'}
+                  </h2>
+                  <Tooltip
+                    placement="top"
+                    content={
+                      <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
+                        The race weekend where they scored the most points. Ties
+                        broken by most recent race.
+                      </span>
+                    }
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-text-muted" />
+                  </Tooltip>
+                </div>
+                <div className="flex items-center justify-between gap-4 px-4 py-4">
+                  <span className="text-lg font-semibold text-text">
+                    {bestRace.raceName}
+                  </span>
+                  <span className="shrink-0 rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
+                    {bestRace.totalPoints} pts
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -273,5 +359,84 @@ function ProfilePage() {
         )}
       </div>
     </div>
+  );
+}
+
+function FollowButton({ followeeId }: { followeeId: Id<'users'> }) {
+  const isFollowing = useQuery(api.follows.isFollowing, { followeeId });
+  const followMutation = useMutation(api.follows.follow);
+  const unfollowMutation = useMutation(api.follows.unfollow);
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const following = optimistic ?? isFollowing;
+
+  // Not signed in or still loading
+  if (isFollowing === undefined) return null;
+
+  const handleClick = async () => {
+    const willFollow = !following;
+    setOptimistic(willFollow);
+    try {
+      if (willFollow) {
+        await followMutation({ followeeId });
+      } else {
+        await unfollowMutation({ followeeId });
+      }
+    } catch {
+      setOptimistic(null);
+    }
+  };
+
+  const buttonClass =
+    'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
+
+  if (following) {
+    return (
+      <button
+        type="button"
+        onClick={() => void handleClick()}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`${buttonClass} ${
+          isHovered
+            ? 'border border-red-300 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
+            : 'border border-border bg-surface-muted text-text-muted'
+        }`}
+      >
+        <span className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+          <span
+            className={`absolute inset-0 flex items-center justify-center transition-opacity ${
+              isHovered ? 'opacity-0' : 'opacity-100'
+            }`}
+            aria-hidden
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+          </span>
+          <span
+            className={`absolute inset-0 flex -translate-x-0.5 items-center justify-center transition-opacity ${
+              isHovered ? 'opacity-100' : 'opacity-0'
+            }`}
+            aria-hidden
+          >
+            <User className="h-3.5 w-3.5" />
+          </span>
+        </span>
+        <span className="flex-1">{isHovered ? 'Unfollow' : 'Following'}</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void handleClick()}
+      className={`${buttonClass} border border-transparent bg-accent text-white hover:bg-accent/90`}
+    >
+      <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+        <UserPlus className="h-3.5 w-3.5" />
+      </span>
+      <span className="flex-1">Follow</span>
+    </button>
   );
 }

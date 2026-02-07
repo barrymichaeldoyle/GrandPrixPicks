@@ -100,12 +100,27 @@ export const getUserStats = query({
     const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
     const totalPlayers = sorted.length;
 
+    // H2H global rank (same logic as getH2HSeasonLeaderboard)
+    const h2hScores = await ctx.db.query('h2hScores').collect();
+    const h2hByUser = new Map<string, number>();
+    for (const s of h2hScores) {
+      h2hByUser.set(s.userId, (h2hByUser.get(s.userId) ?? 0) + s.points);
+    }
+    const h2hSorted = Array.from(h2hByUser.entries()).sort(
+      ([, a], [, b]) => b - a,
+    );
+    const h2hRankIndex = h2hSorted.findIndex(([uid]) => uid === args.userId);
+    const h2hSeasonRank = h2hRankIndex === -1 ? null : h2hRankIndex + 1;
+    const h2hTotalPlayers = h2hSorted.length;
+
     return {
       totalPoints,
       weekendCount,
       scoredWeekends,
       seasonRank,
       totalPlayers,
+      h2hSeasonRank,
+      h2hTotalPlayers,
     };
   },
 });

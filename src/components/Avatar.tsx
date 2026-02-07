@@ -1,7 +1,7 @@
 const SIZES = {
   sm: 'h-8 w-8 text-sm',
   md: 'h-12 w-12 text-lg',
-  lg: 'h-20 w-20 text-3xl',
+  lg: 'h-12 w-12 text-xl sm:h-16 sm:w-16 sm:text-2xl lg:h-20 lg:w-20 lg:text-3xl',
 } as const;
 
 const COLORS = [

@@ -174,4 +174,15 @@ export default defineSchema({
     .index('by_race_session', ['raceId', 'sessionType'])
     .index('by_user', ['userId'])
     .index('by_user_session', ['userId', 'sessionType']),
+
+  // ============ FOLLOWS ============
+
+  follows: defineTable({
+    followerId: v.id('users'),
+    followeeId: v.id('users'),
+    createdAt: v.number(),
+  })
+    .index('by_follower', ['followerId'])
+    .index('by_followee', ['followeeId'])
+    .index('by_follower_followee', ['followerId', 'followeeId']),
 });

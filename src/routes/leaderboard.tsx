@@ -72,9 +72,12 @@ function LeaderboardPage() {
   const [hasMore, setHasMore] = useState(initialLeaderboard.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const clientLeaderboard = useQuery(api.leaderboards.getSeasonLeaderboard, {
-    limit: PAGE_SIZE,
-  });
+  const isGlobalTop5 = scope === 'global' && gameMode === 'top5';
+
+  const clientLeaderboard = useQuery(
+    api.leaderboards.getSeasonLeaderboard,
+    isGlobalTop5 ? { limit: PAGE_SIZE } : 'skip',
+  );
 
   useEffect(() => {
     if (clientLeaderboard && offset === PAGE_SIZE) {

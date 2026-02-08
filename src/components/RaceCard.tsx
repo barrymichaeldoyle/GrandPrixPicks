@@ -18,10 +18,14 @@ type Race = Doc<'races'>;
 /** Map race slug prefix to ISO 3166-1 alpha-2 country code for flag images (flagcdn.com). */
 const SLUG_TO_COUNTRY: Record<string, string> = {
   australia: 'au',
+  australian: 'au',
   china: 'cn',
+  chinese: 'cn',
   japan: 'jp',
+  japanese: 'jp',
   bahrain: 'bh',
   'saudi-arabia': 'sa',
+  'saudi-arabian': 'sa',
   saudi: 'sa',
   miami: 'us',
   canada: 'ca',

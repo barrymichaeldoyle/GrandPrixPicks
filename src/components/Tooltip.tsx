@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-export interface TooltipProps {
+interface TooltipProps {
   /** Tooltip content shown on hover (string = default dark style, ReactNode = custom) */
   content: string | ReactNode;
   /** Trigger element(s) */

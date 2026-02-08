@@ -1,3 +1,5 @@
+import { displayTeamName } from '@/lib/display';
+
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
@@ -5,18 +7,23 @@ import { Tooltip } from './Tooltip';
 export const TEAM_COLORS: Record<string, string> = {
   McLaren: '#E67300',
   Ferrari: '#DC0028',
-  'Red Bull Racing': '#2B5AA8',
-  Mercedes: '#00A383',
-  'Aston Martin': '#1A7A5A',
+  'Red Bull Racing': '#1E3A7B',
+  Mercedes: '#00C9A7',
+  'Aston Martin': '#0D5C35',
   Alpine: '#E0569A',
   Williams: '#1E90D0',
-  'Racing Bulls': '#4A72CC',
+  'Racing Bulls': '#6692DE',
   Audi: '#6B6B6B',
-  Haas: '#6E7275',
+  Haas: '#B51E22',
   Cadillac: '#1E1E1E',
 };
 
-export interface DriverBadgeProps {
+const BADGE_SIZES = {
+  sm: 'h-6 min-w-9 px-1.5 text-[10px]',
+  md: 'h-8 min-w-11 px-2.5 text-xs',
+} as const;
+
+interface DriverBadgeProps {
   /** Driver 3-letter code (e.g., "VER", "HAM") */
   code: string;
   /** Team name for color lookup */
@@ -27,6 +34,10 @@ export interface DriverBadgeProps {
   number?: number | null;
   /** Driver's nationality (ISO 3166-1 alpha-2 code, e.g., "NL", "GB") */
   nationality?: string | null;
+  /** Badge size variant */
+  size?: 'sm' | 'md';
+  /** Show driver number before code */
+  showNumber?: boolean;
 }
 
 /**
@@ -40,6 +51,8 @@ export function DriverBadge({
   displayName,
   number,
   nationality,
+  size = 'md',
+  showNumber = false,
 }: DriverBadgeProps) {
   const color = team ? (TEAM_COLORS[team] ?? '#666') : '#666';
   const hasTooltip = displayName || number != null || team || nationality;
@@ -73,7 +86,11 @@ export function DriverBadge({
               </span>
             )}
           </div>
-          {team && <span className="text-xs text-text-muted">{team}</span>}
+          {team && (
+            <span className="text-xs text-text-muted">
+              {displayTeamName(team)}
+            </span>
+          )}
         </div>
       </div>
       <span
@@ -83,13 +100,21 @@ export function DriverBadge({
     </div>
   ) : null;
 
+  const classes = [
+    'inline-flex items-center justify-center rounded-md font-mono leading-none font-bold tracking-wider text-white uppercase shadow-sm',
+    BADGE_SIZES[size],
+    showNumber && number != null ? 'gap-1' : '',
+    team === 'Cadillac' ? 'dark:ring-1 dark:ring-white/20' : '',
+    hasTooltip ? 'cursor-help' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   const badge = (
-    <span
-      className={`inline-flex h-8 min-w-11 items-center justify-center rounded-md px-2.5 font-mono text-xs leading-none font-bold tracking-wider text-white uppercase shadow-sm ${
-        hasTooltip ? 'cursor-help' : ''
-      }`}
-      style={{ backgroundColor: color }}
-    >
+    <span className={classes} style={{ backgroundColor: color }}>
+      {showNumber && number != null && (
+        <span className="font-normal opacity-70">{number}</span>
+      )}
       {code}
     </span>
   );
@@ -109,11 +134,50 @@ export function DriverBadge({
  * Skeleton matching DriverBadge dimensions for loading states.
  * Use in tables so layout doesn't shift when driver data loads.
  */
-export function DriverBadgeSkeleton() {
+export function DriverBadgeSkeleton({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  const classes = [
+    'inline-flex animate-pulse items-center justify-center rounded-md bg-surface-muted',
+    size === 'sm' ? 'h-6 min-w-9' : 'h-8 min-w-11',
+  ].join(' ');
+
+  return <span className={classes} aria-hidden />;
+}
+
+/** Wraps a DriverBadge with a scoring indicator ring and opacity. */
+export function ScoredDriverBadge({
+  pickPoints,
+  ...driverProps
+}: DriverBadgeProps & { pickPoints?: number }) {
+  let ringClass = '';
+  let opacityClass = '';
+
+  if (pickPoints !== undefined) {
+    if (pickPoints === 5) {
+      ringClass = 'ring-2 ring-success';
+    } else if (pickPoints === 3) {
+      ringClass = 'ring-2 ring-warning';
+    } else if (pickPoints === 1) {
+      ringClass = 'ring-2 ring-text-muted/40';
+    } else {
+      ringClass = 'ring-2 ring-error/40';
+      opacityClass = 'opacity-50';
+    }
+  }
+
   return (
     <span
-      className="inline-flex h-8 min-w-11 animate-pulse items-center justify-center rounded-md bg-surface-muted"
-      aria-hidden
-    />
+      className={['relative inline-flex rounded-md', ringClass, opacityClass]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <DriverBadge {...driverProps} />
+      {pickPoints !== undefined && pickPoints >= 3 && (
+        <span
+          className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-surface ${
+            pickPoints === 5 ? 'bg-success' : 'bg-warning'
+          }`}
+        />
+      )}
+    </span>
   );
 }

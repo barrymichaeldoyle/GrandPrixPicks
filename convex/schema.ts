@@ -175,6 +175,31 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_user_session', ['userId', 'sessionType']),
 
+  // ============ MATERIALIZED STANDINGS ============
+
+  // Pre-aggregated season standings (upserted at result publish time)
+  seasonStandings: defineTable({
+    userId: v.id('users'),
+    season: v.number(),
+    totalPoints: v.number(),
+    raceCount: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_season_points', ['season', 'totalPoints'])
+    .index('by_user_season', ['userId', 'season']),
+
+  h2hSeasonStandings: defineTable({
+    userId: v.id('users'),
+    season: v.number(),
+    totalPoints: v.number(),
+    raceCount: v.number(),
+    correctPicks: v.number(),
+    totalPicks: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_season_points', ['season', 'totalPoints'])
+    .index('by_user_season', ['userId', 'season']),
+
   // ============ FOLLOWS ============
 
   follows: defineTable({

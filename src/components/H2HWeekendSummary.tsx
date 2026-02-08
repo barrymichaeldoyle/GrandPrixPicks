@@ -2,14 +2,16 @@ import { useQuery } from 'convex/react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { useState } from 'react';
 
-import { api } from '../../convex/_generated/api';
-import type { Doc, Id } from '../../convex/_generated/dataModel';
-import type { SessionType } from '../lib/sessions';
+import { displayTeamName } from '@/lib/display';
+import type { SessionType } from '@/lib/sessions';
 import {
   getSessionsForWeekend,
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
-} from '../lib/sessions';
+} from '@/lib/sessions';
+
+import { api } from '../../convex/_generated/api';
+import type { Doc, Id } from '../../convex/_generated/dataModel';
 import { DriverBadge } from './DriverBadge';
 import { H2HPredictionForm } from './H2HPredictionForm';
 import { Tooltip } from './Tooltip';
@@ -178,7 +180,7 @@ export function H2HWeekendSummary({
               >
                 <td className="px-2 py-1.5 sm:px-4 sm:py-2">
                   <span className="text-xs font-medium text-text-muted">
-                    {matchup.team}
+                    {displayTeamName(matchup.team)}
                   </span>
                 </td>
                 {sessions.map((session) => {
@@ -200,7 +202,7 @@ export function H2HWeekendSummary({
                       key={session}
                       className="px-2 py-1.5 text-center sm:px-4 sm:py-2"
                     >
-                      <div className="flex h-8 items-center justify-center">
+                      <div className="flex h-6 items-center justify-center">
                         {winner ? (
                           <DriverBadge
                             code={winner.code}
@@ -208,6 +210,7 @@ export function H2HWeekendSummary({
                             displayName={winner.displayName}
                             number={winner.number}
                             nationality={winner.nationality}
+                            size="sm"
                           />
                         ) : (
                           <span className="text-text-muted/50">—</span>

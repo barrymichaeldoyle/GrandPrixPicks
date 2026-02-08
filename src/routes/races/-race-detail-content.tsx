@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
+import { displayTeamName } from '@/lib/display';
 import { Button } from '../../components/Button';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
@@ -318,7 +319,7 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
                 >
                   <td className="px-2 py-1.5 sm:px-4 sm:py-2">
                     <span className="text-xs font-medium text-text-muted">
-                      {result.team}
+                      {displayTeamName(result.team)}
                     </span>
                   </td>
                   <td className="px-2 py-1.5 text-center sm:px-4 sm:py-2">

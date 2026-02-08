@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
+import { displayTeamName } from '@/lib/display';
 import type { SessionType } from '../lib/sessions';
 import { Button } from './Button';
 import { TEAM_COLORS } from './DriverBadge';
@@ -268,7 +269,7 @@ export function PredictionForm({
                         </div>
                         {driver.team && (
                           <span className="truncate text-xs text-text-muted">
-                            {driver.team}
+                            {displayTeamName(driver.team)}
                           </span>
                         )}
                       </div>

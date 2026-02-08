@@ -17,7 +17,7 @@ type WeekendWithSessions = {
  * Compute "favorite pick": driver with highest weighted score (P1=5 … P5=1).
  * Tiebreaker: most 1sts, then most 2nds, … then latest pick at that position.
  */
-export function computeFavoritePick(
+export function computeFavoriteTop5Pick(
   weekends: ReadonlyArray<WeekendWithSessions>,
 ): { driverId: Id<'drivers'>; favoritePoints: number } | null {
   if (weekends.length === 0) return null;

@@ -43,9 +43,11 @@ function PrivacyPage() {
             <p>
               We use Clerk for authentication. When you sign in, we receive and
               store the information you provide (such as your email, username,
-              and display name) and use it to identify you, show your
-              predictions and scores on the leaderboard, and operate the app. We
-              do not sell your data.
+              display name, and profile picture) and use it to identify you,
+              show your predictions and scores on the leaderboard, and operate
+              the app. We also store your predictions (top 5 and head-to-head),
+              scores, and follow relationships (who you follow and who follows
+              you). We do not sell your data.
             </p>
           </section>
 
@@ -57,10 +59,13 @@ function PrivacyPage() {
               Your information is used to run the game: to associate your
               predictions with your account, to calculate and display your
               scores, and to show your username or display name on the
-              leaderboard. We may use error-reporting or analytics services
-              (e.g. Sentry) to improve the app; such services may receive
-              limited technical data (e.g. IP address, device info) in
-              accordance with their own policies.
+              leaderboard and your public profile page. Your username, display
+              name, profile picture, predictions, and scores are publicly
+              visible to other users once the relevant session has locked. We
+              may use error-reporting or analytics services (e.g. Sentry) to
+              improve the app; such services may receive limited technical data
+              (e.g. IP address, device info) in accordance with their own
+              policies.
             </p>
           </section>
 
@@ -82,9 +87,10 @@ function PrivacyPage() {
             </h2>
             <p>
               You can update your display name and account details through your
-              account settings (e.g. via Clerk). You may request deletion of
-              your account and associated data by contacting us; we will process
-              such requests in line with applicable law.
+              account settings (e.g. via Clerk). You can choose to hide yourself
+              from the leaderboard in your app settings. You may request
+              deletion of your account and associated data by contacting us; we
+              will process such requests in line with applicable law.
             </p>
           </section>
 
@@ -104,8 +110,8 @@ function PrivacyPage() {
             <h2 className="mb-2 text-xl font-semibold text-text">7. Contact</h2>
             <p>
               For privacy-related questions or requests, you can reach the
-              operator of this app via the contact details provided on the main
-              site (e.g. the footer or about page).
+              operator of this app via the social media details provided on the
+              main site's footer.
             </p>
           </section>
         </div>

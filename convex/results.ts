@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
@@ -138,6 +139,98 @@ export const getAllResultsForRace = query({
   },
 });
 
+async function upsertStandings(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  season: number,
+) {
+  const now = Date.now();
+  const userScores = await ctx.db
+    .query('scores')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  let totalPoints = 0;
+  const raceIds = new Set<string>();
+  for (const s of userScores) {
+    totalPoints += s.points;
+    raceIds.add(s.raceId);
+  }
+
+  const existing = await ctx.db
+    .query('seasonStandings')
+    .withIndex('by_user_season', (q) =>
+      q.eq('userId', userId).eq('season', season),
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      totalPoints,
+      raceCount: raceIds.size,
+      updatedAt: now,
+    });
+  } else {
+    await ctx.db.insert('seasonStandings', {
+      userId,
+      season,
+      totalPoints,
+      raceCount: raceIds.size,
+      updatedAt: now,
+    });
+  }
+}
+
+async function upsertH2HStandings(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  season: number,
+) {
+  const now = Date.now();
+  const userScores = await ctx.db
+    .query('h2hScores')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  let totalPoints = 0;
+  let correctPicks = 0;
+  let totalPicks = 0;
+  const raceIds = new Set<string>();
+  for (const s of userScores) {
+    totalPoints += s.points;
+    correctPicks += s.correctPicks;
+    totalPicks += s.totalPicks;
+    raceIds.add(s.raceId);
+  }
+
+  const existing = await ctx.db
+    .query('h2hSeasonStandings')
+    .withIndex('by_user_season', (q) =>
+      q.eq('userId', userId).eq('season', season),
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      totalPoints,
+      raceCount: raceIds.size,
+      correctPicks,
+      totalPicks,
+      updatedAt: now,
+    });
+  } else {
+    await ctx.db.insert('h2hSeasonStandings', {
+      userId,
+      season,
+      totalPoints,
+      raceCount: raceIds.size,
+      correctPicks,
+      totalPicks,
+      updatedAt: now,
+    });
+  }
+}
+
 export const adminPublishResults = mutation({
   args: {
     raceId: v.id('races'),
@@ -221,10 +314,16 @@ export const adminPublishResults = mutation({
       }
     }
 
-    // ===== H2H Auto-Scoring =====
-
+    // Upsert season standings for all scored users
     const race = await ctx.db.get(args.raceId);
     const season = race?.season ?? 2026;
+
+    const scoredUserIds = new Set(predictions.map((p) => p.userId));
+    for (const userId of scoredUserIds) {
+      await upsertStandings(ctx, userId, season);
+    }
+
+    // ===== H2H Auto-Scoring =====
 
     const matchups = await ctx.db
       .query('h2hMatchups')
@@ -350,6 +449,11 @@ export const adminPublishResults = mutation({
           updatedAt: now,
         });
       }
+    }
+
+    // Upsert H2H season standings for all scored users
+    for (const userId of h2hByUser.keys()) {
+      await upsertH2HStandings(ctx, userId, season);
     }
 
     // Mark race as finished only when publishing race results

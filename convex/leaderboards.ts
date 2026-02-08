@@ -7,37 +7,23 @@ import { getViewer } from './lib/auth';
 export const getSeasonLeaderboard = query({
   args: {
     season: v.optional(v.number()),
-    limit: v.optional(v.number()), // Max entries to return (default: 50)
-    offset: v.optional(v.number()), // Offset for pagination (default: 0)
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
+    const season = args.season ?? 2026;
     const MAX_LIMIT = 100;
     const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
     const offset = Math.max(0, args.offset ?? 0);
 
-    const scores = await ctx.db.query('scores').collect();
+    const standings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', season))
+      .collect();
 
-    const byUser = new Map<
-      string,
-      { userId: Id<'users'>; points: number; raceCount: number }
-    >();
-
-    for (const s of scores) {
-      const key = s.userId;
-      const existing = byUser.get(key) ?? {
-        userId: key,
-        points: 0,
-        raceCount: 0,
-      };
-      existing.points += s.points;
-      existing.raceCount += 1;
-      byUser.set(key, existing);
-    }
-
-    const allRows = Array.from(byUser.values()).sort(
-      (a, b) => b.points - a.points,
-    );
+    // Sort by totalPoints desc (index is ascending)
+    const allRows = standings.sort((a, b) => b.totalPoints - a.totalPoints);
 
     // Find viewer's entry from ALL rows (before privacy filtering)
     let viewerEntry: {
@@ -57,7 +43,7 @@ export const getSeasonLeaderboard = query({
           rank: viewerIndex + 1,
           userId: viewer._id,
           username: viewer.username ?? 'Anonymous',
-          points: viewerRow.points,
+          points: viewerRow.totalPoints,
           raceCount: viewerRow.raceCount,
           isViewer: true,
         };
@@ -65,42 +51,46 @@ export const getSeasonLeaderboard = query({
     }
 
     // Filter out users who opted out of leaderboard (but always include viewer)
-    const userDocs = new Map<string, { showOnLeaderboard?: boolean }>();
+    // Only read user docs for privacy filtering — we need showOnLeaderboard from all rows
+    // but username/avatar only for the paginated subset
+    const privacyMap = new Map<string, boolean>();
     for (const row of allRows) {
+      if (viewer && row.userId === viewer._id) continue; // always visible
       const user = await ctx.db.get(row.userId);
-      if (user) userDocs.set(row.userId, user);
+      privacyMap.set(row.userId, user?.showOnLeaderboard !== false);
     }
 
     const rows = allRows.filter((row) => {
       if (viewer && row.userId === viewer._id) return true;
-      const user = userDocs.get(row.userId);
-      return user?.showOnLeaderboard !== false;
+      return privacyMap.get(row.userId) !== false;
     });
 
     // Paginate results
     const paginatedRows = rows.slice(offset, offset + limit);
     const hasMore = offset + limit < rows.length;
 
-    const enrichedRows = paginatedRows.map((row, index) => {
-      const user = userDocs.get(row.userId);
-      const isViewer = viewer ? row.userId === viewer._id : false;
-      return {
-        rank: offset + index + 1,
-        userId: row.userId,
-        username:
-          (user as { username?: string } | undefined)?.username ?? 'Anonymous',
-        avatarUrl: (user as { avatarUrl?: string } | undefined)?.avatarUrl,
-        points: row.points,
-        raceCount: row.raceCount,
-        isViewer,
-      };
-    });
+    // Only read user docs for the paginated page
+    const enrichedRows = await Promise.all(
+      paginatedRows.map(async (row, index) => {
+        const user = await ctx.db.get(row.userId);
+        const isViewer = viewer ? row.userId === viewer._id : false;
+        return {
+          rank: offset + index + 1,
+          userId: row.userId,
+          username: user?.username ?? 'Anonymous',
+          avatarUrl: user?.avatarUrl,
+          points: row.totalPoints,
+          raceCount: row.raceCount,
+          isViewer,
+        };
+      }),
+    );
 
     return {
       entries: enrichedRows,
       totalCount: rows.length,
       hasMore,
-      viewerEntry, // Always include viewer's entry for the header
+      viewerEntry,
     };
   },
 });
@@ -127,32 +117,16 @@ export const getFriendsLeaderboard = query({
       .collect();
 
     const friendIds = new Set<string>(followRows.map((f) => f.followeeId));
-    friendIds.add(viewer._id); // Include self
+    friendIds.add(viewer._id);
 
-    // Aggregate scores for friends only
-    const scores = await ctx.db.query('scores').collect();
+    const standings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', 2026))
+      .collect();
 
-    const byUser = new Map<
-      string,
-      { userId: Id<'users'>; points: number; raceCount: number }
-    >();
-
-    for (const s of scores) {
-      if (!friendIds.has(s.userId)) continue;
-      const key = s.userId;
-      const existing = byUser.get(key) ?? {
-        userId: key,
-        points: 0,
-        raceCount: 0,
-      };
-      existing.points += s.points;
-      existing.raceCount += 1;
-      byUser.set(key, existing);
-    }
-
-    const allRows = Array.from(byUser.values()).sort(
-      (a, b) => b.points - a.points,
-    );
+    const allRows = standings
+      .filter((s) => friendIds.has(s.userId))
+      .sort((a, b) => b.totalPoints - a.totalPoints);
 
     // Find viewer's entry
     let viewerEntry: {
@@ -171,7 +145,7 @@ export const getFriendsLeaderboard = query({
         rank: viewerIndex + 1,
         userId: viewer._id,
         username: viewer.username ?? 'Anonymous',
-        points: viewerRow.points,
+        points: viewerRow.totalPoints,
         raceCount: viewerRow.raceCount,
         isViewer: true,
       };
@@ -181,6 +155,7 @@ export const getFriendsLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
+    // Only read user docs for the paginated page
     const enrichedRows = await Promise.all(
       paginatedRows.map(async (row, index) => {
         const user = await ctx.db.get(row.userId);
@@ -190,7 +165,7 @@ export const getFriendsLeaderboard = query({
           userId: row.userId,
           username: user?.username ?? 'Anonymous',
           avatarUrl: user?.avatarUrl,
-          points: row.points,
+          points: row.totalPoints,
           raceCount: row.raceCount,
           isViewer,
         };
@@ -229,39 +204,14 @@ export const getFriendsH2HLeaderboard = query({
     const friendIds = new Set<string>(followRows.map((f) => f.followeeId));
     friendIds.add(viewer._id);
 
-    const scores = await ctx.db.query('h2hScores').collect();
+    const standings = await ctx.db
+      .query('h2hSeasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', 2026))
+      .collect();
 
-    const byUser = new Map<
-      string,
-      {
-        userId: Id<'users'>;
-        points: number;
-        raceCount: number;
-        correctPicks: number;
-        totalPicks: number;
-      }
-    >();
-
-    for (const s of scores) {
-      if (!friendIds.has(s.userId)) continue;
-      const key = s.userId;
-      const existing = byUser.get(key) ?? {
-        userId: key,
-        points: 0,
-        raceCount: 0,
-        correctPicks: 0,
-        totalPicks: 0,
-      };
-      existing.points += s.points;
-      existing.raceCount += 1;
-      existing.correctPicks += s.correctPicks;
-      existing.totalPicks += s.totalPicks;
-      byUser.set(key, existing);
-    }
-
-    const allRows = Array.from(byUser.values()).sort(
-      (a, b) => b.points - a.points,
-    );
+    const allRows = standings
+      .filter((s) => friendIds.has(s.userId))
+      .sort((a, b) => b.totalPoints - a.totalPoints);
 
     let viewerEntry: {
       rank: number;
@@ -281,7 +231,7 @@ export const getFriendsH2HLeaderboard = query({
         rank: viewerIndex + 1,
         userId: viewer._id,
         username: viewer.username ?? 'Anonymous',
-        points: viewerRow.points,
+        points: viewerRow.totalPoints,
         raceCount: viewerRow.raceCount,
         correctPicks: viewerRow.correctPicks,
         totalPicks: viewerRow.totalPicks,
@@ -301,7 +251,7 @@ export const getFriendsH2HLeaderboard = query({
           userId: row.userId,
           username: user?.username ?? 'Anonymous',
           avatarUrl: user?.avatarUrl,
-          points: row.points,
+          points: row.totalPoints,
           raceCount: row.raceCount,
           correctPicks: row.correctPicks,
           totalPicks: row.totalPicks,

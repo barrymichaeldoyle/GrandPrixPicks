@@ -195,7 +195,7 @@ export function WeekendPredictions({
                       key={session}
                       className="px-2 py-1.5 text-center sm:px-4 sm:py-2"
                     >
-                      <div className="flex h-8 items-center justify-center">
+                      <div className="flex h-6 items-center justify-center">
                         {driver ? (
                           <DriverBadge
                             code={driver.code}
@@ -203,9 +203,10 @@ export function WeekendPredictions({
                             displayName={driver.displayName}
                             number={driver.number}
                             nationality={driver.nationality}
+                            size="sm"
                           />
                         ) : driverId && drivers === undefined ? (
-                          <DriverBadgeSkeleton />
+                          <DriverBadgeSkeleton size="sm" />
                         ) : (
                           <span className="text-text-muted/50">—</span>
                         )}

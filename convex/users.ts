@@ -69,13 +69,6 @@ export const getProfileByUsername = query({
 export const getUserStats = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const scores = await ctx.db
-      .query('scores')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .collect();
-
-    const totalPoints = scores.reduce((sum, s) => sum + s.points, 0);
-
     // Count unique race weekends with predictions
     const predictions = await ctx.db
       .query('predictions')
@@ -84,34 +77,46 @@ export const getUserStats = query({
     const weekendRaceIds = new Set(predictions.map((p) => p.raceId));
     const weekendCount = weekendRaceIds.size;
 
-    // Count unique race weekends with scores
-    const scoredRaceIds = new Set(scores.map((s) => s.raceId));
-    const scoredWeekends = scoredRaceIds.size;
+    // Read from materialized standings instead of full table scans
+    const season = 2026;
 
-    // Compute season rank
-    const allScores = await ctx.db.query('scores').collect();
-    const byUser = new Map<string, number>();
-    for (const s of allScores) {
-      byUser.set(s.userId, (byUser.get(s.userId) ?? 0) + s.points);
-    }
+    // Top 5 rank from seasonStandings
+    const userStanding = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_user_season', (q) =>
+        q.eq('userId', args.userId).eq('season', season),
+      )
+      .unique();
 
-    const sorted = Array.from(byUser.entries()).sort(([, a], [, b]) => b - a);
-    const rankIndex = sorted.findIndex(([uid]) => uid === args.userId);
-    const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
-    const totalPlayers = sorted.length;
+    const totalPoints = userStanding?.totalPoints ?? 0;
+    const scoredWeekends = userStanding?.raceCount ?? 0;
 
-    // H2H global rank (same logic as getH2HSeasonLeaderboard)
-    const h2hScores = await ctx.db.query('h2hScores').collect();
-    const h2hByUser = new Map<string, number>();
-    for (const s of h2hScores) {
-      h2hByUser.set(s.userId, (h2hByUser.get(s.userId) ?? 0) + s.points);
-    }
-    const h2hSorted = Array.from(h2hByUser.entries()).sort(
-      ([, a], [, b]) => b - a,
+    const allStandings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', season))
+      .collect();
+
+    const sortedStandings = allStandings.sort(
+      (a, b) => b.totalPoints - a.totalPoints,
     );
-    const h2hRankIndex = h2hSorted.findIndex(([uid]) => uid === args.userId);
+    const rankIndex = sortedStandings.findIndex(
+      (r) => r.userId === args.userId,
+    );
+    const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
+    const totalPlayers = sortedStandings.length;
+
+    // H2H rank from h2hSeasonStandings
+    const allH2HStandings = await ctx.db
+      .query('h2hSeasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', season))
+      .collect();
+
+    const sortedH2H = allH2HStandings.sort(
+      (a, b) => b.totalPoints - a.totalPoints,
+    );
+    const h2hRankIndex = sortedH2H.findIndex((r) => r.userId === args.userId);
     const h2hSeasonRank = h2hRankIndex === -1 ? null : h2hRankIndex + 1;
-    const h2hTotalPlayers = h2hSorted.length;
+    const h2hTotalPlayers = sortedH2H.length;
 
     return {
       totalPoints,

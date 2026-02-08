@@ -687,103 +687,153 @@ export const seedDevData = internalMutation({
       return result;
     }
 
+    // Scoring patterns: each produces a different mix of exact/close/inTop5/miss
+    const PICK_PATTERNS: Record<
+      string,
+      (
+        top5: Array<Id<'drivers'>>,
+        others: Array<Id<'drivers'>>,
+      ) => Array<Id<'drivers'>>
+    > = {
+      // P1 exact, P2/P3 swapped (off-by-1 each), P4 miss, P5 exact → 16 pts
+      quali: (top5, others) => [
+        top5[0],
+        top5[2],
+        top5[1],
+        others[0] ?? top5[3],
+        top5[4],
+      ],
+      // P1 miss, P2 exact, P3 in-top-5, P4 exact, P5 off-by-1 → 14 pts
+      race: (top5, others) => [
+        others[1] ?? top5[0],
+        top5[1],
+        top5[4],
+        top5[3],
+        top5[3],
+      ],
+      // P1/P2 swapped, P3 in-top-5, P4 exact, P5 in-top-5 → 13 pts
+      sprint: (top5) => [top5[1], top5[0], top5[4], top5[3], top5[2]],
+      // P1 exact, P2-P4 miss, P5 exact → 10 pts
+      sprint_quali: (top5, others) => [
+        top5[0],
+        others[2] ?? top5[1],
+        others[3] ?? top5[2],
+        others[4] ?? top5[3],
+        top5[4],
+      ],
+    };
+
     for (const race of racesToFinish) {
       // 1. Mark race as finished (set dates in the past)
       const pastRaceStart =
         now - (numFinished - race.round + 1) * 7 * 24 * 60 * 60 * 1000; // weeks ago
+      const pastQuali = pastRaceStart - 24 * 60 * 60 * 1000;
+      const pastSprintQuali = pastQuali - 24 * 60 * 60 * 1000;
+      const pastSprint = pastQuali - 12 * 60 * 60 * 1000;
+
       await ctx.db.patch(race._id, {
         status: 'finished',
         raceStartAt: pastRaceStart,
         predictionLockAt: pastRaceStart,
-        qualiStartAt: pastRaceStart - 24 * 60 * 60 * 1000,
-        qualiLockAt: pastRaceStart - 24 * 60 * 60 * 1000,
+        qualiStartAt: pastQuali,
+        qualiLockAt: pastQuali,
+        ...(race.hasSprint && {
+          sprintQualiStartAt: pastSprintQuali,
+          sprintQualiLockAt: pastSprintQuali,
+          sprintStartAt: pastSprint,
+          sprintLockAt: pastSprint,
+        }),
         updatedAt: now,
       });
       stats.racesFinished++;
 
-      // 2. Create shuffled classification (results)
-      const classification = shuffle(driverIds);
-      const existingResult = await ctx.db
-        .query('results')
-        .withIndex('by_race_session', (q) =>
-          q.eq('raceId', race._id).eq('sessionType', 'race'),
-        )
-        .unique();
+      // 2. Determine which sessions this race has
+      const sessions: Array<SessionType> = race.hasSprint
+        ? ['sprint_quali', 'sprint', 'quali', 'race']
+        : ['quali', 'race'];
 
-      if (!existingResult) {
-        await ctx.db.insert('results', {
-          raceId: race._id,
-          sessionType: 'race',
-          classification,
-          publishedAt: now,
-          updatedAt: now,
-        });
-        stats.resultsCreated++;
-      }
+      // 3. For each session: create results, prediction, score
+      for (const sessionType of sessions) {
+        const classification = shuffle(driverIds);
+        const top5 = classification.slice(0, 5);
+        const others = classification.slice(5, 15);
 
-      // 3. Create prediction for dev user (slightly different from results for realistic scoring)
-      const existingPrediction = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q
-            .eq('userId', devUser._id)
-            .eq('raceId', race._id)
-            .eq('sessionType', 'race'),
-        )
-        .first();
+        // Create result if it doesn't exist
+        const existingResult = await ctx.db
+          .query('results')
+          .withIndex('by_race_session', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', sessionType),
+          )
+          .unique();
 
-      let picks: typeof driverIds;
-      if (!existingPrediction) {
-        // Make predictions that partially match results (for interesting scores)
-        const top5Result = classification.slice(0, 5);
-        picks = [
-          top5Result[0], // 1st place correct
-          top5Result[2], // 3rd in 2nd slot (off by 1)
-          top5Result[1], // 2nd in 3rd slot (off by 1)
-          classification[6], // 7th place driver in 4th slot (outside top 5)
-          top5Result[4], // 5th correct
-        ];
+        if (!existingResult) {
+          await ctx.db.insert('results', {
+            raceId: race._id,
+            sessionType,
+            classification,
+            publishedAt: now,
+            updatedAt: now,
+          });
+          stats.resultsCreated++;
+        }
 
-        await ctx.db.insert('predictions', {
-          userId: devUser._id,
-          raceId: race._id,
-          sessionType: 'race',
-          picks,
-          submittedAt: pastRaceStart - 60 * 60 * 1000, // 1 hour before race
-          updatedAt: pastRaceStart - 60 * 60 * 1000,
-        });
-        stats.predictionsCreated++;
-      } else {
-        picks = existingPrediction.picks;
-      }
+        // Create prediction if it doesn't exist
+        const existingPrediction = await ctx.db
+          .query('predictions')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', devUser._id)
+              .eq('raceId', race._id)
+              .eq('sessionType', sessionType),
+          )
+          .first();
 
-      // 4. Compute score
-      const existingScore = await ctx.db
-        .query('scores')
-        .withIndex('by_user_race_session', (q) =>
-          q
-            .eq('userId', devUser._id)
-            .eq('raceId', race._id)
-            .eq('sessionType', 'race'),
-        )
-        .unique();
+        let picks: typeof driverIds;
+        if (!existingPrediction) {
+          const patternFn = PICK_PATTERNS[sessionType];
+          picks = patternFn(top5, others);
 
-      if (!existingScore) {
-        const { total, breakdown } = scoreTopFive({
-          picks,
-          classification,
-        });
+          await ctx.db.insert('predictions', {
+            userId: devUser._id,
+            raceId: race._id,
+            sessionType,
+            picks,
+            submittedAt: pastRaceStart - 60 * 60 * 1000,
+            updatedAt: pastRaceStart - 60 * 60 * 1000,
+          });
+          stats.predictionsCreated++;
+        } else {
+          picks = existingPrediction.picks;
+        }
 
-        await ctx.db.insert('scores', {
-          userId: devUser._id,
-          raceId: race._id,
-          sessionType: 'race',
-          points: total,
-          breakdown,
-          createdAt: now,
-          updatedAt: now,
-        });
-        stats.scoresCreated++;
+        // Compute score if it doesn't exist
+        const existingScore = await ctx.db
+          .query('scores')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', devUser._id)
+              .eq('raceId', race._id)
+              .eq('sessionType', sessionType),
+          )
+          .unique();
+
+        if (!existingScore) {
+          const { total, breakdown } = scoreTopFive({
+            picks,
+            classification,
+          });
+
+          await ctx.db.insert('scores', {
+            userId: devUser._id,
+            raceId: race._id,
+            sessionType,
+            points: total,
+            breakdown,
+            createdAt: now,
+            updatedAt: now,
+          });
+          stats.scoresCreated++;
+        }
       }
     }
 
@@ -791,6 +841,191 @@ export const seedDevData = internalMutation({
       ...stats,
       devUserId: devUser._id,
       devUserEmail: devUser.email,
+    };
+  },
+});
+
+/**
+ * Seed H2H predictions, results, and scores for a user's finished races.
+ * Creates realistic H2H data so the WeekendCard H2H row shows scored results.
+ *
+ * Run via: npx convex run seed:seedH2HDevData
+ * Or with a specific user: npx convex run seed:seedH2HDevData '{"clerkUserId": "user_xxx"}'
+ */
+export const seedH2HDevData = internalMutation({
+  args: {
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Find user
+    const user = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : await ctx.db.query('users').first();
+
+    if (!user) throw new Error('User not found');
+
+    // Get matchups for 2026
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', 2026))
+      .collect();
+
+    if (matchups.length === 0) {
+      throw new Error('No H2H matchups found. Run seedH2HMatchups first.');
+    }
+
+    // Get finished races
+    const races = await ctx.db.query('races').collect();
+    const finishedRaces = races.filter((r) => r.status === 'finished');
+
+    if (finishedRaces.length === 0) {
+      throw new Error('No finished races. Run seedDevData first.');
+    }
+
+    const stats = {
+      h2hResultsCreated: 0,
+      h2hPredictionsCreated: 0,
+      h2hScoresCreated: 0,
+    };
+
+    for (const race of finishedRaces) {
+      const sessions: Array<SessionType> = race.hasSprint
+        ? ['sprint_quali', 'sprint', 'quali', 'race']
+        : ['quali', 'race'];
+
+      // Get actual results per session to determine H2H winners
+      for (const sessionType of sessions) {
+        const result = await ctx.db
+          .query('results')
+          .withIndex('by_race_session', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', sessionType),
+          )
+          .unique();
+
+        if (!result) continue;
+
+        const classification = result.classification;
+        const positionMap = new Map<string, number>();
+        for (let i = 0; i < classification.length; i++) {
+          positionMap.set(classification[i], i);
+        }
+
+        let correctPicks = 0;
+        let totalPicks = 0;
+
+        for (const matchup of matchups) {
+          const pos1 = positionMap.get(matchup.driver1Id);
+          const pos2 = positionMap.get(matchup.driver2Id);
+
+          // Skip if either driver wasn't classified
+          if (pos1 === undefined || pos2 === undefined) continue;
+
+          // Winner = whoever finished higher (lower position index)
+          const winnerId = pos1 < pos2 ? matchup.driver1Id : matchup.driver2Id;
+
+          // Create H2H result if it doesn't exist
+          const existingResult = await ctx.db
+            .query('h2hResults')
+            .withIndex('by_race_session_matchup', (q) =>
+              q
+                .eq('raceId', race._id)
+                .eq('sessionType', sessionType)
+                .eq('matchupId', matchup._id),
+            )
+            .unique();
+
+          if (!existingResult) {
+            await ctx.db.insert('h2hResults', {
+              raceId: race._id,
+              sessionType,
+              matchupId: matchup._id,
+              winnerId,
+              publishedAt: now,
+            });
+            stats.h2hResultsCreated++;
+          }
+
+          // Create H2H prediction for user (pick correct ~60% of the time)
+          const existingPred = await ctx.db
+            .query('h2hPredictions')
+            .withIndex('by_user_race_session_matchup', (q) =>
+              q
+                .eq('userId', user._id)
+                .eq('raceId', race._id)
+                .eq('sessionType', sessionType)
+                .eq('matchupId', matchup._id),
+            )
+            .unique();
+
+          // Use a deterministic-ish pattern: correct for ~60% of matchups
+          const matchupIndex = matchups.indexOf(matchup);
+          const sessionIndex = sessions.indexOf(sessionType);
+          const isCorrect =
+            (matchupIndex + sessionIndex + race.round) % 5 !== 0;
+          const predictedWinnerId = isCorrect
+            ? winnerId
+            : winnerId === matchup.driver1Id
+              ? matchup.driver2Id
+              : matchup.driver1Id;
+
+          if (!existingPred) {
+            await ctx.db.insert('h2hPredictions', {
+              userId: user._id,
+              raceId: race._id,
+              sessionType,
+              matchupId: matchup._id,
+              predictedWinnerId,
+              submittedAt: now - 60 * 60 * 1000,
+              updatedAt: now,
+            });
+            stats.h2hPredictionsCreated++;
+          }
+
+          totalPicks++;
+          if (isCorrect) correctPicks++;
+        }
+
+        // Create H2H score if it doesn't exist
+        if (totalPicks > 0) {
+          const existingScore = await ctx.db
+            .query('h2hScores')
+            .withIndex('by_user_race_session', (q) =>
+              q
+                .eq('userId', user._id)
+                .eq('raceId', race._id)
+                .eq('sessionType', sessionType),
+            )
+            .unique();
+
+          if (!existingScore) {
+            await ctx.db.insert('h2hScores', {
+              userId: user._id,
+              raceId: race._id,
+              sessionType,
+              points: correctPicks,
+              correctPicks,
+              totalPicks,
+              createdAt: now,
+              updatedAt: now,
+            });
+            stats.h2hScoresCreated++;
+          }
+        }
+      }
+    }
+
+    return {
+      ...stats,
+      userId: user._id,
+      racesProcessed: finishedRaces.length,
+      matchupsPerSession: matchups.length,
     };
   },
 });
@@ -1540,5 +1775,116 @@ export const seedUserPrediction = internalMutation({
         (id) => driverById.get(id.toString()) ?? '???',
       ),
     };
+  },
+});
+
+// ───────────────────────── Backfill Standings ─────────────────────────
+
+export const backfillStandings = internalMutation({
+  args: { season: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const season = args.season ?? 2026;
+    const now = Date.now();
+
+    // ── Top 5 standings ──
+    const allScores = await ctx.db.query('scores').collect();
+    const top5ByUser = new Map<
+      string,
+      { totalPoints: number; raceIds: Set<string> }
+    >();
+    for (const s of allScores) {
+      const entry = top5ByUser.get(s.userId) ?? {
+        totalPoints: 0,
+        raceIds: new Set(),
+      };
+      entry.totalPoints += s.points;
+      entry.raceIds.add(s.raceId);
+      top5ByUser.set(s.userId, entry);
+    }
+
+    let top5Count = 0;
+    for (const [userId, data] of top5ByUser) {
+      const existing = await ctx.db
+        .query('seasonStandings')
+        .withIndex('by_user_season', (q) =>
+          q.eq('userId', userId as Id<'users'>).eq('season', season),
+        )
+        .unique();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          totalPoints: data.totalPoints,
+          raceCount: data.raceIds.size,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert('seasonStandings', {
+          userId: userId as Id<'users'>,
+          season,
+          totalPoints: data.totalPoints,
+          raceCount: data.raceIds.size,
+          updatedAt: now,
+        });
+      }
+      top5Count++;
+    }
+
+    // ── H2H standings ──
+    const allH2HScores = await ctx.db.query('h2hScores').collect();
+    const h2hByUser = new Map<
+      string,
+      {
+        totalPoints: number;
+        correctPicks: number;
+        totalPicks: number;
+        raceIds: Set<string>;
+      }
+    >();
+    for (const s of allH2HScores) {
+      const entry = h2hByUser.get(s.userId) ?? {
+        totalPoints: 0,
+        correctPicks: 0,
+        totalPicks: 0,
+        raceIds: new Set(),
+      };
+      entry.totalPoints += s.points;
+      entry.correctPicks += s.correctPicks;
+      entry.totalPicks += s.totalPicks;
+      entry.raceIds.add(s.raceId);
+      h2hByUser.set(s.userId, entry);
+    }
+
+    let h2hCount = 0;
+    for (const [userId, data] of h2hByUser) {
+      const existing = await ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_user_season', (q) =>
+          q.eq('userId', userId as Id<'users'>).eq('season', season),
+        )
+        .unique();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          totalPoints: data.totalPoints,
+          raceCount: data.raceIds.size,
+          correctPicks: data.correctPicks,
+          totalPicks: data.totalPicks,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert('h2hSeasonStandings', {
+          userId: userId as Id<'users'>,
+          season,
+          totalPoints: data.totalPoints,
+          raceCount: data.raceIds.size,
+          correctPicks: data.correctPicks,
+          totalPicks: data.totalPicks,
+          updatedAt: now,
+        });
+      }
+      h2hCount++;
+    }
+
+    return { top5Count, h2hCount };
   },
 });

@@ -1,6 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import { DriverBadge, DriverBadgeSkeleton, TEAM_COLORS } from './DriverBadge';
+import {
+  DriverBadge,
+  DriverBadgeSkeleton,
+  ScoredDriverBadge,
+  TEAM_COLORS,
+} from './DriverBadge';
 
 const meta: Meta<typeof DriverBadge> = {
   title: 'Design System/Driver Badge',
@@ -18,6 +23,13 @@ const meta: Meta<typeof DriverBadge> = {
     team: {
       control: 'select',
       options: [null, ...Object.keys(TEAM_COLORS)],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md'],
+    },
+    showNumber: {
+      control: 'boolean',
     },
   },
 };
@@ -196,6 +208,117 @@ export const AllTeams: Story = {
   },
 };
 
+export const SmallSize: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="w-16 text-xs text-text-muted">sm</span>
+        <div className="flex gap-2">
+          <DriverBadge code="VER" team="Red Bull Racing" size="sm" />
+          <DriverBadge code="NOR" team="McLaren" size="sm" />
+          <DriverBadge code="HAM" team="Ferrari" size="sm" />
+          <DriverBadge code="RUS" team="Mercedes" size="sm" />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-16 text-xs text-text-muted">md</span>
+        <div className="flex gap-2">
+          <DriverBadge code="VER" team="Red Bull Racing" size="md" />
+          <DriverBadge code="NOR" team="McLaren" size="md" />
+          <DriverBadge code="HAM" team="Ferrari" size="md" />
+          <DriverBadge code="RUS" team="Mercedes" size="md" />
+        </div>
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Side-by-side comparison of `sm` (for dense tables) and `md` (default) sizes.',
+      },
+    },
+  },
+};
+
+export const WithNumber: Story = {
+  args: {
+    code: 'VER',
+    team: 'Red Bull Racing',
+    displayName: 'Max Verstappen',
+    number: 1,
+    nationality: 'NL',
+    showNumber: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Badge with `showNumber={true}` — displays racing number before the code.',
+      },
+    },
+  },
+};
+
+export const ScoringStates: Story = {
+  render: () => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="w-24 text-xs text-text-muted">5 pts (exact)</span>
+        <ScoredDriverBadge
+          code="VER"
+          team="Red Bull Racing"
+          displayName="Max Verstappen"
+          number={1}
+          nationality="NL"
+          pickPoints={5}
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-24 text-xs text-text-muted">3 pts (close)</span>
+        <ScoredDriverBadge
+          code="NOR"
+          team="McLaren"
+          displayName="Lando Norris"
+          number={4}
+          nationality="GB"
+          pickPoints={3}
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-24 text-xs text-text-muted">1 pt (in top 5)</span>
+        <ScoredDriverBadge
+          code="HAM"
+          team="Ferrari"
+          displayName="Lewis Hamilton"
+          number={44}
+          nationality="GB"
+          pickPoints={1}
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-24 text-xs text-text-muted">0 pts (miss)</span>
+        <ScoredDriverBadge
+          code="ALO"
+          team="Aston Martin"
+          displayName="Fernando Alonso"
+          number={14}
+          nationality="ES"
+          pickPoints={0}
+        />
+      </div>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'All 4 scoring states: 5 pts (green ring + dot), 3 pts (yellow ring + dot), 1 pt (muted ring), 0 pts (red ring + faded).',
+      },
+    },
+  },
+};
+
 export const PickComparison: Story = {
   render: () => (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -288,40 +411,39 @@ export const PickComparison: Story = {
 /** Skeleton next to real badges so you can match size (e.g. h-6, min-w, rounded-md). */
 export const SkeletonComparison: Story = {
   render: () => (
-    <div className="flex flex-wrap items-end gap-4">
-      <div className="flex flex-col items-start gap-1">
-        <span className="text-xs text-text-muted">Skeleton</span>
-        <DriverBadgeSkeleton />
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col items-start gap-1">
+          <span className="text-xs text-text-muted">Skeleton (md)</span>
+          <DriverBadgeSkeleton />
+        </div>
+        <div className="flex flex-col items-start gap-1">
+          <span className="text-xs text-text-muted">VER (md)</span>
+          <DriverBadge
+            code="VER"
+            team="Red Bull Racing"
+            displayName="Max Verstappen"
+            number={1}
+            nationality="NL"
+          />
+        </div>
       </div>
-      <div className="flex flex-col items-start gap-1">
-        <span className="text-xs text-text-muted">VER</span>
-        <DriverBadge
-          code="VER"
-          team="Red Bull Racing"
-          displayName="Max Verstappen"
-          number={1}
-          nationality="NL"
-        />
-      </div>
-      <div className="flex flex-col items-start gap-1">
-        <span className="text-xs text-text-muted">HAM</span>
-        <DriverBadge
-          code="HAM"
-          team="Ferrari"
-          displayName="Lewis Hamilton"
-          number={44}
-          nationality="GB"
-        />
-      </div>
-      <div className="flex flex-col items-start gap-1">
-        <span className="text-xs text-text-muted">NOR</span>
-        <DriverBadge
-          code="NOR"
-          team="McLaren"
-          displayName="Lando Norris"
-          number={4}
-          nationality="GB"
-        />
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col items-start gap-1">
+          <span className="text-xs text-text-muted">Skeleton (sm)</span>
+          <DriverBadgeSkeleton size="sm" />
+        </div>
+        <div className="flex flex-col items-start gap-1">
+          <span className="text-xs text-text-muted">VER (sm)</span>
+          <DriverBadge
+            code="VER"
+            team="Red Bull Racing"
+            displayName="Max Verstappen"
+            number={1}
+            nationality="NL"
+            size="sm"
+          />
+        </div>
       </div>
     </div>
   ),
@@ -329,7 +451,7 @@ export const SkeletonComparison: Story = {
     docs: {
       description: {
         story:
-          'Compare skeleton height and width to real badges. Tweak DriverBadgeSkeleton (e.g. h-6, min-w-[2.25rem]) until they align.',
+          'Compare skeleton height and width to real badges at both `sm` and `md` sizes.',
       },
     },
   },

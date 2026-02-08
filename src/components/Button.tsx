@@ -24,7 +24,7 @@ const sizes = {
 } as const;
 
 type ButtonVariant = keyof typeof variants;
-export type ButtonSize = keyof typeof sizes;
+type ButtonSize = keyof typeof sizes;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;

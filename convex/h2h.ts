@@ -171,42 +171,17 @@ export const getH2HSeasonLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
+    const season = args.season ?? 2026;
     const MAX_LIMIT = 100;
     const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
     const offset = Math.max(0, args.offset ?? 0);
 
-    const scores = await ctx.db.query('h2hScores').collect();
+    const standings = await ctx.db
+      .query('h2hSeasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', season))
+      .collect();
 
-    const byUser = new Map<
-      string,
-      {
-        userId: Id<'users'>;
-        points: number;
-        raceCount: number;
-        correctPicks: number;
-        totalPicks: number;
-      }
-    >();
-
-    for (const s of scores) {
-      const key = s.userId;
-      const existing = byUser.get(key) ?? {
-        userId: key,
-        points: 0,
-        raceCount: 0,
-        correctPicks: 0,
-        totalPicks: 0,
-      };
-      existing.points += s.points;
-      existing.raceCount += 1;
-      existing.correctPicks += s.correctPicks;
-      existing.totalPicks += s.totalPicks;
-      byUser.set(key, existing);
-    }
-
-    const allRows = Array.from(byUser.values()).sort(
-      (a, b) => b.points - a.points,
-    );
+    const allRows = standings.sort((a, b) => b.totalPoints - a.totalPoints);
 
     let viewerEntry: {
       rank: number;
@@ -227,7 +202,7 @@ export const getH2HSeasonLeaderboard = query({
           rank: viewerIndex + 1,
           userId: viewer._id,
           username: viewer.username ?? 'Anonymous',
-          points: viewerRow.points,
+          points: viewerRow.totalPoints,
           raceCount: viewerRow.raceCount,
           correctPicks: viewerRow.correctPicks,
           totalPicks: viewerRow.totalPicks,
@@ -237,39 +212,39 @@ export const getH2HSeasonLeaderboard = query({
     }
 
     // Filter out users who opted out of leaderboard (but always include viewer)
-    const userDocs = new Map<
-      string,
-      { username?: string; avatarUrl?: string; showOnLeaderboard?: boolean }
-    >();
+    const privacyMap = new Map<string, boolean>();
     for (const row of allRows) {
+      if (viewer && row.userId === viewer._id) continue;
       const user = await ctx.db.get(row.userId);
-      if (user) userDocs.set(row.userId, user);
+      privacyMap.set(row.userId, user?.showOnLeaderboard !== false);
     }
 
     const rows = allRows.filter((row) => {
       if (viewer && row.userId === viewer._id) return true;
-      const user = userDocs.get(row.userId);
-      return user?.showOnLeaderboard !== false;
+      return privacyMap.get(row.userId) !== false;
     });
 
     const paginatedRows = rows.slice(offset, offset + limit);
     const hasMore = offset + limit < rows.length;
 
-    const enrichedRows = paginatedRows.map((row, index) => {
-      const user = userDocs.get(row.userId);
-      const isViewer = viewer ? row.userId === viewer._id : false;
-      return {
-        rank: offset + index + 1,
-        userId: row.userId,
-        username: user?.username ?? 'Anonymous',
-        avatarUrl: user?.avatarUrl,
-        points: row.points,
-        raceCount: row.raceCount,
-        correctPicks: row.correctPicks,
-        totalPicks: row.totalPicks,
-        isViewer,
-      };
-    });
+    // Only read user docs for the paginated page
+    const enrichedRows = await Promise.all(
+      paginatedRows.map(async (row, index) => {
+        const user = await ctx.db.get(row.userId);
+        const isViewer = viewer ? row.userId === viewer._id : false;
+        return {
+          rank: offset + index + 1,
+          userId: row.userId,
+          username: user?.username ?? 'Anonymous',
+          avatarUrl: user?.avatarUrl,
+          points: row.totalPoints,
+          raceCount: row.raceCount,
+          correctPicks: row.correctPicks,
+          totalPicks: row.totalPicks,
+          isViewer,
+        };
+      }),
+    );
 
     return {
       entries: enrichedRows,
@@ -481,6 +456,159 @@ export const getUserH2HPicksByRace = query({
       raceId,
       sessions,
     }));
+  },
+});
+
+export const getUserH2HDetailedPicks = query({
+  args: { userId: v.id('users'), raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    const isOwner = viewer ? viewer._id === args.userId : false;
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) return null;
+
+    const now = Date.now();
+
+    const lockTimes: Record<SessionType, number | undefined> = {
+      quali: race.qualiLockAt,
+      sprint_quali: race.sprintQualiLockAt,
+      sprint: race.sprintLockAt,
+      race: race.predictionLockAt,
+    };
+
+    // Fetch predictions for this user+race
+    const predictions = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', args.userId).eq('raceId', args.raceId),
+      )
+      .collect();
+
+    if (predictions.length === 0) return null;
+
+    // Fetch results for this race (all sessions)
+    const allResults = await ctx.db
+      .query('h2hResults')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+
+    // Fetch matchups for season 2026
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', race.season))
+      .collect();
+
+    // Build driver cache
+    const driverIds = new Set<string>();
+    for (const m of matchups) {
+      driverIds.add(m.driver1Id);
+      driverIds.add(m.driver2Id);
+    }
+    const driverCache = new Map<
+      string,
+      {
+        _id: Id<'drivers'>;
+        code: string;
+        displayName: string;
+        number: number | null;
+        team: string | null;
+        nationality: string | null;
+      }
+    >();
+    for (const id of driverIds) {
+      const d = await ctx.db.get(id as Id<'drivers'>);
+      if (d) {
+        driverCache.set(id, {
+          _id: d._id,
+          code: d.code,
+          displayName: d.displayName,
+          number: d.number ?? null,
+          team: d.team ?? null,
+          nationality: d.nationality ?? null,
+        });
+      }
+    }
+
+    // Index results by session+matchup
+    const resultsByKey = new Map<string, Id<'drivers'>>();
+    for (const r of allResults) {
+      resultsByKey.set(`${r.sessionType}:${r.matchupId}`, r.winnerId);
+    }
+
+    // Index matchups by id
+    const matchupById = new Map<string, (typeof matchups)[number]>();
+    for (const m of matchups) {
+      matchupById.set(m._id, m);
+    }
+
+    // Group predictions by session
+    const predictionsBySession = new Map<
+      SessionType,
+      Array<(typeof predictions)[number]>
+    >();
+    for (const pred of predictions) {
+      const arr = predictionsBySession.get(pred.sessionType) ?? [];
+      arr.push(pred);
+      predictionsBySession.set(pred.sessionType, arr);
+    }
+
+    const result: Record<
+      SessionType,
+      Array<{
+        matchupId: Id<'h2hMatchups'>;
+        team: string;
+        driver1: NonNullable<ReturnType<typeof driverCache.get>>;
+        driver2: NonNullable<ReturnType<typeof driverCache.get>>;
+        predictedWinnerId: Id<'drivers'>;
+        actualWinnerId: Id<'drivers'> | null;
+        isCorrect: boolean | null;
+      }> | null
+    > = {
+      quali: null,
+      sprint_quali: null,
+      sprint: null,
+      race: null,
+    };
+
+    for (const [sessionType, sessionPredictions] of predictionsBySession) {
+      // Visibility check: non-owner can't see picks before lock
+      const lockTime = lockTimes[sessionType];
+      if (!isOwner && (!lockTime || now < lockTime)) {
+        // Hidden — leave as null
+        continue;
+      }
+
+      const picks = [];
+      for (const pred of sessionPredictions) {
+        const matchup = matchupById.get(pred.matchupId);
+        if (!matchup) continue;
+
+        const d1 = driverCache.get(matchup.driver1Id);
+        const d2 = driverCache.get(matchup.driver2Id);
+        if (!d1 || !d2) continue;
+
+        const actualWinnerId =
+          resultsByKey.get(`${sessionType}:${pred.matchupId}`) ?? null;
+
+        picks.push({
+          matchupId: pred.matchupId,
+          team: matchup.team,
+          driver1: d1,
+          driver2: d2,
+          predictedWinnerId: pred.predictedWinnerId,
+          actualWinnerId,
+          isCorrect:
+            actualWinnerId === null
+              ? null
+              : pred.predictedWinnerId === actualWinnerId,
+        });
+      }
+
+      result[sessionType] = picks;
+    }
+
+    return result;
   },
 });
 

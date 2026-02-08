@@ -6,8 +6,10 @@ import {
   Flag,
   Info,
   Lock,
+  Swords,
   Target,
   Trophy,
+  UserPlus,
   Users,
 } from 'lucide-react';
 
@@ -30,7 +32,7 @@ export const Route = createFileRoute('/')({
       {
         name: 'description',
         content:
-          'Predict the top 5 finishers for each Formula 1 race and compete with friends throughout the 2026 season.',
+          'Predict the top 5 for every F1 session, call teammate head-to-heads, and compete with friends throughout the 2026 season.',
       },
     ],
   }),
@@ -51,8 +53,8 @@ function HomePage() {
             </h1>
           </div>
           <p className="mb-8 text-xl text-text-muted">
-            Predict the top 5 finishers for each Formula 1 race and compete with
-            friends throughout the 2026 season.
+            Predict the top 5 for every qualifying, sprint, and race session.
+            Call teammate head-to-heads. Compete with friends all season long.
           </p>
           <Link
             to="/races"
@@ -85,7 +87,7 @@ function HomePage() {
         <h2 className="mb-8 text-center text-2xl font-bold text-text">
           How It Works
         </h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
               <Flag className="h-6 w-6 text-accent" />
@@ -94,8 +96,21 @@ function HomePage() {
               Pick Your Top 5
             </h3>
             <p className="text-sm text-text-muted">
-              Before each race, select the 5 drivers you think will finish in
-              the top positions.
+              Before each session — qualifying, sprint, and race — drag and drop
+              to rank the 5 drivers you think will finish on top.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
+              <Swords className="h-6 w-6 text-accent" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-text">
+              Call the Head-to-Heads
+            </h3>
+            <p className="text-sm text-text-muted">
+              For every teammate pairing on the grid, predict which driver will
+              finish ahead. Earn bonus points for each correct call.
             </p>
           </div>
 
@@ -104,11 +119,12 @@ function HomePage() {
               <Trophy className="h-6 w-6 text-accent" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
-              Earn Points
+              Earn Points Every Session
             </h3>
             <p className="text-sm text-text-muted">
-              Score points based on how accurate your predictions are. Exact
-              position matches earn the most.
+              Score up to 25 points per session. Exact picks earn 5 points,
+              off-by-one earns 3, and any top-5 hit earns 1. Sprint weekends
+              mean even more points up for grabs.
             </p>
           </div>
 
@@ -117,11 +133,11 @@ function HomePage() {
               <Users className="h-6 w-6 text-accent" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
-              Climb the Leaderboard
+              Compete and Follow Friends
             </h3>
             <p className="text-sm text-text-muted">
-              Compete against other fans throughout the season to see who knows
-              F1 best.
+              Climb the season leaderboard, follow other players, and compare
+              prediction histories on public profile pages.
             </p>
           </div>
         </div>
@@ -166,10 +182,10 @@ function HomePage() {
 
         <FaqItem icon={Lock} question="When do predictions lock?">
           <p className="text-text-muted">
-            Each session locks at its scheduled start time: qualifying, sprint
+            Each session locks at its scheduled start time. Qualifying, sprint
             qualifying (on sprint weekends), the sprint, and the race each have
             their own deadline. Once a session is locked, you can't change those
-            picks—submit before each deadline!
+            picks, so get them in before the cutoff.
           </p>
         </FaqItem>
 
@@ -190,13 +206,31 @@ function HomePage() {
             throughout the 2026 season to claim the top spot!
           </p>
         </FaqItem>
+        <FaqItem icon={Swords} question="What are Head-to-Head predictions?">
+          <p className="text-text-muted">
+            For each race weekend, you can also predict which driver will beat
+            their teammate in every pairing on the grid. Each correct call earns
+            you a point on the separate H2H leaderboard. H2H predictions lock at
+            the same time as your top-5 picks for each session.
+          </p>
+        </FaqItem>
+
+        <FaqItem icon={UserPlus} question="Can I see other players' picks?">
+          <p className="text-text-muted">
+            Every player has a public profile page showing their prediction
+            history, scores, and stats. Picks are hidden until the relevant
+            session locks, so there is no peeking beforehand. You can follow
+            other players to keep track of how they are doing throughout the
+            season.
+          </p>
+        </FaqItem>
+
         <FaqItem icon={Info} question="Is this an official F1 app?">
           <p className="text-text-muted">
-            No. Grand Prix Picks is not affiliated with, endorsed by, or
-            connected to Formula 1 or any official F1 entities. You will notice
-            there are no copyright materials or existing Formula 1 trademarks
-            used anywhere in this app—it is an independent fan-made prediction
-            game.
+            No. Grand Prix Picks isn't affiliated with, endorsed by, or
+            connected to Formula 1 or any official F1 entities. We don't use
+            any copyright materials or F1 trademarks. It's just an independent
+            fan-made prediction game.
           </p>
         </FaqItem>
       </FaqSection>

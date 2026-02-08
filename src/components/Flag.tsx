@@ -41,7 +41,7 @@ const SIZES = {
 
 type FlagSize = keyof typeof SIZES;
 
-export interface FlagProps {
+interface FlagProps {
   /** ISO 3166-1 alpha-2 country code (e.g., "NL", "GB", "US") */
   code: string;
   /** Size variant */

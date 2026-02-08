@@ -13,6 +13,13 @@ const sessionTypeValidator = v.union(
 
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
 
+type BreakdownItem = {
+  driverId: Id<'drivers'>;
+  predictedPosition: number;
+  actualPosition?: number;
+  points: number;
+};
+
 export const myPredictionHistory = query({
   args: {},
   handler: async (ctx) => {
@@ -56,6 +63,7 @@ export const myPredictionHistory = query({
           {
             picks: Array<{ driverId: Id<'drivers'>; code: string }>;
             points: number | null;
+            breakdown: Array<BreakdownItem> | null;
             submittedAt: number;
           } | null
         > = {
@@ -75,6 +83,7 @@ export const myPredictionHistory = query({
               code: driverMap.get(driverId)?.code ?? '???',
             })),
             points: score?.points ?? null,
+            breakdown: score?.breakdown ?? null,
             submittedAt: pred.submittedAt,
           };
         }
@@ -159,6 +168,7 @@ export const getUserPredictionHistory = query({
           {
             picks: Array<{ driverId: Id<'drivers'>; code: string }>;
             points: number | null;
+            breakdown: Array<BreakdownItem> | null;
             submittedAt: number;
             isHidden: boolean;
           } | null
@@ -179,6 +189,7 @@ export const getUserPredictionHistory = query({
             sessions[sessionType] = {
               picks: [],
               points: null,
+              breakdown: null,
               submittedAt: pred.submittedAt,
               isHidden: true,
             };
@@ -189,6 +200,7 @@ export const getUserPredictionHistory = query({
                 code: driverMap.get(driverId)?.code ?? '???',
               })),
               points: score?.points ?? null,
+              breakdown: score?.breakdown ?? null,
               submittedAt: pred.submittedAt,
               isHidden: false,
             };

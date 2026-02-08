@@ -43,7 +43,7 @@ const statusLabels: Record<
   finished: 'Finished',
 };
 
-export interface BadgeProps {
+interface BadgeProps {
   variant: BadgeVariant;
   /** Optional icon (used for status variants when not provided). Ignored for next/sprint. */
   icon?: ReactNode;
@@ -75,9 +75,9 @@ export function Badge({ variant, icon, children }: BadgeProps) {
   );
 }
 
-export type RaceStatus = 'upcoming' | 'locked' | 'finished';
+type RaceStatus = 'upcoming' | 'locked' | 'finished';
 
-export interface StatusBadgeProps {
+interface StatusBadgeProps {
   /** Race status from Convex: "upcoming" | "locked" | "finished". */
   status: string;
   /** When true and status is upcoming, shows "Open for predictions". When false and status is upcoming, shows "Not yet open". */

@@ -16,6 +16,7 @@ import { useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
+import { displayTeamName } from '@/lib/display';
 import { Avatar } from '../../components/Avatar';
 import { primaryButtonStyles } from '../../components/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
@@ -23,7 +24,7 @@ import { Flag } from '../../components/Flag';
 import { PageLoader } from '../../components/PageLoader';
 import { WeekendCard } from '../../components/PredictionHistory';
 import { Tooltip } from '../../components/Tooltip';
-import { computeFavoritePick } from '../../lib/favorites';
+import { computeFavoriteTop5Pick } from '../../lib/favorites';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -114,7 +115,7 @@ function ProfilePage() {
   const displayName =
     currentProfile.displayName ?? currentProfile.username ?? 'Anonymous';
 
-  const favoritePick = weekends ? computeFavoritePick(weekends) : null;
+  const favoritePick = weekends ? computeFavoriteTop5Pick(weekends) : null;
   const favoriteDriver = favoritePick
     ? drivers?.find((d) => d._id === favoritePick.driverId)
     : null;
@@ -122,13 +123,13 @@ function ProfilePage() {
   /** Best scoring weekend (max totalPoints; tiebreak: most recent race). */
   const bestRace =
     weekends && weekends.length > 0
-      ? [...weekends]
+      ? ([...weekends]
           .filter((w) => w.hasScores && w.totalPoints > 0)
           .sort((a, b) => {
             if (a.totalPoints !== b.totalPoints)
               return b.totalPoints - a.totalPoints;
             return b.raceDate - a.raceDate;
-          })[0] ?? null
+          })[0] ?? null)
       : null;
 
   return (
@@ -186,60 +187,81 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats grid */}
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-xl border border-border bg-surface p-3 text-center">
-            <div className="text-2xl font-bold text-accent">
-              {stats?.totalPoints ?? '—'}
+        {/* Stats grid — rank cards only when user has an actual rank */}
+        {(() => {
+          const showTop5 = stats?.seasonRank != null;
+          const showH2H = stats?.h2hSeasonRank != null;
+          const gridCols =
+            !showTop5 && !showH2H
+              ? 'sm:grid-cols-2'
+              : showTop5 && showH2H
+                ? 'sm:grid-cols-4'
+                : 'sm:grid-cols-3';
+          return (
+            <div className={`mb-4 grid grid-cols-2 gap-3 ${gridCols}`}>
+              <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                <div className="text-2xl font-bold text-accent">
+                  {stats?.totalPoints ?? '—'}
+                </div>
+                <div className="text-xs text-text-muted">Total Points</div>
+              </div>
+              <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                <div className="text-2xl font-bold text-text">
+                  {stats?.weekendCount ?? '—'}
+                </div>
+                <div className="text-xs text-text-muted">Weekends predicted</div>
+              </div>
+              {showTop5 && stats && (
+                <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Hash className="h-4 w-4 text-accent" />
+                    <span className="text-2xl font-bold text-accent">
+                      {stats.seasonRank}
+                    </span>
+                  </div>
+                  <div className="text-xs text-text-muted">
+                    Top 5 · of {stats.totalPlayers}
+                  </div>
+                </div>
+              )}
+              {showH2H && stats && (
+                <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Hash className="h-4 w-4 text-accent" />
+                    <span className="text-2xl font-bold text-accent">
+                      {stats.h2hSeasonRank}
+                    </span>
+                  </div>
+                  <div className="text-xs text-text-muted">
+                    H2H · of {stats.h2hTotalPlayers}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-xs text-text-muted">Total Points</div>
-          </div>
-          <div className="rounded-xl border border-border bg-surface p-3 text-center">
-            <div className="text-2xl font-bold text-text">
-              {stats?.weekendCount ?? '—'}
-            </div>
-            <div className="text-xs text-text-muted">Weekends predicted</div>
-          </div>
-          <div className="rounded-xl border border-border bg-surface p-3 text-center">
-            <div className="flex items-center justify-center gap-1">
-              <Hash className="h-4 w-4 text-accent" />
-              <span className="text-2xl font-bold text-accent">
-                {stats?.seasonRank ?? '—'}
-              </span>
-            </div>
-            <div className="text-xs text-text-muted">
-              {stats ? `Top 5 · of ${stats.totalPlayers}` : 'Top 5 rank'}
-            </div>
-          </div>
-          <div className="rounded-xl border border-border bg-surface p-3 text-center">
-            <div className="flex items-center justify-center gap-1">
-              <Hash className="h-4 w-4 text-accent" />
-              <span className="text-2xl font-bold text-accent">
-                {stats?.h2hSeasonRank ?? '—'}
-              </span>
-            </div>
-            <div className="text-xs text-text-muted">
-              {stats ? `H2H · of ${stats.h2hTotalPlayers}` : 'H2H rank'}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Favorite Pick + Best Race: side by side on desktop */}
-        {(favoritePick && favoriteDriver || bestRace) && (
+        {((favoritePick && favoriteDriver) || bestRace) && (
           <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             {favoritePick && favoriteDriver && (
-              <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+              <div
+                className={`overflow-hidden rounded-xl border border-border bg-surface shadow-sm ${!bestRace ? 'md:col-span-2' : ''}`}
+              >
                 <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
                   <Star className="h-5 w-5 shrink-0 text-accent" />
                   <h2 className="text-sm font-semibold text-text">
-                    {isOwner ? 'Your Favorite Top 5 Pick' : 'Favorite Top 5 Pick'}
+                    {isOwner
+                      ? 'Your Favorite Top 5 Pick'
+                      : 'Favorite Top 5 Pick'}
                   </h2>
                   <Tooltip
                     placement="top"
                     content={
                       <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
-                        Weighted by where they were picked: P1 = 5 pts, P2 = 4, P3 =
-                        3, P4 = 2, P5 = 1. The driver picked in top positions most.
+                        {isOwner
+                          ? 'Weighted by where you picked them: P1 = 5 pts, P2 = 4, P3 = 3, P4 = 2, P5 = 1. Your most-picked driver in top positions.'
+                          : 'Weighted by where they were picked: P1 = 5 pts, P2 = 4, P3 = 3, P4 = 2, P5 = 1. The driver they picked in top positions most.'}
                       </span>
                     }
                   >
@@ -281,7 +303,7 @@ function ProfilePage() {
                     </div>
                     {favoriteDriver.team && (
                       <span className="text-sm text-text-muted">
-                        {favoriteDriver.team}
+                        {displayTeamName(favoriteDriver.team)}
                       </span>
                     )}
                   </div>
@@ -289,18 +311,23 @@ function ProfilePage() {
               </div>
             )}
             {bestRace && (
-              <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+              <div
+                className={`overflow-hidden rounded-xl border border-border bg-surface shadow-sm ${!(favoritePick && favoriteDriver) ? 'md:col-span-2' : ''}`}
+              >
                 <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
                   <Trophy className="h-5 w-5 shrink-0 text-accent" />
                   <h2 className="text-sm font-semibold text-text">
-                    {isOwner ? 'Your Best Top 5 Result' : 'Best Top 5 Result'}
+                    {isOwner
+                      ? 'Your Best Top 5 Weekend Result'
+                      : 'Best Top 5 Weekend Result'}
                   </h2>
                   <Tooltip
                     placement="top"
                     content={
                       <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
-                        The race weekend where they scored the most points. Ties
-                        broken by most recent race.
+                        {isOwner
+                          ? 'The race weekend where you scored the most points. Ties broken by most recent race.'
+                          : 'The race weekend where they scored the most points. Ties broken by most recent race.'}
                       </span>
                     }
                   >
@@ -345,16 +372,26 @@ function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {weekends.map((weekend) => (
-              <WeekendCard
-                key={weekend.raceId}
-                weekend={weekend}
-                drivers={drivers}
-                h2hHistory={h2hHistory}
-                h2hPicksByRace={h2hPicksByRace}
-                isOwner={isOwner}
-              />
-            ))}
+            {(() => {
+              // Weekends are sorted by raceDate descending; the next race
+              // is the earliest upcoming one (last in the filtered list).
+              const nextRaceId = weekends
+                .filter((w) => w.raceStatus === 'upcoming')
+                .at(-1)?.raceId;
+
+              return weekends.map((weekend) => (
+                <WeekendCard
+                  key={weekend.raceId}
+                  weekend={weekend}
+                  drivers={drivers}
+                  h2hHistory={h2hHistory}
+                  h2hPicksByRace={h2hPicksByRace}
+                  userId={currentProfile._id}
+                  isOwner={isOwner}
+                  isNextRace={weekend.raceId === nextRaceId}
+                />
+              ));
+            })()}
           </div>
         )}
       </div>

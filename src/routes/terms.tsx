@@ -43,10 +43,12 @@ function TermsPage() {
             </h2>
             <p>
               Grand Prix Picks is a fan-made, non-commercial prediction game
-              where users predict the top 5 finishers for Formula 1 races and
-              earn points based on accuracy. The app is provided for
-              entertainment only and is not affiliated with Formula 1, the FIA,
-              or any related entities.
+              where users predict the top 5 finishers for each session of a
+              Formula 1 race weekend (qualifying, sprint qualifying, sprint, and
+              race) and earn points based on accuracy. Users can also make
+              head-to-head (H2H) predictions on teammate matchups. The app is
+              provided for entertainment only and is not affiliated with Formula
+              1, the FIA, or any related entities.
             </p>
           </section>
 
@@ -59,7 +61,9 @@ function TermsPage() {
               jurisdiction to use the app. You are responsible for keeping your
               account credentials secure and for all activity under your
               account. One account per person; do not create multiple accounts
-              to gain an unfair advantage.
+              to gain an unfair advantage. Your username, display name,
+              predictions, and scores are publicly visible on your profile page
+              and the leaderboard.
             </p>
           </section>
 
@@ -83,10 +87,12 @@ function TermsPage() {
               5. Predictions and Scoring
             </h2>
             <p>
-              Predictions must be submitted before the deadline set for each
-              race. Once a race is locked, predictions cannot be changed.
-              Scoring rules are defined within the app and may be updated; we
-              will use reasonable efforts to communicate material changes.
+              Predictions must be submitted before the deadline for each session
+              (qualifying, sprint qualifying, sprint, and race each lock
+              independently at their scheduled start time). Once a session is
+              locked, predictions for that session cannot be changed. Scoring
+              rules are defined within the app and may be updated; we will use
+              reasonable efforts to communicate material changes.
             </p>
           </section>
 

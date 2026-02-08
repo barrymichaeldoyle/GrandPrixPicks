@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
+import { displayTeamName } from '@/lib/display';
 import type { SessionType } from '../lib/sessions';
 import { getSessionsForWeekend, SESSION_LABELS } from '../lib/sessions';
 import { Button } from './Button';
@@ -298,7 +299,7 @@ export function RaceResults({ raceId, race, hideHeader }: RaceResultsProps) {
                               )}
                               {entry.team && (
                                 <span className="text-text-muted">
-                                  {entry.team}
+                                  {displayTeamName(entry.team)}
                                 </span>
                               )}
                             </div>

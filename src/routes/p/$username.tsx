@@ -14,9 +14,10 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { displayTeamName } from '@/lib/display';
+
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { displayTeamName } from '@/lib/display';
 import { Avatar } from '../../components/Avatar';
 import { primaryButtonStyles } from '../../components/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
@@ -189,8 +190,8 @@ function ProfilePage() {
 
         {/* Stats grid — rank cards only when user has an actual rank */}
         {(() => {
-          const showTop5 = stats?.seasonRank != null;
-          const showH2H = stats?.h2hSeasonRank != null;
+          const showTop5 = stats != null && stats.seasonRank != null;
+          const showH2H = stats != null && stats.h2hSeasonRank != null;
           const gridCols =
             !showTop5 && !showH2H
               ? 'sm:grid-cols-2'
@@ -209,9 +210,11 @@ function ProfilePage() {
                 <div className="text-2xl font-bold text-text">
                   {stats?.weekendCount ?? '—'}
                 </div>
-                <div className="text-xs text-text-muted">Weekends predicted</div>
+                <div className="text-xs text-text-muted">
+                  Weekends predicted
+                </div>
               </div>
-              {showTop5 && stats && (
+              {showTop5 && (
                 <div className="rounded-xl border border-border bg-surface p-3 text-center">
                   <div className="flex items-center justify-center gap-1">
                     <Hash className="h-4 w-4 text-accent" />
@@ -224,7 +227,7 @@ function ProfilePage() {
                   </div>
                 </div>
               )}
-              {showH2H && stats && (
+              {showH2H && (
                 <div className="rounded-xl border border-border bg-surface p-3 text-center">
                   <div className="flex items-center justify-center gap-1">
                     <Hash className="h-4 w-4 text-accent" />

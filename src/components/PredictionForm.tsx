@@ -5,9 +5,10 @@ import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { DragEvent } from 'react';
 import { useEffect, useState } from 'react';
 
+import { displayTeamName } from '@/lib/display';
+
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
-import { displayTeamName } from '@/lib/display';
 import type { SessionType } from '../lib/sessions';
 import { Button } from './Button';
 import { TEAM_COLORS } from './DriverBadge';

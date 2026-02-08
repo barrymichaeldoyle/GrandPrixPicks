@@ -268,6 +268,11 @@ function H2HSessionPicks({ picks }: { picks: Array<H2HMatchupPick> }) {
             key={pick.matchupId}
             className="flex w-16 min-w-16 flex-col items-center"
           >
+            {pick.team && (
+              <span className="w-full truncate text-center text-[10px] font-medium text-text-muted">
+                {displayTeamName(pick.team)}
+              </span>
+            )}
             <DriverBadge
               code={pickedDriver.code}
               team={pickedDriver.team}
@@ -275,14 +280,9 @@ function H2HSessionPicks({ picks }: { picks: Array<H2HMatchupPick> }) {
               number={pickedDriver.number}
               nationality={pickedDriver.nationality}
             />
-            {pick.team && (
-              <span className="w-full truncate text-center text-[10px] font-medium text-text-muted">
-                {displayTeamName(pick.team)}
-              </span>
-            )}
             {pick.isCorrect !== null && (
               <span
-                className={`inline-flex h-4 w-4 items-center justify-center rounded-full ${
+                className={`mt-1 inline-flex h-4 w-4 items-center justify-center rounded-full ${
                   pick.isCorrect
                     ? 'bg-success-muted text-success'
                     : 'bg-error-muted text-error'

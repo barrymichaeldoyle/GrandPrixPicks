@@ -2,9 +2,10 @@ import { useQuery } from 'convex/react';
 import { Clock, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { displayTeamName } from '@/lib/display';
+
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
-import { displayTeamName } from '@/lib/display';
 import type { SessionType } from '../lib/sessions';
 import { getSessionsForWeekend, SESSION_LABELS } from '../lib/sessions';
 import { Button } from './Button';

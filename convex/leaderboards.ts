@@ -269,6 +269,91 @@ export const getFriendsH2HLeaderboard = query({
   },
 });
 
+export const getLeagueLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
+    }
+
+    const MAX_LIMIT = 100;
+    const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
+    const offset = Math.max(0, args.offset ?? 0);
+
+    const standings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', 2026))
+      .collect();
+
+    const allRows = standings
+      .filter((s) => memberIds.has(s.userId))
+      .sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // Find viewer's entry
+    let viewerEntry: {
+      rank: number;
+      userId: Id<'users'>;
+      username: string;
+      points: number;
+      raceCount: number;
+      isViewer: boolean;
+    } | null = null;
+
+    const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
+    if (viewerIndex !== -1) {
+      const viewerRow = allRows[viewerIndex];
+      viewerEntry = {
+        rank: viewerIndex + 1,
+        userId: viewer._id,
+        username: viewer.username ?? 'Anonymous',
+        points: viewerRow.totalPoints,
+        raceCount: viewerRow.raceCount,
+        isViewer: true,
+      };
+    }
+
+    // Paginate
+    const paginatedRows = allRows.slice(offset, offset + limit);
+    const hasMore = offset + limit < allRows.length;
+
+    const enrichedRows = await Promise.all(
+      paginatedRows.map(async (row, index) => {
+        const user = await ctx.db.get(row.userId);
+        const isViewer = row.userId === viewer._id;
+        return {
+          rank: offset + index + 1,
+          userId: row.userId,
+          username: user?.username ?? 'Anonymous',
+          avatarUrl: user?.avatarUrl,
+          points: row.totalPoints,
+          raceCount: row.raceCount,
+          isViewer,
+        };
+      }),
+    );
+
+    return {
+      entries: enrichedRows,
+      totalCount: allRows.length,
+      hasMore,
+      viewerEntry,
+    };
+  },
+});
+
 export const getRaceLeaderboard = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {

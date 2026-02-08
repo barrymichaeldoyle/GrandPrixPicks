@@ -3,9 +3,10 @@ import { useQuery } from 'convex/react';
 import { Check, Lock, LogIn, Swords, Trophy, X } from 'lucide-react';
 import { useState } from 'react';
 
+import { displayTeamName } from '@/lib/display';
+
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
-import { displayTeamName } from '@/lib/display';
 import { Button } from '../../components/Button';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/ErrorBoundary';

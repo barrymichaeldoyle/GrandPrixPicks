@@ -28,7 +28,9 @@ export function ScoreRing({
       height={size}
       viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`}
       className={className}
-      aria-label={hasScores ? `${earned} of ${max} points` : 'Score to be determined'}
+      aria-label={
+        hasScores ? `${earned} of ${max} points` : 'Score to be determined'
+      }
     >
       {/* Track circle */}
       <circle

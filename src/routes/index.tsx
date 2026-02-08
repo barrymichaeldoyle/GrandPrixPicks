@@ -228,8 +228,8 @@ function HomePage() {
         <FaqItem icon={Info} question="Is this an official F1 app?">
           <p className="text-text-muted">
             No. Grand Prix Picks isn't affiliated with, endorsed by, or
-            connected to Formula 1 or any official F1 entities. We don't use
-            any copyright materials or F1 trademarks. It's just an independent
+            connected to Formula 1 or any official F1 entities. We don't use any
+            copyright materials or F1 trademarks. It's just an independent
             fan-made prediction game.
           </p>
         </FaqItem>

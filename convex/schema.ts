@@ -210,4 +210,29 @@ export default defineSchema({
     .index('by_follower', ['followerId'])
     .index('by_followee', ['followeeId'])
     .index('by_follower_followee', ['followerId', 'followeeId']),
+
+  // ============ LEAGUES ============
+
+  leagues: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    description: v.optional(v.string()),
+    password: v.optional(v.string()),
+    createdBy: v.id('users'),
+    season: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_slug', ['slug'])
+    .index('by_season', ['season']),
+
+  leagueMembers: defineTable({
+    leagueId: v.id('leagues'),
+    userId: v.id('users'),
+    role: v.union(v.literal('admin'), v.literal('member')),
+    joinedAt: v.number(),
+  })
+    .index('by_league', ['leagueId'])
+    .index('by_user', ['userId'])
+    .index('by_league_user', ['leagueId', 'userId']),
 });

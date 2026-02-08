@@ -12,6 +12,7 @@ import type * as drivers from "../drivers.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
 import type * as leaderboards from "../leaderboards.js";
+import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as predictions from "../predictions.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   follows: typeof follows;
   h2h: typeof h2h;
   leaderboards: typeof leaderboards;
+  leagues: typeof leagues;
   "lib/auth": typeof lib_auth;
   "lib/scoring": typeof lib_scoring;
   predictions: typeof predictions;

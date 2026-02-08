@@ -22,6 +22,7 @@ const staticNavLinks: Array<NavLink> = [
   { to: '/', label: 'Home', exact: true },
   { to: '/races', label: 'Races' },
   { to: '/leaderboard', label: 'Leaderboard' },
+  { to: '/leagues', label: 'Leagues' },
 ];
 
 const FOCUSABLE_SELECTOR =

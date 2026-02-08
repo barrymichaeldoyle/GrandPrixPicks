@@ -10,6 +10,8 @@ const base =
 const variants = {
   primary:
     'border border-transparent bg-button-accent hover:bg-button-accent-hover text-white disabled:bg-surface-muted disabled:text-text-muted disabled:cursor-not-allowed',
+  danger:
+    'border border-transparent bg-error hover:bg-error/90 text-white disabled:opacity-50 disabled:cursor-not-allowed',
   saved:
     'border border-success/30 bg-success-muted text-success cursor-default',
   loading:

@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
   getViewer,
@@ -157,6 +157,9 @@ async function upsertStandings(
     raceIds.add(s.raceId);
   }
 
+  // Read user doc for denormalized fields
+  const user = await ctx.db.get(userId);
+
   const existing = await ctx.db
     .query('seasonStandings')
     .withIndex('by_user_season', (q) =>
@@ -168,6 +171,9 @@ async function upsertStandings(
     await ctx.db.patch(existing._id, {
       totalPoints,
       raceCount: raceIds.size,
+      username: user?.username,
+      avatarUrl: user?.avatarUrl,
+      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   } else {
@@ -176,6 +182,9 @@ async function upsertStandings(
       season,
       totalPoints,
       raceCount: raceIds.size,
+      username: user?.username,
+      avatarUrl: user?.avatarUrl,
+      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   }
@@ -203,6 +212,9 @@ async function upsertH2HStandings(
     raceIds.add(s.raceId);
   }
 
+  // Read user doc for denormalized fields
+  const user = await ctx.db.get(userId);
+
   const existing = await ctx.db
     .query('h2hSeasonStandings')
     .withIndex('by_user_season', (q) =>
@@ -216,6 +228,9 @@ async function upsertH2HStandings(
       raceCount: raceIds.size,
       correctPicks,
       totalPicks,
+      username: user?.username,
+      avatarUrl: user?.avatarUrl,
+      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   } else {
@@ -226,6 +241,9 @@ async function upsertH2HStandings(
       raceCount: raceIds.size,
       correctPicks,
       totalPicks,
+      username: user?.username,
+      avatarUrl: user?.avatarUrl,
+      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   }
@@ -285,6 +303,9 @@ export const adminPublishResults = mutation({
         classification: args.classification,
       });
 
+      // Read user doc for denormalized fields on scores
+      const predUser = await ctx.db.get(pred.userId);
+
       const existingScore = await ctx.db
         .query('scores')
         .withIndex('by_user_race_session', (q) =>
@@ -299,6 +320,9 @@ export const adminPublishResults = mutation({
         await ctx.db.patch(existingScore._id, {
           points: total,
           breakdown,
+          username: predUser?.username,
+          avatarUrl: predUser?.avatarUrl,
+          showOnLeaderboard: predUser?.showOnLeaderboard,
           updatedAt: now,
         });
       } else {
@@ -308,6 +332,9 @@ export const adminPublishResults = mutation({
           sessionType,
           points: total,
           breakdown,
+          username: predUser?.username,
+          avatarUrl: predUser?.avatarUrl,
+          showOnLeaderboard: predUser?.showOnLeaderboard,
           createdAt: now,
           updatedAt: now,
         });
@@ -467,6 +494,59 @@ export const adminPublishResults = mutation({
       ok: true,
       scoredCount: predictions.length,
       h2hScoredCount: h2hByUser.size,
+    };
+  },
+});
+
+/**
+ * One-time backfill: populate denormalized user fields on existing rows.
+ * Processes one table at a time in batches to stay within read limits.
+ * Run with table arg: "seasonStandings", "h2hSeasonStandings", or "scores".
+ */
+export const backfillDenormalizedUserFields = internalMutation({
+  args: {
+    table: v.union(
+      v.literal('seasonStandings'),
+      v.literal('h2hSeasonStandings'),
+      v.literal('scores'),
+    ),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const BATCH_SIZE = 500;
+
+    // Cache user lookups within this batch
+    const userCache = new Map<string, Doc<'users'> | null>();
+    async function getUser(userId: Id<'users'>) {
+      const cached = userCache.get(userId);
+      if (cached !== undefined) return cached;
+      const user = await ctx.db.get(userId);
+      userCache.set(userId, user);
+      return user;
+    }
+
+    const result = await ctx.db
+      .query(args.table)
+      .paginate({ numItems: BATCH_SIZE, cursor: args.cursor ?? null });
+
+    let patched = 0;
+    for (const row of result.page) {
+      const user = await getUser(row.userId);
+      if (user) {
+        await ctx.db.patch(row._id, {
+          username: user.username,
+          avatarUrl: user.avatarUrl,
+          showOnLeaderboard: user.showOnLeaderboard,
+        });
+        patched++;
+      }
+    }
+
+    return {
+      ok: true,
+      patched,
+      isDone: result.isDone,
+      continueCursor: result.isDone ? null : result.continueCursor,
     };
   },
 });

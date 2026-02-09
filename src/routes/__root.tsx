@@ -11,13 +11,15 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { useMutation } from 'convex/react';
 import { Flag, Home, Trophy } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
-import { Header, MEDIA_MATCH_BREAKPOINT } from '../components/Header';
+import { Header } from '../components/Header';
 import { ScrollToTop } from '../components/ScrollToTop';
+import { useMobileMenu } from '../hooks/useMobileMenu';
+import { THEME_KEY, useTheme } from '../hooks/useTheme';
 import { AppClerkProvider } from '../integrations/clerk/provider';
 import { AppConvexProvider } from '../integrations/convex/provider';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
@@ -159,61 +161,10 @@ function ProfileSync() {
   return null;
 }
 
-const THEME_KEY = 'grand-prix-picks-theme';
-
 function RootDocument({ children }: PropsWithChildren) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
-  // Theme: SSR/first paint match (no localStorage), then synced on mount.
-  const [isDark, setIsDark] = useState(false);
-
-  // Sync theme from storage/system on mount and when system preference changes
-  useEffect(() => {
-    const resolveTheme = () => {
-      const saved = localStorage.getItem(THEME_KEY);
-      return saved === 'dark'
-        ? true
-        : saved === 'light'
-          ? false
-          : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    };
-    const sync = () => setIsDark(resolveTheme());
-    sync();
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
-
-  // Apply theme to document whenever isDark changes
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    document.documentElement.setAttribute(
-      'data-theme',
-      isDark ? 'dark' : 'light',
-    );
-  }, [isDark]);
-
-  const setTheme = (dark: boolean) => {
-    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
-    setIsDark(dark);
-  };
-
-  // Inert main content when mobile menu is open so focus stays in header + menu
-  useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
-    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    const applyInert = () => {
-      if (mobileMenuOpen && mq.matches) {
-        el.setAttribute('inert', '');
-      } else {
-        el.removeAttribute('inert');
-      }
-    };
-    applyInert();
-    mq.addEventListener('change', applyInert);
-    return () => mq.removeEventListener('change', applyInert);
-  }, [mobileMenuOpen]);
+  const { isDark, setTheme } = useTheme();
+  const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
   return (
     <html lang="en">
@@ -227,7 +178,7 @@ function RootDocument({ children }: PropsWithChildren) {
             <div className="flex h-[100dvh] h-screen flex-col overflow-hidden">
               <Header
                 mobileMenuOpen={mobileMenuOpen}
-                onMobileMenuOpenChange={setMobileMenuOpen}
+                onMobileMenuOpenChange={onMobileMenuOpenChange}
                 themeKey={THEME_KEY}
                 isDark={isDark}
                 onThemeChange={setTheme}
@@ -246,6 +197,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 <TanStackDevtools
                   config={{
                     position: 'bottom-right',
+                    openHotkey: ['CtrlOrMeta', 'A'],
                   }}
                   plugins={[
                     {

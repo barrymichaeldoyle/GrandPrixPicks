@@ -1,5 +1,6 @@
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
+import { syncUserToStandings } from './standings';
 
 export async function getViewer(ctx: QueryCtx): Promise<Doc<'users'> | null> {
   const identity = await ctx.auth.getUserIdentity();
@@ -60,6 +61,12 @@ export async function getOrCreateViewer(
     if (Object.keys(patch).length > 0) {
       patch.updatedAt = now;
       await ctx.db.patch(existing._id, patch);
+      // Sync avatar changes to denormalized standings
+      if (patch.avatarUrl) {
+        await syncUserToStandings(ctx, existing._id, {
+          avatarUrl: patch.avatarUrl,
+        });
+      }
       return (await ctx.db.get(existing._id)) ?? existing;
     }
 

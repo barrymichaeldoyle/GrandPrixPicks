@@ -15,6 +15,7 @@ import type * as leaderboards from "../leaderboards.js";
 import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_scoring from "../lib/scoring.js";
+import type * as lib_standings from "../lib/standings.js";
 import type * as predictions from "../predictions.js";
 import type * as races from "../races.js";
 import type * as results from "../results.js";
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   leagues: typeof leagues;
   "lib/auth": typeof lib_auth;
   "lib/scoring": typeof lib_scoring;
+  "lib/standings": typeof lib_standings;
   predictions: typeof predictions;
   races: typeof races;
   results: typeof results;

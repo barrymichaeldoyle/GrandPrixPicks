@@ -7,6 +7,7 @@ import {
   isAdmin,
   requireViewer,
 } from './lib/auth';
+import { syncUserToStandings } from './lib/standings';
 
 export const me = query({
   args: {},
@@ -138,6 +139,9 @@ export const updatePrivacySettings = mutation({
       showOnLeaderboard: args.showOnLeaderboard,
       updatedAt: Date.now(),
     });
+    await syncUserToStandings(ctx, viewer._id, {
+      showOnLeaderboard: args.showOnLeaderboard,
+    });
   },
 });
 
@@ -206,6 +210,14 @@ export const updateProfile = mutation({
     }
 
     await ctx.db.patch(viewer._id, patch);
+
+    // Sync denormalized fields to standings if username changed
+    const standingsSync: Record<string, string | undefined> = {};
+    if (patch.username) standingsSync.username = patch.username as string;
+    if (Object.keys(standingsSync).length > 0) {
+      await syncUserToStandings(ctx, viewer._id, standingsSync);
+    }
+
     return { success: true };
   },
 });

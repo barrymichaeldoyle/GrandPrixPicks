@@ -50,41 +50,29 @@ export const getSeasonLeaderboard = query({
       }
     }
 
-    // Filter out users who opted out of leaderboard (but always include viewer)
-    // Only read user docs for privacy filtering — we need showOnLeaderboard from all rows
-    // but username/avatar only for the paginated subset
-    const privacyMap = new Map<string, boolean>();
-    for (const row of allRows) {
-      if (viewer && row.userId === viewer._id) continue; // always visible
-      const user = await ctx.db.get(row.userId);
-      privacyMap.set(row.userId, user?.showOnLeaderboard !== false);
-    }
-
+    // Filter out users who opted out (using denormalized field — no user doc reads)
     const rows = allRows.filter((row) => {
       if (viewer && row.userId === viewer._id) return true;
-      return privacyMap.get(row.userId) !== false;
+      return row.showOnLeaderboard !== false;
     });
 
     // Paginate results
     const paginatedRows = rows.slice(offset, offset + limit);
     const hasMore = offset + limit < rows.length;
 
-    // Only read user docs for the paginated page
-    const enrichedRows = await Promise.all(
-      paginatedRows.map(async (row, index) => {
-        const user = await ctx.db.get(row.userId);
-        const isViewer = viewer ? row.userId === viewer._id : false;
-        return {
-          rank: offset + index + 1,
-          userId: row.userId,
-          username: user?.username ?? 'Anonymous',
-          avatarUrl: user?.avatarUrl,
-          points: row.totalPoints,
-          raceCount: row.raceCount,
-          isViewer,
-        };
-      }),
-    );
+    // Use denormalized user data — no user doc reads needed
+    const enrichedRows = paginatedRows.map((row, index) => {
+      const isViewer = viewer ? row.userId === viewer._id : false;
+      return {
+        rank: offset + index + 1,
+        userId: row.userId,
+        username: row.username ?? 'Anonymous',
+        avatarUrl: row.avatarUrl,
+        points: row.totalPoints,
+        raceCount: row.raceCount,
+        isViewer,
+      };
+    });
 
     return {
       entries: enrichedRows,
@@ -155,22 +143,19 @@ export const getFriendsLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    // Only read user docs for the paginated page
-    const enrichedRows = await Promise.all(
-      paginatedRows.map(async (row, index) => {
-        const user = await ctx.db.get(row.userId);
-        const isViewer = row.userId === viewer._id;
-        return {
-          rank: offset + index + 1,
-          userId: row.userId,
-          username: user?.username ?? 'Anonymous',
-          avatarUrl: user?.avatarUrl,
-          points: row.totalPoints,
-          raceCount: row.raceCount,
-          isViewer,
-        };
-      }),
-    );
+    // Use denormalized user data — no user doc reads needed
+    const enrichedRows = paginatedRows.map((row, index) => {
+      const isViewer = row.userId === viewer._id;
+      return {
+        rank: offset + index + 1,
+        userId: row.userId,
+        username: row.username ?? 'Anonymous',
+        avatarUrl: row.avatarUrl,
+        points: row.totalPoints,
+        raceCount: row.raceCount,
+        isViewer,
+      };
+    });
 
     return {
       entries: enrichedRows,
@@ -242,23 +227,21 @@ export const getFriendsH2HLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const enrichedRows = await Promise.all(
-      paginatedRows.map(async (row, index) => {
-        const user = await ctx.db.get(row.userId);
-        const isViewer = row.userId === viewer._id;
-        return {
-          rank: offset + index + 1,
-          userId: row.userId,
-          username: user?.username ?? 'Anonymous',
-          avatarUrl: user?.avatarUrl,
-          points: row.totalPoints,
-          raceCount: row.raceCount,
-          correctPicks: row.correctPicks,
-          totalPicks: row.totalPicks,
-          isViewer,
-        };
-      }),
-    );
+    // Use denormalized user data — no user doc reads needed
+    const enrichedRows = paginatedRows.map((row, index) => {
+      const isViewer = row.userId === viewer._id;
+      return {
+        rank: offset + index + 1,
+        userId: row.userId,
+        username: row.username ?? 'Anonymous',
+        avatarUrl: row.avatarUrl,
+        points: row.totalPoints,
+        raceCount: row.raceCount,
+        correctPicks: row.correctPicks,
+        totalPicks: row.totalPicks,
+        isViewer,
+      };
+    });
 
     return {
       entries: enrichedRows,
@@ -329,21 +312,19 @@ export const getLeagueLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const enrichedRows = await Promise.all(
-      paginatedRows.map(async (row, index) => {
-        const user = await ctx.db.get(row.userId);
-        const isViewer = row.userId === viewer._id;
-        return {
-          rank: offset + index + 1,
-          userId: row.userId,
-          username: user?.username ?? 'Anonymous',
-          avatarUrl: user?.avatarUrl,
-          points: row.totalPoints,
-          raceCount: row.raceCount,
-          isViewer,
-        };
-      }),
-    );
+    // Use denormalized user data — no user doc reads needed
+    const enrichedRows = paginatedRows.map((row, index) => {
+      const isViewer = row.userId === viewer._id;
+      return {
+        rank: offset + index + 1,
+        userId: row.userId,
+        username: row.username ?? 'Anonymous',
+        avatarUrl: row.avatarUrl,
+        points: row.totalPoints,
+        raceCount: row.raceCount,
+        isViewer,
+      };
+    });
 
     return {
       entries: enrichedRows,
@@ -389,24 +370,18 @@ export const getRaceLeaderboard = query({
 
     const sortedScores = scores.sort((a, b) => b.points - a.points);
 
-    // Filter out users who opted out (but keep viewer)
-    const filteredScores = await Promise.all(
-      sortedScores.map(async (s) => {
-        const user = await ctx.db.get(s.userId);
-        return { score: s, user };
-      }),
-    );
-
-    const visibleScores = filteredScores.filter(({ score, user }) => {
+    // Filter out users who opted out (using denormalized field — no user doc reads)
+    const visibleScores = sortedScores.filter((score) => {
       if (viewer && score.userId === viewer._id) return true;
-      return user?.showOnLeaderboard !== false;
+      return score.showOnLeaderboard !== false;
     });
 
-    const entries = visibleScores.map(({ score, user }, index) => ({
+    // Use denormalized user data — no user doc reads needed
+    const entries = visibleScores.map((score, index) => ({
       rank: index + 1,
       userId: score.userId,
-      username: user?.username ?? 'Anonymous',
-      avatarUrl: user?.avatarUrl,
+      username: score.username ?? 'Anonymous',
+      avatarUrl: score.avatarUrl,
       points: score.points,
       breakdown: score.breakdown,
     }));

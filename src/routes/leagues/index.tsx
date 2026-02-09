@@ -100,35 +100,38 @@ function LeaguesContent() {
         ) : (
           <div className="grid gap-3">
             {leagues
-              .filter((league): league is NonNullable<typeof league> => league != null)
+              .filter(
+                (league): league is NonNullable<typeof league> =>
+                  league != null,
+              )
               .map((league) => (
-              <Link
-                key={league._id}
-                to="/leagues/$slug"
-                params={{ slug: league.slug }}
-                className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-muted"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate font-semibold text-text">
-                      {league.name}
-                    </h3>
-                    {league.viewerRole === 'admin' && (
-                      <Crown className="h-4 w-4 shrink-0 text-warning" />
+                <Link
+                  key={league._id}
+                  to="/leagues/$slug"
+                  params={{ slug: league.slug }}
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-muted"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate font-semibold text-text">
+                        {league.name}
+                      </h3>
+                      {league.viewerRole === 'admin' && (
+                        <Crown className="h-4 w-4 shrink-0 text-warning" />
+                      )}
+                    </div>
+                    {league.description && (
+                      <p className="mt-0.5 truncate text-sm text-text-muted">
+                        {league.description}
+                      </p>
                     )}
                   </div>
-                  {league.description && (
-                    <p className="mt-0.5 truncate text-sm text-text-muted">
-                      {league.description}
-                    </p>
-                  )}
-                </div>
-                <div className="ml-4 flex items-center gap-1.5 text-sm text-text-muted">
-                  <Users className="h-4 w-4" />
-                  {league.memberCount}
-                </div>
-              </Link>
-            ))}
+                  <div className="ml-4 flex items-center gap-1.5 text-sm text-text-muted">
+                    <Users className="h-4 w-4" />
+                    {league.memberCount}
+                  </div>
+                </Link>
+              ))}
           </div>
         )}
       </div>

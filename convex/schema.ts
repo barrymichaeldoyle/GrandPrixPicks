@@ -107,6 +107,10 @@ export default defineSchema({
         }),
       ),
     ),
+    // Denormalized user fields (avoids N+1 user lookups in race leaderboard)
+    username: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    showOnLeaderboard: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -183,6 +187,10 @@ export default defineSchema({
     season: v.number(),
     totalPoints: v.number(),
     raceCount: v.number(),
+    // Denormalized user fields (avoids N+1 user lookups in leaderboard queries)
+    username: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_season_points', ['season', 'totalPoints'])
@@ -195,6 +203,10 @@ export default defineSchema({
     raceCount: v.number(),
     correctPicks: v.number(),
     totalPicks: v.number(),
+    // Denormalized user fields (avoids N+1 user lookups in leaderboard queries)
+    username: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_season_points', ['season', 'totalPoints'])

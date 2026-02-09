@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeRoute = MeRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/leaderboard'
     | '/me'
+    | '/pricing'
     | '/privacy'
     | '/settings'
     | '/terms'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/leaderboard'
     | '/me'
+    | '/pricing'
     | '/privacy'
     | '/settings'
     | '/terms'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/leaderboard'
     | '/me'
+    | '/pricing'
     | '/privacy'
     | '/settings'
     | '/terms'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MeRoute: typeof MeRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/me': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LeaderboardRoute: LeaderboardRoute,
   MeRoute: MeRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,

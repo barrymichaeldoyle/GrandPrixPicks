@@ -126,7 +126,22 @@ function TermsPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-xl font-semibold text-text">8. Contact</h2>
+            <h2 className="mb-2 text-xl font-semibold text-text">
+              8. Refund Policy
+            </h2>
+            <p>
+              Paid products (e.g. Season Pass) are eligible for a full refund if
+              you request it within <strong>14 days</strong> of purchase. After
+              that, we do not offer refunds. To request a refund, contact us
+              using the details on the main site; we will process valid requests
+              in line with our payment provider&apos;s terms. Refunds are issued
+              to the original payment method and may take several business days
+              to appear.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-xl font-semibold text-text">9. Contact</h2>
             <p>
               For questions about these terms, please use the contact details
               provided on the main site (e.g. the footer or about page).

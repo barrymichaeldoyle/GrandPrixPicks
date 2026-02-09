@@ -34,6 +34,14 @@ export const Route = createFileRoute('/')({
         content:
           'Predict the top 5 for every F1 session, call teammate head-to-heads, and compete with friends throughout the 2026 season.',
       },
+      {
+        property: 'og:image',
+        content: 'https://grandprixpicks.com/og/home.png',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://grandprixpicks.com/og/home.png',
+      },
     ],
   }),
 });

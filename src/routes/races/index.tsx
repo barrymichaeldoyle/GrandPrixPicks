@@ -24,6 +24,14 @@ export const Route = createFileRoute('/races/')({
         content:
           'View the full 2026 Formula 1 calendar. Make predictions for upcoming races and see results from past Grands Prix.',
       },
+      {
+        property: 'og:image',
+        content: 'https://grandprixpicks.com/og/home.png',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://grandprixpicks.com/og/home.png',
+      },
     ],
   }),
 });

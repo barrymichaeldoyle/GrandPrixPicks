@@ -145,6 +145,58 @@ export const updatePrivacySettings = mutation({
   },
 });
 
+/** Combined profile + stats data for OG image generation (avoids two round-trips). */
+export const getProfileOgData = query({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+
+    if (!user) return null;
+
+    const season = 2026;
+
+    // Count unique race weekends with predictions
+    const predictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect();
+    const weekendCount = new Set(predictions.map((p) => p.raceId)).size;
+
+    // Get season standing
+    const userStanding = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_user_season', (q) =>
+        q.eq('userId', user._id).eq('season', season),
+      )
+      .unique();
+
+    const totalPoints = userStanding?.totalPoints ?? 0;
+
+    // Compute rank
+    const allStandings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', season))
+      .collect();
+
+    const sorted = allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
+    const rankIndex = sorted.findIndex((r) => r.userId === user._id);
+    const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
+
+    return {
+      displayName: user.displayName ?? user.username ?? 'Anonymous',
+      username: user.username ?? 'anonymous',
+      avatarUrl: user.avatarUrl,
+      totalPoints,
+      seasonRank,
+      totalPlayers: sorted.length,
+      weekendCount,
+    };
+  },
+});
+
 const USERNAME_REGEX = /^[a-z0-9_-]+$/;
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 

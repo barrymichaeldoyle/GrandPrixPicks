@@ -34,6 +34,8 @@ const config = defineConfig(({ mode }) => {
       devtools(),
       nitro({
         preset: nitroPreset,
+        wasm: {},
+        scanDirs: ['server'],
         rollupConfig: {
           external: (id) => {
             // Cloudflare runtime modules (provided at runtime, not resolvable at build time)

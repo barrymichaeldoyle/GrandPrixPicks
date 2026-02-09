@@ -76,18 +76,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'theme-color', content: siteConfig.themeColor },
 
       // Open Graph (Facebook, LinkedIn, etc.)
+      // NOTE: og:image and twitter:image are set per-route, not here.
+      // HeadContent renders all matched routes' meta without dedup,
+      // so setting them here would prevent child routes from overriding.
       { property: 'og:type', content: 'website' },
       { property: 'og:title', content: siteConfig.title },
       { property: 'og:description', content: siteConfig.description },
       { property: 'og:url', content: siteConfig.url },
-      { property: 'og:image', content: `${siteConfig.url}/og-image.png` },
       { property: 'og:site_name', content: siteConfig.title },
 
       // Twitter Card
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: siteConfig.title },
       { name: 'twitter:description', content: siteConfig.description },
-      { name: 'twitter:image', content: `${siteConfig.url}/og-image.png` },
       { name: 'twitter:creator', content: '@barrymdoyle' },
     ],
     links: [

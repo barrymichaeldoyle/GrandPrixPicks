@@ -32,21 +32,28 @@ export const Route = createFileRoute('/races/$raceId')({
     ]);
     return { race, nextRace, predictionOpenAt };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData?.race
-          ? `${loaderData.race.name} | Grand Prix Picks`
-          : 'Race Details | Grand Prix Picks',
-      },
-      {
-        name: 'description',
-        content: loaderData?.race
-          ? `Make your prediction for the ${loaderData.race.name}. Pick the top 5 finishers and compete for points.`
-          : 'Make your prediction for this Grand Prix. Pick the top 5 finishers and compete for points.',
-      },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const ogImage = loaderData?.race
+      ? `https://grandprixpicks.com/og/race/${loaderData.race._id}.png`
+      : 'https://grandprixpicks.com/og/home.png';
+    return {
+      meta: [
+        {
+          title: loaderData?.race
+            ? `${loaderData.race.name} | Grand Prix Picks`
+            : 'Race Details | Grand Prix Picks',
+        },
+        {
+          name: 'description',
+          content: loaderData?.race
+            ? `Make your prediction for the ${loaderData.race.name}. Pick the top 5 finishers and compete for points.`
+            : 'Make your prediction for this Grand Prix. Pick the top 5 finishers and compete for points.',
+        },
+        { property: 'og:image', content: ogImage },
+        { name: 'twitter:image', content: ogImage },
+      ],
+    };
+  },
 });
 
 function BackToRacesLink({ className }: { className?: string }) {

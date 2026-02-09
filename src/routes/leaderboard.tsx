@@ -38,6 +38,14 @@ export const Route = createFileRoute('/leaderboard')({
         content:
           'See who tops the 2026 F1 prediction standings. Track your ranking against other players.',
       },
+      {
+        property: 'og:image',
+        content: 'https://grandprixpicks.com/og/leaderboard.png',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://grandprixpicks.com/og/leaderboard.png',
+      },
     ],
   }),
 });

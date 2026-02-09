@@ -37,11 +37,12 @@ export const Route = createFileRoute('/p/$username')({
     });
     return { initialProfile: profile };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const name =
       loaderData?.initialProfile?.displayName ??
       loaderData?.initialProfile?.username ??
       'Profile';
+    const ogImage = `https://grandprixpicks.com/og/profile/${params.username}.png`;
     return {
       meta: [
         { title: `${name} | Grand Prix Picks` },
@@ -49,6 +50,8 @@ export const Route = createFileRoute('/p/$username')({
           name: 'description',
           content: `View ${name}'s F1 prediction history and scores on Grand Prix Picks.`,
         },
+        { property: 'og:image', content: ogImage },
+        { name: 'twitter:image', content: ogImage },
       ],
     };
   },

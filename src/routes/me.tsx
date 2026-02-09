@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
+import { ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/me')({
         content:
           'View your F1 prediction history and track your scores across the 2026 season.',
       },
+      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
     ],
   }),
 });

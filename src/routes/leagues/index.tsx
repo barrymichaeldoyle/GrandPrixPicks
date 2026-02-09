@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Check,
   Crown,
+  Globe,
   Loader2,
   LogIn,
   Plus,
@@ -16,19 +17,28 @@ import { useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
+import { ogBaseUrl } from '../../lib/site';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
-  head: () => ({
-    meta: [
-      { title: 'Leagues | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'Create or join private leagues to compete with friends in F1 predictions.',
-      },
-    ],
-  }),
+  head: () => {
+    const title =
+      'F1 Prediction Leagues - Compete with Friends | Grand Prix Picks';
+    const description =
+      'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.';
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+      ],
+    };
+  },
 });
 
 function LeaguesPage() {
@@ -112,12 +122,18 @@ function LeaguesContent() {
                   className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-muted"
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="truncate font-semibold text-text">
                         {league.name}
                       </h3>
                       {league.viewerRole === 'admin' && (
                         <Crown className="h-4 w-4 shrink-0 text-warning" />
+                      )}
+                      {league.visibility === 'public' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
+                          <Globe className="h-3 w-3" />
+                          Public
+                        </span>
                       )}
                     </div>
                     {league.description && (
@@ -145,6 +161,7 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [visibility, setVisibility] = useState<'private' | 'public'>('private');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,7 +198,8 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
         name,
         slug,
         description: description || undefined,
-        password: password || undefined,
+        visibility,
+        password: visibility === 'private' ? password || undefined : undefined,
       });
       void navigate({
         to: '/leagues/$slug',
@@ -264,21 +282,55 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-text">
-            Password (optional)
+          <label className="mb-2 block text-sm font-medium text-text">
+            Visibility
           </label>
-          <input
-            type="text"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Leave empty for open league"
-            maxLength={50}
-            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
-          />
+          <div className="flex gap-4">
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="visibility"
+                checked={visibility === 'private'}
+                onChange={() => setVisibility('private')}
+                className="border-border text-accent focus:ring-accent"
+              />
+              <span className="text-sm text-text">Private</span>
+            </label>
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                name="visibility"
+                checked={visibility === 'public'}
+                onChange={() => setVisibility('public')}
+                className="border-border text-accent focus:ring-accent"
+              />
+              <span className="text-sm text-text">Public</span>
+            </label>
+          </div>
           <p className="mt-1 text-xs text-text-muted">
-            If set, users will need this password to join your league.
+            Private leagues are invite-only. Public leagues can appear in the
+            league directory and on member profiles; they cannot have a
+            password.
           </p>
         </div>
+        {visibility === 'private' && (
+          <div>
+            <label className="mb-1 block text-sm font-medium text-text">
+              Password (optional)
+            </label>
+            <input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Leave empty for open league"
+              maxLength={50}
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-text-muted">
+              If set, users will need this password to join your league.
+            </p>
+          </div>
+        )}
 
         {error && <p className="text-sm text-error">{error}</p>}
 

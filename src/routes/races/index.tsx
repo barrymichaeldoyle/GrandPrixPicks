@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 
 import { api } from '../../../convex/_generated/api';
 import { RaceCard } from '../../components/RaceCard';
+import { ogBaseUrl } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -16,24 +17,23 @@ export const Route = createFileRoute('/races/')({
     ]);
     return { races, nextRace };
   },
-  head: () => ({
-    meta: [
-      { title: '2026 F1 Races | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'View the full 2026 Formula 1 calendar. Make predictions for upcoming races and see results from past Grands Prix.',
-      },
-      {
-        property: 'og:image',
-        content: 'https://grandprixpicks.com/og/home.png',
-      },
-      {
-        name: 'twitter:image',
-        content: 'https://grandprixpicks.com/og/home.png',
-      },
-    ],
-  }),
+  head: () => {
+    const title = '2026 F1 Race Calendar & Predictions | Grand Prix Picks';
+    const description =
+      'Browse the full 2026 Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.';
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+      ],
+    };
+  },
 });
 
 function RacesPage() {

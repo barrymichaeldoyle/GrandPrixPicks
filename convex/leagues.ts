@@ -68,6 +68,7 @@ export const getMyLeagues = query({
           season: league.season,
           memberCount: members.length,
           viewerRole: m.role,
+          visibility: league.visibility,
         };
       }),
     );
@@ -99,6 +100,8 @@ export const getLeagueBySlug = query({
       viewerRole = viewerMembership?.role ?? null;
     }
 
+    const adminCount = members.filter((m) => m.role === 'admin').length;
+
     return {
       _id: league._id,
       name: league.name,
@@ -106,9 +109,11 @@ export const getLeagueBySlug = query({
       description: league.description,
       season: league.season,
       memberCount: members.length,
+      adminCount,
       viewerRole,
       hasPassword: !!league.password,
       createdBy: league.createdBy,
+      visibility: league.visibility,
     };
   },
 });
@@ -168,16 +173,26 @@ export const isSlugAvailable = query({
 
 // ──────────────────── Mutations ────────────────────
 
+const visibilityValidator = v.optional(
+  v.union(v.literal('private'), v.literal('public')),
+);
+
 export const createLeague = mutation({
   args: {
     name: v.string(),
     slug: v.string(),
     description: v.optional(v.string()),
     password: v.optional(v.string()),
+    visibility: visibilityValidator,
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const now = Date.now();
+
+    const visibility = args.visibility ?? 'private';
+    if (visibility === 'public' && args.password?.trim()) {
+      throw new Error('Public leagues cannot have a password');
+    }
 
     const name = args.name.trim();
     if (name.length < 1 || name.length > 50) {
@@ -200,13 +215,15 @@ export const createLeague = mutation({
       throw new Error('Description must be 200 characters or less');
     }
 
-    const password = args.password?.trim() || undefined;
+    const password =
+      visibility === 'private' ? args.password?.trim() || undefined : undefined;
 
     const leagueId = await ctx.db.insert('leagues', {
       name,
       slug,
       description: description || undefined,
       password,
+      visibility,
       createdBy: viewer._id,
       season: 2026,
       createdAt: now,
@@ -304,6 +321,7 @@ export const updateLeague = mutation({
     name: v.optional(v.string()),
     slug: v.optional(v.string()),
     description: v.optional(v.string()),
+    visibility: visibilityValidator,
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
@@ -344,6 +362,13 @@ export const updateLeague = mutation({
       patch.description = description || undefined;
     }
 
+    if (args.visibility !== undefined) {
+      patch.visibility = args.visibility;
+      if (args.visibility === 'public') {
+        patch.password = undefined;
+      }
+    }
+
     await ctx.db.patch(args.leagueId, patch);
   },
 });
@@ -353,6 +378,12 @@ export const setPassword = mutation({
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
+
+    const league = await ctx.db.get(args.leagueId);
+    if (!league) throw new Error('League not found');
+    if (league.visibility === 'public') {
+      throw new Error('Public leagues cannot have a password');
+    }
 
     const trimmed = args.password.trim();
     if (trimmed.length < 1 || trimmed.length > 50) {
@@ -471,5 +502,31 @@ export const deleteLeague = mutation({
     }
 
     await ctx.db.delete(args.leagueId);
+  },
+});
+
+/**
+ * One-off migration: set visibility to 'private' for any league that doesn't have it.
+ * Run once from Convex dashboard or: npx convex run leagues:migrateLeagueVisibility
+ * Run this after deploying so the function exists on the deployment.
+ */
+export const migrateLeagueVisibility = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const leagues = await ctx.db.query('leagues').collect();
+    const now = Date.now();
+    let patched = 0;
+    for (const league of leagues) {
+      const visibility = (league as { visibility?: 'private' | 'public' })
+        .visibility;
+      if (visibility === undefined) {
+        await ctx.db.patch(league._id, {
+          visibility: 'private',
+          updatedAt: now,
+        });
+        patched += 1;
+      }
+    }
+    return { patched, total: leagues.length };
   },
 });

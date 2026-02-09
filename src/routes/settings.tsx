@@ -8,6 +8,7 @@ import { api } from '../../convex/_generated/api';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
+import { ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/settings')({
         name: 'description',
         content: 'Manage your Grand Prix Picks account settings.',
       },
+      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
     ],
   }),
 });

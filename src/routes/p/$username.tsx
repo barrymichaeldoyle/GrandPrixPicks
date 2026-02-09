@@ -26,6 +26,7 @@ import { PageLoader } from '../../components/PageLoader';
 import { WeekendCard } from '../../components/PredictionHistory';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
+import { ogBaseUrl } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -42,15 +43,18 @@ export const Route = createFileRoute('/p/$username')({
       loaderData?.initialProfile?.displayName ??
       loaderData?.initialProfile?.username ??
       'Profile';
-    const ogImage = `https://grandprixpicks.com/og/profile/${params.username}.png`;
+    const title = `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`;
+    const description = `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`;
+    const ogImage = `${ogBaseUrl}/og/profile/${params.username}.png`;
     return {
       meta: [
-        { title: `${name} | Grand Prix Picks` },
-        {
-          name: 'description',
-          content: `View ${name}'s F1 prediction history and scores on Grand Prix Picks.`,
-        },
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
         { property: 'og:image', content: ogImage },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: ogImage },
       ],
     };

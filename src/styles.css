@@ -38,10 +38,10 @@
   --text-muted: #94a3b8;
   --border: #334155;
   --border-strong: #475569;
-  --accent: #2dd4bf;
-  --accent-hover: #5eead4;
-  --button-accent: #14b8a6;
-  --button-accent-hover: #2dd4bf;
+  --accent: #14b8a6;
+  --accent-hover: #2dd4bf;
+  --button-accent: var(--accent);
+  --button-accent-hover: var(--accent-hover);
   --accent-muted: #134e4a;
   --success: #34d399;
   --success-muted: #064e3b;

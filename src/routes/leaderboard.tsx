@@ -2,6 +2,7 @@ import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Globe,
   Loader2,
@@ -15,6 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
+import { ogBaseUrl } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -30,24 +32,24 @@ export const Route = createFileRoute('/leaderboard')({
     );
     return { initialLeaderboard: leaderboard };
   },
-  head: () => ({
-    meta: [
-      { title: 'Leaderboard | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'See who tops the 2026 F1 prediction standings. Track your ranking against other players.',
-      },
-      {
-        property: 'og:image',
-        content: 'https://grandprixpicks.com/og/leaderboard.png',
-      },
-      {
-        name: 'twitter:image',
-        content: 'https://grandprixpicks.com/og/leaderboard.png',
-      },
-    ],
-  }),
+  head: () => {
+    const title =
+      '2026 Season Leaderboard - F1 Prediction Rankings | Grand Prix Picks';
+    const description =
+      'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.';
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/leaderboard.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/leaderboard.png` },
+      ],
+    };
+  },
 });
 
 type LeaderboardEntry = {
@@ -86,6 +88,33 @@ function LeaderboardPage() {
     api.leaderboards.getSeasonLeaderboard,
     isGlobalTop5 ? { limit: PAGE_SIZE } : 'skip',
   );
+  const globalH2HData = useQuery(
+    api.h2h.getH2HSeasonLeaderboard,
+    scope === 'global' && gameMode === 'h2h' ? { limit: PAGE_SIZE } : 'skip',
+  );
+  const friendsTop5Data = useQuery(
+    api.leaderboards.getFriendsLeaderboard,
+    scope === 'following' && gameMode === 'top5' ? { limit: PAGE_SIZE } : 'skip',
+  );
+  const friendsH2HData = useQuery(
+    api.leaderboards.getFriendsH2HLeaderboard,
+    scope === 'following' && gameMode === 'h2h' ? { limit: PAGE_SIZE } : 'skip',
+  );
+
+  const data = clientLeaderboard ?? initialLeaderboard;
+
+  // Viewer entry for header summary (changes by tab)
+  const headerViewerEntry =
+    scope === 'global' && gameMode === 'top5'
+      ? data.viewerEntry
+      : scope === 'global' && gameMode === 'h2h'
+        ? (globalH2HData?.viewerEntry as H2HLeaderboardEntry | null)
+        : scope === 'following' && gameMode === 'top5'
+          ? friendsTop5Data?.viewerEntry
+          : scope === 'following' && gameMode === 'h2h'
+            ? (friendsH2HData?.viewerEntry as H2HLeaderboardEntry | null)
+            : null;
+  const isH2HTab = gameMode === 'h2h';
 
   useEffect(() => {
     if (clientLeaderboard && offset === PAGE_SIZE) {
@@ -94,8 +123,6 @@ function LeaderboardPage() {
     }
   }, [clientLeaderboard, offset]);
 
-  const data = clientLeaderboard ?? initialLeaderboard;
-  const viewerEntry = data.viewerEntry;
   const totalCount = data.totalCount;
 
   const loadMore = useCallback(async () => {
@@ -121,15 +148,50 @@ function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
-          <p className="text-text-muted">
-            2026 Season Standings · {totalCount.toLocaleString()} players
-          </p>
+        {/* Header + contextual result for current tab */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
+            <p className="text-text-muted">
+              2026 Season Standings · {totalCount.toLocaleString()} players
+            </p>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {headerViewerEntry ? (
+              <motion.div
+                key={`${scope}-${gameMode}`}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.2 }}
+                className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                  {headerViewerEntry.rank}
+                </span>
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-text">
+                    <User className="h-3 w-3 text-accent" />
+                    {isH2HTab ? 'Your H2H Rank' : 'Your Rank'}
+                  </div>
+                  <div className="text-base font-bold text-accent">
+                    {headerViewerEntry.points} pts
+                    {isH2HTab &&
+                      'correctPicks' in headerViewerEntry &&
+                      headerViewerEntry.totalPicks != null && (
+                        <span className="ml-2 text-sm font-normal text-text-muted">
+                          ({headerViewerEntry.correctPicks}/{headerViewerEntry.totalPicks} correct)
+                        </span>
+                      )}
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
-        {/* Tabs + contextual result (e.g. Your Rank for Global Top 5) */}
+        {/* Tabs */}
         <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex gap-1 sm:border-r sm:border-border sm:pr-4">
             <Button
@@ -175,23 +237,6 @@ function LeaderboardPage() {
               Head to Head
             </Button>
           </div>
-          {/* Result summary: changes by tab; only Global Top 5 has viewerEntry at this level */}
-          {scope === 'global' && gameMode === 'top5' && viewerEntry && (
-            <div className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2 sm:ml-auto">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                {viewerEntry.rank}
-              </span>
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-text">
-                  <User className="h-3 w-3 text-accent" />
-                  Your Rank
-                </div>
-                <div className="text-base font-bold text-accent">
-                  {viewerEntry.points} pts
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Content */}
@@ -314,7 +359,6 @@ function GlobalH2HContent() {
   }
 
   const entries = h2hData.entries as Array<H2HLeaderboardEntry>;
-  const viewerEntry = h2hData.viewerEntry as H2HLeaderboardEntry | null;
   const podiumEntries = entries.slice(0, 3);
   const tableEntries = entries.slice(3);
 
@@ -335,7 +379,6 @@ function GlobalH2HContent() {
   return (
     <H2HLeaderboardLayout
       entries={entries}
-      viewerEntry={viewerEntry}
       podiumEntries={podiumEntries}
       tableEntries={tableEntries}
     />
@@ -419,7 +462,6 @@ function FollowingTop5Inner() {
   }
 
   const entries = data.entries;
-  const viewerEntry = data.viewerEntry;
 
   if (entries.length === 0) {
     return <FollowingEmptyState />;
@@ -430,23 +472,6 @@ function FollowingTop5Inner() {
 
   return (
     <div className="space-y-3">
-      {viewerEntry && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
-            {viewerEntry.rank}
-          </span>
-          <div>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-text">
-              <User className="h-3.5 w-3.5 text-accent" />
-              Your Rank
-            </div>
-            <div className="text-lg font-bold text-accent">
-              {viewerEntry.points} pts
-            </div>
-          </div>
-        </div>
-      )}
-
       {podiumEntries.length >= 3 && (
         <div className="mb-6 grid grid-cols-3 gap-3">
           <PodiumCard entry={podiumEntries[1]} place={2} />
@@ -514,7 +539,6 @@ function FollowingH2HInner() {
   }
 
   const entries = data.entries as Array<H2HLeaderboardEntry>;
-  const viewerEntry = data.viewerEntry as H2HLeaderboardEntry | null;
 
   if (entries.length === 0) {
     return <FollowingEmptyState />;
@@ -526,7 +550,6 @@ function FollowingH2HInner() {
   return (
     <H2HLeaderboardLayout
       entries={entries}
-      viewerEntry={viewerEntry}
       podiumEntries={podiumEntries}
       tableEntries={tableEntries}
     />
@@ -537,37 +560,15 @@ function FollowingH2HInner() {
 
 function H2HLeaderboardLayout({
   entries,
-  viewerEntry,
   podiumEntries,
   tableEntries,
 }: {
   entries: Array<H2HLeaderboardEntry>;
-  viewerEntry: H2HLeaderboardEntry | null;
   podiumEntries: Array<H2HLeaderboardEntry>;
   tableEntries: Array<H2HLeaderboardEntry>;
 }) {
   return (
     <div className="space-y-3">
-      {viewerEntry && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
-            {viewerEntry.rank}
-          </span>
-          <div>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-text">
-              <User className="h-3.5 w-3.5 text-accent" />
-              Your H2H Rank
-            </div>
-            <div className="text-lg font-bold text-accent">
-              {viewerEntry.points} pts
-              <span className="ml-2 text-sm font-normal text-text-muted">
-                ({viewerEntry.correctPicks}/{viewerEntry.totalPicks} correct)
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {podiumEntries.length >= 3 && (
         <div className="mb-6 grid grid-cols-3 gap-3">
           <PodiumCard entry={podiumEntries[1]} place={2} />

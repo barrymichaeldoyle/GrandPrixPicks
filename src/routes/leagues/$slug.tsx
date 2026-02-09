@@ -1,5 +1,6 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
   Check,
@@ -7,6 +8,7 @@ import {
   ChevronRight,
   Copy,
   Crown,
+  Globe,
   Loader2,
   Lock,
   LogIn,
@@ -25,18 +27,45 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
+import { ogBaseUrl, siteConfig } from '../../lib/site';
+
+const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
 export const Route = createFileRoute('/leagues/$slug')({
   component: LeagueDetailPage,
-  head: () => ({
-    meta: [
-      { title: 'League | Grand Prix Picks' },
-      {
-        name: 'description',
-        content: 'View league standings and compete with friends.',
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const league = await convex.query(api.leagues.getLeagueBySlug, {
+      slug: params.slug,
+    });
+    return { league };
+  },
+  head: ({ loaderData, params }) => {
+    const league = loaderData?.league;
+    const title = league
+      ? `${league.name} | Grand Prix Picks`
+      : 'League Standings & Predictions | Grand Prix Picks';
+    const description = league
+      ? league.description
+        ? `${league.name} — ${league.description} ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''}.`
+        : `Compete with ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''} in ${league.name}. View standings and make your F1 predictions on Grand Prix Picks.`
+      : 'View league standings, track member rankings, and compete with friends in this private F1 prediction league.';
+    const url = `${siteConfig.url}/leagues/${params.slug}`;
+    const ogImage = `${ogBaseUrl}/og/home.png`;
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:url', content: url },
+        { property: 'og:image', content: ogImage },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:url', content: url },
+        { name: 'twitter:image', content: ogImage },
+      ],
+    };
+  },
 });
 
 function LeagueDetailPage() {
@@ -113,9 +142,28 @@ function LeagueDetailContent({ league }: { league: League }) {
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold text-text">{league.name}</h1>
             {isAdmin && <Crown className="h-5 w-5 text-warning" />}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                league.visibility === 'public'
+                  ? 'bg-accent/15 text-accent'
+                  : 'bg-surface-muted text-text-muted'
+              }`}
+            >
+              {league.visibility === 'public' ? (
+                <>
+                  <Globe className="h-3 w-3" />
+                  Public
+                </>
+              ) : (
+                <>
+                  <Lock className="h-3 w-3" />
+                  Private
+                </>
+              )}
+            </span>
           </div>
           {league.description && (
             <p className="mt-1 text-text-muted">{league.description}</p>
@@ -535,6 +583,8 @@ function AdminGeneralSettings({ league }: { league: League }) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [visibilityLoading, setVisibilityLoading] = useState(false);
+  const isPublic = league.visibility === 'public';
 
   const handleSetPassword = async () => {
     if (!newPassword.trim()) return;
@@ -560,37 +610,118 @@ function AdminGeneralSettings({ league }: { league: League }) {
     }
   };
 
+  const handleVisibilityChange = async (visibility: 'private' | 'public') => {
+    if (visibility === league.visibility) {
+      return;
+    }
+    setVisibilityLoading(true);
+    try {
+      await updateLeague({ leagueId: league._id, visibility });
+    } finally {
+      setVisibilityLoading(false);
+    }
+  };
+
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
       <h3 className="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">
         General
       </h3>
       <div className="space-y-3">
+        <div>
+          <p className="mb-2 text-sm font-medium text-text">Visibility</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => void handleVisibilityChange('private')}
+              disabled={visibilityLoading || league.visibility === 'private'}
+              className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors ${
+                league.visibility === 'private'
+                  ? 'border-accent bg-accent/10'
+                  : 'border-border bg-surface hover:bg-surface-muted'
+              }`}
+            >
+              <span
+                className={`inline-flex items-center gap-2 text-sm font-medium ${
+                  league.visibility === 'private'
+                    ? 'text-accent'
+                    : 'text-text-muted'
+                }`}
+              >
+                <Lock className="h-4 w-4 shrink-0" />
+                Private
+              </span>
+              <p
+                className={`text-xs ${
+                  league.visibility === 'private'
+                    ? 'text-accent/90'
+                    : 'text-text-muted'
+                }`}
+              >
+                Invite-only; does not appear in the directory. You can set a
+                password to restrict who joins.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleVisibilityChange('public')}
+              disabled={visibilityLoading || league.visibility === 'public'}
+              className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors ${
+                league.visibility === 'public'
+                  ? 'border-accent bg-accent/10'
+                  : 'border-border bg-surface hover:bg-surface-muted'
+              }`}
+            >
+              <span
+                className={`inline-flex items-center gap-2 text-sm font-medium ${
+                  league.visibility === 'public'
+                    ? 'text-accent'
+                    : 'text-text-muted'
+                }`}
+              >
+                <Globe className="h-4 w-4 shrink-0" />
+                Public
+              </span>
+              <p
+                className={`text-xs ${
+                  league.visibility === 'public'
+                    ? 'text-accent/90'
+                    : 'text-text-muted'
+                }`}
+              >
+                Can appear in the league directory and on member profiles.
+                Cannot have a password.
+              </p>
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setShowEdit(!showEdit)}>
             Edit League
           </Button>
-          {league.hasPassword ? (
-            <Button
-              size="sm"
-              loading={passwordLoading}
-              onClick={() => void handleRemovePassword()}
-            >
-              <Lock className="h-4 w-4" />
-              Remove Password
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              onClick={() => setShowPasswordForm(!showPasswordForm)}
-            >
-              <Lock className="h-4 w-4" />
-              Set Password
-            </Button>
-          )}
+          {!isPublic &&
+            (league.hasPassword ? (
+              <Button
+                size="sm"
+                loading={passwordLoading}
+                onClick={() => void handleRemovePassword()}
+              >
+                <Lock className="h-4 w-4" />
+                Remove Password
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setShowPasswordForm(!showPasswordForm)}
+              >
+                <Lock className="h-4 w-4" />
+                Set Password
+              </Button>
+            ))}
         </div>
 
-        {showPasswordForm && !league.hasPassword && (
+        {showPasswordForm && !league.hasPassword && !isPublic && (
           <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
             <input
               type="text"
@@ -675,7 +806,20 @@ function DangerZone({
         </p>
       </div>
       <div className="space-y-4 p-4">
-        <LeaveButton leagueId={leagueId} />
+        {isAdmin && league.adminCount === 1 ? (
+          <div className="rounded-lg border border-warning/40 bg-warning/10 p-3">
+            <p className="text-sm font-medium text-text">
+              You're the only admin
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              Add at least one other admin (promote a member in the Members
+              section above) if you want to leave the league without deleting it.
+              Until then, you can only delete the league.
+            </p>
+          </div>
+        ) : (
+          <LeaveButton leagueId={leagueId} />
+        )}
 
         {isAdmin && (
           <div className="border-t border-border pt-4">
@@ -755,6 +899,9 @@ function EditLeagueForm({
   const [name, setName] = useState(league.name);
   const [slug, setSlug] = useState(league.slug);
   const [description, setDescription] = useState(league.description ?? '');
+  const [visibility, setVisibility] = useState<'private' | 'public'>(
+    league.visibility,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -775,6 +922,7 @@ function EditLeagueForm({
         name,
         slug,
         description,
+        visibility,
       });
       if (slugChanged) {
         void navigate({
@@ -851,6 +999,36 @@ function EditLeagueForm({
           maxLength={200}
           className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
         />
+      </div>
+      <div>
+        <label className="mb-2 block text-sm font-medium text-text">
+          Visibility
+        </label>
+        <div className="flex gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-2">
+            <input
+              type="radio"
+              name="visibility"
+              checked={visibility === 'private'}
+              onChange={() => setVisibility('private')}
+              className="border-border text-accent focus:ring-accent"
+            />
+            <span className="text-sm text-text">Private</span>
+          </label>
+          <label className="inline-flex cursor-pointer items-center gap-2">
+            <input
+              type="radio"
+              name="visibility"
+              checked={visibility === 'public'}
+              onChange={() => setVisibility('public')}
+              className="border-border text-accent focus:ring-accent"
+            />
+            <span className="text-sm text-text">Public</span>
+          </label>
+        </div>
+        <p className="mt-1 text-xs text-text-muted">
+          Public leagues cannot have a password.
+        </p>
       </div>
 
       {error && <p className="text-sm text-error">{error}</p>}

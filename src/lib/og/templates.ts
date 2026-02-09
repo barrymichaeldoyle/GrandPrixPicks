@@ -75,7 +75,7 @@ function layout(...children: Array<ReactNode>): ReactNode {
       ),
       e(
         'div',
-        { style: { fontSize: 18, color: colors.textMuted } },
+        { style: { fontSize: 18, color: colors.text } },
         'grandprixpicks.com',
       ),
     ),
@@ -95,32 +95,78 @@ export function homeTemplate(): ReactNode {
           alignItems: 'center',
           justifyContent: 'center',
           textAlign: 'center' as const,
-          gap: 24,
+          gap: 40,
         },
       },
       e(
         'div',
         {
           style: {
-            fontSize: 64,
-            fontWeight: 700,
-            lineHeight: 1.1,
-            color: colors.text,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 24,
           },
         },
-        'Grand Prix Picks',
+        // Lucide Flag icon (24x24 viewBox, scaled to 72px)
+        e(
+          'svg',
+          {
+            width: 72,
+            height: 72,
+            viewBox: '0 0 24 24',
+            fill: 'none',
+            stroke: colors.accent,
+            'stroke-width': '2',
+            'stroke-linecap': 'round',
+            'stroke-linejoin': 'round',
+          },
+          e('path', {
+            d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
+          }),
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 82,
+              fontWeight: 700,
+              lineHeight: 1.1,
+              color: colors.text,
+            },
+          },
+          'Grand Prix Picks',
+        ),
       ),
       e(
         'div',
         {
           style: {
-            fontSize: 28,
+            fontSize: 34,
             color: colors.textMuted,
-            maxWidth: 700,
+            maxWidth: 900,
             lineHeight: 1.4,
           },
         },
-        'Predict the top 5 for every F1 session and compete with friends throughout the 2026 season.',
+        'Predict the top 5 finishers for every qualifying, sprint, and race. Compete with friends all season long.',
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 8,
+            padding: '20px 56px',
+            backgroundColor: colors.buttonAccent,
+            borderRadius: 14,
+            fontSize: 30,
+            fontWeight: 700,
+            color: 'white',
+          },
+        },
+        'Start Predicting \u2192',
       ),
     ),
   );
@@ -387,7 +433,9 @@ export function leaderboardTemplate(
         style: {
           display: 'flex',
           flexDirection: 'column' as const,
+          alignItems: 'center',
           gap: 32,
+          width: '100%',
         },
       },
       e(
@@ -397,9 +445,10 @@ export function leaderboardTemplate(
             fontSize: 48,
             fontWeight: 700,
             color: colors.text,
+            textAlign: 'center' as const,
           },
         },
-        'Season Leaderboard',
+        '2026 Season Leaderboard',
       ),
       e(
         'div',
@@ -407,7 +456,9 @@ export function leaderboardTemplate(
           style: {
             display: 'flex',
             flexDirection: 'column' as const,
-            gap: 16,
+            gap: 12,
+            width: '100%',
+            maxWidth: 800,
           },
         },
         ...entries.slice(0, 3).map((entry, i) =>
@@ -419,7 +470,7 @@ export function leaderboardTemplate(
                 display: 'flex',
                 alignItems: 'center',
                 gap: 20,
-                padding: '16px 24px',
+                padding: '12px 24px',
                 backgroundColor: colors.surface,
                 borderRadius: 12,
                 border: `1px solid ${colors.border}`,
@@ -430,16 +481,17 @@ export function leaderboardTemplate(
               'div',
               {
                 style: {
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
                   backgroundColor: podiumColors[i],
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: 700,
                   color: colors.bg,
+                  flexShrink: 0,
                 },
               },
               String(entry.rank),
@@ -450,9 +502,12 @@ export function leaderboardTemplate(
               {
                 style: {
                   flex: 1,
-                  fontSize: 28,
-                  fontWeight: 700,
+                  fontSize: 26,
+                  fontWeight: 600,
                   color: colors.text,
+                  overflow: 'hidden' as const,
+                  textOverflow: 'ellipsis' as const,
+                  whiteSpace: 'nowrap' as const,
                 },
               },
               entry.username,
@@ -462,9 +517,11 @@ export function leaderboardTemplate(
               'div',
               {
                 style: {
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: 700,
                   color: colors.accent,
+                  flexShrink: 0,
+                  textAlign: 'right' as const,
                 },
               },
               `${entry.points} pts`,

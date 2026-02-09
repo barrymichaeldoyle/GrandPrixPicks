@@ -230,13 +230,15 @@ export default defineSchema({
     slug: v.string(),
     description: v.optional(v.string()),
     password: v.optional(v.string()),
+    visibility: v.union(v.literal('private'), v.literal('public')),
     createdBy: v.id('users'),
     season: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_slug', ['slug'])
-    .index('by_season', ['season']),
+    .index('by_season', ['season'])
+    .index('by_visibility', ['visibility']),
 
   leagueMembers: defineTable({
     leagueId: v.id('leagues'),

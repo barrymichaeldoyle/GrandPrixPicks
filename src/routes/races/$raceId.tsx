@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { InlineLoader } from '../../components/InlineLoader';
+import { ogBaseUrl } from '../../lib/site';
 import { RaceDetailHeader } from '../../components/RaceDetailHeader';
 import type { SessionType } from '../../lib/sessions';
 import {
@@ -33,23 +34,25 @@ export const Route = createFileRoute('/races/$raceId')({
     return { race, nextRace, predictionOpenAt };
   },
   head: ({ loaderData }) => {
-    const ogImage = loaderData?.race
-      ? `https://grandprixpicks.com/og/race/${loaderData.race._id}.png`
-      : 'https://grandprixpicks.com/og/home.png';
+    const race = loaderData?.race;
+    const ogImage = race
+      ? `${ogBaseUrl}/og/race/${race._id}.png`
+      : `${ogBaseUrl}/og/home.png`;
+    const title = race
+      ? `${race.name} Predictions | Grand Prix Picks`
+      : 'Race Predictions | Grand Prix Picks';
+    const description = race
+      ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
+      : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     return {
       meta: [
-        {
-          title: loaderData?.race
-            ? `${loaderData.race.name} | Grand Prix Picks`
-            : 'Race Details | Grand Prix Picks',
-        },
-        {
-          name: 'description',
-          content: loaderData?.race
-            ? `Make your prediction for the ${loaderData.race.name}. Pick the top 5 finishers and compete for points.`
-            : 'Make your prediction for this Grand Prix. Pick the top 5 finishers and compete for points.',
-        },
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
         { property: 'og:image', content: ogImage },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: ogImage },
       ],
     };

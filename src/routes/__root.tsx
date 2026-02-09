@@ -23,24 +23,12 @@ import { THEME_KEY, useTheme } from '../hooks/useTheme';
 import { AppClerkProvider } from '../integrations/clerk/provider';
 import { AppConvexProvider } from '../integrations/convex/provider';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
+import { siteConfig } from '../lib/site';
 import appCss from '../styles.css?url';
 
 interface MyRouterContext {
   queryClient: QueryClient;
 }
-
-const siteConfig = {
-  title: 'Grand Prix Picks',
-  description:
-    'Predict the top 5 finishers for each Formula 1 race and compete with friends throughout the 2026 season.',
-  url: 'https://grandprixpicks.com', // Update with your actual domain
-  themeColor: '#0d9488',
-  author: {
-    name: 'Barry Michael Doyle',
-    url: 'https://barrymichaeldoyle.com',
-    twitter: '@barrymdoyle',
-  },
-};
 
 // Structured data for SEO (JSON-LD)
 const structuredData = {
@@ -75,20 +63,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'description', content: siteConfig.description },
       { name: 'theme-color', content: siteConfig.themeColor },
 
-      // Open Graph (Facebook, LinkedIn, etc.)
-      // NOTE: og:image and twitter:image are set per-route, not here.
-      // HeadContent renders all matched routes' meta without dedup,
-      // so setting them here would prevent child routes from overriding.
+      // Open Graph / Twitter Card
+      // NOTE: og:title, og:description, og:image (and twitter: equivalents)
+      // are set per-route, not here. HeadContent renders all matched routes'
+      // meta without dedup, so values here would shadow child overrides.
       { property: 'og:type', content: 'website' },
-      { property: 'og:title', content: siteConfig.title },
-      { property: 'og:description', content: siteConfig.description },
       { property: 'og:url', content: siteConfig.url },
       { property: 'og:site_name', content: siteConfig.title },
-
-      // Twitter Card
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: siteConfig.title },
-      { name: 'twitter:description', content: siteConfig.description },
+      { name: 'twitter:url', content: siteConfig.url },
       { name: 'twitter:creator', content: '@barrymdoyle' },
     ],
     links: [

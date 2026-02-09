@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
+import { ogBaseUrl } from '../lib/site';
+
 export const Route = createFileRoute('/terms')({
   component: TermsPage,
   head: () => ({
@@ -10,6 +12,8 @@ export const Route = createFileRoute('/terms')({
         content:
           'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.',
       },
+      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
     ],
   }),
 });

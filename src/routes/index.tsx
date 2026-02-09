@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import {
-  ChevronRight,
+  ArrowRight,
   Clock,
   Flag,
   Info,
@@ -17,6 +17,7 @@ import { api } from '../../convex/_generated/api';
 import { primaryButtonStyles } from '../components/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { RaceCard } from '../components/RaceCard';
+import { ogBaseUrl } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -26,24 +27,24 @@ export const Route = createFileRoute('/')({
     const nextRace = await convex.query(api.races.getNextRace);
     return { nextRace };
   },
-  head: () => ({
-    meta: [
-      { title: 'Grand Prix Picks - F1 Prediction Game' },
-      {
-        name: 'description',
-        content:
-          'Predict the top 5 for every F1 session, call teammate head-to-heads, and compete with friends throughout the 2026 season.',
-      },
-      {
-        property: 'og:image',
-        content: 'https://grandprixpicks.com/og/home.png',
-      },
-      {
-        name: 'twitter:image',
-        content: 'https://grandprixpicks.com/og/home.png',
-      },
-    ],
-  }),
+  head: () => {
+    const title =
+      'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season';
+    const description =
+      'Predict the top 5 finishers for every qualifying, sprint, and race session. Call teammate head-to-heads and compete with friends on the season leaderboard.';
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+      ],
+    };
+  },
 });
 
 function HomePage() {
@@ -69,7 +70,7 @@ function HomePage() {
             className={`${primaryButtonStyles('md')} shadow-md`}
           >
             View Races
-            <ChevronRight size={20} />
+            <ArrowRight size={20} />
           </Link>
         </div>
       </section>
@@ -218,8 +219,9 @@ function HomePage() {
           <p className="text-text-muted">
             For each race weekend, you can also predict which driver will beat
             their teammate in every pairing on the grid. Each correct call earns
-            you a point on the separate H2H leaderboard. H2H predictions lock at
-            the same time as your top-5 picks for each session.
+            you a point on the separate Head-to-Head leaderboard. Head-to-Head
+            predictions lock at the same time as your top-5 picks for each
+            session.
           </p>
         </FaqItem>
 

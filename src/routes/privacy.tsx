@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
+import { ogBaseUrl } from '../lib/site';
+
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPage,
   head: () => ({
@@ -10,6 +12,8 @@ export const Route = createFileRoute('/privacy')({
         content:
           'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.',
       },
+      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
     ],
   }),
 });

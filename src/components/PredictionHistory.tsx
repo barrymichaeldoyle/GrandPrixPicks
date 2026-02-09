@@ -92,10 +92,10 @@ function getCardState(weekend: Weekend, isOwner: boolean): CardState {
 }
 
 const BORDER_LEFT: Record<CardState, string> = {
-  upcoming_editable: 'border-l-4 border-l-accent/30',
+  upcoming_editable: 'rounded-l-sm border-l-8 border-l-accent/30',
   upcoming_hidden: '',
-  locked: 'border-l-4 border-l-warning/30',
-  finished: 'border-l-4 border-l-success/30',
+  locked: 'rounded-l-sm border-l-8 border-l-warning/30',
+  finished: 'rounded-l-sm border-l-8 border-l-success/30',
 };
 
 /** Compute weekend summary counts from breakdown data across all sessions. */

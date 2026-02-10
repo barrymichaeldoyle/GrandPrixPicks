@@ -35,9 +35,11 @@ function TermsPage() {
               1. Acceptance of Terms
             </h2>
             <p>
-              By using Grand Prix Picks (&quot;the app&quot;), you agree to
-              these Terms of Service. If you do not agree, please do not use the
-              app.
+              These Terms of Service govern your use of Grand Prix Picks and are
+              provided by Barry Michael Doyle Software Solution (Pty) Ltd
+              (&quot;we&quot;, &quot;us&quot;, or &quot;the app&quot;). By using
+              Grand Prix Picks, you agree to these terms. If you do not agree,
+              please do not use the app.
             </p>
           </section>
 
@@ -130,21 +132,26 @@ function TermsPage() {
               8. Refund Policy
             </h2>
             <p>
-              Paid products (e.g. Season Pass) are eligible for a full refund if
-              you request it within <strong>14 days</strong> of purchase. After
-              that, we do not offer refunds. To request a refund, contact us
-              using the details on the main site; we will process valid requests
-              in line with our payment provider&apos;s terms. Refunds are issued
-              to the original payment method and may take several business days
-              to appear.
+              Refunds for paid products are handled in accordance with
+              Paddle&apos;s refund policy and buyer terms. Please see our{' '}
+              <Link to="/refund-policy" className="text-accent hover:underline">
+                Refund Policy
+              </Link>{' '}
+              page for details on how to request a refund.
             </p>
           </section>
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">9. Contact</h2>
             <p>
-              For questions about these terms, please use the contact details
-              provided on the main site (e.g. the footer or about page).
+              For questions about these terms, contact us at{' '}
+              <a
+                href="mailto:barry@barrymichaeldoyle.com"
+                className="text-accent hover:underline"
+              >
+                barry@barrymichaeldoyle.com
+              </a>
+              .
             </p>
           </section>
         </div>

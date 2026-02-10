@@ -29,68 +29,122 @@ function LinkedInIcon({ className }: { className?: string }) {
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-surface pb-[max(5.5rem,calc(env(safe-area-inset-bottom,0px)+6rem))] sm:pb-6">
-      <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="flex flex-col gap-4 text-sm text-text-muted sm:flex-row sm:items-center sm:gap-10">
-          {/* Author + social: one row, wraps as a unit */}
-          <div className="flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <span>Made by</span>
-            <a
-              href="https://barrymichaeldoyle.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-accent transition-colors hover:text-accent-hover"
-            >
-              Barry Michael Doyle
-            </a>
-            <span
-              aria-hidden
-              className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
-            />
-            <a
-              href="https://x.com/barrymdoyle"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent transition-colors hover:text-accent-hover"
-              aria-label="X (Twitter)"
-            >
-              <XIcon className="h-4 w-4" />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent transition-colors hover:text-accent-hover"
-              aria-label="LinkedIn"
-            >
-              <LinkedInIcon className="h-4 w-4" />
-            </a>
-          </div>
-
-          {/* Disclaimer + legal links: grouped next to author block */}
-          <div className="flex min-w-0 flex-col gap-1">
-            <p className="max-w-lg text-xs text-text-muted">
-              This is a fan-made project. Not affiliated with Formula 1, FIA, or
-              any related entities.
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
+          <div className="space-y-3">
+            <p className="text-base font-semibold text-text">Grand Prix Picks</p>
+            <p className="max-w-sm text-xs text-text-muted">
+              Fan-made prediction game for Formula 1 race weekends. No gambling
+              or real-money betting.
             </p>
-            <div className="flex items-center justify-start gap-x-2 text-xs min-[803px]:justify-center">
-              <Link
-                to="/privacy"
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span>Made by</span>
+              <a
+                href="https://barrymichaeldoyle.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="font-semibold text-accent transition-colors hover:text-accent-hover"
               >
-                Privacy
-              </Link>
+                Barry Michael Doyle
+              </a>
               <span
                 aria-hidden
                 className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
               />
+              <a
+                href="https://x.com/barrymdoyle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent transition-colors hover:text-accent-hover"
+                aria-label="X (Twitter)"
+              >
+                <XIcon className="h-4 w-4" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent transition-colors hover:text-accent-hover"
+                aria-label="LinkedIn"
+              >
+                <LinkedInIcon className="h-4 w-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text">
+              Explore
+            </p>
+            <nav
+              aria-label="Footer site navigation"
+              className="flex flex-col gap-2 text-sm"
+            >
+              <Link
+                to="/"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Home
+              </Link>
+              <Link
+                to="/races"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Races
+              </Link>
+              <Link
+                to="/leaderboard"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Leaderboard
+              </Link>
+              <Link
+                to="/leagues"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Leagues
+              </Link>
+            </nav>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text">
+              Legal & Pricing
+            </p>
+            <nav
+              aria-label="Footer legal navigation"
+              className="flex flex-col gap-2 text-sm"
+            >
+              <Link
+                to="/pricing"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Pricing
+              </Link>
+              <Link
+                to="/refund-policy"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Refund Policy
+              </Link>
               <Link
                 to="/terms"
                 className="font-semibold text-accent transition-colors hover:text-accent-hover"
               >
-                Terms
+                Terms of Service
               </Link>
-            </div>
+              <Link
+                to="/privacy"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Privacy Policy
+              </Link>
+            </nav>
           </div>
+        </div>
+
+        <div className="mt-8 border-t border-border pt-4 text-xs text-text-muted">
+          Barry Michael Doyle Software Solution (Pty) Ltd
         </div>
       </div>
     </footer>

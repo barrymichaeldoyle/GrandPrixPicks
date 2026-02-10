@@ -54,7 +54,16 @@ function PricingPage() {
               real-money betting, just points and leaderboards.
             </p>
 
-            <p className="text-sm text-text-muted">
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              className="inline-flex cursor-not-allowed items-center rounded-lg border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-text-muted opacity-80"
+            >
+              Checkout Coming Soon
+            </button>
+
+            <p className="mt-3 text-sm text-text-muted">
               Payment is processed securely by Paddle. Checkout will be
               available when the season pass is launched.
             </p>
@@ -64,12 +73,16 @@ function PricingPage() {
                 Refund policy
               </h3>
               <p className="mb-2 text-sm text-text-muted">
-                You may request a full refund within 14 days of purchase. After
-                that, refunds are not available. See our{' '}
+                Refunds are handled in accordance with Paddle&apos;s refund
+                policy. See our{' '}
+                <Link to="/refund-policy" className="text-accent hover:underline">
+                  Refund Policy
+                </Link>{' '}
+                and{' '}
                 <Link to="/terms" className="text-accent hover:underline">
                   Terms of Service
                 </Link>{' '}
-                for the full refund policy.
+                for details.
               </p>
             </div>
           </section>

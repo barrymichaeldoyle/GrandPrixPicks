@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MeRouteImport } from './routes/me'
@@ -33,6 +34,11 @@ const TermsRoute = TermsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRoute = RefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/pricing'
     | '/privacy'
+    | '/refund-policy'
     | '/settings'
     | '/terms'
     | '/leagues/$slug'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/pricing'
     | '/privacy'
+    | '/refund-policy'
     | '/settings'
     | '/terms'
     | '/leagues/$slug'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/pricing'
     | '/privacy'
+    | '/refund-policy'
     | '/settings'
     | '/terms'
     | '/leagues/$slug'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   MeRoute: typeof MeRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  RefundPolicyRoute: typeof RefundPolicyRoute
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
   LeaguesSlugRoute: typeof LeaguesSlugRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeRoute: MeRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  RefundPolicyRoute: RefundPolicyRoute,
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
   LeaguesSlugRoute: LeaguesSlugRoute,

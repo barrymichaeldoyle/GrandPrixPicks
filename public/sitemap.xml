@@ -16,8 +16,28 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://grandprixpicks.com/my-predictions</loc>
+    <loc>https://grandprixpicks.com/leagues</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://grandprixpicks.com/pricing</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://grandprixpicks.com/refund-policy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://grandprixpicks.com/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://grandprixpicks.com/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

@@ -8,9 +8,9 @@ import { useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { InlineLoader } from '../../components/InlineLoader';
-import { ogBaseUrl } from '../../lib/site';
 import { RaceDetailHeader } from '../../components/RaceDetailHeader';
 import type { SessionType } from '../../lib/sessions';
+import { ogBaseUrl } from '../../lib/site';
 import {
   H2HResultsSection,
   H2HSection,

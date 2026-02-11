@@ -75,7 +75,10 @@ function PricingPage() {
               <p className="mb-2 text-sm text-text-muted">
                 Refunds are handled in accordance with Paddle&apos;s refund
                 policy. See our{' '}
-                <Link to="/refund-policy" className="text-accent hover:underline">
+                <Link
+                  to="/refund-policy"
+                  className="text-accent hover:underline"
+                >
                   Refund Policy
                 </Link>{' '}
                 and{' '}

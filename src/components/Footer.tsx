@@ -32,7 +32,9 @@ export function Footer() {
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
           <div className="space-y-3">
-            <p className="text-base font-semibold text-text">Grand Prix Picks</p>
+            <p className="text-base font-semibold text-text">
+              Grand Prix Picks
+            </p>
             <p className="max-w-sm text-xs text-text-muted">
               Fan-made prediction game for Formula 1 race weekends. No gambling
               or real-money betting.
@@ -73,7 +75,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text">
+            <p className="text-xs font-semibold tracking-wide text-text uppercase">
               Explore
             </p>
             <nav
@@ -108,7 +110,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text">
+            <p className="text-xs font-semibold tracking-wide text-text uppercase">
               Legal & Pricing
             </p>
             <nav

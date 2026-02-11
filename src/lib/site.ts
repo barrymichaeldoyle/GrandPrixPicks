@@ -20,4 +20,5 @@ export const siteConfig = {
 
 /** Base URL for absolute links (OG images, canonical). Use in dev for devtools previews. */
 export const ogBaseUrl =
-  (import.meta.env as { VITE_SITE_URL?: string }).VITE_SITE_URL ?? siteConfig.url;
+  (import.meta.env as { VITE_SITE_URL?: string }).VITE_SITE_URL ??
+  siteConfig.url;

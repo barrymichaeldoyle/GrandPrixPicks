@@ -34,8 +34,8 @@ function RefundPolicyPage() {
             </h2>
             <p>
               Grand Prix Picks sells digital products via Paddle as Merchant of
-              Record. Refunds are handled in accordance with Paddle&apos;s refund
-              policy and buyer terms.
+              Record. Refunds are handled in accordance with Paddle&apos;s
+              refund policy and buyer terms.
             </p>
           </section>
 
@@ -44,9 +44,9 @@ function RefundPolicyPage() {
               How to Request a Refund
             </h2>
             <p>
-              If you want to request a refund, use Paddle&apos;s customer support
-              channels from your purchase receipt, or contact us and we can help
-              direct your request to Paddle.
+              If you want to request a refund, use Paddle&apos;s customer
+              support channels from your purchase receipt, or contact us and we
+              can help direct your request to Paddle.
             </p>
           </section>
 

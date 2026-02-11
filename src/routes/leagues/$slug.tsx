@@ -813,8 +813,8 @@ function DangerZone({
             </p>
             <p className="mt-1 text-xs text-text-muted">
               Add at least one other admin (promote a member in the Members
-              section above) if you want to leave the league without deleting it.
-              Until then, you can only delete the league.
+              section above) if you want to leave the league without deleting
+              it. Until then, you can only delete the league.
             </p>
           </div>
         ) : (

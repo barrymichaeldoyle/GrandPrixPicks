@@ -33,10 +33,7 @@ async function main() {
       `<g transform="translate(12,12) scale(${scale}) translate(-12,-12)">${path}</g>`,
   );
   // Force output size: same Lucide-style graphic at 512x512
-  svg = svg.replace(
-    /<svg\s/,
-    `<svg width="${SIZE}" height="${SIZE}" `,
-  );
+  svg = svg.replace(/<svg\s/, `<svg width="${SIZE}" height="${SIZE}" `);
 
   const resvg = new Resvg(svg);
   const pngData = resvg.render();

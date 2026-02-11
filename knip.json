@@ -1,13 +1,17 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/start.ts", "eslint.config.js", "instrument.server.mjs"],
-  "project": ["src/**/*.{ts,tsx}", "convex/**/*.ts"],
-  "ignoreFiles": ["src/routeTree.gen.ts", "convex/_generated"],
-  "ignoreDependencies": [
-    "@tanstack/router-plugin",
-    "tailwindcss",
-    "babel-plugin-react-compiler"
+  "entry": [
+    "src/start.ts",
+    "eslint.config.js",
+    "instrument.server.mjs",
+    "server/routes/og/home.png.ts",
+    "server/routes/og/leaderboard.png.ts",
+    "server/routes/og/profile/[username].png.ts",
+    "server/routes/og/race/[raceId].png.ts"
   ],
+  "project": ["src/**/*.{ts,tsx}", "convex/**/*.ts", "server/**/*.ts"],
+  "ignoreFiles": ["src/routeTree.gen.ts", "convex/_generated"],
+  "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss", "babel-plugin-react-compiler"],
   "ignoreBinaries": ["eslint"],
   "ignoreIssues": {
     "src/integrations/tanstack-query/root-provider.tsx": ["exports"]

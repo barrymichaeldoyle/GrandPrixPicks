@@ -174,7 +174,7 @@ export function homeTemplate(): ReactNode {
 
 // ────────── Race Template ──────────
 
-export interface RaceOgData {
+interface RaceOgData {
   name: string;
   round: number;
   season: number;
@@ -291,7 +291,7 @@ export function raceTemplate(race: RaceOgData): ReactNode {
 
 // ────────── Profile Template ──────────
 
-export interface ProfileOgData {
+interface ProfileOgData {
   displayName: string;
   username: string;
   avatarUrl?: string;
@@ -415,7 +415,7 @@ function statBox(value: string, label: string): ReactNode {
 
 // ────────── Leaderboard Template ──────────
 
-export interface LeaderboardOgEntry {
+interface LeaderboardOgEntry {
   rank: number;
   username: string;
   points: number;

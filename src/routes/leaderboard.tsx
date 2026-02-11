@@ -94,7 +94,9 @@ function LeaderboardPage() {
   );
   const friendsTop5Data = useQuery(
     api.leaderboards.getFriendsLeaderboard,
-    scope === 'following' && gameMode === 'top5' ? { limit: PAGE_SIZE } : 'skip',
+    scope === 'following' && gameMode === 'top5'
+      ? { limit: PAGE_SIZE }
+      : 'skip',
   );
   const friendsH2HData = useQuery(
     api.leaderboards.getFriendsH2HLeaderboard,
@@ -177,13 +179,12 @@ function LeaderboardPage() {
                   </div>
                   <div className="text-base font-bold text-accent">
                     {headerViewerEntry.points} pts
-                    {isH2HTab &&
-                      'correctPicks' in headerViewerEntry &&
-                      headerViewerEntry.totalPicks != null && (
-                        <span className="ml-2 text-sm font-normal text-text-muted">
-                          ({headerViewerEntry.correctPicks}/{headerViewerEntry.totalPicks} correct)
-                        </span>
-                      )}
+                    {isH2HTab && 'correctPicks' in headerViewerEntry && (
+                      <span className="ml-2 text-sm font-normal text-text-muted">
+                        ({headerViewerEntry.correctPicks}/
+                        {headerViewerEntry.totalPicks} correct)
+                      </span>
+                    )}
                   </div>
                 </div>
               </motion.div>

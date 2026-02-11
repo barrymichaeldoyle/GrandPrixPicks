@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -29,6 +30,11 @@ import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$race
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
   '/p/$username': typeof PUsernameRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
   '/p/$username': typeof PUsernameRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/leagues/$slug': typeof LeaguesSlugRoute
   '/p/$username': typeof PUsernameRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/support'
     | '/terms'
     | '/leagues/$slug'
     | '/p/$username'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/support'
     | '/terms'
     | '/leagues/$slug'
     | '/p/$username'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/support'
     | '/terms'
     | '/leagues/$slug'
     | '/p/$username'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   SettingsRoute: typeof SettingsRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   LeaguesSlugRoute: typeof LeaguesSlugRoute
   PUsernameRoute: typeof PUsernameRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   SettingsRoute: SettingsRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   LeaguesSlugRoute: LeaguesSlugRoute,
   PUsernameRoute: PUsernameRoute,

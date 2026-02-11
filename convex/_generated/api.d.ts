@@ -20,6 +20,7 @@ import type * as predictions from "../predictions.js";
 import type * as races from "../races.js";
 import type * as results from "../results.js";
 import type * as seed from "../seed.js";
+import type * as support from "../support.js";
 import type * as testing from "../testing.js";
 import type * as users from "../users.js";
 
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   races: typeof races;
   results: typeof results;
   seed: typeof seed;
+  support: typeof support;
   testing: typeof testing;
   users: typeof users;
 }>;

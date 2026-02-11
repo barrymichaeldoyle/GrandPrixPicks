@@ -111,7 +111,7 @@ export function Footer() {
 
           <div className="space-y-3">
             <p className="text-xs font-semibold tracking-wide text-text uppercase">
-              Legal & Pricing
+              Legal & Support
             </p>
             <nav
               aria-label="Footer legal navigation"
@@ -130,6 +130,12 @@ export function Footer() {
                 Refund Policy
               </Link>
               <Link
+                to="/support"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                Support
+              </Link>
+              <Link
                 to="/terms"
                 className="font-semibold text-accent transition-colors hover:text-accent-hover"
               >
@@ -146,7 +152,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-4 text-xs text-text-muted">
-          Barry Michael Doyle Software Solution (Pty) Ltd
+          Barry Michael Doyle Software Solutions (Pty) Ltd
         </div>
       </div>
     </footer>

@@ -36,7 +36,7 @@ function TermsPage() {
             </h2>
             <p>
               These Terms of Service govern your use of Grand Prix Picks and are
-              provided by Barry Michael Doyle Software Solution (Pty) Ltd
+              provided by Barry Michael Doyle Software Solutions (Pty) Ltd
               (&quot;we&quot;, &quot;us&quot;, or &quot;the app&quot;). By using
               Grand Prix Picks, you agree to these terms. If you do not agree,
               please do not use the app.
@@ -144,13 +144,17 @@ function TermsPage() {
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">9. Contact</h2>
             <p>
-              For questions about these terms, contact us at{' '}
+              For questions about these terms or the app, contact us at{' '}
               <a
                 href="mailto:barry@barrymichaeldoyle.com"
                 className="text-accent hover:underline"
               >
                 barry@barrymichaeldoyle.com
-              </a>
+              </a>{' '}
+              or via the{' '}
+              <Link to="/support" className="text-accent hover:underline">
+                Support page
+              </Link>
               .
             </p>
           </section>

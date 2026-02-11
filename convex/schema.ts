@@ -223,6 +223,20 @@ export default defineSchema({
     .index('by_followee', ['followeeId'])
     .index('by_follower_followee', ['followerId', 'followeeId']),
 
+  // ============ SUPPORT ============
+
+  supportRequests: defineTable({
+    userId: v.id('users'),
+    subject: v.string(),
+    message: v.string(),
+    category: v.optional(v.string()),
+    status: v.union(v.literal('open'), v.literal('closed')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_status', ['status']),
+
   // ============ LEAGUES ============
 
   userSeasonPasses: defineTable({

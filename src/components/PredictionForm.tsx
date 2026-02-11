@@ -106,9 +106,13 @@ function SortablePickRow({
     transition,
   };
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
+      layout={!isDragging}
+      transition={{
+        layout: { type: 'spring', stiffness: 350, damping: 30 },
+      }}
       data-testid={`picked-driver-${position}`}
       className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 shadow-lg' : ''}`}
     >
@@ -176,7 +180,7 @@ function SortablePickRow({
           <X size={16} className="text-error" />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

@@ -28,8 +28,8 @@ const staticNavLinks: Array<NavLink> = [
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Mobile menu: viewport width <= 702px is "mobile". Keep min-[703px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 702px)';
+/** Mobile menu: viewport width <= 748px is "mobile". Keep min-[749px] classes below in sync. */
+export const MEDIA_MATCH_BREAKPOINT = '(max-width: 748px)';
 
 export function Header({
   mobileMenuOpen,
@@ -177,7 +177,7 @@ export function Header({
       className="relative sticky top-0 z-50 border-b border-border bg-surface text-text shadow-sm"
     >
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-6">
+        <div className="-mt-1 -mb-1 flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <Flag className="h-6 w-6 text-accent" />
             <span className="pr-1 text-xl font-bold tracking-tight">
@@ -186,7 +186,7 @@ export function Header({
           </Link>
 
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
-          <nav className="hidden items-center gap-1 min-[703px]:flex">
+          <nav className="hidden items-center gap-1 min-[749px]:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.to}

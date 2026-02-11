@@ -583,7 +583,6 @@ function AdminGeneralSettings({ league }: { league: League }) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [visibilityLoading, setVisibilityLoading] = useState(false);
   const isPublic = league.visibility === 'public';
 
   const handleSetPassword = async () => {
@@ -610,18 +609,6 @@ function AdminGeneralSettings({ league }: { league: League }) {
     }
   };
 
-  const handleVisibilityChange = async (visibility: 'private' | 'public') => {
-    if (visibility === league.visibility) {
-      return;
-    }
-    setVisibilityLoading(true);
-    try {
-      await updateLeague({ leagueId: league._id, visibility });
-    } finally {
-      setVisibilityLoading(false);
-    }
-  };
-
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
       <h3 className="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">
@@ -629,70 +616,25 @@ function AdminGeneralSettings({ league }: { league: League }) {
       </h3>
       <div className="space-y-3">
         <div>
-          <p className="mb-2 text-sm font-medium text-text">Visibility</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => void handleVisibilityChange('private')}
-              disabled={visibilityLoading || league.visibility === 'private'}
-              className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors ${
-                league.visibility === 'private'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-border bg-surface hover:bg-surface-muted'
-              }`}
-            >
-              <span
-                className={`inline-flex items-center gap-2 text-sm font-medium ${
-                  league.visibility === 'private'
-                    ? 'text-accent'
-                    : 'text-text-muted'
-                }`}
-              >
-                <Lock className="h-4 w-4 shrink-0" />
-                Private
-              </span>
-              <p
-                className={`text-xs ${
-                  league.visibility === 'private'
-                    ? 'text-accent/90'
-                    : 'text-text-muted'
-                }`}
-              >
-                Invite-only; does not appear in the directory. You can set a
-                password to restrict who joins.
-              </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleVisibilityChange('public')}
-              disabled={visibilityLoading || league.visibility === 'public'}
-              className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors ${
-                league.visibility === 'public'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-border bg-surface hover:bg-surface-muted'
-              }`}
-            >
-              <span
-                className={`inline-flex items-center gap-2 text-sm font-medium ${
-                  league.visibility === 'public'
-                    ? 'text-accent'
-                    : 'text-text-muted'
-                }`}
-              >
-                <Globe className="h-4 w-4 shrink-0" />
-                Public
-              </span>
-              <p
-                className={`text-xs ${
-                  league.visibility === 'public'
-                    ? 'text-accent/90'
-                    : 'text-text-muted'
-                }`}
-              >
-                Can appear in the league directory and on member profiles.
-                Cannot have a password.
-              </p>
-            </button>
+          <p className="mb-1 text-sm font-medium text-text">Visibility</p>
+          <div className="rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm text-text">
+            <div className="flex items-center gap-2">
+              {league.visibility === 'public' ? (
+                <>
+                  <Globe className="h-4 w-4 shrink-0 text-accent" />
+                  <span className="font-medium">Public</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4 shrink-0 text-accent" />
+                  <span className="font-medium">Private</span>
+                </>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-text-muted">
+              Visibility is chosen when the league is created and cannot be
+              changed later.
+            </p>
           </div>
         </div>
 
@@ -899,9 +841,6 @@ function EditLeagueForm({
   const [name, setName] = useState(league.name);
   const [slug, setSlug] = useState(league.slug);
   const [description, setDescription] = useState(league.description ?? '');
-  const [visibility, setVisibility] = useState<'private' | 'public'>(
-    league.visibility,
-  );
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -922,7 +861,6 @@ function EditLeagueForm({
         name,
         slug,
         description,
-        visibility,
       });
       if (slugChanged) {
         void navigate({
@@ -999,36 +937,6 @@ function EditLeagueForm({
           maxLength={200}
           className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
         />
-      </div>
-      <div>
-        <label className="mb-2 block text-sm font-medium text-text">
-          Visibility
-        </label>
-        <div className="flex gap-2">
-          <label className="inline-flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name="visibility"
-              checked={visibility === 'private'}
-              onChange={() => setVisibility('private')}
-              className="border-border text-accent focus:ring-accent"
-            />
-            <span className="text-sm text-text">Private</span>
-          </label>
-          <label className="inline-flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name="visibility"
-              checked={visibility === 'public'}
-              onChange={() => setVisibility('public')}
-              className="border-border text-accent focus:ring-accent"
-            />
-            <span className="text-sm text-text">Public</span>
-          </label>
-        </div>
-        <p className="mt-1 text-xs text-text-muted">
-          Public leagues cannot have a password.
-        </p>
       </div>
 
       {error && <p className="text-sm text-error">{error}</p>}

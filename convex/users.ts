@@ -131,6 +131,23 @@ export const getUserStats = query({
   },
 });
 
+export const hasSeasonPassForSeason = query({
+  args: { season: v.number() },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) return false;
+
+    const pass = await ctx.db
+      .query('userSeasonPasses')
+      .withIndex('by_user_season', (q) =>
+        q.eq('userId', viewer._id).eq('season', args.season),
+      )
+      .unique();
+
+    return !!pass;
+  },
+});
+
 export const updatePrivacySettings = mutation({
   args: { showOnLeaderboard: v.boolean() },
   handler: async (ctx, args) => {

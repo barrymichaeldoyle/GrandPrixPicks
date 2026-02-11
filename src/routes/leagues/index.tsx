@@ -166,6 +166,11 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const hasSeasonPassFor2026 = useQuery(
+    api.users.hasSeasonPassForSeason,
+    { season: 2026 },
+  );
+
   const slugAvailable = useQuery(
     api.leagues.isSlugAvailable,
     slug.length >= 3 ? { slug } : 'skip',
@@ -302,9 +307,16 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
                 name="visibility"
                 checked={visibility === 'public'}
                 onChange={() => setVisibility('public')}
+                disabled={hasSeasonPassFor2026 === false}
                 className="border-border text-accent focus:ring-accent"
               />
-              <span className="text-sm text-text">Public</span>
+              <span
+                className={`text-sm ${
+                  hasSeasonPassFor2026 === false ? 'text-text-muted' : 'text-text'
+                }`}
+              >
+                Public
+              </span>
             </label>
           </div>
           <p className="mt-1 text-xs text-text-muted">
@@ -312,6 +324,11 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
             league directory and on member profiles; they cannot have a
             password.
           </p>
+          {hasSeasonPassFor2026 === false && (
+            <p className="mt-1 text-xs text-accent">
+              Public leagues will be available with a 2026 Season Pass soon.
+            </p>
+          )}
         </div>
         {visibility === 'private' && (
           <div>

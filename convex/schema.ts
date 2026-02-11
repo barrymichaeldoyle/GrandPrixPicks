@@ -225,6 +225,14 @@ export default defineSchema({
 
   // ============ LEAGUES ============
 
+  userSeasonPasses: defineTable({
+    userId: v.id('users'),
+    season: v.number(), // 2026, 2027, ...
+    paddleCheckoutId: v.optional(v.string()),
+    paddleProductId: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index('by_user_season', ['userId', 'season']),
+
   leagues: defineTable({
     name: v.string(),
     slug: v.string(),

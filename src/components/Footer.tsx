@@ -101,6 +101,12 @@ export function Footer() {
                 Leaderboard
               </Link>
               <Link
+                to="/me"
+                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+              >
+                My Picks
+              </Link>
+              <Link
                 to="/leagues"
                 className="font-semibold text-accent transition-colors hover:text-accent-hover"
               >

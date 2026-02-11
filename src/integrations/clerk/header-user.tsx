@@ -6,12 +6,13 @@ import {
 } from '@clerk/clerk-react';
 import { Settings } from 'lucide-react';
 
-const signInButtonClasses =
+export const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-button-accent text-white hover:bg-button-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
 /**
- * User avatar when signed in; Sign in button when signed out. Sign in is hidden
- * on mobile (min-[703px]:block) so it can live in the mobile menu; matches Header MEDIA_MATCH_BREAKPOINT.
+ * User avatar when signed in; Sign in button when signed out.
+ * The Sign in button is hidden on mobile (min-[791px]:block) so it
+ * only appears in the header on desktop, and lives in the mobile menu on small screens.
  */
 export function HeaderUser() {
   return (
@@ -35,7 +36,7 @@ export function HeaderUser() {
         </UserButton>
       </SignedIn>
       <SignedOut>
-        <div className="hidden min-[703px]:block">
+        <div className="hidden min-[791px]:block">
           <SignInButton mode="modal">
             <button type="button" className={signInButtonClasses}>
               Sign in
@@ -46,5 +47,3 @@ export function HeaderUser() {
     </>
   );
 }
-
-export { signInButtonClasses };

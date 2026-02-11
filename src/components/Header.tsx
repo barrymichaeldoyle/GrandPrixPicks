@@ -28,8 +28,8 @@ const staticNavLinks: Array<NavLink> = [
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Mobile menu: viewport width <= 748px is "mobile". Keep min-[749px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 748px)';
+/** Mobile menu: viewport width <= 790px is "mobile". Keep min-[749px] classes below in sync. */
+export const MEDIA_MATCH_BREAKPOINT = '(max-width: 790px)';
 
 export function Header({
   mobileMenuOpen,
@@ -186,7 +186,7 @@ export function Header({
           </Link>
 
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
-          <nav className="hidden items-center gap-1 min-[749px]:flex">
+          <nav className="hidden items-center gap-1 min-[791px]:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -220,7 +220,7 @@ export function Header({
           <motion.button
             ref={menuButtonRef}
             onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-            className="rounded-lg p-2 transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[703px]:hidden"
+            className="rounded-lg p-2 transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
@@ -263,7 +263,7 @@ export function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[703px]:hidden"
+              className="fixed inset-0 top-[57px] z-40 min-[791px]:hidden"
               style={{ backgroundColor: 'var(--overlay)' }}
               onClick={closeMenu}
             />
@@ -275,7 +275,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface shadow-xl min-[703px]:hidden"
+              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface shadow-xl min-[791px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {navLinks.map((link, index) => (

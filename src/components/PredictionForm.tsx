@@ -1,8 +1,26 @@
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
-import { AnimatePresence, motion, Reorder } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import type { DragEvent } from 'react';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
@@ -21,15 +39,47 @@ const DRIVER_SLOT_TOOLTIP = {
   lg: 'Select from the driver cards to the right',
 };
 
+const DRIVER_POOL_DROPPABLE_ID = 'driver-pool';
+
+function emptySlotId(slotIndex: number) {
+  return `empty-${slotIndex}`;
+}
+
+function parseEmptySlotId(id: string): number | null {
+  if (!id.startsWith('empty-')) return null;
+  const n = parseInt(id.slice(6), 10);
+  return Number.isNaN(n) ? null : n;
+}
+
 type Driver = Doc<'drivers'>;
 
-/** Single pick row – whole card is draggable; buttons stop propagation so they don't start drag */
-function PickedDriverRow({
+/** Left-side badge (number + code) – reused so it can be wrapped as drag handle on mobile. */
+function DriverPickBadge({ driver }: { driver: Driver }) {
+  return (
+    <div
+      className="flex h-full w-12 shrink-0 flex-col items-center justify-center py-1 text-white sm:w-14"
+      style={{
+        backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+      }}
+    >
+      {driver.number != null && (
+        <span className="font-mono text-sm leading-none font-bold sm:text-base">
+          {driver.number}
+        </span>
+      )}
+      <span className="font-mono text-[10px] leading-none font-bold tracking-wider text-white/90 sm:text-xs">
+        {driver.code}
+      </span>
+    </div>
+  );
+}
+
+/** Sortable pick row using @dnd-kit – whole card draggable, works on touch and desktop. */
+function SortablePickRow({
   driverId,
   driver,
   index,
   picksLength,
-  addDriverAtPosition,
   moveUp,
   moveDown,
   removeDriver,
@@ -38,84 +88,67 @@ function PickedDriverRow({
   driver: Driver;
   index: number;
   picksLength: number;
-  addDriverAtPosition: (driverId: Id<'drivers'>, slotIndex: number) => void;
   moveUp: (i: number) => void;
   moveDown: (i: number) => void;
   removeDriver: (id: Id<'drivers'>) => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: driverId });
   const position = index + 1;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   return (
-    <Reorder.Item
-      value={driverId}
-      as="div"
+    <div
+      ref={setNodeRef}
+      style={style}
       data-testid={`picked-driver-${position}`}
-      className="relative flex h-14 shrink-0 cursor-grab touch-none items-stretch gap-0 border-b border-transparent bg-surface-muted active:cursor-grabbing sm:h-16"
-      transition={{
-        type: 'spring',
-        stiffness: 150,
-        damping: 22,
-      }}
-      whileDrag={{
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        if (e.dataTransfer.types.includes('text/plain'))
-          e.dataTransfer.dropEffect = 'copy';
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        const id = e.dataTransfer.getData('text/plain');
-        if (id) addDriverAtPosition(id as Id<'drivers'>, index);
-      }}
+      className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 shadow-lg' : ''}`}
     >
       <div
-        className="flex w-12 shrink-0 flex-col items-center justify-center py-1 text-white sm:w-14"
-        style={{
-          backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
-        }}
+        {...attributes}
+        {...listeners}
+        className="flex min-w-0 flex-1 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'none' }}
+        aria-label="Drag to reorder"
       >
-        {driver.number != null && (
-          <span className="font-mono text-sm leading-none font-bold sm:text-base">
-            {driver.number}
-          </span>
-        )}
-        <span className="font-mono text-[10px] leading-none font-bold tracking-wider text-white/90 sm:text-xs">
-          {driver.code}
-        </span>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0 px-2 py-1.5 sm:px-3 sm:py-2">
-        <div className="flex items-center gap-2">
-          {driver.nationality && (
-            <Flag code={driver.nationality} size="xs" className="shrink-0" />
+        <DriverPickBadge driver={driver} />
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-0 px-2 py-1.5 sm:px-3 sm:py-2">
+          <div className="flex items-center gap-2">
+            {driver.nationality && (
+              <Flag code={driver.nationality} size="xs" className="shrink-0" />
+            )}
+            <span className="truncate font-medium text-text">
+              {driver.displayName}
+            </span>
+          </div>
+          {driver.team && (
+            <span className="truncate text-xs text-text-muted">
+              {displayTeamName(driver.team)}
+            </span>
           )}
-          <span className="truncate font-medium text-text">
-            {driver.displayName}
-          </span>
         </div>
-        {driver.team && (
-          <span className="truncate text-xs text-text-muted">
-            {displayTeamName(driver.team)}
-          </span>
-        )}
       </div>
-      <div
-        className="flex shrink-0 items-center gap-0.5 pr-0.5 pl-1 sm:pl-2"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <div className="flex flex-col">
+      <div className="flex shrink-0 items-center gap-0.5 border-l border-border/50 py-1 pr-1 pl-1.5 sm:pl-2">
+        <div className="flex flex-col bg-surface-muted/50">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               moveUp(index);
             }}
-            onPointerDown={(e) => e.stopPropagation()}
             disabled={index === 0}
-            className="min-h-[44px] min-w-[44px] rounded p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30 sm:min-h-0 sm:min-w-0 sm:p-1.5"
+            className="p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30"
             aria-label="Move up"
           >
-            <ChevronUp size={16} className="text-accent" />
+            <ChevronUp size={14} className="text-accent" />
           </button>
           <button
             type="button"
@@ -123,12 +156,11 @@ function PickedDriverRow({
               e.stopPropagation();
               moveDown(index);
             }}
-            onPointerDown={(e) => e.stopPropagation()}
             disabled={index >= picksLength - 1}
-            className="min-h-[44px] min-w-[44px] rounded p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30 sm:min-h-0 sm:min-w-0 sm:p-1.5"
+            className="p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30"
             aria-label="Move down"
           >
-            <ChevronDown size={16} className="text-accent" />
+            <ChevronDown size={14} className="text-accent" />
           </button>
         </div>
         <button
@@ -137,15 +169,105 @@ function PickedDriverRow({
             e.stopPropagation();
             removeDriver(driver._id);
           }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="min-h-[44px] min-w-[44px] rounded p-1 transition-colors hover:bg-error-muted sm:min-h-0 sm:min-w-0 sm:p-1.5"
+          className="rounded p-1 transition-colors hover:bg-error-muted"
           aria-label="Remove"
           data-testid={`remove-pick-${position}`}
         >
           <X size={16} className="text-error" />
         </button>
       </div>
-    </Reorder.Item>
+    </div>
+  );
+}
+
+/** Empty slot that accepts drops from the driver pool (and tap to set insert-at position). */
+function EmptySlotDroppable({
+  slotIndex,
+  isInsertTarget,
+  driverSlotTooltip,
+  onTap,
+}: {
+  slotIndex: number;
+  isInsertTarget: boolean;
+  driverSlotTooltip: string;
+  onTap: () => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: emptySlotId(slotIndex) });
+  return (
+    <Tooltip
+      content={
+        isInsertTarget ? 'Now tap a driver below to add here' : driverSlotTooltip
+      }
+    >
+      <button
+        ref={setNodeRef}
+        type="button"
+        className={`flex h-14 w-full shrink-0 cursor-pointer items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isInsertTarget ? 'bg-accent-muted/50' : ''} ${isOver ? 'bg-accent-muted/30' : ''}`}
+        onClick={onTap}
+      >
+        <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
+          {isInsertTarget ? 'Tap a driver below →' : 'Select a driver'}
+        </span>
+      </button>
+    </Tooltip>
+  );
+}
+
+/** Driver card in the pool – draggable so user can drag to picks list; tap still adds. */
+function DraggableDriverCard({
+  driver,
+  disabled,
+  onTap,
+}: {
+  driver: Driver;
+  disabled: boolean;
+  onTap: () => void;
+}) {
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: driver._id,
+  });
+  return (
+    <div ref={setNodeRef} {...listeners} {...attributes}>
+      <button
+        type="button"
+        data-testid={`driver-${driver.code}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onTap();
+        }}
+        disabled={disabled}
+        className="flex h-full w-full flex-col items-center justify-center gap-0 rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
+        style={{
+          backgroundColor:
+            driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+        }}
+      >
+        {driver.number != null && (
+          <span className="text-sm leading-none font-bold sm:text-base">
+            {driver.number}
+          </span>
+        )}
+        <span className="text-xs leading-none font-bold tracking-wider sm:text-sm">
+          {driver.code}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+/** Wrapper that makes the driver grid a drop target (drop a pick here to remove). */
+function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: DRIVER_POOL_DROPPABLE_ID,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-4 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
+      data-testid="driver-selection"
+    >
+      {children}
+    </div>
   );
 }
 
@@ -187,6 +309,44 @@ export function PredictionForm({
   useEffect(() => {
     if (picks.length >= 5) setInsertAtIndex(null);
   }, [picks.length]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const overId = String(over.id);
+    const activeId = String(active.id) as Id<'drivers'>;
+    const inPicks = picks.includes(activeId);
+
+    if (overId === DRIVER_POOL_DROPPABLE_ID) {
+      if (inPicks) removeDriver(activeId);
+      return;
+    }
+    const emptySlot = parseEmptySlotId(overId);
+    if (emptySlot !== null) {
+      if (!inPicks && picks.length < 5)
+        addDriverAtPosition(activeId, Math.min(emptySlot, 5));
+      return;
+    }
+    // over is a pick id (sortable item)
+    const overDriverId = overId as Id<'drivers'>;
+    if (inPicks) {
+      const oldIndex = picks.indexOf(activeId);
+      const newIndex = picks.indexOf(overDriverId);
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex)
+        setPicks(arrayMove(picks, oldIndex, newIndex));
+    } else if (picks.length < 5) {
+      const insertIndex = picks.indexOf(overDriverId);
+      if (insertIndex !== -1) addDriverAtPosition(activeId, insertIndex);
+    }
+    setSubmitStatus('idle');
+  };
 
   // Tooltip for empty slot: "cards below" on narrow, "cards to the right" on lg+ (matches layout)
   const [driverSlotTooltip, setDriverSlotTooltip] = useState(() =>
@@ -269,11 +429,6 @@ export function PredictionForm({
     setSubmitStatus('idle');
   };
 
-  const handleReorder = (newOrder: Array<Id<'drivers'>>) => {
-    setPicks(newOrder);
-    setSubmitStatus('idle');
-  };
-
   const handleSubmit = async () => {
     if (picks.length !== 5) return;
 
@@ -315,105 +470,77 @@ export function PredictionForm({
   const emptySlots = 5 - pickedDrivers.length;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Two-column layout on desktop: Your Picks | Select Drivers */}
-      <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
-        {/* Your Picks - tier list: static positions + draggable cards */}
-        <div
-          data-testid="your-picks"
-          className="lg:min-w-0 lg:min-w-[400px] lg:flex-1"
-        >
-          <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
-            Your Picks
-          </h3>
-          <p className="mb-2 text-sm text-text-muted sm:hidden">
-            Tap drivers to add; use ↑↓ to reorder.
-          </p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-4 sm:space-y-6">
+        {/* Two-column layout on desktop: Your Picks | Select Drivers */}
+        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
+          {/* Your Picks - sortable list via @dnd-kit */}
           <div
-            className="flex overflow-hidden rounded-xl border border-border bg-surface"
-            data-testid="picks-list"
+            data-testid="your-picks"
+            className="lg:min-w-0 lg:min-w-[400px] lg:flex-1"
           >
-            {/* Static position lanes (tier-list style) */}
-            <div className="flex shrink-0 flex-col border-r border-border bg-surface-muted/50">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <div
-                  key={n}
-                  className="flex h-14 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-bold text-accent last:border-b-0 sm:h-16 sm:w-11"
-                  aria-hidden
-                >
-                  {n}
-                </div>
-              ))}
-            </div>
-
-            {/* Draggable cards + empty slots (cards move between lanes) */}
-            <Reorder.Group
-              as="div"
-              axis="y"
-              values={picks}
-              onReorder={handleReorder}
-              className="flex min-w-0 flex-1 flex-col"
+            <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
+              Your Picks
+            </h3>
+            <p className="mb-2 text-sm text-text-muted sm:hidden">
+              Tap drivers to add. Drag to reorder, or use ↑↓.
+            </p>
+            <div
+              className="flex overflow-hidden rounded-xl border border-border bg-surface"
+              data-testid="picks-list"
             >
-              <AnimatePresence mode="popLayout">
-                {picks.map((driverId, index) => {
-                  const driver = drivers.find((d) => d._id === driverId);
-                  if (!driver) return null;
-                  return (
-                    <PickedDriverRow
-                      key={driverId}
-                      driverId={driverId}
-                      driver={driver}
-                      index={index}
-                      picksLength={picks.length}
-                      addDriverAtPosition={addDriverAtPosition}
-                      moveUp={moveUp}
-                      moveDown={moveDown}
-                      removeDriver={removeDriver}
-                    />
-                  );
-                })}
-              </AnimatePresence>
-
-              {/* Empty lanes */}
-              {Array.from({ length: emptySlots }).map((_, i) => {
-                const slotIndex = picks.length + i;
-                const isInsertTarget = insertAtIndex === slotIndex;
-                return (
-                  <Tooltip
-                    key={`empty-${i}`}
-                    content={
-                      isInsertTarget
-                        ? 'Now tap a driver below to add here'
-                        : driverSlotTooltip
-                    }
+              <div className="flex shrink-0 flex-col border-r border-border bg-surface-muted/50">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <div
+                    key={n}
+                    className="flex h-14 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-bold text-accent last:border-b-0 sm:h-16 sm:w-11"
+                    aria-hidden
                   >
-                    <button
-                      type="button"
-                      className={`flex h-14 w-full shrink-0 cursor-pointer items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isInsertTarget ? 'bg-accent-muted/50' : ''}`}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        if (e.dataTransfer.types.includes('text/plain'))
-                          e.dataTransfer.dropEffect = 'copy';
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData('text/plain');
-                        if (id)
-                          addDriverAtPosition(id as Id<'drivers'>, slotIndex);
-                      }}
-                      onClick={() => setInsertAtIndex(slotIndex)}
-                    >
-                      <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
-                        {isInsertTarget
-                          ? 'Tap a driver below →'
-                          : 'Select a driver'}
-                      </span>
-                    </button>
-                  </Tooltip>
-                );
-              })}
-            </Reorder.Group>
-          </div>
+                    {n}
+                  </div>
+                ))}
+              </div>
+
+              <SortableContext
+                items={picks}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="flex min-w-0 flex-1 flex-col">
+                  {picks.map((driverId, index) => {
+                    const driver = drivers.find((d) => d._id === driverId);
+                    if (!driver) return null;
+                    return (
+                      <SortablePickRow
+                        key={driverId}
+                        driverId={driverId}
+                        driver={driver}
+                        index={index}
+                        picksLength={picks.length}
+                        moveUp={moveUp}
+                        moveDown={moveDown}
+                        removeDriver={removeDriver}
+                      />
+                    );
+                  })}
+                  {Array.from({ length: emptySlots }).map((_, i) => {
+                    const slotIndex = picks.length + i;
+                    return (
+                      <EmptySlotDroppable
+                        key={emptySlotId(slotIndex)}
+                        slotIndex={slotIndex}
+                        isInsertTarget={insertAtIndex === slotIndex}
+                        driverSlotTooltip={driverSlotTooltip}
+                        onTap={() => setInsertAtIndex(slotIndex)}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </div>
 
           {/* Submit row - directly under Your Picks */}
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
@@ -462,81 +589,43 @@ export function PredictionForm({
         </div>
 
         {/* Available Drivers - selection pool (right column on desktop) */}
-        <div className="lg:min-w-0 lg:flex-[2]">
-          <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
-            Select Drivers
-            {picks.length >= 5 && (
-              <span className="ml-2 text-sm font-normal text-text-muted">
-                (remove a pick to change)
-              </span>
-            )}
-          </h3>
-          <motion.div
-            layout
-            className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-4"
-            data-testid="driver-selection"
-            onDragOver={(e: DragEvent) => {
-              e.preventDefault();
-              if (e.dataTransfer.types.includes('application/x-pick-from-list'))
-                e.dataTransfer.dropEffect = 'move';
-            }}
-            onDrop={(e: DragEvent) => {
-              e.preventDefault();
-              const id = e.dataTransfer.getData('application/x-pick-from-list');
-              if (id) removeDriver(id as Id<'drivers'>);
-            }}
-          >
-            <AnimatePresence mode="popLayout">
-              {availableDrivers.map((driver) => (
-                <motion.div
-                  key={driver._id}
-                  layout
-                  initial={false}
-                  tabIndex={-1}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 500,
-                    damping: 30,
-                  }}
-                  whileHover={{ scale: picks.length >= 5 ? 1 : 1.05 }}
-                  whileTap={{ scale: picks.length >= 5 ? 1 : 0.95 }}
-                >
-                  <button
-                    type="button"
-                    data-testid={`driver-${driver.code}`}
-                    onClick={() => addDriverOrInsert(driver._id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        addDriverOrInsert(driver._id);
-                      }
+          <div className="lg:min-w-0 lg:flex-[2]">
+            <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
+              Select Drivers
+              {picks.length >= 5 && (
+                <span className="ml-2 text-sm font-normal text-text-muted">
+                  (remove a pick to change)
+                </span>
+              )}
+            </h3>
+            <DriverPoolDroppable>
+              <AnimatePresence mode="popLayout">
+                {availableDrivers.map((driver) => (
+                  <motion.div
+                    key={driver._id}
+                    layout
+                    initial={false}
+                    tabIndex={-1}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 500,
+                      damping: 30,
                     }}
-                    disabled={picks.length >= 5}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', driver._id);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    className="flex h-full w-full flex-col items-center justify-center gap-0 rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
-                    style={{
-                      backgroundColor:
-                        driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
-                    }}
+                    whileHover={{ scale: picks.length >= 5 ? 1 : 1.05 }}
+                    whileTap={{ scale: picks.length >= 5 ? 1 : 0.95 }}
                   >
-                    {driver.number != null && (
-                      <span className="text-sm leading-none font-bold sm:text-base">
-                        {driver.number}
-                      </span>
-                    )}
-                    <span className="text-xs leading-none font-bold tracking-wider sm:text-sm">
-                      {driver.code}
-                    </span>
-                  </button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                    <DraggableDriverCard
+                      driver={driver}
+                      disabled={picks.length >= 5}
+                      onTap={() => addDriverOrInsert(driver._id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </DriverPoolDroppable>
+          </div>
         </div>
       </div>
-    </div>
+    </DndContext>
   );
 }

@@ -86,7 +86,9 @@ export default defineSchema({
   results: defineTable({
     raceId: v.id('races'),
     sessionType: sessionType,
-    classification: v.array(v.id('drivers')), // ordered, ideally full 20
+    classification: v.array(v.id('drivers')), // ordered full grid for session
+    // Optional list of drivers who did not classify (DNF/DSQ, etc.)
+    dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     publishedAt: v.number(),
     updatedAt: v.number(),
   }).index('by_race_session', ['raceId', 'sessionType']),

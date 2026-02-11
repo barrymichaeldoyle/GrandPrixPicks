@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { ArrowLeft, Check, Loader2, Save, Shield, Trophy } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, Save, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { api } from '../../../../convex/_generated/api';
 import type { Id } from '../../../../convex/_generated/dataModel';
 import type { SessionType } from '../../../lib/sessions';
 import { getSessionsForWeekend, SESSION_LABELS } from '../../../lib/sessions';
+import { NotFoundPage } from '../../__root';
 
 export const Route = createFileRoute('/admin/races/$raceId')({
   component: AdminRaceDetailPage,
@@ -26,20 +27,23 @@ function AdminRaceDetailPage() {
     sessionType: selectedSession,
   });
 
-  const publishResults = useMutation(api.results.adminPublishResults);
-
   const [selectedDrivers, setSelectedDrivers] = useState<Array<Id<'drivers'>>>(
     [],
   );
+  const [dnfDriverIds, setDnfDriverIds] = useState<Array<Id<'drivers'>>>([]);
+  const publishResults = useMutation(api.results.adminPublishResults);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
 
   // Reset selected drivers when session changes or when result loads
   useEffect(() => {
     if (existingResult?.classification) {
-      setSelectedDrivers(existingResult.classification.slice(0, 5));
+      // Use full classification if it exists
+      setSelectedDrivers(existingResult.classification);
+      setDnfDriverIds(existingResult.dnfDriverIds ?? []);
     } else {
       setSelectedDrivers([]);
+      setDnfDriverIds([]);
     }
     setPublishSuccess(false);
   }, [existingResult, selectedSession]);
@@ -53,19 +57,7 @@ function AdminRaceDetailPage() {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-        <div className="mx-auto max-w-4xl px-4 py-8">
-          <div className="rounded-xl border border-red-500/30 bg-slate-800/50 p-8 text-center">
-            <Shield className="mx-auto mb-4 h-16 w-16 text-red-400" />
-            <h1 className="mb-2 text-2xl font-bold text-white">
-              Access Denied
-            </h1>
-            <p className="text-slate-400">Admin privileges required.</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <NotFoundPage />;
   }
 
   if (!race) {
@@ -85,7 +77,8 @@ function AdminRaceDetailPage() {
     setPublishSuccess(false);
     if (selectedDrivers.includes(driverId)) {
       setSelectedDrivers(selectedDrivers.filter((id) => id !== driverId));
-    } else if (selectedDrivers.length < 5) {
+      setDnfDriverIds(dnfDriverIds.filter((id) => id !== driverId));
+    } else if (selectedDrivers.length < drivers.length) {
       setSelectedDrivers([...selectedDrivers, driverId]);
     }
   };
@@ -103,8 +96,16 @@ function AdminRaceDetailPage() {
     setPublishSuccess(false);
   };
 
+  const toggleClassified = (driverId: Id<'drivers'>) => {
+    setDnfDriverIds((current) =>
+      current.includes(driverId)
+        ? current.filter((id) => id !== driverId) // mark as classified
+        : [...current, driverId], // mark as DNF
+    );
+  };
+
   const handlePublish = async () => {
-    if (selectedDrivers.length !== 5) return;
+    if (selectedDrivers.length !== drivers.length) return;
 
     setIsPublishing(true);
     try {
@@ -112,6 +113,7 @@ function AdminRaceDetailPage() {
         raceId: typedRaceId,
         classification: selectedDrivers,
         sessionType: selectedSession,
+        dnfDriverIds,
       });
       setPublishSuccess(true);
     } catch (error) {
@@ -193,17 +195,18 @@ function AdminRaceDetailPage() {
           </div>
 
           <p className="mb-6 text-slate-400">
-            Select the top 5 finishers for {SESSION_LABELS[selectedSession]} in
-            order (P1 to P5).
+            Build the full classification for {SESSION_LABELS[selectedSession]} in
+            order (P1 to P{drivers.length}). This powers both scoring and
+            Head-to-Head results.
           </p>
 
-          {/* Selected drivers (top 5) */}
+          {/* Selected drivers (full grid) */}
           <div className="mb-6">
             <h3 className="mb-3 text-sm font-medium text-slate-400">
-              Classification
+              Classification (P1–P{drivers.length})
             </h3>
             <div className="space-y-2">
-              {[0, 1, 2, 3, 4].map((index) => {
+              {Array.from({ length: drivers.length }).map((_, index) => {
                 const driver = selectedDriverData[index];
                 return (
                   <div
@@ -249,10 +252,19 @@ function AdminRaceDetailPage() {
                             ✕
                           </button>
                         </div>
+                        <label className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                          <input
+                            type="checkbox"
+                            checked={!dnfDriverIds.includes(driver._id)}
+                            onChange={() => toggleClassified(driver._id)}
+                            className="h-3 w-3 rounded border-slate-500 bg-slate-800 text-yellow-400"
+                          />
+                          Classified (finished / classified in results)
+                        </label>
                       </>
                     ) : (
                       <span className="text-sm text-slate-500">
-                        Select from below
+                        Select a driver from below
                       </span>
                     )}
                   </div>
@@ -265,7 +277,9 @@ function AdminRaceDetailPage() {
           <div className="mb-6 flex items-center gap-4">
             <button
               onClick={handlePublish}
-              disabled={selectedDrivers.length !== 5 || isPublishing}
+              disabled={
+                selectedDrivers.length !== drivers.length || isPublishing
+              }
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-black transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
               {isPublishing ? (
@@ -285,10 +299,10 @@ function AdminRaceDetailPage() {
                 </>
               )}
             </button>
-            {selectedDrivers.length < 5 && (
+            {selectedDrivers.length < drivers.length && (
               <span className="text-sm text-slate-400">
-                Select {5 - selectedDrivers.length} more driver
-                {5 - selectedDrivers.length !== 1 ? 's' : ''}
+                Select {drivers.length - selectedDrivers.length} more driver
+                {drivers.length - selectedDrivers.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
@@ -303,7 +317,7 @@ function AdminRaceDetailPage() {
                 <button
                   key={driver._id}
                   onClick={() => toggleDriver(driver._id)}
-                  disabled={selectedDrivers.length >= 5}
+                  disabled={selectedDrivers.length >= drivers.length}
                   className="flex flex-col items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/50 p-2 transition-colors hover:border-yellow-500/50 hover:bg-slate-700/50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <span className="text-sm font-bold text-cyan-400">

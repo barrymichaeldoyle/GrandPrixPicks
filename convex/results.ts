@@ -254,6 +254,8 @@ export const adminPublishResults = mutation({
     raceId: v.id('races'),
     classification: v.array(v.id('drivers')),
     sessionType: v.optional(sessionTypeValidator),
+    // Optional list of drivers who did not classify (DNF/DSQ, etc.)
+    dnfDriverIds: v.optional(v.array(v.id('drivers'))),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
@@ -277,6 +279,7 @@ export const adminPublishResults = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         classification: args.classification,
+        dnfDriverIds: args.dnfDriverIds,
         updatedAt: now,
       });
     } else {
@@ -284,6 +287,7 @@ export const adminPublishResults = mutation({
         raceId: args.raceId,
         sessionType,
         classification: args.classification,
+        dnfDriverIds: args.dnfDriverIds,
         publishedAt: now,
         updatedAt: now,
       });

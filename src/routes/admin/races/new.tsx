@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { ArrowLeft, Loader2, Save, Shield } from 'lucide-react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import type { SubmitEvent } from 'react';
 import { useState } from 'react';
 
 import { api } from '../../../../convex/_generated/api';
+import { NotFoundPage } from '../../__root';
 
 export const Route = createFileRoute('/admin/races/new')({
   component: AdminNewRacePage,
@@ -35,19 +36,7 @@ function AdminNewRacePage() {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-        <div className="mx-auto max-w-4xl px-4 py-8">
-          <div className="rounded-xl border border-red-500/30 bg-slate-800/50 p-8 text-center">
-            <Shield className="mx-auto mb-4 h-16 w-16 text-red-400" />
-            <h1 className="mb-2 text-2xl font-bold text-white">
-              Access Denied
-            </h1>
-            <p className="text-slate-400">Admin privileges required.</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <NotFoundPage />;
   }
 
   const generateSlug = (name: string) => {

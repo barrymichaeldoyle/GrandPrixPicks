@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 });
 
-function NotFoundPage() {
+export function NotFoundPage() {
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
@@ -115,13 +115,6 @@ function NotFoundPage() {
           >
             <Home className="h-4 w-4" />
             Go home
-          </Link>
-          <Link
-            to="/leaderboard"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-6 py-2.5 font-semibold text-text transition-colors hover:bg-surface-muted"
-          >
-            <Trophy className="h-4 w-4" />
-            Leaderboard
           </Link>
         </div>
       </div>

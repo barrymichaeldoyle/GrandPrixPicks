@@ -11,6 +11,7 @@ import { Button } from '../../components/Button';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
+import { RandomizeButton } from '../../components/RandomizeButton';
 import { InlineLoader } from '../../components/InlineLoader';
 import { RaceResults } from '../../components/RaceResults';
 import { Tooltip } from '../../components/Tooltip';
@@ -164,12 +165,19 @@ interface H2HSectionProps {
   /** When provided, section is controlled by parent (e.g. to hide other section while editing). */
   editingSession?: SessionType | null;
   onEditingSessionChange?: (session: SessionType | null) => void;
+  /** When true, show Randomize button in this section (Top 5 done, H2H still needed). */
+  showRandomizeButton?: boolean;
+  hasPredictions?: boolean;
+  hasH2HPredictions?: boolean;
 }
 
 export function H2HSection({
   race,
   editingSession: controlledEditing,
   onEditingSessionChange,
+  showRandomizeButton,
+  hasPredictions,
+  hasH2HPredictions,
 }: H2HSectionProps) {
   const [internalEditing, setInternalEditing] = useState<SessionType | null>(
     null,
@@ -187,11 +195,22 @@ export function H2HSection({
           editingSession ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
         }`}
       >
-        <div className="flex items-center gap-2">
-          <Swords className="h-5 w-5 text-accent" />
-          <h2 className="text-xl font-semibold text-text">
-            Head-to-Head Predictions
-          </h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Swords className="h-5 w-5 text-accent" />
+            <h2 className="text-xl font-semibold text-text">
+              Head-to-Head Predictions
+            </h2>
+          </div>
+          {showRandomizeButton &&
+            hasPredictions !== undefined &&
+            hasH2HPredictions !== undefined && (
+              <RandomizeButton
+                raceId={race._id}
+                hasPredictions={hasPredictions}
+                hasH2HPredictions={hasH2HPredictions}
+              />
+            )}
         </div>
       </div>
 

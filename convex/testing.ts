@@ -203,17 +203,22 @@ export const cleanupTestData = internalMutation({
   },
 });
 
-// Clear all predictions (dev/test only)
+// Clear all predictions including H2H (dev/test only)
 export const clearAllPredictions = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const predictions = await ctx.db.query('predictions').collect();
+    const tables = ['predictions', 'h2hPredictions', 'h2hScores'] as const;
+    const counts: Record<string, number> = {};
 
-    for (const pred of predictions) {
-      await ctx.db.delete(pred._id);
+    for (const table of tables) {
+      const docs = await ctx.db.query(table).collect();
+      counts[table] = docs.length;
+      for (const doc of docs) {
+        await ctx.db.delete(doc._id);
+      }
     }
 
-    return { deleted: predictions.length };
+    return { deleted: counts };
   },
 });
 

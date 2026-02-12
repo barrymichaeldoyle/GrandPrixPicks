@@ -169,7 +169,8 @@ function RaceDetailPage() {
                   <div className="relative">
                     {isSignedIn &&
                       !h2hEditingSession &&
-                      !top5EditingSession && (
+                      !top5EditingSession &&
+                      !hasPredictions && (
                         <div className="absolute top-3 right-2 z-10">
                           <RandomizeButton
                             raceId={race._id}
@@ -190,6 +191,11 @@ function RaceDetailPage() {
                         race={race}
                         editingSession={h2hEditingSession}
                         onEditingSessionChange={setH2hEditingSession}
+                        showRandomizeButton={
+                          hasPredictions && !hasH2HPredictions
+                        }
+                        hasPredictions={!!hasPredictions}
+                        hasH2HPredictions={hasH2HPredictions}
                       />
                     )}
                   </div>

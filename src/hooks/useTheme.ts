@@ -12,7 +12,7 @@ function resolveTheme(themeKey: string): boolean {
 }
 
 export function useTheme(themeKey = THEME_KEY) {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     const sync = () => setIsDark(resolveTheme(themeKey));

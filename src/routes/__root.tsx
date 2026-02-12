@@ -144,9 +144,14 @@ function RootDocument({ children }: PropsWithChildren) {
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark" data-theme="dark">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme:dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`,
+          }}
+        />
       </head>
       <body>
         <AppClerkProvider darkMode={isDark}>

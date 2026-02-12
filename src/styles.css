@@ -40,8 +40,9 @@
   --border-strong: #475569;
   --accent: #14b8a6;
   --accent-hover: #2dd4bf;
-  --button-accent: var(--accent);
-  --button-accent-hover: var(--accent-hover);
+  /* Slightly darker teal for primary buttons so they don’t feel washed out in dark mode */
+  --button-accent: #0d9488;
+  --button-accent-hover: #0f766e;
   --accent-muted: #134e4a;
   --success: #34d399;
   --success-muted: #064e3b;

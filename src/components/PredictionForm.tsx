@@ -20,11 +20,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { useBlocker } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
+import { teamStandingsIndex } from '@/lib/teams';
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
@@ -220,6 +221,7 @@ function DraggableDriverCard({
 }) {
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: driver._id,
+    disabled,
   });
   return (
     <div ref={setNodeRef} {...listeners} {...attributes}>
@@ -386,7 +388,15 @@ export function PredictionForm({
     .map((id) => drivers.find((d) => d._id === id))
     .filter((d): d is Driver => d !== undefined);
 
-  const availableDrivers = drivers.filter((d) => !picks.includes(d._id));
+  const driversSortedByTeam = [...drivers].sort((a, b) => {
+    const teamA = teamStandingsIndex(a.team);
+    const teamB = teamStandingsIndex(b.team);
+    if (teamA !== teamB) return teamA - teamB;
+    const numA = a.number ?? 999;
+    const numB = b.number ?? 999;
+    if (numA !== numB) return numA - numB;
+    return a.displayName.localeCompare(b.displayName);
+  });
 
   const addDriver = (driverId: Id<'drivers'>) => {
     if (picks.length >= 5) return;
@@ -566,16 +576,6 @@ export function PredictionForm({
                 )}
               </Button>
 
-              {picks.length < 5 && (
-                <span
-                  className="text-sm text-text-muted"
-                  data-testid="picks-remaining"
-                >
-                  Select {5 - picks.length} more driver
-                  {5 - picks.length !== 1 ? 's' : ''}
-                </span>
-              )}
-
               {submitStatus === 'error' && (
                 <span className="text-sm text-error" data-testid="submit-error">
                   {errorMessage}
@@ -588,15 +588,24 @@ export function PredictionForm({
           <div className="lg:min-w-0 lg:flex-[2]">
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
-              {picks.length >= 5 && (
+              {picks.length >= 5 ? (
                 <span className="ml-2 text-sm font-normal text-text-muted">
                   (remove a pick to change)
+                </span>
+              ) : (
+                <span
+                  className="ml-2 text-sm font-normal text-text-muted"
+                  data-testid="picks-remaining"
+                >
+                  Select {5 - picks.length} more driver
+                  {5 - picks.length !== 1 ? 's' : ''}
                 </span>
               )}
             </h3>
             <DriverPoolDroppable>
-              <AnimatePresence mode="popLayout">
-                {availableDrivers.map((driver) => (
+              {driversSortedByTeam.map((driver) => {
+                const isPicked = picks.includes(driver._id);
+                return (
                   <motion.div
                     key={driver._id}
                     layout
@@ -607,17 +616,21 @@ export function PredictionForm({
                       stiffness: 500,
                       damping: 30,
                     }}
-                    whileHover={{ scale: picks.length >= 5 ? 1 : 1.05 }}
-                    whileTap={{ scale: picks.length >= 5 ? 1 : 0.95 }}
+                    whileHover={{
+                      scale: isPicked || picks.length >= 5 ? 1 : 1.05,
+                    }}
+                    whileTap={{
+                      scale: isPicked || picks.length >= 5 ? 1 : 0.95,
+                    }}
                   >
                     <DraggableDriverCard
                       driver={driver}
-                      disabled={picks.length >= 5}
+                      disabled={isPicked || picks.length >= 5}
                       onTap={() => addDriver(driver._id)}
                     />
                   </motion.div>
-                ))}
-              </AnimatePresence>
+                );
+              })}
             </DriverPoolDroppable>
           </div>
         </div>

@@ -1,25 +1,19 @@
 import { useMutation, useQuery } from 'convex/react';
-import { Shuffle } from 'lucide-react';
-import { useState } from 'react';
+import { Dices } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { Button } from './Button';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Tooltip } from './Tooltip';
+
+const NARROW_BREAKPOINT_PX = 500;
 
 interface RandomizeButtonProps {
   raceId: Id<'races'>;
   hasPredictions: boolean;
   hasH2HPredictions: boolean;
-}
-
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
 }
 
 export function RandomizeButton({
@@ -30,10 +24,23 @@ export function RandomizeButton({
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNarrow, setIsNarrow] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia(`(max-width: ${NARROW_BREAKPOINT_PX - 1}px)`).matches,
+  );
 
-  const drivers = useQuery(api.drivers.listDrivers);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${NARROW_BREAKPOINT_PX - 1}px)`);
+    const handler = () => setIsNarrow(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
-  const submitPrediction = useMutation(api.predictions.submitPrediction);
+  const randomizePredictions = useMutation(
+    api.predictions.randomizePredictions,
+  );
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
 
   // Both submitted — hide the button
@@ -43,7 +50,7 @@ export function RandomizeButton({
 
   const needsTop5 = !hasPredictions;
   const needsH2H = !hasH2HPredictions;
-  const dataLoading = drivers === undefined || matchups === undefined;
+  const dataLoading = matchups === undefined;
 
   const label = needsTop5
     ? 'Randomize All Predictions'
@@ -54,16 +61,14 @@ export function RandomizeButton({
     : 'This will randomly select your Head-to-Head picks for all sessions this weekend. You can edit individual sessions afterwards.';
 
   async function handleConfirm() {
-    if (!drivers || !matchups) return;
+    if (!matchups) return;
 
     setLoading(true);
     setError(null);
 
     try {
       if (needsTop5) {
-        const driverIds = drivers.map((d) => d._id);
-        const randomTop5 = shuffleArray(driverIds).slice(0, 5);
-        await submitPrediction({ raceId, picks: randomTop5 });
+        await randomizePredictions({ raceId });
       }
 
       if (needsH2H && matchups.length > 0) {
@@ -83,27 +88,33 @@ export function RandomizeButton({
     }
   }
 
+  const buttonLabel = isNarrow ? 'Randomize' : label;
+  const button = (
+    <Button
+      size="sm"
+      disabled={dataLoading}
+      onClick={() => {
+        setError(null);
+        setShowConfirm(true);
+      }}
+    >
+      <Dices size={16} />
+      {buttonLabel}
+    </Button>
+  );
+
   return (
     <>
-      <div className="flex justify-center px-4 pt-4 sm:px-6 sm:pt-6">
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={dataLoading}
-          onClick={() => {
-            setError(null);
-            setShowConfirm(true);
-          }}
-        >
-          <Shuffle size={16} />
-          {label}
-        </Button>
-      </div>
+      {isNarrow ? button : <Tooltip content={label}>{button}</Tooltip>}
       <ConfirmDialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleConfirm}
-        title={label}
+        title={
+          <span className="flex items-center gap-2 font-semibold">
+            <Dices size={16} className="text-accent" /> {label}
+          </span>
+        }
         description={description}
         confirmLabel="Randomize"
         loading={loading}

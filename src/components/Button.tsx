@@ -22,7 +22,7 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'px-6 text-base py-2',
+  sm: 'px-2 text-base py-1',
   md: 'px-6 py-3 text-base',
   tab: 'rounded-md px-3 py-2 text-sm',
 } as const;

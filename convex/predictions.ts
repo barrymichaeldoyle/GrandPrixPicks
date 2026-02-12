@@ -407,3 +407,96 @@ export const submitPrediction = mutation({
     return results[0]; // Return first created/updated prediction ID
   },
 });
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Randomize predictions for all sessions in one transaction.
+ * Each session gets a different random top-5.
+ */
+export const randomizePredictions = mutation({
+  args: {
+    raceId: v.id('races'),
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    const race = await ctx.db.get(args.raceId);
+
+    if (!race) throw new Error('Race not found');
+
+    const now = Date.now();
+
+    // Only allow predictions for the next upcoming race
+    const allRaces = await ctx.db.query('races').collect();
+    const upcomingRaces = allRaces
+      .filter((r) => r.raceStartAt > now)
+      .sort((a, b) => a.raceStartAt - b.raceStartAt);
+    const nextRace = upcomingRaces[0];
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
+    if (!nextRace || nextRace._id !== args.raceId) {
+      throw new Error('Predictions are only open for the next upcoming race');
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    const driverIds = drivers.map((d) => d._id);
+
+    const sessions: Array<SessionType> = race.hasSprint
+      ? ['sprint_quali', 'sprint', 'quali', 'race']
+      : ['quali', 'race'];
+
+    const lockTimes: Record<SessionType, number | undefined> = {
+      quali: race.qualiLockAt,
+      sprint_quali: race.sprintQualiLockAt,
+      sprint: race.sprintLockAt,
+      race: race.predictionLockAt,
+    };
+
+    const results: Array<Id<'predictions'>> = [];
+
+    for (const sessionType of sessions) {
+      const lockTime = lockTimes[sessionType];
+      if (lockTime && now >= lockTime) continue;
+
+      const picks = shuffleArray(driverIds).slice(0, 5);
+
+      const existing = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', viewer._id)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', sessionType),
+        )
+        .unique();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, { picks, updatedAt: now });
+        results.push(existing._id);
+      } else {
+        const id = await ctx.db.insert('predictions', {
+          userId: viewer._id,
+          raceId: args.raceId,
+          sessionType,
+          picks,
+          submittedAt: now,
+          updatedAt: now,
+        });
+        results.push(id);
+      }
+    }
+
+    if (results.length === 0) {
+      throw new Error('All sessions are locked for this race');
+    }
+
+    return results;
+  },
+});

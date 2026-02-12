@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from './Button';
@@ -7,7 +7,7 @@ interface ConfirmDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title: string;
+  title: ReactNode;
   description: string;
   confirmLabel?: string;
   loading?: boolean;
@@ -60,17 +60,18 @@ export function ConfirmDialog({
       }}
     >
       <div className="mx-4 w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-xl">
-        <h2 className="mb-2 text-lg font-semibold text-text">{title}</h2>
+        <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-text">
+          {title}
+        </h2>
         <p className="mb-6 text-sm text-text-muted">{description}</p>
-        {error && (
-          <p className="mb-4 text-sm text-error">{error}</p>
-        )}
-        <div className="flex justify-end gap-3">
+        {error && <p className="mb-4 text-sm text-error">{error}</p>}
+        <div className="flex justify-center gap-3">
           <Button
             variant="secondary"
             size="sm"
             onClick={onClose}
             disabled={loading}
+            className="min-w-[7rem]"
           >
             Cancel
           </Button>
@@ -79,6 +80,7 @@ export function ConfirmDialog({
             size="sm"
             onClick={onConfirm}
             loading={loading}
+            className="min-w-[7rem]"
           >
             {confirmLabel}
           </Button>

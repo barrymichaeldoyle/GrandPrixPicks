@@ -166,15 +166,17 @@ function RaceDetailPage() {
                     <InlineLoader />
                   </div>
                 ) : (
-                  <>
+                  <div className="relative">
                     {isSignedIn &&
                       !h2hEditingSession &&
                       !top5EditingSession && (
-                        <RandomizeButton
-                          raceId={race._id}
-                          hasPredictions={!!hasPredictions}
-                          hasH2HPredictions={hasH2HPredictions}
-                        />
+                        <div className="absolute top-3 right-2 z-10">
+                          <RandomizeButton
+                            raceId={race._id}
+                            hasPredictions={!!hasPredictions}
+                            hasH2HPredictions={hasH2HPredictions}
+                          />
+                        </div>
                       )}
                     {!h2hEditingSession && (
                       <Top5PredictionSection
@@ -190,7 +192,7 @@ function RaceDetailPage() {
                         onEditingSessionChange={setH2hEditingSession}
                       />
                     )}
-                  </>
+                  </div>
                 )
               ) : isNotYetOpen ? (
                 <NotYetOpenSection

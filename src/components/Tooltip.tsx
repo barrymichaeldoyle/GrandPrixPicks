@@ -232,7 +232,7 @@ export function Tooltip({
       }}
     >
       {isDefaultStyle ? (
-        <span className="block rounded bg-text px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm">
+        <span className="block rounded bg-slate-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm dark:bg-slate-700">
           {content}
         </span>
       ) : (

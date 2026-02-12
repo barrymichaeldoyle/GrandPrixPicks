@@ -1,8 +1,7 @@
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import { internalMutation, mutation } from './_generated/server';
-import { getOrCreateViewer, requireViewer } from './lib/auth';
+import { internalMutation } from './_generated/server';
 
 /**
  * Test helper mutations for Playwright e2e tests.
@@ -201,6 +200,20 @@ export const cleanupTestData = internalMutation({
     }
 
     return { deleted: counts };
+  },
+});
+
+// Clear all predictions (dev/test only)
+export const clearAllPredictions = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const predictions = await ctx.db.query('predictions').collect();
+
+    for (const pred of predictions) {
+      await ctx.db.delete(pred._id);
+    }
+
+    return { deleted: predictions.length };
   },
 });
 

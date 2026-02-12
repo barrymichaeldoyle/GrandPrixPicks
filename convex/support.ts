@@ -38,4 +38,3 @@ export const submitRequest = mutation({
     return { success: true };
   },
 });
-

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { Flag, Loader2, Plus } from 'lucide-react';
+import { Flag, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
@@ -81,22 +81,13 @@ function AdminPage() {
 
         {activeTab === 'races' && (
           <>
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h2 className="mb-1 text-xl font-semibold text-white">
-                  Races & Results
-                </h2>
-                <p className="text-sm text-slate-400">
-                  Create races and publish session classifications.
-                </p>
-              </div>
-              <Link
-                to="/admin/races/new"
-                className="flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 font-medium text-white transition-colors hover:bg-cyan-600"
-              >
-                <Plus size={20} />
-                Add Race
-              </Link>
+            <div className="mb-8">
+              <h2 className="mb-1 text-xl font-semibold text-white">
+                Races & Results
+              </h2>
+              <p className="text-sm text-slate-400">
+                Publish session classifications for each race.
+              </p>
             </div>
 
             {races === undefined ? (
@@ -205,18 +196,11 @@ function AdminPage() {
                   <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-8 text-center">
                     <Flag className="mx-auto mb-4 h-16 w-16 text-slate-600" />
                     <h3 className="mb-2 text-xl font-semibold text-white">
-                      No races yet
+                      No races
                     </h3>
-                    <p className="mb-4 text-slate-400">
-                      Add your first race to get started.
+                    <p className="text-slate-400">
+                      Races are managed outside this interface.
                     </p>
-                    <Link
-                      to="/admin/races/new"
-                      className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 font-medium text-white transition-colors hover:bg-cyan-600"
-                    >
-                      <Plus size={20} />
-                      Add Race
-                    </Link>
                   </div>
                 )}
               </div>

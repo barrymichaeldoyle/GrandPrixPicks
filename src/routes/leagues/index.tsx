@@ -166,10 +166,9 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const hasSeasonPassFor2026 = useQuery(
-    api.users.hasSeasonPassForSeason,
-    { season: 2026 },
-  );
+  const hasSeasonPassFor2026 = useQuery(api.users.hasSeasonPassForSeason, {
+    season: 2026,
+  });
 
   const slugAvailable = useQuery(
     api.leagues.isSlugAvailable,
@@ -312,7 +311,9 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
               />
               <span
                 className={`text-sm ${
-                  hasSeasonPassFor2026 === false ? 'text-text-muted' : 'text-text'
+                  hasSeasonPassFor2026 === false
+                    ? 'text-text-muted'
+                    : 'text-text'
                 }`}
               >
                 Public

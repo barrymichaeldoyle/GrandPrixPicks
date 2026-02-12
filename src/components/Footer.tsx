@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { Flag } from 'lucide-react';
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -32,8 +33,14 @@ export function Footer() {
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
           <div className="space-y-3">
-            <p className="text-base font-semibold text-text">
-              Grand Prix Picks
+            <p className="flex items-center gap-2 text-base font-semibold text-text">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10">
+                <Flag
+                  className="relative left-0.25 h-4 w-4 text-accent"
+                  aria-hidden="true"
+                />
+              </span>
+              <span>Grand Prix Picks</span>
             </p>
             <p className="max-w-sm text-xs text-text-muted">
               Fan-made prediction game for Formula 1 race weekends. No gambling

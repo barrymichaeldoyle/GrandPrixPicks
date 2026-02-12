@@ -1888,3 +1888,259 @@ export const backfillStandings = internalMutation({
     return { top5Count, h2hCount };
   },
 });
+
+// ─────────────────────── Reset to Pre-Season ───────────────────────
+
+/**
+ * Internal: Delete a batch of dev data. Returns { deleted, done }.
+ * Called repeatedly by resetToPreSeason until done=true.
+ */
+export const _clearDevDataBatch = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    let deleted = 0;
+    const BATCH = 200;
+
+    // Clear in dependency order: scores → predictions → results → standings → users
+    const scores = await ctx.db.query('scores').take(BATCH);
+    for (const doc of scores) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (scores.length === BATCH) return { deleted, done: false };
+
+    const preds = await ctx.db.query('predictions').take(BATCH);
+    for (const doc of preds) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (preds.length === BATCH) return { deleted, done: false };
+
+    const results = await ctx.db.query('results').take(BATCH);
+    for (const doc of results) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (results.length === BATCH) return { deleted, done: false };
+
+    const standings = await ctx.db.query('seasonStandings').take(BATCH);
+    for (const doc of standings) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (standings.length === BATCH) return { deleted, done: false };
+
+    const h2hScores = await ctx.db.query('h2hScores').take(BATCH);
+    for (const doc of h2hScores) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (h2hScores.length === BATCH) return { deleted, done: false };
+
+    const h2hPreds = await ctx.db.query('h2hPredictions').take(BATCH);
+    for (const doc of h2hPreds) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (h2hPreds.length === BATCH) return { deleted, done: false };
+
+    const h2hResults = await ctx.db.query('h2hResults').take(BATCH);
+    for (const doc of h2hResults) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (h2hResults.length === BATCH) return { deleted, done: false };
+
+    const h2hStandings = await ctx.db.query('h2hSeasonStandings').take(BATCH);
+    for (const doc of h2hStandings) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (h2hStandings.length === BATCH) return { deleted, done: false };
+
+    // Fake users last
+    const users = await ctx.db.query('users').collect();
+    const fakeUsers = users
+      .filter((u) => u.clerkUserId.startsWith('fake_user_'))
+      .slice(0, BATCH);
+    for (const doc of fakeUsers) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (fakeUsers.length === BATCH) return { deleted, done: false };
+
+    return { deleted, done: true };
+  },
+});
+
+/**
+ * Internal: Reset all races to upcoming with original 2026 calendar dates.
+ */
+export const _resetRacesToUpcoming = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const races = await ctx.db.query('races').collect();
+    let reset = 0;
+
+    for (const race of races) {
+      const original = F1_RACES_2026.find((r) => r.slug === race.slug);
+      if (!original) continue;
+
+      const raceStartAt = new Date(original.raceDate).getTime();
+      const qualiStartAt = new Date(original.qualiDate).getTime();
+      const sprintQualiStartAt = original.sprintQualiDate
+        ? new Date(original.sprintQualiDate).getTime()
+        : undefined;
+      const sprintStartAt = original.sprintDate
+        ? new Date(original.sprintDate).getTime()
+        : undefined;
+
+      await ctx.db.patch(race._id, {
+        status: 'upcoming',
+        raceStartAt,
+        predictionLockAt: raceStartAt,
+        qualiStartAt,
+        qualiLockAt: qualiStartAt,
+        hasSprint: original.hasSprint ?? false,
+        sprintQualiStartAt,
+        sprintQualiLockAt: sprintQualiStartAt,
+        sprintStartAt,
+        sprintLockAt: sprintStartAt,
+        updatedAt: now,
+      });
+      reset++;
+    }
+
+    return { reset };
+  },
+});
+
+/**
+ * Internal: Create 10 test users with predictions for the first race.
+ */
+export const _seedPreSeasonUsers = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers.');
+    }
+    const driverIds = drivers.map((d) => d._id);
+
+    const races = await ctx.db.query('races').collect();
+    // Take the earliest round; Convex seeds always include at least one race
+    const firstRace = races.sort((a, b) => a.round - b.round)[0];
+
+    const TEST_USERS = [
+      'SpeedKing',
+      'ApexHunter',
+      'PitLaneHero',
+      'DRSMaster',
+      'GridWalker',
+      'TyreWhisperer',
+      'SlipstreamAce',
+      'CheckeredFlag',
+      'PolePosition',
+      'SafetyCarFan',
+    ];
+
+    const sessions: Array<SessionType> = firstRace.hasSprint
+      ? ['sprint_quali', 'sprint', 'quali', 'race']
+      : ['quali', 'race'];
+
+    let usersCreated = 0;
+    let predictionsCreated = 0;
+
+    for (let i = 0; i < TEST_USERS.length; i++) {
+      const username = TEST_USERS[i];
+
+      const userId = await ctx.db.insert('users', {
+        clerkUserId: `fake_user_${i}_${now}`,
+        username,
+        displayName: username,
+        email: `${username.toLowerCase()}@example.com`,
+        isAdmin: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+      usersCreated++;
+
+      // Create predictions for each session of the first race
+      for (const sessionType of sessions) {
+        // Deterministic shuffle for varied but reproducible predictions
+        const shuffled = [...driverIds];
+        const seed = i * 7 + sessions.indexOf(sessionType) * 13;
+        for (let j = shuffled.length - 1; j > 0; j--) {
+          const k = Math.abs((seed * 31 + j * 17) % (j + 1));
+          [shuffled[j], shuffled[k]] = [shuffled[k], shuffled[j]];
+        }
+
+        await ctx.db.insert('predictions', {
+          userId,
+          raceId: firstRace._id,
+          sessionType,
+          picks: shuffled.slice(0, 5),
+          submittedAt: now,
+          updatedAt: now,
+        });
+        predictionsCreated++;
+      }
+    }
+
+    return { usersCreated, predictionsCreated, raceName: firstRace.name };
+  },
+});
+
+/**
+ * Reset dev database to pre-season state:
+ * - Clears ALL predictions, results, scores, and standings
+ * - Removes all fake users
+ * - Resets all races to upcoming with real 2026 dates
+ * - Creates 10 test users with predictions for the first race
+ *
+ * Run via: npx convex run seed:resetToPreSeason
+ */
+export const resetToPreSeason = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    // Phase 1: Clear all dev data in batches
+    let totalDeleted = 0;
+    let iterations = 0;
+    // Intentional unbounded loop; we cap via iterations guard below
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) break;
+      if (iterations > 200) throw new Error('Too many iterations');
+    }
+
+    // Phase 2: Reset races to upcoming with original dates
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    // Phase 3: Ensure drivers exist
+    await ctx.runMutation(internal.seed.seedDrivers);
+
+    // Phase 4: Create test users with predictions for first race
+    const seedResult: {
+      usersCreated: number;
+      predictionsCreated: number;
+      raceName: string;
+    } = await ctx.runMutation(internal.seed._seedPreSeasonUsers);
+
+    return {
+      cleared: totalDeleted,
+      batchIterations: iterations,
+      racesReset: raceResult.reset,
+      ...seedResult,
+    };
+  },
+});

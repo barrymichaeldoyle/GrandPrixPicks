@@ -496,7 +496,10 @@ export const updateLeague = mutation({
       patch.description = description || undefined;
     }
 
-    if (args.visibility !== undefined && args.visibility !== league.visibility) {
+    if (
+      args.visibility !== undefined &&
+      args.visibility !== league.visibility
+    ) {
       throw new Error('League visibility cannot be changed after creation.');
     }
 

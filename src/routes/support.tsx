@@ -58,9 +58,9 @@ function SupportPage() {
 function SupportContent() {
   const submitRequest = useMutation(api.support.submitRequest);
   const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState<'bug' | 'question' | 'feedback' | ''>(
-    '',
-  );
+  const [category, setCategory] = useState<
+    'bug' | 'question' | 'feedback' | ''
+  >('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -145,7 +145,9 @@ function SupportContent() {
                   type="button"
                   onClick={() =>
                     setCategory(
-                      category === option.id ? '' : (option.id as typeof category),
+                      category === option.id
+                        ? ''
+                        : (option.id as typeof category),
                     )
                   }
                   className={`rounded-full px-3 py-1 font-medium transition-colors ${
@@ -223,4 +225,3 @@ function CheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-

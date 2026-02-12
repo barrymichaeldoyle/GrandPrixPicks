@@ -1,7 +1,8 @@
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import { internalMutation } from './_generated/server';
+import { internalMutation, mutation } from './_generated/server';
+import { getOrCreateViewer, requireViewer } from './lib/auth';
 
 /**
  * Test helper mutations for Playwright e2e tests.

@@ -24,7 +24,6 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as RacesRaceIdRouteImport } from './routes/races/$raceId'
 import { Route as PUsernameRouteImport } from './routes/p/$username'
 import { Route as LeaguesSlugRouteImport } from './routes/leagues/$slug'
-import { Route as AdminRacesNewRouteImport } from './routes/admin/races/new'
 import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$raceId'
 
 const TermsRoute = TermsRouteImport.update({
@@ -102,11 +101,6 @@ const LeaguesSlugRoute = LeaguesSlugRouteImport.update({
   path: '/leagues/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRacesNewRoute = AdminRacesNewRouteImport.update({
-  id: '/admin/races/new',
-  path: '/admin/races/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
   id: '/admin/races/$raceId',
   path: '/admin/races/$raceId',
@@ -130,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/leagues/': typeof LeaguesIndexRoute
   '/races/': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
-  '/admin/races/new': typeof AdminRacesNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -149,7 +142,6 @@ export interface FileRoutesByTo {
   '/leagues': typeof LeaguesIndexRoute
   '/races': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
-  '/admin/races/new': typeof AdminRacesNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -169,7 +161,6 @@ export interface FileRoutesById {
   '/leagues/': typeof LeaguesIndexRoute
   '/races/': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
-  '/admin/races/new': typeof AdminRacesNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,7 +181,6 @@ export interface FileRouteTypes {
     | '/leagues/'
     | '/races/'
     | '/admin/races/$raceId'
-    | '/admin/races/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,7 +199,6 @@ export interface FileRouteTypes {
     | '/leagues'
     | '/races'
     | '/admin/races/$raceId'
-    | '/admin/races/new'
   id:
     | '__root__'
     | '/'
@@ -228,7 +217,6 @@ export interface FileRouteTypes {
     | '/leagues/'
     | '/races/'
     | '/admin/races/$raceId'
-    | '/admin/races/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,7 +236,6 @@ export interface RootRouteChildren {
   LeaguesIndexRoute: typeof LeaguesIndexRoute
   RacesIndexRoute: typeof RacesIndexRoute
   AdminRacesRaceIdRoute: typeof AdminRacesRaceIdRoute
-  AdminRacesNewRoute: typeof AdminRacesNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -358,13 +345,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaguesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/races/new': {
-      id: '/admin/races/new'
-      path: '/admin/races/new'
-      fullPath: '/admin/races/new'
-      preLoaderRoute: typeof AdminRacesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/races/$raceId': {
       id: '/admin/races/$raceId'
       path: '/admin/races/$raceId'
@@ -392,7 +372,6 @@ const rootRouteChildren: RootRouteChildren = {
   LeaguesIndexRoute: LeaguesIndexRoute,
   RacesIndexRoute: RacesIndexRoute,
   AdminRacesRaceIdRoute: AdminRacesRaceIdRoute,
-  AdminRacesNewRoute: AdminRacesNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,12 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Calendar, Clock } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
 
 import type { Doc } from '../../convex/_generated/dataModel';
 import {
   formatDate,
   formatDateLong,
   formatTime,
-  getTimeUntil,
+  useCountdown,
 } from '../lib/date';
 import { Badge, StatusBadge } from './Badge';
 import { Flag } from './Flag';
@@ -68,6 +68,33 @@ export function RaceFlag({
   return <Flag code={countryCode} size={size === 'lg' ? 'xl' : 'lg'} />;
 }
 
+function getScheduleEntries(race: Race) {
+  const entries: Array<{ label: string; startAt: number }> = [];
+  if (race.hasSprint && race.sprintQualiStartAt)
+    entries.push({ label: 'Sprint Quali', startAt: race.sprintQualiStartAt });
+  if (race.hasSprint && race.sprintStartAt)
+    entries.push({ label: 'Sprint', startAt: race.sprintStartAt });
+  if (race.qualiStartAt)
+    entries.push({ label: 'Quali', startAt: race.qualiStartAt });
+  entries.push({ label: 'Race', startAt: race.raceStartAt });
+  return entries;
+}
+
+function Countdown({
+  timestamp,
+  suffix,
+}: {
+  timestamp: number;
+  suffix: string;
+}) {
+  const label = useCountdown(timestamp);
+  return (
+    <>
+      {label} {suffix}
+    </>
+  );
+}
+
 interface RaceCardProps {
   race: Race;
   isNext?: boolean;
@@ -86,14 +113,20 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
     <Link
       to="/races/$raceId"
       params={{ raceId: race._id }}
-      className={`group block cursor-pointer rounded-xl border bg-surface p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md focus-visible:scale-[1.02] focus-visible:shadow-md sm:p-5 ${
+      className={`group flex h-full cursor-pointer flex-col rounded-xl border bg-surface p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md focus-visible:scale-[1.02] focus-visible:shadow-md sm:p-5 ${
         isNext
           ? 'border-accent/50 hover:border-accent'
           : 'border-border hover:border-border-strong'
       }`}
     >
-      <div className="flex items-stretch gap-3 sm:gap-4">
-        <div className="min-w-0 flex-1 space-y-2">
+      <div className="relative flex-1">
+        <ArrowRight
+          size={18}
+          strokeWidth={2}
+          className="absolute -top-3.5 -right-3.5 shrink-0 text-text-muted transition-colors group-hover:text-text"
+          aria-hidden
+        />
+        <div className="flex h-full flex-col gap-2">
           {/* Top row: flag + round on the left, status on the right */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -118,24 +151,45 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
             {race.name}
           </h3>
 
-          {/* Date and time */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-text-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <Calendar size={16} className="shrink-0 text-text-muted" />
-              {formatDate(race.raceStartAt)}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Clock size={16} className="shrink-0 text-text-muted" />
-              {formatTime(race.raceStartAt)}
-            </span>
+          {/* Session schedule — centered in remaining space */}
+          <div className="flex flex-1 items-center">
+            <div className="-mt-4.5 grid w-full grid-cols-[auto_auto_1fr_auto] items-baseline gap-x-2 gap-y-0.5 text-sm text-text-muted">
+              <span className="col-start-4 text-right text-xs text-text-muted/70">
+                {
+                  Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+                    .formatToParts(Date.now())
+                    .find((p) => p.type === 'timeZoneName')?.value
+                }
+              </span>
+              {getScheduleEntries(race).map((entry, i) => (
+                <div key={entry.label} className="contents">
+                  <span className="flex w-4 justify-center">
+                    {i === 0 ? (
+                      <Calendar
+                        size={14}
+                        className="shrink-0 translate-y-[1px] text-text-muted"
+                      />
+                    ) : null}
+                  </span>
+                  <span className="font-medium">{entry.label}</span>
+                  <span>{formatDate(entry.startAt)}</span>
+                  <span className="text-right tabular-nums">
+                    {formatTime(entry.startAt)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Contextual status strip */}
           {(isPredictable || isNotYetOpen || race.status === 'locked') && (
             <div className="mt-1 flex flex-wrap items-center gap-2">
               {isPredictable && (
-                <span className="inline-flex items-center rounded-full bg-accent-muted px-3 py-1 text-xs font-medium text-accent">
-                  {getTimeUntil(race.predictionLockAt)} to predict
+                <span className="inline-flex items-center rounded-full bg-accent-muted px-3 py-1 text-xs font-medium text-accent tabular-nums">
+                  <Countdown
+                    timestamp={race.predictionLockAt}
+                    suffix="to predict"
+                  />
                 </span>
               )}
               {isNotYetOpen && predictionOpenAt != null && (
@@ -144,22 +198,19 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
                 </span>
               )}
               {race.status === 'locked' && (
-                <span className="inline-flex items-center rounded-full bg-warning-muted px-3 py-1 text-xs font-medium text-warning">
-                  {race.raceStartAt > Date.now()
-                    ? `Race in ${getTimeUntil(race.raceStartAt)}`
-                    : 'Results pending'}
+                <span className="inline-flex items-center rounded-full bg-warning-muted px-3 py-1 text-xs font-medium text-warning tabular-nums">
+                  {race.raceStartAt > Date.now() ? (
+                    <Countdown
+                      timestamp={race.raceStartAt}
+                      suffix="until race"
+                    />
+                  ) : (
+                    'Results pending'
+                  )}
                 </span>
               )}
             </div>
           )}
-        </div>
-        <div className="flex w-0 shrink-0 items-center overflow-visible">
-          <ArrowRight
-            size={18}
-            strokeWidth={2}
-            className="shrink-0 -translate-x-1 text-text-muted transition-colors group-hover:text-text"
-            aria-hidden
-          />
         </div>
       </div>
     </Link>

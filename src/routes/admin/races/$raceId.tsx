@@ -1,13 +1,188 @@
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  PointerSensor,
+  pointerWithin,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { ArrowLeft, Check, Loader2, Save, Trophy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import {
+  ArrowLeft,
+  Check,
+  GripVertical,
+  Loader2,
+  Save,
+  Trophy,
+} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 
 import { api } from '../../../../convex/_generated/api';
-import type { Id } from '../../../../convex/_generated/dataModel';
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 import type { SessionType } from '../../../lib/sessions';
 import { getSessionsForWeekend, SESSION_LABELS } from '../../../lib/sessions';
 import { NotFoundPage } from '../../__root';
+
+const LANE_ID_PREFIX = 'lane-';
+
+function parseLaneId(id: string): number | null {
+  if (!id.startsWith(LANE_ID_PREFIX)) return null;
+  const n = parseInt(id.slice(LANE_ID_PREFIX.length), 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+type DraggableDriverCardProps = {
+  driverId: Id<'drivers'>;
+  index: number;
+  excludedIds: Array<Id<'drivers'>>;
+  drivers: Array<Doc<'drivers'>>;
+  setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
+  toggleClassified: (driverId: Id<'drivers'>) => void;
+  dnfDriverIds: Array<Id<'drivers'>>;
+};
+
+function DraggableDriverCard({
+  driverId,
+  index,
+  excludedIds,
+  drivers,
+  setPosition,
+  toggleClassified,
+  dnfDriverIds,
+}: DraggableDriverCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: driverId,
+      data: { index },
+    });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex flex-col gap-2 rounded-lg border border-slate-600 bg-slate-700/50 p-3 sm:flex-row sm:items-center ${
+        isDragging
+          ? 'z-20 cursor-grabbing shadow-xl ring-2 ring-yellow-500/50'
+          : ''
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex shrink-0 cursor-grab touch-none items-center self-center rounded p-1 text-slate-400 hover:bg-slate-600 hover:text-slate-200 active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical size={20} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <DriverSearchSelect
+          drivers={drivers}
+          value={driverId}
+          excludedIds={excludedIds}
+          onChange={(id) => setPosition(index, id)}
+          placeholder="Search by name or code…"
+        />
+      </div>
+      <label className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
+        <input
+          type="checkbox"
+          checked={!dnfDriverIds.includes(driverId)}
+          onChange={() => toggleClassified(driverId)}
+          className="h-3 w-3 rounded border-slate-500 bg-slate-800 text-yellow-400"
+        />
+        Classified
+      </label>
+    </div>
+  );
+}
+
+type PositionLaneProps = {
+  index: number;
+  driverId: Id<'drivers'> | null;
+  excludedIds: Array<Id<'drivers'>>;
+  drivers: Array<Doc<'drivers'>>;
+  setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
+  toggleClassified: (driverId: Id<'drivers'>) => void;
+  dnfDriverIds: Array<Id<'drivers'>>;
+  activeDriverId: string | null;
+};
+
+function PositionLane({
+  index,
+  driverId,
+  excludedIds,
+  drivers,
+  setPosition,
+  toggleClassified,
+  dnfDriverIds,
+  activeDriverId,
+}: PositionLaneProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `${LANE_ID_PREFIX}${index}`,
+    data: { index },
+  });
+
+  const isPlaceholder = driverId != null && activeDriverId === driverId;
+
+  return (
+    <div className="flex items-stretch gap-2">
+      {/* Fixed position label */}
+      <div
+        className="flex w-12 shrink-0 items-center justify-center rounded-l-lg border border-r-0 border-slate-600 bg-slate-800/80 text-sm font-bold text-yellow-400"
+        aria-hidden
+      >
+        P{index + 1}
+      </div>
+      {/* Droppable lane */}
+      <div
+        ref={setNodeRef}
+        className={`min-h-[52px] min-w-0 flex-1 rounded-r-lg border border-slate-600 transition-colors ${
+          isOver ? 'border-yellow-500 bg-yellow-500/10' : 'bg-slate-800/30'
+        } ${isPlaceholder ? 'border-dashed' : ''}`}
+      >
+        {driverId != null && !isPlaceholder ? (
+          <div className="p-1.5">
+            <DraggableDriverCard
+              driverId={driverId}
+              index={index}
+              excludedIds={excludedIds}
+              drivers={drivers}
+              setPosition={setPosition}
+              toggleClassified={toggleClassified}
+              dnfDriverIds={dnfDriverIds}
+            />
+          </div>
+        ) : isPlaceholder ? (
+          <div className="flex h-full min-h-[50px] items-center justify-center rounded border-2 border-dashed border-slate-500 text-sm text-slate-500">
+            Drop here
+          </div>
+        ) : (
+          <div className="p-1.5">
+            <DriverSearchSelect
+              drivers={drivers}
+              value={null}
+              excludedIds={excludedIds}
+              onChange={(id) => setPosition(index, id)}
+              placeholder="Search by name or code…"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute('/admin/races/$raceId')({
   component: AdminRaceDetailPage,
@@ -27,26 +202,84 @@ function AdminRaceDetailPage() {
     sessionType: selectedSession,
   });
 
-  const [selectedDrivers, setSelectedDrivers] = useState<Array<Id<'drivers'>>>(
-    [],
-  );
+  /** Per-position driver selection; length = drivers.length, null = empty slot */
+  const [selectedDrivers, setSelectedDrivers] = useState<
+    Array<Id<'drivers'> | null>
+  >([]);
   const [dnfDriverIds, setDnfDriverIds] = useState<Array<Id<'drivers'>>>([]);
   const publishResults = useMutation(api.results.adminPublishResults);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
 
-  // Reset selected drivers when session changes or when result loads
+  const driverCount = drivers?.length ?? 0;
+
+  // Initialize/reset when session or existing result changes
   useEffect(() => {
-    if (existingResult?.classification) {
-      // Use full classification if it exists
-      setSelectedDrivers(existingResult.classification);
+    if (driverCount === 0) return;
+    if (
+      existingResult?.classification &&
+      existingResult.classification.length
+    ) {
+      const classification = existingResult.classification;
+      const grid: Array<Id<'drivers'> | null> = Array.from(
+        { length: driverCount },
+        (_, i) => classification[i] ?? null,
+      );
+      setSelectedDrivers(grid);
       setDnfDriverIds(existingResult.dnfDriverIds ?? []);
     } else {
-      setSelectedDrivers([]);
+      setSelectedDrivers(Array.from({ length: driverCount }, () => null));
       setDnfDriverIds([]);
     }
     setPublishSuccess(false);
-  }, [existingResult, selectedSession]);
+  }, [existingResult, selectedSession, driverCount]);
+
+  const setPosition = useCallback(
+    (index: number, driverId: Id<'drivers'> | null) => {
+      setPublishSuccess(false);
+      setSelectedDrivers((prev) => {
+        const next = [...prev];
+        next[index] = driverId;
+        if (driverId != null) {
+          for (let j = 0; j < next.length; j++)
+            if (j !== index && next[j] === driverId) next[j] = null;
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const toggleClassified = useCallback((driverId: Id<'drivers'>) => {
+    setDnfDriverIds((current) =>
+      current.includes(driverId)
+        ? current.filter((id) => id !== driverId)
+        : [...current, driverId],
+    );
+  }, []);
+
+  const [activeDriverId, setActiveDriverId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveDriverId(String(event.active.id));
+  }, []);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveDriverId(null);
+      if (over == null) return;
+      const newIndex = parseLaneId(String(over.id));
+      if (newIndex == null) return;
+      const driverId = active.id as Id<'drivers'>;
+      const oldIndex = selectedDrivers.indexOf(driverId);
+      if (oldIndex === -1 || oldIndex === newIndex) return;
+      setPublishSuccess(false);
+      setSelectedDrivers((prev) => arrayMove(prev, oldIndex, newIndex));
+    },
+    [selectedDrivers],
+  );
 
   if (isAdmin === undefined || race === undefined || drivers === undefined) {
     return (
@@ -70,48 +303,22 @@ function AdminRaceDetailPage() {
     );
   }
 
-  // Determine which sessions are available for this race
   const availableSessions = getSessionsForWeekend(race.hasSprint ?? false);
 
-  const toggleDriver = (driverId: Id<'drivers'>) => {
-    setPublishSuccess(false);
-    if (selectedDrivers.includes(driverId)) {
-      setSelectedDrivers(selectedDrivers.filter((id) => id !== driverId));
-      setDnfDriverIds(dnfDriverIds.filter((id) => id !== driverId));
-    } else if (selectedDrivers.length < drivers.length) {
-      setSelectedDrivers([...selectedDrivers, driverId]);
-    }
-  };
-
-  const moveDriver = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= selectedDrivers.length) return;
-
-    const newDrivers = [...selectedDrivers];
-    [newDrivers[index], newDrivers[newIndex]] = [
-      newDrivers[newIndex],
-      newDrivers[index],
-    ];
-    setSelectedDrivers(newDrivers);
-    setPublishSuccess(false);
-  };
-
-  const toggleClassified = (driverId: Id<'drivers'>) => {
-    setDnfDriverIds((current) =>
-      current.includes(driverId)
-        ? current.filter((id) => id !== driverId) // mark as classified
-        : [...current, driverId], // mark as DNF
-    );
-  };
+  const classification = selectedDrivers.filter(
+    (id): id is Id<'drivers'> => id != null,
+  );
+  const allFilled =
+    selectedDrivers.length === driverCount &&
+    selectedDrivers.every((id) => id != null);
 
   const handlePublish = async () => {
-    if (selectedDrivers.length !== drivers.length) return;
-
+    if (!allFilled) return;
     setIsPublishing(true);
     try {
       await publishResults({
         raceId: typedRaceId,
-        classification: selectedDrivers,
+        classification,
         sessionType: selectedSession,
         dnfDriverIds,
       });
@@ -122,14 +329,6 @@ function AdminRaceDetailPage() {
       setIsPublishing(false);
     }
   };
-
-  const selectedDriverData = selectedDrivers
-    .map((id) => drivers.find((d) => d._id === id))
-    .filter(Boolean);
-
-  const availableDrivers = drivers.filter(
-    (d) => !selectedDrivers.includes(d._id),
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -166,7 +365,6 @@ function AdminRaceDetailPage() {
           </div>
         </div>
 
-        {/* Publish Results Section */}
         <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
           <div className="mb-4 flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-400" />
@@ -175,7 +373,6 @@ function AdminRaceDetailPage() {
             </h2>
           </div>
 
-          {/* Session Type Tabs */}
           <div className="mb-6">
             <div className="flex gap-1 rounded-lg border border-slate-700 bg-slate-900/50 p-1">
               {availableSessions.map((session) => (
@@ -194,92 +391,46 @@ function AdminRaceDetailPage() {
             </div>
           </div>
 
-          <p className="mb-6 text-slate-400">
-            Build the full classification for {SESSION_LABELS[selectedSession]} in
-            order (P1 to P{drivers.length}). This powers both scoring and
-            Head-to-Head results.
+          <p className="mb-4 text-slate-400">
+            Enter the full classification for {SESSION_LABELS[selectedSession]}{' '}
+            (P1 to P{driverCount}). Type to search, or drag the grip to reorder
+            (e.g. after a penalty).
           </p>
 
-          {/* Selected drivers (full grid) */}
-          <div className="mb-6">
-            <h3 className="mb-3 text-sm font-medium text-slate-400">
-              Classification (P1–P{drivers.length})
-            </h3>
-            <div className="space-y-2">
-              {Array.from({ length: drivers.length }).map((_, index) => {
-                const driver = selectedDriverData[index];
+          <DndContext
+            sensors={sensors}
+            collisionDetection={pointerWithin}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="mb-6 space-y-2">
+              {Array.from({ length: driverCount }).map((_, index) => {
+                const driverId = selectedDrivers[index] ?? null;
+                const excludedIds = selectedDrivers.filter(
+                  (id, j) => id != null && j !== index,
+                ) as Array<Id<'drivers'>>;
+
                 return (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-3 rounded-lg border p-3 ${
-                      driver
-                        ? 'border-slate-600 bg-slate-700/50'
-                        : 'border-dashed border-slate-700 bg-slate-800/30'
-                    }`}
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/20 text-sm font-bold text-yellow-400">
-                      P{index + 1}
-                    </span>
-                    {driver ? (
-                      <>
-                        <div className="flex-1">
-                          <span className="font-medium text-white">
-                            {driver.displayName}
-                          </span>
-                          <span className="ml-2 text-sm text-slate-500">
-                            {driver.code}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => moveDriver(index, 'up')}
-                            disabled={index === 0}
-                            className="rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-600 disabled:opacity-30"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            onClick={() => moveDriver(index, 'down')}
-                            disabled={index >= selectedDrivers.length - 1}
-                            className="rounded p-1.5 text-slate-400 transition-colors hover:bg-slate-600 disabled:opacity-30"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            onClick={() => toggleDriver(driver._id)}
-                            className="ml-2 rounded p-1.5 text-red-400 transition-colors hover:bg-red-500/20"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <label className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-                          <input
-                            type="checkbox"
-                            checked={!dnfDriverIds.includes(driver._id)}
-                            onChange={() => toggleClassified(driver._id)}
-                            className="h-3 w-3 rounded border-slate-500 bg-slate-800 text-yellow-400"
-                          />
-                          Classified (finished / classified in results)
-                        </label>
-                      </>
-                    ) : (
-                      <span className="text-sm text-slate-500">
-                        Select a driver from below
-                      </span>
-                    )}
-                  </div>
+                  <PositionLane
+                    key={`lane-${index}`}
+                    index={index}
+                    driverId={driverId}
+                    excludedIds={excludedIds}
+                    drivers={drivers}
+                    setPosition={setPosition}
+                    toggleClassified={toggleClassified}
+                    dnfDriverIds={dnfDriverIds}
+                    activeDriverId={activeDriverId}
+                  />
                 );
               })}
             </div>
-          </div>
+          </DndContext>
 
-          {/* Publish button */}
-          <div className="mb-6 flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <button
               onClick={handlePublish}
-              disabled={
-                selectedDrivers.length !== drivers.length || isPublishing
-              }
+              disabled={!allFilled || isPublishing}
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-black transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
               {isPublishing ? (
@@ -299,36 +450,11 @@ function AdminRaceDetailPage() {
                 </>
               )}
             </button>
-            {selectedDrivers.length < drivers.length && (
+            {!allFilled && (
               <span className="text-sm text-slate-400">
-                Select {drivers.length - selectedDrivers.length} more driver
-                {drivers.length - selectedDrivers.length !== 1 ? 's' : ''}
+                Fill all {driverCount} positions to publish
               </span>
             )}
-          </div>
-
-          {/* Available drivers */}
-          <div>
-            <h3 className="mb-3 text-sm font-medium text-slate-400">
-              Select Drivers
-            </h3>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6">
-              {availableDrivers.map((driver) => (
-                <button
-                  key={driver._id}
-                  onClick={() => toggleDriver(driver._id)}
-                  disabled={selectedDrivers.length >= drivers.length}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/50 p-2 transition-colors hover:border-yellow-500/50 hover:bg-slate-700/50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <span className="text-sm font-bold text-cyan-400">
-                    {driver.code}
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    {driver.familyName}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </div>

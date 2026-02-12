@@ -9,6 +9,7 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { InlineLoader } from '../../components/InlineLoader';
 import { RaceDetailHeader } from '../../components/RaceDetailHeader';
+import { RandomizeButton } from '../../components/RandomizeButton';
 import type { SessionType } from '../../lib/sessions';
 import { ogBaseUrl } from '../../lib/site';
 import {
@@ -102,7 +103,7 @@ function getStatusStyles(
 
 function RaceDetailPage() {
   const { race, nextRace, predictionOpenAt } = Route.useLoaderData();
-  const { isLoaded: isAuthLoaded } = useAuth();
+  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const [top5EditingSession, setTop5EditingSession] =
     useState<SessionType | null>(null);
   const [h2hEditingSession, setH2hEditingSession] =
@@ -120,6 +121,13 @@ function RaceDetailPage() {
   const hasPredictions =
     weekendPredictions?.predictions &&
     Object.values(weekendPredictions.predictions).some((p) => p !== null);
+  const h2hPredictions = useQuery(
+    api.h2h.myH2HPredictionsForRace,
+    race ? { raceId: race._id } : 'skip',
+  );
+  const hasH2HPredictions = h2hPredictions
+    ? Object.values(h2hPredictions).some((p) => p !== null)
+    : false;
 
   if (race === null) {
     return <RaceNotFound />;
@@ -159,6 +167,15 @@ function RaceDetailPage() {
                   </div>
                 ) : (
                   <>
+                    {isSignedIn &&
+                      !h2hEditingSession &&
+                      !top5EditingSession && (
+                        <RandomizeButton
+                          raceId={race._id}
+                          hasPredictions={!!hasPredictions}
+                          hasH2HPredictions={hasH2HPredictions}
+                        />
+                      )}
                     {!h2hEditingSession && (
                       <Top5PredictionSection
                         race={race}

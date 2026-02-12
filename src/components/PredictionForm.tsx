@@ -1,22 +1,23 @@
 import type { DragEndEvent } from '@dnd-kit/core';
 import {
+  closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
   arrayMove,
+  SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useBlocker } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -187,32 +188,22 @@ function SortablePickRow({
 /** Empty slot that accepts drops from the driver pool (and tap to set insert-at position). */
 function EmptySlotDroppable({
   slotIndex,
-  isInsertTarget,
   driverSlotTooltip,
-  onTap,
 }: {
   slotIndex: number;
-  isInsertTarget: boolean;
   driverSlotTooltip: string;
-  onTap: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: emptySlotId(slotIndex) });
   return (
-    <Tooltip
-      content={
-        isInsertTarget ? 'Now tap a driver below to add here' : driverSlotTooltip
-      }
-    >
-      <button
+    <Tooltip content={driverSlotTooltip}>
+      <div
         ref={setNodeRef}
-        type="button"
-        className={`flex h-14 w-full shrink-0 cursor-pointer items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isInsertTarget ? 'bg-accent-muted/50' : ''} ${isOver ? 'bg-accent-muted/30' : ''}`}
-        onClick={onTap}
+        className={`flex h-14 w-full shrink-0 cursor-pointer items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
       >
         <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
-          {isInsertTarget ? 'Tap a driver below →' : 'Select a driver'}
+          Select a driver
         </span>
-      </button>
+      </div>
     </Tooltip>
   );
 }
@@ -242,8 +233,7 @@ function DraggableDriverCard({
         disabled={disabled}
         className="flex h-full w-full flex-col items-center justify-center gap-0 rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
         style={{
-          backgroundColor:
-            driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+          backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
         }}
       >
         {driver.number != null && (
@@ -299,8 +289,6 @@ export function PredictionForm({
     'idle' | 'success' | 'error'
   >('idle');
   const [errorMessage, setErrorMessage] = useState('');
-  /** On mobile, tap empty slot then tap driver to insert at that position. */
-  const [insertAtIndex, setInsertAtIndex] = useState<number | null>(null);
 
   // Sync with existing picks when they load
   useEffect(() => {
@@ -308,11 +296,6 @@ export function PredictionForm({
       setPicks(existingPicks);
     }
   }, [existingPicks]);
-
-  // Clear insert-at-position when list is full
-  useEffect(() => {
-    if (picks.length >= 5) setInsertAtIndex(null);
-  }, [picks.length]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -370,6 +353,31 @@ export function PredictionForm({
     return () => mql.removeEventListener('change', handler);
   }, []);
 
+  const hasChanges = existingPicks
+    ? JSON.stringify(picks) !== JSON.stringify(existingPicks)
+    : picks.length > 0;
+
+  const blocker = useBlocker({
+    shouldBlockFn: () => hasChanges,
+    enableBeforeUnload: true,
+    withResolver: true,
+    disabled: !hasChanges,
+  });
+
+  useEffect(() => {
+    if (blocker.status !== 'blocked') {
+      return;
+    }
+    const confirmLeave = window.confirm(
+      'You have unsaved predictions. Leave this page without submitting your picks?',
+    );
+    if (confirmLeave) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }, [blocker]);
+
   if (drivers === undefined) {
     return <InlineLoader />;
   }
@@ -385,16 +393,6 @@ export function PredictionForm({
     if (picks.includes(driverId)) return;
     setPicks([...picks, driverId]);
     setSubmitStatus('idle');
-  };
-
-  /** Add driver at a specific slot (used when insertAtIndex is set, e.g. after tapping empty slot on mobile). */
-  const addDriverOrInsert = (driverId: Id<'drivers'>) => {
-    if (insertAtIndex !== null) {
-      addDriverAtPosition(driverId, insertAtIndex);
-      setInsertAtIndex(null);
-    } else {
-      addDriver(driverId);
-    }
   };
 
   const removeDriver = (driverId: Id<'drivers'>) => {
@@ -460,10 +458,6 @@ export function PredictionForm({
       setIsSubmitting(false);
     }
   };
-
-  const hasChanges = existingPicks
-    ? JSON.stringify(picks) !== JSON.stringify(existingPicks)
-    : picks.length > 0;
 
   /** When editing existing picks: current selection matches saved → show Saved, disable button */
   const isUnchangedFromSaved = Boolean(
@@ -536,9 +530,7 @@ export function PredictionForm({
                       <EmptySlotDroppable
                         key={emptySlotId(slotIndex)}
                         slotIndex={slotIndex}
-                        isInsertTarget={insertAtIndex === slotIndex}
                         driverSlotTooltip={driverSlotTooltip}
-                        onTap={() => setInsertAtIndex(slotIndex)}
                       />
                     );
                   })}
@@ -546,53 +538,53 @@ export function PredictionForm({
               </SortableContext>
             </div>
 
-          {/* Submit row - directly under Your Picks */}
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
-            <Button
-              variant="primary"
-              size="md"
-              className="w-100 max-w-full"
-              loading={isSubmitting}
-              saved={isUnchangedFromSaved}
-              disabled={
-                picks.length !== 5 || isSubmitting || isUnchangedFromSaved
-              }
-              onClick={handleSubmit}
-              data-testid="submit-prediction"
-            >
-              {isUnchangedFromSaved ? (
-                <>
-                  <Check size={20} className="shrink-0" />
-                  Saved
-                </>
-              ) : isSubmitting ? (
-                'Saving...'
-              ) : existingPicks && existingPicks.length > 0 ? (
-                'Update Prediction'
-              ) : (
-                'Submit Prediction'
-              )}
-            </Button>
-
-            {picks.length < 5 && (
-              <span
-                className="text-sm text-text-muted"
-                data-testid="picks-remaining"
+            {/* Submit row - directly under Your Picks */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
+              <Button
+                variant="primary"
+                size="md"
+                className="w-100 max-w-full"
+                loading={isSubmitting}
+                saved={isUnchangedFromSaved}
+                disabled={
+                  picks.length !== 5 || isSubmitting || isUnchangedFromSaved
+                }
+                onClick={handleSubmit}
+                data-testid="submit-prediction"
               >
-                Select {5 - picks.length} more driver
-                {5 - picks.length !== 1 ? 's' : ''}
-              </span>
-            )}
+                {isUnchangedFromSaved ? (
+                  <>
+                    <Check size={20} className="shrink-0" />
+                    Saved
+                  </>
+                ) : isSubmitting ? (
+                  'Saving...'
+                ) : existingPicks && existingPicks.length > 0 ? (
+                  'Update Prediction'
+                ) : (
+                  'Submit Prediction'
+                )}
+              </Button>
 
-            {submitStatus === 'error' && (
-              <span className="text-sm text-error" data-testid="submit-error">
-                {errorMessage}
-              </span>
-            )}
+              {picks.length < 5 && (
+                <span
+                  className="text-sm text-text-muted"
+                  data-testid="picks-remaining"
+                >
+                  Select {5 - picks.length} more driver
+                  {5 - picks.length !== 1 ? 's' : ''}
+                </span>
+              )}
+
+              {submitStatus === 'error' && (
+                <span className="text-sm text-error" data-testid="submit-error">
+                  {errorMessage}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Available Drivers - selection pool (right column on desktop) */}
+          {/* Available Drivers - selection pool (right column on desktop) */}
           <div className="lg:min-w-0 lg:flex-[2]">
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
@@ -621,7 +613,7 @@ export function PredictionForm({
                     <DraggableDriverCard
                       driver={driver}
                       disabled={picks.length >= 5}
-                      onTap={() => addDriverOrInsert(driver._id)}
+                      onTap={() => addDriver(driver._id)}
                     />
                   </motion.div>
                 ))}

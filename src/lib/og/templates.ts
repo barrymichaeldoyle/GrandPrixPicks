@@ -71,6 +71,38 @@ function layout(...children: Array<ReactNode>): ReactNode {
             color: colors.accent,
           },
         },
+        // Flag inside subtle accent circle, matching app header/footer
+        e(
+          'div',
+          {
+            style: {
+              width: 32,
+              height: 32,
+              borderRadius: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: `${colors.accent}20`,
+            },
+          },
+          e(
+            'svg',
+            {
+              width: 20,
+              height: 20,
+              viewBox: '0 0 24 24',
+              fill: 'none',
+              stroke: colors.accent,
+              'stroke-width': '2',
+              'stroke-linecap': 'round',
+              'stroke-linejoin': 'round',
+              style: { transform: 'translateX(1px)' },
+            },
+            e('path', {
+              d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
+            }),
+          ),
+        ),
         'Grand Prix Picks',
       ),
       e(
@@ -108,22 +140,37 @@ export function homeTemplate(): ReactNode {
             gap: 24,
           },
         },
-        // Lucide Flag icon (24x24 viewBox, scaled to 72px)
+        // Flag icon inside accent circle (matches header/footer, nudged 1px right)
         e(
-          'svg',
+          'div',
           {
-            width: 72,
-            height: 72,
-            viewBox: '0 0 24 24',
-            fill: 'none',
-            stroke: colors.accent,
-            'stroke-width': '2',
-            'stroke-linecap': 'round',
-            'stroke-linejoin': 'round',
+            style: {
+              width: 96,
+              height: 96,
+              borderRadius: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: `${colors.accent}20`,
+            },
           },
-          e('path', {
-            d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
-          }),
+          e(
+            'svg',
+            {
+              width: 72,
+              height: 72,
+              viewBox: '0 0 24 24',
+              fill: 'none',
+              stroke: colors.accent,
+              'stroke-width': '2',
+              'stroke-linecap': 'round',
+              'stroke-linejoin': 'round',
+              style: { transform: 'translateX(1px)' },
+            },
+            e('path', {
+              d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
+            }),
+          ),
         ),
         e(
           'div',

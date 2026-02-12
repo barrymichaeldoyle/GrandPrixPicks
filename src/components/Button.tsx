@@ -16,6 +16,8 @@ const variants = {
     'border border-success/30 bg-success-muted text-success cursor-default',
   loading:
     'border border-transparent bg-button-accent text-white opacity-90 cursor-wait',
+  secondary:
+    'border border-border bg-surface hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
   tab: 'font-medium text-text-muted hover:bg-surface-muted hover:text-text disabled:bg-transparent disabled:text-text-muted/50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted/50',
 } as const;
 

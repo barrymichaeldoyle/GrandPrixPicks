@@ -1,7 +1,7 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { AlertTriangle, Eye, EyeOff, LogIn } from 'lucide-react';
+import { AlertTriangle, Bell, BellOff, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
@@ -32,6 +32,7 @@ function SettingsPage() {
   const navigate = useNavigate();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const updatePrivacy = useMutation(api.users.updatePrivacySettings);
+  const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
 
   // Privacy toggle state
@@ -50,6 +51,22 @@ function SettingsPage() {
       setOptimisticLeaderboard(null);
     }
   }, [optimisticLeaderboard, me?.showOnLeaderboard]);
+
+  // Notification toggle state
+  const [optimisticReminders, setOptimisticReminders] = useState<
+    boolean | null
+  >(null);
+
+  const emailReminders = optimisticReminders ?? me?.emailReminders ?? true;
+
+  useEffect(() => {
+    if (
+      optimisticReminders !== null &&
+      me?.emailReminders === optimisticReminders
+    ) {
+      setOptimisticReminders(null);
+    }
+  }, [optimisticReminders, me?.emailReminders]);
 
   // Profile edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -334,6 +351,83 @@ function SettingsPage() {
                       showOnLeaderboard ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Notifications section */}
+          <div className="rounded-xl border border-border bg-surface">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-lg font-semibold text-text">Notifications</h2>
+            </div>
+            <div className="divide-y divide-border px-4">
+              {/* Prediction reminders toggle */}
+              <div className="flex items-center justify-between gap-4 py-4">
+                <div className="flex items-center gap-3">
+                  {emailReminders ? (
+                    <Bell className="h-5 w-5 text-text-muted" />
+                  ) : (
+                    <BellOff className="h-5 w-5 text-text-muted" />
+                  )}
+                  <div>
+                    <p className="font-medium text-text">
+                      Prediction reminders
+                    </p>
+                    <p className="text-sm text-text-muted">
+                      Get an email 24 hours before picks lock for each race
+                      weekend.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={emailReminders}
+                  onClick={() => {
+                    const next = !emailReminders;
+                    setOptimisticReminders(next);
+                    updateNotifications({ emailReminders: next }).catch(() => {
+                      setOptimisticReminders(null);
+                    });
+                  }}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none ${
+                    emailReminders ? 'bg-accent' : 'bg-surface-muted'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                      emailReminders ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Results notifications (coming soon) */}
+              <div className="flex items-center justify-between gap-4 py-4 opacity-50">
+                <div className="flex items-center gap-3">
+                  <Bell className="h-5 w-5 text-text-muted" />
+                  <div>
+                    <p className="font-medium text-text">
+                      Results notifications{' '}
+                      <span className="ml-1 rounded bg-surface-muted px-1.5 py-0.5 text-xs font-normal text-text-muted">
+                        Coming soon
+                      </span>
+                    </p>
+                    <p className="text-sm text-text-muted">
+                      Get notified when session results are published and scores
+                      are calculated.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={false}
+                  disabled
+                  className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-surface-muted transition-colors"
+                >
+                  <span className="pointer-events-none inline-block h-5 w-5 translate-x-0 rounded-full bg-white shadow-sm transition-transform" />
                 </button>
               </div>
             </div>

@@ -23,6 +23,8 @@ export const me = query({
       avatarUrl: viewer.avatarUrl,
       usernameChangedAt: viewer.usernameChangedAt,
       showOnLeaderboard: viewer.showOnLeaderboard,
+      emailReminders: viewer.emailReminders,
+      emailResults: viewer.emailResults,
       isAdmin: viewer.isAdmin ?? false,
     };
   },
@@ -145,6 +147,21 @@ export const hasSeasonPassForSeason = query({
       .unique();
 
     return !!pass;
+  },
+});
+
+export const updateNotificationSettings = mutation({
+  args: {
+    emailReminders: v.optional(v.boolean()),
+    emailResults: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    const patch: Record<string, unknown> = { updatedAt: Date.now() };
+    if (args.emailReminders !== undefined)
+      patch.emailReminders = args.emailReminders;
+    if (args.emailResults !== undefined) patch.emailResults = args.emailResults;
+    await ctx.db.patch(viewer._id, patch);
   },
 });
 

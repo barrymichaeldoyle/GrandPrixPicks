@@ -17,6 +17,8 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     usernameChangedAt: v.optional(v.number()),
     showOnLeaderboard: v.optional(v.boolean()),
+    emailReminders: v.optional(v.boolean()),
+    emailResults: v.optional(v.boolean()),
     isAdmin: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -61,6 +63,7 @@ export default defineSchema({
     predictionLockAt: v.number(), // ms epoch (locks race predictions)
 
     status: v.string(), // "upcoming" | "locked" | "finished"
+    reminderScheduledId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

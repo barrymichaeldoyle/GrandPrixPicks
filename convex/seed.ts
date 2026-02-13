@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
 import { scoreTopFive } from './lib/scoring';
+import { scheduleReminder } from './notifications';
 
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
 
@@ -529,11 +530,13 @@ export const seedRaces = internalMutation({
           sprintLockAt,
           updatedAt: now,
         });
+        const updatedRace = await ctx.db.get(existing._id);
+        if (updatedRace) await scheduleReminder(ctx, updatedRace);
         updated++;
         continue;
       }
 
-      await ctx.db.insert('races', {
+      const raceId = await ctx.db.insert('races', {
         season: 2026,
         round: race.round,
         name: race.name,
@@ -551,6 +554,8 @@ export const seedRaces = internalMutation({
         createdAt: now,
         updatedAt: now,
       });
+      const insertedRace = await ctx.db.get(raceId);
+      if (insertedRace) await scheduleReminder(ctx, insertedRace);
       created++;
     }
 

@@ -49,7 +49,7 @@ function LeaguesPage() {
   if (!isSignedIn) {
     return (
       <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
             <h1 className="mb-2 text-2xl font-bold text-text">
@@ -78,7 +78,7 @@ function LeaguesContent() {
 
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-text">Leagues</h1>

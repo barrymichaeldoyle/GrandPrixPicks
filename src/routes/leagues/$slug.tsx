@@ -78,7 +78,7 @@ function LeagueDetailPage() {
   if (league === null) {
     return (
       <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
             <h1 className="mb-2 text-2xl font-bold text-text">
@@ -139,7 +139,7 @@ function LeagueDetailContent({ league }: { league: League }) {
 
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex flex-wrap items-center gap-2">

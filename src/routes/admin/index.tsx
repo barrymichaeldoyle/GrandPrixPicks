@@ -33,7 +33,7 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-6">
           <h1 className="mb-2 text-3xl font-bold text-white">Admin</h1>
           <p className="text-slate-400">

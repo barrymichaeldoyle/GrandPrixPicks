@@ -296,7 +296,7 @@ function AdminRaceDetailPage() {
   if (!race) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-        <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <p className="text-white">Race not found</p>
         </div>
       </div>
@@ -332,7 +332,7 @@ function AdminRaceDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-6">
         <Link
           to="/admin"
           className="mb-8 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-white"

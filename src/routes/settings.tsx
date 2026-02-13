@@ -1,7 +1,7 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { AlertTriangle, Bell, BellOff, Eye, EyeOff, LogIn } from 'lucide-react';
+import { AlertTriangle, Bell, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
@@ -9,6 +9,70 @@ import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
 import { ogBaseUrl } from '../lib/site';
+
+function ToggleSwitch({
+  checked,
+  onChange,
+  loading = false,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  loading?: boolean;
+}) {
+  if (loading) {
+    return (
+      <div
+        aria-hidden
+        className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted"
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none ${
+        checked ? 'bg-accent' : 'bg-surface-muted'
+      }`}
+    >
+      <span
+        className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`}
+      />
+    </button>
+  );
+}
+
+function NotificationToggleItem({
+  label,
+  description,
+  checked,
+  onToggle,
+  loading = false,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onToggle: () => void;
+  loading?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-4">
+      <div>
+        <p className="font-medium text-text">{label}</p>
+        <p className="text-sm text-text-muted">{description}</p>
+      </div>
+      <ToggleSwitch
+        checked={checked}
+        onChange={onToggle}
+        loading={loading}
+      />
+    </div>
+  );
+}
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -67,6 +131,22 @@ function SettingsPage() {
       setOptimisticReminders(null);
     }
   }, [optimisticReminders, me?.emailReminders]);
+
+  // Results notification toggle state
+  const [optimisticResults, setOptimisticResults] = useState<boolean | null>(
+    null,
+  );
+
+  const emailResults = optimisticResults ?? me?.emailResults ?? true;
+
+  useEffect(() => {
+    if (
+      optimisticResults !== null &&
+      me?.emailResults === optimisticResults
+    ) {
+      setOptimisticResults(null);
+    }
+  }, [optimisticResults, me?.emailResults]);
 
   // Profile edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -331,105 +411,54 @@ function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={showOnLeaderboard}
-                  onClick={() => {
+                <ToggleSwitch
+                  checked={showOnLeaderboard}
+                  onChange={() => {
                     const next = !showOnLeaderboard;
                     setOptimisticLeaderboard(next);
                     updatePrivacy({ showOnLeaderboard: next }).catch(() => {
                       setOptimisticLeaderboard(null);
                     });
                   }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none ${
-                    showOnLeaderboard ? 'bg-accent' : 'bg-surface-muted'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                      showOnLeaderboard ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+                  loading={me === undefined}
+                />
               </div>
             </div>
           </div>
 
           {/* Notifications section */}
           <div className="rounded-xl border border-border bg-surface">
-            <div className="border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+              <Bell className="h-5 w-5 text-text-muted" />
               <h2 className="text-lg font-semibold text-text">Notifications</h2>
             </div>
             <div className="divide-y divide-border px-4">
-              {/* Prediction reminders toggle */}
-              <div className="flex items-center justify-between gap-4 py-4">
-                <div className="flex items-center gap-3">
-                  {emailReminders ? (
-                    <Bell className="h-5 w-5 text-text-muted" />
-                  ) : (
-                    <BellOff className="h-5 w-5 text-text-muted" />
-                  )}
-                  <div>
-                    <p className="font-medium text-text">
-                      Prediction reminders
-                    </p>
-                    <p className="text-sm text-text-muted">
-                      Get an email 24 hours before picks lock for each race
-                      weekend.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={emailReminders}
-                  onClick={() => {
-                    const next = !emailReminders;
-                    setOptimisticReminders(next);
-                    updateNotifications({ emailReminders: next }).catch(() => {
-                      setOptimisticReminders(null);
-                    });
-                  }}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none ${
-                    emailReminders ? 'bg-accent' : 'bg-surface-muted'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                      emailReminders ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Results notifications (coming soon) */}
-              <div className="flex items-center justify-between gap-4 py-4 opacity-50">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-text-muted" />
-                  <div>
-                    <p className="font-medium text-text">
-                      Results notifications{' '}
-                      <span className="ml-1 rounded bg-surface-muted px-1.5 py-0.5 text-xs font-normal text-text-muted">
-                        Coming soon
-                      </span>
-                    </p>
-                    <p className="text-sm text-text-muted">
-                      Get notified when session results are published and scores
-                      are calculated.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={false}
-                  disabled
-                  className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-surface-muted transition-colors"
-                >
-                  <span className="pointer-events-none inline-block h-5 w-5 translate-x-0 rounded-full bg-white shadow-sm transition-transform" />
-                </button>
-              </div>
+              <NotificationToggleItem
+                label="Prediction reminders"
+                description="Get an email 24 hours before picks lock for each race weekend."
+                checked={emailReminders}
+                onToggle={() => {
+                  const next = !emailReminders;
+                  setOptimisticReminders(next);
+                  updateNotifications({ emailReminders: next }).catch(() => {
+                    setOptimisticReminders(null);
+                  });
+                }}
+                loading={me === undefined}
+              />
+              <NotificationToggleItem
+                label="Results notifications"
+                description="Get notified when session results are published and scores are calculated."
+                checked={emailResults}
+                onToggle={() => {
+                  const next = !emailResults;
+                  setOptimisticResults(next);
+                  updateNotifications({ emailResults: next }).catch(() => {
+                    setOptimisticResults(null);
+                  });
+                }}
+                loading={me === undefined}
+              />
             </div>
           </div>
         </div>

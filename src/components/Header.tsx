@@ -174,10 +174,10 @@ export function Header({
   return (
     <header
       ref={headerRef}
-      className="relative sticky top-0 z-50 border-b border-border bg-surface text-text shadow-sm"
+      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text shadow-sm"
     >
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="-mt-1 -mb-1 flex items-center gap-6">
+      <div className="flex h-full min-h-[61px] items-center justify-between px-4">
+        <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">
               <Flag

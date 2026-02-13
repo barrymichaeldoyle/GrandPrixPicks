@@ -305,17 +305,15 @@ const scheduleRow = {
 
 const scheduleLabelCol = {
   width: '120px',
-  height: '22px',
+  padding: '4px 0',
   textAlign: 'left' as const,
   verticalAlign: 'middle' as const,
-  padding: 0,
 };
 
 const scheduleTimeCol = {
-  height: '22px',
+  padding: '4px 0',
   textAlign: 'right' as const,
   verticalAlign: 'middle' as const,
-  padding: 0,
 };
 
 const sessionLabel = {
@@ -337,13 +335,14 @@ const sprintBadge = {
 const scheduleDate = {
   color: '#64748b',
   fontSize: '13px',
-  lineHeight: '22px',
+  lineHeight: '1.2',
 };
 
 const scheduleTime = {
   color: '#64748b',
   fontSize: '13px',
-  lineHeight: '22px',
+  lineHeight: '1.2',
+  whiteSpace: 'nowrap' as const,
 };
 
 const button = {

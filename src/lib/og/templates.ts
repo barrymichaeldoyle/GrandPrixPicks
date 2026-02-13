@@ -64,7 +64,7 @@ function layout(size: OgImageSize, ...children: Array<ReactNode>): ReactNode {
       e(
         'div',
         {
-            style: {
+          style: {
             display: 'flex',
             alignItems: 'center',
             gap: 12,

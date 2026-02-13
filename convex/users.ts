@@ -175,29 +175,35 @@ export const updateNotificationSettings = mutation({
 
 export const updateRegionalSettings = mutation({
   args: {
-    timezone: v.optional(v.string()),
-    locale: v.optional(v.string()),
+    timezone: v.optional(v.union(v.string(), v.null())),
+    locale: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.timezone !== undefined) {
-      // Validate IANA timezone
-      try {
-        Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
-      } catch {
-        throw new Error(`Invalid timezone: ${args.timezone}`);
+      if (args.timezone === null) {
+        patch.timezone = undefined; // Clear to use browser default
+      } else {
+        try {
+          Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
+        } catch {
+          throw new Error(`Invalid timezone: ${args.timezone}`);
+        }
+        patch.timezone = args.timezone;
       }
-      patch.timezone = args.timezone;
     }
     if (args.locale !== undefined) {
-      // Validate BCP 47 locale tag
-      try {
-        new Intl.DateTimeFormat(args.locale);
-      } catch {
-        throw new Error(`Invalid locale: ${args.locale}`);
+      if (args.locale === null) {
+        patch.locale = undefined; // Clear to use browser default
+      } else {
+        try {
+          new Intl.DateTimeFormat(args.locale);
+        } catch {
+          throw new Error(`Invalid locale: ${args.locale}`);
+        }
+        patch.locale = args.locale;
       }
-      patch.locale = args.locale;
     }
     await ctx.db.patch(viewer._id, patch);
   },

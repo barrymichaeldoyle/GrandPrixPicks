@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import satori from 'satori';
 
 import { loadFonts } from './fonts';
-import { getOgDimensions, type OgImageSize } from './styles';
+import type { OgImageSize } from './styles';
+import { getOgDimensions } from './styles';
 
 let wasmReady: Promise<void> | null = null;
 

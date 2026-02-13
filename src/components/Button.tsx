@@ -64,7 +64,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const activeStyles =
       effectiveVariant === 'tab' && active
-        ? 'bg-button-accent text-white hover:bg-button-accent hover:text-white cursor-default pointer-events-none'
+        ? 'bg-button-accent text-white hover:!bg-button-accent hover:!text-white cursor-default pointer-events-none'
         : '';
 
     const resolvedClassName = [

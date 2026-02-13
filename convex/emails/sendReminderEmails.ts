@@ -89,6 +89,7 @@ export const sendBatch = internalAction({
         timeUntilLock: args.timeUntilLock,
         raceUrl: `${appUrl}/races/${args.raceId}`,
         settingsUrl: `${appUrl}/settings`,
+        logoUrl: `${appUrl}/favicon.svg`,
         sessions: sessionSchedule,
         round: args.round,
         countryCode: args.countryCode,

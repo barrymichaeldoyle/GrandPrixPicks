@@ -26,21 +26,19 @@ export type PredictionReminderProps = {
   timeUntilLock: string;
   raceUrl: string;
   settingsUrl: string;
+  logoUrl: string;
   sessions: Array<SessionScheduleItem>;
   round: number;
   countryCode: string | null;
   hasSprint: boolean;
 };
 
-/** Base64-encoded data URI for the Lucide Flag icon (24x24, teal stroke) */
-const FLAG_SVG =
-  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMwZDk0ODgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNNCAyMlY0YTEgMSAwIDAgMSAuNC0uOEE2IDYgMCAwIDEgOCAyYzMgMCA1IDIgNy4zMzMgMnEyIDAgMy4wNjctLjhBMSAxIDAgMCAxIDIwIDR2MTBhMSAxIDAgMCAxLS40LjhBNiA2IDAgMCAxIDE2IDE2Yy0zIDAtNS0yLTgtMmE2IDYgMCAwIDAtNCAxLjUyOCIvPjwvc3ZnPg==';
-
 export function PredictionReminderEmail({
   raceName = 'Australian Grand Prix',
   timeUntilLock = '24 hours',
   raceUrl = 'https://grandprixpicks.com/races/australia-2026',
   settingsUrl = 'https://grandprixpicks.com/settings',
+  logoUrl = 'https://grandprixpicks.com/favicon.svg',
   sessions = [
     {
       label: 'Sprint Quali',
@@ -87,7 +85,7 @@ export function PredictionReminderEmail({
                 <td align="center">
                   <div style={logoCircle}>
                     <Img
-                      src={FLAG_SVG}
+                      src={logoUrl}
                       width="20"
                       height="20"
                       alt=""

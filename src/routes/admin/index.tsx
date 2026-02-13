@@ -42,9 +42,15 @@ function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-8 flex gap-2 rounded-lg border border-slate-700 bg-slate-900/60 p-1">
+        <div
+          className="mb-8 flex gap-2 rounded-lg border border-slate-700 bg-slate-900/60 p-1"
+          role="tablist"
+          aria-label="Admin sections"
+        >
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'races'}
             onClick={() => setActiveTab('races')}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
               activeTab === 'races'
@@ -56,6 +62,8 @@ function AdminPage() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'utilities'}
             onClick={() => setActiveTab('utilities')}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
               activeTab === 'utilities'

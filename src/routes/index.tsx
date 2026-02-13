@@ -56,7 +56,7 @@ function HomePage() {
       <section className="relative overflow-hidden px-6 py-16 text-center">
         <div className="relative mx-auto max-w-3xl">
           <div className="mb-6 flex items-center justify-center gap-3">
-            <Flag className="h-12 w-12 text-accent" />
+            <Flag className="h-12 w-12 text-accent" aria-hidden="true" />
             <h1 className="text-4xl font-black tracking-tight text-text md:text-5xl">
               Grand Prix Picks
             </h1>
@@ -99,7 +99,7 @@ function HomePage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
-              <Flag className="h-6 w-6 text-accent" />
+              <Flag className="h-6 w-6 text-accent" aria-hidden="true" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
               Pick Your Top 5
@@ -112,7 +112,7 @@ function HomePage() {
 
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
-              <Swords className="h-6 w-6 text-accent" />
+              <Swords className="h-6 w-6 text-accent" aria-hidden="true" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
               Call the Head-to-Heads
@@ -125,7 +125,7 @@ function HomePage() {
 
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
-              <Trophy className="h-6 w-6 text-accent" />
+              <Trophy className="h-6 w-6 text-accent" aria-hidden="true" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
               Earn Points Every Session
@@ -139,7 +139,7 @@ function HomePage() {
 
           <div className="rounded-xl border border-border bg-surface p-6 text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent-muted">
-              <Users className="h-6 w-6 text-accent" />
+              <Users className="h-6 w-6 text-accent" aria-hidden="true" />
             </div>
             <h3 className="mb-2 text-lg font-semibold text-text">
               Compete and Follow Friends

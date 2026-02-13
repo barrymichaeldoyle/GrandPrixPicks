@@ -77,7 +77,10 @@ function RacesPage() {
             {upcomingRaces.length > 0 && (
               <section>
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                  <span className="h-2 w-2 rounded-full bg-success"></span>
+                  <span
+                    className="h-2 w-2 rounded-full bg-success"
+                    aria-hidden="true"
+                  ></span>
                   Upcoming Races
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -99,7 +102,10 @@ function RacesPage() {
             {lockedRaces.length > 0 && (
               <section>
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                  <span className="h-2 w-2 rounded-full bg-warning"></span>
+                  <span
+                    className="h-2 w-2 rounded-full bg-warning"
+                    aria-hidden="true"
+                  ></span>
                   In Progress
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -113,7 +119,10 @@ function RacesPage() {
             {finishedRaces.length > 0 && (
               <section>
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                  <span className="h-2 w-2 rounded-full bg-text-muted"></span>
+                  <span
+                    className="h-2 w-2 rounded-full bg-text-muted"
+                    aria-hidden="true"
+                  ></span>
                   Completed
                 </h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

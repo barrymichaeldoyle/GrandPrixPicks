@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -82,6 +83,7 @@ export function Tooltip({
   triggerClassName,
   prerender = false,
 }: TooltipProps) {
+  const tooltipId = useId();
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLSpanElement>(null);
   const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -221,6 +223,7 @@ export function Tooltip({
   const tooltipEl = typeof document !== 'undefined' && shouldRender && (
     <span
       ref={tooltipRef}
+      id={tooltipId}
       className="pointer-events-none fixed z-[9999] transition-[opacity,transform] duration-150 ease-out"
       role="tooltip"
       style={{
@@ -246,6 +249,7 @@ export function Tooltip({
       <span
         ref={triggerRef}
         className={`inline-flex cursor-help ${triggerClassName ?? ''}`.trim()}
+        aria-describedby={tooltipId}
         onPointerDown={handlePointerDown}
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}

@@ -380,10 +380,14 @@ function SettingsPage() {
                   />
                   <div className="min-w-0 flex-1 space-y-3">
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-text-muted">
+                      <label
+                        htmlFor="display-name"
+                        className="mb-1 block text-sm font-medium text-text-muted"
+                      >
                         Display name
                       </label>
                       <input
+                        id="display-name"
                         type="text"
                         value={editDisplayName}
                         onChange={(e) => setEditDisplayName(e.target.value)}
@@ -393,14 +397,21 @@ function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-text-muted">
+                      <label
+                        htmlFor="username"
+                        className="mb-1 block text-sm font-medium text-text-muted"
+                      >
                         Username
                       </label>
                       <div className="flex items-center">
-                        <span className="rounded-l-lg border border-r-0 border-border bg-surface-muted px-3 py-2 text-text-muted">
+                        <span
+                          className="rounded-l-lg border border-r-0 border-border bg-surface-muted px-3 py-2 text-text-muted"
+                          aria-hidden="true"
+                        >
                           @
                         </span>
                         <input
+                          id="username"
                           type="text"
                           value={editUsername}
                           onChange={(e) => {

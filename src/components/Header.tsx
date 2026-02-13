@@ -191,7 +191,10 @@ export function Header({
           </Link>
 
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
-          <nav className="hidden items-center gap-1 min-[791px]:flex">
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-1 min-[791px]:flex"
+          >
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -201,6 +204,7 @@ export function Header({
                 activeProps={{
                   className:
                     'pointer-events-none px-3 py-2 rounded-lg text-accent border-2 nav-link-active transition-colors text-sm font-semibold',
+                  'aria-current': 'page' as const,
                 }}
                 activeOptions={link.exact ? { exact: true } : undefined}
               >
@@ -276,6 +280,7 @@ export function Header({
             <motion.nav
               ref={menuRef}
               id="mobile-nav"
+              aria-label="Mobile navigation"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -298,6 +303,7 @@ export function Header({
                       activeProps={{
                         className:
                           'pointer-events-none block px-3 py-2 rounded-lg text-accent border-2 nav-link-active font-semibold transition-colors',
+                        'aria-current': 'page' as const,
                       }}
                       activeOptions={link.exact ? { exact: true } : undefined}
                     >

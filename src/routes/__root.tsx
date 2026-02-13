@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { useMutation } from 'convex/react';
-import { Flag, Home, Trophy } from 'lucide-react';
+import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
@@ -98,7 +98,7 @@ export function NotFoundPage() {
     <div className="flex min-h-[50vh] items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-warning-muted">
-          <Flag className="h-8 w-8 text-warning" />
+          <Flag className="h-8 w-8 text-warning" aria-hidden="true" />
         </div>
 
         <h1 className="mb-2 text-2xl font-bold text-text">Page not found</h1>
@@ -113,7 +113,7 @@ export function NotFoundPage() {
             to="/"
             className="inline-flex items-center gap-2 rounded-lg bg-button-accent px-6 py-2.5 font-semibold text-white transition-colors hover:bg-button-accent-hover"
           >
-            <Home className="h-4 w-4" />
+            <Home className="h-4 w-4" aria-hidden="true" />
             Go home
           </Link>
         </div>
@@ -161,6 +161,12 @@ function RootDocument({ children }: PropsWithChildren) {
           <AppConvexProvider>
             <ProfileSync />
             <div className="flex h-[100dvh] h-screen flex-col overflow-hidden">
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
+              >
+                Skip to main content
+              </a>
               <Header
                 mobileMenuOpen={mobileMenuOpen}
                 onMobileMenuOpenChange={onMobileMenuOpenChange}
@@ -174,7 +180,7 @@ function RootDocument({ children }: PropsWithChildren) {
               >
                 <ScrollToTop scrollContainerRef={mainRef} />
                 <div className="flex min-h-full flex-col">
-                  <main className="min-h-0 flex-1">
+                  <main id="main-content" className="min-h-0 flex-1">
                     <ErrorBoundary>{children}</ErrorBoundary>
                   </main>
                   <Footer />

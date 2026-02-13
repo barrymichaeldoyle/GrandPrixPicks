@@ -182,6 +182,7 @@ export function RaceResults({ raceId, race, hideHeader }: RaceResultsProps) {
         <div
           className="flex gap-1 border border-border bg-surface p-1"
           role="tablist"
+          aria-label="Race session results"
         >
           {expectedSessions.map((session) => {
             const hasResults = availableSessions.includes(session);

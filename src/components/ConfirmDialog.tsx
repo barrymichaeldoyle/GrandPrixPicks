@@ -4,6 +4,9 @@ import { createPortal } from 'react-dom';
 
 import { Button } from './Button';
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
+
 interface ConfirmDialogProps {
   open: boolean;
   onClose: () => void;
@@ -26,6 +29,7 @@ export function ConfirmDialog({
   error = null,
 }: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -37,6 +41,28 @@ export function ConfirmDialog({
     (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !loading) {
         onClose();
+        return;
+      }
+
+      // Focus trap
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+        ).filter((el) => el.offsetParent !== null);
+
+        if (focusable.length === 0) return;
+
+        const currentIndex = focusable.indexOf(
+          document.activeElement as HTMLElement,
+        );
+
+        if (e.shiftKey && currentIndex <= 0) {
+          e.preventDefault();
+          focusable[focusable.length - 1]?.focus();
+        } else if (!e.shiftKey && currentIndex === focusable.length - 1) {
+          e.preventDefault();
+          focusable[0]?.focus();
+        }
       }
     },
     [onClose, loading],
@@ -60,12 +86,31 @@ export function ConfirmDialog({
         }
       }}
     >
-      <div className="mx-4 w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-xl">
-        <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold text-text">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+        className="mx-4 w-full max-w-md rounded-lg border border-border bg-surface p-6 shadow-xl"
+      >
+        <h2
+          id="confirm-dialog-title"
+          className="mb-2 flex items-center gap-2 text-lg font-semibold text-text"
+        >
           {title}
         </h2>
-        <p className="mb-6 text-sm text-text-muted">{description}</p>
-        {error && <p className="mb-4 text-sm text-error">{error}</p>}
+        <p
+          id="confirm-dialog-description"
+          className="mb-6 text-sm text-text-muted"
+        >
+          {description}
+        </p>
+        {error && (
+          <p className="mb-4 text-sm text-error" aria-live="assertive">
+            {error}
+          </p>
+        )}
         <div className="flex justify-center gap-3">
           <Button
             variant="secondary"

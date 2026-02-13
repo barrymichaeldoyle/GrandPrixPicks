@@ -161,9 +161,9 @@ function ProfilePage() {
                     <Link
                       to="/settings"
                       className="rounded-md p-1.5 text-text-muted hover:bg-surface-muted hover:text-text"
-                      title="Settings"
+                      aria-label="Settings"
                     >
-                      <Settings className="h-4 w-4" />
+                      <Settings className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   )}
                 </div>

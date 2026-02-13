@@ -1,5 +1,5 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -193,7 +193,11 @@ function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4">
+        <div
+          className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4"
+          role="tablist"
+          aria-label="Leaderboard filters"
+        >
           <div className="flex gap-1 sm:border-r sm:border-border sm:pr-4">
             <Button
               variant="tab"
@@ -616,28 +620,13 @@ function H2HLeaderboardLayout({
 // ───────────────────────── Shared Components ─────────────────────────
 
 function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
-  const navigate = useNavigate();
   return (
     <tr
-      role="link"
-      tabIndex={0}
-      className={`cursor-pointer border-b border-border transition-colors last:border-0 ${
+      className={`border-b border-border transition-colors last:border-0 ${
         entry.isViewer
           ? 'bg-accent-muted hover:bg-accent-muted'
           : 'hover:bg-surface-muted'
       }`}
-      onClick={() =>
-        navigate({ to: '/p/$username', params: { username: entry.username } })
-      }
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          navigate({
-            to: '/p/$username',
-            params: { username: entry.username },
-          });
-        }
-      }}
     >
       <td className="px-4 py-3">
         <span
@@ -647,15 +636,21 @@ function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
         </span>
       </td>
       <td className="px-4 py-3">
-        <span className="flex items-center gap-2 font-medium text-text">
-          {entry.isViewer && <User className="h-4 w-4 text-accent" />}
+        <Link
+          to="/p/$username"
+          params={{ username: entry.username }}
+          className="flex items-center gap-2 font-medium text-text"
+        >
+          {entry.isViewer && (
+            <User className="h-4 w-4 text-accent" aria-hidden="true" />
+          )}
           <span className="font-semibold text-accent">{entry.username}</span>
           {entry.isViewer && (
             <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
               YOU
             </span>
           )}
-        </span>
+        </Link>
       </td>
       <td className="hidden px-4 py-3 text-right sm:table-cell">
         <span className="text-sm text-text-muted">
@@ -670,29 +665,14 @@ function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
 }
 
 function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
-  const navigate = useNavigate();
   return (
     <tr
-      role="link"
-      tabIndex={0}
-      className={`cursor-pointer border-b border-border transition-colors last:border-0 ${
+      className={`border-b border-border transition-colors last:border-0 ${
         entry.isViewer
           ? 'bg-accent-muted hover:bg-accent-muted'
           : 'hover:bg-surface-muted'
       }`}
       data-testid="leaderboard-entry"
-      onClick={() =>
-        navigate({ to: '/p/$username', params: { username: entry.username } })
-      }
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          navigate({
-            to: '/p/$username',
-            params: { username: entry.username },
-          });
-        }
-      }}
     >
       <td className="px-4 py-3" data-testid="position">
         <span
@@ -702,15 +682,21 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
         </span>
       </td>
       <td className="px-4 py-3" data-testid="username">
-        <span className="flex items-center gap-2 font-medium text-text">
-          {entry.isViewer && <User className="h-4 w-4 text-accent" />}
+        <Link
+          to="/p/$username"
+          params={{ username: entry.username }}
+          className="flex items-center gap-2 font-medium text-text"
+        >
+          {entry.isViewer && (
+            <User className="h-4 w-4 text-accent" aria-hidden="true" />
+          )}
           <span className="font-semibold text-accent">{entry.username}</span>
           {entry.isViewer && (
             <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
               YOU
             </span>
           )}
-        </span>
+        </Link>
       </td>
       <td className="px-4 py-3 text-right">
         <span className="text-sm text-text-muted">{entry.raceCount}</span>

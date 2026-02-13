@@ -82,9 +82,9 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-wide text-text uppercase">
+            <h2 className="text-xs font-semibold tracking-wide text-text uppercase">
               Explore
-            </p>
+            </h2>
             <nav
               aria-label="Footer site navigation"
               className="flex flex-col gap-2 text-sm"
@@ -123,9 +123,9 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs font-semibold tracking-wide text-text uppercase">
+            <h2 className="text-xs font-semibold tracking-wide text-text uppercase">
               Legal & Support
-            </p>
+            </h2>
             <nav
               aria-label="Footer legal navigation"
               className="flex flex-col gap-2 text-sm"

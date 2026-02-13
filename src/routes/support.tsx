@@ -116,10 +116,14 @@ function SupportContent() {
           className="space-y-4 rounded-xl border border-border bg-surface p-4"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-text">
+            <label
+              htmlFor="support-subject"
+              className="mb-1 block text-sm font-medium text-text"
+            >
               Subject
             </label>
             <input
+              id="support-subject"
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
@@ -131,10 +135,17 @@ function SupportContent() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-text">
+            <span
+              id="support-category-label"
+              className="mb-1 block text-sm font-medium text-text"
+            >
               Category (optional)
-            </label>
-            <div className="flex flex-wrap gap-2 text-xs">
+            </span>
+            <div
+              className="flex flex-wrap gap-2 text-xs"
+              role="group"
+              aria-labelledby="support-category-label"
+            >
               {[
                 { id: 'bug', label: 'Bug' },
                 { id: 'question', label: 'Question' },
@@ -163,10 +174,14 @@ function SupportContent() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-text">
+            <label
+              htmlFor="support-message"
+              className="mb-1 block text-sm font-medium text-text"
+            >
               Message
             </label>
             <textarea
+              id="support-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               required
@@ -182,13 +197,19 @@ function SupportContent() {
           </div>
 
           {error && (
-            <p className="flex items-center gap-1 text-sm text-error">
-              <AlertCircle className="h-4 w-4" />
+            <p
+              className="flex items-center gap-1 text-sm text-error"
+              aria-live="assertive"
+            >
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
               <span>{error}</span>
             </p>
           )}
           {success && (
-            <p className="flex items-center gap-1 text-sm text-success">
+            <p
+              className="flex items-center gap-1 text-sm text-success"
+              aria-live="polite"
+            >
               <CheckIcon className="h-4 w-4" />
               <span>{success}</span>
             </p>

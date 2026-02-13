@@ -8,44 +8,44 @@
  * @module
  */
 
-import type * as drivers from "../drivers.js";
-import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
-import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
-import type * as follows from "../follows.js";
-import type * as h2h from "../h2h.js";
-import type * as leaderboards from "../leaderboards.js";
-import type * as leagues from "../leagues.js";
-import type * as lib_auth from "../lib/auth.js";
-import type * as lib_email from "../lib/email.js";
-import type * as lib_scoring from "../lib/scoring.js";
-import type * as lib_standings from "../lib/standings.js";
-import type * as notifications from "../notifications.js";
-import type * as predictions from "../predictions.js";
-import type * as races from "../races.js";
-import type * as results from "../results.js";
-import type * as seed from "../seed.js";
-import type * as support from "../support.js";
-import type * as testing from "../testing.js";
-import type * as users from "../users.js";
+import type * as drivers from '../drivers.js';
+import type * as emails_PredictionReminderEmail from '../emails/PredictionReminderEmail.js';
+import type * as emails_sendReminderEmails from '../emails/sendReminderEmails.js';
+import type * as follows from '../follows.js';
+import type * as h2h from '../h2h.js';
+import type * as leaderboards from '../leaderboards.js';
+import type * as leagues from '../leagues.js';
+import type * as lib_auth from '../lib/auth.js';
+import type * as lib_email from '../lib/email.js';
+import type * as lib_scoring from '../lib/scoring.js';
+import type * as lib_standings from '../lib/standings.js';
+import type * as notifications from '../notifications.js';
+import type * as predictions from '../predictions.js';
+import type * as races from '../races.js';
+import type * as results from '../results.js';
+import type * as seed from '../seed.js';
+import type * as support from '../support.js';
+import type * as testing from '../testing.js';
+import type * as users from '../users.js';
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from "convex/server";
+} from 'convex/server';
 
 declare const fullApi: ApiFromModules<{
   drivers: typeof drivers;
-  "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
-  "emails/sendReminderEmails": typeof emails_sendReminderEmails;
+  'emails/PredictionReminderEmail': typeof emails_PredictionReminderEmail;
+  'emails/sendReminderEmails': typeof emails_sendReminderEmails;
   follows: typeof follows;
   h2h: typeof h2h;
   leaderboards: typeof leaderboards;
   leagues: typeof leagues;
-  "lib/auth": typeof lib_auth;
-  "lib/email": typeof lib_email;
-  "lib/scoring": typeof lib_scoring;
-  "lib/standings": typeof lib_standings;
+  'lib/auth': typeof lib_auth;
+  'lib/email': typeof lib_email;
+  'lib/scoring': typeof lib_scoring;
+  'lib/standings': typeof lib_standings;
   notifications: typeof notifications;
   predictions: typeof predictions;
   races: typeof races;
@@ -66,7 +66,7 @@ declare const fullApi: ApiFromModules<{
  */
 export declare const api: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "public">
+  FunctionReference<any, 'public'>
 >;
 
 /**
@@ -79,33 +79,33 @@ export declare const api: FilterApi<
  */
 export declare const internal: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "internal">
+  FunctionReference<any, 'internal'>
 >;
 
 export declare const components: {
   resend: {
     lib: {
       cancelEmail: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         { emailId: string },
         null
       >;
       cleanupAbandonedEmails: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         { olderThan?: number },
         null
       >;
       cleanupOldEmails: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         { olderThan?: number },
         null
       >;
       createManualEmail: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         {
           from: string;
           headers?: Array<{ name: string; value: string }>;
@@ -116,8 +116,8 @@ export declare const components: {
         string
       >;
       get: FunctionReference<
-        "query",
-        "internal",
+        'query',
+        'internal',
         { emailId: string },
         {
           bcc?: Array<string>;
@@ -138,14 +138,14 @@ export declare const components: {
           resendId?: string;
           segment: number;
           status:
-            | "waiting"
-            | "queued"
-            | "cancelled"
-            | "sent"
-            | "delivered"
-            | "delivery_delayed"
-            | "bounced"
-            | "failed";
+            | 'waiting'
+            | 'queued'
+            | 'cancelled'
+            | 'sent'
+            | 'delivered'
+            | 'delivery_delayed'
+            | 'bounced'
+            | 'failed';
           subject?: string;
           template?: {
             id: string;
@@ -156,8 +156,8 @@ export declare const components: {
         } | null
       >;
       getStatus: FunctionReference<
-        "query",
-        "internal",
+        'query',
+        'internal',
         { emailId: string },
         {
           bounced: boolean;
@@ -168,25 +168,25 @@ export declare const components: {
           failed: boolean;
           opened: boolean;
           status:
-            | "waiting"
-            | "queued"
-            | "cancelled"
-            | "sent"
-            | "delivered"
-            | "delivery_delayed"
-            | "bounced"
-            | "failed";
+            | 'waiting'
+            | 'queued'
+            | 'cancelled'
+            | 'sent'
+            | 'delivered'
+            | 'delivery_delayed'
+            | 'bounced'
+            | 'failed';
         } | null
       >;
       handleEmailEvent: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         { event: any },
         null
       >;
       sendEmail: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         {
           bcc?: Array<string>;
           cc?: Array<string>;
@@ -212,21 +212,21 @@ export declare const components: {
         string
       >;
       updateManualEmail: FunctionReference<
-        "mutation",
-        "internal",
+        'mutation',
+        'internal',
         {
           emailId: string;
           errorMessage?: string;
           resendId?: string;
           status:
-            | "waiting"
-            | "queued"
-            | "cancelled"
-            | "sent"
-            | "delivered"
-            | "delivery_delayed"
-            | "bounced"
-            | "failed";
+            | 'waiting'
+            | 'queued'
+            | 'cancelled'
+            | 'sent'
+            | 'delivered'
+            | 'delivery_delayed'
+            | 'bounced'
+            | 'failed';
         },
         null
       >;

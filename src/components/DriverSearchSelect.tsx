@@ -234,6 +234,7 @@ export function DriverSearchSelect({
                   setHighlightIndex(0);
                 }}
                 placeholder="Type to filter…"
+                aria-label="Filter drivers"
                 className="w-full rounded border border-slate-600 bg-slate-700/80 px-2 py-1.5 text-sm text-white placeholder-slate-500 focus:border-yellow-500/50 focus:outline-none"
                 autoFocus
               />

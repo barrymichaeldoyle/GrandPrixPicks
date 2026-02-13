@@ -47,16 +47,28 @@ export function RaceDetailHeader({
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-text-muted">
             <span className="inline-flex items-center gap-1.5">
-              <Calendar size={16} className="shrink-0 text-text-muted" />
+              <Calendar
+                size={16}
+                className="shrink-0 text-text-muted"
+                aria-hidden="true"
+              />
               {formatDate(race.raceStartAt)}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Clock size={16} className="shrink-0 text-text-muted" />
+              <Clock
+                size={16}
+                className="shrink-0 text-text-muted"
+                aria-hidden="true"
+              />
               {formatTime(race.raceStartAt)}
             </span>
             {race.status !== 'finished' && (
               <span className="inline-flex items-center gap-1.5">
-                <Lock size={16} className="shrink-0 text-text-muted" />
+                <Lock
+                  size={16}
+                  className="shrink-0 text-text-muted"
+                  aria-hidden="true"
+                />
                 Predictions lock {formatTimeWithTz(race.predictionLockAt)}
               </span>
             )}

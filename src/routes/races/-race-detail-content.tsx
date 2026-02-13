@@ -271,7 +271,11 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
 
       {/* Session tabs */}
       {sessions.length > 1 && (
-        <div className="mb-4 flex gap-1 rounded-lg border border-border bg-surface-muted/50 p-1">
+        <div
+          className="mb-4 flex gap-1 rounded-lg border border-border bg-surface-muted/50 p-1"
+          role="tablist"
+          aria-label="H2H session results"
+        >
           {sessions.map((session) => (
             <Button
               key={session}

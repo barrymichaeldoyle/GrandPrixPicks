@@ -233,6 +233,7 @@ function DraggableDriverCard({
           onTap();
         }}
         disabled={disabled}
+        aria-label={`${driver.displayName}${disabled ? ' (already selected)' : ''}`}
         className="flex h-full w-full flex-col items-center justify-center gap-0 rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
         style={{
           backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
@@ -577,7 +578,11 @@ export function PredictionForm({
               </Button>
 
               {submitStatus === 'error' && (
-                <span className="text-sm text-error" data-testid="submit-error">
+                <span
+                  className="text-sm text-error"
+                  data-testid="submit-error"
+                  aria-live="assertive"
+                >
                   {errorMessage}
                 </span>
               )}

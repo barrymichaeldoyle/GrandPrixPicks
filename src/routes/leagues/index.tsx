@@ -221,10 +221,14 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
       <h3 className="mb-3 text-lg font-semibold text-text">Create League</h3>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-text">
+          <label
+            htmlFor="league-name"
+            className="mb-1 block text-sm font-medium text-text"
+          >
             Name
           </label>
           <input
+            id="league-name"
             type="text"
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
@@ -237,11 +241,15 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-text">
+          <label
+            htmlFor="league-slug"
+            className="mb-1 block text-sm font-medium text-text"
+          >
             Slug (URL identifier)
           </label>
           <div className="flex items-center gap-2">
             <input
+              id="league-slug"
               type="text"
               value={slug}
               onChange={(e) => setSlug(autoSlug(e.target.value))}
@@ -272,10 +280,14 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-text">
+          <label
+            htmlFor="league-description"
+            className="mb-1 block text-sm font-medium text-text"
+          >
             Description (optional)
           </label>
           <input
+            id="league-description"
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -333,11 +345,15 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
         </div>
         {visibility === 'private' && (
           <div>
-            <label className="mb-1 block text-sm font-medium text-text">
+            <label
+              htmlFor="league-password"
+              className="mb-1 block text-sm font-medium text-text"
+            >
               Password (optional)
             </label>
             <input
-              type="text"
+              id="league-password"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Leave empty for open league"

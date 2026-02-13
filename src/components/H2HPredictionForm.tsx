@@ -146,6 +146,8 @@ export function H2HPredictionForm({
                     <button
                       key={driver._id}
                       type="button"
+                      aria-pressed={isSelected}
+                      aria-label={`${displayTeamName(matchup.team)}: Pick ${driver.displayName}`}
                       onClick={() => toggleSelection(matchup._id, driver._id)}
                       className={`relative flex flex-1 flex-col items-stretch px-3 py-2 transition-all ${
                         isSelected

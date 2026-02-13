@@ -227,12 +227,16 @@ function JoinSection({
       {hasPassword && (
         <div className="mx-auto mb-3 max-w-xs">
           <div className="flex items-center gap-2">
-            <Lock className="h-4 w-4 shrink-0 text-text-muted" />
+            <Lock
+              className="h-4 w-4 shrink-0 text-text-muted"
+              aria-hidden="true"
+            />
             <input
-              type="text"
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
+              aria-label="League password"
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-center text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
           </div>
@@ -269,21 +273,24 @@ function ShareLinkSection({ slug }: { slug: string }) {
         <button
           type="button"
           onClick={() => void copyToClipboard()}
+          aria-label={copied ? 'Copied!' : 'Copy league link'}
           className="shrink-0 rounded-lg border border-border p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
         >
           {copied ? (
-            <Check className="h-4 w-4 text-success" />
+            <Check className="h-4 w-4 text-success" aria-hidden="true" />
           ) : (
-            <Copy className="h-4 w-4" />
+            <Copy className="h-4 w-4" aria-hidden="true" />
           )}
         </button>
+        <span aria-live="polite" className="sr-only">
+          {copied ? 'Link copied!' : ''}
+        </span>
       </div>
     </div>
   );
 }
 
 function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
-  const navigate = useNavigate();
   const data = useQuery(api.leaderboards.getLeagueLeaderboard, {
     leagueId,
     limit: 50,
@@ -351,28 +358,11 @@ function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
             {data.entries.map((entry) => (
               <tr
                 key={entry.userId}
-                role="link"
-                tabIndex={0}
-                className={`cursor-pointer border-b border-border transition-colors last:border-0 ${
+                className={`border-b border-border transition-colors last:border-0 ${
                   entry.isViewer
                     ? 'bg-accent-muted hover:bg-accent-muted'
                     : 'hover:bg-surface-muted'
                 }`}
-                onClick={() =>
-                  navigate({
-                    to: '/p/$username',
-                    params: { username: entry.username },
-                  })
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    navigate({
-                      to: '/p/$username',
-                      params: { username: entry.username },
-                    });
-                  }
-                }}
               >
                 <td className="px-4 py-3">
                   <span
@@ -382,8 +372,17 @@ function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="flex items-center gap-2 font-medium text-text">
-                    {entry.isViewer && <User className="h-4 w-4 text-accent" />}
+                  <Link
+                    to="/p/$username"
+                    params={{ username: entry.username }}
+                    className="flex items-center gap-2 font-medium text-text"
+                  >
+                    {entry.isViewer && (
+                      <User
+                        className="h-4 w-4 text-accent"
+                        aria-hidden="true"
+                      />
+                    )}
                     <span className="font-semibold text-accent">
                       {entry.username}
                     </span>
@@ -392,7 +391,7 @@ function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
                         YOU
                       </span>
                     )}
-                  </span>
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="text-sm text-text-muted">
@@ -487,45 +486,54 @@ function LeagueMembers({
                 {member.role === 'member' && (
                   <button
                     type="button"
-                    title="Promote to admin"
+                    aria-label="Promote to admin"
                     disabled={actionLoading !== null}
                     onClick={() => void handleAction('promote', member.userId)}
                     className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
                   >
                     {actionLoading === `promote-${member.userId}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <UserPlus className="h-4 w-4" />
+                      <UserPlus className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
                 )}
                 {member.role === 'admin' && (
                   <button
                     type="button"
-                    title="Demote to member"
+                    aria-label="Demote to member"
                     disabled={actionLoading !== null}
                     onClick={() => void handleAction('demote', member.userId)}
                     className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
                   >
                     {actionLoading === `demote-${member.userId}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <UserMinus className="h-4 w-4" />
+                      <UserMinus className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
                 )}
                 {member.role === 'member' && !isViewer(member.userId) && (
                   <button
                     type="button"
-                    title="Remove from league"
+                    aria-label="Remove from league"
                     disabled={actionLoading !== null}
                     onClick={() => void handleAction('remove', member.userId)}
                     className="rounded-lg p-1.5 text-error/60 transition-colors hover:bg-error/10 hover:text-error disabled:opacity-50"
                   >
                     {actionLoading === `remove-${member.userId}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
                     )}
                   </button>
                 )}
@@ -552,21 +560,29 @@ function LeagueSettings({
       <button
         type="button"
         onClick={() => setSettingsOpen((o) => !o)}
+        aria-expanded={settingsOpen}
+        aria-controls="league-settings-content"
         className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-muted"
       >
         <span className="flex items-center gap-2 text-lg font-semibold text-text">
-          <Settings className="h-5 w-5 text-text-muted" />
+          <Settings className="h-5 w-5 text-text-muted" aria-hidden="true" />
           League settings
         </span>
         {settingsOpen ? (
-          <ChevronDown className="h-5 w-5 shrink-0 text-text-muted" />
+          <ChevronDown
+            className="h-5 w-5 shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
         ) : (
-          <ChevronRight className="h-5 w-5 shrink-0 text-text-muted" />
+          <ChevronRight
+            className="h-5 w-5 shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
         )}
       </button>
 
       {settingsOpen && (
-        <div className="mt-3 space-y-4">
+        <div id="league-settings-content" className="mt-3 space-y-4">
           {isAdmin && <AdminGeneralSettings league={league} />}
           <DangerZone leagueId={league._id} league={league} isAdmin={isAdmin} />
         </div>
@@ -666,10 +682,11 @@ function AdminGeneralSettings({ league }: { league: League }) {
         {showPasswordForm && !league.hasPassword && !isPublic && (
           <div className="mt-4 flex items-center gap-2 border-t border-border pt-4">
             <input
-              type="text"
+              type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter password"
+              aria-label="New league password"
               maxLength={50}
               className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
@@ -883,8 +900,14 @@ function EditLeagueForm({
       className="mt-4 space-y-3 border-t border-border pt-4"
     >
       <div>
-        <label className="mb-1 block text-sm font-medium text-text">Name</label>
+        <label
+          htmlFor="edit-league-name"
+          className="mb-1 block text-sm font-medium text-text"
+        >
+          Name
+        </label>
         <input
+          id="edit-league-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -894,9 +917,15 @@ function EditLeagueForm({
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-text">Slug</label>
+        <label
+          htmlFor="edit-league-slug"
+          className="mb-1 block text-sm font-medium text-text"
+        >
+          Slug
+        </label>
         <div className="flex items-center gap-2">
           <input
+            id="edit-league-slug"
             type="text"
             value={slug}
             onChange={(e) =>
@@ -927,10 +956,14 @@ function EditLeagueForm({
         </div>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-text">
+        <label
+          htmlFor="edit-league-description"
+          className="mb-1 block text-sm font-medium text-text"
+        >
           Description
         </label>
         <input
+          id="edit-league-description"
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}

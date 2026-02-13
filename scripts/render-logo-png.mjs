@@ -42,6 +42,18 @@ async function main() {
   const outPath = join(ROOT, 'public', 'logo-storefront.png');
   await writeFile(outPath, png);
   console.log('Wrote %s (%d x %d)', outPath, SIZE, SIZE);
+
+  // Also output small PNG for email (SVG not supported in most clients)
+  const emailSize = 64;
+  const emailSvg = svg.replace(
+    /width="\d+" height="\d+"/,
+    `width="${emailSize}" height="${emailSize}"`,
+  );
+  const emailResvg = new Resvg(emailSvg);
+  const emailPng = emailResvg.render().asPng();
+  const emailPath = join(ROOT, 'public', 'logo-email.png');
+  await writeFile(emailPath, emailPng);
+  console.log('Wrote %s (%d x %d)', emailPath, emailSize, emailSize);
 }
 
 main().catch((err) => {

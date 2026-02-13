@@ -38,7 +38,7 @@ export function PredictionReminderEmail({
   timeUntilLock = '24 hours',
   raceUrl = 'https://grandprixpicks.com/races/australia-2026',
   settingsUrl = 'https://grandprixpicks.com/settings',
-  logoUrl = 'https://grandprixpicks.com/favicon.svg',
+  logoUrl = 'https://grandprixpicks.com/logo-email.png',
   sessions = [
     {
       label: 'Sprint Quali',
@@ -104,11 +104,11 @@ export function PredictionReminderEmail({
           <Section style={section}>
             <Text style={text}>
               Predictions for the{' '}
-              <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>
+              <strong style={{ color: '#0f172a', whiteSpace: 'nowrap' }}>
                 {raceName}
               </strong>{' '}
               lock in{' '}
-              <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>
+              <strong style={{ color: '#0f172a', whiteSpace: 'nowrap' }}>
                 {timeUntilLock}
               </strong>
               . Don&apos;t miss your chance to earn points!
@@ -179,7 +179,7 @@ export function PredictionReminderEmail({
 /* ── Styles ─────────────────────────────────────────── */
 
 const body = {
-  backgroundColor: '#0f172a',
+  backgroundColor: '#f1f5f9',
   fontFamily:
     'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   margin: '0',
@@ -187,9 +187,9 @@ const body = {
 };
 
 const container = {
-  backgroundColor: '#1e293b',
+  backgroundColor: '#ffffff',
   borderRadius: '12px',
-  border: '1px solid #334155',
+  border: '1px solid #e2e8f0',
   margin: '40px auto',
   padding: '32px',
   maxWidth: '480px',
@@ -205,7 +205,7 @@ const logoCircle = {
   width: '32px',
   height: '32px',
   lineHeight: '32px',
-  backgroundColor: 'rgba(13,148,136,0.1)',
+  backgroundColor: '#ccfbf1',
   borderRadius: '9999px',
   textAlign: 'center' as const,
 };
@@ -219,7 +219,7 @@ const logoIcon = {
 };
 
 const brandText = {
-  color: '#ffffff',
+  color: '#0f172a',
   fontSize: '24px',
   fontWeight: '700' as const,
   textAlign: 'center' as const,
@@ -228,7 +228,7 @@ const brandText = {
 };
 
 const hr = {
-  borderColor: '#334155',
+  borderColor: '#e2e8f0',
   margin: '20px 0',
 };
 
@@ -237,7 +237,7 @@ const section = {
 };
 
 const text = {
-  color: '#94a3b8',
+  color: '#475569',
   fontSize: '16px',
   lineHeight: '24px',
   margin: '0 0 24px',
@@ -245,11 +245,12 @@ const text = {
 
 /* Race card */
 const raceCard = {
-  backgroundColor: '#0f172a',
+  backgroundColor: '#f8fafc',
   borderRadius: '8px',
   padding: '16px',
   margin: '0 0 24px',
   textAlign: 'left' as const,
+  border: '1px solid #e2e8f0',
 };
 
 const raceHeaderRow = {
@@ -268,15 +269,15 @@ const countryFlag = {
 };
 
 const roundLabel = {
-  color: '#94a3b8',
+  color: '#64748b',
   fontSize: '13px',
   fontWeight: '500' as const,
   verticalAlign: 'middle',
 };
 
 const sprintTag = {
-  backgroundColor: 'rgba(126,34,206,0.3)',
-  color: '#c4b5fd',
+  backgroundColor: '#ede9fe',
+  color: '#6d28d9',
   fontSize: '10px',
   fontWeight: '700' as const,
   padding: '2px 6px',
@@ -287,7 +288,7 @@ const sprintTag = {
 };
 
 const raceNameStyle = {
-  color: '#f8fafc',
+  color: '#0f172a',
   fontSize: '18px',
   fontWeight: '600' as const,
   margin: '4px 0 12px',
@@ -299,45 +300,50 @@ const scheduleSection = {
 };
 
 const scheduleRow = {
-  margin: '0 0 6px',
+  margin: 0,
 };
 
 const scheduleLabelCol = {
   width: '120px',
+  height: '22px',
   textAlign: 'left' as const,
   verticalAlign: 'middle' as const,
-  paddingBottom: '4px',
+  padding: 0,
 };
 
 const scheduleTimeCol = {
+  height: '22px',
   textAlign: 'right' as const,
   verticalAlign: 'middle' as const,
-  paddingBottom: '4px',
+  padding: 0,
 };
 
 const sessionLabel = {
-  color: '#f8fafc',
+  color: '#0f172a',
   fontSize: '14px',
   fontWeight: '500' as const,
+  lineHeight: '22px',
+  display: 'inline-block' as const,
 };
 
 const sprintBadge = {
-  backgroundColor: 'rgba(126,34,206,0.3)',
-  color: '#c4b5fd',
-  fontSize: '12px',
+  color: '#6d28d9',
+  fontSize: '14px',
   fontWeight: '600' as const,
-  padding: '2px 8px',
-  borderRadius: '4px',
+  lineHeight: '22px',
+  display: 'inline-block' as const,
 };
 
 const scheduleDate = {
-  color: '#94a3b8',
+  color: '#64748b',
   fontSize: '13px',
+  lineHeight: '22px',
 };
 
 const scheduleTime = {
-  color: '#94a3b8',
+  color: '#64748b',
   fontSize: '13px',
+  lineHeight: '22px',
 };
 
 const button = {
@@ -352,7 +358,7 @@ const button = {
 };
 
 const footer = {
-  color: '#94a3b8',
+  color: '#64748b',
   fontSize: '12px',
   lineHeight: '18px',
   textAlign: 'center' as const,
@@ -360,7 +366,7 @@ const footer = {
 };
 
 const footerLink = {
-  color: '#94a3b8',
+  color: '#0d9488',
   textDecoration: 'underline',
 };
 

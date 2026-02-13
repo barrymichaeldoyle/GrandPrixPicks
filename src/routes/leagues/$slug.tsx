@@ -77,7 +77,7 @@ function LeagueDetailPage() {
 
   if (league === null) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="min-h-full bg-page">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
@@ -102,7 +102,7 @@ function LeagueDetailPage() {
   // Not signed in — show sign-in prompt with league info
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen bg-page">
+      <div className="min-h-full bg-page">
         <div className="mx-auto max-w-lg px-4 py-16">
           <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
@@ -138,7 +138,7 @@ function LeagueDetailContent({ league }: { league: League }) {
   const isMember = league.viewerRole !== null;
 
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-6">

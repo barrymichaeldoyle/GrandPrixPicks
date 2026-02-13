@@ -8,6 +8,49 @@ import { internalMutation } from './_generated/server';
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
 
+/** Map race slug prefix to ISO 3166-1 alpha-2 country code (mirrors RaceCard.tsx). */
+const SLUG_TO_COUNTRY: Record<string, string> = {
+  australia: 'au',
+  australian: 'au',
+  china: 'cn',
+  chinese: 'cn',
+  japan: 'jp',
+  japanese: 'jp',
+  bahrain: 'bh',
+  'saudi-arabia': 'sa',
+  'saudi-arabian': 'sa',
+  saudi: 'sa',
+  miami: 'us',
+  canada: 'ca',
+  monaco: 'mc',
+  spain: 'es',
+  madrid: 'es',
+  austria: 'at',
+  britain: 'gb',
+  belgium: 'be',
+  hungary: 'hu',
+  netherlands: 'nl',
+  italy: 'it',
+  'emilia-romagna': 'it',
+  imola: 'it',
+  singapore: 'sg',
+  usa: 'us',
+  'united-states': 'us',
+  mexico: 'mx',
+  brazil: 'br',
+  qatar: 'qa',
+  'abu-dhabi': 'ae',
+  uae: 'ae',
+  portugal: 'pt',
+  'las-vegas': 'us',
+  azerbaijan: 'az',
+};
+
+function getCountryCodeForRace(slug: string): string | null {
+  const key = slug.replace(/-\d{4}$/, '').toLowerCase();
+  return SLUG_TO_COUNTRY[key] ?? null;
+}
+
 /**
  * Scheduled mutation: sends prediction reminder emails for a race.
  * Called by the scheduler 24h before the first session locks.
@@ -42,6 +85,38 @@ export const sendPredictionReminders = internalMutation({
       return { skipped: true, reason: 'No eligible recipients' };
     }
 
+    // Build session schedule for the email
+    const sessions: Array<{
+      label: string;
+      startAt: number;
+      isSprint: boolean;
+    }> = [];
+    if (race.hasSprint) {
+      if (race.sprintQualiStartAt)
+        sessions.push({
+          label: 'Sprint Quali',
+          startAt: race.sprintQualiStartAt,
+          isSprint: true,
+        });
+      if (race.sprintStartAt)
+        sessions.push({
+          label: 'Sprint',
+          startAt: race.sprintStartAt,
+          isSprint: true,
+        });
+    }
+    if (race.qualiStartAt)
+      sessions.push({
+        label: 'Qualifying',
+        startAt: race.qualiStartAt,
+        isSprint: false,
+      });
+    sessions.push({
+      label: 'Race',
+      startAt: race.raceStartAt,
+      isSprint: false,
+    });
+
     // Schedule send action in batches of BATCH_SIZE
     let scheduled = 0;
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
@@ -54,6 +129,10 @@ export const sendPredictionReminders = internalMutation({
           raceName: race.name,
           timeUntilLock: '24 hours',
           raceSlug: race.slug,
+          sessions,
+          round: race.round,
+          countryCode: getCountryCodeForRace(race.slug),
+          hasSprint: race.hasSprint ?? false,
         },
       );
       scheduled++;

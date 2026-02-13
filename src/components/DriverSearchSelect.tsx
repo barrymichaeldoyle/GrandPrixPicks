@@ -12,7 +12,7 @@ import type { Doc, Id } from '../../convex/_generated/dataModel';
 
 type Driver = Doc<'drivers'>;
 
-export type DriverSearchSelectProps = {
+type DriverSearchSelectProps = {
   drivers: Array<Driver>;
   value: Id<'drivers'> | null;
   /** Drivers already selected in other positions (excluded from options unless they're the current value) */

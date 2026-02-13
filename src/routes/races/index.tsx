@@ -54,7 +54,7 @@ function RacesPage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6">
         <header className="mb-8 flex flex-col gap-1 md:flex-row md:items-baseline md:gap-3">
           <h1 className="text-3xl font-bold text-text">2026 Season</h1>
           <p className="text-text-muted md:text-base">

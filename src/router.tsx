@@ -35,6 +35,11 @@ export const getRouter = () => {
       environment: import.meta.env.MODE,
       tracesSampleRate: 1.0,
       sendDefaultPii: true,
+      beforeSend(event) {
+        const message = event.exception?.values?.[0]?.value ?? '';
+        if (message.includes('localhost:3030')) return null;
+        return event;
+      },
     });
   }
 

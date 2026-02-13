@@ -131,7 +131,10 @@ function ProfileSync() {
   useEffect(() => {
     if (isSignedIn && !hasSynced.current) {
       hasSynced.current = true;
-      void syncProfile();
+      void syncProfile({
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        locale: navigator.language,
+      });
     }
   }, [isSignedIn, syncProfile]);
 

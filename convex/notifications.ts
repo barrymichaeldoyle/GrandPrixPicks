@@ -79,7 +79,11 @@ export const sendPredictionReminders = internalMutation({
     // Filter to users who haven't predicted
     const recipients = eligibleUsers
       .filter((u) => !usersWithPredictions.has(u._id))
-      .map((u) => ({ email: u.email! }));
+      .map((u) => ({
+        email: u.email!,
+        timezone: u.timezone,
+        locale: u.locale,
+      }));
 
     if (recipients.length === 0) {
       return { skipped: true, reason: 'No eligible recipients' };

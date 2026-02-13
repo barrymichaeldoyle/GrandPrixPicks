@@ -1,8 +1,8 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { AlertTriangle, Bell, Eye, EyeOff, LogIn } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertTriangle, Bell, Eye, EyeOff, Globe, LogIn } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import { Avatar } from '../components/Avatar';
@@ -65,11 +65,167 @@ function NotificationToggleItem({
         <p className="font-medium text-text">{label}</p>
         <p className="text-sm text-text-muted">{description}</p>
       </div>
-      <ToggleSwitch
-        checked={checked}
-        onChange={onToggle}
-        loading={loading}
-      />
+      <ToggleSwitch checked={checked} onChange={onToggle} loading={loading} />
+    </div>
+  );
+}
+
+const LOCALE_OPTIONS = [
+  { value: 'en-US', label: 'English (US)', example: '3:30 PM' },
+  { value: 'en-GB', label: 'English (UK)', example: '15:30' },
+  { value: 'de-DE', label: 'Deutsch', example: '15:30' },
+  { value: 'fr-FR', label: 'Fran\u00e7ais', example: '15:30' },
+  { value: 'es-ES', label: 'Espa\u00f1ol', example: '15:30' },
+  { value: 'pt-BR', label: 'Portugu\u00eas (BR)', example: '15:30' },
+  { value: 'ja-JP', label: '\u65e5\u672c\u8a9e', example: '15:30' },
+  { value: 'nl-NL', label: 'Nederlands', example: '15:30' },
+  { value: 'it-IT', label: 'Italiano', example: '15:30' },
+];
+
+function RegionalSection({
+  timezone,
+  locale,
+  loading,
+  onUpdate,
+}: {
+  timezone?: string;
+  locale?: string;
+  loading: boolean;
+  onUpdate: (settings: { timezone?: string; locale?: string }) => void;
+}) {
+  const timezones = useMemo(() => Intl.supportedValuesOf('timeZone'), []);
+  const [tzFilter, setTzFilter] = useState('');
+  const [tzOpen, setTzOpen] = useState(false);
+
+  const filteredTimezones = useMemo(() => {
+    if (!tzFilter) return timezones;
+    const lower = tzFilter.toLowerCase();
+    return timezones.filter((tz) => tz.toLowerCase().includes(lower));
+  }, [timezones, tzFilter]);
+
+  const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const detectedLocale = navigator.language;
+  const displayTimezone = timezone ?? detectedTimezone;
+  const displayLocale = locale ?? detectedLocale;
+
+  // Generate preview time for locale options
+  const previewDate = useMemo(() => new Date(), []);
+
+  const localeOptionsWithPreview = useMemo(
+    () =>
+      LOCALE_OPTIONS.map((opt) => {
+        const formatted = new Intl.DateTimeFormat(opt.value, {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: displayTimezone,
+        }).format(previewDate);
+        return { ...opt, example: formatted };
+      }),
+    [displayTimezone, previewDate],
+  );
+
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-border bg-surface">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <Globe className="h-5 w-5 text-text-muted" />
+          <h2 className="text-lg font-semibold text-text">Regional</h2>
+        </div>
+        <div className="animate-pulse space-y-4 px-4 py-4">
+          <div className="h-10 rounded bg-surface-muted" />
+          <div className="h-10 rounded bg-surface-muted" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <Globe className="h-5 w-5 text-text-muted" />
+        <h2 className="text-lg font-semibold text-text">Regional</h2>
+      </div>
+      <div className="space-y-4 px-4 py-4">
+        <p className="text-sm text-text-muted">
+          These settings control how times are displayed in your email
+          notifications.
+        </p>
+
+        {/* Timezone selector */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-text">
+            Timezone
+          </label>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setTzOpen(!tzOpen)}
+              className="w-full rounded-lg border border-border bg-page px-3 py-2 text-left text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+            >
+              {displayTimezone.replace(/_/g, ' ')}
+            </button>
+            {tzOpen && (
+              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-surface shadow-lg">
+                <div className="sticky top-0 bg-surface p-2">
+                  <input
+                    type="text"
+                    value={tzFilter}
+                    onChange={(e) => setTzFilter(e.target.value)}
+                    placeholder="Search timezones..."
+                    autoFocus
+                    className="w-full rounded border border-border bg-page px-2 py-1.5 text-sm text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                  />
+                </div>
+                {filteredTimezones.map((tz) => (
+                  <button
+                    key={tz}
+                    type="button"
+                    onClick={() => {
+                      onUpdate({ timezone: tz });
+                      setTzOpen(false);
+                      setTzFilter('');
+                    }}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-surface-muted ${
+                      tz === displayTimezone
+                        ? 'bg-accent/10 font-medium text-accent'
+                        : 'text-text'
+                    }`}
+                  >
+                    {tz.replace(/_/g, ' ')}
+                  </button>
+                ))}
+                {filteredTimezones.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-text-muted">
+                    No timezones found
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Locale selector */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-text">
+            Time format
+          </label>
+          <select
+            value={
+              localeOptionsWithPreview.some((o) => o.value === displayLocale)
+                ? displayLocale
+                : 'en-GB'
+            }
+            onChange={(e) => onUpdate({ locale: e.target.value })}
+            className="w-full rounded-lg border border-border bg-page px-3 py-2 text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+          >
+            {localeOptionsWithPreview.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label} — {opt.example}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
     </div>
   );
 }
@@ -98,6 +254,7 @@ function SettingsPage() {
   const updatePrivacy = useMutation(api.users.updatePrivacySettings);
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
+  const updateRegional = useMutation(api.users.updateRegionalSettings);
 
   // Privacy toggle state
   const [optimisticLeaderboard, setOptimisticLeaderboard] = useState<
@@ -140,10 +297,7 @@ function SettingsPage() {
   const emailResults = optimisticResults ?? me?.emailResults ?? true;
 
   useEffect(() => {
-    if (
-      optimisticResults !== null &&
-      me?.emailResults === optimisticResults
-    ) {
+    if (optimisticResults !== null && me?.emailResults === optimisticResults) {
       setOptimisticResults(null);
     }
   }, [optimisticResults, me?.emailResults]);
@@ -425,6 +579,14 @@ function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Regional section */}
+          <RegionalSection
+            timezone={me?.timezone}
+            locale={me?.locale}
+            loading={me === undefined}
+            onUpdate={(settings) => updateRegional(settings)}
+          />
 
           {/* Notifications section */}
           <div className="rounded-xl border border-border bg-surface">

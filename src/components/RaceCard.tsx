@@ -65,8 +65,7 @@ export function RaceFlag({
   countryCode: string;
   size?: 'sm' | 'md' | 'lg';
 }) {
-  const flagSize =
-    size === 'lg' ? 'xl' : size === 'sm' ? 'md' : 'lg';
+  const flagSize = size === 'lg' ? 'xl' : size === 'sm' ? 'md' : 'lg';
   return <Flag code={countryCode} size={flagSize} />;
 }
 
@@ -168,7 +167,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
           </div>
 
           {/* Race name */}
-          <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-text sm:text-base">
+          <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
             {race.name}
           </h3>
 
@@ -176,11 +175,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
           <div className="flex flex-1 items-center">
             <div className="flex w-fit shrink-0 items-center gap-x-1.5">
               <span className="flex shrink-0 items-center justify-center">
-                <Calendar
-                  size={14}
-                  className="text-text-muted"
-                  aria-hidden
-                />
+                <Calendar size={14} className="text-text-muted" aria-hidden />
               </span>
               <div className="grid w-fit grid-cols-[auto_auto] items-baseline gap-x-1.5 gap-y-0.5 text-xs text-text-muted sm:text-sm">
                 <span className="col-start-2 text-right text-xs text-text-muted/70">
@@ -205,7 +200,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
         <ArrowRight
           size={14}
           strokeWidth={2}
-          className="absolute bottom-0 right-0 text-text-muted transition-colors group-hover:text-text"
+          className="absolute right-0 bottom-0 text-text-muted transition-colors group-hover:text-text"
           aria-hidden
         />
       </div>

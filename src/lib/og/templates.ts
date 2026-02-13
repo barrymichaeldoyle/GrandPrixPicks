@@ -1,21 +1,23 @@
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 
-import { colors, OG_HEIGHT, OG_WIDTH } from './styles';
+import type { OgImageSize } from './styles';
+import { colors, getOgDimensions } from './styles';
 
 // Shorthand for React.createElement — satori accepts ReactNode trees.
 const e = createElement;
 
 /** Shared outer wrapper: dark bg, accent stripe at top, branding at bottom. */
-function layout(...children: Array<ReactNode>): ReactNode {
+function layout(size: OgImageSize, ...children: Array<ReactNode>): ReactNode {
+  const { width, height } = getOgDimensions(size);
   return e(
     'div',
     {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        width: OG_WIDTH,
-        height: OG_HEIGHT,
+        width,
+        height,
         backgroundColor: colors.bg,
         fontFamily: 'Inter',
         color: colors.text,
@@ -31,7 +33,7 @@ function layout(...children: Array<ReactNode>): ReactNode {
         left: 0,
         right: 0,
         height: 6,
-        background: `linear-gradient(to right, ${colors.accent}, ${colors.accentLight})`,
+        background: `linear-gradient(to right, ${colors.accent}, ${colors.accentHover})`,
       },
     }),
     // Content area
@@ -62,13 +64,13 @@ function layout(...children: Array<ReactNode>): ReactNode {
       e(
         'div',
         {
-          style: {
+            style: {
             display: 'flex',
             alignItems: 'center',
             gap: 12,
             fontSize: 20,
             fontWeight: 700,
-            color: colors.accent,
+            color: colors.text,
           },
         },
         // Flag inside subtle accent circle, matching app header/footer
@@ -82,7 +84,7 @@ function layout(...children: Array<ReactNode>): ReactNode {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.accent}20`,
+              backgroundColor: colors.accentMuted,
             },
           },
           e(
@@ -107,7 +109,7 @@ function layout(...children: Array<ReactNode>): ReactNode {
       ),
       e(
         'div',
-        { style: { fontSize: 18, color: colors.text } },
+        { style: { fontSize: 18, fontWeight: 700, color: colors.accent } },
         'grandprixpicks.com',
       ),
     ),
@@ -116,8 +118,9 @@ function layout(...children: Array<ReactNode>): ReactNode {
 
 // ────────── Home Template ──────────
 
-export function homeTemplate(): ReactNode {
+export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
   return layout(
+    size,
     e(
       'div',
       {
@@ -151,7 +154,7 @@ export function homeTemplate(): ReactNode {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${colors.accent}20`,
+              backgroundColor: colors.accentMuted,
             },
           },
           e(
@@ -230,7 +233,10 @@ interface RaceOgData {
   status: string;
 }
 
-export function raceTemplate(race: RaceOgData): ReactNode {
+export function raceTemplate(
+  race: RaceOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
   const dateStr = new Date(race.raceStartAt).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -239,13 +245,14 @@ export function raceTemplate(race: RaceOgData): ReactNode {
   });
 
   const statusColors: Record<string, string> = {
-    upcoming: '#22c55e',
-    locked: '#eab308',
+    upcoming: colors.statusUpcoming,
+    locked: colors.statusLocked,
     finished: colors.textMuted,
   };
   const statusColor = statusColors[race.status] ?? colors.textMuted;
 
   return layout(
+    size,
     e(
       'div',
       {
@@ -291,7 +298,7 @@ export function raceTemplate(race: RaceOgData): ReactNode {
                   fontSize: 14,
                   fontWeight: 700,
                   color: colors.accent,
-                  backgroundColor: `${colors.accent}22`,
+                  backgroundColor: colors.accentMuted,
                   padding: '4px 12px',
                   borderRadius: 6,
                   textTransform: 'uppercase' as const,
@@ -348,7 +355,10 @@ interface ProfileOgData {
   weekendCount: number;
 }
 
-export function profileTemplate(profile: ProfileOgData): ReactNode {
+export function profileTemplate(
+  profile: ProfileOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
   const initials = (profile.displayName || profile.username)
     .split(' ')
     .map((w) => w[0])
@@ -357,6 +367,7 @@ export function profileTemplate(profile: ProfileOgData): ReactNode {
     .slice(0, 2);
 
   return layout(
+    size,
     e(
       'div',
       { style: { display: 'flex', alignItems: 'center', gap: 40 } },
@@ -470,10 +481,12 @@ interface LeaderboardOgEntry {
 
 export function leaderboardTemplate(
   entries: Array<LeaderboardOgEntry>,
+  size: OgImageSize = 'og',
 ): ReactNode {
   const podiumColors = [colors.gold, colors.silver, colors.bronze];
 
   return layout(
+    size,
     e(
       'div',
       {

@@ -25,6 +25,8 @@ export const me = query({
       showOnLeaderboard: viewer.showOnLeaderboard,
       emailReminders: viewer.emailReminders,
       emailResults: viewer.emailResults,
+      timezone: viewer.timezone,
+      locale: viewer.locale,
       isAdmin: viewer.isAdmin ?? false,
     };
   },
@@ -32,9 +34,15 @@ export const me = query({
 
 /** Sync the current user's profile from Clerk identity claims. */
 export const syncProfile = mutation({
-  args: {},
-  handler: async (ctx) => {
-    await getOrCreateViewer(ctx);
+  args: {
+    timezone: v.optional(v.string()),
+    locale: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await getOrCreateViewer(ctx, {
+      timezone: args.timezone,
+      locale: args.locale,
+    });
   },
 });
 
@@ -161,6 +169,36 @@ export const updateNotificationSettings = mutation({
     if (args.emailReminders !== undefined)
       patch.emailReminders = args.emailReminders;
     if (args.emailResults !== undefined) patch.emailResults = args.emailResults;
+    await ctx.db.patch(viewer._id, patch);
+  },
+});
+
+export const updateRegionalSettings = mutation({
+  args: {
+    timezone: v.optional(v.string()),
+    locale: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    const patch: Record<string, unknown> = { updatedAt: Date.now() };
+    if (args.timezone !== undefined) {
+      // Validate IANA timezone
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: args.timezone });
+      } catch {
+        throw new Error(`Invalid timezone: ${args.timezone}`);
+      }
+      patch.timezone = args.timezone;
+    }
+    if (args.locale !== undefined) {
+      // Validate BCP 47 locale tag
+      try {
+        new Intl.DateTimeFormat(args.locale);
+      } catch {
+        throw new Error(`Invalid locale: ${args.locale}`);
+      }
+      patch.locale = args.locale;
+    }
     await ctx.db.patch(viewer._id, patch);
   },
 });

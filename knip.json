@@ -9,7 +9,7 @@
     "server/routes/og/profile/[username].png.ts",
     "server/routes/og/race/[raceId].png.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}", "convex/**/*.ts", "server/**/*.ts"],
+  "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}", "server/**/*.ts"],
   "ignoreFiles": ["src/routeTree.gen.ts", "convex/_generated"],
   "ignoreDependencies": [
     "@tanstack/router-plugin",
@@ -21,6 +21,6 @@
     "src/integrations/tanstack-query/root-provider.tsx": ["exports"]
   },
   "convex": {
-    "entry": ["convex/**/*.ts"]
+    "entry": ["convex/**/*.{ts,tsx}"]
   }
 }

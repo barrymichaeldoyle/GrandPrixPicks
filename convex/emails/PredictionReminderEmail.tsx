@@ -105,9 +105,15 @@ export function PredictionReminderEmail({
 
           <Section style={section}>
             <Text style={text}>
-              Predictions for the <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>{raceName}</strong> lock in{' '}
-              <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>{timeUntilLock}</strong>.
-              Don&apos;t miss your chance to earn points!
+              Predictions for the{' '}
+              <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>
+                {raceName}
+              </strong>{' '}
+              lock in{' '}
+              <strong style={{ color: '#f8fafc', whiteSpace: 'nowrap' }}>
+                {timeUntilLock}
+              </strong>
+              . Don&apos;t miss your chance to earn points!
             </Text>
 
             {/* Race info card (like RaceCard) */}

@@ -18,6 +18,7 @@ export async function getViewer(ctx: QueryCtx): Promise<Doc<'users'> | null> {
 
 export async function getOrCreateViewer(
   ctx: MutationCtx,
+  regional?: { timezone?: string; locale?: string },
 ): Promise<Doc<'users'> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
@@ -52,11 +53,18 @@ export async function getOrCreateViewer(
     // Only sync email and avatarUrl from Clerk for existing users.
     // displayName and username are now user-managed via updateProfile.
     const patch: Partial<
-      Pick<Doc<'users'>, 'email' | 'avatarUrl' | 'updatedAt'>
+      Pick<
+        Doc<'users'>,
+        'email' | 'avatarUrl' | 'timezone' | 'locale' | 'updatedAt'
+      >
     > = {};
     if (email !== undefined && existing.email !== email) patch.email = email;
     if (avatarUrl !== undefined && existing.avatarUrl !== avatarUrl)
       patch.avatarUrl = avatarUrl;
+    // Only auto-detect timezone/locale if user hasn't set them yet
+    if (regional?.timezone && !existing.timezone)
+      patch.timezone = regional.timezone;
+    if (regional?.locale && !existing.locale) patch.locale = regional.locale;
 
     if (Object.keys(patch).length > 0) {
       patch.updatedAt = now;
@@ -79,6 +87,8 @@ export async function getOrCreateViewer(
     displayName,
     username,
     avatarUrl,
+    timezone: regional?.timezone,
+    locale: regional?.locale,
     isAdmin: false,
     createdAt: now,
     updatedAt: now,

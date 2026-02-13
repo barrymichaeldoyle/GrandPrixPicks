@@ -37,7 +37,7 @@ export function formatDateLong(timestamp: number): string {
 }
 
 /** Human-readable countdown (e.g. "23d 03h 05m 09s" or "02h 30m 15s"). */
-export function getTimeUntil(timestamp: number): string {
+function getTimeUntil(timestamp: number): string {
   const now = Date.now();
   const diff = timestamp - now;
 

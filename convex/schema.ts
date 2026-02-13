@@ -19,6 +19,8 @@ export default defineSchema({
     showOnLeaderboard: v.optional(v.boolean()),
     emailReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
+    timezone: v.optional(v.string()),
+    locale: v.optional(v.string()),
     isAdmin: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),

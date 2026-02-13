@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import satori from 'satori';
 
 import { loadFonts } from './fonts';
-import { OG_HEIGHT, OG_WIDTH } from './styles';
+import { getOgDimensions, type OgImageSize } from './styles';
 
 let wasmReady: Promise<void> | null = null;
 
@@ -46,17 +46,21 @@ async function doInitWasm() {
   }
 }
 
-export async function renderOgImage(element: ReactNode): Promise<Uint8Array> {
+export async function renderOgImage(
+  element: ReactNode,
+  size: OgImageSize = 'og',
+): Promise<Uint8Array> {
   const [fonts] = await Promise.all([loadFonts(), ensureWasm()]);
+  const { width, height } = getOgDimensions(size);
 
   const svg = await satori(element, {
-    width: OG_WIDTH,
-    height: OG_HEIGHT,
+    width,
+    height,
     fonts,
   });
 
   const resvg = new Resvg(svg, {
-    fitTo: { mode: 'width', value: OG_WIDTH },
+    fitTo: { mode: 'width', value: width },
   });
   const pngData = resvg.render();
   return pngData.asPng();

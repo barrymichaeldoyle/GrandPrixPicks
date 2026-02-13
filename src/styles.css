@@ -26,6 +26,9 @@
   --error: #dc2626;
   --error-muted: #fee2e2;
   --overlay: rgba(15, 23, 42, 0.5);
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-thumb-hover: #64748b;
 }
 
 .dark,
@@ -51,6 +54,10 @@
   --error: #f87171;
   --error-muted: #7f1d1d;
   --overlay: rgba(0, 0, 0, 0.5);
+  /* Lighter scrollbar so it’s visible on dark backgrounds */
+  --scrollbar-track: #334155;
+  --scrollbar-thumb: #64748b;
+  --scrollbar-thumb-hover: #94a3b8;
 }
 
 /* Expose tokens to Tailwind so we get bg-page, text-muted, etc. */
@@ -84,6 +91,25 @@ html {
   min-height: 100%;
   background-color: var(--page);
   overscroll-behavior: none;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+/* WebKit scrollbar (Chrome, Safari, Edge) – uses design tokens so dark mode stays visible */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 5px;
+  border: 2px solid var(--scrollbar-track);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 body {

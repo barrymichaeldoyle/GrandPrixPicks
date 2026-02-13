@@ -1,7 +1,8 @@
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import { internalMutation } from './_generated/server';
+import { internalMutation, mutation } from './_generated/server';
+import { scheduleReminder } from './notifications';
 
 /**
  * Test helper mutations for Playwright e2e tests.
@@ -467,5 +468,59 @@ export const seedTestScenario = internalMutation({
     }
 
     return result;
+  },
+});
+
+/**
+ * DEV ONLY: Clear your predictions for a race and reschedule the reminder
+ * so it fires in ~30 minutes. Sets quali to start 24h30m from now.
+ *
+ * Run via: npx convex run testing:setupReminderTest '{"raceSlug": "australia-2026"}'
+ */
+export const setupReminderTest = mutation({
+  args: { raceSlug: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+
+    // Find the race
+    const race = await ctx.db
+      .query('races')
+      .filter((q) => q.eq(q.field('slug'), args.raceSlug))
+      .first();
+    if (!race) throw new Error(`Race not found: ${args.raceSlug}`);
+
+    // Clear all predictions for this race
+    const predictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+      .collect();
+    for (const p of predictions) {
+      await ctx.db.delete(p._id);
+    }
+
+    // Set quali to 24h30m from now, race to 48h from now
+    const qualiStartAt = now + 24.5 * HOUR;
+    const raceStartAt = now + 48 * HOUR;
+
+    await ctx.db.patch(race._id, {
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      status: 'upcoming',
+      updatedAt: now,
+    });
+
+    // Schedule the reminder (fires ~30 mins from now)
+    const updatedRace = await ctx.db.get(race._id);
+    if (updatedRace) await scheduleReminder(ctx, updatedRace);
+
+    return {
+      raceId: race._id,
+      predictionsCleared: predictions.length,
+      qualiStartAt: new Date(qualiStartAt).toISOString(),
+      reminderFiresAt: new Date(qualiStartAt - 24 * HOUR).toISOString(),
+    };
   },
 });

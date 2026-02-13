@@ -34,6 +34,7 @@ export const sendBatch = internalAction({
     ),
     raceName: v.string(),
     timeUntilLock: v.string(),
+    raceId: v.string(),
     raceSlug: v.string(),
     sessions: v.array(
       v.object({
@@ -59,7 +60,7 @@ export const sendBatch = internalAction({
     const props: PredictionReminderProps = {
       raceName: args.raceName,
       timeUntilLock: args.timeUntilLock,
-      raceUrl: `${appUrl}/races/${args.raceSlug}`,
+      raceUrl: `${appUrl}/races/${args.raceId}`,
       settingsUrl: `${appUrl}/settings`,
       sessions: sessionSchedule,
       round: args.round,
@@ -77,7 +78,7 @@ export const sendBatch = internalAction({
         await resend.sendEmail(ctx, {
           from: fromAddress,
           to: recipient.email,
-          subject: `${args.raceName} — picks lock in ${args.timeUntilLock}!`,
+          subject: `Your ${args.raceName} picks close in ${args.timeUntilLock === '24 hours' ? '24h' : args.timeUntilLock}`,
           html,
         });
         sent++;

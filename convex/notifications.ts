@@ -128,6 +128,7 @@ export const sendPredictionReminders = internalMutation({
           recipients: batch,
           raceName: race.name,
           timeUntilLock: '24 hours',
+          raceId: race._id,
           raceSlug: race.slug,
           sessions,
           round: race.round,

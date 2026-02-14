@@ -8,6 +8,8 @@ const TEAM_DISPLAY_NAMES: Record<string, string> = {
  * Color lookups and data should still use the full team name.
  */
 export function displayTeamName(team: string | null | undefined): string {
-  if (team == null || team === '') return '';
+  if (team == null || team === '') {
+    return '';
+  }
   return TEAM_DISPLAY_NAMES[team] ?? team;
 }

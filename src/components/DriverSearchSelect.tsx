@@ -26,7 +26,9 @@ type DriverSearchSelectProps = {
 
 function matchDriver(driver: Driver, query: string): boolean {
   const q = query.trim().toLowerCase();
-  if (!q) return true;
+  if (!q) {
+    return true;
+  }
   const name = driver.displayName.toLowerCase();
   const code = driver.code.toLowerCase();
   const family = (driver.familyName ?? '').toLowerCase();
@@ -68,7 +70,9 @@ export function DriverSearchSelect({
     const available = drivers.filter(
       (d) => !excludedIds.includes(d._id) || d._id === value,
     );
-    if (!query.trim()) return available;
+    if (!query.trim()) {
+      return available;
+    }
     return available.filter((d) => matchDriver(d, query));
   }, [drivers, excludedIds, value, query]);
 
@@ -85,7 +89,9 @@ export function DriverSearchSelect({
 
   // Keyboard
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         close();
@@ -115,9 +121,13 @@ export function DriverSearchSelect({
 
   // Click outside to close
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current?.contains(e.target as Node)) return;
+      if (containerRef.current?.contains(e.target as Node)) {
+        return;
+      }
       close();
     };
     document.addEventListener('mousedown', handleClickOutside);

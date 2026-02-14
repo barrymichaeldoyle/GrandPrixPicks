@@ -137,8 +137,9 @@ function ProfilePage() {
       ? ([...weekends]
           .filter((w) => w.hasScores && w.totalPoints > 0)
           .sort((a, b) => {
-            if (a.totalPoints !== b.totalPoints)
+            if (a.totalPoints !== b.totalPoints) {
               return b.totalPoints - a.totalPoints;
+            }
             return b.raceDate - a.raceDate;
           })[0] ?? null)
       : null;
@@ -422,7 +423,9 @@ function FollowButton({ followeeId }: { followeeId: Id<'users'> }) {
   const following = optimistic ?? isFollowing;
 
   // Not signed in or still loading
-  if (isFollowing === undefined) return null;
+  if (isFollowing === undefined) {
+    return null;
+  }
 
   const handleClick = async () => {
     const willFollow = !following;

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
+import { InlineLoader } from '@/components/InlineLoader';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -131,7 +132,9 @@ function LeaderboardPage() {
   const totalCount = data.totalCount;
 
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+    if (isLoadingMore || !hasMore) {
+      return;
+    }
 
     setIsLoadingMore(true);
     try {
@@ -359,11 +362,7 @@ function GlobalH2HContent() {
   });
 
   if (h2hData === undefined) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const entries = h2hData.entries as Array<H2HLeaderboardEntry>;
@@ -399,11 +398,7 @@ function FollowingGuard({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useAuth();
 
   if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (!isSignedIn) {
@@ -462,11 +457,7 @@ function FollowingTop5Inner() {
   });
 
   if (data === undefined) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const entries = data.entries;
@@ -539,11 +530,7 @@ function FollowingH2HInner() {
   });
 
   if (data === undefined) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const entries = data.entries as Array<H2HLeaderboardEntry>;

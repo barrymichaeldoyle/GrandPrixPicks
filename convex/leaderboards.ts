@@ -52,7 +52,9 @@ export const getSeasonLeaderboard = query({
 
     // Filter out users who opted out (using denormalized field — no user doc reads)
     const rows = allRows.filter((row) => {
-      if (viewer && row.userId === viewer._id) return true;
+      if (viewer && row.userId === viewer._id) {
+        return true;
+      }
       return row.showOnLeaderboard !== false;
     });
 
@@ -340,7 +342,9 @@ export const getRaceLeaderboard = query({
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
     const race = await ctx.db.get(args.raceId);
-    if (!race) throw new Error('Race not found');
+    if (!race) {
+      throw new Error('Race not found');
+    }
 
     // Blind rule:
     // If race isn't finished yet, only allow per-race leaderboard
@@ -372,7 +376,9 @@ export const getRaceLeaderboard = query({
 
     // Filter out users who opted out (using denormalized field — no user doc reads)
     const visibleScores = sortedScores.filter((score) => {
-      if (viewer && score.userId === viewer._id) return true;
+      if (viewer && score.userId === viewer._id) {
+        return true;
+      }
       return score.showOnLeaderboard !== false;
     });
 

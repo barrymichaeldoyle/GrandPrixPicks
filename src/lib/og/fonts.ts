@@ -19,17 +19,23 @@ async function resolveFontUrl(weight: number): Promise<string> {
   const res = await fetch(cssUrl, {
     headers: { 'User-Agent': WOFF_USER_AGENT },
   });
-  if (!res.ok) throw new Error(`Failed to fetch font CSS: ${res.statusText}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch font CSS: ${res.statusText}`);
+  }
   const css = await res.text();
 
   const urlMatch = css.match(/url\(([^)]+)\)/);
-  if (!urlMatch?.[1]) throw new Error('Could not extract font URL from CSS');
+  if (!urlMatch?.[1]) {
+    throw new Error('Could not extract font URL from CSS');
+  }
 
   return urlMatch[1];
 }
 
 export async function loadFonts(): Promise<Array<SatoriFont>> {
-  if (fontsCache) return fontsCache;
+  if (fontsCache) {
+    return fontsCache;
+  }
 
   const [regularUrl, boldUrl] = await Promise.all([
     resolveFontUrl(400),

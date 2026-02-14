@@ -24,7 +24,9 @@ export const myPredictionHistory = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return [];
+    if (!viewer) {
+      return [];
+    }
 
     const predictions = await ctx.db
       .query('predictions')
@@ -47,7 +49,9 @@ export const myPredictionHistory = query({
     const weekends = await Promise.all(
       Array.from(byRace.entries()).map(async ([raceId, weekendPredictions]) => {
         const race = await ctx.db.get(raceId);
-        if (!race) return null;
+        if (!race) {
+          return null;
+        }
 
         // Get all scores for this race weekend
         const scores = await ctx.db
@@ -147,7 +151,9 @@ export const getUserPredictionHistory = query({
     const weekends = await Promise.all(
       Array.from(byRace.entries()).map(async ([raceId, weekendPredictions]) => {
         const race = await ctx.db.get(raceId);
-        if (!race) return null;
+        if (!race) {
+          return null;
+        }
 
         const scores = await ctx.db
           .query('scores')
@@ -238,9 +244,13 @@ export const getUserPredictionHistory = query({
 });
 
 function assertFiveUnique(ids: Array<string>) {
-  if (ids.length !== 5) throw new Error('Pick exactly 5 drivers');
+  if (ids.length !== 5) {
+    throw new Error('Pick exactly 5 drivers');
+  }
   const set = new Set(ids);
-  if (set.size !== 5) throw new Error('Picks must be unique (no duplicates)');
+  if (set.size !== 5) {
+    throw new Error('Picks must be unique (no duplicates)');
+  }
 }
 
 export const myPredictionForRace = query({
@@ -252,7 +262,9 @@ export const myPredictionForRace = query({
     // Don't throw if user doesn't exist yet - they may be newly signed in
     // and won't have a Convex user record until their first mutation
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     const sessionType = args.sessionType ?? 'race';
 
@@ -273,10 +285,14 @@ export const myWeekendPredictions = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     const race = await ctx.db.get(args.raceId);
-    if (!race) return null;
+    if (!race) {
+      return null;
+    }
 
     // Get all predictions for this race weekend (query prefix of compound index)
     const allPredictions = await ctx.db
@@ -321,7 +337,9 @@ export const submitPrediction = mutation({
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const race = await ctx.db.get(args.raceId);
 
-    if (!race) throw new Error('Race not found');
+    if (!race) {
+      throw new Error('Race not found');
+    }
 
     const now = Date.now();
 
@@ -429,7 +447,9 @@ export const randomizePredictions = mutation({
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const race = await ctx.db.get(args.raceId);
 
-    if (!race) throw new Error('Race not found');
+    if (!race) {
+      throw new Error('Race not found');
+    }
 
     const now = Date.now();
 
@@ -463,7 +483,9 @@ export const randomizePredictions = mutation({
 
     for (const sessionType of sessions) {
       const lockTime = lockTimes[sessionType];
-      if (lockTime && now >= lockTime) continue;
+      if (lockTime && now >= lockTime) {
+        continue;
+      }
 
       const picks = shuffleArray(driverIds).slice(0, 5);
 

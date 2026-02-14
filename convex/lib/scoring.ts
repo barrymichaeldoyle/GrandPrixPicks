@@ -23,9 +23,13 @@ export function scoreTopFive(params: {
       const diff = Math.abs(actualPosition - predictedPosition);
 
       if (actualPosition <= 5) {
-        if (diff === 0) points = 5;
-        else if (diff === 1) points = 3;
-        else points = 1;
+        if (diff === 0) {
+          points = 5;
+        } else if (diff === 1) {
+          points = 3;
+        } else {
+          points = 1;
+        }
       }
     }
 

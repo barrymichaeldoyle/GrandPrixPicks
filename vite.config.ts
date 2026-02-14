@@ -43,7 +43,9 @@ const config = defineConfig(({ mode }) => {
               scanDirs: ['server'],
               rollupConfig: {
                 external: (id) => {
-                  if (id.startsWith('cloudflare:')) return true;
+                  if (id.startsWith('cloudflare:')) {
+                    return true;
+                  }
                   if (nitroPreset === 'node-server') {
                     return (
                       id === 'fsevents' ||

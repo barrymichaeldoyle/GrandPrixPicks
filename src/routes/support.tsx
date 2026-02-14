@@ -36,7 +36,9 @@ export const Route = createFileRoute('/support')({
 function SupportPage() {
   const { isSignedIn, isLoaded } = useAuth();
 
-  if (!isLoaded) return <PageLoader />;
+  if (!isLoaded) {
+    return <PageLoader />;
+  }
 
   if (!isSignedIn) {
     return (

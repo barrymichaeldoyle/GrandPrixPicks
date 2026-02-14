@@ -37,7 +37,9 @@ export const getRouter = () => {
       sendDefaultPii: true,
       beforeSend(event) {
         const message = event.exception?.values?.[0]?.value ?? '';
-        if (message.includes('localhost:3030')) return null;
+        if (message.includes('localhost:3030')) {
+          return null;
+        }
         return event;
       },
     });

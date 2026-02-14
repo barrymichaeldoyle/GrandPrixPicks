@@ -41,7 +41,9 @@ function getTimeUntil(timestamp: number): string {
   const now = Date.now();
   const diff = timestamp - now;
 
-  if (diff <= 0) return 'Started';
+  if (diff <= 0) {
+    return 'Started';
+  }
 
   const pad = (n: number) => String(n).padStart(2, '0');
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));

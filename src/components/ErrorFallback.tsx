@@ -11,7 +11,9 @@ interface ErrorFallbackProps {
 }
 
 function getErrorObject(error: unknown): Error {
-  if (error instanceof Error) return error;
+  if (error instanceof Error) {
+    return error;
+  }
   return new Error(String(error));
 }
 

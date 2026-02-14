@@ -24,7 +24,9 @@ export const follow = mutation({
       )
       .unique();
 
-    if (existing) return existing._id;
+    if (existing) {
+      return existing._id;
+    }
 
     return await ctx.db.insert('follows', {
       followerId: viewer._id,
@@ -56,7 +58,9 @@ export const isFollowing = query({
   args: { followeeId: v.id('users') },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return false;
+    if (!viewer) {
+      return false;
+    }
 
     const existing = await ctx.db
       .query('follows')

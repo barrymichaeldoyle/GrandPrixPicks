@@ -531,7 +531,9 @@ export const seedRaces = internalMutation({
           updatedAt: now,
         });
         const updatedRace = await ctx.db.get(existing._id);
-        if (updatedRace) await scheduleReminder(ctx, updatedRace);
+        if (updatedRace) {
+          await scheduleReminder(ctx, updatedRace);
+        }
         updated++;
         continue;
       }
@@ -555,7 +557,9 @@ export const seedRaces = internalMutation({
         updatedAt: now,
       });
       const insertedRace = await ctx.db.get(raceId);
-      if (insertedRace) await scheduleReminder(ctx, insertedRace);
+      if (insertedRace) {
+        await scheduleReminder(ctx, insertedRace);
+      }
       created++;
     }
 
@@ -877,7 +881,9 @@ export const seedH2HDevData = internalMutation({
           .unique()
       : await ctx.db.query('users').first();
 
-    if (!user) throw new Error('User not found');
+    if (!user) {
+      throw new Error('User not found');
+    }
 
     // Get matchups for 2026
     const matchups = await ctx.db
@@ -917,7 +923,9 @@ export const seedH2HDevData = internalMutation({
           )
           .unique();
 
-        if (!result) continue;
+        if (!result) {
+          continue;
+        }
 
         const classification = result.classification;
         const positionMap = new Map<string, number>();
@@ -933,7 +941,9 @@ export const seedH2HDevData = internalMutation({
           const pos2 = positionMap.get(matchup.driver2Id);
 
           // Skip if either driver wasn't classified
-          if (pos1 === undefined || pos2 === undefined) continue;
+          if (pos1 === undefined || pos2 === undefined) {
+            continue;
+          }
 
           // Winner = whoever finished higher (lower position index)
           const winnerId = pos1 < pos2 ? matchup.driver1Id : matchup.driver2Id;
@@ -997,7 +1007,9 @@ export const seedH2HDevData = internalMutation({
           }
 
           totalPicks++;
-          if (isCorrect) correctPicks++;
+          if (isCorrect) {
+            correctPicks++;
+          }
         }
 
         // Create H2H score if it doesn't exist
@@ -1398,7 +1410,9 @@ export const seedFakeLeaderboard = internalMutation({
       // For each race with results, create prediction and score
       for (const raceId of raceIdsWithResults) {
         const race = await ctx.db.get(raceId);
-        if (!race) continue;
+        if (!race) {
+          continue;
+        }
 
         // Determine sessions for this race
         const sessions: Array<SessionType> = race.hasSprint
@@ -1407,7 +1421,9 @@ export const seedFakeLeaderboard = internalMutation({
 
         for (const sessionType of sessions) {
           const result = resultsByRaceSession.get(`${raceId}_${sessionType}`);
-          if (!result) continue;
+          if (!result) {
+            continue;
+          }
 
           // Generate random-ish prediction with varied scoring
           // Use user index + session to create varied but deterministic results
@@ -1915,56 +1931,72 @@ export const _clearDevDataBatch = internalMutation({
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (scores.length === BATCH) return { deleted, done: false };
+    if (scores.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const preds = await ctx.db.query('predictions').take(BATCH);
     for (const doc of preds) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (preds.length === BATCH) return { deleted, done: false };
+    if (preds.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const results = await ctx.db.query('results').take(BATCH);
     for (const doc of results) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (results.length === BATCH) return { deleted, done: false };
+    if (results.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const standings = await ctx.db.query('seasonStandings').take(BATCH);
     for (const doc of standings) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (standings.length === BATCH) return { deleted, done: false };
+    if (standings.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const h2hScores = await ctx.db.query('h2hScores').take(BATCH);
     for (const doc of h2hScores) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (h2hScores.length === BATCH) return { deleted, done: false };
+    if (h2hScores.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const h2hPreds = await ctx.db.query('h2hPredictions').take(BATCH);
     for (const doc of h2hPreds) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (h2hPreds.length === BATCH) return { deleted, done: false };
+    if (h2hPreds.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const h2hResults = await ctx.db.query('h2hResults').take(BATCH);
     for (const doc of h2hResults) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (h2hResults.length === BATCH) return { deleted, done: false };
+    if (h2hResults.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     const h2hStandings = await ctx.db.query('h2hSeasonStandings').take(BATCH);
     for (const doc of h2hStandings) {
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (h2hStandings.length === BATCH) return { deleted, done: false };
+    if (h2hStandings.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     // Fake users last
     const users = await ctx.db.query('users').collect();
@@ -1975,7 +2007,9 @@ export const _clearDevDataBatch = internalMutation({
       await ctx.db.delete(doc._id);
       deleted++;
     }
-    if (fakeUsers.length === BATCH) return { deleted, done: false };
+    if (fakeUsers.length === BATCH) {
+      return { deleted, done: false };
+    }
 
     return { deleted, done: true };
   },
@@ -1993,7 +2027,9 @@ export const _resetRacesToUpcoming = internalMutation({
 
     for (const race of races) {
       const original = F1_RACES_2026.find((r) => r.slug === race.slug);
-      if (!original) continue;
+      if (!original) {
+        continue;
+      }
 
       const raceStartAt = new Date(original.raceDate).getTime();
       const qualiStartAt = new Date(original.qualiDate).getTime();
@@ -2125,8 +2161,12 @@ export const resetToPreSeason = internalAction({
       );
       totalDeleted += result.deleted;
       iterations++;
-      if (result.done) break;
-      if (iterations > 200) throw new Error('Too many iterations');
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations');
+      }
     }
 
     // Phase 2: Reset races to upcoming with original dates

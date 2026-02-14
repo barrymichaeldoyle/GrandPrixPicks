@@ -48,7 +48,9 @@ function RacesPage() {
 
   // When predictions open for a race = previous race's start (same season, round - 1)
   const getPredictionOpenAt = (race: (typeof races)[0]) => {
-    if (race.round <= 1) return null;
+    if (race.round <= 1) {
+      return null;
+    }
     const prev = races.find(
       (r) => r.season === race.season && r.round === race.round - 1,
     );

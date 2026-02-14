@@ -60,7 +60,9 @@ export const myH2HPredictionsForRace = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     const predictions = await ctx.db
       .query('h2hPredictions')
@@ -104,7 +106,9 @@ export const getH2HResultsForRace = query({
       )
       .collect();
 
-    if (results.length === 0) return null;
+    if (results.length === 0) {
+      return null;
+    }
 
     const enriched = await Promise.all(
       results.map(async (r) => {
@@ -147,7 +151,9 @@ export const getMyH2HScoreForRace = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     const sessionType = args.sessionType ?? 'race';
 
@@ -214,13 +220,17 @@ export const getH2HSeasonLeaderboard = query({
     // Filter out users who opted out of leaderboard (but always include viewer)
     const privacyMap = new Map<string, boolean>();
     for (const row of allRows) {
-      if (viewer && row.userId === viewer._id) continue;
+      if (viewer && row.userId === viewer._id) {
+        continue;
+      }
       const user = await ctx.db.get(row.userId);
       privacyMap.set(row.userId, user?.showOnLeaderboard !== false);
     }
 
     const rows = allRows.filter((row) => {
-      if (viewer && row.userId === viewer._id) return true;
+      if (viewer && row.userId === viewer._id) {
+        return true;
+      }
       return privacyMap.get(row.userId) !== false;
     });
 
@@ -259,7 +269,9 @@ export const myH2HPredictionHistory = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return [];
+    if (!viewer) {
+      return [];
+    }
 
     const h2hScores = await ctx.db
       .query('h2hScores')
@@ -277,7 +289,9 @@ export const myH2HPredictionHistory = query({
     const weekends = await Promise.all(
       Array.from(byRace.entries()).map(async ([raceId, scores]) => {
         const race = await ctx.db.get(raceId);
-        if (!race) return null;
+        if (!race) {
+          return null;
+        }
 
         const sessions: Record<
           SessionType,
@@ -322,7 +336,9 @@ export const myH2HPicksByRace = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return [];
+    if (!viewer) {
+      return [];
+    }
 
     const predictions = await ctx.db
       .query('h2hPredictions')
@@ -369,7 +385,9 @@ export const getUserH2HPredictionHistory = query({
     const weekends = await Promise.all(
       Array.from(byRace.entries()).map(async ([raceId, scores]) => {
         const race = await ctx.db.get(raceId);
-        if (!race) return null;
+        if (!race) {
+          return null;
+        }
 
         const sessions: Record<
           SessionType,
@@ -435,7 +453,9 @@ export const getUserH2HPicksByRace = query({
             race: race.predictionLockAt,
           };
           const lockTime = lockTimes[pred.sessionType];
-          if (!lockTime || now < lockTime) continue;
+          if (!lockTime || now < lockTime) {
+            continue;
+          }
         }
       }
 
@@ -466,7 +486,9 @@ export const getUserH2HDetailedPicks = query({
     const isOwner = viewer ? viewer._id === args.userId : false;
 
     const race = await ctx.db.get(args.raceId);
-    if (!race) return null;
+    if (!race) {
+      return null;
+    }
 
     const now = Date.now();
 
@@ -485,7 +507,9 @@ export const getUserH2HDetailedPicks = query({
       )
       .collect();
 
-    if (predictions.length === 0) return null;
+    if (predictions.length === 0) {
+      return null;
+    }
 
     // Fetch results for this race (all sessions)
     const allResults = await ctx.db
@@ -582,11 +606,15 @@ export const getUserH2HDetailedPicks = query({
       const picks = [];
       for (const pred of sessionPredictions) {
         const matchup = matchupById.get(pred.matchupId);
-        if (!matchup) continue;
+        if (!matchup) {
+          continue;
+        }
 
         const d1 = driverCache.get(matchup.driver1Id);
         const d2 = driverCache.get(matchup.driver2Id);
-        if (!d1 || !d2) continue;
+        if (!d1 || !d2) {
+          continue;
+        }
 
         const actualWinnerId =
           resultsByKey.get(`${sessionType}:${pred.matchupId}`) ?? null;
@@ -629,7 +657,9 @@ export const submitH2HPredictions = mutation({
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const race = await ctx.db.get(args.raceId);
 
-    if (!race) throw new Error('Race not found');
+    if (!race) {
+      throw new Error('Race not found');
+    }
 
     const now = Date.now();
 
@@ -661,7 +691,9 @@ export const submitH2HPredictions = mutation({
     // Validate each pick
     for (const pick of args.picks) {
       const matchup = await ctx.db.get(pick.matchupId);
-      if (!matchup) throw new Error('Matchup not found');
+      if (!matchup) {
+        throw new Error('Matchup not found');
+      }
       if (
         pick.predictedWinnerId !== matchup.driver1Id &&
         pick.predictedWinnerId !== matchup.driver2Id

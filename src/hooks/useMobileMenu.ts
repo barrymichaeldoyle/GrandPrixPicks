@@ -12,7 +12,9 @@ export function useMobileMenu(mainRef: RefObject<HTMLDivElement | null>) {
 
   useEffect(() => {
     const el = mainRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
     const applyInert = () => {
       if (mobileMenuOpen && mq.matches) {

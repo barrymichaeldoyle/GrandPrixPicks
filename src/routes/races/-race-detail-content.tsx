@@ -248,7 +248,9 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
     raceId,
   });
 
-  if (!h2hResults) return null;
+  if (!h2hResults) {
+    return null;
+  }
 
   const sessionPicks = myH2HPredictions?.[selectedSession];
 

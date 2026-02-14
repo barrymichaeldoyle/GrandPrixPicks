@@ -3,7 +3,9 @@ import { useMemo } from 'react';
 import { Button } from './Button';
 
 function getDefaultTimeFormat(): 'en-US' | 'en-GB' {
-  if (typeof Intl === 'undefined') return 'en-GB';
+  if (typeof Intl === 'undefined') {
+    return 'en-GB';
+  }
   const detected = navigator.language;
   try {
     const hour12 = new Intl.DateTimeFormat(detected, {
@@ -34,8 +36,12 @@ export function TimeFormatSelect({
 
   // Map value to our two options (handles legacy locales like de-DE)
   const displayValue = useMemo((): 'en-US' | 'en-GB' => {
-    if (!value) return defaultFormat;
-    if (value === 'en-US' || value === 'en-GB') return value;
+    if (!value) {
+      return defaultFormat;
+    }
+    if (value === 'en-US' || value === 'en-GB') {
+      return value;
+    }
     try {
       const hour12 = new Intl.DateTimeFormat(value, {
         hour: '2-digit',

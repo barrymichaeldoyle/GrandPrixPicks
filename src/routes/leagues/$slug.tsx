@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import { InlineLoader } from '@/components/InlineLoader';
+
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '../../components/Button';
@@ -73,7 +75,9 @@ function LeagueDetailPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const league = useQuery(api.leagues.getLeagueBySlug, { slug });
 
-  if (!isLoaded || league === undefined) return <PageLoader />;
+  if (!isLoaded || league === undefined) {
+    return <PageLoader />;
+  }
 
   if (league === null) {
     return (
@@ -297,11 +301,7 @@ function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
   });
 
   if (data === undefined) {
-    return (
-      <div className="mb-6 flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   if (data.entries.length === 0) {
@@ -427,11 +427,7 @@ function LeagueMembers({
   const isViewer = (userId: Id<'users'>) => me?._id === userId;
 
   if (members === undefined) {
-    return (
-      <div className="mb-6 flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
-      </div>
-    );
+    return <InlineLoader />;
   }
 
   const handleAction = async (
@@ -602,7 +598,9 @@ function AdminGeneralSettings({ league }: { league: League }) {
   const isPublic = league.visibility === 'public';
 
   const handleSetPassword = async () => {
-    if (!newPassword.trim()) return;
+    if (!newPassword.trim()) {
+      return;
+    }
     setPasswordLoading(true);
     try {
       await setPasswordMutation({
@@ -738,7 +736,9 @@ function DangerZone({
   const slugMatches = deleteConfirmSlug.trim() === league.slug;
 
   const handleDelete = async () => {
-    if (!slugMatches) return;
+    if (!slugMatches) {
+      return;
+    }
     setIsDeleting(true);
     try {
       await deleteLeagueMutation({ leagueId: league._id });

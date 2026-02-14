@@ -48,7 +48,9 @@ function emptySlotId(slotIndex: number) {
 }
 
 function parseEmptySlotId(id: string): number | null {
-  if (!id.startsWith('empty-')) return null;
+  if (!id.startsWith('empty-')) {
+    return null;
+  }
   const n = parseInt(id.slice(6), 10);
   return Number.isNaN(n) ? null : n;
 }
@@ -309,19 +311,24 @@ export function PredictionForm({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      return;
+    }
     const overId = String(over.id);
     const activeId = String(active.id) as Id<'drivers'>;
     const inPicks = picks.includes(activeId);
 
     if (overId === DRIVER_POOL_DROPPABLE_ID) {
-      if (inPicks) removeDriver(activeId);
+      if (inPicks) {
+        removeDriver(activeId);
+      }
       return;
     }
     const emptySlot = parseEmptySlotId(overId);
     if (emptySlot !== null) {
-      if (!inPicks && picks.length < 5)
+      if (!inPicks && picks.length < 5) {
         addDriverAtPosition(activeId, Math.min(emptySlot, 5));
+      }
       return;
     }
     // over is a pick id (sortable item)
@@ -329,11 +336,14 @@ export function PredictionForm({
     if (inPicks) {
       const oldIndex = picks.indexOf(activeId);
       const newIndex = picks.indexOf(overDriverId);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex)
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         setPicks(arrayMove(picks, oldIndex, newIndex));
+      }
     } else if (picks.length < 5) {
       const insertIndex = picks.indexOf(overDriverId);
-      if (insertIndex !== -1) addDriverAtPosition(activeId, insertIndex);
+      if (insertIndex !== -1) {
+        addDriverAtPosition(activeId, insertIndex);
+      }
     }
     setSubmitStatus('idle');
   };
@@ -392,16 +402,24 @@ export function PredictionForm({
   const driversSortedByTeam = [...drivers].sort((a, b) => {
     const teamA = teamStandingsIndex(a.team);
     const teamB = teamStandingsIndex(b.team);
-    if (teamA !== teamB) return teamA - teamB;
+    if (teamA !== teamB) {
+      return teamA - teamB;
+    }
     const numA = a.number ?? 999;
     const numB = b.number ?? 999;
-    if (numA !== numB) return numA - numB;
+    if (numA !== numB) {
+      return numA - numB;
+    }
     return a.displayName.localeCompare(b.displayName);
   });
 
   const addDriver = (driverId: Id<'drivers'>) => {
-    if (picks.length >= 5) return;
-    if (picks.includes(driverId)) return;
+    if (picks.length >= 5) {
+      return;
+    }
+    if (picks.includes(driverId)) {
+      return;
+    }
     setPicks([...picks, driverId]);
     setSubmitStatus('idle');
   };
@@ -421,7 +439,9 @@ export function PredictionForm({
   };
 
   const moveUp = (index: number) => {
-    if (index === 0) return;
+    if (index === 0) {
+      return;
+    }
     const newPicks = [...picks];
     [newPicks[index - 1], newPicks[index]] = [
       newPicks[index],
@@ -432,7 +452,9 @@ export function PredictionForm({
   };
 
   const moveDown = (index: number) => {
-    if (index >= picks.length - 1) return;
+    if (index >= picks.length - 1) {
+      return;
+    }
     const newPicks = [...picks];
     [newPicks[index], newPicks[index + 1]] = [
       newPicks[index + 1],
@@ -443,7 +465,9 @@ export function PredictionForm({
   };
 
   const handleSubmit = async () => {
-    if (picks.length !== 5) return;
+    if (picks.length !== 5) {
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
@@ -521,7 +545,9 @@ export function PredictionForm({
                 <div className="flex min-w-0 flex-1 flex-col">
                   {picks.map((driverId, index) => {
                     const driver = drivers.find((d) => d._id === driverId);
-                    if (!driver) return null;
+                    if (!driver) {
+                      return null;
+                    }
                     return (
                       <SortablePickRow
                         key={driverId}

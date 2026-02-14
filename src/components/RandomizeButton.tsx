@@ -61,7 +61,9 @@ export function RandomizeButton({
     : 'This will randomly select your Head-to-Head picks for all sessions this weekend. You can edit individual sessions afterwards.';
 
   async function handleConfirm() {
-    if (!matchups) return;
+    if (!matchups) {
+      return;
+    }
 
     setLoading(true);
     setError(null);

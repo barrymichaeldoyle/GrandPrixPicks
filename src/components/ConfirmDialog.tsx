@@ -50,7 +50,9 @@ export function ConfirmDialog({
           dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
         ).filter((el) => el.offsetParent !== null);
 
-        if (focusable.length === 0) return;
+        if (focusable.length === 0) {
+          return;
+        }
 
         const currentIndex = focusable.indexOf(
           document.activeElement as HTMLElement,
@@ -75,7 +77,9 @@ export function ConfirmDialog({
     }
   }, [open, handleKeyDown]);
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   return createPortal(
     <div

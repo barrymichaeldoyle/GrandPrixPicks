@@ -55,4 +55,10 @@ export default [
     },
   },
   eslintConfigPrettier,
+  // Re-enable curly after Prettier (Prettier sets it off); require braces for all control statements
+  {
+    rules: {
+      curly: ['error', 'all'],
+    },
+  },
 ];

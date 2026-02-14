@@ -71,12 +71,15 @@ export function RaceFlag({
 
 function getScheduleEntries(race: Race) {
   const entries: Array<{ label: string; startAt: number }> = [];
-  if (race.hasSprint && race.sprintQualiStartAt)
+  if (race.hasSprint && race.sprintQualiStartAt) {
     entries.push({ label: 'Sprint Quali', startAt: race.sprintQualiStartAt });
-  if (race.hasSprint && race.sprintStartAt)
+  }
+  if (race.hasSprint && race.sprintStartAt) {
     entries.push({ label: 'Sprint', startAt: race.sprintStartAt });
-  if (race.qualiStartAt)
+  }
+  if (race.qualiStartAt) {
     entries.push({ label: 'Quali', startAt: race.qualiStartAt });
+  }
   entries.push({ label: 'Race', startAt: race.raceStartAt });
   return entries;
 }

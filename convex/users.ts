@@ -13,7 +13,9 @@ export const me = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     return {
       _id: viewer._id,
@@ -64,7 +66,9 @@ export const getProfileByUsername = query({
       .withIndex('by_username', (q) => q.eq('username', args.username))
       .unique();
 
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     return {
       _id: user._id,
@@ -145,7 +149,9 @@ export const hasSeasonPassForSeason = query({
   args: { season: v.number() },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return false;
+    if (!viewer) {
+      return false;
+    }
 
     const pass = await ctx.db
       .query('userSeasonPasses')
@@ -166,9 +172,12 @@ export const updateNotificationSettings = mutation({
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
-    if (args.emailReminders !== undefined)
+    if (args.emailReminders !== undefined) {
       patch.emailReminders = args.emailReminders;
-    if (args.emailResults !== undefined) patch.emailResults = args.emailResults;
+    }
+    if (args.emailResults !== undefined) {
+      patch.emailResults = args.emailResults;
+    }
     await ctx.db.patch(viewer._id, patch);
   },
 });
@@ -232,7 +241,9 @@ export const getProfileOgData = query({
       .withIndex('by_username', (q) => q.eq('username', args.username))
       .unique();
 
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
     const season = 2026;
 
@@ -343,7 +354,9 @@ export const updateProfile = mutation({
 
     // Sync denormalized fields to standings if username changed
     const standingsSync: Record<string, string | undefined> = {};
-    if (patch.username) standingsSync.username = patch.username as string;
+    if (patch.username) {
+      standingsSync.username = patch.username as string;
+    }
     if (Object.keys(standingsSync).length > 0) {
       await syncUserToStandings(ctx, viewer._id, standingsSync);
     }

@@ -3,8 +3,11 @@ import { useQuery } from 'convex/react';
 import { Flag, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { PageLoader } from '@/components/PageLoader';
+
 import { api } from '../../../convex/_generated/api';
 import { NotFoundPage } from '../__root';
+import { InlineLoader } from '@/components/InlineLoader';
 
 export const Route = createFileRoute('/admin/')({
   component: AdminPage,
@@ -22,11 +25,7 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState<'races' | 'utilities'>('races');
 
   if (isAdmin === undefined) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAdmin) {
@@ -105,9 +104,7 @@ function AdminPage() {
             </div>
 
             {races === undefined ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
-              </div>
+              <InlineLoader />
             ) : (
               <div className="space-y-8">
                 {/* Locked races - need results */}

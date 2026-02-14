@@ -96,25 +96,28 @@ export const sendPredictionReminders = internalMutation({
       isSprint: boolean;
     }> = [];
     if (race.hasSprint) {
-      if (race.sprintQualiStartAt)
+      if (race.sprintQualiStartAt) {
         sessions.push({
           label: 'Sprint Quali',
           startAt: race.sprintQualiStartAt,
           isSprint: true,
         });
-      if (race.sprintStartAt)
+      }
+      if (race.sprintStartAt) {
         sessions.push({
           label: 'Sprint',
           startAt: race.sprintStartAt,
           isSprint: true,
         });
+      }
     }
-    if (race.qualiStartAt)
+    if (race.qualiStartAt) {
       sessions.push({
         label: 'Qualifying',
         startAt: race.qualiStartAt,
         isSprint: false,
       });
+    }
     sessions.push({
       label: 'Race',
       startAt: race.raceStartAt,
@@ -177,7 +180,9 @@ export const sendResultEmailsForSession = internalMutation({
   handler: async (ctx, args) => {
     // 1. Load race
     const race = await ctx.db.get(args.raceId);
-    if (!race) return { skipped: true, reason: 'Race not found' };
+    if (!race) {
+      return { skipped: true, reason: 'Race not found' };
+    }
 
     const sessionLabel = SESSION_LABELS[args.sessionType] ?? args.sessionType;
 
@@ -229,12 +234,16 @@ export const sendResultEmailsForSession = internalMutation({
     // Load league docs for names (deduplicated)
     const uniqueLeagueIds = new Set<Id<'leagues'>>();
     for (const ids of userLeagues.values()) {
-      for (const id of ids) uniqueLeagueIds.add(id);
+      for (const id of ids) {
+        uniqueLeagueIds.add(id);
+      }
     }
     const leagueNames = new Map<string, string>();
     for (const leagueId of uniqueLeagueIds) {
       const league = await ctx.db.get(leagueId);
-      if (league) leagueNames.set(leagueId, league.name);
+      if (league) {
+        leagueNames.set(leagueId, league.name);
+      }
     }
 
     // 5. Load all users, filter to eligible
@@ -251,7 +260,9 @@ export const sendResultEmailsForSession = internalMutation({
     const driverCodeCache = new Map<string, string>();
     async function getDriverCode(driverId: Id<'drivers'>): Promise<string> {
       const cached = driverCodeCache.get(driverId);
-      if (cached) return cached;
+      if (cached) {
+        return cached;
+      }
       const driver = await ctx.db.get(driverId);
       const code = driver?.code ?? '???';
       driverCodeCache.set(driverId, code);
@@ -305,10 +316,14 @@ export const sendResultEmailsForSession = internalMutation({
       const userLeagueIds = userLeagues.get(user._id) ?? [];
       for (const leagueId of userLeagueIds.slice(0, 3)) {
         const leagueName = leagueNames.get(leagueId);
-        if (!leagueName) continue;
+        if (!leagueName) {
+          continue;
+        }
 
         const memberSet = leagueMemberSets.get(leagueId);
-        if (!memberSet) continue;
+        if (!memberSet) {
+          continue;
+        }
 
         // Filter standings to league members and find rank
         const leagueStandings = allStandings.filter((s) =>
@@ -367,12 +382,16 @@ export async function scheduleReminder(
     ? race.sprintQualiLockAt
     : race.qualiLockAt;
 
-  if (!firstLockTime) return;
+  if (!firstLockTime) {
+    return;
+  }
 
   const reminderTime = firstLockTime - TWENTY_FOUR_HOURS_MS;
 
   // Don't schedule if reminder time is in the past
-  if (reminderTime <= Date.now()) return;
+  if (reminderTime <= Date.now()) {
+    return;
+  }
 
   // Cancel existing scheduled reminder if present
   if (race.reminderScheduledId) {

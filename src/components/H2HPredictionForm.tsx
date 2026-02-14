@@ -68,7 +68,9 @@ export function H2HPredictionForm({
   };
 
   const handleSubmit = async () => {
-    if (!allSelected) return;
+    if (!allSelected) {
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus('idle');

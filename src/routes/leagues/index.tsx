@@ -47,7 +47,9 @@ export const Route = createFileRoute('/leagues/')({
 function LeaguesPage() {
   const { isSignedIn, isLoaded } = useAuth();
 
-  if (!isLoaded) return <PageLoader />;
+  if (!isLoaded) {
+    return <PageLoader />;
+  }
 
   if (!isSignedIn) {
     return (
@@ -77,7 +79,9 @@ function LeaguesContent() {
   const leagues = useQuery(api.leagues.getMyLeagues);
   const [showCreate, setShowCreate] = useState(false);
 
-  if (leagues === undefined) return <PageLoader />;
+  if (leagues === undefined) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-full bg-page">

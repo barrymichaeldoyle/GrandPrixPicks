@@ -112,7 +112,9 @@ export function Tooltip({
   const updatePosition = useCallback(() => {
     const triggerEl = triggerRef.current;
     const tooltipEl = tooltipRef.current;
-    if (!triggerEl || !tooltipEl) return;
+    if (!triggerEl || !tooltipEl) {
+      return;
+    }
 
     const triggerRect = triggerEl.getBoundingClientRect();
     const tooltipRect = tooltipEl.getBoundingClientRect();
@@ -133,7 +135,9 @@ export function Tooltip({
   }, [placement, distance]);
 
   useLayoutEffect(() => {
-    if (!isVisible || !tooltipRef.current) return;
+    if (!isVisible || !tooltipRef.current) {
+      return;
+    }
     updatePosition();
   }, [isVisible, updatePosition]);
 
@@ -170,9 +174,13 @@ export function Tooltip({
 
   // On mobile: close when user taps outside (tooltip was opened by touch)
   useEffect(() => {
-    if (!isVisible || !openedByTouchRef.current) return;
+    if (!isVisible || !openedByTouchRef.current) {
+      return;
+    }
     const handlePointerDown = (e: PointerEvent) => {
-      if (triggerRef.current?.contains(e.target as Node)) return;
+      if (triggerRef.current?.contains(e.target as Node)) {
+        return;
+      }
       openedByTouchRef.current = false;
       setIsVisible(false);
     };
@@ -182,7 +190,9 @@ export function Tooltip({
   }, [isVisible]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'touch') return;
+    if (e.pointerType !== 'touch') {
+      return;
+    }
     if (openTimeoutRef.current) {
       clearTimeout(openTimeoutRef.current);
       openTimeoutRef.current = null;
@@ -192,7 +202,9 @@ export function Tooltip({
   };
 
   const handlePointerEnter = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
+    if (e.pointerType !== 'mouse') {
+      return;
+    }
     openTimeoutRef.current = setTimeout(() => {
       openTimeoutRef.current = null;
       openAtTrigger();
@@ -200,7 +212,9 @@ export function Tooltip({
   };
 
   const handlePointerLeave = (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
+    if (e.pointerType !== 'mouse') {
+      return;
+    }
     if (openTimeoutRef.current) {
       clearTimeout(openTimeoutRef.current);
       openTimeoutRef.current = null;

@@ -20,7 +20,9 @@ type WeekendWithSessions = {
 export function computeFavoriteTop5Pick(
   weekends: ReadonlyArray<WeekendWithSessions>,
 ): { driverId: Id<'drivers'>; favoritePoints: number } | null {
-  if (weekends.length === 0) return null;
+  if (weekends.length === 0) {
+    return null;
+  }
 
   // Chronological order (oldest first) so globalOrder reflects pick time
   const sorted = [...weekends].sort((a, b) => a.raceDate - b.raceDate);
@@ -54,7 +56,9 @@ export function computeFavoriteTop5Pick(
       const picks = sessionData?.picks ?? [];
       for (let pos = 0; pos < 5; pos++) {
         const pick = pos < picks.length ? picks[pos] : undefined;
-        if (pick == null) continue;
+        if (pick == null) {
+          continue;
+        }
         const s = getOrCreate(pick.driverId);
         s.totalPoints += POSITION_POINTS[pos];
         s.countByPosition[pos]++;
@@ -71,17 +75,23 @@ export function computeFavoriteTop5Pick(
     ...s,
   }));
 
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    return null;
+  }
 
   candidates.sort((a, b) => {
-    if (a.totalPoints !== b.totalPoints) return b.totalPoints - a.totalPoints;
-    for (let pos = 0; pos < 5; pos++) {
-      if (a.countByPosition[pos] !== b.countByPosition[pos])
-        return b.countByPosition[pos] - a.countByPosition[pos];
+    if (a.totalPoints !== b.totalPoints) {
+      return b.totalPoints - a.totalPoints;
     }
     for (let pos = 0; pos < 5; pos++) {
-      if (a.lastOrderAtPosition[pos] !== b.lastOrderAtPosition[pos])
+      if (a.countByPosition[pos] !== b.countByPosition[pos]) {
+        return b.countByPosition[pos] - a.countByPosition[pos];
+      }
+    }
+    for (let pos = 0; pos < 5; pos++) {
+      if (a.lastOrderAtPosition[pos] !== b.lastOrderAtPosition[pos]) {
         return b.lastOrderAtPosition[pos] - a.lastOrderAtPosition[pos];
+      }
     }
     return String(a.driverId).localeCompare(String(b.driverId));
   });

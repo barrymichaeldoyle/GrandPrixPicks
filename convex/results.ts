@@ -32,7 +32,9 @@ export const getMyScoreForRace = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return null;
+    if (!viewer) {
+      return null;
+    }
 
     const sessionType = args.sessionType ?? 'race';
 
@@ -46,7 +48,9 @@ export const getMyScoreForRace = query({
       )
       .unique();
 
-    if (!score) return null;
+    if (!score) {
+      return null;
+    }
 
     // Enrich breakdown with driver names
     const enrichedBreakdown = score.breakdown
@@ -84,7 +88,9 @@ export const getResultForRace = query({
       )
       .unique();
 
-    if (!result) return null;
+    if (!result) {
+      return null;
+    }
 
     // Enrich classification with driver details
     const enrichedClassification = await Promise.all(
@@ -398,7 +404,9 @@ export const scoreTopFiveBatch = internalMutation({
 
     for (const predId of args.predictionIds) {
       const pred = await ctx.db.get(predId);
-      if (!pred) continue;
+      if (!pred) {
+        continue;
+      }
 
       const { total, breakdown } = scoreTopFive({
         picks: pred.picks,
@@ -547,7 +555,9 @@ export const scoreH2HForSession = internalMutation({
       )
       .collect();
 
-    if (h2hPredictions.length === 0) return;
+    if (h2hPredictions.length === 0) {
+      return;
+    }
 
     // Batch by prediction IDs (each batch will group by user internally)
     for (let i = 0; i < h2hPredictions.length; i += BATCH_SIZE) {
@@ -589,7 +599,9 @@ export const scoreH2HBatch = internalMutation({
     const byUser = new Map<Id<'users'>, Array<Doc<'h2hPredictions'>>>();
     for (const predId of args.h2hPredictionIds) {
       const pred = await ctx.db.get(predId);
-      if (!pred) continue;
+      if (!pred) {
+        continue;
+      }
       const userPreds = byUser.get(pred.userId) ?? [];
       userPreds.push(pred);
       byUser.set(pred.userId, userPreds);
@@ -744,7 +756,9 @@ export const backfillDenormalizedUserFields = internalMutation({
     const userCache = new Map<string, Doc<'users'> | null>();
     async function getUser(userId: Id<'users'>) {
       const cached = userCache.get(userId);
-      if (cached !== undefined) return cached;
+      if (cached !== undefined) {
+        return cached;
+      }
       const user = await ctx.db.get(userId);
       userCache.set(userId, user);
       return user;

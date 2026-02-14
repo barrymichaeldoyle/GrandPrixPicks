@@ -567,10 +567,12 @@ function SettingsPage() {
                 setOptimisticLocale(settings.locale);
               }
               updateRegional(settings).catch(() => {
-                if (settings.timezone !== undefined)
+                if (settings.timezone !== undefined) {
                   setOptimisticTimezone(undefined);
-                if (settings.locale !== undefined)
+                }
+                if (settings.locale !== undefined) {
                   setOptimisticLocale(undefined);
+                }
               });
             }}
           />

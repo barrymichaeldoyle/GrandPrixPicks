@@ -4,7 +4,9 @@ import { syncUserToStandings } from './standings';
 
 export async function getViewer(ctx: QueryCtx): Promise<Doc<'users'> | null> {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) return null;
+  if (!identity) {
+    return null;
+  }
 
   const clerkUserId = identity.subject;
 
@@ -21,7 +23,9 @@ export async function getOrCreateViewer(
   regional?: { timezone?: string; locale?: string },
 ): Promise<Doc<'users'> | null> {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) return null;
+  if (!identity) {
+    return null;
+  }
 
   const clerkUserId = identity.subject;
   const now = Date.now();
@@ -58,13 +62,19 @@ export async function getOrCreateViewer(
         'email' | 'avatarUrl' | 'timezone' | 'locale' | 'updatedAt'
       >
     > = {};
-    if (email !== undefined && existing.email !== email) patch.email = email;
-    if (avatarUrl !== undefined && existing.avatarUrl !== avatarUrl)
+    if (email !== undefined && existing.email !== email) {
+      patch.email = email;
+    }
+    if (avatarUrl !== undefined && existing.avatarUrl !== avatarUrl) {
       patch.avatarUrl = avatarUrl;
+    }
     // Only auto-detect timezone/locale if user hasn't set them yet
-    if (regional?.timezone && !existing.timezone)
+    if (regional?.timezone && !existing.timezone) {
       patch.timezone = regional.timezone;
-    if (regional?.locale && !existing.locale) patch.locale = regional.locale;
+    }
+    if (regional?.locale && !existing.locale) {
+      patch.locale = regional.locale;
+    }
 
     if (Object.keys(patch).length > 0) {
       patch.updatedAt = now;

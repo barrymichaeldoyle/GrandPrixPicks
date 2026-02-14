@@ -23,6 +23,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
+import { PageLoader } from '@/components/PageLoader';
 
 import { api } from '../../../../convex/_generated/api';
 import type { Doc, Id } from '../../../../convex/_generated/dataModel';
@@ -33,7 +34,9 @@ import { NotFoundPage } from '../../__root';
 const LANE_ID_PREFIX = 'lane-';
 
 function parseLaneId(id: string): number | null {
-  if (!id.startsWith(LANE_ID_PREFIX)) return null;
+  if (!id.startsWith(LANE_ID_PREFIX)) {
+    return null;
+  }
   const n = parseInt(id.slice(LANE_ID_PREFIX.length), 10);
   return Number.isNaN(n) ? null : n;
 }
@@ -221,7 +224,9 @@ function AdminRaceDetailPage() {
 
   // Initialize/reset when session or existing result changes
   useEffect(() => {
-    if (driverCount === 0) return;
+    if (driverCount === 0) {
+      return;
+    }
     if (
       existingResult?.classification &&
       existingResult.classification.length
@@ -245,8 +250,11 @@ function AdminRaceDetailPage() {
         const next = [...prev];
         next[index] = driverId;
         if (driverId != null) {
-          for (let j = 0; j < next.length; j++)
-            if (j !== index && next[j] === driverId) next[j] = null;
+          for (let j = 0; j < next.length; j++) {
+            if (j !== index && next[j] === driverId) {
+              next[j] = null;
+            }
+          }
         }
         return next;
       });
@@ -273,12 +281,18 @@ function AdminRaceDetailPage() {
     (event: DragEndEvent) => {
       const { active, over } = event;
       setActiveDriverId(null);
-      if (over == null) return;
+      if (over == null) {
+        return;
+      }
       const newIndex = parseLaneId(String(over.id));
-      if (newIndex == null) return;
+      if (newIndex == null) {
+        return;
+      }
       const driverId = active.id as Id<'drivers'>;
       const oldIndex = selectedDrivers.indexOf(driverId);
-      if (oldIndex === -1 || oldIndex === newIndex) return;
+      if (oldIndex === -1 || oldIndex === newIndex) {
+        return;
+      }
 
       setSelectedDrivers((prev) => arrayMove(prev, oldIndex, newIndex));
     },
@@ -296,17 +310,24 @@ function AdminRaceDetailPage() {
     const currentClassification = selectedDrivers.filter(
       (id): id is Id<'drivers'> => id != null,
     );
-    if (currentClassification.length !== savedClassification.length)
+    if (currentClassification.length !== savedClassification.length) {
       return true;
+    }
     for (let i = 0; i < currentClassification.length; i++) {
-      if (currentClassification[i] !== savedClassification[i]) return true;
+      if (currentClassification[i] !== savedClassification[i]) {
+        return true;
+      }
     }
     // Compare DNF lists (order-independent)
     const savedDnf = [...(existingResult.dnfDriverIds ?? [])].sort();
     const currentDnf = [...dnfDriverIds].sort();
-    if (savedDnf.length !== currentDnf.length) return true;
+    if (savedDnf.length !== currentDnf.length) {
+      return true;
+    }
     for (let i = 0; i < savedDnf.length; i++) {
-      if (savedDnf[i] !== currentDnf[i]) return true;
+      if (savedDnf[i] !== currentDnf[i]) {
+        return true;
+      }
     }
     return false;
   }, [existingResult, selectedDrivers, dnfDriverIds]);
@@ -320,7 +341,9 @@ function AdminRaceDetailPage() {
   });
 
   useEffect(() => {
-    if (blocker.status !== 'blocked') return;
+    if (blocker.status !== 'blocked') {
+      return;
+    }
     const confirmLeave = window.confirm(
       'You have unsaved changes to the results. Leave this page?',
     );
@@ -332,11 +355,7 @@ function AdminRaceDetailPage() {
   }, [blocker]);
 
   if (isAdmin === undefined || race === undefined || drivers === undefined) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAdmin) {
@@ -366,7 +385,9 @@ function AdminRaceDetailPage() {
 
   // Validate: no classified driver should appear below an unclassified (DNF) driver
   const classificationOrderError = useMemo(() => {
-    if (!allFilled || dnfDriverIds.length === 0) return null;
+    if (!allFilled || dnfDriverIds.length === 0) {
+      return null;
+    }
     let lastDnfIndex = -1;
     for (let i = 0; i < selectedDrivers.length; i++) {
       const driverId = selectedDrivers[i];
@@ -381,8 +402,12 @@ function AdminRaceDetailPage() {
   }, [selectedDrivers, dnfDriverIds, allFilled]);
 
   const handlePublish = async () => {
-    if (classificationOrderError) return;
-    if (!allFilled) return;
+    if (classificationOrderError) {
+      return;
+    }
+    if (!allFilled) {
+      return;
+    }
     setIsPublishing(true);
     try {
       await publishResults({

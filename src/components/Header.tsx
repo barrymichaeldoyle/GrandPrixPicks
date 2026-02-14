@@ -66,7 +66,9 @@ export function Header({
   }, [me?.username]);
 
   useEffect(() => {
-    if (onThemeChange !== undefined) return;
+    if (onThemeChange !== undefined) {
+      return;
+    }
     const syncTheme = () => {
       const saved = localStorage.getItem(themeKey);
       const next =
@@ -117,7 +119,9 @@ export function Header({
     }
 
     const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    if (!mq.matches) return;
+    if (!mq.matches) {
+      return;
+    }
 
     const headerEl = headerRef.current;
 
@@ -136,7 +140,9 @@ export function Header({
         headerEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
       ).filter((el) => !el.hasAttribute('inert') && el.offsetParent !== null);
 
-      if (allFocusable.length === 0) return;
+      if (allFocusable.length === 0) {
+        return;
+      }
 
       const currentIndex = allFocusable.indexOf(
         document.activeElement as HTMLElement,

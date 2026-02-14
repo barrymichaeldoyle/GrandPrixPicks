@@ -89,7 +89,9 @@ export const getMyLeagues = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return [];
+    if (!viewer) {
+      return [];
+    }
 
     const memberships = await ctx.db
       .query('leagueMembers')
@@ -99,7 +101,9 @@ export const getMyLeagues = query({
     const leagues = await Promise.all(
       memberships.map(async (m) => {
         const league = await ctx.db.get(m.leagueId);
-        if (!league) return null;
+        if (!league) {
+          return null;
+        }
 
         const members = await ctx.db
           .query('leagueMembers')
@@ -133,7 +137,9 @@ export const getLeagueBySlug = query({
       .withIndex('by_slug', (q) => q.eq('slug', args.slug))
       .unique();
 
-    if (!league) return null;
+    if (!league) {
+      return null;
+    }
 
     const members = await ctx.db
       .query('leagueMembers')
@@ -168,7 +174,9 @@ export const getLeagueMembers = query({
   args: { leagueId: v.id('leagues') },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    if (!viewer) return [];
+    if (!viewer) {
+      return [];
+    }
 
     const members = await ctx.db
       .query('leagueMembers')
@@ -177,7 +185,9 @@ export const getLeagueMembers = query({
 
     // Only return members if viewer is a member
     const isMember = members.some((m) => m.userId === viewer._id);
-    if (!isMember) return [];
+    if (!isMember) {
+      return [];
+    }
 
     const enriched = await Promise.all(
       members.map(async (m) => {
@@ -195,7 +205,9 @@ export const getLeagueMembers = query({
 
     // Admins first, then by join date
     return enriched.sort((a, b) => {
-      if (a.role !== b.role) return a.role === 'admin' ? -1 : 1;
+      if (a.role !== b.role) {
+        return a.role === 'admin' ? -1 : 1;
+      }
       return a.joinedAt - b.joinedAt;
     });
   },
@@ -205,8 +217,12 @@ export const isSlugAvailable = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
     const trimmed = args.slug.trim().toLowerCase();
-    if (trimmed.length < 3 || trimmed.length > 30) return false;
-    if (!SLUG_REGEX.test(trimmed)) return false;
+    if (trimmed.length < 3 || trimmed.length > 30) {
+      return false;
+    }
+    if (!SLUG_REGEX.test(trimmed)) {
+      return false;
+    }
 
     const existing = await ctx.db
       .query('leagues')
@@ -287,9 +303,15 @@ export const createLeague = mutation({
     let createdPrivate = 0;
     let createdPublic = 0;
     for (const league of leaguesForSeason) {
-      if (league.createdBy !== viewer._id) continue;
-      if (league.visibility === 'private') createdPrivate += 1;
-      if (league.visibility === 'public') createdPublic += 1;
+      if (league.createdBy !== viewer._id) {
+        continue;
+      }
+      if (league.visibility === 'private') {
+        createdPrivate += 1;
+      }
+      if (league.visibility === 'public') {
+        createdPublic += 1;
+      }
     }
 
     if (
@@ -376,14 +398,24 @@ export const joinLeague = mutation({
 
     for (const membership of memberships) {
       // "Join" limits only apply to leagues where the user is a regular member.
-      if (membership.role !== 'member') continue;
+      if (membership.role !== 'member') {
+        continue;
+      }
 
       const mLeague = await ctx.db.get(membership.leagueId);
-      if (!mLeague) continue;
-      if (mLeague.season !== season) continue;
+      if (!mLeague) {
+        continue;
+      }
+      if (mLeague.season !== season) {
+        continue;
+      }
 
-      if (mLeague.visibility === 'private') privateJoined += 1;
-      if (mLeague.visibility === 'public') publicJoined += 1;
+      if (mLeague.visibility === 'private') {
+        privateJoined += 1;
+      }
+      if (mLeague.visibility === 'public') {
+        publicJoined += 1;
+      }
     }
 
     if (
@@ -462,7 +494,9 @@ export const updateLeague = mutation({
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
 
     const league = await ctx.db.get(args.leagueId);
-    if (!league) throw new Error('League not found');
+    if (!league) {
+      throw new Error('League not found');
+    }
 
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
 
@@ -514,7 +548,9 @@ export const setPassword = mutation({
     await requireLeagueAdmin(ctx, args.leagueId, viewer._id);
 
     const league = await ctx.db.get(args.leagueId);
-    if (!league) throw new Error('League not found');
+    if (!league) {
+      throw new Error('League not found');
+    }
     if (league.visibility === 'public') {
       throw new Error('Public leagues cannot have a password');
     }
@@ -556,9 +592,12 @@ export const promoteMember = mutation({
         q.eq('leagueId', args.leagueId).eq('userId', args.userId),
       )
       .unique();
-    if (!membership) throw new Error('User is not a member');
-    if (membership.role === 'admin')
+    if (!membership) {
+      throw new Error('User is not a member');
+    }
+    if (membership.role === 'admin') {
       throw new Error('User is already an admin');
+    }
 
     await ctx.db.patch(membership._id, { role: 'admin' });
   },
@@ -589,9 +628,12 @@ export const demoteMember = mutation({
         q.eq('leagueId', args.leagueId).eq('userId', args.userId),
       )
       .unique();
-    if (!membership) throw new Error('User is not a member');
-    if (membership.role === 'member')
+    if (!membership) {
+      throw new Error('User is not a member');
+    }
+    if (membership.role === 'member') {
       throw new Error('User is already a member');
+    }
 
     await ctx.db.patch(membership._id, { role: 'member' });
   },
@@ -613,7 +655,9 @@ export const removeMember = mutation({
         q.eq('leagueId', args.leagueId).eq('userId', args.userId),
       )
       .unique();
-    if (!membership) throw new Error('User is not a member');
+    if (!membership) {
+      throw new Error('User is not a member');
+    }
 
     await ctx.db.delete(membership._id);
   },

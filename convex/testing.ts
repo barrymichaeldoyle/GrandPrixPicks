@@ -491,7 +491,9 @@ export const setupReminderTest = mutation({
       .query('races')
       .filter((q) => q.eq(q.field('slug'), args.raceSlug))
       .first();
-    if (!race) throw new Error(`Race not found: ${args.raceSlug}`);
+    if (!race) {
+      throw new Error(`Race not found: ${args.raceSlug}`);
+    }
 
     // Clear all predictions for this race
     const predictions = await ctx.db
@@ -517,7 +519,9 @@ export const setupReminderTest = mutation({
 
     // Schedule the reminder (fires ~30 mins from now)
     const updatedRace = await ctx.db.get(race._id);
-    if (updatedRace) await scheduleReminder(ctx, updatedRace);
+    if (updatedRace) {
+      await scheduleReminder(ctx, updatedRace);
+    }
 
     return {
       raceId: race._id,

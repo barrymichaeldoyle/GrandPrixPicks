@@ -50,7 +50,9 @@ export const getPredictionOpenAt = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
     const race = await ctx.db.get(args.raceId);
-    if (!race || race.round <= 1) return null;
+    if (!race || race.round <= 1) {
+      return null;
+    }
 
     const previousRace = await ctx.db
       .query('races')

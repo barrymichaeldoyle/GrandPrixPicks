@@ -80,13 +80,19 @@ type CardState =
   | 'finished';
 
 function getCardState(weekend: Weekend, isOwner: boolean): CardState {
-  if (weekend.hasScores) return 'finished';
-  if (weekend.raceStatus === 'locked') return 'locked';
+  if (weekend.hasScores) {
+    return 'finished';
+  }
+  if (weekend.raceStatus === 'locked') {
+    return 'locked';
+  }
   if (!isOwner) {
     const allHidden = Object.values(weekend.sessions).every(
       (s) => s === null || s.isHidden,
     );
-    if (allHidden) return 'upcoming_hidden';
+    if (allHidden) {
+      return 'upcoming_hidden';
+    }
   }
   return 'upcoming_editable';
 }
@@ -111,13 +117,20 @@ function getWeekendSummary(
 
   for (const session of sessions) {
     const data = weekend.sessions[session];
-    if (!data?.breakdown) continue;
+    if (!data?.breakdown) {
+      continue;
+    }
     hasScoredSessions = true;
     for (const item of data.breakdown) {
-      if (item.points === 5) exact++;
-      else if (item.points === 3) close++;
-      else if (item.points === 1) inTop5++;
-      else miss++;
+      if (item.points === 5) {
+        exact++;
+      } else if (item.points === 3) {
+        close++;
+      } else if (item.points === 1) {
+        inTop5++;
+      } else {
+        miss++;
+      }
     }
   }
 
@@ -195,14 +208,18 @@ function H2HSummaryLine({
 }) {
   const h2hWeekend = h2hHistory?.find((h) => h.raceId === weekend.raceId);
   const h2hPicks = h2hPicksByRace?.find((p) => p.raceId === weekend.raceId);
-  if (!h2hWeekend && !h2hPicks) return null;
+  if (!h2hWeekend && !h2hPicks) {
+    return null;
+  }
 
   // Has scored results — show per-session scores
   if (h2hWeekend) {
     const parts = sessions
       .map((s) => {
         const data = h2hWeekend.sessions[s];
-        if (!data) return null;
+        if (!data) {
+          return null;
+        }
         return {
           session: s,
           correct: data.correctPicks,
@@ -339,8 +356,9 @@ export function WeekendCard({
   // Keep content mounted during collapse so height can animate
   const [contentMounted, setContentMounted] = useState(false);
   useEffect(() => {
-    if (expanded) setContentMounted(true);
-    else {
+    if (expanded) {
+      setContentMounted(true);
+    } else {
       const t = setTimeout(() => setContentMounted(false), 220);
       return () => clearTimeout(t);
     }
@@ -444,7 +462,9 @@ export function WeekendCard({
                 <div className="divide-y divide-border/50 border-t border-border/60 p-3 sm:p-4">
                   {sessions.map((session) => {
                     const sessionData = weekend.sessions[session];
-                    if (!sessionData) return null;
+                    if (!sessionData) {
+                      return null;
+                    }
 
                     // Hidden session (visitor before lock)
                     if (sessionData.isHidden) {

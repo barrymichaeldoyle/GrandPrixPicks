@@ -1,21 +1,29 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPage,
-  head: () => ({
-    meta: [
-      { title: 'Privacy Policy | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'Privacy Policy | Grand Prix Picks';
+    const description =
+      'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.';
+    const canonical = canonicalMeta('/privacy');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 function PrivacyPage() {

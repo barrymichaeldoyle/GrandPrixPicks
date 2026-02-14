@@ -1,21 +1,29 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
-  head: () => ({
-    meta: [
-      { title: 'Pricing | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season—unlock unlimited leagues and public leagues.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'Pricing | Grand Prix Picks';
+    const description =
+      'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season—unlock unlimited leagues and public leagues.';
+    const canonical = canonicalMeta('/pricing');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 function PricingPage() {

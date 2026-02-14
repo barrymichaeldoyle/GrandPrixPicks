@@ -67,11 +67,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       // NOTE: og:title, og:description, og:image (and twitter: equivalents)
       // are set per-route, not here. HeadContent renders all matched routes'
       // meta without dedup, so values here would shadow child overrides.
+      // og:url, twitter:url, and canonical are set per-route so each page
+      // has its own canonical URL. Do NOT add them here — HeadContent merges
+      // all matched route head() results without dedup.
       { property: 'og:type', content: 'website' },
-      { property: 'og:url', content: siteConfig.url },
       { property: 'og:site_name', content: siteConfig.title },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:url', content: siteConfig.url },
       { name: 'twitter:creator', content: '@barrymdoyle' },
     ],
     links: [
@@ -79,7 +80,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       { rel: 'apple-touch-icon', href: '/favicon.svg' },
       { rel: 'manifest', href: '/manifest.json' },
-      { rel: 'canonical', href: siteConfig.url },
+      // canonical link is set per-route — do NOT add a global one here
     ],
     scripts: [
       {
@@ -94,6 +95,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 export function NotFoundPage() {
+  useEffect(() => {
+    document.title = 'Page Not Found | Grand Prix Picks';
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex';
+    document.head.appendChild(meta);
+    return () => {
+      meta.remove();
+    };
+  }, []);
+
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">
       <div className="w-full max-w-md text-center">

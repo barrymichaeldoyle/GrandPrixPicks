@@ -11,7 +11,7 @@ import { InlineLoader } from '../../components/InlineLoader';
 import { RaceDetailHeader } from '../../components/RaceDetailHeader';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import type { SessionType } from '../../lib/sessions';
-import { ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, ogBaseUrl, siteConfig } from '../../lib/site';
 import {
   H2HResultsSection,
   H2HSection,
@@ -34,7 +34,7 @@ export const Route = createFileRoute('/races/$raceId')({
     ]);
     return { race, nextRace, predictionOpenAt };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const race = loaderData?.race;
     const ogImage = race
       ? `${ogBaseUrl}/og/race/${race._id}.png`
@@ -45,6 +45,29 @@ export const Route = createFileRoute('/races/$raceId')({
     const description = race
       ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
       : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
+    const canonical = canonicalMeta(`/races/${params.raceId}`);
+    const scripts: Array<{ type: string; children: string }> = [];
+    if (race) {
+      scripts.push({
+        type: 'application/ld+json',
+        children: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'SportsEvent',
+          name: race.name,
+          startDate: new Date(race.raceStartAt).toISOString(),
+          eventStatus: 'https://schema.org/EventScheduled',
+          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+          description,
+          url: `${siteConfig.url}/races/${params.raceId}`,
+          sport: 'Formula 1',
+          organizer: {
+            '@type': 'Organization',
+            name: 'Grand Prix Picks',
+            url: siteConfig.url,
+          },
+        }),
+      });
+    }
     return {
       meta: [
         { title },
@@ -55,7 +78,10 @@ export const Route = createFileRoute('/races/$raceId')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: ogImage },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
+      scripts,
     };
   },
 });

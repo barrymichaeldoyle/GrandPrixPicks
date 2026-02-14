@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
-import { ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
@@ -26,6 +26,7 @@ export const Route = createFileRoute('/leagues/')({
       'F1 Prediction Leagues - Compete with Friends | Grand Prix Picks';
     const description =
       'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.';
+    const canonical = canonicalMeta('/leagues');
     return {
       meta: [
         { title },
@@ -36,7 +37,9 @@ export const Route = createFileRoute('/leagues/')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
     };
   },
 });

@@ -17,7 +17,7 @@ import { api } from '../../convex/_generated/api';
 import { primaryButtonStyles } from '../components/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { RaceCard } from '../components/RaceCard';
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -32,6 +32,7 @@ export const Route = createFileRoute('/')({
       'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season';
     const description =
       'Predict the top 5 finishers for every qualifying, sprint, and race session. Call teammate head-to-heads and compete with friends on the season leaderboard.';
+    const canonical = canonicalMeta('/');
     return {
       meta: [
         { title },
@@ -42,7 +43,9 @@ export const Route = createFileRoute('/')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
     };
   },
 });

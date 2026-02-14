@@ -19,7 +19,7 @@ import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
 import { TimezoneSelect } from '../components/TimezoneSelect';
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 function ToggleSwitch({
   checked,
@@ -161,17 +161,25 @@ function RegionalSection({
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
-  head: () => ({
-    meta: [
-      { title: 'Settings | Grand Prix Picks' },
-      {
-        name: 'description',
-        content: 'Manage your Grand Prix Picks account settings.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'Settings | Grand Prix Picks';
+    const description = 'Manage your Grand Prix Picks account settings.';
+    const canonical = canonicalMeta('/settings');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;

@@ -26,7 +26,7 @@ import { PageLoader } from '../../components/PageLoader';
 import { WeekendCard } from '../../components/PredictionHistory';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
-import { ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -46,6 +46,7 @@ export const Route = createFileRoute('/p/$username')({
     const title = `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`;
     const description = `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`;
     const ogImage = `${ogBaseUrl}/og/profile/${params.username}.png`;
+    const canonical = canonicalMeta(`/p/${params.username}`);
     return {
       meta: [
         { title },
@@ -56,7 +57,9 @@ export const Route = createFileRoute('/p/$username')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: ogImage },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
     };
   },
 });

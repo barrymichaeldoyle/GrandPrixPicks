@@ -1,21 +1,29 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/terms')({
   component: TermsPage,
-  head: () => ({
-    meta: [
-      { title: 'Terms of Service | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'Terms of Service | Grand Prix Picks';
+    const description =
+      'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.';
+    const canonical = canonicalMeta('/terms');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 function TermsPage() {

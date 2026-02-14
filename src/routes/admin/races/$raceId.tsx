@@ -186,6 +186,12 @@ function PositionLane({
 
 export const Route = createFileRoute('/admin/races/$raceId')({
   component: AdminRaceDetailPage,
+  head: () => ({
+    meta: [
+      { title: 'Admin Race Detail | Grand Prix Picks' },
+      { name: 'robots', content: 'noindex, nofollow' },
+    ],
+  }),
 });
 
 function AdminRaceDetailPage() {

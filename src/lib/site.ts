@@ -22,3 +22,20 @@ export const siteConfig = {
 export const ogBaseUrl =
   (import.meta.env as { VITE_SITE_URL?: string }).VITE_SITE_URL ??
   siteConfig.url;
+
+/**
+ * Returns canonical meta tags (og:url, twitter:url) and the canonical link
+ * for a given path. Use in each route's `head()` to set per-page canonical URLs.
+ *
+ * @param path — the route path, e.g. '/pricing' or '/races/abc123'
+ */
+export function canonicalMeta(path: string) {
+  const url = `${siteConfig.url}${path}`;
+  return {
+    meta: [
+      { property: 'og:url', content: url },
+      { name: 'twitter:url', content: url },
+    ] as const,
+    links: [{ rel: 'canonical', href: url }] as const,
+  };
+}

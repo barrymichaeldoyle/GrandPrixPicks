@@ -27,7 +27,7 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
-import { ogBaseUrl, siteConfig } from '../../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -49,21 +49,21 @@ export const Route = createFileRoute('/leagues/$slug')({
         ? `${league.name} — ${league.description} ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''}.`
         : `Compete with ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''} in ${league.name}. View standings and make your F1 predictions on Grand Prix Picks.`
       : 'View league standings, track member rankings, and compete with friends in this private F1 prediction league.';
-    const url = `${siteConfig.url}/leagues/${params.slug}`;
     const ogImage = `${ogBaseUrl}/og/home.png`;
+    const canonical = canonicalMeta(`/leagues/${params.slug}`);
     return {
       meta: [
         { title },
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:url', content: url },
         { property: 'og:image', content: ogImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:url', content: url },
         { name: 'twitter:image', content: ogImage },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
     };
   },
 });

@@ -1,21 +1,29 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/refund-policy')({
   component: RefundPolicyPage,
-  head: () => ({
-    meta: [
-      { title: 'Refund Policy | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'Refund policy for Grand Prix Picks purchases, processed in accordance with Paddle refund terms.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'Refund Policy | Grand Prix Picks';
+    const description =
+      'Refund policy for Grand Prix Picks purchases, processed in accordance with Paddle refund terms.';
+    const canonical = canonicalMeta('/refund-policy');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 function RefundPolicyPage() {

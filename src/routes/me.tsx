@@ -7,22 +7,30 @@ import { useEffect } from 'react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
-  head: () => ({
-    meta: [
-      { title: 'My Predictions | Grand Prix Picks' },
-      {
-        name: 'description',
-        content:
-          'View your F1 prediction history and track your scores across the 2026 season.',
-      },
-      { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
-      { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
-    ],
-  }),
+  head: () => {
+    const title = 'My Predictions | Grand Prix Picks';
+    const description =
+      'View your F1 prediction history and track your scores across the 2026 season.';
+    const canonical = canonicalMeta('/me');
+    return {
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
+        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        ...canonical.meta,
+      ],
+      links: [...canonical.links],
+    };
+  },
 });
 
 function MyPredictionsPage() {

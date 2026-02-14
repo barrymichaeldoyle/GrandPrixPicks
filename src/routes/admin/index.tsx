@@ -8,6 +8,12 @@ import { NotFoundPage } from '../__root';
 
 export const Route = createFileRoute('/admin/')({
   component: AdminPage,
+  head: () => ({
+    meta: [
+      { title: 'Admin | Grand Prix Picks' },
+      { name: 'robots', content: 'noindex, nofollow' },
+    ],
+  }),
 });
 
 function AdminPage() {

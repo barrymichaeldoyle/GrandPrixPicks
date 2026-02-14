@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
-import { ogBaseUrl } from '../lib/site';
+import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -37,6 +37,7 @@ export const Route = createFileRoute('/leaderboard')({
       '2026 Season Leaderboard - F1 Prediction Rankings | Grand Prix Picks';
     const description =
       'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.';
+    const canonical = canonicalMeta('/leaderboard');
     return {
       meta: [
         { title },
@@ -47,7 +48,9 @@ export const Route = createFileRoute('/leaderboard')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: `${ogBaseUrl}/og/leaderboard.png` },
+        ...canonical.meta,
       ],
+      links: [...canonical.links],
     };
   },
 });

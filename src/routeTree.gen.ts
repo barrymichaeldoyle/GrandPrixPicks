@@ -8,162 +8,162 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as TermsRouteImport } from './routes/terms';
-import { Route as SupportRouteImport } from './routes/support';
-import { Route as SettingsRouteImport } from './routes/settings';
-import { Route as RefundPolicyRouteImport } from './routes/refund-policy';
-import { Route as PrivacyRouteImport } from './routes/privacy';
-import { Route as PricingRouteImport } from './routes/pricing';
-import { Route as MeRouteImport } from './routes/me';
-import { Route as LeaderboardRouteImport } from './routes/leaderboard';
-import { Route as IndexRouteImport } from './routes/index';
-import { Route as RacesIndexRouteImport } from './routes/races/index';
-import { Route as LeaguesIndexRouteImport } from './routes/leagues/index';
-import { Route as AdminIndexRouteImport } from './routes/admin/index';
-import { Route as RacesRaceIdRouteImport } from './routes/races/$raceId';
-import { Route as PUsernameRouteImport } from './routes/p/$username';
-import { Route as LeaguesSlugRouteImport } from './routes/leagues/$slug';
-import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$raceId';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as MeRouteImport } from './routes/me'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as RacesIndexRouteImport } from './routes/races/index'
+import { Route as LeaguesIndexRouteImport } from './routes/leagues/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as RacesRaceIdRouteImport } from './routes/races/$raceId'
+import { Route as PUsernameRouteImport } from './routes/p/$username'
+import { Route as LeaguesSlugRouteImport } from './routes/leagues/$slug'
+import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$raceId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RefundPolicyRoute = RefundPolicyRouteImport.update({
   id: '/refund-policy',
   path: '/refund-policy',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RacesIndexRoute = RacesIndexRouteImport.update({
   id: '/races/',
   path: '/races/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LeaguesIndexRoute = LeaguesIndexRouteImport.update({
   id: '/leagues/',
   path: '/leagues/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RacesRaceIdRoute = RacesRaceIdRouteImport.update({
   id: '/races/$raceId',
   path: '/races/$raceId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PUsernameRoute = PUsernameRouteImport.update({
   id: '/p/$username',
   path: '/p/$username',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LeaguesSlugRoute = LeaguesSlugRouteImport.update({
   id: '/leagues/$slug',
   path: '/leagues/$slug',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
   id: '/admin/races/$raceId',
   path: '/admin/races/$raceId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '/leaderboard': typeof LeaderboardRoute;
-  '/me': typeof MeRoute;
-  '/pricing': typeof PricingRoute;
-  '/privacy': typeof PrivacyRoute;
-  '/refund-policy': typeof RefundPolicyRoute;
-  '/settings': typeof SettingsRoute;
-  '/support': typeof SupportRoute;
-  '/terms': typeof TermsRoute;
-  '/leagues/$slug': typeof LeaguesSlugRoute;
-  '/p/$username': typeof PUsernameRoute;
-  '/races/$raceId': typeof RacesRaceIdRoute;
-  '/admin/': typeof AdminIndexRoute;
-  '/leagues/': typeof LeaguesIndexRoute;
-  '/races/': typeof RacesIndexRoute;
-  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute;
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/leagues/$slug': typeof LeaguesSlugRoute
+  '/p/$username': typeof PUsernameRoute
+  '/races/$raceId': typeof RacesRaceIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/leagues/': typeof LeaguesIndexRoute
+  '/races/': typeof RacesIndexRoute
+  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '/leaderboard': typeof LeaderboardRoute;
-  '/me': typeof MeRoute;
-  '/pricing': typeof PricingRoute;
-  '/privacy': typeof PrivacyRoute;
-  '/refund-policy': typeof RefundPolicyRoute;
-  '/settings': typeof SettingsRoute;
-  '/support': typeof SupportRoute;
-  '/terms': typeof TermsRoute;
-  '/leagues/$slug': typeof LeaguesSlugRoute;
-  '/p/$username': typeof PUsernameRoute;
-  '/races/$raceId': typeof RacesRaceIdRoute;
-  '/admin': typeof AdminIndexRoute;
-  '/leagues': typeof LeaguesIndexRoute;
-  '/races': typeof RacesIndexRoute;
-  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute;
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/leagues/$slug': typeof LeaguesSlugRoute
+  '/p/$username': typeof PUsernameRoute
+  '/races/$raceId': typeof RacesRaceIdRoute
+  '/admin': typeof AdminIndexRoute
+  '/leagues': typeof LeaguesIndexRoute
+  '/races': typeof RacesIndexRoute
+  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/': typeof IndexRoute;
-  '/leaderboard': typeof LeaderboardRoute;
-  '/me': typeof MeRoute;
-  '/pricing': typeof PricingRoute;
-  '/privacy': typeof PrivacyRoute;
-  '/refund-policy': typeof RefundPolicyRoute;
-  '/settings': typeof SettingsRoute;
-  '/support': typeof SupportRoute;
-  '/terms': typeof TermsRoute;
-  '/leagues/$slug': typeof LeaguesSlugRoute;
-  '/p/$username': typeof PUsernameRoute;
-  '/races/$raceId': typeof RacesRaceIdRoute;
-  '/admin/': typeof AdminIndexRoute;
-  '/leagues/': typeof LeaguesIndexRoute;
-  '/races/': typeof RacesIndexRoute;
-  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/me': typeof MeRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/settings': typeof SettingsRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/leagues/$slug': typeof LeaguesSlugRoute
+  '/p/$username': typeof PUsernameRoute
+  '/races/$raceId': typeof RacesRaceIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/leagues/': typeof LeaguesIndexRoute
+  '/races/': typeof RacesIndexRoute
+  '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/leaderboard'
@@ -180,8 +180,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/leagues/'
     | '/races/'
-    | '/admin/races/$raceId';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/admin/races/$raceId'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/leaderboard'
@@ -198,7 +198,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/leagues'
     | '/races'
-    | '/admin/races/$raceId';
+    | '/admin/races/$raceId'
   id:
     | '__root__'
     | '/'
@@ -216,142 +216,142 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/leagues/'
     | '/races/'
-    | '/admin/races/$raceId';
-  fileRoutesById: FileRoutesById;
+    | '/admin/races/$raceId'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  LeaderboardRoute: typeof LeaderboardRoute;
-  MeRoute: typeof MeRoute;
-  PricingRoute: typeof PricingRoute;
-  PrivacyRoute: typeof PrivacyRoute;
-  RefundPolicyRoute: typeof RefundPolicyRoute;
-  SettingsRoute: typeof SettingsRoute;
-  SupportRoute: typeof SupportRoute;
-  TermsRoute: typeof TermsRoute;
-  LeaguesSlugRoute: typeof LeaguesSlugRoute;
-  PUsernameRoute: typeof PUsernameRoute;
-  RacesRaceIdRoute: typeof RacesRaceIdRoute;
-  AdminIndexRoute: typeof AdminIndexRoute;
-  LeaguesIndexRoute: typeof LeaguesIndexRoute;
-  RacesIndexRoute: typeof RacesIndexRoute;
-  AdminRacesRaceIdRoute: typeof AdminRacesRaceIdRoute;
+  IndexRoute: typeof IndexRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  MeRoute: typeof MeRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RefundPolicyRoute: typeof RefundPolicyRoute
+  SettingsRoute: typeof SettingsRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
+  LeaguesSlugRoute: typeof LeaguesSlugRoute
+  PUsernameRoute: typeof PUsernameRoute
+  RacesRaceIdRoute: typeof RacesRaceIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  LeaguesIndexRoute: typeof LeaguesIndexRoute
+  RacesIndexRoute: typeof RacesIndexRoute
+  AdminRacesRaceIdRoute: typeof AdminRacesRaceIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/terms': {
-      id: '/terms';
-      path: '/terms';
-      fullPath: '/terms';
-      preLoaderRoute: typeof TermsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
-      id: '/support';
-      path: '/support';
-      fullPath: '/support';
-      preLoaderRoute: typeof SupportRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
-      id: '/settings';
-      path: '/settings';
-      fullPath: '/settings';
-      preLoaderRoute: typeof SettingsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/refund-policy': {
-      id: '/refund-policy';
-      path: '/refund-policy';
-      fullPath: '/refund-policy';
-      preLoaderRoute: typeof RefundPolicyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
-      id: '/privacy';
-      path: '/privacy';
-      fullPath: '/privacy';
-      preLoaderRoute: typeof PrivacyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
-      id: '/pricing';
-      path: '/pricing';
-      fullPath: '/pricing';
-      preLoaderRoute: typeof PricingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/me': {
-      id: '/me';
-      path: '/me';
-      fullPath: '/me';
-      preLoaderRoute: typeof MeRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leaderboard': {
-      id: '/leaderboard';
-      path: '/leaderboard';
-      fullPath: '/leaderboard';
-      preLoaderRoute: typeof LeaderboardRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/races/': {
-      id: '/races/';
-      path: '/races';
-      fullPath: '/races/';
-      preLoaderRoute: typeof RacesIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/races/'
+      path: '/races'
+      fullPath: '/races/'
+      preLoaderRoute: typeof RacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leagues/': {
-      id: '/leagues/';
-      path: '/leagues';
-      fullPath: '/leagues/';
-      preLoaderRoute: typeof LeaguesIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/leagues/'
+      path: '/leagues'
+      fullPath: '/leagues/'
+      preLoaderRoute: typeof LeaguesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
-      id: '/admin/';
-      path: '/admin';
-      fullPath: '/admin/';
-      preLoaderRoute: typeof AdminIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/races/$raceId': {
-      id: '/races/$raceId';
-      path: '/races/$raceId';
-      fullPath: '/races/$raceId';
-      preLoaderRoute: typeof RacesRaceIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/races/$raceId'
+      path: '/races/$raceId'
+      fullPath: '/races/$raceId'
+      preLoaderRoute: typeof RacesRaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/$username': {
-      id: '/p/$username';
-      path: '/p/$username';
-      fullPath: '/p/$username';
-      preLoaderRoute: typeof PUsernameRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/p/$username'
+      path: '/p/$username'
+      fullPath: '/p/$username'
+      preLoaderRoute: typeof PUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leagues/$slug': {
-      id: '/leagues/$slug';
-      path: '/leagues/$slug';
-      fullPath: '/leagues/$slug';
-      preLoaderRoute: typeof LeaguesSlugRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/leagues/$slug'
+      path: '/leagues/$slug'
+      fullPath: '/leagues/$slug'
+      preLoaderRoute: typeof LeaguesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/races/$raceId': {
-      id: '/admin/races/$raceId';
-      path: '/admin/races/$raceId';
-      fullPath: '/admin/races/$raceId';
-      preLoaderRoute: typeof AdminRacesRaceIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/admin/races/$raceId'
+      path: '/admin/races/$raceId'
+      fullPath: '/admin/races/$raceId'
+      preLoaderRoute: typeof AdminRacesRaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -372,17 +372,17 @@ const rootRouteChildren: RootRouteChildren = {
   LeaguesIndexRoute: LeaguesIndexRoute,
   RacesIndexRoute: RacesIndexRoute,
   AdminRacesRaceIdRoute: AdminRacesRaceIdRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from './router.tsx';
-import type { startInstance } from './start.ts';
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

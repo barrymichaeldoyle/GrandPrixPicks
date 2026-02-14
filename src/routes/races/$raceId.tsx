@@ -217,9 +217,7 @@ function RaceDetailPage() {
                         race={race}
                         editingSession={h2hEditingSession}
                         onEditingSessionChange={setH2hEditingSession}
-                        showRandomizeButton={
-                          hasPredictions && !hasH2HPredictions
-                        }
+                        showRandomizeButton={!hasH2HPredictions}
                         hasPredictions={!!hasPredictions}
                         hasH2HPredictions={hasH2HPredictions}
                       />

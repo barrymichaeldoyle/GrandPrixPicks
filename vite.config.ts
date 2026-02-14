@@ -11,6 +11,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths';
 
 // Use Cloudflare Pages preset when CF_PAGES env var is set (during deployment)
 const nitroPreset = process.env.CF_PAGES ? 'cloudflare-pages' : 'node-server';
+const isVitest = process.env.VITEST === 'true';
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.VITE_SENTRY_ORG;
@@ -32,32 +33,35 @@ const config = defineConfig(({ mode }) => {
     },
     plugins: [
       devtools(),
-      nitro({
-        preset: nitroPreset,
-        wasm: {},
-        scanDirs: ['server'],
-        rollupConfig: {
-          external: (id) => {
-            // Cloudflare runtime modules (provided at runtime, not resolvable at build time)
-            if (id.startsWith('cloudflare:')) return true;
-            // Only for node-server: avoid bundling native .node binaries (e.g. fsevents on macOS)
-            if (nitroPreset === 'node-server') {
-              return (
-                id === 'fsevents' ||
-                id === 'chokidar' ||
-                id.includes('fsevents') ||
-                id.endsWith('.node')
-              );
-            }
-            return false;
-          },
-        },
-      }),
+      // Skip Nitro and TanStack Start in Vitest to avoid CJS/ESM errors and hanging process
+      ...(isVitest
+        ? []
+        : [
+            nitro({
+              preset: nitroPreset,
+              wasm: {},
+              scanDirs: ['server'],
+              rollupConfig: {
+                external: (id) => {
+                  if (id.startsWith('cloudflare:')) return true;
+                  if (nitroPreset === 'node-server') {
+                    return (
+                      id === 'fsevents' ||
+                      id === 'chokidar' ||
+                      id.includes('fsevents') ||
+                      id.endsWith('.node')
+                    );
+                  }
+                  return false;
+                },
+              },
+            }),
+          ]),
       viteTsConfigPaths({
         projects: ['./tsconfig.json'],
       }),
       tailwindcss(),
-      tanstackStart(),
+      ...(isVitest ? [] : [tanstackStart()]),
       viteReact({
         babel: {
           plugins: ['babel-plugin-react-compiler'],
@@ -81,6 +85,11 @@ const config = defineConfig(({ mode }) => {
           ]
         : []),
     ],
+    test: {
+      environment: 'jsdom',
+      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      passWithNoTests: true,
+    },
   };
 });
 

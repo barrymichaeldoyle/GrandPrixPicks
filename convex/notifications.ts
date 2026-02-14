@@ -151,6 +151,213 @@ export const sendPredictionReminders = internalMutation({
  * Schedule (or reschedule) the 24h prediction reminder for a race.
  * Called from seedRaces after each race is created/updated.
  */
+const SESSION_LABELS: Record<string, string> = {
+  quali: 'Qualifying',
+  sprint_quali: 'Sprint Qualifying',
+  sprint: 'Sprint',
+  race: 'Race',
+};
+
+const sessionTypeValidator = v.union(
+  v.literal('quali'),
+  v.literal('sprint_quali'),
+  v.literal('sprint'),
+  v.literal('race'),
+);
+
+/**
+ * Scheduled mutation: gathers data and fans out result notification emails.
+ * Called ~30s after scoring completes for a session.
+ */
+export const sendResultEmailsForSession = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    // 1. Load race
+    const race = await ctx.db.get(args.raceId);
+    if (!race) return { skipped: true, reason: 'Race not found' };
+
+    const sessionLabel = SESSION_LABELS[args.sessionType] ?? args.sessionType;
+
+    // 2. Load all season standings, sorted desc by totalPoints → global rank
+    const allStandings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', race.season))
+      .collect();
+    // Index sorts ascending; we need descending for ranking
+    allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // Build userId → globalRank map
+    const globalRankMap = new Map<string, number>();
+    for (let i = 0; i < allStandings.length; i++) {
+      globalRankMap.set(allStandings[i].userId, i + 1);
+    }
+    const globalTotal = allStandings.length;
+
+    // 3. Load all scores for this race+session
+    const allScores = await ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .collect();
+    const scoreMap = new Map<string, Doc<'scores'>>();
+    for (const s of allScores) {
+      scoreMap.set(s.userId, s);
+    }
+
+    // 4. Load league memberships and league docs
+    // Group memberships by userId
+    const allLeagueMembers = await ctx.db.query('leagueMembers').collect();
+
+    // Build userId → leagueId[] map
+    const userLeagues = new Map<string, Array<Id<'leagues'>>>();
+    // Build leagueId → userId set for ranking
+    const leagueMemberSets = new Map<string, Set<string>>();
+    for (const m of allLeagueMembers) {
+      const leagues = userLeagues.get(m.userId) ?? [];
+      leagues.push(m.leagueId);
+      userLeagues.set(m.userId, leagues);
+
+      const members = leagueMemberSets.get(m.leagueId) ?? new Set();
+      members.add(m.userId);
+      leagueMemberSets.set(m.leagueId, members);
+    }
+
+    // Load league docs for names (deduplicated)
+    const uniqueLeagueIds = new Set<Id<'leagues'>>();
+    for (const ids of userLeagues.values()) {
+      for (const id of ids) uniqueLeagueIds.add(id);
+    }
+    const leagueNames = new Map<string, string>();
+    for (const leagueId of uniqueLeagueIds) {
+      const league = await ctx.db.get(leagueId);
+      if (league) leagueNames.set(leagueId, league.name);
+    }
+
+    // 5. Load all users, filter to eligible
+    const allUsers = await ctx.db.query('users').collect();
+    const eligibleUsers = allUsers.filter(
+      (u) => u.email && u.emailResults !== false && scoreMap.has(u._id),
+    );
+
+    if (eligibleUsers.length === 0) {
+      return { skipped: true, reason: 'No eligible recipients' };
+    }
+
+    // Cache driver code lookups
+    const driverCodeCache = new Map<string, string>();
+    async function getDriverCode(driverId: Id<'drivers'>): Promise<string> {
+      const cached = driverCodeCache.get(driverId);
+      if (cached) return cached;
+      const driver = await ctx.db.get(driverId);
+      const code = driver?.code ?? '???';
+      driverCodeCache.set(driverId, code);
+      return code;
+    }
+
+    // 6. Build per-user payloads
+    type RecipientPayload = {
+      email: string;
+      sessionPoints: number;
+      bestPick: {
+        code: string;
+        position: number;
+        points: number;
+      } | null;
+      globalRank: number;
+      globalTotal: number;
+      leagueRanks: Array<{
+        leagueName: string;
+        rank: number;
+        total: number;
+      }>;
+    };
+
+    const recipients: Array<RecipientPayload> = [];
+
+    for (const user of eligibleUsers) {
+      const score = scoreMap.get(user._id)!;
+
+      // Best pick: highest-scoring pick with points >= 3
+      let bestPick: RecipientPayload['bestPick'] = null;
+      if (score.breakdown) {
+        const candidates = score.breakdown
+          .filter((b) => b.points >= 3)
+          .sort((a, b) => b.points - a.points);
+        if (candidates.length > 0) {
+          const best = candidates[0];
+          bestPick = {
+            code: await getDriverCode(best.driverId),
+            position: best.predictedPosition,
+            points: best.points,
+          };
+        }
+      }
+
+      // Global rank
+      const globalRank = globalRankMap.get(user._id) ?? globalTotal;
+
+      // League ranks (cap at 3)
+      const leagueRanks: RecipientPayload['leagueRanks'] = [];
+      const userLeagueIds = userLeagues.get(user._id) ?? [];
+      for (const leagueId of userLeagueIds.slice(0, 3)) {
+        const leagueName = leagueNames.get(leagueId);
+        if (!leagueName) continue;
+
+        const memberSet = leagueMemberSets.get(leagueId);
+        if (!memberSet) continue;
+
+        // Filter standings to league members and find rank
+        const leagueStandings = allStandings.filter((s) =>
+          memberSet.has(s.userId),
+        );
+        const rank =
+          leagueStandings.findIndex((s) => s.userId === user._id) + 1;
+        leagueRanks.push({
+          leagueName,
+          rank: rank || leagueStandings.length,
+          total: leagueStandings.length,
+        });
+      }
+
+      recipients.push({
+        email: user.email!,
+        sessionPoints: score.points,
+        bestPick,
+        globalRank,
+        globalTotal,
+        leagueRanks,
+      });
+    }
+
+    // 7. Batch recipients into groups of 50 → schedule sendBatch
+    const countryCode = getCountryCodeForRace(race.slug);
+    let scheduled = 0;
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const batch = recipients.slice(i, i + BATCH_SIZE);
+      await ctx.scheduler.runAfter(
+        0,
+        internal.emails.sendResultEmails.sendBatch,
+        {
+          recipients: batch,
+          raceName: race.name,
+          raceId: race._id,
+          sessionLabel,
+          round: race.round,
+          countryCode,
+          hasSprint: race.hasSprint ?? false,
+        },
+      );
+      scheduled++;
+    }
+
+    return { recipientCount: recipients.length, batchesScheduled: scheduled };
+  },
+});
+
 export async function scheduleReminder(
   ctx: MutationCtx,
   race: Doc<'races'>,

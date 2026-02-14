@@ -9,17 +9,18 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import {
   ArrowLeft,
   Check,
+  CircleAlert,
   GripVertical,
   Loader2,
   Save,
   Trophy,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 
@@ -215,7 +216,6 @@ function AdminRaceDetailPage() {
   const [dnfDriverIds, setDnfDriverIds] = useState<Array<Id<'drivers'>>>([]);
   const publishResults = useMutation(api.results.adminPublishResults);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [publishSuccess, setPublishSuccess] = useState(false);
 
   const driverCount = drivers?.length ?? 0;
 
@@ -237,12 +237,10 @@ function AdminRaceDetailPage() {
       setSelectedDrivers(Array.from({ length: driverCount }, () => null));
       setDnfDriverIds([]);
     }
-    setPublishSuccess(false);
   }, [existingResult, selectedSession, driverCount]);
 
   const setPosition = useCallback(
     (index: number, driverId: Id<'drivers'> | null) => {
-      setPublishSuccess(false);
       setSelectedDrivers((prev) => {
         const next = [...prev];
         next[index] = driverId;
@@ -281,11 +279,57 @@ function AdminRaceDetailPage() {
       const driverId = active.id as Id<'drivers'>;
       const oldIndex = selectedDrivers.indexOf(driverId);
       if (oldIndex === -1 || oldIndex === newIndex) return;
-      setPublishSuccess(false);
+
       setSelectedDrivers((prev) => arrayMove(prev, oldIndex, newIndex));
     },
     [selectedDrivers],
   );
+
+  // Detect whether the form has changes compared to the saved result
+  const hasChanges = useMemo(() => {
+    if (!existingResult) {
+      // New result: dirty once any driver is selected
+      return selectedDrivers.some((id) => id != null);
+    }
+    // Compare classification order
+    const savedClassification = existingResult.classification;
+    const currentClassification = selectedDrivers.filter(
+      (id): id is Id<'drivers'> => id != null,
+    );
+    if (currentClassification.length !== savedClassification.length)
+      return true;
+    for (let i = 0; i < currentClassification.length; i++) {
+      if (currentClassification[i] !== savedClassification[i]) return true;
+    }
+    // Compare DNF lists (order-independent)
+    const savedDnf = [...(existingResult.dnfDriverIds ?? [])].sort();
+    const currentDnf = [...dnfDriverIds].sort();
+    if (savedDnf.length !== currentDnf.length) return true;
+    for (let i = 0; i < savedDnf.length; i++) {
+      if (savedDnf[i] !== currentDnf[i]) return true;
+    }
+    return false;
+  }, [existingResult, selectedDrivers, dnfDriverIds]);
+
+  // Warn before navigating away with unsaved changes
+  const blocker = useBlocker({
+    shouldBlockFn: () => hasChanges,
+    enableBeforeUnload: true,
+    withResolver: true,
+    disabled: !hasChanges,
+  });
+
+  useEffect(() => {
+    if (blocker.status !== 'blocked') return;
+    const confirmLeave = window.confirm(
+      'You have unsaved changes to the results. Leave this page?',
+    );
+    if (confirmLeave) {
+      blocker.proceed();
+    } else {
+      blocker.reset();
+    }
+  }, [blocker]);
 
   if (isAdmin === undefined || race === undefined || drivers === undefined) {
     return (
@@ -318,7 +362,26 @@ function AdminRaceDetailPage() {
     selectedDrivers.length === driverCount &&
     selectedDrivers.every((id) => id != null);
 
+  const scoringStatus = existingResult?.scoringStatus;
+
+  // Validate: no classified driver should appear below an unclassified (DNF) driver
+  const classificationOrderError = useMemo(() => {
+    if (!allFilled || dnfDriverIds.length === 0) return null;
+    let lastDnfIndex = -1;
+    for (let i = 0; i < selectedDrivers.length; i++) {
+      const driverId = selectedDrivers[i];
+      const isDnf = dnfDriverIds.includes(driverId);
+      if (isDnf) {
+        lastDnfIndex = i;
+      } else if (lastDnfIndex !== -1) {
+        return `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
+      }
+    }
+    return null;
+  }, [selectedDrivers, dnfDriverIds, allFilled]);
+
   const handlePublish = async () => {
+    if (classificationOrderError) return;
     if (!allFilled) return;
     setIsPublishing(true);
     try {
@@ -328,7 +391,6 @@ function AdminRaceDetailPage() {
         sessionType: selectedSession,
         dnfDriverIds,
       });
-      setPublishSuccess(true);
     } catch (error) {
       console.error('Failed to publish:', error);
     } finally {
@@ -433,10 +495,23 @@ function AdminRaceDetailPage() {
             </div>
           </DndContext>
 
+          {classificationOrderError && (
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+              <p className="text-sm text-red-300">{classificationOrderError}</p>
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <button
               onClick={handlePublish}
-              disabled={!allFilled || isPublishing}
+              disabled={
+                !allFilled ||
+                isPublishing ||
+                scoringStatus === 'scoring' ||
+                !!classificationOrderError ||
+                (!!existingResult && !hasChanges)
+              }
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-black transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
               {isPublishing ? (
@@ -444,10 +519,15 @@ function AdminRaceDetailPage() {
                   <Loader2 size={20} className="animate-spin" />
                   Publishing...
                 </>
-              ) : publishSuccess ? (
+              ) : scoringStatus === 'scoring' ? (
                 <>
-                  <Check size={20} />
-                  Published!
+                  <Loader2 size={20} className="animate-spin" />
+                  Scoring in progress...
+                </>
+              ) : existingResult ? (
+                <>
+                  <Save size={20} />
+                  Update {SESSION_LABELS[selectedSession]} Results
                 </>
               ) : (
                 <>
@@ -456,6 +536,12 @@ function AdminRaceDetailPage() {
                 </>
               )}
             </button>
+            {scoringStatus === 'complete' && (
+              <span className="flex items-center gap-1.5 text-sm text-emerald-400">
+                <Check size={16} />
+                Scored
+              </span>
+            )}
             {!allFilled && (
               <span className="text-sm text-slate-400">
                 Fill all {driverCount} positions to publish

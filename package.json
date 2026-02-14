@@ -15,10 +15,6 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
@@ -59,7 +55,6 @@
     "vite-tsconfig-paths": "6.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2",
     "@react-email/preview-server": "5.2.8",
     "@sentry/vite-plugin": "4.9.1",
     "@storybook/addon-vitest": "10.2.8",

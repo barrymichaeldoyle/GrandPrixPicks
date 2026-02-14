@@ -10,7 +10,9 @@
 
 import type * as drivers from "../drivers.js";
 import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
+import type * as emails_ResultsEmail from "../emails/ResultsEmail.js";
 import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
+import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
 import type * as leaderboards from "../leaderboards.js";
@@ -37,7 +39,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   drivers: typeof drivers;
   "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
+  "emails/ResultsEmail": typeof emails_ResultsEmail;
   "emails/sendReminderEmails": typeof emails_sendReminderEmails;
+  "emails/sendResultEmails": typeof emails_sendResultEmails;
   follows: typeof follows;
   h2h: typeof h2h;
   leaderboards: typeof leaderboards;

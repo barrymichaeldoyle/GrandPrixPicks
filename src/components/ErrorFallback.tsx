@@ -3,6 +3,8 @@ import { Link, useRouter } from '@tanstack/react-router';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
 
+import { toUserFacingMessage } from '@/lib/userFacingError';
+
 import { Button } from './Button';
 
 interface ErrorFallbackProps {
@@ -15,17 +17,6 @@ function getErrorObject(error: unknown): Error {
     return error;
   }
   return new Error(String(error));
-}
-
-function getErrorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes('Server Error')) {
-    return 'Something went wrong while loading data. This has been reported automatically.';
-  }
-  if (message.includes('Network')) {
-    return 'Unable to connect to the server. Please check your internet connection.';
-  }
-  return 'An unexpected error occurred. This has been reported automatically.';
 }
 
 export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
@@ -61,13 +52,20 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
           Oops! Something went wrong
         </h1>
 
-        <p className="mb-8 text-text-muted">{getErrorMessage(error)}</p>
+        <p className="mb-8 text-text-muted">
+          {(() => {
+            const msg = toUserFacingMessage(error);
+            return msg === 'Something went wrong. Please try again.'
+              ? `${msg} This has been reported automatically.`
+              : msg;
+          })()}
+        </p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Button onClick={handleRetry} icon={RefreshCw} variant="primary">
+          <Button onClick={handleRetry} leftIcon={RefreshCw} variant="primary">
             Try Again
           </Button>
-          <Button asChild icon={Home} variant="secondary">
+          <Button asChild leftIcon={Home} variant="secondary">
             <Link to="/">Go home</Link>
           </Button>
         </div>

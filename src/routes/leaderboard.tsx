@@ -212,7 +212,7 @@ function LeaderboardPage() {
               active={scope === 'global'}
               onClick={() => setScope('global')}
               className="flex-1 sm:flex-initial"
-              icon={Globe}
+              leftIcon={Globe}
             >
               Global
             </Button>
@@ -222,7 +222,7 @@ function LeaderboardPage() {
               active={scope === 'following'}
               onClick={() => setScope('following')}
               className="flex-1 sm:flex-initial"
-              icon={Users}
+              leftIcon={Users}
             >
               Following
             </Button>
@@ -234,7 +234,7 @@ function LeaderboardPage() {
               active={gameMode === 'top5'}
               onClick={() => setGameMode('top5')}
               className="flex-1"
-              icon={Trophy}
+              leftIcon={Trophy}
             >
               Top 5
             </Button>
@@ -244,7 +244,7 @@ function LeaderboardPage() {
               active={gameMode === 'h2h'}
               onClick={() => setGameMode('h2h')}
               className="flex-1"
-              icon={Swords}
+              leftIcon={Swords}
             >
               Head to Head
             </Button>

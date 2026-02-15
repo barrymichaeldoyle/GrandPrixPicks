@@ -69,13 +69,13 @@ function HomePage() {
             Call teammate head-to-heads. Compete with friends all season long.
           </p>
           {nextRace != null ? (
-            <Button asChild variant="primary" size="md" icon={ArrowRight}>
+            <Button asChild variant="primary" size="md" rightIcon={ArrowRight}>
               <Link to="/races/$raceSlug" params={{ raceSlug: nextRace.slug }}>
                 Make predictions now
               </Link>
             </Button>
           ) : (
-            <Button asChild variant="primary" size="md" icon={ArrowRight}>
+            <Button asChild variant="primary" size="md" rightIcon={ArrowRight}>
               <Link to="/races">View Races</Link>
             </Button>
           )}

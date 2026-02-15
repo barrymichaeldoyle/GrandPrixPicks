@@ -4,6 +4,8 @@ import { useMutation } from 'convex/react';
 import { AlertCircle, Loader2, Mail } from 'lucide-react';
 import { useState } from 'react';
 
+import { toUserFacingMessage } from '@/lib/userFacingError';
+
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
@@ -97,7 +99,7 @@ function SupportContent() {
     } catch (err) {
       setError(
         err instanceof Error
-          ? err.message
+          ? toUserFacingMessage(err)
           : 'Failed to submit support request. Please try again.',
       );
     } finally {

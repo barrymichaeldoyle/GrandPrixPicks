@@ -3,20 +3,25 @@
   "entry": [
     "src/start.ts",
     "eslint.config.js",
-    "instrument.server.mjs",
-    "server/routes/og/home.png.ts",
-    "server/routes/og/leaderboard.png.ts",
-    "server/routes/og/profile/[username].png.ts",
-    "server/routes/og/race/[raceId].png.ts",
-    "server/routes/og/home-16x9.png.ts"
+    "instrument.server.mjs"
   ],
-  "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}", "server/**/*.ts"],
-  "ignoreFiles": ["src/routeTree.gen.ts", "convex/_generated"],
+  "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}"],
+  "ignoreFiles": [
+    "src/routeTree.gen.ts",
+    "convex/_generated",
+    "src/components/RaceCardSkeleton.tsx",
+    "src/lib/og/fonts.ts",
+    "src/lib/og/renderer.ts",
+    "src/lib/og/styles.ts",
+    "src/lib/og/templates.ts",
+    "src/stories/router-decorator.tsx"
+  ],
   "ignoreDependencies": [
     "@tanstack/router-plugin",
     "tailwindcss",
     "babel-plugin-react-compiler",
-    "@react-email/preview-server"
+    "@react-email/preview-server",
+    "satori"
   ],
   "ignoreBinaries": ["eslint"],
   "ignoreIssues": {

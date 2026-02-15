@@ -6,10 +6,7 @@ import { Flag, Menu, Moon, Sun, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
-import {
-  HeaderUser,
-  signInButtonClasses,
-} from '../integrations/clerk/header-user.tsx';
+import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { Button } from './Button.tsx';
 
 type NavLink = {
@@ -328,11 +325,7 @@ export function Header({
                     }}
                   >
                     <SignInButton mode="modal">
-                      <Button
-                        type="button"
-                        onClick={closeMenu}
-                        className={`block w-full text-left ${signInButtonClasses}`}
-                      >
+                      <Button type="button" onClick={closeMenu}>
                         Sign in
                       </Button>
                     </SignInButton>

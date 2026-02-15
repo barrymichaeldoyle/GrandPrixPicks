@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
+import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -97,7 +98,7 @@ export function H2HPredictionForm({
       setSubmitStatus('error');
       setErrorMessage(
         error instanceof Error
-          ? error.message
+          ? toUserFacingMessage(error)
           : 'Failed to submit H2H predictions',
       );
     } finally {

@@ -25,6 +25,7 @@ import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
+import { toUserFacingMessage } from '@/lib/userFacingError';
 import { teamStandingsIndex } from '@/lib/teams';
 
 import { api } from '../../convex/_generated/api';
@@ -487,7 +488,9 @@ export function PredictionForm({
     } catch (error) {
       setSubmitStatus('error');
       setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to submit prediction',
+        error instanceof Error
+          ? toUserFacingMessage(error)
+          : 'Failed to submit prediction',
       );
     } finally {
       setIsSubmitting(false);

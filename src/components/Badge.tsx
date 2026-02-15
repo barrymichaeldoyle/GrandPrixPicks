@@ -1,7 +1,7 @@
 import { Clock, Lock, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export type BadgeVariant =
+type BadgeVariant =
   | 'sprint'
   | 'upcoming'
   | 'not_yet_open'

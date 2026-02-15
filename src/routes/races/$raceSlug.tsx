@@ -160,7 +160,7 @@ function RaceDetailPage() {
     return <RaceNotFound />;
   }
 
-  const isNextRace = nextRace && nextRace._id === race._id;
+  const isNextRace = Boolean(nextRace && nextRace._id === race._id);
   const isPredictable = race.status === 'upcoming' && isNextRace;
   const isNotYetOpen = race.status === 'upcoming' && !isNextRace;
   const statusStyles = getStatusStyles(isPredictable, race.status);

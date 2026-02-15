@@ -24,6 +24,7 @@ import {
 import { useCallback, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -219,7 +220,9 @@ function JoinSection({
         password: password || undefined,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join league');
+      setError(
+        err instanceof Error ? toUserFacingMessage(err) : 'Failed to join league',
+      );
       setIsJoining(false);
     }
   };
@@ -888,7 +891,11 @@ function EditLeagueForm({
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update league');
+      setError(
+        err instanceof Error
+          ? toUserFacingMessage(err)
+          : 'Failed to update league',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -1004,7 +1011,9 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
       await leaveLeague({ leagueId });
       void navigate({ to: '/leagues' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to leave league');
+      setError(
+        err instanceof Error ? toUserFacingMessage(err) : 'Failed to leave league',
+      );
       setIsLeaving(false);
     }
   };

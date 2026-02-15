@@ -23,7 +23,7 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'px-2 text-base py-1',
+  sm: 'px-3 text-sm py-2',
   md: 'gap-1.5 px-4 py-3 text-base',
   tab: 'rounded-md px-3 py-2 text-sm',
 } as const;
@@ -42,7 +42,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   /** Lucide icon shown before children; size is derived from button size. */
-  icon?: LucideIcon;
+  leftIcon?: LucideIcon;
+  /** Lucide icon shown after children (e.g. ArrowRight for "Continue" actions). */
+  rightIcon?: LucideIcon;
   loading?: boolean;
   /** When true, renders saved (success) state and disables the button. */
   saved?: boolean;
@@ -59,7 +61,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = 'primary',
       size = 'md',
-      icon: Icon,
+      leftIcon: LeftIcon,
+      rightIcon: RightIcon,
       loading = false,
       saved = false,
       disabled,
@@ -91,18 +94,31 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       .filter(Boolean)
       .join(' ');
 
-    const renderContent = (label: ReactNode) =>
-      loading ? (
+    const renderContent = (label: ReactNode) => {
+      const normalContent = (
         <>
-          <Loader2 size={iconSizes[size]} className="shrink-0 animate-spin" />
+          {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
           {label ? <span className="pr-0.5">{label}</span> : null}
-        </>
-      ) : (
-        <>
-          {Icon && <Icon size={iconSizes[size]} aria-hidden />}
-          {label ? <span className="pr-0.5">{label}</span> : null}
+          {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
         </>
       );
+      if (loading) {
+        return (
+          <span className="relative inline-flex items-center justify-center">
+            {/* Invisible copy preserves button size to prevent layout shift */}
+            <span className="invisible inline-flex items-center" aria-hidden>
+              {normalContent}
+            </span>
+            <Loader2
+              size={iconSizes[size]}
+              className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
+              aria-hidden
+            />
+          </span>
+        );
+      }
+      return normalContent;
+    };
 
     if (asChild) {
       const child = Children.only(children);

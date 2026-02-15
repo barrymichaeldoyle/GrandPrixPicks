@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { toUserFacingMessage } from '@/lib/userFacingError';
+
 import { api } from '../../convex/_generated/api';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
@@ -328,7 +330,9 @@ function SettingsPage() {
         navigate({ to: '/p/$username', params: { username: trimmedUsername } });
       }
     } catch (e) {
-      setEditError(e instanceof Error ? e.message : 'Failed to update profile');
+      setEditError(
+        e instanceof Error ? toUserFacingMessage(e) : 'Failed to update profile',
+      );
     } finally {
       setIsSubmitting(false);
     }

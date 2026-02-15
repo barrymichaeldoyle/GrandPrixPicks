@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { toUserFacingMessage } from '@/lib/userFacingError';
+
 import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
@@ -96,7 +98,7 @@ function LeaguesContent() {
               Compete with friends in private leagues
             </p>
           </div>
-          <Button icon={Plus} onClick={() => setShowCreate(!showCreate)}>
+          <Button leftIcon={Plus} onClick={() => setShowCreate(!showCreate)}>
             Create
           </Button>
         </div>
@@ -229,7 +231,9 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
         params: { slug: result.slug },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create league');
+      setError(
+        err instanceof Error ? toUserFacingMessage(err) : 'Failed to create league',
+      );
     } finally {
       setIsSubmitting(false);
     }

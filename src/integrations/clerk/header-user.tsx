@@ -6,7 +6,7 @@ import {
 } from '@clerk/clerk-react';
 import { Settings } from 'lucide-react';
 
-export const signInButtonClasses =
+const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-button-accent text-white hover:bg-button-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
 /**

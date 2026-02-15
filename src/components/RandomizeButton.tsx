@@ -2,6 +2,8 @@ import { useMutation, useQuery } from 'convex/react';
 import { Dices } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { toUserFacingMessage } from '@/lib/userFacingError';
+
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { Button } from './Button';
@@ -84,7 +86,7 @@ export function RandomizeButton({
 
       setShowConfirm(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(toUserFacingMessage(err));
     } finally {
       setLoading(false);
     }
@@ -99,8 +101,8 @@ export function RandomizeButton({
         setError(null);
         setShowConfirm(true);
       }}
+      leftIcon={Dices}
     >
-      <Dices size={16} />
       {buttonLabel}
     </Button>
   );

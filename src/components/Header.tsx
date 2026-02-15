@@ -10,6 +10,7 @@ import {
   HeaderUser,
   signInButtonClasses,
 } from '../integrations/clerk/header-user.tsx';
+import { Button } from './Button.tsx';
 
 type NavLink = {
   to: string;
@@ -327,13 +328,13 @@ export function Header({
                     }}
                   >
                     <SignInButton mode="modal">
-                      <button
+                      <Button
                         type="button"
                         onClick={closeMenu}
                         className={`block w-full text-left ${signInButtonClasses}`}
                       >
                         Sign in
-                      </button>
+                      </Button>
                     </SignInButton>
                   </motion.div>
                 </SignedOut>

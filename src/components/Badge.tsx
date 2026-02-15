@@ -2,7 +2,6 @@ import { Clock, Lock, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 export type BadgeVariant =
-  | 'next'
   | 'sprint'
   | 'upcoming'
   | 'not_yet_open'
@@ -11,7 +10,6 @@ export type BadgeVariant =
   | 'finished';
 
 const variantStyles: Record<BadgeVariant, string> = {
-  next: 'bg-accent-muted text-accent border border-accent/30',
   sprint:
     'sprint-badge bg-purple-50/80 dark:bg-purple-950/35 border border-purple-300 dark:border-purple-500/40',
   upcoming: 'bg-success-muted text-success border border-success/30',

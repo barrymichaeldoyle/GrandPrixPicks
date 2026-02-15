@@ -10,6 +10,7 @@ import {
 } from '../lib/date';
 import { Badge } from './Badge';
 import { Flag } from './Flag';
+import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
 export { StatusBadge } from './Badge';
 
@@ -63,9 +64,16 @@ export function RaceFlag({
   size = 'md',
 }: {
   countryCode: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'full';
 }) {
-  const flagSize = size === 'lg' ? 'xl' : size === 'sm' ? 'md' : 'lg';
+  const flagSize =
+    size === 'full'
+      ? 'full'
+      : size === 'lg'
+        ? 'xl'
+        : size === 'sm'
+          ? 'md'
+          : 'lg';
   return <Flag code={countryCode} size={flagSize} />;
 }
 
@@ -141,12 +149,9 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
             {(isPredictable || isNotYetOpen || race.status === 'locked') && (
               <div className="flex flex-wrap items-center justify-end gap-1.5">
                 {isPredictable && (
-                  <span className="inline-flex items-center rounded-full bg-accent-muted px-2 py-0.5 text-xs font-medium text-accent tabular-nums">
-                    <Countdown
-                      timestamp={race.predictionLockAt}
-                      suffix="to predict"
-                    />
-                  </span>
+                  <PredictionCountdownBadge
+                    predictionLockAt={race.predictionLockAt}
+                  />
                 )}
                 {isNotYetOpen && predictionOpenAt != null && (
                   <span className="inline-flex items-center rounded-full bg-surface-muted px-2 py-0.5 text-xs text-text-muted">

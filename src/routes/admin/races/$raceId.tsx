@@ -354,6 +354,29 @@ function AdminRaceDetailPage() {
     }
   }, [blocker]);
 
+  const driverCountForHooks = drivers?.length ?? 0;
+  const allFilledForHooks =
+    selectedDrivers.length === driverCountForHooks &&
+    selectedDrivers.every((id) => id != null);
+
+  // Must be before early returns - hooks cannot run conditionally
+  const classificationOrderError = useMemo(() => {
+    if (!allFilledForHooks || dnfDriverIds.length === 0) {
+      return null;
+    }
+    let lastDnfIndex = -1;
+    for (let i = 0; i < selectedDrivers.length; i++) {
+      const driverId = selectedDrivers[i];
+      const isDnf = dnfDriverIds.includes(driverId);
+      if (isDnf) {
+        lastDnfIndex = i;
+      } else if (lastDnfIndex !== -1) {
+        return `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
+      }
+    }
+    return null;
+  }, [selectedDrivers, dnfDriverIds, allFilledForHooks]);
+
   if (isAdmin === undefined || race === undefined || drivers === undefined) {
     return <PageLoader />;
   }
@@ -377,35 +400,14 @@ function AdminRaceDetailPage() {
   const classification = selectedDrivers.filter(
     (id): id is Id<'drivers'> => id != null,
   );
-  const allFilled =
-    selectedDrivers.length === driverCount &&
-    selectedDrivers.every((id) => id != null);
 
   const scoringStatus = existingResult?.scoringStatus;
-
-  // Validate: no classified driver should appear below an unclassified (DNF) driver
-  const classificationOrderError = useMemo(() => {
-    if (!allFilled || dnfDriverIds.length === 0) {
-      return null;
-    }
-    let lastDnfIndex = -1;
-    for (let i = 0; i < selectedDrivers.length; i++) {
-      const driverId = selectedDrivers[i];
-      const isDnf = dnfDriverIds.includes(driverId);
-      if (isDnf) {
-        lastDnfIndex = i;
-      } else if (lastDnfIndex !== -1) {
-        return `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
-      }
-    }
-    return null;
-  }, [selectedDrivers, dnfDriverIds, allFilled]);
 
   const handlePublish = async () => {
     if (classificationOrderError) {
       return;
     }
-    if (!allFilled) {
+    if (!allFilledForHooks) {
       return;
     }
     setIsPublishing(true);
@@ -531,7 +533,7 @@ function AdminRaceDetailPage() {
             <button
               onClick={handlePublish}
               disabled={
-                !allFilled ||
+                !allFilledForHooks ||
                 isPublishing ||
                 scoringStatus === 'scoring' ||
                 !!classificationOrderError ||
@@ -567,7 +569,7 @@ function AdminRaceDetailPage() {
                 Scored
               </span>
             )}
-            {!allFilled && (
+            {!allFilledForHooks && (
               <span className="text-sm text-slate-400">
                 Fill all {driverCount} positions to publish
               </span>

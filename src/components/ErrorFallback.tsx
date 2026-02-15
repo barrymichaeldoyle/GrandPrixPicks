@@ -64,17 +64,12 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
         <p className="mb-8 text-text-muted">{getErrorMessage(error)}</p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Button onClick={handleRetry} variant="primary" size="sm">
-            <RefreshCw className="h-4 w-4" />
+          <Button onClick={handleRetry} icon={RefreshCw} variant="primary">
             Try Again
           </Button>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-6 py-2 font-semibold text-text transition-colors hover:bg-surface-muted"
-          >
-            <Home className="h-4 w-4" />
-            Go home
-          </Link>
+          <Button asChild icon={Home} variant="secondary">
+            <Link to="/">Go home</Link>
+          </Button>
         </div>
 
         {import.meta.env.DEV && (

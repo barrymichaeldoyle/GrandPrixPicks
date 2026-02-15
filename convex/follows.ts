@@ -76,19 +76,85 @@ export const isFollowing = query({
 export const getFollowCounts = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const followers = await ctx.db
+    const followerRecords = await ctx.db
       .query('follows')
       .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
       .collect();
 
-    const following = await ctx.db
+    const followingRecords = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
       .collect();
 
+    // Only count follows where the related user still exists (matches listFollowers/listFollowing)
+    const followerUsers = await Promise.all(
+      followerRecords.map((f) => ctx.db.get(f.followerId)),
+    );
+    const followingUsers = await Promise.all(
+      followingRecords.map((f) => ctx.db.get(f.followeeId)),
+    );
+
     return {
-      followerCount: followers.length,
-      followingCount: following.length,
+      followerCount: followerUsers.filter((u) => u != null).length,
+      followingCount: followingUsers.filter((u) => u != null).length,
     };
+  },
+});
+
+/** List users who follow the given user. Requires viewer (logged in). */
+export const listFollowers = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const follows = await ctx.db
+      .query('follows')
+      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
+      .collect();
+
+    const users = await Promise.all(
+      follows.map((f) => ctx.db.get(f.followerId)),
+    );
+
+    return users
+      .filter((u): u is NonNullable<typeof u> => u != null)
+      .map((u) => ({
+        _id: u._id,
+        username: u.username,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+      }));
+  },
+});
+
+/** List users that the given user follows. Requires viewer (logged in). */
+export const listFollowing = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const follows = await ctx.db
+      .query('follows')
+      .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
+      .collect();
+
+    const users = await Promise.all(
+      follows.map((f) => ctx.db.get(f.followeeId)),
+    );
+
+    return users
+      .filter((u): u is NonNullable<typeof u> => u != null)
+      .map((u) => ({
+        _id: u._id,
+        username: u.username,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+      }));
   },
 });

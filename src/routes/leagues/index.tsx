@@ -88,13 +88,15 @@ function LeaguesContent() {
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-text">Leagues</h1>
+            <h1 className="flex items-center gap-2 text-3xl font-bold text-text">
+              <Users className="h-8 w-8 text-accent" aria-hidden />
+              Leagues
+            </h1>
             <p className="text-text-muted">
               Compete with friends in private leagues
             </p>
           </div>
-          <Button size="sm" onClick={() => setShowCreate(!showCreate)}>
-            <Plus className="h-4 w-4" />
+          <Button icon={Plus} onClick={() => setShowCreate(!showCreate)}>
             Create
           </Button>
         </div>
@@ -121,6 +123,13 @@ function LeaguesContent() {
                 (league): league is NonNullable<typeof league> =>
                   league != null,
               )
+              .sort((a, b) =>
+                a.viewerRole === 'admin' && b.viewerRole !== 'admin'
+                  ? -1
+                  : a.viewerRole !== 'admin' && b.viewerRole === 'admin'
+                    ? 1
+                    : 0,
+              )
               .map((league) => (
                 <Link
                   key={league._id}
@@ -134,7 +143,10 @@ function LeaguesContent() {
                         {league.name}
                       </h3>
                       {league.viewerRole === 'admin' && (
-                        <Crown className="h-4 w-4 shrink-0 text-warning" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
+                          <Crown className="h-3 w-3" aria-hidden />
+                          Admin
+                        </span>
                       )}
                       {league.visibility === 'public' && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">

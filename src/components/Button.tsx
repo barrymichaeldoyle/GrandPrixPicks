@@ -1,11 +1,13 @@
 import { Loader2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ButtonHTMLAttributes } from 'react';
-import { forwardRef } from 'react';
+import type { ReactNode } from 'react';
+import { Children, cloneElement, forwardRef, isValidElement } from 'react';
 
 import { Tooltip } from './Tooltip';
 
 const base =
-  'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-colors';
+  'inline-flex items-center justify-center gap-1 font-semibold leading-none rounded-lg transition-colors [&_svg]:shrink-0 [&_svg]:block';
 
 const variants = {
   primary:
@@ -23,16 +25,27 @@ const variants = {
 
 const sizes = {
   sm: 'px-2 text-base py-1',
-  md: 'px-6 py-3 text-base',
+  md: 'gap-1.5 px-4 py-3 text-base',
   tab: 'rounded-md px-3 py-2 text-sm',
 } as const;
+
+/** Icon size (px) per button size for consistent alignment. */
+const iconSizes: Record<keyof typeof sizes, number> = {
+  sm: 16,
+  md: 20,
+  tab: 14,
+};
 
 type ButtonVariant = keyof typeof variants;
 type ButtonSize = keyof typeof sizes;
 
+export type { ButtonSize };
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Lucide icon shown before children; size is derived from button size. */
+  icon?: LucideIcon;
   loading?: boolean;
   /** When true, renders saved (success) state and disables the button. */
   saved?: boolean;
@@ -40,6 +53,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tooltip?: string;
   /** For variant="tab": selected/active state */
   active?: boolean;
+  /** When true, merge props and styles onto the single child (e.g. Link) instead of rendering a button. */
+  asChild?: boolean;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -47,6 +62,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = 'primary',
       size = 'md',
+      icon: Icon,
       loading = false,
       saved = false,
       disabled,
@@ -55,6 +71,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       type = 'button',
       tooltip,
       active,
+      asChild = false,
       ...rest
     },
     ref,
@@ -77,6 +94,41 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       .filter(Boolean)
       .join(' ');
 
+    const renderContent = (label: ReactNode) =>
+      loading ? (
+        <>
+          <Loader2 size={iconSizes[size]} className="shrink-0 animate-spin" />
+          {label ? <span className="pr-0.5">{label}</span> : null}
+        </>
+      ) : (
+        <>
+          {Icon && <Icon size={iconSizes[size]} aria-hidden />}
+          {label ? <span className="pr-0.5">{label}</span> : null}
+        </>
+      );
+
+    if (asChild) {
+      const child = Children.only(children);
+      if (!isValidElement(child)) {
+        throw new Error('Button asChild expects a single React element child');
+      }
+      const childProps = child.props as { className?: string; children?: ReactNode };
+      const mergedClassName = [
+        resolvedClassName,
+        childProps.className,
+      ]
+        .filter(Boolean)
+        .join(' ');
+      return cloneElement(child, {
+        ...(child.props && typeof child.props === 'object'
+          ? child.props
+          : {}),
+        className: mergedClassName,
+        children: renderContent(childProps.children),
+        ref,
+      } as Record<string, unknown>);
+    }
+
     const button = (
       <button
         ref={ref}
@@ -89,14 +141,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }
         {...rest}
       >
-        {loading ? (
-          <>
-            <Loader2 size={20} className="shrink-0 animate-spin" />
-            {children}
-          </>
-        ) : (
-          children
-        )}
+        {renderContent(children)}
       </button>
     );
 

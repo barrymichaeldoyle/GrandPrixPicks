@@ -10,6 +10,7 @@ import {
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
 } from '../lib/sessions';
+import { Badge } from './Badge';
 import { DriverBadge, DriverBadgeSkeleton } from './DriverBadge';
 import { PredictionForm } from './PredictionForm';
 import { Tooltip } from './Tooltip';
@@ -136,9 +137,9 @@ export function WeekendPredictions({
                 return (
                   <th
                     key={session}
-                    className="px-2 py-2 text-center text-text-muted sm:px-4"
+                    className="px-2 py-2 text-left text-text-muted sm:px-4"
                   >
-                    <div className="flex flex-col items-center gap-1 sm:flex-row sm:justify-center sm:gap-2">
+                    <div className="flex flex-col items-center justify-start gap-1 sm:flex-row sm:gap-2">
                       <span className="hidden sm:inline">
                         {SESSION_LABELS[session]}
                       </span>
@@ -154,10 +155,11 @@ export function WeekendPredictions({
                         </span>
                       )}
                       {locked ? (
-                        <span
-                          className="inline-block h-1.5 w-1.5 rounded-full bg-warning"
-                          title="Locked"
-                        />
+                        <Tooltip content="This session has started — predictions can’t be changed">
+                          <span className="shrink-0">
+                            <Badge variant="locked" />
+                          </span>
+                        </Tooltip>
                       ) : (
                         <button
                           type="button"
@@ -193,9 +195,9 @@ export function WeekendPredictions({
                   return (
                     <td
                       key={session}
-                      className="px-2 py-1.5 text-center sm:px-4 sm:py-2"
+                      className="px-2 py-1.5 text-left sm:px-4 sm:py-2"
                     >
-                      <div className="flex h-6 items-center justify-center">
+                      <div className="flex h-6 items-center justify-start">
                         {driver ? (
                           <DriverBadge
                             code={driver.code}

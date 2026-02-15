@@ -68,13 +68,24 @@ function HomePage() {
             Predict the top 5 for every qualifying, sprint, and race session.
             Call teammate head-to-heads. Compete with friends all season long.
           </p>
-          <Link
-            to="/races"
-            className={`${primaryButtonStyles('md')} shadow-md`}
-          >
-            View Races
-            <ArrowRight size={20} />
-          </Link>
+          {nextRace != null ? (
+            <Link
+              to="/races/$raceId"
+              params={{ raceId: nextRace._id }}
+              className={`${primaryButtonStyles('md')} shadow-md`}
+            >
+              Make predictions now
+              <ArrowRight size={20} />
+            </Link>
+          ) : (
+            <Link
+              to="/races"
+              className={`${primaryButtonStyles('md')} shadow-md`}
+            >
+              View Races
+              <ArrowRight size={20} />
+            </Link>
+          )}
         </div>
       </section>
 

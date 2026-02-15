@@ -37,6 +37,14 @@ const SIZES = {
     cdnWidth: 160,
     cdnWidth2x: 320,
   },
+  /** Fills container height; parent must have defined height. */
+  full: {
+    width: 0,
+    height: 0,
+    className: 'h-full w-auto object-contain',
+    cdnWidth: 160,
+    cdnWidth2x: 320,
+  },
 } as const;
 
 type FlagSize = keyof typeof SIZES;
@@ -64,17 +72,18 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
   } = SIZES[size];
   const lowerCode = code.toLowerCase();
 
+  const isFull = size === 'full';
   return (
     <span
-      className={`inline-block shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/10 ${className}`}
+      className={`inline-block shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/10 ${isFull ? 'h-full' : ''} ${className}`}
     >
       <img
         src={`${FLAG_CDN}/w${cdnWidth}/${lowerCode}.png`}
         srcSet={`${FLAG_CDN}/w${cdnWidth2x}/${lowerCode}.png 2x`}
         alt=""
-        width={width}
-        height={height}
-        className={`${sizeClassName} object-cover`}
+        width={isFull ? undefined : width}
+        height={isFull ? undefined : height}
+        className={`${sizeClassName} ${isFull ? '' : 'object-cover'}`}
         loading="eager"
         decoding="sync"
       />

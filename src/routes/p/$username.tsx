@@ -1,6 +1,11 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useMatches,
+} from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
-import { useMutation, useQuery } from 'convex/react';
+import { useQuery } from 'convex/react';
 import {
   Hash,
   History,
@@ -9,16 +14,13 @@ import {
   Star,
   Trophy,
   User,
-  UserCheck,
-  UserPlus,
 } from 'lucide-react';
-import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
 import { api } from '../../../convex/_generated/api';
-import type { Id } from '../../../convex/_generated/dataModel';
 import { Avatar } from '../../components/Avatar';
+import { FollowButton } from '../../components/FollowButton';
 import { primaryButtonStyles } from '../../components/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
@@ -67,6 +69,7 @@ export const Route = createFileRoute('/p/$username')({
 function ProfilePage() {
   const { username } = Route.useParams();
   const { initialProfile } = Route.useLoaderData();
+  const matches = useMatches();
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const currentProfile = profile ?? initialProfile;
@@ -93,6 +96,20 @@ function ProfilePage() {
 
   const drivers = useQuery(api.drivers.listDrivers);
 
+  const followCounts = useQuery(
+    api.follows.getFollowCounts,
+    currentProfile ? { userId: currentProfile._id } : 'skip',
+  );
+
+  const isChildRoute = matches.some(
+    (m) =>
+      m.routeId === '/p/$username/followers' ||
+      m.routeId === '/p/$username/following',
+  );
+  if (isChildRoute) {
+    return <Outlet />;
+  }
+
   if (profile === undefined && !initialProfile) {
     return <PageLoader />;
   }
@@ -117,10 +134,6 @@ function ProfilePage() {
       </div>
     );
   }
-
-  const followCounts = useQuery(api.follows.getFollowCounts, {
-    userId: currentProfile._id,
-  });
 
   const isOwner = currentProfile.isOwner;
   const displayName =
@@ -174,19 +187,31 @@ function ProfilePage() {
                 {currentProfile.username && (
                   <p className="text-text-muted">@{currentProfile.username}</p>
                 )}
-                {followCounts && (
+                {followCounts && currentProfile.username && (
                   <p className="text-sm text-text-muted">
-                    <span className="font-medium text-text">
+                    <span className="font-bold text-text">
                       {followCounts.followerCount}
                     </span>{' '}
-                    {followCounts.followerCount === 1
-                      ? 'follower'
-                      : 'followers'}{' '}
-                    &middot;{' '}
-                    <span className="font-medium text-text">
+                    <Link
+                      to="/p/$username/followers"
+                      params={{ username: currentProfile.username }}
+                      className="font-bold text-accent hover:text-accent/90"
+                    >
+                      {followCounts.followerCount === 1
+                        ? 'follower'
+                        : 'followers'}
+                    </Link>
+                    {' · '}
+                    <span className="font-bold text-text">
                       {followCounts.followingCount}
                     </span>{' '}
-                    following
+                    <Link
+                      to="/p/$username/following"
+                      params={{ username: currentProfile.username }}
+                      className="font-bold text-accent hover:text-accent/90"
+                    >
+                      following
+                    </Link>
                   </p>
                 )}
               </div>
@@ -378,7 +403,7 @@ function ProfilePage() {
             {isOwner && (
               <Link
                 to="/races"
-                className={`mt-4 inline-block ${primaryButtonStyles('sm')}`}
+                className={`mt-4 inline-block ${primaryButtonStyles('md')}`}
               >
                 View Races
               </Link>
@@ -410,86 +435,5 @@ function ProfilePage() {
         )}
       </div>
     </div>
-  );
-}
-
-function FollowButton({ followeeId }: { followeeId: Id<'users'> }) {
-  const isFollowing = useQuery(api.follows.isFollowing, { followeeId });
-  const followMutation = useMutation(api.follows.follow);
-  const unfollowMutation = useMutation(api.follows.unfollow);
-  const [optimistic, setOptimistic] = useState<boolean | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const following = optimistic ?? isFollowing;
-
-  // Not signed in or still loading
-  if (isFollowing === undefined) {
-    return null;
-  }
-
-  const handleClick = async () => {
-    const willFollow = !following;
-    setOptimistic(willFollow);
-    try {
-      if (willFollow) {
-        await followMutation({ followeeId });
-      } else {
-        await unfollowMutation({ followeeId });
-      }
-    } catch {
-      setOptimistic(null);
-    }
-  };
-
-  const buttonClass =
-    'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';
-
-  if (following) {
-    return (
-      <button
-        type="button"
-        onClick={() => void handleClick()}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`${buttonClass} ${
-          isHovered
-            ? 'border border-red-300 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
-            : 'border border-border bg-surface-muted text-text-muted'
-        }`}
-      >
-        <span className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-          <span
-            className={`absolute inset-0 flex items-center justify-center transition-opacity ${
-              isHovered ? 'opacity-0' : 'opacity-100'
-            }`}
-            aria-hidden
-          >
-            <UserCheck className="h-3.5 w-3.5" />
-          </span>
-          <span
-            className={`absolute inset-0 flex -translate-x-0.5 items-center justify-center transition-opacity ${
-              isHovered ? 'opacity-100' : 'opacity-0'
-            }`}
-            aria-hidden
-          >
-            <User className="h-3.5 w-3.5" />
-          </span>
-        </span>
-        <span className="flex-1">{isHovered ? 'Unfollow' : 'Following'}</span>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => void handleClick()}
-      className={`${buttonClass} border border-transparent bg-accent text-white hover:bg-accent/90`}
-    >
-      <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-        <UserPlus className="h-3.5 w-3.5" />
-      </span>
-      <span className="flex-1">Follow</span>
-    </button>
   );
 }

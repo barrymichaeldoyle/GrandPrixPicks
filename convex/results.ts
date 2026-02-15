@@ -243,6 +243,53 @@ export const getAllResultsForRace = query({
   },
 });
 
+/** Top-5 actual classification per session for showing "actual result" next to picks (e.g. WeekendPredictions). */
+export const getEnrichedTop5BySession = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+
+    const bySession: Partial<
+      Record<
+        SessionType,
+        Array<{
+          position: number;
+          driverId: Id<'drivers'>;
+          code: string;
+          displayName: string;
+          number: number | null;
+          team: string | null;
+          nationality: string | null;
+        }>
+      >
+    > = {};
+
+    for (const result of results) {
+      const top5 = result.classification.slice(0, 5);
+      const enriched = await Promise.all(
+        top5.map(async (driverId: Id<'drivers'>, index: number) => {
+          const driver = await ctx.db.get(driverId);
+          return {
+            position: index + 1,
+            driverId,
+            code: driver?.code ?? '???',
+            displayName: driver?.displayName ?? 'Unknown',
+            number: driver?.number ?? null,
+            team: driver?.team ?? null,
+            nationality: driver?.nationality ?? null,
+          };
+        }),
+      );
+      bySession[result.sessionType] = enriched;
+    }
+
+    return bySession;
+  },
+});
+
 // ============ Helper functions ============
 
 async function upsertStandings(

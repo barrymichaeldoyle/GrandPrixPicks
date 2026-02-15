@@ -247,18 +247,11 @@ export function RaceResults({ raceId, race, hideHeader }: RaceResultsProps) {
                     Result
                   </th>
                   {hasMyPicks && (
-                    <>
-                      <th className="px-2 py-2 text-left text-text-muted sm:px-4">
-                        <Tooltip content="Your predicted finisher">
-                          Pick
-                        </Tooltip>
-                      </th>
-                      <th className="px-2 py-2 text-right text-text-muted sm:px-4">
-                        <Tooltip content="Points scored for this pick">
-                          Pts
-                        </Tooltip>
-                      </th>
-                    </>
+                    <th className="px-2 py-2 text-left text-text-muted sm:px-4">
+                      <Tooltip content="Your predicted finisher and points for this pick">
+                        Pick
+                      </Tooltip>
+                    </th>
                   )}
                 </tr>
               </thead>
@@ -309,9 +302,9 @@ export function RaceResults({ raceId, race, hideHeader }: RaceResultsProps) {
                         </div>
                       </td>
                       {hasMyPicks && (
-                        <>
-                          <td className="px-2 py-1.5 sm:px-4 sm:py-2">
-                            {showPickColumn && myPick ? (
+                        <td className="px-2 py-1.5 sm:px-4 sm:py-2">
+                          {showPickColumn && myPick ? (
+                            <div className="flex items-center gap-2">
                               <DriverBadge
                                 code={myPick.code}
                                 team={driverByCode.get(myPick.code)?.team}
@@ -323,22 +316,18 @@ export function RaceResults({ raceId, race, hideHeader }: RaceResultsProps) {
                                   driverByCode.get(myPick.code)?.nationality
                                 }
                               />
-                            ) : showPickColumn ? (
-                              <span className="text-text-muted/50">—</span>
-                            ) : null}
-                          </td>
-                          <td className="px-2 py-1.5 text-right sm:px-4 sm:py-2">
-                            {showPickColumn && myPick ? (
                               <span
-                                className={`font-bold ${
+                                className={`font-bold shrink-0 ${
                                   myPick.points ? 'text-success' : 'text-error'
                                 }`}
                               >
                                 +{myPick.points}
                               </span>
-                            ) : null}
-                          </td>
-                        </>
+                            </div>
+                          ) : showPickColumn ? (
+                            <span className="text-text-muted/50">—</span>
+                          ) : null}
+                        </td>
                       )}
                     </tr>
                   );

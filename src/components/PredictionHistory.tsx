@@ -531,16 +531,29 @@ export function WeekendCard({
                                   P{position + 1}
                                 </span>
                                 {driver ? (
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1.5">
                                     {breakdownItem !== undefined ? (
-                                      <ScoredDriverBadge
-                                        code={driver.code}
-                                        team={driver.team}
-                                        displayName={driver.displayName}
-                                        number={driver.number}
-                                        nationality={driver.nationality}
-                                        pickPoints={breakdownItem.points}
-                                      />
+                                      <>
+                                        <ScoredDriverBadge
+                                          code={driver.code}
+                                          team={driver.team}
+                                          displayName={driver.displayName}
+                                          number={driver.number}
+                                          nationality={driver.nationality}
+                                          pickPoints={breakdownItem.points}
+                                        />
+                                        <span
+                                          className={`text-[10px] font-bold shrink-0 ${
+                                            breakdownItem.points
+                                              ? 'text-success'
+                                              : 'text-error/60'
+                                          }`}
+                                        >
+                                          {breakdownItem.points
+                                            ? `+${breakdownItem.points}`
+                                            : '-'}
+                                        </span>
+                                      </>
                                     ) : (
                                       <DriverBadge
                                         code={driver.code}
@@ -556,19 +569,6 @@ export function WeekendCard({
                                 ) : (
                                   <span className="flex h-8 items-center text-text-muted/50">
                                     —
-                                  </span>
-                                )}
-                                {breakdownItem !== undefined && (
-                                  <span
-                                    className={`text-[10px] font-bold ${
-                                      breakdownItem.points
-                                        ? 'text-success'
-                                        : 'text-error/60'
-                                    }`}
-                                  >
-                                    {breakdownItem.points
-                                      ? `+${breakdownItem.points}`
-                                      : '-'}
                                   </span>
                                 )}
                               </div>

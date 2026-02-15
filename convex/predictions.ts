@@ -105,6 +105,7 @@ export const myPredictionHistory = query({
 
         return {
           raceId,
+          raceSlug: race.slug,
           raceName: race.name,
           raceRound: race.round,
           raceStatus: race.status,
@@ -224,6 +225,7 @@ export const getUserPredictionHistory = query({
 
         return {
           raceId,
+          raceSlug: race.slug,
           raceName: race.name,
           raceRound: race.round,
           raceStatus: race.status,

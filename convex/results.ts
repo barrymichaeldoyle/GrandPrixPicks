@@ -73,6 +73,101 @@ export const getMyScoreForRace = query({
   },
 });
 
+export const getMyWeekendScore = query({
+  args: {
+    raceId: v.id('races'),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const scores = await ctx.db
+      .query('scores')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .collect();
+
+    if (scores.length === 0) {
+      return null;
+    }
+
+    let totalPoints = 0;
+    for (const s of scores) {
+      totalPoints += s.points;
+    }
+
+    const race = await ctx.db.get(args.raceId);
+    const totalSessions = race?.hasSprint ? 4 : 2;
+
+    return {
+      totalPoints,
+      scoredSessions: scores.length,
+      totalSessions,
+    };
+  },
+});
+
+/** Per-session scores with enriched breakdown for WeekendPredictions / race detail. */
+export const getMyScoresForRace = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const scores = await ctx.db
+      .query('scores')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .collect();
+
+    if (scores.length === 0) {
+      return null;
+    }
+
+    const bySession: Record<
+      SessionType,
+      {
+        points: number;
+        enrichedBreakdown: Array<
+          ScoreBreakdownItem & { code: string; displayName: string }
+        >;
+      } | null
+    > = {
+      quali: null,
+      sprint_quali: null,
+      sprint: null,
+      race: null,
+    };
+
+    for (const score of scores) {
+      const enrichedBreakdown = score.breakdown
+        ? await Promise.all(
+            score.breakdown.map(async (item: ScoreBreakdownItem) => {
+              const driver = await ctx.db.get(item.driverId);
+              return {
+                ...item,
+                code: driver?.code ?? '???',
+                displayName: driver?.displayName ?? 'Unknown',
+              };
+            }),
+          )
+        : [];
+      bySession[score.sessionType] = {
+        points: score.points,
+        enrichedBreakdown,
+      };
+    }
+
+    return bySession;
+  },
+});
+
 export const getResultForRace = query({
   args: {
     raceId: v.id('races'),

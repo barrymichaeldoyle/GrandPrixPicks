@@ -6,7 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
-import type { Id } from '../../../convex/_generated/dataModel';
 import { InlineLoader } from '../../components/InlineLoader';
 import { RaceDetailHeader } from '../../components/RaceDetailHeader';
 import { RandomizeButton } from '../../components/RandomizeButton';
@@ -23,16 +22,14 @@ import {
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
-export const Route = createFileRoute('/races/$raceId')({
+export const Route = createFileRoute('/races/$raceSlug')({
   component: RaceDetailPage,
   loader: async ({ params }) => {
-    const raceId = params.raceId as Id<'races'>;
-    const [race, nextRace, predictionOpenAt] = await Promise.all([
-      convex.query(api.races.getRace, { raceId }),
+    const [race, nextRace] = await Promise.all([
+      convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
       convex.query(api.races.getNextRace),
-      convex.query(api.races.getPredictionOpenAt, { raceId }),
     ]);
-    return { race, nextRace, predictionOpenAt };
+    return { race, nextRace };
   },
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
@@ -45,7 +42,7 @@ export const Route = createFileRoute('/races/$raceId')({
     const description = race
       ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
       : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
-    const canonical = canonicalMeta(`/races/${params.raceId}`);
+    const canonical = canonicalMeta(`/races/${params.raceSlug}`);
     const scripts: Array<{ type: string; children: string }> = [];
     if (race) {
       scripts.push({
@@ -58,7 +55,7 @@ export const Route = createFileRoute('/races/$raceId')({
           eventStatus: 'https://schema.org/EventScheduled',
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           description,
-          url: `${siteConfig.url}/races/${params.raceId}`,
+          url: `${siteConfig.url}/races/${params.raceSlug}`,
           sport: 'Formula 1',
           organizer: {
             '@type': 'Organization',
@@ -128,22 +125,26 @@ function getStatusStyles(
 }
 
 function RaceDetailPage() {
-  const { race, nextRace, predictionOpenAt } = Route.useLoaderData();
+  const { race, nextRace } = Route.useLoaderData();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const [top5EditingSession, setTop5EditingSession] =
     useState<SessionType | null>(null);
   const [h2hEditingSession, setH2hEditingSession] =
     useState<SessionType | null>(null);
 
+  const predictionOpenAt = useQuery(
+    api.races.getPredictionOpenAt,
+    race ? { raceId: race._id } : 'skip',
+  );
   const myScore = useQuery(
-    api.results.getMyScoreForRace,
+    api.results.getMyWeekendScore,
     race ? { raceId: race._id } : 'skip',
   );
   const weekendPredictions = useQuery(
     api.predictions.myWeekendPredictions,
     race ? { raceId: race._id } : 'skip',
   );
-  const hasMyPicks = myScore && myScore.enrichedBreakdown?.length;
+  const hasMyPicks = myScore && myScore.scoredSessions > 0;
   const hasPredictions =
     weekendPredictions?.predictions &&
     Object.values(weekendPredictions.predictions).some((p) => p !== null);
@@ -159,7 +160,6 @@ function RaceDetailPage() {
     return <RaceNotFound />;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- nextRace can be null at runtime
   const isNextRace = nextRace && nextRace._id === race._id;
   const isPredictable = race.status === 'upcoming' && isNextRace;
   const isNotYetOpen = race.status === 'upcoming' && !isNextRace;
@@ -226,7 +226,9 @@ function RaceDetailPage() {
                 )
               ) : isNotYetOpen ? (
                 <NotYetOpenSection
-                  predictionOpenAt={predictionOpenAt ?? null}
+                  predictionOpenAt={
+                    predictionOpenAt === undefined ? null : predictionOpenAt
+                  }
                 />
               ) : race.status === 'locked' ? (
                 <LockedSection />

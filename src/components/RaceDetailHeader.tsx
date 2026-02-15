@@ -2,16 +2,20 @@ import { Calendar, Clock, Trophy } from 'lucide-react';
 
 import type { Doc } from '../../convex/_generated/dataModel';
 import { formatDate, formatTime } from '../lib/date';
-import { getCountryCodeForRace, RaceFlag, StatusBadge } from './RaceCard';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
+import { getCountryCodeForRace, RaceFlag, StatusBadge } from './RaceCard';
 import { ScoringLegend } from './RaceResults';
 import { Tooltip } from './Tooltip';
 
 interface RaceDetailHeaderProps {
   race: Doc<'races'>;
   isNextRace: boolean;
-  /** Total points for this race (when finished); shown in sidebar */
-  myScore?: { points: number } | null;
+  /** Weekend score summary (shown when any session is scored) */
+  myScore?: {
+    totalPoints: number;
+    scoredSessions: number;
+    totalSessions: number;
+  } | null;
   hasMyPicks?: boolean;
 }
 
@@ -27,9 +31,12 @@ export function RaceDetailHeader({
   return (
     <div className="relative">
       {/* Badge: top-right corner of card */}
-      <div className="absolute top-2 right-3">
+      <div className="absolute top-11 right-1">
         {showCountdown ? (
-          <PredictionCountdownBadge predictionLockAt={race.predictionLockAt} />
+          <PredictionCountdownBadge
+            predictionLockAt={race.predictionLockAt}
+            sessionLabel="Race"
+          />
         ) : (
           <StatusBadge status={race.status} isNext={isNextRace} />
         )}
@@ -64,22 +71,23 @@ export function RaceDetailHeader({
           </div>
         </div>
 
-        {/* Right: Results header (desktop only, when race is finished) */}
-        {race.status === 'finished' && (
-          <div className="hidden shrink-0 items-center gap-2 md:flex">
+        {/* Right: Results header (desktop only, when any session is scored) */}
+        {myScore != null && (
+          <div className="hidden shrink-0 items-center gap-2 pt-1 pr-1 md:flex">
             <div className="flex items-center gap-2">
               <Trophy className="h-4 w-4 text-accent" aria-hidden="true" />
               <span className="text-sm font-semibold text-text">
-                Weekend Results
+                {myScore.scoredSessions < myScore.totalSessions
+                  ? `${myScore.scoredSessions} of ${myScore.totalSessions} sessions`
+                  : 'Weekend Results'}
               </span>
             </div>
-            {myScore && (
-              <Tooltip content="Points you scored for this session">
-                <span className="text-sm font-bold text-accent">
-                  {myScore.points} {myScore.points === 1 ? 'point' : 'points'}
-                </span>
-              </Tooltip>
-            )}
+            <Tooltip content="Points you scored across scored sessions">
+              <span className="text-sm font-bold text-accent">
+                {myScore.totalPoints}{' '}
+                {myScore.totalPoints === 1 ? 'point' : 'points'}
+              </span>
+            </Tooltip>
             {hasMyPicks && <ScoringLegend />}
           </div>
         )}

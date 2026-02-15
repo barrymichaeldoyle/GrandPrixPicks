@@ -123,8 +123,8 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
 
   return (
     <Link
-      to="/races/$raceId"
-      params={{ raceId: race._id }}
+      to="/races/$raceSlug"
+      params={{ raceSlug: race.slug }}
       className={`group flex h-full cursor-pointer flex-col rounded-xl border bg-surface p-2.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-md focus-visible:scale-[1.02] focus-visible:shadow-md sm:p-3 ${
         isNext
           ? 'border-accent/50 hover:border-accent'
@@ -151,6 +151,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
                 {isPredictable && (
                   <PredictionCountdownBadge
                     predictionLockAt={race.predictionLockAt}
+                    sessionLabel="Race"
                   />
                 )}
                 {isNotYetOpen && predictionOpenAt != null && (

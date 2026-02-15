@@ -19,14 +19,6 @@ export function formatTime(timestamp: number): string {
   });
 }
 
-export function formatTimeWithTz(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-}
-
 export function formatDateLong(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString(undefined, {
     weekday: 'short',

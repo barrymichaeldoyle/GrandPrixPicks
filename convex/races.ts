@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import type { Doc } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
 
@@ -24,7 +25,7 @@ export const listRaces = query({
 
 export const getNextRace = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<Doc<'races'> | null> => {
     const now = Date.now();
     const races = await ctx.db.query('races').collect();
     const upcoming = races
@@ -39,6 +40,16 @@ export const getRace = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.raceId);
+  },
+});
+
+export const getRaceBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+      .unique();
   },
 });
 

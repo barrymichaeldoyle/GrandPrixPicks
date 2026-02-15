@@ -3,11 +3,11 @@ import { useQuery } from 'convex/react';
 import { Flag, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { InlineLoader } from '@/components/InlineLoader';
 import { PageLoader } from '@/components/PageLoader';
 
 import { api } from '../../../convex/_generated/api';
 import { NotFoundPage } from '../__root';
-import { InlineLoader } from '@/components/InlineLoader';
 
 export const Route = createFileRoute('/admin/')({
   component: AdminPage,

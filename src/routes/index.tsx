@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { api } from '../../convex/_generated/api';
-import { primaryButtonStyles } from '../components/Button';
+import { Button } from '../components/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { RaceCard } from '../components/RaceCard';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
@@ -69,22 +69,15 @@ function HomePage() {
             Call teammate head-to-heads. Compete with friends all season long.
           </p>
           {nextRace != null ? (
-            <Link
-              to="/races/$raceId"
-              params={{ raceId: nextRace._id }}
-              className={`${primaryButtonStyles('md')} shadow-md`}
-            >
-              Make predictions now
-              <ArrowRight size={20} />
-            </Link>
+            <Button asChild variant="primary" size="md" icon={ArrowRight}>
+              <Link to="/races/$raceSlug" params={{ raceSlug: nextRace.slug }}>
+                Make predictions now
+              </Link>
+            </Button>
           ) : (
-            <Link
-              to="/races"
-              className={`${primaryButtonStyles('md')} shadow-md`}
-            >
-              View Races
-              <ArrowRight size={20} />
-            </Link>
+            <Button asChild variant="primary" size="md" icon={ArrowRight}>
+              <Link to="/races">View Races</Link>
+            </Button>
           )}
         </div>
       </section>
@@ -94,8 +87,6 @@ function HomePage() {
         <h2 className="mb-4 text-lg font-semibold text-text-muted">
           Next Race
         </h2>
-        {/* Loader type omits null but getNextRace can return null at runtime */}
-        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {nextRace != null ? (
           <RaceCard race={nextRace} isNext />
         ) : (

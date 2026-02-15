@@ -20,10 +20,10 @@ import { displayTeamName } from '@/lib/display';
 
 import { api } from '../../../convex/_generated/api';
 import { Avatar } from '../../components/Avatar';
-import { FollowButton } from '../../components/FollowButton';
 import { primaryButtonStyles } from '../../components/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
+import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
 import { WeekendCard } from '../../components/PredictionHistory';
 import { Tooltip } from '../../components/Tooltip';

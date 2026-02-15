@@ -14,10 +14,11 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { InlineLoader } from '@/components/InlineLoader';
+
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
-import { InlineLoader } from '@/components/InlineLoader';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -211,8 +212,8 @@ function LeaderboardPage() {
               active={scope === 'global'}
               onClick={() => setScope('global')}
               className="flex-1 sm:flex-initial"
+              icon={Globe}
             >
-              <Globe className="h-4 w-4" />
               Global
             </Button>
             <Button
@@ -221,8 +222,8 @@ function LeaderboardPage() {
               active={scope === 'following'}
               onClick={() => setScope('following')}
               className="flex-1 sm:flex-initial"
+              icon={Users}
             >
-              <Users className="h-4 w-4" />
               Following
             </Button>
           </div>
@@ -233,8 +234,8 @@ function LeaderboardPage() {
               active={gameMode === 'top5'}
               onClick={() => setGameMode('top5')}
               className="flex-1"
+              icon={Trophy}
             >
-              <Trophy className="h-4 w-4" />
               Top 5
             </Button>
             <Button
@@ -243,8 +244,8 @@ function LeaderboardPage() {
               active={gameMode === 'h2h'}
               onClick={() => setGameMode('h2h')}
               className="flex-1"
+              icon={Swords}
             >
-              <Swords className="h-4 w-4" />
               Head to Head
             </Button>
           </div>

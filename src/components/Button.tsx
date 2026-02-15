@@ -1,7 +1,6 @@
-import { Loader2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import type { ButtonHTMLAttributes } from 'react';
-import type { ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Children, cloneElement, forwardRef, isValidElement } from 'react';
 
 import { Tooltip } from './Tooltip';
@@ -38,8 +37,6 @@ const iconSizes: Record<keyof typeof sizes, number> = {
 
 type ButtonVariant = keyof typeof variants;
 type ButtonSize = keyof typeof sizes;
-
-export type { ButtonSize };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -112,17 +109,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (!isValidElement(child)) {
         throw new Error('Button asChild expects a single React element child');
       }
-      const childProps = child.props as { className?: string; children?: ReactNode };
-      const mergedClassName = [
-        resolvedClassName,
-        childProps.className,
-      ]
+      const childProps = child.props as {
+        className?: string;
+        children?: ReactNode;
+      };
+      const mergedClassName = [resolvedClassName, childProps.className]
         .filter(Boolean)
         .join(' ');
       return cloneElement(child, {
-        ...(child.props && typeof child.props === 'object'
-          ? child.props
-          : {}),
+        ...(child.props && typeof child.props === 'object' ? child.props : {}),
         className: mergedClassName,
         children: renderContent(childProps.children),
         ref,

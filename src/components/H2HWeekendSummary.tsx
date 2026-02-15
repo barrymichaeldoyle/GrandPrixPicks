@@ -12,6 +12,7 @@ import {
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
+import { Badge } from './Badge';
 import { DriverBadge } from './DriverBadge';
 import { H2HPredictionForm } from './H2HPredictionForm';
 import { Tooltip } from './Tooltip';
@@ -151,10 +152,11 @@ export function H2HWeekendSummary({
                         </span>
                       )}
                       {locked ? (
-                        <span
-                          className="inline-block h-1.5 w-1.5 rounded-full bg-warning"
-                          title="Locked"
-                        />
+                        <Tooltip content="This session has started — predictions can't be changed">
+                          <span className="shrink-0">
+                            <Badge variant="locked" />
+                          </span>
+                        </Tooltip>
                       ) : (
                         <button
                           type="button"

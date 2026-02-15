@@ -11,7 +11,11 @@ import {
   SESSION_LABELS_SHORT,
 } from '../lib/sessions';
 import { Badge } from './Badge';
-import { DriverBadge, DriverBadgeSkeleton } from './DriverBadge';
+import {
+  DriverBadge,
+  DriverBadgeSkeleton,
+  ScoredDriverBadge,
+} from './DriverBadge';
 import { PredictionForm } from './PredictionForm';
 import { Tooltip } from './Tooltip';
 
@@ -55,6 +59,9 @@ export function WeekendPredictions({
   onEditingSessionChange,
 }: WeekendPredictionsProps) {
   const weekendPredictions = useQuery(api.predictions.myWeekendPredictions, {
+    raceId: race._id,
+  });
+  const scores = useQuery(api.results.getMyScoresForRace, {
     raceId: race._id,
   });
   const drivers = useQuery(api.drivers.listDrivers);
@@ -154,6 +161,13 @@ export function WeekendPredictions({
                           {SESSION_LABELS[session]}
                         </span>
                       )}
+                      {scores?.[session] != null && (
+                        <Tooltip content="Points you scored for this session">
+                          <span className="text-sm font-bold text-accent">
+                            {scores[session].points} pts
+                          </span>
+                        </Tooltip>
+                      )}
                       {locked ? (
                         <Tooltip content="This session has started — predictions can’t be changed">
                           <span className="shrink-0">
@@ -192,25 +206,56 @@ export function WeekendPredictions({
                   const driver = driverId
                     ? drivers?.find((d) => d._id === driverId)
                     : null;
+                  const sessionScore = scores?.[session];
+                  const breakdownItem = sessionScore?.enrichedBreakdown.find(
+                    (b) => b.predictedPosition === position + 1,
+                  );
                   return (
                     <td
                       key={session}
                       className="px-2 py-1.5 text-left sm:px-4 sm:py-2"
                     >
-                      <div className="flex h-6 items-center justify-start">
-                        {driver ? (
-                          <DriverBadge
-                            code={driver.code}
-                            team={driver.team}
-                            displayName={driver.displayName}
-                            number={driver.number}
-                            nationality={driver.nationality}
-                            size="sm"
-                          />
-                        ) : driverId && drivers === undefined ? (
-                          <DriverBadgeSkeleton size="sm" />
-                        ) : (
-                          <span className="text-text-muted/50">—</span>
+                      <div className="flex flex-col items-start gap-0.5">
+                        <div className="flex h-6 items-center justify-start">
+                          {driver ? (
+                            breakdownItem !== undefined ? (
+                              <ScoredDriverBadge
+                                code={driver.code}
+                                team={driver.team}
+                                displayName={driver.displayName}
+                                number={driver.number}
+                                nationality={driver.nationality}
+                                size="sm"
+                                pickPoints={breakdownItem.points}
+                              />
+                            ) : (
+                              <DriverBadge
+                                code={driver.code}
+                                team={driver.team}
+                                displayName={driver.displayName}
+                                number={driver.number}
+                                nationality={driver.nationality}
+                                size="sm"
+                              />
+                            )
+                          ) : driverId && drivers === undefined ? (
+                            <DriverBadgeSkeleton size="sm" />
+                          ) : (
+                            <span className="text-text-muted/50">—</span>
+                          )}
+                        </div>
+                        {breakdownItem !== undefined && (
+                          <span
+                            className={`text-[10px] font-bold ${
+                              breakdownItem.points
+                                ? 'text-success'
+                                : 'text-error/60'
+                            }`}
+                          >
+                            {breakdownItem.points
+                              ? `+${breakdownItem.points}`
+                              : '-'}
+                          </span>
                         )}
                       </div>
                     </td>

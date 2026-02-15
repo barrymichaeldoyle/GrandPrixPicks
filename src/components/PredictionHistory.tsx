@@ -49,6 +49,7 @@ type SessionData = {
 
 type Weekend = {
   raceId: Id<'races'>;
+  raceSlug: string;
   raceName: string;
   raceRound: number;
   raceStatus: string;
@@ -77,6 +78,7 @@ type CardState =
   | 'upcoming_editable'
   | 'upcoming_hidden'
   | 'locked'
+  | 'partial'
   | 'finished';
 
 function getCardState(weekend: Weekend, isOwner: boolean): CardState {
@@ -84,6 +86,12 @@ function getCardState(weekend: Weekend, isOwner: boolean): CardState {
     return 'finished';
   }
   if (weekend.raceStatus === 'locked') {
+    const hasScoredSession = Object.values(weekend.sessions).some(
+      (s) => s !== null && s.points != null,
+    );
+    if (hasScoredSession) {
+      return 'partial';
+    }
     return 'locked';
   }
   if (!isOwner) {
@@ -101,6 +109,7 @@ const BORDER_LEFT: Record<CardState, string> = {
   upcoming_editable: 'rounded-l-sm border-l-8 border-l-accent/30',
   upcoming_hidden: '',
   locked: 'rounded-l-sm border-l-8 border-l-warning/30',
+  partial: 'rounded-l-sm border-l-8 border-l-accent/30',
   finished: 'rounded-l-sm border-l-8 border-l-success/30',
 };
 
@@ -165,6 +174,11 @@ function SummaryLine({
     return <span className="text-xs text-text-muted">Awaiting results</span>;
   }
 
+  const scoredCount = sessions.filter(
+    (s) => weekend.sessions[s]?.points != null,
+  ).length;
+  const isPartial = cardState === 'partial';
+
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
       {exact > 0 && (
@@ -189,6 +203,11 @@ function SummaryLine({
         <span className="flex items-center gap-1 text-xs text-text-muted">
           <span className="inline-block h-2 w-2 rounded-full bg-error/40" />
           {miss} miss
+        </span>
+      )}
+      {isPartial && (
+        <span className="text-xs text-text-muted/60">
+          · {scoredCount} of {sessions.length} sessions
         </span>
       )}
     </div>
@@ -339,13 +358,7 @@ export function WeekendCard({
   const [expanded, setExpanded] = useState(false);
   const sessions = getSessionsForWeekend(!!weekend.hasSprint);
   const cardState = getCardState(weekend, isOwner);
-  const countryCode = getCountryCodeForRace({
-    slug:
-      weekend.raceName
-        .toLowerCase()
-        .replace(/ grand prix$/i, '')
-        .replace(/ /g, '-') + '-2026',
-  });
+  const countryCode = getCountryCodeForRace({ slug: weekend.raceSlug });
 
   const scoredSessionCount = sessions.filter(
     (s) => weekend.sessions[s]?.points != null,
@@ -376,8 +389,8 @@ export function WeekendCard({
       {/* Header — stacked on mobile, row on desktop */}
       <div className="flex flex-col gap-4 p-4 transition-colors hover:bg-surface-hover sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <Link
-          to="/races/$raceId"
-          params={{ raceId: weekend.raceId }}
+          to="/races/$raceSlug"
+          params={{ raceSlug: weekend.raceSlug }}
           className="flex min-w-0 flex-1 items-start gap-3 sm:items-center"
         >
           {countryCode && (
@@ -390,7 +403,7 @@ export function WeekendCard({
               <span className="text-sm text-text-muted">
                 Round {weekend.raceRound}
               </span>
-              {cardState !== 'finished' && (
+              {cardState !== 'finished' && cardState !== 'partial' && (
                 <StatusBadge status={weekend.raceStatus} isNext={isNextRace} />
               )}
               {weekend.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
@@ -418,7 +431,8 @@ export function WeekendCard({
           <ScoreRing
             earned={weekend.totalPoints}
             max={maxPoints}
-            {...(!weekend.hasScores && { emptyLabel: '-' })}
+            {...(cardState !== 'partial' &&
+              cardState !== 'finished' && { emptyLabel: '-' })}
           />
           {canExpand && (
             <button

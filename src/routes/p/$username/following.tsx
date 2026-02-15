@@ -12,9 +12,7 @@ import { canonicalMeta, ogBaseUrl } from '../../../lib/site';
 
 export const Route = createFileRoute('/p/$username/following')({
   component: FollowingPage,
-  loader: async ({ params }) => {
-    return { username: params.username };
-  },
+  loader: ({ params }) => ({ username: params.username }),
   head: ({ params }) => {
     const title = `Who ${params.username} follows | Grand Prix Picks`;
     const description = `See who ${params.username} follows on Grand Prix Picks.`;

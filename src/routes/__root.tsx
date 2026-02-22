@@ -17,6 +17,7 @@ import { api } from '../../convex/_generated/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
+import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { useMobileMenu } from '../hooks/useMobileMenu';
 import { THEME_KEY, useTheme } from '../hooks/useTheme';
@@ -186,6 +187,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 isDark={isDark}
                 onThemeChange={setTheme}
               />
+              <UpcomingPredictionBanner />
               <div
                 ref={mainRef}
                 className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"

@@ -35,7 +35,9 @@ const preview: Preview = {
           className={themeClass}
           data-theme={theme}
           style={{
-            minHeight: '100vh',
+            height: '100vh',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
             padding: '1rem',
             backgroundColor: 'var(--page)',
           }}

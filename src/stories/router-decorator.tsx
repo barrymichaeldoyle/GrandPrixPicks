@@ -25,14 +25,14 @@ const racesRoute = createRoute({
   component: StoryOutlet,
 });
 
-const raceIdRoute = createRoute({
+const raceSlugRoute = createRoute({
   getParentRoute: () => racesRoute,
-  path: '$raceId',
+  path: '$raceSlug',
   component: StoryOutlet,
 });
 
 const routeTree = rootRoute.addChildren([
-  racesRoute.addChildren([raceIdRoute]),
+  racesRoute.addChildren([raceSlugRoute]),
 ]);
 
 const router = createRouter({

@@ -223,6 +223,116 @@ export const clearAllPredictions = internalMutation({
   },
 });
 
+// Clear one user's predictions/scores/standings (dev/test helper)
+export const clearUserCompetitionData = internalMutation({
+  args: {
+    email: v.optional(v.string()),
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+    clearPredictions: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const clearPredictions = args.clearPredictions ?? true;
+    const email = args.email?.trim().toLowerCase();
+
+    const user = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username!))
+            .unique()
+        : email
+          ? (await ctx.db.query('users').collect()).find(
+              (u) => u.email?.trim().toLowerCase() === email,
+            ) ?? null
+          : null;
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const deleted = {
+      predictions: 0,
+      scores: 0,
+      h2hPredictions: 0,
+      h2hScores: 0,
+      seasonStandings: 0,
+      h2hSeasonStandings: 0,
+    };
+
+    if (clearPredictions) {
+      const predictions = await ctx.db
+        .query('predictions')
+        .withIndex('by_user', (q) => q.eq('userId', user._id))
+        .collect();
+      for (const doc of predictions) {
+        await ctx.db.delete(doc._id);
+      }
+      deleted.predictions = predictions.length;
+
+      const h2hPredictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) => q.eq('userId', user._id))
+        .collect();
+      for (const doc of h2hPredictions) {
+        await ctx.db.delete(doc._id);
+      }
+      deleted.h2hPredictions = h2hPredictions.length;
+    }
+
+    const scores = await ctx.db
+      .query('scores')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect();
+    for (const doc of scores) {
+      await ctx.db.delete(doc._id);
+    }
+    deleted.scores = scores.length;
+
+    const h2hScores = await ctx.db
+      .query('h2hScores')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect();
+    for (const doc of h2hScores) {
+      await ctx.db.delete(doc._id);
+    }
+    deleted.h2hScores = h2hScores.length;
+
+    const standings = await ctx.db
+      .query('seasonStandings')
+      .withIndex('by_user_season', (q) => q.eq('userId', user._id))
+      .collect();
+    for (const doc of standings) {
+      await ctx.db.delete(doc._id);
+    }
+    deleted.seasonStandings = standings.length;
+
+    const h2hStandings = await ctx.db
+      .query('h2hSeasonStandings')
+      .withIndex('by_user_season', (q) => q.eq('userId', user._id))
+      .collect();
+    for (const doc of h2hStandings) {
+      await ctx.db.delete(doc._id);
+    }
+    deleted.h2hSeasonStandings = h2hStandings.length;
+
+    return {
+      userId: user._id,
+      email: user.email ?? null,
+      username: user.username ?? null,
+      clerkUserId: user.clerkUserId,
+      clearPredictions,
+      deleted,
+    };
+  },
+});
+
 // Get all driver IDs (useful for creating test predictions)
 export const getDriverIds = internalMutation({
   args: {},

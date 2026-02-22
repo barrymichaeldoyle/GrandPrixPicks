@@ -15,9 +15,9 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { TabSwitch } from '@/components/TabSwitch';
 
 import { api } from '../../convex/_generated/api';
-import { Button } from '../components/Button';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -73,6 +73,16 @@ type H2HLeaderboardEntry = LeaderboardEntry & {
 
 type Scope = 'global' | 'following';
 type GameMode = 'top5' | 'h2h';
+
+const SCOPE_OPTIONS = [
+  { value: 'global', label: 'Global', leftIcon: Globe },
+  { value: 'following', label: 'Following', leftIcon: Users },
+] as const;
+
+const GAME_MODE_OPTIONS = [
+  { value: 'top5', label: 'Top 5', leftIcon: Trophy },
+  { value: 'h2h', label: 'Head to Head', leftIcon: Swords },
+] as const;
 
 function LeaderboardPage() {
   const { initialLeaderboard } = Route.useLoaderData();
@@ -216,53 +226,26 @@ function LeaderboardPage() {
         {/* Tabs */}
         <div
           className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4"
-          role="tablist"
           aria-label="Leaderboard filters"
         >
-          <div className="flex gap-1 sm:border-r sm:border-border sm:pr-4">
-            <Button
-              variant="tab"
-              size="tab"
-              active={scope === 'global'}
-              onClick={() => setScope('global')}
-              className="flex-1 sm:flex-initial"
-              leftIcon={Globe}
-            >
-              Global
-            </Button>
-            <Button
-              variant="tab"
-              size="tab"
-              active={scope === 'following'}
-              onClick={() => setScope('following')}
-              className="flex-1 sm:flex-initial"
-              leftIcon={Users}
-            >
-              Following
-            </Button>
+          <div className="sm:border-r sm:border-border sm:pr-4">
+            <TabSwitch
+              value={scope}
+              onChange={setScope}
+              options={[...SCOPE_OPTIONS]}
+              className="flex gap-1"
+              buttonClassName="flex-1 sm:flex-initial"
+              ariaLabel="Leaderboard scope"
+            />
           </div>
-          <div className="flex flex-1 gap-1">
-            <Button
-              variant="tab"
-              size="tab"
-              active={gameMode === 'top5'}
-              onClick={() => setGameMode('top5')}
-              className="flex-1"
-              leftIcon={Trophy}
-            >
-              Top 5
-            </Button>
-            <Button
-              variant="tab"
-              size="tab"
-              active={gameMode === 'h2h'}
-              onClick={() => setGameMode('h2h')}
-              className="flex-1"
-              leftIcon={Swords}
-            >
-              Head to Head
-            </Button>
-          </div>
+          <TabSwitch
+            value={gameMode}
+            onChange={setGameMode}
+            options={[...GAME_MODE_OPTIONS]}
+            className="flex flex-1 gap-1"
+            buttonClassName="flex-1"
+            ariaLabel="Leaderboard game mode"
+          />
         </div>
 
         {/* Content */}

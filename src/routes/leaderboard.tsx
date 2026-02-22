@@ -173,7 +173,10 @@ function LeaderboardPage() {
           <div>
             <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
             <p className="text-text-muted">
-              2026 Season Standings · {activeTotalCount.toLocaleString()} players
+              2026 Season Standings
+              {activeTotalCount > 0
+                ? ` · ${activeTotalCount.toLocaleString()} players`
+                : ''}
             </p>
           </div>
 

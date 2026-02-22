@@ -28,7 +28,7 @@ export function formatDateLong(timestamp: number): string {
   });
 }
 
-/** Human-readable countdown (e.g. "23d 03h 05m 09s" or "02h 30m 15s"). */
+/** Human-readable countdown (e.g. "23d 3h 5m 9s" or "2h 30m 15s"). */
 function getTimeUntil(timestamp: number): string {
   const now = Date.now();
   const diff = timestamp - now;
@@ -37,16 +37,15 @@ function getTimeUntil(timestamp: number): string {
     return 'Started';
   }
 
-  const pad = (n: number) => String(n).padStart(2, '0');
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
   if (days > 0) {
-    return `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
-  return `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+  return `${hours}h ${minutes}m ${seconds}s`;
 }
 
 /** Live countdown that ticks every second. */

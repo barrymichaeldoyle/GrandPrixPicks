@@ -221,7 +221,9 @@ function JoinSection({
       });
     } catch (err) {
       setError(
-        err instanceof Error ? toUserFacingMessage(err) : 'Failed to join league',
+        err instanceof Error
+          ? toUserFacingMessage(err)
+          : 'Failed to join league',
       );
       setIsJoining(false);
     }
@@ -1012,7 +1014,9 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
       void navigate({ to: '/leagues' });
     } catch (err) {
       setError(
-        err instanceof Error ? toUserFacingMessage(err) : 'Failed to leave league',
+        err instanceof Error
+          ? toUserFacingMessage(err)
+          : 'Failed to leave league',
       );
       setIsLeaving(false);
     }

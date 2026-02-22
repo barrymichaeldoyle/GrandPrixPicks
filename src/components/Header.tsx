@@ -18,7 +18,7 @@ type NavLink = {
 
 const staticNavLinks: Array<NavLink> = [
   { to: '/', label: 'Home', exact: true },
-  { to: '/races', label: 'Races' },
+  { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
 ];

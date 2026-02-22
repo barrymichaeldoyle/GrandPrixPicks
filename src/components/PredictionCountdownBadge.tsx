@@ -5,6 +5,8 @@ interface PredictionCountdownBadgeProps {
   predictionLockAt: number;
   /** Session label, e.g. "Qualifying", "Race", "Sprint". */
   sessionLabel: string;
+  /** Optional extra classes for context-specific layout tweaks. */
+  className?: string;
 }
 
 /**
@@ -14,10 +16,13 @@ interface PredictionCountdownBadgeProps {
 export function PredictionCountdownBadge({
   predictionLockAt,
   sessionLabel,
+  className = '',
 }: PredictionCountdownBadgeProps) {
   const label = useCountdown(predictionLockAt);
   return (
-    <span className="inline-flex shrink-0 items-center rounded-full border border-accent/30 bg-accent-muted px-2.5 py-1 text-sm font-semibold text-teal-800 tabular-nums dark:text-white">
+    <span
+      className={`inline-flex max-w-full min-w-0 items-center rounded-full border border-accent/30 bg-accent-muted px-2.5 py-1 text-sm leading-tight font-semibold whitespace-normal text-teal-800 tabular-nums dark:text-white ${className}`}
+    >
       {label} to predict {sessionLabel}
     </span>
   );

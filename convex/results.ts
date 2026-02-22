@@ -290,6 +290,52 @@ export const getEnrichedTop5BySession = query({
   },
 });
 
+/** Rank the authenticated user among all players for a specific race weekend. */
+export const getRaceRank = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    // Get all scores for this race
+    const allScores = await ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+
+    if (allScores.length === 0) {
+      return null;
+    }
+
+    // Aggregate points per user
+    const pointsByUser = new Map<string, number>();
+    for (const score of allScores) {
+      const current = pointsByUser.get(score.userId) ?? 0;
+      pointsByUser.set(score.userId, current + score.points);
+    }
+
+    const viewerPoints = pointsByUser.get(viewer._id);
+    if (viewerPoints === undefined) {
+      return null;
+    }
+
+    // Count users with more points
+    let higherCount = 0;
+    for (const points of pointsByUser.values()) {
+      if (points > viewerPoints) {
+        higherCount++;
+      }
+    }
+
+    return {
+      position: higherCount + 1,
+      totalPlayers: pointsByUser.size,
+    };
+  },
+});
+
 // ============ Helper functions ============
 
 async function upsertStandings(

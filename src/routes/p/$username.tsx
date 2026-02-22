@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react';
 import {
   createFileRoute,
   Link,
@@ -25,7 +26,10 @@ import { TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
-import { WeekendCard } from '../../components/PredictionHistory';
+import {
+  fromProfileHistory,
+  RaceScoreCard,
+} from '../../components/RaceScoreCard';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
 import { canonicalMeta, ogBaseUrl } from '../../lib/site';
@@ -70,6 +74,7 @@ function ProfilePage() {
   const { username } = Route.useParams();
   const { initialProfile } = Route.useLoaderData();
   const matches = useMatches();
+  const { isSignedIn } = useAuth();
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const currentProfile = profile ?? initialProfile;
@@ -81,16 +86,6 @@ function ProfilePage() {
 
   const weekends = useQuery(
     api.predictions.getUserPredictionHistory,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
-  );
-
-  const h2hHistory = useQuery(
-    api.h2h.getUserH2HPredictionHistory,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
-  );
-
-  const h2hPicksByRace = useQuery(
-    api.h2h.getUserH2HPicksByRace,
     currentProfile ? { userId: currentProfile._id } : 'skip',
   );
 
@@ -419,14 +414,14 @@ function ProfilePage() {
                 .at(-1)?.raceId;
 
               return weekends.map((weekend) => (
-                <WeekendCard
+                <RaceScoreCard
                   key={weekend.raceId}
-                  weekend={weekend}
-                  drivers={drivers}
-                  h2hHistory={h2hHistory}
-                  h2hPicksByRace={h2hPicksByRace}
-                  userId={currentProfile._id}
-                  isOwner={isOwner}
+                  data={fromProfileHistory(weekend, drivers)}
+                  variant="compact"
+                  viewer={{
+                    isSignedIn: !!isSignedIn,
+                    isOwner,
+                  }}
                   isNextRace={weekend.raceId === nextRaceId}
                 />
               ));

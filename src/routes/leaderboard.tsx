@@ -122,6 +122,19 @@ function LeaderboardPage() {
             ? (friendsH2HData?.viewerEntry as H2HLeaderboardEntry | null)
             : null;
   const isH2HTab = gameMode === 'h2h';
+  const headerViewerEntryOrNull = headerViewerEntry ?? null;
+  const activeTotalCount =
+    scope === 'global' && gameMode === 'top5'
+      ? data.totalCount
+      : scope === 'global' && gameMode === 'h2h'
+        ? (globalH2HData?.totalCount ?? 0)
+        : scope === 'following' && gameMode === 'top5'
+          ? (friendsTop5Data?.totalCount ?? 0)
+          : scope === 'following' && gameMode === 'h2h'
+            ? (friendsH2HData?.totalCount ?? 0)
+            : 0;
+  const shouldShowHeaderViewerEntry =
+    headerViewerEntryOrNull !== null && activeTotalCount > 0;
 
   useEffect(() => {
     if (clientLeaderboard && offset === PAGE_SIZE) {
@@ -129,8 +142,6 @@ function LeaderboardPage() {
       setHasMore(clientLeaderboard.hasMore);
     }
   }, [clientLeaderboard, offset]);
-
-  const totalCount = data.totalCount;
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
@@ -162,12 +173,12 @@ function LeaderboardPage() {
           <div>
             <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
             <p className="text-text-muted">
-              2026 Season Standings · {totalCount.toLocaleString()} players
+              2026 Season Standings · {activeTotalCount.toLocaleString()} players
             </p>
           </div>
 
           <AnimatePresence mode="wait">
-            {headerViewerEntry ? (
+            {shouldShowHeaderViewerEntry ? (
               <motion.div
                 key={`${scope}-${gameMode}`}
                 initial={{ opacity: 0, scale: 0.96 }}
@@ -177,7 +188,7 @@ function LeaderboardPage() {
                 className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                  {headerViewerEntry.rank}
+                  {headerViewerEntryOrNull.rank}
                 </span>
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-medium text-text">
@@ -185,11 +196,11 @@ function LeaderboardPage() {
                     {isH2HTab ? 'Your H2H Rank' : 'Your Rank'}
                   </div>
                   <div className="text-base font-bold text-accent">
-                    {headerViewerEntry.points} pts
-                    {isH2HTab && 'correctPicks' in headerViewerEntry && (
+                    {headerViewerEntryOrNull.points} pts
+                    {isH2HTab && 'correctPicks' in headerViewerEntryOrNull && (
                       <span className="ml-2 text-sm font-normal text-text-muted">
-                        ({headerViewerEntry.correctPicks}/
-                        {headerViewerEntry.totalPicks} correct)
+                        ({headerViewerEntryOrNull.correctPicks}/
+                        {headerViewerEntryOrNull.totalPicks} correct)
                       </span>
                     )}
                   </div>
@@ -341,7 +352,8 @@ function LeaderboardPage() {
                   )}
                   {!hasMore && entries.length > PAGE_SIZE && (
                     <p className="text-sm text-text-muted">
-                      You've reached the end · {totalCount.toLocaleString()}{' '}
+                      You've reached the end ·{' '}
+                      {activeTotalCount.toLocaleString()}{' '}
                       players
                     </p>
                   )}

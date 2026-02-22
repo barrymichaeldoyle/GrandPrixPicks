@@ -4,11 +4,7 @@ import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 import type { SessionType } from '@/lib/sessions';
-import {
-  getSessionsForWeekend,
-  SESSION_LABELS,
-  SESSION_LABELS_SHORT,
-} from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
@@ -21,6 +17,7 @@ type Race = Doc<'races'>;
 
 interface H2HWeekendSummaryProps {
   race: Race;
+  selectedSession: SessionType;
   /** Controlled editing: when set, parent can hide its own header. */
   editingSession?: SessionType | null;
   onEditingSessionChange?: (session: SessionType | null) => void;
@@ -49,6 +46,7 @@ function isSessionLocked(race: Race, session: SessionType): boolean {
 
 export function H2HWeekendSummary({
   race,
+  selectedSession,
   editingSession: controlledEditing,
   onEditingSessionChange,
 }: H2HWeekendSummaryProps) {
@@ -69,7 +67,6 @@ export function H2HWeekendSummary({
     ? (s: SessionType | null) => onEditingSessionChange(s)
     : setInternalEditing;
 
-  const sessions = getSessionsForWeekend(!!race.hasSprint);
   const hasH2HPredictions =
     h2hPredictions && Object.values(h2hPredictions).some((p) => p !== null);
 
@@ -85,7 +82,7 @@ export function H2HWeekendSummary({
             : 'Qualifying and Race'}
           . You can fine-tune individual sessions after submitting.
         </p>
-        <H2HPredictionForm raceId={race._id} />
+        <H2HPredictionForm raceId={race._id} sessionType={selectedSession} />
       </div>
     );
   }
@@ -116,12 +113,32 @@ export function H2HWeekendSummary({
     );
   }
 
-  // Summary table: rows are matchups, columns are sessions
+  const selectedSessionPicks = h2hPredictions[selectedSession];
+  const selectedSessionLocked = isSessionLocked(race, selectedSession);
+
+  // Summary table: rows are matchups for the selected session
   return (
     <div className="space-y-4">
       <p className="text-text-muted">
-        Your head-to-head picks are set for this weekend.
+        Your head-to-head picks for {SESSION_LABELS[selectedSession]}.
       </p>
+      {!selectedSessionLocked ? (
+        <button
+          type="button"
+          onClick={() => setEditingSession(selectedSession)}
+          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent-muted/50"
+          title={`Edit ${SESSION_LABELS[selectedSession]}`}
+        >
+          <Pencil size={14} />
+          Edit {SESSION_LABELS[selectedSession]}
+        </button>
+      ) : (
+        <Tooltip content="This session has started — predictions can't be changed">
+          <span className="inline-flex">
+            <Badge variant="locked" />
+          </span>
+        </Tooltip>
+      )}
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <table className="w-full">
           <thead>
@@ -129,100 +146,53 @@ export function H2HWeekendSummary({
               <th className="px-2 py-2 text-left text-text-muted sm:px-4">
                 Team
               </th>
-              {sessions.map((session) => {
-                const locked = isSessionLocked(race, session);
-                return (
-                  <th
-                    key={session}
-                    className="px-2 py-2 text-center text-text-muted sm:px-4"
-                  >
-                    <div className="flex flex-col items-center gap-1 sm:flex-row sm:justify-center sm:gap-2">
-                      <span className="hidden sm:inline">
-                        {SESSION_LABELS[session]}
-                      </span>
-                      {race.hasSprint ? (
-                        <span className="sm:hidden">
-                          <Tooltip content={SESSION_LABELS[session]}>
-                            <span>{SESSION_LABELS_SHORT[session]}</span>
-                          </Tooltip>
-                        </span>
-                      ) : (
-                        <span className="sm:hidden">
-                          {SESSION_LABELS[session]}
-                        </span>
-                      )}
-                      {locked ? (
-                        <Tooltip content="This session has started — predictions can't be changed">
-                          <span className="shrink-0">
-                            <Badge variant="locked" />
-                          </span>
-                        </Tooltip>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setEditingSession(session)}
-                          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent-muted/50"
-                          title={`Edit ${SESSION_LABELS[session]}`}
-                        >
-                          <Pencil size={14} />
-                          <span className="hidden sm:inline">Edit</span>
-                        </button>
-                      )}
-                    </div>
-                  </th>
-                );
-              })}
+              <th className="px-2 py-2 text-center text-text-muted sm:px-4">
+                {SESSION_LABELS[selectedSession]}
+              </th>
             </tr>
           </thead>
           <tbody>
-            {matchups?.map((matchup) => (
-              <tr
-                key={matchup._id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-2 py-1.5 sm:px-4 sm:py-2">
-                  <span className="text-xs font-medium text-text-muted">
-                    {displayTeamName(matchup.team)}
-                  </span>
-                </td>
-                {sessions.map((session) => {
-                  const sessionPicks = h2hPredictions[session];
-                  const winnerId = sessionPicks
-                    ? (sessionPicks[matchup._id as string] as
-                        | Id<'drivers'>
-                        | undefined)
-                    : undefined;
-                  const winner =
-                    winnerId === matchup.driver1._id
-                      ? matchup.driver1
-                      : winnerId === matchup.driver2._id
-                        ? matchup.driver2
-                        : null;
-
-                  return (
-                    <td
-                      key={session}
-                      className="px-2 py-1.5 text-center sm:px-4 sm:py-2"
-                    >
-                      <div className="flex h-6 items-center justify-center">
-                        {winner ? (
-                          <DriverBadge
-                            code={winner.code}
-                            team={winner.team}
-                            displayName={winner.displayName}
-                            number={winner.number}
-                            nationality={winner.nationality}
-                            size="sm"
-                          />
-                        ) : (
-                          <span className="text-text-muted/50">—</span>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+            {matchups?.map((matchup) => {
+              const winnerId = selectedSessionPicks
+                ? (selectedSessionPicks[matchup._id as string] as
+                    | Id<'drivers'>
+                    | undefined)
+                : undefined;
+              const winner =
+                winnerId === matchup.driver1._id
+                  ? matchup.driver1
+                  : winnerId === matchup.driver2._id
+                    ? matchup.driver2
+                    : null;
+              return (
+                <tr
+                  key={matchup._id}
+                  className="border-b border-border last:border-0"
+                >
+                  <td className="px-2 py-1.5 sm:px-4 sm:py-2">
+                    <span className="text-xs font-medium text-text-muted">
+                      {displayTeamName(matchup.team)}
+                    </span>
+                  </td>
+                  <td className="px-2 py-1.5 text-center sm:px-4 sm:py-2">
+                    <div className="flex h-6 items-center justify-center">
+                      {winner ? (
+                        <DriverBadge
+                          code={winner.code}
+                          team={winner.team}
+                          displayName={winner.displayName}
+                          number={winner.number}
+                          nationality={winner.nationality}
+                          size="sm"
+                        />
+                      ) : (
+                        <span className="text-text-muted/50">—</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

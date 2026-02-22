@@ -15,8 +15,10 @@ export function toUserFacingMessage(error: unknown): string {
   if (message.includes('All sessions are locked for this race')) {
     return "All sessions for this race are already locked. You can't change predictions now.";
   }
-  if (message.includes('Predictions are only open for the next upcoming race')) {
-    return "Predictions are only open for the next upcoming race.";
+  if (
+    message.includes('Predictions are only open for the next upcoming race')
+  ) {
+    return 'Predictions are only open for the next upcoming race.';
   }
   if (message.includes('Race not found')) {
     return "This race couldn't be found.";

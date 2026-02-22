@@ -62,9 +62,11 @@ export function getCountryCodeForRace(race: { slug: string }): string | null {
 export function RaceFlag({
   countryCode,
   size = 'md',
+  className = '',
 }: {
   countryCode: string;
   size?: 'sm' | 'md' | 'lg' | 'full';
+  className?: string;
 }) {
   const flagSize =
     size === 'full'
@@ -74,7 +76,7 @@ export function RaceFlag({
         : size === 'sm'
           ? 'md'
           : 'lg';
-  return <Flag code={countryCode} size={flagSize} />;
+  return <Flag code={countryCode} size={flagSize} className={className} />;
 }
 
 function getScheduleEntries(race: Race) {

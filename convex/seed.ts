@@ -1051,6 +1051,248 @@ export const seedH2HDevData = internalMutation({
 });
 
 /**
+ * Seed a specific user's dev weekends into clear UI scenarios:
+ * 1) no predictions
+ * 2) partial predictions (Top 5 only, no H2H)
+ * 3) full predictions (Top 5 + H2H)
+ * 4) halfway weekend (some sessions scored, weekend in progress)
+ *
+ * Run via:
+ *   npx convex run seed:seedDevUserRaceScenarios '{"username": "barrymichaeldoyle"}'
+ *   npx convex run seed:seedDevUserRaceScenarios '{"clerkUserId": "user_xxx"}'
+ */
+export const seedDevUserRaceScenarios = internalMutation({
+  args: {
+    clerkUserId: v.optional(v.string()),
+    username: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const user = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Build baseline: finished races, results, top-5 predictions/scores and H2H data.
+    await ctx.runMutation(internal.seed.seedDevData, {
+      clerkUserId: user.clerkUserId,
+      numFinishedRaces: 5,
+    });
+    await ctx.runMutation(internal.seed.seedH2HDevData, {
+      clerkUserId: user.clerkUserId,
+    });
+
+    const allRaces = (await ctx.db.query('races').collect()).sort(
+      (a, b) => a.round - b.round,
+    );
+    const finishedRaces = allRaces.filter((r) => r.status === 'finished');
+
+    if (finishedRaces.length < 4) {
+      throw new Error('Need at least 4 finished races to build all scenarios.');
+    }
+
+    const noPredictionsRace = finishedRaces[0];
+    const partialRace = finishedRaces[1];
+    const fullRace = finishedRaces[2];
+
+    const usedRaceIds = new Set([
+      noPredictionsRace._id,
+      partialRace._id,
+      fullRace._id,
+    ]);
+
+    const halfwayRace =
+      finishedRaces.find((r) => r.hasSprint && !usedRaceIds.has(r._id)) ??
+      finishedRaces.find((r) => !usedRaceIds.has(r._id));
+
+    if (!halfwayRace) {
+      throw new Error('Failed to pick a race for the halfway scenario.');
+    }
+
+    const sessionsForRace = (r: { hasSprint?: boolean }): Array<SessionType> =>
+      r.hasSprint
+        ? ['sprint_quali', 'sprint', 'quali', 'race']
+        : ['quali', 'race'];
+
+    const deleteTop5ForSession = async (
+      raceId: Id<'races'>,
+      sessionType: SessionType,
+    ) => {
+      const prediction = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', user._id)
+            .eq('raceId', raceId)
+            .eq('sessionType', sessionType),
+        )
+        .unique();
+      if (prediction) {
+        await ctx.db.delete(prediction._id);
+      }
+
+      const score = await ctx.db
+        .query('scores')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', user._id)
+            .eq('raceId', raceId)
+            .eq('sessionType', sessionType),
+        )
+        .unique();
+      if (score) {
+        await ctx.db.delete(score._id);
+      }
+    };
+
+    const deleteH2HForSession = async (
+      raceId: Id<'races'>,
+      sessionType: SessionType,
+      opts?: { deleteResults?: boolean },
+    ) => {
+      const predictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', user._id)
+            .eq('raceId', raceId)
+            .eq('sessionType', sessionType),
+        )
+        .collect();
+      for (const pred of predictions) {
+        await ctx.db.delete(pred._id);
+      }
+
+      const score = await ctx.db
+        .query('h2hScores')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', user._id)
+            .eq('raceId', raceId)
+            .eq('sessionType', sessionType),
+        )
+        .unique();
+      if (score) {
+        await ctx.db.delete(score._id);
+      }
+
+      if (opts?.deleteResults) {
+        const results = await ctx.db
+          .query('h2hResults')
+          .withIndex('by_race_session', (q) =>
+            q.eq('raceId', raceId).eq('sessionType', sessionType),
+          )
+          .collect();
+        for (const result of results) {
+          await ctx.db.delete(result._id);
+        }
+      }
+    };
+
+    // Scenario 1: No predictions at all.
+    for (const sessionType of sessionsForRace(noPredictionsRace)) {
+      await deleteTop5ForSession(noPredictionsRace._id, sessionType);
+      await deleteH2HForSession(noPredictionsRace._id, sessionType);
+    }
+
+    // Scenario 2: Partial (Top 5 exists, H2H removed).
+    for (const sessionType of sessionsForRace(partialRace)) {
+      await deleteH2HForSession(partialRace._id, sessionType);
+    }
+
+    // Scenario 3: Full stays as seeded.
+
+    // Scenario 4: Halfway weekend (session results exist, but weekend not complete).
+    const halfwaySessions = sessionsForRace(halfwayRace);
+    const publishedSessions: Array<SessionType> = halfwayRace.hasSprint
+      ? ['sprint_quali', 'sprint', 'quali']
+      : ['quali'];
+    const pendingSessions = halfwaySessions.filter(
+      (sessionType) => !publishedSessions.includes(sessionType),
+    );
+
+    for (const sessionType of pendingSessions) {
+      const top5Result = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', halfwayRace._id).eq('sessionType', sessionType),
+        )
+        .unique();
+      if (top5Result) {
+        await ctx.db.delete(top5Result._id);
+      }
+
+      const score = await ctx.db
+        .query('scores')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', user._id)
+            .eq('raceId', halfwayRace._id)
+            .eq('sessionType', sessionType),
+        )
+        .unique();
+      if (score) {
+        await ctx.db.delete(score._id);
+      }
+
+      await deleteH2HForSession(halfwayRace._id, sessionType, {
+        deleteResults: true,
+      });
+    }
+
+    const hour = 60 * 60 * 1000;
+    await ctx.db.patch(halfwayRace._id, {
+      status: 'locked',
+      raceStartAt: now - 30 * 60 * 1000,
+      predictionLockAt: now - 30 * 60 * 1000,
+      qualiStartAt: now - 2 * 24 * hour,
+      qualiLockAt: now - 2 * 24 * hour,
+      ...(halfwayRace.hasSprint
+        ? {
+            sprintQualiStartAt: now - 3 * 24 * hour,
+            sprintQualiLockAt: now - 3 * 24 * hour,
+            sprintStartAt: now - 2.5 * 24 * hour,
+            sprintLockAt: now - 2.5 * 24 * hour,
+          }
+        : {}),
+      updatedAt: now,
+    });
+
+    return {
+      userId: user._id,
+      username: user.username,
+      scenarios: {
+        noPredictions: noPredictionsRace.slug,
+        partialTop5Only: partialRace.slug,
+        fullPredictions: fullRace.slug,
+        halfwayWeekend: halfwayRace.slug,
+      },
+      halfwayPublishedSessions: publishedSessions,
+      halfwayPendingSessions: pendingSessions,
+      includesSprintExample:
+        noPredictionsRace.hasSprint ||
+        partialRace.hasSprint ||
+        fullRace.hasSprint ||
+        halfwayRace.hasSprint,
+    };
+  },
+});
+
+/**
  * Seed session results for a specific race.
  * Useful for testing the results display with different session types.
  *

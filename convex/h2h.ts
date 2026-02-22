@@ -169,6 +169,30 @@ export const getMyH2HScoreForRace = query({
   },
 });
 
+export const getMyH2HWeekendScore = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const scores = await ctx.db
+      .query('h2hScores')
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
+      .collect();
+
+    const forRace = scores.filter((s) => s.raceId === args.raceId);
+
+    if (forRace.length === 0) {
+      return null;
+    }
+
+    const totalPoints = forRace.reduce((sum, s) => sum + s.points, 0);
+    return { totalPoints };
+  },
+});
+
 export const getH2HSeasonLeaderboard = query({
   args: {
     season: v.optional(v.number()),

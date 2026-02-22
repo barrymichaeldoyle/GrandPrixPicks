@@ -25,8 +25,8 @@ import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
-import { toUserFacingMessage } from '@/lib/userFacingError';
 import { teamStandingsIndex } from '@/lib/teams';
+import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';

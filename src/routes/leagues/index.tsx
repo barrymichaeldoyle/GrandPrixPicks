@@ -232,7 +232,9 @@ function CreateLeagueForm({ onClose }: { onClose: () => void }) {
       });
     } catch (err) {
       setError(
-        err instanceof Error ? toUserFacingMessage(err) : 'Failed to create league',
+        err instanceof Error
+          ? toUserFacingMessage(err)
+          : 'Failed to create league',
       );
     } finally {
       setIsSubmitting(false);

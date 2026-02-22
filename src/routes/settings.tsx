@@ -331,7 +331,9 @@ function SettingsPage() {
       }
     } catch (e) {
       setEditError(
-        e instanceof Error ? toUserFacingMessage(e) : 'Failed to update profile',
+        e instanceof Error
+          ? toUserFacingMessage(e)
+          : 'Failed to update profile',
       );
     } finally {
       setIsSubmitting(false);

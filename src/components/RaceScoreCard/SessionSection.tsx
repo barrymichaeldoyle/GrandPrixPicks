@@ -1,4 +1,4 @@
-import { Lock, Pencil } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
@@ -41,40 +41,41 @@ export function SessionSection({
     variant === 'full' &&
     sessionData.fullClassification &&
     sessionData.hasResults;
+  const showSessionHeader = variant === 'compact';
 
   return (
     <div>
-      {/* Session header */}
-      <div className="mb-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-text">
-            {SESSION_LABELS[sessionType]}
-          </span>
-          {sessionData.isLocked && !sessionData.hasResults && (
-            <Tooltip content="This session has started — predictions can't be changed">
-              <span className="shrink-0">
-                <Badge variant="locked" />
-              </span>
-            </Tooltip>
-          )}
-          {showEditButton && (
-            <button
-              type="button"
-              onClick={() => onEditSession(sessionType)}
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent-muted/50"
-              title={`Edit ${SESSION_LABELS[sessionType]}`}
-            >
-              <Pencil size={14} />
-              <span className="hidden sm:inline">Edit</span>
-            </button>
+      {showSessionHeader && (
+        <div className="mb-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-text">
+              {SESSION_LABELS[sessionType]}
+            </span>
+            {sessionData.isLocked && !sessionData.hasResults && (
+              <Tooltip content="This session has started — predictions can't be changed">
+                <span className="shrink-0">
+                  <Badge variant="locked" />
+                </span>
+              </Tooltip>
+            )}
+            {showEditButton && (
+              <button
+                type="button"
+                onClick={() => onEditSession(sessionType)}
+                className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent-muted/50"
+                title={`Edit ${SESSION_LABELS[sessionType]}`}
+              >
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+            )}
+          </div>
+          {sessionData.points != null && (
+            <span className="text-sm font-bold text-accent">
+              {sessionData.points} pts
+            </span>
           )}
         </div>
-        {sessionData.points != null && (
-          <span className="text-sm font-bold text-accent">
-            {sessionData.points} pts
-          </span>
-        )}
-      </div>
+      )}
 
       {/* Picks grid */}
       {sessionData.picks.length > 0 && (

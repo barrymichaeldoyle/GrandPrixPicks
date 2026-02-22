@@ -339,8 +339,7 @@ function LeaderboardPage() {
                   {!hasMore && entries.length > PAGE_SIZE && (
                     <p className="text-sm text-text-muted">
                       You've reached the end ·{' '}
-                      {activeTotalCount.toLocaleString()}{' '}
-                      players
+                      {activeTotalCount.toLocaleString()} players
                     </p>
                   )}
                 </div>

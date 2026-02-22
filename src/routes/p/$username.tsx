@@ -418,6 +418,7 @@ function ProfilePage() {
                   key={weekend.raceId}
                   data={fromProfileHistory(weekend, drivers)}
                   variant="compact"
+                  compactSummaryOnly
                   viewer={{
                     isSignedIn: !!isSignedIn,
                     isOwner,

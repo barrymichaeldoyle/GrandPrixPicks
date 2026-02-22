@@ -1,5 +1,5 @@
-import { Link } from '@tanstack/react-router';
 import type { Meta, StoryObj } from '@storybook/react';
+import { Link } from '@tanstack/react-router';
 import { ArrowRight, Check, Plus, Search, Settings } from 'lucide-react';
 
 import { StorybookRouter } from '@/stories/router-decorator';
@@ -43,7 +43,8 @@ export const Showcase: Story = {
   render: () => {
     const section =
       'rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5';
-    const title = 'mb-3 text-sm font-semibold uppercase tracking-wide text-text';
+    const title =
+      'mb-3 text-sm font-semibold uppercase tracking-wide text-text';
     const row = 'flex flex-wrap items-center gap-3';
 
     return (
@@ -54,6 +55,9 @@ export const Showcase: Story = {
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
             <Button variant="danger">Danger</Button>
+            <Button variant="text" size="inline">
+              Text action
+            </Button>
             <Button variant="saved" saved>
               Saved
             </Button>
@@ -63,6 +67,9 @@ export const Showcase: Story = {
         <div className={section}>
           <h3 className={title}>Sizes</h3>
           <div className={row}>
+            <Button variant="text" size="inline" leftIcon={Plus}>
+              Inline
+            </Button>
             <Button size="sm">Small</Button>
             <Button size="md">Medium</Button>
             <Button variant="tab" size="tab">

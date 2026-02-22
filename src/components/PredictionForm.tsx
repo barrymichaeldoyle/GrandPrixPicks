@@ -278,6 +278,8 @@ interface PredictionFormProps {
   sessionType?: SessionType;
   /** Called after a successful submit (e.g. to close an edit view). */
   onSuccess?: () => void;
+  /** Emits whether the form currently has unsaved changes. */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export function PredictionForm({
@@ -285,6 +287,7 @@ export function PredictionForm({
   existingPicks,
   sessionType,
   onSuccess,
+  onDirtyChange,
 }: PredictionFormProps) {
   const drivers = useQuery(api.drivers.listDrivers);
   const submitPrediction = useMutation(api.predictions.submitPrediction);
@@ -370,6 +373,10 @@ export function PredictionForm({
   const hasChanges = existingPicks
     ? JSON.stringify(picks) !== JSON.stringify(existingPicks)
     : picks.length > 0;
+
+  useEffect(() => {
+    onDirtyChange?.(hasChanges);
+  }, [hasChanges, onDirtyChange]);
 
   const blocker = useBlocker({
     shouldBlockFn: () => hasChanges,

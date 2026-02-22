@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
+import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 
 const raceStatusValidator = v.union(
   v.literal('upcoming'),
@@ -83,6 +84,7 @@ export const adminUpsertRace = mutation({
     round: v.number(),
     name: v.string(),
     slug: v.string(),
+    timeZone: v.optional(v.string()),
     raceStartAt: v.number(),
     predictionLockAt: v.number(),
     status: raceStatusValidator,
@@ -92,6 +94,7 @@ export const adminUpsertRace = mutation({
     requireAdmin(viewer);
 
     const now = Date.now();
+    const timeZone = args.timeZone ?? getRaceTimeZoneFromSlug(args.slug);
 
     if (args.raceId) {
       await ctx.db.patch(args.raceId, {
@@ -99,6 +102,7 @@ export const adminUpsertRace = mutation({
         round: args.round,
         name: args.name,
         slug: args.slug,
+        timeZone,
         raceStartAt: args.raceStartAt,
         predictionLockAt: args.predictionLockAt,
         status: args.status,
@@ -112,6 +116,7 @@ export const adminUpsertRace = mutation({
       round: args.round,
       name: args.name,
       slug: args.slug,
+      timeZone,
       raceStartAt: args.raceStartAt,
       predictionLockAt: args.predictionLockAt,
       status: args.status,

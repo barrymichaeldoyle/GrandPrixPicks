@@ -2,18 +2,24 @@ import { useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
-import { ArrowLeft, ArrowLeft as ArrowLeftIcon, Trophy } from 'lucide-react';
+import {
+  ArrowLeft,
+  CircleX,
+  Pencil,
+  Trophy,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
+import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
-import { InlineLoader } from '../../components/InlineLoader';
 import { PredictionForm } from '../../components/PredictionForm';
-import { RaceDetailHeader } from '../../components/RaceDetailHeader';
+import { RaceEventPageLayout } from '../../components/RaceEventPageLayout';
 import { fromRaceDetail, RaceScoreCard } from '../../components/RaceScoreCard';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import { Tooltip } from '../../components/Tooltip';
+import { getRaceTimeZoneFromSlug } from '../../lib/raceTimezones';
 import type { SessionType } from '../../lib/sessions';
 import {
   getSessionsForWeekend,
@@ -114,19 +120,6 @@ function RaceNotFound() {
   );
 }
 
-function getStatusStyles(
-  isPredictable: boolean,
-  status: string,
-): { border: string; background: string } {
-  if (isPredictable) {
-    return { border: 'border-accent/40', background: 'bg-surface' };
-  }
-  if (status === 'locked') {
-    return { border: 'border-warning/40', background: 'bg-warning-muted' };
-  }
-  return { border: 'border-border', background: 'bg-surface' };
-}
-
 function isSessionType(value: string | null): value is SessionType {
   return (
     value === 'quali' ||
@@ -156,6 +149,21 @@ function RaceDetailPage() {
         return race.predictionLockAt;
     }
   };
+  const getSessionStartAt = (session: SessionType): number => {
+    if (!race) {
+      return 0;
+    }
+    switch (session) {
+      case 'quali':
+        return race.qualiStartAt ?? race.raceStartAt;
+      case 'sprint_quali':
+        return race.sprintQualiStartAt ?? race.raceStartAt;
+      case 'sprint':
+        return race.sprintStartAt ?? race.raceStartAt;
+      case 'race':
+        return race.raceStartAt;
+    }
+  };
   const nextOpenSession = weekendSessions.find(
     (session) => now < getSessionLockAt(session),
   );
@@ -175,6 +183,44 @@ function RaceDetailPage() {
     useState<SessionType | null>(null);
   const [h2hEditingSession, setH2hEditingSession] =
     useState<SessionType | null>(null);
+  const [top5HasUnsavedChanges, setTop5HasUnsavedChanges] = useState(false);
+  const [h2hHasUnsavedChanges, setH2hHasUnsavedChanges] = useState(false);
+
+  const handleSessionTabChange = (nextSession: SessionType) => {
+    if (nextSession === selectedSession) {
+      return;
+    }
+
+    const hasUnsavedTop5 = top5EditingSession !== null && top5HasUnsavedChanges;
+    const hasUnsavedH2H = h2hEditingSession !== null && h2hHasUnsavedChanges;
+
+    if (hasUnsavedTop5 || hasUnsavedH2H) {
+      const confirmSwitch = window.confirm(
+        'You have unsaved prediction changes for this session. Switch tabs and discard them?',
+      );
+      if (!confirmSwitch) {
+        return;
+      }
+    }
+
+    setSelectedSession(nextSession);
+    setTop5EditingSession(null);
+    setH2hEditingSession(null);
+    setTop5HasUnsavedChanges(false);
+    setH2hHasUnsavedChanges(false);
+  };
+
+  useEffect(() => {
+    if (!top5EditingSession) {
+      setTop5HasUnsavedChanges(false);
+    }
+  }, [top5EditingSession]);
+
+  useEffect(() => {
+    if (!h2hEditingSession) {
+      setH2hHasUnsavedChanges(false);
+    }
+  }, [h2hEditingSession]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -368,6 +414,32 @@ function RaceDetailPage() {
     }
     return { ...cardData, sessions };
   }, [cardData, weekendSessions, selectedSession]);
+  const hasSprintWeekend = race?.hasSprint ?? false;
+  const trackTimeZone =
+    race?.timeZone ??
+    (race ? getRaceTimeZoneFromSlug(race.slug) : undefined) ??
+    'UTC';
+  const predictionSessionOptions = useMemo(
+    () =>
+      weekendSessions.map((session) => ({
+        value: session,
+        label: (
+          <>
+            <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
+            {hasSprintWeekend ? (
+              <span className="sm:hidden">
+                <Tooltip content={SESSION_LABELS[session]}>
+                  <span>{SESSION_LABELS_SHORT[session]}</span>
+                </Tooltip>
+              </span>
+            ) : (
+              <span className="sm:hidden">{SESSION_LABELS[session]}</span>
+            )}
+          </>
+        ),
+      })),
+    [weekendSessions, hasSprintWeekend],
+  );
 
   if (race === null) {
     return <RaceNotFound />;
@@ -375,7 +447,13 @@ function RaceDetailPage() {
 
   const isNextRace = Boolean(nextRace && nextRace._id === race._id);
   const isPredictable = race.status === 'upcoming' && isNextRace;
-  const statusStyles = getStatusStyles(isPredictable, race.status);
+  const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
+  const canEditSelectedSession = Boolean(
+    isPredictable &&
+    selectedSessionData &&
+    !selectedSessionData.isLocked &&
+    !selectedSessionData.hasResults,
+  );
 
   // ─── Top 5 editing flow ───
   const renderTop5EditForm = () => {
@@ -383,18 +461,7 @@ function RaceDetailPage() {
       return null;
     }
     return (
-      <div className="space-y-4 p-4">
-        <button
-          type="button"
-          onClick={() => setTop5EditingSession(null)}
-          className="inline-flex items-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
-        >
-          <ArrowLeftIcon size={18} />
-          Back to summary
-        </button>
-        <h3 className="text-lg font-semibold text-text">
-          Top 5 - Edit {SESSION_LABELS[top5EditingSession]}
-        </h3>
+      <div className="p-4">
         <PredictionForm
           raceId={race._id}
           sessionType={top5EditingSession}
@@ -402,6 +469,7 @@ function RaceDetailPage() {
             weekendPredictions?.predictions[top5EditingSession] ?? undefined
           }
           onSuccess={() => setTop5EditingSession(null)}
+          onDirtyChange={setTop5HasUnsavedChanges}
         />
       </div>
     );
@@ -431,146 +499,119 @@ function RaceDetailPage() {
   };
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-        <BackToRacesLink />
-
-        <div
-          className={`overflow-hidden rounded-lg border ${
-            isNextRace
-              ? 'border-accent/50 bg-surface'
-              : 'border-border bg-surface'
-          }`}
-        >
-          <RaceDetailHeader race={race} isNextRace={isNextRace} />
-          {hasPublishedResults && (
-            <div className="border-t border-border bg-surface px-4 py-3 text-sm">
-              <span className="text-text-muted">
-                {allEventsScored ? 'Weekend Total' : 'Points So Far'}
-              </span>
-              <div className="font-bold text-accent">+{pointsSoFar} pts</div>
-              {!allEventsScored && (
-                <p className="text-xs text-text-muted">
-                  {scoredEventCount}/{weekendSessions.length} events scored
-                </p>
+    <RaceEventPageLayout
+      race={race}
+      isNextRace={isNextRace}
+      isPredictable={isPredictable}
+      isAuthLoaded={isAuthLoaded}
+      isSignedIn={!!isSignedIn}
+      isPredictionsLoading={isPredictable && weekendPredictions === undefined}
+      hasPredictions={!!hasPredictions}
+      hasPublishedResults={hasPublishedResults}
+      allEventsScored={allEventsScored}
+      pointsSoFar={pointsSoFar}
+      scoredEventCount={scoredEventCount}
+      weekendSessions={weekendSessions}
+      selectedSession={selectedSession}
+      onSelectedSessionChange={handleSessionTabChange}
+      sessionTabOptions={predictionSessionOptions}
+      showSessionTabs={
+        isPredictable && !!hasPredictions && weekendSessions.length > 1
+      }
+      trackTimeZone={trackTimeZone}
+      getSessionStartAt={getSessionStartAt}
+      getSessionLockAt={getSessionLockAt}
+      isSessionPublished={(session) => publishedSessionSet.has(session)}
+      randomizeControl={
+        <RandomizeButton
+          raceId={race._id}
+          hasPredictions={!!hasPredictions}
+          hasH2HPredictions={hasH2HPredictions}
+        />
+      }
+      backLink={<BackToRacesLink />}
+      initialTop5Content={renderInitialForm()}
+      top5MainContent={
+        top5EditingSession
+          ? renderTop5EditForm()
+          : cardData && (
+              <ErrorBoundary>
+                <RaceScoreCard
+                  data={selectedSessionCardData ?? cardData}
+                  variant="full"
+                  viewer={{
+                    isSignedIn: !!isSignedIn,
+                    isOwner: true,
+                  }}
+                  isNextRace={isNextRace}
+                  onEditSession={
+                    isPredictable ? setTop5EditingSession : undefined
+                  }
+                />
+              </ErrorBoundary>
+            )
+      }
+      top5HeaderAside={
+        isPredictable && selectedSessionData ? (
+          <div className="flex items-center gap-2">
+            {selectedSessionData.isLocked &&
+              !selectedSessionData.hasResults && (
+                <Tooltip content="This session has started — predictions can't be changed">
+                  <span className="shrink-0">
+                    <Badge variant="locked" />
+                  </span>
+                </Tooltip>
               )}
-            </div>
-          )}
-
-          <div className={`border-t ${statusStyles.border}`}>
-            <div className={statusStyles.background}>
-              {!isAuthLoaded ||
-              (isPredictable && weekendPredictions === undefined) ? (
-                <div className="p-4">
-                  <InlineLoader />
-                </div>
-              ) : top5EditingSession ? (
-                renderTop5EditForm()
-              ) : isPredictable && isSignedIn && !hasPredictions ? (
-                <div className="relative">
-                  {!h2hEditingSession && (
-                    <div className="absolute top-3 right-2 z-10">
-                      <RandomizeButton
-                        raceId={race._id}
-                        hasPredictions={!!hasPredictions}
-                        hasH2HPredictions={hasH2HPredictions}
-                      />
-                    </div>
-                  )}
-                  {!h2hEditingSession && renderInitialForm()}
-                </div>
-              ) : (
-                <div>
-                  {/* Top 5 section via RaceScoreCard */}
-                  {cardData && !h2hEditingSession && !hasPublishedResults && (
-                    <div className="space-y-2 p-4">
-                      {isPredictable &&
-                        hasPredictions &&
-                        weekendSessions.length > 1 && (
-                          <div
-                            className="mb-2 flex gap-1 rounded-lg border border-border bg-surface-muted/50 p-1"
-                            role="tablist"
-                            aria-label="Predictions by session"
-                          >
-                            {weekendSessions.map((session) => (
-                              <Button
-                                key={session}
-                                variant="tab"
-                                size="tab"
-                                active={selectedSession === session}
-                                onClick={() => setSelectedSession(session)}
-                                className="flex-1"
-                              >
-                                <span className="hidden sm:inline">
-                                  {SESSION_LABELS[session]}
-                                </span>
-                                {race.hasSprint ? (
-                                  <span className="sm:hidden">
-                                    <Tooltip content={SESSION_LABELS[session]}>
-                                      <span>
-                                        {SESSION_LABELS_SHORT[session]}
-                                      </span>
-                                    </Tooltip>
-                                  </span>
-                                ) : (
-                                  <span className="sm:hidden">
-                                    {SESSION_LABELS[session]}
-                                  </span>
-                                )}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      {isPredictable && hasPredictions && (
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-5 w-5 shrink-0 text-accent" />
-                          <h2 className="text-xl font-semibold text-text">
-                            Top 5 Predictions -{' '}
-                            {SESSION_LABELS[selectedSession]}
-                          </h2>
-                        </div>
-                      )}
-                      <ErrorBoundary>
-                        <RaceScoreCard
-                          data={selectedSessionCardData ?? cardData}
-                          variant="full"
-                          viewer={{
-                            isSignedIn: !!isSignedIn,
-                            isOwner: true,
-                          }}
-                          isNextRace={isNextRace}
-                          onEditSession={
-                            isPredictable ? setTop5EditingSession : undefined
-                          }
-                        />
-                      </ErrorBoundary>
-                    </div>
-                  )}
-
-                  {/* H2H section */}
-                  {isPredictable && hasPredictions && (
-                    <H2HSection
-                      race={race}
-                      selectedSession={selectedSession}
-                      editingSession={h2hEditingSession}
-                      onEditingSessionChange={setH2hEditingSession}
-                      showRandomizeButton={!hasH2HPredictions}
-                      hasPredictions={!!hasPredictions}
-                      hasH2HPredictions={hasH2HPredictions}
-                    />
-                  )}
-                  {hasPublishedResults && (
-                    <>
-                      <div className="border-t border-border" />
-                      <H2HResultsSection raceId={race._id} race={race} />
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            {top5EditingSession ? (
+              <Button
+                variant="text"
+                size="inline"
+                leftIcon={CircleX}
+                onClick={() => {
+                  if (top5HasUnsavedChanges) {
+                    const confirmStop = window.confirm(
+                      'You have unsaved Top 5 changes. Stop editing and discard them?',
+                    );
+                    if (!confirmStop) {
+                      return;
+                    }
+                  }
+                  setTop5EditingSession(null);
+                }}
+                title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
+              >
+                Stop Editing
+              </Button>
+            ) : (
+              canEditSelectedSession && (
+                <Button
+                  variant="text"
+                  size="inline"
+                  leftIcon={Pencil}
+                  onClick={() => setTop5EditingSession(selectedSession)}
+                  title={`Edit ${SESSION_LABELS[selectedSession]}`}
+                >
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
+              )
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+        ) : null
+      }
+      h2hContent={
+        <H2HSection
+          race={race}
+          selectedSession={selectedSession}
+          editingSession={h2hEditingSession}
+          onEditingSessionChange={setH2hEditingSession}
+          onEditingDirtyChange={setH2hHasUnsavedChanges}
+          hasUnsavedEditingChanges={h2hHasUnsavedChanges}
+          showRandomizeButton={!hasH2HPredictions}
+          hasPredictions={!!hasPredictions}
+          hasH2HPredictions={hasH2HPredictions}
+        />
+      }
+      h2hResultsContent={<H2HResultsSection raceId={race._id} race={race} />}
+    />
   );
 }

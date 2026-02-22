@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
 import { internalMutation, mutation } from './_generated/server';
+import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import { scheduleReminder } from './notifications';
 
 /**
@@ -57,6 +58,7 @@ export const createTestRace = internalMutation({
     const now = Date.now();
     const raceStartAt = now + args.startsInMs;
     const predictionLockAt = raceStartAt;
+    const timeZone = getRaceTimeZoneFromSlug(args.slug);
 
     // Check if race already exists
     const existing = await ctx.db
@@ -73,6 +75,7 @@ export const createTestRace = internalMutation({
       round: args.round,
       name: args.name,
       slug: args.slug,
+      timeZone,
       raceStartAt,
       predictionLockAt,
       status: args.status ?? 'upcoming',
@@ -245,12 +248,12 @@ export const clearUserCompetitionData = internalMutation({
       : args.username
         ? await ctx.db
             .query('users')
-            .withIndex('by_username', (q) => q.eq('username', args.username!))
+            .withIndex('by_username', (q) => q.eq('username', args.username))
             .unique()
         : email
-          ? (await ctx.db.query('users').collect()).find(
+          ? ((await ctx.db.query('users').collect()).find(
               (u) => u.email?.trim().toLowerCase() === email,
-            ) ?? null
+            ) ?? null)
           : null;
 
     if (!user) {

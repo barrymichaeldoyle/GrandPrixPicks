@@ -1,11 +1,12 @@
 import { useQuery } from 'convex/react';
-import { Swords } from 'lucide-react';
+import { CircleCheck, CircleX, Pencil, Swords } from 'lucide-react';
 import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
 import { api } from '../../../convex/_generated/api';
 import type { Doc, Id } from '../../../convex/_generated/dataModel';
+import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
@@ -31,6 +32,8 @@ interface H2HSectionProps {
   showRandomizeButton?: boolean;
   hasPredictions?: boolean;
   hasH2HPredictions?: boolean;
+  onEditingDirtyChange?: (dirty: boolean) => void;
+  hasUnsavedEditingChanges?: boolean;
 }
 
 export function H2HSection({
@@ -41,6 +44,8 @@ export function H2HSection({
   showRandomizeButton,
   hasPredictions,
   hasH2HPredictions,
+  onEditingDirtyChange,
+  hasUnsavedEditingChanges = false,
 }: H2HSectionProps) {
   const [internalEditing, setInternalEditing] = useState<SessionType | null>(
     null,
@@ -50,21 +55,76 @@ export function H2HSection({
       ? (controlledEditing ?? null)
       : internalEditing;
   const setEditingSession = onEditingSessionChange ?? setInternalEditing;
+  const selectedSessionLockTime = (() => {
+    switch (selectedSession) {
+      case 'quali':
+        return race.qualiLockAt;
+      case 'sprint_quali':
+        return race.sprintQualiLockAt;
+      case 'sprint':
+        return race.sprintLockAt;
+      case 'race':
+        return race.predictionLockAt;
+    }
+  })();
+  const selectedSessionLocked =
+    selectedSessionLockTime !== undefined &&
+    Date.now() >= selectedSessionLockTime;
+  const canEditSelectedSession = Boolean(
+    hasH2HPredictions && !selectedSessionLocked,
+  );
 
   return (
-    <div className="space-y-2 p-4">
-      <div
-        className={`overflow-hidden transition-all duration-200 ease-out ${
-          editingSession ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
-        }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Swords className="h-5 w-5 text-accent" />
-            <h2 className="text-xl font-semibold text-text">
-              Head-to-Head Predictions
-            </h2>
-          </div>
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Swords className="h-5 w-5 text-accent" />
+          <h2 className="text-xl font-semibold text-text">
+            Head-to-Head Predictions
+          </h2>
+          {hasH2HPredictions && (
+            <>
+              {editingSession ? (
+                <Button
+                  variant="text"
+                  size="inline"
+                  leftIcon={CircleX}
+                  onClick={() => {
+                    if (hasUnsavedEditingChanges) {
+                      const confirmStop = window.confirm(
+                        'You have unsaved H2H changes. Stop editing and discard them?',
+                      );
+                      if (!confirmStop) {
+                        return;
+                      }
+                    }
+                    setEditingSession(null);
+                  }}
+                  title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
+                >
+                  Stop Editing
+                </Button>
+              ) : canEditSelectedSession ? (
+                <Button
+                  variant="text"
+                  size="inline"
+                  leftIcon={Pencil}
+                  onClick={() => setEditingSession(selectedSession)}
+                  title={`Edit ${SESSION_LABELS[selectedSession]} Predictions`}
+                >
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
+              ) : (
+                <Tooltip content="This session has started — predictions can't be changed">
+                  <span className="inline-flex">
+                    <Badge variant="locked" />
+                  </span>
+                </Tooltip>
+              )}
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
           {showRandomizeButton &&
             hasPredictions !== undefined &&
             hasH2HPredictions !== undefined && (
@@ -83,6 +143,7 @@ export function H2HSection({
           selectedSession={selectedSession}
           editingSession={editingSession}
           onEditingSessionChange={setEditingSession}
+          onEditingDirtyChange={onEditingDirtyChange}
         />
       </ErrorBoundary>
     </div>
@@ -276,184 +337,184 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
           will appear here when results are in.
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-surface">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border text-xs uppercase sm:text-sm">
-                <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                  Pos
-                </th>
-                <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                  Actual
-                </th>
-                <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                  Top 5
-                </th>
-                <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
-                  Pts
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {classificationRows.map((entry) => {
-                const predictedPos =
-                  entry.position <= 5 ? entry.position : null;
-                const pickDriverId =
-                  predictedPos !== null
-                    ? selectedTop5Picks?.[predictedPos - 1]
+        <div className="space-y-3">
+          <div className="rounded-lg border border-border bg-surface">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase sm:text-sm">
+                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                    Pos
+                  </th>
+                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                    Actual
+                  </th>
+                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                    Top 5
+                  </th>
+                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
+                    Pts
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {classificationRows.map((entry) => {
+                  const predictedPos =
+                    entry.position <= 5 ? entry.position : null;
+                  const pickDriverId =
+                    predictedPos !== null
+                      ? selectedTop5Picks?.[predictedPos - 1]
+                      : undefined;
+                  const pickDriver = pickDriverId
+                    ? driverById.get(pickDriverId)
                     : undefined;
-                const pickDriver = pickDriverId
-                  ? driverById.get(pickDriverId)
+                  const top5 = predictedPos
+                    ? top5ByPredictedPosition.get(predictedPos)
+                    : undefined;
+                  const top5Pts = top5?.points ?? 0;
+                  const rowTotal = top5Pts;
+                  const isTop5Actual = entry.position <= 5;
+
+                  return (
+                    <tr
+                      key={entry.driverId}
+                      className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
+                    >
+                      <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
+                        P{entry.position}
+                      </td>
+                      <td className="px-2 py-2 sm:px-4">
+                        <div className="flex items-center gap-2">
+                          <DriverBadge
+                            code={entry.code}
+                            team={entry.team}
+                            displayName={entry.displayName}
+                            number={entry.number}
+                            nationality={entry.nationality}
+                          />
+                          <span className="hidden text-xs text-text-muted sm:inline">
+                            {entry.displayName}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 sm:px-4">
+                        {predictedPos !== null ? (
+                          <div className="flex items-center gap-2">
+                            {pickDriver ? (
+                              <DriverBadge
+                                code={pickDriver.code}
+                                team={pickDriver.team}
+                                displayName={pickDriver.displayName}
+                                number={pickDriver.number}
+                                nationality={pickDriver.nationality}
+                              />
+                            ) : (
+                              <span className="text-xs text-text-muted">
+                                No pick
+                              </span>
+                            )}
+                            <span
+                              className={`text-xs font-semibold ${
+                                top5Pts > 0 ? 'text-success' : 'text-text-muted'
+                              }`}
+                            >
+                              +{top5Pts}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-text-muted/60">—</span>
+                        )}
+                      </td>
+                      <td
+                        className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
+                          rowTotal > 0 ? 'text-accent' : 'text-text-muted'
+                        }`}
+                      >
+                        +{rowTotal}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-text">Head-to-Head</h3>
+              <span className="text-sm font-semibold text-accent">
+                +{selectedH2HPoints} pts
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {h2hSummaryItems.map((matchup) => {
+                const pickedDriver = matchup.myPickId
+                  ? driverById.get(matchup.myPickId)
                   : undefined;
-                const top5 = predictedPos
-                  ? top5ByPredictedPosition.get(predictedPos)
-                  : undefined;
-                const top5Pts = top5?.points ?? 0;
-                const rowTotal = top5Pts;
-                const isTop5Actual = entry.position <= 5;
+                const winnerDriver = driverById.get(matchup.winnerId);
+                const wonPick = matchup.points > 0;
 
                 return (
-                  <tr
-                    key={entry.driverId}
-                    className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
+                  <div
+                    key={matchup.rowId}
+                    className="rounded-md border border-border bg-surface-muted/35 p-2"
                   >
-                    <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
-                      P{entry.position}
-                    </td>
-                    <td className="px-2 py-2 sm:px-4">
-                      <div className="flex items-center gap-2">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-text-muted">
+                        {displayTeamName(matchup.team)}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 text-xs font-semibold ${
+                          wonPick ? 'text-success' : 'text-error'
+                        }`}
+                      >
+                        {wonPick ? (
+                          <CircleCheck className="h-3.5 w-3.5" />
+                        ) : (
+                          <CircleX className="h-3.5 w-3.5" />
+                        )}
+                        +{matchup.points}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {pickedDriver ? (
                         <DriverBadge
-                          code={entry.code}
-                          team={entry.team}
-                          displayName={entry.displayName}
-                          number={entry.number}
-                          nationality={entry.nationality}
+                          code={pickedDriver.code}
+                          team={pickedDriver.team}
+                          displayName={pickedDriver.displayName}
+                          number={pickedDriver.number}
+                          nationality={pickedDriver.nationality}
                         />
-                        <span className="hidden text-xs text-text-muted sm:inline">
-                          {entry.displayName}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 sm:px-4">
-                      {predictedPos !== null ? (
-                        <div className="flex items-center gap-2">
-                          {pickDriver ? (
-                            <DriverBadge
-                              code={pickDriver.code}
-                              team={pickDriver.team}
-                              displayName={pickDriver.displayName}
-                              number={pickDriver.number}
-                              nationality={pickDriver.nationality}
-                            />
-                          ) : (
-                            <span className="text-xs text-text-muted">
-                              No pick
-                            </span>
-                          )}
-                          <span
-                            className={`text-xs font-semibold ${
-                              top5Pts > 0 ? 'text-success' : 'text-text-muted'
-                            }`}
-                          >
-                            +{top5Pts}
-                          </span>
-                        </div>
                       ) : (
-                        <span className="text-xs text-text-muted/60">—</span>
+                        <span className="text-xs text-text-muted">No pick</span>
                       )}
-                    </td>
-                    <td
-                      className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
-                        rowTotal > 0 ? 'text-accent' : 'text-text-muted'
-                      }`}
-                    >
-                      +{rowTotal}
-                    </td>
-                  </tr>
+                      <span className="text-xs text-text-muted">vs</span>
+                      {winnerDriver ? (
+                        <DriverBadge
+                          code={winnerDriver.code}
+                          team={winnerDriver.team}
+                          displayName={winnerDriver.displayName}
+                          number={winnerDriver.number}
+                          nationality={winnerDriver.nationality}
+                        />
+                      ) : (
+                        <span className="text-xs text-text-muted">Winner</span>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-border bg-surface-muted/45">
-                <td className="px-2 py-2 text-xs text-text-muted sm:px-4">
-                  H2H
-                </td>
-                <td className="px-2 py-2 sm:px-4" colSpan={2}>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {h2hSummaryItems.map((matchup) => {
-                      const pickedDriver = matchup.myPickId
-                        ? driverById.get(matchup.myPickId)
-                        : undefined;
-                      const winnerDriver = driverById.get(matchup.winnerId);
-                      return (
-                        <div
-                          key={matchup.rowId}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-1.5 py-1"
-                          title={displayTeamName(matchup.team)}
-                        >
-                          {pickedDriver ? (
-                            <DriverBadge
-                              code={pickedDriver.code}
-                              team={pickedDriver.team}
-                              displayName={pickedDriver.displayName}
-                              number={pickedDriver.number}
-                              nationality={pickedDriver.nationality}
-                            />
-                          ) : (
-                            <span className="text-xs text-text-muted">
-                              No pick
-                            </span>
-                          )}
-                          <span className="text-xs text-text-muted">→</span>
-                          {winnerDriver ? (
-                            <DriverBadge
-                              code={winnerDriver.code}
-                              team={winnerDriver.team}
-                              displayName={winnerDriver.displayName}
-                              number={winnerDriver.number}
-                              nationality={winnerDriver.nationality}
-                            />
-                          ) : (
-                            <span className="text-xs text-text-muted">
-                              Winner
-                            </span>
-                          )}
-                          <span
-                            className={`text-xs font-semibold ${
-                              matchup.points > 0 ? 'text-success' : 'text-error'
-                            }`}
-                          >
-                            +{matchup.points}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </td>
-                <td className="px-2 py-2 text-right text-sm font-semibold text-accent sm:px-4">
-                  +{selectedH2HPoints}
-                </td>
-              </tr>
-              <tr className="sticky bottom-0 z-20 border-t border-border bg-surface-muted/95 backdrop-blur-sm">
-                <td
-                  className="px-2 py-2 text-sm font-semibold text-text sm:px-4"
-                  colSpan={2}
-                >
-                  Session Total
-                </td>
-                <td className="gap-2 px-2 py-2 text-sm font-semibold text-accent sm:px-4">
-                  <span className="pr-2 text-text">Top 5</span> +
-                  {selectedTop5Points}
-                  <span className="px-2 text-text">|</span>
-                  <span className="pr-2 text-text">H2H</span> +
-                  {selectedH2HPoints}
-                </td>
-                <td className="px-2 py-2 text-right text-sm font-bold text-accent sm:px-4">
-                  +{sessionPointsGain}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-semibold text-text">Session Total</span>
+              <span className="font-semibold text-accent">
+                Top 5 +{selectedTop5Points} | H2H +{selectedH2HPoints} | Total +
+                {sessionPointsGain}
+              </span>
+            </div>
+          </div>
         </div>
       )}
     </div>

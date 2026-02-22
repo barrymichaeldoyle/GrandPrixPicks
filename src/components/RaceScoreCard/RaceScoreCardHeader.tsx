@@ -15,6 +15,7 @@ interface RaceScoreCardHeaderProps {
   variant: 'full' | 'compact';
   isNextRace: boolean;
   linkToRace: boolean;
+  compactSummaryOnly?: boolean;
 }
 
 export function RaceScoreCardHeader({
@@ -23,6 +24,7 @@ export function RaceScoreCardHeader({
   variant,
   isNextRace,
   linkToRace,
+  compactSummaryOnly = false,
 }: RaceScoreCardHeaderProps) {
   const countryCode = getCountryCodeForRace({ slug: data.raceSlug });
   const sessions = getSessionsForWeekend(data.hasSprint);
@@ -88,10 +90,16 @@ export function RaceScoreCardHeader({
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 transition-colors hover:bg-surface-hover sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <div
+      className={`flex gap-4 p-4 transition-colors hover:bg-surface-hover ${
+        variant === 'compact' && compactSummaryOnly
+          ? 'items-center justify-between'
+          : 'flex-col sm:flex-row sm:items-center sm:justify-between'
+      }`}
+    >
       {headerElement}
 
-      <div className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center">
+      <div className="ml-auto flex shrink-0 flex-row items-center justify-end gap-3">
         <ScoreRing
           earned={data.totalPoints}
           max={data.maxPoints}

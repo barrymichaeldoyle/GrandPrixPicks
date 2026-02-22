@@ -2,7 +2,6 @@ import { Calendar, Clock } from 'lucide-react';
 
 import type { Doc } from '../../convex/_generated/dataModel';
 import { formatDate, formatTime } from '../lib/date';
-import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 import { getCountryCodeForRace, RaceFlag, StatusBadge } from './RaceCard';
 
 interface RaceDetailHeaderProps {
@@ -12,7 +11,6 @@ interface RaceDetailHeaderProps {
 
 export function RaceDetailHeader({ race, isNextRace }: RaceDetailHeaderProps) {
   const countryCode = getCountryCodeForRace(race);
-  const showCountdown = race.status === 'upcoming' && isNextRace;
 
   return (
     <div className="p-0">
@@ -43,16 +41,8 @@ export function RaceDetailHeader({ race, isNextRace }: RaceDetailHeaderProps) {
               <span className="text-xs font-medium text-text-muted">
                 Round {race.round}
               </span>
-              <span className="ml-auto max-w-[70%] min-w-0 md:max-w-none">
-                {showCountdown ? (
-                  <PredictionCountdownBadge
-                    predictionLockAt={race.predictionLockAt}
-                    sessionLabel="Race"
-                    className="mr-1 -mb-1 justify-end text-right text-xs md:text-sm"
-                  />
-                ) : (
-                  <StatusBadge status={race.status} isNext={isNextRace} />
-                )}
+              <span className="mr-1 ml-auto max-w-[70%] min-w-0 md:max-w-none">
+                <StatusBadge status={race.status} isNext={isNextRace} />
               </span>
             </div>
             <h1 className="truncate text-base font-semibold text-text sm:text-lg">

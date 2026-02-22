@@ -101,7 +101,7 @@ export function DriverBadge({
   ) : null;
 
   const classes = [
-    'inline-flex items-center justify-center rounded-md font-mono leading-none font-bold tracking-wider text-white uppercase shadow-sm',
+    'inline-grid place-items-center rounded-md font-mono font-bold tracking-wider text-white uppercase shadow-sm',
     BADGE_SIZES[size],
     showNumber && number != null ? 'gap-1' : '',
     team === 'Cadillac' ? 'dark:ring-1 dark:ring-white/20' : '',
@@ -112,10 +112,12 @@ export function DriverBadge({
 
   const badge = (
     <span className={classes} style={{ backgroundColor: color }}>
-      {showNumber && number != null && (
-        <span className="font-normal opacity-70">{number}</span>
-      )}
-      {code}
+      <span className="inline-flex items-center justify-center gap-1 leading-[1]">
+        {showNumber && number != null && (
+          <span className="font-normal tabular-nums opacity-70">{number}</span>
+        )}
+        <span>{code}</span>
+      </span>
     </span>
   );
 

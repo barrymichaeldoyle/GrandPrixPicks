@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from 'convex/react';
 import { User, UserCheck, UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { MouseEvent, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -22,7 +22,9 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     return null;
   }
 
-  const handleClick = async () => {
+  const handleClick = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     const willFollow = !following;
     setOptimistic(willFollow);
     try {
@@ -43,7 +45,7 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     return (
       <button
         type="button"
-        onClick={() => void handleClick()}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`${buttonClass} ${
@@ -78,8 +80,8 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
   return (
     <button
       type="button"
-      onClick={() => void handleClick()}
-      className={`${buttonClass} border border-transparent bg-accent text-white hover:bg-accent/90`}
+      onClick={handleClick}
+      className={`${buttonClass} border border-accent/35 bg-accent-muted text-accent hover:bg-accent-muted/80 dark:border-accent/30 dark:bg-accent-muted/35 dark:text-accent-hover dark:hover:bg-accent-muted/50`}
     >
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
         <UserPlus className="h-3.5 w-3.5" />

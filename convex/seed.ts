@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
+import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import { scoreTopFive } from './lib/scoring';
 import { scheduleReminder } from './notifications';
 
@@ -508,6 +509,7 @@ export const seedRaces = internalMutation({
         : undefined;
       const sprintQualiLockAt = sprintQualiStartAt;
       const sprintLockAt = sprintStartAt;
+      const timeZone = getRaceTimeZoneFromSlug(race.slug);
 
       // Check if race already exists by slug
       const existing = await ctx.db
@@ -528,6 +530,7 @@ export const seedRaces = internalMutation({
           sprintQualiLockAt,
           sprintStartAt,
           sprintLockAt,
+          timeZone,
           updatedAt: now,
         });
         const updatedRace = await ctx.db.get(existing._id);
@@ -550,6 +553,7 @@ export const seedRaces = internalMutation({
         sprintQualiLockAt,
         sprintStartAt,
         sprintLockAt,
+        timeZone,
         raceStartAt,
         predictionLockAt,
         status: 'upcoming',
@@ -1844,6 +1848,40 @@ export const migrateSessionTypes = internalMutation({
     }
 
     return { migrated: stats };
+  },
+});
+
+/** Backfill race timezones from known slug mapping. */
+export const backfillRaceTimeZones = internalMutation({
+  args: {
+    overwriteExisting: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const overwriteExisting = args.overwriteExisting ?? false;
+    const races = await ctx.db.query('races').collect();
+    let updated = 0;
+    let skipped = 0;
+
+    for (const race of races) {
+      if (race.timeZone && !overwriteExisting) {
+        skipped++;
+        continue;
+      }
+
+      const timeZone = getRaceTimeZoneFromSlug(race.slug);
+      if (!timeZone) {
+        skipped++;
+        continue;
+      }
+
+      await ctx.db.patch(race._id, {
+        timeZone,
+        updatedAt: Date.now(),
+      });
+      updated++;
+    }
+
+    return { updated, skipped, total: races.length };
   },
 });
 

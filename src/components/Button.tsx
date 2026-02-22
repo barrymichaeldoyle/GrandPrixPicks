@@ -19,17 +19,20 @@ const variants = {
     'border border-transparent bg-button-accent text-white opacity-90 cursor-wait',
   secondary:
     'border border-border bg-surface hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
+  text: 'border border-transparent bg-transparent text-accent hover:bg-accent-muted/50 disabled:text-text-muted disabled:hover:bg-transparent disabled:cursor-not-allowed',
   tab: 'font-medium text-text-muted hover:bg-surface-muted hover:text-text disabled:bg-transparent disabled:text-text-muted/50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted/50',
 } as const;
 
 const sizes = {
-  sm: 'px-3 text-sm py-2',
-  md: 'gap-1.5 px-4 py-3 text-base',
-  tab: 'rounded-md px-3 py-2 text-sm',
+  inline: 'gap-1 rounded px-1.5 py-0.5 text-xs',
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-11 gap-1.5 px-4 text-base',
+  tab: 'h-9 rounded-md px-3 text-sm',
 } as const;
 
 /** Icon size (px) per button size for consistent alignment. */
 const iconSizes: Record<keyof typeof sizes, number> = {
+  inline: 14,
   sm: 16,
   md: 20,
   tab: 14,
@@ -98,7 +101,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       const normalContent = (
         <>
           {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
-          {label ? <span className="pr-0.5">{label}</span> : null}
+          {label ? <span className="inline-flex items-center pr-0.5">{label}</span> : null}
           {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
         </>
       );

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { Flag, Loader2 } from 'lucide-react';
+import { Flag } from 'lucide-react';
 import { useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';

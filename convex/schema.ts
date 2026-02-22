@@ -48,6 +48,7 @@ export default defineSchema({
     round: v.number(), // 1..N
     name: v.string(), // "Bahrain Grand Prix"
     slug: v.string(), // "bahrain-2026"
+    timeZone: v.optional(v.string()), // IANA timezone, e.g. "Europe/London"
 
     // Qualifying session (all races have this)
     qualiStartAt: v.optional(v.number()), // ms epoch

@@ -1,10 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { Button } from './Button';
 
 export type TabSwitchOption<T extends string> = {
   value: T;
-  label: string;
+  label: ReactNode;
   leftIcon?: LucideIcon;
   disabled?: boolean;
 };

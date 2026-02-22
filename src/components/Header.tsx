@@ -180,7 +180,7 @@ export function Header({
       ref={headerRef}
       className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text shadow-sm"
     >
-      <div className="flex h-full min-h-[61px] items-center justify-between px-4">
+      <div className="mx-auto flex h-full min-h-[61px] w-full max-w-6xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">

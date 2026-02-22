@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { HelpCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -27,12 +28,18 @@ interface FaqItemProps {
 
 export function FaqItem({ icon: Icon, question, children }: FaqItemProps) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-xl border border-border bg-surface p-6"
+    >
       <h3 className="mb-3 flex items-center gap-3 text-lg font-semibold text-text">
         <Icon className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
         {question}
       </h3>
       <div className="pl-8">{children}</div>
-    </div>
+    </motion.div>
   );
 }

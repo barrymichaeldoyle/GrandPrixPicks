@@ -61,6 +61,55 @@ To avoid 500 errors (`HTTPError`) from Clerk’s middleware on Cloudflare Pages:
 - Set the `VITE_CONVEX_URL` and `CONVEX_DEPLOYMENT` environment variables in your `.env.local`. (Or run `npx convex init` to set them automatically.)
 - Run `npx convex dev` to start the Convex server.
 
+## Setting up Paddle (Season Pass)
+
+This repo includes a starter Paddle integration for the 2026 season pass:
+
+- `POST /api/paddle/checkout` creates a Paddle transaction and returns a hosted `checkoutUrl`.
+- `POST /api/paddle/webhook` verifies webhook signatures and grants the season pass in Convex.
+- `/pay` opens Paddle.js checkout from Paddle's `_ptxn` default payment link query parameter.
+- The pricing page (`/pricing`) now calls the checkout endpoint for signed-in users.
+
+Add these env vars:
+
+```bash
+VITE_PADDLE_CLIENT_TOKEN=...
+PADDLE_API_KEY=...
+PADDLE_SEASON_PASS_PRICE_ID=pri_...
+PADDLE_WEBHOOK_SECRET=...
+PADDLE_CONVEX_WEBHOOK_KEY=...
+```
+
+Dashboard setup checklist:
+
+1. In Paddle, create the 2026 Season Pass product + price and copy the `price_id` to `PADDLE_SEASON_PASS_PRICE_ID`.
+2. Set the Paddle Default Payment Link to `https://<your-domain>/pay`.
+3. Create a client-side token in Paddle and set `VITE_PADDLE_CLIENT_TOKEN` (`test_...` in sandbox, `live_...` in production).
+4. Add a webhook destination pointing to `https://<your-domain>/api/paddle/webhook`.
+5. Subscribe to at least `transaction.completed`.
+6. Copy that destination's endpoint secret into `PADDLE_WEBHOOK_SECRET`.
+7. Set the same `PADDLE_CONVEX_WEBHOOK_KEY` in both:
+   - your app runtime environment (`.env.local`, Cloudflare Pages, etc.)
+   - your Convex deployment environment (`npx convex env set PADDLE_CONVEX_WEBHOOK_KEY ...` or Convex dashboard)
+8. Test with Paddle sandbox first, then switch env vars to live credentials.
+
+### Stable Local Webhook URL with Cloudflare Tunnel
+
+To use a stable local webhook URL like `https://dev.grandprixpicks.com/api/paddle/webhook`:
+
+1. Install cloudflared:
+   - `brew install cloudflared`
+2. One-time Cloudflare auth:
+   - `cloudflared tunnel login`
+3. Create tunnel:
+   - `cloudflared tunnel create grandprixpicks-dev`
+4. Route DNS hostname to tunnel:
+   - `cloudflared tunnel route dns grandprixpicks-dev dev.grandprixpicks.com`
+5. Run app + tunnel together:
+   - `pnpm dev:public`
+
+The tunnel command in `package.json` proxies `dev.grandprixpicks.com` to `http://localhost:3000`.
+
 ### Convex “Server Error” when called by client (e.g. on Cloudflare)
 
 If you see `[CONVEX Q(...)] Server Error - Called by client`, Convex is failing to verify the Clerk JWT.

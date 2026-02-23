@@ -23,6 +23,9 @@ const config = defineConfig(({ mode }) => {
     isProductionBuild && sentryAuthToken && sentryOrg && sentryProject;
 
   return {
+    server: {
+      allowedHosts: ['dev.grandprixpicks.com'],
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

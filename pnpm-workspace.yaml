@@ -1,0 +1,3 @@
+pnponlyBuiltDependencies:
+  - '@clerk/shared'
+  - workerd

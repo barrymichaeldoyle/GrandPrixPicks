@@ -1,14 +1,19 @@
 import { SignInButton, useAuth } from '@clerk/clerk-react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import {
   AlertTriangle,
+  ArrowRight,
   Bell,
+  CheckCircle2,
   Eye,
   EyeOff,
   Globe,
+  LoaderCircle,
   LogIn,
+  Ticket,
   User,
+  X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -162,6 +167,18 @@ function RegionalSection({
 }
 
 export const Route = createFileRoute('/settings')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { purchase?: 'success'; season?: number } => {
+    const purchase = search.purchase === 'success' ? 'success' : undefined;
+    const rawSeason = search.season;
+    const parsedSeason =
+      typeof rawSeason === 'string' ? Number(rawSeason) : undefined;
+    const season =
+      parsedSeason && Number.isInteger(parsedSeason) ? parsedSeason : undefined;
+
+    return { purchase, season };
+  },
   component: SettingsPage,
   head: () => {
     const title = 'Settings | Grand Prix Picks';
@@ -189,7 +206,25 @@ const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 function SettingsPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
+  const seasonPassSeason = 2026;
+  const purchaseSeason = search.season ?? seasonPassSeason;
+  const showPurchaseSuccess = search.purchase === 'success';
+  const hasSeasonPassFor2026 = useQuery(
+    api.users.hasSeasonPassForSeason,
+    isSignedIn ? { season: seasonPassSeason } : 'skip',
+  );
+  const hasSeasonPassForPurchase = useQuery(
+    api.users.hasSeasonPassForSeason,
+    isSignedIn && showPurchaseSuccess && purchaseSeason !== seasonPassSeason
+      ? { season: purchaseSeason }
+      : 'skip',
+  );
+  const hasPassForSuccessBanner =
+    purchaseSeason === seasonPassSeason
+      ? hasSeasonPassFor2026
+      : hasSeasonPassForPurchase;
   const updatePrivacy = useMutation(api.users.updatePrivacySettings);
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
@@ -369,6 +404,56 @@ function SettingsPage() {
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <h1 className="mb-6 text-3xl font-bold text-text">Settings</h1>
+        {showPurchaseSuccess ? (
+          <div className="mb-6 rounded-xl border border-border bg-surface p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                {hasPassForSuccessBanner === true ? (
+                  <div className="flex items-start gap-2 text-success">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Season Pass is active</p>
+                      <p className="text-sm text-text-muted">
+                        Your {purchaseSeason} season pass is now active. Premium
+                        league limits are unlocked.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 text-accent">
+                    <LoaderCircle className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
+                    <div>
+                      <p className="font-semibold">Payment received</p>
+                      <p className="text-sm text-text-muted">
+                        Activating your {purchaseSeason} season pass. This can
+                        take a few seconds after checkout closes.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigate({
+                    to: '/settings',
+                    replace: true,
+                  });
+                }}
+                className="inline-flex rounded-md p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+                aria-label="Dismiss purchase banner"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-3 text-sm text-text-muted">
+              <Link to="/leagues" className="text-accent hover:underline">
+                Go to leagues
+              </Link>{' '}
+              to create or join leagues with your new limits.
+            </p>
+          </div>
+        ) : null}
 
         <div className="space-y-6">
           {/* Profile section */}
@@ -520,6 +605,55 @@ function SettingsPage() {
                 </div>
                 <Button size="tab" variant="tab" onClick={startEditing}>
                   Edit
+                </Button>
+              </div>
+            )}
+          </SettingsSection>
+
+          {/* Season pass section */}
+          <SettingsSection
+            title="Season Pass"
+            icon={<Ticket className="h-5 w-5 text-text-muted" />}
+            headerRight={
+              hasSeasonPassFor2026 ? (
+                <Link
+                  to="/leagues"
+                  className="text-sm font-medium text-accent hover:underline"
+                >
+                  Manage leagues
+                </Link>
+              ) : null
+            }
+          >
+            {hasSeasonPassFor2026 === undefined ? (
+              <div className="space-y-2">
+                <div className="h-4 w-48 animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-full animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-2/3 animate-pulse rounded bg-surface-muted" />
+              </div>
+            ) : hasSeasonPassFor2026 ? (
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 text-success">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="font-semibold text-text">
+                      Active for {seasonPassSeason}
+                    </p>
+                    <p className="text-sm text-text-muted">
+                      Your season pass is active. Unlimited league joins and
+                      public league creation are unlocked.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-text-muted">
+                  Upgrade to unlock unlimited league joins and public league
+                  creation for the full {seasonPassSeason} season.
+                </p>
+                <Button asChild size="sm" rightIcon={ArrowRight}>
+                  <Link to="/pricing">See Season Pass Pricing</Link>
                 </Button>
               </div>
             )}

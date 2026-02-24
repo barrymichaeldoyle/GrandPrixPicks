@@ -4,7 +4,9 @@ interface PredictionCountdownBadgeProps {
   /** Timestamp (ms) when predictions lock. */
   predictionLockAt: number;
   /** Session label, e.g. "Qualifying", "Race", "Sprint". */
-  sessionLabel: string;
+  sessionLabel?: string;
+  /** Badge copy mode for different contexts. */
+  labelMode?: 'predict' | 'lock';
   /** Optional extra classes for context-specific layout tweaks. */
   className?: string;
 }
@@ -16,14 +18,19 @@ interface PredictionCountdownBadgeProps {
 export function PredictionCountdownBadge({
   predictionLockAt,
   sessionLabel,
+  labelMode = 'predict',
   className = '',
 }: PredictionCountdownBadgeProps) {
   const label = useCountdown(predictionLockAt);
+  const suffix =
+    labelMode === 'lock'
+      ? 'until lock'
+      : `to predict ${sessionLabel ?? 'session'}`;
   return (
     <span
       className={`inline-flex max-w-full min-w-0 items-center rounded-full border border-accent/35 bg-surface px-2.5 py-1 text-sm leading-tight font-semibold whitespace-normal text-accent tabular-nums shadow-sm dark:border-accent/45 dark:bg-accent-muted/30 dark:text-accent-hover ${className}`}
     >
-      {label} to predict {sessionLabel}
+      {label} {suffix}
     </span>
   );
 }

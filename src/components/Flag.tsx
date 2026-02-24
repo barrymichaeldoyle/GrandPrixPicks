@@ -75,7 +75,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
   const isFull = size === 'full';
   return (
     <span
-      className={`inline-block shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/10 ${isFull ? 'h-full' : ''} ${className}`}
+      className={`inline-block shrink-0 overflow-hidden ${isFull ? 'h-full' : ''} ${className}`}
     >
       <img
         src={`${FLAG_CDN}/w${cdnWidth}/${lowerCode}.png`}

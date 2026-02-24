@@ -21,7 +21,10 @@ declare global {
         };
       }) => void;
       Checkout?: {
-        open: (options: { transactionId: string }) => void;
+        open: (options: {
+          transactionId: string;
+          discountCode?: string;
+        }) => void;
       };
     };
   }
@@ -45,9 +48,15 @@ export const Route = createFileRoute('/pay')({
 const PADDLE_JS_URL = 'https://cdn.paddle.com/paddle/v2/paddle.js';
 const SCRIPT_ID = 'paddle-js-sdk';
 const DEFAULT_SEASON = 2026;
+const EARLY_BIRD_CODE = 'EARLYBIRD2026';
+const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
 const paddleClientToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN as
   | string
   | undefined;
+
+function isEarlyBirdActive(now = new Date()): boolean {
+  return now.getTime() <= new Date(EARLY_BIRD_EXPIRES_AT_UTC).getTime();
+}
 
 function getPaddleEnvironment(): 'sandbox' | 'production' {
   const explicit = (import.meta.env.VITE_PADDLE_ENV as string | undefined)
@@ -116,7 +125,12 @@ function PayPage() {
     openedRef.current = true;
 
     async function openCheckout() {
-      const txn = new URLSearchParams(window.location.search).get('_ptxn');
+      const searchParams = new URLSearchParams(window.location.search);
+      const txn = searchParams.get('_ptxn');
+      const couponParam =
+        searchParams.get('coupon') ?? searchParams.get('coupon_code');
+      const discountCode =
+        couponParam ?? (isEarlyBirdActive() ? EARLY_BIRD_CODE : null);
 
       if (!txn) {
         setErrorMessage('Missing Paddle transaction ID in URL (_ptxn).');
@@ -175,6 +189,7 @@ function PayPage() {
 
         window.Paddle.Checkout.open({
           transactionId: txn,
+          discountCode: discountCode ?? undefined,
         });
       } catch (error) {
         const message =

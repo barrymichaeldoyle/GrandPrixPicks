@@ -6,6 +6,13 @@ import { useState } from 'react';
 
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
+const EARLY_BIRD_CODE = 'EARLYBIRD2026';
+const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
+
+function isEarlyBirdActive(now = new Date()): boolean {
+  return now.getTime() <= new Date(EARLY_BIRD_EXPIRES_AT_UTC).getTime();
+}
+
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
   head: () => {
@@ -57,7 +64,11 @@ function PricingPage() {
         throw new Error(payload.error ?? 'Could not start checkout');
       }
 
-      window.location.assign(payload.checkoutUrl);
+      const checkoutUrl = new URL(payload.checkoutUrl, window.location.origin);
+      if (isEarlyBirdActive()) {
+        checkoutUrl.searchParams.set('coupon', EARLY_BIRD_CODE);
+      }
+      window.location.assign(checkoutUrl.toString());
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Could not start checkout';
@@ -89,6 +100,26 @@ function PricingPage() {
         </motion.div>
 
         <div className="space-y-8">
+          {isEarlyBirdActive() ? (
+            <motion.section
+              className="rounded-xl border border-accent/40 bg-accent/10 p-5 shadow-[0_10px_26px_-20px_rgba(13,148,136,0.7)] sm:p-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="text-xs font-semibold tracking-[0.12em] text-accent">
+                LIMITED-TIME PROMO
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-text">
+                Use code {EARLY_BIRD_CODE} at checkout
+              </h2>
+              <p className="mt-2 text-sm text-text-muted">
+                Active through April 1, 2026 at 11:59 PM UTC. We&apos;ll prefill
+                the code for you when you launch checkout from this page.
+              </p>
+            </motion.section>
+          ) : null}
+
           <motion.section
             className="rounded-xl border border-border bg-surface/95 p-6 shadow-[0_12px_30px_-24px_rgba(13,148,136,0.45)] backdrop-blur-[1px] sm:p-8"
             initial={{ opacity: 0, y: 12 }}
@@ -153,7 +184,9 @@ function PricingPage() {
               {isSignedIn
                 ? isStartingCheckout
                   ? 'Starting Checkout...'
-                  : 'Get 2026 Season Pass'
+                  : isEarlyBirdActive()
+                    ? `Claim ${EARLY_BIRD_CODE}`
+                    : 'Get 2026 Season Pass'
                 : 'Sign In to Buy'}
               {!isStartingCheckout ? (
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />

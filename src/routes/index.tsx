@@ -87,404 +87,393 @@ function HomePage() {
   const nextEventCountdown = useCountdown(nextEvent?.at ?? 0);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-page">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[42rem]">
-        <div className="absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
-        <div className="absolute top-28 right-0 h-72 w-72 rounded-full bg-success/10 blur-3xl" />
-        <div className="absolute top-48 left-0 h-64 w-64 rounded-full bg-warning/10 blur-3xl" />
-      </div>
-      <div className="relative z-10">
-        {/* Hero Section */}
-        <section className="relative isolate overflow-hidden px-6 py-14 sm:py-18">
-          <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-8">
-            <motion.div {...fadeUp} className="w-full text-center">
-              <motion.p
-                className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted/70 px-3 py-1 text-xs font-semibold text-text-muted"
-                initial={{ opacity: 0, y: 6 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: 0.05 }}
-              >
-                <CalendarDays
-                  className="h-3.5 w-3.5 text-accent"
-                  aria-hidden="true"
-                />
-                2026 Season • Free to Play
-              </motion.p>
+    <div className="bg-page">
+      {/* Hero Section */}
+      <section className="relative isolate overflow-hidden px-6 py-14 sm:py-18">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-8">
+          <motion.div {...fadeUp} className="w-full text-center">
+            <motion.p
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted/70 px-3 py-1 text-xs font-semibold text-text-muted"
+              initial={{ opacity: 0, y: 6 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.35, delay: 0.05 }}
+            >
+              <CalendarDays
+                className="h-3.5 w-3.5 text-accent"
+                aria-hidden="true"
+              />
+              2026 Season • Free to Play
+            </motion.p>
 
-              <motion.div
-                className="mb-5 flex items-center justify-center gap-3"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-              >
-                <Flag
-                  className="mt-1 h-10 w-10 shrink-0 text-accent"
-                  aria-hidden="true"
-                />
-                <h1 className="text-4xl font-black tracking-tight text-text sm:text-5xl">
-                  Grand Prix Picks
-                </h1>
-              </motion.div>
+            <motion.div
+              className="mb-5 flex items-center justify-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <Flag
+                className="mt-1 h-10 w-10 shrink-0 text-accent"
+                aria-hidden="true"
+              />
+              <h1 className="text-4xl font-black tracking-tight text-text sm:text-5xl">
+                Grand Prix Picks
+              </h1>
+            </motion.div>
 
-              <motion.p
-                className="mx-auto max-w-2xl max-w-[500px] text-lg text-text-muted sm:text-xl"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.15 }}
-              >
-                Make your call for every session, win teammate battles, and
-                climb the season leaderboard with your friends.
-              </motion.p>
+            <motion.p
+              className="mx-auto max-w-2xl max-w-[500px] text-lg text-text-muted sm:text-xl"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+            >
+              Make your call for every session, win teammate battles, and climb
+              the season leaderboard with your friends.
+            </motion.p>
 
-              <motion.div
-                className="mt-7 flex flex-wrap items-center justify-center gap-3"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                {nextRace != null ? (
+            <motion.div
+              className="mt-7 flex flex-wrap items-center justify-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              {nextRace != null ? (
+                <Button
+                  asChild
+                  variant="primary"
+                  size="md"
+                  rightIcon={ArrowRight}
+                >
+                  <Link
+                    to="/races/$raceSlug"
+                    params={{ raceSlug: nextRace.slug }}
+                  >
+                    Make predictions now
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="primary"
+                  size="md"
+                  rightIcon={ArrowRight}
+                >
+                  <Link to="/races">View races</Link>
+                </Button>
+              )}
+              <Button asChild variant="secondary" size="md">
+                <Link to="/leaderboard">See leaderboard</Link>
+              </Button>
+            </motion.div>
+
+            <motion.div
+              className="mt-6 flex flex-wrap justify-center gap-2"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+            >
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
+                <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+                Session locks prevent peeking
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
+                <Swords className="h-3.5 w-3.5 text-accent" />
+                Top 5 + Head-to-Head
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
+                <Users className="h-3.5 w-3.5 text-accent" />
+                Public profiles and follows
+              </span>
+            </motion.div>
+          </motion.div>
+
+          <motion.aside
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.18 }}
+            className="w-full max-w-3xl rounded-2xl border border-border bg-surface/85 p-4"
+          >
+            {nextRace != null ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-text-muted">
+                    Next Race
+                  </p>
                   <Button
                     asChild
-                    variant="primary"
-                    size="md"
+                    variant="secondary"
+                    size="sm"
                     rightIcon={ArrowRight}
                   >
                     <Link
                       to="/races/$raceSlug"
                       params={{ raceSlug: nextRace.slug }}
                     >
-                      Make predictions now
+                      Open race page
                     </Link>
                   </Button>
-                ) : (
-                  <Button
-                    asChild
-                    variant="primary"
-                    size="md"
-                    rightIcon={ArrowRight}
-                  >
-                    <Link to="/races">View races</Link>
-                  </Button>
-                )}
-                <Button asChild variant="secondary" size="md">
-                  <Link to="/leaderboard">See leaderboard</Link>
-                </Button>
-              </motion.div>
+                </div>
 
-              <motion.div
-                className="mt-6 flex flex-wrap justify-center gap-2"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-              >
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
-                  <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-                  Session locks prevent peeking
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
-                  <Swords className="h-3.5 w-3.5 text-accent" />
-                  Top 5 + Head-to-Head
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-text-muted">
-                  <Users className="h-3.5 w-3.5 text-accent" />
-                  Public profiles and follows
-                </span>
-              </motion.div>
-            </motion.div>
-
-            <motion.aside
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.18 }}
-              className="w-full max-w-3xl rounded-2xl border border-border bg-surface/85 p-4"
-            >
-              {nextRace != null ? (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-text-muted">
-                      Next Race
+                <div className="flex items-start gap-2.5">
+                  {(() => {
+                    const countryCode = getCountryCodeForRace(nextRace);
+                    return countryCode ? (
+                      <span className="shrink-0">
+                        <RaceFlag countryCode={countryCode} size="lg" />
+                      </span>
+                    ) : null;
+                  })()}
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="text-2xl leading-tight font-semibold text-text">
+                      {nextRace.name}
+                    </h3>
+                    <p className="text-sm text-text-muted">
+                      {new Date(nextRace.raceStartAt).toLocaleDateString(
+                        undefined,
+                        {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        },
+                      )}{' '}
+                      •{' '}
+                      {new Date(nextRace.raceStartAt).toLocaleTimeString(
+                        undefined,
+                        {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        },
+                      )}
                     </p>
-                    <Button
-                      asChild
-                      variant="secondary"
-                      size="sm"
-                      rightIcon={ArrowRight}
-                    >
-                      <Link
-                        to="/races/$raceSlug"
-                        params={{ raceSlug: nextRace.slug }}
-                      >
-                        Open race page
-                      </Link>
-                    </Button>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    {(() => {
-                      const countryCode = getCountryCodeForRace(nextRace);
-                      return countryCode ? (
-                        <span className="shrink-0">
-                          <RaceFlag countryCode={countryCode} size="lg" />
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      {nextEvent ? (
+                        <span className="text-xs font-semibold text-accent tabular-nums">
+                          {nextEventCountdown} to {nextEvent.label}
                         </span>
-                      ) : null;
-                    })()}
-                    <div className="min-w-0 space-y-1">
-                      <h3 className="text-2xl leading-tight font-semibold text-text">
-                        {nextRace.name}
-                      </h3>
-                      <p className="text-sm text-text-muted">
-                        {new Date(nextRace.raceStartAt).toLocaleDateString(
-                          undefined,
-                          {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          },
-                        )}{' '}
-                        •{' '}
-                        {new Date(nextRace.raceStartAt).toLocaleTimeString(
-                          undefined,
-                          {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          },
-                        )}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                        {nextEvent ? (
-                          <span className="text-xs font-semibold text-accent tabular-nums">
-                            {nextEventCountdown} to {nextEvent.label}
-                          </span>
-                        ) : null}
-                        <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/40 px-2 py-0.5 text-xs font-medium text-text-muted">
-                          Round {nextRace.round}
+                      ) : null}
+                      <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/40 px-2 py-0.5 text-xs font-medium text-text-muted">
+                        Round {nextRace.round}
+                      </span>
+                      {nextRace.hasSprint ? (
+                        <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent-muted px-2 py-0.5 text-xs font-semibold text-accent">
+                          Sprint weekend
                         </span>
-                        {nextRace.hasSprint ? (
-                          <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent-muted px-2 py-0.5 text-xs font-semibold text-accent">
-                            Sprint weekend
-                          </span>
-                        ) : null}
-                      </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-text-muted">
-                    Next Race
-                  </p>
-                  <p className="text-sm text-text-muted">
-                    No upcoming races scheduled
-                  </p>
-                </div>
-              )}
-            </motion.aside>
-          </div>
-        </section>
-
-        {/* Why play */}
-        <section className="mx-auto max-w-6xl px-6 pb-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <motion.div
-              {...fadeUp}
-              className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
-            >
-              <p className="mb-1 text-sm font-semibold text-text">
-                Fast to play
-              </p>
-              <p className="text-sm text-text-muted">
-                Submit once for the weekend, then fine-tune by session.
-              </p>
-            </motion.div>
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.06 }}
-              className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
-            >
-              <p className="mb-1 text-sm font-semibold text-text">
-                More than race winner
-              </p>
-              <p className="text-sm text-text-muted">
-                Top 5 accuracy plus teammate battles every session.
-              </p>
-            </motion.div>
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.12 }}
-              className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
-            >
-              <p className="mb-1 text-sm font-semibold text-text">
-                Social layer
-              </p>
-              <p className="text-sm text-text-muted">
-                Follow players, compare histories, and chase leaderboard rank.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="mx-auto max-w-5xl px-6 py-12">
-          <h2 className="mb-8 text-center text-2xl font-bold text-text">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <motion.div
-              {...fadeUp}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Flag className="h-6 w-6 text-accent" aria-hidden="true" />
               </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Pick Your Top 5
-              </h3>
-              <p className="text-sm text-text-muted">
-                Before each session — qualifying, sprint, and race — drag and
-                drop to rank the 5 drivers you think will finish on top.
-              </p>
-            </motion.div>
-
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.06 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Swords className="h-6 w-6 text-accent" aria-hidden="true" />
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-text-muted">
+                  Next Race
+                </p>
+                <p className="text-sm text-text-muted">
+                  No upcoming races scheduled
+                </p>
               </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Call the Head-to-Heads
-              </h3>
-              <p className="text-sm text-text-muted">
-                For every teammate pairing on the grid, predict which driver
-                will finish ahead. Earn bonus points for each correct call.
-              </p>
-            </motion.div>
+            )}
+          </motion.aside>
+        </div>
+      </section>
 
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.1 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Trophy className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Earn Points Every Session
-              </h3>
-              <p className="text-sm text-text-muted">
-                Score up to 25 points per session. Exact picks earn 5 points,
-                off-by-one earns 3, and any top-5 hit earns 1. Sprint weekends
-                mean even more points up for grabs.
-              </p>
-            </motion.div>
-
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.16 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Users className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Compete and Follow Friends
-              </h3>
-              <p className="text-sm text-text-muted">
-                Climb the season leaderboard, follow other players, and compare
-                prediction histories on public profile pages.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        <FaqSection title="Frequently Asked Questions">
-          <FaqItem icon={Target} question="How does scoring work?">
-            <p className="mb-3 text-text-muted">
-              The same points system applies to qualifying, sprint qualifying
-              (on sprint weekends), the sprint, and the race. You pick the top 5
-              for each session; points are awarded by how close your picks are
-              to the actual result:
-            </p>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <span className="w-16 font-bold text-accent">5 points</span>
-                <span className="text-text-muted">Exact position match</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-16 font-bold text-accent">3 points</span>
-                <span className="text-text-muted">Off by one position</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-16 font-bold text-accent">1 point</span>
-                <span className="text-text-muted">
-                  Driver in top 5, but off by 2+ positions
-                </span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-16 font-bold text-text-muted">0 points</span>
-                <span className="text-text-muted">
-                  Driver finishes outside the top 5
-                </span>
-              </li>
-            </ul>
-            <p className="mt-3 text-sm text-text-muted">
-              Each session scores up to 25 points (all 5 correct). Your weekend
-              total is the sum of quali, sprint (if applicable), and race
-              scores—so sprint weekends can earn you more points.
-            </p>
-            <p className="mt-3 text-sm text-text-muted">
-              Head-to-Head scoring is separate: each correct teammate matchup
-              earns 1 point per session.
-            </p>
-          </FaqItem>
-
-          <FaqItem icon={Lock} question="When do predictions lock?">
-            <p className="text-text-muted">
-              Each session locks at its scheduled start time. Qualifying, sprint
-              qualifying (on sprint weekends), the sprint, and the race each
-              have their own deadline. Once a session is locked, you can't
-              change those picks, so get them in before the cutoff.
-            </p>
-          </FaqItem>
-
-          <FaqItem icon={Clock} question="When can I make predictions?">
-            <p className="text-text-muted">
-              You predict for the current weekend only. For each session (quali,
-              sprint quali, sprint, race), you can submit or edit picks until
-              that session's scheduled start time. Future weekends open once the
-              current one is done.
-            </p>
-          </FaqItem>
-        </FaqSection>
-
-        <section className="mx-auto max-w-5xl px-6 pb-14">
-          <div className="rounded-xl border border-border bg-surface p-4 text-center sm:p-5">
+      {/* Why play */}
+      <section className="mx-auto max-w-6xl px-6 pb-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <motion.div
+            {...fadeUp}
+            className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
+          >
+            <p className="mb-1 text-sm font-semibold text-text">Fast to play</p>
             <p className="text-sm text-text-muted">
-              Want more details?
-              <Link
-                to="/support"
-                className="ml-1 font-semibold text-accent hover:text-accent/85"
-              >
-                Ask a question
-              </Link>
-              {' or '}
-              <Link
-                to="/races"
-                className="font-semibold text-accent hover:text-accent/85"
-              >
-                browse all races
-              </Link>
-              .
+              Submit once for the weekend, then fine-tune by session.
             </p>
-          </div>
-        </section>
-      </div>
+          </motion.div>
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.06 }}
+            className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
+          >
+            <p className="mb-1 text-sm font-semibold text-text">
+              More than race winner
+            </p>
+            <p className="text-sm text-text-muted">
+              Top 5 accuracy plus teammate battles every session.
+            </p>
+          </motion.div>
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.12 }}
+            className="rounded-xl border border-border/70 bg-surface/50 p-4 text-center"
+          >
+            <p className="mb-1 text-sm font-semibold text-text">Social layer</p>
+            <p className="text-sm text-text-muted">
+              Follow players, compare histories, and chase leaderboard rank.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="mx-auto max-w-5xl px-6 py-12">
+        <h2 className="mb-8 text-center text-2xl font-bold text-text">
+          How It Works
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <motion.div
+            {...fadeUp}
+            className="rounded-xl border border-border bg-surface p-5"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
+              <Flag className="h-6 w-6 text-accent" aria-hidden="true" />
+            </div>
+            <h3 className="mb-1 text-lg font-semibold text-text">
+              Pick Your Top 5
+            </h3>
+            <p className="text-sm text-text-muted">
+              Before each session — qualifying, sprint, and race — drag and drop
+              to rank the 5 drivers you think will finish on top.
+            </p>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.06 }}
+            className="rounded-xl border border-border bg-surface p-5"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
+              <Swords className="h-6 w-6 text-accent" aria-hidden="true" />
+            </div>
+            <h3 className="mb-1 text-lg font-semibold text-text">
+              Call the Head-to-Heads
+            </h3>
+            <p className="text-sm text-text-muted">
+              For every teammate pairing on the grid, predict which driver will
+              finish ahead. Earn bonus points for each correct call.
+            </p>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.1 }}
+            className="rounded-xl border border-border bg-surface p-5"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
+              <Trophy className="h-6 w-6 text-accent" aria-hidden="true" />
+            </div>
+            <h3 className="mb-1 text-lg font-semibold text-text">
+              Earn Points Every Session
+            </h3>
+            <p className="text-sm text-text-muted">
+              Score up to 25 points per session. Exact picks earn 5 points,
+              off-by-one earns 3, and any top-5 hit earns 1. Sprint weekends
+              mean even more points up for grabs.
+            </p>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.16 }}
+            className="rounded-xl border border-border bg-surface p-5"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
+              <Users className="h-6 w-6 text-accent" aria-hidden="true" />
+            </div>
+            <h3 className="mb-1 text-lg font-semibold text-text">
+              Compete and Follow Friends
+            </h3>
+            <p className="text-sm text-text-muted">
+              Climb the season leaderboard, follow other players, and compare
+              prediction histories on public profile pages.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      <FaqSection title="Frequently Asked Questions">
+        <FaqItem icon={Target} question="How does scoring work?">
+          <p className="mb-3 text-text-muted">
+            The same points system applies to qualifying, sprint qualifying (on
+            sprint weekends), the sprint, and the race. You pick the top 5 for
+            each session; points are awarded by how close your picks are to the
+            actual result:
+          </p>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-center gap-2">
+              <span className="w-16 font-bold text-accent">5 points</span>
+              <span className="text-text-muted">Exact position match</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-16 font-bold text-accent">3 points</span>
+              <span className="text-text-muted">Off by one position</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-16 font-bold text-accent">1 point</span>
+              <span className="text-text-muted">
+                Driver in top 5, but off by 2+ positions
+              </span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="w-16 font-bold text-text-muted">0 points</span>
+              <span className="text-text-muted">
+                Driver finishes outside the top 5
+              </span>
+            </li>
+          </ul>
+          <p className="mt-3 text-sm text-text-muted">
+            Each session scores up to 25 points (all 5 correct). Your weekend
+            total is the sum of quali, sprint (if applicable), and race
+            scores—so sprint weekends can earn you more points.
+          </p>
+          <p className="mt-3 text-sm text-text-muted">
+            Head-to-Head scoring is separate: each correct teammate matchup
+            earns 1 point per session.
+          </p>
+        </FaqItem>
+
+        <FaqItem icon={Lock} question="When do predictions lock?">
+          <p className="text-text-muted">
+            Each session locks at its scheduled start time. Qualifying, sprint
+            qualifying (on sprint weekends), the sprint, and the race each have
+            their own deadline. Once a session is locked, you can't change those
+            picks, so get them in before the cutoff.
+          </p>
+        </FaqItem>
+
+        <FaqItem icon={Clock} question="When can I make predictions?">
+          <p className="text-text-muted">
+            You predict for the current weekend only. For each session (quali,
+            sprint quali, sprint, race), you can submit or edit picks until that
+            session's scheduled start time. Future weekends open once the
+            current one is done.
+          </p>
+        </FaqItem>
+      </FaqSection>
+
+      <section className="mx-auto max-w-5xl px-6 pb-14">
+        <div className="rounded-xl border border-border bg-surface p-4 text-center sm:p-5">
+          <p className="text-sm text-text-muted">
+            Want more details?
+            <Link
+              to="/support"
+              className="ml-1 font-semibold text-accent hover:text-accent/85"
+            >
+              Ask a question
+            </Link>
+            {' or '}
+            <Link
+              to="/races"
+              className="font-semibold text-accent hover:text-accent/85"
+            >
+              browse all races
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

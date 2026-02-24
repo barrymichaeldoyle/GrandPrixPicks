@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
+import { PageHero } from '../components/PageHero';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 export const Route = createFileRoute('/terms')({
@@ -30,14 +31,13 @@ function TermsPage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-text">
-            Terms of Service
-          </h1>
-          <p className="text-sm text-text-muted">Last updated: February 2026</p>
-        </div>
+        <PageHero
+          eyebrow="Legal"
+          title="Terms of Service"
+          subtitle="Last updated: February 2026"
+        />
 
-        <div className="prose prose-invert max-w-none space-y-6 text-text-muted">
+        <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
               1. Acceptance of Terms

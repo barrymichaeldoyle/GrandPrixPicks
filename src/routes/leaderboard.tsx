@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { PageHero } from '@/components/PageHero';
 import { TabSwitch } from '@/components/TabSwitch';
 
 import { api } from '../../convex/_generated/api';
@@ -178,54 +179,53 @@ function LeaderboardPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        {/* Header + contextual result for current tab */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="mb-1 text-3xl font-bold text-text">Leaderboard</h1>
-            <p className="text-text-muted">
-              2026 Season Standings
-              {activeTotalCount > 0
-                ? ` · ${activeTotalCount.toLocaleString()} players`
-                : ''}
-            </p>
-          </div>
-
-          <AnimatePresence mode="wait">
-            {shouldShowHeaderViewerEntry ? (
-              <motion.div
-                key={`${scope}-${gameMode}`}
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.2 }}
-                className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                  {headerViewerEntryOrNull.rank}
-                </span>
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-text">
-                    <User className="h-3 w-3 text-accent" />
-                    {isH2HTab ? 'Your H2H Rank' : 'Your Rank'}
+        <PageHero
+          eyebrow="Season Rankings"
+          title="Leaderboard"
+          subtitle={`2026 Season Standings${
+            activeTotalCount > 0
+              ? ` · ${activeTotalCount.toLocaleString()} players`
+              : ''
+          }`}
+          rightSlot={
+            <AnimatePresence mode="wait">
+              {shouldShowHeaderViewerEntry ? (
+                <motion.div
+                  key={`${scope}-${gameMode}`}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                    {headerViewerEntryOrNull.rank}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-text">
+                      <User className="h-3 w-3 text-accent" />
+                      {isH2HTab ? 'Your H2H Rank' : 'Your Rank'}
+                    </div>
+                    <div className="text-base font-bold text-accent">
+                      {headerViewerEntryOrNull.points} pts
+                      {isH2HTab &&
+                        'correctPicks' in headerViewerEntryOrNull && (
+                          <span className="ml-2 text-sm font-normal text-text-muted">
+                            ({headerViewerEntryOrNull.correctPicks}/
+                            {headerViewerEntryOrNull.totalPicks} correct)
+                          </span>
+                        )}
+                    </div>
                   </div>
-                  <div className="text-base font-bold text-accent">
-                    {headerViewerEntryOrNull.points} pts
-                    {isH2HTab && 'correctPicks' in headerViewerEntryOrNull && (
-                      <span className="ml-2 text-sm font-normal text-text-muted">
-                        ({headerViewerEntryOrNull.correctPicks}/
-                        {headerViewerEntryOrNull.totalPicks} correct)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          }
+        />
 
         {/* Tabs */}
         <div
-          className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4"
+          className="reveal-up reveal-delay-1 mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5 sm:flex-row sm:items-center sm:gap-4"
           aria-label="Leaderboard filters"
         >
           <div className="sm:border-r sm:border-border sm:pr-4">

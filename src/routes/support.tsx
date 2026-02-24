@@ -8,6 +8,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
+import { PageHero } from '../components/PageHero';
 import { PageLoader } from '../components/PageLoader';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
@@ -110,22 +111,20 @@ function SupportContent() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
-            <Mail className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-text">Contact Support</h1>
-            <p className="text-sm text-text-muted">
-              Found a bug, need help, or have feedback? Send a message directly
-              to Barry.
-            </p>
-          </div>
-        </div>
+        <PageHero
+          eyebrow="Need Help?"
+          title="Contact Support"
+          subtitle="Found a bug, need help, or have feedback? Send a message directly to Barry."
+          icon={
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+              <Mail className="h-5 w-5" />
+            </span>
+          }
+        />
 
         <form
           onSubmit={(e) => void handleSubmit(e)}
-          className="space-y-4 rounded-xl border border-border bg-surface p-4"
+          className="reveal-up reveal-delay-1 space-y-4 rounded-xl border border-border bg-surface p-4"
         >
           <div>
             <label

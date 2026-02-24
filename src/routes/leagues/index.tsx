@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
+import { PageHero } from '../../components/PageHero';
 import { PageLoader } from '../../components/PageLoader';
 import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
@@ -99,55 +100,48 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-bold text-text">
-              <Users className="h-8 w-8 text-accent" aria-hidden />
-              Leagues
-            </h1>
-            <p className="text-text-muted">
-              Create, join, and discover leagues
-            </p>
-            {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-                  Private creates: {privateCreatedCount}/
-                  {leagueUsage.limits.maxPrivateLeaguesCreated}
-                </span>
-                <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-                  Public joins: {publicJoinedCount}/
-                  {leagueUsage.limits.maxPublicLeaguesJoined}
-                </span>
-              </div>
-            ) : null}
-          </div>
-          {!isSignedIn ? (
-            <SignInButton mode="modal">
-              <Button leftIcon={LogIn} size="sm">
-                Sign In to Create
+        <PageHero
+          eyebrow="Social Play"
+          title="Leagues"
+          subtitle="Create, join, and discover leagues"
+          icon={<Users className="h-8 w-8 text-accent" aria-hidden />}
+          rightSlot={
+            !isSignedIn ? (
+              <SignInButton mode="modal">
+                <Button leftIcon={LogIn} size="sm">
+                  Sign In to Create
+                </Button>
+              </SignInButton>
+            ) : privateCreateLimitReached ? (
+              <Button
+                leftIcon={Plus}
+                disabled
+                tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
+              >
+                Create
               </Button>
-            </SignInButton>
-          ) : (
-            <>
-              {privateCreateLimitReached ? (
-                <Button
-                  leftIcon={Plus}
-                  disabled
-                  tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
-                >
-                  Create
-                </Button>
-              ) : (
-                <Button asChild leftIcon={Plus}>
-                  <Link to="/leagues/create">Create</Link>
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+            ) : (
+              <Button asChild leftIcon={Plus}>
+                <Link to="/leagues/create">Create</Link>
+              </Button>
+            )
+          }
+        />
+        {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
+          <div className="reveal-up reveal-delay-1 mb-6 flex flex-wrap gap-2 text-xs">
+            <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
+              Private creates: {privateCreatedCount}/
+              {leagueUsage.limits.maxPrivateLeaguesCreated}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
+              Public joins: {publicJoinedCount}/
+              {leagueUsage.limits.maxPublicLeaguesJoined}
+            </span>
+          </div>
+        ) : null}
 
         {isSignedIn ? (
-          <div className="mb-6 flex gap-1 rounded-lg border border-border bg-surface p-1">
+          <div className="reveal-up reveal-delay-1 mb-6 flex gap-1 rounded-lg border border-border bg-surface p-1">
             <Button
               type="button"
               variant="tab"
@@ -170,7 +164,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
             </Button>
           </div>
         ) : (
-          <div className="mb-8 rounded-xl border border-border bg-surface p-6 text-center">
+          <div className="reveal-up reveal-delay-1 mb-8 rounded-xl border border-border bg-surface p-6 text-center">
             <Shield className="mx-auto mb-3 h-10 w-10 text-text-muted" />
             <h2 className="mb-1 text-lg font-semibold text-text">
               Sign in to manage your leagues

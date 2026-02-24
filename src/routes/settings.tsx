@@ -22,6 +22,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { api } from '../../convex/_generated/api';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
+import { PageHero } from '../components/PageHero';
 import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
@@ -547,9 +548,13 @@ function SettingsPage() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <h1 className="mb-6 text-3xl font-bold text-text">Settings</h1>
+        <PageHero
+          eyebrow="Account"
+          title="Settings"
+          subtitle="Manage your profile, privacy, and notification preferences."
+        />
         {showPurchaseSuccess ? (
-          <div className="mb-6 rounded-xl border border-border bg-surface p-4">
+          <div className="reveal-up reveal-delay-1 mb-6 rounded-xl border border-border bg-surface p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 {hasPassForSuccessBanner === true ? (

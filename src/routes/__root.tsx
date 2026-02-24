@@ -170,10 +170,18 @@ function RootDocument({ children }: PropsWithChildren) {
         />
       </head>
       <body>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-x-0 top-0 z-[11] h-[34rem] overflow-hidden"
+        >
+          <div className="global-flare-a absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
+          <div className="global-flare-b absolute top-24 right-8 h-72 w-72 rounded-full bg-success/10 blur-3xl" />
+          <div className="global-flare-c absolute top-36 left-8 h-64 w-64 rounded-full bg-warning/10 blur-3xl" />
+        </div>
         <AppClerkProvider darkMode={isDark}>
           <AppConvexProvider>
             <ProfileSync />
-            <div className="flex h-[100dvh] h-screen flex-col overflow-hidden">
+            <div className="relative z-10 flex h-[100dvh] h-screen flex-col overflow-hidden">
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"

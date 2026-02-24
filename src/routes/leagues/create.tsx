@@ -8,6 +8,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
+import { PageHero } from '../../components/PageHero';
 import { PageLoader } from '../../components/PageLoader';
 import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
@@ -152,14 +153,13 @@ function CreateLeagueContent() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-text">Create League</h1>
-          <p className="text-text-muted">
-            Set up a league for the 2026 season and invite friends.
-          </p>
-        </div>
+        <PageHero
+          eyebrow="League Setup"
+          title="Create League"
+          subtitle="Set up a league for the 2026 season and invite friends."
+        />
 
-        <div className="mb-6 rounded-xl border border-border bg-surface p-4">
+        <div className="reveal-up reveal-delay-1 mb-6 rounded-xl border border-border bg-surface p-4">
           {leagueUsage && !leagueUsage.hasSeasonPass ? (
             <div className="mb-3 rounded-lg border border-accent/30 bg-accent-muted/40 p-3">
               <p className="text-sm font-medium text-text">

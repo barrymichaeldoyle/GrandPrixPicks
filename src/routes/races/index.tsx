@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { api } from '../../../convex/_generated/api';
+import { PageHero } from '../../components/PageHero';
 import { RaceCard } from '../../components/RaceCard';
 import { canonicalMeta, ogBaseUrl } from '../../lib/site';
 
@@ -149,13 +150,12 @@ function RacesPage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <header className="mb-8 flex flex-col gap-1 md:flex-row md:items-baseline md:gap-3">
-          <h1 className="text-3xl font-bold text-text">2026 Season</h1>
-          <p className="text-text-muted md:text-base">
-            Predict the top 5 finishers for each Grand Prix
-          </p>
-        </header>
-        <div className="mb-6 flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
+        <PageHero
+          eyebrow="Race Calendar"
+          title="2026 Season"
+          subtitle="Predict the top 5 finishers for each Grand Prix"
+        />
+        <div className="reveal-up reveal-delay-1 mb-6 flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
           {STATUS_FILTERS.map((filter) => (
             <button
               key={filter.key}
@@ -219,7 +219,7 @@ function RacesPage() {
           <div className="space-y-8">
             {sectionRaces.inProgress.length > 0 &&
               (statusFilter === 'all' || statusFilter === 'inProgress') && (
-                <section>
+                <section className="reveal-up reveal-delay-2">
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
                     <span
                       className="h-2 w-2 rounded-full bg-warning"
@@ -237,7 +237,7 @@ function RacesPage() {
 
             {sectionRaces.upcoming.length > 0 &&
               (statusFilter === 'all' || statusFilter === 'upcoming') && (
-                <section>
+                <section className="reveal-up reveal-delay-2">
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
                     <span
                       className="h-2 w-2 rounded-full bg-success"
@@ -260,7 +260,7 @@ function RacesPage() {
 
             {sectionRaces.completed.length > 0 &&
               (statusFilter === 'all' || statusFilter === 'completed') && (
-                <section>
+                <section className="reveal-up reveal-delay-2">
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
                     <span
                       className="h-2 w-2 rounded-full bg-text-muted"

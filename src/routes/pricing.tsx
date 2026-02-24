@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 
+import { Button } from '../components/Button';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
@@ -126,6 +127,11 @@ function PricingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
+            {isEarlyBirdActive() ? (
+              <div className="mb-4 inline-flex items-center rounded-full border border-success/35 bg-success/10 px-3 py-1 text-xs font-semibold tracking-[0.1em] text-success">
+                EARLY BIRD 50% OFF
+              </div>
+            ) : null}
             <h2 className="mb-1 text-xl font-semibold text-text">
               Season Pass 2026
             </h2>
@@ -133,12 +139,24 @@ function PricingPage() {
               One purchase for the full 2026 F1 season
             </p>
 
-            <div className="mb-6 flex items-baseline gap-2">
-              <span className="text-4xl font-bold tracking-tight text-text">
-                $19.99
-              </span>
-              <span className="text-text-muted">USD</span>
-            </div>
+            {isEarlyBirdActive() ? (
+              <div className="mb-6 flex items-baseline gap-3">
+                <span className="text-2xl font-semibold tracking-tight text-text-muted line-through">
+                  $19.99
+                </span>
+                <span className="text-4xl font-bold tracking-tight text-success">
+                  $9.99
+                </span>
+                <span className="text-text-muted">USD</span>
+              </div>
+            ) : (
+              <div className="mb-6 flex items-baseline gap-2">
+                <span className="text-4xl font-bold tracking-tight text-text">
+                  $19.99
+                </span>
+                <span className="text-text-muted">USD</span>
+              </div>
+            )}
 
             <ul className="mb-6 space-y-2 text-sm text-text">
               <motion.li
@@ -172,26 +190,23 @@ function PricingPage() {
               </motion.li>
             </ul>
 
-            <button
+            <Button
               type="button"
               onClick={() => {
                 void startCheckout();
               }}
-              disabled={!isSignedIn || isStartingCheckout}
+              size="sm"
+              rightIcon={ArrowRight}
+              loading={isStartingCheckout}
+              disabled={!isSignedIn}
               aria-disabled={!isSignedIn || isStartingCheckout}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-button-accent px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_-14px_rgba(13,148,136,0.65)] transition-all hover:-translate-y-0.5 hover:bg-button-accent-hover hover:shadow-[0_16px_28px_-16px_rgba(13,148,136,0.72)] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSignedIn
-                ? isStartingCheckout
-                  ? 'Starting Checkout...'
-                  : isEarlyBirdActive()
-                    ? `Claim ${EARLY_BIRD_CODE}`
-                    : 'Get 2026 Season Pass'
+                ? isEarlyBirdActive()
+                  ? `Claim ${EARLY_BIRD_CODE}`
+                  : 'Get 2026 Season Pass'
                 : 'Sign In to Buy'}
-              {!isStartingCheckout ? (
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              ) : null}
-            </button>
+            </Button>
 
             <p className="mt-3 text-sm text-text-muted">
               Secure checkout via Paddle. No subscriptions, no gambling, and no

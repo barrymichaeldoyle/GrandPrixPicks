@@ -1,20 +1,40 @@
-import { useAuth } from '@clerk/clerk-react';
+import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  HelpCircle,
+  ShieldCheck,
+  Users,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '../components/Button';
+import { FaqItem, FaqSection } from '../components/Faq';
 import { canonicalMeta, ogBaseUrl } from '../lib/site';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
 const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
+const fadeUp = {
+  initial: { opacity: 0, y: 8 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.18 },
+  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+};
 
 function isEarlyBirdActive(now = new Date()): boolean {
   return now.getTime() <= new Date(EARLY_BIRD_EXPIRES_AT_UTC).getTime();
 }
 
 export const Route = createFileRoute('/pricing')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { checkout?: 'cancelled' } => {
+    const checkout = search.checkout === 'cancelled' ? 'cancelled' : undefined;
+    return { checkout };
+  },
   component: PricingPage,
   head: () => {
     const title = 'Pricing | Grand Prix Picks';
@@ -40,8 +60,11 @@ export const Route = createFileRoute('/pricing')({
 
 function PricingPage() {
   const { isSignedIn } = useAuth();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const showCheckoutCancelled = search.checkout === 'cancelled';
 
   async function startCheckout() {
     setCheckoutError(null);
@@ -86,24 +109,57 @@ function PricingPage() {
         <div className="absolute top-32 left-8 h-56 w-56 rounded-full bg-warning/10 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-6">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-6 sm:py-8">
         <motion.div
-          className="mb-8"
+          className="mb-8 text-center sm:mb-10"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          <h1 className="mb-2 text-3xl font-bold text-text">Pricing</h1>
-          <p className="text-text-muted">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-muted/70 px-3 py-1 text-xs font-semibold text-text-muted">
+            <CalendarDays className="h-3.5 w-3.5 text-accent" aria-hidden />
+            2026 Season Pricing
+          </p>
+          <h1 className="mb-2 text-3xl font-bold text-text sm:text-4xl">
+            Pricing
+          </h1>
+          <p className="mx-auto max-w-2xl text-text-muted">
             Grand Prix Picks is free to play. Upgrade for full-season league
             access.
           </p>
         </motion.div>
 
-        <div className="space-y-8">
+        <div className="space-y-8 sm:space-y-10">
+          {showCheckoutCancelled ? (
+            <motion.section
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/35 bg-warning-muted/45 p-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="text-sm text-text">
+                Checkout was cancelled. You can restart it any time below.
+              </p>
+              <Button
+                type="button"
+                variant="text"
+                size="inline"
+                onClick={() => {
+                  void navigate({
+                    to: '/pricing',
+                    search: (prev) => ({ ...prev, checkout: undefined }),
+                    replace: true,
+                  });
+                }}
+              >
+                Dismiss
+              </Button>
+            </motion.section>
+          ) : null}
+
           {isEarlyBirdActive() ? (
             <motion.section
-              className="rounded-xl border border-accent/40 bg-accent/10 p-5 shadow-[0_10px_26px_-20px_rgba(13,148,136,0.7)] sm:p-6"
+              className="rounded-xl border border-accent/35 bg-accent-muted/50 p-5 sm:p-6"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -122,7 +178,7 @@ function PricingPage() {
           ) : null}
 
           <motion.section
-            className="rounded-xl border border-border bg-surface/95 p-6 shadow-[0_12px_30px_-24px_rgba(13,148,136,0.45)] backdrop-blur-[1px] sm:p-8"
+            className="rounded-2xl border border-border bg-surface/95 p-6 sm:p-8"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -165,7 +221,10 @@ function PricingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.08 }}
               >
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                  aria-hidden
+                />
                 <span>
                   Join unlimited leagues (free accounts are limited to 5)
                 </span>
@@ -176,7 +235,10 @@ function PricingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.14 }}
               >
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                  aria-hidden
+                />
                 <span>Create public leagues anyone can discover and join</span>
               </motion.li>
               <motion.li
@@ -185,32 +247,45 @@ function PricingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
               >
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+                  aria-hidden
+                />
                 <span>One-time payment for the entire 2026 season</span>
               </motion.li>
             </ul>
 
-            <Button
-              type="button"
-              onClick={() => {
-                void startCheckout();
-              }}
-              size="sm"
-              rightIcon={ArrowRight}
-              loading={isStartingCheckout}
-              disabled={!isSignedIn}
-              aria-disabled={!isSignedIn || isStartingCheckout}
-            >
-              {isSignedIn
-                ? isEarlyBirdActive()
+            {isSignedIn ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  void startCheckout();
+                }}
+                size="sm"
+                rightIcon={ArrowRight}
+                loading={isStartingCheckout}
+                aria-disabled={isStartingCheckout}
+              >
+                {isEarlyBirdActive()
                   ? `Claim ${EARLY_BIRD_CODE}`
-                  : 'Get 2026 Season Pass'
-                : 'Sign In to Buy'}
-            </Button>
+                  : 'Get 2026 Season Pass'}
+              </Button>
+            ) : (
+              <SignInButton mode="modal">
+                <Button type="button" size="sm" rightIcon={ArrowRight}>
+                  Sign In to Continue
+                </Button>
+              </SignInButton>
+            )}
 
             <p className="mt-3 text-sm text-text-muted">
               Secure checkout via Paddle. No subscriptions, no gambling, and no
               real-money betting in gameplay.
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              {isSignedIn
+                ? 'You will be redirected to Paddle to complete payment.'
+                : 'Sign in first, then you can complete checkout in under a minute.'}
             </p>
             {checkoutError ? (
               <p className="mt-2 text-sm text-error">{checkoutError}</p>
@@ -237,6 +312,73 @@ function PricingPage() {
               </p>
             </div>
           </motion.section>
+
+          <section className="grid gap-3 sm:grid-cols-3">
+            <motion.div
+              {...fadeUp}
+              className="rounded-xl border border-border bg-surface p-4"
+            >
+              <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent">
+                <Users className="h-4 w-4" aria-hidden />
+              </p>
+              <h3 className="text-sm font-semibold text-text">
+                League Flexibility
+              </h3>
+              <p className="mt-1 text-sm text-text-muted">
+                Create and join as many leagues as you want all season.
+              </p>
+            </motion.div>
+
+            <motion.div
+              {...fadeUp}
+              transition={{ ...fadeUp.transition, delay: 0.08 }}
+              className="rounded-xl border border-border bg-surface p-4"
+            >
+              <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-success/15 text-success">
+                <ShieldCheck className="h-4 w-4" aria-hidden />
+              </p>
+              <h3 className="text-sm font-semibold text-text">
+                Fair Competition
+              </h3>
+              <p className="mt-1 text-sm text-text-muted">
+                Session locks and transparent scoring keep competition clean.
+              </p>
+            </motion.div>
+
+            <motion.div
+              {...fadeUp}
+              transition={{ ...fadeUp.transition, delay: 0.16 }}
+              className="rounded-xl border border-border bg-surface p-4"
+            >
+              <p className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
+                <CalendarDays className="h-4 w-4" aria-hidden />
+              </p>
+              <h3 className="text-sm font-semibold text-text">
+                Full-Season Access
+              </h3>
+              <p className="mt-1 text-sm text-text-muted">
+                One purchase covers the entire 2026 campaign. No monthly plan.
+              </p>
+            </motion.div>
+          </section>
+
+          <FaqSection title="Pricing FAQ">
+            <FaqItem
+              icon={HelpCircle}
+              question="Do I need the Season Pass to play?"
+            >
+              <p className="text-sm text-text-muted">
+                No. Grand Prix Picks is free to play. The pass unlocks unlimited
+                leagues and public league creation.
+              </p>
+            </FaqItem>
+            <FaqItem icon={HelpCircle} question="Is this a subscription?">
+              <p className="text-sm text-text-muted">
+                No subscription. It is a one-time purchase for the full 2026
+                season.
+              </p>
+            </FaqItem>
+          </FaqSection>
 
           <p className="text-sm text-text-muted">
             <Link to="/" className="text-accent hover:underline">

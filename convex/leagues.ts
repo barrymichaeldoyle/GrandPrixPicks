@@ -1,11 +1,12 @@
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+const RESERVED_LEAGUE_SLUGS = new Set(['create']);
 
 type LeagueLimits = {
   maxPrivateLeaguesCreated: number;
@@ -29,7 +30,7 @@ const SEASON_PASS_LIMITS: LeagueLimits = {
 };
 
 async function hasSeasonPassForSeason(
-  ctx: MutationCtx,
+  ctx: MutationCtx | QueryCtx,
   userId: Id<'users'>,
   season: number,
 ) {
@@ -57,6 +58,9 @@ function validateSlug(slug: string): string {
   const trimmed = slug.trim().toLowerCase();
   if (trimmed.length < 3 || trimmed.length > 30) {
     throw new Error('Slug must be between 3 and 30 characters');
+  }
+  if (RESERVED_LEAGUE_SLUGS.has(trimmed)) {
+    throw new Error('This slug is reserved');
   }
   if (!SLUG_REGEX.test(trimmed)) {
     throw new Error(
@@ -124,6 +128,59 @@ export const getMyLeagues = query({
     );
 
     return leagues.filter(Boolean);
+  },
+});
+
+export const listPublicLeagues = query({
+  args: {
+    season: v.optional(v.number()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    const season = args.season ?? 2026;
+    const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
+
+    const leaguesForSeason = await ctx.db
+      .query('leagues')
+      .withIndex('by_season', (q) => q.eq('season', season))
+      .collect();
+
+    const publicLeagues = leaguesForSeason.filter(
+      (league) => league.visibility === 'public',
+    );
+
+    const leagues = await Promise.all(
+      publicLeagues.map(async (league) => {
+        const members = await ctx.db
+          .query('leagueMembers')
+          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+          .collect();
+        const viewerMembership =
+          viewer != null
+            ? (members.find((m) => m.userId === viewer._id) ?? null)
+            : null;
+
+        return {
+          _id: league._id,
+          name: league.name,
+          slug: league.slug,
+          description: league.description,
+          season: league.season,
+          memberCount: members.length,
+          viewerRole: viewerMembership?.role ?? null,
+          createdAt: league.createdAt,
+        };
+      }),
+    );
+
+    return leagues
+      .sort((a, b) =>
+        b.memberCount !== a.memberCount
+          ? b.memberCount - a.memberCount
+          : b.createdAt - a.createdAt,
+      )
+      .slice(0, limit);
   },
 });
 
@@ -220,6 +277,9 @@ export const isSlugAvailable = query({
     if (trimmed.length < 3 || trimmed.length > 30) {
       return false;
     }
+    if (RESERVED_LEAGUE_SLUGS.has(trimmed)) {
+      return false;
+    }
     if (!SLUG_REGEX.test(trimmed)) {
       return false;
     }
@@ -230,6 +290,74 @@ export const isSlugAvailable = query({
       .unique();
 
     return !existing;
+  },
+});
+
+export const getMyLeagueUsage = query({
+  args: { season: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const season = args.season ?? 2026;
+    const hasSeasonPass = await hasSeasonPassForSeason(ctx, viewer._id, season);
+    const limits = hasSeasonPass ? SEASON_PASS_LIMITS : FREE_LIMITS;
+
+    const leaguesForSeason = await ctx.db
+      .query('leagues')
+      .withIndex('by_season', (q) => q.eq('season', season))
+      .collect();
+
+    let createdPrivate = 0;
+    let createdPublic = 0;
+    for (const league of leaguesForSeason) {
+      if (league.createdBy !== viewer._id) {
+        continue;
+      }
+      if (league.visibility === 'private') {
+        createdPrivate += 1;
+      }
+      if (league.visibility === 'public') {
+        createdPublic += 1;
+      }
+    }
+
+    const memberships = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
+      .collect();
+
+    let joinedPrivate = 0;
+    let joinedPublic = 0;
+    for (const membership of memberships) {
+      if (membership.role !== 'member') {
+        continue;
+      }
+      const league = await ctx.db.get(membership.leagueId);
+      if (!league || league.season !== season) {
+        continue;
+      }
+      if (league.visibility === 'private') {
+        joinedPrivate += 1;
+      }
+      if (league.visibility === 'public') {
+        joinedPublic += 1;
+      }
+    }
+
+    return {
+      season,
+      hasSeasonPass,
+      limits,
+      usage: {
+        createdPrivate,
+        createdPublic,
+        joinedPrivate,
+        joinedPublic,
+      },
+    };
   },
 });
 

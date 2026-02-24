@@ -203,6 +203,146 @@ export const Route = createFileRoute('/settings')({
 
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 
+function SeasonPassSection({
+  season,
+  hasSeasonPass,
+}: {
+  season: number;
+  hasSeasonPass: boolean | undefined;
+}) {
+  const isLoading = hasSeasonPass === undefined;
+  const isActive = hasSeasonPass === true;
+
+  return (
+    <SettingsSection
+      title="Season Pass"
+      icon={<Ticket className="h-5 w-5 text-text-muted" />}
+      headerRight={
+        isActive ? (
+          <Link
+            to="/leagues"
+            className="text-sm font-medium text-accent hover:underline"
+          >
+            Manage leagues
+          </Link>
+        ) : null
+      }
+    >
+      {isActive ? (
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 text-success">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold text-text">Active for {season}</p>
+              <p className="text-sm text-text-muted">
+                Your season pass is active. Unlimited league joins and public
+                league creation are unlocked.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : isLoading ? (
+        <div className="space-y-3">
+          <div className="h-4 w-2/3 animate-pulse rounded bg-surface-muted" />
+          <div className="h-9 w-52 animate-pulse rounded-lg bg-surface-muted" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-text-muted">
+            Upgrade to unlock unlimited league joins and public league creation
+            for the full {season} season.
+          </p>
+          <Button asChild size="sm" rightIcon={ArrowRight}>
+            <Link to="/pricing">See Season Pass Pricing</Link>
+          </Button>
+        </div>
+      )}
+    </SettingsSection>
+  );
+}
+
+function SettingsPageSkeleton() {
+  return (
+    <div className="bg-page">
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <div className="mb-6 h-9 w-40 animate-pulse rounded bg-surface-muted" />
+        <div className="space-y-6">
+          <SettingsSection
+            title="Profile"
+            icon={<User className="h-5 w-5 text-text-muted" />}
+          >
+            <div className="flex animate-pulse items-center gap-3">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-surface-muted" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="h-4 w-32 rounded bg-surface-muted" />
+                <div className="h-3 w-24 rounded bg-surface-muted" />
+              </div>
+            </div>
+          </SettingsSection>
+
+          <SeasonPassSection season={2026} hasSeasonPass={undefined} />
+
+          <SettingsSection
+            title="Privacy"
+            icon={<Eye className="h-5 w-5 text-text-muted" />}
+          >
+            <div className="flex items-center justify-between gap-4 py-1">
+              <div>
+                <div className="mb-2 h-4 w-52 animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-72 max-w-full animate-pulse rounded bg-surface-muted" />
+              </div>
+              <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+            </div>
+          </SettingsSection>
+
+          <SettingsSection
+            title="Regional"
+            icon={<Globe className="h-5 w-5 text-text-muted" />}
+          >
+            <div className="min-h-[170px] space-y-4">
+              <div className="space-y-2">
+                <div className="h-3 w-80 max-w-full animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-64 max-w-full animate-pulse rounded bg-surface-muted" />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-24 animate-pulse rounded bg-surface-muted" />
+                  <div className="h-10 animate-pulse rounded-lg border border-border bg-surface-muted" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-24 animate-pulse rounded bg-surface-muted" />
+                  <div className="h-10 animate-pulse rounded-lg border border-border bg-surface-muted" />
+                </div>
+              </div>
+            </div>
+          </SettingsSection>
+
+          <SettingsSection
+            title="Notifications"
+            icon={<Bell className="h-5 w-5 text-text-muted" />}
+            contentClassName="divide-y divide-border px-4"
+          >
+            <div className="flex min-h-[74px] items-center justify-between gap-4 py-4">
+              <div>
+                <div className="mb-2 h-4 w-48 animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-72 max-w-full animate-pulse rounded bg-surface-muted" />
+              </div>
+              <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+            </div>
+            <div className="flex min-h-[74px] items-center justify-between gap-4 py-4">
+              <div>
+                <div className="mb-2 h-4 w-44 animate-pulse rounded bg-surface-muted" />
+                <div className="h-3 w-72 max-w-full animate-pulse rounded bg-surface-muted" />
+              </div>
+              <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+            </div>
+          </SettingsSection>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SettingsPage() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
@@ -400,6 +540,10 @@ function SettingsPage() {
     );
   }
 
+  if (me === undefined) {
+    return <SettingsPageSkeleton />;
+  }
+
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
@@ -461,15 +605,7 @@ function SettingsPage() {
             title="Profile"
             icon={<User className="h-5 w-5 text-text-muted" />}
           >
-            {me === undefined ? (
-              <div className="flex animate-pulse items-center gap-3">
-                <div className="h-12 w-12 shrink-0 rounded-full bg-surface-muted" />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="h-4 w-32 rounded bg-surface-muted" />
-                  <div className="h-3 w-24 rounded bg-surface-muted" />
-                </div>
-              </div>
-            ) : isEditing ? (
+            {isEditing ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar
@@ -610,54 +746,10 @@ function SettingsPage() {
             )}
           </SettingsSection>
 
-          {/* Season pass section */}
-          <SettingsSection
-            title="Season Pass"
-            icon={<Ticket className="h-5 w-5 text-text-muted" />}
-            headerRight={
-              hasSeasonPassFor2026 ? (
-                <Link
-                  to="/leagues"
-                  className="text-sm font-medium text-accent hover:underline"
-                >
-                  Manage leagues
-                </Link>
-              ) : null
-            }
-          >
-            {hasSeasonPassFor2026 === undefined ? (
-              <div className="space-y-2">
-                <div className="h-4 w-48 animate-pulse rounded bg-surface-muted" />
-                <div className="h-3 w-full animate-pulse rounded bg-surface-muted" />
-                <div className="h-3 w-2/3 animate-pulse rounded bg-surface-muted" />
-              </div>
-            ) : hasSeasonPassFor2026 ? (
-              <div className="space-y-3">
-                <div className="flex items-start gap-2 text-success">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-                  <div>
-                    <p className="font-semibold text-text">
-                      Active for {seasonPassSeason}
-                    </p>
-                    <p className="text-sm text-text-muted">
-                      Your season pass is active. Unlimited league joins and
-                      public league creation are unlocked.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-text-muted">
-                  Upgrade to unlock unlimited league joins and public league
-                  creation for the full {seasonPassSeason} season.
-                </p>
-                <Button asChild size="sm" rightIcon={ArrowRight}>
-                  <Link to="/pricing">See Season Pass Pricing</Link>
-                </Button>
-              </div>
-            )}
-          </SettingsSection>
+          <SeasonPassSection
+            season={seasonPassSeason}
+            hasSeasonPass={hasSeasonPassFor2026}
+          />
 
           {/* Privacy section */}
           <SettingsSection
@@ -689,7 +781,7 @@ function SettingsPage() {
                     setOptimisticLeaderboard(null);
                   });
                 }}
-                loading={me === undefined}
+                loading={false}
               />
             </div>
           </SettingsSection>
@@ -698,7 +790,7 @@ function SettingsPage() {
           <RegionalSection
             timezone={displayTimezone}
             locale={displayLocale}
-            loading={me === undefined}
+            loading={false}
             onUpdate={(settings) => {
               if (settings.timezone !== undefined) {
                 setOptimisticTimezone(settings.timezone);
@@ -734,7 +826,7 @@ function SettingsPage() {
                   setOptimisticReminders(null);
                 });
               }}
-              loading={me === undefined}
+              loading={false}
             />
             <NotificationToggleItem
               label="Results notifications"
@@ -747,7 +839,7 @@ function SettingsPage() {
                   setOptimisticResults(null);
                 });
               }}
-              loading={me === undefined}
+              loading={false}
             />
           </SettingsSection>
         </div>

@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { Flag } from 'lucide-react';
 
+import { footerExploreLinks } from '../lib/navigation';
+
 function XIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -28,8 +30,12 @@ function LinkedInIcon({ className }: { className?: string }) {
 }
 
 export function Footer() {
+  const year = new Date().getFullYear();
+  const footerLinkClass =
+    'font-semibold text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-sm';
+
   return (
-    <footer className="mt-auto border-t border-border bg-surface pb-[max(5.5rem,calc(env(safe-area-inset-bottom,0px)+6rem))] sm:pb-6">
+    <footer className="mt-auto border-t border-border bg-surface pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:pb-6">
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
           <div className="space-y-3">
@@ -52,7 +58,7 @@ export function Footer() {
                 href="https://barrymichaeldoyle.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
+                className={footerLinkClass}
               >
                 Barry Michael Doyle
               </a>
@@ -64,7 +70,7 @@ export function Footer() {
                 href="https://x.com/barrymdoyle"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent transition-colors hover:text-accent-hover"
+                className="rounded-md p-2 text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
                 aria-label="X (Twitter)"
               >
                 <XIcon className="h-4 w-4" />
@@ -73,7 +79,7 @@ export function Footer() {
                 href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent transition-colors hover:text-accent-hover"
+                className="rounded-md p-2 text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
                 aria-label="LinkedIn"
               >
                 <LinkedInIcon className="h-4 w-4" />
@@ -89,36 +95,11 @@ export function Footer() {
               aria-label="Footer site navigation"
               className="flex flex-col gap-2 text-sm"
             >
-              <Link
-                to="/"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
-                Home
-              </Link>
-              <Link
-                to="/races"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
-                Races
-              </Link>
-              <Link
-                to="/leaderboard"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
-                Leaderboard
-              </Link>
-              <Link
-                to="/me"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
-                My Picks
-              </Link>
-              <Link
-                to="/leagues"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
-                Leagues
-              </Link>
+              {footerExploreLinks.map((link) => (
+                <Link key={link.to} to={link.to} className={footerLinkClass}>
+                  {link.label}
+                </Link>
+              ))}
             </nav>
           </div>
 
@@ -130,34 +111,19 @@ export function Footer() {
               aria-label="Footer legal navigation"
               className="flex flex-col gap-2 text-sm"
             >
-              <Link
-                to="/pricing"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
+              <Link to="/pricing" className={footerLinkClass}>
                 Pricing
               </Link>
-              <Link
-                to="/refund-policy"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
+              <Link to="/refund-policy" className={footerLinkClass}>
                 Refund Policy
               </Link>
-              <Link
-                to="/support"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
+              <Link to="/support" className={footerLinkClass}>
                 Support
               </Link>
-              <Link
-                to="/terms"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
+              <Link to="/terms" className={footerLinkClass}>
                 Terms of Service
               </Link>
-              <Link
-                to="/privacy"
-                className="font-semibold text-accent transition-colors hover:text-accent-hover"
-              >
+              <Link to="/privacy" className={footerLinkClass}>
                 Privacy Policy
               </Link>
             </nav>
@@ -165,7 +131,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-4 text-xs text-text-muted">
-          Barry Michael Doyle Software Solutions (Pty) Ltd
+          {year} Barry Michael Doyle Software Solutions (Pty) Ltd
         </div>
       </div>
     </footer>

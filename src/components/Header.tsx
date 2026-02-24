@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
+import { primaryNavLinks } from '../lib/navigation';
 import { Button } from './Button.tsx';
 
 type NavLink = {
@@ -15,13 +16,6 @@ type NavLink = {
   label: string;
   exact?: boolean;
 };
-
-const staticNavLinks: Array<NavLink> = [
-  { to: '/', label: 'Home', exact: true },
-  { to: '/races', label: 'Races', exact: true },
-  { to: '/leaderboard', label: 'Leaderboard' },
-  { to: '/leagues', label: 'Leagues' },
-];
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -60,7 +54,7 @@ export function Header({
           label: 'My Picks',
         }
       : { to: '/me', label: 'My Picks' };
-    return [...staticNavLinks, myPicksLink];
+    return [...primaryNavLinks, myPicksLink];
   }, [me?.username]);
 
   useEffect(() => {
@@ -207,7 +201,7 @@ export function Header({
                 className="rounded-lg border-2 border-transparent px-3 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
                 activeProps={{
                   className:
-                    'pointer-events-none px-3 py-2 rounded-lg text-accent border-2 nav-link-active transition-colors text-sm font-semibold',
+                    'px-3 py-2 rounded-lg text-accent border-2 nav-link-active transition-colors text-sm font-semibold',
                   'aria-current': 'page' as const,
                 }}
                 activeOptions={link.exact ? { exact: true } : undefined}
@@ -306,7 +300,7 @@ export function Header({
                       className="block rounded-lg border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
                       activeProps={{
                         className:
-                          'pointer-events-none block px-3 py-2 rounded-lg text-accent border-2 nav-link-active font-semibold transition-colors',
+                          'block px-3 py-2 rounded-lg text-accent border-2 nav-link-active font-semibold transition-colors',
                         'aria-current': 'page' as const,
                       }}
                       activeOptions={link.exact ? { exact: true } : undefined}

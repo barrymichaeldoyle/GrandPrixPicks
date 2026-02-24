@@ -101,7 +101,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       const normalContent = (
         <>
           {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
-          {label ? <span className="inline-flex items-center pr-0.5">{label}</span> : null}
+          {label ? (
+            <span className="inline-flex items-center pr-0.5">{label}</span>
+          ) : null}
           {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
         </>
       );

@@ -30,7 +30,7 @@ export const CenteringShowcase: Story = {
   render: () => (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 pb-10">
       <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text">
+        <h3 className="mb-3 text-sm font-semibold tracking-wide text-text uppercase">
           Sizes
         </h3>
         <div className="flex flex-wrap items-center gap-3">
@@ -54,7 +54,7 @@ export const CenteringShowcase: Story = {
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text">
+        <h3 className="mb-3 text-sm font-semibold tracking-wide text-text uppercase">
           With Number
         </h3>
         <div className="flex flex-wrap items-center gap-3">
@@ -79,7 +79,7 @@ export const CenteringShowcase: Story = {
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text">
+        <h3 className="mb-3 text-sm font-semibold tracking-wide text-text uppercase">
           Scored + Loading
         </h3>
         <div className="flex flex-wrap items-center gap-3">

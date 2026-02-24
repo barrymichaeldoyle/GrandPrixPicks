@@ -78,9 +78,25 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
-      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-      { rel: 'apple-touch-icon', href: '/favicon.svg' },
-      { rel: 'manifest', href: '/manifest.json' },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        href: '/favicon-32x32.png?v=20260224',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        href: '/favicon-16x16.png?v=20260224',
+      },
+      {
+        rel: 'apple-touch-icon',
+        sizes: '180x180',
+        href: '/apple-touch-icon.png?v=20260224',
+      },
+      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20260224' },
+      { rel: 'manifest', href: '/manifest.json?v=20260224' },
       // canonical link is set per-route — do NOT add a global one here
     ],
     scripts: [

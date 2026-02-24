@@ -3,10 +3,10 @@ import type { ReactNode } from 'react';
 
 import type { Doc } from '../../convex/_generated/dataModel';
 import type { SessionType } from '../lib/sessions';
-import type { TabSwitchOption } from './TabSwitch';
 import { InlineLoader } from './InlineLoader';
 import { RaceDetailHeader } from './RaceDetailHeader';
 import { SessionEventSummary } from './SessionEventSummary';
+import type { TabSwitchOption } from './TabSwitch';
 import { TabSwitch } from './TabSwitch';
 
 function getStatusStyles(

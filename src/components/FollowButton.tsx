@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from 'convex/react';
 import { User, UserCheck, UserPlus } from 'lucide-react';
-import { MouseEvent, useState } from 'react';
+import type { MouseEvent } from 'react';
+import { useState } from 'react';
 
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';

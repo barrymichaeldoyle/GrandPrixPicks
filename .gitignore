@@ -1,6 +1,7 @@
 node_modules
 .DS_Store
 dist
+storybook-static
 dist-ssr
 *.local
 count.txt
@@ -11,6 +12,7 @@ count.txt
 .output
 .vinxi
 todos.json
+debug-storybook.log
 
 # Playwright
 /test-results/

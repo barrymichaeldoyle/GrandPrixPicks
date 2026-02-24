@@ -12,11 +12,8 @@ import type {
   WeekendCardData,
 } from '../components/RaceScoreCard/types';
 import type { TabSwitchOption } from '../components/TabSwitch';
-import {
-  SESSION_LABELS,
-  SESSION_LABELS_SHORT,
-  type SessionType,
-} from '../lib/sessions';
+import type { SessionType } from '../lib/sessions';
+import { SESSION_LABELS, SESSION_LABELS_SHORT } from '../lib/sessions';
 
 const meta = {
   title: 'Pages/Race Event Page',
@@ -182,7 +179,7 @@ function makeWeekendCardData(
     raceRound: race.round,
     raceStatus: race.status,
     raceDate: race.raceStartAt,
-    hasSprint: race.hasSprint ?? false,
+    hasSprint: race.hasSprint,
     sessions,
     totalPoints,
     maxPoints: scoredSessionCount * 25,
@@ -249,11 +246,11 @@ function Scenario({
   const getSessionLockAt = (session: SessionType) => {
     switch (session) {
       case 'quali':
-        return race.qualiLockAt ?? race.predictionLockAt;
+        return race.qualiLockAt;
       case 'sprint_quali':
         return race.sprintQualiLockAt ?? race.predictionLockAt;
       case 'sprint':
-        return race.sprintLockAt ?? race.predictionLockAt;
+        return race.sprintLockAt;
       case 'race':
         return race.predictionLockAt;
     }
@@ -262,11 +259,11 @@ function Scenario({
   const getSessionStartAt = (session: SessionType) => {
     switch (session) {
       case 'quali':
-        return race.qualiStartAt ?? race.raceStartAt;
+        return race.qualiStartAt;
       case 'sprint_quali':
         return race.sprintQualiStartAt ?? race.raceStartAt;
       case 'sprint':
-        return race.sprintStartAt ?? race.raceStartAt;
+        return race.sprintStartAt;
       case 'race':
         return race.raceStartAt;
     }
@@ -303,7 +300,7 @@ function Scenario({
       showSessionTabs={
         isPredictable && hasPredictions && weekendSessions.length > 1
       }
-      trackTimeZone={race.timeZone ?? 'UTC'}
+      trackTimeZone={race.timeZone}
       getSessionStartAt={getSessionStartAt}
       getSessionLockAt={getSessionLockAt}
       isSessionPublished={(session) => scoredSessions.includes(session)}

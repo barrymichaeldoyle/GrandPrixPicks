@@ -18,7 +18,9 @@ type PaddleCheckoutResponseData = {
 };
 
 type PaddleCompletedTransactionEvent = {
+  event_id?: string;
   event_type?: string;
+  notification_id?: string;
   data?: {
     id?: string;
     custom_data?: {

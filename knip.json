@@ -3,14 +3,11 @@
   "entry": ["src/start.ts", "eslint.config.js", "instrument.server.mjs"],
   "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}"],
   "ignoreFiles": [
-    "src/routeTree.gen.ts",
-    "convex/_generated",
     "src/components/RaceCardSkeleton.tsx",
     "src/lib/og/fonts.ts",
     "src/lib/og/renderer.ts",
     "src/lib/og/styles.ts",
-    "src/lib/og/templates.ts",
-    "src/stories/router-decorator.tsx"
+    "src/lib/og/templates.ts"
   ],
   "ignoreDependencies": [
     "@tanstack/router-plugin",
@@ -19,7 +16,7 @@
     "@react-email/preview-server",
     "satori"
   ],
-  "ignoreBinaries": ["eslint"],
+  "ignoreBinaries": ["eslint", "cloudflared"],
   "ignoreIssues": {
     "src/integrations/tanstack-query/root-provider.tsx": ["exports"]
   },

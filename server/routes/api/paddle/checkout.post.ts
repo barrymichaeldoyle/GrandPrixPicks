@@ -1,5 +1,4 @@
-import { clerkClient } from '@clerk/tanstack-react-start/server';
-
+import { getAuthenticatedClerkUserId } from '../../../lib/auth';
 import { createPaddleSeasonCheckout } from '../../../lib/paddle';
 
 const DEFAULT_SEASON = 2026;
@@ -12,10 +11,18 @@ type RouteEvent = {
 // Nitro route files are convention-based and require a default export.
 // eslint-disable-next-line no-restricted-syntax
 export default async function handler(event: RouteEvent) {
-  const requestState = await clerkClient().authenticateRequest(event.req, {
-    acceptsToken: 'session_token',
-  });
-  const userId = requestState.toAuth()?.userId;
+  let userId: string | null = null;
+  try {
+    userId = await getAuthenticatedClerkUserId(event.req);
+  } catch (error) {
+    console.error('[paddle-checkout] auth_failed', {
+      message: error instanceof Error ? error.message : 'unknown_error',
+    });
+    return new Response(JSON.stringify({ error: 'Authentication failed' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
 
   if (!userId) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), {
@@ -47,6 +54,11 @@ export default async function handler(event: RouteEvent) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Checkout creation failed';
+    console.error('[paddle-checkout] create_failed', {
+      userId,
+      season,
+      message,
+    });
     return new Response(JSON.stringify({ error: message }), {
       status: 502,
       headers: JSON_HEADERS,

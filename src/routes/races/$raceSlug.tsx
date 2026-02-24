@@ -87,15 +87,17 @@ export const Route = createFileRoute('/races/$raceSlug')({
   },
 });
 
-function BackToRacesLink({ className }: { className?: string }) {
+function BackToRacesLink() {
   return (
-    <Link
-      to="/races"
-      className={`inline-flex items-center gap-1.5 pr-1 text-sm font-medium text-accent underline-offset-4 transition-colors hover:text-accent/85 hover:underline ${className ?? 'mb-4 sm:mb-6'}`}
+    <Button
+      asChild
+      variant="text"
+      size="sm"
+      leftIcon={ArrowLeft}
+      className="mb-4"
     >
-      <ArrowLeft size={16} />
-      Back to races
-    </Link>
+      <Link to="/races">Back to races</Link>
+    </Button>
   );
 }
 
@@ -103,7 +105,7 @@ function RaceNotFound() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl p-4">
-        <BackToRacesLink className="mb-8" />
+        <BackToRacesLink />
         <div className="py-16 text-center">
           <h1 className="mb-2 text-2xl font-bold text-text">Race not found</h1>
           <p className="text-text-muted">

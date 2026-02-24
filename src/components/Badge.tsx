@@ -14,7 +14,8 @@ const variantStyles: Record<BadgeVariant, string> = {
     'sprint-badge bg-purple-50/80 dark:bg-purple-950/35 border border-purple-300 dark:border-purple-500/40',
   upcoming: 'bg-success-muted text-success border border-success/30',
   not_yet_open: 'bg-surface-muted text-text-muted border border-border',
-  locked: 'bg-warning-muted text-warning border border-warning/30',
+  locked:
+    'border border-warning/40 bg-warning/12 text-warning dark:border-warning/50 dark:bg-warning/18',
   submitted: 'bg-success-muted text-success border border-success/30',
   finished: 'bg-surface-muted text-text-muted border-border border',
 };

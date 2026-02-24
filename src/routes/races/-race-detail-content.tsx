@@ -271,6 +271,17 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
           aria-label="Race results by session"
         >
           {sessions.map((session) => (
+            (() => {
+              const hasResults = sessionHasResults.has(session);
+              const isActive = selectedSession === session;
+              const valueClass = hasResults
+                ? isActive
+                  ? 'font-semibold text-white'
+                  : 'text-text-muted'
+                : isActive
+                  ? 'font-semibold text-white/90'
+                  : 'text-text-muted';
+              return (
             <Button
               key={session}
               variant="tab"
@@ -292,17 +303,15 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
                 <span className="sm:hidden">{SESSION_LABELS[session]}</span>
               )}
               <span
-                className={`ml-1 hidden text-xs sm:inline ${
-                  selectedSession === session
-                    ? 'font-semibold text-accent'
-                    : 'text-text-muted'
-                }`}
+                className={`ml-1 hidden text-xs sm:inline ${valueClass}`}
               >
-                {sessionHasResults.has(session)
+                {hasResults
                   ? `+${top5PointsBySession[session] + h2hPointsBySession[session]}`
                   : 'Pending'}
               </span>
             </Button>
+              );
+            })()
           ))}
         </div>
       )}

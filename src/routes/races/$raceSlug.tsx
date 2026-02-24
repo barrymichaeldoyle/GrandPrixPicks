@@ -21,7 +21,7 @@ import {
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
 } from '../../lib/sessions';
-import { canonicalMeta, ogBaseUrl, siteConfig } from '../../lib/site';
+import { canonicalMeta, defaultOgImage, siteConfig } from '../../lib/site';
 import { H2HResultsSection, H2HSection } from './-race-detail-content';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -37,9 +37,7 @@ export const Route = createFileRoute('/races/$raceSlug')({
   },
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
-    const ogImage = race
-      ? `${ogBaseUrl}/og/race/${race._id}.png`
-      : `${ogBaseUrl}/og/home.png`;
+    const ogImage = defaultOgImage;
     const title = race
       ? `${race.name} Predictions | Grand Prix Picks`
       : 'Race Predictions | Grand Prix Picks';

@@ -17,7 +17,7 @@ function getStatusStyles(
     return { border: 'border-accent/40', background: 'bg-surface' };
   }
   if (status === 'locked') {
-    return { border: 'border-warning/40', background: 'bg-warning-muted' };
+    return { border: 'border-border', background: 'bg-surface' };
   }
   return { border: 'border-border', background: 'bg-surface' };
 }
@@ -82,6 +82,8 @@ export function RaceEventPageLayout({
   h2hResultsContent,
 }: RaceEventPageLayoutProps) {
   const statusStyles = getStatusStyles(isPredictable, race.status);
+  const showResultsPendingBadge =
+    race.status === 'locked' && hasPublishedResults && !allEventsScored;
 
   return (
     <div className="min-h-full bg-page">
@@ -98,9 +100,16 @@ export function RaceEventPageLayout({
           <RaceDetailHeader race={race} isNextRace={isNextRace} />
           {hasPublishedResults && (
             <div className="border-t-3 border-border bg-surface px-4 py-3 text-sm">
-              <span className="text-text-muted">
-                {allEventsScored ? 'Weekend Total' : 'Points So Far'}
-              </span>
+              <div className="mb-0.5 flex items-center justify-between gap-2">
+                <span className="text-text-muted">
+                  {allEventsScored ? 'Weekend Total' : 'Points So Far'}
+                </span>
+                {showResultsPendingBadge ? (
+                  <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
+                    Results pending
+                  </span>
+                ) : null}
+              </div>
               <div className="font-bold text-accent">+{pointsSoFar} pts</div>
               {!allEventsScored && (
                 <p className="text-xs text-text-muted">
@@ -179,12 +188,7 @@ export function RaceEventPageLayout({
                       </div>
                     </div>
                   )}
-                  {hasPublishedResults && (
-                    <>
-                      <div className="mx-4 h-px bg-border" />
-                      {h2hResultsContent}
-                    </>
-                  )}
+                  {hasPublishedResults && <>{h2hResultsContent}</>}
                 </div>
               )}
             </div>

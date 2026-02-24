@@ -19,7 +19,7 @@ import { PageHero } from '@/components/PageHero';
 import { TabSwitch } from '@/components/TabSwitch';
 
 import { api } from '../../convex/_generated/api';
-import { canonicalMeta, ogBaseUrl } from '../lib/site';
+import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -47,10 +47,10 @@ export const Route = createFileRoute('/leaderboard')({
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${ogBaseUrl}/og/leaderboard.png` },
+        { property: 'og:image', content: defaultOgImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${ogBaseUrl}/og/leaderboard.png` },
+        { name: 'twitter:image', content: defaultOgImage },
         ...canonical.meta,
       ],
       links: [...canonical.links],

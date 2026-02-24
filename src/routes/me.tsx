@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { api } from '../../convex/_generated/api';
 import { Button } from '../components/Button';
 import { PageLoader } from '../components/PageLoader';
-import { canonicalMeta, ogBaseUrl } from '../lib/site';
+import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
@@ -22,10 +22,10 @@ export const Route = createFileRoute('/me')({
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { property: 'og:image', content: defaultOgImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:image', content: defaultOgImage },
         ...canonical.meta,
       ],
       links: [...canonical.links],

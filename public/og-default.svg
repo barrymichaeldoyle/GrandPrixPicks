@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(580 20) rotate(90) scale(280 420)">
+      <stop stop-color="#14B8A6" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#14B8A6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1020 220) rotate(145) scale(230 280)">
+      <stop stop-color="#34D399" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#34D399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(190 220) rotate(40) scale(220 280)">
+      <stop stop-color="#FBBF24" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#FBBF24" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accentLine" x1="96" y1="0" x2="1104" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#2DD4BF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0F172A"/>
+  <rect width="1200" height="630" fill="url(#glowA)"/>
+  <rect width="1200" height="630" fill="url(#glowB)"/>
+  <rect width="1200" height="630" fill="url(#glowC)"/>
+
+  <rect x="96" y="44" width="1008" height="6" rx="3" fill="url(#accentLine)"/>
+  <rect x="96" y="84" width="1008" height="470" rx="30" fill="#1E293B" fill-opacity="0.8" stroke="#334155" stroke-width="2"/>
+
+  <rect x="154" y="138" width="258" height="40" rx="20" fill="#334155"/>
+  <text x="283" y="164" text-anchor="middle" font-family="Noto Sans" font-size="17" font-weight="700" letter-spacing="0.6" fill="#94A3B8">2026 SEASON • FREE TO PLAY</text>
+
+  <circle cx="190" cy="251" r="34" fill="#134E4A"/>
+  <path d="M182 279V243a1 1 0 0 1 .4-.8A6 6 0 0 1 186 241c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 198 243v20a1 1 0 0 1-.4.8A6 6 0 0 1 194 265c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" fill="none" stroke="#2DD4BF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <text x="242" y="260" font-family="Noto Sans" font-size="84" font-weight="900" letter-spacing="-2" fill="#F8FAFC">GRAND PRIX PICKS</text>
+  <text x="154" y="323" font-family="Noto Sans" font-size="31" font-weight="500" fill="#94A3B8">Make your call for every session, win teammate battles, and climb</text>
+  <text x="154" y="361" font-family="Noto Sans" font-size="31" font-weight="500" fill="#94A3B8">the season leaderboard with your friends.</text>
+
+  <rect x="154" y="407" width="286" height="64" rx="14" fill="#0D9488"/>
+  <text x="297" y="449" text-anchor="middle" font-family="Noto Sans" font-size="28" font-weight="800" letter-spacing="0.2" fill="#FFFFFF">MAKE PREDICTIONS</text>
+
+  <rect x="460" y="407" width="236" height="64" rx="14" fill="#334155"/>
+  <text x="578" y="449" text-anchor="middle" font-family="Noto Sans" font-size="26" font-weight="700" fill="#F8FAFC">LEADERBOARD</text>
+
+  <text x="154" y="592" font-family="Noto Sans" font-size="24" font-weight="700" fill="#14B8A6">grandprixpicks.com</text>
+</svg>

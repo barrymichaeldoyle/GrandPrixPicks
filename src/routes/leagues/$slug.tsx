@@ -32,7 +32,7 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '../../components/Button';
 import { PageLoader } from '../../components/PageLoader';
-import { canonicalMeta, ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -54,7 +54,7 @@ export const Route = createFileRoute('/leagues/$slug')({
         ? `${league.name} — ${league.description} ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''}.`
         : `Compete with ${league.memberCount} member${league.memberCount !== 1 ? 's' : ''} in ${league.name}. View standings and make your F1 predictions on Grand Prix Picks.`
       : 'View league standings, track member rankings, and compete with friends in this private F1 prediction league.';
-    const ogImage = `${ogBaseUrl}/og/home.png`;
+    const ogImage = defaultOgImage;
     const canonical = canonicalMeta(`/leagues/${params.slug}`);
     return {
       meta: [

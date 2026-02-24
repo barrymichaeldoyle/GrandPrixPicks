@@ -73,7 +73,17 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       // all matched route head() results without dedup.
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: siteConfig.title },
+      {
+        property: 'og:image:alt',
+        content:
+          'Grand Prix Picks — make F1 predictions and climb the 2026 leaderboard.',
+      },
       { name: 'twitter:card', content: 'summary_large_image' },
+      {
+        name: 'twitter:image:alt',
+        content:
+          'Grand Prix Picks — make F1 predictions and climb the 2026 leaderboard.',
+      },
       { name: 'twitter:creator', content: '@barrymdoyle' },
     ],
     links: [

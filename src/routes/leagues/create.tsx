@@ -10,7 +10,7 @@ import { api } from '../../../convex/_generated/api';
 import { Button } from '../../components/Button';
 import { PageHero } from '../../components/PageHero';
 import { PageLoader } from '../../components/PageLoader';
-import { canonicalMeta, ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 export const Route = createFileRoute('/leagues/create')({
   component: CreateLeaguePage,
@@ -25,10 +25,10 @@ export const Route = createFileRoute('/leagues/create')({
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { property: 'og:image', content: defaultOgImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:image', content: defaultOgImage },
         ...canonical.meta,
       ],
       links: [...canonical.links],

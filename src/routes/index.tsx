@@ -19,7 +19,7 @@ import { Button } from '../components/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { getCountryCodeForRace, RaceFlag } from '../components/RaceCard';
 import { useCountdown } from '../lib/date';
-import { canonicalMeta, ogBaseUrl } from '../lib/site';
+import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -48,10 +48,10 @@ export const Route = createFileRoute('/')({
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { property: 'og:image', content: defaultOgImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:image', content: defaultOgImage },
         ...canonical.meta,
       ],
       links: [...canonical.links],

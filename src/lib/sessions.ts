@@ -13,10 +13,10 @@ export const SESSION_LABELS: Record<SessionType, string> = {
 };
 
 export const SESSION_LABELS_SHORT: Record<SessionType, string> = {
-  quali: 'Q',
+  quali: 'Quali',
   sprint_quali: 'SQ',
-  sprint: 'S',
-  race: 'R',
+  sprint: 'Sprint',
+  race: 'Race',
 };
 
 /** Session order for a sprint weekend (sprint quali → sprint → quali → race). */

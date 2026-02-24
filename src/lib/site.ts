@@ -23,6 +23,9 @@ export const ogBaseUrl =
   (import.meta.env as { VITE_SITE_URL?: string }).VITE_SITE_URL ??
   siteConfig.url;
 
+/** Temporary shared OG image until per-page variants are finalized. */
+export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260224`;
+
 /**
  * Returns canonical meta tags (og:url, twitter:url) and the canonical link
  * for a given path. Use in each route's `head()` to set per-page canonical URLs.

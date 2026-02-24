@@ -33,7 +33,7 @@ import {
 } from '../../components/RaceScoreCard';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
-import { canonicalMeta, ogBaseUrl } from '../../lib/site';
+import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -52,7 +52,7 @@ export const Route = createFileRoute('/p/$username')({
       'Profile';
     const title = `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`;
     const description = `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`;
-    const ogImage = `${ogBaseUrl}/og/profile/${params.username}.png`;
+    const ogImage = defaultOgImage;
     const canonical = canonicalMeta(`/p/${params.username}`);
     return {
       meta: [

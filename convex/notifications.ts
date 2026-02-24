@@ -98,7 +98,7 @@ export const sendPredictionReminders = internalMutation({
     if (race.hasSprint) {
       if (race.sprintQualiStartAt) {
         sessions.push({
-          label: 'Sprint Quali',
+          label: 'Sprint Qualifying',
           startAt: race.sprintQualiStartAt,
           isSprint: true,
         });

@@ -27,7 +27,7 @@ import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
 import { TimezoneSelect } from '../components/TimezoneSelect';
-import { canonicalMeta, ogBaseUrl } from '../lib/site';
+import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 function ToggleSwitch({
   checked,
@@ -191,10 +191,10 @@ export const Route = createFileRoute('/settings')({
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:image', content: `${ogBaseUrl}/og/home.png` },
+        { property: 'og:image', content: defaultOgImage },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: `${ogBaseUrl}/og/home.png` },
+        { name: 'twitter:image', content: defaultOgImage },
         ...canonical.meta,
       ],
       links: [...canonical.links],

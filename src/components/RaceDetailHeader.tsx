@@ -26,7 +26,7 @@ export function RaceDetailHeader({ race, isNextRace }: RaceDetailHeaderProps) {
             </div>
           )}
           {countryCode && (
-            <div className="hidden shrink-0 self-stretch border-r border-accent/50 md:flex md:items-stretch">
+            <div className="hidden shrink-0 self-stretch border-r-3 border-accent/50 md:flex md:items-stretch">
               <span className="hidden h-full md:flex">
                 <RaceFlag
                   countryCode={countryCode}

@@ -2,12 +2,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
-import {
-  ArrowLeft,
-  CircleX,
-  Pencil,
-  Trophy,
-} from 'lucide-react';
+import { ArrowLeft, CircleX, Pencil, Trophy } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '../../../convex/_generated/api';
@@ -96,9 +91,9 @@ function BackToRacesLink({ className }: { className?: string }) {
   return (
     <Link
       to="/races"
-      className={`inline-flex items-center gap-2 pr-1 text-text-muted transition-colors hover:text-text ${className ?? 'mb-4 sm:mb-6'}`}
+      className={`inline-flex items-center gap-1.5 pr-1 text-sm font-medium text-accent underline-offset-4 transition-colors hover:text-accent/85 hover:underline ${className ?? 'mb-4 sm:mb-6'}`}
     >
-      <ArrowLeft size={20} />
+      <ArrowLeft size={16} />
       Back to races
     </Link>
   );

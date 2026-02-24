@@ -137,6 +137,12 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               Public joins: {publicJoinedCount}/
               {leagueUsage.limits.maxPublicLeaguesJoined}
             </span>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/45 px-2.5 py-1 font-semibold text-accent transition-colors hover:border-accent/50 hover:bg-accent-muted/70"
+            >
+              Upgrade to Season Pass for unlimited
+            </Link>
           </div>
         ) : null}
 

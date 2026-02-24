@@ -6,7 +6,6 @@ import type { SessionType } from '../../lib/sessions';
 import { getSessionsForWeekend } from '../../lib/sessions';
 import { Badge, StatusBadge } from '../Badge';
 import { getCountryCodeForRace, RaceFlag } from '../RaceCard';
-import { ScoreRing } from '../ScoreRing';
 import { CardActions } from './CardActions';
 import { RaceScoreCardHeader } from './RaceScoreCardHeader';
 import { SessionSection } from './SessionSection';
@@ -213,66 +212,107 @@ function CompactSummaryCard({
 }) {
   const sessions = getSessionsForWeekend(data.hasSprint);
   const countryCode = getCountryCodeForRace({ slug: data.raceSlug });
+  const hasSubmitted = sessions.some(
+    (session) => (data.sessions[session]?.picks.length ?? 0) > 0,
+  );
   const showStatusBadge =
     cardState !== 'fully_scored' &&
     cardState !== 'partially_scored' &&
-    cardState !== 'missed_with_results';
-
+    cardState !== 'missed_with_results' &&
+    !(hasSubmitted && cardState === 'open_has_picks');
+  const hasResults =
+    cardState === 'fully_scored' ||
+    cardState === 'partially_scored' ||
+    cardState === 'missed_with_results';
   const body = (
     <div
-      className={`overflow-hidden rounded-xl border border-border bg-surface ${BORDER_LEFT_COLORS[cardState]}`}
+      className={`group relative overflow-hidden rounded-l-lg rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)]'} ${
+        isNextRace
+          ? 'border-accent/70 border-l-accent/70 hover:border-accent'
+          : 'border-border border-l-border hover:border-accent/70'
+      }`}
     >
-      <div className="p-4">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-border bg-surface-muted/60 px-2.5 py-0.5 text-xs font-medium text-text-muted">
-            Round {data.raceRound}
-          </span>
+      <div
+        className={`flex h-[58px] items-stretch overflow-hidden border-b-2 transition-colors ${
+          isNextRace
+            ? 'border-accent/70 group-hover:border-accent'
+            : 'border-border group-hover:border-accent/70'
+        }`}
+      >
+        <div className="flex min-w-0 flex-1 items-stretch">
+          {countryCode && (
+            <span
+              className={`inline-flex h-full shrink-0 overflow-hidden border-r-2 ${
+                isNextRace
+                  ? 'border-accent/70 group-hover:border-accent'
+                  : 'border-border group-hover:border-accent/70'
+              }`}
+            >
+              <RaceFlag
+                countryCode={countryCode}
+                size="full"
+                className="rounded-none shadow-none ring-0"
+              />
+            </span>
+          )}
+          <div className="min-w-0 self-center px-2 py-1.5">
+            <p className="text-[11px] font-semibold tracking-wide text-text-muted uppercase">
+              Round {data.raceRound}
+            </p>
+            <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
+              {data.raceName}
+            </h3>
+          </div>
+        </div>
+        <span className="inline-flex shrink-0 items-center pr-3 pl-2">
+          <ArrowRight className="h-3.5 w-3.5 text-accent transition-colors group-hover:text-accent-hover" />
+        </span>
+      </div>
+
+      <div className="px-2 pt-2">
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
           {showStatusBadge && (
             <StatusBadge status={data.raceStatus} isNext={isNextRace} />
           )}
-          {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
-          {data.raceRank && (
-            <span className="ml-auto text-xs text-text-muted">
-              {ordinal(data.raceRank.position)} / {data.raceRank.totalPlayers}
+          {hasSubmitted && (
+            <span className="inline-flex items-center rounded-full border border-success/35 bg-success-muted/40 px-2 py-0.5 text-xs font-medium text-success">
+              Picks submitted
             </span>
           )}
+          {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
+          <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/45 px-2 py-0.5 text-xs text-text-muted">
+            {new Date(data.raceDate).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+            })}
+          </span>
         </div>
 
-        <div className="flex items-start gap-3">
-          {countryCode && (
-            <span className="shrink-0">
-              <RaceFlag countryCode={countryCode} />
+        <div className="rounded-lg border border-border/70 bg-surface-muted/35 p-2">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-[11px] font-medium tracking-wide text-text-muted uppercase">
+              Weekend Summary
+            </p>
+            <span className="rounded-md bg-accent/10 px-1.5 py-0.5 text-xs font-semibold text-accent">
+              {hasResults ? `${data.totalPoints}/${data.maxPoints}` : 'TBD'}
             </span>
-          )}
-
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 text-lg leading-snug font-semibold text-text">
-              {data.raceName}
-            </h3>
-            <div className="mt-1.5">
-              <WeekendSummaryLine
-                data={data}
-                sessions={sessions}
-                cardState={cardState}
-              />
-            </div>
           </div>
-
-          <div className="ml-auto shrink-0">
-            <ScoreRing
-              earned={data.totalPoints}
-              max={data.maxPoints}
-              {...(cardState !== 'partially_scored' &&
-                cardState !== 'fully_scored' &&
-                cardState !== 'missed_with_results' && { emptyLabel: '-' })}
+          <div className="text-sm text-text-muted">
+            <WeekendSummaryLine
+              data={data}
+              sessions={sessions}
+              cardState={cardState}
             />
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between border-t border-border/70 bg-surface-muted/30 px-4 py-2.5 text-sm font-medium text-accent">
-        <span>See race weekend details</span>
-        <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+        <div className="mt-2 flex flex-wrap items-center justify-end gap-2">
+          {data.raceRank ? (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-muted">
+              {ordinal(data.raceRank.position)} of {data.raceRank.totalPlayers}
+            </span>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -285,7 +325,7 @@ function CompactSummaryCard({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: data.raceSlug }}
-      className="group block transition-transform duration-150 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page"
+      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-page"
       aria-label={`Open ${data.raceName} details`}
     >
       {body}

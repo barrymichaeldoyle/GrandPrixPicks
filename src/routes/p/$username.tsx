@@ -26,6 +26,7 @@ import { TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
+import { getCountryCodeForRace, RaceFlag } from '../../components/RaceCard';
 import {
   fromProfileHistory,
   RaceScoreCard,
@@ -368,14 +369,41 @@ function ProfilePage() {
                     <Info className="h-4 w-4 shrink-0 text-text-muted" />
                   </Tooltip>
                 </div>
-                <div className="flex items-center justify-between gap-4 px-4 py-4">
-                  <span className="text-lg font-semibold text-text">
-                    {bestRace.raceName}
-                  </span>
-                  <span className="shrink-0 rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
-                    {bestRace.totalPoints} pts
-                  </span>
-                </div>
+                <Link
+                  to="/races/$raceSlug"
+                  params={{ raceSlug: bestRace.raceSlug }}
+                  className="group block px-4 py-4 transition-colors hover:bg-surface-hover/60"
+                  aria-label={`Open ${bestRace.raceName} race page`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        {(() => {
+                          const countryCode = getCountryCodeForRace({
+                            slug: bestRace.raceSlug,
+                          });
+                          return countryCode ? (
+                            <RaceFlag countryCode={countryCode} />
+                          ) : null;
+                        })()}
+                        <span className="inline-flex items-center rounded-full border border-border bg-surface-muted px-2 py-0.5 text-xs font-semibold text-text-muted">
+                          Round {bestRace.raceRound}
+                        </span>
+                      </div>
+                      <div className="truncate text-lg font-semibold text-text">
+                        {bestRace.raceName}
+                      </div>
+                      <p className="mt-1 text-xs text-text-muted">
+                        Open full race details and scoring breakdown
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="inline-flex rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
+                        {bestRace.totalPoints} pts
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               </div>
             )}
           </div>

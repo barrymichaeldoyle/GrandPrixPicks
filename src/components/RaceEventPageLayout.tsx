@@ -89,7 +89,7 @@ export function RaceEventPageLayout({
         {backLink}
 
         <div
-          className={`overflow-hidden rounded-lg border ${
+          className={`overflow-hidden rounded-lg border-3 ${
             isNextRace
               ? 'border-accent/50 bg-surface'
               : 'border-border bg-surface'
@@ -97,7 +97,7 @@ export function RaceEventPageLayout({
         >
           <RaceDetailHeader race={race} isNextRace={isNextRace} />
           {hasPublishedResults && (
-            <div className="border-t border-border bg-surface px-4 py-3 text-sm">
+            <div className="border-t-3 border-border bg-surface px-4 py-3 text-sm">
               <span className="text-text-muted">
                 {allEventsScored ? 'Weekend Total' : 'Points So Far'}
               </span>
@@ -110,7 +110,7 @@ export function RaceEventPageLayout({
             </div>
           )}
 
-          <div className={`border-t ${statusStyles.border}`}>
+          <div className={`border-t-3 ${statusStyles.border}`}>
             <div className={statusStyles.background}>
               {!isAuthLoaded || isPredictionsLoading ? (
                 <div className="p-4">
@@ -130,7 +130,7 @@ export function RaceEventPageLayout({
                   {!hasPublishedResults && (
                     <div>
                       {showSessionTabs && (
-                        <div className="border-b border-border bg-surface-muted/40 p-1">
+                        <div className="border-b-3 border-accent/50 bg-surface-muted/40 p-1">
                           <TabSwitch
                             value={selectedSession}
                             onChange={onSelectedSessionChange}

@@ -133,7 +133,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border-2 bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] focus-visible:outline-none dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] ${
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border-[3px] bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] focus-visible:outline-none dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] ${
         isNext
           ? 'border-accent/70 hover:border-accent'
           : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
@@ -142,7 +142,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
       <div className="relative flex h-full flex-col">
         {/* Header: corner flag + round + race name */}
         <div
-          className={`flex h-[58px] items-stretch overflow-hidden border-b-2 transition-colors ${
+          className={`flex h-[58px] items-stretch overflow-hidden border-b-[3px] transition-colors ${
             isNext
               ? 'border-accent/70 group-hover:border-accent group-focus-visible:border-accent'
               : 'border-border group-hover:border-accent/70 group-focus-visible:border-accent/70'
@@ -151,7 +151,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
           <div className="flex min-w-0 flex-1 items-stretch">
             {countryCode && (
               <span
-                className={`inline-flex h-full shrink-0 overflow-hidden border-r-2 transition-colors ${
+                className={`inline-flex h-full shrink-0 overflow-hidden border-r-[3px] transition-colors ${
                   isNext
                     ? 'border-accent/70 group-hover:border-accent group-focus-visible:border-accent'
                     : 'border-border group-hover:border-accent/70 group-focus-visible:border-accent/70'

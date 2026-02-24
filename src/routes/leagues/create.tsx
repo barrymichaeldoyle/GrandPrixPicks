@@ -75,6 +75,7 @@ function CreateLeagueContent() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const season = 2026;
 
   const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, {
@@ -122,6 +123,7 @@ function CreateLeagueContent() {
         visibility,
         password: visibility === 'private' ? password || undefined : undefined,
       });
+      setIsRedirecting(true);
       void navigate({
         to: '/leagues/$slug',
         params: { slug: result.slug },
@@ -149,6 +151,24 @@ function CreateLeagueContent() {
       setIsSubmitting(false);
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-full bg-page">
+        <div className="mx-auto max-w-3xl px-4 py-6">
+          <div className="rounded-xl border border-border bg-surface p-8 text-center">
+            <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-accent" />
+            <h2 className="mb-1 text-lg font-semibold text-text">
+              League created
+            </h2>
+            <p className="text-sm text-text-muted">
+              Redirecting you to your new league...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-page">

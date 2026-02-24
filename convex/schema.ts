@@ -263,6 +263,20 @@ export default defineSchema({
     createdAt: v.number(),
   }).index('by_user_season', ['userId', 'season']),
 
+  processedPaddleWebhookEvents: defineTable({
+    eventId: v.string(),
+    eventType: v.optional(v.string()),
+    notificationId: v.optional(v.string()),
+    checkoutId: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+    season: v.optional(v.number()),
+    status: v.union(
+      v.literal('processed'),
+      v.literal('ignored_user_not_found'),
+    ),
+    createdAt: v.number(),
+  }).index('by_eventId', ['eventId']),
+
   leagues: defineTable({
     name: v.string(),
     slug: v.string(),

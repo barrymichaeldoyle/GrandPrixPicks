@@ -79,6 +79,23 @@ function RacesPage() {
           </div>
         ) : (
           <div className="space-y-8">
+            {lockedRaces.length > 0 && (
+              <section>
+                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
+                  <span
+                    className="h-2 w-2 rounded-full bg-warning"
+                    aria-hidden="true"
+                  ></span>
+                  In Progress
+                </h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {lockedRaces.map((race) => (
+                    <RaceCard key={race._id} race={race} />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {upcomingRaces.length > 0 && (
               <section>
                 <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
@@ -96,23 +113,6 @@ function RacesPage() {
                       isNext={nextRace != null && nextRace._id === race._id}
                       predictionOpenAt={getPredictionOpenAt(race)}
                     />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {lockedRaces.length > 0 && (
-              <section>
-                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                  <span
-                    className="h-2 w-2 rounded-full bg-warning"
-                    aria-hidden="true"
-                  ></span>
-                  In Progress
-                </h2>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {lockedRaces.map((race) => (
-                    <RaceCard key={race._id} race={race} />
                   ))}
                 </div>
               </section>

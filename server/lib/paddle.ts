@@ -238,6 +238,8 @@ export async function grantSeasonPassFromWebhook(
     webhookKey,
     clerkUserId,
     season: normalizedSeason,
+    paddleEventId: event.event_id,
+    paddleNotificationId: event.notification_id,
     paddleCheckoutId: event.data?.id,
     paddleProductId: event.data?.items?.[0]?.price?.product_id,
   });

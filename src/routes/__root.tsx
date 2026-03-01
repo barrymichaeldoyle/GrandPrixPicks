@@ -17,6 +17,7 @@ import { api } from '../../convex/_generated/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
+import { PWAInstallBanner } from '../components/PWAInstallBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
@@ -185,6 +186,12 @@ function RootDocument({ children }: PropsWithChildren) {
   const { isDark, setTheme } = useTheme();
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    }
+  }, []);
+
   return (
     <html lang="en" className="dark" data-theme="dark">
       <head>
@@ -222,6 +229,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 onThemeChange={setTheme}
               />
               <UpcomingPredictionBanner />
+              <PWAInstallBanner />
               <div
                 ref={mainRef}
                 className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"

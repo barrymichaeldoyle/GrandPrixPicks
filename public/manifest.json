@@ -17,5 +17,17 @@
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#0d9488",
-  "background_color": "#0a0a0a"
+  "background_color": "#0a0a0a",
+  "shortcuts": [
+    {
+      "name": "Leaderboard",
+      "url": "/leaderboard",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Predictions",
+      "url": "/my-predictions",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
 }

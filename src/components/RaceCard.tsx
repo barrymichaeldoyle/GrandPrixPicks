@@ -12,8 +12,6 @@ import { Badge } from './Badge';
 import { Flag } from './Flag';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
-export { StatusBadge } from './Badge';
-
 type Race = Doc<'races'>;
 
 /** Map race slug prefix to ISO 3166-1 alpha-2 country code for flag images (flagcdn.com). */

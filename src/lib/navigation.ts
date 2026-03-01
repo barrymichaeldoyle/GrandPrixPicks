@@ -1,4 +1,4 @@
-export type SiteNavLink = {
+type SiteNavLink = {
   to: string;
   label: string;
   exact?: boolean;

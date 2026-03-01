@@ -57,7 +57,7 @@ export const sendBatch = internalAction({
         globalRank: recipient.globalRank,
         globalTotal: recipient.globalTotal,
         leagueRanks: recipient.leagueRanks,
-        raceUrl: `${appUrl}/races/${args.raceId}`,
+        raceUrl: `${appUrl}/races/${args.raceId}?utm_source=email&utm_medium=email&utm_campaign=results`,
         settingsUrl: `${appUrl}/settings`,
         logoUrl: `${appUrl}/logo-email.png`,
         round: args.round,

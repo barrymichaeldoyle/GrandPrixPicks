@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/tanstackstart-react';
 import { createRouter } from '@tanstack/react-router';
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
+import posthog from 'posthog-js';
 
 import { ErrorFallback } from './components/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
@@ -42,6 +43,23 @@ export const getRouter = () => {
         }
         return event;
       },
+    });
+  }
+
+  if (
+    !router.isServer &&
+    import.meta.env.PROD &&
+    import.meta.env.VITE_POSTHOG_KEY
+  ) {
+    posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+      api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
+      capture_pageview: false,
+      capture_pageleave: true,
+      opt_out_capturing_by_default: true,
+    });
+
+    router.subscribe('onResolved', () => {
+      posthog.capture('$pageview');
     });
   }
 

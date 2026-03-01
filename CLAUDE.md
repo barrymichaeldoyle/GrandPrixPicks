@@ -121,34 +121,11 @@ const result = useMutation(api.predictions.submitPrediction);
 ## Code Conventions
 
 - **Named exports only** — default exports banned (ESLint rule), except route files and config
-- **Import sorting** — enforced by `simple-import-sort` ESLint plugin
+- **Import sorting** — enforced by `simple-import-sort` ESLint plugin, use `pnpm lint --fix` rather than manually reordering.
 - **Path alias** — `@/*` maps to `./src/*`
-- **Prettier** — single quotes, trailing commas, Tailwind class sorting
-- **TypeScript strict mode** enabled
 - Sentry instrumentation: wrap server functions with `Sentry.startSpan`
 - Convex validators: use `v` from `convex/values` (see `.cursorrules` for reference)
 
-## Environment Variables
-
-### Local Dev (`.env.local`)
-
-- `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`
-- `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, `VITE_CONVEX_SITE_URL`
-- `VITE_SENTRY_DSN` (optional)
-
-### Convex Dashboard
-
-- `CLERK_JWT_ISSUER_DOMAIN`
-
-## Testing
-
-### E2E (Playwright)
-
-- Seeds test database via `global.setup.ts`
-- Auth setup via `auth.setup.ts` (Clerk)
-- Test scenarios: `upcoming_race`, `locked_race`, `finished_race`, `full_season`
-- Projects: chromium, firefox, webkit, mobile, unauthenticated
-
-### Storybook
+## Storybook
 
 - Component stories in `*.stories.tsx` files alongside components

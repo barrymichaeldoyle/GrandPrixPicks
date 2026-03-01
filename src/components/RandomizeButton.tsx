@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from 'convex/react';
 import { Dices } from 'lucide-react';
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
@@ -84,6 +85,9 @@ export function RandomizeButton({
         await submitH2H({ raceId, picks: randomH2HPicks });
       }
 
+      posthog.capture('prediction_randomized', {
+        mode: needsTop5 ? 'all' : 'h2h',
+      });
       setShowConfirm(false);
     } catch (err) {
       setError(toUserFacingMessage(err));

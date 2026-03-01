@@ -25,6 +25,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react';
+import posthog from 'posthog-js';
 import { useCallback, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
@@ -246,6 +247,7 @@ function JoinSection({
         leagueId,
         password: password || undefined,
       });
+      posthog.capture('league_joined');
     } catch (err) {
       setError(
         err instanceof Error
@@ -293,6 +295,7 @@ function ShareLinkSection({ slug }: { slug: string }) {
 
   const copyToClipboard = useCallback(async () => {
     await navigator.clipboard.writeText(leagueUrl);
+    posthog.capture('league_invite_copied');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [leagueUrl]);

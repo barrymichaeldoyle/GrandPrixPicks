@@ -15,6 +15,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -864,8 +865,10 @@ function SettingsPage() {
                 checked={isPushSubscribed}
                 onToggle={() => {
                   if (isPushSubscribed) {
+                    posthog.capture('push_notifications_disabled');
                     void unsubscribePush();
                   } else {
+                    posthog.capture('push_notifications_enabled');
                     void subscribePush();
                   }
                 }}

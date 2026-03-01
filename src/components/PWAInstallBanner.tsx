@@ -1,4 +1,5 @@
 import { Download, X } from 'lucide-react';
+import posthog from 'posthog-js';
 
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
@@ -15,6 +16,22 @@ export function PWAInstallBanner() {
   if (!showBanner) {
     return null;
   }
+
+  const platform = isIOSSafari
+    ? 'ios_safari'
+    : isIOSNonSafari
+      ? 'ios_other'
+      : 'desktop_or_android';
+
+  const handleInstall = () => {
+    posthog.capture('pwa_install_accepted', { platform });
+    install();
+  };
+
+  const handleDismiss = () => {
+    posthog.capture('pwa_install_dismissed', { platform });
+    onDismiss();
+  };
 
   return (
     <div className="bg-surface-raised flex items-center gap-3 border-b border-border px-4 py-2.5">
@@ -44,7 +61,7 @@ export function PWAInstallBanner() {
 
       {!isIOSSafari && !isIOSNonSafari && (
         <button
-          onClick={install}
+          onClick={handleInstall}
           disabled={isInstalling}
           className="flex shrink-0 items-center gap-1.5 rounded-lg bg-button-accent px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-button-accent-hover disabled:cursor-not-allowed disabled:opacity-70"
         >
@@ -54,7 +71,7 @@ export function PWAInstallBanner() {
       )}
 
       <button
-        onClick={onDismiss}
+        onClick={handleDismiss}
         className="shrink-0 rounded p-1 text-text-muted transition-colors hover:text-text"
         aria-label="Dismiss install banner"
       >

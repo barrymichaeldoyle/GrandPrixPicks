@@ -1,5 +1,9 @@
 We use Sentry for watching for errors in our deployed application, as well as for instrumentation of our application.
 
+## Lint fixes
+
+When fixing lint errors, run `pnpm lint --fix`. Prefer this over manually applying fixes or running other tooling—it will auto-fix ESLint issues (including import sorting) without extra steps.
+
 ## Error collection
 
 Error collection is automatic and configured in `src/router.tsx`.

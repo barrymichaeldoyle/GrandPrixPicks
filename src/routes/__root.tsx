@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -10,10 +10,12 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { useMutation } from 'convex/react';
 import { Flag, Home } from 'lucide-react';
+import posthog from 'posthog-js';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
 import { api } from '../../convex/_generated/api';
+import { CookieConsent } from '../components/CookieConsent';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
@@ -181,6 +183,35 @@ function ProfileSync() {
   return null;
 }
 
+/** Identifies signed-in Clerk users in PostHog and resets on sign-out. */
+function PostHogUserSync() {
+  const { user, isLoaded } = useUser();
+  const prevIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+    if (user) {
+      if (prevIdRef.current !== user.id) {
+        prevIdRef.current = user.id;
+        posthog.identify(user.id, {
+          email: user.primaryEmailAddress?.emailAddress,
+          name: user.fullName,
+          username: user.username,
+        });
+      }
+    } else {
+      if (prevIdRef.current !== null) {
+        prevIdRef.current = null;
+        posthog.reset();
+      }
+    }
+  }, [user, isLoaded]);
+
+  return null;
+}
+
 function RootDocument({ children }: PropsWithChildren) {
   const mainRef = useRef<HTMLDivElement>(null);
   const { isDark, setTheme } = useTheme();
@@ -214,6 +245,7 @@ function RootDocument({ children }: PropsWithChildren) {
         <AppClerkProvider darkMode={isDark}>
           <AppConvexProvider>
             <ProfileSync />
+            <PostHogUserSync />
             <div className="relative z-10 flex h-[100dvh] h-screen flex-col overflow-hidden">
               <a
                 href="#main-content"
@@ -230,6 +262,7 @@ function RootDocument({ children }: PropsWithChildren) {
               />
               <UpcomingPredictionBanner />
               <PWAInstallBanner />
+              <CookieConsent />
               <div
                 ref={mainRef}
                 className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"

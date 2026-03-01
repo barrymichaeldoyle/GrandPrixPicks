@@ -51,6 +51,7 @@
     "framer-motion": "12.34.3",
     "lucide-react": "0.575.0",
     "nitro": "npm:nitro-nightly@latest",
+    "posthog-js": "^1.356.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "satori": "0.19.2",

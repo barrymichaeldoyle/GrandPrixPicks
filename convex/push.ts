@@ -148,7 +148,10 @@ export const sendPushRemindersForRace = internalMutation({
     const body = args.filterUnpredicted
       ? `Picks close in 2 hours — you haven't made your predictions yet!`
       : `Picks open — you have 24 hours to make your predictions`;
-    const url = `/races/${race.slug}`;
+    const utmCampaign = args.filterUnpredicted
+      ? 'last_chance'
+      : 'prediction_reminder';
+    const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=${utmCampaign}`;
 
     const subscriptionsToNotify = allSubs
       .filter((s) => targetUserIds.has(s.userId as string))
@@ -195,7 +198,7 @@ export const sendPushResultsForSession = internalMutation({
     const sessionLabel = SESSION_LABELS[args.sessionType] ?? args.sessionType;
     const title = `🏁 ${race.name} — ${sessionLabel} results`;
     const body = `Session results are in. See how you scored!`;
-    const url = `/races/${race.slug}`;
+    const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=results`;
 
     const subscriptions = allSubs.map((s) => ({
       endpoint: s.endpoint,

@@ -29,11 +29,26 @@ function recordDismissal(): void {
   }
 }
 
+function isIOSDevice(): boolean {
+  const ua = navigator.userAgent;
+  const hasIOSUA = /iPad|iPhone|iPod/.test(ua);
+  const isIPadDesktopUA =
+    navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  return hasIOSUA || isIPadDesktopUA;
+}
+
+function isSafariBrowser(): boolean {
+  const ua = navigator.userAgent;
+  return /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+}
+
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
   const [isIOSSafari, setIsIOSSafari] = useState(false);
+  const [isIOSNonSafari, setIsIOSNonSafari] = useState(false);
   // Start hidden; reveal after client-side checks pass
   const [dismissed, setDismissed] = useState(true);
 
@@ -49,14 +64,13 @@ export function usePWAInstall() {
     }
     setDismissed(false);
 
-    // Detect iOS Safari — no beforeinstallprompt, requires manual instructions
-    const ua = navigator.userAgent;
-    const isIOS =
-      /iPad|iPhone|iPod/.test(ua) &&
-      !(window as unknown as { MSStream?: unknown }).MSStream;
-    const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS/.test(ua);
-    if (isIOS && isSafari) {
-      setIsIOSSafari(true);
+    // iOS requires manual install instructions; only Safari has Add to Home Screen.
+    if (isIOSDevice()) {
+      if (isSafariBrowser()) {
+        setIsIOSSafari(true);
+      } else {
+        setIsIOSNonSafari(true);
+      }
     }
 
     const handleInstallPrompt = (e: Event) => {
@@ -78,19 +92,24 @@ export function usePWAInstall() {
   }, []);
 
   const install = async () => {
-    if (!installPrompt) {
+    if (!installPrompt || isInstalling) {
       return;
     }
     const promptEvent = installPrompt;
     setInstallPrompt(null);
+    setIsInstalling(true);
 
-    await promptEvent.prompt();
-    const { outcome } = await promptEvent.userChoice;
-    if (outcome === 'accepted') {
-      setIsInstalled(true);
-    } else {
-      recordDismissal();
-      setDismissed(true);
+    try {
+      await promptEvent.prompt();
+      const { outcome } = await promptEvent.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      } else {
+        recordDismissal();
+        setDismissed(true);
+      }
+    } finally {
+      setIsInstalling(false);
     }
   };
 
@@ -100,7 +119,16 @@ export function usePWAInstall() {
   };
 
   const showBanner =
-    !isInstalled && !dismissed && (!!installPrompt || isIOSSafari);
+    !isInstalled &&
+    !dismissed &&
+    (!!installPrompt || isIOSSafari || isIOSNonSafari);
 
-  return { showBanner, isIOSSafari, install, onDismiss };
+  return {
+    showBanner,
+    isInstalling,
+    isIOSSafari,
+    isIOSNonSafari,
+    install,
+    onDismiss,
+  };
 }

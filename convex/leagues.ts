@@ -228,7 +228,7 @@ export const getLeagueBySlug = query({
 });
 
 export const getLeagueMembers = query({
-  args: { leagueId: v.id('leagues') },
+  args: { leagueId: v.id('leagues'), raceId: v.optional(v.id('races')) },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
     if (!viewer) {
@@ -249,6 +249,18 @@ export const getLeagueMembers = query({
     const enriched = await Promise.all(
       members.map(async (m) => {
         const user = await ctx.db.get(m.userId);
+
+        let hasSubmittedPredictions: boolean | undefined;
+        if (args.raceId !== undefined) {
+          const hasPrediction = await ctx.db
+            .query('predictions')
+            .withIndex('by_user_race_session', (q) =>
+              q.eq('userId', m.userId).eq('raceId', args.raceId!),
+            )
+            .first();
+          hasSubmittedPredictions = hasPrediction !== null;
+        }
+
         return {
           _id: m._id,
           userId: m.userId,
@@ -256,6 +268,7 @@ export const getLeagueMembers = query({
           joinedAt: m.joinedAt,
           username: user?.username ?? 'Anonymous',
           avatarUrl: user?.avatarUrl,
+          hasSubmittedPredictions,
         };
       }),
     );

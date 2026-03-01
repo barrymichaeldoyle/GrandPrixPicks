@@ -9,6 +9,8 @@ import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
   Check,
+  CheckCircle2,
+  Circle,
   Copy,
   Crown,
   Globe,
@@ -448,7 +450,12 @@ function LeagueMembers({
   isAdmin: boolean;
 }) {
   const me = useQuery(api.users.me, {});
-  const members = useQuery(api.leagues.getLeagueMembers, { leagueId });
+  const nextRace = useQuery(api.races.getNextRace);
+  const showPredictionStatus = nextRace?.status === 'upcoming';
+  const members = useQuery(api.leagues.getLeagueMembers, {
+    leagueId,
+    raceId: showPredictionStatus ? nextRace._id : undefined,
+  });
   const promoteMember = useMutation(api.leagues.promoteMember);
   const demoteMember = useMutation(api.leagues.demoteMember);
   const removeMember = useMutation(api.leagues.removeMember);
@@ -480,9 +487,15 @@ function LeagueMembers({
 
   return (
     <div className="mb-6">
-      <h2 className="mb-3 text-lg font-semibold text-text">
+      <h2 className="mb-1 text-lg font-semibold text-text">
         Members ({members.length})
       </h2>
+      {showPredictionStatus && (
+        <p className="mb-3 text-xs text-text-muted">
+          Predictions are hidden until this race locks
+        </p>
+      )}
+      {!showPredictionStatus && <div className="mb-3" />}
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
         {members.map((member, index) => (
           <div
@@ -507,64 +520,89 @@ function LeagueMembers({
               )}
             </div>
 
-            {isAdmin && !isViewer(member.userId) && (
-              <div className="flex items-center gap-1">
-                {member.role === 'member' && (
-                  <button
-                    type="button"
-                    aria-label="Promote to admin"
-                    disabled={actionLoading !== null}
-                    onClick={() => void handleAction('promote', member.userId)}
-                    className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
-                  >
-                    {actionLoading === `promote-${member.userId}` ? (
-                      <Loader2
-                        className="h-4 w-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <UserPlus className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                )}
-                {member.role === 'admin' && (
-                  <button
-                    type="button"
-                    aria-label="Demote to member"
-                    disabled={actionLoading !== null}
-                    onClick={() => void handleAction('demote', member.userId)}
-                    className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
-                  >
-                    {actionLoading === `demote-${member.userId}` ? (
-                      <Loader2
-                        className="h-4 w-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <UserMinus className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                )}
-                {member.role === 'member' && (
-                  <button
-                    type="button"
-                    aria-label="Remove from league"
-                    disabled={actionLoading !== null}
-                    onClick={() => void handleAction('remove', member.userId)}
-                    className="rounded-lg p-1.5 text-error/60 transition-colors hover:bg-error/10 hover:text-error disabled:opacity-50"
-                  >
-                    {actionLoading === `remove-${member.userId}` ? (
-                      <Loader2
-                        className="h-4 w-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-1">
+              {member.hasSubmittedPredictions !== undefined && (
+                <>
+                  {member.hasSubmittedPredictions ? (
+                    <CheckCircle2
+                      className="h-4 w-4 text-success"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <Circle
+                      className="h-4 w-4 text-text-muted/40"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="sr-only">
+                    {member.hasSubmittedPredictions
+                      ? 'Submitted'
+                      : 'Not submitted'}
+                  </span>
+                </>
+              )}
+
+              {isAdmin && !isViewer(member.userId) && (
+                <>
+                  {member.role === 'member' && (
+                    <button
+                      type="button"
+                      aria-label="Promote to admin"
+                      disabled={actionLoading !== null}
+                      onClick={() =>
+                        void handleAction('promote', member.userId)
+                      }
+                      className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
+                    >
+                      {actionLoading === `promote-${member.userId}` ? (
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  )}
+                  {member.role === 'admin' && (
+                    <button
+                      type="button"
+                      aria-label="Demote to member"
+                      disabled={actionLoading !== null}
+                      onClick={() => void handleAction('demote', member.userId)}
+                      className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
+                    >
+                      {actionLoading === `demote-${member.userId}` ? (
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <UserMinus className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  )}
+                  {member.role === 'member' && (
+                    <button
+                      type="button"
+                      aria-label="Remove from league"
+                      disabled={actionLoading !== null}
+                      onClick={() => void handleAction('remove', member.userId)}
+                      className="rounded-lg p-1.5 text-error/60 transition-colors hover:bg-error/10 hover:text-error disabled:opacity-50"
+                    >
+                      {actionLoading === `remove-${member.userId}` ? (
+                        <Loader2
+                          className="h-4 w-4 animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>

@@ -270,7 +270,7 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
           role="tablist"
           aria-label="Race results by session"
         >
-          {sessions.map((session) => (
+          {sessions.map((session) =>
             (() => {
               const hasResults = sessionHasResults.has(session);
               const isActive = selectedSession === session;
@@ -282,37 +282,37 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
                   ? 'font-semibold text-white/90'
                   : 'text-text-muted';
               return (
-            <Button
-              key={session}
-              variant="tab"
-              size="tab"
-              active={selectedSession === session}
-              onClick={() => setSelectedSession(session)}
-              className="flex-1"
-            >
-              <span className="hidden sm:inline">
-                {SESSION_LABELS[session]}
-              </span>
-              {race.hasSprint ? (
-                <span className="sm:hidden">
-                  <Tooltip content={SESSION_LABELS[session]}>
-                    <span>{SESSION_LABELS_SHORT[session]}</span>
-                  </Tooltip>
-                </span>
-              ) : (
-                <span className="sm:hidden">{SESSION_LABELS[session]}</span>
-              )}
-              <span
-                className={`ml-1 hidden text-xs sm:inline ${valueClass}`}
-              >
-                {hasResults
-                  ? `+${top5PointsBySession[session] + h2hPointsBySession[session]}`
-                  : 'Pending'}
-              </span>
-            </Button>
+                <Button
+                  key={session}
+                  variant="tab"
+                  size="tab"
+                  active={selectedSession === session}
+                  onClick={() => setSelectedSession(session)}
+                  className="flex-1"
+                >
+                  <span className="hidden sm:inline">
+                    {SESSION_LABELS[session]}
+                  </span>
+                  {race.hasSprint ? (
+                    <span className="sm:hidden">
+                      <Tooltip content={SESSION_LABELS[session]}>
+                        <span>{SESSION_LABELS_SHORT[session]}</span>
+                      </Tooltip>
+                    </span>
+                  ) : (
+                    <span className="sm:hidden">{SESSION_LABELS[session]}</span>
+                  )}
+                  <span
+                    className={`ml-1 hidden text-xs sm:inline ${valueClass}`}
+                  >
+                    {hasResults
+                      ? `+${top5PointsBySession[session] + h2hPointsBySession[session]}`
+                      : 'Pending'}
+                  </span>
+                </Button>
               );
-            })()
-          ))}
+            })(),
+          )}
         </div>
       )}
 

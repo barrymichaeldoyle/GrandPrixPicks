@@ -15,6 +15,7 @@ export default [
       '.storybook/**',
       'eslint.config.js',
       'prettier.config.js',
+      'public/sw.js',
     ],
   },
   ...tanstackConfig,

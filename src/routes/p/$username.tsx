@@ -183,32 +183,38 @@ function ProfilePage() {
                 {currentProfile.username && (
                   <p className="text-text-muted">@{currentProfile.username}</p>
                 )}
-                {followCounts && currentProfile.username && (
-                  <p className="text-sm text-text-muted">
-                    <span className="font-bold text-text">
-                      {followCounts.followerCount}
-                    </span>{' '}
-                    <Link
-                      to="/p/$username/followers"
-                      params={{ username: currentProfile.username }}
-                      className="font-bold text-accent hover:text-accent/90"
-                    >
-                      {followCounts.followerCount === 1
-                        ? 'follower'
-                        : 'followers'}
-                    </Link>
-                    {' · '}
-                    <span className="font-bold text-text">
-                      {followCounts.followingCount}
-                    </span>{' '}
-                    <Link
-                      to="/p/$username/following"
-                      params={{ username: currentProfile.username }}
-                      className="font-bold text-accent hover:text-accent/90"
-                    >
-                      following
-                    </Link>
-                  </p>
+                {currentProfile.username && (
+                  <>
+                    {followCounts === undefined ? (
+                      <div className="mt-1 h-4 w-40 animate-pulse rounded bg-surface-muted" />
+                    ) : (
+                      <p className="text-sm text-text-muted">
+                        <span className="font-bold text-text">
+                          {followCounts.followerCount}
+                        </span>{' '}
+                        <Link
+                          to="/p/$username/followers"
+                          params={{ username: currentProfile.username }}
+                          className="font-bold text-accent hover:text-accent/90"
+                        >
+                          {followCounts.followerCount === 1
+                            ? 'follower'
+                            : 'followers'}
+                        </Link>
+                        {' · '}
+                        <span className="font-bold text-text">
+                          {followCounts.followingCount}
+                        </span>{' '}
+                        <Link
+                          to="/p/$username/following"
+                          params={{ username: currentProfile.username }}
+                          className="font-bold text-accent hover:text-accent/90"
+                        >
+                          following
+                        </Link>
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>

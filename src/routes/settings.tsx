@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Bell,
   CheckCircle2,
@@ -268,6 +269,7 @@ function SettingsPageSkeleton() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
+        <div className="mb-4 h-5 w-20 animate-pulse rounded bg-surface-muted" />
         <div className="mb-6 h-9 w-40 animate-pulse rounded bg-surface-muted" />
         <div className="space-y-6">
           <SettingsSection
@@ -560,6 +562,15 @@ function SettingsPage() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
+        <Button
+          asChild
+          leftIcon={ArrowLeft}
+          variant="text"
+          size="sm"
+          className="mb-4"
+        >
+          <Link to="/me">Back to my picks</Link>
+        </Button>
         <PageHero
           eyebrow="Account"
           title="Settings"

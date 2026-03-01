@@ -14,9 +14,9 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-export type PushPermission = 'default' | 'granted' | 'denied';
+type PushPermission = 'default' | 'granted' | 'denied';
 
-export interface UsePushNotificationsResult {
+interface UsePushNotificationsResult {
   isSupported: boolean;
   permission: PushPermission;
   isSubscribed: boolean;

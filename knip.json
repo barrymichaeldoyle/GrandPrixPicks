@@ -3,8 +3,6 @@
   "entry": ["src/start.ts", "eslint.config.js", "instrument.server.mjs"],
   "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}"],
   "ignoreFiles": [
-    "public/sw.js",
-    "public/manifest.json",
     "src/components/RaceCardSkeleton.tsx",
     "src/lib/og/fonts.ts",
     "src/lib/og/renderer.ts",

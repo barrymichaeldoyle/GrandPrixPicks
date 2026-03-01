@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
+  prompt: () => Promise<void>;
   readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
@@ -12,7 +12,9 @@ const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 function isDismissed(): boolean {
   try {
     const val = localStorage.getItem(DISMISSED_KEY);
-    if (!val) return false;
+    if (!val) {
+      return false;
+    }
     return Date.now() < parseInt(val, 10);
   } catch {
     return false;
@@ -42,7 +44,9 @@ export function usePWAInstall() {
       return;
     }
 
-    if (isDismissed()) return;
+    if (isDismissed()) {
+      return;
+    }
     setDismissed(false);
 
     // Detect iOS Safari — no beforeinstallprompt, requires manual instructions
@@ -59,22 +63,34 @@ export function usePWAInstall() {
       e.preventDefault();
       setInstallPrompt(e as BeforeInstallPromptEvent);
     };
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
 
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
-    window.addEventListener('appinstalled', () => setIsInstalled(true));
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const install = async () => {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
+    if (!installPrompt) {
+      return;
+    }
+    const promptEvent = installPrompt;
+    setInstallPrompt(null);
+
+    await promptEvent.prompt();
+    const { outcome } = await promptEvent.userChoice;
     if (outcome === 'accepted') {
-      setInstallPrompt(null);
       setIsInstalled(true);
+    } else {
+      recordDismissal();
+      setDismissed(true);
     }
   };
 

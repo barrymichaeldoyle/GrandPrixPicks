@@ -508,6 +508,17 @@ function LeagueMembers({
             }`}
           >
             <div className="flex items-center gap-3">
+              {member.avatarUrl ? (
+                <img
+                  src={member.avatarUrl}
+                  alt=""
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-muted text-xs font-semibold text-text-muted">
+                  {member.username.charAt(0).toUpperCase()}
+                </span>
+              )}
               <Link
                 to="/p/$username"
                 params={{ username: member.username }}

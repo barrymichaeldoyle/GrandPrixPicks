@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { api } from '../../convex/_generated/api';
@@ -403,6 +404,16 @@ function SettingsPage() {
       setOptimisticReminders(null);
     }
   }, [optimisticReminders, me?.emailReminders]);
+
+  // Push notifications
+  const {
+    isSupported: isPushSupported,
+    permission: pushPermission,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    subscribe: subscribePush,
+    unsubscribe: unsubscribePush,
+  } = usePushNotifications();
 
   // Results notification toggle state
   const [optimisticResults, setOptimisticResults] = useState<boolean | null>(
@@ -846,6 +857,30 @@ function SettingsPage() {
               }}
               loading={false}
             />
+            {isPushSupported && pushPermission !== 'denied' && (
+              <NotificationToggleItem
+                label="Push notifications"
+                description="Get browser/device notifications 1 hour before picks lock and when results are published."
+                checked={isPushSubscribed}
+                onToggle={() => {
+                  if (isPushSubscribed) {
+                    void unsubscribePush();
+                  } else {
+                    void subscribePush();
+                  }
+                }}
+                loading={isPushLoading}
+              />
+            )}
+            {isPushSupported && pushPermission === 'denied' && (
+              <div className="py-4">
+                <p className="font-medium text-text">Push notifications</p>
+                <p className="text-sm text-text-muted">
+                  Notifications are blocked. Enable them in your browser
+                  settings to receive alerts.
+                </p>
+              </div>
+            )}
           </SettingsSection>
         </div>
       </div>

@@ -25,6 +25,8 @@ import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
 import type * as notifications from "../notifications.js";
 import type * as predictions from "../predictions.js";
+import type * as push from "../push.js";
+import type * as pushNotifications from "../pushNotifications.js";
 import type * as races from "../races.js";
 import type * as results from "../results.js";
 import type * as seed from "../seed.js";
@@ -56,6 +58,8 @@ declare const fullApi: ApiFromModules<{
   "lib/standings": typeof lib_standings;
   notifications: typeof notifications;
   predictions: typeof predictions;
+  push: typeof push;
+  pushNotifications: typeof pushNotifications;
   races: typeof races;
   results: typeof results;
   seed: typeof seed;

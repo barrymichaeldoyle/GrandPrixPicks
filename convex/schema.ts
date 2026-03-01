@@ -263,6 +263,16 @@ export default defineSchema({
     createdAt: v.number(),
   }).index('by_user_season', ['userId', 'season']),
 
+  pushSubscriptions: defineTable({
+    userId: v.id('users'),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_endpoint', ['endpoint']),
+
   processedPaddleWebhookEvents: defineTable({
     eventId: v.string(),
     eventType: v.optional(v.string()),

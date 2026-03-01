@@ -6,6 +6,7 @@ import type { MutationCtx } from './_generated/server';
 import { internalMutation } from './_generated/server';
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
 
 /** Map race slug prefix to ISO 3166-1 alpha-2 country code (mirrors RaceCard.tsx). */
@@ -415,4 +416,25 @@ export async function scheduleReminder(
   await ctx.db.patch(race._id, {
     reminderScheduledId: scheduledId as unknown as string,
   });
+
+  // Schedule push notifications alongside email reminder
+  // 24h push: all subscribed users
+  const push24hTime = firstLockTime - TWENTY_FOUR_HOURS_MS;
+  if (push24hTime > Date.now()) {
+    await ctx.scheduler.runAt(
+      push24hTime,
+      internal.push.sendPushRemindersForRace,
+      { raceId: race._id, filterUnpredicted: false },
+    );
+  }
+
+  // 2h push: only users who haven't made any predictions yet
+  const push2hTime = firstLockTime - TWO_HOURS_MS;
+  if (push2hTime > Date.now()) {
+    await ctx.scheduler.runAt(
+      push2hTime,
+      internal.push.sendPushRemindersForRace,
+      { raceId: race._id, filterUnpredicted: true },
+    );
+  }
 }

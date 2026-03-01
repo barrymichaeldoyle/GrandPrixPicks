@@ -790,20 +790,20 @@ export const scoreH2HBatch = internalMutation({
       if (!pred) {
         continue;
       }
-      const userPreds = byUser.get(pred.userId) ?? [];
-      userPreds.push(pred);
-      byUser.set(pred.userId, userPreds);
+      const userPredictions = byUser.get(pred.userId) ?? [];
+      userPredictions.push(pred);
+      byUser.set(pred.userId, userPredictions);
     }
 
     const userIds = new Set<Id<'users'>>();
 
-    for (const [userId, userPreds] of byUser) {
+    for (const [userId, userPredictions] of byUser) {
       userIds.add(userId);
 
       let correctPicks = 0;
-      const totalPicks = userPreds.length;
+      const totalPicks = userPredictions.length;
 
-      for (const pred of userPreds) {
+      for (const pred of userPredictions) {
         const actualWinner = h2hResultMap.get(pred.matchupId.toString());
         if (actualWinner && pred.predictedWinnerId === actualWinner) {
           correctPicks++;
@@ -915,6 +915,13 @@ export const checkScoringComplete = internalMutation({
       await ctx.scheduler.runAfter(
         30_000,
         internal.notifications.sendResultEmailsForSession,
+        { raceId: args.raceId, sessionType: args.sessionType },
+      );
+
+      // Schedule push notifications for results
+      await ctx.scheduler.runAfter(
+        30_000,
+        internal.push.sendPushResultsForSession,
         { raceId: args.raceId, sessionType: args.sessionType },
       );
     }

@@ -786,7 +786,7 @@ function MemberDetailsModal({
         {isAdmin && !isViewer && (
           <div className="mt-4 space-y-3">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <p className="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
                 Choose action
               </p>
               <div className="flex flex-wrap gap-2">
@@ -805,7 +805,9 @@ function MemberDetailsModal({
                     </Button>
                     <Button
                       size="sm"
-                      variant={selectedAction === 'remove' ? 'danger' : 'secondary'}
+                      variant={
+                        selectedAction === 'remove' ? 'danger' : 'secondary'
+                      }
                       leftIcon={Trash2}
                       disabled={actionLoading !== null}
                       onClick={() => onSelectAction('remove')}
@@ -817,7 +819,9 @@ function MemberDetailsModal({
                 {member.role === 'admin' && (
                   <Button
                     size="sm"
-                    variant={selectedAction === 'demote' ? 'primary' : 'secondary'}
+                    variant={
+                      selectedAction === 'demote' ? 'primary' : 'secondary'
+                    }
                     leftIcon={UserMinus}
                     disabled={actionLoading !== null}
                     onClick={() => onSelectAction('demote')}
@@ -848,8 +852,8 @@ function MemberDetailsModal({
               <p className="mt-1 text-xs text-text-muted">
                 {selectedActionLabel ? (
                   <>
-                    Type <span className="font-mono">{member.username}</span>{' '}
-                    to confirm: {selectedActionLabel}.
+                    Type <span className="font-mono">{member.username}</span> to
+                    confirm: {selectedActionLabel}.
                   </>
                 ) : (
                   'Select an action first, then type the username to continue.'
@@ -864,7 +868,9 @@ function MemberDetailsModal({
                 disabled={!selectedActionValid || !canRunProtectedAction}
                 onClick={handleConfirmAction}
               >
-                {selectedActionLabel ? `Confirm: ${selectedActionLabel}` : 'Confirm'}
+                {selectedActionLabel
+                  ? `Confirm: ${selectedActionLabel}`
+                  : 'Confirm'}
               </Button>
             </div>
           </div>

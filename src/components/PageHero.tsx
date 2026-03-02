@@ -33,7 +33,9 @@ export function PageHero({
             {title}
           </h1>
           {subtitle ? (
-            <p className="page-hero-subtitle mt-1 text-text-muted">{subtitle}</p>
+            <p className="page-hero-subtitle mt-1 text-text-muted">
+              {subtitle}
+            </p>
           ) : null}
         </div>
         {rightSlot ? <div className="shrink-0">{rightSlot}</div> : null}

@@ -9,6 +9,7 @@ import {
   Lock,
   LogIn,
   LogOut,
+  Pencil,
   Settings,
   Shield,
   Trash2,
@@ -240,7 +241,11 @@ function AdminGeneralSettings({ league }: { league: League }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => setShowEdit(!showEdit)}>
+          <Button
+            size="sm"
+            onClick={() => setShowEdit(!showEdit)}
+            leftIcon={Pencil}
+          >
             Edit League
           </Button>
           {!isPublic &&
@@ -248,9 +253,9 @@ function AdminGeneralSettings({ league }: { league: League }) {
               <Button
                 size="sm"
                 loading={passwordLoading}
-                onClick={() => void handleRemovePassword()}
+                onClick={handleRemovePassword}
+                leftIcon={Lock}
               >
-                <Lock className="h-4 w-4" />
                 Remove Password
               </Button>
             ) : (

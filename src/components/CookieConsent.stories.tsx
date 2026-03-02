@@ -59,13 +59,17 @@ export const WithFooterCompensation: Story = {
   render: (args) => (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <h2 className="mb-3 text-xl font-semibold text-text">Content preview</h2>
+        <h2 className="mb-3 text-xl font-semibold text-text">
+          Content preview
+        </h2>
         <p className="mb-4 text-text-muted">
           This story mirrors the app shell with page content, footer, and cookie
           banner visible at the same time.
         </p>
         <div className="space-y-3 text-sm text-text-muted">
-          <p>Scroll to the bottom and confirm footer content remains visible.</p>
+          <p>
+            Scroll to the bottom and confirm footer content remains visible.
+          </p>
           <p>
             Footer bottom padding should grow while the banner is mounted and
             reset when dismissed.

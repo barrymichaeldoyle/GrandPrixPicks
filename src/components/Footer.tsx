@@ -46,7 +46,9 @@ export function Footer() {
                   aria-hidden="true"
                 />
               </span>
-              <span className="font-title tracking-tight">Grand Prix Picks</span>
+              <span className="font-title tracking-tight">
+                Grand Prix Picks
+              </span>
             </p>
             <p className="max-w-sm text-xs text-text-muted">
               Fan-made prediction game for Formula 1 race weekends. No gambling

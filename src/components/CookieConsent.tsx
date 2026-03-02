@@ -40,7 +40,10 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
 
   useEffect(() => {
     if (!forceVisible && decided) {
-      document.documentElement.style.setProperty('--bottom-overlay-offset', '0px');
+      document.documentElement.style.setProperty(
+        '--bottom-overlay-offset',
+        '0px',
+      );
       return;
     }
 
@@ -50,10 +53,13 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
       return;
     }
 
-    const setOffset = () => {
+    function setOffset() {
+      if (!banner) {
+        return;
+      }
       const nextOffset = Math.ceil(banner.getBoundingClientRect().height);
       root.style.setProperty('--bottom-overlay-offset', `${nextOffset}px`);
-    };
+    }
 
     setOffset();
     const observer = new ResizeObserver(setOffset);

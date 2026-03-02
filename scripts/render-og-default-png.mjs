@@ -220,7 +220,14 @@ async function main() {
       { name: 'Noto Sans', data: noto, weight: 700, style: 'normal' },
       { name: 'Noto Sans', data: noto, weight: 900, style: 'normal' },
       ...(orbitronBold
-        ? [{ name: 'Orbitron', data: orbitronBold, weight: 700, style: 'normal' }]
+        ? [
+            {
+              name: 'Orbitron',
+              data: orbitronBold,
+              weight: 700,
+              style: 'normal',
+            },
+          ]
         : []),
     ],
   });

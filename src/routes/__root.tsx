@@ -90,6 +90,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'twitter:creator', content: '@barrymdoyle' },
     ],
     links: [
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: '' },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&display=swap',
+      },
       { rel: 'stylesheet', href: appCss },
       {
         rel: 'icon',

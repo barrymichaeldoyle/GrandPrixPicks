@@ -24,7 +24,7 @@ const ogBaseUrl =
   siteConfig.url;
 
 /** Temporary shared OG image until per-page variants are finalized. */
-export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260224`;
+export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260302b`;
 
 /**
  * Returns canonical meta tags (og:url, twitter:url) and the canonical link

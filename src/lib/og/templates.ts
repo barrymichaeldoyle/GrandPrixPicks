@@ -70,6 +70,7 @@ function layout(size: OgImageSize, ...children: Array<ReactNode>): ReactNode {
             gap: 12,
             fontSize: 20,
             fontWeight: 700,
+            fontFamily: 'Orbitron',
             color: colors.text,
           },
         },
@@ -181,6 +182,7 @@ export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
             style: {
               fontSize: 82,
               fontWeight: 700,
+              fontFamily: 'Orbitron',
               lineHeight: 1.1,
               color: colors.text,
             },
@@ -316,6 +318,7 @@ export function raceTemplate(
           style: {
             fontSize: 56,
             fontWeight: 700,
+            fontFamily: 'Orbitron',
             lineHeight: 1.1,
             color: colors.text,
           },
@@ -504,6 +507,7 @@ export function leaderboardTemplate(
           style: {
             fontSize: 48,
             fontWeight: 700,
+            fontFamily: 'Orbitron',
             color: colors.text,
             textAlign: 'center' as const,
           },

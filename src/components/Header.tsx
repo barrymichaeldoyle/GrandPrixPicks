@@ -183,7 +183,7 @@ export function Header({
                 aria-hidden="true"
               />
             </span>
-            <span className="pr-1 text-xl font-bold tracking-tight">
+            <span className="font-title pr-1 text-xl font-bold tracking-tight">
               Grand Prix Picks
             </span>
           </Link>
@@ -191,7 +191,7 @@ export function Header({
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
           <nav
             aria-label="Main navigation"
-            className="hidden items-center gap-1 min-[791px]:flex"
+            className="font-title hidden items-center gap-1 min-[791px]:flex"
           >
             {navLinks.map((link) => (
               <Link
@@ -283,7 +283,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface shadow-xl min-[791px]:hidden"
+              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface shadow-xl min-[791px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {navLinks.map((link, index) => (

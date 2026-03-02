@@ -15,7 +15,15 @@ const WOFF_USER_AGENT =
   'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
 
 async function resolveFontUrl(weight: number): Promise<string> {
-  const cssUrl = `https://fonts.googleapis.com/css2?family=Inter:wght@${weight}`;
+  return resolveFontUrlForFamily('Inter', weight);
+}
+
+async function resolveFontUrlForFamily(
+  family: string,
+  weight: number,
+): Promise<string> {
+  const encodedFamily = encodeURIComponent(family);
+  const cssUrl = `https://fonts.googleapis.com/css2?family=${encodedFamily}:wght@${weight}`;
   const res = await fetch(cssUrl, {
     headers: { 'User-Agent': WOFF_USER_AGENT },
   });
@@ -37,19 +45,22 @@ export async function loadFonts(): Promise<Array<SatoriFont>> {
     return fontsCache;
   }
 
-  const [regularUrl, boldUrl] = await Promise.all([
+  const [regularUrl, boldUrl, orbitronBoldUrl] = await Promise.all([
     resolveFontUrl(400),
     resolveFontUrl(700),
+    resolveFontUrlForFamily('Orbitron', 700),
   ]);
 
-  const [regular, bold] = await Promise.all([
+  const [regular, bold, orbitronBold] = await Promise.all([
     fetch(regularUrl).then((r) => r.arrayBuffer()),
     fetch(boldUrl).then((r) => r.arrayBuffer()),
+    fetch(orbitronBoldUrl).then((r) => r.arrayBuffer()),
   ]);
 
   fontsCache = [
     { name: 'Inter', data: regular, weight: 400, style: 'normal' },
     { name: 'Inter', data: bold, weight: 700, style: 'normal' },
+    { name: 'Orbitron', data: orbitronBold, weight: 700, style: 'normal' },
   ];
 
   return fontsCache;

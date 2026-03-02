@@ -8,6 +8,8 @@ import satori from 'satori';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
+const WOFF_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
 
 function findNotoFontPath() {
   return execSync(
@@ -15,6 +17,40 @@ function findNotoFontPath() {
   )
     .toString()
     .trim();
+}
+
+async function resolveGoogleFontWoffUrl(family, weight) {
+  const encodedFamily = encodeURIComponent(family);
+  const cssUrl = `https://fonts.googleapis.com/css2?family=${encodedFamily}:wght@${weight}`;
+  const res = await fetch(cssUrl, {
+    headers: { 'User-Agent': WOFF_USER_AGENT },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${family} CSS: ${res.status}`);
+  }
+  const css = await res.text();
+  const urlMatch = css.match(/url\(([^)]+)\)/);
+  if (!urlMatch?.[1]) {
+    throw new Error(`Could not extract ${family} font URL`);
+  }
+  return urlMatch[1];
+}
+
+async function loadOrbitronBold() {
+  try {
+    const orbitronUrl = await resolveGoogleFontWoffUrl('Orbitron', 700);
+    const fontRes = await fetch(orbitronUrl);
+    if (!fontRes.ok) {
+      throw new Error(`Failed to fetch Orbitron font: ${fontRes.status}`);
+    }
+    return Buffer.from(await fontRes.arrayBuffer());
+  } catch (err) {
+    console.warn(
+      'Orbitron could not be loaded for OG generation, falling back to Noto Sans.',
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
 }
 
 async function main() {
@@ -27,6 +63,13 @@ async function main() {
     throw new Error('Could not find noto-sans-v27-latin-regular.ttf');
   }
   const noto = await readFile(fontPath);
+  const orbitronBold = await loadOrbitronBold();
+  const titleFontFamily = orbitronBold ? 'Orbitron' : 'Noto Sans';
+  if (!orbitronBold) {
+    console.warn(
+      'Using Noto Sans for title because Orbitron download was unavailable.',
+    );
+  }
 
   const flagGlyphSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const flagGlyphDataUri = `data:image/svg+xml;base64,${Buffer.from(
@@ -90,22 +133,23 @@ async function main() {
           'div',
           {
             style: {
-              width: '58px',
-              height: '58px',
-              borderRadius: '29px',
+              width: '76px',
+              height: '76px',
+              borderRadius: '38px',
               backgroundColor: 'rgba(20,184,166,0.14)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             },
           },
-          h('img', { src: flagGlyphDataUri, width: 38, height: 38 }),
+          h('img', { src: flagGlyphDataUri, width: 50, height: 50 }),
         ),
         h(
           'div',
           {
             style: {
               display: 'flex',
+              fontFamily: titleFontFamily,
               fontSize: '84px',
               fontWeight: 900,
               letterSpacing: '-1.8px',
@@ -130,8 +174,8 @@ async function main() {
             marginBottom: '34px',
           },
         },
-        h('div', {}, 'Pick every session. Beat your friends.'),
-        h('div', {}, 'Own the 2026 leaderboard.'),
+        h('div', {}, 'Top-5 picks. Teammate H2H battles.'),
+        h('div', {}, 'Every race weekend.'),
       ),
       h(
         'div',
@@ -175,6 +219,9 @@ async function main() {
       { name: 'Noto Sans', data: noto, weight: 400, style: 'normal' },
       { name: 'Noto Sans', data: noto, weight: 700, style: 'normal' },
       { name: 'Noto Sans', data: noto, weight: 900, style: 'normal' },
+      ...(orbitronBold
+        ? [{ name: 'Orbitron', data: orbitronBold, weight: 700, style: 'normal' }]
+        : []),
     ],
   });
 

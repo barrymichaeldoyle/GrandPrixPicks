@@ -398,9 +398,9 @@ function CreateLeagueContent() {
           </form>
         </div>
         <p className="text-sm text-text-muted">
-          <Link to="/leagues" className="text-accent hover:underline">
-            ← Back to leagues
-          </Link>
+          <Button asChild size="sm" variant="text">
+            <Link to="/leagues">← Back to leagues</Link>
+          </Button>
         </p>
       </div>
     </div>

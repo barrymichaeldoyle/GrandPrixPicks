@@ -187,6 +187,7 @@ function LeaderboardPage() {
               ? ` · ${activeTotalCount.toLocaleString()} players`
               : ''
           }`}
+          className="page-hero--high-contrast"
           rightSlot={
             <AnimatePresence mode="wait">
               {shouldShowHeaderViewerEntry ? (

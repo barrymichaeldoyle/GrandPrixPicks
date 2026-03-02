@@ -28,11 +28,13 @@ export function PageHero({
       ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold text-text">
+          <h1 className="page-hero-title flex items-center gap-2 text-3xl font-bold text-text">
             {icon}
             {title}
           </h1>
-          {subtitle ? <p className="mt-1 text-text-muted">{subtitle}</p> : null}
+          {subtitle ? (
+            <p className="page-hero-subtitle mt-1 text-text-muted">{subtitle}</p>
+          ) : null}
         </div>
         {rightSlot ? <div className="shrink-0">{rightSlot}</div> : null}
       </div>

@@ -14,6 +14,11 @@ interface CardActionsProps {
 }
 
 export function CardActions({ data, cardState, variant }: CardActionsProps) {
+  const currentUrl =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
   if (cardState === 'not_yet_open') {
     return (
       <div className="p-4">
@@ -48,7 +53,11 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       <div className="rounded-lg border-2 border-dashed border-border py-8 text-center">
         <LogIn className="mx-auto mb-4 h-12 w-12 text-text-muted" />
         <p className="mb-4 text-text-muted">Sign in to make your prediction</p>
-        <SignInButton mode="modal">
+        <SignInButton
+          mode="modal"
+          fallbackRedirectUrl={currentUrl}
+          signUpFallbackRedirectUrl={currentUrl}
+        >
           <Button size="sm">Sign In</Button>
         </SignInButton>
       </div>

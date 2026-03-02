@@ -203,10 +203,16 @@ body {
   overflow: hidden;
 }
 
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
 html:not(.dark) .page-hero::before,
 [data-theme='light'] .page-hero::before {
   content: '';
   position: absolute;
+  z-index: 0;
   inset: 0;
   pointer-events: none;
   background:
@@ -228,6 +234,7 @@ html:not(.dark) .page-hero::after,
 [data-theme='light'] .page-hero::after {
   content: '';
   position: absolute;
+  z-index: 0;
   inset: 0 auto auto 0;
   width: 100%;
   height: 3px;
@@ -263,6 +270,43 @@ html:not(.dark) .page-hero-eyebrow,
     color-mix(in srgb, var(--surface) 58%, var(--accent-muted) 42%) 100%
   );
   color: color-mix(in srgb, var(--text-muted) 70%, var(--accent) 30%);
+}
+
+html:not(.dark) .page-hero.page-hero--high-contrast,
+[data-theme='light'] .page-hero.page-hero--high-contrast {
+  border-color: color-mix(in srgb, var(--border) 58%, var(--accent) 42%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 70%, var(--accent-muted) 30%) 0%,
+    color-mix(in srgb, var(--surface) 88%, var(--accent-muted) 12%) 100%
+  );
+}
+
+html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-title,
+[data-theme='light']
+  .page-hero.page-hero--high-contrast
+  .page-hero-title {
+  color: color-mix(in srgb, var(--text) 88%, #0f172a 12%);
+}
+
+html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-subtitle,
+[data-theme='light']
+  .page-hero.page-hero--high-contrast
+  .page-hero-subtitle {
+  color: color-mix(in srgb, var(--text) 74%, var(--accent) 26%);
+}
+
+html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-eyebrow,
+[data-theme='light']
+  .page-hero.page-hero--high-contrast
+  .page-hero-eyebrow {
+  border-color: color-mix(in srgb, var(--border) 52%, var(--accent) 48%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 28%, var(--accent-muted) 72%) 0%,
+    color-mix(in srgb, var(--surface) 48%, var(--accent-muted) 52%) 100%
+  );
+  color: color-mix(in srgb, var(--text) 68%, var(--accent) 32%);
 }
 
 /* Settings cards: distinct shell + slightly stronger header separation in light mode. */

@@ -17,7 +17,6 @@ import {
   Globe,
   Lock,
   LogIn,
-  Settings,
   Shield,
   Trash2,
   User,
@@ -34,7 +33,9 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '../../components/Button';
+import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
+import { Tooltip } from '../../components/Tooltip';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -88,6 +89,10 @@ function LeagueDetailPage() {
   const { slug } = Route.useParams();
   const { isSignedIn, isLoaded } = useAuth();
   const league = useQuery(api.leagues.getLeagueBySlug, { slug });
+  const currentLeagueUrl =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
   if (!isLoaded || league === undefined) {
     return <PageLoader />;
@@ -135,7 +140,11 @@ function LeagueDetailPage() {
               </p>
             )}
             <p className="mb-4 text-text-muted">Sign in to join this league.</p>
-            <SignInButton mode="modal">
+            <SignInButton
+              mode="modal"
+              fallbackRedirectUrl={currentLeagueUrl}
+              signUpFallbackRedirectUrl={currentLeagueUrl}
+            >
               <Button size="sm">Sign In</Button>
             </SignInButton>
           </div>
@@ -161,22 +170,9 @@ function LeagueDetailContent({ league }: { league: League }) {
         {/* Header */}
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-sm text-text-muted">
-              <Link to="/leagues" className="text-accent hover:underline">
-                ← Back to leagues
-              </Link>
-            </p>
-            {isMember ? (
-              <Link
-                to="/leagues/$slug/settings"
-                params={{ slug: league.slug }}
-                aria-label="League settings"
-                title="League settings"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-              >
-                <Settings className="h-4 w-4" aria-hidden />
-              </Link>
-            ) : null}
+            <Button asChild size="sm" variant="text">
+              <Link to="/leagues">← Back to leagues</Link>
+            </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold text-text">{league.name}</h1>
@@ -467,6 +463,9 @@ function LeagueMembers({
   const [selectedMemberId, setSelectedMemberId] =
     useState<Id<'leagueMembers'> | null>(null);
   const [confirmUsername, setConfirmUsername] = useState('');
+  const [selectedAction, setSelectedAction] = useState<
+    'promote' | 'demote' | 'remove' | null
+  >(null);
 
   function isViewer(userId: Id<'users'>) {
     return me?._id === userId;
@@ -485,6 +484,7 @@ function LeagueMembers({
     setSelectedMemberId(memberId);
     setActionError(null);
     setConfirmUsername('');
+    setSelectedAction(null);
   }
 
   function closeMemberDetails() {
@@ -494,6 +494,7 @@ function LeagueMembers({
     setSelectedMemberId(null);
     setActionError(null);
     setConfirmUsername('');
+    setSelectedAction(null);
   }
 
   async function handleAction(
@@ -511,6 +512,7 @@ function LeagueMembers({
         await removeMember({ leagueId, userId });
       }
       setConfirmUsername('');
+      setSelectedAction(null);
       if (action === 'remove') {
         setSelectedMemberId(null);
       }
@@ -573,24 +575,32 @@ function LeagueMembers({
 
             <div className="flex items-center gap-1">
               {member.hasSubmittedPredictions !== undefined && (
-                <>
-                  {member.hasSubmittedPredictions ? (
-                    <CheckCircle2
-                      className="h-4 w-4 text-success"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <Circle
-                      className="h-4 w-4 text-text-muted/40"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className="sr-only">
-                    {member.hasSubmittedPredictions
-                      ? 'Submitted'
-                      : 'Not submitted'}
+                <Tooltip
+                  content={
+                    member.hasSubmittedPredictions
+                      ? 'Submitted picks for the next race'
+                      : 'Has not submitted picks for the next race'
+                  }
+                >
+                  <span className="inline-flex">
+                    {member.hasSubmittedPredictions ? (
+                      <CheckCircle2
+                        className="h-4 w-4 text-success"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Circle
+                        className="h-4 w-4 text-text-muted/40"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="sr-only">
+                      {member.hasSubmittedPredictions
+                        ? 'Submitted'
+                        : 'Not submitted'}
+                    </span>
                   </span>
-                </>
+                </Tooltip>
               )}
               <button
                 type="button"
@@ -610,6 +620,8 @@ function LeagueMembers({
         isViewer={selectedMember ? isViewer(selectedMember.userId) : false}
         confirmUsername={confirmUsername}
         onConfirmUsernameChange={setConfirmUsername}
+        selectedAction={selectedAction}
+        onSelectAction={setSelectedAction}
         actionLoading={actionLoading}
         actionError={actionError}
         onClose={closeMemberDetails}
@@ -627,6 +639,8 @@ function MemberDetailsModal({
   isViewer,
   confirmUsername,
   onConfirmUsernameChange,
+  selectedAction,
+  onSelectAction,
   actionLoading,
   actionError,
   onClose,
@@ -647,6 +661,8 @@ function MemberDetailsModal({
   isViewer: boolean;
   confirmUsername: string;
   onConfirmUsernameChange: (value: string) => void;
+  selectedAction: 'promote' | 'demote' | 'remove' | null;
+  onSelectAction: (value: 'promote' | 'demote' | 'remove') => void;
   actionLoading: string | null;
   actionError: string | null;
   onClose: () => void;
@@ -658,13 +674,43 @@ function MemberDetailsModal({
     return null;
   }
 
-  const needsUsernameConfirmation = isAdmin && !isViewer;
-  const usernameMatches = confirmUsername.trim() === member.username;
+  const currentMember = member;
+  const selectedActionValid =
+    selectedAction !== null &&
+    ((currentMember.role === 'member' &&
+      (selectedAction === 'promote' || selectedAction === 'remove')) ||
+      (currentMember.role === 'admin' && selectedAction === 'demote'));
+  const needsUsernameConfirmation = isAdmin && !isViewer && selectedActionValid;
+  const usernameMatches = confirmUsername.trim() === currentMember.username;
   const canRunProtectedAction =
     actionLoading === null && (!needsUsernameConfirmation || usernameMatches);
-  const isPromoting = actionLoading === `promote-${member.userId}`;
-  const isDemoting = actionLoading === `demote-${member.userId}`;
-  const isRemoving = actionLoading === `remove-${member.userId}`;
+  const isPromoting = actionLoading === `promote-${currentMember.userId}`;
+  const isDemoting = actionLoading === `demote-${currentMember.userId}`;
+  const isRemoving = actionLoading === `remove-${currentMember.userId}`;
+  const isActionLoading = isPromoting || isDemoting || isRemoving;
+  const selectedActionLabel =
+    selectedAction === 'promote'
+      ? 'Promote to admin'
+      : selectedAction === 'demote'
+        ? 'Demote to member'
+        : selectedAction === 'remove'
+          ? 'Remove from league'
+          : null;
+
+  function handleConfirmAction() {
+    if (!selectedActionValid) {
+      return;
+    }
+    if (selectedAction === 'promote') {
+      onPromote(currentMember.userId);
+      return;
+    }
+    if (selectedAction === 'demote') {
+      onDemote(currentMember.userId);
+      return;
+    }
+    onRemove(currentMember.userId);
+  }
 
   return (
     <div
@@ -712,12 +758,6 @@ function MemberDetailsModal({
         </div>
 
         <div className="space-y-1 rounded-lg border border-border bg-surface-muted/40 p-3 text-sm">
-          <p className="text-text">
-            Role:{' '}
-            <span className="font-medium">
-              {member.role === 'admin' ? 'Admin' : 'Member'}
-            </span>
-          </p>
           {member.hasSubmittedPredictions !== undefined && (
             <p className="text-text">
               Race status:{' '}
@@ -736,16 +776,63 @@ function MemberDetailsModal({
               /p/{member.username}
             </Link>
           </p>
+          {!isViewer && (
+            <div className="pt-2">
+              <FollowButton followeeId={member.userId} />
+            </div>
+          )}
         </div>
 
         {isAdmin && !isViewer && (
           <div className="mt-4 space-y-3">
             <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                Choose action
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {member.role === 'member' && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant={
+                        selectedAction === 'promote' ? 'primary' : 'secondary'
+                      }
+                      leftIcon={UserPlus}
+                      disabled={actionLoading !== null}
+                      onClick={() => onSelectAction('promote')}
+                    >
+                      Promote
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={selectedAction === 'remove' ? 'danger' : 'secondary'}
+                      leftIcon={Trash2}
+                      disabled={actionLoading !== null}
+                      onClick={() => onSelectAction('remove')}
+                    >
+                      Remove
+                    </Button>
+                  </>
+                )}
+                {member.role === 'admin' && (
+                  <Button
+                    size="sm"
+                    variant={selectedAction === 'demote' ? 'primary' : 'secondary'}
+                    leftIcon={UserMinus}
+                    disabled={actionLoading !== null}
+                    onClick={() => onSelectAction('demote')}
+                  >
+                    Demote
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div>
               <label
                 htmlFor="member-action-confirm"
                 className="mb-1 block text-xs font-semibold tracking-wide text-text-muted uppercase"
               >
-                Confirm username to change role or remove
+                Confirm selected action
               </label>
               <input
                 id="member-action-confirm"
@@ -755,49 +842,30 @@ function MemberDetailsModal({
                   onConfirmUsernameChange(event.target.value)
                 }
                 placeholder={member.username}
+                disabled={!selectedActionValid || actionLoading !== null}
                 className="w-full rounded-lg border border-border bg-page px-3 py-2 text-sm text-text transition-colors outline-none focus:border-accent"
               />
               <p className="mt-1 text-xs text-text-muted">
-                Type <span className="font-mono">{member.username}</span>{' '}
-                exactly to enable actions.
+                {selectedActionLabel ? (
+                  <>
+                    Type <span className="font-mono">{member.username}</span>{' '}
+                    to confirm: {selectedActionLabel}.
+                  </>
+                ) : (
+                  'Select an action first, then type the username to continue.'
+                )}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {member.role === 'member' ? (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  leftIcon={UserPlus}
-                  loading={isPromoting}
-                  disabled={!canRunProtectedAction}
-                  onClick={() => onPromote(member.userId)}
-                >
-                  Promote
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  leftIcon={UserMinus}
-                  loading={isDemoting}
-                  disabled={!canRunProtectedAction}
-                  onClick={() => onDemote(member.userId)}
-                >
-                  Demote
-                </Button>
-              )}
-              {member.role === 'member' && (
-                <Button
-                  size="sm"
-                  variant="danger"
-                  leftIcon={Trash2}
-                  loading={isRemoving}
-                  disabled={!canRunProtectedAction}
-                  onClick={() => onRemove(member.userId)}
-                >
-                  Remove
-                </Button>
-              )}
+            <div>
+              <Button
+                size="sm"
+                variant={selectedAction === 'remove' ? 'danger' : 'primary'}
+                loading={isActionLoading}
+                disabled={!selectedActionValid || !canRunProtectedAction}
+                onClick={handleConfirmAction}
+              >
+                {selectedActionLabel ? `Confirm: ${selectedActionLabel}` : 'Confirm'}
+              </Button>
             </div>
           </div>
         )}

@@ -62,6 +62,10 @@ function PricingPage() {
   const { isSignedIn } = useAuth();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
+  const currentUrl =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const showCheckoutCancelled = search.checkout === 'cancelled';
@@ -264,7 +268,11 @@ function PricingPage() {
                 : 'Get 2026 Season Pass'}
             </Button>
           ) : (
-            <SignInButton mode="modal">
+            <SignInButton
+              mode="modal"
+              fallbackRedirectUrl={currentUrl}
+              signUpFallbackRedirectUrl={currentUrl}
+            >
               <Button type="button" size="sm" rightIcon={ArrowRight}>
                 Sign In to Continue
               </Button>

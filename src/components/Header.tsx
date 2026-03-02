@@ -20,8 +20,8 @@ type NavLink = {
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Mobile menu: viewport width <= 790px is "mobile". Keep min-[749px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 790px)';
+/** Mobile menu: viewport width <= 850px is "mobile". Keep min-[851px] classes below in sync. */
+export const MEDIA_MATCH_BREAKPOINT = '(max-width: 850px)';
 
 export function Header({
   mobileMenuOpen,
@@ -156,6 +156,40 @@ export function Header({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileMenuOpen, onMobileMenuOpenChange]);
 
+  // Close mobile menu on any pointer down outside menu + menu button.
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return;
+    }
+
+    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
+    if (!mq.matches) {
+      return;
+    }
+
+    function handleOutsidePointerDown(e: PointerEvent) {
+      const target = e.target as Node | null;
+      if (!target) {
+        return;
+      }
+      if (menuRef.current?.contains(target)) {
+        return;
+      }
+      if (menuButtonRef.current?.contains(target)) {
+        return;
+      }
+      onMobileMenuOpenChange(false);
+    }
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown, true);
+    return () =>
+      document.removeEventListener(
+        'pointerdown',
+        handleOutsidePointerDown,
+        true,
+      );
+  }, [mobileMenuOpen, onMobileMenuOpenChange]);
+
   // Focus first link when menu opens
   useEffect(() => {
     if (mobileMenuOpen && menuRef.current) {
@@ -199,7 +233,7 @@ export function Header({
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[791px]:flex"
+            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[851px]:flex"
           >
             {navLinks.map((link) => (
               <Link
@@ -228,7 +262,7 @@ export function Header({
           <button
             type="button"
             onClick={toggleTheme}
-            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="hidden rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[851px]:inline-flex"
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun size={20} /> : <Moon size={20} />}
@@ -239,7 +273,7 @@ export function Header({
           <motion.button
             ref={menuButtonRef}
             onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
+            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[851px]:hidden"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
@@ -282,7 +316,7 @@ export function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[791px]:hidden"
+              className="fixed inset-0 top-[57px] z-40 min-[851px]:hidden"
               style={{ backgroundColor: 'var(--overlay)' }}
               onClick={closeMenu}
             />
@@ -295,7 +329,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[791px]:hidden"
+              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[851px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {navLinks.map((link, index) => (
@@ -325,12 +359,32 @@ export function Header({
                     </Link>
                   </motion.div>
                 ))}
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{
+                    delay: navLinks.length * 0.05,
+                    duration: 0.2,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="flex w-full items-center gap-2 rounded-full border-2 border-transparent px-3 py-2 text-left font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                    aria-label={
+                      dark ? 'Switch to light mode' : 'Switch to dark mode'
+                    }
+                  >
+                    {dark ? <Sun size={18} /> : <Moon size={18} />}
+                    {dark ? 'Light mode' : 'Dark mode'}
+                  </button>
+                </motion.div>
                 <SignedOut>
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{
-                      delay: navLinks.length * 0.05,
+                      delay: (navLinks.length + 1) * 0.05,
                       duration: 0.2,
                     }}
                   >

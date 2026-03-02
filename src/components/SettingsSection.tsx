@@ -16,8 +16,10 @@ export function SettingsSection({
   contentClassName?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-border bg-surface ${className}`}>
-      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+    <div
+      className={`settings-section-shell rounded-xl border border-border bg-surface ${className}`}
+    >
+      <div className="settings-section-header flex items-center justify-between gap-3 border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           {icon}
           <h2 className="text-lg font-semibold text-text">{title}</h2>

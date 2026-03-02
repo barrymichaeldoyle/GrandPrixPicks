@@ -14,7 +14,7 @@ import {
   Copy,
   Crown,
   Globe,
-  Loader2,
+  Eye,
   Lock,
   LogIn,
   Settings,
@@ -463,6 +463,10 @@ function LeagueMembers({
   const demoteMember = useMutation(api.leagues.demoteMember);
   const removeMember = useMutation(api.leagues.removeMember);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] =
+    useState<Id<'leagueMembers'> | null>(null);
+  const [confirmUsername, setConfirmUsername] = useState('');
 
   function isViewer(userId: Id<'users'>) {
     return me?._id === userId;
@@ -472,11 +476,32 @@ function LeagueMembers({
     return <InlineLoader />;
   }
 
+  const selectedMember =
+    selectedMemberId !== null
+      ? members.find((member) => member._id === selectedMemberId) ?? null
+      : null;
+
+  function openMemberDetails(memberId: Id<'leagueMembers'>) {
+    setSelectedMemberId(memberId);
+    setActionError(null);
+    setConfirmUsername('');
+  }
+
+  function closeMemberDetails() {
+    if (actionLoading !== null) {
+      return;
+    }
+    setSelectedMemberId(null);
+    setActionError(null);
+    setConfirmUsername('');
+  }
+
   async function handleAction(
     action: 'promote' | 'demote' | 'remove',
     userId: Id<'users'>,
   ) {
     setActionLoading(`${action}-${userId}`);
+    setActionError(null);
     try {
       if (action === 'promote') {
         await promoteMember({ leagueId, userId });
@@ -485,6 +510,16 @@ function LeagueMembers({
       } else {
         await removeMember({ leagueId, userId });
       }
+      setConfirmUsername('');
+      if (action === 'remove') {
+        setSelectedMemberId(null);
+      }
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? toUserFacingMessage(err)
+          : 'Unable to update member',
+      );
     } finally {
       setActionLoading(null);
     }
@@ -557,70 +592,220 @@ function LeagueMembers({
                   </span>
                 </>
               )}
-
-              {isAdmin && !isViewer(member.userId) && (
-                <>
-                  {member.role === 'member' && (
-                    <button
-                      type="button"
-                      aria-label="Promote to admin"
-                      disabled={actionLoading !== null}
-                      onClick={() =>
-                        void handleAction('promote', member.userId)
-                      }
-                      className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
-                    >
-                      {actionLoading === `promote-${member.userId}` ? (
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <UserPlus className="h-4 w-4" aria-hidden="true" />
-                      )}
-                    </button>
-                  )}
-                  {member.role === 'admin' && (
-                    <button
-                      type="button"
-                      aria-label="Demote to member"
-                      disabled={actionLoading !== null}
-                      onClick={() => void handleAction('demote', member.userId)}
-                      className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
-                    >
-                      {actionLoading === `demote-${member.userId}` ? (
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <UserMinus className="h-4 w-4" aria-hidden="true" />
-                      )}
-                    </button>
-                  )}
-                  {member.role === 'member' && (
-                    <button
-                      type="button"
-                      aria-label="Remove from league"
-                      disabled={actionLoading !== null}
-                      onClick={() => void handleAction('remove', member.userId)}
-                      className="rounded-lg p-1.5 text-error/60 transition-colors hover:bg-error/10 hover:text-error disabled:opacity-50"
-                    >
-                      {actionLoading === `remove-${member.userId}` ? (
-                        <Loader2
-                          className="h-4 w-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      )}
-                    </button>
-                  )}
-                </>
-              )}
+              <button
+                type="button"
+                aria-label={`View ${member.username} details`}
+                onClick={() => openMemberDetails(member._id)}
+                className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              >
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              </button>
             </div>
           </div>
         ))}
+      </div>
+      <MemberDetailsModal
+        member={selectedMember}
+        isAdmin={isAdmin}
+        isViewer={selectedMember ? isViewer(selectedMember.userId) : false}
+        confirmUsername={confirmUsername}
+        onConfirmUsernameChange={setConfirmUsername}
+        actionLoading={actionLoading}
+        actionError={actionError}
+        onClose={closeMemberDetails}
+        onPromote={(userId) => void handleAction('promote', userId)}
+        onDemote={(userId) => void handleAction('demote', userId)}
+        onRemove={(userId) => void handleAction('remove', userId)}
+      />
+    </div>
+  );
+}
+
+function MemberDetailsModal({
+  member,
+  isAdmin,
+  isViewer,
+  confirmUsername,
+  onConfirmUsernameChange,
+  actionLoading,
+  actionError,
+  onClose,
+  onPromote,
+  onDemote,
+  onRemove,
+}: {
+  member:
+    | {
+        _id: Id<'leagueMembers'>;
+        userId: Id<'users'>;
+        role: 'member' | 'admin';
+        joinedAt: number;
+        username: string;
+        avatarUrl?: string;
+        hasSubmittedPredictions?: boolean;
+      }
+    | null;
+  isAdmin: boolean;
+  isViewer: boolean;
+  confirmUsername: string;
+  onConfirmUsernameChange: (value: string) => void;
+  actionLoading: string | null;
+  actionError: string | null;
+  onClose: () => void;
+  onPromote: (userId: Id<'users'>) => void;
+  onDemote: (userId: Id<'users'>) => void;
+  onRemove: (userId: Id<'users'>) => void;
+}) {
+  if (!member) {
+    return null;
+  }
+
+  const needsUsernameConfirmation =
+    isAdmin && !isViewer && (member.role === 'member' || member.role === 'admin');
+  const usernameMatches = confirmUsername.trim() === member.username;
+  const canRunProtectedAction =
+    actionLoading === null && (!needsUsernameConfirmation || usernameMatches);
+  const isPromoting = actionLoading === `promote-${member.userId}`;
+  const isDemoting = actionLoading === `demote-${member.userId}`;
+  const isRemoving = actionLoading === `remove-${member.userId}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-5 shadow-xl">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {member.avatarUrl ? (
+              <img
+                src={member.avatarUrl}
+                alt=""
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-sm font-semibold text-text-muted">
+                {member.username.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <div>
+              <p className="text-lg font-semibold text-text">{member.username}</p>
+              <p className="text-sm text-text-muted">
+                Joined{' '}
+                {new Intl.DateTimeFormat(undefined, {
+                  dateStyle: 'medium',
+                }).format(member.joinedAt)}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={actionLoading !== null}
+            className="rounded-lg px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="space-y-1 rounded-lg border border-border bg-surface-muted/40 p-3 text-sm">
+          <p className="text-text">
+            Role:{' '}
+            <span className="font-medium">
+              {member.role === 'admin' ? 'Admin' : 'Member'}
+            </span>
+          </p>
+          {member.hasSubmittedPredictions !== undefined && (
+            <p className="text-text">
+              Race status:{' '}
+              <span className="font-medium">
+                {member.hasSubmittedPredictions ? 'Submitted' : 'Not submitted'}
+              </span>
+            </p>
+          )}
+          <p>
+            Profile:{' '}
+            <Link
+              to="/p/$username"
+              params={{ username: member.username }}
+              className="font-medium text-accent hover:underline"
+            >
+              /p/{member.username}
+            </Link>
+          </p>
+        </div>
+
+        {isAdmin && !isViewer && (
+          <div className="mt-4 space-y-3">
+            <div>
+              <label
+                htmlFor="member-action-confirm"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-text-muted"
+              >
+                Confirm username to change role or remove
+              </label>
+              <input
+                id="member-action-confirm"
+                type="text"
+                value={confirmUsername}
+                onChange={(event) => onConfirmUsernameChange(event.target.value)}
+                placeholder={member.username}
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent"
+              />
+              <p className="mt-1 text-xs text-text-muted">
+                Type <span className="font-mono">{member.username}</span> exactly
+                to enable actions.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {member.role === 'member' ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={UserPlus}
+                  loading={isPromoting}
+                  disabled={!canRunProtectedAction}
+                  onClick={() => onPromote(member.userId)}
+                >
+                  Promote
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  leftIcon={UserMinus}
+                  loading={isDemoting}
+                  disabled={!canRunProtectedAction}
+                  onClick={() => onDemote(member.userId)}
+                >
+                  Demote
+                </Button>
+              )}
+              {member.role === 'member' && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  leftIcon={Trash2}
+                  loading={isRemoving}
+                  disabled={!canRunProtectedAction}
+                  onClick={() => onRemove(member.userId)}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {actionError && (
+          <p className="mt-3 text-sm text-error" aria-live="assertive">
+            {actionError}
+          </p>
+        )}
       </div>
     </div>
   );

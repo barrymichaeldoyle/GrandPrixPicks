@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Id } from '../../convex/_generated/dataModel';
+import type { Id } from '../_generated/dataModel';
 import {
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
   filterLeaderboardVisibility,
+  getRaceLeaderboardAccess,
+  mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
   sortByPointsWithStableTieBreak,
-} from '../../convex/lib/leaderboard';
+} from './leaderboard';
 
 function user(id: string): Id<'users'> {
   return id as Id<'users'>;
@@ -109,6 +111,97 @@ describe('leaderboard helpers', () => {
         points: 30,
         raceCount: 5,
         isViewer: true,
+      },
+    ]);
+  });
+
+  it('evaluates race leaderboard access rules', () => {
+    expect(
+      getRaceLeaderboardAccess({
+        raceStatus: 'finished',
+        viewerId: undefined,
+        hasSubmittedPrediction: false,
+      }),
+    ).toEqual({ status: 'visible', reason: null });
+
+    expect(
+      getRaceLeaderboardAccess({
+        raceStatus: 'upcoming',
+        viewerId: undefined,
+        hasSubmittedPrediction: false,
+      }),
+    ).toEqual({ status: 'locked', reason: 'sign_in' });
+
+    expect(
+      getRaceLeaderboardAccess({
+        raceStatus: 'locked',
+        viewerId: user('viewer'),
+        hasSubmittedPrediction: false,
+      }),
+    ).toEqual({ status: 'locked', reason: 'no_prediction' });
+
+    expect(
+      getRaceLeaderboardAccess({
+        raceStatus: 'locked',
+        viewerId: user('viewer'),
+        hasSubmittedPrediction: true,
+      }),
+    ).toEqual({ status: 'visible', reason: null });
+  });
+
+  it('maps race scores with privacy filtering and deterministic point sort', () => {
+    const entries = mapRaceScoresToLeaderboardEntries(
+      [
+        {
+          userId: user('b'),
+          username: 'Beta',
+          points: 20,
+          showOnLeaderboard: true,
+          breakdown: [{ test: true }],
+        },
+        {
+          userId: user('a'),
+          points: 20,
+          showOnLeaderboard: true,
+        },
+        {
+          userId: user('viewer'),
+          points: 10,
+          showOnLeaderboard: false,
+        },
+        {
+          userId: user('hidden'),
+          points: 30,
+          showOnLeaderboard: false,
+        },
+      ],
+      user('viewer'),
+    );
+
+    expect(entries).toEqual([
+      {
+        rank: 1,
+        userId: user('a'),
+        username: 'Anonymous',
+        avatarUrl: undefined,
+        points: 20,
+        breakdown: undefined,
+      },
+      {
+        rank: 2,
+        userId: user('b'),
+        username: 'Beta',
+        avatarUrl: undefined,
+        points: 20,
+        breakdown: [{ test: true }],
+      },
+      {
+        rank: 3,
+        userId: user('viewer'),
+        username: 'Anonymous',
+        avatarUrl: undefined,
+        points: 10,
+        breakdown: undefined,
       },
     ]);
   });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Id } from '../../convex/_generated/dataModel';
-import { scoreTopFive } from '../../convex/lib/scoring';
+import type { Id } from '../_generated/dataModel';
+import { scoreTopFive } from './scoring';
 
 function driver(id: string): Id<'drivers'> {
   return id as Id<'drivers'>;

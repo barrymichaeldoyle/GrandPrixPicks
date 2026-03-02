@@ -30,3 +30,4 @@ It is **not open source**. See [LICENSE](./LICENSE) for usage restrictions.
 ## Engineering Workflow
 
 - CI/CD and Convex migration flow: [docs/convex-cicd.md](./docs/convex-cicd.md)
+- Testing conventions: [docs/testing.md](./docs/testing.md)

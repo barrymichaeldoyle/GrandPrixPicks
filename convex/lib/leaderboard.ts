@@ -15,6 +15,15 @@ type VisibleRowBase = {
   showOnLeaderboard?: boolean;
 };
 
+type RaceScoreRowBase = {
+  userId: Id<'users'>;
+  username?: string;
+  avatarUrl?: string;
+  points: number;
+  showOnLeaderboard?: boolean;
+  breakdown?: unknown;
+};
+
 type Viewer = {
   _id: Id<'users'>;
   username?: string;
@@ -91,5 +100,52 @@ export function mapRowsToLeaderboardEntries<T extends RowBase>(
     points: row.totalPoints,
     raceCount: row.raceCount,
     isViewer: viewerId ? row.userId === viewerId : false,
+  }));
+}
+
+export function getRaceLeaderboardAccess(params: {
+  raceStatus: string;
+  viewerId?: Id<'users'>;
+  hasSubmittedPrediction: boolean;
+}):
+  | { status: 'visible'; reason: null }
+  | { status: 'locked'; reason: 'sign_in' | 'no_prediction' } {
+  if (params.raceStatus === 'finished') {
+    return { status: 'visible', reason: null };
+  }
+  if (!params.viewerId) {
+    return { status: 'locked', reason: 'sign_in' };
+  }
+  if (!params.hasSubmittedPrediction) {
+    return { status: 'locked', reason: 'no_prediction' };
+  }
+  return { status: 'visible', reason: null };
+}
+
+export function mapRaceScoresToLeaderboardEntries<T extends RaceScoreRowBase>(
+  rows: ReadonlyArray<T>,
+  viewerId?: Id<'users'>,
+) {
+  const visible = rows.filter((row) => {
+    if (viewerId && row.userId === viewerId) {
+      return true;
+    }
+    return row.showOnLeaderboard !== false;
+  });
+
+  const sorted = [...visible].sort((a, b) => {
+    if (a.points !== b.points) {
+      return b.points - a.points;
+    }
+    return String(a.userId).localeCompare(String(b.userId));
+  });
+
+  return sorted.map((score, index) => ({
+    rank: index + 1,
+    userId: score.userId,
+    username: score.username ?? ANONYMOUS,
+    avatarUrl: score.avatarUrl,
+    points: score.points,
+    breakdown: score.breakdown,
   }));
 }

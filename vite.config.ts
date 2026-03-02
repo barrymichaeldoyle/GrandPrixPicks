@@ -92,7 +92,10 @@ const config = defineConfig(({ mode }) => {
     ],
     test: {
       environment: 'jsdom',
-      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      include: [
+        'src/**/*.{test,spec}.{ts,tsx}',
+        'convex/**/*.{test,spec}.{ts,tsx}',
+      ],
       passWithNoTests: true,
     },
   };

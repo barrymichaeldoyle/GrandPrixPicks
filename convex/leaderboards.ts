@@ -1,11 +1,15 @@
 import { v } from 'convex/values';
 
+import type { Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
 import {
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
   filterLeaderboardVisibility,
+  getRaceLeaderboardAccess,
+  mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
   sortByPointsWithStableTieBreak,
 } from './lib/leaderboard';
@@ -233,57 +237,46 @@ export const getRaceLeaderboard = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    const race = await ctx.db.get(args.raceId);
-    if (!race) {
-      throw new Error('Race not found');
-    }
-
-    // Blind rule:
-    // If race isn't finished yet, only allow per-race leaderboard
-    // if the viewer has already submitted a prediction for this race.
-    if (race.status !== 'finished') {
-      if (!viewer) {
-        return { status: 'locked', reason: 'sign_in', entries: [] };
-      }
-
-      // Check if user has any prediction for this race
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-
-      if (!submitted) {
-        return { status: 'locked', reason: 'no_prediction', entries: [] };
-      }
-    }
-
-    const scores = await ctx.db
-      .query('scores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
-
-    const sortedScores = scores.sort((a, b) => b.points - a.points);
-
-    // Filter out users who opted out (using denormalized field — no user doc reads)
-    const visibleScores = sortedScores.filter((score) => {
-      if (viewer && score.userId === viewer._id) {
-        return true;
-      }
-      return score.showOnLeaderboard !== false;
-    });
-
-    // Use denormalized user data — no user doc reads needed
-    const entries = visibleScores.map((score, index) => ({
-      rank: index + 1,
-      userId: score.userId,
-      username: score.username ?? 'Anonymous',
-      avatarUrl: score.avatarUrl,
-      points: score.points,
-      breakdown: score.breakdown,
-    }));
-
-    return { status: 'visible', reason: null, entries };
+    return getRaceLeaderboardForViewer(ctx, args, viewer);
   },
 });
+
+export async function getRaceLeaderboardForViewer(
+  ctx: QueryCtx,
+  args: { raceId: Id<'races'> },
+  viewer: Awaited<ReturnType<typeof getViewer>>,
+) {
+  const race = await ctx.db.get(args.raceId);
+  if (!race) {
+    throw new Error('Race not found');
+  }
+
+  let hasSubmittedPrediction = false;
+  if (viewer && race.status !== 'finished') {
+    const submitted = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .first();
+    hasSubmittedPrediction = submitted !== null;
+  }
+
+  const access = getRaceLeaderboardAccess({
+    raceStatus: race.status,
+    viewerId: viewer?._id,
+    hasSubmittedPrediction,
+  });
+  if (access.status === 'locked') {
+    return { status: access.status, reason: access.reason, entries: [] };
+  }
+
+  const scores = await ctx.db
+    .query('scores')
+    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+    .collect();
+
+  const entries = mapRaceScoresToLeaderboardEntries(scores, viewer?._id);
+
+  return { status: 'visible', reason: null, entries };
+}

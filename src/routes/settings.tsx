@@ -12,11 +12,12 @@ import {
   Globe,
   LoaderCircle,
   LogIn,
+  Moon,
+  Sun,
   Ticket,
   User,
   X,
 } from 'lucide-react';
-import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -30,6 +31,7 @@ import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
 import { TimezoneSelect } from '../components/TimezoneSelect';
+import { useTheme } from '../hooks/useTheme';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 function ToggleSwitch({
@@ -68,26 +70,60 @@ function ToggleSwitch({
   );
 }
 
-function NotificationToggleItem({
+type NotificationChannel = 'none' | 'email' | 'push' | 'both';
+
+const notificationChannelOptions: Array<{
+  label: string;
+  value: NotificationChannel;
+}> = [
+  { label: 'None', value: 'none' },
+  { label: 'Email', value: 'email' },
+  { label: 'App', value: 'push' },
+  { label: 'Both', value: 'both' },
+];
+
+function NotificationChannelItem({
   label,
   description,
-  checked,
-  onToggle,
+  value,
+  onChange,
+  disabledValues = [],
   loading = false,
 }: {
   label: string;
   description: string;
-  checked: boolean;
-  onToggle: () => void;
+  value: NotificationChannel;
+  onChange: (channel: NotificationChannel) => void;
+  disabledValues?: Array<NotificationChannel>;
   loading?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
+    <div className="flex flex-col gap-3 py-4">
       <div>
         <p className="font-medium text-text">{label}</p>
         <p className="text-sm text-text-muted">{description}</p>
       </div>
-      <ToggleSwitch checked={checked} onChange={onToggle} loading={loading} />
+      <div className="inline-flex w-full max-w-sm rounded-lg border border-border bg-surface p-1">
+        {notificationChannelOptions.map((option) => {
+          const isActive = option.value === value;
+          const isDisabled = loading || disabledValues.includes(option.value);
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={`flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-button-accent text-white'
+                  : 'text-text-muted hover:bg-surface-muted hover:text-text'
+              } ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+              onClick={() => onChange(option.value)}
+              disabled={isDisabled}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -206,6 +242,28 @@ export const Route = createFileRoute('/settings')({
 });
 
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
+
+function channelFromLegacyFlags(
+  emailEnabled: boolean | undefined,
+  pushEnabled: boolean | undefined,
+): NotificationChannel {
+  const email = emailEnabled ?? true;
+  const push = pushEnabled ?? true;
+  if (email && push) {
+    return 'both';
+  }
+  if (email) {
+    return 'email';
+  }
+  if (push) {
+    return 'push';
+  }
+  return 'none';
+}
+
+function channelIncludesPush(channel: NotificationChannel): boolean {
+  return channel === 'push' || channel === 'both';
+}
 
 function SeasonPassSection({
   season,
@@ -374,6 +432,7 @@ function SettingsPage() {
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
   const updateRegional = useMutation(api.users.updateRegionalSettings);
+  const { isDark, setTheme } = useTheme();
 
   // Privacy toggle state
   const [optimisticLeaderboard, setOptimisticLeaderboard] = useState<
@@ -392,22 +451,6 @@ function SettingsPage() {
     }
   }, [optimisticLeaderboard, me?.showOnLeaderboard]);
 
-  // Notification toggle state
-  const [optimisticReminders, setOptimisticReminders] = useState<
-    boolean | null
-  >(null);
-
-  const emailReminders = optimisticReminders ?? me?.emailReminders ?? true;
-
-  useEffect(() => {
-    if (
-      optimisticReminders !== null &&
-      me?.emailReminders === optimisticReminders
-    ) {
-      setOptimisticReminders(null);
-    }
-  }, [optimisticReminders, me?.emailReminders]);
-
   // Push notifications
   const {
     isSupported: isPushSupported,
@@ -418,18 +461,43 @@ function SettingsPage() {
     unsubscribe: unsubscribePush,
   } = usePushNotifications();
 
-  // Results notification toggle state
-  const [optimisticResults, setOptimisticResults] = useState<boolean | null>(
-    null,
-  );
+  const initialPredictionChannel = me
+    ? (me.predictionReminderChannel ??
+      channelFromLegacyFlags(me.emailReminders, me.pushReminders))
+    : 'both';
+  const initialResultsChannel = me
+    ? (me.resultsNotificationChannel ??
+      channelFromLegacyFlags(me.emailResults, me.pushResults))
+    : 'both';
 
-  const emailResults = optimisticResults ?? me?.emailResults ?? true;
+  const [optimisticPredictionChannel, setOptimisticPredictionChannel] =
+    useState<NotificationChannel | null>(null);
+  const [optimisticResultsChannel, setOptimisticResultsChannel] =
+    useState<NotificationChannel | null>(null);
+
+  const predictionChannel =
+    optimisticPredictionChannel ?? initialPredictionChannel;
+  const resultsChannel = optimisticResultsChannel ?? initialResultsChannel;
 
   useEffect(() => {
-    if (optimisticResults !== null && me?.emailResults === optimisticResults) {
-      setOptimisticResults(null);
+    if (
+      optimisticPredictionChannel !== null &&
+      initialPredictionChannel === optimisticPredictionChannel
+    ) {
+      setOptimisticPredictionChannel(null);
     }
-  }, [optimisticResults, me?.emailResults]);
+  }, [optimisticPredictionChannel, initialPredictionChannel]);
+
+  useEffect(() => {
+    if (
+      optimisticResultsChannel !== null &&
+      initialResultsChannel === optimisticResultsChannel
+    ) {
+      setOptimisticResultsChannel(null);
+    }
+  }, [optimisticResultsChannel, initialResultsChannel]);
+
+  const canUsePushChannels = isPushSupported && pushPermission !== 'denied';
 
   // Regional (timezone, locale) optimistic state
   const [optimisticTimezone, setOptimisticTimezone] = useState<
@@ -528,6 +596,41 @@ function SettingsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function updateNotificationChannels(
+    nextPredictionChannel: NotificationChannel,
+    nextResultsChannel: NotificationChannel,
+  ) {
+    setOptimisticPredictionChannel(nextPredictionChannel);
+    setOptimisticResultsChannel(nextResultsChannel);
+
+    void (async () => {
+      try {
+        const needsPush =
+          channelIncludesPush(nextPredictionChannel) ||
+          channelIncludesPush(nextResultsChannel);
+
+        if (needsPush) {
+          if (!canUsePushChannels) {
+            throw new Error('Push channel unavailable');
+          }
+          if (!isPushSubscribed) {
+            await subscribePush();
+          }
+        } else if (isPushSubscribed) {
+          await unsubscribePush();
+        }
+
+        await updateNotifications({
+          predictionReminderChannel: nextPredictionChannel,
+          resultsNotificationChannel: nextResultsChannel,
+        });
+      } catch {
+        setOptimisticPredictionChannel(null);
+        setOptimisticResultsChannel(null);
+      }
+    })();
   }
 
   if (!isLoaded) {
@@ -837,55 +940,57 @@ function SettingsPage() {
             }}
           />
 
+          <SettingsSection
+            title="Appearance"
+            icon={
+              isDark ? (
+                <Moon className="h-5 w-5 text-text-muted" />
+              ) : (
+                <Sun className="h-5 w-5 text-text-muted" />
+              )
+            }
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-medium text-text">Dark mode</p>
+                <p className="text-sm text-text-muted">
+                  Choose light or dark theme across the app.
+                </p>
+              </div>
+              <ToggleSwitch
+                checked={isDark}
+                onChange={() => setTheme(!isDark)}
+                loading={false}
+              />
+            </div>
+          </SettingsSection>
+
           {/* Notifications section */}
           <SettingsSection
             title="Notifications"
             icon={<Bell className="h-5 w-5 text-text-muted" />}
             contentClassName="divide-y divide-border px-4"
           >
-            <NotificationToggleItem
+            <NotificationChannelItem
               label="Prediction reminders"
-              description="Get an email 24 hours before picks lock for each race weekend."
-              checked={emailReminders}
-              onToggle={() => {
-                const next = !emailReminders;
-                setOptimisticReminders(next);
-                updateNotifications({ emailReminders: next }).catch(() => {
-                  setOptimisticReminders(null);
-                });
+              description="Get reminders before picks lock for each race weekend. Reminders won't be sent if you've already saved your prediction."
+              value={predictionChannel}
+              onChange={(next) => {
+                updateNotificationChannels(next, resultsChannel);
               }}
-              loading={false}
+              disabledValues={canUsePushChannels ? [] : ['push', 'both']}
+              loading={isPushLoading}
             />
-            <NotificationToggleItem
-              label="Results notifications"
+            <NotificationChannelItem
+              label="Result notifications"
               description="Get notified when session results are published and scores are calculated."
-              checked={emailResults}
-              onToggle={() => {
-                const next = !emailResults;
-                setOptimisticResults(next);
-                updateNotifications({ emailResults: next }).catch(() => {
-                  setOptimisticResults(null);
-                });
+              value={resultsChannel}
+              onChange={(next) => {
+                updateNotificationChannels(predictionChannel, next);
               }}
-              loading={false}
+              disabledValues={canUsePushChannels ? [] : ['push', 'both']}
+              loading={isPushLoading}
             />
-            {isPushSupported && pushPermission !== 'denied' && (
-              <NotificationToggleItem
-                label="Push notifications"
-                description="Get browser/device notifications 1 hour before picks lock and when results are published."
-                checked={isPushSubscribed}
-                onToggle={() => {
-                  if (isPushSubscribed) {
-                    posthog.capture('push_notifications_disabled');
-                    void unsubscribePush();
-                  } else {
-                    posthog.capture('push_notifications_enabled');
-                    void subscribePush();
-                  }
-                }}
-                loading={isPushLoading}
-              />
-            )}
             {isPushSupported && pushPermission === 'denied' && (
               <div className="py-4">
                 <p className="font-medium text-text">Push notifications</p>

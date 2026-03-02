@@ -19,6 +19,24 @@ export default defineSchema({
     showOnLeaderboard: v.optional(v.boolean()),
     emailReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
+    pushReminders: v.optional(v.boolean()),
+    pushResults: v.optional(v.boolean()),
+    predictionReminderChannel: v.optional(
+      v.union(
+        v.literal('none'),
+        v.literal('email'),
+        v.literal('push'),
+        v.literal('both'),
+      ),
+    ),
+    resultsNotificationChannel: v.optional(
+      v.union(
+        v.literal('none'),
+        v.literal('email'),
+        v.literal('push'),
+        v.literal('both'),
+      ),
+    ),
     timezone: v.optional(v.string()),
     locale: v.optional(v.string()),
     isAdmin: v.optional(v.boolean()),

@@ -21,6 +21,7 @@ import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_leaderboard from "../lib/leaderboard.js";
+import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/email": typeof lib_email;
   "lib/leaderboard": typeof lib_leaderboard;
+  "lib/notificationChannels": typeof lib_notificationChannels;
   "lib/raceTimezones": typeof lib_raceTimezones;
   "lib/scoring": typeof lib_scoring;
   "lib/standings": typeof lib_standings;

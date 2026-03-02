@@ -4,6 +4,11 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import {
+  getPredictionReminderChannel,
+  getResultsNotificationChannel,
+  includesPush,
+} from './lib/notificationChannels';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -120,6 +125,16 @@ export const sendPushRemindersForRace = internalMutation({
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
+    const subscribedUserIds = [...new Set(allSubs.map((s) => s.userId))];
+    const subscribedUsers = await Promise.all(
+      subscribedUserIds.map((userId) => ctx.db.get(userId)),
+    );
+    const usersWithReminderPushEnabled = new Set(
+      subscribedUsers
+        .filter((u) => u && includesPush(getPredictionReminderChannel(u)))
+        .map((u) => u!._id as string),
+    );
+
     let targetUserIds: Set<string>;
 
     if (args.filterUnpredicted) {
@@ -130,12 +145,20 @@ export const sendPushRemindersForRace = internalMutation({
       const usersWithPredictions = new Set(
         predictions.map((p) => p.userId as string),
       );
-      const allSubUserIds = new Set(allSubs.map((s) => s.userId as string));
+      const allSubUserIds = new Set(
+        allSubs
+          .map((s) => s.userId as string)
+          .filter((id) => usersWithReminderPushEnabled.has(id)),
+      );
       targetUserIds = new Set(
         [...allSubUserIds].filter((id) => !usersWithPredictions.has(id)),
       );
     } else {
-      targetUserIds = new Set(allSubs.map((s) => s.userId as string));
+      targetUserIds = new Set(
+        allSubs
+          .map((s) => s.userId as string)
+          .filter((id) => usersWithReminderPushEnabled.has(id)),
+      );
     }
 
     if (targetUserIds.size === 0) {
@@ -195,16 +218,32 @@ export const sendPushResultsForSession = internalMutation({
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
+    const subscribedUserIds = [...new Set(allSubs.map((s) => s.userId))];
+    const subscribedUsers = await Promise.all(
+      subscribedUserIds.map((userId) => ctx.db.get(userId)),
+    );
+    const usersWithResultPushEnabled = new Set(
+      subscribedUsers
+        .filter((u) => u && includesPush(getResultsNotificationChannel(u)))
+        .map((u) => u!._id as string),
+    );
+
     const sessionLabel = SESSION_LABELS[args.sessionType] ?? args.sessionType;
     const title = `🏁 ${race.name} — ${sessionLabel} results`;
     const body = `Session results are in. See how you scored!`;
     const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=results`;
 
-    const subscriptions = allSubs.map((s) => ({
-      endpoint: s.endpoint,
-      p256dh: s.p256dh,
-      auth: s.auth,
-    }));
+    const subscriptions = allSubs
+      .filter((s) => usersWithResultPushEnabled.has(s.userId as string))
+      .map((s) => ({
+        endpoint: s.endpoint,
+        p256dh: s.p256dh,
+        auth: s.auth,
+      }));
+
+    if (subscriptions.length === 0) {
+      return { skipped: true, reason: 'No eligible subscriptions' };
+    }
 
     const BATCH_SIZE = 100;
     for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {

@@ -4,6 +4,12 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 import { internalMutation } from './_generated/server';
+import {
+  getPredictionReminderChannel,
+  getResultsNotificationChannel,
+  includesEmail,
+  includesPush,
+} from './lib/notificationChannels';
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
@@ -67,7 +73,7 @@ export const sendPredictionReminders = internalMutation({
     // Find users with email set and reminders enabled (default true)
     const allUsers = await ctx.db.query('users').collect();
     const eligibleUsers = allUsers.filter(
-      (u) => u.email && (u.emailReminders ?? true),
+      (u) => u.email && includesEmail(getPredictionReminderChannel(u)),
     );
 
     // Find users who already have predictions for this race
@@ -298,7 +304,10 @@ export const sendResultEmailsForSession = internalMutation({
     // 5. Load all users, filter to eligible
     const allUsers = await ctx.db.query('users').collect();
     const eligibleUsers = allUsers.filter(
-      (u) => u.email && u.emailResults !== false && scoreMap.has(u._id),
+      (u) =>
+        u.email &&
+        includesEmail(getResultsNotificationChannel(u)) &&
+        scoreMap.has(u._id),
     );
 
     if (eligibleUsers.length === 0) {
@@ -485,7 +494,9 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
     let emailQueued = false;
     let pushQueued = 0;
 
-    if (user.email && (user.emailReminders ?? true)) {
+    const reminderChannel = getPredictionReminderChannel(user);
+
+    if (user.email && includesEmail(reminderChannel)) {
       await ctx.scheduler.runAfter(
         0,
         internal.emails.sendReminderEmails.sendH2HNudge,
@@ -503,7 +514,7 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect();
 
-    if (subscriptions.length > 0) {
+    if (includesPush(reminderChannel) && subscriptions.length > 0) {
       await ctx.scheduler.runAfter(
         0,
         internal.pushNotifications.sendPushBatch,

@@ -10,6 +10,13 @@ import {
 } from './lib/auth';
 import { syncUserToStandings } from './lib/standings';
 
+const notificationChannelValidator = v.union(
+  v.literal('none'),
+  v.literal('email'),
+  v.literal('push'),
+  v.literal('both'),
+);
+
 export const me = query({
   args: {},
   handler: async (ctx) => {
@@ -28,6 +35,10 @@ export const me = query({
       showOnLeaderboard: viewer.showOnLeaderboard,
       emailReminders: viewer.emailReminders,
       emailResults: viewer.emailResults,
+      pushReminders: viewer.pushReminders,
+      pushResults: viewer.pushResults,
+      predictionReminderChannel: viewer.predictionReminderChannel,
+      resultsNotificationChannel: viewer.resultsNotificationChannel,
       timezone: viewer.timezone,
       locale: viewer.locale,
       isAdmin: viewer.isAdmin ?? false,
@@ -355,6 +366,10 @@ export const updateNotificationSettings = mutation({
   args: {
     emailReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
+    pushReminders: v.optional(v.boolean()),
+    pushResults: v.optional(v.boolean()),
+    predictionReminderChannel: v.optional(notificationChannelValidator),
+    resultsNotificationChannel: v.optional(notificationChannelValidator),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
@@ -364,6 +379,18 @@ export const updateNotificationSettings = mutation({
     }
     if (args.emailResults !== undefined) {
       patch.emailResults = args.emailResults;
+    }
+    if (args.pushReminders !== undefined) {
+      patch.pushReminders = args.pushReminders;
+    }
+    if (args.pushResults !== undefined) {
+      patch.pushResults = args.pushResults;
+    }
+    if (args.predictionReminderChannel !== undefined) {
+      patch.predictionReminderChannel = args.predictionReminderChannel;
+    }
+    if (args.resultsNotificationChannel !== undefined) {
+      patch.resultsNotificationChannel = args.resultsNotificationChannel;
     }
     await ctx.db.patch(viewer._id, patch);
   },

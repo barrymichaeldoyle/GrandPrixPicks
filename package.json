@@ -31,7 +31,7 @@
     "start": "pnpm --filter @grandprixpicks/web start"
   },
   "devDependencies": {
-    "eslint": "9.39.2",
+    "eslint": "10.0.2",
     "knip": "5.85.0"
   }
 }

@@ -1,5 +1,5 @@
-import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
 import { sentryVitePlugin } from '@sentry/vite-plugin';
@@ -16,9 +16,8 @@ const nitroPreset = process.env.CF_PAGES ? 'cloudflare-pages' : 'node-server';
 const isVitest = process.env.VITEST === 'true';
 const isCloudflarePages = process.env.CF_PAGES === '1';
 const require = createRequire(import.meta.url);
-const sentryTanstackPackageJsonPath = require.resolve(
-  '@sentry/tanstackstart-react/package.json',
-);
+const sentryTanstackPackageJsonPath =
+  require.resolve('@sentry/tanstackstart-react/package.json');
 const sentryTanstackClientEntry = join(
   dirname(sentryTanstackPackageJsonPath),
   'build/esm/index.client.js',
@@ -38,7 +37,7 @@ const config = defineConfig(({ mode }) => {
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {
-      conditions: isCloudflarePages ? ['browser'] : [],
+      ...(isCloudflarePages ? { conditions: ['browser'] } : {}),
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         ...(isCloudflarePages

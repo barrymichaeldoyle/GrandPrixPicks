@@ -487,7 +487,7 @@ function RaceDetailPage() {
           {currentRace.hasSprint
             ? 'Qualifying, Sprint Qualifying, Sprint, and Race'
             : 'Qualifying and Race'}
-          . You can fine-tune individual sessions after submitting.
+          . Save now, then edit any session any time before it starts.
         </p>
         <PredictionForm raceId={currentRace._id} />
       </div>

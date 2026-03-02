@@ -56,7 +56,7 @@ export function H2HWeekendSummary({
           {race.hasSprint
             ? 'Qualifying, Sprint Qualifying, Sprint, and Race'
             : 'Qualifying and Race'}
-          . You can fine-tune individual sessions after submitting.
+          . Save now, then edit any session any time before it starts.
         </p>
         <H2HPredictionForm raceId={race._id} />
       </div>

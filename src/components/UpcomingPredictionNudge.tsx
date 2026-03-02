@@ -34,7 +34,8 @@ export function UpcomingPredictionNudge({
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-xs text-text-muted">
                   <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-                  You haven&apos;t made any predictions yet.
+                  You haven&apos;t made any predictions yet. You can edit picks
+                  until each session starts.
                 </p>
                 {error && <p className="mt-1 text-xs text-error">{error}</p>}
               </div>

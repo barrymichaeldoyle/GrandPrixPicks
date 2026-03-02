@@ -136,8 +136,8 @@ export function H2HPredictionForm({
       {isUnchangedFromSaved
         ? 'Saved'
         : existingPicks && Object.keys(existingPicks).length > 0
-          ? 'Update H2H Predictions'
-          : 'Submit H2H Predictions'}
+          ? 'Save H2H Changes'
+          : 'Save H2H Predictions'}
     </Button>
   );
 
@@ -165,6 +165,12 @@ export function H2HPredictionForm({
       <div className="flex flex-wrap items-center justify-center gap-3">
         <div className="sm:hidden">{submitButton}</div>
 
+        {submitStatus === 'success' && (
+          <span className="text-sm text-success" aria-live="polite">
+            H2H predictions saved. You can edit them until this session starts.
+          </span>
+        )}
+
         {!allSelected && (
           <span className="text-sm text-text-muted">
             {totalMatchups - selectedCount} matchup
@@ -176,6 +182,9 @@ export function H2HPredictionForm({
           <span className="text-sm text-error">{errorMessage}</span>
         )}
       </div>
+      <p className="text-center text-xs text-text-muted">
+        You can edit your H2H picks any time before this session starts.
+      </p>
     </div>
   );
 }

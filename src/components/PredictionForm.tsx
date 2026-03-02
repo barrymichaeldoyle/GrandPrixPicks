@@ -611,11 +611,18 @@ export function PredictionForm({
                 ) : isSubmitting ? (
                   'Saving...'
                 ) : existingPicks && existingPicks.length > 0 ? (
-                  'Update Prediction'
+                  'Save Changes'
                 ) : (
-                  'Submit Prediction'
+                  'Save Predictions'
                 )}
               </Button>
+
+              {submitStatus === 'success' && (
+                <span className="text-sm text-success" aria-live="polite">
+                  Predictions saved. You can edit them until this session
+                  starts.
+                </span>
+              )}
 
               {submitStatus === 'error' && (
                 <span
@@ -627,6 +634,9 @@ export function PredictionForm({
                 </span>
               )}
             </div>
+            <p className="mt-2 text-center text-xs text-text-muted">
+              You can edit your picks any time before this session starts.
+            </p>
           </div>
 
           {/* Available Drivers - selection pool (right column on desktop) */}

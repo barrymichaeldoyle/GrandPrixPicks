@@ -23,6 +23,9 @@ export function CookieConsent() {
 
   const accept = () => {
     posthog.opt_in_capturing();
+    // Recover first-visit analytics that were skipped while capturing was opted out.
+    posthog.capture('cookie_consent_accepted');
+    posthog.capture('$pageview');
     setDecided(true);
   };
 

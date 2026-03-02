@@ -46,21 +46,23 @@ export const getRouter = () => {
     });
   }
 
-  if (
-    !router.isServer &&
-    import.meta.env.PROD &&
-    import.meta.env.VITE_POSTHOG_KEY
-  ) {
-    posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-      api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
-      capture_pageview: false,
-      capture_pageleave: true,
-      opt_out_capturing_by_default: true,
-    });
+  if (!router.isServer && import.meta.env.PROD) {
+    if (import.meta.env.VITE_POSTHOG_KEY) {
+      posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+        api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
+        capture_pageview: false,
+        capture_pageleave: true,
+        opt_out_capturing_by_default: true,
+      });
 
-    router.subscribe('onResolved', () => {
-      posthog.capture('$pageview');
-    });
+      router.subscribe('onResolved', () => {
+        posthog.capture('$pageview');
+      });
+    } else {
+      console.warn(
+        '[Analytics] VITE_POSTHOG_KEY is missing. PostHog and cookie consent are disabled in this build.'
+      );
+    }
   }
 
   return router;

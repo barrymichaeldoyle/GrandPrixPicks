@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 import { Button } from './Button';
 
+const COOKIE_CONSENT_KEY = 'gpp_cookie_consent_v1';
+
 export function CookieConsent() {
   const [decided, setDecided] = useState(() => {
     if (typeof window === 'undefined') {
@@ -12,9 +14,23 @@ export function CookieConsent() {
     if (!import.meta.env.VITE_POSTHOG_KEY) {
       return true;
     }
-    return (
-      posthog.has_opted_in_capturing() || posthog.has_opted_out_capturing()
-    );
+    try {
+      const stored = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (stored === 'accepted' || stored === 'declined') {
+        return true;
+      }
+    } catch {
+      // Continue and fall back to PostHog opt-in state.
+    }
+    if (posthog.has_opted_in_capturing()) {
+      try {
+        window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+      } catch {
+        // Ignore storage errors and continue.
+      }
+      return true;
+    }
+    return false;
   });
 
   if (decided) {
@@ -23,6 +39,11 @@ export function CookieConsent() {
 
   const accept = () => {
     posthog.opt_in_capturing();
+    try {
+      window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    } catch {
+      // Ignore storage errors and continue.
+    }
     // Recover first-visit analytics that were skipped while capturing was opted out.
     posthog.capture('cookie_consent_accepted');
     posthog.capture('$pageview');
@@ -31,6 +52,11 @@ export function CookieConsent() {
 
   const decline = () => {
     posthog.opt_out_capturing();
+    try {
+      window.localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+    } catch {
+      // Ignore storage errors and continue.
+    }
     setDecided(true);
   };
 

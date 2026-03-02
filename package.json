@@ -19,7 +19,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint",
+    "lint": "pnpm exec eslint",
     "ci:check": "pnpm lint && pnpm typecheck && pnpm test:ci && pnpm knip",
     "fix": "prettier --write . && eslint --fix .",
     "format": "prettier",

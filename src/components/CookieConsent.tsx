@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import posthog from 'posthog-js';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from './Button';
 
@@ -11,6 +11,7 @@ interface CookieConsentProps {
 }
 
 export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
+  const bannerRef = useRef<HTMLDivElement>(null);
   const [decided, setDecided] = useState(() => {
     if (typeof window === 'undefined') {
       return true;
@@ -36,6 +37,35 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
     }
     return false;
   });
+
+  useEffect(() => {
+    if (!forceVisible && decided) {
+      document.documentElement.style.setProperty('--bottom-overlay-offset', '0px');
+      return;
+    }
+
+    const root = document.documentElement;
+    const banner = bannerRef.current;
+    if (!banner) {
+      return;
+    }
+
+    const setOffset = () => {
+      const nextOffset = Math.ceil(banner.getBoundingClientRect().height);
+      root.style.setProperty('--bottom-overlay-offset', `${nextOffset}px`);
+    };
+
+    setOffset();
+    const observer = new ResizeObserver(setOffset);
+    observer.observe(banner);
+    window.addEventListener('resize', setOffset);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', setOffset);
+      root.style.setProperty('--bottom-overlay-offset', '0px');
+    };
+  }, [decided, forceVisible]);
 
   if (!forceVisible && decided) {
     return null;
@@ -65,7 +95,10 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-4">
+    <div
+      ref={bannerRef}
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+    >
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text-muted">
           We use cookies for anonymous analytics to improve the app.{' '}

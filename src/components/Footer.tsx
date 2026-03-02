@@ -35,7 +35,7 @@ export function Footer() {
     'font-semibold text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-sm';
 
   return (
-    <footer className="mt-auto border-t border-border bg-surface pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:pb-6">
+    <footer className="mt-auto border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+1.5rem)]">
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
           <div className="space-y-3">

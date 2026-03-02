@@ -6,6 +6,7 @@
    ========================================================================== */
 
 :root {
+  --bottom-overlay-offset: 0px;
   --font-title:
     'Orbitron',
     ui-sans-serif,

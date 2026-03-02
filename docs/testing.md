@@ -5,11 +5,11 @@ This repo uses Vitest for unit tests.
 ## Test locations
 
 1. Frontend/UI/shared client utilities:
-   - Place tests next to source under `src/**` using `*.test.ts` or `*.test.tsx`.
+   - Place tests next to source under `apps/web/src/**` using `*.test.ts` or `*.test.tsx`.
 2. Convex backend logic and query/mutation behavior:
-   - Place tests next to source under `convex/**` using `*.test.ts`.
+   - Place tests next to source under `apps/backend/convex/**` using `*.test.ts`.
 3. Integration-style unit tests with mocks:
-   - Keep them near the module they validate (`src/**` or `convex/**`) and mock external dependencies.
+   - Keep them near the module they validate (`apps/web/src/**` or `apps/backend/convex/**`) and mock external dependencies.
 
 ## Naming and style
 

@@ -1,0 +1,50 @@
+import { useEffect, useState } from 'react';
+
+export const THEME_KEY = 'grand-prix-picks-theme';
+
+function getInitialTheme(themeKey: string): boolean {
+  if (typeof window === 'undefined') {
+    // Default to dark on SSR when no client preference is available yet.
+    return true;
+  }
+  const attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'dark') {
+    return true;
+  }
+  if (attr === 'light') {
+    return false;
+  }
+  return resolveTheme(themeKey);
+}
+
+function resolveTheme(themeKey: string): boolean {
+  const saved = localStorage.getItem(themeKey);
+  return saved === 'dark' ? true : saved === 'light' ? false : true;
+}
+
+export function useTheme(themeKey = THEME_KEY) {
+  const [isDark, setIsDark] = useState(() => getInitialTheme(themeKey));
+
+  useEffect(() => {
+    function sync() {
+      setIsDark(resolveTheme(themeKey));
+    }
+    sync();
+    return;
+  }, [themeKey]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.setAttribute(
+      'data-theme',
+      isDark ? 'dark' : 'light',
+    );
+  }, [isDark]);
+
+  function setTheme(dark: boolean) {
+    localStorage.setItem(themeKey, dark ? 'dark' : 'light');
+    setIsDark(dark);
+  }
+
+  return { isDark, setTheme };
+}

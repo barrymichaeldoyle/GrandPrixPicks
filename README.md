@@ -31,3 +31,8 @@ It is **not open source**. See [LICENSE](./LICENSE) for usage restrictions.
 
 - CI/CD and Convex migration flow: [docs/convex-cicd.md](./docs/convex-cicd.md)
 - Testing conventions: [docs/testing.md](./docs/testing.md)
+
+## Monorepo Layout
+
+- `apps/web` - TanStack Start web app (frontend + server routes + build tooling)
+- `apps/backend` - Convex backend and migration tooling

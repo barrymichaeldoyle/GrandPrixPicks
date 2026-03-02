@@ -1,25 +1,33 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/start.ts", "instrument.server.mjs"],
-  "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}"],
-  "ignoreFiles": [
-    "src/components/RaceCardSkeleton.tsx",
-    "src/lib/og/fonts.ts",
-    "src/lib/og/renderer.ts",
-    "src/lib/og/styles.ts",
-    "src/lib/og/templates.ts"
-  ],
-  "ignoreDependencies": [
-    "@tanstack/router-plugin",
-    "tailwindcss",
-    "babel-plugin-react-compiler",
-    "@react-email/preview-server"
-  ],
-  "ignoreBinaries": ["cloudflared"],
   "ignoreIssues": {
-    "src/integrations/tanstack-query/root-provider.tsx": ["exports"]
+    "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"]
   },
-  "convex": {
-    "entry": ["convex/**/*.{ts,tsx}"]
+  "workspaces": {
+    "apps/web": {
+      "entry": ["src/start.ts", "instrument.server.mjs"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreFiles": [
+        "src/components/RaceCardSkeleton.tsx",
+        "src/lib/og/fonts.ts",
+        "src/lib/og/renderer.ts",
+        "src/lib/og/styles.ts",
+        "src/lib/og/templates.ts"
+      ],
+      "ignoreDependencies": [
+        "@tanstack/router-plugin",
+        "tailwindcss",
+        "babel-plugin-react-compiler"
+      ],
+      "ignoreBinaries": ["cloudflared"]
+    },
+    "apps/backend": {
+      "entry": ["convex/**/*.ts"],
+      "project": ["convex/**/*.ts"],
+      "ignoreDependencies": ["@react-email/components"]
+    },
+    "packages/shared": {
+      "project": ["src/**/*.{ts,tsx}"]
+    }
   }
 }

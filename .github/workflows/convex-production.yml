@@ -34,8 +34,8 @@ jobs:
 
       - name: Deploy Convex production
         if: ${{ env.CONVEX_DEPLOY_KEY != '' }}
-        run: pnpm exec convex deploy --yes --typecheck disable
+        run: pnpm --filter @grand-prix-picks/backend deploy
 
       - name: Run production migrations
         if: ${{ env.CONVEX_DEPLOY_KEY != '' }}
-        run: pnpm convex:migrations:prod
+        run: pnpm --filter @grand-prix-picks/backend migrations:prod

@@ -26,7 +26,7 @@ If the production key is missing, the production deploy job is skipped.
 
 Migrations are defined in:
 
-- `convex/migrations.config.json`
+- `apps/backend/convex/migrations.config.json`
 
 Current entries:
 
@@ -36,7 +36,7 @@ Current entries:
 To add a new migration:
 
 1. Add an idempotent Convex function (mutation/internalMutation).
-2. Append it to `convex/migrations.config.json` in execution order.
+2. Append it to `apps/backend/convex/migrations.config.json` in execution order.
 3. Merge to `main`; preview/prod deploy workflows will run it automatically.
 
 ## Local migration commands

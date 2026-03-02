@@ -7,6 +7,7 @@ dist-ssr
 count.txt
 .env
 .nitro
+.pnpm-store
 .tanstack
 .wrangler
 .output
@@ -18,6 +19,9 @@ debug-storybook.log
 /test-results/
 /playwright-report/
 /playwright/.auth/user.json
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/playwright/.auth/user.json
 .env.test
 
 # Cloudflare

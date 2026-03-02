@@ -1,0 +1,9 @@
+{
+  "name": "@grandprixpicks/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./raceTimezones": "./src/raceTimezones.ts",
+    "./sessions": "./src/sessions.ts"
+  }
+}

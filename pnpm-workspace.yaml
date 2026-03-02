@@ -1,3 +1,13 @@
-pnponlyBuiltDependencies:
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
   - '@clerk/shared'
+  - '@sentry/cli'
+  - core-js
+  - esbuild
+  - protobufjs
+  - sharp
+  - unrs-resolver
   - workerd

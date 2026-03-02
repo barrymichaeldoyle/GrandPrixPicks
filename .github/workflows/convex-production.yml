@@ -10,8 +10,9 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ secrets.CONVEX_PROD_DEPLOY_KEY != '' }}
     environment: production
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PROD_DEPLOY_KEY }}
 
     steps:
       - name: Checkout
@@ -32,11 +33,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy Convex production
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PROD_DEPLOY_KEY }}
+        if: ${{ env.CONVEX_DEPLOY_KEY != '' }}
         run: pnpm exec convex deploy --yes --typecheck disable
 
       - name: Run production migrations
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PROD_DEPLOY_KEY }}
+        if: ${{ env.CONVEX_DEPLOY_KEY != '' }}
         run: pnpm convex:migrations:prod

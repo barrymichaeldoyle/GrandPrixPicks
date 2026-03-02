@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/start.ts", "eslint.config.js", "instrument.server.mjs"],
+  "entry": ["src/start.ts", "instrument.server.mjs"],
   "project": ["src/**/*.{ts,tsx}", "convex/**/*.{ts,tsx}"],
   "ignoreFiles": [
     "src/components/RaceCardSkeleton.tsx",

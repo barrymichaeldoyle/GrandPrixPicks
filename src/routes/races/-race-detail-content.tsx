@@ -255,18 +255,9 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
 
   return (
     <div className="p-4">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Swords className="h-5 w-5 text-accent" />
-          <h2 className="text-xl font-semibold text-text">
-            Session Points Breakdown
-          </h2>
-        </div>
-      </div>
-
       {sessions.length > 1 && (
         <div
-          className="mb-4 flex gap-1 rounded-lg border border-border bg-surface-muted/50 p-1"
+          className="-mx-4 -mt-4 mb-3 flex gap-1 border-b-3 border-border bg-surface-muted/50"
           role="tablist"
           aria-label="Race results by session"
         >
@@ -288,7 +279,7 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
                   size="tab"
                   active={selectedSession === session}
                   onClick={() => setSelectedSession(session)}
-                  className="flex-1"
+                  className="flex-1 !rounded-none"
                 >
                   <span className="hidden sm:inline">
                     {SESSION_LABELS[session]}
@@ -316,27 +307,46 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
         </div>
       )}
 
-      <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
-          <span className="text-text-muted">Top 5</span>
-          <div className="font-semibold text-accent">
-            +{selectedTop5Points} pts
-          </div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Swords className="h-5 w-5 text-accent" />
+          <h2 className="text-xl font-semibold text-text">
+            Session Points Breakdown
+          </h2>
         </div>
-        <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
-          <span className="text-text-muted">H2H</span>
-          <div className="font-semibold text-accent">
-            +{selectedH2HPoints} pts
+
+        <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[repeat(3,max-content)]">
+          <div className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-sm sm:w-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xs text-text-muted">Top 5</span>
+              <div className="leading-tight font-semibold text-accent">
+                +{selectedTop5Points} pts
+              </div>
+            </div>
           </div>
-          {myH2HScore && (
-            <p className="text-xs text-text-muted">
-              {myH2HScore.correctPicks}/{myH2HScore.totalPicks} correct
-            </p>
-          )}
-        </div>
-        <div className="rounded-lg border border-accent/40 bg-accent-muted/30 px-3 py-2 text-sm">
-          <span className="text-text-muted">Session Gain</span>
-          <div className="font-bold text-accent">+{sessionPointsGain} pts</div>
+          <div className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-sm sm:w-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xs text-text-muted">H2H</span>
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                {myH2HScore && (
+                  <p className="text-xs leading-tight text-text-muted">
+                    {myH2HScore.correctPicks}/{myH2HScore.totalPicks} correct
+                  </p>
+                )}
+                <div className="leading-tight font-semibold text-accent">
+                  +{selectedH2HPoints} pts
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="w-full rounded-lg border border-accent/40 bg-accent-muted/30 px-3 py-1.5 text-sm sm:w-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xs text-text-muted">Session Gain</span>
+              <div className="leading-tight font-bold text-accent">
+                +{sessionPointsGain} pts
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

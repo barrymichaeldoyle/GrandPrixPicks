@@ -3,19 +3,19 @@ import { displayTeamName } from '@/lib/display';
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
-// F1 2026 team colors (darkened for white text contrast)
+// F1 2026 team colors (matched to live time page)
 export const TEAM_COLORS: Record<string, string> = {
-  McLaren: '#E67300',
-  Ferrari: '#DC0028',
-  'Red Bull Racing': '#1E3A7B',
-  Mercedes: '#00C9A7',
-  'Aston Martin': '#0D5C35',
-  Alpine: '#E0569A',
-  Williams: '#1E90D0',
-  'Racing Bulls': '#6692DE',
-  Audi: '#6B6B6B',
-  Haas: '#B51E22',
-  Cadillac: '#1E1E1E',
+  Mercedes: '#00D7B6',
+  McLaren: '#F47600',
+  Ferrari: '#ED1131',
+  'Red Bull Racing': '#4781D7',
+  Williams: '#1868DB',
+  Alpine: '#00A1E8',
+  Audi: '#F50537',
+  'Racing Bulls': '#6C98FF',
+  Haas: '#9C9FA2',
+  'Aston Martin': '#229971',
+  Cadillac: '#909090',
 };
 
 const BADGE_SIZES = {
@@ -112,7 +112,7 @@ export function DriverBadge({
 
   const badge = (
     <span className={classes} style={{ backgroundColor: color }}>
-      <span className="inline-flex items-center justify-center gap-1 leading-[1]">
+      <span className="inline-flex items-center justify-center gap-1 rounded-lg bg-black/30 px-1 py-0.5 leading-[1]">
         {showNumber && number != null && (
           <span className="font-normal tabular-nums opacity-70">{number}</span>
         )}

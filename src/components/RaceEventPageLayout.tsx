@@ -97,27 +97,22 @@ export function RaceEventPageLayout({
               : 'border-border bg-surface'
           }`}
         >
-          <RaceDetailHeader race={race} isNextRace={isNextRace} />
-          {hasPublishedResults && (
-            <div className="border-t-3 border-border bg-surface px-4 py-3 text-sm">
-              <div className="mb-0.5 flex items-center justify-between gap-2">
-                <span className="text-text-muted">
-                  {allEventsScored ? 'Weekend Total' : 'Points So Far'}
-                </span>
-                {showResultsPendingBadge ? (
-                  <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
-                    Results pending
-                  </span>
-                ) : null}
-              </div>
-              <div className="font-bold text-accent">+{pointsSoFar} pts</div>
-              {!allEventsScored && (
-                <p className="text-xs text-text-muted">
-                  {scoredEventCount}/{weekendSessions.length} events scored
-                </p>
-              )}
-            </div>
-          )}
+          <RaceDetailHeader
+            race={race}
+            isNextRace={isNextRace}
+            resultsSummary={
+              hasPublishedResults
+                ? {
+                    label: allEventsScored ? 'Weekend Total' : 'Points So Far',
+                    points: pointsSoFar,
+                    showResultsPendingBadge,
+                    scoredEventCount,
+                    totalEvents: weekendSessions.length,
+                    allEventsScored,
+                  }
+                : undefined
+            }
+          />
 
           <div className={`border-t-3 ${statusStyles.border}`}>
             <div className={statusStyles.background}>

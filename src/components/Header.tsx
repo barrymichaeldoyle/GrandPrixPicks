@@ -172,18 +172,23 @@ export function Header({
   return (
     <header
       ref={headerRef}
-      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text shadow-sm"
+      className="relative sticky top-0 z-50 h-[61px] overflow-hidden border-b border-border bg-surface/95 text-text shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/80"
     >
+      <div aria-hidden className="header-grid-sheen pointer-events-none absolute inset-0" />
+      <div
+        aria-hidden
+        className="header-accent-rail pointer-events-none absolute inset-x-0 top-0 h-[2px]"
+      />
       <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">
+          <Link to="/" className="group flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/30 bg-accent/10 ring-1 ring-accent/15 transition-colors group-hover:bg-accent/15">
               <Flag
                 className="relative left-0.25 h-5 w-5 text-accent"
                 aria-hidden="true"
               />
             </span>
-            <span className="font-title pr-1 text-xl font-bold tracking-tight">
+            <span className="font-title pr-1 text-xl font-bold tracking-tight transition-colors group-hover:text-accent">
               Grand Prix Picks
             </span>
           </Link>
@@ -191,17 +196,17 @@ export function Header({
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 min-[791px]:flex"
+            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[791px]:flex"
           >
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 params={link.params as Record<string, string>}
-                className="rounded-lg border-2 border-transparent px-3 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
                 activeProps={{
                   className:
-                    'px-3 py-2 rounded-lg text-accent border-2 nav-link-active transition-colors text-sm font-semibold',
+                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
                   'aria-current': 'page' as const,
                 }}
                 activeOptions={link.exact ? { exact: true } : undefined}
@@ -216,7 +221,7 @@ export function Header({
           <button
             type="button"
             onClick={toggleTheme}
-            className="rounded-lg p-2 text-accent transition-colors hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun size={20} /> : <Moon size={20} />}
@@ -227,7 +232,7 @@ export function Header({
           <motion.button
             ref={menuButtonRef}
             onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-            className="rounded-lg p-2 transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
+            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
@@ -283,7 +288,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface shadow-xl min-[791px]:hidden"
+              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[791px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {navLinks.map((link, index) => (
@@ -297,10 +302,10 @@ export function Header({
                       to={link.to}
                       params={link.params as Record<string, string>}
                       onClick={closeMenu}
-                      className="block rounded-lg border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
+                      className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
                       activeProps={{
                         className:
-                          'block px-3 py-2 rounded-lg text-accent border-2 nav-link-active font-semibold transition-colors',
+                          'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
                         'aria-current': 'page' as const,
                       }}
                       activeOptions={link.exact ? { exact: true } : undefined}

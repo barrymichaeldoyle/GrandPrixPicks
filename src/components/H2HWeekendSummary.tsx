@@ -58,7 +58,7 @@ export function H2HWeekendSummary({
             : 'Qualifying and Race'}
           . You can fine-tune individual sessions after submitting.
         </p>
-        <H2HPredictionForm raceId={race._id} sessionType={selectedSession} />
+        <H2HPredictionForm raceId={race._id} />
       </div>
     );
   }

@@ -2,7 +2,12 @@ import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
-import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import {
+  getOrCreateViewer,
+  getViewer,
+  requireAdmin,
+  requireViewer,
+} from './lib/auth';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -12,6 +17,32 @@ const sessionTypeValidator = v.union(
 );
 
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
+
+function getWeekendSessions(hasSprint: boolean): Array<SessionType> {
+  return hasSprint
+    ? ['quali', 'sprint_quali', 'sprint', 'race']
+    : ['quali', 'race'];
+}
+
+export function resolveH2HSessionsToUpdate(params: {
+  hasSprint: boolean;
+  requestedSessionType?: SessionType;
+  hasExistingPredictionsForRace: boolean;
+}): Array<SessionType> {
+  const allSessions = getWeekendSessions(params.hasSprint);
+
+  // First-time H2H submit should always seed the full weekend, even if
+  // client sends a specific session.
+  if (!params.hasExistingPredictionsForRace) {
+    return allSessions;
+  }
+
+  if (params.requestedSessionType) {
+    return [params.requestedSessionType];
+  }
+
+  return allSessions;
+}
 
 // ───────────────────────── Queries ─────────────────────────
 
@@ -729,12 +760,22 @@ export const submitH2HPredictions = mutation({
       }
     }
 
-    // Determine sessions (cascade logic)
-    const sessionsToUpdate: Array<SessionType> = args.sessionType
-      ? [args.sessionType]
-      : race.hasSprint
-        ? ['quali', 'sprint_quali', 'sprint', 'race']
-        : ['quali', 'race'];
+    const existingForRace = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .collect();
+    const hasExistingPredictionsForRace = existingForRace.length > 0;
+
+    const sessionsToUpdate = resolveH2HSessionsToUpdate({
+      hasSprint: Boolean(race.hasSprint),
+      requestedSessionType: args.sessionType,
+      hasExistingPredictionsForRace,
+    });
+    const isTargetedSessionUpdate = Boolean(
+      args.sessionType && hasExistingPredictionsForRace,
+    );
 
     const lockTimes: Record<SessionType, number | undefined> = {
       quali: race.qualiLockAt,
@@ -749,7 +790,7 @@ export const submitH2HPredictions = mutation({
       const lockTime = lockTimes[sessionType];
 
       if (lockTime && now >= lockTime) {
-        if (args.sessionType) {
+        if (isTargetedSessionUpdate) {
           throw new Error(`H2H predictions are locked for ${sessionType}`);
         }
         continue;
@@ -792,5 +833,103 @@ export const submitH2HPredictions = mutation({
     }
 
     return { ok: true, updatedCount };
+  },
+});
+
+export const adminBackfillMissingH2HSessionsForRace = mutation({
+  args: {
+    raceId: v.id('races'),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    requireAdmin(viewer);
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    const weekendSessions = getWeekendSessions(Boolean(race.hasSprint));
+    const dryRun = args.dryRun ?? false;
+    const now = Date.now();
+
+    const users = await ctx.db.query('users').collect();
+    let usersScanned = 0;
+    let usersWithH2H = 0;
+    let usersBackfilled = 0;
+    let sessionsBackfilled = 0;
+    let picksBackfilled = 0;
+
+    for (const user of users) {
+      usersScanned++;
+
+      const userPredictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', user._id).eq('raceId', args.raceId),
+        )
+        .collect();
+
+      if (userPredictions.length === 0) {
+        continue;
+      }
+      usersWithH2H++;
+
+      const existingSessions = new Set(
+        userPredictions.map((p) => p.sessionType as SessionType),
+      );
+      const missingSessions = weekendSessions.filter(
+        (session) => !existingSessions.has(session),
+      );
+
+      if (missingSessions.length === 0) {
+        continue;
+      }
+
+      const latestPrediction = userPredictions.reduce((latest, current) =>
+        current.updatedAt > latest.updatedAt ? current : latest,
+      );
+      const sourceSession = latestPrediction.sessionType as SessionType;
+      const sourceSessionPredictions = userPredictions.filter(
+        (p) => p.sessionType === sourceSession,
+      );
+
+      if (sourceSessionPredictions.length === 0) {
+        continue;
+      }
+
+      usersBackfilled++;
+      sessionsBackfilled += missingSessions.length;
+      picksBackfilled += missingSessions.length * sourceSessionPredictions.length;
+
+      if (dryRun) {
+        continue;
+      }
+
+      for (const sessionType of missingSessions) {
+        for (const sourcePick of sourceSessionPredictions) {
+          await ctx.db.insert('h2hPredictions', {
+            userId: user._id,
+            raceId: args.raceId,
+            sessionType,
+            matchupId: sourcePick.matchupId,
+            predictedWinnerId: sourcePick.predictedWinnerId,
+            submittedAt: sourcePick.submittedAt,
+            updatedAt: now,
+          });
+        }
+      }
+    }
+
+    return {
+      dryRun,
+      raceId: args.raceId,
+      usersScanned,
+      usersWithH2H,
+      usersBackfilled,
+      sessionsBackfilled,
+      picksBackfilled,
+    };
   },
 });

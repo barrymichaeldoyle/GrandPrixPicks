@@ -58,11 +58,100 @@ export const amIAdmin = query({
 });
 
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
+type ProgressByUser = Map<
+  string,
+  {
+    sessions: Set<SessionType>;
+    latestSubmittedAt: number;
+  }
+>;
 
 function requiredSessionsForRace(hasSprint: boolean): Array<SessionType> {
   return hasSprint
     ? ['sprint_quali', 'sprint', 'quali', 'race']
     : ['quali', 'race'];
+}
+
+type AdminStatusUser = {
+  _id: string;
+  username?: string;
+  displayName?: string;
+  email?: string;
+};
+
+export function buildAdminPredictionStatus(params: {
+  users: Array<AdminStatusUser>;
+  requiredSessions: Array<SessionType>;
+  top5ByUser: ProgressByUser;
+  h2hByUser: ProgressByUser;
+}) {
+  const users = params.users
+    .map((u) => {
+      const top5 = params.top5ByUser.get(u._id);
+      const h2h = params.h2hByUser.get(u._id);
+      const completedSessions = top5?.sessions.size ?? 0;
+      const h2hCompletedSessions = h2h?.sessions.size ?? 0;
+      const requiredSessionCount = params.requiredSessions.length;
+      const hasStarted = completedSessions > 0;
+      const hasCompleted = completedSessions === requiredSessionCount;
+      const h2hHasStarted = h2hCompletedSessions > 0;
+      const h2hHasCompleted = h2hCompletedSessions === requiredSessionCount;
+      return {
+        userId: u._id,
+        username: u.username ?? null,
+        displayName: u.displayName ?? null,
+        email: u.email ?? null,
+        completedSessions,
+        requiredSessionCount,
+        hasStarted,
+        hasCompleted,
+        latestSubmittedAt: top5?.latestSubmittedAt ?? null,
+        h2hCompletedSessions,
+        h2hHasStarted,
+        h2hHasCompleted,
+        h2hLatestSubmittedAt: h2h?.latestSubmittedAt ?? null,
+      };
+    })
+    .sort((a, b) => {
+      if (a.hasCompleted !== b.hasCompleted) {
+        return a.hasCompleted ? -1 : 1;
+      }
+      if (a.completedSessions !== b.completedSessions) {
+        return b.completedSessions - a.completedSessions;
+      }
+      const aLabel = (
+        a.displayName ??
+        a.username ??
+        a.email ??
+        ''
+      ).toLowerCase();
+      const bLabel = (
+        b.displayName ??
+        b.username ??
+        b.email ??
+        ''
+      ).toLowerCase();
+      return aLabel.localeCompare(bLabel);
+    });
+
+  const totalUsers = users.length;
+  const usersStarted = users.filter((u) => u.hasStarted).length;
+  const usersCompleted = users.filter((u) => u.hasCompleted).length;
+  const h2hUsersStarted = users.filter((u) => u.h2hHasStarted).length;
+  const h2hUsersCompleted = users.filter((u) => u.h2hHasCompleted).length;
+
+  return {
+    users,
+    totals: {
+      totalUsers,
+      usersStarted,
+      usersCompleted,
+      usersPending: totalUsers - usersCompleted,
+      h2hUsersStarted,
+      h2hUsersCompleted,
+      h2hUsersPending: totalUsers - h2hUsersCompleted,
+    },
+  };
 }
 
 export const adminPredictionStatusForRace = query({
@@ -79,20 +168,8 @@ export const adminPredictionStatusForRace = query({
     const allUsers = await ctx.db.query('users').collect();
     const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
 
-    const top5ByUser = new Map<
-      string,
-      {
-        sessions: Set<SessionType>;
-        latestSubmittedAt: number;
-      }
-    >();
-    const h2hByUser = new Map<
-      string,
-      {
-        sessions: Set<SessionType>;
-        latestSubmittedAt: number;
-      }
-    >();
+    const top5ByUser: ProgressByUser = new Map();
+    const h2hByUser: ProgressByUser = new Map();
 
     for (const sessionType of requiredSessions) {
       const submissions = await ctx.db
@@ -140,60 +217,17 @@ export const adminPredictionStatusForRace = query({
       }
     }
 
-    const users = allUsers
-      .map((u) => {
-        const top5 = top5ByUser.get(u._id as string);
-        const h2h = h2hByUser.get(u._id as string);
-        const completedSessions = top5?.sessions.size ?? 0;
-        const h2hCompletedSessions = h2h?.sessions.size ?? 0;
-        const requiredSessionCount = requiredSessions.length;
-        const hasStarted = completedSessions > 0;
-        const hasCompleted = completedSessions === requiredSessionCount;
-        const h2hHasStarted = h2hCompletedSessions > 0;
-        const h2hHasCompleted = h2hCompletedSessions === requiredSessionCount;
-        return {
-          userId: u._id,
-          username: u.username ?? null,
-          displayName: u.displayName ?? null,
-          email: u.email ?? null,
-          completedSessions,
-          requiredSessionCount,
-          hasStarted,
-          hasCompleted,
-          latestSubmittedAt: top5?.latestSubmittedAt ?? null,
-          h2hCompletedSessions,
-          h2hHasStarted,
-          h2hHasCompleted,
-          h2hLatestSubmittedAt: h2h?.latestSubmittedAt ?? null,
-        };
-      })
-      .sort((a, b) => {
-        if (a.hasCompleted !== b.hasCompleted) {
-          return a.hasCompleted ? -1 : 1;
-        }
-        if (a.completedSessions !== b.completedSessions) {
-          return b.completedSessions - a.completedSessions;
-        }
-        const aLabel = (
-          a.displayName ??
-          a.username ??
-          a.email ??
-          ''
-        ).toLowerCase();
-        const bLabel = (
-          b.displayName ??
-          b.username ??
-          b.email ??
-          ''
-        ).toLowerCase();
-        return aLabel.localeCompare(bLabel);
-      });
-
-    const totalUsers = users.length;
-    const usersStarted = users.filter((u) => u.hasStarted).length;
-    const usersCompleted = users.filter((u) => u.hasCompleted).length;
-    const h2hUsersStarted = users.filter((u) => u.h2hHasStarted).length;
-    const h2hUsersCompleted = users.filter((u) => u.h2hHasCompleted).length;
+    const status = buildAdminPredictionStatus({
+      users: allUsers.map((u) => ({
+        _id: u._id as string,
+        username: u.username,
+        displayName: u.displayName,
+        email: u.email,
+      })),
+      requiredSessions,
+      top5ByUser,
+      h2hByUser,
+    });
 
     return {
       race: {
@@ -203,16 +237,8 @@ export const adminPredictionStatusForRace = query({
         hasSprint: race.hasSprint ?? false,
       },
       requiredSessions,
-      totals: {
-        totalUsers,
-        usersStarted,
-        usersCompleted,
-        usersPending: totalUsers - usersCompleted,
-        h2hUsersStarted,
-        h2hUsersCompleted,
-        h2hUsersPending: totalUsers - h2hUsersCompleted,
-      },
-      users,
+      totals: status.totals,
+      users: status.users,
     };
   },
 });

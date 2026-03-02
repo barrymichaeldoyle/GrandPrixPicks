@@ -121,13 +121,13 @@ export function usePWAInstall() {
   const showBanner =
     !isInstalled &&
     !dismissed &&
-    (!!installPrompt || isIOSSafari || isIOSNonSafari);
+    !isIOSNonSafari &&
+    (!!installPrompt || isIOSSafari);
 
   return {
     showBanner,
     isInstalling,
     isIOSSafari,
-    isIOSNonSafari,
     install,
     onDismiss,
   };

@@ -209,12 +209,11 @@ describe('usePWAInstall', () => {
 
     expect(getLatest()?.showBanner).toBe(true);
     expect(getLatest()?.isIOSSafari).toBe(true);
-    expect(getLatest()?.isIOSNonSafari).toBe(false);
 
     unmount();
   });
 
-  it('shows open-in-safari guidance for iOS non-Safari browsers', () => {
+  it('hides the banner for iOS non-Safari browsers', () => {
     setupIOSPlatform({ platform: 'iPhone', maxTouchPoints: 5 });
     setupUserAgent(
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/122.0.0.0 Mobile/15E148 Safari/604.1',
@@ -222,9 +221,14 @@ describe('usePWAInstall', () => {
 
     const { getLatest, unmount } = renderUsePWAInstall();
 
-    expect(getLatest()?.showBanner).toBe(true);
+    expect(getLatest()?.showBanner).toBe(false);
     expect(getLatest()?.isIOSSafari).toBe(false);
-    expect(getLatest()?.isIOSNonSafari).toBe(true);
+
+    const promptEvent = createBeforeInstallPromptEvent();
+    act(() => {
+      window.dispatchEvent(promptEvent);
+    });
+    expect(getLatest()?.showBanner).toBe(false);
 
     unmount();
   });

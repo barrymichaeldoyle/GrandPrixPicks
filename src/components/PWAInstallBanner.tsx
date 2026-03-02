@@ -8,7 +8,6 @@ export function PWAInstallBanner() {
     showBanner,
     isInstalling,
     isIOSSafari,
-    isIOSNonSafari,
     install,
     onDismiss,
   } = usePWAInstall();
@@ -17,11 +16,7 @@ export function PWAInstallBanner() {
     return null;
   }
 
-  const platform = isIOSSafari
-    ? 'ios_safari'
-    : isIOSNonSafari
-      ? 'ios_other'
-      : 'desktop_or_android';
+  const platform = isIOSSafari ? 'ios_safari' : 'desktop_or_android';
 
   const handleInstall = () => {
     posthog.capture('pwa_install_accepted', { platform });
@@ -42,13 +37,6 @@ export function PWAInstallBanner() {
             then <span className="font-medium">Add to Home Screen</span>. No
             Share button? Tap the address bar to show the toolbar.
           </span>
-        ) : isIOSNonSafari ? (
-          <span>
-            Install GP Picks — open this page in{' '}
-            <span className="font-medium">Safari</span>, then tap{' '}
-            <span className="font-medium">Share</span> and{' '}
-            <span className="font-medium">Add to Home Screen</span>.
-          </span>
         ) : (
           <span>
             <span className="font-medium">Install Grand Prix Picks</span>{' '}
@@ -59,7 +47,7 @@ export function PWAInstallBanner() {
         )}
       </div>
 
-      {!isIOSSafari && !isIOSNonSafari && (
+      {!isIOSSafari && (
         <button
           onClick={handleInstall}
           disabled={isInstalling}

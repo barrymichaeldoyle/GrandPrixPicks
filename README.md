@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/barrymichaeldoyle/grand-prix-picks/actions/workflows/ci.yml/badge.svg)](https://github.com/barrymichaeldoyle/grand-prix-picks/actions/workflows/ci.yml)
 [![Convex Production Deploy](https://github.com/barrymichaeldoyle/grand-prix-picks/actions/workflows/convex-production.yml/badge.svg)](https://github.com/barrymichaeldoyle/grand-prix-picks/actions/workflows/convex-production.yml)
-[![License](https://img.shields.io/github/license/barrymichaeldoyle/grand-prix-picks)](https://github.com/barrymichaeldoyle/grand-prix-picks/blob/main/LICENSE)
+[![License: Source Available](https://img.shields.io/badge/license-source--available-lightgrey)](https://github.com/barrymichaeldoyle/grand-prix-picks/blob/main/LICENSE)
 
 Predict every Formula 1 weekend. Compete with friends. Track your rank all season.
 

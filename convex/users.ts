@@ -5,6 +5,7 @@ import {
   getOrCreateViewer,
   getViewer,
   isAdmin,
+  requireAdmin,
   requireViewer,
 } from './lib/auth';
 import { syncUserToStandings } from './lib/standings';
@@ -53,6 +54,166 @@ export const amIAdmin = query({
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
     return isAdmin(viewer);
+  },
+});
+
+type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
+
+function requiredSessionsForRace(hasSprint: boolean): Array<SessionType> {
+  return hasSprint
+    ? ['sprint_quali', 'sprint', 'quali', 'race']
+    : ['quali', 'race'];
+}
+
+export const adminPredictionStatusForRace = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    requireAdmin(viewer);
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    const allUsers = await ctx.db.query('users').collect();
+    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
+
+    const top5ByUser = new Map<
+      string,
+      {
+        sessions: Set<SessionType>;
+        latestSubmittedAt: number;
+      }
+    >();
+    const h2hByUser = new Map<
+      string,
+      {
+        sessions: Set<SessionType>;
+        latestSubmittedAt: number;
+      }
+    >();
+
+    for (const sessionType of requiredSessions) {
+      const submissions = await ctx.db
+        .query('predictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', race._id).eq('sessionType', sessionType),
+        )
+        .collect();
+
+      for (const row of submissions) {
+        const key = row.userId as string;
+        const existing = top5ByUser.get(key) ?? {
+          sessions: new Set<SessionType>(),
+          latestSubmittedAt: 0,
+        };
+        existing.sessions.add(sessionType);
+        existing.latestSubmittedAt = Math.max(
+          existing.latestSubmittedAt,
+          row.updatedAt,
+        );
+        top5ByUser.set(key, existing);
+      }
+    }
+
+    for (const sessionType of requiredSessions) {
+      const submissions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', race._id).eq('sessionType', sessionType),
+        )
+        .collect();
+
+      for (const row of submissions) {
+        const key = row.userId as string;
+        const existing = h2hByUser.get(key) ?? {
+          sessions: new Set<SessionType>(),
+          latestSubmittedAt: 0,
+        };
+        existing.sessions.add(sessionType);
+        existing.latestSubmittedAt = Math.max(
+          existing.latestSubmittedAt,
+          row.updatedAt,
+        );
+        h2hByUser.set(key, existing);
+      }
+    }
+
+    const users = allUsers
+      .map((u) => {
+        const top5 = top5ByUser.get(u._id as string);
+        const h2h = h2hByUser.get(u._id as string);
+        const completedSessions = top5?.sessions.size ?? 0;
+        const h2hCompletedSessions = h2h?.sessions.size ?? 0;
+        const requiredSessionCount = requiredSessions.length;
+        const hasStarted = completedSessions > 0;
+        const hasCompleted = completedSessions === requiredSessionCount;
+        const h2hHasStarted = h2hCompletedSessions > 0;
+        const h2hHasCompleted = h2hCompletedSessions === requiredSessionCount;
+        return {
+          userId: u._id,
+          username: u.username ?? null,
+          displayName: u.displayName ?? null,
+          email: u.email ?? null,
+          completedSessions,
+          requiredSessionCount,
+          hasStarted,
+          hasCompleted,
+          latestSubmittedAt: top5?.latestSubmittedAt ?? null,
+          h2hCompletedSessions,
+          h2hHasStarted,
+          h2hHasCompleted,
+          h2hLatestSubmittedAt: h2h?.latestSubmittedAt ?? null,
+        };
+      })
+      .sort((a, b) => {
+        if (a.hasCompleted !== b.hasCompleted) {
+          return a.hasCompleted ? -1 : 1;
+        }
+        if (a.completedSessions !== b.completedSessions) {
+          return b.completedSessions - a.completedSessions;
+        }
+        const aLabel = (
+          a.displayName ??
+          a.username ??
+          a.email ??
+          ''
+        ).toLowerCase();
+        const bLabel = (
+          b.displayName ??
+          b.username ??
+          b.email ??
+          ''
+        ).toLowerCase();
+        return aLabel.localeCompare(bLabel);
+      });
+
+    const totalUsers = users.length;
+    const usersStarted = users.filter((u) => u.hasStarted).length;
+    const usersCompleted = users.filter((u) => u.hasCompleted).length;
+    const h2hUsersStarted = users.filter((u) => u.h2hHasStarted).length;
+    const h2hUsersCompleted = users.filter((u) => u.h2hHasCompleted).length;
+
+    return {
+      race: {
+        _id: race._id,
+        name: race.name,
+        round: race.round,
+        hasSprint: race.hasSprint ?? false,
+      },
+      requiredSessions,
+      totals: {
+        totalUsers,
+        usersStarted,
+        usersCompleted,
+        usersPending: totalUsers - usersCompleted,
+        h2hUsersStarted,
+        h2hUsersCompleted,
+        h2hUsersPending: totalUsers - h2hUsersCompleted,
+      },
+      users,
+    };
   },
 });
 

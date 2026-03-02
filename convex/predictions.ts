@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
@@ -12,6 +13,22 @@ const sessionTypeValidator = v.union(
 );
 
 type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
+const H2H_NUDGE_DELAY_MS = 15 * 60 * 1000;
+
+export function shouldQueueIncompleteH2HNudge(params: {
+  raceStatus: string;
+  requiredSessionCount: number;
+  preSessionCount: number;
+  postSessionCount: number;
+  alreadyQueued: boolean;
+}): boolean {
+  return (
+    params.raceStatus === 'upcoming' &&
+    !params.alreadyQueued &&
+    params.preSessionCount < params.requiredSessionCount &&
+    params.postSessionCount === params.requiredSessionCount
+  );
+}
 
 type BreakdownItem = {
   driverId: Id<'drivers'>;
@@ -344,6 +361,12 @@ export const submitPrediction = mutation({
     }
 
     const now = Date.now();
+    const existingBefore = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .collect();
 
     // Only allow predictions for the next upcoming race
     const allRaces = await ctx.db.query('races').collect();
@@ -422,6 +445,47 @@ export const submitPrediction = mutation({
 
     if (results.length === 0) {
       throw new Error('All sessions are locked for this race');
+    }
+
+    const requiredSessionCount = race.hasSprint ? 4 : 2;
+    const preSessionCount = new Set(existingBefore.map((p) => p.sessionType))
+      .size;
+    const existingAfter = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', args.raceId),
+      )
+      .collect();
+    const postSessionCount = new Set(existingAfter.map((p) => p.sessionType))
+      .size;
+    const raceSessionPrediction = existingAfter.find(
+      (p) => p.sessionType === 'race',
+    );
+    const alreadyQueued = Boolean(
+      (raceSessionPrediction as { h2hNudgeQueuedAt?: number } | undefined)
+        ?.h2hNudgeQueuedAt,
+    );
+
+    // Nudge only when this submission completes the user's Top 5 weekend picks.
+    if (
+      raceSessionPrediction &&
+      shouldQueueIncompleteH2HNudge({
+        raceStatus: race.status,
+        requiredSessionCount,
+        preSessionCount,
+        postSessionCount,
+        alreadyQueued,
+      })
+    ) {
+      await ctx.db.patch(raceSessionPrediction._id, { h2hNudgeQueuedAt: now });
+      await ctx.scheduler.runAfter(
+        H2H_NUDGE_DELAY_MS,
+        internal.notifications.sendIncompleteH2HNudgeForUser,
+        {
+          raceId: args.raceId,
+          userId: viewer._id,
+        },
+      );
     }
 
     return results[0]; // Return first created/updated prediction ID

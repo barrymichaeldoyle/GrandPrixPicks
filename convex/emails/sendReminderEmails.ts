@@ -117,3 +117,47 @@ export const sendBatch = internalAction({
     return { sent, failed };
   },
 });
+
+export const sendH2HNudge = internalAction({
+  args: {
+    email: v.string(),
+    raceName: v.string(),
+    racePath: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const appUrl = process.env.APP_URL ?? 'https://grandprixpicks.com';
+    const fromAddress =
+      process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
+    const raceUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=h2h_nudge`;
+    const settingsUrl = `${appUrl}/settings`;
+
+    const html = `
+      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0f172a;">
+        <h2 style="margin: 0 0 12px; font-size: 22px;">Finish your H2H picks</h2>
+        <p style="margin: 0 0 12px; color: #334155; line-height: 1.5;">
+          Nice work — you submitted your Top 5 predictions for <strong>${args.raceName}</strong>.
+        </p>
+        <p style="margin: 0 0 20px; color: #334155; line-height: 1.5;">
+          You still have teammate head-to-head picks left. Complete them now to avoid missing points.
+        </p>
+        <a href="${raceUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Complete H2H Picks</a>
+        <p style="margin: 20px 0 0; color: #64748b; font-size: 13px;">
+          Manage reminders in <a href="${settingsUrl}" style="color:#0d9488;">Settings</a>.
+        </p>
+      </div>
+    `;
+
+    try {
+      await resend.sendEmail(ctx, {
+        from: fromAddress,
+        to: args.email,
+        subject: `Finish your H2H picks for ${args.raceName}`,
+        html,
+      });
+      return { sent: 1, failed: 0 };
+    } catch (e) {
+      console.error(`Failed to send H2H nudge to ${args.email}:`, e);
+      return { sent: 0, failed: 1 };
+    }
+  },
+});

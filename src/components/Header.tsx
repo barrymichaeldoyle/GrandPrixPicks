@@ -174,7 +174,10 @@ export function Header({
       ref={headerRef}
       className="relative sticky top-0 z-50 h-[61px] overflow-hidden border-b border-border bg-surface/95 text-text shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/80"
     >
-      <div aria-hidden className="header-grid-sheen pointer-events-none absolute inset-0" />
+      <div
+        aria-hidden
+        className="header-grid-sheen pointer-events-none absolute inset-0"
+      />
       <div
         aria-hidden
         className="header-accent-rail pointer-events-none absolute inset-x-0 top-0 h-[2px]"
@@ -209,7 +212,11 @@ export function Header({
                     'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
                   'aria-current': 'page' as const,
                 }}
-                activeOptions={link.exact ? { exact: true } : undefined}
+                activeOptions={
+                  link.exact
+                    ? { exact: true, includeSearch: false }
+                    : { includeSearch: false }
+                }
               >
                 {link.label}
               </Link>
@@ -308,7 +315,11 @@ export function Header({
                           'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
                         'aria-current': 'page' as const,
                       }}
-                      activeOptions={link.exact ? { exact: true } : undefined}
+                      activeOptions={
+                        link.exact
+                          ? { exact: true, includeSearch: false }
+                          : { includeSearch: false }
+                      }
                     >
                       {link.label}
                     </Link>

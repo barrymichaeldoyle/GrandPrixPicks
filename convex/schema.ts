@@ -81,6 +81,8 @@ export default defineSchema({
     raceId: v.id('races'),
     sessionType: sessionType,
     picks: v.array(v.id('drivers')), // length 5
+    // Set once when we queue a "Top 5 complete but H2H incomplete" nudge.
+    h2hNudgeQueuedAt: v.optional(v.number()),
     submittedAt: v.number(),
     updatedAt: v.number(),
   })

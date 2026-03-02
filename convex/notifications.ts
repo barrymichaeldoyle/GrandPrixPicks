@@ -168,6 +168,54 @@ const sessionTypeValidator = v.union(
   v.literal('sprint'),
   v.literal('race'),
 );
+type SessionType = 'quali' | 'sprint_quali' | 'sprint' | 'race';
+
+function requiredSessionsForRace(hasSprint: boolean): Array<SessionType> {
+  return hasSprint
+    ? ['quali', 'sprint_quali', 'sprint', 'race']
+    : ['quali', 'race'];
+}
+
+export function getIncompleteH2HNudgeEligibility(params: {
+  raceStatus: string;
+  predictionLockAt: number;
+  now: number;
+  requiredSessions: Array<SessionType>;
+  top5Sessions: Set<SessionType>;
+  h2hSessions: Set<SessionType>;
+}):
+  | { eligible: true }
+  | {
+      eligible: false;
+      reason:
+        | 'race_not_upcoming'
+        | 'predictions_locked'
+        | 'top5_incomplete'
+        | 'h2h_complete';
+    } {
+  if (params.raceStatus !== 'upcoming') {
+    return { eligible: false, reason: 'race_not_upcoming' };
+  }
+  if (params.predictionLockAt <= params.now) {
+    return { eligible: false, reason: 'predictions_locked' };
+  }
+
+  const hasCompleteTop5 = params.requiredSessions.every((s) =>
+    params.top5Sessions.has(s),
+  );
+  if (!hasCompleteTop5) {
+    return { eligible: false, reason: 'top5_incomplete' };
+  }
+
+  const hasCompleteH2H = params.requiredSessions.every((s) =>
+    params.h2hSessions.has(s),
+  );
+  if (hasCompleteH2H) {
+    return { eligible: false, reason: 'h2h_complete' };
+  }
+
+  return { eligible: true };
+}
 
 /**
  * Scheduled mutation: gathers data and fans out result notification emails.
@@ -371,6 +419,109 @@ export const sendResultEmailsForSession = internalMutation({
     }
 
     return { recipientCount: recipients.length, batchesScheduled: scheduled };
+  },
+});
+
+/**
+ * Scheduled mutation: nudge a single user if they completed Top 5 picks but still
+ * haven't completed H2H for the same weekend.
+ */
+export const sendIncompleteH2HNudgeForUser = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const [race, user] = await Promise.all([
+      ctx.db.get(args.raceId),
+      ctx.db.get(args.userId),
+    ]);
+
+    if (!race) {
+      return { skipped: true, reason: 'Race not found' };
+    }
+    if (!user) {
+      return { skipped: true, reason: 'User not found' };
+    }
+
+    const now = Date.now();
+    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
+
+    const [top5Rows, h2hRows] = await Promise.all([
+      ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', args.userId).eq('raceId', args.raceId),
+        )
+        .collect(),
+      ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', args.userId).eq('raceId', args.raceId),
+        )
+        .collect(),
+    ]);
+
+    const top5Sessions = new Set(
+      top5Rows.map((p) => p.sessionType as SessionType),
+    );
+    const h2hSessions = new Set(
+      h2hRows.map((p) => p.sessionType as SessionType),
+    );
+
+    const eligibility = getIncompleteH2HNudgeEligibility({
+      raceStatus: race.status,
+      predictionLockAt: race.predictionLockAt,
+      now,
+      requiredSessions,
+      top5Sessions,
+      h2hSessions,
+    });
+    if (!eligibility.eligible) {
+      return { skipped: true, reason: eligibility.reason };
+    }
+
+    const racePath = `/races/${race.slug}`;
+    let emailQueued = false;
+    let pushQueued = 0;
+
+    if (user.email && (user.emailReminders ?? true)) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.emails.sendReminderEmails.sendH2HNudge,
+        {
+          email: user.email,
+          raceName: race.name,
+          racePath,
+        },
+      );
+      emailQueued = true;
+    }
+
+    const subscriptions = await ctx.db
+      .query('pushSubscriptions')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect();
+
+    if (subscriptions.length > 0) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.pushNotifications.sendPushBatch,
+        {
+          subscriptions: subscriptions.map((s) => ({
+            endpoint: s.endpoint,
+            p256dh: s.p256dh,
+            auth: s.auth,
+          })),
+          title: `🏎️ ${race.name}`,
+          body: 'Top 5 submitted. Finish your teammate H2H picks.',
+          url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`,
+        },
+      );
+      pushQueued = subscriptions.length;
+    }
+
+    return { ok: true, emailQueued, pushQueued };
   },
 });
 

@@ -17,7 +17,7 @@
     "build-storybook": "storybook build",
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit",
     "lint": "pnpm exec eslint",
     "fix": "prettier --write . && eslint --fix .",
     "format": "prettier",

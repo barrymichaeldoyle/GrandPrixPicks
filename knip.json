@@ -15,7 +15,7 @@
     "babel-plugin-react-compiler",
     "@react-email/preview-server"
   ],
-  "ignoreBinaries": ["eslint", "cloudflared"],
+  "ignoreBinaries": ["cloudflared"],
   "ignoreIssues": {
     "src/integrations/tanstack-query/root-provider.tsx": ["exports"]
   },

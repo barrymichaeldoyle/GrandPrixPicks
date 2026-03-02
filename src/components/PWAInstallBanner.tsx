@@ -4,13 +4,8 @@ import posthog from 'posthog-js';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export function PWAInstallBanner() {
-  const {
-    showBanner,
-    isInstalling,
-    isIOSSafari,
-    install,
-    onDismiss,
-  } = usePWAInstall();
+  const { showBanner, isInstalling, isIOSSafari, install, onDismiss } =
+    usePWAInstall();
 
   if (!showBanner) {
     return null;

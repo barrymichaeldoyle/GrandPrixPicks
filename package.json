@@ -17,9 +17,13 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
+    "test:ci": "vitest run --reporter=dot",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
+    "convex:migrations": "node scripts/convex/run-migrations.mjs",
+    "convex:migrations:prod": "node scripts/convex/run-migrations.mjs --prod",
     "knip": "knip",
     "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"
   },

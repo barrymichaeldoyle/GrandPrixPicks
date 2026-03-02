@@ -250,7 +250,7 @@ function Scenario({
       case 'sprint_quali':
         return race.sprintQualiLockAt ?? race.predictionLockAt;
       case 'sprint':
-        return race.sprintLockAt;
+        return race.sprintLockAt ?? race.predictionLockAt;
       case 'race':
         return race.predictionLockAt;
     }
@@ -263,7 +263,7 @@ function Scenario({
       case 'sprint_quali':
         return race.sprintQualiStartAt ?? race.raceStartAt;
       case 'sprint':
-        return race.sprintStartAt;
+        return race.sprintStartAt ?? race.raceStartAt;
       case 'race':
         return race.raceStartAt;
     }

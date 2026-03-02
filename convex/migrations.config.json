@@ -1,0 +1,10 @@
+[
+  {
+    "name": "seed:migrateSessionTypes",
+    "args": {}
+  },
+  {
+    "name": "leagues:migrateLeagueVisibility",
+    "args": {}
+  }
+]

@@ -1,8 +1,14 @@
 import { v } from 'convex/values';
 
-import type { Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
+import {
+  buildViewerEntryFromRows,
+  clampLeaderboardPagination,
+  filterLeaderboardVisibility,
+  mapRowsToLeaderboardEntries,
+  sortByPointsWithStableTieBreak,
+} from './lib/leaderboard';
 
 export const getSeasonLeaderboard = query({
   args: {
@@ -13,68 +19,29 @@ export const getSeasonLeaderboard = query({
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
     const season = args.season ?? 2026;
-    const MAX_LIMIT = 100;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
-    const offset = Math.max(0, args.offset ?? 0);
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
 
     const standings = await ctx.db
       .query('seasonStandings')
       .withIndex('by_season_points', (q) => q.eq('season', season))
       .collect();
 
-    // Sort by totalPoints desc (index is ascending)
-    const allRows = standings.sort((a, b) => b.totalPoints - a.totalPoints);
-
-    // Find viewer's entry from ALL rows (before privacy filtering)
-    let viewerEntry: {
-      rank: number;
-      userId: Id<'users'>;
-      username: string;
-      points: number;
-      raceCount: number;
-      isViewer: boolean;
-    } | null = null;
-
-    if (viewer) {
-      const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
-      if (viewerIndex !== -1) {
-        const viewerRow = allRows[viewerIndex];
-        viewerEntry = {
-          rank: viewerIndex + 1,
-          userId: viewer._id,
-          username: viewer.username ?? 'Anonymous',
-          points: viewerRow.totalPoints,
-          raceCount: viewerRow.raceCount,
-          isViewer: true,
-        };
-      }
-    }
-
-    // Filter out users who opted out (using denormalized field — no user doc reads)
-    const rows = allRows.filter((row) => {
-      if (viewer && row.userId === viewer._id) {
-        return true;
-      }
-      return row.showOnLeaderboard !== false;
-    });
+    const allRows = sortByPointsWithStableTieBreak(standings);
+    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
+    const rows = filterLeaderboardVisibility(allRows, viewer?._id);
 
     // Paginate results
     const paginatedRows = rows.slice(offset, offset + limit);
     const hasMore = offset + limit < rows.length;
 
-    // Use denormalized user data — no user doc reads needed
-    const enrichedRows = paginatedRows.map((row, index) => {
-      const isViewer = viewer ? row.userId === viewer._id : false;
-      return {
-        rank: offset + index + 1,
-        userId: row.userId,
-        username: row.username ?? 'Anonymous',
-        avatarUrl: row.avatarUrl,
-        points: row.totalPoints,
-        raceCount: row.raceCount,
-        isViewer,
-      };
-    });
+    const enrichedRows = mapRowsToLeaderboardEntries(
+      paginatedRows,
+      offset,
+      viewer?._id,
+    );
 
     return {
       entries: enrichedRows,
@@ -96,9 +63,10 @@ export const getFriendsLeaderboard = query({
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
     }
 
-    const MAX_LIMIT = 100;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
-    const offset = Math.max(0, args.offset ?? 0);
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
 
     // Get all users the viewer follows
     const followRows = await ctx.db
@@ -114,50 +82,20 @@ export const getFriendsLeaderboard = query({
       .withIndex('by_season_points', (q) => q.eq('season', 2026))
       .collect();
 
-    const allRows = standings
-      .filter((s) => friendIds.has(s.userId))
-      .sort((a, b) => b.totalPoints - a.totalPoints);
-
-    // Find viewer's entry
-    let viewerEntry: {
-      rank: number;
-      userId: Id<'users'>;
-      username: string;
-      points: number;
-      raceCount: number;
-      isViewer: boolean;
-    } | null = null;
-
-    const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
-    if (viewerIndex !== -1) {
-      const viewerRow = allRows[viewerIndex];
-      viewerEntry = {
-        rank: viewerIndex + 1,
-        userId: viewer._id,
-        username: viewer.username ?? 'Anonymous',
-        points: viewerRow.totalPoints,
-        raceCount: viewerRow.raceCount,
-        isViewer: true,
-      };
-    }
+    const allRows = sortByPointsWithStableTieBreak(
+      standings.filter((s) => friendIds.has(s.userId)),
+    );
+    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
 
     // Paginate
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    // Use denormalized user data — no user doc reads needed
-    const enrichedRows = paginatedRows.map((row, index) => {
-      const isViewer = row.userId === viewer._id;
-      return {
-        rank: offset + index + 1,
-        userId: row.userId,
-        username: row.username ?? 'Anonymous',
-        avatarUrl: row.avatarUrl,
-        points: row.totalPoints,
-        raceCount: row.raceCount,
-        isViewer,
-      };
-    });
+    const enrichedRows = mapRowsToLeaderboardEntries(
+      paginatedRows,
+      offset,
+      viewer._id,
+    );
 
     return {
       entries: enrichedRows,
@@ -179,9 +117,10 @@ export const getFriendsH2HLeaderboard = query({
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
     }
 
-    const MAX_LIMIT = 100;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
-    const offset = Math.max(0, args.offset ?? 0);
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
 
     const followRows = await ctx.db
       .query('follows')
@@ -196,35 +135,17 @@ export const getFriendsH2HLeaderboard = query({
       .withIndex('by_season_points', (q) => q.eq('season', 2026))
       .collect();
 
-    const allRows = standings
-      .filter((s) => friendIds.has(s.userId))
-      .sort((a, b) => b.totalPoints - a.totalPoints);
-
-    let viewerEntry: {
-      rank: number;
-      userId: Id<'users'>;
-      username: string;
-      points: number;
-      raceCount: number;
-      correctPicks: number;
-      totalPicks: number;
-      isViewer: boolean;
-    } | null = null;
-
-    const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
-    if (viewerIndex !== -1) {
-      const viewerRow = allRows[viewerIndex];
-      viewerEntry = {
-        rank: viewerIndex + 1,
-        userId: viewer._id,
-        username: viewer.username ?? 'Anonymous',
-        points: viewerRow.totalPoints,
-        raceCount: viewerRow.raceCount,
-        correctPicks: viewerRow.correctPicks,
-        totalPicks: viewerRow.totalPicks,
-        isViewer: true,
-      };
-    }
+    const allRows = sortByPointsWithStableTieBreak(
+      standings.filter((s) => friendIds.has(s.userId)),
+    );
+    const viewerEntryBase = buildViewerEntryFromRows(allRows, viewer);
+    const viewerEntry = viewerEntryBase
+      ? {
+          ...viewerEntryBase,
+          correctPicks: allRows[viewerEntryBase.rank - 1].correctPicks,
+          totalPicks: allRows[viewerEntryBase.rank - 1].totalPicks,
+        }
+      : null;
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
@@ -274,59 +195,30 @@ export const getLeagueLeaderboard = query({
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
     }
 
-    const MAX_LIMIT = 100;
-    const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
-    const offset = Math.max(0, args.offset ?? 0);
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
 
     const standings = await ctx.db
       .query('seasonStandings')
       .withIndex('by_season_points', (q) => q.eq('season', 2026))
       .collect();
 
-    const allRows = standings
-      .filter((s) => memberIds.has(s.userId))
-      .sort((a, b) => b.totalPoints - a.totalPoints);
-
-    // Find viewer's entry
-    let viewerEntry: {
-      rank: number;
-      userId: Id<'users'>;
-      username: string;
-      points: number;
-      raceCount: number;
-      isViewer: boolean;
-    } | null = null;
-
-    const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
-    if (viewerIndex !== -1) {
-      const viewerRow = allRows[viewerIndex];
-      viewerEntry = {
-        rank: viewerIndex + 1,
-        userId: viewer._id,
-        username: viewer.username ?? 'Anonymous',
-        points: viewerRow.totalPoints,
-        raceCount: viewerRow.raceCount,
-        isViewer: true,
-      };
-    }
+    const allRows = sortByPointsWithStableTieBreak(
+      standings.filter((s) => memberIds.has(s.userId)),
+    );
+    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
 
     // Paginate
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    // Use denormalized user data — no user doc reads needed
-    const enrichedRows = paginatedRows.map((row, index) => {
-      const isViewer = row.userId === viewer._id;
-      return {
-        rank: offset + index + 1,
-        userId: row.userId,
-        username: row.username ?? 'Anonymous',
-        avatarUrl: row.avatarUrl,
-        points: row.totalPoints,
-        raceCount: row.raceCount,
-        isViewer,
-      };
-    });
+    const enrichedRows = mapRowsToLeaderboardEntries(
+      paginatedRows,
+      offset,
+      viewer._id,
+    );
 
     return {
       entries: enrichedRows,

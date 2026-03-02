@@ -226,7 +226,7 @@ function CompactSummaryCard({
     cardState === 'missed_with_results';
   const body = (
     <div
-      className={`group relative overflow-hidden rounded-l-lg rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)]'} ${
+      className={`group relative overflow-hidden rounded-l-sm rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)]'} ${
         isNextRace
           ? 'border-accent/70 border-l-accent/70 hover:border-accent'
           : 'border-border border-l-border hover:border-accent/70'

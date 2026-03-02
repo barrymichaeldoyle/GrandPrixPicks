@@ -901,7 +901,8 @@ export const adminBackfillMissingH2HSessionsForRace = mutation({
 
       usersBackfilled++;
       sessionsBackfilled += missingSessions.length;
-      picksBackfilled += missingSessions.length * sourceSessionPredictions.length;
+      picksBackfilled +=
+        missingSessions.length * sourceSessionPredictions.length;
 
       if (dryRun) {
         continue;

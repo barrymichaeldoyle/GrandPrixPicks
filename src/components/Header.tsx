@@ -172,7 +172,7 @@ export function Header({
   return (
     <header
       ref={headerRef}
-      className="relative sticky top-0 z-50 h-[61px] overflow-hidden border-b border-border bg-surface/95 text-text shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/80"
+      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface/95 text-text shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/80"
     >
       <div
         aria-hidden

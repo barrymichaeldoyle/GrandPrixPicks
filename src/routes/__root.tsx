@@ -19,7 +19,6 @@ import { CookieConsent } from '../components/CookieConsent';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
-import { PWAInstallBanner } from '../components/PWAInstallBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
@@ -267,7 +266,6 @@ function RootDocument({ children }: PropsWithChildren) {
                 onThemeChange={setTheme}
               />
               <UpcomingPredictionBanner />
-              <PWAInstallBanner />
               <CookieConsent />
               <div
                 ref={mainRef}

@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Grand Prix Picks",
+    "slug": "grand-prix-picks-mobile",
+    "scheme": "grandprixpicks",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android", "web"],
+    "jsEngine": "hermes"
+  }
+}

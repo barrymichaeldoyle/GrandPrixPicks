@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "pnpm --filter @grandprixpicks/web dev",
     "dev:web": "pnpm --filter @grandprixpicks/web dev",
+    "dev:mobile": "pnpm --filter @grandprixpicks/mobile dev",
     "dev:backend": "pnpm --filter @grandprixpicks/backend dev",
     "dev:convex": "pnpm --filter @grandprixpicks/backend dev",
     "dev:public": "pnpm --filter @grandprixpicks/web dev:public",
@@ -23,6 +24,8 @@
     "ci:check": "pnpm lint && pnpm typecheck && pnpm test:ci && pnpm knip",
     "storybook": "pnpm --filter @grandprixpicks/web storybook",
     "build-storybook": "pnpm --filter @grandprixpicks/web build-storybook",
+    "ios": "pnpm --filter @grandprixpicks/mobile ios",
+    "android": "pnpm --filter @grandprixpicks/mobile android",
     "fix": "pnpm --filter @grandprixpicks/web fix",
     "format": "pnpm --filter @grandprixpicks/web format",
     "check": "pnpm --filter @grandprixpicks/web check",

@@ -61,7 +61,7 @@ export function CookieConsent() {
   };
 
   return (
-    <div className="bg-surface-raised fixed inset-x-0 bottom-0 z-50 border-t border-border p-4">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-4">
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-text-muted">
           We use cookies for anonymous analytics to improve the app.{' '}

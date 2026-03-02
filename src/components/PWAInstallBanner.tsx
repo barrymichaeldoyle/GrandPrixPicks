@@ -24,7 +24,7 @@ export function PWAInstallBanner() {
   };
 
   return (
-    <div className="bg-surface-raised flex items-center gap-3 border-b border-border px-4 py-2.5">
+    <div className="flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5">
       <div className="min-w-0 flex-1 text-sm text-text">
         {isIOSSafari ? (
           <span>

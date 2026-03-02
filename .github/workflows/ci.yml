@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  verify:
+  web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -29,5 +29,89 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prod=false
 
-      - name: Run CI script
-        run: pnpm run ci:check
+      - name: Lint web
+        run: pnpm --filter @grandprixpicks/web lint
+
+      - name: Typecheck web
+        run: pnpm --filter @grandprixpicks/web typecheck
+
+      - name: Test web
+        run: pnpm --filter @grandprixpicks/web test:ci
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Lint backend
+        run: pnpm --filter @grandprixpicks/backend lint
+
+      - name: Typecheck backend
+        run: pnpm --filter @grandprixpicks/backend typecheck
+
+  shared:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Typecheck shared
+        run: pnpm --filter @grandprixpicks/shared typecheck
+
+  knip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Run knip
+        run: pnpm knip

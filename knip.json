@@ -27,7 +27,8 @@
       "ignoreDependencies": ["@react-email/components"]
     },
     "packages/shared": {
-      "project": ["src/**/*.{ts,tsx}"]
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreBinaries": ["tsc"]
     }
   }
 }

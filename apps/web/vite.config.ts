@@ -1,3 +1,5 @@
+import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath, URL } from 'node:url';
 
 import { sentryVitePlugin } from '@sentry/vite-plugin';
@@ -12,6 +14,15 @@ import viteTsConfigPaths from 'vite-tsconfig-paths';
 // Use Cloudflare Pages preset when CF_PAGES env var is set (during deployment)
 const nitroPreset = process.env.CF_PAGES ? 'cloudflare-pages' : 'node-server';
 const isVitest = process.env.VITEST === 'true';
+const isCloudflarePages = process.env.CF_PAGES === '1';
+const require = createRequire(import.meta.url);
+const sentryTanstackPackageJsonPath = require.resolve(
+  '@sentry/tanstackstart-react/package.json',
+);
+const sentryTanstackClientEntry = join(
+  dirname(sentryTanstackPackageJsonPath),
+  'build/esm/index.client.js',
+);
 
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.VITE_SENTRY_ORG;
@@ -27,8 +38,12 @@ const config = defineConfig(({ mode }) => {
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {
+      conditions: isCloudflarePages ? ['browser'] : [],
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        ...(isCloudflarePages
+          ? { '@sentry/tanstackstart-react': sentryTanstackClientEntry }
+          : {}),
       },
     },
     build: {

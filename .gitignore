@@ -12,6 +12,7 @@ count.txt
 .wrangler
 .output
 .vinxi
+.types
 todos.json
 debug-storybook.log
 

@@ -2,6 +2,12 @@
   "name": "@grandprixpicks/shared",
   "private": true,
   "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
   "exports": {
     "./raceTimezones": "./src/raceTimezones.ts",
     "./sessions": "./src/sessions.ts"

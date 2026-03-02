@@ -17,7 +17,7 @@
     "email:dev": "pnpm --filter @grandprixpicks/backend email:dev",
     "test": "pnpm --filter @grandprixpicks/web test",
     "test:ci": "pnpm --filter @grandprixpicks/web test:ci",
-    "typecheck": "pnpm --filter @grandprixpicks/web typecheck && pnpm --filter @grandprixpicks/backend typecheck",
+    "typecheck": "pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/web typecheck && pnpm --filter @grandprixpicks/backend typecheck",
     "lint": "pnpm --filter @grandprixpicks/web lint && pnpm --filter @grandprixpicks/backend lint",
     "knip": "knip",
     "ci:check": "pnpm lint && pnpm typecheck && pnpm test:ci && pnpm knip",

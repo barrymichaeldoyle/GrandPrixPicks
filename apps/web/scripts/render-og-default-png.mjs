@@ -1,5 +1,4 @@
-import { execSync } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { access, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
@@ -8,49 +7,63 @@ import satori from 'satori';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const WOFF_USER_AGENT =
+const FONT_USER_AGENT =
   'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
+const LOCAL_SANS_FONT_CANDIDATES = [
+  process.env.OG_FONT_PATH,
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+  '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+  '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
+  '/System/Library/Fonts/Supplemental/Arial.ttf',
+  '/System/Library/Fonts/Supplemental/Helvetica.ttf',
+].filter(Boolean);
 
-function findNotoFontPath() {
-  return execSync(
-    "find node_modules -type f -name 'noto-sans-v27-latin-regular.ttf' | head -n 1",
-  )
-    .toString()
-    .trim();
-}
-
-async function resolveGoogleFontWoffUrl(family, weight) {
+async function resolveGoogleFontUrl(family, weight) {
   const encodedFamily = encodeURIComponent(family);
   const cssUrl = `https://fonts.googleapis.com/css2?family=${encodedFamily}:wght@${weight}`;
   const res = await fetch(cssUrl, {
-    headers: { 'User-Agent': WOFF_USER_AGENT },
+    headers: { 'User-Agent': FONT_USER_AGENT },
   });
   if (!res.ok) {
     throw new Error(`Failed to fetch ${family} CSS: ${res.status}`);
   }
   const css = await res.text();
-  const urlMatch = css.match(/url\(([^)]+)\)/);
+  const urlMatch = css.match(/url\(([^)]+)\)\s+format\('(woff2|woff)'\)/);
   if (!urlMatch?.[1]) {
     throw new Error(`Could not extract ${family} font URL`);
   }
-  return urlMatch[1];
+  return urlMatch[1].replace(/^["']|["']$/g, '');
+}
+
+async function loadGoogleFont(family, weight) {
+  const fontUrl = await resolveGoogleFontUrl(family, weight);
+  const fontRes = await fetch(fontUrl);
+  if (!fontRes.ok) {
+    throw new Error(`Failed to fetch ${family} font: ${fontRes.status}`);
+  }
+  return Buffer.from(await fontRes.arrayBuffer());
 }
 
 async function loadOrbitronBold() {
   try {
-    const orbitronUrl = await resolveGoogleFontWoffUrl('Orbitron', 700);
-    const fontRes = await fetch(orbitronUrl);
-    if (!fontRes.ok) {
-      throw new Error(`Failed to fetch Orbitron font: ${fontRes.status}`);
-    }
-    return Buffer.from(await fontRes.arrayBuffer());
+    return await loadGoogleFont('Orbitron', 700);
   } catch (err) {
     console.warn(
-      'Orbitron could not be loaded for OG generation, falling back to Noto Sans.',
+      'Orbitron could not be loaded for OG generation, falling back to base sans font.',
       err instanceof Error ? err.message : err,
     );
     return null;
   }
+}
+
+async function findLocalSansFontPath() {
+  for (const candidate of LOCAL_SANS_FONT_CANDIDATES) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {}
+  }
+  return null;
 }
 
 async function main() {
@@ -58,16 +71,18 @@ async function main() {
   const wasmPath = require.resolve('@resvg/resvg-wasm/index_bg.wasm');
   await initWasm(await readFile(wasmPath));
 
-  const fontPath = findNotoFontPath();
-  if (!fontPath) {
-    throw new Error('Could not find noto-sans-v27-latin-regular.ttf');
+  const sansPath = await findLocalSansFontPath();
+  if (!sansPath) {
+    throw new Error(
+      'Could not find a local sans font. Set OG_FONT_PATH to a .ttf/.otf/.woff font file.',
+    );
   }
-  const noto = await readFile(fontPath);
+  const sans = await readFile(sansPath);
   const orbitronBold = await loadOrbitronBold();
-  const titleFontFamily = orbitronBold ? 'Orbitron' : 'Noto Sans';
+  const titleFontFamily = orbitronBold ? 'Orbitron' : 'Sans';
   if (!orbitronBold) {
     console.warn(
-      'Using Noto Sans for title because Orbitron download was unavailable.',
+      'Using base sans font for title because Orbitron download was unavailable.',
     );
   }
 
@@ -86,7 +101,7 @@ async function main() {
         position: 'relative',
         backgroundColor: '#0f172a',
         color: '#f8fafc',
-        fontFamily: 'Noto Sans',
+        fontFamily: 'Sans',
       },
     },
     h('div', {
@@ -216,9 +231,9 @@ async function main() {
     width: WIDTH,
     height: HEIGHT,
     fonts: [
-      { name: 'Noto Sans', data: noto, weight: 400, style: 'normal' },
-      { name: 'Noto Sans', data: noto, weight: 700, style: 'normal' },
-      { name: 'Noto Sans', data: noto, weight: 900, style: 'normal' },
+      { name: 'Sans', data: sans, weight: 400, style: 'normal' },
+      { name: 'Sans', data: sans, weight: 700, style: 'normal' },
+      { name: 'Sans', data: sans, weight: 900, style: 'normal' },
       ...(orbitronBold
         ? [
             {

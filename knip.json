@@ -26,6 +26,17 @@
       "project": ["convex/**/*.ts"],
       "ignoreDependencies": ["@react-email/components"]
     },
+    "apps/mobile": {
+      "entry": ["App.tsx", "babel.config.cjs", "metro.config.cjs"],
+      "project": ["**/*.{ts,tsx,js,cjs}"],
+      "ignoreDependencies": [
+        "babel-preset-expo",
+        "expo-updates",
+        "react-native-web",
+        "react-dom",
+        "@expo/metro-runtime"
+      ]
+    },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"]
     }

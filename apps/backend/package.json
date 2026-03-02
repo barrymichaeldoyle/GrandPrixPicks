@@ -9,7 +9,7 @@
     "lint": "pnpm exec eslint \"convex/**/*.{ts,tsx}\"",
     "migrations": "node scripts/convex/run-migrations.mjs",
     "migrations:prod": "node scripts/convex/run-migrations.mjs --prod",
-    "typecheck": "tsc --noEmit -p convex/tsconfig.json"
+    "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit -p convex/tsconfig.json"
   },
   "dependencies": {
     "@convex-dev/resend": "0.2.3",

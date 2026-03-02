@@ -33,7 +33,7 @@ jobs:
         run: pnpm --filter @grandprixpicks/web lint
 
       - name: Typecheck web
-        run: pnpm --filter @grandprixpicks/web typecheck
+        run: pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/web typecheck
 
       - name: Test web
         run: pnpm --filter @grandprixpicks/web test:ci
@@ -64,7 +64,7 @@ jobs:
         run: pnpm --filter @grandprixpicks/backend lint
 
       - name: Typecheck backend
-        run: pnpm --filter @grandprixpicks/backend typecheck
+        run: pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/backend typecheck
 
   shared:
     runs-on: ubuntu-latest

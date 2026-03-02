@@ -30,6 +30,7 @@ export default [
       'simple-import-sort/exports': 'error',
       'import/order': 'off', // use simple-import-sort instead
       'prettier/prettier': 'error',
+      'func-style': ['error', 'declaration'],
       curly: ['error', 'all'],
       'no-restricted-syntax': [
         'error',

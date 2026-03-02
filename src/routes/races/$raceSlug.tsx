@@ -129,7 +129,7 @@ function RaceDetailPage() {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const now = Date.now();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
-  const getSessionLockAt = (session: SessionType): number => {
+  function getSessionLockAt(session: SessionType): number {
     if (!race) {
       return 0;
     }
@@ -143,8 +143,8 @@ function RaceDetailPage() {
       case 'race':
         return race.predictionLockAt;
     }
-  };
-  const getSessionStartAt = (session: SessionType): number => {
+  }
+  function getSessionStartAt(session: SessionType): number {
     if (!race) {
       return 0;
     }
@@ -158,7 +158,7 @@ function RaceDetailPage() {
       case 'race':
         return race.raceStartAt;
     }
-  };
+  }
   const nextOpenSession = weekendSessions.find(
     (session) => now < getSessionLockAt(session),
   );
@@ -181,7 +181,7 @@ function RaceDetailPage() {
   const [top5HasUnsavedChanges, setTop5HasUnsavedChanges] = useState(false);
   const [h2hHasUnsavedChanges, setH2hHasUnsavedChanges] = useState(false);
 
-  const handleSessionTabChange = (nextSession: SessionType) => {
+  function handleSessionTabChange(nextSession: SessionType) {
     if (nextSession === selectedSession) {
       return;
     }
@@ -203,7 +203,7 @@ function RaceDetailPage() {
     setH2hEditingSession(null);
     setTop5HasUnsavedChanges(false);
     setH2hHasUnsavedChanges(false);
-  };
+  }
 
   useEffect(() => {
     if (!top5EditingSession) {
@@ -439,9 +439,10 @@ function RaceDetailPage() {
   if (race === null) {
     return <RaceNotFound />;
   }
+  const currentRace = race;
 
-  const isNextRace = Boolean(nextRace && nextRace._id === race._id);
-  const isPredictable = race.status === 'upcoming' && isNextRace;
+  const isNextRace = Boolean(nextRace && nextRace._id === currentRace._id);
+  const isPredictable = currentRace.status === 'upcoming' && isNextRace;
   const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
   const canEditSelectedSession = Boolean(
     isPredictable &&
@@ -451,14 +452,14 @@ function RaceDetailPage() {
   );
 
   // ─── Top 5 editing flow ───
-  const renderTop5EditForm = () => {
+  function renderTop5EditForm() {
     if (!top5EditingSession) {
       return null;
     }
     return (
       <div className="p-4">
         <PredictionForm
-          raceId={race._id}
+          raceId={currentRace._id}
           sessionType={top5EditingSession}
           existingPicks={
             weekendPredictions?.predictions[top5EditingSession] ?? undefined
@@ -468,10 +469,10 @@ function RaceDetailPage() {
         />
       </div>
     );
-  };
+  }
 
   // ─── Initial prediction form (no picks yet, signed in) ───
-  const renderInitialForm = () => {
+  function renderInitialForm() {
     if (!isPredictable || !isSignedIn || hasPredictions) {
       return null;
     }
@@ -483,19 +484,19 @@ function RaceDetailPage() {
         </div>
         <p className="text-text-muted">
           Pick your top 5 drivers. This prediction will apply to{' '}
-          {race.hasSprint
+          {currentRace.hasSprint
             ? 'Qualifying, Sprint Qualifying, Sprint, and Race'
             : 'Qualifying and Race'}
           . You can fine-tune individual sessions after submitting.
         </p>
-        <PredictionForm raceId={race._id} />
+        <PredictionForm raceId={currentRace._id} />
       </div>
     );
-  };
+  }
 
   return (
     <RaceEventPageLayout
-      race={race}
+      race={currentRace}
       isNextRace={isNextRace}
       isPredictable={isPredictable}
       isAuthLoaded={isAuthLoaded}

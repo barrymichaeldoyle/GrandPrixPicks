@@ -117,8 +117,8 @@ export const getH2HResultsForRace = query({
         const driver1 = matchup ? await ctx.db.get(matchup.driver1Id) : null;
         const driver2 = matchup ? await ctx.db.get(matchup.driver2Id) : null;
 
-        const enrichDriver = (d: typeof driver1) =>
-          d
+        function enrichDriver(d: typeof driver1) {
+          return d
             ? {
                 _id: d._id,
                 code: d.code,
@@ -128,6 +128,7 @@ export const getH2HResultsForRace = query({
                 nationality: d.nationality ?? null,
               }
             : null;
+        }
 
         return {
           matchupId: r.matchupId,

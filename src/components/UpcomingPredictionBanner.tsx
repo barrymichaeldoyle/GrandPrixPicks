@@ -46,12 +46,13 @@ export function UpcomingPredictionBanner() {
   if (!nextRace || nextRace.status !== 'upcoming') {
     return null;
   }
+  const currentRace = nextRace;
 
-  const racePath = `/races/${nextRace.slug}`;
+  const racePath = `/races/${currentRace.slug}`;
   const isOnRacePredictionPage =
     pathname === racePath || pathname.startsWith(`${racePath}/`);
 
-  const relevantSessions = nextRace.hasSprint
+  const relevantSessions = currentRace.hasSprint
     ? SPRINT_SESSIONS
     : STANDARD_SESSIONS;
   const hasAnyPredictions = relevantSessions.some(
@@ -62,35 +63,35 @@ export function UpcomingPredictionBanner() {
     return null;
   }
 
-  const handleRandomize = async () => {
+  async function handleRandomize() {
     setError(null);
     setIsRandomizing(true);
     try {
-      await randomizePredictions({ raceId: nextRace._id });
+      await randomizePredictions({ raceId: currentRace._id });
       if (matchups && matchups.length > 0) {
         const randomH2HPicks = matchups.map((m) => ({
           matchupId: m._id,
           predictedWinnerId:
             Math.random() < 0.5 ? m.driver1._id : m.driver2._id,
         }));
-        await submitH2H({ raceId: nextRace._id, picks: randomH2HPicks });
+        await submitH2H({ raceId: currentRace._id, picks: randomH2HPicks });
       }
       setShowConfirm(false);
       await navigate({
         to: '/races/$raceSlug',
-        params: { raceSlug: nextRace.slug },
+        params: { raceSlug: currentRace.slug },
       });
     } catch (err) {
       setError(toUserFacingMessage(err));
     } finally {
       setIsRandomizing(false);
     }
-  };
+  }
 
   return (
     <div>
       <UpcomingPredictionNudge
-        raceName={nextRace.name}
+        raceName={currentRace.name}
         isRandomizing={isRandomizing}
         error={error}
         onRandomizeClick={() => {
@@ -99,7 +100,7 @@ export function UpcomingPredictionBanner() {
         }}
         makePicksControl={
           <Button asChild size="sm" rightIcon={ArrowRight}>
-            <Link to="/races/$raceSlug" params={{ raceSlug: nextRace.slug }}>
+            <Link to="/races/$raceSlug" params={{ raceSlug: currentRace.slug }}>
               Make picks
             </Link>
           </Button>

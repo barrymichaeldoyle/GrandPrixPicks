@@ -58,18 +58,18 @@ export function H2HPredictionForm({
   const selectedCount = Object.keys(selections).length;
   const allSelected = selectedCount === totalMatchups;
 
-  const toggleSelection = (
+  function toggleSelection(
     matchupId: Id<'h2hMatchups'>,
     driverId: Id<'drivers'>,
-  ) => {
+  ) {
     setSelections((prev) => ({
       ...prev,
       [matchupId]: driverId,
     }));
     setSubmitStatus('idle');
-  };
+  }
 
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     if (!allSelected) {
       return;
     }
@@ -105,7 +105,7 @@ export function H2HPredictionForm({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   const hasChanges = existingPicks
     ? JSON.stringify(selections) !== JSON.stringify(existingPicks)

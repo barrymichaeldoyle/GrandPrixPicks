@@ -184,7 +184,7 @@ function AdminGeneralSettings({ league }: { league: League }) {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const isPublic = league.visibility === 'public';
 
-  const handleSetPassword = async () => {
+  async function handleSetPassword() {
     if (!newPassword.trim()) {
       return;
     }
@@ -199,16 +199,16 @@ function AdminGeneralSettings({ league }: { league: League }) {
     } finally {
       setPasswordLoading(false);
     }
-  };
+  }
 
-  const handleRemovePassword = async () => {
+  async function handleRemovePassword() {
     setPasswordLoading(true);
     try {
       await removePasswordMutation({ leagueId: league._id });
     } finally {
       setPasswordLoading(false);
     }
-  };
+  }
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
@@ -322,7 +322,7 @@ function DangerZone({
 
   const slugMatches = deleteConfirmSlug.trim() === league.slug;
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     if (!slugMatches) {
       return;
     }
@@ -333,12 +333,12 @@ function DangerZone({
     } finally {
       setIsDeleting(false);
     }
-  };
+  }
 
-  const resetDeleteConfirm = () => {
+  function resetDeleteConfirm() {
     setShowDeleteConfirm(false);
     setDeleteConfirmSlug('');
-  };
+  }
 
   return (
     <div className="overflow-hidden rounded-xl border-2 border-error/40 bg-error/5">
@@ -454,7 +454,7 @@ function EditLeagueForm({
     slugChanged && slug.length >= 3 ? { slug } : 'skip',
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -483,7 +483,7 @@ function EditLeagueForm({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <form
@@ -588,7 +588,7 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLeave = async () => {
+  async function handleLeave() {
     setError(null);
     setIsLeaving(true);
     try {
@@ -602,7 +602,7 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
       );
       setIsLeaving(false);
     }
-  };
+  }
 
   if (showConfirm) {
     return (

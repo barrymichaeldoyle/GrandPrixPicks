@@ -314,7 +314,7 @@ export function PredictionForm({
     }),
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over) {
       return;
@@ -351,7 +351,7 @@ export function PredictionForm({
       }
     }
     setSubmitStatus('idle');
-  };
+  }
 
   // Tooltip for empty slot: "cards below" on narrow, "cards to the right" on lg+ (matches layout)
   const [driverSlotTooltip, setDriverSlotTooltip] = useState(() =>
@@ -362,11 +362,11 @@ export function PredictionForm({
   );
   useEffect(() => {
     const mql = window.matchMedia('(min-width: 1024px)');
-    const handler = () => {
+    function handler() {
       setDriverSlotTooltip(
         mql.matches ? DRIVER_SLOT_TOOLTIP.lg : DRIVER_SLOT_TOOLTIP.narrow,
       );
-    };
+    }
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
   }, []);
@@ -422,7 +422,7 @@ export function PredictionForm({
     return a.displayName.localeCompare(b.displayName);
   });
 
-  const addDriver = (driverId: Id<'drivers'>) => {
+  function addDriver(driverId: Id<'drivers'>) {
     if (picks.length >= 5) {
       return;
     }
@@ -431,23 +431,23 @@ export function PredictionForm({
     }
     setPicks([...picks, driverId]);
     setSubmitStatus('idle');
-  };
+  }
 
-  const removeDriver = (driverId: Id<'drivers'>) => {
+  function removeDriver(driverId: Id<'drivers'>) {
     setPicks(picks.filter((id) => id !== driverId));
     setSubmitStatus('idle');
-  };
+  }
 
   /** Insert driver at slot index (0–4). Used when dropping from pool onto a row. */
-  const addDriverAtPosition = (driverId: Id<'drivers'>, slotIndex: number) => {
+  function addDriverAtPosition(driverId: Id<'drivers'>, slotIndex: number) {
     const without = picks.filter((id) => id !== driverId);
     const next = [...without];
     next.splice(slotIndex, 0, driverId);
     setPicks(next.slice(0, 5));
     setSubmitStatus('idle');
-  };
+  }
 
-  const moveUp = (index: number) => {
+  function moveUp(index: number) {
     if (index === 0) {
       return;
     }
@@ -458,9 +458,9 @@ export function PredictionForm({
     ];
     setPicks(newPicks);
     setSubmitStatus('idle');
-  };
+  }
 
-  const moveDown = (index: number) => {
+  function moveDown(index: number) {
     if (index >= picks.length - 1) {
       return;
     }
@@ -471,9 +471,9 @@ export function PredictionForm({
     ];
     setPicks(newPicks);
     setSubmitStatus('idle');
-  };
+  }
 
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     if (picks.length !== 5) {
       return;
     }
@@ -506,7 +506,7 @@ export function PredictionForm({
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   /** When editing existing picks: current selection matches saved → show Saved, disable button */
   const isUnchangedFromSaved = Boolean(

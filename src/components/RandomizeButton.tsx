@@ -35,7 +35,9 @@ export function RandomizeButton({
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${NARROW_BREAKPOINT_PX - 1}px)`);
-    const handler = () => setIsNarrow(mq.matches);
+    function handler() {
+      setIsNarrow(mq.matches);
+    }
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);

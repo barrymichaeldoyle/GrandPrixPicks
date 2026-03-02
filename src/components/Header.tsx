@@ -61,7 +61,7 @@ export function Header({
     if (onThemeChange !== undefined) {
       return;
     }
-    const syncTheme = () => {
+    function syncTheme() {
       const saved = localStorage.getItem(themeKey);
       const next =
         saved === 'dark'
@@ -70,7 +70,7 @@ export function Header({
             ? false
             : window.matchMedia('(prefers-color-scheme: dark)').matches;
       setLocalDark(next);
-    };
+    }
     syncTheme();
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener('change', syncTheme);
@@ -117,7 +117,7 @@ export function Header({
 
     const headerEl = headerRef.current;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         onMobileMenuOpenChange(false);
         menuButtonRef.current?.focus();
@@ -150,7 +150,7 @@ export function Header({
         const nextIndex = e.shiftKey ? allFocusable.length - 1 : 0;
         allFocusable[nextIndex]?.focus();
       }
-    };
+    }
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);

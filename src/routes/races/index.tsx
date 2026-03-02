@@ -77,13 +77,13 @@ function RacesPage() {
   const statusFilter: StatusFilter = search.status ?? 'all';
   const sprintOnly = search.sprint === true;
 
-  const setFilters = ({
+  function setFilters({
     status,
     sprint,
   }: {
     status: StatusFilter;
     sprint: boolean;
-  }) => {
+  }) {
     void navigate({
       to: '.',
       search: (prev) => ({
@@ -92,7 +92,7 @@ function RacesPage() {
         sprint: sprint ? true : undefined,
       }),
     });
-  };
+  }
 
   const upcomingRaces = races.filter((r) => r.status === 'upcoming');
   const lockedRaces = races.filter((r) => r.status === 'locked');
@@ -137,7 +137,7 @@ function RacesPage() {
   } as const;
 
   // When predictions open for a race = previous race's start (same season, round - 1)
-  const getPredictionOpenAt = (race: (typeof races)[0]) => {
+  function getPredictionOpenAt(race: (typeof races)[0]) {
     if (race.round <= 1) {
       return null;
     }
@@ -145,7 +145,7 @@ function RacesPage() {
       (r) => r.season === race.season && r.round === race.round - 1,
     );
     return prev?.raceStartAt ?? null;
-  };
+  }
 
   return (
     <div className="min-h-screen bg-page">

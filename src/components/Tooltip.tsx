@@ -157,11 +157,13 @@ export function Tooltip({
     }
     // Track that tooltip has been shown (keeps content mounted for caching)
     setHasBeenVisible(true);
-    const handleScroll = () => {
+    function handleScroll() {
       openedByTouchRef.current = false;
       setIsVisible(false);
-    };
-    const handleResize = () => updatePosition();
+    }
+    function handleResize() {
+      updatePosition();
+    }
     window.addEventListener('scroll', handleScroll, true);
     window.addEventListener('resize', handleResize);
     const rafId = requestAnimationFrame(() => setDoAnimate(true));
@@ -177,19 +179,23 @@ export function Tooltip({
     if (!isVisible || !openedByTouchRef.current) {
       return;
     }
-    const handlePointerDown = (e: PointerEvent) => {
+    function handleOutsidePointerDown(e: PointerEvent) {
       if (triggerRef.current?.contains(e.target as Node)) {
         return;
       }
       openedByTouchRef.current = false;
       setIsVisible(false);
-    };
-    document.addEventListener('pointerdown', handlePointerDown, true);
+    }
+    document.addEventListener('pointerdown', handleOutsidePointerDown, true);
     return () =>
-      document.removeEventListener('pointerdown', handlePointerDown, true);
+      document.removeEventListener(
+        'pointerdown',
+        handleOutsidePointerDown,
+        true,
+      );
   }, [isVisible]);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
+  function handlePointerDown(e: React.PointerEvent) {
     if (e.pointerType !== 'touch') {
       return;
     }
@@ -199,9 +205,9 @@ export function Tooltip({
     }
     openedByTouchRef.current = true;
     openAtTrigger();
-  };
+  }
 
-  const handlePointerEnter = (e: React.PointerEvent) => {
+  function handlePointerEnter(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') {
       return;
     }
@@ -209,9 +215,9 @@ export function Tooltip({
       openTimeoutRef.current = null;
       openAtTrigger();
     }, OPEN_DELAY_MS);
-  };
+  }
 
-  const handlePointerLeave = (e: React.PointerEvent) => {
+  function handlePointerLeave(e: React.PointerEvent) {
     if (e.pointerType !== 'mouse') {
       return;
     }
@@ -220,7 +226,7 @@ export function Tooltip({
       openTimeoutRef.current = null;
     }
     setIsVisible(false);
-  };
+  }
 
   const translateY = effectivePlacement === 'top' ? '-100%' : '0';
   const slideOffset = doAnimate

@@ -53,7 +53,9 @@ export function useCountdown(timestamp: number): string {
   const [label, setLabel] = useState(() => getTimeUntil(timestamp));
 
   useEffect(() => {
-    const tick = () => setLabel(getTimeUntil(timestamp));
+    function tick() {
+      setLabel(getTimeUntil(timestamp));
+    }
     tick();
     const id = setInterval(tick, 1_000);
     return () => clearInterval(id);

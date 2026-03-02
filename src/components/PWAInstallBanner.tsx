@@ -13,15 +13,15 @@ export function PWAInstallBanner() {
 
   const platform = isIOSSafari ? 'ios_safari' : 'desktop_or_android';
 
-  const handleInstall = () => {
+  function handleInstall() {
     posthog.capture('pwa_install_accepted', { platform });
     install();
-  };
+  }
 
-  const handleDismiss = () => {
+  function handleDismiss() {
     posthog.capture('pwa_install_dismissed', { platform });
     onDismiss();
-  };
+  }
 
   return (
     <div className="flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-2.5">

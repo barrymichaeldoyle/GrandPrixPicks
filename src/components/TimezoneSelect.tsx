@@ -125,12 +125,12 @@ export function TimezoneSelect({
     if (!open) {
       return;
     }
-    const handleClickOutside = (e: MouseEvent) => {
+    function handleClickOutside(e: MouseEvent) {
       if (containerRef.current?.contains(e.target as Node)) {
         return;
       }
       close();
-    };
+    }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open, close]);

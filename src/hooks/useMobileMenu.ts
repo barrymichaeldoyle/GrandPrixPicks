@@ -15,14 +15,15 @@ export function useMobileMenu(mainRef: RefObject<HTMLDivElement | null>) {
     if (!el) {
       return;
     }
+    const targetEl = el;
     const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    const applyInert = () => {
+    function applyInert() {
       if (mobileMenuOpen && mq.matches) {
-        el.setAttribute('inert', '');
+        targetEl.setAttribute('inert', '');
       } else {
-        el.removeAttribute('inert');
+        targetEl.removeAttribute('inert');
       }
-    };
+    }
     applyInert();
     mq.addEventListener('change', applyInert);
     return () => mq.removeEventListener('change', applyInert);

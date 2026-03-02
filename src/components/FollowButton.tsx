@@ -23,7 +23,7 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     return null;
   }
 
-  const handleClick = async (e: MouseEvent<HTMLButtonElement>) => {
+  async function handleClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
     const willFollow = !following;
@@ -37,7 +37,7 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     } catch {
       setOptimistic(null);
     }
-  };
+  }
 
   const buttonClass =
     'inline-flex min-w-[7rem] items-center justify-start gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors';

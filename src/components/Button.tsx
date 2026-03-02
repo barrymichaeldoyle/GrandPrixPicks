@@ -97,7 +97,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       .filter(Boolean)
       .join(' ');
 
-    const renderContent = (label: ReactNode) => {
+    function renderContent(label: ReactNode) {
       const normalContent = (
         <>
           {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
@@ -123,7 +123,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         );
       }
       return normalContent;
-    };
+    }
 
     if (asChild) {
       const child = Children.only(children);

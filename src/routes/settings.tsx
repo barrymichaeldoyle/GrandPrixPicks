@@ -112,13 +112,13 @@ function RegionalSection({
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : 'UTC');
 
-  const handleTimezoneChange = (value: string | undefined) => {
+  function handleTimezoneChange(value: string | undefined) {
     onUpdate({ timezone: value === undefined ? null : value });
-  };
+  }
 
-  const handleLocaleChange = (value: string | undefined) => {
+  function handleLocaleChange(value: string | undefined) {
     onUpdate({ locale: value === undefined ? null : value });
-  };
+  }
 
   return (
     <SettingsSection
@@ -482,21 +482,21 @@ function SettingsPage() {
   const isUsernameLocked =
     usernameCooldownUntil !== null && Date.now() < usernameCooldownUntil;
 
-  const startEditing = () => {
+  function startEditing() {
     setEditDisplayName(me?.displayName ?? '');
     setEditUsername(me?.username ?? '');
     setEditError(null);
     setShowUsernameConfirm(false);
     setIsEditing(true);
-  };
+  }
 
-  const cancelEditing = () => {
+  function cancelEditing() {
     setIsEditing(false);
     setEditError(null);
     setShowUsernameConfirm(false);
-  };
+  }
 
-  const handleSave = async () => {
+  async function handleSave() {
     const trimmedUsername = editUsername.trim().toLowerCase();
     const usernameChanged = trimmedUsername !== (me?.username ?? '');
 
@@ -528,7 +528,7 @@ function SettingsPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   if (!isLoaded) {
     return <PageLoader />;

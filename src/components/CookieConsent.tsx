@@ -6,7 +6,11 @@ import { Button } from './Button';
 
 const COOKIE_CONSENT_KEY = 'gpp_cookie_consent_v1';
 
-export function CookieConsent() {
+interface CookieConsentProps {
+  forceVisible?: boolean;
+}
+
+export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
   const [decided, setDecided] = useState(() => {
     if (typeof window === 'undefined') {
       return true;
@@ -33,11 +37,11 @@ export function CookieConsent() {
     return false;
   });
 
-  if (decided) {
+  if (!forceVisible && decided) {
     return null;
   }
 
-  const accept = () => {
+  function accept() {
     posthog.opt_in_capturing();
     try {
       window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
@@ -48,9 +52,9 @@ export function CookieConsent() {
     posthog.capture('cookie_consent_accepted');
     posthog.capture('$pageview');
     setDecided(true);
-  };
+  }
 
-  const decline = () => {
+  function decline() {
     posthog.opt_out_capturing();
     try {
       window.localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
@@ -58,7 +62,7 @@ export function CookieConsent() {
       // Ignore storage errors and continue.
     }
     setDecided(true);
-  };
+  }
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-4">

@@ -2,6 +2,7 @@ import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
 import { AlertCircle, Loader2, Mail } from 'lucide-react';
+import type { SubmitEvent } from 'react';
 import { useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
@@ -79,7 +80,7 @@ function SupportContent() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -106,7 +107,7 @@ function SupportContent() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="bg-page">

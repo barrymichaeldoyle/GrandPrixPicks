@@ -15,7 +15,9 @@ export function useTheme(themeKey = THEME_KEY) {
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    const sync = () => setIsDark(resolveTheme(themeKey));
+    function sync() {
+      setIsDark(resolveTheme(themeKey));
+    }
     sync();
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener('change', sync);
@@ -30,10 +32,10 @@ export function useTheme(themeKey = THEME_KEY) {
     );
   }, [isDark]);
 
-  const setTheme = (dark: boolean) => {
+  function setTheme(dark: boolean) {
     localStorage.setItem(themeKey, dark ? 'dark' : 'light');
     setIsDark(dark);
-  };
+  }
 
   return { isDark, setTheme };
 }

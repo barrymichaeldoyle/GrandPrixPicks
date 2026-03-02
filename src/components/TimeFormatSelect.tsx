@@ -68,9 +68,9 @@ export function TimeFormatSelect({
     });
   }, [timezone]);
 
-  const handleSelect = (v: 'en-US' | 'en-GB') => {
+  function handleSelect(v: 'en-US' | 'en-GB') {
     onChange(v);
-  };
+  }
 
   return (
     <div className="w-full">

@@ -92,7 +92,7 @@ export function DriverSearchSelect({
     if (!open) {
       return;
     }
-    const handleKeyDown = (e: KeyboardEvent) => {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         close();
         inputRef.current?.blur();
@@ -114,7 +114,7 @@ export function DriverSearchSelect({
         close();
         inputRef.current?.blur();
       }
-    };
+    }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [open, options, highlightIndex, onChange, close]);
@@ -124,12 +124,12 @@ export function DriverSearchSelect({
     if (!open) {
       return;
     }
-    const handleClickOutside = (e: MouseEvent) => {
+    function handleClickOutside(e: MouseEvent) {
       if (containerRef.current?.contains(e.target as Node)) {
         return;
       }
       close();
-    };
+    }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open, close]);
@@ -148,17 +148,17 @@ export function DriverSearchSelect({
     el.scrollIntoView({ block: 'nearest' });
   }, [open, highlightIndex]);
 
-  const handleSelect = (driverId: Id<'drivers'>) => {
+  function handleSelect(driverId: Id<'drivers'>) {
     onChange(driverId);
     close();
     inputRef.current?.blur();
-  };
+  }
 
-  const handleClear = (e: React.MouseEvent) => {
+  function handleClear(e: React.MouseEvent) {
     e.stopPropagation();
     onChange(null);
     setOpen(false);
-  };
+  }
 
   return (
     <div ref={containerRef} className="relative w-full">

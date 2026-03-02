@@ -73,14 +73,14 @@ export function usePWAInstall() {
       }
     }
 
-    const handleInstallPrompt = (e: Event) => {
+    function handleInstallPrompt(e: Event) {
       e.preventDefault();
       setInstallPrompt(e as BeforeInstallPromptEvent);
-    };
-    const handleAppInstalled = () => {
+    }
+    function handleAppInstalled() {
       setIsInstalled(true);
       setInstallPrompt(null);
-    };
+    }
 
     window.addEventListener('beforeinstallprompt', handleInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -91,7 +91,7 @@ export function usePWAInstall() {
     };
   }, []);
 
-  const install = async () => {
+  async function install() {
     if (!installPrompt || isInstalling) {
       return;
     }
@@ -111,12 +111,12 @@ export function usePWAInstall() {
     } finally {
       setIsInstalling(false);
     }
-  };
+  }
 
-  const onDismiss = () => {
+  function onDismiss() {
     recordDismissal();
     setDismissed(true);
-  };
+  }
 
   const showBanner =
     !isInstalled &&

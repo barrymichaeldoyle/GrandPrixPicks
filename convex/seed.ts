@@ -1090,6 +1090,7 @@ export const seedDevUserRaceScenarios = internalMutation({
     if (!user) {
       throw new Error('User not found');
     }
+    const currentUser = user;
 
     // Build baseline: finished races, results, top-5 predictions/scores and H2H data.
     await ctx.runMutation(internal.seed.seedDevData, {
@@ -1127,20 +1128,21 @@ export const seedDevUserRaceScenarios = internalMutation({
       throw new Error('Failed to pick a race for the halfway scenario.');
     }
 
-    const sessionsForRace = (r: { hasSprint?: boolean }): Array<SessionType> =>
-      r.hasSprint
+    function sessionsForRace(r: { hasSprint?: boolean }): Array<SessionType> {
+      return r.hasSprint
         ? ['sprint_quali', 'sprint', 'quali', 'race']
         : ['quali', 'race'];
+    }
 
-    const deleteTop5ForSession = async (
+    async function deleteTop5ForSession(
       raceId: Id<'races'>,
       sessionType: SessionType,
-    ) => {
+    ) {
       const prediction = await ctx.db
         .query('predictions')
         .withIndex('by_user_race_session', (q) =>
           q
-            .eq('userId', user._id)
+            .eq('userId', currentUser._id)
             .eq('raceId', raceId)
             .eq('sessionType', sessionType),
         )
@@ -1153,7 +1155,7 @@ export const seedDevUserRaceScenarios = internalMutation({
         .query('scores')
         .withIndex('by_user_race_session', (q) =>
           q
-            .eq('userId', user._id)
+            .eq('userId', currentUser._id)
             .eq('raceId', raceId)
             .eq('sessionType', sessionType),
         )
@@ -1161,18 +1163,18 @@ export const seedDevUserRaceScenarios = internalMutation({
       if (score) {
         await ctx.db.delete(score._id);
       }
-    };
+    }
 
-    const deleteH2HForSession = async (
+    async function deleteH2HForSession(
       raceId: Id<'races'>,
       sessionType: SessionType,
       opts?: { deleteResults?: boolean },
-    ) => {
+    ) {
       const predictions = await ctx.db
         .query('h2hPredictions')
         .withIndex('by_user_race_session', (q) =>
           q
-            .eq('userId', user._id)
+            .eq('userId', currentUser._id)
             .eq('raceId', raceId)
             .eq('sessionType', sessionType),
         )
@@ -1185,7 +1187,7 @@ export const seedDevUserRaceScenarios = internalMutation({
         .query('h2hScores')
         .withIndex('by_user_race_session', (q) =>
           q
-            .eq('userId', user._id)
+            .eq('userId', currentUser._id)
             .eq('raceId', raceId)
             .eq('sessionType', sessionType),
         )
@@ -1205,7 +1207,7 @@ export const seedDevUserRaceScenarios = internalMutation({
           await ctx.db.delete(result._id);
         }
       }
-    };
+    }
 
     // Scenario 1: No predictions at all.
     for (const sessionType of sessionsForRace(noPredictionsRace)) {

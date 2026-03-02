@@ -239,7 +239,7 @@ function JoinSection({
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
 
-  const handleJoin = async () => {
+  async function handleJoin() {
     setError(null);
     setIsJoining(true);
     try {
@@ -256,7 +256,7 @@ function JoinSection({
       );
       setIsJoining(false);
     }
-  };
+  }
 
   return (
     <div className="mb-6 rounded-xl border border-border bg-surface p-6 text-center">
@@ -464,16 +464,18 @@ function LeagueMembers({
   const removeMember = useMutation(api.leagues.removeMember);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const isViewer = (userId: Id<'users'>) => me?._id === userId;
+  function isViewer(userId: Id<'users'>) {
+    return me?._id === userId;
+  }
 
   if (members === undefined) {
     return <InlineLoader />;
   }
 
-  const handleAction = async (
+  async function handleAction(
     action: 'promote' | 'demote' | 'remove',
     userId: Id<'users'>,
-  ) => {
+  ) {
     setActionLoading(`${action}-${userId}`);
     try {
       if (action === 'promote') {
@@ -486,7 +488,7 @@ function LeagueMembers({
     } finally {
       setActionLoading(null);
     }
-  };
+  }
 
   return (
     <div className="mb-6">

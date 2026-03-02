@@ -29,8 +29,13 @@ const now = Date.now();
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 
-const fakeRaceId = (value: string) => value as Id<'races'>;
-const fakeDriverId = (value: string) => value as Id<'drivers'>;
+function fakeRaceId(value: string) {
+  return value as Id<'races'>;
+}
+
+function fakeDriverId(value: string) {
+  return value as Id<'drivers'>;
+}
 
 function makeRace({
   slug,
@@ -121,7 +126,7 @@ function makeWeekendCardData(
   },
 ): WeekendCardData {
   const drivers = makeDrivers();
-  const makeSession = (session: SessionType) => {
+  function makeSession(session: SessionType) {
     if (
       !race.hasSprint &&
       (session === 'sprint_quali' || session === 'sprint')
@@ -156,7 +161,7 @@ function makeWeekendCardData(
       isLocked: race.predictionLockAt <= now,
       hasResults,
     };
-  };
+  }
 
   const sessions: WeekendCardData['sessions'] = {
     sprint_quali: makeSession('sprint_quali'),
@@ -243,7 +248,7 @@ function Scenario({
     scoredSessions.includes(session),
   ).length;
 
-  const getSessionLockAt = (session: SessionType) => {
+  function getSessionLockAt(session: SessionType) {
     switch (session) {
       case 'quali':
         return race.qualiLockAt;
@@ -254,9 +259,9 @@ function Scenario({
       case 'race':
         return race.predictionLockAt;
     }
-  };
+  }
 
-  const getSessionStartAt = (session: SessionType) => {
+  function getSessionStartAt(session: SessionType) {
     switch (session) {
       case 'quali':
         return race.qualiStartAt;
@@ -267,7 +272,7 @@ function Scenario({
       case 'race':
         return race.raceStartAt;
     }
-  };
+  }
 
   const sessionTabOptions: Array<TabSwitchOption<SessionType>> =
     weekendSessions.map((session) => ({

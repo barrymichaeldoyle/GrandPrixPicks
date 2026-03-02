@@ -33,13 +33,13 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
     });
   }, [errorObj]);
 
-  const handleRetry = () => {
+  function handleRetry() {
     if (reset) {
       reset();
     } else {
       router.invalidate();
     }
-  };
+  }
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">

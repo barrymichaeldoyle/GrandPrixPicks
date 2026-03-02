@@ -94,23 +94,23 @@ function CreateLeagueContent() {
     slug.length >= 3 ? { slug } : 'skip',
   );
 
-  const autoSlug = (value: string) => {
+  function autoSlug(value: string) {
     return value
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 30);
-  };
+  }
 
-  const handleNameChange = (value: string) => {
+  function handleNameChange(value: string) {
     setName(value);
     if (!slug || slug === autoSlug(name)) {
       setSlug(autoSlug(value));
     }
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
@@ -150,7 +150,7 @@ function CreateLeagueContent() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   if (isRedirecting) {
     return (

@@ -403,7 +403,7 @@ function AdminRaceDetailPage() {
 
   const scoringStatus = existingResult?.scoringStatus;
 
-  const handlePublish = async () => {
+  async function handlePublish() {
     if (classificationOrderError) {
       return;
     }
@@ -423,7 +423,7 @@ function AdminRaceDetailPage() {
     } finally {
       setIsPublishing(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">

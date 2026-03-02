@@ -1,6 +1,6 @@
-import type { Id } from '../../convex/_generated/dataModel';
 import { describe, expect, it } from 'vitest';
 
+import type { Id } from '../../convex/_generated/dataModel';
 import { computeFavoriteTop5Pick } from './favorites';
 
 function driver(id: string): Id<'drivers'> {

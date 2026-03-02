@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import type { Id } from '../../convex/_generated/dataModel';
 import {
   buildViewerEntryFromRows,
@@ -6,7 +8,6 @@ import {
   mapRowsToLeaderboardEntries,
   sortByPointsWithStableTieBreak,
 } from '../../convex/lib/leaderboard';
-import { describe, expect, it } from 'vitest';
 
 function user(id: string): Id<'users'> {
   return id as Id<'users'>;

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 
 const configPath = path.resolve(process.cwd(), 'convex/migrations.config.json');
 
@@ -56,9 +56,15 @@ function getTargetFlags(parsed) {
     );
   }
 
-  if (parsed.prod) return ['--prod'];
-  if (parsed.previewName) return ['--preview-name', parsed.previewName];
-  if (parsed.deploymentName) return ['--deployment-name', parsed.deploymentName];
+  if (parsed.prod) {
+    return ['--prod'];
+  }
+  if (parsed.previewName) {
+    return ['--preview-name', parsed.previewName];
+  }
+  if (parsed.deploymentName) {
+    return ['--deployment-name', parsed.deploymentName];
+  }
   return [];
 }
 

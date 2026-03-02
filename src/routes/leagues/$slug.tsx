@@ -13,8 +13,8 @@ import {
   Circle,
   Copy,
   Crown,
-  Globe,
   Eye,
+  Globe,
   Lock,
   LogIn,
   Settings,
@@ -478,7 +478,7 @@ function LeagueMembers({
 
   const selectedMember =
     selectedMemberId !== null
-      ? members.find((member) => member._id === selectedMemberId) ?? null
+      ? (members.find((member) => member._id === selectedMemberId) ?? null)
       : null;
 
   function openMemberDetails(memberId: Id<'leagueMembers'>) {
@@ -634,17 +634,15 @@ function MemberDetailsModal({
   onDemote,
   onRemove,
 }: {
-  member:
-    | {
-        _id: Id<'leagueMembers'>;
-        userId: Id<'users'>;
-        role: 'member' | 'admin';
-        joinedAt: number;
-        username: string;
-        avatarUrl?: string;
-        hasSubmittedPredictions?: boolean;
-      }
-    | null;
+  member: {
+    _id: Id<'leagueMembers'>;
+    userId: Id<'users'>;
+    role: 'member' | 'admin';
+    joinedAt: number;
+    username: string;
+    avatarUrl?: string;
+    hasSubmittedPredictions?: boolean;
+  } | null;
   isAdmin: boolean;
   isViewer: boolean;
   confirmUsername: string;
@@ -660,8 +658,7 @@ function MemberDetailsModal({
     return null;
   }
 
-  const needsUsernameConfirmation =
-    isAdmin && !isViewer && (member.role === 'member' || member.role === 'admin');
+  const needsUsernameConfirmation = isAdmin && !isViewer;
   const usernameMatches = confirmUsername.trim() === member.username;
   const canRunProtectedAction =
     actionLoading === null && (!needsUsernameConfirmation || usernameMatches);
@@ -693,7 +690,9 @@ function MemberDetailsModal({
               </span>
             )}
             <div>
-              <p className="text-lg font-semibold text-text">{member.username}</p>
+              <p className="text-lg font-semibold text-text">
+                {member.username}
+              </p>
               <p className="text-sm text-text-muted">
                 Joined{' '}
                 {new Intl.DateTimeFormat(undefined, {
@@ -744,7 +743,7 @@ function MemberDetailsModal({
             <div>
               <label
                 htmlFor="member-action-confirm"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wide text-text-muted"
+                className="mb-1 block text-xs font-semibold tracking-wide text-text-muted uppercase"
               >
                 Confirm username to change role or remove
               </label>
@@ -752,13 +751,15 @@ function MemberDetailsModal({
                 id="member-action-confirm"
                 type="text"
                 value={confirmUsername}
-                onChange={(event) => onConfirmUsernameChange(event.target.value)}
+                onChange={(event) =>
+                  onConfirmUsernameChange(event.target.value)
+                }
                 placeholder={member.username}
-                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent"
+                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-sm text-text transition-colors outline-none focus:border-accent"
               />
               <p className="mt-1 text-xs text-text-muted">
-                Type <span className="font-mono">{member.username}</span> exactly
-                to enable actions.
+                Type <span className="font-mono">{member.username}</span>{' '}
+                exactly to enable actions.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

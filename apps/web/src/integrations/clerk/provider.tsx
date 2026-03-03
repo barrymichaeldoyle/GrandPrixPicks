@@ -21,6 +21,14 @@ export function AppClerkProvider({
       publishableKey={PUBLISHABLE_KEY}
       afterSignOutUrl="/"
       appearance={{ theme: darkMode ? dark : undefined }}
+      localization={{
+        userProfile: {
+          deletePage: {
+            messageLine1:
+              'Deleting your account will permanently remove all your data, including your predictions, scores, and profile.',
+          },
+        },
+      }}
     >
       {children}
     </ClerkProvider>

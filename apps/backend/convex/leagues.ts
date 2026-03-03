@@ -250,15 +250,30 @@ export const getLeagueMembers = query({
       members.map(async (m) => {
         const user = await ctx.db.get(m.userId);
 
-        let hasSubmittedPredictions: boolean | undefined;
+        let top5Picked: boolean | undefined;
+        let h2hPicked: boolean | undefined;
         if (args.raceId !== undefined) {
-          const hasPrediction = await ctx.db
+          const top5Prediction = await ctx.db
             .query('predictions')
             .withIndex('by_user_race_session', (q) =>
-              q.eq('userId', m.userId).eq('raceId', args.raceId!),
+              q
+                .eq('userId', m.userId)
+                .eq('raceId', args.raceId!)
+                .eq('sessionType', 'race'),
             )
             .first();
-          hasSubmittedPredictions = hasPrediction !== null;
+          top5Picked = top5Prediction !== null;
+
+          const h2hPrediction = await ctx.db
+            .query('h2hPredictions')
+            .withIndex('by_user_race_session', (q) =>
+              q
+                .eq('userId', m.userId)
+                .eq('raceId', args.raceId!)
+                .eq('sessionType', 'race'),
+            )
+            .first();
+          h2hPicked = h2hPrediction !== null;
         }
 
         return {
@@ -266,9 +281,11 @@ export const getLeagueMembers = query({
           userId: m.userId,
           role: m.role,
           joinedAt: m.joinedAt,
+          displayName: user?.displayName ?? user?.username ?? 'Anonymous',
           username: user?.username ?? 'Anonymous',
           avatarUrl: user?.avatarUrl,
-          hasSubmittedPredictions,
+          top5Picked,
+          h2hPicked,
         };
       }),
     );

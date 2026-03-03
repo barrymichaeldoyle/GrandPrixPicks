@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
+
+import { Button } from '@/components/Button';
 
 import { PageHero } from '../components/PageHero';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
@@ -168,11 +171,9 @@ function TermsPage() {
           </section>
         </div>
 
-        <p className="mt-8">
-          <Link to="/" className="text-accent hover:underline">
-            ← Back to home
-          </Link>
-        </p>
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mt-8">
+          <Link to="/">Back to home</Link>
+        </Button>
       </div>
     </div>
   );

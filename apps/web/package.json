@@ -26,13 +26,14 @@
     "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"
   },
   "dependencies": {
+    "@clerk/backend": "2.33.0",
     "@clerk/clerk-react": "5.61.3",
     "@clerk/tanstack-react-start": "0.29.8",
     "@clerk/themes": "2.4.57",
-    "@grandprixpicks/shared": "workspace:*",
     "@dnd-kit/core": "6.3.1",
     "@dnd-kit/sortable": "10.0.0",
     "@dnd-kit/utilities": "3.2.2",
+    "@grandprixpicks/shared": "workspace:*",
     "@resvg/resvg-wasm": "2.6.2",
     "@sentry/tanstackstart-react": "10.41.0",
     "@tailwindcss/vite": "4.2.1",

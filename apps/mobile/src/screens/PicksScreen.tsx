@@ -23,6 +23,8 @@ import {
   saveLocalRaceDraft,
 } from "../lib/picksDrafts";
 import { useNow } from "../lib/useNow";
+import { colors, radii } from "../theme/tokens";
+import { useTypography } from "../theme/typography";
 import type { RaceWeekend } from "../types";
 
 type PicksScreenProps = {
@@ -67,6 +69,7 @@ function getEmptyH2HBySession(): H2HBySession {
 }
 
 export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
+  const { titleFontFamily } = useTypography();
   const initialRaceSlug =
     getNextRaceSlug(races) ?? (races.length > 0 ? races[0].slug : "");
   const [selectedRaceSlug, setSelectedRaceSlug] = useState(
@@ -300,7 +303,14 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       contentContainerStyle={styles.scrollContent}
       style={styles.screen}
     >
-      <Text style={styles.title}>Picks</Text>
+      <Text
+        style={[
+          styles.title,
+          titleFontFamily ? { fontFamily: titleFontFamily } : null,
+        ]}
+      >
+        Picks
+      </Text>
       <Text style={styles.body}>
         Select your Top 5 and H2H picks for each race session.
       </Text>
@@ -542,42 +552,43 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
 
 const styles = StyleSheet.create({
   body: {
-    color: "#b5c0da",
-    fontSize: 16,
-    lineHeight: 24,
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
   },
   card: {
-    backgroundColor: "#101930",
-    borderColor: "#243355",
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
     borderWidth: 1,
     gap: 12,
     padding: 14,
   },
   cardTitle: {
-    color: "#fff",
-    fontSize: 20,
+    color: colors.text,
+    fontSize: 18,
     fontWeight: "700",
+    lineHeight: 24,
   },
   chip: {
-    backgroundColor: "#1a2748",
-    borderColor: "#334570",
-    borderRadius: 999,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.pill,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
   chipActive: {
-    backgroundColor: "#28428a",
-    borderColor: "#4569cf",
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
   },
   chipText: {
-    color: "#c3d0f3",
-    fontSize: 13,
+    color: colors.textMuted,
+    fontSize: 12,
     fontWeight: "600",
   },
   chipTextActive: {
-    color: "#fff",
+    color: colors.text,
   },
   chipWrap: {
     flexDirection: "row",
@@ -585,9 +596,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   driverChip: {
-    backgroundColor: "#182243",
-    borderColor: "#31436f",
-    borderRadius: 10,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
     borderWidth: 1,
     gap: 2,
     paddingHorizontal: 10,
@@ -595,19 +606,19 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   driverChipActive: {
-    backgroundColor: "#28428a",
-    borderColor: "#4c75e1",
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
   },
   driverChipDisabled: {
     opacity: 0.45,
   },
   driverCode: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
   driverName: {
-    color: "#d4defa",
+    color: colors.textMuted,
     fontSize: 12,
   },
   driverPool: {
@@ -617,30 +628,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   helperText: {
-    color: "#9bb0dd",
-    fontSize: 13,
+    color: colors.textMuted,
+    fontSize: 12,
+    lineHeight: 16,
   },
   lockMeta: {
-    color: "#c0ccef",
+    color: colors.textMuted,
     fontSize: 12,
+    lineHeight: 16,
   },
   lockBadge: {
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   lockBadgeLocked: {
-    backgroundColor: "#6f2a2a",
+    backgroundColor: colors.warningMuted,
   },
   lockBadgeOpen: {
-    backgroundColor: "#234d35",
+    backgroundColor: colors.successMuted,
   },
   lockBadgeSoon: {
-    backgroundColor: "#7d5a1d",
+    backgroundColor: colors.warningMuted,
   },
   lockBadgeText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -648,28 +661,28 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   matchupCard: {
-    backgroundColor: "#151f3a",
-    borderColor: "#2f4068",
-    borderRadius: 12,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.lg,
     borderWidth: 1,
     gap: 8,
     padding: 10,
   },
   matchupOption: {
-    backgroundColor: "#1e2b51",
-    borderColor: "#31446f",
-    borderRadius: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
     borderWidth: 1,
     flex: 1,
     paddingVertical: 8,
   },
   matchupOptionActive: {
-    backgroundColor: "#28428a",
-    borderColor: "#4c75e1",
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
   },
   matchupOptionText: {
-    color: "#fff",
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 12,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -678,19 +691,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   matchupTeam: {
-    color: "#dce5ff",
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 12,
     fontWeight: "600",
   },
   openRaceButton: {
     alignItems: "center",
-    backgroundColor: "#28428a",
-    borderRadius: 10,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
     marginTop: 2,
     paddingVertical: 10,
   },
   openRaceButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -699,13 +712,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   rankDriver: {
-    color: "#fff",
+    color: colors.text,
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
+    lineHeight: 16,
   },
   rankLabel: {
-    color: "#b7c3e3",
-    fontSize: 13,
+    color: colors.textMuted,
+    fontSize: 12,
     fontWeight: "700",
     width: 26,
   },
@@ -714,9 +728,9 @@ const styles = StyleSheet.create({
   },
   rankRow: {
     alignItems: "center",
-    backgroundColor: "#151f3a",
-    borderColor: "#2f4068",
-    borderRadius: 10,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: "row",
     gap: 8,
@@ -725,8 +739,8 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: "center",
-    backgroundColor: "#2d55be",
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radii.lg,
     marginTop: 4,
     paddingVertical: 12,
   },
@@ -734,31 +748,31 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   saveButtonText: {
-    color: "#fff",
-    fontSize: 14,
+    color: colors.text,
+    fontSize: 13,
     fontWeight: "700",
   },
   savedText: {
-    color: "#9be5b2",
-    fontSize: 13,
+    color: colors.success,
+    fontSize: 12,
     marginTop: 2,
   },
   restoredBannerAction: {
     alignItems: "center",
-    backgroundColor: "#27438d",
+    backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   restoredBannerActionText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 11,
     fontWeight: "700",
   },
   restoredBannerContainer: {
-    backgroundColor: "#1d2f63",
-    borderColor: "#3d58a8",
-    borderRadius: 10,
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
+    borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -766,12 +780,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   restoredBannerText: {
-    color: "#d8e2ff",
+    color: colors.text,
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     paddingRight: 8,
   },
   screen: {
+    backgroundColor: colors.page,
     flex: 1,
     gap: 14,
     paddingHorizontal: 16,
@@ -779,21 +794,24 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: 14,
     paddingBottom: 24,
+    paddingTop: 4,
   },
   smallButton: {
-    backgroundColor: "#243559",
+    backgroundColor: colors.surfaceMuted,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   smallButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 11,
     fontWeight: "600",
   },
   title: {
-    color: "#fff",
-    fontSize: 26,
+    color: colors.text,
+    fontSize: 34,
     fontWeight: "700",
+    letterSpacing: 0.2,
+    lineHeight: 38,
   },
 });

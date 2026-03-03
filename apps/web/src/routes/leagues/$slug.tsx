@@ -10,19 +10,18 @@ import {
 import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
+  ArrowLeft,
   Check,
-  CheckCircle2,
-  Circle,
   Copy,
   Crown,
   Eye,
   Globe,
   Lock,
   LogIn,
+  Settings,
   Shield,
-  Trash2,
   User,
-  UserMinus,
+  UserCheck,
   UserPlus,
   Users,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ import { InlineLoader } from '@/components/InlineLoader';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button';
-import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
 import { Tooltip } from '../../components/Tooltip';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
@@ -110,12 +108,9 @@ function LeagueDetailPage() {
             <p className="mb-4 text-text-muted">
               This league doesn't exist or may have been deleted.
             </p>
-            <Link
-              to="/leagues"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-            >
-              Back to Leagues
-            </Link>
+            <Button asChild size="sm" leftIcon={ArrowLeft}>
+              <Link to="/leagues">Back to Leagues</Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -160,6 +155,25 @@ type League = NonNullable<
   ReturnType<typeof useQuery<typeof api.leagues.getLeagueBySlug>>
 >;
 
+function getPredictionIndicatorLabel(
+  top5Picked?: boolean,
+  h2hPicked?: boolean,
+): string | null {
+  if (top5Picked === undefined || h2hPicked === undefined) {
+    return null;
+  }
+  if (top5Picked && h2hPicked) {
+    return 'Top 5 & H2H picked';
+  }
+  if (top5Picked && !h2hPicked) {
+    return 'Top 5 picked, H2H not picked';
+  }
+  if (!top5Picked && h2hPicked) {
+    return 'H2H picked, Top 5 not picked';
+  }
+  return 'Predictions not made';
+}
+
 function LeagueDetailContent({ league }: { league: League }) {
   const isAdmin = league.viewerRole === 'admin';
   const isMember = league.viewerRole !== null;
@@ -173,6 +187,16 @@ function LeagueDetailContent({ league }: { league: League }) {
             <Button asChild size="sm" variant="text">
               <Link to="/leagues">← Back to leagues</Link>
             </Button>
+            {isAdmin && (
+              <Button asChild size="sm" variant="secondary" leftIcon={Settings}>
+                <Link
+                  to="/leagues/$slug/settings"
+                  params={{ slug: league.slug }}
+                >
+                  Settings
+                </Link>
+              </Button>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-bold text-text">{league.name}</h1>
@@ -217,7 +241,7 @@ function LeagueDetailContent({ league }: { league: League }) {
         {isMember && <LeagueLeaderboard leagueId={league._id} />}
 
         {/* Members */}
-        {isMember && <LeagueMembers leagueId={league._id} isAdmin={isAdmin} />}
+        {isMember && <LeagueMembers leagueId={league._id} />}
       </div>
     </div>
   );
@@ -441,13 +465,7 @@ function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
   );
 }
 
-function LeagueMembers({
-  leagueId,
-  isAdmin,
-}: {
-  leagueId: Id<'leagues'>;
-  isAdmin: boolean;
-}) {
+function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
   const me = useQuery(api.users.me, {});
   const nextRace = useQuery(api.races.getNextRace);
   const showPredictionStatus = nextRace?.status === 'upcoming';
@@ -455,76 +473,9 @@ function LeagueMembers({
     leagueId,
     raceId: showPredictionStatus ? nextRace._id : undefined,
   });
-  const promoteMember = useMutation(api.leagues.promoteMember);
-  const demoteMember = useMutation(api.leagues.demoteMember);
-  const removeMember = useMutation(api.leagues.removeMember);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [selectedMemberId, setSelectedMemberId] =
-    useState<Id<'leagueMembers'> | null>(null);
-  const [confirmUsername, setConfirmUsername] = useState('');
-  const [selectedAction, setSelectedAction] = useState<
-    'promote' | 'demote' | 'remove' | null
-  >(null);
-
-  function isViewer(userId: Id<'users'>) {
-    return me?._id === userId;
-  }
 
   if (members === undefined) {
     return <InlineLoader />;
-  }
-
-  const selectedMember =
-    selectedMemberId !== null
-      ? (members.find((member) => member._id === selectedMemberId) ?? null)
-      : null;
-
-  function openMemberDetails(memberId: Id<'leagueMembers'>) {
-    setSelectedMemberId(memberId);
-    setActionError(null);
-    setConfirmUsername('');
-    setSelectedAction(null);
-  }
-
-  function closeMemberDetails() {
-    if (actionLoading !== null) {
-      return;
-    }
-    setSelectedMemberId(null);
-    setActionError(null);
-    setConfirmUsername('');
-    setSelectedAction(null);
-  }
-
-  async function handleAction(
-    action: 'promote' | 'demote' | 'remove',
-    userId: Id<'users'>,
-  ) {
-    setActionLoading(`${action}-${userId}`);
-    setActionError(null);
-    try {
-      if (action === 'promote') {
-        await promoteMember({ leagueId, userId });
-      } else if (action === 'demote') {
-        await demoteMember({ leagueId, userId });
-      } else {
-        await removeMember({ leagueId, userId });
-      }
-      setConfirmUsername('');
-      setSelectedAction(null);
-      if (action === 'remove') {
-        setSelectedMemberId(null);
-      }
-    } catch (err) {
-      setActionError(
-        err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Unable to update member',
-      );
-    } finally {
-      setActionLoading(null);
-    }
   }
 
   return (
@@ -555,333 +506,132 @@ function LeagueMembers({
                 />
               ) : (
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-muted text-xs font-semibold text-text-muted">
-                  {member.username.charAt(0).toUpperCase()}
+                  {member.displayName.charAt(0).toUpperCase()}
                 </span>
               )}
-              <Link
-                to="/p/$username"
-                params={{ username: member.username }}
-                className="font-medium text-accent hover:underline"
-              >
-                {member.username}
-              </Link>
-              {member.role === 'admin' && (
-                <span className="flex items-center gap-1 rounded-full bg-warning-muted px-2 py-0.5 text-xs font-medium text-warning">
-                  <Crown className="h-3 w-3" />
-                  Admin
-                </span>
-              )}
+              <div>
+                <Link
+                  to="/p/$username"
+                  params={{ username: member.username }}
+                  className="font-medium text-accent hover:underline"
+                >
+                  {member.displayName}
+                </Link>
+                <p className="text-xs text-text-muted">@{member.username}</p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              {member.hasSubmittedPredictions !== undefined && (
-                <Tooltip
-                  content={
-                    member.hasSubmittedPredictions
-                      ? 'Submitted picks for the next race'
-                      : 'Has not submitted picks for the next race'
-                  }
-                >
-                  <span className="inline-flex">
-                    {member.hasSubmittedPredictions ? (
-                      <CheckCircle2
-                        className="h-4 w-4 text-success"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Circle
-                        className="h-4 w-4 text-text-muted/40"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span className="sr-only">
-                      {member.hasSubmittedPredictions
-                        ? 'Submitted'
-                        : 'Not submitted'}
-                    </span>
+            <div className="flex items-center gap-2">
+              {member.role === 'admin' && (
+                <Tooltip content="League Admin">
+                  <span className="inline-flex rounded-lg p-2 text-warning">
+                    <Crown className="h-4 w-4" aria-hidden="true" />
+                    <span className="sr-only">Admin</span>
                   </span>
                 </Tooltip>
               )}
-              <button
-                type="button"
-                aria-label={`View ${member.username} details`}
-                onClick={() => openMemberDetails(member._id)}
-                className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-              >
-                <Eye className="h-4 w-4" aria-hidden="true" />
-              </button>
+              {getPredictionIndicatorLabel(
+                member.top5Picked,
+                member.h2hPicked,
+              ) && (
+                <span className="mr-1 inline-flex items-center gap-1 text-xs text-text-muted">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      member.top5Picked && member.h2hPicked
+                        ? 'bg-success'
+                        : 'bg-warning'
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {getPredictionIndicatorLabel(
+                    member.top5Picked,
+                    member.h2hPicked,
+                  )}
+                </span>
+              )}
+              <MemberRowActions
+                userId={member.userId}
+                username={member.username}
+                isViewer={me?._id === member.userId}
+              />
             </div>
           </div>
         ))}
       </div>
-      <MemberDetailsModal
-        member={selectedMember}
-        isAdmin={isAdmin}
-        isViewer={selectedMember ? isViewer(selectedMember.userId) : false}
-        confirmUsername={confirmUsername}
-        onConfirmUsernameChange={setConfirmUsername}
-        selectedAction={selectedAction}
-        onSelectAction={setSelectedAction}
-        actionLoading={actionLoading}
-        actionError={actionError}
-        onClose={closeMemberDetails}
-        onPromote={(userId) => void handleAction('promote', userId)}
-        onDemote={(userId) => void handleAction('demote', userId)}
-        onRemove={(userId) => void handleAction('remove', userId)}
-      />
     </div>
   );
 }
 
-function MemberDetailsModal({
-  member,
-  isAdmin,
+function MemberRowActions({
+  userId,
+  username,
   isViewer,
-  confirmUsername,
-  onConfirmUsernameChange,
-  selectedAction,
-  onSelectAction,
-  actionLoading,
-  actionError,
-  onClose,
-  onPromote,
-  onDemote,
-  onRemove,
 }: {
-  member: {
-    _id: Id<'leagueMembers'>;
-    userId: Id<'users'>;
-    role: 'member' | 'admin';
-    joinedAt: number;
-    username: string;
-    avatarUrl?: string;
-    hasSubmittedPredictions?: boolean;
-  } | null;
-  isAdmin: boolean;
+  userId: Id<'users'>;
+  username: string;
   isViewer: boolean;
-  confirmUsername: string;
-  onConfirmUsernameChange: (value: string) => void;
-  selectedAction: 'promote' | 'demote' | 'remove' | null;
-  onSelectAction: (value: 'promote' | 'demote' | 'remove') => void;
-  actionLoading: string | null;
-  actionError: string | null;
-  onClose: () => void;
-  onPromote: (userId: Id<'users'>) => void;
-  onDemote: (userId: Id<'users'>) => void;
-  onRemove: (userId: Id<'users'>) => void;
 }) {
-  if (!member) {
-    return null;
-  }
+  const isFollowing = useQuery(api.follows.isFollowing, { followeeId: userId });
+  const followMutation = useMutation(api.follows.follow);
+  const unfollowMutation = useMutation(api.follows.unfollow);
+  const [optimisticFollow, setOptimisticFollow] = useState<boolean | null>(null);
+  const [isSubmittingFollow, setIsSubmittingFollow] = useState(false);
 
-  const currentMember = member;
-  const selectedActionValid =
-    selectedAction !== null &&
-    ((currentMember.role === 'member' &&
-      (selectedAction === 'promote' || selectedAction === 'remove')) ||
-      (currentMember.role === 'admin' && selectedAction === 'demote'));
-  const needsUsernameConfirmation = isAdmin && !isViewer && selectedActionValid;
-  const usernameMatches = confirmUsername.trim() === currentMember.username;
-  const canRunProtectedAction =
-    actionLoading === null && (!needsUsernameConfirmation || usernameMatches);
-  const isPromoting = actionLoading === `promote-${currentMember.userId}`;
-  const isDemoting = actionLoading === `demote-${currentMember.userId}`;
-  const isRemoving = actionLoading === `remove-${currentMember.userId}`;
-  const isActionLoading = isPromoting || isDemoting || isRemoving;
-  const selectedActionLabel =
-    selectedAction === 'promote'
-      ? 'Promote to admin'
-      : selectedAction === 'demote'
-        ? 'Demote to member'
-        : selectedAction === 'remove'
-          ? 'Remove from league'
-          : null;
+  const following = optimisticFollow ?? isFollowing;
 
-  function handleConfirmAction() {
-    if (!selectedActionValid) {
+  async function toggleFollow() {
+    if (isFollowing === undefined || isSubmittingFollow) {
       return;
     }
-    if (selectedAction === 'promote') {
-      onPromote(currentMember.userId);
-      return;
+    const willFollow = !following;
+    setOptimisticFollow(willFollow);
+    setIsSubmittingFollow(true);
+    try {
+      if (willFollow) {
+        await followMutation({ followeeId: userId });
+      } else {
+        await unfollowMutation({ followeeId: userId });
+      }
+    } catch {
+      setOptimisticFollow(null);
+    } finally {
+      setIsSubmittingFollow(false);
     }
-    if (selectedAction === 'demote') {
-      onDemote(currentMember.userId);
-      return;
-    }
-    onRemove(currentMember.userId);
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-5 shadow-xl">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {member.avatarUrl ? (
-              <img
-                src={member.avatarUrl}
-                alt=""
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-sm font-semibold text-text-muted">
-                {member.username.charAt(0).toUpperCase()}
-              </span>
-            )}
-            <div>
-              <p className="text-lg font-semibold text-text">
-                {member.username}
-              </p>
-              <p className="text-sm text-text-muted">
-                Joined{' '}
-                {new Intl.DateTimeFormat(undefined, {
-                  dateStyle: 'medium',
-                }).format(member.joinedAt)}
-              </p>
-            </div>
-          </div>
+    <div className="flex items-center gap-2">
+      {!isViewer && isFollowing !== undefined && (
+        <Tooltip content={following ? 'Following (click to unfollow)' : 'Follow'}>
           <button
             type="button"
-            onClick={onClose}
-            disabled={actionLoading !== null}
-            className="rounded-lg px-2 py-1 text-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
+            onClick={() => void toggleFollow()}
+            disabled={isSubmittingFollow}
+            aria-label={following ? `Unfollow @${username}` : `Follow @${username}`}
+            className={`rounded-lg border p-2 transition-colors disabled:opacity-60 ${
+              following
+                ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
+                : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
+            }`}
           >
-            Close
+            {following ? (
+              <UserCheck className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <UserPlus className="h-5 w-5" aria-hidden="true" />
+            )}
           </button>
-        </div>
-
-        <div className="space-y-1 rounded-lg border border-border bg-surface-muted/40 p-3 text-sm">
-          {member.hasSubmittedPredictions !== undefined && (
-            <p className="text-text">
-              Race status:{' '}
-              <span className="font-medium">
-                {member.hasSubmittedPredictions ? 'Submitted' : 'Not submitted'}
-              </span>
-            </p>
-          )}
-          <p>
-            Profile:{' '}
-            <Link
-              to="/p/$username"
-              params={{ username: member.username }}
-              className="font-medium text-accent hover:underline"
-            >
-              /p/{member.username}
-            </Link>
-          </p>
-          {!isViewer && (
-            <div className="pt-2">
-              <FollowButton followeeId={member.userId} />
-            </div>
-          )}
-        </div>
-
-        {isAdmin && !isViewer && (
-          <div className="mt-4 space-y-3">
-            <div>
-              <p className="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
-                Choose action
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {member.role === 'member' && (
-                  <>
-                    <Button
-                      size="sm"
-                      variant={
-                        selectedAction === 'promote' ? 'primary' : 'secondary'
-                      }
-                      leftIcon={UserPlus}
-                      disabled={actionLoading !== null}
-                      onClick={() => onSelectAction('promote')}
-                    >
-                      Promote
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={
-                        selectedAction === 'remove' ? 'danger' : 'secondary'
-                      }
-                      leftIcon={Trash2}
-                      disabled={actionLoading !== null}
-                      onClick={() => onSelectAction('remove')}
-                    >
-                      Remove
-                    </Button>
-                  </>
-                )}
-                {member.role === 'admin' && (
-                  <Button
-                    size="sm"
-                    variant={
-                      selectedAction === 'demote' ? 'primary' : 'secondary'
-                    }
-                    leftIcon={UserMinus}
-                    disabled={actionLoading !== null}
-                    onClick={() => onSelectAction('demote')}
-                  >
-                    Demote
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="member-action-confirm"
-                className="mb-1 block text-xs font-semibold tracking-wide text-text-muted uppercase"
-              >
-                Confirm selected action
-              </label>
-              <input
-                id="member-action-confirm"
-                type="text"
-                value={confirmUsername}
-                onChange={(event) =>
-                  onConfirmUsernameChange(event.target.value)
-                }
-                placeholder={member.username}
-                disabled={!selectedActionValid || actionLoading !== null}
-                className="w-full rounded-lg border border-border bg-page px-3 py-2 text-sm text-text transition-colors outline-none focus:border-accent"
-              />
-              <p className="mt-1 text-xs text-text-muted">
-                {selectedActionLabel ? (
-                  <>
-                    Type <span className="font-mono">{member.username}</span> to
-                    confirm: {selectedActionLabel}.
-                  </>
-                ) : (
-                  'Select an action first, then type the username to continue.'
-                )}
-              </p>
-            </div>
-            <div>
-              <Button
-                size="sm"
-                variant={selectedAction === 'remove' ? 'danger' : 'primary'}
-                loading={isActionLoading}
-                disabled={!selectedActionValid || !canRunProtectedAction}
-                onClick={handleConfirmAction}
-              >
-                {selectedActionLabel
-                  ? `Confirm: ${selectedActionLabel}`
-                  : 'Confirm'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {actionError && (
-          <p className="mt-3 text-sm text-error" aria-live="assertive">
-            {actionError}
-          </p>
-        )}
-      </div>
+        </Tooltip>
+      )}
+      <Tooltip content="View profile">
+        <Link
+          to="/p/$username"
+          params={{ username }}
+          aria-label={`View @${username} profile`}
+          className="rounded-lg border border-border bg-surface p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+        >
+          <Eye className="h-5 w-5" aria-hidden="true" />
+        </Link>
+      </Tooltip>
     </div>
   );
 }

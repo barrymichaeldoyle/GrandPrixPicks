@@ -1,13 +1,42 @@
 import { SESSION_LABELS } from "@grandprixpicks/shared/sessions";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatRaceDate } from "../lib/dates";
+import { colors, radii } from "../theme/tokens";
+import { useTypography } from "../theme/typography";
 import type { RaceWeekend } from "../types";
 
 type HomeScreenProps = {
   onOpenRace?: (raceSlug: string) => void;
   races: ReadonlyArray<RaceWeekend>;
 };
+
+const SLUG_TO_COUNTRY: Record<string, string> = {
+  australia: "au",
+  bahrain: "bh",
+  belgium: "be",
+  brazil: "br",
+  canada: "ca",
+  china: "cn",
+  hungary: "hu",
+  italy: "it",
+  japan: "jp",
+  mexico: "mx",
+  monaco: "mc",
+  netherlands: "nl",
+  portugal: "pt",
+  qatar: "qa",
+  saudi: "sa",
+  singapore: "sg",
+  spain: "es",
+  "united-states": "us",
+  usa: "us",
+};
+
+function getCountryCodeForRaceSlug(slug: string): string | null {
+  const key = slug.replace(/-\d{4}$/, "").toLowerCase();
+  return SLUG_TO_COUNTRY[key] ?? null;
+}
 
 function getNextRace(
   races: ReadonlyArray<RaceWeekend>,
@@ -24,11 +53,22 @@ function getNextRace(
 
 export function HomeScreen({ races, onOpenRace }: HomeScreenProps) {
   const nextRace = getNextRace(races);
+  const { titleFontFamily } = useTypography();
+  const countryCode = nextRace
+    ? getCountryCodeForRaceSlug(nextRace.slug)
+    : null;
 
   if (!nextRace) {
     return (
       <View style={styles.screen}>
-        <Text style={styles.title}>Home</Text>
+        <Text
+          style={[
+            styles.title,
+            titleFontFamily ? { fontFamily: titleFontFamily } : null,
+          ]}
+        >
+          Home
+        </Text>
         <Text style={styles.muted}>No upcoming races found.</Text>
       </View>
     );
@@ -36,9 +76,34 @@ export function HomeScreen({ races, onOpenRace }: HomeScreenProps) {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>Next Weekend</Text>
+      <Text
+        style={[
+          styles.title,
+          titleFontFamily ? { fontFamily: titleFontFamily } : null,
+        ]}
+      >
+        Next Weekend
+      </Text>
       <View style={styles.card}>
-        <Text style={styles.raceName}>{nextRace.name}</Text>
+        <View style={styles.raceHeaderRow}>
+          {countryCode ? (
+            <View style={styles.flagFrame}>
+              <Image
+                source={{ uri: `https://flagcdn.com/w40/${countryCode}.png` }}
+                style={styles.flagImage}
+              />
+            </View>
+          ) : null}
+          <Text
+            numberOfLines={2}
+            style={[
+              styles.raceName,
+              titleFontFamily ? { fontFamily: titleFontFamily } : null,
+            ]}
+          >
+            {nextRace.name}
+          </Text>
+        </View>
         <Text style={styles.raceMeta}>{nextRace.country}</Text>
         <Text style={styles.raceMeta}>
           {nextRace.hasSprint ? "Sprint weekend" : "Standard weekend"}
@@ -58,8 +123,10 @@ export function HomeScreen({ races, onOpenRace }: HomeScreenProps) {
                 {SESSION_LABELS[session.type]}
               </Text>
               <View style={styles.sessionTimes}>
-                <Text style={styles.sessionTime}>Local: {formatted.local}</Text>
-                <Text style={styles.sessionTrack}>
+                <Text numberOfLines={2} style={styles.sessionTime}>
+                  Local: {formatted.local}
+                </Text>
+                <Text numberOfLines={2} style={styles.sessionTrack}>
                   Track: {formatted.track} ({formatted.trackTimeZone})
                 </Text>
               </View>
@@ -82,72 +149,110 @@ export function HomeScreen({ races, onOpenRace }: HomeScreenProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#101930",
-    borderColor: "#243355",
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
     borderWidth: 1,
-    gap: 10,
+    gap: 12,
     padding: 16,
   },
   divider: {
-    backgroundColor: "#273657",
+    backgroundColor: colors.border,
     height: 1,
     marginVertical: 2,
   },
   muted: {
-    color: "#a1acc8",
-    fontSize: 15,
+    color: colors.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
   },
   openButton: {
     alignItems: "center",
-    backgroundColor: "#28428a",
-    borderRadius: 10,
-    marginTop: 4,
-    paddingVertical: 9,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    marginTop: 2,
+    paddingVertical: 10,
   },
   openButtonText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
+  raceHeaderRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 8,
+    minWidth: 0,
+  },
   raceMeta: {
-    color: "#9bb0dd",
-    fontSize: 14,
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
   },
   raceName: {
-    color: "#fff",
-    fontSize: 22,
+    color: colors.text,
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 24,
     fontWeight: "700",
+    lineHeight: 30,
   },
   screen: {
+    backgroundColor: colors.page,
     flex: 1,
     gap: 14,
     paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  flagFrame: {
+    borderColor: colors.borderStrong,
+    borderRadius: 5,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  flagImage: {
+    height: 20,
+    width: 30,
   },
   sessionRow: {
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: 12,
     justifyContent: "space-between",
+    paddingVertical: 2,
   },
   sessionTime: {
-    color: "#d9e0f2",
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 12,
+    flexShrink: 1,
+    lineHeight: 16,
+    textAlign: "right",
   },
   sessionTimes: {
     alignItems: "flex-end",
+    flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
   sessionTrack: {
-    color: "#8fa0c8",
-    fontSize: 12,
+    color: colors.textMuted,
+    fontSize: 11,
+    flexShrink: 1,
+    lineHeight: 15,
+    textAlign: "right",
   },
   sessionType: {
-    color: "#fff",
-    fontSize: 14,
+    color: colors.text,
+    fontSize: 13,
     fontWeight: "600",
+    lineHeight: 18,
+    maxWidth: 110,
   },
   title: {
-    color: "#fff",
-    fontSize: 26,
+    color: colors.text,
+    fontSize: 36,
     fontWeight: "700",
+    letterSpacing: 0.2,
+    lineHeight: 40,
   },
 });

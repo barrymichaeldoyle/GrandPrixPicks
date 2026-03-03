@@ -5,6 +5,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
+  ArrowLeft,
   Check,
   Globe,
   Loader2,
@@ -85,7 +86,7 @@ function LeagueSettingsPage() {
             <p className="mb-4 text-text-muted">
               This league doesn't exist or may have been deleted.
             </p>
-            <Button asChild size="sm">
+            <Button asChild size="sm" leftIcon={ArrowLeft}>
               <Link to="/leagues">Back to Leagues</Link>
             </Button>
           </div>
@@ -130,7 +131,7 @@ function LeagueSettingsPage() {
             <p className="mb-4 text-text-muted">
               Settings are only available to league members.
             </p>
-            <Button asChild size="sm">
+            <Button asChild size="sm" leftIcon={ArrowLeft}>
               <Link to="/leagues/$slug" params={{ slug: league.slug }}>
                 Back to League
               </Link>
@@ -154,15 +155,12 @@ function LeagueSettingsContent({
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <p className="mb-2 text-sm text-text-muted">
-          <Link
-            to="/leagues/$slug"
-            params={{ slug: league.slug }}
-            className="text-accent hover:underline"
-          >
-            ← Back to league
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-2">
+          <Link to="/leagues/$slug" params={{ slug: league.slug }}>
+            Back to league
           </Link>
-        </p>
+        </Button>
+
         <h1 className="mb-1 text-3xl font-bold text-text">League Settings</h1>
         <p className="mb-6 text-text-muted">{league.name}</p>
 
@@ -262,8 +260,8 @@ function AdminGeneralSettings({ league }: { league: League }) {
               <Button
                 size="sm"
                 onClick={() => setShowPasswordForm(!showPasswordForm)}
+                leftIcon={Lock}
               >
-                <Lock className="h-4 w-4" />
                 Set Password
               </Button>
             ))}

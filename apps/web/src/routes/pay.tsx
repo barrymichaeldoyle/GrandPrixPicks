@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
+import { Button } from '@/components/Button';
 
 import { canonicalMeta } from '../lib/site';
 
@@ -215,11 +218,9 @@ function PayPage() {
             again.
           </p>
         ) : null}
-        <p className="mt-4 text-xs text-text-muted">
-          <Link to="/pricing" className="text-accent hover:underline">
-            Back to pricing
-          </Link>
-        </p>
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mt-4">
+          <Link to="/pricing">Back to pricing</Link>
+        </Button>
       </div>
     </div>
   );

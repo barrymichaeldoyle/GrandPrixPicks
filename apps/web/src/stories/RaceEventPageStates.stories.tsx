@@ -1,6 +1,6 @@
 import type { Id } from '@convex-generated/dataModel';
 import type { Meta, StoryObj } from '@storybook/react';
-import { ArrowLeft, Dices, Swords, Trophy } from 'lucide-react';
+import { ArrowLeft, Dices, Link, Swords, Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '../components/Button';
@@ -315,10 +315,9 @@ function Scenario({
         </Button>
       }
       backLink={
-        <div className="mb-4 inline-flex items-center gap-2 text-sm text-text-muted sm:mb-6">
-          <ArrowLeft size={18} />
-          Back to races
-        </div>
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-4">
+          <Link to="/races">Back to races</Link>
+        </Button>
       }
       initialTop5Content={
         <div className="space-y-2 p-4">

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Button } from '@/components/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 import { PageLoader } from '@/components/PageLoader';
 
@@ -428,13 +429,9 @@ function AdminRaceDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <Link
-          to="/admin"
-          className="mb-8 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-white"
-        >
-          <ArrowLeft size={20} />
-          Back to Admin
-        </Link>
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-8">
+          <Link to="/admin">Back to Admin</Link>
+        </Button>
 
         <div className="mb-6 rounded-xl border border-slate-700 bg-slate-800/50 p-6">
           <div className="flex items-center justify-between">

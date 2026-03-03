@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { MobileClerkProvider } from "../integrations/clerk/provider";
 import { MobileConvexProvider } from "../integrations/convex/provider";
+import { TypographyProvider } from "../theme/typography";
 import { MobileConfigProvider } from "./mobile-config";
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -11,9 +12,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <MobileConfigProvider>
-          <MobileClerkProvider>
-            <MobileConvexProvider>{children}</MobileConvexProvider>
-          </MobileClerkProvider>
+          <TypographyProvider>
+            <MobileClerkProvider>
+              <MobileConvexProvider>{children}</MobileConvexProvider>
+            </MobileClerkProvider>
+          </TypographyProvider>
         </MobileConfigProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

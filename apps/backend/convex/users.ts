@@ -1,7 +1,13 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
-import { mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from './_generated/server';
 import {
   getOrCreateViewer,
   getViewer,
@@ -17,6 +23,275 @@ const notificationChannelValidator = v.union(
   v.literal('push'),
   v.literal('both'),
 );
+
+type AccountDeletionSummary = {
+  follows: number;
+  supportRequests: number;
+  userSeasonPasses: number;
+  pushSubscriptions: number;
+  processedPaddleWebhookEvents: number;
+  predictions: number;
+  h2hPredictions: number;
+  scores: number;
+  h2hScores: number;
+  seasonStandings: number;
+  h2hSeasonStandings: number;
+  leagueMemberships: number;
+  leaguesDeleted: number;
+  leaguesReassigned: number;
+  leagueAdminsPromoted: number;
+  users: number;
+};
+
+async function cleanupLeagueStateForDeletedUser(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  summary: AccountDeletionSummary,
+) {
+  const now = Date.now();
+  const processedLeagueIds = new Set<string>();
+
+  const memberships = await ctx.db
+    .query('leagueMembers')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .collect();
+
+  for (const membership of memberships) {
+    const league = await ctx.db.get(membership.leagueId);
+    if (!league) {
+      await ctx.db.delete(membership._id);
+      summary.leagueMemberships += 1;
+      continue;
+    }
+
+    processedLeagueIds.add(String(league._id));
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .collect();
+
+    const otherMembers = members.filter((m) => m.userId !== userId);
+
+    if (membership.role === 'admin' && otherMembers.length > 0) {
+      const hasAnotherAdmin = otherMembers.some((m) => m.role === 'admin');
+      if (!hasAnotherAdmin) {
+        const promote = [...otherMembers].sort(
+          (a, b) => a.joinedAt - b.joinedAt,
+        )[0];
+        if (promote && promote.role !== 'admin') {
+          await ctx.db.patch(promote._id, { role: 'admin' });
+          summary.leagueAdminsPromoted += 1;
+        }
+      }
+    }
+
+    await ctx.db.delete(membership._id);
+    summary.leagueMemberships += 1;
+
+    const remainingMembers = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .collect();
+
+    if (remainingMembers.length === 0) {
+      await ctx.db.delete(league._id);
+      summary.leaguesDeleted += 1;
+      continue;
+    }
+
+    if (
+      league.createdBy === userId ||
+      !remainingMembers.some((m) => m.userId === league.createdBy)
+    ) {
+      const replacement =
+        remainingMembers.find((m) => m.role === 'admin') ??
+        remainingMembers[0];
+      if (replacement && replacement.userId !== league.createdBy) {
+        await ctx.db.patch(league._id, {
+          createdBy: replacement.userId,
+          updatedAt: now,
+        });
+        summary.leaguesReassigned += 1;
+      }
+    }
+  }
+
+  // Handle leagues created by this user where they are no longer a member.
+  const leaguesCreatedByUser = (await ctx.db.query('leagues').collect()).filter(
+    (league) => league.createdBy === userId,
+  );
+
+  for (const league of leaguesCreatedByUser) {
+    if (processedLeagueIds.has(String(league._id))) {
+      continue;
+    }
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .collect();
+
+    if (members.length === 0) {
+      await ctx.db.delete(league._id);
+      summary.leaguesDeleted += 1;
+      continue;
+    }
+
+    const replacement = members.find((m) => m.role === 'admin') ?? members[0];
+    if (replacement && replacement.userId !== league.createdBy) {
+      await ctx.db.patch(league._id, {
+        createdBy: replacement.userId,
+        updatedAt: now,
+      });
+      summary.leaguesReassigned += 1;
+    }
+  }
+}
+
+async function deleteAllDataForUser(
+  ctx: MutationCtx,
+  user: {
+    _id: Id<'users'>;
+    clerkUserId: string;
+  },
+) {
+  const summary: AccountDeletionSummary = {
+    follows: 0,
+    supportRequests: 0,
+    userSeasonPasses: 0,
+    pushSubscriptions: 0,
+    processedPaddleWebhookEvents: 0,
+    predictions: 0,
+    h2hPredictions: 0,
+    scores: 0,
+    h2hScores: 0,
+    seasonStandings: 0,
+    h2hSeasonStandings: 0,
+    leagueMemberships: 0,
+    leaguesDeleted: 0,
+    leaguesReassigned: 0,
+    leagueAdminsPromoted: 0,
+    users: 0,
+  };
+
+  const followsAsFollower = await ctx.db
+    .query('follows')
+    .withIndex('by_follower', (q) => q.eq('followerId', user._id))
+    .collect();
+  const followsAsFollowee = await ctx.db
+    .query('follows')
+    .withIndex('by_followee', (q) => q.eq('followeeId', user._id))
+    .collect();
+
+  const followIds = new Set<string>();
+  for (const row of followsAsFollower) {
+    followIds.add(String(row._id));
+  }
+  for (const row of followsAsFollowee) {
+    followIds.add(String(row._id));
+  }
+  for (const followId of followIds) {
+    await ctx.db.delete(followId as Id<'follows'>);
+  }
+  summary.follows = followIds.size;
+
+  const supportRequests = await ctx.db
+    .query('supportRequests')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of supportRequests) {
+    await ctx.db.delete(row._id);
+  }
+  summary.supportRequests = supportRequests.length;
+
+  const userSeasonPasses = await ctx.db
+    .query('userSeasonPasses')
+    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of userSeasonPasses) {
+    await ctx.db.delete(row._id);
+  }
+  summary.userSeasonPasses = userSeasonPasses.length;
+
+  const pushSubscriptions = await ctx.db
+    .query('pushSubscriptions')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of pushSubscriptions) {
+    await ctx.db.delete(row._id);
+  }
+  summary.pushSubscriptions = pushSubscriptions.length;
+
+  const processedPaddleWebhookEvents = (
+    await ctx.db.query('processedPaddleWebhookEvents').collect()
+  ).filter((row) => row.clerkUserId === user.clerkUserId);
+  for (const row of processedPaddleWebhookEvents) {
+    await ctx.db.delete(row._id);
+  }
+  summary.processedPaddleWebhookEvents = processedPaddleWebhookEvents.length;
+
+  const predictions = await ctx.db
+    .query('predictions')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of predictions) {
+    await ctx.db.delete(row._id);
+  }
+  summary.predictions = predictions.length;
+
+  const h2hPredictions = await ctx.db
+    .query('h2hPredictions')
+    .withIndex('by_user_race_session', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of h2hPredictions) {
+    await ctx.db.delete(row._id);
+  }
+  summary.h2hPredictions = h2hPredictions.length;
+
+  const scores = await ctx.db
+    .query('scores')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of scores) {
+    await ctx.db.delete(row._id);
+  }
+  summary.scores = scores.length;
+
+  const h2hScores = await ctx.db
+    .query('h2hScores')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of h2hScores) {
+    await ctx.db.delete(row._id);
+  }
+  summary.h2hScores = h2hScores.length;
+
+  const seasonStandings = await ctx.db
+    .query('seasonStandings')
+    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of seasonStandings) {
+    await ctx.db.delete(row._id);
+  }
+  summary.seasonStandings = seasonStandings.length;
+
+  const h2hSeasonStandings = await ctx.db
+    .query('h2hSeasonStandings')
+    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
+    .collect();
+  for (const row of h2hSeasonStandings) {
+    await ctx.db.delete(row._id);
+  }
+  summary.h2hSeasonStandings = h2hSeasonStandings.length;
+
+  await cleanupLeagueStateForDeletedUser(ctx, user._id, summary);
+
+  await ctx.db.delete(user._id);
+  summary.users = 1;
+
+  return summary;
+}
 
 export const me = query({
   args: {},
@@ -576,5 +851,68 @@ export const updateProfile = mutation({
     }
 
     return { success: true };
+  },
+});
+
+export const deleteUserFromClerkWebhook = mutation({
+  args: {
+    webhookKey: v.string(),
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const expectedWebhookKey = process.env.CLERK_CONVEX_WEBHOOK_KEY;
+    if (!expectedWebhookKey) {
+      throw new Error('Missing CLERK_CONVEX_WEBHOOK_KEY');
+    }
+    if (args.webhookKey !== expectedWebhookKey) {
+      throw new Error('Unauthorized webhook caller');
+    }
+
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+      .unique();
+
+    if (!user) {
+      return { handled: false as const, reason: 'user_not_found' as const };
+    }
+
+    const deleted = await deleteAllDataForUser(ctx, {
+      _id: user._id,
+      clerkUserId: user.clerkUserId,
+    });
+
+    return {
+      handled: true as const,
+      userId: user._id,
+      deleted,
+    };
+  },
+});
+
+export const deleteUserFromClerkWebhookInternal = internalMutation({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+      .unique();
+
+    if (!user) {
+      return { handled: false as const, reason: 'user_not_found' as const };
+    }
+
+    const deleted = await deleteAllDataForUser(ctx, {
+      _id: user._id,
+      clerkUserId: user.clerkUserId,
+    });
+
+    return {
+      handled: true as const,
+      userId: user._id,
+      deleted,
+    };
   },
 });

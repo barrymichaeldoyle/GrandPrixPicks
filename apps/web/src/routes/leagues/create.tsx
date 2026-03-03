@@ -2,7 +2,7 @@ import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { AlertCircle, Check, Loader2, LogIn } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Loader2, LogIn } from 'lucide-react';
 import { useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
@@ -397,11 +397,9 @@ function CreateLeagueContent() {
             </div>
           </form>
         </div>
-        <p className="text-sm text-text-muted">
-          <Button asChild size="sm" variant="text">
-            <Link to="/leagues">← Back to leagues</Link>
-          </Button>
-        </p>
+        <Button asChild size="sm" variant="text" leftIcon={ArrowLeft}>
+          <Link to="/leagues">Back to leagues</Link>
+        </Button>
       </div>
     </div>
   );

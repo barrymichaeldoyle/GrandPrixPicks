@@ -184,11 +184,9 @@ function ProfilePage() {
                   <p className="text-text-muted">@{currentProfile.username}</p>
                 )}
                 {currentProfile.username && (
-                  <>
-                    {followCounts === undefined ? (
-                      <div className="mt-1 h-4 w-40 animate-pulse rounded bg-surface-muted" />
-                    ) : (
-                      <p className="text-sm text-text-muted">
+                  <div className="mt-1 min-h-5">
+                    {followCounts !== undefined && (
+                      <p className="reveal-up text-sm text-text-muted">
                         <span className="font-bold text-text">
                           {followCounts.followerCount}
                         </span>{' '}
@@ -214,7 +212,7 @@ function ProfilePage() {
                         </Link>
                       </p>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>

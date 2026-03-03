@@ -29,11 +29,14 @@ import { useNow } from "../lib/useNow";
 import { useRaceWeekends } from "../lib/useRaceWeekends";
 import type { PicksStackParamList } from "../navigation/types";
 import { useMobileConfig } from "../providers/mobile-config";
+import { colors, radii } from "../theme/tokens";
+import { useTypography } from "../theme/typography";
 import { PicksScreen } from "./PicksScreen";
 
 const MAX_TOP5 = 5;
 
 export function PicksConnectedScreen() {
+  const { titleFontFamily } = useTypography();
   const navigation =
     useNavigation<NativeStackNavigationProp<PicksStackParamList>>();
   const { convexEnabled } = useMobileConfig();
@@ -360,7 +363,14 @@ export function PicksConnectedScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      <Text style={styles.title}>Picks (Connected)</Text>
+      <Text
+        style={[
+          styles.title,
+          titleFontFamily ? { fontFamily: titleFontFamily } : null,
+        ]}
+      >
+        Picks (Connected)
+      </Text>
       <Text style={styles.subtitle}>
         Submits session-specific picks to Convex.
       </Text>
@@ -547,38 +557,40 @@ export function PicksConnectedScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#101930",
-    borderColor: "#243355",
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderWidth: 1,
     gap: 10,
     padding: 12,
   },
   cardTitle: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "700",
+    lineHeight: 24,
   },
   chip: {
-    backgroundColor: "#1b2a50",
-    borderColor: "#2f4575",
-    borderRadius: 999,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.pill,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
   chipActive: {
-    backgroundColor: "#2e54bc",
-    borderColor: "#4f78e5",
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
   },
   chipText: {
-    color: "#fff",
-    fontSize: 12,
+    color: colors.text,
+    fontSize: 11,
     fontWeight: "700",
   },
   content: {
     gap: 14,
     paddingBottom: 24,
+    paddingTop: 4,
   },
   disabled: {
     opacity: 0.45,
@@ -589,30 +601,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loadingText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 16,
   },
   lockMeta: {
-    color: "#c0ccef",
+    color: colors.textMuted,
     fontSize: 12,
+    lineHeight: 16,
   },
   lockBadge: {
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   lockBadgeLocked: {
-    backgroundColor: "#6f2a2a",
+    backgroundColor: colors.warningMuted,
   },
   lockBadgeOpen: {
-    backgroundColor: "#234d35",
+    backgroundColor: colors.successMuted,
   },
   lockBadgeSoon: {
-    backgroundColor: "#7d5a1d",
+    backgroundColor: colors.warningMuted,
   },
   lockBadgeText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -620,15 +633,16 @@ const styles = StyleSheet.create({
     opacity: 0.72,
   },
   lockedText: {
-    color: "#ffb3b3",
-    fontSize: 13,
+    color: colors.error,
+    fontSize: 12,
+    lineHeight: 16,
   },
   matchup: {
     gap: 6,
   },
   matchupLabel: {
-    color: "#d5def7",
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 12,
     fontWeight: "600",
   },
   matchupRow: {
@@ -637,8 +651,8 @@ const styles = StyleSheet.create({
   },
   openRaceButton: {
     alignItems: "center",
-    backgroundColor: "#2b468f",
-    borderRadius: 10,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
     paddingVertical: 10,
   },
   rowWrap: {
@@ -648,31 +662,31 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: "center",
-    backgroundColor: "#3059c5",
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    borderRadius: radii.lg,
     paddingVertical: 12,
   },
   saveButtonText: {
-    color: "#fff",
-    fontSize: 14,
+    color: colors.text,
+    fontSize: 13,
     fontWeight: "700",
   },
   restoredBannerAction: {
     alignItems: "center",
-    backgroundColor: "#27438d",
+    backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
   restoredBannerActionText: {
-    color: "#fff",
+    color: colors.text,
     fontSize: 11,
     fontWeight: "700",
   },
   restoredBannerContainer: {
-    backgroundColor: "#1d2f63",
-    borderColor: "#3d58a8",
-    borderRadius: 10,
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.accent,
+    borderRadius: radii.md,
     borderWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -680,30 +694,35 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   restoredBannerText: {
-    color: "#d8e2ff",
+    color: colors.text,
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     paddingRight: 8,
   },
   screen: {
+    backgroundColor: colors.page,
     flex: 1,
     paddingHorizontal: 16,
   },
   status: {
-    color: "#9be5b2",
-    fontSize: 13,
+    color: colors.success,
+    fontSize: 12,
   },
   subtitle: {
-    color: "#9bb0dd",
-    fontSize: 14,
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
   },
   title: {
-    color: "#fff",
-    fontSize: 26,
+    color: colors.text,
+    fontSize: 34,
     fontWeight: "700",
+    letterSpacing: 0.2,
+    lineHeight: 38,
   },
   unlockedText: {
-    color: "#9be5b2",
-    fontSize: 13,
+    color: colors.success,
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

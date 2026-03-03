@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { AppProviders } from "./src/providers/AppProviders";
+import { colors } from "./src/theme/tokens";
 
 export default function App() {
   return (
@@ -17,7 +18,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   app: {
-    backgroundColor: "#070b17",
+    backgroundColor: colors.page,
     flex: 1,
   },
 });

@@ -2,6 +2,7 @@ import { SignInButton, useAuth } from '@clerk/clerk-react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import {
+  ArrowLeft,
   ArrowRight,
   CalendarDays,
   CheckCircle2,
@@ -378,11 +379,9 @@ function PricingPage() {
           </FaqItem>
         </FaqSection>
 
-        <p className="text-sm text-text-muted">
-          <Link to="/" className="text-accent hover:underline">
-            ← Back to home
-          </Link>
-        </p>
+        <Button asChild size="sm" leftIcon={ArrowLeft}>
+          <Link to="/">Back to home</Link>
+        </Button>
       </div>
     </div>
   );

@@ -97,14 +97,11 @@ function FollowingPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <Link
-          to="/p/$username"
-          params={{ username }}
-          className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back to {displayName}
-        </Link>
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-4">
+          <Link to="/p/$username" params={{ username }}>
+            Back to {displayName}
+          </Link>
+        </Button>
 
         <div className="mb-6 flex items-center gap-3">
           <UserPlus className="h-8 w-8 text-accent" aria-hidden />

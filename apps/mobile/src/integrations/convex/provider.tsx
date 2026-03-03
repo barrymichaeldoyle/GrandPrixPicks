@@ -10,21 +10,22 @@ const convexClient =
   typeof convexUrl === "string" && convexUrl.length > 0
     ? new ConvexReactClient(convexUrl)
     : null;
+const fallbackConvexClient = new ConvexReactClient(
+  "https://placeholder.convex.cloud",
+);
 
 export function MobileConvexProvider({ children }: { children: ReactNode }) {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
+  const activeClient =
+    convexEnabled && convexClient ? convexClient : fallbackConvexClient;
 
-  if (!convexEnabled || !convexClient) {
-    return <>{children}</>;
-  }
-
-  if (clerkEnabled) {
+  if (clerkEnabled && convexEnabled && convexClient) {
     return (
-      <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
+      <ConvexProviderWithClerk client={activeClient} useAuth={useAuth}>
         {children}
       </ConvexProviderWithClerk>
     );
   }
 
-  return <ConvexProvider client={convexClient}>{children}</ConvexProvider>;
+  return <ConvexProvider client={activeClient}>{children}</ConvexProvider>;
 }

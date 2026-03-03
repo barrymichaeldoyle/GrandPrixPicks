@@ -2,11 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StyleSheet, Text } from "react-native";
 
 import { HomeRouteScreen } from "../screens/HomeRouteScreen";
 import { PicksConnectedScreen } from "../screens/PicksConnectedScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { RaceDetailScreen } from "../screens/RaceDetailScreen";
+import { colors } from "../theme/tokens";
+import { useTypography } from "../theme/typography";
 import { linking } from "./linking";
 import type {
   HomeStackParamList,
@@ -20,19 +23,36 @@ const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const PicksStack = createNativeStackNavigator<PicksStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
+function BrandHeaderTitle() {
+  const { titleFontFamily } = useTypography();
+  return (
+    <Text
+      style={[
+        styles.brandTitle,
+        titleFontFamily ? { fontFamily: titleFontFamily } : null,
+      ]}
+    >
+      GrandPrixPicks
+    </Text>
+  );
+}
+
 function HomeStackNavigator() {
   return (
     <HomeStack.Navigator
       screenOptions={{
-        contentStyle: { backgroundColor: "#070b17" },
-        headerStyle: { backgroundColor: "#0d1429" },
-        headerTintColor: "#fff",
+        contentStyle: { backgroundColor: colors.page },
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
       }}
     >
       <HomeStack.Screen
         component={HomeRouteScreen}
         name="HomeMain"
-        options={{ headerShown: false, title: "Home" }}
+        options={{
+          headerShown: true,
+          headerTitle: () => <BrandHeaderTitle />,
+        }}
       />
       <HomeStack.Screen
         component={RaceDetailScreen}
@@ -47,15 +67,18 @@ function PicksStackNavigator() {
   return (
     <PicksStack.Navigator
       screenOptions={{
-        contentStyle: { backgroundColor: "#070b17" },
-        headerStyle: { backgroundColor: "#0d1429" },
-        headerTintColor: "#fff",
+        contentStyle: { backgroundColor: colors.page },
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
       }}
     >
       <PicksStack.Screen
         component={PicksConnectedScreen}
         name="PicksMain"
-        options={{ headerShown: false, title: "Picks" }}
+        options={{
+          headerShown: true,
+          headerTitle: () => <BrandHeaderTitle />,
+        }}
       />
       <PicksStack.Screen
         component={RaceDetailScreen}
@@ -70,15 +93,18 @@ function ProfileStackNavigator() {
   return (
     <ProfileStack.Navigator
       screenOptions={{
-        contentStyle: { backgroundColor: "#070b17" },
-        headerStyle: { backgroundColor: "#0d1429" },
-        headerTintColor: "#fff",
+        contentStyle: { backgroundColor: colors.page },
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
       }}
     >
       <ProfileStack.Screen
         component={ProfileScreen}
         name="ProfileMain"
-        options={{ headerShown: false, title: "Profile" }}
+        options={{
+          headerShown: true,
+          headerTitle: () => <BrandHeaderTitle />,
+        }}
       />
     </ProfileStack.Navigator>
   );
@@ -90,8 +116,8 @@ export function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          sceneStyle: { backgroundColor: "#070b17" },
-          tabBarActiveTintColor: "#ffffff",
+          sceneStyle: { backgroundColor: colors.page },
+          tabBarActiveTintColor: colors.accent,
           tabBarIcon: ({ color, size }) => {
             const iconName =
               route.name === "HomeTab"
@@ -101,10 +127,22 @@ export function AppNavigator() {
                   : "person";
             return <Ionicons color={color} name={iconName} size={size} />;
           },
-          tabBarInactiveTintColor: "#9fb0da",
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarItemStyle: {
+            justifyContent: "center",
+            paddingBottom: 0,
+            paddingTop: 0,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            marginBottom: 0,
+          },
           tabBarStyle: {
-            backgroundColor: "#0d1429",
-            borderTopColor: "#253761",
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            height: 76,
+            paddingBottom: 6,
+            paddingTop: 6,
           },
         })}
       >
@@ -127,3 +165,12 @@ export function AppNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  brandTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+});

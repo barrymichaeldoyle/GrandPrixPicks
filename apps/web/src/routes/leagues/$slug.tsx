@@ -574,7 +574,9 @@ function MemberRowActions({
   const isFollowing = useQuery(api.follows.isFollowing, { followeeId: userId });
   const followMutation = useMutation(api.follows.follow);
   const unfollowMutation = useMutation(api.follows.unfollow);
-  const [optimisticFollow, setOptimisticFollow] = useState<boolean | null>(null);
+  const [optimisticFollow, setOptimisticFollow] = useState<boolean | null>(
+    null,
+  );
   const [isSubmittingFollow, setIsSubmittingFollow] = useState(false);
 
   const following = optimisticFollow ?? isFollowing;
@@ -602,12 +604,16 @@ function MemberRowActions({
   return (
     <div className="flex items-center gap-2">
       {!isViewer && isFollowing !== undefined && (
-        <Tooltip content={following ? 'Following (click to unfollow)' : 'Follow'}>
+        <Tooltip
+          content={following ? 'Following (click to unfollow)' : 'Follow'}
+        >
           <button
             type="button"
             onClick={() => void toggleFollow()}
             disabled={isSubmittingFollow}
-            aria-label={following ? `Unfollow @${username}` : `Follow @${username}`}
+            aria-label={
+              following ? `Unfollow @${username}` : `Follow @${username}`
+            }
             className={`rounded-lg border p-2 transition-colors disabled:opacity-60 ${
               following
                 ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'

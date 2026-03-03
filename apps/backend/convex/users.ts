@@ -2,12 +2,8 @@ import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import {
-  internalMutation,
-  mutation,
-  query,
-  type MutationCtx,
-} from './_generated/server';
+import type { MutationCtx } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
   getViewer,
@@ -79,7 +75,7 @@ async function cleanupLeagueStateForDeletedUser(
         const promote = [...otherMembers].sort(
           (a, b) => a.joinedAt - b.joinedAt,
         )[0];
-        if (promote && promote.role !== 'admin') {
+        if (promote.role !== 'admin') {
           await ctx.db.patch(promote._id, { role: 'admin' });
           summary.leagueAdminsPromoted += 1;
         }
@@ -105,9 +101,8 @@ async function cleanupLeagueStateForDeletedUser(
       !remainingMembers.some((m) => m.userId === league.createdBy)
     ) {
       const replacement =
-        remainingMembers.find((m) => m.role === 'admin') ??
-        remainingMembers[0];
-      if (replacement && replacement.userId !== league.createdBy) {
+        remainingMembers.find((m) => m.role === 'admin') ?? remainingMembers[0];
+      if (replacement.userId !== league.createdBy) {
         await ctx.db.patch(league._id, {
           createdBy: replacement.userId,
           updatedAt: now,
@@ -139,7 +134,7 @@ async function cleanupLeagueStateForDeletedUser(
     }
 
     const replacement = members.find((m) => m.role === 'admin') ?? members[0];
-    if (replacement && replacement.userId !== league.createdBy) {
+    if (replacement.userId !== league.createdBy) {
       await ctx.db.patch(league._id, {
         createdBy: replacement.userId,
         updatedAt: now,

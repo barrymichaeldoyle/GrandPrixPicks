@@ -1,27 +1,18 @@
 import { SignedOut, SignInButton } from '@clerk/clerk-react';
-import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, Menu, Moon, Sun, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { primaryNavLinks } from '../lib/navigation';
 import { Button } from './Button.tsx';
 
-type NavLink = {
-  to: string;
-  params?: Record<string, string>;
-  label: string;
-  exact?: boolean;
-};
-
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Mobile menu: viewport width <= 850px is "mobile". Keep min-[851px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 850px)';
+/** Mobile menu: viewport width <= 790px is "mobile". Keep min-[791px] classes below in sync. */
+export const MEDIA_MATCH_BREAKPOINT = '(max-width: 790px)';
 
 export function Header({
   mobileMenuOpen,
@@ -44,18 +35,6 @@ export function Header({
   // Local theme state only when parent doesn't control it (e.g. Storybook)
   const [localDark, setLocalDark] = useState(false);
   const dark = onThemeChange !== undefined ? isDark : localDark;
-
-  const me = useQuery(api.users.me);
-  const navLinks = useMemo<Array<NavLink>>(() => {
-    const myPicksLink: NavLink = me?.username
-      ? {
-          to: '/p/$username',
-          params: { username: me.username },
-          label: 'My Picks',
-        }
-      : { to: '/me', label: 'My Picks' };
-    return [...primaryNavLinks, myPicksLink];
-  }, [me?.username]);
 
   useEffect(() => {
     if (onThemeChange !== undefined) {
@@ -83,6 +62,20 @@ export function Header({
       setLocalDark(next);
     }
   }, [themeKey, dark, onThemeChange]);
+
+  // Keep mobile menu state in sync when crossing the mobile breakpoint
+  useEffect(() => {
+    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
+
+    function handleChange(event: MediaQueryListEvent) {
+      if (!event.matches) {
+        onMobileMenuOpenChange(false);
+      }
+    }
+
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, [onMobileMenuOpenChange]);
 
   // Lock body scroll when mobile menu is open (mobile only)
   useEffect(() => {
@@ -226,13 +219,12 @@ export function Header({
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[851px]:flex"
+            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[791px]:flex"
           >
-            {navLinks.map((link) => (
+            {primaryNavLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                params={link.params as Record<string, string>}
                 className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
                 activeProps={{
                   className:
@@ -255,7 +247,7 @@ export function Header({
           <button
             type="button"
             onClick={toggleTheme}
-            className="hidden rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[851px]:inline-flex"
+            className="hidden rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:inline-flex"
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun size={20} /> : <Moon size={20} />}
@@ -266,7 +258,7 @@ export function Header({
           <motion.button
             ref={menuButtonRef}
             onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[851px]:hidden"
+            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
@@ -309,7 +301,7 @@ export function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[851px]:hidden"
+              className="fixed inset-0 top-[57px] z-40 min-[791px]:hidden"
               style={{ backgroundColor: 'var(--overlay)' }}
               onClick={closeMenu}
             />
@@ -322,10 +314,10 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[851px]:hidden"
+              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[791px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
-                {navLinks.map((link, index) => (
+                {primaryNavLinks.map((link, index) => (
                   <motion.div
                     key={link.to}
                     initial={{ x: -20, opacity: 0 }}
@@ -334,7 +326,6 @@ export function Header({
                   >
                     <Link
                       to={link.to}
-                      params={link.params as Record<string, string>}
                       onClick={closeMenu}
                       className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
                       activeProps={{
@@ -356,7 +347,7 @@ export function Header({
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{
-                    delay: navLinks.length * 0.05,
+                    delay: primaryNavLinks.length * 0.05,
                     duration: 0.2,
                   }}
                 >
@@ -377,7 +368,7 @@ export function Header({
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{
-                      delay: (navLinks.length + 1) * 0.05,
+                      delay: (primaryNavLinks.length + 1) * 0.05,
                       duration: 0.2,
                     }}
                   >

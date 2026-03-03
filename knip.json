@@ -5,8 +5,12 @@
   },
   "workspaces": {
     "apps/web": {
-      "entry": ["src/start.ts", "instrument.server.mjs"],
-      "project": ["src/**/*.{ts,tsx}"],
+      "entry": [
+        "src/start.ts",
+        "instrument.server.mjs",
+        "server/routes/api/**/*.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
       "ignoreFiles": [
         "src/components/RaceCardSkeleton.tsx",
         "src/lib/og/fonts.ts",

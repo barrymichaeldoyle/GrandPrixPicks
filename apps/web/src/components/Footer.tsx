@@ -54,19 +54,19 @@ export function Footer() {
               Fan-made prediction game for Formula 1 race weekends. No gambling
               or real-money betting.
             </p>
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
               <span>Made by</span>
               <a
                 href="https://barrymichaeldoyle.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={footerLinkClass}
+                className={`${footerLinkClass} font-title text-xs tracking-tight`}
               >
                 Barry Michael Doyle
               </a>
               <span
                 aria-hidden
-                className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
+                className="ml-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
               />
               <a
                 href="https://x.com/barrymdoyle"

@@ -368,9 +368,10 @@ function HomePage() {
               Earn Points Every Session
             </h3>
             <p className="text-sm text-text-muted">
-              Score up to 25 points per session. Exact picks earn 5 points,
-              off-by-one earns 3, and any top-5 hit earns 1. Sprint weekends
-              mean even more points up for grabs.
+              Top-5 picks score up to 25 points per session — exact position
+              earns 5, off by one earns 3, any top-5 hit earns 1. Head-to-head
+              points stack on top, and sprint weekends mean even more to play
+              for.
             </p>
           </motion.div>
 

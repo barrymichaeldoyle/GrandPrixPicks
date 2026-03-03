@@ -1,12 +1,11 @@
 import { SignedOut, SignInButton } from '@clerk/clerk-react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Flag, Menu, Moon, Sun, X } from 'lucide-react';
+import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { primaryNavLinks } from '../lib/navigation';
-import { Button } from './Button.tsx';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -244,16 +243,6 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="hidden rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:inline-flex"
-            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {dark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <HeaderUser />
-
           {/* Mobile menu button */}
           <motion.button
             ref={menuButtonRef}
@@ -288,6 +277,17 @@ export function Header({
               )}
             </AnimatePresence>
           </motion.button>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:inline-flex"
+            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {dark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+
+          <HeaderUser />
         </div>
       </div>
 
@@ -373,9 +373,14 @@ export function Header({
                     }}
                   >
                     <SignInButton mode="modal">
-                      <Button type="button" onClick={closeMenu}>
-                        Sign in
-                      </Button>
+                      <button
+                        type="button"
+                        onClick={closeMenu}
+                        className="flex w-full items-center gap-2 rounded-full border-2 border-transparent bg-button-accent px-3 py-2 font-semibold text-white transition-colors hover:bg-button-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                      >
+                        <LogIn className="h-4 w-4" />
+                        <span>Sign in</span>
+                      </button>
                     </SignInButton>
                   </motion.div>
                 </SignedOut>

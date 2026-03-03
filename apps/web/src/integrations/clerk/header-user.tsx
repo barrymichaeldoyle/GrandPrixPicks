@@ -9,7 +9,7 @@ import { useQuery } from 'convex/react';
 import { Settings, Trophy } from 'lucide-react';
 
 const signInButtonClasses =
-  'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-button-accent text-white hover:bg-button-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full bg-button-accent text-white hover:bg-button-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
 /**
  * User avatar when signed in; Sign in button when signed out.
@@ -27,7 +27,7 @@ export function HeaderUser() {
           appearance={{
             elements: {
               userButtonTrigger:
-                'rounded-lg border border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+                'rounded-full border border-border bg-surface px-2 py-1 transition-colors hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
             },
           }}
         >

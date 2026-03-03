@@ -15,15 +15,12 @@ import {
   Check,
   Copy,
   Crown,
-  Eye,
   Globe,
   Lock,
   LogIn,
   Settings,
   Shield,
   User,
-  UserCheck,
-  UserPlus,
   Users,
 } from 'lucide-react';
 import posthog from 'posthog-js';
@@ -33,8 +30,8 @@ import { InlineLoader } from '@/components/InlineLoader';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button';
+import { LeagueMembersList } from '../../components/LeagueMembersList';
 import { PageLoader } from '../../components/PageLoader';
-import { Tooltip } from '../../components/Tooltip';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -155,25 +152,6 @@ function LeagueDetailPage() {
 type League = NonNullable<
   ReturnType<typeof useQuery<typeof api.leagues.getLeagueBySlug>>
 >;
-
-function getPredictionIndicatorLabel(
-  top5Picked?: boolean,
-  h2hPicked?: boolean,
-): string | null {
-  if (top5Picked === undefined || h2hPicked === undefined) {
-    return null;
-  }
-  if (top5Picked && h2hPicked) {
-    return 'Top 5 & H2H picked';
-  }
-  if (top5Picked && !h2hPicked) {
-    return 'Top 5 picked, H2H not picked';
-  }
-  if (!top5Picked && h2hPicked) {
-    return 'H2H picked, Top 5 not picked';
-  }
-  return 'Predictions not made';
-}
 
 function LeagueDetailContent({ league }: { league: League }) {
   const isAdmin = league.viewerRole === 'admin';
@@ -475,9 +453,60 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
     leagueId,
     raceId: showPredictionStatus ? nextRace._id : undefined,
   });
+  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
+  const followMutation = useMutation(api.follows.follow);
+  const unfollowMutation = useMutation(api.follows.unfollow);
+  const [optimisticFollows, setOptimisticFollows] = useState<
+    Map<string, boolean>
+  >(new Map());
 
   if (members === undefined) {
     return <InlineLoader />;
+  }
+
+  const followedSet = new Set(followedIds ?? []);
+
+  const memberItems = members.map((member) => {
+    const optimistic = optimisticFollows.get(member.userId as string);
+    const isFollowing =
+      optimistic !== undefined
+        ? optimistic
+        : followedIds !== undefined
+          ? followedSet.has(member.userId as string)
+          : undefined;
+    return {
+      ...member,
+      _id: member._id as string,
+      userId: member.userId as string,
+      isViewer: me?._id === member.userId,
+      isFollowing,
+    };
+  });
+
+  async function handleFollow(userId: string) {
+    setOptimisticFollows((prev) => new Map(prev).set(userId, true));
+    try {
+      await followMutation({ followeeId: userId as Id<'users'> });
+    } catch {
+      setOptimisticFollows((prev) => {
+        const next = new Map(prev);
+        next.delete(userId);
+        return next;
+      });
+    }
+  }
+
+  async function handleUnfollow(userId: string) {
+    setOptimisticFollows((prev) => new Map(prev).set(userId, false));
+    try {
+      await unfollowMutation({ followeeId: userId as Id<'users'> });
+    } catch {
+      setOptimisticFollows((prev) => {
+        const next = new Map(prev);
+        next.delete(userId);
+        return next;
+      });
+    }
   }
 
   return (
@@ -491,155 +520,17 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
         </p>
       )}
       {!showPredictionStatus && <div className="mb-3" />}
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        {members.map((member, index) => (
-          <div
-            key={member._id}
-            className={`flex items-center justify-between px-4 py-3 ${
-              index < members.length - 1 ? 'border-b border-border' : ''
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              {member.avatarUrl ? (
-                <img
-                  src={member.avatarUrl}
-                  alt=""
-                  className="h-7 w-7 rounded-full object-cover"
-                />
-              ) : (
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-muted text-xs font-semibold text-text-muted">
-                  {member.displayName.charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div>
-                <Link
-                  to="/p/$username"
-                  params={{ username: member.username }}
-                  className="font-medium text-accent hover:underline"
-                >
-                  {member.displayName}
-                </Link>
-                <p className="text-xs text-text-muted">@{member.username}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {member.role === 'admin' && (
-                <Tooltip content="League Admin">
-                  <span className="inline-flex rounded-lg p-2 text-warning">
-                    <Crown className="h-4 w-4" aria-hidden="true" />
-                    <span className="sr-only">Admin</span>
-                  </span>
-                </Tooltip>
-              )}
-              {getPredictionIndicatorLabel(
-                member.top5Picked,
-                member.h2hPicked,
-              ) && (
-                <span className="mr-1 inline-flex items-center gap-1 text-xs text-text-muted">
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      member.top5Picked && member.h2hPicked
-                        ? 'bg-success'
-                        : 'bg-warning'
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {getPredictionIndicatorLabel(
-                    member.top5Picked,
-                    member.h2hPicked,
-                  )}
-                </span>
-              )}
-              <MemberRowActions
-                userId={member.userId}
-                username={member.username}
-                isViewer={me?._id === member.userId}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MemberRowActions({
-  userId,
-  username,
-  isViewer,
-}: {
-  userId: Id<'users'>;
-  username: string;
-  isViewer: boolean;
-}) {
-  const isFollowing = useQuery(api.follows.isFollowing, { followeeId: userId });
-  const followMutation = useMutation(api.follows.follow);
-  const unfollowMutation = useMutation(api.follows.unfollow);
-  const [optimisticFollow, setOptimisticFollow] = useState<boolean | null>(
-    null,
-  );
-  const [isSubmittingFollow, setIsSubmittingFollow] = useState(false);
-
-  const following = optimisticFollow ?? isFollowing;
-
-  async function toggleFollow() {
-    if (isFollowing === undefined || isSubmittingFollow) {
-      return;
-    }
-    const willFollow = !following;
-    setOptimisticFollow(willFollow);
-    setIsSubmittingFollow(true);
-    try {
-      if (willFollow) {
-        await followMutation({ followeeId: userId });
-      } else {
-        await unfollowMutation({ followeeId: userId });
-      }
-    } catch {
-      setOptimisticFollow(null);
-    } finally {
-      setIsSubmittingFollow(false);
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      {!isViewer && isFollowing !== undefined && (
-        <Tooltip
-          content={following ? 'Following (click to unfollow)' : 'Follow'}
-        >
-          <button
-            type="button"
-            onClick={() => void toggleFollow()}
-            disabled={isSubmittingFollow}
-            aria-label={
-              following ? `Unfollow @${username}` : `Follow @${username}`
-            }
-            className={`rounded-lg border p-2 transition-colors disabled:opacity-60 ${
-              following
-                ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
-                : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
-            }`}
-          >
-            {following ? (
-              <UserCheck className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <UserPlus className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
-        </Tooltip>
-      )}
-      <Tooltip content="View profile">
-        <Link
-          to="/p/$username"
-          params={{ username }}
-          aria-label={`View @${username} profile`}
-          className="rounded-lg border border-border bg-surface p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-        >
-          <Eye className="h-5 w-5" aria-hidden="true" />
-        </Link>
-      </Tooltip>
+      <LeagueMembersList
+        members={memberItems}
+        showPredictionStatus={showPredictionStatus}
+        renderProfileLink={({ username, className, children }) => (
+          <Link to="/p/$username" params={{ username }} className={className}>
+            {children}
+          </Link>
+        )}
+        onFollow={handleFollow}
+        onUnfollow={handleUnfollow}
+      />
     </div>
   );
 }

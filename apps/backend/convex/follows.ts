@@ -54,6 +54,22 @@ export const unfollow = mutation({
   },
 });
 
+/** Returns IDs of all users the viewer follows. Used for batch follow-state lookups. */
+export const getViewerFollowedIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return [];
+    }
+    const follows = await ctx.db
+      .query('follows')
+      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
+      .collect();
+    return follows.map((f) => f.followeeId as string);
+  },
+});
+
 export const isFollowing = query({
   args: { followeeId: v.id('users') },
   handler: async (ctx, args) => {

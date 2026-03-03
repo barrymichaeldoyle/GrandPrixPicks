@@ -22,6 +22,7 @@ export default [
       'node_modules/**',
       'babel.config.cjs',
       'metro.config.cjs',
+      'index.js',
       'eslint.config.js',
     ],
   },

@@ -310,7 +310,7 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />
-          <h2 className="text-xl font-semibold text-text">
+          <h2 className="text-lg font-semibold text-text sm:text-xl">
             Session Points Breakdown
           </h2>
         </div>
@@ -458,8 +458,13 @@ export function H2HResultsSection({ raceId, race }: H2HResultsSectionProps) {
           </div>
 
           <div className="rounded-lg border border-border bg-surface p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-text">Head-to-Head</h3>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Swords className="h-4 w-4 text-accent" />
+                <h3 className="text-sm font-semibold text-text">
+                  Head-to-Head
+                </h3>
+              </div>
               <span className="text-sm font-semibold text-accent">
                 +{selectedH2HPoints} pts
               </span>

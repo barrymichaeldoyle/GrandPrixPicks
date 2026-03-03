@@ -1,10 +1,16 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { getWebH2HDraftStorageKey } from '@grandprixpicks/shared/picks';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
 import { Check, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import {
+  clearPredictionDraft,
+  loadPredictionDraft,
+  savePredictionDraft,
+} from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import type { SessionType } from '../lib/sessions';
@@ -24,6 +30,11 @@ interface H2HPredictionFormProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
+type H2HDraft = {
+  selections: Record<string, Id<'drivers'>>;
+  updatedAt: string;
+};
+
 export function H2HPredictionForm({
   raceId,
   sessionType,
@@ -33,6 +44,7 @@ export function H2HPredictionForm({
 }: H2HPredictionFormProps) {
   const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
+  const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
 
   const [selections, setSelections] = useState<Record<string, Id<'drivers'>>>(
     existingPicks ?? {},
@@ -42,13 +54,20 @@ export function H2HPredictionForm({
     'idle' | 'success' | 'error'
   >('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
+  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
 
-  // Sync with existing picks when they load
   useEffect(() => {
-    if (existingPicks && Object.keys(existingPicks).length > 0) {
-      setSelections(existingPicks);
+    const draft = loadPredictionDraft<H2HDraft>(draftKey);
+    if (draft && Object.keys(draft.selections).length > 0) {
+      setSelections(draft.selections);
+      setRestoredDraftAt(draft.updatedAt);
+    } else {
+      setSelections(existingPicks ?? {});
+      setRestoredDraftAt(null);
     }
-  }, [existingPicks]);
+    setHasHydratedDraft(true);
+  }, [draftKey, existingPicks]);
 
   if (matchups === undefined) {
     return <InlineLoader />;
@@ -94,6 +113,8 @@ export function H2HPredictionForm({
           origin: { y: 0.7 },
         });
       }
+      clearPredictionDraft(draftKey);
+      setRestoredDraftAt(null);
       onSuccess?.();
     } catch (error) {
       setSubmitStatus('error');
@@ -114,6 +135,22 @@ export function H2HPredictionForm({
   useEffect(() => {
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
+
+  useEffect(() => {
+    if (!hasHydratedDraft) {
+      return;
+    }
+
+    if (hasChanges) {
+      savePredictionDraft<H2HDraft>(draftKey, {
+        selections,
+        updatedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    clearPredictionDraft(draftKey);
+  }, [draftKey, hasChanges, hasHydratedDraft, selections]);
 
   const isUnchangedFromSaved = Boolean(
     existingPicks &&
@@ -141,8 +178,26 @@ export function H2HPredictionForm({
     </Button>
   );
 
+  function handleDiscardDraft() {
+    setSelections(existingPicks ?? {});
+    setSubmitStatus('idle');
+    setErrorMessage('');
+    setRestoredDraftAt(null);
+    clearPredictionDraft(draftKey);
+  }
+
   return (
     <div className="space-y-4">
+      {restoredDraftAt ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
+          <span className="text-xs text-text">
+            Draft restored: {new Date(restoredDraftAt).toLocaleString()}
+          </span>
+          <Button variant="text" size="inline" onClick={handleDiscardDraft}>
+            Discard Draft
+          </Button>
+        </div>
+      ) : null}
       <p className="text-sm text-text-muted">
         Pick which teammate finishes ahead in each pairing.
       </p>

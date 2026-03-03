@@ -108,6 +108,7 @@ const config = defineConfig(({ mode }) => {
       environment: 'jsdom',
       include: [
         'src/**/*.{test,spec}.{ts,tsx}',
+        '../../packages/shared/src/**/*.{test,spec}.{ts,tsx}',
         '../backend/convex/**/*.{test,spec}.{ts,tsx}',
       ],
       passWithNoTests: true,

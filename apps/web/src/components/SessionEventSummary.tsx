@@ -1,26 +1,15 @@
 import { CalendarClock, CheckCircle2, CircleDot, Lock } from 'lucide-react';
 
 import { formatDate, formatTime } from '../lib/date';
+import {
+  getLockStatusViewModel,
+  getLockUrgencyBadgeClassName,
+} from '../lib/lock';
 import type { SessionType } from '../lib/sessions';
 import { SESSION_LABELS } from '../lib/sessions';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
-type SessionStatus = 'open' | 'locked' | 'published';
-
-function getSessionStatus({
-  hasResults,
-  lockAt,
-  now,
-}: {
-  hasResults: boolean;
-  lockAt: number;
-  now: number;
-}): SessionStatus {
-  if (hasResults) {
-    return 'published';
-  }
-  return now < lockAt ? 'open' : 'locked';
-}
+type SessionStatus = 'open' | 'closing_soon' | 'locked' | 'published';
 
 export function SessionEventSummary({
   session,
@@ -37,27 +26,37 @@ export function SessionEventSummary({
   trackTimeZone?: string;
   now?: number;
 }) {
-  const status = getSessionStatus({ hasResults, lockAt, now });
+  const lockStatus = getLockStatusViewModel({
+    msRemaining: lockAt - now,
+  });
+  const status: SessionStatus = hasResults ? 'published' : lockStatus.urgency;
   const statusUi =
     status === 'open'
       ? {
-          label: 'Open',
+          label: lockStatus.label,
           icon: CircleDot,
-          className: 'text-success bg-success-muted border-success/30',
+          className: getLockUrgencyBadgeClassName(lockStatus.badgeTone),
         }
-      : status === 'locked'
+      : status === 'closing_soon'
         ? {
-            label: 'Locked',
+            label: lockStatus.label,
             icon: Lock,
-            className: 'text-warning bg-warning-muted border-warning/30',
+            className: getLockUrgencyBadgeClassName(lockStatus.badgeTone),
           }
-        : {
-            label: 'Published',
-            icon: CheckCircle2,
-            className: 'text-accent bg-accent-muted border-accent/30',
-          };
+        : status === 'locked'
+          ? {
+              label: lockStatus.label,
+              icon: Lock,
+              className: getLockUrgencyBadgeClassName(lockStatus.badgeTone),
+            }
+          : {
+              label: 'Published',
+              icon: CheckCircle2,
+              className: 'text-accent bg-accent-muted border-accent/30',
+            };
 
   const StatusIcon = statusUi.icon;
+  const shouldPulseLockStatusBadge = lockStatus.shouldPulse;
   const trackDateTime = (() => {
     try {
       return new Intl.DateTimeFormat(undefined, {
@@ -98,7 +97,9 @@ export function SessionEventSummary({
             />
           )}
           <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusUi.className}`}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusUi.className} ${
+              shouldPulseLockStatusBadge ? 'animate-pulse' : ''
+            }`}
           >
             <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {statusUi.label}

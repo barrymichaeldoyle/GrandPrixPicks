@@ -8,6 +8,10 @@ import {
   formatTime,
   useCountdown,
 } from '../lib/date';
+import {
+  getLockStatusViewModel,
+  getLockUrgencyBadgeClassName,
+} from '../lib/lock';
 import { Badge } from './Badge';
 import { Flag } from './Flag';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
@@ -92,6 +96,13 @@ function getScheduleEntries(race: Race) {
   return entries;
 }
 
+interface RaceCardProps {
+  race: Race;
+  isNext?: boolean;
+  /** When predictions open (previous race start). Shown for "not yet open" races. */
+  predictionOpenAt?: number | null;
+}
+
 function Countdown({
   timestamp,
   suffix,
@@ -107,25 +118,23 @@ function Countdown({
   );
 }
 
-interface RaceCardProps {
-  race: Race;
-  isNext?: boolean;
-  /** When predictions open (previous race start). Shown for "not yet open" races. */
-  predictionOpenAt?: number | null;
-}
-
 export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   // Only the next upcoming race is open for predictions
   const isPredictable = race.status === 'upcoming' && isNext;
   const isNotYetOpen = race.status === 'upcoming' && !isNext;
 
   const countryCode = getCountryCodeForRace(race);
+  const now = Date.now();
   const timezoneLabel = Intl.DateTimeFormat(undefined, {
     timeZoneName: 'short',
   })
     .formatToParts(Date.now())
     .find((p) => p.type === 'timeZoneName')?.value;
   const scheduleEntries = getScheduleEntries(race);
+  const msUntilLock = race.predictionLockAt - now;
+  const lockStatus = getLockStatusViewModel({
+    msRemaining: msUntilLock,
+  });
 
   return (
     <Link
@@ -189,19 +198,28 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
             )}
             {race.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
             {isPredictable && (
-              <PredictionCountdownBadge
-                predictionLockAt={race.predictionLockAt}
-                labelMode="lock"
-              />
+              <span
+                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${getLockUrgencyBadgeClassName(lockStatus.badgeTone)} ${
+                  lockStatus.shouldPulse ? 'animate-pulse' : ''
+                }`}
+              >
+                {lockStatus.label}
+              </span>
             )}
             {isNotYetOpen && predictionOpenAt != null && (
               <span className="bg-surface-elevated inline-flex items-center rounded-full border border-border-strong/70 px-2 py-0.5 text-xs font-medium text-text">
                 Opens {formatDateLong(predictionOpenAt)}
               </span>
             )}
+            {isPredictable && (
+              <PredictionCountdownBadge
+                predictionLockAt={race.predictionLockAt}
+                labelMode="lock"
+              />
+            )}
             {race.status === 'locked' && (
               <span className="inline-flex items-center rounded-full bg-warning-muted px-2 py-0.5 text-xs font-medium text-warning tabular-nums">
-                {race.raceStartAt > Date.now() ? (
+                {race.raceStartAt > now ? (
                   <Countdown timestamp={race.raceStartAt} suffix="until race" />
                 ) : (
                   'Results pending'

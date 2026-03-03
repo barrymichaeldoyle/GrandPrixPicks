@@ -6,9 +6,11 @@
     "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
   },
   "exports": {
+    "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./sessions": "./src/sessions.ts"
   }

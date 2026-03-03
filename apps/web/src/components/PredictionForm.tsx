@@ -19,6 +19,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { useBlocker } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
@@ -28,6 +29,11 @@ import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
+import {
+  clearPredictionDraft,
+  loadPredictionDraft,
+  savePredictionDraft,
+} from '@/lib/predictionDrafts';
 import { teamStandingsIndex } from '@/lib/teams';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
@@ -283,6 +289,11 @@ interface PredictionFormProps {
   onDirtyChange?: (dirty: boolean) => void;
 }
 
+type Top5Draft = {
+  picks: Array<Id<'drivers'>>;
+  updatedAt: string;
+};
+
 export function PredictionForm({
   raceId,
   existingPicks,
@@ -292,6 +303,7 @@ export function PredictionForm({
 }: PredictionFormProps) {
   const drivers = useQuery(api.drivers.listDrivers);
   const submitPrediction = useMutation(api.predictions.submitPrediction);
+  const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
 
   const [picks, setPicks] = useState<Array<Id<'drivers'>>>(existingPicks ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -299,13 +311,20 @@ export function PredictionForm({
     'idle' | 'success' | 'error'
   >('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
+  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
 
-  // Sync with existing picks when they load
   useEffect(() => {
-    if (existingPicks && existingPicks.length > 0) {
-      setPicks(existingPicks);
+    const draft = loadPredictionDraft<Top5Draft>(draftKey);
+    if (draft && draft.picks.length > 0) {
+      setPicks(draft.picks);
+      setRestoredDraftAt(draft.updatedAt);
+    } else {
+      setPicks(existingPicks ?? []);
+      setRestoredDraftAt(null);
     }
-  }, [existingPicks]);
+    setHasHydratedDraft(true);
+  }, [draftKey, existingPicks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -378,6 +397,22 @@ export function PredictionForm({
   useEffect(() => {
     onDirtyChange?.(hasChanges);
   }, [hasChanges, onDirtyChange]);
+
+  useEffect(() => {
+    if (!hasHydratedDraft) {
+      return;
+    }
+
+    if (hasChanges) {
+      savePredictionDraft<Top5Draft>(draftKey, {
+        picks,
+        updatedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    clearPredictionDraft(draftKey);
+  }, [draftKey, hasChanges, hasHydratedDraft, picks]);
 
   const blocker = useBlocker({
     shouldBlockFn: () => hasChanges,
@@ -495,6 +530,8 @@ export function PredictionForm({
           origin: { y: 0.7 },
         });
       }
+      clearPredictionDraft(draftKey);
+      setRestoredDraftAt(null);
       onSuccess?.();
     } catch (error) {
       setSubmitStatus('error');
@@ -513,6 +550,14 @@ export function PredictionForm({
     existingPicks?.length === 5 && picks.length === 5 && !hasChanges,
   );
 
+  function handleDiscardDraft() {
+    setPicks(existingPicks ?? []);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+    setRestoredDraftAt(null);
+    clearPredictionDraft(draftKey);
+  }
+
   // Empty slots needed
   const emptySlots = 5 - pickedDrivers.length;
 
@@ -523,6 +568,16 @@ export function PredictionForm({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-4 sm:space-y-6">
+        {restoredDraftAt ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
+            <span className="text-xs text-text">
+              Draft restored: {new Date(restoredDraftAt).toLocaleString()}
+            </span>
+            <Button variant="text" size="inline" onClick={handleDiscardDraft}>
+              Discard Draft
+            </Button>
+          </div>
+        ) : null}
         {/* Two-column layout on desktop: Your Picks | Select Drivers */}
         <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
           {/* Your Picks - sortable list via @dnd-kit */}

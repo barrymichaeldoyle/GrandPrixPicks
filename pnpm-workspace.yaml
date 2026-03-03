@@ -5,9 +5,12 @@ packages:
 onlyBuiltDependencies:
   - '@clerk/shared'
   - '@sentry/cli'
+  - browser-tabs-lock
+  - bufferutil
   - core-js
   - esbuild
   - protobufjs
   - sharp
   - unrs-resolver
+  - utf-8-validate
   - workerd

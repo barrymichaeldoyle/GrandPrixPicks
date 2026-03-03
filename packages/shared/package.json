@@ -6,8 +6,7 @@
     "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
-    "vitest": "4.0.18"
+    "typescript": "5.9.3"
   },
   "exports": {
     "./picks": "./src/picks.ts",

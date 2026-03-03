@@ -37,7 +37,8 @@
       ]
     },
     "packages/shared": {
-      "project": ["src/**/*.{ts,tsx}"]
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": ["vitest"]
     }
   }
 }

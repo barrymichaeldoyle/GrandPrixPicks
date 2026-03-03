@@ -8,6 +8,7 @@ import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
+import type { PluginOption } from 'vite';
 import { defineConfig } from 'vite';
 import viteTsConfigPaths from 'vite-tsconfig-paths';
 
@@ -49,7 +50,7 @@ const config = defineConfig(({ mode }) => {
       sourcemap: 'hidden',
     },
     plugins: [
-      devtools(),
+      ...(devtools() as Array<PluginOption>),
       // Skip Nitro and TanStack Start in Vitest to avoid CJS/ESM errors and hanging process
       ...(isVitest
         ? []
@@ -74,18 +75,18 @@ const config = defineConfig(({ mode }) => {
                   return false;
                 },
               },
-            }),
+            }) as PluginOption,
           ]),
       viteTsConfigPaths({
         projects: ['./tsconfig.json'],
-      }),
-      tailwindcss(),
-      ...(isVitest ? [] : [tanstackStart()]),
+      }) as PluginOption,
+      tailwindcss() as PluginOption,
+      ...(isVitest ? [] : [tanstackStart() as PluginOption]),
       viteReact({
         babel: {
           plugins: ['babel-plugin-react-compiler'],
         },
-      }),
+      }) as PluginOption,
       // Sentry plugin last so source maps are generated and can be uploaded
       ...(sentryEnabled
         ? [
@@ -100,7 +101,7 @@ const config = defineConfig(({ mode }) => {
                   '**/client/**/*.map',
                 ],
               },
-            }),
+            }) as PluginOption,
           ]
         : []),
     ],

@@ -7,6 +7,7 @@ import {
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
+import confetti from 'canvas-confetti';
 import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
@@ -268,6 +269,7 @@ function JoinSection({
         password: password || undefined,
       });
       posthog.capture('league_joined');
+      await confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     } catch (err) {
       setError(
         err instanceof Error

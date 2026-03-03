@@ -223,6 +223,48 @@ function RootDocument({ children }: PropsWithChildren) {
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+
+    function syncViewportVars() {
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const topOffset = Math.max(0, viewport?.offsetTop ?? 0);
+      const bottomOffset = Math.max(
+        0,
+        window.innerHeight -
+          ((viewport?.height ?? window.innerHeight) +
+            (viewport?.offsetTop ?? 0)),
+      );
+
+      root.style.setProperty(
+        '--app-viewport-height',
+        `${Math.round(viewportHeight)}px`,
+      );
+      root.style.setProperty(
+        '--app-top-overlay-offset',
+        `${Math.round(topOffset)}px`,
+      );
+      root.style.setProperty(
+        '--app-bottom-overlay-offset',
+        `${Math.round(bottomOffset)}px`,
+      );
+    }
+
+    syncViewportVars();
+    window.addEventListener('resize', syncViewportVars);
+    window.addEventListener('orientationchange', syncViewportVars);
+    viewport?.addEventListener('resize', syncViewportVars);
+    viewport?.addEventListener('scroll', syncViewportVars);
+
+    return () => {
+      window.removeEventListener('resize', syncViewportVars);
+      window.removeEventListener('orientationchange', syncViewportVars);
+      viewport?.removeEventListener('resize', syncViewportVars);
+      viewport?.removeEventListener('scroll', syncViewportVars);
+    };
+  }, []);
+
+  useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     }
@@ -256,7 +298,7 @@ function RootDocument({ children }: PropsWithChildren) {
           <AppConvexProvider>
             <ProfileSync />
             <PostHogUserSync />
-            <div className="relative z-10 flex h-[100dvh] h-screen flex-col overflow-hidden">
+            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"

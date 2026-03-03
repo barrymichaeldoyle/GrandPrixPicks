@@ -1,3 +1,4 @@
+import { internal } from '../_generated/api';
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { syncUserToStandings } from './standings';
@@ -103,6 +104,12 @@ export async function getOrCreateViewer(
     createdAt: now,
     updatedAt: now,
   });
+
+  await ctx.scheduler.runAfter(
+    60 * 60 * 1000,
+    internal.notifications.sendSignupPredictionNudgeForUser,
+    { userId },
+  );
 
   const inserted = await ctx.db.get(userId);
   return inserted ?? null;

@@ -217,6 +217,29 @@ export function getIncompleteH2HNudgeEligibility(params: {
   return { eligible: true };
 }
 
+export function getSignupPredictionNudgeEligibility(params: {
+  hasPredictions: boolean;
+  remindersEnabled: boolean;
+  canEmail: boolean;
+  canPush: boolean;
+}):
+  | { eligible: true }
+  | {
+      eligible: false;
+      reason: 'already_predicted' | 'notifications_disabled' | 'no_channel';
+    } {
+  if (params.hasPredictions) {
+    return { eligible: false, reason: 'already_predicted' };
+  }
+  if (!params.remindersEnabled) {
+    return { eligible: false, reason: 'notifications_disabled' };
+  }
+  if (!params.canEmail && !params.canPush) {
+    return { eligible: false, reason: 'no_channel' };
+  }
+  return { eligible: true };
+}
+
 /**
  * Scheduled mutation: gathers data and fans out result notification emails.
  * Called ~30s after scoring completes for a session.
@@ -521,6 +544,98 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
           title: `🏎️ ${race.name}`,
           body: 'Top 5 submitted. Finish your teammate H2H picks.',
           url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`,
+        },
+      );
+      pushQueued = subscriptions.length;
+    }
+
+    return { ok: true, emailQueued, pushQueued };
+  },
+});
+
+/**
+ * Scheduled mutation: 1h after signup, nudge users who still haven't made
+ * any Top 5 prediction.
+ */
+export const sendSignupPredictionNudgeForUser = internalMutation({
+  args: {
+    userId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return { skipped: true, reason: 'User not found' };
+    }
+
+    const reminderChannel = getPredictionReminderChannel(user);
+
+    const firstPrediction = await ctx.db
+      .query('predictions')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .first();
+    const hasPredictions = firstPrediction !== null;
+
+    const subscriptions = await ctx.db
+      .query('pushSubscriptions')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .collect();
+
+    const remindersEnabled =
+      includesEmail(reminderChannel) || includesPush(reminderChannel);
+    const canEmail = Boolean(user.email) && includesEmail(reminderChannel);
+    const canPush = includesPush(reminderChannel) && subscriptions.length > 0;
+
+    const eligibility = getSignupPredictionNudgeEligibility({
+      hasPredictions,
+      remindersEnabled,
+      canEmail,
+      canPush,
+    });
+    if (!eligibility.eligible) {
+      return { skipped: true, reason: eligibility.reason };
+    }
+
+    const now = Date.now();
+    const nextRace = await ctx.db
+      .query('races')
+      .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
+      .first();
+
+    const hasUpcomingRace = Boolean(nextRace && nextRace.status === 'upcoming');
+    const raceName = hasUpcomingRace ? nextRace!.name : null;
+    const racePath = hasUpcomingRace ? `/races/${nextRace!.slug}` : '/races';
+
+    let emailQueued = false;
+    let pushQueued = 0;
+
+    if (canEmail && user.email) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.emails.sendReminderEmails.sendSignupNudge,
+        {
+          email: user.email,
+          raceName,
+          racePath,
+        },
+      );
+      emailQueued = true;
+    }
+
+    if (canPush) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.pushNotifications.sendPushBatch,
+        {
+          subscriptions: subscriptions.map((s) => ({
+            endpoint: s.endpoint,
+            p256dh: s.p256dh,
+            auth: s.auth,
+          })),
+          title: '🏎️ Make your first prediction',
+          body: hasUpcomingRace
+            ? `You still need to submit picks for ${nextRace!.name}.`
+            : 'You still need to submit your first picks.',
+          url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=signup_nudge`,
         },
       );
       pushQueued = subscriptions.length;

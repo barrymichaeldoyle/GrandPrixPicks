@@ -21,7 +21,6 @@
   "devDependencies": {
     "@tanstack/eslint-config": "0.4.0",
     "@types/react": "19.2.14",
-    "babel-preset-expo": "55.0.10",
     "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",

@@ -7,6 +7,9 @@
 
 :root {
   --bottom-overlay-offset: 0px;
+  --app-viewport-height: 100dvh;
+  --app-top-overlay-offset: 0px;
+  --app-bottom-overlay-offset: 0px;
   --light-pop: bold;
   --font-title:
     'Orbitron',

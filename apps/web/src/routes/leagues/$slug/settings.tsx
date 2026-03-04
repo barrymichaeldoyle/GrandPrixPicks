@@ -16,6 +16,7 @@ import {
   Settings,
   Shield,
   Trash2,
+  X,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -403,19 +404,20 @@ function DangerZone({
                     variant="danger"
                     loading={isDeleting}
                     disabled={!slugMatches}
-                    onClick={() => void handleDelete()}
+                    onClick={handleDelete}
+                    leftIcon={Trash2}
                   >
-                    <Trash2 className="h-4 w-4" />
                     Delete forever
                   </Button>
-                  <button
-                    type="button"
+                  <Button
+                    size="sm"
+                    variant="secondary"
                     onClick={resetDeleteConfirm}
                     disabled={isDeleting}
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:opacity-50"
+                    leftIcon={X}
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (

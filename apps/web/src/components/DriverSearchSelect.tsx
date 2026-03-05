@@ -1,11 +1,6 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { ChevronDown, X } from 'lucide-react';
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 type Driver = Doc<'drivers'>;
 

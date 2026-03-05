@@ -99,7 +99,10 @@ export function TimezoneSelect({
     displayValue &&
     !COMMON_TIMEZONES.includes(displayValue) &&
     !filtered.some(({ tz }) => tz === displayValue)
-      ? [{ tz: displayValue, label: formatTimezoneLabel(displayValue) }, ...filtered]
+      ? [
+          { tz: displayValue, label: formatTimezoneLabel(displayValue) },
+          ...filtered,
+        ]
       : filtered;
 
   const displayParts = formatTimezoneParts(displayValue);

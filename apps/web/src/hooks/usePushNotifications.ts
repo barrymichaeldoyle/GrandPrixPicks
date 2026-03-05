@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { useMutation } from 'convex/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as
   | string
@@ -74,7 +74,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
     };
   }, [isSupported]);
 
-  const subscribe = useCallback(async () => {
+  async function subscribe() {
     if (!isSupported || !VAPID_PUBLIC_KEY) {
       return;
     }
@@ -107,9 +107,9 @@ export function usePushNotifications(): UsePushNotificationsResult {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, saveSubscription]);
+  }
 
-  const unsubscribe = useCallback(async () => {
+  async function unsubscribe() {
     if (!isSupported) {
       return;
     }
@@ -128,7 +128,7 @@ export function usePushNotifications(): UsePushNotificationsResult {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported, deleteSubscription]);
+  }
 
   return {
     isSupported,

@@ -2,7 +2,6 @@ import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { Calendar } from 'lucide-react';
-import { useMemo } from 'react';
 
 import { PageHero } from '../../components/PageHero';
 import { RaceCard } from '../../components/RaceCard';
@@ -97,23 +96,15 @@ function RacesPage() {
   const upcomingRaces = races.filter((r) => r.status === 'upcoming');
   const lockedRaces = races.filter((r) => r.status === 'locked');
   const finishedRaces = races.filter((r) => r.status === 'finished');
-  const filtered = useMemo(() => {
-    const baseByFilter: Record<StatusFilter, typeof races> = {
-      all: races,
-      inProgress: lockedRaces,
-      upcoming: upcomingRaces,
-      completed: finishedRaces,
-    };
-    const base = baseByFilter[statusFilter];
-    return sprintOnly ? base.filter((race) => race.hasSprint) : base;
-  }, [
-    statusFilter,
-    sprintOnly,
-    races,
-    lockedRaces,
-    upcomingRaces,
-    finishedRaces,
-  ]);
+  const baseByFilter: Record<StatusFilter, typeof races> = {
+    all: races,
+    inProgress: lockedRaces,
+    upcoming: upcomingRaces,
+    completed: finishedRaces,
+  };
+  const filtered = sprintOnly
+    ? baseByFilter[statusFilter].filter((race) => race.hasSprint)
+    : baseByFilter[statusFilter];
   const hasActiveFilters = statusFilter !== 'all' || sprintOnly;
   const sectionRaces = {
     inProgress:

@@ -36,7 +36,6 @@
       "ignoreDependencies": [
         "expo-updates",
         "react-native-web",
-        "react-dom",
         "@expo/metro-runtime"
       ]
     },

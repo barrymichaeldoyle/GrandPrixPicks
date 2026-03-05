@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import {
-  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -96,7 +95,7 @@ export function Tooltip({
     'top' | 'bottom'
   >(placement);
 
-  const openAtTrigger = useCallback(() => {
+  function openAtTrigger() {
     const el = triggerRef.current;
     if (el) {
       const rect = el.getBoundingClientRect();
@@ -107,9 +106,9 @@ export function Tooltip({
       setEffectivePlacement(placement);
     }
     setIsVisible(true);
-  }, [placement, distance]);
+  }
 
-  const updatePosition = useCallback(() => {
+  function updatePosition() {
     const triggerEl = triggerRef.current;
     const tooltipEl = tooltipRef.current;
     if (!triggerEl || !tooltipEl) {
@@ -132,7 +131,7 @@ export function Tooltip({
     );
     setCoords({ top, left });
     setEffectivePlacement(p);
-  }, [placement, distance]);
+  }
 
   useLayoutEffect(() => {
     if (!isVisible || !tooltipRef.current) {

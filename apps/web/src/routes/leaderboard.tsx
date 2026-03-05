@@ -13,7 +13,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { PageHero } from '@/components/PageHero';
@@ -154,7 +154,7 @@ function LeaderboardPage() {
     }
   }, [clientLeaderboard, offset]);
 
-  const loadMore = useCallback(async () => {
+  async function loadMore() {
     if (isLoadingMore || !hasMore) {
       return;
     }
@@ -171,7 +171,7 @@ function LeaderboardPage() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [offset, hasMore, isLoadingMore]);
+  }
 
   const podiumEntries = entries.slice(0, 3);
   const tableEntries = entries.slice(3);

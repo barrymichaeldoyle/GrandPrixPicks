@@ -2,7 +2,7 @@ import { Show, SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { primaryNavLinks } from '../lib/navigation';
@@ -48,7 +48,7 @@ export function Header({
     return;
   }, [themeKey, onThemeChange]);
 
-  const toggleTheme = useCallback(() => {
+  function toggleTheme() {
     if (onThemeChange) {
       onThemeChange(!dark);
     } else {
@@ -60,7 +60,7 @@ export function Header({
       localStorage.setItem(themeKey, next ? 'dark' : 'light');
       setLocalDark(next);
     }
-  }, [themeKey, dark, onThemeChange]);
+  }
 
   // Keep mobile menu state in sync when crossing the mobile breakpoint
   useEffect(() => {
@@ -183,10 +183,10 @@ export function Header({
     }
   }, [mobileMenuOpen]);
 
-  const closeMenu = useCallback(() => {
+  function closeMenu() {
     onMobileMenuOpenChange(false);
     menuButtonRef.current?.focus();
-  }, [onMobileMenuOpenChange]);
+  }
 
   return (
     <header

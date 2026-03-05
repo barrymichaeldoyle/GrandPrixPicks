@@ -3,7 +3,7 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { Crown, Globe, LogIn, Plus, Search, Shield, Users } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '../../components/Button';
 import { PageHero } from '../../components/PageHero';
@@ -71,7 +71,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
     typeof publicJoinLimit === 'number' &&
     Number.isFinite(publicJoinLimit) &&
     publicJoinedCount >= publicJoinLimit;
-  const filteredPublicLeagues = useMemo(() => {
+  const filteredPublicLeagues = (() => {
     if (!publicLeagues) {
       return [];
     }
@@ -84,7 +84,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
         `${league.name} ${league.description ?? ''}`.toLowerCase();
       return haystack.includes(query);
     });
-  }, [publicLeagues, discoverQuery]);
+  })();
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>(
     isSignedIn ? 'my' : 'discover',
   );

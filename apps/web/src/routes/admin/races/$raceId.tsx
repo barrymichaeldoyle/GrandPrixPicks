@@ -22,7 +22,7 @@ import {
   Save,
   Trophy,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
@@ -245,63 +245,57 @@ function AdminRaceDetailPage() {
     }
   }, [existingResult, selectedSession, driverCount]);
 
-  const setPosition = useCallback(
-    (index: number, driverId: Id<'drivers'> | null) => {
-      setSelectedDrivers((prev) => {
-        const next = [...prev];
-        next[index] = driverId;
-        if (driverId != null) {
-          for (let j = 0; j < next.length; j++) {
-            if (j !== index && next[j] === driverId) {
-              next[j] = null;
-            }
+  function setPosition(index: number, driverId: Id<'drivers'> | null) {
+    setSelectedDrivers((prev) => {
+      const next = [...prev];
+      next[index] = driverId;
+      if (driverId != null) {
+        for (let j = 0; j < next.length; j++) {
+          if (j !== index && next[j] === driverId) {
+            next[j] = null;
           }
         }
-        return next;
-      });
-    },
-    [],
-  );
+      }
+      return next;
+    });
+  }
 
-  const toggleClassified = useCallback((driverId: Id<'drivers'>) => {
+  function toggleClassified(driverId: Id<'drivers'>) {
     setDnfDriverIds((current) =>
       current.includes(driverId)
         ? current.filter((id) => id !== driverId)
         : [...current, driverId],
     );
-  }, []);
+  }
 
   const [activeDriverId, setActiveDriverId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
-  const handleDragStart = useCallback((event: DragStartEvent) => {
+  function handleDragStart(event: DragStartEvent) {
     setActiveDriverId(String(event.active.id));
-  }, []);
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      setActiveDriverId(null);
-      if (over == null) {
-        return;
-      }
-      const newIndex = parseLaneId(String(over.id));
-      if (newIndex == null) {
-        return;
-      }
-      const driverId = active.id as Id<'drivers'>;
-      const oldIndex = selectedDrivers.indexOf(driverId);
-      if (oldIndex === -1 || oldIndex === newIndex) {
-        return;
-      }
+  }
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveDriverId(null);
+    if (over == null) {
+      return;
+    }
+    const newIndex = parseLaneId(String(over.id));
+    if (newIndex == null) {
+      return;
+    }
+    const driverId = active.id as Id<'drivers'>;
+    const oldIndex = selectedDrivers.indexOf(driverId);
+    if (oldIndex === -1 || oldIndex === newIndex) {
+      return;
+    }
 
-      setSelectedDrivers((prev) => arrayMove(prev, oldIndex, newIndex));
-    },
-    [selectedDrivers],
-  );
+    setSelectedDrivers((prev) => arrayMove(prev, oldIndex, newIndex));
+  }
 
   // Detect whether the form has changes compared to the saved result
-  const hasChanges = useMemo(() => {
+  function computeHasChanges() {
     if (!existingResult) {
       // New result: dirty once any driver is selected
       return selectedDrivers.some((id) => id != null);
@@ -331,7 +325,8 @@ function AdminRaceDetailPage() {
       }
     }
     return false;
-  }, [existingResult, selectedDrivers, dnfDriverIds]);
+  }
+  const hasChanges = computeHasChanges();
 
   // Warn before navigating away with unsaved changes
   const blocker = useBlocker({
@@ -361,10 +356,8 @@ function AdminRaceDetailPage() {
     selectedDrivers.every((id) => id != null);
 
   // Must be before early returns - hooks cannot run conditionally
-  const classificationOrderError = useMemo(() => {
-    if (!allFilledForHooks || dnfDriverIds.length === 0) {
-      return null;
-    }
+  let classificationOrderError: string | null = null;
+  if (allFilledForHooks && dnfDriverIds.length > 0) {
     let lastDnfIndex = -1;
     for (let i = 0; i < selectedDrivers.length; i++) {
       const driverId = selectedDrivers[i];
@@ -372,11 +365,11 @@ function AdminRaceDetailPage() {
       if (isDnf) {
         lastDnfIndex = i;
       } else if (lastDnfIndex !== -1) {
-        return `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
+        classificationOrderError = `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
+        break;
       }
     }
-    return null;
-  }, [selectedDrivers, dnfDriverIds, allFilledForHooks]);
+  }
 
   if (isAdmin === undefined || race === undefined || drivers === undefined) {
     return <PageLoader />;

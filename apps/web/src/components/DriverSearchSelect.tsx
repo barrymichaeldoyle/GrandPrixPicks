@@ -1,10 +1,8 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { ChevronDown, X } from 'lucide-react';
 import {
-  useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -65,21 +63,18 @@ export function DriverSearchSelect({
 
   const selectedDriver = value ? drivers.find((d) => d._id === value) : null;
 
-  const options = useMemo(() => {
-    const available = drivers.filter(
-      (d) => !excludedIds.includes(d._id) || d._id === value,
-    );
-    if (!query.trim()) {
-      return available;
-    }
-    return available.filter((d) => matchDriver(d, query));
-  }, [drivers, excludedIds, value, query]);
+  const available = drivers.filter(
+    (d) => !excludedIds.includes(d._id) || d._id === value,
+  );
+  const options = query.trim()
+    ? available.filter((d) => matchDriver(d, query))
+    : available;
 
-  const close = useCallback(() => {
+  function close() {
     setOpen(false);
     setQuery('');
     setHighlightIndex(0);
-  }, []);
+  }
 
   // Sync highlight when options change
   useEffect(() => {

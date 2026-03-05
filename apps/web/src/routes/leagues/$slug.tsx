@@ -24,7 +24,7 @@ import {
   Users,
 } from 'lucide-react';
 import posthog from 'posthog-js';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { toUserFacingMessage } from '@/lib/userFacingError';
@@ -293,12 +293,12 @@ function ShareLinkSection({ slug }: { slug: string }) {
 
   const leagueUrl = `${window.location.origin}/leagues/${slug}`;
 
-  const copyToClipboard = useCallback(async () => {
+  async function copyToClipboard() {
     await navigator.clipboard.writeText(leagueUrl);
     posthog.capture('league_invite_copied');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [leagueUrl]);
+  }
 
   return (
     <div className="mb-6 rounded-xl border border-border bg-surface p-4">

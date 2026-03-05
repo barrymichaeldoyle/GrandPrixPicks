@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const detectedTimezone =
   typeof Intl !== 'undefined'
@@ -78,48 +78,37 @@ export function TimezoneSelect({
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
 
-  const timezonesWithLabels = useMemo(
-    () =>
-      COMMON_TIMEZONES.map((tz) => ({ tz, label: formatTimezoneLabel(tz) })),
-    [],
-  );
+  const timezonesWithLabels = COMMON_TIMEZONES.map((tz) => ({
+    tz,
+    label: formatTimezoneLabel(tz),
+  }));
 
   const displayValue = value ?? detectedTimezone;
 
-  const filteredTimezones = useMemo(() => {
-    const filtered = filter.trim()
-      ? timezonesWithLabels.filter(({ tz, label: lbl }) => {
-          const lower = filter.toLowerCase();
-          return (
-            tz.toLowerCase().includes(lower) ||
-            lbl.toLowerCase().includes(lower)
-          );
-        })
-      : timezonesWithLabels;
+  const filtered = filter.trim()
+    ? timezonesWithLabels.filter(({ tz, label: lbl }) => {
+        const lower = filter.toLowerCase();
+        return (
+          tz.toLowerCase().includes(lower) || lbl.toLowerCase().includes(lower)
+        );
+      })
+    : timezonesWithLabels;
 
-    // Include current value if not in curated list (e.g. saved custom or browser default)
-    if (
-      displayValue &&
-      !COMMON_TIMEZONES.includes(displayValue) &&
-      !filtered.some(({ tz }) => tz === displayValue)
-    ) {
-      return [
-        { tz: displayValue, label: formatTimezoneLabel(displayValue) },
-        ...filtered,
-      ];
-    }
-    return filtered;
-  }, [timezonesWithLabels, filter, displayValue]);
-  const displayParts = useMemo(
-    () => formatTimezoneParts(displayValue),
-    [displayValue],
-  );
+  // Include current value if not in curated list (e.g. saved custom or browser default)
+  const filteredTimezones =
+    displayValue &&
+    !COMMON_TIMEZONES.includes(displayValue) &&
+    !filtered.some(({ tz }) => tz === displayValue)
+      ? [{ tz: displayValue, label: formatTimezoneLabel(displayValue) }, ...filtered]
+      : filtered;
+
+  const displayParts = formatTimezoneParts(displayValue);
   const isUsingDefault = value === undefined || value === detectedTimezone;
 
-  const close = useCallback(() => {
+  function close() {
     setOpen(false);
     setFilter('');
-  }, []);
+  }
 
   useEffect(() => {
     if (!open) {

@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { Children, cloneElement, forwardRef, isValidElement } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
+import { Children, cloneElement, isValidElement } from 'react';
 
 import { Tooltip } from './Tooltip';
 
@@ -42,6 +42,7 @@ type ButtonVariant = keyof typeof variants;
 type ButtonSize = keyof typeof sizes;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  ref?: Ref<HTMLButtonElement>;
   variant?: ButtonVariant;
   size?: ButtonSize;
   /** Lucide icon shown before children; size is derived from button size. */
@@ -59,121 +60,115 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
 }
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = 'primary',
-      size = 'md',
-      leftIcon: LeftIcon,
-      rightIcon: RightIcon,
-      loading = false,
-      saved = false,
-      disabled,
-      className = '',
-      children,
-      type = 'button',
-      tooltip,
-      active,
-      asChild = false,
-      ...rest
-    },
-    ref,
-  ) => {
-    const effectiveVariant = saved ? 'saved' : loading ? 'loading' : variant;
-    const isDisabled = disabled || loading || saved;
+function Button({
+  variant = 'primary',
+  size = 'md',
+  leftIcon: LeftIcon,
+  rightIcon: RightIcon,
+  loading = false,
+  saved = false,
+  disabled,
+  className = '',
+  children,
+  type = 'button',
+  tooltip,
+  active,
+  asChild = false,
+  ref,
+  ...rest
+}: ButtonProps) {
+  const effectiveVariant = saved ? 'saved' : loading ? 'loading' : variant;
+  const isDisabled = disabled || loading || saved;
 
-    const activeStyles =
-      effectiveVariant === 'tab' && active
-        ? 'bg-button-accent text-white hover:!bg-button-accent hover:!text-white cursor-default pointer-events-none'
-        : '';
+  const activeStyles =
+    effectiveVariant === 'tab' && active
+      ? 'bg-button-accent text-white hover:!bg-button-accent hover:!text-white cursor-default pointer-events-none'
+      : '';
 
-    const resolvedClassName = [
-      base,
-      sizes[size],
-      variants[effectiveVariant],
-      activeStyles,
-      tooltip ? undefined : className,
-    ]
+  const resolvedClassName = [
+    base,
+    sizes[size],
+    variants[effectiveVariant],
+    activeStyles,
+    tooltip ? undefined : className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  function renderContent(label: ReactNode) {
+    const normalContent = (
+      <>
+        {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
+        {label ? (
+          <span className="inline-flex items-center pr-0.5">{label}</span>
+        ) : null}
+        {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
+      </>
+    );
+    if (loading) {
+      return (
+        <span className="relative inline-flex items-center justify-center">
+          {/* Invisible copy preserves button size to prevent layout shift */}
+          <span className="invisible inline-flex items-center" aria-hidden>
+            {normalContent}
+          </span>
+          <Loader2
+            size={iconSizes[size]}
+            className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
+            aria-hidden
+          />
+        </span>
+      );
+    }
+    return normalContent;
+  }
+
+  if (asChild) {
+    const child = Children.only(children);
+    if (!isValidElement(child)) {
+      throw new Error('Button asChild expects a single React element child');
+    }
+    const childProps = child.props as {
+      className?: string;
+      children?: ReactNode;
+    };
+    const mergedClassName = [resolvedClassName, childProps.className]
       .filter(Boolean)
       .join(' ');
+    return cloneElement(child, {
+      ...(child.props && typeof child.props === 'object' ? child.props : {}),
+      className: mergedClassName,
+      children: renderContent(childProps.children),
+      ref,
+    } as Record<string, unknown>);
+  }
 
-    function renderContent(label: ReactNode) {
-      const normalContent = (
-        <>
-          {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
-          {label ? (
-            <span className="inline-flex items-center pr-0.5">{label}</span>
-          ) : null}
-          {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
-        </>
-      );
-      if (loading) {
-        return (
-          <span className="relative inline-flex items-center justify-center">
-            {/* Invisible copy preserves button size to prevent layout shift */}
-            <span className="invisible inline-flex items-center" aria-hidden>
-              {normalContent}
-            </span>
-            <Loader2
-              size={iconSizes[size]}
-              className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
-              aria-hidden
-            />
-          </span>
-        );
+  const button = (
+    <button
+      ref={ref}
+      type={type}
+      disabled={isDisabled}
+      aria-selected={effectiveVariant === 'tab' ? active : undefined}
+      role={effectiveVariant === 'tab' ? 'tab' : undefined}
+      className={
+        tooltip ? `${resolvedClassName} w-full`.trim() : resolvedClassName
       }
-      return normalContent;
-    }
+      {...rest}
+    >
+      {renderContent(children)}
+    </button>
+  );
 
-    if (asChild) {
-      const child = Children.only(children);
-      if (!isValidElement(child)) {
-        throw new Error('Button asChild expects a single React element child');
-      }
-      const childProps = child.props as {
-        className?: string;
-        children?: ReactNode;
-      };
-      const mergedClassName = [resolvedClassName, childProps.className]
-        .filter(Boolean)
-        .join(' ');
-      return cloneElement(child, {
-        ...(child.props && typeof child.props === 'object' ? child.props : {}),
-        className: mergedClassName,
-        children: renderContent(childProps.children),
-        ref,
-      } as Record<string, unknown>);
-    }
-
-    const button = (
-      <button
-        ref={ref}
-        type={type}
-        disabled={isDisabled}
-        aria-selected={effectiveVariant === 'tab' ? active : undefined}
-        role={effectiveVariant === 'tab' ? 'tab' : undefined}
-        className={
-          tooltip ? `${resolvedClassName} w-full`.trim() : resolvedClassName
-        }
-        {...rest}
-      >
-        {renderContent(children)}
-      </button>
+  if (tooltip) {
+    return (
+      <Tooltip content={tooltip} triggerClassName={className || undefined}>
+        <span className="block w-full">{button}</span>
+      </Tooltip>
     );
+  }
 
-    if (tooltip) {
-      return (
-        <Tooltip content={tooltip} triggerClassName={className || undefined}>
-          <span className="block w-full">{button}</span>
-        </Tooltip>
-      );
-    }
-
-    return button;
-  },
-);
-
-Button.displayName = 'Button';
+  return button;
+}
 
 export { Button };
 

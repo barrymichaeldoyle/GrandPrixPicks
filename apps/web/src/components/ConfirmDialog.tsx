@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from './Button';
@@ -37,38 +37,35 @@ export function ConfirmDialog({
     }
   }, [open]);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !loading) {
-        onClose();
+  function handleKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && !loading) {
+      onClose();
+      return;
+    }
+
+    // Focus trap
+    if (e.key === 'Tab' && dialogRef.current) {
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => el.offsetParent !== null);
+
+      if (focusable.length === 0) {
         return;
       }
 
-      // Focus trap
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-        ).filter((el) => el.offsetParent !== null);
+      const currentIndex = focusable.indexOf(
+        document.activeElement as HTMLElement,
+      );
 
-        if (focusable.length === 0) {
-          return;
-        }
-
-        const currentIndex = focusable.indexOf(
-          document.activeElement as HTMLElement,
-        );
-
-        if (e.shiftKey && currentIndex <= 0) {
-          e.preventDefault();
-          focusable[focusable.length - 1]?.focus();
-        } else if (!e.shiftKey && currentIndex === focusable.length - 1) {
-          e.preventDefault();
-          focusable[0]?.focus();
-        }
+      if (e.shiftKey && currentIndex <= 0) {
+        e.preventDefault();
+        focusable[focusable.length - 1]?.focus();
+      } else if (!e.shiftKey && currentIndex === focusable.length - 1) {
+        e.preventDefault();
+        focusable[0]?.focus();
       }
-    },
-    [onClose, loading],
-  );
+    }
+  }
 
   useEffect(() => {
     if (open) {

@@ -5,7 +5,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import { ArrowLeft, CircleX, Pencil, Trophy } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
@@ -341,36 +341,31 @@ function RaceDetailPage() {
   ).length;
 
   // ─── Build card data ───
-  const resultsBySession = useMemo(() => {
-    const map: Partial<
-      Record<
-        SessionType,
-        {
-          enrichedClassification: NonNullable<
-            typeof qualiResult
-          >['enrichedClassification'];
-        } | null
-      >
-    > = {};
-    if (qualiResult !== undefined) {
-      map.quali = qualiResult;
-    }
-    if (sprintQualiResult !== undefined) {
-      map.sprint_quali = sprintQualiResult;
-    }
-    if (sprintResult !== undefined) {
-      map.sprint = sprintResult;
-    }
-    if (raceResult !== undefined) {
-      map.race = raceResult;
-    }
-    return map;
-  }, [qualiResult, sprintQualiResult, sprintResult, raceResult]);
+  const resultsBySession: Partial<
+    Record<
+      SessionType,
+      {
+        enrichedClassification: NonNullable<
+          typeof qualiResult
+        >['enrichedClassification'];
+      } | null
+    >
+  > = {};
+  if (qualiResult !== undefined) {
+    resultsBySession.quali = qualiResult;
+  }
+  if (sprintQualiResult !== undefined) {
+    resultsBySession.sprint_quali = sprintQualiResult;
+  }
+  if (sprintResult !== undefined) {
+    resultsBySession.sprint = sprintResult;
+  }
+  if (raceResult !== undefined) {
+    resultsBySession.race = raceResult;
+  }
 
-  const cardData = useMemo(() => {
-    if (!race) {
-      return null;
-    }
+  let cardData = null;
+  if (race) {
     const data = fromRaceDetail({
       race,
       weekendPredictions: weekendPredictions ?? null,
@@ -385,56 +380,40 @@ function RaceDetailPage() {
     if (raceRank) {
       data.raceRank = raceRank;
     }
-    return data;
-  }, [
-    race,
-    weekendPredictions,
-    scores,
-    actualTop5BySession,
-    resultsBySession,
-    drivers,
-    availableSessions,
-    predictionOpenAt,
-    raceRank,
-  ]);
-  const selectedSessionCardData = useMemo(() => {
-    if (!cardData) {
-      return null;
-    }
+    cardData = data;
+  }
+  let selectedSessionCardData = null;
+  if (cardData) {
     const sessions = { ...cardData.sessions };
     for (const session of weekendSessions) {
       if (session !== selectedSession) {
         sessions[session] = null;
       }
     }
-    return { ...cardData, sessions };
-  }, [cardData, weekendSessions, selectedSession]);
+    selectedSessionCardData = { ...cardData, sessions };
+  }
   const hasSprintWeekend = race?.hasSprint ?? false;
   const trackTimeZone =
     race?.timeZone ??
     (race ? getRaceTimeZoneFromSlug(race.slug) : undefined) ??
     'UTC';
-  const predictionSessionOptions = useMemo(
-    () =>
-      weekendSessions.map((session) => ({
-        value: session,
-        label: (
-          <>
-            <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
-            {hasSprintWeekend ? (
-              <span className="sm:hidden">
-                <Tooltip content={SESSION_LABELS[session]}>
-                  <span>{SESSION_LABELS_SHORT[session]}</span>
-                </Tooltip>
-              </span>
-            ) : (
-              <span className="sm:hidden">{SESSION_LABELS[session]}</span>
-            )}
-          </>
-        ),
-      })),
-    [weekendSessions, hasSprintWeekend],
-  );
+  const predictionSessionOptions = weekendSessions.map((session) => ({
+    value: session,
+    label: (
+      <>
+        <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
+        {hasSprintWeekend ? (
+          <span className="sm:hidden">
+            <Tooltip content={SESSION_LABELS[session]}>
+              <span>{SESSION_LABELS_SHORT[session]}</span>
+            </Tooltip>
+          </span>
+        ) : (
+          <span className="sm:hidden">{SESSION_LABELS[session]}</span>
+        )}
+      </>
+    ),
+  }));
 
   if (race === null) {
     return <RaceNotFound />;

@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { Button } from './Button';
 
 function getDefaultTimeFormat(): 'en-US' | 'en-GB' {
@@ -32,41 +30,38 @@ export function TimeFormatSelect({
   timezone?: string;
   onChange: (locale: string | undefined) => void;
 }) {
-  const defaultFormat = useMemo(() => getDefaultTimeFormat(), []);
+  const defaultFormat = getDefaultTimeFormat();
 
   // Map value to our two options (handles legacy locales like de-DE)
-  const displayValue = useMemo((): 'en-US' | 'en-GB' => {
-    if (!value) {
-      return defaultFormat;
-    }
-    if (value === 'en-US' || value === 'en-GB') {
-      return value;
-    }
+  let displayValue: 'en-US' | 'en-GB';
+  if (!value) {
+    displayValue = defaultFormat;
+  } else if (value === 'en-US' || value === 'en-GB') {
+    displayValue = value;
+  } else {
     try {
       const hour12 = new Intl.DateTimeFormat(value, {
         hour: '2-digit',
       }).resolvedOptions().hour12;
-      return hour12 ? 'en-US' : 'en-GB';
+      displayValue = hour12 ? 'en-US' : 'en-GB';
     } catch {
-      return 'en-GB';
+      displayValue = 'en-GB';
     }
-  }, [value, defaultFormat]);
+  }
 
-  const optionsWithPreview = useMemo(() => {
-    const previewDate = new Date();
-    return TIME_FORMAT_OPTIONS.map((opt) => {
-      try {
-        const example = new Intl.DateTimeFormat(opt.value, {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: timezone,
-        }).format(previewDate);
-        return { ...opt, example };
-      } catch {
-        return { ...opt, example: '--:--' };
-      }
-    });
-  }, [timezone]);
+  const previewDate = new Date();
+  const optionsWithPreview = TIME_FORMAT_OPTIONS.map((opt) => {
+    try {
+      const example = new Intl.DateTimeFormat(opt.value, {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: timezone,
+      }).format(previewDate);
+      return { ...opt, example };
+    } catch {
+      return { ...opt, example: '--:--' };
+    }
+  });
 
   function handleSelect(v: 'en-US' | 'en-GB') {
     onChange(v);

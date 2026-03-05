@@ -1,6 +1,6 @@
-import { ClerkProvider } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import type { ReactNode } from "react";
+import { ClerkProvider } from '@clerk/clerk-expo';
+import { tokenCache } from '@clerk/clerk-expo/token-cache';
+import type { ReactNode } from 'react';
 
 import { useMobileConfig } from "../../providers/mobile-config";
 

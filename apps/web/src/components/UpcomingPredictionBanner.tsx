@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';

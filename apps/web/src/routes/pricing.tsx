@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from '@clerk/clerk-react';
+import { SignInButton, useAuth } from '@clerk/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import {

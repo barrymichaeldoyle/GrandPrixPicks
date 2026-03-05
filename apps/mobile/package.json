@@ -17,21 +17,27 @@
     "@expo/vector-icons": "^15.1.1",
     "@grandprixpicks/shared": "workspace:*",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-navigation/bottom-tabs": "^7.15.3",
-    "@react-navigation/native": "^7.1.31",
-    "@react-navigation/native-stack": "^7.14.2",
+    "@react-navigation/bottom-tabs": "^7.15.5",
+    "@react-navigation/native": "^7.1.33",
+    "@react-navigation/native-stack": "^7.14.4",
     "convex": "1.32.0",
-    "expo": "55.0.4",
-    "expo-auth-session": "^55.0.6",
+    "expo": "55.0.5",
+    "expo-auth-session": "^55.0.7",
     "expo-font": "~55.0.4",
     "expo-secure-store": "^55.0.8",
     "expo-status-bar": "55.0.4",
     "expo-web-browser": "^55.0.9",
-    "react": "19.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "react-native": "0.83.2",
     "react-native-gesture-handler": "^2.30.0",
     "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "4.23.0"
+  },
+  "expo": {
+    "install": {
+      "exclude": ["react", "react-dom"]
+    }
   },
   "devDependencies": {
     "@tanstack/eslint-config": "0.4.0",

@@ -1,4 +1,4 @@
-import { SignedOut, SignInButton } from '@clerk/clerk-react';
+import { Show, SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
@@ -363,7 +363,7 @@ export function Header({
                     {dark ? 'Light mode' : 'Dark mode'}
                   </button>
                 </motion.div>
-                <SignedOut>
+                <Show when="signed-out">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -383,7 +383,7 @@ export function Header({
                       </button>
                     </SignInButton>
                   </motion.div>
-                </SignedOut>
+                </Show>
               </div>
             </motion.nav>
           </>

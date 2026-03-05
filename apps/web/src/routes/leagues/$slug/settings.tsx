@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from '@clerk/clerk-react';
+import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
@@ -567,9 +567,7 @@ function EditLeagueForm({
           className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
         />
       </div>
-
       {error && <p className="text-sm text-error">{error}</p>}
-
       <div className="flex gap-2">
         <Button type="submit" size="sm" loading={isSubmitting}>
           Save Changes

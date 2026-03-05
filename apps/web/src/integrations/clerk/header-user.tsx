@@ -1,9 +1,4 @@
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-} from '@clerk/clerk-react';
+import { Show, SignInButton, UserButton } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useQuery } from 'convex/react';
 import { Settings, Trophy } from 'lucide-react';
@@ -22,7 +17,7 @@ export function HeaderUser() {
 
   return (
     <>
-      <SignedIn>
+      <Show when="signed-in">
         <UserButton
           appearance={{
             elements: {
@@ -46,8 +41,8 @@ export function HeaderUser() {
             <UserButton.Action label="signOut" />
           </UserButton.MenuItems>
         </UserButton>
-      </SignedIn>
-      <SignedOut>
+      </Show>
+      <Show when="signed-out">
         <div className="hidden min-[791px]:block">
           <SignInButton mode="modal">
             <button type="button" className={signInButtonClasses}>
@@ -55,7 +50,7 @@ export function HeaderUser() {
             </button>
           </SignInButton>
         </div>
-      </SignedOut>
+      </Show>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { SignInButton } from '@clerk/clerk-react';
+import { SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { Lock, LogIn } from 'lucide-react';
 

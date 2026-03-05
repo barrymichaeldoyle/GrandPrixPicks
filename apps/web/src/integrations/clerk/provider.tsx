@@ -1,5 +1,5 @@
-import { ClerkProvider } from '@clerk/clerk-react';
-import { dark } from '@clerk/themes';
+import { ClerkProvider } from '@clerk/react';
+import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 import { createFileRoute, Link } from '@tanstack/react-router';

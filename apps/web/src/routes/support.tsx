@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from '@clerk/clerk-react';
+import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';

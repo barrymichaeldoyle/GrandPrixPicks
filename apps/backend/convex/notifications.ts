@@ -754,6 +754,40 @@ export const adminTriggerReminders = mutation({
   },
 });
 
+/**
+ * CLI-runnable internal mutation: sends Top 5 + H2H reminder emails for the
+ * next upcoming race without requiring an authenticated context.
+ * Usage: npx convex run notifications:triggerRemindersForNextRace --prod
+ */
+export const triggerRemindersForNextRace = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
+      .filter((q) => q.eq(q.field('status'), 'upcoming'))
+      .first();
+
+    if (!race) {
+      return { skipped: true, reason: 'No upcoming race found' };
+    }
+
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendPredictionReminders,
+      { raceId: race._id },
+    );
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendH2HRemindersForRace,
+      { raceId: race._id },
+    );
+
+    return { triggered: true, raceName: race.name, raceId: race._id };
+  },
+});
+
 export async function scheduleReminder(
   ctx: MutationCtx,
   race: Doc<'races'>,

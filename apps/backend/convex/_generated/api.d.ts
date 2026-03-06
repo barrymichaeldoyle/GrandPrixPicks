@@ -10,8 +10,10 @@
 
 import type * as billing from "../billing.js";
 import type * as drivers from "../drivers.js";
+import type * as emails_H2HReminderEmail from "../emails/H2HReminderEmail.js";
 import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
 import type * as emails_ResultsEmail from "../emails/ResultsEmail.js";
+import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
 import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
 import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as follows from "../follows.js";
@@ -45,8 +47,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   drivers: typeof drivers;
+  "emails/H2HReminderEmail": typeof emails_H2HReminderEmail;
   "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
   "emails/ResultsEmail": typeof emails_ResultsEmail;
+  "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;
   "emails/sendReminderEmails": typeof emails_sendReminderEmails;
   "emails/sendResultEmails": typeof emails_sendResultEmails;
   follows: typeof follows;

@@ -48,6 +48,33 @@ const config = defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: 'hidden',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return;
+            }
+            if (id.includes('framer-motion')) {
+              return 'framer';
+            }
+            if (id.includes('@clerk')) {
+              return 'clerk';
+            }
+            if (id.includes('convex')) {
+              return 'convex';
+            }
+            if (id.includes('@tanstack')) {
+              return 'tanstack';
+            }
+            if (id.includes('react-dom') || id.includes('react/')) {
+              return 'react';
+            }
+            if (id.includes('@sentry')) {
+              return 'sentry';
+            }
+          },
+        },
+      },
     },
     plugins: [
       ...(devtools() as Array<PluginOption>),

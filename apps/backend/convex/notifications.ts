@@ -4,7 +4,8 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
-import { internalMutation } from './_generated/server';
+import { internalMutation, mutation } from './_generated/server';
+import { getViewer, requireAdmin } from './lib/auth';
 import {
   getPredictionReminderChannel,
   getResultsNotificationChannel,
@@ -642,6 +643,106 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
     }
 
     return { ok: true, emailQueued, pushQueued };
+  },
+});
+
+/**
+ * Internal mutation: batch H2H reminder emails for users who completed Top 5
+ * but still haven't submitted all H2H picks for the race.
+ */
+export const sendH2HRemindersForRace = internalMutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race || race.status !== 'upcoming') {
+      return { skipped: true, reason: 'Race not upcoming' };
+    }
+    if (race.predictionLockAt <= Date.now()) {
+      return { skipped: true, reason: 'Predictions locked' };
+    }
+
+    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
+
+    const allUsers = await ctx.db.query('users').collect();
+    const eligibleUsers = allUsers.filter(
+      (u) => u.email && includesEmail(getPredictionReminderChannel(u)),
+    );
+
+    const allPredictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+    const top5ByUser = new Map<string, Set<SessionType>>();
+    for (const p of allPredictions) {
+      const sessions = top5ByUser.get(p.userId) ?? new Set<SessionType>();
+      sessions.add(p.sessionType as SessionType);
+      top5ByUser.set(p.userId, sessions);
+    }
+
+    const allH2HPredictions = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+    const h2hByUser = new Map<string, Set<SessionType>>();
+    for (const p of allH2HPredictions) {
+      const sessions = h2hByUser.get(p.userId) ?? new Set<SessionType>();
+      sessions.add(p.sessionType as SessionType);
+      h2hByUser.set(p.userId, sessions);
+    }
+
+    const racePath = `/races/${race.slug}`;
+    let scheduled = 0;
+    for (const user of eligibleUsers) {
+      const top5Sessions = top5ByUser.get(user._id) ?? new Set<SessionType>();
+      const h2hSessions = h2hByUser.get(user._id) ?? new Set<SessionType>();
+
+      const hasCompleteTop5 = requiredSessions.every((s) =>
+        top5Sessions.has(s),
+      );
+      if (!hasCompleteTop5) continue;
+
+      const hasCompleteH2H = requiredSessions.every((s) => h2hSessions.has(s));
+      if (hasCompleteH2H) continue;
+
+      await ctx.scheduler.runAfter(
+        0,
+        internal.emails.sendReminderEmails.sendH2HNudge,
+        { email: user.email!, raceName: race.name, racePath },
+      );
+      scheduled++;
+    }
+
+    return { scheduled };
+  },
+});
+
+/**
+ * Public admin mutation: manually trigger Top 5 and H2H reminder emails
+ * for an upcoming race. Useful when the scheduled 24h reminder was missed
+ * or you want to send a last-minute nudge.
+ */
+export const adminTriggerReminders = mutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    requireAdmin(viewer);
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) throw new Error('Race not found');
+    if (race.status !== 'upcoming') throw new Error('Race is not upcoming');
+
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendPredictionReminders,
+      { raceId: args.raceId },
+    );
+    await ctx.scheduler.runAfter(
+      0,
+      internal.notifications.sendH2HRemindersForRace,
+      { raceId: args.raceId },
+    );
+
+    return { triggered: true };
   },
 });
 

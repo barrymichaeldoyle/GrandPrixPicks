@@ -41,6 +41,8 @@ type AdminUsersTabProps = {
   selectedRaceId: Id<'races'> | null;
   onSelectRace: (raceId: Id<'races'>) => void;
   predictionStatus: AdminPredictionStatus | undefined;
+  onSendReminders: (raceId: Id<'races'>) => Promise<void>;
+  sendingReminders: boolean;
 };
 
 export function AdminUsersTab({
@@ -48,6 +50,8 @@ export function AdminUsersTab({
   selectedRaceId,
   onSelectRace,
   predictionStatus,
+  onSendReminders,
+  sendingReminders,
 }: AdminUsersTabProps) {
   return (
     <section className="space-y-4">
@@ -79,6 +83,24 @@ export function AdminUsersTab({
             ))}
           </select>
         </div>
+
+        {selectedRaceId && (
+          <div className="mt-4 border-t border-slate-700 pt-4">
+            <p className="mb-3 text-sm text-slate-400">
+              Send reminder emails now to users who haven&apos;t submitted their
+              Top 5 picks, and H2H nudges to users who finished Top 5 but not
+              H2H.
+            </p>
+            <button
+              type="button"
+              disabled={sendingReminders}
+              onClick={() => onSendReminders(selectedRaceId)}
+              className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {sendingReminders ? 'Sending…' : 'Send Reminders Now'}
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedRaceId && predictionStatus === undefined ? (

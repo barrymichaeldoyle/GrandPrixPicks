@@ -5,8 +5,10 @@ import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
 import { resend } from '../lib/email';
+import { H2HReminderEmail } from './H2HReminderEmail';
 import type { PredictionReminderProps } from './PredictionReminderEmail';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
+import { SignupNudgeEmail } from './SignupNudgeEmail';
 
 function formatSessionTime(
   epochMs: number,
@@ -130,22 +132,16 @@ export const sendH2HNudge = internalAction({
       process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
     const raceUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=h2h_nudge`;
     const settingsUrl = `${appUrl}/settings`;
+    const logoUrl = `${appUrl}/logo-email.png`;
 
-    const html = `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0f172a;">
-        <h2 style="margin: 0 0 12px; font-size: 22px;">Finish your H2H picks</h2>
-        <p style="margin: 0 0 12px; color: #334155; line-height: 1.5;">
-          Nice work — you submitted your Top 5 predictions for <strong>${args.raceName}</strong>.
-        </p>
-        <p style="margin: 0 0 20px; color: #334155; line-height: 1.5;">
-          You still have teammate head-to-head picks left. Complete them now to avoid missing points.
-        </p>
-        <a href="${raceUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Complete H2H Picks</a>
-        <p style="margin: 20px 0 0; color: #64748b; font-size: 13px;">
-          Manage reminders in <a href="${settingsUrl}" style="color:#0d9488;">Settings</a>.
-        </p>
-      </div>
-    `;
+    const html = await render(
+      H2HReminderEmail({
+        raceName: args.raceName,
+        raceUrl,
+        settingsUrl,
+        logoUrl,
+      }),
+    );
 
     try {
       await resend.sendEmail(ctx, {
@@ -172,27 +168,18 @@ export const sendSignupNudge = internalAction({
     const appUrl = process.env.APP_URL ?? 'https://grandprixpicks.com';
     const fromAddress =
       process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
-    const targetUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=signup_nudge`;
+    const raceUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=signup_nudge`;
     const settingsUrl = `${appUrl}/settings`;
-    const raceLine = args.raceName
-      ? `Your picks for <strong>${args.raceName}</strong> are still waiting.`
-      : 'Your first picks are still waiting.';
+    const logoUrl = `${appUrl}/logo-email.png`;
 
-    const html = `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #0f172a;">
-        <h2 style="margin: 0 0 12px; font-size: 22px;">Make your first prediction</h2>
-        <p style="margin: 0 0 12px; color: #334155; line-height: 1.5;">
-          Welcome to Grand Prix Picks. ${raceLine}
-        </p>
-        <p style="margin: 0 0 20px; color: #334155; line-height: 1.5;">
-          Submit your prediction now so you do not miss points this weekend.
-        </p>
-        <a href="${targetUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Make My Prediction</a>
-        <p style="margin: 20px 0 0; color: #64748b; font-size: 13px;">
-          Manage reminders in <a href="${settingsUrl}" style="color:#0d9488;">Settings</a>.
-        </p>
-      </div>
-    `;
+    const html = await render(
+      SignupNudgeEmail({
+        raceName: args.raceName,
+        raceUrl,
+        settingsUrl,
+        logoUrl,
+      }),
+    );
 
     try {
       await resend.sendEmail(ctx, {

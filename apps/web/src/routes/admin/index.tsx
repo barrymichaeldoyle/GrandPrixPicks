@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 
 import { AdminRacesTab } from '@/components/admin/AdminRacesTab';
@@ -28,6 +28,8 @@ function AdminPage() {
   const [selectedRaceId, setSelectedRaceId] = useState<Id<'races'> | null>(
     null,
   );
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const triggerReminders = useMutation(api.notifications.adminTriggerReminders);
 
   const upcomingRaces = races?.filter((r) => r.status === 'upcoming') ?? [];
   const lockedRaces = races?.filter((r) => r.status === 'locked') ?? [];
@@ -109,6 +111,15 @@ function AdminPage() {
             selectedRaceId={selectedRaceId}
             onSelectRace={setSelectedRaceId}
             predictionStatus={predictionStatus}
+            sendingReminders={sendingReminders}
+            onSendReminders={async (raceId) => {
+              setSendingReminders(true);
+              try {
+                await triggerReminders({ raceId });
+              } finally {
+                setSendingReminders(false);
+              }
+            }}
           />
         ) : (
           <AdminRacesTab

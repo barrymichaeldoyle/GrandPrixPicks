@@ -34,9 +34,7 @@ export function H2HReminderEmail({
           }
         `}</style>
       </Head>
-      <Preview>
-        Finish your {raceName} H2H picks before they lock!
-      </Preview>
+      <Preview>Finish your {raceName} H2H picks before they lock!</Preview>
       <Body style={body}>
         <Container style={container}>
           {/* Brand header */}

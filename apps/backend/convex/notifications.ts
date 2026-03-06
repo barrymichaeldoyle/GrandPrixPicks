@@ -699,10 +699,14 @@ export const sendH2HRemindersForRace = internalMutation({
       const hasCompleteTop5 = requiredSessions.every((s) =>
         top5Sessions.has(s),
       );
-      if (!hasCompleteTop5) continue;
+      if (!hasCompleteTop5) {
+        continue;
+      }
 
       const hasCompleteH2H = requiredSessions.every((s) => h2hSessions.has(s));
-      if (hasCompleteH2H) continue;
+      if (hasCompleteH2H) {
+        continue;
+      }
 
       await ctx.scheduler.runAfter(
         0,
@@ -728,8 +732,12 @@ export const adminTriggerReminders = mutation({
     requireAdmin(viewer);
 
     const race = await ctx.db.get(args.raceId);
-    if (!race) throw new Error('Race not found');
-    if (race.status !== 'upcoming') throw new Error('Race is not upcoming');
+    if (!race) {
+      throw new Error('Race not found');
+    }
+    if (race.status !== 'upcoming') {
+      throw new Error('Race is not upcoming');
+    }
 
     await ctx.scheduler.runAfter(
       0,

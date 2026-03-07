@@ -100,7 +100,7 @@ function FollowersPage() {
         <Button
           asChild
           size="sm"
-          variant="secondary"
+          variant="text"
           leftIcon={ArrowLeft}
           className="mb-4"
         >

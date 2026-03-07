@@ -3026,3 +3026,115 @@ export const reseedDevWithLeagues = internalAction({
     };
   },
 });
+
+/**
+ * Reset dev database to reproduce the post-quali / pre-race web scenario:
+ * - Clears dev predictions, results, scores, standings, fake users, leagues
+ * - Resets races to upcoming dates
+ * - Moves australia-2026 so quali is locked but race is still open
+ * - Ensures the main user exists with no predictions for that race
+ * - Does not seed quali Top 5, race Top 5, or any H2H predictions for the main user
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevForPostQualiRaceOpen '{"mainUserClerkId": "user_xxx"}'
+ */
+export const reseedDevForPostQualiRaceOpen = internalAction({
+  args: { mainUserClerkId: v.string() },
+  handler: async (ctx, args) => {
+    let totalDeleted = 0;
+    let iterations = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    await ctx.runMutation(internal.seed.seedDrivers);
+
+    const scenario: {
+      raceId: Id<'races'>;
+      qualiStartAt: number;
+      raceStartAt: number;
+      mainUserId: Id<'users'>;
+      mainUserEmail: string | null | undefined;
+    } = await ctx.runMutation(internal.seed._seedPostQualiRaceOpenScenario, {
+      mainUserClerkId: args.mainUserClerkId,
+    });
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      ...scenario,
+    };
+  },
+});
+
+/**
+ * Internal: configure australia-2026 with quali locked and race still open,
+ * leaving the main user with no predictions for that race.
+ */
+export const _seedPostQualiRaceOpenScenario = internalMutation({
+  args: { mainUserClerkId: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+
+    const mainUser = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) =>
+        q.eq('clerkUserId', args.mainUserClerkId),
+      )
+      .unique();
+
+    if (!mainUser) {
+      throw new Error(
+        `Main user not found for clerkUserId: ${args.mainUserClerkId}. Sign in first.`,
+      );
+    }
+
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'australia-2026'))
+      .unique();
+
+    if (!race) {
+      throw new Error('australia-2026 not found. Run seedRaces first.');
+    }
+
+    const qualiStartAt = now - 2 * HOUR;
+    const raceStartAt = now + DAY;
+
+    await ctx.db.patch(race._id, {
+      status: 'upcoming',
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      updatedAt: now,
+    });
+
+    return {
+      raceId: race._id,
+      qualiStartAt,
+      raceStartAt,
+      mainUserId: mainUser._id,
+      mainUserEmail: mainUser.email,
+    };
+  },
+});

@@ -438,9 +438,10 @@ function RaceDetailPage() {
 
   const isNextRace = Boolean(nextRace && nextRace._id === currentRace._id);
   const isPredictable = currentRace.status === 'upcoming' && isNextRace;
+  const canManagePredictions = isNextRace;
   const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
   const canEditSelectedSession = Boolean(
-    isPredictable &&
+    canManagePredictions &&
     selectedSessionData &&
     !selectedSessionData.isLocked &&
     !selectedSessionData.hasResults,
@@ -537,14 +538,14 @@ function RaceDetailPage() {
                   }}
                   isNextRace={isNextRace}
                   onEditSession={
-                    isPredictable ? setTop5EditingSession : undefined
+                    canManagePredictions ? setTop5EditingSession : undefined
                   }
                 />
               </ErrorBoundary>
             )
       }
       top5HeaderAside={
-        isPredictable && selectedSessionData ? (
+        canManagePredictions && selectedSessionData ? (
           <div className="flex items-center gap-2">
             {selectedSessionData.isLocked &&
               !selectedSessionData.hasResults && (

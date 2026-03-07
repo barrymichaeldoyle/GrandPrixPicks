@@ -24,6 +24,168 @@ const sessionTypeValidator = v.union(
 
 const BATCH_SIZE = 20;
 
+async function rollbackResultsCore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    sessionType: SessionType;
+    restoreRaceStatus?: 'upcoming' | 'locked' | 'finished';
+  },
+) {
+  const race = await ctx.db.get(args.raceId);
+  if (!race) {
+    throw new Error('Race not found');
+  }
+
+  const season = race.season ?? 2026;
+  const affectedTop5Scores = await ctx.db
+    .query('scores')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+    )
+    .collect();
+  const affectedH2HScores = await ctx.db
+    .query('h2hScores')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+    )
+    .collect();
+  const affectedUserIds = new Set<Id<'users'>>();
+
+  for (const score of affectedTop5Scores) {
+    affectedUserIds.add(score.userId);
+    await ctx.db.delete(score._id);
+  }
+
+  for (const score of affectedH2HScores) {
+    affectedUserIds.add(score.userId);
+    await ctx.db.delete(score._id);
+  }
+
+  const h2hResults = await ctx.db
+    .query('h2hResults')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+    )
+    .collect();
+  for (const result of h2hResults) {
+    await ctx.db.delete(result._id);
+  }
+
+  const result = await ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+    )
+    .unique();
+  if (result) {
+    await ctx.db.delete(result._id);
+  }
+
+  if (args.sessionType === 'race' && args.restoreRaceStatus) {
+    await ctx.db.patch(args.raceId, {
+      status: args.restoreRaceStatus,
+      updatedAt: Date.now(),
+    });
+  }
+
+  for (const userId of affectedUserIds) {
+    await upsertStandings(ctx, userId, season);
+    await upsertH2HStandings(ctx, userId, season);
+  }
+
+  return {
+    ok: true,
+    deleted: {
+      result: result ? 1 : 0,
+      top5Scores: affectedTop5Scores.length,
+      h2hResults: h2hResults.length,
+      h2hScores: affectedH2HScores.length,
+    },
+    raceStatus:
+      args.sessionType === 'race'
+        ? args.restoreRaceStatus ?? race.status
+        : race.status,
+  };
+}
+
+async function publishResultsCore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    classification: Array<Id<'drivers'>>;
+    sessionType?: SessionType;
+    dnfDriverIds?: Array<Id<'drivers'>>;
+    suppressNotifications?: boolean;
+  },
+) {
+  if (args.classification.length < 5) {
+    throw new Error('Classification must include at least top 5');
+  }
+
+  const sessionType = args.sessionType ?? 'race';
+  const now = Date.now();
+
+  const existing = await ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', args.raceId).eq('sessionType', sessionType),
+    )
+    .unique();
+
+  let resultId: Id<'results'>;
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      classification: args.classification,
+      dnfDriverIds: args.dnfDriverIds,
+      scoringStatus: 'scoring',
+      updatedAt: now,
+    });
+    resultId = existing._id;
+  } else {
+    resultId = await ctx.db.insert('results', {
+      raceId: args.raceId,
+      sessionType,
+      classification: args.classification,
+      dnfDriverIds: args.dnfDriverIds,
+      scoringStatus: 'scoring',
+      publishedAt: now,
+      updatedAt: now,
+    });
+  }
+
+  const race = await ctx.db.get(args.raceId);
+  const season = race?.season ?? 2026;
+
+  if (sessionType === 'race') {
+    if (race && race.status !== 'finished') {
+      await ctx.db.patch(args.raceId, { status: 'finished', updatedAt: now });
+    }
+  }
+
+  await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveForSession, {
+    raceId: args.raceId,
+    sessionType,
+    classification: args.classification,
+    season,
+    resultId,
+    suppressNotifications: args.suppressNotifications ?? false,
+  });
+
+  await ctx.scheduler.runAfter(0, internal.results.scoreH2HForSession, {
+    raceId: args.raceId,
+    sessionType,
+    classification: args.classification,
+    season,
+    resultId,
+  });
+
+  return {
+    ok: true,
+    message: 'Results published. Scoring in progress.',
+  };
+}
+
 export const getMyScoreForRace = query({
   args: {
     raceId: v.id('races'),
@@ -456,79 +618,58 @@ export const adminPublishResults = mutation({
     sessionType: v.optional(sessionTypeValidator),
     // Optional list of drivers who did not classify (DNF/DSQ, etc.)
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     requireAdmin(viewer);
-
-    if (args.classification.length < 5) {
-      throw new Error('Classification must include at least top 5');
-    }
-
-    const sessionType = args.sessionType ?? 'race';
-    const now = Date.now();
-
-    // Upsert the results document with scoringStatus: 'scoring'
-    const existing = await ctx.db
-      .query('results')
-      .withIndex('by_race_session', (q) =>
-        q.eq('raceId', args.raceId).eq('sessionType', sessionType),
-      )
-      .unique();
-
-    let resultId: Id<'results'>;
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        classification: args.classification,
-        dnfDriverIds: args.dnfDriverIds,
-        scoringStatus: 'scoring',
-        updatedAt: now,
-      });
-      resultId = existing._id;
-    } else {
-      resultId = await ctx.db.insert('results', {
-        raceId: args.raceId,
-        sessionType,
-        classification: args.classification,
-        dnfDriverIds: args.dnfDriverIds,
-        scoringStatus: 'scoring',
-        publishedAt: now,
-        updatedAt: now,
-      });
-    }
-
-    const race = await ctx.db.get(args.raceId);
-    const season = race?.season ?? 2026;
-
-    // Mark race as finished only when publishing race results
-    if (sessionType === 'race') {
-      if (race && race.status !== 'finished') {
-        await ctx.db.patch(args.raceId, { status: 'finished', updatedAt: now });
-      }
-    }
-
-    // Fan out scoring into background transactions
-    await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveForSession, {
-      raceId: args.raceId,
-      sessionType,
-      classification: args.classification,
-      season,
-      resultId,
-    });
-
-    await ctx.scheduler.runAfter(0, internal.results.scoreH2HForSession, {
-      raceId: args.raceId,
-      sessionType,
-      classification: args.classification,
-      season,
-      resultId,
-    });
-
-    return {
-      ok: true,
-      message: 'Results published. Scoring in progress.',
-    };
+    return publishResultsCore(ctx, args);
   },
+});
+
+export const emergencyPublishResults = mutation({
+  args: {
+    raceId: v.id('races'),
+    classification: v.array(v.id('drivers')),
+    sessionType: v.optional(sessionTypeValidator),
+    dnfDriverIds: v.optional(v.array(v.id('drivers'))),
+    suppressNotifications: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => publishResultsCore(ctx, args),
+});
+
+export const adminRollbackResults = mutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    restoreRaceStatus: v.optional(
+      v.union(
+        v.literal('upcoming'),
+        v.literal('locked'),
+        v.literal('finished'),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    requireAdmin(viewer);
+    return rollbackResultsCore(ctx, args);
+  },
+});
+
+export const emergencyRollbackResults = mutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    restoreRaceStatus: v.optional(
+      v.union(
+        v.literal('upcoming'),
+        v.literal('locked'),
+        v.literal('finished'),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => rollbackResultsCore(ctx, args),
 });
 
 // ============ Top-5 scoring fan-out ============
@@ -540,6 +681,7 @@ export const scoreTopFiveForSession = internalMutation({
     classification: v.array(v.id('drivers')),
     season: v.number(),
     resultId: v.id('results'),
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const predictions = await ctx.db
@@ -555,6 +697,7 @@ export const scoreTopFiveForSession = internalMutation({
         resultId: args.resultId,
         raceId: args.raceId,
         sessionType: args.sessionType,
+        suppressNotifications: args.suppressNotifications ?? false,
       });
       return;
     }
@@ -571,6 +714,7 @@ export const scoreTopFiveForSession = internalMutation({
         sessionType: args.sessionType,
         season: args.season,
         resultId: args.resultId,
+        suppressNotifications: args.suppressNotifications ?? false,
       });
     }
   },
@@ -584,6 +728,7 @@ export const scoreTopFiveBatch = internalMutation({
     sessionType: sessionTypeValidator,
     season: v.number(),
     resultId: v.id('results'),
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -651,6 +796,7 @@ export const scoreTopFiveBatch = internalMutation({
       resultId: args.resultId,
       raceId: args.raceId,
       sessionType: args.sessionType,
+      suppressNotifications: args.suppressNotifications ?? false,
     });
   },
 });
@@ -875,6 +1021,7 @@ export const checkScoringComplete = internalMutation({
     resultId: v.id('results'),
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Check if all predictions for this session have been scored
@@ -910,19 +1057,21 @@ export const checkScoringComplete = internalMutation({
         updatedAt: Date.now(),
       });
 
-      // Schedule result notification emails (30s delay for standings to settle)
-      await ctx.scheduler.runAfter(
-        30_000,
-        internal.notifications.sendResultEmailsForSession,
-        { raceId: args.raceId, sessionType: args.sessionType },
-      );
+      if (!args.suppressNotifications) {
+        // Schedule result notification emails (30s delay for standings to settle)
+        await ctx.scheduler.runAfter(
+          30_000,
+          internal.notifications.sendResultEmailsForSession,
+          { raceId: args.raceId, sessionType: args.sessionType },
+        );
 
-      // Schedule push notifications for results
-      await ctx.scheduler.runAfter(
-        30_000,
-        internal.push.sendPushResultsForSession,
-        { raceId: args.raceId, sessionType: args.sessionType },
-      );
+        // Schedule push notifications for results
+        await ctx.scheduler.runAfter(
+          30_000,
+          internal.push.sendPushResultsForSession,
+          { raceId: args.raceId, sessionType: args.sessionType },
+        );
+      }
     }
   },
 });

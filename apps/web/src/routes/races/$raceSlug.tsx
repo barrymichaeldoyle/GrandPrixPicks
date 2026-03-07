@@ -395,7 +395,7 @@ function RaceDetailPage() {
     const hasResults = sessionData?.hasResults ?? false;
     const isLocked = sessionData?.isLocked ?? false;
     const sessionPoints =
-      (scores?.[session]?.points ?? 0) + (h2hPointsBySession?.[session] ?? 0);
+      (scores?.[session]?.points ?? 0) + h2hPointsBySession[session];
     const secondaryLabel = hasResults
       ? `+${sessionPoints}`
       : isLocked

@@ -67,7 +67,7 @@ export function DriverBadge({
           style={{ backgroundColor: color }}
         >
           {number != null && (
-          <span className="font-title text-xl font-bold tracking-tight text-white">
+            <span className="font-title text-xl font-bold tracking-tight text-white">
               {number}
             </span>
           )}
@@ -114,7 +114,7 @@ export function DriverBadge({
     <span className={classes} style={{ backgroundColor: color }}>
       <span className="inline-flex min-h-[18px] items-center justify-center gap-1 rounded-lg bg-black/30 px-1 py-0.5 leading-none">
         {showNumber && number != null && (
-          <span className="font-normal tabular-nums leading-none opacity-70">
+          <span className="leading-none font-normal tabular-nums opacity-70">
             {number}
           </span>
         )}

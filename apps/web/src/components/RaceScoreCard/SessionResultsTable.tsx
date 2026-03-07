@@ -64,7 +64,9 @@ export function SessionResultsTable({
           size={compact ? 'sm' : 'md'}
         />
         <div className={compact ? 'min-w-0' : 'hidden sm:block'}>
-          <div className="truncate font-medium text-text">{entry.displayName}</div>
+          <div className="truncate font-medium text-text">
+            {entry.displayName}
+          </div>
           {!compact && (
             <div className="flex items-center gap-1.5 text-xs text-text-muted">
               {entry.nationality && <Flag code={entry.nationality} size="xs" />}
@@ -72,7 +74,9 @@ export function SessionResultsTable({
                 <span className="font-mono font-medium">#{entry.number}</span>
               )}
               {entry.team && (
-                <span className="text-text-muted">{displayTeamName(entry.team)}</span>
+                <span className="text-text-muted">
+                  {displayTeamName(entry.team)}
+                </span>
               )}
             </div>
           )}
@@ -127,9 +131,13 @@ export function SessionResultsTable({
                         <DriverBadge
                           code={myPick.code}
                           team={codeToDetails.get(myPick.code)?.team}
-                          displayName={codeToDetails.get(myPick.code)?.displayName}
+                          displayName={
+                            codeToDetails.get(myPick.code)?.displayName
+                          }
                           number={codeToDetails.get(myPick.code)?.number}
-                          nationality={codeToDetails.get(myPick.code)?.nationality}
+                          nationality={
+                            codeToDetails.get(myPick.code)?.nationality
+                          }
                         />
                         <span
                           className={`shrink-0 font-bold ${
@@ -164,7 +172,7 @@ export function SessionResultsTable({
                 className="w-full overflow-hidden rounded-lg border border-border/80 bg-surface"
               >
                 <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-[0.14em] text-text-muted">
+                  <tr className="border-b border-border text-xs tracking-[0.14em] text-text-muted uppercase">
                     <th className="px-3 py-2 text-left">Pos</th>
                     <th className="px-3 py-2 text-left">Driver</th>
                   </tr>

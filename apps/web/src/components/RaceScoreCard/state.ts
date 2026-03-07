@@ -74,7 +74,7 @@ export function deriveCardState({
   }
 
   // All locked, no results yet
-  if (allLocked || data.raceStatus === 'locked') {
+  if (allLocked) {
     return 'fully_locked';
   }
 

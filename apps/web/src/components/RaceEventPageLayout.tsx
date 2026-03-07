@@ -84,6 +84,8 @@ export function RaceEventPageLayout({
   const statusStyles = getStatusStyles(isPredictable, race.status);
   const showResultsPendingBadge =
     race.status === 'locked' && hasPublishedResults && !allEventsScored;
+  const selectedSessionHasResults = isSessionPublished(selectedSession);
+  const showResultsView = hasPublishedResults && selectedSessionHasResults;
 
   return (
     <div className="min-h-full bg-page">
@@ -131,20 +133,20 @@ export function RaceEventPageLayout({
                 </div>
               ) : (
                 <div>
-                  {!hasPublishedResults && (
+                  {showSessionTabs && (
+                    <div className="border-b-3 border-accent/50 bg-surface-muted/40 p-1">
+                      <TabSwitch
+                        value={selectedSession}
+                        onChange={onSelectedSessionChange}
+                        options={sessionTabOptions}
+                        className="flex gap-1"
+                        buttonClassName="flex-1"
+                        ariaLabel="Predictions by session"
+                      />
+                    </div>
+                  )}
+                  {!showResultsView && (
                     <div>
-                      {showSessionTabs && (
-                        <div className="border-b-3 border-accent/50 bg-surface-muted/40 p-1">
-                          <TabSwitch
-                            value={selectedSession}
-                            onChange={onSelectedSessionChange}
-                            options={sessionTabOptions}
-                            className="flex gap-1"
-                            buttonClassName="flex-1"
-                            ariaLabel="Predictions by session"
-                          />
-                        </div>
-                      )}
                       <div className="space-y-8 p-4">
                         {isPredictable && hasPredictions && (
                           <section className="space-y-2">
@@ -183,7 +185,7 @@ export function RaceEventPageLayout({
                       </div>
                     </div>
                   )}
-                  {hasPublishedResults && <>{h2hResultsContent}</>}
+                  {showResultsView && <>{h2hResultsContent}</>}
                 </div>
               )}
             </div>

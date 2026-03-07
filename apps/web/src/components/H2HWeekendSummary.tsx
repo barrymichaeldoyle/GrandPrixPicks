@@ -83,7 +83,6 @@ export function H2HWeekendSummary({
         matchups={matchups ?? []}
         selections={selectedSessionPicks}
         mode="readonly"
-        className="sm:gap-3"
       />
     </div>
   );

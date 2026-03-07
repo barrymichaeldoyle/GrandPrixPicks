@@ -27,6 +27,19 @@ import { H2HResultsSection, H2HSection } from './-race-detail-content';
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
 export const Route = createFileRoute('/races/$raceSlug')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { session?: SessionType } => {
+    const rawSession = search.session;
+    const session =
+      rawSession === 'quali' ||
+      rawSession === 'sprint_quali' ||
+      rawSession === 'sprint' ||
+      rawSession === 'race'
+        ? rawSession
+        : undefined;
+    return { session };
+  },
   component: RaceDetailPage,
   loader: async ({ params }) => {
     const [race, nextRace] = await Promise.all([
@@ -115,17 +128,10 @@ function RaceNotFound() {
   );
 }
 
-function isSessionType(value: string | null): value is SessionType {
-  return (
-    value === 'quali' ||
-    value === 'sprint_quali' ||
-    value === 'sprint' ||
-    value === 'race'
-  );
-}
-
 function RaceDetailPage() {
   const { race, nextRace } = Route.useLoaderData();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const now = Date.now();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
@@ -164,16 +170,10 @@ function RaceDetailPage() {
   );
   const defaultSession: SessionType =
     nextOpenSession ?? weekendSessions[weekendSessions.length - 1];
-  const sessionFromUrl = (() => {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    const raw = new URLSearchParams(window.location.search).get('session');
-    return isSessionType(raw) && weekendSessions.includes(raw) ? raw : null;
-  })();
-  const [selectedSession, setSelectedSession] = useState<SessionType>(
-    sessionFromUrl ?? defaultSession,
-  );
+  const selectedSession: SessionType =
+    search.session && weekendSessions.includes(search.session)
+      ? search.session
+      : defaultSession;
   const [top5EditingSession, setTop5EditingSession] =
     useState<SessionType | null>(null);
   const [h2hEditingSession, setH2hEditingSession] =
@@ -198,11 +198,19 @@ function RaceDetailPage() {
       }
     }
 
-    setSelectedSession(nextSession);
     setTop5EditingSession(null);
     setH2hEditingSession(null);
     setTop5HasUnsavedChanges(false);
     setH2hHasUnsavedChanges(false);
+    void navigate({
+      to: '/races/$raceSlug',
+      params: { raceSlug: race?.slug ?? '' },
+      search: (prev) => ({
+        ...prev,
+        session: nextSession,
+      }),
+      replace: true,
+    });
   }
 
   useEffect(() => {
@@ -216,21 +224,6 @@ function RaceDetailPage() {
       setH2hHasUnsavedChanges(false);
     }
   }, [h2hEditingSession]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const params = new URLSearchParams(window.location.search);
-    const current = params.get('session');
-    if (current === selectedSession) {
-      return;
-    }
-    params.set('session', selectedSession);
-    const nextSearch = params.toString();
-    const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
-    window.history.replaceState(window.history.state, '', nextUrl);
-  }, [selectedSession]);
 
   // ─── Queries for RaceScoreCard ───
   const predictionOpenAt = useQuery(
@@ -397,23 +390,46 @@ function RaceDetailPage() {
     race?.timeZone ??
     (race ? getRaceTimeZoneFromSlug(race.slug) : undefined) ??
     'UTC';
-  const predictionSessionOptions = weekendSessions.map((session) => ({
-    value: session,
-    label: (
-      <>
-        <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
-        {hasSprintWeekend ? (
-          <span className="sm:hidden">
-            <Tooltip content={SESSION_LABELS[session]}>
-              <span>{SESSION_LABELS_SHORT[session]}</span>
-            </Tooltip>
+  const predictionSessionOptions = weekendSessions.map((session) => {
+    const sessionData = cardData?.sessions[session] ?? null;
+    const hasResults = sessionData?.hasResults ?? false;
+    const isLocked = sessionData?.isLocked ?? false;
+    const sessionPoints =
+      (scores?.[session]?.points ?? 0) + (h2hPointsBySession?.[session] ?? 0);
+    const secondaryLabel = hasResults
+      ? `+${sessionPoints}`
+      : isLocked
+        ? 'Locked'
+        : 'Open';
+    const secondaryClassName = hasResults
+      ? 'text-accent'
+      : isLocked
+        ? 'text-warning'
+        : 'text-success';
+
+    return {
+      value: session,
+      label: (
+        <span className="flex items-baseline gap-1.5">
+          <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
+          {hasSprintWeekend ? (
+            <span className="sm:hidden">
+              <Tooltip content={SESSION_LABELS[session]}>
+                <span>{SESSION_LABELS_SHORT[session]}</span>
+              </Tooltip>
+            </span>
+          ) : (
+            <span className="sm:hidden">{SESSION_LABELS[session]}</span>
+          )}
+          <span
+            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName}`}
+          >
+            {secondaryLabel}
           </span>
-        ) : (
-          <span className="sm:hidden">{SESSION_LABELS[session]}</span>
-        )}
-      </>
-    ),
-  }));
+        </span>
+      ),
+    };
+  });
 
   if (race === null) {
     return <RaceNotFound />;
@@ -491,7 +507,7 @@ function RaceDetailPage() {
       onSelectedSessionChange={handleSessionTabChange}
       sessionTabOptions={predictionSessionOptions}
       showSessionTabs={
-        isPredictable && !!hasPredictions && weekendSessions.length > 1
+        weekendSessions.length > 1 && (!!hasPredictions || hasPublishedResults)
       }
       trackTimeZone={trackTimeZone}
       getSessionStartAt={getSessionStartAt}
@@ -586,7 +602,12 @@ function RaceDetailPage() {
           hasH2HPredictions={hasH2HPredictions}
         />
       }
-      h2hResultsContent={<H2HResultsSection raceId={race._id} race={race} />}
+      h2hResultsContent={
+        <H2HResultsSection
+          raceId={race._id}
+          selectedSession={selectedSession}
+        />
+      }
     />
   );
 }

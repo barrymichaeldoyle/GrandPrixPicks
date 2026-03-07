@@ -61,9 +61,7 @@ export function UpcomingPredictionNudge({
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                     <Flag className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
-                  <p>
-                    {message}
-                  </p>
+                  <p>{message}</p>
                 </div>
                 {error && <p className="mt-1 text-xs text-error">{error}</p>}
               </div>

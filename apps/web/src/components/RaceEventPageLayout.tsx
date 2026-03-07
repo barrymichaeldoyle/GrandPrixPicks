@@ -30,6 +30,7 @@ type RaceEventPageLayoutProps = {
   isSignedIn: boolean;
   isPredictionsLoading: boolean;
   hasPredictions: boolean;
+  hasH2HPredictions: boolean;
   hasPublishedResults: boolean;
   allEventsScored: boolean;
   pointsSoFar: number;
@@ -60,6 +61,7 @@ export function RaceEventPageLayout({
   isSignedIn,
   isPredictionsLoading,
   hasPredictions,
+  hasH2HPredictions,
   hasPublishedResults,
   allEventsScored,
   pointsSoFar,
@@ -86,6 +88,10 @@ export function RaceEventPageLayout({
     race.status === 'locked' && hasPublishedResults && !allEventsScored;
   const selectedSessionHasResults = isSessionPublished(selectedSession);
   const showResultsView = hasPublishedResults && selectedSessionHasResults;
+  const showReadonlyPredictions =
+    (isPredictable || race.status === 'locked') && hasPredictions;
+  const showReadonlyH2H =
+    (isPredictable || race.status === 'locked') && hasH2HPredictions;
 
   return (
     <div className="min-h-full bg-page">
@@ -148,7 +154,7 @@ export function RaceEventPageLayout({
                   {!showResultsView && (
                     <div>
                       <div className="space-y-8 p-4">
-                        {isPredictable && hasPredictions && (
+                        {showReadonlyPredictions && (
                           <section className="space-y-2">
                             <SessionEventSummary
                               session={selectedSession}
@@ -161,12 +167,12 @@ export function RaceEventPageLayout({
                         )}
                         <section
                           className={
-                            isPredictable && hasPredictions
+                            showReadonlyPredictions
                               ? 'space-y-2 lg:grid lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start lg:gap-3 lg:space-y-0'
                               : 'space-y-2'
                           }
                         >
-                          {isPredictable && hasPredictions && (
+                          {showReadonlyPredictions && (
                             <div className="flex items-center justify-between gap-2 lg:pt-1">
                               <div className="flex items-center gap-2">
                                 <Trophy className="h-5 w-5 shrink-0 text-accent" />
@@ -179,7 +185,7 @@ export function RaceEventPageLayout({
                           )}
                           <div className="min-w-0">{top5MainContent}</div>
                         </section>
-                        {isPredictable && hasPredictions && (
+                        {showReadonlyH2H && (
                           <section className="space-y-2">{h2hContent}</section>
                         )}
                       </div>

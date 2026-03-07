@@ -2,8 +2,6 @@ import { Lock } from 'lucide-react';
 
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
-import { Badge } from '../Badge';
-import { Tooltip } from '../Tooltip';
 import { SessionPicksGrid } from './SessionPicksGrid';
 import { SessionResultsTable } from './SessionResultsTable';
 import type { SessionCardData } from './types';
@@ -13,6 +11,7 @@ interface SessionSectionProps {
   sessionData: SessionCardData;
   variant: 'full' | 'compact';
   onEditSession?: (session: SessionType) => void;
+  extraContent?: React.ReactNode;
 }
 
 export function SessionSection({
@@ -20,6 +19,7 @@ export function SessionSection({
   sessionData,
   variant,
   onEditSession,
+  extraContent,
 }: SessionSectionProps) {
   // Hidden session (visitor before lock)
   if (sessionData.isHidden) {
@@ -51,13 +51,6 @@ export function SessionSection({
             <span className="text-sm font-semibold text-text">
               {SESSION_LABELS[sessionType]}
             </span>
-            {sessionData.isLocked && !sessionData.hasResults && (
-              <Tooltip content="This session has started — predictions can't be changed">
-                <span className="shrink-0">
-                  <Badge variant="locked" />
-                </span>
-              </Tooltip>
-            )}
             {showEditButton && (
               <button
                 type="button"
@@ -90,6 +83,8 @@ export function SessionSection({
       {sessionData.picks.length === 0 && (
         <p className="text-sm text-text-muted">No prediction submitted</p>
       )}
+
+      {extraContent ? <div className="mt-3">{extraContent}</div> : null}
 
       {/* Full results table (full variant only) */}
       {showResultsTable && (

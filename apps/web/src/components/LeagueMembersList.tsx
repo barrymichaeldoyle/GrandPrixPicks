@@ -1,4 +1,4 @@
-import { Crown, Eye, UserCheck, UserPlus } from 'lucide-react';
+import { Crown, UserCheck, UserPlus } from 'lucide-react';
 
 import { Tooltip } from './Tooltip';
 
@@ -13,6 +13,8 @@ export type LeagueMembersListItem = {
   h2hPicked?: boolean;
   isViewer: boolean;
   isFollowing?: boolean;
+  rank?: number;
+  points?: number;
 };
 
 type ProfileLinkProps = {
@@ -60,11 +62,11 @@ export function LeagueMembersList({
       {members.map((member, index) => (
         <div
           key={member._id}
-          className={`flex items-center justify-between gap-3 px-4 py-3 ${
+          className={`flex items-center justify-between gap-4 px-4 py-3 ${
             index < members.length - 1 ? 'border-b border-border' : ''
           }`}
         >
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             {member.avatarUrl ? (
               <img
                 src={member.avatarUrl}
@@ -96,6 +98,32 @@ export function LeagueMembersList({
               <p className="truncate text-xs text-text-muted">
                 @{member.username}
               </p>
+              <div className="mt-1 flex items-center gap-4 text-xs">
+                <span className="text-text-muted">
+                  Rank{' '}
+                  <span
+                    className={
+                      member.rank != null
+                        ? 'font-semibold text-text'
+                        : 'text-text-muted/40'
+                    }
+                  >
+                    {member.rank != null ? `#${member.rank}` : '—'}
+                  </span>
+                </span>
+                <span className="text-text-muted">
+                  Points{' '}
+                  <span
+                    className={
+                      member.points != null
+                        ? 'font-semibold text-accent'
+                        : 'text-text-muted/40'
+                    }
+                  >
+                    {member.points != null ? member.points : '—'}
+                  </span>
+                </span>
+              </div>
               {showPredictionStatus &&
                 getPredictionIndicatorLabel(
                   member.top5Picked,
@@ -119,56 +147,43 @@ export function LeagueMembersList({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            {!member.isViewer && member.isFollowing !== undefined && (
-              <Tooltip
-                content={
-                  member.isFollowing
-                    ? 'Following (click to unfollow)'
-                    : 'Follow'
-                }
-              >
-                <button
-                  type="button"
-                  onClick={() =>
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="hidden h-11 w-11 items-center justify-center sm:flex">
+              {!member.isViewer && member.isFollowing !== undefined ? (
+                <Tooltip
+                  content={
                     member.isFollowing
-                      ? onUnfollow?.(member.userId)
-                      : onFollow?.(member.userId)
+                      ? 'Following (click to unfollow)'
+                      : 'Follow'
                   }
-                  aria-label={
-                    member.isFollowing
-                      ? `Unfollow @${member.username}`
-                      : `Follow @${member.username}`
-                  }
-                  className={`rounded-lg border p-2 transition-colors ${
-                    member.isFollowing
-                      ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
-                      : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
-                  }`}
                 >
-                  {member.isFollowing ? (
-                    <UserCheck className="h-5 w-5" aria-hidden="true" />
-                  ) : (
-                    <UserPlus className="h-5 w-5" aria-hidden="true" />
-                  )}
-                </button>
-              </Tooltip>
-            )}
-            <Tooltip content="View profile">
-              {renderProfileLink({
-                username: member.username,
-                className:
-                  'rounded-lg border border-border bg-surface p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text',
-                children: (
-                  <>
-                    <Eye className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only">
-                      View @{member.username} profile
-                    </span>
-                  </>
-                ),
-              })}
-            </Tooltip>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      member.isFollowing
+                        ? onUnfollow?.(member.userId)
+                        : onFollow?.(member.userId)
+                    }
+                    aria-label={
+                      member.isFollowing
+                        ? `Unfollow @${member.username}`
+                        : `Follow @${member.username}`
+                    }
+                    className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-colors ${
+                      member.isFollowing
+                        ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
+                        : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
+                    }`}
+                  >
+                    {member.isFollowing ? (
+                      <UserCheck className="h-5 w-5" aria-hidden="true" />
+                    ) : (
+                      <UserPlus className="h-5 w-5" aria-hidden="true" />
+                    )}
+                  </button>
+                </Tooltip>
+              ) : null}
+            </div>
           </div>
         </div>
       ))}

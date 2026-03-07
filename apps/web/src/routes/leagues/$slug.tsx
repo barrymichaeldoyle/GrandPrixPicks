@@ -20,7 +20,6 @@ import {
   LogIn,
   Settings,
   Shield,
-  User,
   Users,
 } from 'lucide-react';
 import posthog from 'posthog-js';
@@ -216,10 +215,6 @@ function LeagueDetailContent({ league }: { league: League }) {
         {/* Share link — visible to all members */}
         {isMember && <ShareLinkSection slug={league.slug} />}
 
-        {/* Leaderboard */}
-        {isMember && <LeagueLeaderboard leagueId={league._id} />}
-
-        {/* Members */}
         {isMember && <LeagueMembers leagueId={league._id} />}
       </div>
     </div>
@@ -329,125 +324,13 @@ function ShareLinkSection({ slug }: { slug: string }) {
   );
 }
 
-function LeagueLeaderboard({ leagueId }: { leagueId: Id<'leagues'> }) {
-  const data = useQuery(api.leaderboards.getLeagueLeaderboard, {
-    leagueId,
-    limit: 50,
-  });
-
-  if (data === undefined) {
-    return <InlineLoader />;
-  }
-
-  if (data.entries.length === 0) {
-    return (
-      <div className="mb-6 rounded-xl border border-border bg-surface p-6 text-center">
-        <p className="text-text-muted">
-          No scores yet. The leaderboard will populate once race results are
-          published.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mb-6">
-      <h2 className="mb-3 text-lg font-semibold text-text">Standings</h2>
-
-      {data.viewerEntry && (
-        <div className="mb-3 flex items-center gap-3 rounded-xl border-2 border-accent bg-accent-muted px-4 py-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
-            {data.viewerEntry.rank}
-          </span>
-          <div>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-text">
-              <User className="h-3.5 w-3.5 text-accent" />
-              Your Rank
-            </div>
-            <div className="text-lg font-bold text-accent">
-              {data.viewerEntry.points} pts
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Rank
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Player
-              </th>
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Races
-              </th>
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Points
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.entries.map((entry) => (
-              <tr
-                key={entry.userId}
-                className={`border-b border-border transition-colors last:border-0 ${
-                  entry.isViewer
-                    ? 'bg-accent-muted hover:bg-accent-muted'
-                    : 'hover:bg-surface-muted'
-                }`}
-              >
-                <td className="px-4 py-3">
-                  <span
-                    className={`font-medium ${entry.isViewer ? 'text-accent' : 'text-text-muted'}`}
-                  >
-                    {entry.rank}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    to="/p/$username"
-                    params={{ username: entry.username }}
-                    className="flex items-center gap-2 font-medium text-text"
-                  >
-                    {entry.isViewer && (
-                      <User
-                        className="h-4 w-4 text-accent"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span className="font-semibold text-accent">
-                      {entry.username}
-                    </span>
-                    {entry.isViewer && (
-                      <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        YOU
-                      </span>
-                    )}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="text-sm text-text-muted">
-                    {entry.raceCount}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <span className="font-bold text-accent">{entry.points}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
 function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
   const me = useQuery(api.users.me, {});
   const nextRace = useQuery(api.races.getNextRace);
+  const leaderboard = useQuery(api.leaderboards.getLeagueLeaderboard, {
+    leagueId,
+    limit: 50,
+  });
   const showPredictionStatus = nextRace?.status === 'upcoming';
   const members = useQuery(api.leagues.getLeagueMembers, {
     leagueId,
@@ -460,11 +343,14 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
     Map<string, boolean>
   >(new Map());
 
-  if (members === undefined) {
+  if (members === undefined || leaderboard === undefined) {
     return <InlineLoader />;
   }
 
   const followedSet = new Set(followedIds ?? []);
+  const standingsByUserId = new Map(
+    leaderboard.entries.map((entry) => [String(entry.userId), entry] as const),
+  );
 
   const memberItems = members.map((member) => {
     const optimistic = optimisticFollows.get(member.userId as string);
@@ -480,7 +366,25 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
       userId: member.userId as string,
       isViewer: me?._id === member.userId,
       isFollowing,
+      rank: standingsByUserId.get(String(member.userId))?.rank,
+      points: standingsByUserId.get(String(member.userId))?.points,
     };
+  });
+
+  memberItems.sort((a, b) => {
+    if (a.rank != null && b.rank != null) {
+      return a.rank - b.rank;
+    }
+    if (a.rank != null) {
+      return -1;
+    }
+    if (b.rank != null) {
+      return 1;
+    }
+    if (a.role !== b.role) {
+      return a.role === 'admin' ? -1 : 1;
+    }
+    return a.displayName.localeCompare(b.displayName);
   });
 
   async function handleFollow(userId: string) {
@@ -514,12 +418,29 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
       <h2 className="mb-1 text-lg font-semibold text-text">
         Members ({members.length})
       </h2>
-      {showPredictionStatus && (
-        <p className="mb-3 text-xs text-text-muted">
-          Predictions are hidden until this race locks
+      {leaderboard.viewerEntry && (
+        <p className="mb-3 text-sm text-text-muted">
+          You&apos;re currently{' '}
+          <span className="font-semibold text-accent">
+            #{leaderboard.viewerEntry.rank}
+          </span>{' '}
+          in this league with{' '}
+          <span className="font-semibold text-accent">
+            {leaderboard.viewerEntry.points} pts
+          </span>
+          .
         </p>
       )}
-      {!showPredictionStatus && <div className="mb-3" />}
+      {showPredictionStatus && (
+        <p className="mb-3 text-xs text-text-muted">
+          Rank and points are shown inline. Predictions stay hidden until this race locks.
+        </p>
+      )}
+      {!showPredictionStatus && leaderboard.entries.length === 0 && (
+        <p className="mb-3 text-xs text-text-muted">
+          No scores yet. Rankings will appear here once race results are published.
+        </p>
+      )}
       <LeagueMembersList
         members={memberItems}
         showPredictionStatus={showPredictionStatus}

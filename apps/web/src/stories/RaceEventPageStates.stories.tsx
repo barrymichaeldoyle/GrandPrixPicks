@@ -294,6 +294,7 @@ function Scenario({
       isSignedIn={isSignedIn}
       isPredictionsLoading={false}
       hasPredictions={hasPredictions}
+      hasH2HPredictions={hasPredictions}
       hasPublishedResults={hasPublishedResults}
       allEventsScored={allEventsScored}
       pointsSoFar={pointsSoFar}

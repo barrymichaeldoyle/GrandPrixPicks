@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, ChevronDown, EyeOff } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
 import type { SessionType } from '../../lib/sessions';
@@ -30,6 +31,8 @@ interface RaceScoreCardProps {
   linkToRace?: boolean;
   /** Compact mode: render summary-only card without expandable breakdown */
   compactSummaryOnly?: boolean;
+  /** Compact mode: extra owner-only content rendered inside each session */
+  compactSessionExtras?: Partial<Record<SessionType, ReactNode>>;
 }
 
 export function RaceScoreCard({
@@ -41,6 +44,7 @@ export function RaceScoreCard({
   defaultExpanded = false,
   linkToRace = true,
   compactSummaryOnly = false,
+  compactSessionExtras,
 }: RaceScoreCardProps) {
   const cardState = deriveCardState({
     data,
@@ -59,6 +63,7 @@ export function RaceScoreCard({
         defaultExpanded={defaultExpanded}
         linkToRace={linkToRace}
         compactSummaryOnly={compactSummaryOnly}
+        compactSessionExtras={compactSessionExtras}
       />
     );
   }
@@ -78,6 +83,7 @@ function CompactCard({
   defaultExpanded,
   linkToRace,
   compactSummaryOnly,
+  compactSessionExtras,
 }: {
   data: WeekendCardData;
   cardState: CardDisplayState;
@@ -86,23 +92,19 @@ function CompactCard({
   defaultExpanded: boolean;
   linkToRace: boolean;
   compactSummaryOnly: boolean;
+  compactSessionExtras?: Partial<Record<SessionType, ReactNode>>;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [hasManualToggle, setHasManualToggle] = useState(false);
   const sessions = getSessionsForWeekend(data.hasSprint);
-
-  if (compactSummaryOnly) {
-    return (
-      <CompactSummaryCard
-        data={data}
-        cardState={cardState}
-        isNextRace={isNextRace}
-        linkToRace={linkToRace}
-      />
-    );
-  }
-
   const canExpand =
     cardState !== 'hidden_upcoming' && cardState !== 'not_yet_open';
+
+  useEffect(() => {
+    if (!hasManualToggle) {
+      setExpanded(defaultExpanded);
+    }
+  }, [defaultExpanded, hasManualToggle]);
 
   // Keep content mounted during collapse so height can animate
   const [contentMounted, setContentMounted] = useState(false);
@@ -114,6 +116,17 @@ function CompactCard({
       return () => clearTimeout(t);
     }
   }, [expanded]);
+
+  if (compactSummaryOnly) {
+    return (
+      <CompactSummaryCard
+        data={data}
+        cardState={cardState}
+        isNextRace={isNextRace}
+        linkToRace={linkToRace}
+      />
+    );
+  }
 
   return (
     <div
@@ -135,6 +148,7 @@ function CompactCard({
               type="button"
               onClick={(e) => {
                 e.preventDefault();
+                setHasManualToggle(true);
                 setExpanded((prev) => !prev);
               }}
               className="-mr-2 -mb-2 flex min-h-10 min-w-10 items-center justify-center gap-1 text-sm text-accent transition-colors hover:text-accent/80 focus:outline-none focus-visible:text-accent/80 sm:min-h-0 sm:min-w-0 sm:justify-start"
@@ -160,7 +174,7 @@ function CompactCard({
         >
           <div className="min-h-0 overflow-hidden">
             {contentMounted && (
-              <div className="divide-y divide-border/50 border-t border-border/60 p-3 sm:p-4">
+              <div className="space-y-4 border-t border-border/60 p-3 sm:p-4">
                 {sessions.map((session) => {
                   const sessionData = data.sessions[session];
                   if (!sessionData) {
@@ -168,12 +182,17 @@ function CompactCard({
                   }
 
                   return (
-                    <SessionSection
+                    <div
                       key={session}
-                      sessionType={session}
-                      sessionData={sessionData}
-                      variant="compact"
-                    />
+                      className="border-b border-border/50 pb-4 last:border-b-0 last:pb-0"
+                    >
+                      <SessionSection
+                        sessionType={session}
+                        sessionData={sessionData}
+                        variant="compact"
+                        extraContent={compactSessionExtras?.[session]}
+                      />
+                    </div>
                   );
                 })}
 
@@ -356,8 +375,7 @@ function FullCard({
     cardState !== 'not_yet_open' &&
     cardState !== 'open_no_picks_unauth' &&
     cardState !== 'open_no_picks_auth' &&
-    cardState !== 'hidden_upcoming' &&
-    cardState !== 'fully_locked';
+    cardState !== 'hidden_upcoming';
 
   return (
     <div>

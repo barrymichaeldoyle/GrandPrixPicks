@@ -14,6 +14,7 @@ import {
   Info,
   Settings,
   Star,
+  Swords,
   Trophy,
   User,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ import { displayTeamName } from '@/lib/display';
 
 import { Avatar } from '../../components/Avatar';
 import { primaryButtonStyles } from '../../components/Button';
+import { DriverBadge } from '../../components/DriverBadge';
 import { TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
@@ -33,6 +35,7 @@ import {
 } from '../../components/RaceScoreCard';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
+import { getSessionsForWeekend } from '../../lib/sessions';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -87,6 +90,10 @@ function ProfilePage() {
 
   const weekends = useQuery(
     api.predictions.getUserPredictionHistory,
+    currentProfile ? { userId: currentProfile._id } : 'skip',
+  );
+  const h2hPicksByRace = useQuery(
+    api.h2h.getUserH2HPicksByRace,
     currentProfile ? { userId: currentProfile._id } : 'skip',
   );
 
@@ -446,21 +453,136 @@ function ProfilePage() {
                 .at(-1)?.raceId;
 
               return weekends.map((weekend) => (
-                <RaceScoreCard
+                <ProfileWeekendCard
                   key={weekend.raceId}
-                  data={fromProfileHistory(weekend, drivers)}
-                  variant="compact"
-                  compactSummaryOnly
-                  viewer={{
-                    isSignedIn: !!isSignedIn,
-                    isOwner,
-                  }}
+                  weekend={weekend}
+                  currentUserId={currentProfile._id}
+                  isOwner={isOwner}
+                  isSignedIn={!!isSignedIn}
                   isNextRace={weekend.raceId === nextRaceId}
+                  drivers={drivers}
+                  hasH2HPicks={Boolean(
+                    h2hPicksByRace?.some(
+                      (entry) => entry.raceId === weekend.raceId,
+                    ),
+                  )}
                 />
               ));
             })()}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ProfileWeekendCard({
+  weekend,
+  currentUserId,
+  isOwner,
+  isSignedIn,
+  isNextRace,
+  drivers,
+  hasH2HPicks,
+}: {
+  weekend: NonNullable<NonNullable<ReturnType<typeof useQuery<typeof api.predictions.getUserPredictionHistory>>>[number]>;
+  currentUserId: string;
+  isOwner: boolean;
+  isSignedIn: boolean;
+  isNextRace: boolean;
+  drivers: ReturnType<typeof useQuery<typeof api.drivers.listDrivers>>;
+  hasH2HPicks: boolean;
+}) {
+  const detailedPicks = useQuery(api.h2h.getUserH2HDetailedPicks, {
+    userId: currentUserId as never,
+    raceId: weekend.raceId as never,
+  });
+  const compactSessionExtras =
+    isOwner && hasH2HPicks && detailedPicks
+      ? Object.fromEntries(
+          getSessionsForWeekend(weekend.hasSprint).map((session) => [
+            session,
+            <CompactH2HSessionPicks
+              key={session}
+              picks={detailedPicks[session] ?? null}
+            />,
+          ]),
+        )
+      : undefined;
+
+  return (
+    <RaceScoreCard
+      data={fromProfileHistory(weekend, drivers)}
+      variant="compact"
+      compactSummaryOnly={!isOwner}
+      defaultExpanded={isOwner}
+      compactSessionExtras={compactSessionExtras}
+      viewer={{
+        isSignedIn,
+        isOwner,
+      }}
+      isNextRace={isNextRace}
+    />
+  );
+}
+
+function CompactH2HSessionPicks({
+  picks,
+}: {
+  picks:
+    | Array<{
+        matchupId: string;
+        team: string;
+        driver1: {
+          _id: string;
+          code: string;
+          displayName: string;
+          number: number | null;
+          team: string | null;
+          nationality: string | null;
+        };
+        driver2: {
+          _id: string;
+          code: string;
+          displayName: string;
+          number: number | null;
+          team: string | null;
+          nationality: string | null;
+        };
+        predictedWinnerId: string;
+        actualWinnerId: string | null;
+        isCorrect: boolean | null;
+      }>
+    | null;
+}) {
+  if (!picks || picks.length === 0) {
+    return null;
+  }
+
+  const selectedDrivers = picks.map((pick) =>
+    pick.predictedWinnerId === pick.driver1._id ? pick.driver1 : pick.driver2,
+  );
+
+  return (
+    <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
+      <div className="mb-2 flex items-center gap-2">
+        <Swords className="h-4 w-4 text-accent" />
+        <h4 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
+          H2H
+        </h4>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {selectedDrivers.map((driver, index) => (
+          <DriverBadge
+            key={`${driver._id}-${index}`}
+            code={driver.code}
+            team={driver.team}
+            displayName={driver.displayName}
+            number={driver.number}
+            nationality={driver.nationality}
+            size="sm"
+          />
+        ))}
       </div>
     </div>
   );

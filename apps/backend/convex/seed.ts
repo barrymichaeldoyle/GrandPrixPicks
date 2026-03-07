@@ -1299,6 +1299,253 @@ export const seedDevUserRaceScenarios = internalMutation({
 });
 
 /**
+ * Seed a locked weekend where the current user and a second public user both
+ * have picks, so the race page and public profile reveal rules can be tested.
+ *
+ * Run via:
+ *   npx convex run seed:seedLockedPicksVisibilityScenario '{"username": "barrymichaeldoyle"}'
+ *   npx convex run seed:seedLockedPicksVisibilityScenario '{"clerkUserId": "user_xxx"}'
+ */
+export const seedLockedPicksVisibilityScenario = internalMutation({
+  args: {
+    clerkUserId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    friendUsername: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const hour = 60 * 60 * 1000;
+
+    const viewer = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!viewer) {
+      throw new Error('User not found');
+    }
+
+    let drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      await ctx.runMutation(internal.seed.seedDrivers);
+      drivers = await ctx.db.query('drivers').collect();
+    }
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers to seed locked picks visibility');
+    }
+
+    const driverIds = drivers.map((driver) => driver._id);
+    const viewerPicks = driverIds.slice(0, 5);
+    const friendPicks = [...driverIds.slice(1, 5), driverIds[0]];
+
+    const friendUsername =
+      args.friendUsername?.trim() || 'locked-friend-visibility';
+    let friend = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', friendUsername))
+      .unique();
+
+    if (!friend) {
+      const friendId = await ctx.db.insert('users', {
+        clerkUserId: `seed_locked_friend_${friendUsername}`,
+        email: `${friendUsername}@example.com`,
+        displayName: 'Locked Friend',
+        username: friendUsername,
+        showOnLeaderboard: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+      friend = await ctx.db.get(friendId);
+    }
+
+    if (!friend) {
+      throw new Error('Failed to create locked-friend seed user');
+    }
+
+    let matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', 2026))
+      .collect();
+    if (matchups.length === 0) {
+      await ctx.runMutation(internal.seed.seedH2HMatchups);
+      matchups = await ctx.db
+        .query('h2hMatchups')
+        .withIndex('by_season', (q) => q.eq('season', 2026))
+        .collect();
+    }
+
+    const raceSlug = 'locked-picks-visibility-2026';
+    const existingRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', raceSlug))
+      .unique();
+
+    const racePatch = {
+      season: 2026,
+      round: 998,
+      name: 'Locked Picks Visibility GP',
+      slug: raceSlug,
+      timeZone: 'UTC',
+      hasSprint: false,
+      qualiStartAt: now - 26 * hour,
+      qualiLockAt: now - 26 * hour,
+      raceStartAt: now - hour,
+      predictionLockAt: now - hour,
+      status: 'locked',
+      updatedAt: now,
+    } as const;
+
+    const raceId = existingRace
+      ? (await ctx.db.patch(existingRace._id, racePatch), existingRace._id)
+      : await ctx.db.insert('races', {
+          ...racePatch,
+          createdAt: now,
+        });
+
+    const existingViewerPredictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', raceId),
+      )
+      .collect();
+    for (const prediction of existingViewerPredictions) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    const existingFriendPredictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', friend._id).eq('raceId', raceId),
+      )
+      .collect();
+    for (const prediction of existingFriendPredictions) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    const existingViewerH2H = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', viewer._id).eq('raceId', raceId),
+      )
+      .collect();
+    for (const prediction of existingViewerH2H) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    const existingFriendH2H = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', friend._id).eq('raceId', raceId),
+      )
+      .collect();
+    for (const prediction of existingFriendH2H) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    await ctx.db.insert('predictions', {
+      userId: viewer._id,
+      raceId,
+      sessionType: 'quali',
+      picks: viewerPicks,
+      submittedAt: now - 30 * hour,
+      updatedAt: now - 30 * hour,
+    });
+    await ctx.db.insert('predictions', {
+      userId: viewer._id,
+      raceId,
+      sessionType: 'race',
+      picks: viewerPicks,
+      submittedAt: now - 3 * hour,
+      updatedAt: now - 3 * hour,
+    });
+
+    await ctx.db.insert('predictions', {
+      userId: friend._id,
+      raceId,
+      sessionType: 'quali',
+      picks: friendPicks,
+      submittedAt: now - 29 * hour,
+      updatedAt: now - 29 * hour,
+    });
+    await ctx.db.insert('predictions', {
+      userId: friend._id,
+      raceId,
+      sessionType: 'race',
+      picks: friendPicks,
+      submittedAt: now - 2 * hour,
+      updatedAt: now - 2 * hour,
+    });
+
+    for (const matchup of matchups) {
+      await ctx.db.insert('h2hPredictions', {
+        userId: viewer._id,
+        raceId,
+        sessionType: 'quali',
+        matchupId: matchup._id,
+        predictedWinnerId: matchup.driver1Id,
+        submittedAt: now - 30 * hour,
+        updatedAt: now - 30 * hour,
+      });
+      await ctx.db.insert('h2hPredictions', {
+        userId: viewer._id,
+        raceId,
+        sessionType: 'race',
+        matchupId: matchup._id,
+        predictedWinnerId: matchup.driver2Id,
+        submittedAt: now - 3 * hour,
+        updatedAt: now - 3 * hour,
+      });
+
+      await ctx.db.insert('h2hPredictions', {
+        userId: friend._id,
+        raceId,
+        sessionType: 'quali',
+        matchupId: matchup._id,
+        predictedWinnerId: matchup.driver2Id,
+        submittedAt: now - 29 * hour,
+        updatedAt: now - 29 * hour,
+      });
+      await ctx.db.insert('h2hPredictions', {
+        userId: friend._id,
+        raceId,
+        sessionType: 'race',
+        matchupId: matchup._id,
+        predictedWinnerId: matchup.driver1Id,
+        submittedAt: now - 2 * hour,
+        updatedAt: now - 2 * hour,
+      });
+    }
+
+    return {
+      raceSlug,
+      raceId,
+      viewerUsername: viewer.username ?? null,
+      friendUsername: friend.username ?? null,
+      h2hMatchupCount: matchups.length,
+      viewerPicks: drivers.slice(0, 5).map((driver) => driver.code),
+      friendPicks: [
+        ...drivers.slice(1, 5).map((driver) => driver.code),
+        drivers[0]?.code ?? '???',
+      ],
+      notes: [
+        'Race status is locked with no published results.',
+        'Open the locked race page to verify your own picks are still visible.',
+        'Open the seeded friend profile to verify locked picks are visible publicly.',
+      ],
+    };
+  },
+});
+
+/**
  * Seed session results for a specific race.
  * Useful for testing the results display with different session types.
  *

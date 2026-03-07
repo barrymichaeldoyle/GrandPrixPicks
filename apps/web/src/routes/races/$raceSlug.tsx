@@ -498,6 +498,7 @@ function RaceDetailPage() {
       isSignedIn={!!isSignedIn}
       isPredictionsLoading={isPredictable && weekendPredictions === undefined}
       hasPredictions={!!hasPredictions}
+      hasH2HPredictions={hasH2HPredictions}
       hasPublishedResults={hasPublishedResults}
       allEventsScored={allEventsScored}
       pointsSoFar={pointsSoFar}

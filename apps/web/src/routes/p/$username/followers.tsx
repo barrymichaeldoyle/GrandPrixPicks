@@ -97,7 +97,13 @@ function FollowersPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-2xl px-4 py-6">
-        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-4">
+        <Button
+          asChild
+          size="sm"
+          variant="secondary"
+          leftIcon={ArrowLeft}
+          className="mb-4"
+        >
           <Link to="/p/$username" params={{ username }}>
             Back to {displayName}
           </Link>

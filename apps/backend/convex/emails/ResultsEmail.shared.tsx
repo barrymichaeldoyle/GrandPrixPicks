@@ -14,67 +14,59 @@ import {
   Text,
 } from '@react-email/components';
 
-export type ResultsEmailProps = {
+export type ResultsEmailShellProps = {
+  previewText: string;
+  headline: string;
+  intro: string;
   raceName: string;
-  sessionLabel: string;
-  sessionPoints: number;
-  bestPick: {
-    code: string;
-    position: number;
-    points: number;
-  } | null;
-  globalRank: number;
-  globalTotal: number;
-  leagueRanks: Array<{
-    leagueName: string;
-    rank: number;
-    total: number;
-  }>;
   raceUrl: string;
   settingsUrl: string;
   logoUrl: string;
   round: number;
   countryCode: string | null;
   hasSprint: boolean;
+  primaryCtaLabel: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaUrl?: string;
+  helperText?: string;
+  footerText: string;
 };
 
-export function ResultsEmail({
-  raceName = 'Australian Grand Prix',
-  sessionLabel = 'Race',
-  sessionPoints = 18,
-  bestPick = { code: 'VER', position: 1, points: 5 },
-  globalRank = 3,
-  globalTotal = 42,
-  leagueRanks = [{ leagueName: 'Office League', rank: 1, total: 8 }],
-  raceUrl = 'https://grandprixpicks.com/races/australia-2026',
-  settingsUrl = 'https://grandprixpicks.com/settings',
-  logoUrl = 'https://grandprixpicks.com/logo-email.png',
-  round = 1,
-  countryCode = 'au',
-  hasSprint = false,
-}: ResultsEmailProps) {
-  const bestPickCallout =
-    bestPick && bestPick.points >= 3
-      ? bestPick.points === 5
-        ? `Spot on — ${bestPick.code} in P${bestPick.position}!`
-        : `Close call — ${bestPick.code} in P${bestPick.position}`
-      : null;
-
+export function ResultsEmailShell({
+  previewText,
+  headline,
+  intro,
+  raceName,
+  raceUrl,
+  settingsUrl,
+  logoUrl,
+  round,
+  countryCode,
+  hasSprint,
+  primaryCtaLabel,
+  secondaryCtaLabel,
+  secondaryCtaUrl,
+  helperText,
+  footerText,
+}: ResultsEmailShellProps) {
   return (
     <Html>
       <Head>
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap');
+
           .cta-button:hover {
             background-color: #0f766e !important;
           }
+
+          .secondary-cta:hover {
+            background-color: #f0fdfa !important;
+          }
         `}</style>
       </Head>
-      <Preview>
-        {`You scored ${sessionPoints}/25 in ${raceName} ${sessionLabel}`}
-      </Preview>
+      <Preview>{previewText}</Preview>
       <Body style={body}>
         <Container style={container}>
-          {/* Brand header */}
           <Section style={logoRow}>
             <table
               cellPadding="0"
@@ -87,8 +79,8 @@ export function ResultsEmail({
                   <div style={logoCircle}>
                     <Img
                       src={logoUrl}
-                      width="20"
-                      height="20"
+                      width="22"
+                      height="22"
                       alt=""
                       style={logoIcon}
                     />
@@ -103,11 +95,10 @@ export function ResultsEmail({
           <Hr style={hr} />
 
           <Section style={section}>
-            <Text style={headline}>Your {sessionLabel} results are in</Text>
+            <Text style={headlineStyle}>{headline}</Text>
+            <Text style={introText}>{intro}</Text>
 
-            {/* Score card */}
             <Section style={raceCard}>
-              {/* Flag + Round + Sprint badge row */}
               <Row style={raceHeaderRow}>
                 <Column style={raceHeaderLeft}>
                   {countryCode && (
@@ -124,38 +115,28 @@ export function ResultsEmail({
                 </Column>
               </Row>
 
-              {/* Race name */}
               <Text style={raceNameStyle}>{raceName}</Text>
-
-              {/* Large score */}
-              <Text style={scoreStyle}>{sessionPoints} / 25 pts</Text>
-            </Section>
-
-            {/* Best pick callout */}
-            {bestPickCallout && (
-              <Text style={bestPickStyle}>{bestPickCallout}</Text>
-            )}
-
-            {/* Rankings */}
-            <Section style={rankingsSection}>
-              <Text style={rankingLine}>
-                Global: #{globalRank} of {globalTotal}
-              </Text>
-              {leagueRanks.slice(0, 3).map((league) => (
-                <Text key={league.leagueName} style={rankingLine}>
-                  {league.leagueName}: #{league.rank} of {league.total}
-                </Text>
-              ))}
             </Section>
 
             <Button className="cta-button" style={button} href={raceUrl}>
-              View Full Results
+              {primaryCtaLabel}
             </Button>
+
+            {secondaryCtaLabel && secondaryCtaUrl ? (
+              <Button
+                className="secondary-cta"
+                style={secondaryButton}
+                href={secondaryCtaUrl}
+              >
+                {secondaryCtaLabel}
+              </Button>
+            ) : null}
+
+            {helperText ? <Text style={helperTextStyle}>{helperText}</Text> : null}
           </Section>
           <Hr style={hr} />
           <Text style={footer}>
-            You&apos;re receiving this because you have result notifications
-            enabled.{' '}
+            {footerText}{' '}
             <Link href={settingsUrl} style={footerLink}>
               Manage notification preferences
             </Link>
@@ -165,8 +146,6 @@ export function ResultsEmail({
     </Html>
   );
 }
-
-/* ── Styles ─────────────────────────────────────────── */
 
 const body = {
   backgroundColor: '#f1f5f9',
@@ -195,7 +174,7 @@ const logoCircle = {
   width: '32px',
   height: '32px',
   lineHeight: '32px',
-  backgroundColor: '#ccfbf1',
+  backgroundColor: '#0f172a',
   borderRadius: '9999px',
   textAlign: 'center' as const,
 };
@@ -204,7 +183,7 @@ const logoIcon = {
   display: 'inline-block',
   verticalAlign: 'middle',
   position: 'relative' as const,
-  top: '-1px',
+  top: '-2px',
   left: '1px',
 };
 
@@ -212,6 +191,8 @@ const brandText = {
   color: '#0f172a',
   fontSize: '24px',
   fontWeight: '700' as const,
+  fontFamily:
+    '"Orbitron", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   textAlign: 'center' as const,
   paddingTop: '8px',
   letterSpacing: '-0.01em',
@@ -226,7 +207,7 @@ const section = {
   textAlign: 'center' as const,
 };
 
-const headline = {
+const headlineStyle = {
   color: '#0f172a',
   fontSize: '20px',
   fontWeight: '600' as const,
@@ -234,7 +215,13 @@ const headline = {
   margin: '0 0 20px',
 };
 
-/* Race card */
+const introText = {
+  color: '#475569',
+  fontSize: '15px',
+  lineHeight: '24px',
+  margin: '0 0 20px',
+};
+
 const raceCard = {
   backgroundColor: '#f8fafc',
   borderRadius: '8px',
@@ -281,48 +268,49 @@ const sprintTag = {
 const raceNameStyle = {
   color: '#0f172a',
   fontSize: '18px',
-  fontWeight: '600' as const,
+  fontWeight: '700' as const,
+  fontFamily:
+    '"Orbitron", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   margin: '4px 0 12px',
   lineHeight: '24px',
-};
-
-const scoreStyle = {
-  color: '#0d9488',
-  fontSize: '28px',
-  fontWeight: '700' as const,
-  margin: '0',
-  lineHeight: '36px',
-  textAlign: 'center' as const,
-};
-
-const bestPickStyle = {
-  color: '#475569',
-  fontSize: '15px',
-  lineHeight: '22px',
-  margin: '0 0 16px',
-  fontStyle: 'italic' as const,
-};
-
-const rankingsSection = {
-  margin: '0 0 24px',
-};
-
-const rankingLine = {
-  color: '#334155',
-  fontSize: '14px',
-  lineHeight: '22px',
-  margin: '0',
 };
 
 const button = {
   backgroundColor: '#0d9488',
   borderRadius: '8px',
   color: '#ffffff',
-  display: 'inline-block',
+  display: 'block',
   fontSize: '16px',
   fontWeight: '600' as const,
   padding: '12px 24px',
   textDecoration: 'none',
+  width: '100%',
+  maxWidth: '320px',
+  margin: '0 auto',
+  boxSizing: 'border-box' as const,
+};
+
+const secondaryButton = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #99f6e4',
+  borderRadius: '8px',
+  color: '#0f766e',
+  display: 'block',
+  fontSize: '16px',
+  fontWeight: '600' as const,
+  padding: '12px 24px',
+  textDecoration: 'none',
+  width: '100%',
+  maxWidth: '320px',
+  margin: '12px auto 0',
+  boxSizing: 'border-box' as const,
+};
+
+const helperTextStyle = {
+  color: '#64748b',
+  fontSize: '12px',
+  lineHeight: '18px',
+  margin: '12px 0 0',
 };
 
 const footer = {
@@ -337,6 +325,3 @@ const footerLink = {
   color: '#0d9488',
   textDecoration: 'underline',
 };
-
-// Default export required by React Email dev server preview
-export default ResultsEmail;

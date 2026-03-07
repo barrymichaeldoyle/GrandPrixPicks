@@ -158,6 +158,7 @@ function RegionalSection({
 
   return (
     <SettingsSection
+      id="regional"
       title="Regional"
       icon={<Globe className="h-5 w-5 text-text-muted" />}
     >
@@ -277,6 +278,7 @@ function SeasonPassSection({
 
   return (
     <SettingsSection
+      id="season-pass"
       title="Season Pass"
       icon={<Ticket className="h-5 w-5 text-text-muted" />}
       headerRight={
@@ -331,6 +333,7 @@ function SettingsPageSkeleton() {
         <div className="mb-6 h-9 w-40 animate-pulse rounded bg-surface-muted" />
         <div className="space-y-6">
           <SettingsSection
+            id="profile"
             title="Profile"
             icon={<User className="h-5 w-5 text-text-muted" />}
           >
@@ -346,6 +349,7 @@ function SettingsPageSkeleton() {
           <SeasonPassSection season={2026} hasSeasonPass={undefined} />
 
           <SettingsSection
+            id="privacy"
             title="Privacy"
             icon={<Eye className="h-5 w-5 text-text-muted" />}
           >
@@ -381,6 +385,7 @@ function SettingsPageSkeleton() {
           </SettingsSection>
 
           <SettingsSection
+            id="notifications"
             title="Notifications"
             icon={<Bell className="h-5 w-5 text-text-muted" />}
             contentClassName="divide-y divide-border px-4"
@@ -733,6 +738,7 @@ function SettingsPage() {
         <div className="space-y-6">
           {/* Profile section */}
           <SettingsSection
+            id="profile"
             title="Profile"
             icon={<User className="h-5 w-5 text-text-muted" />}
           >
@@ -884,6 +890,7 @@ function SettingsPage() {
 
           {/* Privacy section */}
           <SettingsSection
+            id="privacy"
             title="Privacy"
             icon={
               showOnLeaderboard ? (
@@ -941,6 +948,7 @@ function SettingsPage() {
           />
 
           <SettingsSection
+            id="appearance"
             title="Appearance"
             icon={
               isDark ? (
@@ -967,6 +975,7 @@ function SettingsPage() {
 
           {/* Notifications section */}
           <SettingsSection
+            id="notifications"
             title="Notifications"
             icon={<Bell className="h-5 w-5 text-text-muted" />}
             contentClassName="divide-y divide-border px-4"

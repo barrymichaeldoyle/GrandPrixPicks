@@ -2474,3 +2474,308 @@ export const resetToPreSeason = internalAction({
     };
   },
 });
+
+// ─────────────────── Reseed Dev With Leagues ───────────────────
+
+/**
+ * Internal: Clear all leagues and league members.
+ */
+export const _clearLeagueData = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const members = await ctx.db.query('leagueMembers').collect();
+    for (const doc of members) {
+      await ctx.db.delete(doc._id);
+    }
+    const leagues = await ctx.db.query('leagues').collect();
+    for (const doc of leagues) {
+      await ctx.db.delete(doc._id);
+    }
+    return { membersDeleted: members.length, leaguesDeleted: leagues.length };
+  },
+});
+
+/**
+ * Internal: Push australia-2026 dates into the future so predictions are open.
+ * Sets quali to +4 days and race to +5 days from now.
+ */
+export const _pushAustraliaToFuture = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'australia-2026'))
+      .unique();
+
+    if (!race) {
+      throw new Error('australia-2026 not found. Run seedRaces first.');
+    }
+
+    const qualiStartAt = now + 4 * DAY;
+    const raceStartAt = now + 5 * DAY;
+
+    await ctx.db.patch(race._id, {
+      status: 'upcoming',
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      updatedAt: now,
+    });
+
+    return { raceId: race._id, qualiStartAt, raceStartAt };
+  },
+});
+
+const LEAGUE_FAKE_USERS = [
+  { username: 'SpeedKing', displayName: 'Speed King' },
+  { username: 'ApexHunter', displayName: 'Apex Hunter' },
+  { username: 'PitLaneHero', displayName: 'Pit Lane Hero' },
+  { username: 'DRSMaster', displayName: 'DRS Master' },
+  { username: 'GridWalker', displayName: 'Grid Walker' },
+  { username: 'TyreWhisperer', displayName: 'Tyre Whisperer' },
+  { username: 'SlipstreamAce', displayName: 'Slipstream Ace' },
+  { username: 'CheckeredFlag', displayName: 'Checkered Flag' },
+  { username: 'PolePosition', displayName: 'Pole Position' },
+];
+
+/**
+ * Internal: Create 9 fake users, 2 leagues, and varied australia-2026
+ * predictions. The main user gets no predictions and is placed in League 1
+ * as admin.
+ *
+ * League 1 "Pit Wall Prophets" (6 members): main user + fake users 0–4
+ *   - User 0: predictions for quali + race
+ *   - User 1: predictions for quali + race
+ *   - User 2: prediction for quali only
+ *   - User 3: no predictions
+ *   - User 4: no predictions
+ *
+ * League 2 "DRS Zone" (4 members): fake users 5–8
+ *   - User 5: predictions for quali + race
+ *   - User 6: prediction for race only
+ *   - User 7: no predictions
+ *   - User 8: no predictions
+ */
+export const _seedLeagueScenario = internalMutation({
+  args: { mainUserClerkId: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const mainUser = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) =>
+        q.eq('clerkUserId', args.mainUserClerkId),
+      )
+      .unique();
+
+    if (!mainUser) {
+      throw new Error(
+        `Main user not found for clerkUserId: ${args.mainUserClerkId}. Sign in first.`,
+      );
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers. Run seedDrivers first.');
+    }
+    const driverIds = drivers.map((d) => d._id);
+
+    const australiaRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'australia-2026'))
+      .unique();
+
+    if (!australiaRace) {
+      throw new Error('australia-2026 race not found. Run seedRaces first.');
+    }
+
+    // Create 9 fake users
+    const fakeUserIds: Array<Id<'users'>> = [];
+    for (let i = 0; i < LEAGUE_FAKE_USERS.length; i++) {
+      const { username, displayName } = LEAGUE_FAKE_USERS[i];
+      const userId = await ctx.db.insert('users', {
+        clerkUserId: `fake_user_league_${i}`,
+        username,
+        displayName,
+        email: `${username.toLowerCase()}@example.com`,
+        isAdmin: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+      fakeUserIds.push(userId);
+    }
+
+    // League 1: main user (admin) + fake users 0–4
+    const league1Id = await ctx.db.insert('leagues', {
+      name: 'Pit Wall Prophets',
+      slug: 'pit-wall-prophets-2026',
+      description: 'The serious predictors. Probably.',
+      visibility: 'private',
+      password: 'pitwall',
+      createdBy: mainUser._id,
+      season: 2026,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league1Id,
+      userId: mainUser._id,
+      role: 'admin',
+      joinedAt: now,
+    });
+    for (let i = 0; i <= 4; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league1Id,
+        userId: fakeUserIds[i],
+        role: 'member',
+        joinedAt: now,
+      });
+    }
+
+    // League 2: fake users 5–8
+    const league2Id = await ctx.db.insert('leagues', {
+      name: 'DRS Zone',
+      slug: 'drs-zone-2026',
+      description: 'Living life in the drag reduction zone.',
+      visibility: 'private',
+      password: 'drszone',
+      createdBy: fakeUserIds[5],
+      season: 2026,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    for (let i = 5; i <= 8; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league2Id,
+        userId: fakeUserIds[i],
+        role: i === 5 ? 'admin' : 'member',
+        joinedAt: now,
+      });
+    }
+
+    // Deterministic picks for a fake user index + session index
+    function makePicks(
+      userIndex: number,
+      sessionIndex: number,
+    ): Array<Id<'drivers'>> {
+      const shuffled = [...driverIds];
+      const seed = userIndex * 7 + sessionIndex * 13;
+      for (let j = shuffled.length - 1; j > 0; j--) {
+        const k = Math.abs((seed * 31 + j * 17) % (j + 1));
+        [shuffled[j], shuffled[k]] = [shuffled[k], shuffled[j]];
+      }
+      return shuffled.slice(0, 5);
+    }
+
+    const sessions: Array<SessionType> = ['quali', 'race'];
+
+    // [userIndex, sessionsToPredict]
+    const predictionMap: Array<[number, Array<SessionType>]> = [
+      [0, ['quali', 'race']],
+      [1, ['quali', 'race']],
+      [2, ['quali']],
+      // 3, 4: no predictions
+      [5, ['quali', 'race']],
+      [6, ['race']],
+      // 7, 8: no predictions
+    ];
+
+    let predictionsCreated = 0;
+    for (const [userIndex, predSessions] of predictionMap) {
+      for (const sessionType of predSessions) {
+        const sessionIndex = sessions.indexOf(sessionType);
+        await ctx.db.insert('predictions', {
+          userId: fakeUserIds[userIndex],
+          raceId: australiaRace._id,
+          sessionType,
+          picks: makePicks(userIndex, sessionIndex),
+          submittedAt: now - 60 * 60 * 1000,
+          updatedAt: now,
+        });
+        predictionsCreated++;
+      }
+    }
+
+    return {
+      mainUserId: mainUser._id,
+      mainUserEmail: mainUser.email,
+      fakeUsersCreated: fakeUserIds.length,
+      league1: { id: league1Id, name: 'Pit Wall Prophets', members: 6 },
+      league2: { id: league2Id, name: 'DRS Zone', members: 4 },
+      predictionsCreated,
+    };
+  },
+});
+
+/**
+ * Reset dev database to a league testing scenario:
+ * - Clears all predictions, results, scores, standings, fake users, leagues
+ * - Resets all races to upcoming (australia-2026 pushed 4–5 days into future)
+ * - Creates 9 fake users split across 2 leagues
+ * - Main user goes into League 1 as admin with no predictions
+ * - Some fake users have predictions for australia-2026, some don't
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevWithLeagues '{"mainUserClerkId": "user_xxx"}'
+ */
+export const reseedDevWithLeagues = internalAction({
+  args: { mainUserClerkId: v.string() },
+  handler: async (ctx, args) => {
+    // Phase 1: Clear all dev data in batches
+    let totalDeleted = 0;
+    let iterations = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    // Phase 2: Clear leagues
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    // Phase 3: Reset races to upcoming with original 2026 dates
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    // Phase 4: Push australia-2026 dates into the future so predictions are open
+    await ctx.runMutation(internal.seed._pushAustraliaToFuture);
+
+    // Phase 5: Ensure drivers exist
+    await ctx.runMutation(internal.seed.seedDrivers);
+
+    // Phase 6: Seed league scenario
+    const seedResult: {
+      mainUserId: string;
+      mainUserEmail: string | null | undefined;
+      fakeUsersCreated: number;
+      league1: { id: string; name: string; members: number };
+      league2: { id: string; name: string; members: number };
+      predictionsCreated: number;
+    } = await ctx.runMutation(internal.seed._seedLeagueScenario, {
+      mainUserClerkId: args.mainUserClerkId,
+    });
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      australiaPushedToFuture: true,
+      ...seedResult,
+    };
+  },
+});

@@ -50,13 +50,9 @@ export function H2HWeekendSummary({
   if (!hasH2HPredictions) {
     return (
       <div>
-        <p className="mb-4 text-text-muted">
-          Pick which teammate finishes ahead in each pairing. This prediction
-          will apply to{' '}
-          {race.hasSprint
-            ? 'Qualifying, Sprint Qualifying, Sprint, and Race'
-            : 'Qualifying and Race'}
-          . Save now, then edit any session any time before it starts.
+        <p className="mb-4 text-sm text-text-muted">
+          Pick each teammate matchup once. We&apos;ll apply it across the
+          weekend, and you can edit sessions before they start.
         </p>
         <H2HPredictionForm raceId={race._id} />
       </div>

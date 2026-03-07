@@ -258,6 +258,17 @@ export const sendResultEmailsForSession = internalMutation({
     }
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
+    const now = Date.now();
+    const nextRace =
+      args.sessionType === 'race'
+        ? await ctx.db
+            .query('races')
+            .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
+            .first()
+        : null;
+    const hasUpcomingNextRace = Boolean(
+      nextRace && nextRace.status === 'upcoming',
+    );
 
     // 2. Load all season standings, sorted desc by totalPoints → global rank
     const allStandings = await ctx.db
@@ -286,68 +297,48 @@ export const sendResultEmailsForSession = internalMutation({
       scoreMap.set(s.userId, s);
     }
 
-    // 4. Load league memberships and league docs
-    // Group memberships by userId
-    const allLeagueMembers = await ctx.db.query('leagueMembers').collect();
-
-    // Build userId → leagueId[] map
-    const userLeagues = new Map<string, Array<Id<'leagues'>>>();
-    // Build leagueId → userId set for ranking
-    const leagueMemberSets = new Map<string, Set<string>>();
-    for (const m of allLeagueMembers) {
-      const leagues = userLeagues.get(m.userId) ?? [];
-      leagues.push(m.leagueId);
-      userLeagues.set(m.userId, leagues);
-
-      const members = leagueMemberSets.get(m.leagueId) ?? new Set();
-      members.add(m.userId);
-      leagueMemberSets.set(m.leagueId, members);
-    }
-
-    // Load league docs for names (deduplicated)
-    const uniqueLeagueIds = new Set<Id<'leagues'>>();
-    for (const ids of userLeagues.values()) {
-      for (const id of ids) {
-        uniqueLeagueIds.add(id);
-      }
-    }
-    const leagueNames = new Map<string, string>();
-    for (const leagueId of uniqueLeagueIds) {
-      const league = await ctx.db.get(leagueId);
-      if (league) {
-        leagueNames.set(leagueId, league.name);
-      }
-    }
-
-    // 5. Load all users, filter to eligible
-    const allUsers = await ctx.db.query('users').collect();
-    const eligibleUsers = allUsers.filter(
-      (u) =>
-        u.email &&
-        includesEmail(getResultsNotificationChannel(u)) &&
-        scoreMap.has(u._id),
+    const [racePredictions, h2hPredictionsForSession] = await Promise.all([
+      ctx.db
+        .query('predictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', args.raceId).eq('sessionType', 'race'),
+        )
+        .collect(),
+      ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+        )
+        .collect(),
+    ]);
+    const usersWithRacePredictions = new Set(
+      racePredictions.map((prediction) => prediction.userId),
+    );
+    const usersWithH2HPredictions = new Set(
+      h2hPredictionsForSession.map((prediction) => prediction.userId),
     );
 
-    if (eligibleUsers.length === 0) {
+    // 4. Load all users, filter to eligible
+    const allUsers = await ctx.db.query('users').collect();
+    const notificationEligibleUsers = allUsers.filter(
+      (u) =>
+        u.email && includesEmail(getResultsNotificationChannel(u)),
+    );
+
+    if (notificationEligibleUsers.length === 0) {
       return { skipped: true, reason: 'No eligible recipients' };
     }
 
-    // Cache driver code lookups
-    const driverCodeCache = new Map<string, string>();
-    async function getDriverCode(driverId: Id<'drivers'>): Promise<string> {
-      const cached = driverCodeCache.get(driverId);
-      if (cached) {
-        return cached;
-      }
-      const driver = await ctx.db.get(driverId);
-      const code = driver?.code ?? '???';
-      driverCodeCache.set(driverId, code);
-      return code;
-    }
-
-    // 6. Build per-user payloads
+    // 5. Build per-user payloads
     type RecipientPayload = {
       email: string;
+      variant:
+        | 'pre_race_ready'
+        | 'pre_race_missing_h2h'
+        | 'pre_race_missed'
+        | 'post_race_ready'
+        | 'post_race_missing_h2h'
+        | 'post_race_missed';
       sessionPoints: number;
       bestPick: {
         code: string;
@@ -361,70 +352,70 @@ export const sendResultEmailsForSession = internalMutation({
         rank: number;
         total: number;
       }>;
+      racePredictionCtaLabel?: string;
     };
 
     const recipients: Array<RecipientPayload> = [];
+    const isPreRaceSession = args.sessionType !== 'race';
+    const canStillEditRacePredictions =
+      isPreRaceSession && race.predictionLockAt > now;
 
-    for (const user of eligibleUsers) {
-      const score = scoreMap.get(user._id)!;
+    for (const user of notificationEligibleUsers) {
+      const score = scoreMap.get(user._id);
+      const hasRacePrediction = usersWithRacePredictions.has(user._id);
+      const hasH2HPrediction = usersWithH2HPredictions.has(user._id);
 
-      // Best pick: highest-scoring pick with points >= 3
-      let bestPick: RecipientPayload['bestPick'] = null;
-      if (score.breakdown) {
-        const candidates = score.breakdown
-          .filter((b) => b.points >= 3)
-          .sort((a, b) => b.points - a.points);
-        if (candidates.length > 0) {
-          const best = candidates[0];
-          bestPick = {
-            code: await getDriverCode(best.driverId),
-            position: best.predictedPosition,
-            points: best.points,
-          };
-        }
-      }
-
-      // Global rank
-      const globalRank = globalRankMap.get(user._id) ?? globalTotal;
-
-      // League ranks (cap at 3)
-      const leagueRanks: RecipientPayload['leagueRanks'] = [];
-      const userLeagueIds = userLeagues.get(user._id) ?? [];
-      for (const leagueId of userLeagueIds.slice(0, 3)) {
-        const leagueName = leagueNames.get(leagueId);
-        if (!leagueName) {
+      if (!score) {
+        if (isPreRaceSession && !canStillEditRacePredictions) {
           continue;
         }
 
-        const memberSet = leagueMemberSets.get(leagueId);
-        if (!memberSet) {
-          continue;
-        }
-
-        // Filter standings to league members and find rank
-        const leagueStandings = allStandings.filter((s) =>
-          memberSet.has(s.userId),
-        );
-        const rank =
-          leagueStandings.findIndex((s) => s.userId === user._id) + 1;
-        leagueRanks.push({
-          leagueName,
-          rank: rank || leagueStandings.length,
-          total: leagueStandings.length,
+        recipients.push({
+          email: user.email!,
+          variant: isPreRaceSession ? 'pre_race_missed' : 'post_race_missed',
+          sessionPoints: 0,
+          bestPick: null,
+          globalRank: 0,
+          globalTotal: 0,
+          leagueRanks: [],
+          ...(isPreRaceSession &&
+            canStillEditRacePredictions && {
+              racePredictionCtaLabel: hasRacePrediction
+                ? 'Review Race Picks'
+                : 'Make Race Picks',
+            }),
         });
+        continue;
       }
 
       recipients.push({
         email: user.email!,
+        variant: isPreRaceSession
+          ? hasH2HPrediction
+            ? 'pre_race_ready'
+            : 'pre_race_missing_h2h'
+          : hasH2HPrediction
+            ? 'post_race_ready'
+            : 'post_race_missing_h2h',
         sessionPoints: score.points,
-        bestPick,
-        globalRank,
+        bestPick: null,
+        globalRank: globalRankMap.get(user._id) ?? globalTotal,
         globalTotal,
-        leagueRanks,
+        leagueRanks: [],
+        ...(isPreRaceSession &&
+          canStillEditRacePredictions && {
+            racePredictionCtaLabel: hasRacePrediction
+              ? 'Review Race Picks'
+              : 'Make Race Picks',
+          }),
       });
     }
 
-    // 7. Batch recipients into groups of 50 → schedule sendBatch
+    if (recipients.length === 0) {
+      return { skipped: true, reason: 'No eligible recipients' };
+    }
+
+    // 6. Batch recipients into groups of 50 → schedule sendBatch
     const countryCode = getCountryCodeForRace(race.slug);
     let scheduled = 0;
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
@@ -435,11 +426,15 @@ export const sendResultEmailsForSession = internalMutation({
         {
           recipients: batch,
           raceName: race.name,
-          raceId: race._id,
+          raceSlug: race.slug,
           sessionLabel,
           round: race.round,
           countryCode,
           hasSprint: race.hasSprint ?? false,
+          ...(hasUpcomingNextRace && {
+            nextRaceName: nextRace!.name,
+            nextRaceSlug: nextRace!.slug,
+          }),
         },
       );
       scheduled++;

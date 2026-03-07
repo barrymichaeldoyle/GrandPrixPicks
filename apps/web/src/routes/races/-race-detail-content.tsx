@@ -1,7 +1,13 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
-import { CircleCheck, CircleX, Pencil, Swords } from 'lucide-react';
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  Pencil,
+  Swords,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
@@ -55,6 +61,10 @@ export function H2HSection({
       ? (controlledEditing ?? null)
       : internalEditing;
   const setEditingSession = onEditingSessionChange ?? setInternalEditing;
+  const weekendSessions = getSessionsForWeekend(!!race.hasSprint);
+  const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
+    raceId: race._id,
+  });
   const selectedSessionLockTime = (() => {
     switch (selectedSession) {
       case 'quali':
@@ -73,15 +83,26 @@ export function H2HSection({
   const canEditSelectedSession = Boolean(
     hasH2HPredictions && !selectedSessionLocked,
   );
+  const incompleteH2HSessions = weekendSessions.filter(
+    (session) => h2hPredictions?.[session] == null,
+  );
+  const shouldHighlightIncompleteH2H = Boolean(
+    hasPredictions && incompleteH2HSessions.length > 0,
+  );
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />
           <h2 className="text-xl font-semibold text-text">
             Head-to-Head Predictions
           </h2>
+          {shouldHighlightIncompleteH2H ? (
+            <Badge variant="locked" icon={<CircleAlert size={14} />}>
+              H2H picks incomplete
+            </Badge>
+          ) : null}
           {hasH2HPredictions && (
             <>
               {editingSession ? (

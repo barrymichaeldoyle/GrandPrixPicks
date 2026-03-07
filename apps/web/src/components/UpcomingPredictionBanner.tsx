@@ -30,6 +30,10 @@ export function UpcomingPredictionBanner() {
     api.predictions.myWeekendPredictions,
     isSignedIn && nextRace ? { raceId: nextRace._id } : 'skip',
   );
+  const h2hPredictions = useQuery(
+    api.h2h.myH2HPredictionsForRace,
+    isSignedIn && nextRace ? { raceId: nextRace._id } : 'skip',
+  );
   const randomizePredictions = useMutation(
     api.predictions.randomizePredictions,
   );
@@ -39,7 +43,11 @@ export function UpcomingPredictionBanner() {
     return null;
   }
 
-  if (nextRace === undefined || weekendPredictions === undefined) {
+  if (
+    nextRace === undefined ||
+    weekendPredictions === undefined ||
+    h2hPredictions === undefined
+  ) {
     return null;
   }
 
@@ -55,20 +63,45 @@ export function UpcomingPredictionBanner() {
   const relevantSessions = currentRace.hasSprint
     ? SPRINT_SESSIONS
     : STANDARD_SESSIONS;
-  const hasAnyPredictions = relevantSessions.some(
+  const hasAnyTop5Predictions = relevantSessions.some(
     (sessionType) => weekendPredictions?.predictions[sessionType] != null,
   );
+  const hasCompleteTop5 = relevantSessions.every(
+    (sessionType) => weekendPredictions?.predictions[sessionType] != null,
+  );
+  const hasCompleteH2H = relevantSessions.every(
+    (sessionType) => h2hPredictions?.[sessionType] != null,
+  );
+  const shouldShowTop5Nudge = !hasAnyTop5Predictions;
+  const shouldShowH2HNudge = hasCompleteTop5 && !hasCompleteH2H;
 
-  if (hasAnyPredictions || isOnRacePredictionPage) {
+  if ((!shouldShowTop5Nudge && !shouldShowH2HNudge) || isOnRacePredictionPage) {
     return null;
   }
+
+  const needsTop5 = shouldShowTop5Nudge;
+  const needsH2H = shouldShowTop5Nudge || shouldShowH2HNudge;
+  const nudgeMessage = shouldShowH2HNudge
+    ? 'Top 5 is locked in. Finish your H2H picks before each session starts.'
+    : 'No predictions yet. Make your weekend picks now and adjust them any time before each session starts.';
+  const randomizeLabel = shouldShowH2HNudge
+    ? 'Randomize H2H'
+    : 'Quick randomize';
+  const confirmTitle = shouldShowH2HNudge
+    ? 'Randomize H2H Predictions'
+    : 'Randomize Predictions';
+  const confirmDescription = shouldShowH2HNudge
+    ? 'This will randomly select your Head-to-Head picks for all open sessions this weekend. You can edit picks afterwards.'
+    : 'This will randomly select your Top 5 and Head-to-Head picks for all open sessions this weekend. You can edit picks afterwards.';
 
   async function handleRandomize() {
     setError(null);
     setIsRandomizing(true);
     try {
-      await randomizePredictions({ raceId: currentRace._id });
-      if (matchups && matchups.length > 0) {
+      if (needsTop5) {
+        await randomizePredictions({ raceId: currentRace._id });
+      }
+      if (needsH2H && matchups && matchups.length > 0) {
         const randomH2HPicks = matchups.map((m) => ({
           matchupId: m._id,
           predictedWinnerId:
@@ -92,6 +125,9 @@ export function UpcomingPredictionBanner() {
     <div>
       <UpcomingPredictionNudge
         raceName={currentRace.name}
+        raceSlug={currentRace.slug}
+        message={nudgeMessage}
+        randomizeLabel={randomizeLabel}
         isRandomizing={isRandomizing}
         error={error}
         onRandomizeClick={() => {
@@ -112,10 +148,10 @@ export function UpcomingPredictionBanner() {
         onConfirm={() => void handleRandomize()}
         title={
           <span className="flex items-center gap-2 font-semibold">
-            <Dices size={16} className="text-accent" /> Randomize Predictions
+            <Dices size={16} className="text-accent" /> {confirmTitle}
           </span>
         }
-        description="This will randomly select your Top 5 and Head-to-Head picks for all open sessions this weekend. You can edit picks afterwards."
+        description={confirmDescription}
         confirmLabel="Randomize"
         loading={isRandomizing}
         error={error}

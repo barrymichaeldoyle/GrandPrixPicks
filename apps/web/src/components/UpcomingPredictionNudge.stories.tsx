@@ -22,6 +22,7 @@ const meta = {
   ],
   args: {
     raceName: 'Miami Grand Prix',
+    raceSlug: 'miami-2026',
   },
 } satisfies Meta<typeof UpcomingPredictionNudge>;
 

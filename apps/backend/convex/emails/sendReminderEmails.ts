@@ -90,7 +90,7 @@ export const sendBatch = internalAction({
         raceName: args.raceName,
         timeUntilLock: args.timeUntilLock,
         raceUrl: `${appUrl}/races/${args.raceId}?utm_source=email&utm_medium=email&utm_campaign=prediction_reminder`,
-        settingsUrl: `${appUrl}/settings`,
+        settingsUrl: `${appUrl}/settings#notifications`,
         logoUrl: `${appUrl}/logo-email.png`,
         sessions: sessionSchedule,
         round: args.round,
@@ -131,7 +131,7 @@ export const sendH2HNudge = internalAction({
     const fromAddress =
       process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
     const raceUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=h2h_nudge`;
-    const settingsUrl = `${appUrl}/settings`;
+    const settingsUrl = `${appUrl}/settings#notifications`;
     const logoUrl = `${appUrl}/logo-email.png`;
 
     const html = await render(
@@ -169,7 +169,7 @@ export const sendSignupNudge = internalAction({
     const fromAddress =
       process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
     const raceUrl = `${appUrl}${args.racePath}?utm_source=email&utm_medium=email&utm_campaign=signup_nudge`;
-    const settingsUrl = `${appUrl}/settings`;
+    const settingsUrl = `${appUrl}/settings#notifications`;
     const logoUrl = `${appUrl}/logo-email.png`;
 
     const html = await render(

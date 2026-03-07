@@ -106,13 +106,11 @@ export function H2HPredictionForm({
       );
       await submitH2H({ raceId, picks, sessionType });
       setSubmitStatus('success');
-      if (existingPicks && Object.keys(existingPicks).length > 0) {
-        confetti({
-          particleCount: 80,
-          spread: 60,
-          origin: { y: 0.7 },
-        });
-      }
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.7 },
+      });
       clearPredictionDraft(draftKey);
       setRestoredDraftAt(null);
       onSuccess?.();
@@ -198,10 +196,6 @@ export function H2HPredictionForm({
           </Button>
         </div>
       ) : null}
-      <p className="text-sm text-text-muted">
-        Pick which teammate finishes ahead in each pairing.
-      </p>
-
       <H2HMatchupGrid
         matchups={matchups}
         selections={selections}
@@ -222,7 +216,7 @@ export function H2HPredictionForm({
 
         {submitStatus === 'success' && (
           <span className="text-sm text-success" aria-live="polite">
-            H2H predictions saved. You can edit them until this session starts.
+            H2H picks saved.
           </span>
         )}
 
@@ -237,9 +231,6 @@ export function H2HPredictionForm({
           <span className="text-sm text-error">{errorMessage}</span>
         )}
       </div>
-      <p className="text-center text-xs text-text-muted">
-        You can edit your H2H picks any time before this session starts.
-      </p>
     </div>
   );
 }

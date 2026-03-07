@@ -53,6 +53,10 @@
   --light-section-shadow-soft: 0.2;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .dark,
 [data-theme='dark'] {
   --page: #0f172a;

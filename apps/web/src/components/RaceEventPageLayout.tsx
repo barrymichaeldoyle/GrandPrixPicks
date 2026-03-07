@@ -90,8 +90,11 @@ export function RaceEventPageLayout({
   const showResultsView = hasPublishedResults && selectedSessionHasResults;
   const showReadonlyPredictions =
     (isPredictable || race.status === 'locked') && hasPredictions;
+  // Show H2H once the user has at least Top 5 picks for the weekend so they
+  // can submit their first H2H entry even if they skipped earlier sessions.
   const showReadonlyH2H =
-    (isPredictable || race.status === 'locked') && hasH2HPredictions;
+    (isPredictable || race.status === 'locked') &&
+    (hasH2HPredictions || hasPredictions);
 
   return (
     <div className="min-h-full bg-page">

@@ -16,6 +16,8 @@ interface RaceScoreCardHeaderProps {
   isNextRace: boolean;
   linkToRace: boolean;
   compactSummaryOnly?: boolean;
+  compactSummaryMeta?: ReactNode;
+  compactScoreRing?: { earned: number; max: number } | null;
 }
 
 export function RaceScoreCardHeader({
@@ -25,6 +27,8 @@ export function RaceScoreCardHeader({
   isNextRace,
   linkToRace,
   compactSummaryOnly = false,
+  compactSummaryMeta,
+  compactScoreRing,
 }: RaceScoreCardHeaderProps) {
   const countryCode = getCountryCodeForRace({ slug: data.raceSlug });
   const sessions = getSessionsForWeekend(data.hasSprint);
@@ -32,6 +36,8 @@ export function RaceScoreCardHeader({
     cardState !== 'fully_scored' &&
     cardState !== 'partially_scored' &&
     cardState !== 'missed_with_results';
+  const scoreRingEarned = compactScoreRing?.earned ?? data.totalPoints;
+  const scoreRingMax = compactScoreRing?.max ?? data.maxPoints;
 
   const innerContent = (
     <>
@@ -59,6 +65,7 @@ export function RaceScoreCardHeader({
             sessions={sessions}
             cardState={cardState}
           />
+          {compactSummaryMeta}
         </div>
         {data.raceRank && (
           <span className="mt-1 text-xs text-text-muted">
@@ -101,8 +108,8 @@ export function RaceScoreCardHeader({
 
       <div className="ml-auto flex shrink-0 flex-row items-center justify-end gap-3">
         <ScoreRing
-          earned={data.totalPoints}
-          max={data.maxPoints}
+          earned={scoreRingEarned}
+          max={scoreRingMax}
           {...(cardState !== 'partially_scored' &&
             cardState !== 'fully_scored' &&
             cardState !== 'missed_with_results' && { emptyLabel: '-' })}

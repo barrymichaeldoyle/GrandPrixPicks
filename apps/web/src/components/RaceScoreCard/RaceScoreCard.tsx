@@ -33,6 +33,12 @@ interface RaceScoreCardProps {
   compactSummaryOnly?: boolean;
   /** Compact mode: extra owner-only content rendered inside each session */
   compactSessionExtras?: Partial<Record<SessionType, ReactNode>>;
+  /** Compact mode: extra per-session points to add to the session header total */
+  compactSessionPointOverrides?: Partial<Record<SessionType, number>>;
+  /** Compact mode: extra summary metadata rendered in the header */
+  compactSummaryMeta?: ReactNode;
+  /** Compact mode: override header score ring values */
+  compactScoreRing?: { earned: number; max: number } | null;
 }
 
 export function RaceScoreCard({
@@ -45,6 +51,9 @@ export function RaceScoreCard({
   linkToRace = true,
   compactSummaryOnly = false,
   compactSessionExtras,
+  compactSessionPointOverrides,
+  compactSummaryMeta,
+  compactScoreRing,
 }: RaceScoreCardProps) {
   const cardState = deriveCardState({
     data,
@@ -64,6 +73,9 @@ export function RaceScoreCard({
         linkToRace={linkToRace}
         compactSummaryOnly={compactSummaryOnly}
         compactSessionExtras={compactSessionExtras}
+        compactSessionPointOverrides={compactSessionPointOverrides}
+        compactSummaryMeta={compactSummaryMeta}
+        compactScoreRing={compactScoreRing}
       />
     );
   }
@@ -84,6 +96,9 @@ function CompactCard({
   linkToRace,
   compactSummaryOnly,
   compactSessionExtras,
+  compactSessionPointOverrides,
+  compactSummaryMeta,
+  compactScoreRing,
 }: {
   data: WeekendCardData;
   cardState: CardDisplayState;
@@ -93,6 +108,9 @@ function CompactCard({
   linkToRace: boolean;
   compactSummaryOnly: boolean;
   compactSessionExtras?: Partial<Record<SessionType, ReactNode>>;
+  compactSessionPointOverrides?: Partial<Record<SessionType, number>>;
+  compactSummaryMeta?: ReactNode;
+  compactScoreRing?: { earned: number; max: number } | null;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [hasManualToggle, setHasManualToggle] = useState(false);
@@ -140,6 +158,8 @@ function CompactCard({
           isNextRace={isNextRace}
           linkToRace={linkToRace}
           compactSummaryOnly={compactSummaryOnly}
+          compactSummaryMeta={compactSummaryMeta}
+          compactScoreRing={compactScoreRing}
         />
 
         {canExpand && (
@@ -187,13 +207,14 @@ function CompactCard({
                       className="border-b border-border/50 pb-4 last:border-b-0 last:pb-0"
                     >
                       <SessionSection
-                        sessionType={session}
-                        sessionData={sessionData}
-                        variant="compact"
-                        extraContent={compactSessionExtras?.[session]}
-                      />
-                    </div>
-                  );
+                      sessionType={session}
+                      sessionData={sessionData}
+                      variant="compact"
+                      extraContent={compactSessionExtras?.[session]}
+                      extraPoints={compactSessionPointOverrides?.[session] ?? 0}
+                    />
+                  </div>
+                );
                 })}
 
                 {/* Owner visibility notice */}

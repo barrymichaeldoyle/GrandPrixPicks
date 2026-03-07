@@ -1,4 +1,4 @@
-import { Lock } from 'lucide-react';
+import { Lock, Trophy } from 'lucide-react';
 
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
@@ -12,6 +12,7 @@ interface SessionSectionProps {
   variant: 'full' | 'compact';
   onEditSession?: (session: SessionType) => void;
   extraContent?: React.ReactNode;
+  extraPoints?: number;
 }
 
 export function SessionSection({
@@ -20,6 +21,7 @@ export function SessionSection({
   variant,
   onEditSession,
   extraContent,
+  extraPoints = 0,
 }: SessionSectionProps) {
   // Hidden session (visitor before lock)
   if (sessionData.isHidden) {
@@ -42,6 +44,8 @@ export function SessionSection({
     sessionData.fullClassification &&
     sessionData.hasResults;
   const showSessionHeader = variant === 'compact';
+  const totalSessionPoints =
+    sessionData.points != null ? sessionData.points + extraPoints : null;
 
   return (
     <div>
@@ -62,22 +66,44 @@ export function SessionSection({
               </button>
             )}
           </div>
-          {sessionData.points != null && (
+          {totalSessionPoints != null && (
             <span className="text-sm font-bold text-accent">
-              {sessionData.points} pts
+              {totalSessionPoints} pts
             </span>
           )}
         </div>
       )}
 
       {/* Picks grid */}
-      {sessionData.picks.length > 0 && (
-        <SessionPicksGrid
-          picks={sessionData.picks}
-          breakdown={sessionData.breakdown}
-          compact={variant === 'compact'}
-        />
-      )}
+      {sessionData.picks.length > 0 &&
+        (variant === 'compact' ? (
+            <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-warning" />
+                  <span className="font-title text-xs font-semibold tracking-wide text-text-muted uppercase">
+                    Top 5
+                  </span>
+                </div>
+                {sessionData.points != null ? (
+                  <span className="text-xs font-semibold text-accent">
+                    {sessionData.points} pts
+                  </span>
+                ) : null}
+              </div>
+            <SessionPicksGrid
+              picks={sessionData.picks}
+              breakdown={sessionData.breakdown}
+              compact
+            />
+          </div>
+        ) : (
+          <SessionPicksGrid
+            picks={sessionData.picks}
+            breakdown={sessionData.breakdown}
+            compact={false}
+          />
+        ))}
 
       {/* No picks message */}
       {sessionData.picks.length === 0 && (

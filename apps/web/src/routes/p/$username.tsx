@@ -12,6 +12,8 @@ import {
   Hash,
   History,
   Info,
+  Check,
+  CircleX,
   Settings,
   Star,
   Swords,
@@ -90,6 +92,10 @@ function ProfilePage() {
 
   const weekends = useQuery(
     api.predictions.getUserPredictionHistory,
+    currentProfile ? { userId: currentProfile._id } : 'skip',
+  );
+  const h2hHistory = useQuery(
+    api.h2h.getUserH2HPredictionHistory,
     currentProfile ? { userId: currentProfile._id } : 'skip',
   );
   const h2hPicksByRace = useQuery(
@@ -461,6 +467,23 @@ function ProfilePage() {
                   isSignedIn={!!isSignedIn}
                   isNextRace={weekend.raceId === nextRaceId}
                   drivers={drivers}
+                  h2hWeekendPoints={
+                    h2hHistory?.find((entry) => entry.raceId === weekend.raceId)
+                      ?.totalPoints ?? null
+                  }
+                  h2hWeekendMaxPoints={
+                    h2hHistory
+                      ?.find((entry) => entry.raceId === weekend.raceId)
+                      ? Object.values(
+                          h2hHistory.find(
+                            (entry) => entry.raceId === weekend.raceId,
+                          )!.sessions,
+                        ).reduce(
+                          (sum, session) => sum + (session?.totalPicks ?? 0),
+                          0,
+                        )
+                      : null
+                  }
                   hasH2HPicks={Boolean(
                     h2hPicksByRace?.some(
                       (entry) => entry.raceId === weekend.raceId,
@@ -483,6 +506,8 @@ function ProfileWeekendCard({
   isSignedIn,
   isNextRace,
   drivers,
+  h2hWeekendPoints,
+  h2hWeekendMaxPoints,
   hasH2HPicks,
 }: {
   weekend: NonNullable<NonNullable<ReturnType<typeof useQuery<typeof api.predictions.getUserPredictionHistory>>>[number]>;
@@ -491,6 +516,8 @@ function ProfileWeekendCard({
   isSignedIn: boolean;
   isNextRace: boolean;
   drivers: ReturnType<typeof useQuery<typeof api.drivers.listDrivers>>;
+  h2hWeekendPoints: number | null;
+  h2hWeekendMaxPoints: number | null;
   hasH2HPicks: boolean;
 }) {
   const detailedPicks = useQuery(api.h2h.getUserH2HDetailedPicks, {
@@ -509,6 +536,18 @@ function ProfileWeekendCard({
           ]),
         )
       : undefined;
+  const compactSessionPointOverrides =
+    isOwner && hasH2HPicks && detailedPicks
+      ? Object.fromEntries(
+          getSessionsForWeekend(weekend.hasSprint).map((session) => [
+            session,
+            (detailedPicks[session] ?? []).reduce(
+              (sum, pick) => sum + (pick.isCorrect ? 1 : 0),
+              0,
+            ),
+          ]),
+        )
+      : undefined;
 
   return (
     <RaceScoreCard
@@ -516,7 +555,33 @@ function ProfileWeekendCard({
       variant="compact"
       compactSummaryOnly={!isOwner}
       defaultExpanded={isOwner}
+      compactSummaryMeta={
+        isOwner && h2hWeekendPoints !== null ? (
+          <span className="text-xs text-text-muted">
+            H2H{' '}
+            <span className="font-semibold text-accent">
+              {h2hWeekendPoints} pts
+            </span>
+          </span>
+        ) : undefined
+      }
+      compactScoreRing={
+        isOwner && h2hWeekendPoints !== null
+          ? {
+              earned: weekend.totalPoints + h2hWeekendPoints,
+              max: (() => {
+                const top5Max = Object.values(weekend.sessions).reduce(
+                  (sum, session) =>
+                    sum + (session && session.points !== null ? 25 : 0),
+                  0,
+                );
+                return top5Max + (h2hWeekendMaxPoints ?? 0);
+              })(),
+            }
+          : undefined
+      }
       compactSessionExtras={compactSessionExtras}
+      compactSessionPointOverrides={compactSessionPointOverrides}
       viewer={{
         isSignedIn,
         isOwner,
@@ -559,30 +624,75 @@ function CompactH2HSessionPicks({
     return null;
   }
 
-  const selectedDrivers = picks.map((pick) =>
-    pick.predictedWinnerId === pick.driver1._id ? pick.driver1 : pick.driver2,
+  const sessionPoints = picks.reduce(
+    (sum, pick) => sum + (pick.isCorrect ? 1 : 0),
+    0,
   );
+  const hasResolvedResults = picks.some((pick) => pick.actualWinnerId !== null);
 
   return (
     <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
         <Swords className="h-4 w-4 text-accent" />
         <h4 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
           H2H
         </h4>
+        </div>
+        {hasResolvedResults ? (
+          <span className="text-xs font-semibold text-accent">
+            {sessionPoints} pts
+          </span>
+        ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
-        {selectedDrivers.map((driver, index) => (
-          <DriverBadge
-            key={`${driver._id}-${index}`}
-            code={driver.code}
-            team={driver.team}
-            displayName={driver.displayName}
-            number={driver.number}
-            nationality={driver.nationality}
-            size="sm"
-          />
-        ))}
+        {picks.map((pick, index) => {
+          const driver =
+            pick.predictedWinnerId === pick.driver1._id
+              ? pick.driver1
+              : pick.driver2;
+
+          return (
+            <div
+              key={`${pick.matchupId}-${index}`}
+              className="rounded-md bg-surface/20 px-1 py-0.5"
+            >
+              <span className="relative inline-flex">
+                <DriverBadge
+                  code={driver.code}
+                  team={driver.team}
+                  displayName={driver.displayName}
+                  number={driver.number}
+                  nationality={driver.nationality}
+                  size="sm"
+                />
+                {pick.isCorrect !== null ? (
+                  <span
+                    className={`absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-surface ${
+                      pick.isCorrect
+                        ? 'bg-success text-white'
+                        : 'bg-error text-white'
+                    }`}
+                  >
+                    {pick.isCorrect ? (
+                      <Check
+                        className="h-2.5 w-2.5"
+                        strokeWidth={3}
+                        aria-label="Correct H2H pick"
+                      />
+                    ) : (
+                      <CircleX
+                        className="h-2.5 w-2.5"
+                        strokeWidth={2.5}
+                        aria-label="Incorrect H2H pick"
+                      />
+                    )}
+                  </span>
+                ) : null}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

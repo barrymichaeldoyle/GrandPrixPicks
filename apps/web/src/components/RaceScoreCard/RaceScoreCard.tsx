@@ -395,7 +395,6 @@ function FullCard({
   const showSessions =
     cardState !== 'not_yet_open' &&
     cardState !== 'open_no_picks_unauth' &&
-    cardState !== 'open_no_picks_auth' &&
     cardState !== 'hidden_upcoming';
 
   return (

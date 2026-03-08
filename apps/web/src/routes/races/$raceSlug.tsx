@@ -490,6 +490,37 @@ function RaceDetailPage() {
     );
   }
 
+  function renderLateSessionEntryForm() {
+    if (
+      isPredictable ||
+      !isSignedIn ||
+      hasPredictions ||
+      !canEditSelectedSession
+    ) {
+      return null;
+    }
+
+    return (
+      <div className="space-y-2 p-4">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 shrink-0 text-accent" />
+          <h2 className="text-xl font-semibold text-text">
+            {SESSION_LABELS[selectedSession]} Predictions
+          </h2>
+        </div>
+        <p className="text-text-muted">
+          Earlier sessions are closed, but {SESSION_LABELS[selectedSession]} is
+          still open. These picks will apply to this session only.
+        </p>
+        <PredictionForm
+          raceId={currentRace._id}
+          sessionType={selectedSession}
+          onDirtyChange={setTop5HasUnsavedChanges}
+        />
+      </div>
+    );
+  }
+
   return (
     <RaceEventPageLayout
       race={currentRace}
@@ -527,21 +558,23 @@ function RaceDetailPage() {
       top5MainContent={
         top5EditingSession
           ? renderTop5EditForm()
-          : cardData && (
-              <ErrorBoundary>
-                <RaceScoreCard
-                  data={selectedSessionCardData ?? cardData}
-                  variant="full"
-                  viewer={{
-                    isSignedIn: !!isSignedIn,
-                    isOwner: true,
-                  }}
-                  isNextRace={isNextRace}
-                  onEditSession={
-                    canManagePredictions ? setTop5EditingSession : undefined
-                  }
-                />
-              </ErrorBoundary>
+          : renderLateSessionEntryForm() ?? (
+              cardData && (
+                <ErrorBoundary>
+                  <RaceScoreCard
+                    data={selectedSessionCardData ?? cardData}
+                    variant="full"
+                    viewer={{
+                      isSignedIn: !!isSignedIn,
+                      isOwner: true,
+                    }}
+                    isNextRace={isNextRace}
+                    onEditSession={
+                      canManagePredictions ? setTop5EditingSession : undefined
+                    }
+                  />
+                </ErrorBoundary>
+              )
             )
       }
       top5HeaderAside={

@@ -13,7 +13,7 @@ import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import { Tooltip } from '../../components/Tooltip';
 import type { SessionType } from '../../lib/sessions';
-import { getSessionsForWeekend, SESSION_LABELS } from '../../lib/sessions';
+import { SESSION_LABELS } from '../../lib/sessions';
 
 // ───────────────────────── H2H Sections ─────────────────────────
 
@@ -50,7 +50,6 @@ export function H2HSection({
       ? (controlledEditing ?? null)
       : internalEditing;
   const setEditingSession = onEditingSessionChange ?? setInternalEditing;
-  const weekendSessions = getSessionsForWeekend(!!race.hasSprint);
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
@@ -72,11 +71,9 @@ export function H2HSection({
   const canEditSelectedSession = Boolean(
     hasH2HPredictions && !selectedSessionLocked,
   );
-  const incompleteH2HSessions = weekendSessions.filter(
-    (session) => h2hPredictions?.[session] == null,
-  );
+  const selectedSessionHasH2H = h2hPredictions?.[selectedSession] != null;
   const shouldHighlightIncompleteH2H = Boolean(
-    hasPredictions && incompleteH2HSessions.length > 0,
+    hasPredictions && !selectedSessionHasH2H && !selectedSessionLocked,
   );
 
   return (

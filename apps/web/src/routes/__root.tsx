@@ -312,7 +312,6 @@ function RootDocument({ children }: PropsWithChildren) {
                 isDark={isDark}
                 onThemeChange={setTheme}
               />
-              <UpcomingPredictionBanner />
               <CookieConsent />
               <div
                 ref={mainRef}
@@ -320,6 +319,7 @@ function RootDocument({ children }: PropsWithChildren) {
               >
                 <ScrollToTop scrollContainerRef={mainRef} />
                 <div className="flex min-h-full flex-col">
+                  <UpcomingPredictionBanner />
                   <main id="main-content" className="min-h-0 flex-1">
                     <ErrorBoundary>{children}</ErrorBoundary>
                   </main>

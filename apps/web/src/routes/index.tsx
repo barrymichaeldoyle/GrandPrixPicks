@@ -33,8 +33,15 @@ const fadeUp = {
 export const Route = createFileRoute('/')({
   component: HomePage,
   loader: async () => {
+    const now = Date.now();
     const nextRace = await convex.query(api.races.getNextRace);
-    return { nextRace };
+    const races = await convex.query(api.races.listRaces, {});
+    const currentOrRecentRace =
+      races
+        .filter((race) => race.status !== 'upcoming' && race.raceStartAt <= now)
+        .sort((a, b) => b.raceStartAt - a.raceStartAt)[0] ?? null;
+
+    return { nextRace, currentOrRecentRace };
   },
   head: () => {
     const title =
@@ -60,9 +67,18 @@ export const Route = createFileRoute('/')({
 });
 
 function HomePage() {
-  const { nextRace } = Route.useLoaderData();
+  const { nextRace, currentOrRecentRace } = Route.useLoaderData();
+  const cooldownEndsAt =
+    currentOrRecentRace != null
+      ? currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000
+      : null;
+  const showNextRace =
+    nextRace != null && (cooldownEndsAt == null || Date.now() >= cooldownEndsAt);
+  const featuredRace = showNextRace ? nextRace : currentOrRecentRace;
+  const featuredRaceLabel = showNextRace ? 'Next Race' : 'Latest Weekend';
+  const cooldownCountdown = useCountdown(cooldownEndsAt ?? 0);
   const nextEvent = (() => {
-    if (!nextRace) {
+    if (!showNextRace || !nextRace) {
       return null;
     }
     const now = Date.now();
@@ -140,7 +156,7 @@ function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              {nextRace != null ? (
+              {showNextRace && nextRace != null ? (
                 <Button
                   asChild
                   variant="primary"
@@ -196,30 +212,32 @@ function HomePage() {
             transition={{ ...fadeUp.transition, delay: 0.18 }}
             className="w-full max-w-3xl rounded-2xl border border-border bg-surface/85 p-4"
           >
-            {nextRace != null ? (
+            {featuredRace != null ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-sm font-semibold text-text-muted">
-                    Next Race
+                    {featuredRaceLabel}
                   </p>
-                  <Button
-                    asChild
-                    variant="secondary"
-                    size="sm"
-                    rightIcon={ArrowRight}
-                  >
-                    <Link
-                      to="/races/$raceSlug"
-                      params={{ raceSlug: nextRace.slug }}
+                  {showNextRace ? (
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                      rightIcon={ArrowRight}
                     >
-                      Open race page
-                    </Link>
-                  </Button>
+                      <Link
+                        to="/races/$raceSlug"
+                        params={{ raceSlug: featuredRace.slug }}
+                      >
+                        Open race page
+                      </Link>
+                    </Button>
+                  ) : null}
                 </div>
 
                 <div className="flex items-start gap-2.5">
                   {(() => {
-                    const countryCode = getCountryCodeForRace(nextRace);
+                    const countryCode = getCountryCodeForRace(featuredRace);
                     return countryCode ? (
                       <span className="shrink-0">
                         <RaceFlag countryCode={countryCode} size="lg" />
@@ -228,10 +246,10 @@ function HomePage() {
                   })()}
                   <div className="min-w-0 space-y-1">
                     <h3 className="text-2xl leading-tight font-semibold text-text">
-                      {nextRace.name}
+                      {featuredRace.name}
                     </h3>
                     <p className="text-sm text-text-muted">
-                      {new Date(nextRace.raceStartAt).toLocaleDateString(
+                      {new Date(featuredRace.raceStartAt).toLocaleDateString(
                         undefined,
                         {
                           weekday: 'short',
@@ -240,7 +258,7 @@ function HomePage() {
                         },
                       )}{' '}
                       •{' '}
-                      {new Date(nextRace.raceStartAt).toLocaleTimeString(
+                      {new Date(featuredRace.raceStartAt).toLocaleTimeString(
                         undefined,
                         {
                           hour: 'numeric',
@@ -249,15 +267,19 @@ function HomePage() {
                       )}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                      {nextEvent ? (
+                      {showNextRace && nextEvent ? (
                         <span className="text-xs font-semibold text-accent tabular-nums">
                           {nextEventCountdown} to {nextEvent.label}
                         </span>
+                      ) : !showNextRace && cooldownEndsAt != null ? (
+                        <span className="text-xs font-semibold text-text-muted">
+                          Next race returns {cooldownCountdown}
+                        </span>
                       ) : null}
                       <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/40 px-2 py-0.5 text-xs font-medium text-text-muted">
-                        Round {nextRace.round}
+                        Round {featuredRace.round}
                       </span>
-                      {nextRace.hasSprint ? (
+                      {featuredRace.hasSprint ? (
                         <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent-muted px-2 py-0.5 text-xs font-semibold text-accent">
                           Sprint weekend
                         </span>

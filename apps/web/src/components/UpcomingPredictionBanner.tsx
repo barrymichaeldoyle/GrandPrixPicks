@@ -5,6 +5,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { ArrowRight, Dices } from 'lucide-react';
 import { useState } from 'react';
 
+import { useUpcomingPredictionBannerDismissal } from '../hooks/useUpcomingPredictionBannerDismissal';
 import { toUserFacingMessage } from '../lib/userFacingError';
 import { Button } from './Button';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -12,6 +13,7 @@ import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;
 const STANDARD_SESSIONS = ['quali', 'race'] as const;
+const NUDGE_DELAY_MS = 24 * 60 * 60 * 1000;
 
 export function UpcomingPredictionBanner() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -22,6 +24,10 @@ export function UpcomingPredictionBanner() {
   const [error, setError] = useState<string | null>(null);
 
   const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
+  const predictionOpenAt = useQuery(
+    api.races.getPredictionOpenAt,
+    isSignedIn && nextRace ? { raceId: nextRace._id } : 'skip',
+  );
   const matchups = useQuery(
     api.h2h.getMatchupsForSeason,
     isSignedIn ? {} : 'skip',
@@ -45,6 +51,7 @@ export function UpcomingPredictionBanner() {
 
   if (
     nextRace === undefined ||
+    predictionOpenAt === undefined ||
     weekendPredictions === undefined ||
     h2hPredictions === undefined
   ) {
@@ -55,10 +62,15 @@ export function UpcomingPredictionBanner() {
     return null;
   }
   const currentRace = nextRace;
+  const { dismissed, dismiss } = useUpcomingPredictionBannerDismissal(
+    currentRace.slug,
+  );
 
   const racePath = `/races/${currentRace.slug}`;
   const isOnRacePredictionPage =
     pathname === racePath || pathname.startsWith(`${racePath}/`);
+  const shouldDelayBanner =
+    predictionOpenAt != null && Date.now() < predictionOpenAt + NUDGE_DELAY_MS;
 
   const relevantSessions = currentRace.hasSprint
     ? SPRINT_SESSIONS
@@ -75,7 +87,12 @@ export function UpcomingPredictionBanner() {
   const shouldShowTop5Nudge = !hasAnyTop5Predictions;
   const shouldShowH2HNudge = hasCompleteTop5 && !hasCompleteH2H;
 
-  if ((!shouldShowTop5Nudge && !shouldShowH2HNudge) || isOnRacePredictionPage) {
+  if (
+    (!shouldShowTop5Nudge && !shouldShowH2HNudge) ||
+    isOnRacePredictionPage ||
+    shouldDelayBanner ||
+    dismissed
+  ) {
     return null;
   }
 
@@ -130,6 +147,7 @@ export function UpcomingPredictionBanner() {
         randomizeLabel={randomizeLabel}
         isRandomizing={isRandomizing}
         error={error}
+        onDismiss={dismiss}
         onRandomizeClick={() => {
           setError(null);
           setShowConfirm(true);

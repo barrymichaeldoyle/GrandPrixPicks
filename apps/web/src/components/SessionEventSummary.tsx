@@ -1,6 +1,6 @@
 import { CalendarClock, CheckCircle2, CircleDot, Lock } from 'lucide-react';
 
-import { formatDate, formatTime } from '../lib/date';
+import { formatDate, formatInTimeZone, formatTime } from '../lib/date';
 import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
@@ -58,27 +58,14 @@ export function SessionEventSummary({
   const StatusIcon = statusUi.icon;
   const shouldPulseLockStatusBadge = lockStatus.shouldPulse;
   const trackDateTime = (() => {
-    try {
-      return new Intl.DateTimeFormat(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: trackTimeZone,
-        timeZoneName: 'short',
-      }).format(startsAt);
-    } catch {
-      return new Intl.DateTimeFormat(undefined, {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        timeZoneName: 'short',
-      }).format(startsAt);
-    }
+    return formatInTimeZone(startsAt, trackTimeZone, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
   })();
 
   return (
@@ -109,11 +96,13 @@ export function SessionEventSummary({
       <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
         <div className="rounded-md border border-border bg-surface-muted/40 px-2.5 py-2">
           <p className="text-xs font-medium text-text-muted">On-track time</p>
-          <p className="font-medium text-text">{trackDateTime}</p>
+          <p className="font-medium text-text" suppressHydrationWarning>
+            {trackDateTime}
+          </p>
         </div>
         <div className="rounded-md border border-border bg-surface-muted/40 px-2.5 py-2">
           <p className="text-xs font-medium text-text-muted">Your local time</p>
-          <p className="font-medium text-text">
+          <p className="font-medium text-text" suppressHydrationWarning>
             {formatDate(startsAt)} · {formatTime(startsAt)}
           </p>
         </div>

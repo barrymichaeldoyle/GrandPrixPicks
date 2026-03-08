@@ -44,6 +44,11 @@ export function UpcomingPredictionBanner() {
     api.predictions.randomizePredictions,
   );
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
+  const currentRace =
+    nextRace && nextRace.status === 'upcoming' ? nextRace : null;
+  const { dismissed, dismiss } = useUpcomingPredictionBannerDismissal(
+    currentRace?.slug,
+  );
 
   if (!isLoaded || !isSignedIn) {
     return null;
@@ -58,21 +63,18 @@ export function UpcomingPredictionBanner() {
     return null;
   }
 
-  if (!nextRace || nextRace.status !== 'upcoming') {
+  if (!currentRace) {
     return null;
   }
-  const currentRace = nextRace;
-  const { dismissed, dismiss } = useUpcomingPredictionBannerDismissal(
-    currentRace.slug,
-  );
+  const activeRace = currentRace;
 
-  const racePath = `/races/${currentRace.slug}`;
+  const racePath = `/races/${activeRace.slug}`;
   const isOnRacePredictionPage =
     pathname === racePath || pathname.startsWith(`${racePath}/`);
   const shouldDelayBanner =
     predictionOpenAt != null && Date.now() < predictionOpenAt + NUDGE_DELAY_MS;
 
-  const relevantSessions = currentRace.hasSprint
+  const relevantSessions = activeRace.hasSprint
     ? SPRINT_SESSIONS
     : STANDARD_SESSIONS;
   const hasAnyTop5Predictions = relevantSessions.some(
@@ -116,7 +118,7 @@ export function UpcomingPredictionBanner() {
     setIsRandomizing(true);
     try {
       if (needsTop5) {
-        await randomizePredictions({ raceId: currentRace._id });
+        await randomizePredictions({ raceId: activeRace._id });
       }
       if (needsH2H && matchups && matchups.length > 0) {
         const randomH2HPicks = matchups.map((m) => ({
@@ -124,12 +126,12 @@ export function UpcomingPredictionBanner() {
           predictedWinnerId:
             Math.random() < 0.5 ? m.driver1._id : m.driver2._id,
         }));
-        await submitH2H({ raceId: currentRace._id, picks: randomH2HPicks });
+        await submitH2H({ raceId: activeRace._id, picks: randomH2HPicks });
       }
       setShowConfirm(false);
       await navigate({
         to: '/races/$raceSlug',
-        params: { raceSlug: currentRace.slug },
+        params: { raceSlug: activeRace.slug },
       });
     } catch (err) {
       setError(toUserFacingMessage(err));
@@ -141,8 +143,8 @@ export function UpcomingPredictionBanner() {
   return (
     <div>
       <UpcomingPredictionNudge
-        raceName={currentRace.name}
-        raceSlug={currentRace.slug}
+        raceName={activeRace.name}
+        raceSlug={activeRace.slug}
         message={nudgeMessage}
         randomizeLabel={randomizeLabel}
         isRandomizing={isRandomizing}
@@ -154,7 +156,7 @@ export function UpcomingPredictionBanner() {
         }}
         makePicksControl={
           <Button asChild size="sm" rightIcon={ArrowRight}>
-            <Link to="/races/$raceSlug" params={{ raceSlug: currentRace.slug }}>
+            <Link to="/races/$raceSlug" params={{ raceSlug: activeRace.slug }}>
               Make picks
             </Link>
           </Button>

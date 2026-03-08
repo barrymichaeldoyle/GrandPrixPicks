@@ -1,6 +1,7 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { formatCalendarDate } from '@/lib/date';
 
 export interface AdminPredictionStatus {
   race: {
@@ -199,11 +200,12 @@ export function AdminUsersTab({
                         {user.requiredSessionCount}
                       </span>
                       {user.latestSubmittedAt ? (
-                        <span className="text-slate-400">
+                        <span
+                          className="text-slate-400"
+                          suppressHydrationWarning
+                        >
                           Last update:{' '}
-                          {new Date(
-                            user.latestSubmittedAt,
-                          ).toLocaleDateString()}
+                          {formatCalendarDate(user.latestSubmittedAt)}
                         </span>
                       ) : null}
                     </div>

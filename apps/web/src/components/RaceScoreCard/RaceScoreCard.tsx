@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown, EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
+import { formatMonthDay } from '../../lib/date';
 import type { SessionType } from '../../lib/sessions';
 import { getSessionsForWeekend } from '../../lib/sessions';
 import { Badge, StatusBadge } from '../Badge';
@@ -320,11 +321,11 @@ function CompactSummaryCard({
             </span>
           )}
           {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
-          <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/45 px-2 py-0.5 text-xs text-text-muted">
-            {new Date(data.raceDate).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-            })}
+          <span
+            className="inline-flex items-center rounded-full border border-border bg-surface-muted/45 px-2 py-0.5 text-xs text-text-muted"
+            suppressHydrationWarning
+          >
+            {formatMonthDay(data.raceDate)}
           </span>
         </div>
 

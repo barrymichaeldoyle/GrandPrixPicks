@@ -37,6 +37,7 @@ import {
 import { teamStandingsIndex } from '@/lib/teams';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
+import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
 import { Button } from './Button';
 import { TEAM_COLORS } from './DriverBadge';
@@ -571,7 +572,7 @@ export function PredictionForm({
         {restoredDraftAt ? (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
             <span className="text-xs text-text">
-              Draft restored: {new Date(restoredDraftAt).toLocaleString()}
+              Draft restored: {formatDateTime(restoredDraftAt)}
             </span>
             <Button variant="text" size="inline" onClick={handleDiscardDraft}>
               Discard Draft

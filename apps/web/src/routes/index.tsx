@@ -14,11 +14,12 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '../components/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { getCountryCodeForRace, RaceFlag } from '../components/RaceCard';
-import { useCountdown } from '../lib/date';
+import { formatDate, formatTime, useCountdown } from '../lib/date';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -41,7 +42,7 @@ export const Route = createFileRoute('/')({
         .filter((race) => race.status !== 'upcoming' && race.raceStartAt <= now)
         .sort((a, b) => b.raceStartAt - a.raceStartAt)[0] ?? null;
 
-    return { nextRace, currentOrRecentRace };
+    return { nextRace, currentOrRecentRace, now };
   },
   head: () => {
     const title =
@@ -67,13 +68,23 @@ export const Route = createFileRoute('/')({
 });
 
 function HomePage() {
-  const { nextRace, currentOrRecentRace } = Route.useLoaderData();
+  const { nextRace, currentOrRecentRace, now: initialNow } =
+    Route.useLoaderData();
+  const [now, setNow] = useState(initialNow);
+
+  useEffect(() => {
+    setNow(Date.now());
+    const id = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const cooldownEndsAt =
     currentOrRecentRace != null
       ? currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000
       : null;
-  const showNextRace =
-    nextRace != null && (cooldownEndsAt == null || Date.now() >= cooldownEndsAt);
+  const showNextRace = nextRace != null && (cooldownEndsAt == null || now >= cooldownEndsAt);
   const featuredRace = showNextRace ? nextRace : currentOrRecentRace;
   const featuredRaceLabel = showNextRace ? 'Next Race' : 'Latest Weekend';
   const cooldownCountdown = useCountdown(cooldownEndsAt ?? 0);
@@ -81,7 +92,6 @@ function HomePage() {
     if (!showNextRace || !nextRace) {
       return null;
     }
-    const now = Date.now();
     const sessions = (
       nextRace.hasSprint
         ? [
@@ -248,31 +258,26 @@ function HomePage() {
                     <h3 className="text-2xl leading-tight font-semibold text-text">
                       {featuredRace.name}
                     </h3>
-                    <p className="text-sm text-text-muted">
-                      {new Date(featuredRace.raceStartAt).toLocaleDateString(
-                        undefined,
-                        {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                        },
-                      )}{' '}
-                      •{' '}
-                      {new Date(featuredRace.raceStartAt).toLocaleTimeString(
-                        undefined,
-                        {
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        },
-                      )}
+                    <p
+                      className="text-sm text-text-muted"
+                      suppressHydrationWarning
+                    >
+                      {formatDate(featuredRace.raceStartAt)} •{' '}
+                      {formatTime(featuredRace.raceStartAt)}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
                       {showNextRace && nextEvent ? (
-                        <span className="text-xs font-semibold text-accent tabular-nums">
+                        <span
+                          className="text-xs font-semibold text-accent tabular-nums"
+                          suppressHydrationWarning
+                        >
                           {nextEventCountdown} to {nextEvent.label}
                         </span>
                       ) : !showNextRace && cooldownEndsAt != null ? (
-                        <span className="text-xs font-semibold text-text-muted">
+                        <span
+                          className="text-xs font-semibold text-text-muted"
+                          suppressHydrationWarning
+                        >
                           Next race returns {cooldownCountdown}
                         </span>
                       ) : null}

@@ -3085,6 +3085,81 @@ export const reseedDevForPostQualiRaceOpen = internalAction({
 });
 
 /**
+ * Reset dev database to a clean upcoming-race banner scenario:
+ * - Clears dev predictions, results, scores, standings, fake users, leagues
+ * - Resets races to upcoming dates
+ * - Ensures drivers and 2026 H2H matchups exist
+ * - Configures australia-2026 as an open weekend for the selected user
+ * - Supports two variants:
+ *   - top5_missing: no predictions, so the "make picks" banner shows
+ *   - h2h_missing: Top 5 predictions exist, but H2H is empty
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevForUpcomingPredictionBanner '{"clerkUserId":"user_xxx","variant":"top5_missing"}'
+ *   npx convex run seed:reseedDevForUpcomingPredictionBanner '{"username":"barrymichaeldoyle","variant":"h2h_missing"}'
+ */
+export const reseedDevForUpcomingPredictionBanner = internalAction({
+  args: {
+    clerkUserId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    variant: v.optional(
+      v.union(v.literal('top5_missing'), v.literal('h2h_missing')),
+    ),
+  },
+  handler: async (ctx, args) => {
+    let totalDeleted = 0;
+    let iterations = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    await ctx.runMutation(internal.seed.seedDrivers);
+    await ctx.runMutation(internal.seed.seedH2HMatchups);
+
+    const scenario: {
+      raceId: Id<'races'>;
+      raceSlug: string;
+      qualiStartAt: number;
+      raceStartAt: number;
+      mainUserId: Id<'users'>;
+      mainUserEmail: string | null | undefined;
+      username: string | undefined;
+      variant: 'top5_missing' | 'h2h_missing';
+    } = await ctx.runMutation(
+      internal.seed._seedUpcomingPredictionBannerScenario,
+      {
+        clerkUserId: args.clerkUserId,
+        username: args.username,
+        variant: args.variant ?? 'top5_missing',
+      },
+    );
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      ...scenario,
+    };
+  },
+});
+
+/**
  * Internal: configure australia-2026 with quali locked and race still open,
  * leaving the main user with no predictions for that race.
  */
@@ -3135,6 +3210,116 @@ export const _seedPostQualiRaceOpenScenario = internalMutation({
       raceStartAt,
       mainUserId: mainUser._id,
       mainUserEmail: mainUser.email,
+    };
+  },
+});
+
+export const _seedUpcomingPredictionBannerScenario = internalMutation({
+  args: {
+    clerkUserId: v.optional(v.string()),
+    username: v.optional(v.string()),
+    variant: v.union(v.literal('top5_missing'), v.literal('h2h_missing')),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+
+    const mainUser = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username!))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!mainUser) {
+      throw new Error(
+        'Main user not found. Sign in first or provide clerkUserId/username.',
+      );
+    }
+
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'australia-2026'))
+      .unique();
+
+    if (!race) {
+      throw new Error('australia-2026 not found. Run seedRaces first.');
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers. Run seedDrivers first.');
+    }
+
+    const qualiStartAt = now + 2 * DAY;
+    const raceStartAt = now + 3 * DAY;
+
+    await ctx.db.patch(race._id, {
+      status: 'upcoming',
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      updatedAt: now,
+    });
+
+    const existingPredictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', mainUser._id).eq('raceId', race._id),
+      )
+      .collect();
+    for (const prediction of existingPredictions) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    const existingH2H = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q.eq('userId', mainUser._id).eq('raceId', race._id),
+      )
+      .collect();
+    for (const prediction of existingH2H) {
+      await ctx.db.delete(prediction._id);
+    }
+
+    if (args.variant === 'h2h_missing') {
+      const picks = drivers.slice(0, 5).map((driver) => driver._id);
+      await ctx.db.insert('predictions', {
+        userId: mainUser._id,
+        raceId: race._id,
+        sessionType: 'quali',
+        picks,
+        submittedAt: now - HOUR,
+        updatedAt: now - HOUR,
+      });
+      await ctx.db.insert('predictions', {
+        userId: mainUser._id,
+        raceId: race._id,
+        sessionType: 'race',
+        picks,
+        submittedAt: now - HOUR,
+        updatedAt: now - HOUR,
+      });
+    }
+
+    return {
+      raceId: race._id,
+      raceSlug: race.slug,
+      qualiStartAt,
+      raceStartAt,
+      mainUserId: mainUser._id,
+      mainUserEmail: mainUser.email,
+      username: mainUser.username,
+      variant: args.variant,
     };
   },
 });

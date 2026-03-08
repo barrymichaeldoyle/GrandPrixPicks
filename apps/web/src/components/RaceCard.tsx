@@ -111,11 +111,7 @@ function Countdown({
   suffix: string;
 }) {
   const label = useCountdown(timestamp);
-  return (
-    <>
-      {label} {suffix}
-    </>
-  );
+  return <span suppressHydrationWarning>{label} {suffix}</span>;
 }
 
 export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
@@ -207,7 +203,10 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
               </span>
             )}
             {isNotYetOpen && predictionOpenAt != null && (
-              <span className="bg-surface-elevated inline-flex items-center rounded-full border border-border-strong/70 px-2 py-0.5 text-xs font-medium text-text">
+              <span
+                className="bg-surface-elevated inline-flex items-center rounded-full border border-border-strong/70 px-2 py-0.5 text-xs font-medium text-text"
+                suppressHydrationWarning
+              >
                 Opens {formatDateLong(predictionOpenAt)}
               </span>
             )}
@@ -237,7 +236,9 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
                     <Calendar size={12} aria-hidden />
                     Weekend Sessions
                   </span>
-                  {timezoneLabel ? <span>{timezoneLabel}</span> : null}
+                  {timezoneLabel ? (
+                    <span suppressHydrationWarning>{timezoneLabel}</span>
+                  ) : null}
                 </div>
                 <div className="grid flex-1 grid-cols-[auto_auto] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
                   {scheduleEntries.map((entry) => (
@@ -250,14 +251,14 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
                         {entry.label}
                       </span>
                       <span
+                        suppressHydrationWarning
                         className={`text-right tabular-nums ${
                           entry.label === 'Race'
                             ? 'font-semibold text-text'
                             : ''
                         }`}
                       >
-                        {formatDate(entry.startAt)} ·{' '}
-                        {formatTime(entry.startAt)}
+                        {formatDate(entry.startAt)} · {formatTime(entry.startAt)}
                       </span>
                     </div>
                   ))}

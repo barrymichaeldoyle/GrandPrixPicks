@@ -4,28 +4,70 @@
 
 import { useEffect, useState } from 'react';
 
-export function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString(undefined, {
+type DateLike = number | string | Date;
+
+function toDateInput(value: DateLike): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+export function formatDate(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   });
 }
 
-export function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString(undefined, {
+export function formatTime(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
   });
 }
 
-export function formatDateLong(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString(undefined, {
+export function formatDateLong(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+export function formatMonthDay(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function formatDateTime(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleString();
+}
+
+export function formatCalendarDate(timestamp: DateLike): string {
+  return toDateInput(timestamp).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+export function formatInTimeZone(
+  timestamp: DateLike,
+  timeZone: string,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      ...options,
+      timeZone,
+    }).format(toDateInput(timestamp));
+  } catch {
+    return new Intl.DateTimeFormat(undefined, options).format(
+      toDateInput(timestamp),
+    );
+  }
 }
 
 /** Human-readable countdown (e.g. "23d 3h 5m 9s" or "2h 30m 15s"). */

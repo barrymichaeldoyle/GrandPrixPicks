@@ -32,6 +32,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
 import { TimezoneSelect } from '../components/TimezoneSelect';
 import { useTheme } from '../hooks/useTheme';
+import { formatCalendarDate } from '../lib/date';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 function ToggleSwitch({
@@ -797,16 +798,12 @@ function SettingsPage() {
                         />
                       </div>
                       {isUsernameLocked && usernameCooldownUntil && (
-                        <p className="mt-1 text-sm text-text-muted">
+                        <p
+                          className="mt-1 text-sm text-text-muted"
+                          suppressHydrationWarning
+                        >
                           You can change your username again on{' '}
-                          {new Date(usernameCooldownUntil).toLocaleDateString(
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            },
-                          )}
+                          {formatCalendarDate(usernameCooldownUntil)}
                         </p>
                       )}
                     </div>

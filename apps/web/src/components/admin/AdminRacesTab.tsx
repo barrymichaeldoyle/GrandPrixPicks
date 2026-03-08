@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Flag } from 'lucide-react';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { formatCalendarDate } from '@/lib/date';
 
 type AdminRacesTabProps = {
   races: Array<Doc<'races'>> | undefined;
@@ -81,8 +82,11 @@ export function AdminRacesTab({
                       </span>
                       <h4 className="font-medium text-white">{race.name}</h4>
                     </div>
-                    <span className="text-sm text-slate-400">
-                      {new Date(race.raceStartAt).toLocaleDateString()}
+                    <span
+                      className="text-sm text-slate-400"
+                      suppressHydrationWarning
+                    >
+                      {formatCalendarDate(race.raceStartAt)}
                     </span>
                   </Link>
                 ))}

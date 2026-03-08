@@ -34,7 +34,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
           {data.predictionOpenAt != null && (
             <p className="mt-2">
               Predictions open{' '}
-              <strong className="text-text">
+              <strong className="text-text" suppressHydrationWarning>
                 {formatDate(data.predictionOpenAt)} at{' '}
                 {formatTime(data.predictionOpenAt)}
               </strong>

@@ -22,6 +22,7 @@ import { TabSwitch } from '@/components/TabSwitch';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+const playerCountFormatter = new Intl.NumberFormat('en-US');
 
 const PODIUM_SIZE = 3;
 const PAGE_SIZE = 50;
@@ -184,7 +185,7 @@ function LeaderboardPage() {
           title="Leaderboard"
           subtitle={`2026 Season Standings${
             activeTotalCount > 0
-              ? ` · ${activeTotalCount.toLocaleString()} players`
+              ? ` · ${playerCountFormatter.format(activeTotalCount)} players`
               : ''
           }`}
           className="page-hero--high-contrast"
@@ -340,7 +341,7 @@ function LeaderboardPage() {
                   {!hasMore && entries.length > PAGE_SIZE && (
                     <p className="text-sm text-text-muted">
                       You've reached the end ·{' '}
-                      {activeTotalCount.toLocaleString()} players
+                      {playerCountFormatter.format(activeTotalCount)} players
                     </p>
                   )}
                 </div>

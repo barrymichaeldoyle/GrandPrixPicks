@@ -3,7 +3,16 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { formatDate, formatDateLong, formatTime, useCountdown } from './date';
+import {
+  formatCalendarDate,
+  formatDate,
+  formatDateLong,
+  formatDateTime,
+  formatInTimeZone,
+  formatMonthDay,
+  formatTime,
+  useCountdown,
+} from './date';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -84,18 +93,12 @@ describe('useCountdown', () => {
 });
 
 describe('date formatting helpers', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('calls toLocaleDateString with expected short-date options', () => {
     const dateSpy = vi
       .spyOn(Date.prototype, 'toLocaleDateString')
       .mockReturnValue('mock-date');
 
-    const result = formatDate(1_700_000_000_000);
-
-    expect(result).toBe('mock-date');
+    expect(formatDate(1_700_000_000_000)).toBe('mock-date');
     expect(dateSpy).toHaveBeenCalledWith(undefined, {
       weekday: 'short',
       month: 'short',
@@ -108,9 +111,7 @@ describe('date formatting helpers', () => {
       .spyOn(Date.prototype, 'toLocaleTimeString')
       .mockReturnValue('mock-time');
 
-    const result = formatTime(1_700_000_000_000);
-
-    expect(result).toBe('mock-time');
+    expect(formatTime(1_700_000_000_000)).toBe('mock-time');
     expect(timeSpy).toHaveBeenCalledWith(undefined, {
       hour: 'numeric',
       minute: '2-digit',
@@ -122,14 +123,71 @@ describe('date formatting helpers', () => {
       .spyOn(Date.prototype, 'toLocaleDateString')
       .mockReturnValue('mock-long-date');
 
-    const result = formatDateLong(1_700_000_000_000);
-
-    expect(result).toBe('mock-long-date');
+    expect(formatDateLong(1_700_000_000_000)).toBe('mock-long-date');
     expect(dateSpy).toHaveBeenCalledWith(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
+  });
+
+  it('calls toLocaleDateString with expected month-day options', () => {
+    const dateSpy = vi
+      .spyOn(Date.prototype, 'toLocaleDateString')
+      .mockReturnValue('mock-calendar-date');
+
+    expect(formatMonthDay(1_700_000_000_000)).toBe('mock-calendar-date');
+    expect(dateSpy).toHaveBeenCalledWith(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
+  });
+
+  it('calls toLocaleDateString with expected calendar-date options', () => {
+    const dateSpy = vi
+      .spyOn(Date.prototype, 'toLocaleDateString')
+      .mockReturnValue('mock-calendar-date');
+
+    expect(formatCalendarDate(1_700_000_000_000)).toBe('mock-calendar-date');
+    expect(dateSpy).toHaveBeenCalledWith(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  });
+
+  it('calls toLocaleString for combined date-time values', () => {
+    const dateTimeSpy = vi
+      .spyOn(Date.prototype, 'toLocaleString')
+      .mockReturnValue('mock-datetime');
+
+    expect(formatDateTime(1_700_000_000_000)).toBe('mock-datetime');
+    expect(dateTimeSpy).toHaveBeenCalledWith();
+  });
+
+  it('formats dates in an explicit time zone with a local fallback', () => {
+    const timestamp = 1_700_000_000_000;
+
+    expect(
+      formatInTimeZone(timestamp, 'Australia/Melbourne', {
+        weekday: 'short',
+      }),
+    ).toBe(
+      new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        timeZone: 'Australia/Melbourne',
+      }).format(timestamp),
+    );
+
+    expect(
+      formatInTimeZone(timestamp, 'Not/AZone', {
+        weekday: 'short',
+      }),
+    ).toBe(
+      new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+      }).format(timestamp),
+    );
   });
 });

@@ -62,11 +62,17 @@ export function RaceDetailHeader({
               {race.name}
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 pt-0.5 text-xs text-text-muted">
-              <span className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex items-center gap-1"
+                suppressHydrationWarning
+              >
                 <Calendar size={14} className="shrink-0" aria-hidden="true" />
                 {formatDate(race.raceStartAt)}
               </span>
-              <span className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex items-center gap-1"
+                suppressHydrationWarning
+              >
                 <Clock size={14} className="shrink-0" aria-hidden="true" />
                 {formatTime(race.raceStartAt)}
               </span>

@@ -24,6 +24,26 @@ const sessionTypeValidator = v.union(
 
 const BATCH_SIZE = 20;
 
+export function summarizeH2HScore(
+  predictions: Array<Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>>,
+  h2hResultMap: Map<string, Id<'drivers'>>,
+) {
+  let correctPicks = 0;
+
+  for (const prediction of predictions) {
+    const actualWinner = h2hResultMap.get(prediction.matchupId.toString());
+    if (actualWinner && prediction.predictedWinnerId === actualWinner) {
+      correctPicks++;
+    }
+  }
+
+  return {
+    correctPicks,
+    totalPicks: predictions.length,
+    points: correctPicks,
+  };
+}
+
 async function rollbackResultsCore(
   ctx: MutationCtx,
   args: {
@@ -928,34 +948,36 @@ export const scoreH2HBatch = internalMutation({
       h2hResults.map((r) => [r.matchupId.toString(), r.winnerId]),
     );
 
-    // Group predictions by user
-    const byUser = new Map<Id<'users'>, Array<Doc<'h2hPredictions'>>>();
+    // Only use the batch to discover affected users. The canonical score for a
+    // user/session must always be computed from that user's full prediction set,
+    // otherwise later batches overwrite earlier totals with partial counts.
+    const affectedUserIds = new Set<Id<'users'>>();
     for (const predId of args.h2hPredictionIds) {
       const pred = await ctx.db.get(predId);
       if (!pred) {
         continue;
       }
-      const userPredictions = byUser.get(pred.userId) ?? [];
-      userPredictions.push(pred);
-      byUser.set(pred.userId, userPredictions);
+      affectedUserIds.add(pred.userId);
     }
 
     const userIds = new Set<Id<'users'>>();
 
-    for (const [userId, userPredictions] of byUser) {
+    for (const userId of affectedUserIds) {
       userIds.add(userId);
 
-      let correctPicks = 0;
-      const totalPicks = userPredictions.length;
-
-      for (const pred of userPredictions) {
-        const actualWinner = h2hResultMap.get(pred.matchupId.toString());
-        if (actualWinner && pred.predictedWinnerId === actualWinner) {
-          correctPicks++;
-        }
-      }
-
-      const points = correctPicks;
+      const userPredictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', userId)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .collect();
+      const { correctPicks, totalPicks, points } = summarizeH2HScore(
+        userPredictions,
+        h2hResultMap,
+      );
 
       const existingH2HScore = await ctx.db
         .query('h2hScores')
@@ -1129,6 +1151,89 @@ export const backfillDenormalizedUserFields = internalMutation({
       patched,
       isDone: result.isDone,
       continueCursor: result.isDone ? null : result.continueCursor,
+    };
+  },
+});
+
+/**
+ * One-time repair: recompute stored H2H score rows from the full user/race/session
+ * prediction set, then refresh affected H2H season standings.
+ */
+export const backfillH2HScores = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const BACKFILL_BATCH_SIZE = 250;
+    const page = await ctx.db
+      .query('h2hScores')
+      .paginate({ numItems: BACKFILL_BATCH_SIZE, cursor: args.cursor ?? null });
+
+    const resultCache = new Map<string, Map<string, Id<'drivers'>>>();
+    const seasonCache = new Map<string, number>();
+    const affectedUserSeasons = new Set<string>();
+    let patched = 0;
+
+    for (const row of page.page) {
+      const cacheKey = `${row.raceId}:${row.sessionType}`;
+      let h2hResultMap = resultCache.get(cacheKey);
+      if (!h2hResultMap) {
+        const h2hResults = await ctx.db
+          .query('h2hResults')
+          .withIndex('by_race_session', (q) =>
+            q.eq('raceId', row.raceId).eq('sessionType', row.sessionType),
+          )
+          .collect();
+        h2hResultMap = new Map(
+          h2hResults.map((result) => [result.matchupId.toString(), result.winnerId]),
+        );
+        resultCache.set(cacheKey, h2hResultMap);
+      }
+
+      const predictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', row.userId)
+            .eq('raceId', row.raceId)
+            .eq('sessionType', row.sessionType),
+        )
+        .collect();
+      const summary = summarizeH2HScore(predictions, h2hResultMap);
+
+      if (
+        row.points !== summary.points ||
+        row.correctPicks !== summary.correctPicks ||
+        row.totalPicks !== summary.totalPicks
+      ) {
+        await ctx.db.patch(row._id, {
+          points: summary.points,
+          correctPicks: summary.correctPicks,
+          totalPicks: summary.totalPicks,
+          updatedAt: Date.now(),
+        });
+        patched++;
+      }
+
+      let season = seasonCache.get(row.raceId);
+      if (season === undefined) {
+        const race = await ctx.db.get(row.raceId);
+        season = race?.season ?? 2026;
+        seasonCache.set(row.raceId, season);
+      }
+      affectedUserSeasons.add(`${row.userId}:${season}`);
+    }
+
+    for (const entry of affectedUserSeasons) {
+      const [userId, season] = entry.split(':');
+      await upsertH2HStandings(ctx, userId as Id<'users'>, Number(season));
+    }
+
+    return {
+      patched,
+      cursor: page.continueCursor,
+      done: page.isDone,
+      scanned: page.page.length,
     };
   },
 });

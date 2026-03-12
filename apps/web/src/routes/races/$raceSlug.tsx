@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import { ArrowLeft, CircleX, Pencil, Trophy } from 'lucide-react';
@@ -41,11 +41,18 @@ export const Route = createFileRoute('/races/$raceSlug')({
     return { session };
   },
   component: RaceDetailPage,
-  loader: async ({ params }) => {
+  loader: async ({ params, location }) => {
     const [race, nextRace] = await Promise.all([
-      convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
+      convex.query(api.races.getRaceBySlugOrLegacyRef, { ref: params.raceSlug }),
       convex.query(api.races.getNextRace),
     ]);
+    if (race && race.slug !== params.raceSlug) {
+      throw redirect({
+        to: '/races/$raceSlug',
+        params: { raceSlug: race.slug },
+        search: location.search,
+      });
+    }
     return { race, nextRace };
   },
   head: ({ loaderData, params }) => {

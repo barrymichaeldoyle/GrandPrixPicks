@@ -9,6 +9,7 @@ import { H2HReminderEmail } from './H2HReminderEmail';
 import type { PredictionReminderProps } from './PredictionReminderEmail';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
 import { SignupNudgeEmail } from './SignupNudgeEmail';
+import { buildRaceEmailUrl } from './urls';
 
 function formatSessionTime(
   epochMs: number,
@@ -89,7 +90,11 @@ export const sendBatch = internalAction({
       const props: PredictionReminderProps = {
         raceName: args.raceName,
         timeUntilLock: args.timeUntilLock,
-        raceUrl: `${appUrl}/races/${args.raceId}?utm_source=email&utm_medium=email&utm_campaign=prediction_reminder`,
+        raceUrl: buildRaceEmailUrl({
+          appUrl,
+          raceSlug: args.raceSlug,
+          campaign: 'prediction_reminder',
+        }),
         settingsUrl: `${appUrl}/settings#notifications`,
         logoUrl: `${appUrl}/logo-email.png`,
         sessions: sessionSchedule,

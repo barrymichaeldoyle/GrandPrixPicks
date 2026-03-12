@@ -54,6 +54,29 @@ export const getRaceBySlug = query({
   },
 });
 
+export function findRaceBySlugOrLegacyRef<T extends { _id: string; slug: string }>(
+  races: Array<T>,
+  ref: string,
+): T | null {
+  return races.find((race) => race.slug === ref || race._id === ref) ?? null;
+}
+
+export const getRaceBySlugOrLegacyRef = query({
+  args: { ref: v.string() },
+  handler: async (ctx, args) => {
+    const bySlug = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.ref))
+      .unique();
+    if (bySlug) {
+      return bySlug;
+    }
+
+    const races = await ctx.db.query('races').collect();
+    return findRaceBySlugOrLegacyRef(races, args.ref);
+  },
+});
+
 /**
  * When predictions open for this race (previous race's start time).
  * Null for round 1 (no previous race).

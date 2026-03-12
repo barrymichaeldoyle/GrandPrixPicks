@@ -54,10 +54,9 @@ export const getRaceBySlug = query({
   },
 });
 
-export function findRaceBySlugOrLegacyRef<T extends { _id: string; slug: string }>(
-  races: Array<T>,
-  ref: string,
-): T | null {
+export function findRaceBySlugOrLegacyRef<
+  T extends { _id: string; slug: string },
+>(races: Array<T>, ref: string): T | null {
   return races.find((race) => race.slug === ref || race._id === ref) ?? null;
 }
 

@@ -7,6 +7,7 @@
     "deploy": "convex deploy --yes --typecheck disable",
     "email:dev": "email dev --dir convex/emails --port 3030",
     "lint": "pnpm exec eslint \"convex/**/*.{ts,tsx}\"",
+    "lint:fix": "pnpm exec eslint \"convex/**/*.{ts,tsx}\" --fix",
     "migrations": "node scripts/convex/run-migrations.mjs",
     "migrations:prod": "node scripts/convex/run-migrations.mjs --prod",
     "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit -p convex/tsconfig.json"

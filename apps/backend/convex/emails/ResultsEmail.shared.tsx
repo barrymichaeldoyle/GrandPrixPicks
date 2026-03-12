@@ -132,7 +132,9 @@ export function ResultsEmailShell({
               </Button>
             ) : null}
 
-            {helperText ? <Text style={helperTextStyle}>{helperText}</Text> : null}
+            {helperText ? (
+              <Text style={helperTextStyle}>{helperText}</Text>
+            ) : null}
           </Section>
           <Hr style={hr} />
           <Text style={footer}>

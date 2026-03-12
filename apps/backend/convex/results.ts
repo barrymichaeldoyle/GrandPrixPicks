@@ -25,7 +25,9 @@ const sessionTypeValidator = v.union(
 const BATCH_SIZE = 20;
 
 export function summarizeH2HScore(
-  predictions: Array<Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>>,
+  predictions: Array<
+    Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>
+  >,
   h2hResultMap: Map<string, Id<'drivers'>>,
 ) {
   let correctPicks = 0;
@@ -57,7 +59,7 @@ async function rollbackResultsCore(
     throw new Error('Race not found');
   }
 
-  const season = race.season ?? 2026;
+  const season = race.season;
   const affectedTop5Scores = await ctx.db
     .query('scores')
     .withIndex('by_race_session', (q) =>
@@ -124,7 +126,7 @@ async function rollbackResultsCore(
     },
     raceStatus:
       args.sessionType === 'race'
-        ? args.restoreRaceStatus ?? race.status
+        ? (args.restoreRaceStatus ?? race.status)
         : race.status,
   };
 }
@@ -1185,7 +1187,10 @@ export const backfillH2HScores = internalMutation({
           )
           .collect();
         h2hResultMap = new Map(
-          h2hResults.map((result) => [result.matchupId.toString(), result.winnerId]),
+          h2hResults.map((result) => [
+            result.matchupId.toString(),
+            result.winnerId,
+          ]),
         );
         resultCache.set(cacheKey, h2hResultMap);
       }

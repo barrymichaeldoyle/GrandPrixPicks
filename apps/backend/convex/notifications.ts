@@ -263,7 +263,9 @@ export const sendResultEmailsForSession = internalMutation({
       args.sessionType === 'race'
         ? await ctx.db
             .query('races')
-            .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
+            .withIndex('by_predictionLockAt', (q) =>
+              q.gt('predictionLockAt', now),
+            )
             .first()
         : null;
     const hasUpcomingNextRace = Boolean(
@@ -321,8 +323,7 @@ export const sendResultEmailsForSession = internalMutation({
     // 4. Load all users, filter to eligible
     const allUsers = await ctx.db.query('users').collect();
     const notificationEligibleUsers = allUsers.filter(
-      (u) =>
-        u.email && includesEmail(getResultsNotificationChannel(u)),
+      (u) => u.email && includesEmail(getResultsNotificationChannel(u)),
     );
 
     if (notificationEligibleUsers.length === 0) {

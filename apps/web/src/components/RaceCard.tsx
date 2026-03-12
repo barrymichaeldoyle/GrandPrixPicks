@@ -111,7 +111,11 @@ function Countdown({
   suffix: string;
 }) {
   const label = useCountdown(timestamp);
-  return <span suppressHydrationWarning>{label} {suffix}</span>;
+  return (
+    <span suppressHydrationWarning>
+      {label} {suffix}
+    </span>
+  );
 }
 
 export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
@@ -258,7 +262,8 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
                             : ''
                         }`}
                       >
-                        {formatDate(entry.startAt)} · {formatTime(entry.startAt)}
+                        {formatDate(entry.startAt)} ·{' '}
+                        {formatTime(entry.startAt)}
                       </span>
                     </div>
                   ))}

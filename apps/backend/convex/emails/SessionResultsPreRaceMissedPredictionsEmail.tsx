@@ -1,7 +1,5 @@
-import {
-  ResultsEmailShell,
-  type ResultsEmailShellProps,
-} from './ResultsEmail.shared';
+import type { ResultsEmailShellProps } from './ResultsEmail.shared';
+import { ResultsEmailShell } from './ResultsEmail.shared';
 
 export type SessionResultsPreRaceMissedPredictionsEmailProps = {
   raceName?: string;
@@ -37,7 +35,8 @@ export function SessionResultsPreRaceMissedPredictionsEmail({
     hasSprint,
     primaryCtaLabel: 'Make Race Picks',
     helperText: 'You can still change your race picks until the race starts.',
-    footerText: "You're receiving this because you have email notifications enabled.",
+    footerText:
+      "You're receiving this because you have email notifications enabled.",
   };
 
   return <ResultsEmailShell {...props} />;

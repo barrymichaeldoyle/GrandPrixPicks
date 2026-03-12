@@ -208,14 +208,16 @@ function CompactCard({
                       className="border-b border-border/50 pb-4 last:border-b-0 last:pb-0"
                     >
                       <SessionSection
-                      sessionType={session}
-                      sessionData={sessionData}
-                      variant="compact"
-                      extraContent={compactSessionExtras?.[session]}
-                      extraPoints={compactSessionPointOverrides?.[session] ?? 0}
-                    />
-                  </div>
-                );
+                        sessionType={session}
+                        sessionData={sessionData}
+                        variant="compact"
+                        extraContent={compactSessionExtras?.[session]}
+                        extraPoints={
+                          compactSessionPointOverrides?.[session] ?? 0
+                        }
+                      />
+                    </div>
+                  );
                 })}
 
                 {/* Owner visibility notice */}

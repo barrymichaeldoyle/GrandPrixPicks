@@ -1340,7 +1340,9 @@ export const seedLockedPicksVisibilityScenario = internalMutation({
       drivers = await ctx.db.query('drivers').collect();
     }
     if (drivers.length < 5) {
-      throw new Error('Need at least 5 drivers to seed locked picks visibility');
+      throw new Error(
+        'Need at least 5 drivers to seed locked picks visibility',
+      );
     }
 
     const driverIds = drivers.map((driver) => driver._id);
@@ -3235,7 +3237,7 @@ export const _seedUpcomingPredictionBannerScenario = internalMutation({
       : args.username
         ? await ctx.db
             .query('users')
-            .withIndex('by_username', (q) => q.eq('username', args.username!))
+            .withIndex('by_username', (q) => q.eq('username', args.username))
             .unique()
         : await ctx.db.query('users').first();
 

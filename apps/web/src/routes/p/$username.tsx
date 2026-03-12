@@ -9,11 +9,11 @@ import {
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import {
+  Check,
+  CircleX,
   Hash,
   History,
   Info,
-  Check,
-  CircleX,
   Settings,
   Star,
   Swords,
@@ -25,8 +25,7 @@ import { displayTeamName } from '@/lib/display';
 
 import { Avatar } from '../../components/Avatar';
 import { primaryButtonStyles } from '../../components/Button';
-import { DriverBadge } from '../../components/DriverBadge';
-import { TEAM_COLORS } from '../../components/DriverBadge';
+import { DriverBadge, TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
@@ -472,8 +471,7 @@ function ProfilePage() {
                       ?.totalPoints ?? null
                   }
                   h2hWeekendMaxPoints={
-                    h2hHistory
-                      ?.find((entry) => entry.raceId === weekend.raceId)
+                    h2hHistory?.find((entry) => entry.raceId === weekend.raceId)
                       ? Object.values(
                           h2hHistory.find(
                             (entry) => entry.raceId === weekend.raceId,
@@ -510,7 +508,13 @@ function ProfileWeekendCard({
   h2hWeekendMaxPoints,
   hasH2HPicks,
 }: {
-  weekend: NonNullable<NonNullable<ReturnType<typeof useQuery<typeof api.predictions.getUserPredictionHistory>>>[number]>;
+  weekend: NonNullable<
+    NonNullable<
+      ReturnType<
+        typeof useQuery<typeof api.predictions.getUserPredictionHistory>
+      >
+    >[number]
+  >;
   currentUserId: string;
   isOwner: boolean;
   isSignedIn: boolean;
@@ -594,31 +598,29 @@ function ProfileWeekendCard({
 function CompactH2HSessionPicks({
   picks,
 }: {
-  picks:
-    | Array<{
-        matchupId: string;
-        team: string;
-        driver1: {
-          _id: string;
-          code: string;
-          displayName: string;
-          number: number | null;
-          team: string | null;
-          nationality: string | null;
-        };
-        driver2: {
-          _id: string;
-          code: string;
-          displayName: string;
-          number: number | null;
-          team: string | null;
-          nationality: string | null;
-        };
-        predictedWinnerId: string;
-        actualWinnerId: string | null;
-        isCorrect: boolean | null;
-      }>
-    | null;
+  picks: Array<{
+    matchupId: string;
+    team: string;
+    driver1: {
+      _id: string;
+      code: string;
+      displayName: string;
+      number: number | null;
+      team: string | null;
+      nationality: string | null;
+    };
+    driver2: {
+      _id: string;
+      code: string;
+      displayName: string;
+      number: number | null;
+      team: string | null;
+      nationality: string | null;
+    };
+    predictedWinnerId: string;
+    actualWinnerId: string | null;
+    isCorrect: boolean | null;
+  }> | null;
 }) {
   if (!picks || picks.length === 0) {
     return null;
@@ -634,10 +636,10 @@ function CompactH2HSessionPicks({
     <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-        <Swords className="h-4 w-4 text-accent" />
-        <h4 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
-          H2H
-        </h4>
+          <Swords className="h-4 w-4 text-accent" />
+          <h4 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
+            H2H
+          </h4>
         </div>
         {hasResolvedResults ? (
           <span className="text-xs font-semibold text-accent">

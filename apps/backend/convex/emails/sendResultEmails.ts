@@ -5,30 +5,18 @@ import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
 import { resend } from '../lib/email';
-import {
-  SessionResultsPostRaceMissedPredictionsEmail,
-  type SessionResultsPostRaceMissedPredictionsEmailProps,
-} from './SessionResultsPostRaceMissedPredictionsEmail';
-import {
-  SessionResultsPostRaceMissingH2HPredictionsEmail,
-  type SessionResultsPostRaceMissingH2HPredictionsEmailProps,
-} from './SessionResultsPostRaceMissingH2HPredictionsEmail';
-import {
-  SessionResultsPostRaceMadePredictionsEmail,
-  type SessionResultsPostRaceMadePredictionsEmailProps,
-} from './SessionResultsPostRaceMadePredictionsEmail';
-import {
-  SessionResultsPreRaceMissedPredictionsEmail,
-  type SessionResultsPreRaceMissedPredictionsEmailProps,
-} from './SessionResultsPreRaceMissedPredictionsEmail';
-import {
-  SessionResultsPreRaceMissingH2HPredictionsEmail,
-  type SessionResultsPreRaceMissingH2HPredictionsEmailProps,
-} from './SessionResultsPreRaceMissingH2HPredictionsEmail';
-import {
-  SessionResultsPreRaceMadePredictionsEmail,
-  type SessionResultsPreRaceMadePredictionsEmailProps,
-} from './SessionResultsPreRaceMadePredictionsEmail';
+import type { SessionResultsPostRaceMadePredictionsEmailProps } from './SessionResultsPostRaceMadePredictionsEmail';
+import { SessionResultsPostRaceMadePredictionsEmail } from './SessionResultsPostRaceMadePredictionsEmail';
+import type { SessionResultsPostRaceMissedPredictionsEmailProps } from './SessionResultsPostRaceMissedPredictionsEmail';
+import { SessionResultsPostRaceMissedPredictionsEmail } from './SessionResultsPostRaceMissedPredictionsEmail';
+import type { SessionResultsPostRaceMissingH2HPredictionsEmailProps } from './SessionResultsPostRaceMissingH2HPredictionsEmail';
+import { SessionResultsPostRaceMissingH2HPredictionsEmail } from './SessionResultsPostRaceMissingH2HPredictionsEmail';
+import type { SessionResultsPreRaceMadePredictionsEmailProps } from './SessionResultsPreRaceMadePredictionsEmail';
+import { SessionResultsPreRaceMadePredictionsEmail } from './SessionResultsPreRaceMadePredictionsEmail';
+import type { SessionResultsPreRaceMissedPredictionsEmailProps } from './SessionResultsPreRaceMissedPredictionsEmail';
+import { SessionResultsPreRaceMissedPredictionsEmail } from './SessionResultsPreRaceMissedPredictionsEmail';
+import type { SessionResultsPreRaceMissingH2HPredictionsEmailProps } from './SessionResultsPreRaceMissingH2HPredictionsEmail';
+import { SessionResultsPreRaceMissingH2HPredictionsEmail } from './SessionResultsPreRaceMissingH2HPredictionsEmail';
 
 export const sendBatch = internalAction({
   args: {
@@ -97,24 +85,25 @@ export const sendBatch = internalAction({
         ? `${appUrl}/races/${args.nextRaceSlug}?utm_source=email&utm_medium=email&utm_campaign=results_next_race_cta`
         : undefined;
 
-      const preRaceReadyProps: SessionResultsPreRaceMadePredictionsEmailProps = {
-        ...sharedProps,
-        raceUrl: resultsUrl,
-        racePredictionUrl,
-        racePredictionCtaLabel: recipient.racePredictionCtaLabel,
-      };
+      const preRaceReadyProps: SessionResultsPreRaceMadePredictionsEmailProps =
+        {
+          ...sharedProps,
+          raceUrl: resultsUrl,
+          racePredictionUrl,
+          racePredictionCtaLabel: recipient.racePredictionCtaLabel,
+        };
       const preRaceMissingH2HProps: SessionResultsPreRaceMissingH2HPredictionsEmailProps =
         {
-        ...sharedProps,
-        raceUrl: resultsUrl,
-        racePredictionUrl,
-        racePredictionCtaLabel: recipient.racePredictionCtaLabel,
-      };
+          ...sharedProps,
+          raceUrl: resultsUrl,
+          racePredictionUrl,
+          racePredictionCtaLabel: recipient.racePredictionCtaLabel,
+        };
       const preRaceMissedProps: SessionResultsPreRaceMissedPredictionsEmailProps =
         {
-        ...sharedProps,
-        raceUrl: racePredictionUrl,
-      };
+          ...sharedProps,
+          raceUrl: racePredictionUrl,
+        };
       const postRaceReadyProps: SessionResultsPostRaceMadePredictionsEmailProps =
         {
           ...sharedProps,

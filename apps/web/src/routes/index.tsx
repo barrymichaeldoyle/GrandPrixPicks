@@ -68,8 +68,11 @@ export const Route = createFileRoute('/')({
 });
 
 function HomePage() {
-  const { nextRace, currentOrRecentRace, now: initialNow } =
-    Route.useLoaderData();
+  const {
+    nextRace,
+    currentOrRecentRace,
+    now: initialNow,
+  } = Route.useLoaderData();
   const [now, setNow] = useState(initialNow);
 
   useEffect(() => {
@@ -80,16 +83,13 @@ function HomePage() {
     return () => window.clearInterval(id);
   }, []);
 
-  const cooldownEndsAt =
-    currentOrRecentRace != null
-      ? currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000
-      : null;
-  const showNextRace = nextRace != null && (cooldownEndsAt == null || now >= cooldownEndsAt);
+  const cooldownEndsAt = currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000;
+  const showNextRace = nextRace != null && now >= cooldownEndsAt;
   const featuredRace = showNextRace ? nextRace : currentOrRecentRace;
   const featuredRaceLabel = showNextRace ? 'Next Race' : 'Latest Weekend';
-  const cooldownCountdown = useCountdown(cooldownEndsAt ?? 0);
+  const cooldownCountdown = useCountdown(cooldownEndsAt);
   const nextEvent = (() => {
-    if (!showNextRace || !nextRace) {
+    if (!showNextRace) {
       return null;
     }
     const sessions = (
@@ -166,7 +166,7 @@ function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              {showNextRace && nextRace != null ? (
+              {showNextRace ? (
                 <Button
                   asChild
                   variant="primary"
@@ -222,87 +222,76 @@ function HomePage() {
             transition={{ ...fadeUp.transition, delay: 0.18 }}
             className="w-full max-w-3xl rounded-2xl border border-border bg-surface/85 p-4"
           >
-            {featuredRace != null ? (
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-text-muted">
-                    {featuredRaceLabel}
-                  </p>
-                  {showNextRace ? (
-                    <Button
-                      asChild
-                      variant="secondary"
-                      size="sm"
-                      rightIcon={ArrowRight}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-text-muted">
+                  {featuredRaceLabel}
+                </p>
+                {showNextRace ? (
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="sm"
+                    rightIcon={ArrowRight}
+                  >
+                    <Link
+                      to="/races/$raceSlug"
+                      params={{ raceSlug: featuredRace.slug }}
                     >
-                      <Link
-                        to="/races/$raceSlug"
-                        params={{ raceSlug: featuredRace.slug }}
-                      >
-                        Open race page
-                      </Link>
-                    </Button>
-                  ) : null}
-                </div>
+                      Open race page
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
 
-                <div className="flex items-start gap-2.5">
-                  {(() => {
-                    const countryCode = getCountryCodeForRace(featuredRace);
-                    return countryCode ? (
-                      <span className="shrink-0">
-                        <RaceFlag countryCode={countryCode} size="lg" />
+              <div className="flex items-start gap-2.5">
+                {(() => {
+                  const countryCode = getCountryCodeForRace(featuredRace);
+                  return countryCode ? (
+                    <span className="shrink-0">
+                      <RaceFlag countryCode={countryCode} size="lg" />
+                    </span>
+                  ) : null;
+                })()}
+                <div className="min-w-0 space-y-1">
+                  <h3 className="text-2xl leading-tight font-semibold text-text">
+                    {featuredRace.name}
+                  </h3>
+                  <p
+                    className="text-sm text-text-muted"
+                    suppressHydrationWarning
+                  >
+                    {formatDate(featuredRace.raceStartAt)} •{' '}
+                    {formatTime(featuredRace.raceStartAt)}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                    {showNextRace && nextEvent ? (
+                      <span
+                        className="text-xs font-semibold text-accent tabular-nums"
+                        suppressHydrationWarning
+                      >
+                        {nextEventCountdown} to {nextEvent.label}
                       </span>
-                    ) : null;
-                  })()}
-                  <div className="min-w-0 space-y-1">
-                    <h3 className="text-2xl leading-tight font-semibold text-text">
-                      {featuredRace.name}
-                    </h3>
-                    <p
-                      className="text-sm text-text-muted"
-                      suppressHydrationWarning
-                    >
-                      {formatDate(featuredRace.raceStartAt)} •{' '}
-                      {formatTime(featuredRace.raceStartAt)}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                      {showNextRace && nextEvent ? (
-                        <span
-                          className="text-xs font-semibold text-accent tabular-nums"
-                          suppressHydrationWarning
-                        >
-                          {nextEventCountdown} to {nextEvent.label}
-                        </span>
-                      ) : !showNextRace && cooldownEndsAt != null ? (
-                        <span
-                          className="text-xs font-semibold text-text-muted"
-                          suppressHydrationWarning
-                        >
-                          Next race returns {cooldownCountdown}
-                        </span>
-                      ) : null}
-                      <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/40 px-2 py-0.5 text-xs font-medium text-text-muted">
-                        Round {featuredRace.round}
+                    ) : (
+                      <span
+                        className="text-xs font-semibold text-text-muted"
+                        suppressHydrationWarning
+                      >
+                        Next race returns {cooldownCountdown}
                       </span>
-                      {featuredRace.hasSprint ? (
-                        <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent-muted px-2 py-0.5 text-xs font-semibold text-accent">
-                          Sprint weekend
-                        </span>
-                      ) : null}
-                    </div>
+                    )}
+                    <span className="inline-flex items-center rounded-full border border-border bg-surface-muted/40 px-2 py-0.5 text-xs font-medium text-text-muted">
+                      Round {featuredRace.round}
+                    </span>
+                    {featuredRace.hasSprint ? (
+                      <span className="inline-flex items-center rounded-full border border-accent/25 bg-accent-muted px-2 py-0.5 text-xs font-semibold text-accent">
+                        Sprint weekend
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-text-muted">
-                  Next Race
-                </p>
-                <p className="text-sm text-text-muted">
-                  No upcoming races scheduled
-                </p>
-              </div>
-            )}
+            </div>
           </motion.aside>
         </div>
       </section>

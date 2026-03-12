@@ -43,7 +43,9 @@ export const Route = createFileRoute('/races/$raceSlug')({
   component: RaceDetailPage,
   loader: async ({ params, location }) => {
     const [race, nextRace] = await Promise.all([
-      convex.query(api.races.getRaceBySlugOrLegacyRef, { ref: params.raceSlug }),
+      convex.query(api.races.getRaceBySlugOrLegacyRef, {
+        ref: params.raceSlug,
+      }),
       convex.query(api.races.getNextRace),
     ]);
     if (race && race.slug !== params.raceSlug) {
@@ -565,24 +567,23 @@ function RaceDetailPage() {
       top5MainContent={
         top5EditingSession
           ? renderTop5EditForm()
-          : renderLateSessionEntryForm() ?? (
-              cardData && (
-                <ErrorBoundary>
-                  <RaceScoreCard
-                    data={selectedSessionCardData ?? cardData}
-                    variant="full"
-                    viewer={{
-                      isSignedIn: !!isSignedIn,
-                      isOwner: true,
-                    }}
-                    isNextRace={isNextRace}
-                    onEditSession={
-                      canManagePredictions ? setTop5EditingSession : undefined
-                    }
-                  />
-                </ErrorBoundary>
-              )
-            )
+          : (renderLateSessionEntryForm() ??
+            (cardData && (
+              <ErrorBoundary>
+                <RaceScoreCard
+                  data={selectedSessionCardData ?? cardData}
+                  variant="full"
+                  viewer={{
+                    isSignedIn: !!isSignedIn,
+                    isOwner: true,
+                  }}
+                  isNextRace={isNextRace}
+                  onEditSession={
+                    canManagePredictions ? setTop5EditingSession : undefined
+                  }
+                />
+              </ErrorBoundary>
+            )))
       }
       top5HeaderAside={
         canManagePredictions && selectedSessionData ? (

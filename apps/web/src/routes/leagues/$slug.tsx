@@ -433,12 +433,14 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
       )}
       {showPredictionStatus && (
         <p className="mb-3 text-xs text-text-muted">
-          Rank and points are shown inline. Predictions stay hidden until this race locks.
+          Rank and points are shown inline. Predictions stay hidden until this
+          race locks.
         </p>
       )}
       {!showPredictionStatus && leaderboard.entries.length === 0 && (
         <p className="mb-3 text-xs text-text-muted">
-          No scores yet. Rankings will appear here once race results are published.
+          No scores yet. Rankings will appear here once race results are
+          published.
         </p>
       )}
       <LeagueMembersList

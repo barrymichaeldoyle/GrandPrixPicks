@@ -77,20 +77,20 @@ export function SessionSection({
       {/* Picks grid */}
       {sessionData.picks.length > 0 &&
         (variant === 'compact' ? (
-            <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-warning" />
-                  <span className="font-title text-xs font-semibold tracking-wide text-text-muted uppercase">
-                    Top 5
-                  </span>
-                </div>
-                {sessionData.points != null ? (
-                  <span className="text-xs font-semibold text-accent">
-                    {sessionData.points} pts
-                  </span>
-                ) : null}
+          <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-warning" />
+                <span className="font-title text-xs font-semibold tracking-wide text-text-muted uppercase">
+                  Top 5
+                </span>
               </div>
+              {sessionData.points != null ? (
+                <span className="text-xs font-semibold text-accent">
+                  {sessionData.points} pts
+                </span>
+              ) : null}
+            </div>
             <SessionPicksGrid
               picks={sessionData.picks}
               breakdown={sessionData.breakdown}

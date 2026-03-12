@@ -19,6 +19,7 @@
         "src/lib/og/templates.ts"
       ],
       "ignoreDependencies": [
+        "@clerk/tanstack-react-start",
         "@tanstack/router-plugin",
         "tailwindcss",
         "babel-plugin-react-compiler"
@@ -28,7 +29,10 @@
     "apps/backend": {
       "entry": ["convex/**/*.ts"],
       "project": ["convex/**/*.ts"],
-      "ignoreDependencies": ["@react-email/components"]
+      "ignoreDependencies": [
+        "@react-email/components",
+        "@react-email/preview-server"
+      ]
     },
     "apps/mobile": {
       "entry": ["App.tsx", "metro.config.cjs"],

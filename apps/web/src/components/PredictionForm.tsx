@@ -700,12 +700,12 @@ export function PredictionForm({
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
               {picks.length >= 5 ? (
-                <span className="ml-2 text-sm font-normal text-text-muted">
+                <span className="ml-2 text-sm font-normal whitespace-nowrap text-text-muted">
                   (remove a pick to change)
                 </span>
               ) : (
                 <span
-                  className="ml-2 text-sm font-normal text-text-muted"
+                  className="mt-1 block text-sm font-normal whitespace-nowrap text-text-muted sm:mt-0 sm:ml-2 sm:inline"
                   data-testid="picks-remaining"
                 >
                   Select {5 - picks.length} more driver

@@ -134,7 +134,7 @@ export function RaceEventPageLayout({
               ) : isPredictable && isSignedIn && !hasPredictions ? (
                 <div className="relative">
                   {randomizeControl && (
-                    <div className="absolute top-3 right-2 z-10">
+                    <div className="absolute top-2 right-2 z-10">
                       {randomizeControl}
                     </div>
                   )}
@@ -143,7 +143,9 @@ export function RaceEventPageLayout({
               ) : (
                 <div>
                   {showSessionTabs && (
-                    <div className="border-b-3 border-accent/50 bg-surface-muted/40 p-1">
+                    <div
+                      className={`border-b-3 ${statusStyles.border} bg-surface-muted/40 p-1`}
+                    >
                       <TabSwitch
                         value={selectedSession}
                         onChange={onSelectedSessionChange}

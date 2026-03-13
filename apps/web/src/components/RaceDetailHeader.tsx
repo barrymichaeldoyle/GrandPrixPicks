@@ -26,19 +26,20 @@ export function RaceDetailHeader({
 
   return (
     <div className="p-0">
-      <div className="flex flex-col gap-2 md:flex-row md:items-stretch md:justify-between">
+      <div className="flex flex-col md:flex-row md:items-stretch md:justify-between md:gap-2">
         <div className="flex min-w-0 flex-1 items-stretch gap-0 md:gap-3">
           {countryCode && (
             <div
-              className={`flex shrink-0 self-stretch border-r-3 ${isNextRace ? 'border-accent/50' : 'border-border'} md:hidden`}
+              className={`shrink-0 self-stretch border-r-3 ${isNextRace ? 'border-accent/50' : 'border-border'} md:hidden`}
             >
-              <span className="flex h-full">
-                <RaceFlag
-                  countryCode={countryCode}
-                  size="full"
-                  className="!rounded-none ring-0"
-                />
-              </span>
+              <img
+                src={`https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/w320/${countryCode.toLowerCase()}.png 2x`}
+                alt=""
+                className="h-[80px] w-auto"
+                loading="eager"
+                decoding="sync"
+              />
             </div>
           )}
           {countryCode && (

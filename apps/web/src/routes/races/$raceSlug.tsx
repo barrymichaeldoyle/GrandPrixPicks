@@ -485,12 +485,15 @@ function RaceDetailPage() {
       <div className="space-y-2 p-4">
         <div className="flex items-center gap-2">
           <Trophy className="h-5 w-5 shrink-0 text-accent" />
-          <h2 className="text-xl font-semibold text-text">Top 5 Predictions</h2>
+          <h2 className="text-xl font-semibold text-text">
+            <span className="sm:hidden">Top 5</span>
+            <span className="hidden sm:inline">Top 5 Predictions</span>
+          </h2>
         </div>
         <p className="text-text-muted">
           Pick your top 5 drivers. This prediction will apply to{' '}
           {currentRace.hasSprint
-            ? 'Qualifying, Sprint Qualifying, Sprint, and Race'
+            ? 'Sprint Qualifying, Sprint, Qualifying, and Race'
             : 'Qualifying and Race'}
           . Save now, then edit any session any time before it starts.
         </p>

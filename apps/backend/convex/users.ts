@@ -836,10 +836,13 @@ export const updateProfile = mutation({
 
     await ctx.db.patch(viewer._id, patch);
 
-    // Sync denormalized fields to standings if username changed
+    // Sync denormalized fields to standings if username or displayName changed
     const standingsSync: Record<string, string | undefined> = {};
     if (patch.username) {
       standingsSync.username = patch.username as string;
+    }
+    if (patch.displayName) {
+      standingsSync.displayName = patch.displayName as string;
     }
     if (Object.keys(standingsSync).length > 0) {
       await syncUserToStandings(ctx, viewer._id, standingsSync);

@@ -4,15 +4,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Globe,
-  Loader2,
-  Medal,
-  Swords,
-  Trophy,
-  User,
-  Users,
-} from 'lucide-react';
+import { Globe, Loader2, Medal, Swords, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
@@ -63,6 +55,7 @@ type LeaderboardEntry = {
   rank: number;
   userId: string;
   username: string;
+  displayName?: string;
   points: number;
   raceCount: number;
   isViewer: boolean;
@@ -200,16 +193,16 @@ function LeaderboardPage() {
                   transition={{ duration: 0.2 }}
                   className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                     {headerViewerEntryOrNull.rank}
                   </span>
-                  <div>
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-text">
-                      <User className="h-3 w-3 text-accent" />
-                      {isH2HTab ? 'Your H2H Rank' : 'Your Rank'}
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-text">
+                      {headerViewerEntryOrNull.displayName ??
+                        headerViewerEntryOrNull.username}
                     </div>
                     <div className="text-base font-bold text-accent">
-                      {headerViewerEntryOrNull.points} pts
+                      {headerViewerEntryOrNull.points} points
                       {isH2HTab &&
                         'correctPicks' in headerViewerEntryOrNull && (
                           <span className="ml-2 text-sm font-normal text-text-muted">
@@ -277,10 +270,22 @@ function LeaderboardPage() {
             ) : (
               <div className="space-y-3">
                 {podiumEntries.length >= 3 && (
-                  <div className="mb-6 grid grid-cols-3 gap-3">
-                    <PodiumCard entry={podiumEntries[1]} place={2} />
-                    <PodiumCard entry={podiumEntries[0]} place={1} />
-                    <PodiumCard entry={podiumEntries[2]} place={3} />
+                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <PodiumCard
+                      entry={podiumEntries[0]}
+                      place={1}
+                      className="order-1 sm:order-2"
+                    />
+                    <PodiumCard
+                      entry={podiumEntries[1]}
+                      place={2}
+                      className="order-2 sm:order-1"
+                    />
+                    <PodiumCard
+                      entry={podiumEntries[2]}
+                      place={3}
+                      className="order-3"
+                    />
                   </div>
                 )}
 
@@ -293,9 +298,6 @@ function LeaderboardPage() {
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
                           Player
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                          Races
                         </th>
                         <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
                           Points
@@ -472,10 +474,18 @@ function FollowingTop5Inner() {
   return (
     <div className="space-y-3">
       {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-3 gap-3">
-          <PodiumCard entry={podiumEntries[1]} place={2} />
-          <PodiumCard entry={podiumEntries[0]} place={1} />
-          <PodiumCard entry={podiumEntries[2]} place={3} />
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <PodiumCard
+            entry={podiumEntries[0]}
+            place={1}
+            className="order-1 sm:order-2"
+          />
+          <PodiumCard
+            entry={podiumEntries[1]}
+            place={2}
+            className="order-2 sm:order-1"
+          />
+          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
         </div>
       )}
 
@@ -488,9 +498,6 @@ function FollowingTop5Inner() {
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
                 Player
-              </th>
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Races
               </th>
               <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
                 Points
@@ -565,10 +572,18 @@ function H2HLeaderboardLayout({
   return (
     <div className="space-y-3">
       {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-3 gap-3">
-          <PodiumCard entry={podiumEntries[1]} place={2} />
-          <PodiumCard entry={podiumEntries[0]} place={1} />
-          <PodiumCard entry={podiumEntries[2]} place={3} />
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <PodiumCard
+            entry={podiumEntries[0]}
+            place={1}
+            className="order-1 sm:order-2"
+          />
+          <PodiumCard
+            entry={podiumEntries[1]}
+            place={2}
+            className="order-2 sm:order-1"
+          />
+          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
         </div>
       )}
 
@@ -631,10 +646,9 @@ function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
           params={{ username: entry.username }}
           className="flex items-center gap-2 font-medium text-text"
         >
-          {entry.isViewer && (
-            <User className="h-4 w-4 text-accent" aria-hidden="true" />
-          )}
-          <span className="font-semibold text-accent">{entry.username}</span>
+          <span className="font-semibold text-accent">
+            {entry.displayName ?? entry.username}
+          </span>
           {entry.isViewer && (
             <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
               YOU
@@ -648,7 +662,7 @@ function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
         </span>
       </td>
       <td className="px-4 py-3 text-right">
-        <span className="font-bold text-accent">{entry.points}</span>
+        <span className="font-bold text-text">{entry.points}</span>
       </td>
     </tr>
   );
@@ -677,10 +691,9 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           params={{ username: entry.username }}
           className="flex items-center gap-2 font-medium text-text"
         >
-          {entry.isViewer && (
-            <User className="h-4 w-4 text-accent" aria-hidden="true" />
-          )}
-          <span className="font-semibold text-accent">{entry.username}</span>
+          <span className="font-semibold text-accent">
+            {entry.displayName ?? entry.username}
+          </span>
           {entry.isViewer && (
             <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
               YOU
@@ -688,11 +701,8 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           )}
         </Link>
       </td>
-      <td className="px-4 py-3 text-right">
-        <span className="text-sm text-text-muted">{entry.raceCount}</span>
-      </td>
       <td className="px-4 py-3 text-right" data-testid="points">
-        <span className="font-bold text-accent">{entry.points}</span>
+        <span className="font-bold text-text">{entry.points}</span>
       </td>
     </tr>
   );
@@ -706,9 +716,6 @@ function SkeletonRow() {
       </td>
       <td className="px-4 py-3">
         <div className="h-4 w-24 animate-pulse rounded bg-border" />
-      </td>
-      <td className="px-4 py-3">
-        <div className="ml-auto h-4 w-6 animate-pulse rounded bg-border" />
       </td>
       <td className="px-4 py-3">
         <div className="ml-auto h-4 w-10 animate-pulse rounded bg-border" />
@@ -741,7 +748,7 @@ function SmallLeaderboard({ entries }: { entries: Array<LeaderboardEntry> }) {
             </span>
             <span className="flex items-center gap-2 font-medium text-text">
               <span className="font-semibold text-accent">
-                {entry.username}
+                {entry.displayName ?? entry.username}
               </span>
               {entry.isViewer && (
                 <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -765,73 +772,111 @@ function SmallLeaderboard({ entries }: { entries: Array<LeaderboardEntry> }) {
 function PodiumCard({
   entry,
   place,
+  className = '',
 }: {
   entry: LeaderboardEntry;
   place: 1 | 2 | 3;
+  className?: string;
 }) {
   const isFirst = place === 1;
-  const marginTop = place === 1 ? '' : place === 2 ? 'mt-8' : 'mt-12';
+  const marginTop = place === 1 ? '' : place === 2 ? 'sm:mt-8' : 'sm:mt-12';
 
   const borderStyle = entry.isViewer
-    ? 'border-accent bg-accent-muted ring-2 ring-accent'
+    ? 'border-accent ring-2 ring-accent bg-surface'
     : isFirst
       ? 'border-warning/30 bg-surface'
       : 'border-border bg-surface';
 
   const Icon = isFirst ? Trophy : Medal;
+  const glowColor = isFirst ? '#eab308' : place === 2 ? '#C0C0C0' : '#cd7f32';
   const iconColor = isFirst
     ? 'text-warning'
     : place === 2
-      ? 'text-text-muted'
-      : 'text-warning';
+      ? 'text-[#C0C0C0]'
+      : 'text-[#cd7f32]';
   const bgColor = isFirst
-    ? 'bg-warning-muted'
+    ? 'bg-warning/20'
     : place === 2
-      ? 'bg-surface-muted'
-      : 'bg-warning-muted';
+      ? 'bg-[#C0C0C0]/20'
+      : 'bg-[#cd7f32]/20';
+  const badgeRing = isFirst
+    ? 'ring-1 ring-warning/50'
+    : place === 2
+      ? 'ring-1 ring-[#C0C0C0]/50'
+      : 'ring-1 ring-[#cd7f32]/50';
   const textColor = isFirst
     ? 'text-warning'
     : place === 2
-      ? 'text-text-muted'
-      : 'text-warning';
+      ? 'text-[#C0C0C0]'
+      : 'text-[#cd7f32]';
   const placeLabels = { 1: '1st', 2: '2nd', 3: '3rd' };
 
   return (
     <Link
       to="/p/$username"
       params={{ username: entry.username }}
-      className={`${marginTop} block cursor-pointer rounded-xl border p-4 text-center transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-lg ${borderStyle}`}
+      className={`${className} ${marginTop} relative block cursor-pointer rounded-xl border p-3 transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-lg sm:p-4 ${borderStyle}`}
     >
-      <div
-        className={`mx-auto mb-2 flex items-center justify-center rounded-full ${bgColor} ${
-          isFirst ? 'h-14 w-14' : 'h-12 w-12'
-        }`}
-      >
-        <Icon className={`${isFirst ? 'h-8 w-8' : 'h-6 w-6'} ${iconColor}`} />
+      {/* Desktop: YOU badge top-right */}
+      {entry.isViewer && (
+        <span className="absolute top-2 right-2 hidden rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white sm:inline">
+          YOU
+        </span>
+      )}
+
+      {/* Mobile: horizontal layout */}
+      <div className="flex items-center gap-3 sm:hidden">
+        <div className="flex shrink-0 items-center gap-2">
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-full ${bgColor} ${badgeRing}`}
+            style={{ filter: `drop-shadow(0 0 10px ${glowColor}cc)` }}
+          >
+            <Icon className={`h-6 w-6 ${iconColor}`} />
+          </div>
+          <div
+            className={`text-base font-bold ${textColor}`}
+            style={{ textShadow: `0 0 12px ${glowColor}99` }}
+          >
+            {placeLabels[place]}
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 text-right">
+          <div className="flex items-center justify-end gap-1.5">
+            {entry.isViewer && (
+              <span className="shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+                YOU
+              </span>
+            )}
+            <span className="truncate text-sm font-semibold text-accent">
+              {entry.displayName ?? entry.username}
+            </span>
+          </div>
+          <div className="text-sm font-bold text-text">
+            {entry.points} points
+          </div>
+        </div>
       </div>
-      <div className={`text-2xl font-bold ${textColor}`}>
-        {placeLabels[place]}
-      </div>
-      <div
-        className={`mt-1 flex items-center justify-center gap-1.5 truncate ${
-          isFirst ? 'font-semibold' : 'font-medium'
-        }`}
-      >
-        {entry.isViewer && <User className="h-4 w-4 text-accent" />}
-        <span className="font-semibold text-accent">{entry.username}</span>
-        {entry.isViewer && (
-          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
-            YOU
-          </span>
-        )}
-      </div>
-      <div
-        className={`${isFirst ? 'text-xl' : 'text-lg'} font-bold text-accent`}
-      >
-        {entry.points} pts
-      </div>
-      <div className="text-xs text-text-muted">
-        {entry.raceCount} race{entry.raceCount !== 1 ? 's' : ''}
+
+      {/* Desktop: vertical centered layout */}
+      <div className="hidden sm:block">
+        <div
+          className={`mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full ${bgColor} ${badgeRing}`}
+          style={{ filter: `drop-shadow(0 0 10px ${glowColor}cc)` }}
+        >
+          <Icon className={`h-6 w-6 ${iconColor}`} />
+        </div>
+        <div
+          className={`text-center text-xl font-bold ${textColor}`}
+          style={{ textShadow: `0 0 12px ${glowColor}99` }}
+        >
+          {placeLabels[place]}
+        </div>
+        <div className="mt-1 truncate text-center text-sm font-semibold text-accent">
+          {entry.displayName ?? entry.username}
+        </div>
+        <div className="text-center text-sm font-bold text-text">
+          {entry.points} points
+        </div>
       </div>
     </Link>
   );

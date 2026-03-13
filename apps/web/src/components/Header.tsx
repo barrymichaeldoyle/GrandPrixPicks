@@ -10,8 +10,8 @@ import { primaryNavLinks } from '../lib/navigation';
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-/** Mobile menu: viewport width <= 790px is "mobile". Keep min-[791px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 790px)';
+/** Mobile menu: viewport width <= 843px is "mobile". Keep min-[844px] classes below in sync. */
+export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
 
 export function Header({
   mobileMenuOpen,
@@ -218,7 +218,7 @@ export function Header({
           {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[791px]:flex"
+            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex"
           >
             {primaryNavLinks.map((link) => (
               <Link
@@ -243,45 +243,47 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Mobile menu button */}
-          <motion.button
-            ref={menuButtonRef}
-            onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-            className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:hidden"
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileMenuOpen}
-            aria-controls="mobile-nav"
-            whileTap={{ scale: 0.9 }}
-          >
-            <AnimatePresence mode="wait">
-              {mobileMenuOpen ? (
-                <motion.div
-                  key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <X size={24} />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="menu"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Menu size={24} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
+          <Show when="signed-out">
+            {/* Mobile menu button */}
+            <motion.button
+              ref={menuButtonRef}
+              onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
+              className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav"
+              whileTap={{ scale: 0.9 }}
+            >
+              <AnimatePresence mode="wait">
+                {mobileMenuOpen ? (
+                  <motion.div
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <X size={24} />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="menu"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Menu size={24} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </Show>
 
           <button
             type="button"
             onClick={toggleTheme}
-            className="hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[791px]:inline-flex"
+            className="hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex"
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun size={20} /> : <Moon size={20} />}
@@ -301,7 +303,7 @@ export function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[791px]:hidden"
+              className="fixed inset-0 top-[57px] z-40 min-[844px]:hidden"
               style={{ backgroundColor: 'var(--overlay)' }}
               onClick={closeMenu}
             />
@@ -314,7 +316,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[791px]:hidden"
+              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {primaryNavLinks.map((link, index) => (

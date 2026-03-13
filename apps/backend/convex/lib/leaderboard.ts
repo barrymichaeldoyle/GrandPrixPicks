@@ -5,6 +5,7 @@ const ANONYMOUS = 'Anonymous';
 type RowBase = {
   userId: Id<'users'>;
   username?: string;
+  displayName?: string;
   avatarUrl?: string;
   totalPoints: number;
   raceCount: number;
@@ -27,6 +28,7 @@ type RaceScoreRowBase = {
 type Viewer = {
   _id: Id<'users'>;
   username?: string;
+  displayName?: string;
 } | null;
 
 export function clampLeaderboardPagination(
@@ -81,6 +83,7 @@ export function buildViewerEntryFromRows<T extends RowBase>(
     rank: viewerIndex + 1,
     userId: viewer._id,
     username: viewer.username ?? ANONYMOUS,
+    displayName: viewer.displayName,
     points: row.totalPoints,
     raceCount: row.raceCount,
     isViewer: true,
@@ -96,6 +99,7 @@ export function mapRowsToLeaderboardEntries<T extends RowBase>(
     rank: offset + index + 1,
     userId: row.userId,
     username: row.username ?? ANONYMOUS,
+    displayName: row.displayName,
     avatarUrl: row.avatarUrl,
     points: row.totalPoints,
     raceCount: row.raceCount,

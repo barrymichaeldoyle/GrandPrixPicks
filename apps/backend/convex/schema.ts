@@ -225,6 +225,7 @@ export default defineSchema({
     raceCount: v.number(),
     // Denormalized user fields (avoids N+1 user lookups in leaderboard queries)
     username: v.optional(v.string()),
+    displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),
@@ -241,6 +242,7 @@ export default defineSchema({
     totalPicks: v.number(),
     // Denormalized user fields (avoids N+1 user lookups in leaderboard queries)
     username: v.optional(v.string()),
+    displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),

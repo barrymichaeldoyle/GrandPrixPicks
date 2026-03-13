@@ -3325,3 +3325,364 @@ export const _seedUpcomingPredictionBannerScenario = internalMutation({
     };
   },
 });
+
+// ─────────────────── Leaderboard Scenario ───────────────────
+
+const LEADERBOARD_SCENARIO_FAKE_USERS = [
+  // Rank 1 — top scorer
+  { username: 'OvercutKing', displayName: 'Overcut King', totalPoints: 147 },
+  // Ranks 3–25 (target user is rank 2)
+  { username: 'ApexPredator', displayName: 'Apex Predator', totalPoints: 114 },
+  { username: 'UndercutAce', displayName: 'Undercut Ace', totalPoints: 109 },
+  { username: 'GridHero', displayName: 'Grid Hero', totalPoints: 104 },
+  { username: 'PodiumChaser', displayName: 'Podium Chaser', totalPoints: 99 },
+  { username: 'FastLapper', displayName: 'Fast Lapper', totalPoints: 94 },
+  { username: 'RacingLine', displayName: 'Racing Line', totalPoints: 89 },
+  {
+    username: 'SlipstreamKing',
+    displayName: 'Slipstream King',
+    totalPoints: 84,
+  },
+  { username: 'TyreHunter', displayName: 'Tyre Hunter', totalPoints: 79 },
+  { username: 'PitWallPro', displayName: 'Pit Wall Pro', totalPoints: 74 },
+  { username: 'FlatoutFrank', displayName: 'Flatout Frank', totalPoints: 69 },
+  { username: 'CheckeredFan', displayName: 'Checkered Fan', totalPoints: 64 },
+  { username: 'CornerKing', displayName: 'Corner King', totalPoints: 59 },
+  { username: 'DrivingForce', displayName: 'Driving Force', totalPoints: 54 },
+  { username: 'F1Fanatic2026', displayName: 'F1 Fanatic', totalPoints: 50 },
+  {
+    username: 'GrandPrixGuru',
+    displayName: 'Grand Prix Guru',
+    totalPoints: 45,
+  },
+  { username: 'HaloHunter', displayName: 'Halo Hunter', totalPoints: 40 },
+  { username: 'InlappingIan', displayName: 'Inlapping Ian', totalPoints: 36 },
+  { username: 'JumpStartJim', displayName: 'Jump Start Jim', totalPoints: 32 },
+  { username: 'KinkyKerb', displayName: 'Kinky Kerb', totalPoints: 27 },
+  { username: 'LappedLarry', displayName: 'Lapped Larry', totalPoints: 23 },
+  { username: 'MidpackMax', displayName: 'Midpack Max', totalPoints: 18 },
+  { username: 'NeutralNick', displayName: 'Neutral Nick', totalPoints: 12 },
+  // 5 zero-point users — predicted but scored nothing
+  { username: 'BackmarkerBob', displayName: 'Backmarker Bob', totalPoints: 0 },
+  { username: 'DNFDave', displayName: 'DNF Dave', totalPoints: 0 },
+  { username: 'PenaltyPete', displayName: 'Penalty Pete', totalPoints: 0 },
+  { username: 'SpinningSteve', displayName: 'Spinning Steve', totalPoints: 0 },
+  { username: 'WallWacker', displayName: 'Wall Wacker', totalPoints: 0 },
+];
+
+/**
+ * Internal: Seed 25 scored users + 5 zero-point predictors for leaderboard testing.
+ * The specified user (default: barrymichaeldoyle) is placed 2nd.
+ * Uses the first 3 races in the calendar; marks them as finished with results.
+ */
+export const _seedLeaderboardData = internalMutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+    const TARGET_POINTS = 120;
+
+    // Find the target user
+    const targetUser = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!targetUser) {
+      throw new Error(
+        `User "${args.username}" not found. Sign in to the app first.`,
+      );
+    }
+
+    // Get drivers
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 20) {
+      throw new Error('Need at least 20 drivers. Run seedDrivers first.');
+    }
+    const driverIds = drivers.map((d) => d._id);
+
+    // Deterministic pseudo-shuffle so results are stable across reruns
+    function deterministicShuffle(
+      arr: Array<Id<'drivers'>>,
+      seed: number,
+    ): Array<Id<'drivers'>> {
+      const result = [...arr];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.abs((seed * 1103515245 + 12345 + i * 6789) % (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    // Select first 3 races sorted by round (use non-sprint for simplicity)
+    const allRaces = await ctx.db.query('races').collect();
+    const sortedRaces = [...allRaces].sort((a, b) => a.round - b.round);
+    const racesToFinish = sortedRaces.filter((r) => !r.hasSprint).slice(0, 3);
+    if (racesToFinish.length < 3) {
+      throw new Error('Need at least 3 non-sprint races. Run seedRaces first.');
+    }
+
+    // Mark races as finished, create fresh results
+    type SessionClassification = {
+      sessionType: SessionType;
+      top5: Array<Id<'drivers'>>;
+      outOfTop5: Array<Id<'drivers'>>;
+    };
+    const raceResultData: Array<{
+      raceId: Id<'races'>;
+      sessions: Array<SessionClassification>;
+    }> = [];
+
+    for (let i = 0; i < racesToFinish.length; i++) {
+      const race = racesToFinish[i];
+      const weeksAgo = (racesToFinish.length - i) * 7 * DAY;
+      const pastRaceStart = now - weeksAgo;
+
+      await ctx.db.patch(race._id, {
+        status: 'finished',
+        raceStartAt: pastRaceStart,
+        predictionLockAt: pastRaceStart - DAY,
+        qualiStartAt: pastRaceStart - DAY,
+        qualiLockAt: pastRaceStart - DAY,
+        updatedAt: now,
+      });
+
+      const sessions: Array<SessionType> = ['quali', 'race'];
+      const sessionData: Array<SessionClassification> = [];
+
+      for (let si = 0; si < sessions.length; si++) {
+        const sessionType = sessions[si];
+        const classification = deterministicShuffle(driverIds, i * 100 + si);
+        const top5 = classification.slice(0, 5);
+        const outOfTop5 = classification.slice(5);
+
+        await ctx.db.insert('results', {
+          raceId: race._id,
+          sessionType,
+          classification,
+          publishedAt: pastRaceStart + 4 * 60 * 60 * 1000,
+          updatedAt: now,
+        });
+
+        sessionData.push({ sessionType, top5, outOfTop5 });
+      }
+
+      raceResultData.push({ raceId: race._id, sessions: sessionData });
+    }
+
+    // Flatten all sessions
+    const allSessions = raceResultData.flatMap((r) =>
+      r.sessions.map((s) => ({ raceId: r.raceId, ...s })),
+    );
+    const numSessions = allSessions.length;
+
+    // Distribute totalPoints evenly across sessions
+    function distributePoints(total: number, count: number): Array<number> {
+      const base = Math.floor(total / count);
+      const remainder = total % count;
+      return Array.from({ length: count }, (_, i) =>
+        i < remainder ? base + 1 : base,
+      );
+    }
+
+    // Make picks for a session: scoring users pick from top5 area, zero users pick outside
+    function makePicks(
+      top5: Array<Id<'drivers'>>,
+      outOfTop5: Array<Id<'drivers'>>,
+      sessionPoints: number,
+    ): Array<Id<'drivers'>> {
+      if (sessionPoints === 0) {
+        // picks entirely outside the actual top 5 — guaranteed 0 pts
+        return outOfTop5.slice(0, 5);
+      }
+      // picks from within top5 (order scrambled slightly for realism)
+      return [top5[1], top5[0], top5[3], top5[2], top5[4]];
+    }
+
+    // Create all fake users + their scores, predictions, and standings
+    let usersCreated = 0;
+    for (let ui = 0; ui < LEADERBOARD_SCENARIO_FAKE_USERS.length; ui++) {
+      const { username, displayName, totalPoints } =
+        LEADERBOARD_SCENARIO_FAKE_USERS[ui];
+
+      // Upsert fake user (reuse if already exists from a prior run)
+      let fakeUser = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', username))
+        .unique();
+
+      if (!fakeUser) {
+        const id = await ctx.db.insert('users', {
+          clerkUserId: `fake_user_leaderboard_${ui}`,
+          username,
+          displayName,
+          showOnLeaderboard: true,
+          email: `${username.toLowerCase()}@example.com`,
+          createdAt: now,
+          updatedAt: now,
+        });
+        fakeUser = await ctx.db.get(id);
+        usersCreated++;
+      }
+      if (!fakeUser) {
+        throw new Error('Failed to create fake user');
+      }
+
+      const pointsList = distributePoints(totalPoints, numSessions);
+
+      for (let si = 0; si < allSessions.length; si++) {
+        const { raceId, sessionType, top5, outOfTop5 } = allSessions[si];
+        const sessionPoints = pointsList[si];
+        const picks = makePicks(top5, outOfTop5, sessionPoints);
+
+        await ctx.db.insert('predictions', {
+          userId: fakeUser._id,
+          raceId,
+          sessionType,
+          picks,
+          submittedAt: now - 7 * DAY,
+          updatedAt: now - 7 * DAY,
+        });
+
+        await ctx.db.insert('scores', {
+          userId: fakeUser._id,
+          raceId,
+          sessionType,
+          points: sessionPoints,
+          username,
+          showOnLeaderboard: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+
+      await ctx.db.insert('seasonStandings', {
+        userId: fakeUser._id,
+        season: 2026,
+        totalPoints,
+        raceCount: racesToFinish.length,
+        username,
+        displayName,
+        showOnLeaderboard: true,
+        updatedAt: now,
+      });
+    }
+
+    // Create the target user's scores and standings at rank 2
+    const targetPointsList = distributePoints(TARGET_POINTS, numSessions);
+
+    for (let si = 0; si < allSessions.length; si++) {
+      const { raceId, sessionType, top5, outOfTop5 } = allSessions[si];
+      const sessionPoints = targetPointsList[si];
+      const picks = makePicks(top5, outOfTop5, sessionPoints);
+
+      await ctx.db.insert('predictions', {
+        userId: targetUser._id,
+        raceId,
+        sessionType,
+        picks,
+        submittedAt: now - 7 * DAY,
+        updatedAt: now - 7 * DAY,
+      });
+
+      await ctx.db.insert('scores', {
+        userId: targetUser._id,
+        raceId,
+        sessionType,
+        points: sessionPoints,
+        username: targetUser.username,
+        showOnLeaderboard: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    await ctx.db.insert('seasonStandings', {
+      userId: targetUser._id,
+      season: 2026,
+      totalPoints: TARGET_POINTS,
+      raceCount: racesToFinish.length,
+      username: targetUser.username,
+      displayName: targetUser.displayName,
+      showOnLeaderboard: targetUser.showOnLeaderboard ?? true,
+      updatedAt: now,
+    });
+
+    return {
+      targetUserId: targetUser._id,
+      targetUserPoints: TARGET_POINTS,
+      racesFinished: racesToFinish.length,
+      sessionsPerRace: 2,
+      fakeUsersCreated: usersCreated,
+    };
+  },
+});
+
+/**
+ * Reset dev DB to a leaderboard testing scenario:
+ * - Clears all dev data (scores, predictions, results, standings, fake users)
+ * - Resets races to upcoming dates
+ * - Marks first 3 non-sprint races as finished with results
+ * - Creates 24 fake users (1 top scorer + 23 ranked below you) + 5 zero-point users
+ * - Places the specified user (default: barrymichaeldoyle) in 2nd place with 120 pts
+ *
+ * Run via:
+ *   npx convex run seed:seedLeaderboardScenario
+ *   npx convex run seed:seedLeaderboardScenario '{"username": "yourname"}'
+ */
+export const seedLeaderboardScenario = internalAction({
+  args: {
+    username: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const username = args.username ?? 'barrymichaeldoyle';
+
+    // Phase 1: Clear all dev data
+    let totalDeleted = 0;
+    let iterations = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    // Phase 2: Clear leagues
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    // Phase 3: Reset races to original upcoming dates
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    // Phase 4: Ensure drivers and H2H matchups exist
+    await ctx.runMutation(internal.seed.seedDrivers);
+    await ctx.runMutation(internal.seed.seedH2HMatchups);
+
+    // Phase 5: Seed the leaderboard data
+    const seedResult: {
+      targetUserId: Id<'users'>;
+      targetUserPoints: number;
+      racesFinished: number;
+      sessionsPerRace: number;
+      fakeUsersCreated: number;
+    } = await ctx.runMutation(internal.seed._seedLeaderboardData, {
+      username,
+    });
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      username,
+      rank: 2,
+      ...seedResult,
+    };
+  },
+});

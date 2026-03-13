@@ -7,6 +7,7 @@ export async function syncUserToStandings(
   userId: Id<'users'>,
   fields: {
     username?: string;
+    displayName?: string;
     avatarUrl?: string;
     showOnLeaderboard?: boolean;
   },

@@ -161,6 +161,7 @@ export const getFriendsH2HLeaderboard = query({
         rank: offset + index + 1,
         userId: row.userId,
         username: row.username ?? 'Anonymous',
+        displayName: row.displayName,
         avatarUrl: row.avatarUrl,
         points: row.totalPoints,
         raceCount: row.raceCount,

@@ -4,8 +4,10 @@ import { internalMutation } from './_generated/server';
  * One-time migration: remove the `showOnLeaderboard` field from all documents
  * in users, scores, seasonStandings, and h2hSeasonStandings.
  *
- * Run before deploying the schema change that drops this field:
+ * Step 1 — deploy with showOnLeaderboard still in schema (TODO comments), then run:
  *   npx convex run migrations:removeShowOnLeaderboard --prod
+ *
+ * Step 2 — remove the TODO schema fields and redeploy.
  */
 export const removeShowOnLeaderboard = internalMutation({
   args: {},
@@ -14,7 +16,7 @@ export const removeShowOnLeaderboard = internalMutation({
 
     const users = await ctx.db.query('users').collect();
     for (const doc of users) {
-      if ('showOnLeaderboard' in doc) {
+      if (doc.showOnLeaderboard !== undefined) {
         await ctx.db.patch(doc._id, { showOnLeaderboard: undefined });
         patched++;
       }
@@ -22,7 +24,7 @@ export const removeShowOnLeaderboard = internalMutation({
 
     const scores = await ctx.db.query('scores').collect();
     for (const doc of scores) {
-      if ('showOnLeaderboard' in doc) {
+      if (doc.showOnLeaderboard !== undefined) {
         await ctx.db.patch(doc._id, { showOnLeaderboard: undefined });
         patched++;
       }
@@ -30,7 +32,7 @@ export const removeShowOnLeaderboard = internalMutation({
 
     const seasonStandings = await ctx.db.query('seasonStandings').collect();
     for (const doc of seasonStandings) {
-      if ('showOnLeaderboard' in doc) {
+      if (doc.showOnLeaderboard !== undefined) {
         await ctx.db.patch(doc._id, { showOnLeaderboard: undefined });
         patched++;
       }
@@ -38,7 +40,7 @@ export const removeShowOnLeaderboard = internalMutation({
 
     const h2hStandings = await ctx.db.query('h2hSeasonStandings').collect();
     for (const doc of h2hStandings) {
-      if ('showOnLeaderboard' in doc) {
+      if (doc.showOnLeaderboard !== undefined) {
         await ctx.db.patch(doc._id, { showOnLeaderboard: undefined });
         patched++;
       }

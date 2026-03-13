@@ -21,7 +21,6 @@ function makeCtx(params: {
     userId: Id<'users'>;
     username?: string;
     avatarUrl?: string;
-    showOnLeaderboard?: boolean;
     points: number;
     breakdown?: unknown;
   }>;
@@ -97,21 +96,15 @@ describe('getRaceLeaderboardForViewer', () => {
     });
   });
 
-  it('returns visible entries and applies score visibility/filtering rules', async () => {
+  it('returns visible entries sorted by points', async () => {
     const result = await getRaceLeaderboardForViewer(
       makeCtx({
         race: { _id: raceId('r1'), status: 'locked' },
         hasSubmittedPrediction: true,
         scores: [
           {
-            userId: userId('hidden'),
-            points: 99,
-            showOnLeaderboard: false,
-          },
-          {
             userId: userId('viewer'),
             points: 5,
-            showOnLeaderboard: false,
           },
           {
             userId: userId('a'),
@@ -169,12 +162,10 @@ describe('getRaceLeaderboardForViewer', () => {
             userId: userId('public'),
             username: 'Public',
             points: 12,
-            showOnLeaderboard: true,
           },
           {
-            userId: userId('hidden'),
+            userId: userId('other'),
             points: 10,
-            showOnLeaderboard: false,
           },
         ],
       }) as never,
@@ -192,6 +183,14 @@ describe('getRaceLeaderboardForViewer', () => {
           username: 'Public',
           avatarUrl: undefined,
           points: 12,
+          breakdown: undefined,
+        },
+        {
+          rank: 2,
+          userId: userId('other'),
+          username: 'Anonymous',
+          avatarUrl: undefined,
+          points: 10,
           breakdown: undefined,
         },
       ],

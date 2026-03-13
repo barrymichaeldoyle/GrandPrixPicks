@@ -9,7 +9,6 @@ export async function syncUserToStandings(
     username?: string;
     displayName?: string;
     avatarUrl?: string;
-    showOnLeaderboard?: boolean;
   },
 ) {
   const seasonRows = await ctx.db

@@ -9,7 +9,6 @@ import {
   Bell,
   CheckCircle2,
   Eye,
-  EyeOff,
   Globe,
   LoaderCircle,
   LogIn,
@@ -434,28 +433,10 @@ function SettingsPage() {
     purchaseSeason === seasonPassSeason
       ? hasSeasonPassFor2026
       : hasSeasonPassForPurchase;
-  const updatePrivacy = useMutation(api.users.updatePrivacySettings);
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
   const updateRegional = useMutation(api.users.updateRegionalSettings);
   const { isDark, setTheme } = useTheme();
-
-  // Privacy toggle state
-  const [optimisticLeaderboard, setOptimisticLeaderboard] = useState<
-    boolean | null
-  >(null);
-
-  const showOnLeaderboard =
-    optimisticLeaderboard ?? me?.showOnLeaderboard ?? true;
-
-  useEffect(() => {
-    if (
-      optimisticLeaderboard !== null &&
-      me?.showOnLeaderboard === optimisticLeaderboard
-    ) {
-      setOptimisticLeaderboard(null);
-    }
-  }, [optimisticLeaderboard, me?.showOnLeaderboard]);
 
   // Push notifications
   const {
@@ -884,42 +865,6 @@ function SettingsPage() {
             season={seasonPassSeason}
             hasSeasonPass={hasSeasonPassFor2026}
           />
-
-          {/* Privacy section */}
-          <SettingsSection
-            id="privacy"
-            title="Privacy"
-            icon={
-              showOnLeaderboard ? (
-                <Eye className="h-5 w-5 text-text-muted" />
-              ) : (
-                <EyeOff className="h-5 w-5 text-text-muted" />
-              )
-            }
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium text-text">
-                  Show on public leaderboard
-                </p>
-                <p className="text-sm text-text-muted">
-                  When disabled, your name won&apos;t appear on the season
-                  leaderboard.
-                </p>
-              </div>
-              <ToggleSwitch
-                checked={showOnLeaderboard}
-                onChange={() => {
-                  const next = !showOnLeaderboard;
-                  setOptimisticLeaderboard(next);
-                  updatePrivacy({ showOnLeaderboard: next }).catch(() => {
-                    setOptimisticLeaderboard(null);
-                  });
-                }}
-                loading={false}
-              />
-            </div>
-          </SettingsSection>
 
           {/* Regional section */}
           <RegionalSection

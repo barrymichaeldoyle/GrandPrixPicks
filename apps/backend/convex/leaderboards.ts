@@ -7,7 +7,6 @@ import { getViewer } from './lib/auth';
 import {
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
-  filterLeaderboardVisibility,
   getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
@@ -35,11 +34,10 @@ export const getSeasonLeaderboard = query({
 
     const allRows = sortByPointsWithStableTieBreak(standings);
     const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
-    const rows = filterLeaderboardVisibility(allRows, viewer?._id);
 
     // Paginate results
-    const paginatedRows = rows.slice(offset, offset + limit);
-    const hasMore = offset + limit < rows.length;
+    const paginatedRows = allRows.slice(offset, offset + limit);
+    const hasMore = offset + limit < allRows.length;
 
     const enrichedRows = mapRowsToLeaderboardEntries(
       paginatedRows,
@@ -49,7 +47,7 @@ export const getSeasonLeaderboard = query({
 
     return {
       entries: enrichedRows,
-      totalCount: rows.length,
+      totalCount: allRows.length,
       hasMore,
       viewerEntry,
     };
@@ -277,7 +275,7 @@ export async function getRaceLeaderboardForViewer(
     .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
     .collect();
 
-  const entries = mapRaceScoresToLeaderboardEntries(scores, viewer?._id);
+  const entries = mapRaceScoresToLeaderboardEntries(scores);
 
   return { status: 'visible', reason: null, entries };
 }

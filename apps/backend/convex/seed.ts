@@ -1362,7 +1362,6 @@ export const seedLockedPicksVisibilityScenario = internalMutation({
         email: `${friendUsername}@example.com`,
         displayName: 'Locked Friend',
         username: friendUsername,
-        showOnLeaderboard: true,
         createdAt: now,
         updatedAt: now,
       });
@@ -3515,7 +3514,6 @@ export const _seedLeaderboardData = internalMutation({
           clerkUserId: `fake_user_leaderboard_${ui}`,
           username,
           displayName,
-          showOnLeaderboard: true,
           email: `${username.toLowerCase()}@example.com`,
           createdAt: now,
           updatedAt: now,
@@ -3549,7 +3547,6 @@ export const _seedLeaderboardData = internalMutation({
           sessionType,
           points: sessionPoints,
           username,
-          showOnLeaderboard: true,
           createdAt: now,
           updatedAt: now,
         });
@@ -3562,7 +3559,6 @@ export const _seedLeaderboardData = internalMutation({
         raceCount: racesToFinish.length,
         username,
         displayName,
-        showOnLeaderboard: true,
         updatedAt: now,
       });
     }
@@ -3590,7 +3586,6 @@ export const _seedLeaderboardData = internalMutation({
         sessionType,
         points: sessionPoints,
         username: targetUser.username,
-        showOnLeaderboard: true,
         createdAt: now,
         updatedAt: now,
       });
@@ -3603,7 +3598,6 @@ export const _seedLeaderboardData = internalMutation({
       raceCount: racesToFinish.length,
       username: targetUser.username,
       displayName: targetUser.displayName,
-      showOnLeaderboard: targetUser.showOnLeaderboard ?? true,
       updatedAt: now,
     });
 

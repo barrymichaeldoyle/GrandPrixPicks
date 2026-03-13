@@ -272,48 +272,24 @@ export const getH2HSeasonLeaderboard = query({
       }
     }
 
-    // Filter out users who opted out of leaderboard (but always include viewer)
-    const privacyMap = new Map<string, boolean>();
-    for (const row of allRows) {
-      if (viewer && row.userId === viewer._id) {
-        continue;
-      }
-      const user = await ctx.db.get(row.userId);
-      privacyMap.set(row.userId, user?.showOnLeaderboard !== false);
-    }
+    const paginatedRows = allRows.slice(offset, offset + limit);
+    const hasMore = offset + limit < allRows.length;
 
-    const rows = allRows.filter((row) => {
-      if (viewer && row.userId === viewer._id) {
-        return true;
-      }
-      return privacyMap.get(row.userId) !== false;
-    });
-
-    const paginatedRows = rows.slice(offset, offset + limit);
-    const hasMore = offset + limit < rows.length;
-
-    // Only read user docs for the paginated page
-    const enrichedRows = await Promise.all(
-      paginatedRows.map(async (row, index) => {
-        const user = await ctx.db.get(row.userId);
-        const isViewer = viewer ? row.userId === viewer._id : false;
-        return {
-          rank: offset + index + 1,
-          userId: row.userId,
-          username: user?.username ?? 'Anonymous',
-          avatarUrl: user?.avatarUrl,
-          points: row.totalPoints,
-          raceCount: row.raceCount,
-          correctPicks: row.correctPicks,
-          totalPicks: row.totalPicks,
-          isViewer,
-        };
-      }),
-    );
+    const enrichedRows = paginatedRows.map((row, index) => ({
+      rank: offset + index + 1,
+      userId: row.userId,
+      username: row.username ?? 'Anonymous',
+      avatarUrl: row.avatarUrl,
+      points: row.totalPoints,
+      raceCount: row.raceCount,
+      correctPicks: row.correctPicks,
+      totalPicks: row.totalPicks,
+      isViewer: viewer ? row.userId === viewer._id : false,
+    }));
 
     return {
       entries: enrichedRows,
-      totalCount: rows.length,
+      totalCount: allRows.length,
       hasMore,
       viewerEntry,
     };

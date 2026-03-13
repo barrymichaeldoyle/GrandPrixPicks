@@ -11,17 +11,11 @@ type RowBase = {
   raceCount: number;
 };
 
-type VisibleRowBase = {
-  userId: Id<'users'>;
-  showOnLeaderboard?: boolean;
-};
-
 type RaceScoreRowBase = {
   userId: Id<'users'>;
   username?: string;
   avatarUrl?: string;
   points: number;
-  showOnLeaderboard?: boolean;
   breakdown?: unknown;
 };
 
@@ -50,18 +44,6 @@ export function sortByPointsWithStableTieBreak<T extends RowBase>(
       return b.totalPoints - a.totalPoints;
     }
     return String(a.userId).localeCompare(String(b.userId));
-  });
-}
-
-export function filterLeaderboardVisibility<T extends VisibleRowBase>(
-  rows: ReadonlyArray<T>,
-  viewerId?: Id<'users'>,
-): Array<T> {
-  return rows.filter((row) => {
-    if (viewerId && row.userId === viewerId) {
-      return true;
-    }
-    return row.showOnLeaderboard !== false;
   });
 }
 
@@ -128,16 +110,8 @@ export function getRaceLeaderboardAccess(params: {
 
 export function mapRaceScoresToLeaderboardEntries<T extends RaceScoreRowBase>(
   rows: ReadonlyArray<T>,
-  viewerId?: Id<'users'>,
 ) {
-  const visible = rows.filter((row) => {
-    if (viewerId && row.userId === viewerId) {
-      return true;
-    }
-    return row.showOnLeaderboard !== false;
-  });
-
-  const sorted = [...visible].sort((a, b) => {
+  const sorted = [...rows].sort((a, b) => {
     if (a.points !== b.points) {
       return b.points - a.points;
     }

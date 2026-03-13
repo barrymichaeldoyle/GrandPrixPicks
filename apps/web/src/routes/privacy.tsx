@@ -104,10 +104,9 @@ function PrivacyPage() {
             </h2>
             <p>
               You can update your display name and account details through your
-              account settings (e.g. via Clerk). You can choose to hide yourself
-              from the leaderboard in your app settings. You may request
-              deletion of your account and associated data by contacting us; we
-              will process such requests in line with applicable law.
+              account settings (e.g. via Clerk). You may request deletion of
+              your account and associated data by contacting us; we will process
+              such requests in line with applicable law.
             </p>
           </section>
 

@@ -16,7 +16,6 @@ export default defineSchema({
     username: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     usernameChangedAt: v.optional(v.number()),
-    showOnLeaderboard: v.optional(v.boolean()),
     emailReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
     pushReminders: v.optional(v.boolean()),
@@ -146,7 +145,6 @@ export default defineSchema({
     // Denormalized user fields (avoids N+1 user lookups in race leaderboard)
     username: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    showOnLeaderboard: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -227,7 +225,6 @@ export default defineSchema({
     username: v.optional(v.string()),
     displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_season_points', ['season', 'totalPoints'])
@@ -244,7 +241,6 @@ export default defineSchema({
     username: v.optional(v.string()),
     displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    showOnLeaderboard: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index('by_season_points', ['season', 'totalPoints'])

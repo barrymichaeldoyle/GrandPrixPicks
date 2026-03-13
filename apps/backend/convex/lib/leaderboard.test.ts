@@ -4,7 +4,6 @@ import type { Id } from '../_generated/dataModel';
 import {
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
-  filterLeaderboardVisibility,
   getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
@@ -40,18 +39,6 @@ describe('leaderboard helpers', () => {
       user('u2'),
       user('u3'),
     ]);
-  });
-
-  it('filters hidden rows but always keeps the viewer row', () => {
-    const rows = [
-      { userId: user('viewer'), showOnLeaderboard: false },
-      { userId: user('public'), showOnLeaderboard: true },
-      { userId: user('hidden'), showOnLeaderboard: false },
-    ];
-
-    expect(
-      filterLeaderboardVisibility(rows, user('viewer')).map((r) => r.userId),
-    ).toEqual([user('viewer'), user('public')]);
   });
 
   it('builds viewer entry rank from sorted rows and uses username fallback', () => {
@@ -149,38 +136,35 @@ describe('leaderboard helpers', () => {
     ).toEqual({ status: 'visible', reason: null });
   });
 
-  it('maps race scores with privacy filtering and deterministic point sort', () => {
-    const entries = mapRaceScoresToLeaderboardEntries(
-      [
-        {
-          userId: user('b'),
-          username: 'Beta',
-          points: 20,
-          showOnLeaderboard: true,
-          breakdown: [{ test: true }],
-        },
-        {
-          userId: user('a'),
-          points: 20,
-          showOnLeaderboard: true,
-        },
-        {
-          userId: user('viewer'),
-          points: 10,
-          showOnLeaderboard: false,
-        },
-        {
-          userId: user('hidden'),
-          points: 30,
-          showOnLeaderboard: false,
-        },
-      ],
-      user('viewer'),
-    );
+  it('maps race scores with deterministic point sort', () => {
+    const entries = mapRaceScoresToLeaderboardEntries([
+      {
+        userId: user('b'),
+        username: 'Beta',
+        points: 20,
+        breakdown: [{ test: true }],
+      },
+      {
+        userId: user('a'),
+        points: 20,
+      },
+      {
+        userId: user('c'),
+        points: 30,
+      },
+    ]);
 
     expect(entries).toEqual([
       {
         rank: 1,
+        userId: user('c'),
+        username: 'Anonymous',
+        avatarUrl: undefined,
+        points: 30,
+        breakdown: undefined,
+      },
+      {
+        rank: 2,
         userId: user('a'),
         username: 'Anonymous',
         avatarUrl: undefined,
@@ -188,20 +172,12 @@ describe('leaderboard helpers', () => {
         breakdown: undefined,
       },
       {
-        rank: 2,
+        rank: 3,
         userId: user('b'),
         username: 'Beta',
         avatarUrl: undefined,
         points: 20,
         breakdown: [{ test: true }],
-      },
-      {
-        rank: 3,
-        userId: user('viewer'),
-        username: 'Anonymous',
-        avatarUrl: undefined,
-        points: 10,
-        breakdown: undefined,
       },
     ]);
   });

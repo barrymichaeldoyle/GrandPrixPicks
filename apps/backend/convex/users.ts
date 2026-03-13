@@ -303,7 +303,6 @@ export const me = query({
       email: viewer.email,
       avatarUrl: viewer.avatarUrl,
       usernameChangedAt: viewer.usernameChangedAt,
-      showOnLeaderboard: viewer.showOnLeaderboard,
       emailReminders: viewer.emailReminders,
       emailResults: viewer.emailResults,
       pushReminders: viewer.pushReminders,
@@ -543,7 +542,6 @@ export const getProfileByUsername = query({
       username: user.username,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
-      showOnLeaderboard: user.showOnLeaderboard ?? true,
       isOwner: viewer ? user._id === viewer._id : false,
     };
   },
@@ -699,20 +697,6 @@ export const updateRegionalSettings = mutation({
       }
     }
     await ctx.db.patch(viewer._id, patch);
-  },
-});
-
-export const updatePrivacySettings = mutation({
-  args: { showOnLeaderboard: v.boolean() },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getOrCreateViewer(ctx));
-    await ctx.db.patch(viewer._id, {
-      showOnLeaderboard: args.showOnLeaderboard,
-      updatedAt: Date.now(),
-    });
-    await syncUserToStandings(ctx, viewer._id, {
-      showOnLeaderboard: args.showOnLeaderboard,
-    });
   },
 });
 

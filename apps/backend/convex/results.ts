@@ -556,7 +556,6 @@ async function upsertStandings(
       username: user?.username,
       displayName: user?.displayName,
       avatarUrl: user?.avatarUrl,
-      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   } else {
@@ -568,7 +567,6 @@ async function upsertStandings(
       username: user?.username,
       displayName: user?.displayName,
       avatarUrl: user?.avatarUrl,
-      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   }
@@ -615,7 +613,6 @@ async function upsertH2HStandings(
       username: user?.username,
       displayName: user?.displayName,
       avatarUrl: user?.avatarUrl,
-      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   } else {
@@ -629,7 +626,6 @@ async function upsertH2HStandings(
       username: user?.username,
       displayName: user?.displayName,
       avatarUrl: user?.avatarUrl,
-      showOnLeaderboard: user?.showOnLeaderboard,
       updatedAt: now,
     });
   }
@@ -790,7 +786,6 @@ export const scoreTopFiveBatch = internalMutation({
           breakdown,
           username: predUser?.username,
           avatarUrl: predUser?.avatarUrl,
-          showOnLeaderboard: predUser?.showOnLeaderboard,
           updatedAt: now,
         });
       } else {
@@ -802,7 +797,6 @@ export const scoreTopFiveBatch = internalMutation({
           breakdown,
           username: predUser?.username,
           avatarUrl: predUser?.avatarUrl,
-          showOnLeaderboard: predUser?.showOnLeaderboard,
           createdAt: now,
           updatedAt: now,
         });
@@ -1146,7 +1140,6 @@ export const backfillDenormalizedUserFields = internalMutation({
         await ctx.db.patch(row._id, {
           username: user.username,
           avatarUrl: user.avatarUrl,
-          showOnLeaderboard: user.showOnLeaderboard,
         });
         patched++;
       }

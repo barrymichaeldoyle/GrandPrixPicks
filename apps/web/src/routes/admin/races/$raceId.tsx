@@ -205,6 +205,9 @@ function AdminRaceDetailPage() {
   const isAdmin = useQuery(api.users.amIAdmin);
   const race = useQuery(api.races.getRace, { raceId: typedRaceId });
   const drivers = useQuery(api.drivers.listDrivers);
+  const submittedSessions = useQuery(api.results.getAllResultsForRace, {
+    raceId: typedRaceId,
+  });
 
   const [selectedSession, setSelectedSession] = useState<SessionType>('race');
 
@@ -222,6 +225,26 @@ function AdminRaceDetailPage() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   const driverCount = drivers?.length ?? 0;
+  const availableSessions = getSessionsForWeekend(race?.hasSprint ?? false);
+  const availableSessionsKey = availableSessions.join(',');
+  const submittedSessionsKey = submittedSessions?.join(',') ?? '';
+
+  useEffect(() => {
+    if (race === undefined || submittedSessions === undefined) {
+      return;
+    }
+
+    const firstUnsubmittedSession = availableSessions.find(
+      (session) => !submittedSessions.includes(session),
+    );
+    const defaultSession =
+      firstUnsubmittedSession ??
+      availableSessions[availableSessions.length - 1];
+
+    setSelectedSession((currentSession) =>
+      currentSession === defaultSession ? currentSession : defaultSession,
+    );
+  }, [availableSessionsKey, race?.hasSprint, submittedSessionsKey]);
 
   // Initialize/reset when session or existing result changes
   useEffect(() => {
@@ -388,8 +411,6 @@ function AdminRaceDetailPage() {
       </div>
     );
   }
-
-  const availableSessions = getSessionsForWeekend(race.hasSprint ?? false);
 
   const classification = selectedDrivers.filter(
     (id): id is Id<'drivers'> => id != null,

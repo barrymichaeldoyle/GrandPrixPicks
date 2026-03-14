@@ -2,6 +2,7 @@ import { Show, SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
@@ -188,6 +189,28 @@ export function Header({
     menuButtonRef.current?.focus();
   }
 
+  function renderThemeToggle({
+    className,
+    iconSize,
+    children,
+  }: {
+    className: string;
+    iconSize: number;
+    children?: ReactNode;
+  }) {
+    return (
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className={className}
+        aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {dark ? <Sun size={iconSize} /> : <Moon size={iconSize} />}
+        {children}
+      </button>
+    );
+  }
+
   return (
     <header
       ref={headerRef}
@@ -280,15 +303,19 @@ export function Header({
             </motion.button>
           </Show>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex"
-            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {dark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          {renderThemeToggle({
+            className:
+              'hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex',
+            iconSize: 20,
+          })}
 
+          <Show when="signed-in">
+            {renderThemeToggle({
+              className:
+                'inline-flex rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden',
+              iconSize: 18,
+            })}
+          </Show>
           <HeaderUser />
         </div>
       </div>
@@ -345,32 +372,12 @@ export function Header({
                     </Link>
                   </motion.div>
                 ))}
-                <motion.div
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{
-                    delay: primaryNavLinks.length * 0.05,
-                    duration: 0.2,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="flex w-full items-center gap-2 rounded-full border-2 border-transparent px-3 py-2 text-left font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-                    aria-label={
-                      dark ? 'Switch to light mode' : 'Switch to dark mode'
-                    }
-                  >
-                    {dark ? <Sun size={18} /> : <Moon size={18} />}
-                    {dark ? 'Light mode' : 'Dark mode'}
-                  </button>
-                </motion.div>
                 <Show when="signed-out">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{
-                      delay: (primaryNavLinks.length + 1) * 0.05,
+                      delay: primaryNavLinks.length * 0.05,
                       duration: 0.2,
                     }}
                   >

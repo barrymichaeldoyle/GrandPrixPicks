@@ -311,9 +311,9 @@ function RaceDetailPage() {
 
   const isViewerPredictionDataLoading = Boolean(
     race &&
-      isAuthLoaded &&
-      isSignedIn &&
-      (weekendPredictions == null || h2hPredictions == null),
+    isAuthLoaded &&
+    isSignedIn &&
+    (weekendPredictions == null || h2hPredictions == null),
   );
 
   const hasPredictions =

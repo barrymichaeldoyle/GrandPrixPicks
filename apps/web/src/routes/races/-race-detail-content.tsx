@@ -77,9 +77,9 @@ export function H2HSection({
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
   const shouldHighlightIncompleteH2H = Boolean(
     !isLoadingPredictions &&
-      hasPredictions &&
-      !selectedSessionHasH2H &&
-      !selectedSessionLocked,
+    hasPredictions &&
+    !selectedSessionHasH2H &&
+    !selectedSessionLocked,
   );
 
   return (

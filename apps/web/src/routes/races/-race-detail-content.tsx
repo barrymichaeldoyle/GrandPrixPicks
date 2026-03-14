@@ -10,6 +10,7 @@ import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
 import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
+import { InlineLoader } from '../../components/InlineLoader';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import { Tooltip } from '../../components/Tooltip';
 import type { SessionType } from '../../lib/sessions';
@@ -68,12 +69,17 @@ export function H2HSection({
   const selectedSessionLocked =
     selectedSessionLockTime !== undefined &&
     Date.now() >= selectedSessionLockTime;
+  const isLoadingPredictions = h2hPredictions === undefined;
   const canEditSelectedSession = Boolean(
-    hasH2HPredictions && !selectedSessionLocked,
+    !isLoadingPredictions && hasH2HPredictions && !selectedSessionLocked,
   );
-  const selectedSessionHasH2H = h2hPredictions?.[selectedSession] != null;
+  const selectedSessionHasH2H =
+    !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
   const shouldHighlightIncompleteH2H = Boolean(
-    hasPredictions && !selectedSessionHasH2H && !selectedSessionLocked,
+    !isLoadingPredictions &&
+      hasPredictions &&
+      !selectedSessionHasH2H &&
+      !selectedSessionLocked,
   );
 
   return (
@@ -145,13 +151,17 @@ export function H2HSection({
       </div>
 
       <ErrorBoundary>
-        <H2HWeekendSummary
-          race={race}
-          selectedSession={selectedSession}
-          editingSession={editingSession}
-          onEditingSessionChange={setEditingSession}
-          onEditingDirtyChange={onEditingDirtyChange}
-        />
+        {isLoadingPredictions ? (
+          <InlineLoader />
+        ) : (
+          <H2HWeekendSummary
+            race={race}
+            selectedSession={selectedSession}
+            editingSession={editingSession}
+            onEditingSessionChange={setEditingSession}
+            onEditingDirtyChange={onEditingDirtyChange}
+          />
+        )}
       </ErrorBoundary>
     </div>
   );

@@ -309,6 +309,13 @@ function RaceDetailPage() {
     race ? { raceId: race._id, sessionType: 'race' } : 'skip',
   );
 
+  const isViewerPredictionDataLoading = Boolean(
+    race &&
+      isAuthLoaded &&
+      isSignedIn &&
+      (weekendPredictions == null || h2hPredictions == null),
+  );
+
   const hasPredictions =
     weekendPredictions?.predictions &&
     Object.values(weekendPredictions.predictions).some((p) => p !== null);
@@ -478,7 +485,12 @@ function RaceDetailPage() {
 
   // ─── Initial prediction form (no picks yet, signed in) ───
   function renderInitialForm() {
-    if (!isPredictable || !isSignedIn || hasPredictions) {
+    if (
+      !isPredictable ||
+      !isSignedIn ||
+      hasPredictions ||
+      isViewerPredictionDataLoading
+    ) {
       return null;
     }
     return (
@@ -507,7 +519,8 @@ function RaceDetailPage() {
       isPredictable ||
       !isSignedIn ||
       hasPredictions ||
-      !canEditSelectedSession
+      !canEditSelectedSession ||
+      isViewerPredictionDataLoading
     ) {
       return null;
     }
@@ -540,7 +553,10 @@ function RaceDetailPage() {
       isPredictable={isPredictable}
       isAuthLoaded={isAuthLoaded}
       isSignedIn={!!isSignedIn}
-      isPredictionsLoading={isPredictable && weekendPredictions === undefined}
+      isPredictionsLoading={
+        (isPredictable && weekendPredictions === undefined) ||
+        isViewerPredictionDataLoading
+      }
       hasPredictions={!!hasPredictions}
       hasH2HPredictions={hasH2HPredictions}
       hasPublishedResults={hasPublishedResults}

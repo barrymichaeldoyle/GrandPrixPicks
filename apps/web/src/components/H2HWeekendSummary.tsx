@@ -7,6 +7,7 @@ import type { SessionType } from '@/lib/sessions';
 
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 import { H2HPredictionForm } from './H2HPredictionForm';
+import { InlineLoader } from './InlineLoader';
 
 type Race = Doc<'races'>;
 
@@ -45,6 +46,10 @@ export function H2HWeekendSummary({
 
   const hasH2HPredictions =
     h2hPredictions && Object.values(h2hPredictions).some((p) => p !== null);
+
+  if (h2hPredictions === undefined) {
+    return <InlineLoader />;
+  }
 
   // If user has no H2H predictions yet, show the form
   if (!hasH2HPredictions) {

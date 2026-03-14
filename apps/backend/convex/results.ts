@@ -785,6 +785,7 @@ export const scoreTopFiveBatch = internalMutation({
           points: total,
           breakdown,
           username: predUser?.username,
+          displayName: predUser?.displayName,
           avatarUrl: predUser?.avatarUrl,
           updatedAt: now,
         });
@@ -796,6 +797,7 @@ export const scoreTopFiveBatch = internalMutation({
           points: total,
           breakdown,
           username: predUser?.username,
+          displayName: predUser?.displayName,
           avatarUrl: predUser?.avatarUrl,
           createdAt: now,
           updatedAt: now,

@@ -3371,7 +3371,7 @@ const LEADERBOARD_SCENARIO_FAKE_USERS = [
 
 /**
  * Internal: Seed 25 scored users + 5 zero-point predictors for leaderboard testing.
- * The specified user (default: barrymichaeldoyle) is placed 2nd.
+ * The specified user (default: barrymichaeldoyle) is placed ~6th (below the podium).
  * Uses the first 3 races in the calendar; marks them as finished with results.
  */
 export const _seedLeaderboardData = internalMutation({
@@ -3379,7 +3379,7 @@ export const _seedLeaderboardData = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const DAY = 24 * 60 * 60 * 1000;
-    const TARGET_POINTS = 120;
+    const TARGET_POINTS = 95;
 
     // Find the target user
     const targetUser = await ctx.db
@@ -3547,6 +3547,7 @@ export const _seedLeaderboardData = internalMutation({
           sessionType,
           points: sessionPoints,
           username,
+          displayName,
           createdAt: now,
           updatedAt: now,
         });
@@ -3586,6 +3587,7 @@ export const _seedLeaderboardData = internalMutation({
         sessionType,
         points: sessionPoints,
         username: targetUser.username,
+        displayName: targetUser.displayName,
         createdAt: now,
         updatedAt: now,
       });
@@ -3612,12 +3614,693 @@ export const _seedLeaderboardData = internalMutation({
 });
 
 /**
+ * Internal: Seed H2H results, scores, predictions and season standings for all
+ * leaderboard fake users + the target user. Must be called after _seedLeaderboardData
+ * so that finished races and results already exist.
+ *
+ * Fake users get deterministically varying accuracy (rank 1 ~80%, rank 28 ~50%).
+ * Target user gets ~65% accuracy and also gets h2hPredictions created.
+ */
+export const _seedH2HLeaderboardData = internalMutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const targetUser = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!targetUser) {
+      throw new Error(`User "${args.username}" not found.`);
+    }
+
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', 2026))
+      .collect();
+    if (matchups.length === 0) {
+      throw new Error('No H2H matchups found. Run seedH2HMatchups first.');
+    }
+
+    // Use the same 3 finished non-sprint races that _seedLeaderboardData set up
+    const allRaces = await ctx.db.query('races').collect();
+    const finishedRaces = [...allRaces]
+      .filter((r) => !r.hasSprint && r.status === 'finished')
+      .sort((a, b) => a.round - b.round)
+      .slice(0, 3);
+    if (finishedRaces.length === 0) {
+      throw new Error('No finished races. Run _seedLeaderboardData first.');
+    }
+
+    // Precompute H2H winners per session from actual classifications
+    type SessionInfo = {
+      raceId: Id<'races'>;
+      sessionType: SessionType;
+      raceRound: number;
+      sessionIndex: number;
+      winners: Map<Id<'h2hMatchups'>, Id<'drivers'>>;
+    };
+    const allSessions: Array<SessionInfo> = [];
+    let h2hResultsCreated = 0;
+
+    for (let ri = 0; ri < finishedRaces.length; ri++) {
+      const race = finishedRaces[ri];
+      const sessions: Array<SessionType> = ['quali', 'race'];
+
+      for (let si = 0; si < sessions.length; si++) {
+        const sessionType = sessions[si];
+        const result = await ctx.db
+          .query('results')
+          .withIndex('by_race_session', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', sessionType),
+          )
+          .unique();
+        if (!result) {
+          continue;
+        }
+
+        const positionMap = new Map<string, number>();
+        for (let i = 0; i < result.classification.length; i++) {
+          positionMap.set(result.classification[i], i);
+        }
+
+        const winners = new Map<Id<'h2hMatchups'>, Id<'drivers'>>();
+        for (const matchup of matchups) {
+          const pos1 = positionMap.get(matchup.driver1Id);
+          const pos2 = positionMap.get(matchup.driver2Id);
+          if (pos1 === undefined || pos2 === undefined) {
+            continue;
+          }
+          winners.set(
+            matchup._id,
+            pos1 < pos2 ? matchup.driver1Id : matchup.driver2Id,
+          );
+        }
+
+        // Create h2hResults for this session
+        for (const [matchupId, winnerId] of winners) {
+          const existing = await ctx.db
+            .query('h2hResults')
+            .withIndex('by_race_session_matchup', (q) =>
+              q
+                .eq('raceId', race._id)
+                .eq('sessionType', sessionType)
+                .eq('matchupId', matchupId),
+            )
+            .unique();
+          if (!existing) {
+            await ctx.db.insert('h2hResults', {
+              raceId: race._id,
+              sessionType,
+              matchupId,
+              winnerId,
+              publishedAt: race.raceStartAt + 4 * 60 * 60 * 1000,
+            });
+            h2hResultsCreated++;
+          }
+        }
+
+        allSessions.push({
+          raceId: race._id,
+          sessionType,
+          raceRound: race.round,
+          sessionIndex: ri * 2 + si,
+          winners,
+        });
+      }
+    }
+
+    const numRaces = finishedRaces.length;
+
+    // Track per-user season totals for h2hSeasonStandings
+    const userTotals = new Map<
+      Id<'users'>,
+      {
+        username: string;
+        displayName?: string;
+        totalPoints: number;
+        correctPicks: number;
+        totalPicks: number;
+      }
+    >();
+
+    // Seed fake users with varying accuracy based on rank index
+    for (let ui = 0; ui < LEADERBOARD_SCENARIO_FAKE_USERS.length; ui++) {
+      const { username, displayName } = LEADERBOARD_SCENARIO_FAKE_USERS[ui];
+
+      const fakeUser = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', username))
+        .unique();
+      if (!fakeUser) {
+        continue;
+      }
+
+      // Higher rank (lower ui) = higher accuracy: modulo increases from 7 down to 2
+      const mod = Math.max(2, 7 - Math.floor((ui * 5) / 28));
+
+      let seasonCorrect = 0;
+      let seasonTotal = 0;
+      let seasonPoints = 0;
+
+      for (const { raceId, sessionType, raceRound, winners } of allSessions) {
+        let correctPicks = 0;
+        let totalPicks = 0;
+
+        for (let mi = 0; mi < matchups.length; mi++) {
+          const matchup = matchups[mi];
+          const winnerId = winners.get(matchup._id);
+          if (!winnerId) {
+            continue;
+          }
+          totalPicks++;
+          const isCorrect = (mi + ui + raceRound) % mod !== 0;
+          if (isCorrect) {
+            correctPicks++;
+          }
+        }
+
+        if (totalPicks > 0) {
+          await ctx.db.insert('h2hScores', {
+            userId: fakeUser._id,
+            raceId,
+            sessionType,
+            points: correctPicks,
+            correctPicks,
+            totalPicks,
+            createdAt: now,
+            updatedAt: now,
+          });
+          seasonCorrect += correctPicks;
+          seasonTotal += totalPicks;
+          seasonPoints += correctPicks;
+        }
+      }
+
+      userTotals.set(fakeUser._id, {
+        username,
+        displayName,
+        totalPoints: seasonPoints,
+        correctPicks: seasonCorrect,
+        totalPicks: seasonTotal,
+      });
+    }
+
+    // Seed target user with ~65% accuracy + create h2hPredictions
+    let targetCorrect = 0;
+    let targetTotal = 0;
+    let targetPoints = 0;
+    let h2hPredictionsCreated = 0;
+
+    for (const { raceId, sessionType, raceRound, winners } of allSessions) {
+      let correctPicks = 0;
+      let totalPicks = 0;
+
+      for (let mi = 0; mi < matchups.length; mi++) {
+        const matchup = matchups[mi];
+        const winnerId = winners.get(matchup._id);
+        if (!winnerId) {
+          continue;
+        }
+        totalPicks++;
+        // ~65% accuracy: wrong when (mi + raceRound) % 10 >= 7
+        const isCorrect = (mi + raceRound) % 10 < 7;
+        if (isCorrect) {
+          correctPicks++;
+        }
+
+        const predictedWinnerId = isCorrect
+          ? winnerId
+          : winnerId === matchup.driver1Id
+            ? matchup.driver2Id
+            : matchup.driver1Id;
+
+        await ctx.db.insert('h2hPredictions', {
+          userId: targetUser._id,
+          raceId,
+          sessionType,
+          matchupId: matchup._id,
+          predictedWinnerId,
+          submittedAt: now - 60 * 60 * 1000,
+          updatedAt: now,
+        });
+        h2hPredictionsCreated++;
+      }
+
+      if (totalPicks > 0) {
+        await ctx.db.insert('h2hScores', {
+          userId: targetUser._id,
+          raceId,
+          sessionType,
+          points: correctPicks,
+          correctPicks,
+          totalPicks,
+          createdAt: now,
+          updatedAt: now,
+        });
+        targetCorrect += correctPicks;
+        targetTotal += totalPicks;
+        targetPoints += correctPicks;
+      }
+    }
+
+    // Create h2hSeasonStandings for all fake users
+    for (const [userId, totals] of userTotals) {
+      await ctx.db.insert('h2hSeasonStandings', {
+        userId,
+        season: 2026,
+        totalPoints: totals.totalPoints,
+        raceCount: numRaces,
+        correctPicks: totals.correctPicks,
+        totalPicks: totals.totalPicks,
+        username: totals.username,
+        displayName: totals.displayName,
+        updatedAt: now,
+      });
+    }
+
+    // Create h2hSeasonStandings for target user
+    await ctx.db.insert('h2hSeasonStandings', {
+      userId: targetUser._id,
+      season: 2026,
+      totalPoints: targetPoints,
+      raceCount: numRaces,
+      correctPicks: targetCorrect,
+      totalPicks: targetTotal,
+      username: targetUser.username,
+      displayName: targetUser.displayName,
+      updatedAt: now,
+    });
+
+    return {
+      h2hResultsCreated,
+      h2hScoresCreated: userTotals.size + 1,
+      h2hPredictionsCreated,
+      h2hStandingsCreated: userTotals.size + 1,
+    };
+  },
+});
+
+/**
+ * Internal: Seed a "halfway through the weekend" scenario for the 4th non-sprint race.
+ * - Patches the race to `locked` status with quali already done, race starting tomorrow
+ * - Creates results for the quali session
+ * - Creates scores + h2hScores for all fake users + target user for quali
+ * - Creates predictions + h2hPredictions for the target user (so leaderboard is visible)
+ * - h2hResults for the quali session
+ */
+export const _seedCurrentWeekendData = internalMutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+
+    const targetUser = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!targetUser) {
+      throw new Error(`User "${args.username}" not found.`);
+    }
+
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', 2026))
+      .collect();
+    if (matchups.length === 0) {
+      throw new Error('No H2H matchups found. Run seedH2HMatchups first.');
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    const driverIds = drivers.map((d) => d._id);
+
+    // Get the 4th non-sprint race
+    const allRaces = await ctx.db.query('races').collect();
+    const nonSprintRaces = [...allRaces]
+      .filter((r) => !r.hasSprint)
+      .sort((a, b) => a.round - b.round);
+    if (nonSprintRaces.length < 4) {
+      throw new Error('Need at least 4 non-sprint races.');
+    }
+    const currentRace = nonSprintRaces[3];
+
+    // Patch race: quali done yesterday, race tomorrow
+    const qualiTime = now - DAY;
+    const raceTime = now + DAY;
+    await ctx.db.patch(currentRace._id, {
+      status: 'locked',
+      qualiStartAt: qualiTime - 2 * 60 * 60 * 1000,
+      qualiLockAt: qualiTime - 2 * 60 * 60 * 1000,
+      predictionLockAt: qualiTime - 2 * 60 * 60 * 1000,
+      raceStartAt: raceTime,
+      updatedAt: now,
+    });
+
+    // Deterministic shuffle reused from _seedLeaderboardData pattern
+    function deterministicShuffle(
+      arr: Array<Id<'drivers'>>,
+      seed: number,
+    ): Array<Id<'drivers'>> {
+      const result = [...arr];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.abs((seed * 1103515245 + 12345 + i * 6789) % (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    // Create quali result
+    const qualiClassification = deterministicShuffle(driverIds, 999);
+    const qualiTop5 = qualiClassification.slice(0, 5);
+    const qualiOutOfTop5 = qualiClassification.slice(5);
+    await ctx.db.insert('results', {
+      raceId: currentRace._id,
+      sessionType: 'quali',
+      classification: qualiClassification,
+      publishedAt: qualiTime + 60 * 60 * 1000,
+      updatedAt: now,
+    });
+
+    // Determine H2H winners for quali
+    const positionMap = new Map<string, number>();
+    for (let i = 0; i < qualiClassification.length; i++) {
+      positionMap.set(qualiClassification[i], i);
+    }
+    const h2hWinners = new Map<Id<'h2hMatchups'>, Id<'drivers'>>();
+    for (const matchup of matchups) {
+      const pos1 = positionMap.get(matchup.driver1Id);
+      const pos2 = positionMap.get(matchup.driver2Id);
+      if (pos1 === undefined || pos2 === undefined) {
+        continue;
+      }
+      h2hWinners.set(
+        matchup._id,
+        pos1 < pos2 ? matchup.driver1Id : matchup.driver2Id,
+      );
+    }
+
+    // Create h2hResults for quali
+    for (const [matchupId, winnerId] of h2hWinners) {
+      await ctx.db.insert('h2hResults', {
+        raceId: currentRace._id,
+        sessionType: 'quali',
+        matchupId,
+        winnerId,
+        publishedAt: qualiTime + 60 * 60 * 1000,
+      });
+    }
+
+    function makePicks(
+      top5: Array<Id<'drivers'>>,
+      outOfTop5: Array<Id<'drivers'>>,
+      sessionPoints: number,
+    ): Array<Id<'drivers'>> {
+      if (sessionPoints === 0) {
+        return outOfTop5.slice(0, 5);
+      }
+      return [top5[1], top5[0], top5[3], top5[2], top5[4]];
+    }
+
+    // Seed all fake users: quali predictions + scores + h2hScores
+    for (let ui = 0; ui < LEADERBOARD_SCENARIO_FAKE_USERS.length; ui++) {
+      const { username, displayName, totalPoints } =
+        LEADERBOARD_SCENARIO_FAKE_USERS[ui];
+
+      const fakeUser = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', username))
+        .unique();
+      if (!fakeUser) {
+        continue;
+      }
+
+      // Scale quali points proportionally to their season total (out of 3 races × 2 sessions = 6 sessions)
+      const qualiPoints = Math.round((totalPoints / 6 / 25) * 18); // rough proportional score
+      const picks = makePicks(qualiTop5, qualiOutOfTop5, qualiPoints);
+
+      await ctx.db.insert('predictions', {
+        userId: fakeUser._id,
+        raceId: currentRace._id,
+        sessionType: 'quali',
+        picks,
+        submittedAt: qualiTime - DAY,
+        updatedAt: qualiTime - DAY,
+      });
+
+      await ctx.db.insert('scores', {
+        userId: fakeUser._id,
+        raceId: currentRace._id,
+        sessionType: 'quali',
+        points: qualiPoints,
+        username,
+        displayName,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // H2H score for fake user
+      const mod = Math.max(2, 7 - Math.floor((ui * 5) / 28));
+      let correctPicks = 0;
+      let totalPicks = 0;
+      for (let mi = 0; mi < matchups.length; mi++) {
+        const matchup = matchups[mi];
+        if (!h2hWinners.has(matchup._id)) {
+          continue;
+        }
+        totalPicks++;
+        const isCorrect = (mi + ui + currentRace.round) % mod !== 0;
+        if (isCorrect) {
+          correctPicks++;
+        }
+      }
+      if (totalPicks > 0) {
+        await ctx.db.insert('h2hScores', {
+          userId: fakeUser._id,
+          raceId: currentRace._id,
+          sessionType: 'quali',
+          points: correctPicks,
+          correctPicks,
+          totalPicks,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // Seed target user: quali prediction + scores + h2hPredictions + h2hScores
+    const targetQualiPoints = 14; // reasonable score to put them mid-pack
+    const targetPicks = makePicks(qualiTop5, qualiOutOfTop5, targetQualiPoints);
+
+    await ctx.db.insert('predictions', {
+      userId: targetUser._id,
+      raceId: currentRace._id,
+      sessionType: 'quali',
+      picks: targetPicks,
+      submittedAt: qualiTime - DAY,
+      updatedAt: qualiTime - DAY,
+    });
+
+    await ctx.db.insert('scores', {
+      userId: targetUser._id,
+      raceId: currentRace._id,
+      sessionType: 'quali',
+      points: targetQualiPoints,
+      username: targetUser.username,
+      displayName: targetUser.displayName,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    let targetCorrect = 0;
+    let targetTotal = 0;
+    for (let mi = 0; mi < matchups.length; mi++) {
+      const matchup = matchups[mi];
+      const winnerId = h2hWinners.get(matchup._id);
+      if (!winnerId) {
+        continue;
+      }
+      targetTotal++;
+      const isCorrect = (mi + currentRace.round) % 10 < 7;
+      if (isCorrect) {
+        targetCorrect++;
+      }
+      const predictedWinnerId = isCorrect
+        ? winnerId
+        : winnerId === matchup.driver1Id
+          ? matchup.driver2Id
+          : matchup.driver1Id;
+
+      await ctx.db.insert('h2hPredictions', {
+        userId: targetUser._id,
+        raceId: currentRace._id,
+        sessionType: 'quali',
+        matchupId: matchup._id,
+        predictedWinnerId,
+        submittedAt: qualiTime - DAY,
+        updatedAt: qualiTime - DAY,
+      });
+    }
+
+    if (targetTotal > 0) {
+      await ctx.db.insert('h2hScores', {
+        userId: targetUser._id,
+        raceId: currentRace._id,
+        sessionType: 'quali',
+        points: targetCorrect,
+        correctPicks: targetCorrect,
+        totalPicks: targetTotal,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    return {
+      raceId: currentRace._id,
+      raceName: currentRace.name,
+      qualiResultCreated: true,
+      h2hResultsCreated: h2hWinners.size,
+    };
+  },
+});
+
+/**
+ * Internal: Create 2 leagues using the fake users already seeded by
+ * _seedLeaderboardData. The target user is admin of League 1 and a member
+ * of League 2.
+ *
+ * League 1 "Pit Wall Prophets" (8 members): target user (admin) + fake users 0–6
+ * League 2 "DRS Zone" (6 members): target user (member) + fake users 7–11
+ * League 3 "Backmarkers United" (5 members): fake users 12–16 (no target user)
+ */
+export const _seedLeagueLeaderboardData = internalMutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const targetUser = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!targetUser) {
+      throw new Error(`User "${args.username}" not found.`);
+    }
+
+    // Resolve fake user IDs from the already-seeded leaderboard users
+    const fakeUserIds: Array<Id<'users'>> = [];
+    for (let i = 0; i < 17; i++) {
+      const { username } = LEADERBOARD_SCENARIO_FAKE_USERS[i];
+      const user = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', username))
+        .unique();
+      if (user) {
+        fakeUserIds.push(user._id);
+      }
+    }
+
+    if (fakeUserIds.length < 17) {
+      throw new Error('Not enough fake users. Run _seedLeaderboardData first.');
+    }
+
+    // League 1: target user (admin) + fake users 0–6
+    const league1Id = await ctx.db.insert('leagues', {
+      name: 'Pit Wall Prophets',
+      slug: 'pit-wall-prophets-2026',
+      description: 'The serious predictors. Probably.',
+      visibility: 'private',
+      password: 'pitwall',
+      createdBy: targetUser._id,
+      season: 2026,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league1Id,
+      userId: targetUser._id,
+      role: 'admin',
+      joinedAt: now,
+    });
+    for (let i = 0; i <= 6; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league1Id,
+        userId: fakeUserIds[i],
+        role: 'member',
+        joinedAt: now - i * 60 * 60 * 1000,
+      });
+    }
+
+    // League 2: target user (member) + fake users 7–11
+    const league2Id = await ctx.db.insert('leagues', {
+      name: 'DRS Zone',
+      slug: 'drs-zone-2026',
+      description: 'Living life in the drag reduction zone.',
+      visibility: 'private',
+      password: 'drszone',
+      createdBy: fakeUserIds[7],
+      season: 2026,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league2Id,
+      userId: fakeUserIds[7],
+      role: 'admin',
+      joinedAt: now,
+    });
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league2Id,
+      userId: targetUser._id,
+      role: 'member',
+      joinedAt: now - 30 * 60 * 1000,
+    });
+    for (let i = 8; i <= 11; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league2Id,
+        userId: fakeUserIds[i],
+        role: 'member',
+        joinedAt: now - i * 45 * 60 * 1000,
+      });
+    }
+
+    // League 3: fake users 12–16 only (no target user)
+    const league3Id = await ctx.db.insert('leagues', {
+      name: 'Backmarkers United',
+      slug: 'backmarkers-united-2026',
+      description: 'We start at the back. Sometimes we finish there too.',
+      visibility: 'public',
+      createdBy: fakeUserIds[12],
+      season: 2026,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    for (let i = 12; i <= 16; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league3Id,
+        userId: fakeUserIds[i],
+        role: i === 12 ? 'admin' : 'member',
+        joinedAt: now - (i - 12) * 2 * 60 * 60 * 1000,
+      });
+    }
+
+    return {
+      leaguesCreated: 3,
+      league1: { id: league1Id, name: 'Pit Wall Prophets', members: 8 },
+      league2: { id: league2Id, name: 'DRS Zone', members: 6 },
+      league3: { id: league3Id, name: 'Backmarkers United', members: 5 },
+    };
+  },
+});
+
+/**
  * Reset dev DB to a leaderboard testing scenario:
  * - Clears all dev data (scores, predictions, results, standings, fake users)
  * - Resets races to upcoming dates
  * - Marks first 3 non-sprint races as finished with results
  * - Creates 24 fake users (1 top scorer + 23 ranked below you) + 5 zero-point users
- * - Places the specified user (default: barrymichaeldoyle) in 2nd place with 120 pts
+ * - Places the specified user (default: barrymichaeldoyle) at ~rank 6 with 95 pts
  *
  * Run via:
  *   npx convex run seed:seedLeaderboardScenario
@@ -3671,12 +4354,45 @@ export const seedLeaderboardScenario = internalAction({
       username,
     });
 
+    // Phase 6: Seed H2H leaderboard data
+    const h2hResult: {
+      h2hResultsCreated: number;
+      h2hScoresCreated: number;
+      h2hPredictionsCreated: number;
+      h2hStandingsCreated: number;
+    } = await ctx.runMutation(internal.seed._seedH2HLeaderboardData, {
+      username,
+    });
+
+    // Phase 7: Seed current race weekend (halfway through)
+    const weekendResult: {
+      raceId: Id<'races'>;
+      raceName: string;
+      qualiResultCreated: boolean;
+      h2hResultsCreated: number;
+    } = await ctx.runMutation(internal.seed._seedCurrentWeekendData, {
+      username,
+    });
+
+    // Phase 8: Seed leagues
+    const leagueResult: {
+      leaguesCreated: number;
+      league1: { id: Id<'leagues'>; name: string; members: number };
+      league2: { id: Id<'leagues'>; name: string; members: number };
+      league3: { id: Id<'leagues'>; name: string; members: number };
+    } = await ctx.runMutation(internal.seed._seedLeagueLeaderboardData, {
+      username,
+    });
+
     return {
       cleared: totalDeleted,
       racesReset: raceResult.reset,
       username,
-      rank: 2,
+      rank: 6,
+      currentRace: weekendResult.raceName,
+      leagues: leagueResult.leaguesCreated,
       ...seedResult,
+      ...h2hResult,
     };
   },
 });

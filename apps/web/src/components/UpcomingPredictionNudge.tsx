@@ -76,24 +76,24 @@ export function UpcomingPredictionNudge({
                   <p>{message}</p>
                 </div>
                 {error && <p className="mt-1 text-xs text-error">{error}</p>}
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:max-w-md">
-                  <div className="w-full lg:w-auto [&>*]:w-full lg:[&>*]:w-auto">
+                <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
+                  <div className="min-w-0 flex-1 sm:flex-initial">
                     {makePicksControl ?? (
                       <Button
                         size="sm"
                         rightIcon={ArrowRight}
-                        className="w-full"
+                        className="w-full sm:w-auto"
                       >
                         Make picks
                       </Button>
                     )}
                   </div>
-                  <div className="w-full lg:w-auto [&>*]:w-full lg:[&>*]:w-auto">
+                  <div className="min-w-0 flex-1 sm:flex-initial">
                     <Button
                       size="sm"
                       variant="secondary"
                       leftIcon={Dices}
-                      className="w-full"
+                      className="w-full sm:w-auto"
                       disabled={isRandomizing}
                       onClick={onRandomizeClick}
                     >

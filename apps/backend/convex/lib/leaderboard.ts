@@ -14,6 +14,7 @@ type RowBase = {
 type RaceScoreRowBase = {
   userId: Id<'users'>;
   username?: string;
+  displayName?: string;
   avatarUrl?: string;
   points: number;
   breakdown?: unknown;
@@ -122,6 +123,7 @@ export function mapRaceScoresToLeaderboardEntries<T extends RaceScoreRowBase>(
     rank: index + 1,
     userId: score.userId,
     username: score.username ?? ANONYMOUS,
+    displayName: score.displayName,
     avatarUrl: score.avatarUrl,
     points: score.points,
     breakdown: score.breakdown,

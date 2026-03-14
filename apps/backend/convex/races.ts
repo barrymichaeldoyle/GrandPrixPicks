@@ -99,6 +99,50 @@ export const getPredictionOpenAt = query({
   },
 });
 
+/**
+ * Returns the most relevant race for the weekend leaderboard:
+ * - If the current/next race's first session has already started (lock time passed), return it.
+ * - Otherwise, return the most recently finished race.
+ */
+export const getWeekendLeaderboardRace = query({
+  args: { season: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const season = args.season ?? 2026;
+    const now = Date.now();
+
+    const races = await ctx.db.query('races').collect();
+    const seasonRaces = races
+      .filter((r) => r.season === season)
+      .sort((a, b) => a.round - b.round);
+
+    if (seasonRaces.length === 0) {
+      return null;
+    }
+
+    // Find the next/current non-finished race
+    const currentRace = seasonRaces.find((r) => r.status !== 'finished');
+
+    if (currentRace) {
+      // First session lock time: sprint weekends start with sprint quali
+      const firstSessionLockAt = currentRace.hasSprint
+        ? (currentRace.sprintQualiLockAt ?? currentRace.qualiLockAt)
+        : currentRace.qualiLockAt;
+
+      if (firstSessionLockAt !== undefined && now >= firstSessionLockAt) {
+        return currentRace;
+      }
+    }
+
+    // Fall back to the last finished race
+    const finishedRaces = seasonRaces.filter((r) => r.status === 'finished');
+    if (finishedRaces.length > 0) {
+      return finishedRaces[finishedRaces.length - 1];
+    }
+
+    return currentRace ?? null;
+  },
+});
+
 export const adminUpsertRace = mutation({
   args: {
     raceId: v.optional(v.id('races')),

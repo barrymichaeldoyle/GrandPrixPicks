@@ -144,6 +144,7 @@ export default defineSchema({
     ),
     // Denormalized user fields (avoids N+1 user lookups in race leaderboard)
     username: v.optional(v.string()),
+    displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),

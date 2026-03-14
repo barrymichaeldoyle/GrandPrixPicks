@@ -88,6 +88,7 @@ export function H2HWeekendSummary({
         matchups={matchups ?? []}
         selections={selectedSessionPicks}
         mode="readonly"
+        readonlyClickTooltip="Click edit above to change"
       />
     </div>
   );

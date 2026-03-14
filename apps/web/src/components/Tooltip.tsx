@@ -15,6 +15,10 @@ interface TooltipProps {
   triggerClassName?: string;
   /** Pre-render tooltip content immediately (for preloading images) */
   prerender?: boolean;
+  /** Open tooltip on click/tap instead of hover-only. */
+  openOnClick?: boolean;
+  /** Ignore click/tap handling when the event starts inside this selector. */
+  ignoreClickWithinSelector?: string;
 }
 
 const DEFAULT_DISTANCE = 6;
@@ -33,10 +37,9 @@ function computeConstrainedPosition(
   const pad = VIEWPORT_PADDING;
   const centerX = triggerRect.left + triggerRect.width / 2;
 
-  // Clamp horizontal center so tooltip stays in viewport
-  const minCenterX = pad + tooltipWidth / 2;
-  const maxCenterX = vw - pad - tooltipWidth / 2;
-  const clampedX = Math.max(minCenterX, Math.min(maxCenterX, centerX));
+  const idealLeft = centerX - tooltipWidth / 2;
+  const maxLeft = Math.max(pad, vw - pad - tooltipWidth);
+  const left = Math.max(pad, Math.min(maxLeft, idealLeft));
 
   // Try preferred placement, flip if it would overflow
   let placement = preferredPlacement;
@@ -60,7 +63,7 @@ function computeConstrainedPosition(
     }
   }
 
-  return { top, left: clampedX, placement };
+  return { top, left, placement };
 }
 
 /**
@@ -75,12 +78,15 @@ export function Tooltip({
   distance = DEFAULT_DISTANCE,
   triggerClassName,
   prerender = false,
+  openOnClick = false,
+  ignoreClickWithinSelector,
 }: TooltipProps) {
   const tooltipId = useId();
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLSpanElement>(null);
   const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openedByTouchRef = useRef(false);
+  const openedByClickRef = useRef(false);
   const [isVisible, setIsVisible] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const [doAnimate, setDoAnimate] = useState(false);
@@ -89,16 +95,14 @@ export function Tooltip({
     'top' | 'bottom'
   >(placement);
 
-  function openAtTrigger() {
-    const el = triggerRef.current;
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      setCoords({
-        top: placement === 'top' ? rect.top - distance : rect.bottom + distance,
-        left: rect.left + rect.width / 2,
-      });
-      setEffectivePlacement(placement);
+  function shouldIgnoreClickTarget(target: EventTarget | null): boolean {
+    if (!ignoreClickWithinSelector || !(target instanceof Element)) {
+      return false;
     }
+    return target.closest(ignoreClickWithinSelector) !== null;
+  }
+
+  function openAtTrigger() {
     setIsVisible(true);
   }
 
@@ -167,9 +171,12 @@ export function Tooltip({
     };
   }, [isVisible, updatePosition]);
 
-  // On mobile: close when user taps outside (tooltip was opened by touch)
+  // Close when the tooltip was opened by touch or click and the user interacts outside.
   useEffect(() => {
-    if (!isVisible || !openedByTouchRef.current) {
+    if (
+      !isVisible ||
+      (!openedByTouchRef.current && !openedByClickRef.current)
+    ) {
       return;
     }
     function handleOutsidePointerDown(e: PointerEvent) {
@@ -177,6 +184,7 @@ export function Tooltip({
         return;
       }
       openedByTouchRef.current = false;
+      openedByClickRef.current = false;
       setIsVisible(false);
     }
     document.addEventListener('pointerdown', handleOutsidePointerDown, true);
@@ -189,6 +197,12 @@ export function Tooltip({
   }, [isVisible]);
 
   function handlePointerDown(e: React.PointerEvent) {
+    if (shouldIgnoreClickTarget(e.target)) {
+      if (isVisible) {
+        setIsVisible(false);
+      }
+      return;
+    }
     if (e.pointerType !== 'touch') {
       return;
     }
@@ -197,10 +211,38 @@ export function Tooltip({
       openTimeoutRef.current = null;
     }
     openedByTouchRef.current = true;
+    openedByClickRef.current = false;
     openAtTrigger();
   }
 
+  function handleClick(e: React.MouseEvent) {
+    if (!openOnClick) {
+      return;
+    }
+    if (shouldIgnoreClickTarget(e.target)) {
+      if (isVisible) {
+        setIsVisible(false);
+      }
+      return;
+    }
+    if (openTimeoutRef.current) {
+      clearTimeout(openTimeoutRef.current);
+      openTimeoutRef.current = null;
+    }
+    const nextVisible = !isVisible || !openedByClickRef.current;
+    openedByTouchRef.current = false;
+    openedByClickRef.current = nextVisible;
+    if (nextVisible) {
+      openAtTrigger();
+      return;
+    }
+    setIsVisible(false);
+  }
+
   function handlePointerEnter(e: React.PointerEvent) {
+    if (openOnClick) {
+      return;
+    }
     if (e.pointerType !== 'mouse') {
       return;
     }
@@ -211,6 +253,9 @@ export function Tooltip({
   }
 
   function handlePointerLeave(e: React.PointerEvent) {
+    if (openOnClick) {
+      return;
+    }
     if (e.pointerType !== 'mouse') {
       return;
     }
@@ -242,13 +287,13 @@ export function Tooltip({
       style={{
         left: coords.left,
         top: coords.top,
-        transform: `translate(-50%, ${translateY}) translateY(${slideOffset})`,
+        transform: `translateY(${translateY}) translateY(${slideOffset})`,
         opacity,
         visibility: isVisible ? 'visible' : 'hidden',
       }}
     >
       {isDefaultStyle ? (
-        <span className="block rounded bg-slate-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm dark:bg-slate-700">
+        <span className="block max-w-[calc(100vw-16px)] rounded bg-slate-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm dark:bg-slate-700">
           {content}
         </span>
       ) : (
@@ -264,6 +309,7 @@ export function Tooltip({
         className={`inline-flex cursor-help ${triggerClassName ?? ''}`.trim()}
         aria-describedby={tooltipId}
         onPointerDown={handlePointerDown}
+        onClick={handleClick}
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}
       >

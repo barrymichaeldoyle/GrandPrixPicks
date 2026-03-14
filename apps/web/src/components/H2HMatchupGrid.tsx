@@ -6,6 +6,7 @@ import { displayTeamName } from '@/lib/display';
 
 import { DriverBadge, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
+import { Tooltip } from './Tooltip';
 
 type Driver = {
   _id: Id<'drivers'>;
@@ -32,6 +33,7 @@ interface H2HMatchupGridProps {
   actionCard?: ReactNode;
   winners?: Record<string, Id<'drivers'> | undefined>;
   pointsByMatchup?: Record<string, number | undefined>;
+  readonlyClickTooltip?: string;
 }
 
 export function H2HMatchupGrid({
@@ -43,9 +45,10 @@ export function H2HMatchupGrid({
   actionCard,
   winners = {},
   pointsByMatchup = {},
+  readonlyClickTooltip,
 }: H2HMatchupGridProps) {
   const gridClassName = [
-    'grid grid-cols-1 gap-2 lg:grid-cols-2 2xl:grid-cols-3',
+    'grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3',
     className,
   ]
     .filter(Boolean)
@@ -89,7 +92,10 @@ export function H2HMatchupGrid({
                 const content = (
                   <>
                     <div className="relative top-0.25 flex min-w-0 flex-1 items-start gap-2">
-                      <div className="flex shrink-0 flex-col items-center">
+                      <div
+                        className="flex shrink-0 flex-col items-center"
+                        data-driver-badge-trigger
+                      >
                         <DriverBadge
                           code={driver.code}
                           team={driver.team}
@@ -172,6 +178,26 @@ export function H2HMatchupGrid({
                 );
 
                 if (!isInteractive) {
+                  if (readonlyClickTooltip && mode === 'readonly') {
+                    return (
+                      <Tooltip
+                        key={driver._id}
+                        content={readonlyClickTooltip}
+                        openOnClick
+                        triggerClassName="flex-1"
+                        ignoreClickWithinSelector="[data-driver-badge-trigger]"
+                      >
+                        <button
+                          type="button"
+                          aria-label={`${displayTeamName(matchup.team)}: ${driver.displayName}. Click edit above to change`}
+                          className={`${sharedClassName} cursor-pointer`}
+                        >
+                          {content}
+                        </button>
+                      </Tooltip>
+                    );
+                  }
+
                   return (
                     <div key={driver._id} className={sharedClassName}>
                       {content}

@@ -10,9 +10,19 @@ if (!CONVEX_URL) {
 
 const convex = new ConvexReactClient(CONVEX_URL);
 
+function useConvexClerkAuth() {
+  const auth = useAuth();
+
+  return {
+    ...auth,
+    getToken: async ({ skipCache }: { skipCache?: boolean }) =>
+      auth.getToken({ template: 'convex', skipCache }),
+  };
+}
+
 export function AppConvexProvider({ children }: PropsWithChildren) {
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+    <ConvexProviderWithClerk client={convex} useAuth={useConvexClerkAuth}>
       {children}
     </ConvexProviderWithClerk>
   );

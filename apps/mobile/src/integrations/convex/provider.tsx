@@ -14,6 +14,16 @@ const fallbackConvexClient = new ConvexReactClient(
   "https://placeholder.convex.cloud",
 );
 
+function useConvexClerkAuth() {
+  const auth = useAuth();
+
+  return {
+    ...auth,
+    getToken: async ({ skipCache }: { skipCache?: boolean }) =>
+      auth.getToken({ template: "convex", skipCache }),
+  };
+}
+
 export function MobileConvexProvider({ children }: { children: ReactNode }) {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
   const activeClient =
@@ -21,7 +31,7 @@ export function MobileConvexProvider({ children }: { children: ReactNode }) {
 
   if (clerkEnabled && convexEnabled && convexClient) {
     return (
-      <ConvexProviderWithClerk client={activeClient} useAuth={useAuth}>
+      <ConvexProviderWithClerk client={activeClient} useAuth={useConvexClerkAuth}>
         {children}
       </ConvexProviderWithClerk>
     );

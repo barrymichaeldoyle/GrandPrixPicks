@@ -36,10 +36,7 @@ function renderHook(
 
   return {
     getLatest: () => latest,
-    rerender: (
-      slug?: string | null,
-      kind: 'top5' | 'h2h' = nudgeKind,
-    ) => {
+    rerender: (slug?: string | null, kind: 'top5' | 'h2h' = nudgeKind) => {
       act(() => {
         root.render(<TestHarness slug={slug} kind={kind} />);
       });

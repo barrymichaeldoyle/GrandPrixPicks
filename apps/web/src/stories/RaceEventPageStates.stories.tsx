@@ -12,7 +12,10 @@ import type {
   WeekendCardData,
 } from '../components/RaceScoreCard/types';
 import type { TabSwitchOption } from '../components/TabSwitch';
-import { getRaceSessionLockAt, getRaceSessionStartAt } from '../lib/raceSessions';
+import {
+  getRaceSessionLockAt,
+  getRaceSessionStartAt,
+} from '../lib/raceSessions';
 import type { SessionType } from '../lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '../lib/sessions';
 

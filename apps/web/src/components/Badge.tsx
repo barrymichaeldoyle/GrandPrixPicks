@@ -9,8 +9,10 @@ type BadgeVariant =
   | 'submitted'
   | 'finished';
 
-const successBadgeStyles = 'bg-success-muted text-success border border-success/30';
-const mutedBadgeStyles = 'bg-surface-muted text-text-muted border border-border';
+const successBadgeStyles =
+  'bg-success-muted text-success border border-success/30';
+const mutedBadgeStyles =
+  'bg-surface-muted text-text-muted border border-border';
 
 const variantStyles: Record<BadgeVariant, string> = {
   sprint:

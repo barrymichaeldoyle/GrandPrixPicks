@@ -11,13 +11,7 @@ import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
 type SessionStatus = 'open' | 'closing_soon' | 'locked' | 'published';
 
-function TimeInfoCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function TimeInfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-border bg-surface-muted/40 px-2.5 py-2">
       <p className="text-xs font-medium text-text-muted">{label}</p>

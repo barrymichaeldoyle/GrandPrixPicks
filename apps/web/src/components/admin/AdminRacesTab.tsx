@@ -53,7 +53,9 @@ function AdminRaceSection({
 
   return (
     <section>
-      <h3 className={`mb-4 flex items-center gap-2 text-lg font-semibold ${headingClassName}`}>
+      <h3
+        className={`mb-4 flex items-center gap-2 text-lg font-semibold ${headingClassName}`}
+      >
         <span className={`h-2 w-2 rounded-full ${dotClassName}`}></span>
         {title} ({count})
       </h3>

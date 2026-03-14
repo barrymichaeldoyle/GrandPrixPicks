@@ -1,5 +1,5 @@
-import type { Id } from '@convex-generated/dataModel';
 import { SignInButton } from '@clerk/react';
+import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, LogIn } from 'lucide-react';

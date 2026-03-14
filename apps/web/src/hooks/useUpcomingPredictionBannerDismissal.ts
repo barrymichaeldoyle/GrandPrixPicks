@@ -2,13 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 
 const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
 
-function getStorageKey(raceSlug: string) {
-  return `upcoming-prediction-banner-dismissed:${raceSlug}`;
+type UpcomingPredictionBannerNudgeKind = 'top5' | 'h2h';
+
+function getStorageKey(
+  raceSlug: string,
+  nudgeKind: UpcomingPredictionBannerNudgeKind,
+) {
+  return `upcoming-prediction-banner-dismissed:${raceSlug}:${nudgeKind}`;
 }
 
-function isDismissed(raceSlug: string): boolean {
+function isDismissed(
+  raceSlug: string,
+  nudgeKind: UpcomingPredictionBannerNudgeKind,
+): boolean {
   try {
-    const value = localStorage.getItem(getStorageKey(raceSlug));
+    const value = localStorage.getItem(getStorageKey(raceSlug, nudgeKind));
     if (!value) {
       return false;
     }
@@ -18,10 +26,13 @@ function isDismissed(raceSlug: string): boolean {
   }
 }
 
-function recordDismissal(raceSlug: string): void {
+function recordDismissal(
+  raceSlug: string,
+  nudgeKind: UpcomingPredictionBannerNudgeKind,
+): void {
   try {
     localStorage.setItem(
-      getStorageKey(raceSlug),
+      getStorageKey(raceSlug, nudgeKind),
       String(Date.now() + DISMISS_TTL_MS),
     );
   } catch {
@@ -29,7 +40,10 @@ function recordDismissal(raceSlug: string): void {
   }
 }
 
-export function useUpcomingPredictionBannerDismissal(raceSlug?: string | null) {
+export function useUpcomingPredictionBannerDismissal(
+  raceSlug?: string | null,
+  nudgeKind: UpcomingPredictionBannerNudgeKind = 'top5',
+) {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -37,20 +51,20 @@ export function useUpcomingPredictionBannerDismissal(raceSlug?: string | null) {
       setDismissed(false);
       return;
     }
-    setDismissed(isDismissed(raceSlug));
-  }, [raceSlug]);
+    setDismissed(isDismissed(raceSlug, nudgeKind));
+  }, [nudgeKind, raceSlug]);
 
   const dismiss = useMemo(
     () =>
       raceSlug
         ? () => {
-            recordDismissal(raceSlug);
+            recordDismissal(raceSlug, nudgeKind);
             setDismissed(true);
           }
         : () => {
             setDismissed(true);
           },
-    [raceSlug],
+    [nudgeKind, raceSlug],
   );
 
   return { dismissed, dismiss };

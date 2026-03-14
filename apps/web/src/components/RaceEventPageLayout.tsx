@@ -9,15 +9,12 @@ import { SessionEventSummary } from './SessionEventSummary';
 import type { TabSwitchOption } from './TabSwitch';
 import { TabSwitch } from './TabSwitch';
 
-function getStatusStyles(
-  isPredictable: boolean,
-  status: string,
-): { border: string; background: string } {
+function getStatusStyles(isPredictable: boolean): {
+  border: string;
+  background: string;
+} {
   if (isPredictable) {
     return { border: 'border-accent/40', background: 'bg-surface' };
-  }
-  if (status === 'locked') {
-    return { border: 'border-border', background: 'bg-surface' };
   }
   return { border: 'border-border', background: 'bg-surface' };
 }
@@ -46,6 +43,7 @@ type RaceEventPageLayoutProps = {
   isSessionPublished: (session: SessionType) => boolean;
   randomizeControl?: ReactNode;
   backLink?: ReactNode;
+  leaderboardLink?: ReactNode;
   initialTop5Content: ReactNode;
   top5HeaderAside?: ReactNode;
   top5MainContent: ReactNode;
@@ -77,13 +75,16 @@ export function RaceEventPageLayout({
   isSessionPublished,
   randomizeControl,
   backLink,
+  leaderboardLink,
   initialTop5Content,
   top5HeaderAside,
   top5MainContent,
   h2hContent,
   h2hResultsContent,
 }: RaceEventPageLayoutProps) {
-  const statusStyles = getStatusStyles(isPredictable, race.status);
+  const statusStyles = getStatusStyles(isPredictable);
+  const top5SectionLayoutClass =
+    'lg:grid lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start lg:gap-3 lg:space-y-0';
   const showResultsPendingBadge =
     race.status === 'locked' && hasPublishedResults && !allEventsScored;
   const selectedSessionHasResults = isSessionPublished(selectedSession);
@@ -99,13 +100,16 @@ export function RaceEventPageLayout({
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
-        {backLink}
+        {(backLink || leaderboardLink) && (
+          <div className="mb-4 flex items-center justify-between">
+            {backLink ?? <span />}
+            {leaderboardLink ?? <span />}
+          </div>
+        )}
 
         <div
-          className={`overflow-hidden rounded-lg border-3 ${
-            isNextRace
-              ? 'border-accent/50 bg-surface'
-              : 'border-border bg-surface'
+          className={`overflow-hidden rounded-lg border-3 bg-surface ${
+            isNextRace ? 'border-accent/50' : 'border-border'
           }`}
         >
           <RaceDetailHeader
@@ -157,46 +161,44 @@ export function RaceEventPageLayout({
                     </div>
                   )}
                   {!showResultsView && (
-                    <div>
-                      <div className="space-y-8 p-4">
-                        {showReadonlyPredictions && (
-                          <section className="space-y-2">
-                            <SessionEventSummary
-                              session={selectedSession}
-                              startsAt={getSessionStartAt(selectedSession)}
-                              lockAt={getSessionLockAt(selectedSession)}
-                              hasResults={isSessionPublished(selectedSession)}
-                              trackTimeZone={trackTimeZone}
-                            />
-                          </section>
-                        )}
-                        <section
-                          className={
-                            showReadonlyPredictions
-                              ? 'space-y-2 lg:grid lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start lg:gap-3 lg:space-y-0'
-                              : 'space-y-2'
-                          }
-                        >
-                          {showReadonlyPredictions && (
-                            <div className="flex items-center justify-between gap-2 lg:pt-1">
-                              <div className="flex items-center gap-2">
-                                <Trophy className="h-5 w-5 shrink-0 text-accent" />
-                                <h2 className="text-xl font-semibold text-text">
-                                  Top 5 Predictions
-                                </h2>
-                                {top5HeaderAside}
-                              </div>
-                            </div>
-                          )}
-                          <div className="min-w-0">{top5MainContent}</div>
+                    <div className="space-y-8 p-4">
+                      {showReadonlyPredictions && (
+                        <section className="space-y-2">
+                          <SessionEventSummary
+                            session={selectedSession}
+                            startsAt={getSessionStartAt(selectedSession)}
+                            lockAt={getSessionLockAt(selectedSession)}
+                            hasResults={isSessionPublished(selectedSession)}
+                            trackTimeZone={trackTimeZone}
+                          />
                         </section>
-                        {showReadonlyH2H && (
-                          <section className="space-y-2">{h2hContent}</section>
+                      )}
+                      <section
+                        className={
+                          showReadonlyPredictions
+                            ? `space-y-2 ${top5SectionLayoutClass}`
+                            : top5SectionLayoutClass
+                        }
+                      >
+                        {showReadonlyPredictions && (
+                          <div className="flex items-center justify-between gap-2 lg:pt-1">
+                            <div className="flex items-center gap-2">
+                              <Trophy className="h-5 w-5 shrink-0 text-accent" />
+                              <h2 className="text-xl font-semibold text-text">
+                                Top 5 Predictions
+                              </h2>
+                              {top5HeaderAside}
+                            </div>
+                          </div>
                         )}
-                      </div>
+                        <div className="min-w-0">{top5MainContent}</div>
+                      </section>
+                      {showReadonlyH2H && (
+                        <section className="space-y-2">{h2hContent}</section>
+                      )}
                     </div>
                   )}
-                  {showResultsView && <>{h2hResultsContent}</>}
+                  {showResultsView && h2hResultsContent}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 import type { Id } from '@convex-generated/dataModel';
 import type { Meta, StoryObj } from '@storybook/react';
-import { ArrowLeft, Dices, Link, Swords, Trophy } from 'lucide-react';
+import { ArrowLeft, Dices, Swords, Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '../components/Button';
@@ -12,6 +12,7 @@ import type {
   WeekendCardData,
 } from '../components/RaceScoreCard/types';
 import type { TabSwitchOption } from '../components/TabSwitch';
+import { getRaceSessionLockAt, getRaceSessionStartAt } from '../lib/raceSessions';
 import type { SessionType } from '../lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '../lib/sessions';
 
@@ -249,29 +250,11 @@ function Scenario({
   ).length;
 
   function getSessionLockAt(session: SessionType) {
-    switch (session) {
-      case 'quali':
-        return race.qualiLockAt;
-      case 'sprint_quali':
-        return race.sprintQualiLockAt ?? race.predictionLockAt;
-      case 'sprint':
-        return race.sprintLockAt ?? race.predictionLockAt;
-      case 'race':
-        return race.predictionLockAt;
-    }
+    return getRaceSessionLockAt(race, session);
   }
 
   function getSessionStartAt(session: SessionType) {
-    switch (session) {
-      case 'quali':
-        return race.qualiStartAt;
-      case 'sprint_quali':
-        return race.sprintQualiStartAt ?? race.raceStartAt;
-      case 'sprint':
-        return race.sprintStartAt ?? race.raceStartAt;
-      case 'race':
-        return race.raceStartAt;
-    }
+    return getRaceSessionStartAt(race, session);
   }
 
   const sessionTabOptions: Array<TabSwitchOption<SessionType>> =
@@ -317,7 +300,12 @@ function Scenario({
       }
       backLink={
         <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-4">
-          <Link to="/races">Back to races</Link>
+          <a href="/races">Back to races</a>
+        </Button>
+      }
+      leaderboardLink={
+        <Button asChild variant="text" size="sm" leftIcon={Trophy}>
+          <a href="/leaderboard">Leaderboard</a>
         </Button>
       }
       initialTop5Content={

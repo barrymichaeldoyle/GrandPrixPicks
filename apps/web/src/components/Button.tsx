@@ -100,7 +100,7 @@ function Button({
       <>
         {LeftIcon && <LeftIcon size={iconSizes[size]} aria-hidden />}
         {label ? (
-          <span className="inline-flex items-center pr-0.5">{label}</span>
+          <span className="inline-flex items-center px-0.5">{label}</span>
         ) : null}
         {RightIcon && <RightIcon size={iconSizes[size]} aria-hidden />}
       </>

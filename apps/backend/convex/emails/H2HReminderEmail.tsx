@@ -37,7 +37,6 @@ export function H2HReminderEmail({
       <Preview>Finish your {raceName} H2H picks before they lock!</Preview>
       <Body style={body}>
         <Container style={container}>
-          {/* Brand header */}
           <Section style={logoRow}>
             <table
               cellPadding="0"
@@ -68,12 +67,12 @@ export function H2HReminderEmail({
           <Section style={section}>
             <Text style={headline}>Finish your H2H picks</Text>
             <Text style={text}>
-              Nice work — you submitted your Top 5 predictions for{' '}
+              Your Top 5 picks were recorded for{' '}
               <strong style={{ color: '#0f172a' }}>{raceName}</strong>.
             </Text>
             <Text style={text}>
-              You still have teammate head-to-head picks left. Complete them now
-              to avoid missing points.
+              You forgot to submit your teammate head-to-head picks. Complete
+              them now to avoid missing points.
             </Text>
             <Button className="cta-button" style={button} href={raceUrl}>
               Complete H2H Picks

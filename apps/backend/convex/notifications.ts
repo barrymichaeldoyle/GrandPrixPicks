@@ -539,7 +539,7 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
             auth: s.auth,
           })),
           title: `🏎️ ${race.name}`,
-          body: 'Top 5 submitted. Finish your teammate H2H picks.',
+          body: 'Your Top 5 picks were recorded. Submit your H2H picks.',
           url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`,
         },
       );

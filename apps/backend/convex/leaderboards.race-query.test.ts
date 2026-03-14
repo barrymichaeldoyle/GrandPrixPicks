@@ -152,6 +152,58 @@ describe('getRaceLeaderboardForViewer', () => {
     });
   });
 
+  it('aggregates multiple session score rows for the same user', async () => {
+    const result = await getRaceLeaderboardForViewer(
+      makeCtx({
+        race: { _id: raceId('r1'), status: 'finished' },
+        scores: [
+          {
+            userId: userId('dup'),
+            username: 'dupe',
+            points: 8,
+          },
+          {
+            userId: userId('dup'),
+            username: 'dupe',
+            points: 7,
+          },
+          {
+            userId: userId('other'),
+            username: 'other',
+            points: 10,
+          },
+        ],
+      }) as never,
+      { raceId: raceId('r1') },
+      null,
+    );
+
+    expect(result).toEqual({
+      status: 'visible',
+      reason: null,
+      entries: [
+        {
+          rank: 1,
+          userId: userId('dup'),
+          username: 'dupe',
+          displayName: undefined,
+          avatarUrl: undefined,
+          points: 15,
+          breakdown: undefined,
+        },
+        {
+          rank: 2,
+          userId: userId('other'),
+          username: 'other',
+          displayName: undefined,
+          avatarUrl: undefined,
+          points: 10,
+          breakdown: undefined,
+        },
+      ],
+    });
+  });
+
   it('does not require sign-in or prediction once race is finished', async () => {
     const result = await getRaceLeaderboardForViewer(
       makeCtx({

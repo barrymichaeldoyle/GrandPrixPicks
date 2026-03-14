@@ -69,46 +69,37 @@ export function UpcomingPredictionNudge({
                   )}
                   <span className="truncate">{raceName}</span>
                 </p>
-                <div className="mt-2 flex items-start gap-2 rounded-lg bg-surface px-2.5 py-2 text-[13px] leading-relaxed text-text sm:mt-3 sm:max-w-3xl sm:px-3 sm:py-2.5 sm:text-[15px]">
+                <div className="mt-2 flex items-start gap-2 rounded-lg bg-surface px-2.5 py-2 text-[13px] leading-relaxed text-text sm:mt-3 sm:px-3 sm:py-2.5 sm:text-[15px]">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                     <Flag className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                   <p>{message}</p>
                 </div>
                 {error && <p className="mt-1 text-xs text-error">{error}</p>}
-                <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
-                  <div className="min-w-0 flex-1 sm:flex-initial">
-                    {makePicksControl ?? (
-                      <Button
-                        size="sm"
-                        rightIcon={ArrowRight}
-                        className="w-full sm:w-auto"
-                      >
-                        Make picks
-                      </Button>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1 sm:flex-initial">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      leftIcon={Dices}
-                      className="w-full sm:w-auto"
-                      disabled={isRandomizing}
-                      onClick={onRandomizeClick}
-                    >
-                      {isRandomizing ? (
-                        'Randomizing...'
-                      ) : (
-                        <>
-                          <span className="sm:hidden">Randomize</span>
-                          <span className="hidden sm:inline">
-                            {randomizeLabel}
-                          </span>
-                        </>
-                      )}
+                <div className="mt-3 flex flex-row flex-wrap gap-2 max-sm:flex-col sm:mt-4 [&>*]:w-full [&>*]:min-w-0 sm:[&>*]:w-auto">
+                  {makePicksControl ?? (
+                    <Button size="sm" rightIcon={ArrowRight}>
+                      Make picks
                     </Button>
-                  </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    leftIcon={Dices}
+                    disabled={isRandomizing}
+                    onClick={onRandomizeClick}
+                  >
+                    {isRandomizing ? (
+                      'Randomizing...'
+                    ) : (
+                      <>
+                        <span className="sm:hidden">Randomize</span>
+                        <span className="hidden sm:inline">
+                          {randomizeLabel}
+                        </span>
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>

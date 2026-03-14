@@ -369,6 +369,7 @@ function LeaderboardPage() {
       : gameMode === 'top5'
         ? 'Top 5'
         : 'H2H';
+  const activeViewKey = `${timeScope}:${scope}:${gameMode}`;
 
   const heroSubtitle =
     timeScope === 'weekend' && defaultRace
@@ -488,6 +489,7 @@ function LeaderboardPage() {
         {/* Content */}
         {timeScope === 'weekend' ? (
           <WeekendContent
+            key={activeViewKey}
             defaultRace={defaultRace}
             initialWeekend={initialWeekend}
             scope={scope}
@@ -503,6 +505,7 @@ function LeaderboardPage() {
           />
         ) : (
           <SeasonContent
+            key={activeViewKey}
             scope={scope}
             gameMode={gameMode}
             seasonEntries={seasonEntries}

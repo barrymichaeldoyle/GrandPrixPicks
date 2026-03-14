@@ -9,27 +9,39 @@ import { useUpcomingPredictionBannerDismissal } from './useUpcomingPredictionBan
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-function renderHook(raceSlug?: string | null) {
+function renderHook(
+  raceSlug?: string | null,
+  nudgeKind: 'top5' | 'h2h' = 'top5',
+) {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root: Root = createRoot(container);
   let latest: ReturnType<typeof useUpcomingPredictionBannerDismissal> | null =
     null;
 
-  function TestHarness({ slug }: { slug?: string | null }) {
-    latest = useUpcomingPredictionBannerDismissal(slug);
+  function TestHarness({
+    slug,
+    kind,
+  }: {
+    slug?: string | null;
+    kind: 'top5' | 'h2h';
+  }) {
+    latest = useUpcomingPredictionBannerDismissal(slug, kind);
     return null;
   }
 
   act(() => {
-    root.render(<TestHarness slug={raceSlug} />);
+    root.render(<TestHarness slug={raceSlug} kind={nudgeKind} />);
   });
 
   return {
     getLatest: () => latest,
-    rerender: (slug?: string | null) => {
+    rerender: (
+      slug?: string | null,
+      kind: 'top5' | 'h2h' = nudgeKind,
+    ) => {
       act(() => {
-        root.render(<TestHarness slug={slug} />);
+        root.render(<TestHarness slug={slug} kind={kind} />);
       });
     },
     unmount: () => {
@@ -71,7 +83,7 @@ describe('useUpcomingPredictionBannerDismissal', () => {
     expect(
       Number(
         localStorage.getItem(
-          'upcoming-prediction-banner-dismissed:australia-2026',
+          'upcoming-prediction-banner-dismissed:australia-2026:top5',
         ),
       ),
     ).toBe(1_000 + 24 * 60 * 60 * 1000);
@@ -81,7 +93,7 @@ describe('useUpcomingPredictionBannerDismissal', () => {
 
   it('restores visibility after the dismissal expires', () => {
     localStorage.setItem(
-      'upcoming-prediction-banner-dismissed:australia-2026',
+      'upcoming-prediction-banner-dismissed:australia-2026:top5',
       String(5_000),
     );
     vi.spyOn(Date, 'now').mockReturnValue(6_000);
@@ -95,7 +107,7 @@ describe('useUpcomingPredictionBannerDismissal', () => {
 
   it('tracks dismissal per race slug', () => {
     localStorage.setItem(
-      'upcoming-prediction-banner-dismissed:australia-2026',
+      'upcoming-prediction-banner-dismissed:australia-2026:top5',
       String(Date.now() + 60_000),
     );
 
@@ -103,6 +115,24 @@ describe('useUpcomingPredictionBannerDismissal', () => {
     expect(getLatest()?.dismissed).toBe(true);
 
     rerender('china-2026');
+    expect(getLatest()?.dismissed).toBe(false);
+
+    unmount();
+  });
+
+  it('tracks dismissal separately for top5 and h2h nudges', () => {
+    localStorage.setItem(
+      'upcoming-prediction-banner-dismissed:australia-2026:top5',
+      String(Date.now() + 60_000),
+    );
+
+    const { getLatest, rerender, unmount } = renderHook(
+      'australia-2026',
+      'top5',
+    );
+    expect(getLatest()?.dismissed).toBe(true);
+
+    rerender('australia-2026', 'h2h');
     expect(getLatest()?.dismissed).toBe(false);
 
     unmount();

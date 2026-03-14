@@ -15,6 +15,10 @@ import { RaceEventPageLayout } from '../../components/RaceEventPageLayout';
 import { fromRaceDetail, RaceScoreCard } from '../../components/RaceScoreCard';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import { Tooltip } from '../../components/Tooltip';
+import {
+  getRaceSessionLockAt,
+  getRaceSessionStartAt,
+} from '../../lib/raceSessions';
 import type { SessionType } from '../../lib/sessions';
 import {
   getSessionsForWeekend,
@@ -109,14 +113,16 @@ export const Route = createFileRoute('/races/$raceSlug')({
 
 function BackToRacesLink() {
   return (
-    <Button
-      asChild
-      variant="text"
-      size="sm"
-      leftIcon={ArrowLeft}
-      className="mb-4"
-    >
+    <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
       <Link to="/races">Back to races</Link>
+    </Button>
+  );
+}
+
+function LeaderboardLink() {
+  return (
+    <Button asChild variant="text" size="sm" leftIcon={Trophy}>
+      <Link to="/leaderboard">Leaderboard</Link>
     </Button>
   );
 }
@@ -145,34 +151,10 @@ function RaceDetailPage() {
   const now = Date.now();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
   function getSessionLockAt(session: SessionType): number {
-    if (!race) {
-      return 0;
-    }
-    switch (session) {
-      case 'quali':
-        return race.qualiLockAt ?? 0;
-      case 'sprint_quali':
-        return race.sprintQualiLockAt ?? 0;
-      case 'sprint':
-        return race.sprintLockAt ?? 0;
-      case 'race':
-        return race.predictionLockAt;
-    }
+    return race ? getRaceSessionLockAt(race, session) : 0;
   }
   function getSessionStartAt(session: SessionType): number {
-    if (!race) {
-      return 0;
-    }
-    switch (session) {
-      case 'quali':
-        return race.qualiStartAt ?? race.raceStartAt;
-      case 'sprint_quali':
-        return race.sprintQualiStartAt ?? race.raceStartAt;
-      case 'sprint':
-        return race.sprintStartAt ?? race.raceStartAt;
-      case 'race':
-        return race.raceStartAt;
-    }
+    return race ? getRaceSessionStartAt(race, session) : 0;
   }
   const nextOpenSession = weekendSessions.find(
     (session) => now < getSessionLockAt(session),
@@ -582,6 +564,7 @@ function RaceDetailPage() {
         />
       }
       backLink={<BackToRacesLink />}
+      leaderboardLink={<LeaderboardLink />}
       initialTop5Content={renderInitialForm()}
       top5MainContent={
         top5EditingSession

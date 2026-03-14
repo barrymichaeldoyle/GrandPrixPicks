@@ -1,9 +1,76 @@
 import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { Flag } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 import { formatCalendarDate } from '@/lib/date';
+
+function AdminRaceRow({
+  race,
+  borderClassName,
+  children,
+}: {
+  race: Doc<'races'>;
+  borderClassName: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      to="/admin/races/$raceId"
+      params={{ raceId: race._id }}
+      className={`flex items-center justify-between rounded-lg bg-slate-800/50 p-4 transition-colors hover:bg-slate-700/50 ${borderClassName}`}
+    >
+      <div>
+        <span className="text-sm text-slate-500">Round {race.round}</span>
+        <h4 className="font-medium text-white">{race.name}</h4>
+      </div>
+      {children}
+    </Link>
+  );
+}
+
+function AdminRaceSection({
+  title,
+  count,
+  headingClassName,
+  dotClassName,
+  races,
+  renderRowSuffix,
+  rowBorderClassName,
+}: {
+  title: string;
+  count: number;
+  headingClassName: string;
+  dotClassName: string;
+  races: Array<Doc<'races'>>;
+  renderRowSuffix: (race: Doc<'races'>) => ReactNode;
+  rowBorderClassName: string;
+}) {
+  if (races.length === 0) {
+    return null;
+  }
+
+  return (
+    <section>
+      <h3 className={`mb-4 flex items-center gap-2 text-lg font-semibold ${headingClassName}`}>
+        <span className={`h-2 w-2 rounded-full ${dotClassName}`}></span>
+        {title} ({count})
+      </h3>
+      <div className="space-y-2">
+        {races.map((race) => (
+          <AdminRaceRow
+            key={race._id}
+            race={race}
+            borderClassName={rowBorderClassName}
+          >
+            {renderRowSuffix(race)}
+          </AdminRaceRow>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 type AdminRacesTabProps = {
   races: Array<Doc<'races'>> | undefined;
@@ -33,95 +100,47 @@ export function AdminRacesTab({
         <InlineLoader />
       ) : (
         <div className="space-y-8">
-          {lockedRaces.length > 0 && (
-            <section>
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-amber-400">
-                <span className="h-2 w-2 rounded-full bg-amber-400"></span>
-                Awaiting Results ({lockedRaces.length})
-              </h3>
-              <div className="space-y-2">
-                {lockedRaces.map((race) => (
-                  <Link
-                    key={race._id}
-                    to="/admin/races/$raceId"
-                    params={{ raceId: race._id }}
-                    className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-slate-800/50 p-4 transition-colors hover:bg-slate-700/50"
-                  >
-                    <div>
-                      <span className="text-sm text-slate-500">
-                        Round {race.round}
-                      </span>
-                      <h4 className="font-medium text-white">{race.name}</h4>
-                    </div>
-                    <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-400">
-                      Publish Results
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          <AdminRaceSection
+            title="Awaiting Results"
+            count={lockedRaces.length}
+            headingClassName="text-amber-400"
+            dotClassName="bg-amber-400"
+            races={lockedRaces}
+            rowBorderClassName="border border-amber-500/30"
+            renderRowSuffix={() => (
+              <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-400">
+                Publish Results
+              </span>
+            )}
+          />
 
-          {upcomingRaces.length > 0 && (
-            <section>
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
-                Upcoming ({upcomingRaces.length})
-              </h3>
-              <div className="space-y-2">
-                {upcomingRaces.map((race) => (
-                  <Link
-                    key={race._id}
-                    to="/admin/races/$raceId"
-                    params={{ raceId: race._id }}
-                    className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-colors hover:bg-slate-700/50"
-                  >
-                    <div>
-                      <span className="text-sm text-slate-500">
-                        Round {race.round}
-                      </span>
-                      <h4 className="font-medium text-white">{race.name}</h4>
-                    </div>
-                    <span
-                      className="text-sm text-slate-400"
-                      suppressHydrationWarning
-                    >
-                      {formatCalendarDate(race.raceStartAt)}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          <AdminRaceSection
+            title="Upcoming"
+            count={upcomingRaces.length}
+            headingClassName="text-emerald-400"
+            dotClassName="bg-emerald-400"
+            races={upcomingRaces}
+            rowBorderClassName="border border-slate-700"
+            renderRowSuffix={(race) => (
+              <span className="text-sm text-slate-400" suppressHydrationWarning>
+                {formatCalendarDate(race.raceStartAt)}
+              </span>
+            )}
+          />
 
-          {finishedRaces.length > 0 && (
-            <section>
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-400">
-                <span className="h-2 w-2 rounded-full bg-slate-400"></span>
-                Completed ({finishedRaces.length})
-              </h3>
-              <div className="space-y-2">
-                {finishedRaces.map((race) => (
-                  <Link
-                    key={race._id}
-                    to="/admin/races/$raceId"
-                    params={{ raceId: race._id }}
-                    className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/50 p-4 transition-colors hover:bg-slate-700/50"
-                  >
-                    <div>
-                      <span className="text-sm text-slate-500">
-                        Round {race.round}
-                      </span>
-                      <h4 className="font-medium text-white">{race.name}</h4>
-                    </div>
-                    <span className="rounded-full bg-slate-700 px-3 py-1 text-sm text-slate-400">
-                      Completed
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          <AdminRaceSection
+            title="Completed"
+            count={finishedRaces.length}
+            headingClassName="text-slate-400"
+            dotClassName="bg-slate-400"
+            races={finishedRaces}
+            rowBorderClassName="border border-slate-700"
+            renderRowSuffix={() => (
+              <span className="rounded-full bg-slate-700 px-3 py-1 text-sm text-slate-400">
+                Completed
+              </span>
+            )}
+          />
 
           {races.length === 0 && (
             <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-8 text-center">

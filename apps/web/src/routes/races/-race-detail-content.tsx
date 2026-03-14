@@ -13,6 +13,7 @@ import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
 import { InlineLoader } from '../../components/InlineLoader';
 import { RandomizeButton } from '../../components/RandomizeButton';
 import { Tooltip } from '../../components/Tooltip';
+import { getRaceSessionLockAt } from '../../lib/raceSessions';
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
 
@@ -54,21 +55,8 @@ export function H2HSection({
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
-  const selectedSessionLockTime = (() => {
-    switch (selectedSession) {
-      case 'quali':
-        return race.qualiLockAt;
-      case 'sprint_quali':
-        return race.sprintQualiLockAt;
-      case 'sprint':
-        return race.sprintLockAt;
-      case 'race':
-        return race.predictionLockAt;
-    }
-  })();
-  const selectedSessionLocked =
-    selectedSessionLockTime !== undefined &&
-    Date.now() >= selectedSessionLockTime;
+  const selectedSessionLockTime = getRaceSessionLockAt(race, selectedSession);
+  const selectedSessionLocked = Date.now() >= selectedSessionLockTime;
   const isLoadingPredictions = h2hPredictions === undefined;
   const canEditSelectedSession = Boolean(
     !isLoadingPredictions && hasH2HPredictions && !selectedSessionLocked,
@@ -149,6 +137,23 @@ export function H2HSection({
             )}
         </div>
       </div>
+
+      {shouldHighlightIncompleteH2H ? (
+        <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-3 text-sm text-text">
+          <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
+            <CircleAlert className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div className="space-y-1">
+            <p className="font-medium text-text">
+              Your Top 5 picks were recorded.
+            </p>
+            <p className="text-text-muted">
+              You still need to submit your {SESSION_LABELS[selectedSession]}{' '}
+              H2H picks before this session starts.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <ErrorBoundary>
         {isLoadingPredictions ? (

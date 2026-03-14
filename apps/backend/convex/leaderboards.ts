@@ -801,7 +801,40 @@ export async function getRaceLeaderboardForViewer(
     .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
     .collect();
 
-  const entries = mapRaceScoresToLeaderboardEntries(scores);
+  const userMap = new Map<
+    string,
+    {
+      userId: Id<'users'>;
+      username?: string;
+      displayName?: string;
+      avatarUrl?: string;
+      points: number;
+      breakdown?: unknown;
+    }
+  >();
+
+  for (const score of scores) {
+    const existing = userMap.get(score.userId);
+    if (existing) {
+      existing.points += score.points;
+      existing.username ??= score.username;
+      existing.displayName ??= score.displayName;
+      existing.avatarUrl ??= score.avatarUrl;
+      existing.breakdown ??= score.breakdown;
+      continue;
+    }
+
+    userMap.set(score.userId, {
+      userId: score.userId,
+      username: score.username,
+      displayName: score.displayName,
+      avatarUrl: score.avatarUrl,
+      points: score.points,
+      breakdown: score.breakdown,
+    });
+  }
+
+  const entries = mapRaceScoresToLeaderboardEntries([...userMap.values()]);
 
   return { status: 'visible' as const, reason: null, entries };
 }

@@ -114,6 +114,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               </SignInButton>
             ) : privateCreateLimitReached ? (
               <Button
+                size="sm"
                 leftIcon={Plus}
                 disabled
                 tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
@@ -121,7 +122,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 Create
               </Button>
             ) : (
-              <Button asChild leftIcon={Plus}>
+              <Button asChild size="sm" leftIcon={Plus}>
                 <Link to="/leagues/create">Create</Link>
               </Button>
             )

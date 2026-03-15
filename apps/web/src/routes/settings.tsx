@@ -88,14 +88,12 @@ function NotificationChannelItem({
   value,
   onChange,
   disabledValues = [],
-  loading = false,
 }: {
   label: string;
   description: string;
   value: NotificationChannel;
   onChange: (channel: NotificationChannel) => void;
   disabledValues?: Array<NotificationChannel>;
-  loading?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3 py-4">
@@ -106,7 +104,7 @@ function NotificationChannelItem({
       <div className="inline-flex w-full max-w-sm rounded-lg border border-border bg-surface p-1">
         {notificationChannelOptions.map((option) => {
           const isActive = option.value === value;
-          const isDisabled = loading || disabledValues.includes(option.value);
+          const isDisabled = disabledValues.includes(option.value);
           return (
             <button
               key={option.value}
@@ -485,6 +483,8 @@ function SettingsPage() {
   }, [optimisticResultsChannel, initialResultsChannel]);
 
   const canUsePushChannels = isPushSupported && pushPermission !== 'denied';
+  const disabledNotificationValues: Array<NotificationChannel> =
+    canUsePushChannels && !isPushLoading ? [] : ['push', 'both'];
 
   // Regional (timezone, locale) optimistic state
   const [optimisticTimezone, setOptimisticTimezone] = useState<
@@ -929,8 +929,7 @@ function SettingsPage() {
               onChange={(next) => {
                 updateNotificationChannels(next, resultsChannel);
               }}
-              disabledValues={canUsePushChannels ? [] : ['push', 'both']}
-              loading={isPushLoading}
+              disabledValues={disabledNotificationValues}
             />
             <NotificationChannelItem
               label="Result notifications"
@@ -939,8 +938,7 @@ function SettingsPage() {
               onChange={(next) => {
                 updateNotificationChannels(predictionChannel, next);
               }}
-              disabledValues={canUsePushChannels ? [] : ['push', 'both']}
-              loading={isPushLoading}
+              disabledValues={disabledNotificationValues}
             />
             {isPushSupported && pushPermission === 'denied' && (
               <div className="py-4">

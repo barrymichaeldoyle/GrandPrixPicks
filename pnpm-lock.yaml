@@ -179,7 +179,7 @@ importers:
         specifier: 1.0.4
         version: 1.0.4(@tanstack/react-router@1.166.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@tanstack/react-start@1.166.9(crossws@0.4.4(srvx@0.11.7))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@clerk/ui':
-        specifier: ^1.2.1
+        specifier: 1.2.1
         version: 1.2.1(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3))(@types/react@19.2.14)(bs58@5.0.0)(fastestsmallesttextencoderdecoder@1.0.22)(react-native@0.83.2(@babel/core@7.29.0)(@types/react@19.2.14)(bufferutil@4.1.0)(react@19.2.4))(typescript@5.9.3)
       '@dnd-kit/core':
         specifier: 6.3.1

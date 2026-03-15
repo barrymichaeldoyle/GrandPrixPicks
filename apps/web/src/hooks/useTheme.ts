@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 
 export const THEME_KEY = 'grand-prix-picks-theme';
+const THEME_CHANGE_EVENT = 'grand-prix-picks-theme-change';
+
+function applyTheme(isDark: boolean) {
+  document.documentElement.classList.toggle('dark', isDark);
+  document.documentElement.setAttribute(
+    'data-theme',
+    isDark ? 'dark' : 'light',
+  );
+}
 
 function getInitialTheme(themeKey: string): boolean {
   if (typeof window === 'undefined') {
@@ -29,21 +38,35 @@ export function useTheme(themeKey = THEME_KEY) {
     function sync() {
       setIsDark(resolveTheme(themeKey));
     }
+
+    function handleThemeChange(event: Event) {
+      const nextThemeKey = (event as CustomEvent<string | undefined>).detail;
+      if (nextThemeKey !== undefined && nextThemeKey !== themeKey) {
+        return;
+      }
+      sync();
+    }
+
     sync();
-    return;
+    window.addEventListener('storage', handleThemeChange);
+    window.addEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+    return () => {
+      window.removeEventListener('storage', handleThemeChange);
+      window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+    };
   }, [themeKey]);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    document.documentElement.setAttribute(
-      'data-theme',
-      isDark ? 'dark' : 'light',
-    );
+    applyTheme(isDark);
   }, [isDark]);
 
   function setTheme(dark: boolean) {
     localStorage.setItem(themeKey, dark ? 'dark' : 'light');
+    applyTheme(dark);
     setIsDark(dark);
+    window.dispatchEvent(
+      new CustomEvent(THEME_CHANGE_EVENT, { detail: themeKey }),
+    );
   }
 
   return { isDark, setTheme };

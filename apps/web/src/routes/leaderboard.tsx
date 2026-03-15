@@ -1,11 +1,13 @@
 import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
+import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CalendarDays,
+  ChevronDown,
   Globe,
   Layers,
   Loader2,
@@ -33,7 +35,7 @@ export const Route = createFileRoute('/leaderboard')({
   component: LeaderboardPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { time?: TimeScope; mode?: GameMode; scope?: Scope } => {
+  ): { time?: TimeScope; mode?: GameMode; scope?: Scope; raceId?: string } => {
     const time =
       search.time === 'weekend' || search.time === 'season'
         ? search.time
@@ -48,13 +50,15 @@ export const Route = createFileRoute('/leaderboard')({
       search.scope === 'global' || search.scope === 'following'
         ? search.scope
         : undefined;
-    return { time, mode, scope };
+    const raceId =
+      typeof search.raceId === 'string' ? search.raceId : undefined;
+    return { time, mode, scope, raceId };
   },
   loader: async () => {
-    const defaultRace = await convex.query(
-      api.races.getWeekendLeaderboardRace,
-      {},
-    );
+    const [defaultRace, allRaces] = await Promise.all([
+      convex.query(api.races.getWeekendLeaderboardRace, {}),
+      convex.query(api.races.listRaces, { season: 2026 }),
+    ]);
     const [initialSeason, initialWeekend] = await Promise.all([
       convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
         limit: PODIUM_SIZE,
@@ -65,7 +69,7 @@ export const Route = createFileRoute('/leaderboard')({
           })
         : Promise.resolve(null),
     ]);
-    return { defaultRace, initialSeason, initialWeekend };
+    return { defaultRace, allRaces, initialSeason, initialWeekend };
   },
   head: () => {
     const title =
@@ -148,13 +152,30 @@ function useStickyValue<T>(value: T | undefined): T | undefined {
 }
 
 function LeaderboardPage() {
-  const { defaultRace, initialSeason, initialWeekend } = Route.useLoaderData();
+  const { defaultRace, allRaces, initialSeason, initialWeekend } =
+    Route.useLoaderData();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const timeScope: TimeScope = search.time ?? 'weekend';
   const gameMode: GameMode = search.mode ?? 'combined';
   const scope: Scope = search.scope ?? 'global';
+
+  // Races with results available (finished or locked), sorted by round
+  const selectableRaces = allRaces
+    .filter((r) => r.status === 'finished' || r.status === 'locked')
+    .concat(
+      defaultRace && !allRaces.some((r) => r._id === defaultRace._id)
+        ? [defaultRace]
+        : [],
+    )
+    .sort((a, b) => a.round - b.round);
+
+  const selectedRaceId = (search.raceId ?? defaultRace?._id) as
+    | Id<'races'>
+    | undefined;
+  const selectedRace =
+    allRaces.find((r) => r._id === selectedRaceId) ?? defaultRace;
 
   // Season combined (global) – with SSR + pagination
   const [seasonEntries, setSeasonEntries] = useState<
@@ -207,8 +228,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'combined' &&
       scope === 'global' &&
-      defaultRace
-      ? { raceId: defaultRace._id }
+      selectedRaceId
+      ? { raceId: selectedRaceId }
       : 'skip',
   );
   const weekendTop5 = useQuery(
@@ -216,8 +237,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'top5' &&
       scope === 'global' &&
-      defaultRace
-      ? { raceId: defaultRace._id }
+      selectedRaceId
+      ? { raceId: selectedRaceId }
       : 'skip',
   );
   const weekendH2H = useQuery(
@@ -225,8 +246,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'h2h' &&
       scope === 'global' &&
-      defaultRace
-      ? { raceId: defaultRace._id }
+      selectedRaceId
+      ? { raceId: selectedRaceId }
       : 'skip',
   );
   const weekendCombinedFollowing = useQuery(
@@ -234,8 +255,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'combined' &&
       scope === 'following' &&
-      defaultRace
-      ? { raceId: defaultRace._id, friendsOnly: true }
+      selectedRaceId
+      ? { raceId: selectedRaceId, friendsOnly: true }
       : 'skip',
   );
   const weekendTop5Following = useQuery(
@@ -243,8 +264,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'top5' &&
       scope === 'following' &&
-      defaultRace
-      ? { raceId: defaultRace._id, friendsOnly: true }
+      selectedRaceId
+      ? { raceId: selectedRaceId, friendsOnly: true }
       : 'skip',
   );
   const weekendH2HFollowing = useQuery(
@@ -252,8 +273,8 @@ function LeaderboardPage() {
     timeScope === 'weekend' &&
       gameMode === 'h2h' &&
       scope === 'following' &&
-      defaultRace
-      ? { raceId: defaultRace._id, friendsOnly: true }
+      selectedRaceId
+      ? { raceId: selectedRaceId, friendsOnly: true }
       : 'skip',
   );
 
@@ -311,7 +332,8 @@ function LeaderboardPage() {
       const data =
         scope === 'global'
           ? gameMode === 'combined'
-            ? (stickyWeekendCombined ?? initialWeekend)
+            ? (stickyWeekendCombined ??
+              (selectedRaceId === defaultRace?._id ? initialWeekend : null))
             : gameMode === 'top5'
               ? stickyWeekendTop5
               : stickyWeekendH2H
@@ -372,8 +394,8 @@ function LeaderboardPage() {
   const activeViewKey = `${timeScope}:${scope}:${gameMode}`;
 
   const heroSubtitle =
-    timeScope === 'weekend' && defaultRace
-      ? `${defaultRace.season} ${defaultRace.name} Weekend · ${gameModeLabel}`
+    timeScope === 'weekend' && selectedRace
+      ? `${selectedRace.season} ${selectedRace.name} Weekend · ${gameModeLabel}`
       : `2026 Season Standings · ${gameModeLabel}${
           activeTotalCount && activeTotalCount > 0
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
@@ -453,6 +475,30 @@ function LeaderboardPage() {
             ariaLabel="Leaderboard time scope"
           />
 
+          {/* Race selector (weekend tab only) */}
+          {timeScope === 'weekend' && selectableRaces.length > 1 && (
+            <div className="relative">
+              <select
+                value={selectedRaceId ?? ''}
+                onChange={(e) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, raceId: e.target.value }),
+                    replace: true,
+                  })
+                }
+                className="w-full appearance-none rounded-lg border border-border bg-surface px-3 py-2 pr-10 text-sm font-medium text-text focus:ring-2 focus:ring-accent focus:outline-none"
+                aria-label="Select race weekend"
+              >
+                {selectableRaces.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.season} Round {r.round} · {r.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
+            </div>
+          )}
+
           {/* Row 2: Scope + game mode */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="sm:border-r sm:border-border sm:pr-4">
@@ -490,8 +536,10 @@ function LeaderboardPage() {
         {timeScope === 'weekend' ? (
           <WeekendContent
             key={activeViewKey}
-            defaultRace={defaultRace}
-            initialWeekend={initialWeekend}
+            defaultRace={selectedRace}
+            initialWeekend={
+              selectedRaceId === defaultRace?._id ? initialWeekend : null
+            }
             scope={scope}
             gameMode={gameMode}
             isAuthLoaded={isAuthLoaded}

@@ -384,10 +384,11 @@ function HomePage() {
               Earn Points Every Session
             </h3>
             <p className="text-sm text-text-muted">
-              Top-5 picks score up to 25 points per session — exact position
-              earns 5, off by one earns 3, any top-5 hit earns 1. Head-to-head
-              points stack on top, and sprint weekends mean even more to play
-              for.
+              Top-5 picks score up to 25 points per session: exact position
+              earns 5, one place away earns 3, and any other actual top-5 hit
+              earns 1. A P5 pick that finishes P6 still counts as one place
+              away. Head-to-head points stack on top, and sprint weekends mean
+              even more to play for.
             </p>
           </motion.div>
 
@@ -425,12 +426,14 @@ function HomePage() {
             </li>
             <li className="flex items-center gap-2">
               <span className="w-16 font-bold text-accent">3 points</span>
-              <span className="text-text-muted">Off by one position</span>
+              <span className="text-text-muted">
+                One place away, including P5 picked and P6 actual
+              </span>
             </li>
             <li className="flex items-center gap-2">
               <span className="w-16 font-bold text-accent">1 point</span>
               <span className="text-text-muted">
-                Driver in top 5, but off by 2+ positions
+                Driver finishes in the actual top 5, but is off by 2+ positions
               </span>
             </li>
             <li className="flex items-center gap-2">

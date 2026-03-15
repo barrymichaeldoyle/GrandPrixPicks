@@ -8,7 +8,7 @@ function driver(id: string): Id<'drivers'> {
 }
 
 describe('scoreTopFive', () => {
-  it('scores exact and near matches in the top five', () => {
+  it('scores exact matches and off-by-one results', () => {
     const result = scoreTopFive({
       picks: [driver('A'), driver('B'), driver('C'), driver('D'), driver('E')],
       classification: [
@@ -119,5 +119,71 @@ describe('scoreTopFive', () => {
         points: 0,
       },
     ]);
+  });
+
+  it('awards off-by-one points when P5 finishes P6', () => {
+    const result = scoreTopFive({
+      picks: [driver('A'), driver('B'), driver('C'), driver('D'), driver('E')],
+      classification: [
+        driver('Z'),
+        driver('Y'),
+        driver('X'),
+        driver('W'),
+        driver('E'),
+        driver('D'),
+      ],
+    });
+
+    expect(result.breakdown).toEqual([
+      {
+        driverId: driver('A'),
+        predictedPosition: 1,
+        actualPosition: undefined,
+        points: 0,
+      },
+      {
+        driverId: driver('B'),
+        predictedPosition: 2,
+        actualPosition: undefined,
+        points: 0,
+      },
+      {
+        driverId: driver('C'),
+        predictedPosition: 3,
+        actualPosition: undefined,
+        points: 0,
+      },
+      {
+        driverId: driver('D'),
+        predictedPosition: 4,
+        actualPosition: 6,
+        points: 0,
+      },
+      {
+        driverId: driver('E'),
+        predictedPosition: 5,
+        actualPosition: 5,
+        points: 5,
+      },
+    ]);
+
+    const boundaryResult = scoreTopFive({
+      picks: [driver('A'), driver('B'), driver('C'), driver('D'), driver('E')],
+      classification: [
+        driver('Z'),
+        driver('Y'),
+        driver('X'),
+        driver('W'),
+        driver('D'),
+        driver('E'),
+      ],
+    });
+
+    expect(boundaryResult.breakdown[4]).toEqual({
+      driverId: driver('E'),
+      predictedPosition: 5,
+      actualPosition: 6,
+      points: 3,
+    });
   });
 });

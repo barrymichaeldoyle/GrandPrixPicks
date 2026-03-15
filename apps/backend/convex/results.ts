@@ -1157,6 +1157,49 @@ export const backfillDenormalizedUserFields = internalMutation({
 });
 
 /**
+ * One-time repair: requeue Top 5 scoring for published result sessions using the
+ * current scoring rules. This rewrites stored score rows and refreshes
+ * standings via the normal scoring pipeline without resending notifications.
+ */
+export const backfillTopFiveScores = internalMutation({
+  args: {
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const BACKFILL_BATCH_SIZE = 10;
+    const page = await ctx.db
+      .query('results')
+      .paginate({ numItems: BACKFILL_BATCH_SIZE, cursor: args.cursor ?? null });
+
+    let queued = 0;
+
+    for (const result of page.page) {
+      const race = await ctx.db.get(result.raceId);
+      if (!race) {
+        continue;
+      }
+
+      await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveForSession, {
+        raceId: result.raceId,
+        sessionType: result.sessionType,
+        classification: result.classification,
+        season: race.season,
+        resultId: result._id,
+        suppressNotifications: true,
+      });
+      queued++;
+    }
+
+    return {
+      ok: true,
+      queued,
+      isDone: page.isDone,
+      continueCursor: page.isDone ? null : page.continueCursor,
+    };
+  },
+});
+
+/**
  * One-time repair: recompute stored H2H score rows from the full user/race/session
  * prediction set, then refresh affected H2H season standings.
  */

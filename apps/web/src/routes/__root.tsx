@@ -298,7 +298,7 @@ function RootDocument({ children }: PropsWithChildren) {
           <AppConvexProvider>
             <ProfileSync />
             <PostHogUserSync />
-            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"

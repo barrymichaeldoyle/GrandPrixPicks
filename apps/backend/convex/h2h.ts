@@ -248,6 +248,7 @@ export const getH2HSeasonLeaderboard = query({
       rank: number;
       userId: Id<'users'>;
       username: string;
+      displayName?: string;
       points: number;
       raceCount: number;
       correctPicks: number;
@@ -263,6 +264,7 @@ export const getH2HSeasonLeaderboard = query({
           rank: viewerIndex + 1,
           userId: viewer._id,
           username: viewer.username ?? 'Anonymous',
+          displayName: viewer.displayName,
           points: viewerRow.totalPoints,
           raceCount: viewerRow.raceCount,
           correctPicks: viewerRow.correctPicks,
@@ -279,6 +281,7 @@ export const getH2HSeasonLeaderboard = query({
       rank: offset + index + 1,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
+      displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.totalPoints,
       raceCount: row.raceCount,

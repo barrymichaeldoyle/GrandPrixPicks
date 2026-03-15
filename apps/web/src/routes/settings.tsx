@@ -88,12 +88,17 @@ function NotificationChannelItem({
   value,
   onChange,
   disabledValues = [],
+  options = notificationChannelOptions,
 }: {
   label: string;
   description: string;
   value: NotificationChannel;
   onChange: (channel: NotificationChannel) => void;
   disabledValues?: Array<NotificationChannel>;
+  options?: Array<{
+    label: string;
+    value: NotificationChannel;
+  }>;
 }) {
   return (
     <div className="flex flex-col gap-3 py-4">
@@ -102,7 +107,7 @@ function NotificationChannelItem({
         <p className="text-sm text-text-muted">{description}</p>
       </div>
       <div className="inline-flex w-full max-w-sm rounded-lg border border-border bg-surface p-1">
-        {notificationChannelOptions.map((option) => {
+        {options.map((option) => {
           const isActive = option.value === value;
           const isDisabled = disabledValues.includes(option.value);
           return (
@@ -262,6 +267,18 @@ function channelFromLegacyFlags(
 
 function channelIncludesPush(channel: NotificationChannel): boolean {
   return channel === 'push' || channel === 'both';
+}
+
+function stripPushFromChannel(
+  channel: NotificationChannel,
+): NotificationChannel {
+  if (channel === 'both') {
+    return 'email';
+  }
+  if (channel === 'push') {
+    return 'none';
+  }
+  return channel;
 }
 
 function SeasonPassSection({
@@ -483,8 +500,19 @@ function SettingsPage() {
   }, [optimisticResultsChannel, initialResultsChannel]);
 
   const canUsePushChannels = isPushSupported && pushPermission !== 'denied';
+  const notificationChannelChoices = canUsePushChannels
+    ? notificationChannelOptions
+    : notificationChannelOptions.filter(
+        (option) => option.value === 'none' || option.value === 'email',
+      );
   const disabledNotificationValues: Array<NotificationChannel> =
     canUsePushChannels && !isPushLoading ? [] : ['push', 'both'];
+  const visiblePredictionChannel = canUsePushChannels
+    ? predictionChannel
+    : stripPushFromChannel(predictionChannel);
+  const visibleResultsChannel = canUsePushChannels
+    ? resultsChannel
+    : stripPushFromChannel(resultsChannel);
 
   // Regional (timezone, locale) optimistic state
   const [optimisticTimezone, setOptimisticTimezone] = useState<
@@ -589,14 +617,21 @@ function SettingsPage() {
     nextPredictionChannel: NotificationChannel,
     nextResultsChannel: NotificationChannel,
   ) {
-    setOptimisticPredictionChannel(nextPredictionChannel);
-    setOptimisticResultsChannel(nextResultsChannel);
+    const normalizedPredictionChannel = canUsePushChannels
+      ? nextPredictionChannel
+      : stripPushFromChannel(nextPredictionChannel);
+    const normalizedResultsChannel = canUsePushChannels
+      ? nextResultsChannel
+      : stripPushFromChannel(nextResultsChannel);
+
+    setOptimisticPredictionChannel(normalizedPredictionChannel);
+    setOptimisticResultsChannel(normalizedResultsChannel);
 
     void (async () => {
       try {
         const needsPush =
-          channelIncludesPush(nextPredictionChannel) ||
-          channelIncludesPush(nextResultsChannel);
+          channelIncludesPush(normalizedPredictionChannel) ||
+          channelIncludesPush(normalizedResultsChannel);
 
         if (needsPush) {
           if (!canUsePushChannels) {
@@ -610,8 +645,8 @@ function SettingsPage() {
         }
 
         await updateNotifications({
-          predictionReminderChannel: nextPredictionChannel,
-          resultsNotificationChannel: nextResultsChannel,
+          predictionReminderChannel: normalizedPredictionChannel,
+          resultsNotificationChannel: normalizedResultsChannel,
         });
       } catch {
         setOptimisticPredictionChannel(null);
@@ -925,20 +960,22 @@ function SettingsPage() {
             <NotificationChannelItem
               label="Prediction reminders"
               description="Get reminders before picks lock for each race weekend. Reminders won't be sent if you've already saved your prediction."
-              value={predictionChannel}
+              value={visiblePredictionChannel}
               onChange={(next) => {
-                updateNotificationChannels(next, resultsChannel);
+                updateNotificationChannels(next, visibleResultsChannel);
               }}
               disabledValues={disabledNotificationValues}
+              options={notificationChannelChoices}
             />
             <NotificationChannelItem
               label="Result notifications"
               description="Get notified when session results are published and scores are calculated."
-              value={resultsChannel}
+              value={visibleResultsChannel}
               onChange={(next) => {
-                updateNotificationChannels(predictionChannel, next);
+                updateNotificationChannels(visiblePredictionChannel, next);
               }}
               disabledValues={disabledNotificationValues}
+              options={notificationChannelChoices}
             />
             {isPushSupported && pushPermission === 'denied' && (
               <div className="py-4">

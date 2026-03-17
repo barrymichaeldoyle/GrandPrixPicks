@@ -7,7 +7,7 @@ interface SatoriFont {
   style: FontStyle;
 }
 
-let fontsCache: Array<SatoriFont> | null = null;
+let fontsCache: SatoriFont[] | null = null;
 
 // Older Firefox UA triggers Google Fonts to serve a single non-subset woff file.
 // Satori's opentype.js only supports woff/ttf — NOT woff2.
@@ -40,7 +40,7 @@ async function resolveFontUrlForFamily(
   return urlMatch[1];
 }
 
-export async function loadFonts(): Promise<Array<SatoriFont>> {
+export async function loadFonts(): Promise<SatoriFont[]> {
   if (fontsCache) {
     return fontsCache;
   }

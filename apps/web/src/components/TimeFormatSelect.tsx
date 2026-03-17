@@ -15,11 +15,10 @@ function getDefaultTimeFormat(): 'en-US' | 'en-GB' {
   }
 }
 
-const TIME_FORMAT_OPTIONS: Array<{ value: 'en-US' | 'en-GB'; label: string }> =
-  [
-    { value: 'en-US', label: '12-hour' },
-    { value: 'en-GB', label: '24-hour' },
-  ];
+const TIME_FORMAT_OPTIONS: { value: 'en-US' | 'en-GB'; label: string }[] = [
+  { value: 'en-US', label: '12-hour' },
+  { value: 'en-GB', label: '24-hour' },
+];
 
 export function TimeFormatSelect({
   value,

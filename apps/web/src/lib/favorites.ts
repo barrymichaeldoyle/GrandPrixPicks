@@ -10,7 +10,7 @@ type WeekendWithSessions = {
   hasSprint: boolean;
   sessions: Record<
     string,
-    { picks: Array<{ driverId: Id<'drivers'>; code: string }> } | null
+    { picks: { driverId: Id<'drivers'>; code: string }[] } | null
   >;
 };
 
@@ -19,7 +19,7 @@ type WeekendWithSessions = {
  * Tiebreaker: most 1sts, then most 2nds, … then latest pick at that position.
  */
 export function computeFavoriteTop5Pick(
-  weekends: ReadonlyArray<WeekendWithSessions>,
+  weekends: readonly WeekendWithSessions[],
 ): { driverId: Id<'drivers'>; favoritePoints: number } | null {
   if (weekends.length === 0) {
     return null;

@@ -281,7 +281,7 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
 
 interface PredictionFormProps {
   raceId: Id<'races'>;
-  existingPicks?: Array<Id<'drivers'>>;
+  existingPicks?: Id<'drivers'>[];
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
   /** Called after a successful submit (e.g. to close an edit view). */
@@ -291,7 +291,7 @@ interface PredictionFormProps {
 }
 
 type Top5Draft = {
-  picks: Array<Id<'drivers'>>;
+  picks: Id<'drivers'>[];
   updatedAt: string;
 };
 
@@ -306,7 +306,7 @@ export function PredictionForm({
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
 
-  const [picks, setPicks] = useState<Array<Id<'drivers'>>>(existingPicks ?? []);
+  const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'

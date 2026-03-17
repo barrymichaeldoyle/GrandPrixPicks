@@ -5,7 +5,7 @@ import type { WeekendCardData } from './types';
 
 interface WeekendSummaryLineProps {
   data: WeekendCardData;
-  sessions: ReadonlyArray<SessionType>;
+  sessions: readonly SessionType[];
   cardState: CardDisplayState;
 }
 

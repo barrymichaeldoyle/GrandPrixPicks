@@ -26,7 +26,7 @@ type FollowListPageProps = {
   icon: LucideIcon;
   isSignedIn: boolean;
   profileExists: boolean;
-  users: Array<FollowListUser> | null;
+  users: FollowListUser[] | null;
   viewerUserId?: Id<'users'>;
 };
 

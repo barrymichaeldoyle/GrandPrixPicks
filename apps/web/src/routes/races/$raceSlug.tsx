@@ -71,7 +71,7 @@ export const Route = createFileRoute('/races/$raceSlug')({
       ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
       : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     const canonical = canonicalMeta(`/races/${params.raceSlug}`);
-    const scripts: Array<{ type: string; children: string }> = [];
+    const scripts: { type: string; children: string }[] = [];
     if (race) {
       scripts.push({
         type: 'application/ld+json',

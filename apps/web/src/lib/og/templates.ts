@@ -8,7 +8,7 @@ import { colors, getOgDimensions } from './styles';
 const e = createElement;
 
 /** Shared outer wrapper: dark bg, accent stripe at top, branding at bottom. */
-function layout(size: OgImageSize, ...children: Array<ReactNode>): ReactNode {
+function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
   const { width, height } = getOgDimensions(size);
   return e(
     'div',
@@ -483,7 +483,7 @@ interface LeaderboardOgEntry {
 }
 
 export function leaderboardTemplate(
-  entries: Array<LeaderboardOgEntry>,
+  entries: LeaderboardOgEntry[],
   size: OgImageSize = 'og',
 ): ReactNode {
   const podiumColors = [colors.gold, colors.silver, colors.bronze];

@@ -32,10 +32,10 @@ type RaceEventPageLayoutProps = {
   allEventsScored: boolean;
   pointsSoFar: number;
   scoredEventCount: number;
-  weekendSessions: ReadonlyArray<SessionType>;
+  weekendSessions: readonly SessionType[];
   selectedSession: SessionType;
   onSelectedSessionChange: (session: SessionType) => void;
-  sessionTabOptions: Array<TabSwitchOption<SessionType>>;
+  sessionTabOptions: TabSwitchOption<SessionType>[];
   showSessionTabs: boolean;
   trackTimeZone: string;
   getSessionStartAt: (session: SessionType) => number;

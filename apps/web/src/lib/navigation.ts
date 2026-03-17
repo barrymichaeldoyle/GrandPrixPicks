@@ -4,14 +4,14 @@ type SiteNavLink = {
   exact?: boolean;
 };
 
-export const primaryNavLinks: Array<SiteNavLink> = [
+export const primaryNavLinks: SiteNavLink[] = [
   { to: '/', label: 'Home', exact: true },
   { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
 ];
 
-export const footerExploreLinks: Array<SiteNavLink> = [
+export const footerExploreLinks: SiteNavLink[] = [
   ...primaryNavLinks,
   { to: '/me', label: 'My Picks' },
 ];

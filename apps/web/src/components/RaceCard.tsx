@@ -82,7 +82,7 @@ export function RaceFlag({
 }
 
 function getScheduleEntries(race: Race) {
-  const entries: Array<{ label: string; startAt: number }> = [];
+  const entries: { label: string; startAt: number }[] = [];
   if (race.hasSprint && race.sprintQualiStartAt) {
     entries.push({ label: 'Sprint Quali', startAt: race.sprintQualiStartAt });
   }

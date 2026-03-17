@@ -125,7 +125,7 @@ type WeekendSummaryStats = {
 
 export function getWeekendSummary(
   data: WeekendCardData,
-  sessions: ReadonlyArray<SessionType>,
+  sessions: readonly SessionType[],
 ): WeekendSummaryStats {
   let exact = 0;
   let close = 0;

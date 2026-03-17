@@ -43,7 +43,7 @@ function AdminRaceSection({
   count: number;
   headingClassName: string;
   dotClassName: string;
-  races: Array<Doc<'races'>>;
+  races: Doc<'races'>[];
   renderRowSuffix: (race: Doc<'races'>) => ReactNode;
   rowBorderClassName: string;
 }) {
@@ -75,10 +75,10 @@ function AdminRaceSection({
 }
 
 type AdminRacesTabProps = {
-  races: Array<Doc<'races'>> | undefined;
-  upcomingRaces: Array<Doc<'races'>>;
-  lockedRaces: Array<Doc<'races'>>;
-  finishedRaces: Array<Doc<'races'>>;
+  races: Doc<'races'>[] | undefined;
+  upcomingRaces: Doc<'races'>[];
+  lockedRaces: Doc<'races'>[];
+  finishedRaces: Doc<'races'>[];
 };
 
 export function AdminRacesTab({

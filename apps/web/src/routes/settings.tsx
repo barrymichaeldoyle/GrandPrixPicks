@@ -72,10 +72,10 @@ function ToggleSwitch({
 
 type NotificationChannel = 'none' | 'email' | 'push' | 'both';
 
-const notificationChannelOptions: Array<{
+const notificationChannelOptions: {
   label: string;
   value: NotificationChannel;
-}> = [
+}[] = [
   { label: 'None', value: 'none' },
   { label: 'Email', value: 'email' },
   { label: 'App', value: 'push' },
@@ -94,11 +94,11 @@ function NotificationChannelItem({
   description: string;
   value: NotificationChannel;
   onChange: (channel: NotificationChannel) => void;
-  disabledValues?: Array<NotificationChannel>;
-  options?: Array<{
+  disabledValues?: NotificationChannel[];
+  options?: {
     label: string;
     value: NotificationChannel;
-  }>;
+  }[];
 }) {
   return (
     <div className="flex flex-col gap-3 py-4">
@@ -505,7 +505,7 @@ function SettingsPage() {
     : notificationChannelOptions.filter(
         (option) => option.value === 'none' || option.value === 'email',
       );
-  const disabledNotificationValues: Array<NotificationChannel> =
+  const disabledNotificationValues: NotificationChannel[] =
     canUsePushChannels && !isPushLoading ? [] : ['push', 'both'];
   const visiblePredictionChannel = canUsePushChannels
     ? predictionChannel

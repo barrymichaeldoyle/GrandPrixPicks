@@ -262,14 +262,14 @@ export function H2HResultsSection({
     remainingRows.slice(0, remainingMidpoint),
     remainingRows.slice(remainingMidpoint),
   ];
-  const h2hSummaryItems: Array<{
+  const h2hSummaryItems: {
     rowId: string;
     matchupId: Id<'h2hMatchups'>;
     team: string;
     myPickId: Id<'drivers'> | null;
     winnerId: Id<'drivers'>;
     points: number;
-  }> = (h2hResults ?? []).map((result) => {
+  }[] = (h2hResults ?? []).map((result) => {
     const myPickId = selectedSessionPicks?.[result.matchupId] ?? null;
     const points = myPickId && myPickId === result.winnerId ? 1 : 0;
     return {

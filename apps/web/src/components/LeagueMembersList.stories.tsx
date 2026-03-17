@@ -32,7 +32,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const base: Array<LeagueMembersListItem> = [
+const base: LeagueMembersListItem[] = [
   {
     _id: '1',
     userId: 'u1',

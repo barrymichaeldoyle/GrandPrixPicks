@@ -45,11 +45,11 @@ function parseLaneId(id: string): number | null {
 type DraggableDriverCardProps = {
   driverId: Id<'drivers'>;
   index: number;
-  excludedIds: Array<Id<'drivers'>>;
-  drivers: Array<Doc<'drivers'>>;
+  excludedIds: Id<'drivers'>[];
+  drivers: Doc<'drivers'>[];
   setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
   toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Array<Id<'drivers'>>;
+  dnfDriverIds: Id<'drivers'>[];
 };
 
 function DraggableDriverCard({
@@ -116,11 +116,11 @@ function DraggableDriverCard({
 type PositionLaneProps = {
   index: number;
   driverId: Id<'drivers'> | null;
-  excludedIds: Array<Id<'drivers'>>;
-  drivers: Array<Doc<'drivers'>>;
+  excludedIds: Id<'drivers'>[];
+  drivers: Doc<'drivers'>[];
   setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
   toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Array<Id<'drivers'>>;
+  dnfDriverIds: Id<'drivers'>[];
   activeDriverId: string | null;
 };
 
@@ -218,9 +218,9 @@ function AdminRaceDetailPage() {
 
   /** Per-position driver selection; length = drivers.length, null = empty slot */
   const [selectedDrivers, setSelectedDrivers] = useState<
-    Array<Id<'drivers'> | null>
+    (Id<'drivers'> | null)[]
   >([]);
-  const [dnfDriverIds, setDnfDriverIds] = useState<Array<Id<'drivers'>>>([]);
+  const [dnfDriverIds, setDnfDriverIds] = useState<Id<'drivers'>[]>([]);
   const publishResults = useMutation(api.results.adminPublishResults);
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -256,7 +256,7 @@ function AdminRaceDetailPage() {
       existingResult.classification.length
     ) {
       const classification = existingResult.classification;
-      const grid: Array<Id<'drivers'> | null> = Array.from(
+      const grid: (Id<'drivers'> | null)[] = Array.from(
         { length: driverCount },
         (_, i) => classification[i] ?? null,
       );
@@ -514,7 +514,7 @@ function AdminRaceDetailPage() {
                 const driverId = selectedDrivers[index] ?? null;
                 const excludedIds = selectedDrivers.filter(
                   (id, j) => id != null && j !== index,
-                ) as Array<Id<'drivers'>>;
+                ) as Id<'drivers'>[];
 
                 return (
                   <PositionLane

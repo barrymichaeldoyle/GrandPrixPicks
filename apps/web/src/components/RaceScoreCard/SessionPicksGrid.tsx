@@ -6,8 +6,8 @@ import {
 import type { DriverRef, PickBreakdown } from './types';
 
 interface SessionPicksGridProps {
-  picks: Array<DriverRef>;
-  breakdown: Array<PickBreakdown> | null;
+  picks: DriverRef[];
+  breakdown: PickBreakdown[] | null;
   /** Compact mode uses smaller layout */
   compact?: boolean;
 }

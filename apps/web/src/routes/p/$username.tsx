@@ -598,29 +598,31 @@ function ProfileWeekendCard({
 function CompactH2HSessionPicks({
   picks,
 }: {
-  picks: Array<{
-    matchupId: string;
-    team: string;
-    driver1: {
-      _id: string;
-      code: string;
-      displayName: string;
-      number: number | null;
-      team: string | null;
-      nationality: string | null;
-    };
-    driver2: {
-      _id: string;
-      code: string;
-      displayName: string;
-      number: number | null;
-      team: string | null;
-      nationality: string | null;
-    };
-    predictedWinnerId: string;
-    actualWinnerId: string | null;
-    isCorrect: boolean | null;
-  }> | null;
+  picks:
+    | {
+        matchupId: string;
+        team: string;
+        driver1: {
+          _id: string;
+          code: string;
+          displayName: string;
+          number: number | null;
+          team: string | null;
+          nationality: string | null;
+        };
+        driver2: {
+          _id: string;
+          code: string;
+          displayName: string;
+          number: number | null;
+          team: string | null;
+          nationality: string | null;
+        };
+        predictedWinnerId: string;
+        actualWinnerId: string | null;
+        isCorrect: boolean | null;
+      }[]
+    | null;
 }) {
   if (!picks || picks.length === 0) {
     return null;

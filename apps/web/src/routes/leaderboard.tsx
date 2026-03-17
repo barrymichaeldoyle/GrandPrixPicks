@@ -17,6 +17,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
+import type { PropsWithChildren } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
@@ -179,8 +180,8 @@ function LeaderboardPage() {
 
   // Season combined (global) – with SSR + pagination
   const [seasonEntries, setSeasonEntries] = useState<
-    Array<CombinedLeaderboardEntry>
-  >(initialSeason.entries as Array<CombinedLeaderboardEntry>);
+    CombinedLeaderboardEntry[]
+  >(initialSeason.entries as CombinedLeaderboardEntry[]);
   const [seasonOffset, setSeasonOffset] = useState(PAGE_SIZE);
   const [seasonHasMore, setSeasonHasMore] = useState(initialSeason.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -299,7 +300,7 @@ function LeaderboardPage() {
   useEffect(() => {
     if (clientSeasonCombined && seasonOffset === PAGE_SIZE) {
       setSeasonEntries(
-        clientSeasonCombined.entries as Array<CombinedLeaderboardEntry>,
+        clientSeasonCombined.entries as CombinedLeaderboardEntry[],
       );
       setSeasonHasMore(clientSeasonCombined.hasMore);
     }
@@ -317,7 +318,7 @@ function LeaderboardPage() {
       );
       setSeasonEntries((prev) => [
         ...prev,
-        ...(more.entries as Array<CombinedLeaderboardEntry>),
+        ...(more.entries as CombinedLeaderboardEntry[]),
       ]);
       setSeasonOffset((prev) => prev + PAGE_SIZE);
       setSeasonHasMore(more.hasMore);
@@ -346,8 +347,7 @@ function LeaderboardPage() {
         return null;
       }
       return (
-        (data.entries as Array<LeaderboardEntry>).find((e) => e.isViewer) ??
-        null
+        (data.entries as LeaderboardEntry[]).find((e) => e.isViewer) ?? null
       );
     }
     // Season
@@ -576,11 +576,11 @@ function LeaderboardPage() {
 // ─────────────────────────── Weekend Content ───────────────────────────
 
 type RaceLeaderboardResult =
-  | { status: 'visible'; reason: null; entries: Array<LeaderboardEntry> }
+  | { status: 'visible'; reason: null; entries: LeaderboardEntry[] }
   | {
       status: 'locked';
       reason: 'sign_in' | 'no_prediction';
-      entries: Array<LeaderboardEntry>;
+      entries: LeaderboardEntry[];
     }
   | undefined;
 
@@ -653,7 +653,7 @@ function WeekendContent({
       activeData.reason === 'sign_in' &&
       isSignedIn)
   ) {
-    return <InlineLoader />;
+    return <LeaderboardContentLoader />;
   }
 
   if (activeData === null) {
@@ -852,7 +852,7 @@ function WeekendFollowingContent({
       activeData.reason === 'sign_in' &&
       isSignedIn)
   ) {
-    return <InlineLoader />;
+    return <LeaderboardContentLoader />;
   }
 
   if (activeData.status === 'locked') {
@@ -982,14 +982,14 @@ function SeasonContent({
 }: {
   scope: Scope;
   gameMode: GameMode;
-  seasonEntries: Array<CombinedLeaderboardEntry>;
+  seasonEntries: CombinedLeaderboardEntry[];
   seasonHasMore: boolean;
   isLoadingMore: boolean;
   activeTotalCount: number;
   loadMoreSeason: () => void;
   seasonTop5Global:
     | {
-        entries: Array<LeaderboardEntry>;
+        entries: LeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
         viewerEntry: LeaderboardEntry | null;
@@ -997,7 +997,7 @@ function SeasonContent({
     | undefined;
   seasonH2HGlobal:
     | {
-        entries: Array<H2HLeaderboardEntry>;
+        entries: H2HLeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
         viewerEntry: H2HLeaderboardEntry | null;
@@ -1005,7 +1005,7 @@ function SeasonContent({
     | undefined;
   seasonCombinedFollowing:
     | {
-        entries: Array<CombinedLeaderboardEntry>;
+        entries: CombinedLeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
         viewerEntry: CombinedLeaderboardEntry | null;
@@ -1013,7 +1013,7 @@ function SeasonContent({
     | undefined;
   seasonTop5Following:
     | {
-        entries: Array<LeaderboardEntry>;
+        entries: LeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
         viewerEntry: LeaderboardEntry | null;
@@ -1021,7 +1021,7 @@ function SeasonContent({
     | undefined;
   seasonH2HFollowing:
     | {
-        entries: Array<H2HLeaderboardEntry>;
+        entries: H2HLeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
         viewerEntry: H2HLeaderboardEntry | null;
@@ -1048,7 +1048,7 @@ function SeasonContent({
   // Global season
   if (gameMode === 'top5') {
     if (seasonTop5Global === undefined) {
-      return <InlineLoader />;
+      return <LeaderboardContentLoader />;
     }
     return (
       <SeasonLeaderboardLayout
@@ -1064,16 +1064,15 @@ function SeasonContent({
 
   if (gameMode === 'h2h') {
     if (seasonH2HGlobal === undefined) {
-      return <InlineLoader />;
+      return <LeaderboardContentLoader />;
     }
     return (
       <SeasonLeaderboardLayout
-        entries={seasonH2HGlobal.entries as Array<LeaderboardEntry>}
+        entries={seasonH2HGlobal.entries as LeaderboardEntry[]}
         hasMore={seasonH2HGlobal.hasMore}
         totalCount={seasonH2HGlobal.totalCount}
         gameMode="h2h"
         isLoadingMore={false}
-        onLoadMore={() => {}}
       />
     );
   }
@@ -1099,12 +1098,12 @@ function SeasonLeaderboardLayout({
   isLoadingMore,
   onLoadMore,
 }: {
-  entries: Array<LeaderboardEntry>;
+  entries: LeaderboardEntry[];
   hasMore: boolean;
   totalCount: number;
   gameMode: GameMode;
   isLoadingMore: boolean;
-  onLoadMore: () => void;
+  onLoadMore?: () => void;
 }) {
   if (entries.length === 0) {
     return (
@@ -1229,11 +1228,11 @@ function SeasonLeaderboardLayout({
 
 // ─────────────────────────── Following wrappers ───────────────────────────
 
-function FollowingGuard({ children }: { children: React.ReactNode }) {
+function FollowingGuard({ children }: PropsWithChildren) {
   const { isSignedIn, isLoaded } = useAuth();
 
   if (!isLoaded) {
-    return <InlineLoader />;
+    return <LeaderboardContentLoader />;
   }
 
   if (!isSignedIn) {
@@ -1258,7 +1257,7 @@ function FollowingGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return children;
 }
 
 function FollowingSeasonContent({
@@ -1267,7 +1266,7 @@ function FollowingSeasonContent({
 }: {
   data:
     | {
-        entries: Array<LeaderboardEntry>;
+        entries: LeaderboardEntry[];
         totalCount: number;
         hasMore: boolean;
       }
@@ -1275,7 +1274,7 @@ function FollowingSeasonContent({
   gameMode: GameMode;
 }) {
   if (data === undefined) {
-    return <InlineLoader />;
+    return <LeaderboardContentLoader />;
   }
 
   if (data.entries.length === 0) {
@@ -1439,23 +1438,15 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
   );
 }
 
-function SkeletonRow() {
+function LeaderboardContentLoader() {
   return (
-    <tr className="border-b border-border last:border-0">
-      <td className="px-4 py-3">
-        <div className="h-4 w-6 animate-pulse rounded bg-border" />
-      </td>
-      <td className="px-4 py-3">
-        <div className="h-4 w-24 animate-pulse rounded bg-border" />
-      </td>
-      <td className="px-4 py-3">
-        <div className="ml-auto h-4 w-10 animate-pulse rounded bg-border" />
-      </td>
-    </tr>
+    <div className="py-15.25">
+      <InlineLoader />
+    </div>
   );
 }
 
-function SmallLeaderboard({ entries }: { entries: Array<LeaderboardEntry> }) {
+function SmallLeaderboard({ entries }: { entries: LeaderboardEntry[] }) {
   return (
     <div className="p-4">
       {entries.map((entry) => (
@@ -1614,6 +1605,3 @@ function PodiumCard({
     </Link>
   );
 }
-
-// Suppress unused warning — SkeletonRow is kept for future use in SSR loading states
-void SkeletonRow;

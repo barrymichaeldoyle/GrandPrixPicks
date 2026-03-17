@@ -10,7 +10,7 @@ export interface AdminPredictionStatus {
     round: number;
     hasSprint: boolean;
   };
-  requiredSessions: Array<'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+  requiredSessions: ('quali' | 'sprint_quali' | 'sprint' | 'race')[];
   totals: {
     totalUsers: number;
     usersStarted: number;
@@ -20,7 +20,7 @@ export interface AdminPredictionStatus {
     h2hUsersCompleted: number;
     h2hUsersPending: number;
   };
-  users: Array<{
+  users: {
     userId: Id<'users'>;
     username: string | null;
     displayName: string | null;
@@ -34,11 +34,11 @@ export interface AdminPredictionStatus {
     h2hHasStarted: boolean;
     h2hHasCompleted: boolean;
     h2hLatestSubmittedAt: number | null;
-  }>;
+  }[];
 }
 
 type AdminUsersTabProps = {
-  races: Array<Doc<'races'>> | undefined;
+  races: Doc<'races'>[] | undefined;
   selectedRaceId: Id<'races'> | null;
   onSelectRace: (raceId: Id<'races'>) => void;
   predictionStatus: AdminPredictionStatus | undefined;

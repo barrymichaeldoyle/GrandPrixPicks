@@ -2,7 +2,7 @@
  * Team order by constructors standings (e.g. previous season).
  * Used to sort drivers in the prediction pool and to match H2H matchup order.
  */
-const CONSTRUCTOR_STANDINGS_ORDER: Array<string> = [
+const CONSTRUCTOR_STANDINGS_ORDER: string[] = [
   'McLaren',
   'Ferrari',
   'Red Bull Racing',

@@ -19,9 +19,9 @@ type HistoryBreakdownItem = {
 };
 
 type HistorySessionData = {
-  picks: Array<{ driverId: Id<'drivers'>; code: string }>;
+  picks: { driverId: Id<'drivers'>; code: string }[];
   points: number | null;
-  breakdown: Array<HistoryBreakdownItem> | null;
+  breakdown: HistoryBreakdownItem[] | null;
   submittedAt: number;
   isHidden?: boolean;
 } | null;
@@ -51,11 +51,11 @@ type DriverRecord = {
 
 export function fromProfileHistory(
   weekend: HistoryWeekend,
-  drivers: Array<DriverRecord> | undefined,
+  drivers: DriverRecord[] | undefined,
 ): WeekendCardData {
   const driverMap = new Map(drivers?.map((d) => [d._id, d]));
 
-  const sessionTypes: Array<SessionType> = [
+  const sessionTypes: SessionType[] = [
     'quali',
     'sprint_quali',
     'sprint',
@@ -76,7 +76,7 @@ export function fromProfileHistory(
       scoredSessionCount++;
     }
 
-    const picks: Array<DriverRef> = sd.picks.map((p) => {
+    const picks: DriverRef[] = sd.picks.map((p) => {
       const driver = driverMap.get(p.driverId);
       return {
         driverId: p.driverId,
@@ -88,7 +88,7 @@ export function fromProfileHistory(
       };
     });
 
-    const breakdown: Array<PickBreakdown> | null = sd.breakdown
+    const breakdown: PickBreakdown[] | null = sd.breakdown
       ? sd.breakdown.map((b) => ({
           driverId: b.driverId,
           predictedPosition: b.predictedPosition,
@@ -140,7 +140,7 @@ type ScoreBreakdownItem = {
 
 type SessionScoreData = {
   points: number;
-  enrichedBreakdown: Array<ScoreBreakdownItem>;
+  enrichedBreakdown: ScoreBreakdownItem[];
 } | null;
 
 type EnrichedTop5Entry = {
@@ -164,7 +164,7 @@ type EnrichedClassificationEntry = {
 };
 
 type ResultForRace = {
-  enrichedClassification: Array<EnrichedClassificationEntry>;
+  enrichedClassification: EnrichedClassificationEntry[];
 } | null;
 
 export function fromRaceDetail({
@@ -179,21 +179,19 @@ export function fromRaceDetail({
 }: {
   race: Doc<'races'>;
   weekendPredictions: {
-    predictions: Record<SessionType, Array<Id<'drivers'>> | null>;
+    predictions: Record<SessionType, Id<'drivers'>[] | null>;
   } | null;
   scores: Record<SessionType, SessionScoreData> | null;
-  actualTop5BySession: Partial<
-    Record<SessionType, Array<EnrichedTop5Entry>>
-  > | null;
+  actualTop5BySession: Partial<Record<SessionType, EnrichedTop5Entry[]>> | null;
   resultsBySession: Partial<Record<SessionType, ResultForRace>>;
-  drivers: Array<DriverRecord> | undefined;
-  availableSessions: Array<SessionType>;
+  drivers: DriverRecord[] | undefined;
+  availableSessions: SessionType[];
   predictionOpenAt?: number | null;
 }): WeekendCardData {
   const driverMap = new Map(drivers?.map((d) => [d._id, d]));
   const now = Date.now();
 
-  const sessionTypes: Array<SessionType> = [
+  const sessionTypes: SessionType[] = [
     'quali',
     'sprint_quali',
     'sprint',
@@ -228,7 +226,7 @@ export function fromRaceDetail({
       totalPoints += sessionScore.points;
     }
 
-    const picks: Array<DriverRef> = picksArray
+    const picks: DriverRef[] = picksArray
       ? picksArray.map((driverId) => {
           const driver = driverMap.get(driverId);
           return {
@@ -242,18 +240,17 @@ export function fromRaceDetail({
         })
       : [];
 
-    const breakdown: Array<PickBreakdown> | null =
-      sessionScore?.enrichedBreakdown
-        ? sessionScore.enrichedBreakdown.map((b) => ({
-            driverId: b.driverId,
-            predictedPosition: b.predictedPosition,
-            actualPosition: b.actualPosition,
-            points: b.points,
-          }))
-        : null;
+    const breakdown: PickBreakdown[] | null = sessionScore?.enrichedBreakdown
+      ? sessionScore.enrichedBreakdown.map((b) => ({
+          driverId: b.driverId,
+          predictedPosition: b.predictedPosition,
+          actualPosition: b.actualPosition,
+          points: b.points,
+        }))
+      : null;
 
     const top5Data = actualTop5BySession?.[st];
-    const actualTop5: Array<DriverRef> | null = top5Data
+    const actualTop5: DriverRef[] | null = top5Data
       ? top5Data.map((e) => ({
           driverId: e.driverId,
           code: e.code,
@@ -265,7 +262,7 @@ export function fromRaceDetail({
       : null;
 
     const resultData = resultsBySession[st];
-    const fullClassification: Array<ClassificationEntry> | null =
+    const fullClassification: ClassificationEntry[] | null =
       resultData?.enrichedClassification
         ? resultData.enrichedClassification.map((e) => ({
             position: e.position,

@@ -6,8 +6,8 @@ import { Tooltip } from '../Tooltip';
 import type { ClassificationEntry, PickBreakdown } from './types';
 
 interface SessionResultsTableProps {
-  classification: Array<ClassificationEntry>;
-  breakdown: Array<PickBreakdown> | null;
+  classification: ClassificationEntry[];
+  breakdown: PickBreakdown[] | null;
 }
 
 export function SessionResultsTable({

@@ -30,6 +30,13 @@ export default [
   ...baseEslintConfig,
   {
     rules: {
+      '@typescript-eslint/array-type': [
+        'error',
+        {
+          default: 'array',
+          readonly: 'array',
+        },
+      ],
       'no-restricted-syntax': [
         'error',
         {

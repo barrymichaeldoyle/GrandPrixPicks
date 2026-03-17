@@ -77,7 +77,7 @@ const config = defineConfig(({ mode }) => {
       },
     },
     plugins: [
-      ...(devtools() as Array<PluginOption>),
+      ...(devtools() as PluginOption[]),
       // Skip Nitro and TanStack Start in Vitest to avoid CJS/ESM errors and hanging process
       ...(isVitest
         ? []

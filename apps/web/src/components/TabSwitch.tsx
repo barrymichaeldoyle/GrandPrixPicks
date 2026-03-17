@@ -13,7 +13,7 @@ export type TabSwitchOption<T extends string> = {
 interface TabSwitchProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
-  options: Array<TabSwitchOption<T>>;
+  options: TabSwitchOption<T>[];
   className?: string;
   buttonClassName?: string;
   ariaLabel?: string;

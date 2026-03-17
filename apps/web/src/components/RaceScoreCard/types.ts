@@ -29,11 +29,11 @@ export type ClassificationEntry = {
 };
 
 export type SessionCardData = {
-  picks: Array<DriverRef>; // user's top 5 picks (empty if no prediction)
+  picks: DriverRef[]; // user's top 5 picks (empty if no prediction)
   points: number | null; // null = not yet scored
-  breakdown: Array<PickBreakdown> | null;
-  actualTop5: Array<DriverRef> | null; // actual classification top 5 (null if no results)
-  fullClassification: Array<ClassificationEntry> | null; // full results (null if no results)
+  breakdown: PickBreakdown[] | null;
+  actualTop5: DriverRef[] | null; // actual classification top 5 (null if no results)
+  fullClassification: ClassificationEntry[] | null; // full results (null if no results)
   isHidden: boolean; // true = viewing someone else's unlocked picks
   isLocked: boolean; // true = session has started
   hasResults: boolean; // true = results published

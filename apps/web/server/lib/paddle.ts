@@ -26,11 +26,11 @@ type PaddleCompletedTransactionEvent = {
       clerkUserId?: string;
       season?: number;
     };
-    items?: Array<{
+    items?: {
       price?: {
         product_id?: string;
       };
-    }>;
+    }[];
   };
 };
 
@@ -65,7 +65,7 @@ function constantTimeEqual(a: string, b: string): boolean {
 
 function parsePaddleSignature(signatureHeader: string) {
   const parts = signatureHeader.split(';');
-  const signatures: Array<string> = [];
+  const signatures: string[] = [];
   let timestamp: number | null = null;
 
   for (const part of parts) {

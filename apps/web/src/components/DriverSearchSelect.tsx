@@ -5,10 +5,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 type Driver = Doc<'drivers'>;
 
 type DriverSearchSelectProps = {
-  drivers: Array<Driver>;
+  drivers: Driver[];
   value: Id<'drivers'> | null;
   /** Drivers already selected in other positions (excluded from options unless they're the current value) */
-  excludedIds: Array<Id<'drivers'>>;
+  excludedIds: Id<'drivers'>[];
   onChange: (driverId: Id<'drivers'> | null) => void;
   /** Optional; when omitted (e.g. in a lane with its own position label) the position badge is not shown */
   positionLabel?: string;

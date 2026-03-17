@@ -77,7 +77,7 @@ function makeRace({
   };
 }
 
-function makeDrivers(): Array<DriverRef> {
+function makeDrivers(): DriverRef[] {
   return [
     {
       driverId: fakeDriverId('nor'),
@@ -126,7 +126,7 @@ function makeWeekendCardData(
   race: ReturnType<typeof makeRace>,
   opts: {
     hasPredictions: boolean;
-    scoredSessions: Array<SessionType>;
+    scoredSessions: SessionType[];
   },
 ): WeekendCardData {
   const drivers = makeDrivers();
@@ -215,10 +215,10 @@ function Scenario({
   hasPredictions: boolean;
   hasPublishedResults: boolean;
   allEventsScored: boolean;
-  scoredSessions: Array<SessionType>;
+  scoredSessions: SessionType[];
 }) {
   const isPredictable = race.status === 'upcoming' && isNextRace;
-  const weekendSessions: ReadonlyArray<SessionType> = race.hasSprint
+  const weekendSessions: readonly SessionType[] = race.hasSprint
     ? ['sprint_quali', 'sprint', 'quali', 'race']
     : ['quali', 'race'];
   const [selectedSession, setSelectedSession] = useState<SessionType>(
@@ -260,8 +260,8 @@ function Scenario({
     return getRaceSessionStartAt(race, session);
   }
 
-  const sessionTabOptions: Array<TabSwitchOption<SessionType>> =
-    weekendSessions.map((session) => ({
+  const sessionTabOptions: TabSwitchOption<SessionType>[] = weekendSessions.map(
+    (session) => ({
       value: session,
       label: (
         <>
@@ -269,7 +269,8 @@ function Scenario({
           <span className="sm:hidden">{SESSION_LABELS_SHORT[session]}</span>
         </>
       ),
-    }));
+    }),
+  );
 
   return (
     <RaceEventPageLayout

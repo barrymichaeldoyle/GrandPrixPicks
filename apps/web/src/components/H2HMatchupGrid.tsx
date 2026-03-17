@@ -25,7 +25,7 @@ type Matchup = {
 };
 
 interface H2HMatchupGridProps {
-  matchups: Array<Matchup>;
+  matchups: Matchup[];
   selections: Record<string, Id<'drivers'> | undefined>;
   mode?: 'interactive' | 'readonly' | 'results';
   onSelect?: (matchupId: Id<'h2hMatchups'>, driverId: Id<'drivers'>) => void;

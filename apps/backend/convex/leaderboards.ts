@@ -766,6 +766,540 @@ export const getRaceLeaderboard = query({
   },
 });
 
+export const getLeagueCombinedSeasonLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
+    }
+
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
+
+    const [top5Standings, h2hStandings] = await Promise.all([
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .collect(),
+      ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .collect(),
+    ]);
+
+    type CombinedRow = {
+      userId: Id<'users'>;
+      username?: string;
+      displayName?: string;
+      avatarUrl?: string;
+      top5Points: number;
+      h2hPoints: number;
+      raceCount: number;
+    };
+
+    const userMap = new Map<string, CombinedRow>();
+
+    for (const row of top5Standings.filter((s) => memberIds.has(s.userId))) {
+      userMap.set(row.userId, {
+        userId: row.userId,
+        username: row.username,
+        displayName: row.displayName,
+        avatarUrl: row.avatarUrl,
+        top5Points: row.totalPoints,
+        h2hPoints: 0,
+        raceCount: row.raceCount,
+      });
+    }
+
+    for (const row of h2hStandings.filter((s) => memberIds.has(s.userId))) {
+      const existing = userMap.get(row.userId);
+      if (existing) {
+        existing.h2hPoints = row.totalPoints;
+        existing.raceCount = Math.max(existing.raceCount, row.raceCount);
+      } else {
+        userMap.set(row.userId, {
+          userId: row.userId,
+          username: row.username,
+          displayName: row.displayName,
+          avatarUrl: row.avatarUrl,
+          top5Points: 0,
+          h2hPoints: row.totalPoints,
+          raceCount: row.raceCount,
+        });
+      }
+    }
+
+    const allRows = [...userMap.values()].sort((a, b) => {
+      const aTotal = a.top5Points + a.h2hPoints;
+      const bTotal = b.top5Points + b.h2hPoints;
+      if (aTotal !== bTotal) {
+        return bTotal - aTotal;
+      }
+      return String(a.userId).localeCompare(String(b.userId));
+    });
+
+    let viewerEntry = null;
+    const idx = allRows.findIndex((r) => r.userId === viewer._id);
+    if (idx !== -1) {
+      const row = allRows[idx];
+      viewerEntry = {
+        rank: idx + 1,
+        userId: viewer._id,
+        username: viewer.username ?? 'Anonymous',
+        displayName: viewer.displayName,
+        points: row.top5Points + row.h2hPoints,
+        top5Points: row.top5Points,
+        h2hPoints: row.h2hPoints,
+        raceCount: row.raceCount,
+        isViewer: true,
+      };
+    }
+
+    const paginatedRows = allRows.slice(offset, offset + limit);
+    const hasMore = offset + limit < allRows.length;
+
+    const entries = paginatedRows.map((row, index) => ({
+      rank: offset + index + 1,
+      userId: row.userId,
+      username: row.username ?? 'Anonymous',
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      points: row.top5Points + row.h2hPoints,
+      top5Points: row.top5Points,
+      h2hPoints: row.h2hPoints,
+      raceCount: row.raceCount,
+      isViewer: row.userId === viewer._id,
+    }));
+
+    return { entries, totalCount: allRows.length, hasMore, viewerEntry };
+  },
+});
+
+export const getLeagueH2HSeasonLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
+    }
+
+    const { limit, offset } = clampLeaderboardPagination(
+      args.limit,
+      args.offset,
+    );
+
+    const standings = await ctx.db
+      .query('h2hSeasonStandings')
+      .withIndex('by_season_points', (q) => q.eq('season', 2026))
+      .collect();
+
+    const allRows = sortByPointsWithStableTieBreak(
+      standings.filter((s) => memberIds.has(s.userId)),
+    );
+
+    const viewerEntryBase = buildViewerEntryFromRows(allRows, viewer);
+    const viewerEntry = viewerEntryBase
+      ? {
+          ...viewerEntryBase,
+          correctPicks: allRows[viewerEntryBase.rank - 1].correctPicks,
+          totalPicks: allRows[viewerEntryBase.rank - 1].totalPicks,
+        }
+      : null;
+
+    const paginatedRows = allRows.slice(offset, offset + limit);
+    const hasMore = offset + limit < allRows.length;
+
+    const enrichedRows = paginatedRows.map((row, index) => ({
+      rank: offset + index + 1,
+      userId: row.userId,
+      username: row.username ?? 'Anonymous',
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      points: row.totalPoints,
+      raceCount: row.raceCount,
+      correctPicks: row.correctPicks,
+      totalPicks: row.totalPicks,
+      isViewer: row.userId === viewer._id,
+    }));
+
+    return {
+      entries: enrichedRows,
+      totalCount: allRows.length,
+      hasMore,
+      viewerEntry,
+    };
+  },
+});
+
+export const getLeagueRaceLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    raceId: v.id('races'),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return {
+        status: 'locked' as const,
+        reason: 'sign_in' as const,
+        entries: [],
+      };
+    }
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    let hasSubmittedPrediction = false;
+    if (race.status !== 'finished') {
+      const submitted = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', viewer._id).eq('raceId', args.raceId),
+        )
+        .first();
+      hasSubmittedPrediction = submitted !== null;
+    }
+
+    const access = getRaceLeaderboardAccess({
+      raceStatus: race.status,
+      viewerId: viewer._id,
+      hasSubmittedPrediction,
+    });
+    if (access.status === 'locked') {
+      return { status: access.status, reason: access.reason, entries: [] };
+    }
+
+    const scores = await ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+
+    const userMap = new Map<
+      string,
+      {
+        userId: Id<'users'>;
+        username?: string;
+        displayName?: string;
+        avatarUrl?: string;
+        points: number;
+      }
+    >();
+
+    for (const score of scores.filter((s) => memberIds.has(s.userId))) {
+      const existing = userMap.get(score.userId);
+      if (existing) {
+        existing.points += score.points;
+        existing.username ??= score.username;
+        existing.displayName ??= score.displayName;
+        existing.avatarUrl ??= score.avatarUrl;
+      } else {
+        userMap.set(score.userId, {
+          userId: score.userId,
+          username: score.username,
+          displayName: score.displayName,
+          avatarUrl: score.avatarUrl,
+          points: score.points,
+        });
+      }
+    }
+
+    const entries = mapRaceScoresToLeaderboardEntries([
+      ...userMap.values(),
+    ]).map((e) => ({ ...e, isViewer: e.userId === viewer._id }));
+
+    return { status: 'visible' as const, reason: null, entries };
+  },
+});
+
+export const getLeagueCombinedRaceLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    raceId: v.id('races'),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return {
+        status: 'locked' as const,
+        reason: 'sign_in' as const,
+        entries: [],
+      };
+    }
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    let hasSubmittedPrediction = false;
+    if (race.status !== 'finished') {
+      const submitted = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', viewer._id).eq('raceId', args.raceId),
+        )
+        .first();
+      hasSubmittedPrediction = submitted !== null;
+    }
+
+    const access = getRaceLeaderboardAccess({
+      raceStatus: race.status,
+      viewerId: viewer._id,
+      hasSubmittedPrediction,
+    });
+    if (access.status === 'locked') {
+      return { status: access.status, reason: access.reason, entries: [] };
+    }
+
+    const [top5Scores, h2hScores] = await Promise.all([
+      ctx.db
+        .query('scores')
+        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+        .collect(),
+      ctx.db
+        .query('h2hScores')
+        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+        .collect(),
+    ]);
+
+    type RaceEntry = {
+      userId: Id<'users'>;
+      username?: string;
+      displayName?: string;
+      avatarUrl?: string;
+      top5Points: number;
+      h2hPoints: number;
+    };
+
+    const userMap = new Map<string, RaceEntry>();
+
+    for (const score of top5Scores.filter((s) => memberIds.has(s.userId))) {
+      const existing = userMap.get(score.userId);
+      if (existing) {
+        existing.top5Points += score.points;
+      } else {
+        userMap.set(score.userId, {
+          userId: score.userId,
+          username: score.username,
+          displayName: score.displayName,
+          avatarUrl: score.avatarUrl,
+          top5Points: score.points,
+          h2hPoints: 0,
+        });
+      }
+    }
+
+    for (const score of h2hScores.filter((s) => memberIds.has(s.userId))) {
+      const existing = userMap.get(score.userId);
+      if (existing) {
+        existing.h2hPoints += score.points;
+      } else {
+        userMap.set(score.userId, {
+          userId: score.userId,
+          top5Points: 0,
+          h2hPoints: score.points,
+        });
+      }
+    }
+
+    const missingUserIds = [...userMap.values()]
+      .filter((e) => !e.username)
+      .map((e) => e.userId);
+
+    if (missingUserIds.length > 0) {
+      const users = await Promise.all(
+        missingUserIds.map((id) => ctx.db.get(id)),
+      );
+      for (const user of users) {
+        if (user) {
+          const entry = userMap.get(user._id);
+          if (entry) {
+            entry.username = user.username;
+            entry.displayName = user.displayName;
+            entry.avatarUrl = user.avatarUrl;
+          }
+        }
+      }
+    }
+
+    const sorted = [...userMap.values()].sort((a, b) => {
+      const aTotal = a.top5Points + a.h2hPoints;
+      const bTotal = b.top5Points + b.h2hPoints;
+      if (aTotal !== bTotal) {
+        return bTotal - aTotal;
+      }
+      return String(a.userId).localeCompare(String(b.userId));
+    });
+
+    const entries = sorted.map((row, index) => ({
+      rank: index + 1,
+      userId: row.userId,
+      username: row.username ?? 'Anonymous',
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      points: row.top5Points + row.h2hPoints,
+      top5Points: row.top5Points,
+      h2hPoints: row.h2hPoints,
+      isViewer: row.userId === viewer._id,
+    }));
+
+    return { status: 'visible' as const, reason: null, entries };
+  },
+});
+
+export const getLeagueH2HRaceLeaderboard = query({
+  args: {
+    leagueId: v.id('leagues'),
+    raceId: v.id('races'),
+  },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .collect();
+
+    const memberIds = new Set<string>(members.map((m) => m.userId));
+
+    if (!viewer || !memberIds.has(viewer._id)) {
+      return {
+        status: 'locked' as const,
+        reason: 'sign_in' as const,
+        entries: [],
+      };
+    }
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    let hasSubmittedPrediction = false;
+    if (race.status !== 'finished') {
+      const submitted = await ctx.db
+        .query('predictions')
+        .withIndex('by_user_race_session', (q) =>
+          q.eq('userId', viewer._id).eq('raceId', args.raceId),
+        )
+        .first();
+      hasSubmittedPrediction = submitted !== null;
+    }
+
+    const access = getRaceLeaderboardAccess({
+      raceStatus: race.status,
+      viewerId: viewer._id,
+      hasSubmittedPrediction,
+    });
+    if (access.status === 'locked') {
+      return { status: access.status, reason: access.reason, entries: [] };
+    }
+
+    const h2hScores = await ctx.db
+      .query('h2hScores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
+      .collect();
+
+    type H2HEntry = {
+      userId: Id<'users'>;
+      points: number;
+      correctPicks: number;
+      totalPicks: number;
+    };
+
+    const userMap = new Map<string, H2HEntry>();
+
+    for (const score of h2hScores.filter((s) => memberIds.has(s.userId))) {
+      const existing = userMap.get(score.userId);
+      if (existing) {
+        existing.points += score.points;
+        existing.correctPicks += score.correctPicks;
+        existing.totalPicks += score.totalPicks;
+      } else {
+        userMap.set(score.userId, {
+          userId: score.userId,
+          points: score.points,
+          correctPicks: score.correctPicks,
+          totalPicks: score.totalPicks,
+        });
+      }
+    }
+
+    const userIds = [...userMap.values()].map((e) => e.userId);
+    const users = await Promise.all(userIds.map((id) => ctx.db.get(id)));
+    const userInfoMap = new Map(users.filter(Boolean).map((u) => [u!._id, u!]));
+
+    const sorted = [...userMap.values()].sort((a, b) => {
+      if (a.points !== b.points) {
+        return b.points - a.points;
+      }
+      return String(a.userId).localeCompare(String(b.userId));
+    });
+
+    const entries = sorted.map((row, index) => {
+      const user = userInfoMap.get(row.userId);
+      return {
+        rank: index + 1,
+        userId: row.userId,
+        username: user?.username ?? 'Anonymous',
+        displayName: user?.displayName,
+        avatarUrl: user?.avatarUrl,
+        points: row.points,
+        correctPicks: row.correctPicks,
+        totalPicks: row.totalPicks,
+        isViewer: row.userId === viewer._id,
+      };
+    });
+
+    return { status: 'visible' as const, reason: null, entries };
+  },
+});
+
 export async function getRaceLeaderboardForViewer(
   ctx: QueryCtx,
   args: { raceId: Id<'races'> },

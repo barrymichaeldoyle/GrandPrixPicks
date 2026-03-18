@@ -309,11 +309,9 @@ function ProfilePage() {
                   <Tooltip
                     placement="top"
                     content={
-                      <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
-                        {isOwner
-                          ? 'Weighted by where you picked them: P1 = 5 pts, P2 = 4, P3 = 3, P4 = 2, P5 = 1. Your most-picked driver in top positions.'
-                          : 'Weighted by where they were picked: P1 = 5 pts, P2 = 4, P3 = 3, P4 = 2, P5 = 1. The driver they picked in top positions most.'}
-                      </span>
+                      isOwner
+                        ? 'Your most-picked driver in top positions.'
+                        : `The driver that ${displayName} picked most in top positions.`
                     }
                   >
                     <Info className="h-4 w-4 shrink-0 text-text-muted" />
@@ -375,11 +373,9 @@ function ProfilePage() {
                   <Tooltip
                     placement="top"
                     content={
-                      <span className="block max-w-[240px] rounded bg-text px-2 py-1.5 text-xs font-medium text-white shadow-sm">
-                        {isOwner
-                          ? 'The race weekend where you scored the most points. Ties broken by most recent race.'
-                          : 'The race weekend where they scored the most points. Ties broken by most recent race.'}
-                      </span>
+                      isOwner
+                        ? 'The race weekend where you scored the most points. Ties broken by most recent race.'
+                        : `The race weekend where ${displayName} scored the most points. Ties broken by most recent race.`
                     }
                   >
                     <Info className="h-4 w-4 shrink-0 text-text-muted" />
@@ -388,37 +384,28 @@ function ProfilePage() {
                 <Link
                   to="/races/$raceSlug"
                   params={{ raceSlug: bestRace.raceSlug }}
-                  className="group block px-4 py-4 transition-colors hover:bg-surface-hover/60"
+                  className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-hover/60"
                   aria-label={`Open ${bestRace.raceName} race page`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        {(() => {
-                          const countryCode = getCountryCodeForRace({
-                            slug: bestRace.raceSlug,
-                          });
-                          return countryCode ? (
-                            <RaceFlag countryCode={countryCode} />
-                          ) : null;
-                        })()}
-                        <span className="inline-flex items-center rounded-full border border-border bg-surface-muted px-2 py-0.5 text-xs font-semibold text-text-muted">
-                          Round {bestRace.raceRound}
-                        </span>
-                      </div>
-                      <div className="truncate text-lg font-semibold text-text">
-                        {bestRace.raceName}
-                      </div>
-                      <p className="mt-1 text-xs text-text-muted">
-                        Open full race details and scoring breakdown
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span className="inline-flex rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
-                        {bestRace.totalPoints} pts
-                      </span>
-                    </div>
+                  {(() => {
+                    const countryCode = getCountryCodeForRace({
+                      slug: bestRace.raceSlug,
+                    });
+                    return countryCode ? (
+                      <RaceFlag countryCode={countryCode} size="lg" />
+                    ) : null;
+                  })()}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-text-muted">
+                      Round {bestRace.raceRound}
+                    </p>
+                    <p className="truncate text-base font-semibold text-text">
+                      {bestRace.raceName}
+                    </p>
                   </div>
+                  <span className="inline-flex shrink-0 rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
+                    {bestRace.totalPoints} pts
+                  </span>
                 </Link>
               </div>
             )}

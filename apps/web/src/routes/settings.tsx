@@ -694,7 +694,7 @@ function SettingsPage() {
           size="sm"
           className="mb-4"
         >
-          <Link to="/me">Back to my picks</Link>
+          <Link to="/me">Back to My Picks</Link>
         </Button>
         <PageHero
           eyebrow="Account"

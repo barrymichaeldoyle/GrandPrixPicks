@@ -79,6 +79,7 @@ type AdminRacesTabProps = {
   upcomingRaces: Doc<'races'>[];
   lockedRaces: Doc<'races'>[];
   finishedRaces: Doc<'races'>[];
+  cancelledRaces: Doc<'races'>[];
 };
 
 export function AdminRacesTab({
@@ -86,6 +87,7 @@ export function AdminRacesTab({
   upcomingRaces,
   lockedRaces,
   finishedRaces,
+  cancelledRaces,
 }: AdminRacesTabProps) {
   return (
     <>
@@ -140,6 +142,20 @@ export function AdminRacesTab({
             renderRowSuffix={() => (
               <span className="rounded-full bg-slate-700 px-3 py-1 text-sm text-slate-400">
                 Completed
+              </span>
+            )}
+          />
+
+          <AdminRaceSection
+            title="Called Off"
+            count={cancelledRaces.length}
+            headingClassName="text-red-400"
+            dotClassName="bg-red-400"
+            races={cancelledRaces}
+            rowBorderClassName="border border-red-500/30"
+            renderRowSuffix={() => (
+              <span className="rounded-full bg-red-500/20 px-3 py-1 text-sm text-red-400">
+                Cancelled
               </span>
             )}
           />

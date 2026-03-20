@@ -122,9 +122,14 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   // Only the next upcoming race is open for predictions
   const isPredictable = race.status === 'upcoming' && isNext;
   const isNotYetOpen = race.status === 'upcoming' && !isNext;
+  const now = Date.now();
+  const isCancelled = race.status === 'cancelled';
+  const isCompleted = race.status === 'finished';
+  const isPastRace = race.raceStartAt <= now;
+  const isMutedPastRace = (isCancelled || isCompleted) && isPastRace;
+  const hasCancelledBorder = isCancelled && !isPastRace;
 
   const countryCode = getCountryCodeForRace(race);
-  const now = Date.now();
   const timezoneLabel = Intl.DateTimeFormat(undefined, {
     timeZoneName: 'short',
   })
@@ -141,9 +146,13 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
       className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border-[3px] bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(20,184,166,0.45),0_0_10px_3px_rgba(20,184,166,0.14),0_14px_30px_rgba(20,184,166,0.12)] focus-visible:shadow-[0_0_0_1px_rgba(20,184,166,0.55),0_0_12px_4px_rgba(20,184,166,0.18),0_16px_34px_rgba(20,184,166,0.14)] focus-visible:outline-none dark:hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] dark:focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] ${
-        isNext
-          ? 'border-accent/70 hover:border-accent'
-          : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
+        hasCancelledBorder
+          ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
+          : isMutedPastRace
+            ? 'border-border opacity-60 hover:border-border-strong focus-visible:border-border-strong'
+          : isNext
+            ? 'border-accent/70 hover:border-accent'
+            : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
       }`}
     >
       <div className="relative flex h-full flex-col">
@@ -193,6 +202,9 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
         <div className="flex h-full flex-col gap-1.5 px-3 pt-2 pb-2.5">
           {/* Badges and status */}
           <div className="flex flex-wrap items-center gap-1">
+            {race.status === 'cancelled' && (
+              <Badge variant="cancelled">CALLED OFF</Badge>
+            )}
             {race.status === 'finished' && (
               <Badge variant="finished">COMPLETED</Badge>
             )}

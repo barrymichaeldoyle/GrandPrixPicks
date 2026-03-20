@@ -34,6 +34,7 @@ function AdminPage() {
   const upcomingRaces = races?.filter((r) => r.status === 'upcoming') ?? [];
   const lockedRaces = races?.filter((r) => r.status === 'locked') ?? [];
   const finishedRaces = races?.filter((r) => r.status === 'finished') ?? [];
+  const cancelledRaces = races?.filter((r) => r.status === 'cancelled') ?? [];
   const defaultSelectedRaceId =
     upcomingRaces.length > 0
       ? upcomingRaces[0]._id
@@ -127,6 +128,7 @@ function AdminPage() {
             upcomingRaces={upcomingRaces}
             lockedRaces={lockedRaces}
             finishedRaces={finishedRaces}
+            cancelledRaces={cancelledRaces}
           />
         )}
       </div>

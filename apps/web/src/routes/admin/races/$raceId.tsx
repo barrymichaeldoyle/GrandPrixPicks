@@ -15,10 +15,12 @@ import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import {
   ArrowLeft,
+  Ban,
   Check,
   CircleAlert,
   GripVertical,
   Loader2,
+  RotateCcw,
   Save,
   Trophy,
 } from 'lucide-react';
@@ -222,7 +224,10 @@ function AdminRaceDetailPage() {
   >([]);
   const [dnfDriverIds, setDnfDriverIds] = useState<Id<'drivers'>[]>([]);
   const publishResults = useMutation(api.results.adminPublishResults);
+  const cancelRace = useMutation(api.races.adminCancelRace);
+  const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const driverCount = drivers?.length ?? 0;
   const availableSessions = getSessionsForWeekend(race?.hasSprint ?? false);
@@ -418,11 +423,51 @@ function AdminRaceDetailPage() {
 
   const scoringStatus = existingResult?.scoringStatus;
 
+  async function handleCancelRace() {
+    if (
+      !window.confirm(
+        `Mark "${race.name}" as called off? This will cancel any scheduled reminders.`,
+      )
+    ) {
+      return;
+    }
+    setIsCancelling(true);
+    try {
+      await cancelRace({ raceId: typedRaceId });
+    } catch (error) {
+      console.error('Failed to cancel race:', error);
+    } finally {
+      setIsCancelling(false);
+    }
+  }
+
+  async function handleRestoreRace() {
+    if (!window.confirm(`Restore "${race.name}" to upcoming?`)) {
+      return;
+    }
+    setIsCancelling(true);
+    try {
+      await restoreRace({ raceId: typedRaceId });
+    } catch (error) {
+      console.error('Failed to restore race:', error);
+    } finally {
+      setIsCancelling(false);
+    }
+  }
+
   async function handlePublish() {
     if (classificationOrderError) {
       return;
     }
     if (!allFilledForHooks) {
+      return;
+    }
+    const action = existingResult ? 'Update' : 'Publish';
+    if (
+      !window.confirm(
+        `${action} ${SESSION_LABELS[selectedSession]} results for "${race.name}"? This will trigger scoring for all users.`,
+      )
+    ) {
       return;
     }
     setIsPublishing(true);
@@ -448,7 +493,7 @@ function AdminRaceDetailPage() {
         </Button>
 
         <div className="mb-6 rounded-xl border border-slate-700 bg-slate-800/50 p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <span className="text-sm font-medium text-slate-500">
                 Round {race.round} - {race.season}
@@ -457,17 +502,50 @@ function AdminRaceDetailPage() {
                 {race.name}
               </h1>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-sm ${
-                race.status === 'upcoming'
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : race.status === 'locked'
-                    ? 'bg-amber-500/20 text-amber-400'
-                    : 'bg-slate-500/20 text-slate-400'
-              }`}
-            >
-              {race.status}
-            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <span
+                className={`rounded-full px-3 py-1 text-sm ${
+                  race.status === 'upcoming'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : race.status === 'locked'
+                      ? 'bg-amber-500/20 text-amber-400'
+                      : race.status === 'cancelled'
+                        ? 'bg-red-500/20 text-red-400'
+                        : 'bg-slate-500/20 text-slate-400'
+                }`}
+              >
+                {race.status === 'cancelled' ? 'Called Off' : race.status}
+              </span>
+              {race.status !== 'finished' &&
+                race.status !== 'locked' &&
+                (race.status === 'cancelled' ? (
+                  <button
+                    onClick={handleRestoreRace}
+                    disabled={isCancelling}
+                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isCancelling ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <RotateCcw size={14} />
+                    )}
+                    Restore
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleCancelRace}
+                    disabled={isCancelling}
+                    className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isCancelling ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Ban size={14} />
+                    )}
+                    Mark Called Off
+                  </button>
+                ))}
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 
-import type { Doc } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
@@ -30,7 +30,7 @@ export const getNextRace = query({
     const now = Date.now();
     const races = await ctx.db.query('races').collect();
     const upcoming = races
-      .filter((r) => r.raceStartAt > now)
+      .filter((r) => r.raceStartAt > now && r.status !== 'cancelled')
       .sort((a, b) => a.raceStartAt - b.raceStartAt);
 
     return upcoming[0] ?? null;
@@ -77,7 +77,7 @@ export const getRaceBySlugOrLegacyRef = query({
 });
 
 /**
- * When predictions open for this race (previous race's start time).
+ * When predictions open for this race (previous non-cancelled race's start time).
  * Null for round 1 (no previous race).
  */
 export const getPredictionOpenAt = query({
@@ -88,12 +88,16 @@ export const getPredictionOpenAt = query({
       return null;
     }
 
-    const previousRace = await ctx.db
-      .query('races')
-      .withIndex('by_season_round', (q) =>
-        q.eq('season', race.season).eq('round', race.round - 1),
+    const allRaces = await ctx.db.query('races').collect();
+    const previousRace = allRaces
+      .filter(
+        (r) =>
+          r.season === race.season &&
+          r.round < race.round &&
+          r.status !== 'cancelled',
       )
-      .unique();
+      .sort((a, b) => b.round - a.round)
+      .at(0);
 
     return previousRace?.raceStartAt ?? null;
   },
@@ -112,7 +116,7 @@ export const getWeekendLeaderboardRace = query({
 
     const races = await ctx.db.query('races').collect();
     const seasonRaces = races
-      .filter((r) => r.season === season)
+      .filter((r) => r.season === season && r.status !== 'cancelled')
       .sort((a, b) => a.round - b.round);
 
     if (seasonRaces.length === 0) {
@@ -188,6 +192,54 @@ export const adminUpsertRace = mutation({
       status: args.status,
       createdAt: now,
       updatedAt: now,
+    });
+  },
+});
+
+export const adminCancelRace = mutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    requireAdmin(viewer);
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    // Cancel the scheduled email reminder if one is queued
+    if (race.reminderScheduledId) {
+      try {
+        await ctx.scheduler.cancel(
+          race.reminderScheduledId as Id<'_scheduled_functions'>,
+        );
+      } catch {
+        // Already ran or was cancelled — safe to ignore
+      }
+    }
+
+    await ctx.db.patch(args.raceId, {
+      status: 'cancelled',
+      reminderScheduledId: undefined,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+export const adminRestoreRace = mutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    requireAdmin(viewer);
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    await ctx.db.patch(args.raceId, {
+      status: 'upcoming',
+      updatedAt: Date.now(),
     });
   },
 });

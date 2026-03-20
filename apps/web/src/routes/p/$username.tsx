@@ -384,7 +384,7 @@ function ProfilePage() {
                 <Link
                   to="/races/$raceSlug"
                   params={{ raceSlug: bestRace.raceSlug }}
-                  className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-hover/60"
+                  className="group flex h-21 items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-hover/60"
                   aria-label={`Open ${bestRace.raceName} race page`}
                 >
                   {(() => {

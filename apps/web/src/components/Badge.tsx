@@ -7,7 +7,8 @@ type BadgeVariant =
   | 'not_yet_open'
   | 'locked'
   | 'submitted'
-  | 'finished';
+  | 'finished'
+  | 'cancelled';
 
 const successBadgeStyles =
   'bg-success-muted text-success border border-success/30';
@@ -23,6 +24,8 @@ const variantStyles: Record<BadgeVariant, string> = {
     'border border-warning/40 bg-warning/12 text-warning dark:border-warning/50 dark:bg-warning/18',
   submitted: successBadgeStyles,
   finished: mutedBadgeStyles,
+  cancelled:
+    'border border-destructive/40 bg-destructive/10 text-destructive dark:border-destructive/50 dark:bg-destructive/15',
 };
 
 const statusIcons: Record<

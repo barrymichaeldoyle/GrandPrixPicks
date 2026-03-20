@@ -2,43 +2,15 @@ import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { Calendar } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { PageHero } from '../../components/PageHero';
 import { RaceCard } from '../../components/RaceCard';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
-const STATUS_FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'inProgress', label: 'In Progress' },
-  { key: 'upcoming', label: 'Upcoming' },
-  { key: 'completed', label: 'Completed' },
-] as const;
-type StatusFilter = (typeof STATUS_FILTERS)[number]['key'];
-type NonDefaultStatusFilter = Exclude<StatusFilter, 'all'>;
 
 export const Route = createFileRoute('/races/')({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { status?: NonDefaultStatusFilter; sprint?: true } => {
-    const rawStatus = search.status;
-    const status =
-      rawStatus === 'inProgress' ||
-      rawStatus === 'upcoming' ||
-      rawStatus === 'completed'
-        ? rawStatus
-        : undefined;
-    const sprintRaw = search.sprint;
-    const sprint =
-      sprintRaw === true ||
-      sprintRaw === 'true' ||
-      sprintRaw === '1' ||
-      sprintRaw === '"true"' ||
-      sprintRaw === '"1"'
-        ? true
-        : undefined;
-    return { status, sprint };
-  },
   component: RacesPage,
   loader: async () => {
     const [races, nextRace] = await Promise.all([
@@ -71,72 +43,34 @@ export const Route = createFileRoute('/races/')({
 
 function RacesPage() {
   const { races, nextRace } = Route.useLoaderData();
-  const navigate = Route.useNavigate();
-  const search = Route.useSearch();
-  const statusFilter: StatusFilter = search.status ?? 'all';
-  const sprintOnly = search.sprint === true;
+  const nextRaceRef = useRef<HTMLDivElement | null>(null);
+  const hasScrolledToNextRaceRef = useRef(false);
+  const orderedRaces = [...races].sort((a, b) => a.round - b.round);
 
-  function setFilters({
-    status,
-    sprint,
-  }: {
-    status: StatusFilter;
-    sprint: boolean;
-  }) {
-    void navigate({
-      to: '.',
-      search: (prev) => ({
-        ...prev,
-        status: status === 'all' ? undefined : status,
-        sprint: sprint ? true : undefined,
-      }),
-    });
-  }
-
-  const upcomingRaces = races.filter((r) => r.status === 'upcoming');
-  const lockedRaces = races.filter((r) => r.status === 'locked');
-  const finishedRaces = races.filter((r) => r.status === 'finished');
-  const baseByFilter: Record<StatusFilter, typeof races> = {
-    all: races,
-    inProgress: lockedRaces,
-    upcoming: upcomingRaces,
-    completed: finishedRaces,
-  };
-  const filtered = sprintOnly
-    ? baseByFilter[statusFilter].filter((race) => race.hasSprint)
-    : baseByFilter[statusFilter];
-  const hasActiveFilters = statusFilter !== 'all' || sprintOnly;
-  const sectionRaces = {
-    inProgress:
-      statusFilter === 'all'
-        ? sprintOnly
-          ? lockedRaces.filter((race) => race.hasSprint)
-          : lockedRaces
-        : filtered,
-    upcoming:
-      statusFilter === 'all'
-        ? sprintOnly
-          ? upcomingRaces.filter((race) => race.hasSprint)
-          : upcomingRaces
-        : filtered,
-    completed:
-      statusFilter === 'all'
-        ? sprintOnly
-          ? finishedRaces.filter((race) => race.hasSprint)
-          : finishedRaces
-        : filtered,
-  } as const;
-
-  // When predictions open for a race = previous race's start (same season, round - 1)
+  // When predictions open for a race = previous non-cancelled race's start
   function getPredictionOpenAt(race: (typeof races)[0]) {
     if (race.round <= 1) {
       return null;
     }
-    const prev = races.find(
-      (r) => r.season === race.season && r.round === race.round - 1,
-    );
-    return prev?.raceStartAt ?? null;
+    const prev = races
+      .filter(
+        (r) =>
+          r.season === race.season &&
+          r.round < race.round &&
+          r.status !== 'cancelled',
+      )
+      .sort((a, b) => b.round - a.round)
+      .at(0);
+    return prev !== undefined ? prev.raceStartAt : null;
   }
+
+  useEffect(() => {
+    if (hasScrolledToNextRaceRef.current || nextRaceRef.current == null) {
+      return;
+    }
+    nextRaceRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    hasScrolledToNextRaceRef.current = true;
+  }, []);
 
   return (
     <div className="min-h-screen bg-page">
@@ -146,55 +80,6 @@ function RacesPage() {
           title="2026 Season"
           subtitle="Predict the top 5 finishers for each Grand Prix"
         />
-        <div className="reveal-up reveal-delay-1 mb-6 flex flex-wrap items-center gap-2 overflow-x-auto pb-1">
-          {STATUS_FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              type="button"
-              onClick={() =>
-                setFilters({ status: filter.key, sprint: sprintOnly })
-              }
-              className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-                statusFilter === filter.key
-                  ? 'border-accent/40 bg-accent-muted/40 text-accent'
-                  : 'border-border bg-surface text-text-muted hover:border-border-strong hover:text-text'
-              }`}
-            >
-              {filter.label}{' '}
-              <span className="text-xs">
-                {filter.key === 'all'
-                  ? `(${races.length})`
-                  : filter.key === 'inProgress'
-                    ? `(${lockedRaces.length})`
-                    : filter.key === 'upcoming'
-                      ? `(${upcomingRaces.length})`
-                      : `(${finishedRaces.length})`}
-              </span>
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() =>
-              setFilters({ status: statusFilter, sprint: !sprintOnly })
-            }
-            className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-              sprintOnly
-                ? 'border-accent/40 bg-accent-muted/40 text-accent'
-                : 'border-border bg-surface text-text-muted hover:border-border-strong hover:text-text'
-            }`}
-          >
-            Sprint weekends only
-          </button>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={() => setFilters({ status: 'all', sprint: false })}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-muted transition-colors hover:border-border-strong hover:text-text"
-            >
-              Reset
-            </button>
-          )}
-        </div>
 
         {races.length === 0 ? (
           <div className="py-16 text-center">
@@ -207,72 +92,26 @@ function RacesPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {sectionRaces.inProgress.length > 0 &&
-              (statusFilter === 'all' || statusFilter === 'inProgress') && (
-                <section className="reveal-up reveal-delay-2">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                    <span
-                      className="h-2 w-2 rounded-full bg-warning"
-                      aria-hidden="true"
-                    ></span>
-                    In Progress ({sectionRaces.inProgress.length})
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {sectionRaces.inProgress.map((race) => (
-                      <RaceCard key={race._id} race={race} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-            {sectionRaces.upcoming.length > 0 &&
-              (statusFilter === 'all' || statusFilter === 'upcoming') && (
-                <section className="reveal-up reveal-delay-2">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                    <span
-                      className="h-2 w-2 rounded-full bg-success"
-                      aria-hidden="true"
-                    ></span>
-                    Upcoming Races ({sectionRaces.upcoming.length})
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {sectionRaces.upcoming.map((race) => (
-                      <RaceCard
-                        key={race._id}
-                        race={race}
-                        isNext={nextRace != null && nextRace._id === race._id}
-                        predictionOpenAt={getPredictionOpenAt(race)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-            {sectionRaces.completed.length > 0 &&
-              (statusFilter === 'all' || statusFilter === 'completed') && (
-                <section className="reveal-up reveal-delay-2">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-text-muted">
-                    <span
-                      className="h-2 w-2 rounded-full bg-text-muted"
-                      aria-hidden="true"
-                    ></span>
-                    Completed ({sectionRaces.completed.length})
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {sectionRaces.completed.map((race) => (
-                      <RaceCard key={race._id} race={race} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-            {filtered.length === 0 && (
-              <div className="rounded-xl border border-border bg-surface p-6 text-sm text-text-muted">
-                No races match the current filters. Try removing Sprint-only or
-                switching status.
-              </div>
-            )}
+          <div className="reveal-up reveal-delay-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {orderedRaces.map((race) => (
+                <div
+                  key={race._id}
+                  ref={
+                    nextRace != null && nextRace._id === race._id
+                      ? nextRaceRef
+                      : null
+                  }
+                  className="scroll-mt-24"
+                >
+                  <RaceCard
+                    race={race}
+                    isNext={nextRace != null && nextRace._id === race._id}
+                    predictionOpenAt={getPredictionOpenAt(race)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

@@ -639,7 +639,7 @@ export const removeRev = mutation({
  *   npx convex run feed:backfillFeedEventsForSeason
  *   npx convex run feed:backfillFeedEventsForSeason '{"season": 2026}'
  */
-export const backfillFeedEventsForSeason = internalMutation({
+export const backfillFeedEventsForSeason = mutation({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const season = args.season ?? 2026;

@@ -1,4 +1,4 @@
-import { Show, SignInButton } from '@clerk/react';
+import { Show, SignInButton, useAuth } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
-import { primaryNavLinks } from '../lib/navigation';
+import { primaryNavLinks, signedInNavLinks } from '../lib/navigation';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -29,6 +29,9 @@ export function Header({
   /** Called when user toggles theme; when provided, parent owns theme state. */
   onThemeChange?: (dark: boolean) => void;
 }) {
+  const { isSignedIn, isLoaded } = useAuth();
+  const navLinks = isSignedIn ? signedInNavLinks : primaryNavLinks;
+
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
@@ -238,30 +241,31 @@ export function Header({
             </span>
           </Link>
 
-          {/* Desktop nav - accent link style, thick border for selected, full-area hover highlight */}
+          {/* Desktop nav - hidden until auth state resolves to prevent flash */}
           <nav
             aria-label="Main navigation"
             className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex"
           >
-            {primaryNavLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
-                activeProps={{
-                  className:
-                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
-                  'aria-current': 'page' as const,
-                }}
-                activeOptions={
-                  link.exact
-                    ? { exact: true, includeSearch: false }
-                    : { includeSearch: false }
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
+            {isLoaded &&
+              navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
+                  activeProps={{
+                    className:
+                      'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
+                    'aria-current': 'page' as const,
+                  }}
+                  activeOptions={
+                    link.exact
+                      ? { exact: true, includeSearch: false }
+                      : { includeSearch: false }
+                  }
+                >
+                  {link.label}
+                </Link>
+              ))}
           </nav>
         </div>
 
@@ -346,38 +350,39 @@ export function Header({
               className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
-                {primaryNavLinks.map((link, index) => (
-                  <motion.div
-                    key={link.to}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: index * 0.05, duration: 0.2 }}
-                  >
-                    <Link
-                      to={link.to}
-                      onClick={closeMenu}
-                      className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
-                      activeProps={{
-                        className:
-                          'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
-                        'aria-current': 'page' as const,
-                      }}
-                      activeOptions={
-                        link.exact
-                          ? { exact: true, includeSearch: false }
-                          : { includeSearch: false }
-                      }
+                {isLoaded &&
+                  navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.to}
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.05, duration: 0.2 }}
                     >
-                      {link.label}
-                    </Link>
-                  </motion.div>
-                ))}
+                      <Link
+                        to={link.to}
+                        onClick={closeMenu}
+                        className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
+                        activeProps={{
+                          className:
+                            'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
+                          'aria-current': 'page' as const,
+                        }}
+                        activeOptions={
+                          link.exact
+                            ? { exact: true, includeSearch: false }
+                            : { includeSearch: false }
+                        }
+                      >
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
                 <Show when="signed-out">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{
-                      delay: primaryNavLinks.length * 0.05,
+                      delay: navLinks.length * 0.05,
                       duration: 0.2,
                     }}
                   >

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
@@ -599,6 +600,11 @@ export const joinLeague = mutation({
       userId: viewer._id,
       role: 'member',
       joinedAt: Date.now(),
+    });
+
+    await ctx.scheduler.runAfter(0, internal.feed.writeJoinedLeagueFeedEvent, {
+      userId: viewer._id,
+      leagueId: league._id,
     });
 
     return { leagueId: league._id, slug: league.slug };

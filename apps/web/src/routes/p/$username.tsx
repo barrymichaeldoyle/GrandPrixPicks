@@ -637,50 +637,45 @@ function CompactH2HSessionPicks({
         ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
-        {picks.map((pick, index) => {
+        {picks.map((pick) => {
           const driver =
             pick.predictedWinnerId === pick.driver1._id
               ? pick.driver1
               : pick.driver2;
 
           return (
-            <div
-              key={`${pick.matchupId}-${index}`}
-              className="rounded-md bg-surface/20 px-1 py-0.5"
-            >
-              <span className="relative inline-flex">
-                <DriverBadge
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                />
-                {pick.isCorrect !== null ? (
-                  <span
-                    className={`absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-surface ${
-                      pick.isCorrect
-                        ? 'bg-success text-white'
-                        : 'bg-error text-white'
-                    }`}
-                  >
-                    {pick.isCorrect ? (
-                      <Check
-                        className="h-2.5 w-2.5"
-                        strokeWidth={3}
-                        aria-label="Correct H2H pick"
-                      />
-                    ) : (
-                      <CircleX
-                        className="h-2.5 w-2.5"
-                        strokeWidth={2.5}
-                        aria-label="Incorrect H2H pick"
-                      />
-                    )}
-                  </span>
-                ) : null}
-              </span>
+            <div key={pick.matchupId} className="relative inline-flex">
+              <DriverBadge
+                code={driver.code}
+                team={driver.team}
+                displayName={driver.displayName}
+                number={driver.number}
+                nationality={driver.nationality}
+                size="sm"
+              />
+              {pick.isCorrect !== null ? (
+                <span
+                  className={`absolute -top-1.5 -right-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-surface ${
+                    pick.isCorrect
+                      ? 'bg-success text-white'
+                      : 'bg-error text-white'
+                  }`}
+                >
+                  {pick.isCorrect ? (
+                    <Check
+                      className="h-2.5 w-2.5"
+                      strokeWidth={3}
+                      aria-label="Correct H2H pick"
+                    />
+                  ) : (
+                    <CircleX
+                      className="h-2.5 w-2.5"
+                      strokeWidth={2.5}
+                      aria-label="Incorrect H2H pick"
+                    />
+                  )}
+                </span>
+              ) : null}
             </div>
           );
         })}

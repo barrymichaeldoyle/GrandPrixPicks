@@ -45,12 +45,18 @@ const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
 type TimeScope = 'season' | 'weekend';
 type GameMode = 'combined' | 'top5' | 'h2h';
+type LeagueView = 'standings' | 'feed';
 
 export const Route = createFileRoute('/leagues/$slug')({
   component: LeagueDetailPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { time?: TimeScope; mode?: GameMode; raceId?: string } => {
+  ): {
+    time?: TimeScope;
+    mode?: GameMode;
+    raceId?: string;
+    view?: LeagueView;
+  } => {
     const time =
       search.time === 'weekend' || search.time === 'season'
         ? search.time
@@ -63,7 +69,11 @@ export const Route = createFileRoute('/leagues/$slug')({
         : undefined;
     const raceId =
       typeof search.raceId === 'string' ? search.raceId : undefined;
-    return { time, mode, raceId };
+    const view =
+      search.view === 'feed' || search.view === 'standings'
+        ? search.view
+        : undefined;
+    return { time, mode, raceId, view };
   },
   loader: async ({ params }) => {
     const league = await convex.query(api.leagues.getLeagueBySlug, {

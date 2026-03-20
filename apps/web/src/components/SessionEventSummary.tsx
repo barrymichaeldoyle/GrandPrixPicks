@@ -89,7 +89,6 @@ export function SessionEventSummary({
           {status === 'open' && (
             <PredictionCountdownBadge
               predictionLockAt={lockAt}
-              sessionLabel={SESSION_LABELS[session]}
               className="text-xs"
             />
           )}

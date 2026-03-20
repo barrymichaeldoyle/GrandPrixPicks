@@ -674,6 +674,83 @@ export const getUserH2HDetailedPicks = query({
   },
 });
 
+/** Lightweight H2H picks for a single session — used by the feed item popover. */
+export const getH2HPicksForFeedItem = query({
+  args: {
+    userId: v.id('users'),
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    const preds = await ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_user_race_session', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('raceId', args.raceId)
+          .eq('sessionType', args.sessionType),
+      )
+      .collect();
+
+    if (preds.length === 0) {
+      return null;
+    }
+
+    const results = await ctx.db
+      .query('h2hResults')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .collect();
+
+    const resultByMatchup = new Map<string, Id<'drivers'>>();
+    for (const r of results) {
+      resultByMatchup.set(String(r.matchupId), r.winnerId);
+    }
+
+    const enriched = await Promise.all(
+      preds.map(async (pred) => {
+        const matchup = await ctx.db.get(pred.matchupId);
+        if (!matchup) {
+          return null;
+        }
+        const [driver1, driver2] = await Promise.all([
+          ctx.db.get(matchup.driver1Id),
+          ctx.db.get(matchup.driver2Id),
+        ]);
+        const actualWinnerId =
+          resultByMatchup.get(String(pred.matchupId)) ?? null;
+        const correct =
+          actualWinnerId !== null && actualWinnerId === pred.predictedWinnerId;
+        return {
+          matchupId: String(pred.matchupId),
+          team: matchup.team,
+          driver1: {
+            _id: String(matchup.driver1Id),
+            code: driver1?.code ?? '???',
+            displayName: driver1?.displayName ?? 'Unknown',
+            team: driver1?.team ?? null,
+            nationality: driver1?.nationality ?? null,
+          },
+          driver2: {
+            _id: String(matchup.driver2Id),
+            code: driver2?.code ?? '???',
+            displayName: driver2?.displayName ?? 'Unknown',
+            team: driver2?.team ?? null,
+            nationality: driver2?.nationality ?? null,
+          },
+          predictedWinnerId: String(pred.predictedWinnerId),
+          actualWinnerId: actualWinnerId ? String(actualWinnerId) : null,
+          correct,
+          hasResult: actualWinnerId !== null,
+        };
+      }),
+    );
+
+    return enriched.filter((p) => p !== null);
+  },
+});
+
 // ───────────────────────── Mutations ─────────────────────────
 
 export const submitH2HPredictions = mutation({

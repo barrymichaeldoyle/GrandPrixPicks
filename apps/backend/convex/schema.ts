@@ -330,4 +330,48 @@ export default defineSchema({
     .index('by_league', ['leagueId'])
     .index('by_user', ['userId'])
     .index('by_league_user', ['leagueId', 'userId']),
+
+  // ============ ACTIVITY FEED ============
+
+  feedEvents: defineTable({
+    type: v.union(
+      v.literal('score_published'),
+      v.literal('joined_league'),
+      v.literal('streak_milestone'),
+    ),
+    userId: v.id('users'),
+    // Denormalized user fields for display (avoids N+1 lookups)
+    username: v.optional(v.string()),
+    displayName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    // score_published fields
+    raceId: v.optional(v.id('races')),
+    sessionType: v.optional(sessionType),
+    points: v.optional(v.number()),
+    raceName: v.optional(v.string()),
+    raceSlug: v.optional(v.string()),
+    season: v.optional(v.number()),
+    // joined_league fields
+    leagueId: v.optional(v.id('leagues')),
+    leagueName: v.optional(v.string()),
+    leagueSlug: v.optional(v.string()),
+    // streak_milestone fields
+    streakCount: v.optional(v.number()),
+    // Engagement
+    revCount: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_user_created', ['userId', 'createdAt'])
+    .index('by_user_race_session', ['userId', 'raceId', 'sessionType'])
+    .index('by_race_session', ['raceId', 'sessionType'])
+    .index('by_league_created', ['leagueId', 'createdAt'])
+    .index('by_user_streak', ['userId', 'streakCount']),
+
+  revs: defineTable({
+    feedEventId: v.id('feedEvents'),
+    userId: v.id('users'),
+    createdAt: v.number(),
+  })
+    .index('by_event', ['feedEventId'])
+    .index('by_user_event', ['userId', 'feedEventId']),
 });

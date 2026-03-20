@@ -22,6 +22,7 @@ import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
 import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
 import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as emails_urls from "../emails/urls.js";
+import type * as feed from "../feed.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
 import type * as leaderboards from "../leaderboards.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   "emails/sendReminderEmails": typeof emails_sendReminderEmails;
   "emails/sendResultEmails": typeof emails_sendResultEmails;
   "emails/urls": typeof emails_urls;
+  feed: typeof feed;
   follows: typeof follows;
   h2h: typeof h2h;
   leaderboards: typeof leaderboards;

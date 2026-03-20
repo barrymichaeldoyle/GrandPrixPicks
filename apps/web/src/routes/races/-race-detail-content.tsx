@@ -76,7 +76,8 @@ export function H2HSection({
         <div className="flex flex-wrap items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />
           <h2 className="text-xl font-semibold text-text">
-            Head-to-Head Predictions
+            <span className="sm:hidden">H2H Predictions</span>
+            <span className="hidden sm:inline">Head-to-Head Predictions</span>
           </h2>
           {shouldHighlightIncompleteH2H ? (
             <Badge variant="locked" icon={<CircleAlert size={14} />}>

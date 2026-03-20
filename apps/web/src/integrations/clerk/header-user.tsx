@@ -2,7 +2,7 @@ import { Show, SignInButton, UserButton } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { Flag, Settings, Trophy, Users } from 'lucide-react';
+import { Flag, Gauge, Settings, Trophy, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /** Keep in sync with the header's mobile breakpoint. */
@@ -67,6 +67,13 @@ export function HeaderUser() {
                   label="My Picks"
                   labelIcon={<Trophy className="h-4 w-4" />}
                   href={myPicksHref}
+                />
+              ) : null}
+              {isMobile ? (
+                <UserButton.Link
+                  label="Feed"
+                  labelIcon={<Gauge className="h-4 w-4" />}
+                  href="/feed"
                 />
               ) : null}
               {isMobile ? (

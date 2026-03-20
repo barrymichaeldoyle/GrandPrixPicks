@@ -3,8 +3,6 @@ import { useCountdown } from '../lib/date';
 interface PredictionCountdownBadgeProps {
   /** Timestamp (ms) when predictions lock. */
   predictionLockAt: number;
-  /** Session label, e.g. "Qualifying", "Race", "Sprint". */
-  sessionLabel?: string;
   /** Badge copy mode for different contexts. */
   labelMode?: 'predict' | 'lock';
   /** Optional extra classes for context-specific layout tweaks. */
@@ -17,15 +15,11 @@ interface PredictionCountdownBadgeProps {
  */
 export function PredictionCountdownBadge({
   predictionLockAt,
-  sessionLabel,
   labelMode = 'predict',
   className = '',
 }: PredictionCountdownBadgeProps) {
   const label = useCountdown(predictionLockAt);
-  const suffix =
-    labelMode === 'lock'
-      ? 'until lock'
-      : `to predict ${sessionLabel ?? 'session'}`;
+  const suffix = labelMode === 'lock' ? 'until lock' : `to predict`;
   return (
     <span
       suppressHydrationWarning

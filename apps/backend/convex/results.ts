@@ -111,6 +111,12 @@ async function rollbackResultsCore(
     });
   }
 
+  // Clean up feed events for this session
+  await ctx.scheduler.runAfter(0, internal.feed.deleteFeedEventsForSession, {
+    raceId: args.raceId,
+    sessionType: args.sessionType,
+  });
+
   for (const userId of affectedUserIds) {
     await upsertStandings(ctx, userId, season);
     await upsertH2HStandings(ctx, userId, season);
@@ -1080,6 +1086,24 @@ export const checkScoringComplete = internalMutation({
         scoringStatus: 'complete',
         updatedAt: Date.now(),
       });
+
+      // Write activity feed events for this session's scores
+      await ctx.scheduler.runAfter(0, internal.feed.writeFeedEventsForSession, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+      });
+
+      // Check for streak milestones (race sessions only)
+      if (args.sessionType === 'race') {
+        const raceDoc = await ctx.db.get(args.raceId);
+        if (raceDoc) {
+          await ctx.scheduler.runAfter(
+            0,
+            internal.feed.writeStreakEventsForRaceSession,
+            { raceId: args.raceId, season: raceDoc.season },
+          );
+        }
+      }
 
       if (!args.suppressNotifications) {
         // Schedule result notification emails (30s delay for standings to settle)

@@ -2528,6 +2528,24 @@ export const _clearDevDataBatch = internalMutation({
       return { deleted, done: false };
     }
 
+    const revs = await ctx.db.query('revs').take(BATCH);
+    for (const doc of revs) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (revs.length === BATCH) {
+      return { deleted, done: false };
+    }
+
+    const feedEvents = await ctx.db.query('feedEvents').take(BATCH);
+    for (const doc of feedEvents) {
+      await ctx.db.delete(doc._id);
+      deleted++;
+    }
+    if (feedEvents.length === BATCH) {
+      return { deleted, done: false };
+    }
+
     // Fake users last
     const users = await ctx.db.query('users').collect();
     const fakeUsers = users
@@ -4394,5 +4412,822 @@ export const seedLeaderboardScenario = internalAction({
       ...seedResult,
       ...h2hResult,
     };
+  },
+});
+
+// ─────────────────────── Social Feed Scenario ───────────────────────
+
+const FEED_SCENARIO_FAKE_USERS = [
+  { username: 'OvercutKing', displayName: 'Overcut King' },
+  { username: 'PitStopPro', displayName: 'Pit Stop Pro' },
+  { username: 'BrakePoint99', displayName: 'Brake Point' },
+  { username: 'DriftKingF1', displayName: 'Drift King' },
+  { username: 'TopGunner', displayName: 'Top Gunner' },
+  { username: 'TurboTed', displayName: 'Turbo Ted' },
+  { username: 'PoleHunter', displayName: 'Pole Hunter' },
+  { username: 'SlipstreamSam', displayName: 'Slipstream Sam' },
+  { username: 'FlatOutFred', displayName: 'Flat Out Fred' },
+  { username: 'CornerWorker', displayName: 'Corner Worker' },
+  { username: 'GapAnalyst', displayName: 'Gap Analyst' },
+  { username: 'PodiumPete', displayName: 'Podium Pete' },
+];
+
+/**
+ * Internal: Clear all follows.
+ */
+export const _clearFollows = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const follows = await ctx.db.query('follows').collect();
+    for (const doc of follows) {
+      await ctx.db.delete(doc._id);
+    }
+    return { deleted: follows.length };
+  },
+});
+
+/**
+ * Internal: Build the social feed testing scenario.
+ *
+ * Creates:
+ *  - 12 fake users
+ *  - Follows: main user follows users 0–5, users 0–3 follow back, cross-follows among fakes
+ *  - League 1 "Pit Wall Prophets": main user (admin) + fake users 0–4
+ *  - League 2 "DRS Zone": fake users 5–8 + main user as member
+ *  - Australia (round 1): finished 13 days ago — quali + race results/predictions/scores for all
+ *  - China (round 2, sprint): finished 6 days ago — all 4 sessions for all
+ *  - Japan (round 3): mid-weekend — quali published + scored, race locked (in progress)
+ */
+export const _seedFeedScenario = internalMutation({
+  args: {
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+
+    // ── Find main user ──
+    const mainUser = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!mainUser) {
+      throw new Error(
+        'Main user not found. Sign in first or provide clerkUserId/username.',
+      );
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers. Run seedDrivers first.');
+    }
+    const driverIds = drivers.map((d) => d._id);
+
+    // ── Get the three races we'll use ──
+    const australiaRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'australia-2026'))
+      .unique();
+    const chinaRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'china-2026'))
+      .unique();
+    const japanRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'japan-2026'))
+      .unique();
+
+    if (!australiaRace || !chinaRace || !japanRace) {
+      throw new Error(
+        'australia-2026, china-2026, and japan-2026 races required. Run seedRaces first.',
+      );
+    }
+
+    // ── Deterministic shuffle ──
+    function det<T>(arr: Array<T>, seed: number): Array<T> {
+      const r = [...arr];
+      for (let i = r.length - 1; i > 0; i--) {
+        const j = Math.abs((seed * 31 + i * 17) % (i + 1));
+        [r[i], r[j]] = [r[j], r[i]];
+      }
+      return r;
+    }
+
+    // ── Create fake users ──
+    const fakeUserIds: Array<Id<'users'>> = [];
+    for (let i = 0; i < FEED_SCENARIO_FAKE_USERS.length; i++) {
+      const { username, displayName } = FEED_SCENARIO_FAKE_USERS[i];
+      const id = await ctx.db.insert('users', {
+        clerkUserId: `fake_user_feed_${i}`,
+        username,
+        displayName,
+        email: `${username.toLowerCase()}@example.com`,
+        isAdmin: false,
+        createdAt: now - (FEED_SCENARIO_FAKE_USERS.length - i) * HOUR,
+        updatedAt: now,
+      });
+      fakeUserIds.push(id);
+    }
+
+    // ── Follows ──
+    // Main user follows fake users 0–5
+    for (let i = 0; i <= 5; i++) {
+      await ctx.db.insert('follows', {
+        followerId: mainUser._id,
+        followeeId: fakeUserIds[i],
+        createdAt: now - (10 - i) * DAY,
+      });
+    }
+    // Fake users 0–3 follow main user back
+    for (let i = 0; i <= 3; i++) {
+      await ctx.db.insert('follows', {
+        followerId: fakeUserIds[i],
+        followeeId: mainUser._id,
+        createdAt: now - (8 - i) * DAY,
+      });
+    }
+    // Cross-follows among fakes for richer social graph
+    const crossFollows: Array<[number, number]> = [
+      [1, 0],
+      [2, 1],
+      [4, 3],
+      [6, 7],
+      [8, 9],
+      [10, 11],
+      [0, 5],
+      [5, 6],
+    ];
+    for (const [from, to] of crossFollows) {
+      await ctx.db.insert('follows', {
+        followerId: fakeUserIds[from],
+        followeeId: fakeUserIds[to],
+        createdAt: now - Math.floor(Math.random() * 10 + 2) * DAY,
+      });
+    }
+
+    // ── Leagues ──
+    const league1Id = await ctx.db.insert('leagues', {
+      name: 'Pit Wall Prophets',
+      slug: 'pit-wall-prophets-2026',
+      description: 'The serious predictors. Probably.',
+      visibility: 'private',
+      password: 'pitwall',
+      createdBy: mainUser._id,
+      season: 2026,
+      createdAt: now - 20 * DAY,
+      updatedAt: now,
+    });
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league1Id,
+      userId: mainUser._id,
+      role: 'admin',
+      joinedAt: now - 20 * DAY,
+    });
+    for (let i = 0; i <= 4; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league1Id,
+        userId: fakeUserIds[i],
+        role: 'member',
+        joinedAt: now - (16 - i) * DAY,
+      });
+    }
+
+    const league2Id = await ctx.db.insert('leagues', {
+      name: 'DRS Zone',
+      slug: 'drs-zone-2026',
+      description: 'Living life in the drag reduction zone.',
+      visibility: 'private',
+      password: 'drszone',
+      createdBy: fakeUserIds[5],
+      season: 2026,
+      createdAt: now - 18 * DAY,
+      updatedAt: now,
+    });
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league2Id,
+      userId: fakeUserIds[5],
+      role: 'admin',
+      joinedAt: now - 18 * DAY,
+    });
+    for (let i = 6; i <= 8; i++) {
+      await ctx.db.insert('leagueMembers', {
+        leagueId: league2Id,
+        userId: fakeUserIds[i],
+        role: 'member',
+        joinedAt: now - (14 - (i - 6)) * DAY,
+      });
+    }
+    // Main user also joins league 2
+    await ctx.db.insert('leagueMembers', {
+      leagueId: league2Id,
+      userId: mainUser._id,
+      role: 'member',
+      joinedAt: now - 10 * DAY,
+    });
+
+    // ── Race timing ──
+    const australiaQualiAt = now - 14 * DAY;
+    const australiaRaceAt = now - 13 * DAY;
+    await ctx.db.patch(australiaRace._id, {
+      status: 'finished',
+      qualiStartAt: australiaQualiAt,
+      qualiLockAt: australiaQualiAt,
+      raceStartAt: australiaRaceAt,
+      predictionLockAt: australiaRaceAt,
+      updatedAt: now,
+    });
+
+    const chinaSprintQualiAt = now - 8 * DAY - 12 * HOUR;
+    const chinaSprintAt = now - 8 * DAY;
+    const chinaQualiAt = now - 7 * DAY - 12 * HOUR;
+    const chinaRaceAt = now - 7 * DAY;
+    await ctx.db.patch(chinaRace._id, {
+      status: 'finished',
+      sprintQualiStartAt: chinaSprintQualiAt,
+      sprintQualiLockAt: chinaSprintQualiAt,
+      sprintStartAt: chinaSprintAt,
+      sprintLockAt: chinaSprintAt,
+      qualiStartAt: chinaQualiAt,
+      qualiLockAt: chinaQualiAt,
+      raceStartAt: chinaRaceAt,
+      predictionLockAt: chinaRaceAt,
+      updatedAt: now,
+    });
+
+    // Japan: quali published 18h ago, race locked 30min ago (in progress, no result yet)
+    const japanQualiAt = now - 18 * HOUR;
+    const japanRaceAt = now - 30 * 60 * 1000;
+    await ctx.db.patch(japanRace._id, {
+      status: 'locked',
+      qualiStartAt: japanQualiAt,
+      qualiLockAt: japanQualiAt,
+      raceStartAt: japanRaceAt,
+      predictionLockAt: japanRaceAt,
+      updatedAt: now,
+    });
+
+    // ── Helpers ──
+    const SESSION_ORDER: Array<SessionType> = [
+      'sprint_quali',
+      'sprint',
+      'quali',
+      'race',
+    ];
+
+    function makePicks(
+      top5: Array<Id<'drivers'>>,
+      others: Array<Id<'drivers'>>,
+      pattern: number,
+    ): Array<Id<'drivers'>> {
+      switch (pattern % 5) {
+        case 0:
+          return [top5[0], top5[1], top5[4], top5[2], top5[4]]; // ~18 pts
+        case 1:
+          return [top5[0], top5[2], top5[1], top5[4], others[0] ?? top5[4]]; // ~14 pts
+        case 2:
+          return [
+            top5[0],
+            others[0] ?? top5[1],
+            top5[4],
+            others[1] ?? top5[3],
+            others[2] ?? top5[4],
+          ]; // ~9 pts
+        case 3:
+          return [
+            top5[1],
+            top5[0],
+            top5[4],
+            others[0] ?? top5[3],
+            others[1] ?? top5[4],
+          ]; // ~11 pts
+        default:
+          return [
+            top5[1],
+            others[0] ?? top5[1],
+            others[1] ?? top5[2],
+            top5[4],
+            others[2] ?? top5[4],
+          ]; // ~7 pts
+      }
+    }
+
+    const allUserIds = [mainUser._id, ...fakeUserIds];
+    let resultsCreated = 0;
+    let predictionsCreated = 0;
+    let scoresCreated = 0;
+
+    // ── Finished races: Australia + China ──
+    type FinishedRaceConfig = {
+      race: { _id: Id<'races'>; round: number };
+      sessions: Array<SessionType>;
+      sessionTimes: Partial<Record<SessionType, number>>;
+    };
+
+    const finishedConfigs: Array<FinishedRaceConfig> = [
+      {
+        race: australiaRace,
+        sessions: ['quali', 'race'],
+        sessionTimes: {
+          quali: australiaQualiAt,
+          race: australiaRaceAt,
+        },
+      },
+      {
+        race: chinaRace,
+        sessions: ['sprint_quali', 'sprint', 'quali', 'race'],
+        sessionTimes: {
+          sprint_quali: chinaSprintQualiAt,
+          sprint: chinaSprintAt,
+          quali: chinaQualiAt,
+          race: chinaRaceAt,
+        },
+      },
+    ];
+
+    for (const config of finishedConfigs) {
+      for (const sessionType of config.sessions) {
+        const sessionAt = config.sessionTimes[sessionType] ?? now;
+        const sessionIdx = SESSION_ORDER.indexOf(sessionType);
+        const classification = det(
+          driverIds,
+          config.race.round * 100 + sessionIdx,
+        );
+        const top5 = classification.slice(0, 5);
+        const others = classification.slice(5);
+
+        await ctx.db.insert('results', {
+          raceId: config.race._id,
+          sessionType,
+          classification,
+          publishedAt: sessionAt + HOUR,
+          updatedAt: now,
+        });
+        resultsCreated++;
+
+        for (let userIdx = 0; userIdx < allUserIds.length; userIdx++) {
+          const userId = allUserIds[userIdx];
+          const pattern = userIdx * 7 + sessionIdx * 3 + config.race.round;
+          const picks = makePicks(top5, others, pattern).map(
+            (p, i) => p || top5[i % 5],
+          );
+
+          await ctx.db.insert('predictions', {
+            userId,
+            raceId: config.race._id,
+            sessionType,
+            picks,
+            submittedAt: sessionAt - HOUR,
+            updatedAt: sessionAt - HOUR,
+          });
+          predictionsCreated++;
+
+          const { total, breakdown } = scoreTopFive({ picks, classification });
+          await ctx.db.insert('scores', {
+            userId,
+            raceId: config.race._id,
+            sessionType,
+            points: total,
+            breakdown,
+            createdAt: sessionAt + 2 * HOUR,
+            updatedAt: now,
+          });
+          scoresCreated++;
+        }
+      }
+    }
+
+    // ── H2H seeding for finished races (Australia + China) ──
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', 2026))
+      .collect();
+
+    if (matchups.length > 0) {
+      for (const config of finishedConfigs) {
+        for (const sessionType of config.sessions) {
+          const sessionAt = config.sessionTimes[sessionType] ?? now;
+          const sessionIdx = SESSION_ORDER.indexOf(sessionType);
+
+          // Look up the classification we just inserted
+          const result = await ctx.db
+            .query('results')
+            .withIndex('by_race_session', (q) =>
+              q.eq('raceId', config.race._id).eq('sessionType', sessionType),
+            )
+            .unique();
+          if (!result) {
+            continue;
+          }
+
+          const positionMap = new Map<string, number>();
+          result.classification.forEach((dId, i) => {
+            positionMap.set(String(dId), i + 1);
+          });
+
+          // H2H results
+          for (const matchup of matchups) {
+            const p1 = positionMap.get(String(matchup.driver1Id)) ?? 99;
+            const p2 = positionMap.get(String(matchup.driver2Id)) ?? 99;
+            const winnerId = p1 < p2 ? matchup.driver1Id : matchup.driver2Id;
+            await ctx.db.insert('h2hResults', {
+              raceId: config.race._id,
+              sessionType,
+              matchupId: matchup._id,
+              winnerId,
+              publishedAt: sessionAt + HOUR,
+            });
+          }
+
+          // H2H predictions + scores per user
+          for (let userIdx = 0; userIdx < allUserIds.length; userIdx++) {
+            const userId = allUserIds[userIdx];
+            let correct = 0;
+            for (let mi = 0; mi < matchups.length; mi++) {
+              const matchup = matchups[mi];
+              const p1 = positionMap.get(String(matchup.driver1Id)) ?? 99;
+              const p2 = positionMap.get(String(matchup.driver2Id)) ?? 99;
+              const actualWinner =
+                p1 < p2 ? matchup.driver1Id : matchup.driver2Id;
+              // Deterministic ~60% correct
+              const seed =
+                userIdx * 31 + mi * 17 + sessionIdx * 7 + config.race.round;
+              const isCorrect = seed % 5 < 3;
+              const predictedWinner = isCorrect
+                ? actualWinner
+                : p1 < p2
+                  ? matchup.driver2Id
+                  : matchup.driver1Id;
+              await ctx.db.insert('h2hPredictions', {
+                userId,
+                raceId: config.race._id,
+                sessionType,
+                matchupId: matchup._id,
+                predictedWinnerId: predictedWinner,
+                submittedAt: sessionAt - HOUR,
+                updatedAt: sessionAt - HOUR,
+              });
+              if (isCorrect) {
+                correct++;
+              }
+            }
+            await ctx.db.insert('h2hScores', {
+              userId,
+              raceId: config.race._id,
+              sessionType,
+              points: correct,
+              correctPicks: correct,
+              totalPicks: matchups.length,
+              createdAt: sessionAt + 2 * HOUR,
+              updatedAt: now,
+            });
+          }
+        }
+      }
+    }
+
+    // ── Japan: quali published + scored, race predictions only ──
+    const japanQualiClass = det(driverIds, japanRace.round * 100);
+    const japanTop5 = japanQualiClass.slice(0, 5);
+    const japanOthers = japanQualiClass.slice(5);
+
+    await ctx.db.insert('results', {
+      raceId: japanRace._id,
+      sessionType: 'quali',
+      classification: japanQualiClass,
+      publishedAt: japanQualiAt + HOUR,
+      updatedAt: now,
+    });
+    resultsCreated++;
+
+    for (let userIdx = 0; userIdx < allUserIds.length; userIdx++) {
+      const userId = allUserIds[userIdx];
+
+      // Quali prediction + score
+      const qualiPattern =
+        userIdx * 7 + SESSION_ORDER.indexOf('quali') * 3 + japanRace.round;
+      const qualiPicks = makePicks(japanTop5, japanOthers, qualiPattern).map(
+        (p, i) => p || japanTop5[i % 5],
+      );
+      await ctx.db.insert('predictions', {
+        userId,
+        raceId: japanRace._id,
+        sessionType: 'quali',
+        picks: qualiPicks,
+        submittedAt: japanQualiAt - HOUR,
+        updatedAt: japanQualiAt - HOUR,
+      });
+      predictionsCreated++;
+
+      const { total, breakdown } = scoreTopFive({
+        picks: qualiPicks,
+        classification: japanQualiClass,
+      });
+      await ctx.db.insert('scores', {
+        userId,
+        raceId: japanRace._id,
+        sessionType: 'quali',
+        points: total,
+        breakdown,
+        createdAt: japanQualiAt + 2 * HOUR,
+        updatedAt: now,
+      });
+      scoresCreated++;
+
+      // Race prediction only — race is in progress, no result yet
+      const racePicks = det(
+        driverIds,
+        userIdx * 13 + japanRace.round * 7,
+      ).slice(0, 5);
+      await ctx.db.insert('predictions', {
+        userId,
+        raceId: japanRace._id,
+        sessionType: 'race',
+        picks: racePicks,
+        submittedAt: japanRaceAt - 2 * HOUR,
+        updatedAt: japanRaceAt - 2 * HOUR,
+      });
+      predictionsCreated++;
+    }
+
+    // ── Japan H2H ──
+    if (matchups.length > 0) {
+      // Quali: results are published → create h2hResults + predictions + scores
+      const japanQualiResult = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', japanRace._id).eq('sessionType', 'quali'),
+        )
+        .unique();
+
+      if (japanQualiResult) {
+        const posMap = new Map<string, number>();
+        japanQualiResult.classification.forEach((dId, i) => {
+          posMap.set(String(dId), i + 1);
+        });
+
+        for (const matchup of matchups) {
+          const p1 = posMap.get(String(matchup.driver1Id)) ?? 99;
+          const p2 = posMap.get(String(matchup.driver2Id)) ?? 99;
+          await ctx.db.insert('h2hResults', {
+            raceId: japanRace._id,
+            sessionType: 'quali',
+            matchupId: matchup._id,
+            winnerId: p1 < p2 ? matchup.driver1Id : matchup.driver2Id,
+            publishedAt: japanQualiAt + HOUR,
+          });
+        }
+
+        for (let userIdx = 0; userIdx < allUserIds.length; userIdx++) {
+          const userId = allUserIds[userIdx];
+          let correct = 0;
+          for (let mi = 0; mi < matchups.length; mi++) {
+            const matchup = matchups[mi];
+            const p1 = posMap.get(String(matchup.driver1Id)) ?? 99;
+            const p2 = posMap.get(String(matchup.driver2Id)) ?? 99;
+            const actualWinner =
+              p1 < p2 ? matchup.driver1Id : matchup.driver2Id;
+            const seed = userIdx * 31 + mi * 17 + japanRace.round * 7;
+            const isCorrect = seed % 5 < 3;
+            const predictedWinner = isCorrect
+              ? actualWinner
+              : p1 < p2
+                ? matchup.driver2Id
+                : matchup.driver1Id;
+            await ctx.db.insert('h2hPredictions', {
+              userId,
+              raceId: japanRace._id,
+              sessionType: 'quali',
+              matchupId: matchup._id,
+              predictedWinnerId: predictedWinner,
+              submittedAt: japanQualiAt - HOUR,
+              updatedAt: japanQualiAt - HOUR,
+            });
+            if (isCorrect) {
+              correct++;
+            }
+          }
+          await ctx.db.insert('h2hScores', {
+            userId,
+            raceId: japanRace._id,
+            sessionType: 'quali',
+            points: correct,
+            correctPicks: correct,
+            totalPicks: matchups.length,
+            createdAt: japanQualiAt + 2 * HOUR,
+            updatedAt: now,
+          });
+        }
+      }
+
+      // Race: in-progress → only create h2hPredictions (no results or scores)
+      for (let userIdx = 0; userIdx < allUserIds.length; userIdx++) {
+        const userId = allUserIds[userIdx];
+        for (let mi = 0; mi < matchups.length; mi++) {
+          const matchup = matchups[mi];
+          const seed = userIdx * 37 + mi * 11 + japanRace.round * 5;
+          const predictedWinner =
+            seed % 2 === 0 ? matchup.driver1Id : matchup.driver2Id;
+          await ctx.db.insert('h2hPredictions', {
+            userId,
+            raceId: japanRace._id,
+            sessionType: 'race',
+            matchupId: matchup._id,
+            predictedWinnerId: predictedWinner,
+            submittedAt: japanRaceAt - 2 * HOUR,
+            updatedAt: japanRaceAt - 2 * HOUR,
+          });
+        }
+      }
+    }
+
+    return {
+      mainUserId: mainUser._id,
+      username: mainUser.username,
+      fakeUsersCreated: fakeUserIds.length,
+      leagues: { 'Pit Wall Prophets': league1Id, 'DRS Zone': league2Id },
+      resultsCreated,
+      predictionsCreated,
+      scoresCreated,
+      currentWeekend: {
+        race: 'japan-2026',
+        qualiPublished: true,
+        raceInProgress: true,
+      },
+    };
+  },
+});
+
+/**
+ * Reset dev database to a rich social feed testing scenario.
+ *
+ * Sets up:
+ *  - 12 fake users with F1 usernames
+ *  - Follow graph: main user follows 6 fakes, 4 follow back, cross-follows among fakes
+ *  - 2 leagues the main user belongs to
+ *  - Australia (R1): finished 13 days ago — full results + predictions + scores for all
+ *  - China (R2, sprint): finished 7 days ago — all 4 session results for all users
+ *  - Japan (R3): mid-weekend — quali published + scored, race locked (in progress)
+ *  - Feed events backfilled from scores + league joins
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevForFeed '{"username": "barrymichaeldoyle"}'
+ *   npx convex run seed:reseedDevForFeed '{"clerkUserId": "user_xxx"}'
+ */
+export const reseedDevForFeed = internalAction({
+  args: {
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Phase 1: Clear all dev data
+    let totalDeleted = 0;
+    let iterations = 0;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    // Phase 2: Clear leagues and follows
+    await ctx.runMutation(internal.seed._clearLeagueData);
+    await ctx.runMutation(internal.seed._clearFollows);
+
+    // Phase 3: Reset races to upcoming with original 2026 dates
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    // Phase 4: Ensure drivers + H2H matchups exist
+    await ctx.runMutation(internal.seed.seedDrivers);
+    await ctx.runMutation(internal.seed.seedH2HMatchups);
+
+    // Phase 5: Build the feed scenario
+    const scenarioResult: {
+      mainUserId: Id<'users'>;
+      username: string | undefined;
+      fakeUsersCreated: number;
+      resultsCreated: number;
+      predictionsCreated: number;
+      scoresCreated: number;
+    } = await ctx.runMutation(internal.seed._seedFeedScenario, {
+      username: args.username,
+      clerkUserId: args.clerkUserId,
+    });
+
+    // Phase 6: Backfill feed events from scores + league joins
+    const feedResult: { created: number } = await ctx.runMutation(
+      internal.seed.seedFeedEvents,
+    );
+
+    // Phase 7: Backfill season standings
+    await ctx.runMutation(internal.seed.backfillStandings, {});
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      ...scenarioResult,
+      feedEventsCreated: feedResult.created,
+    };
+  },
+});
+
+/**
+ * Backfill feed events from existing scores and league memberships.
+ * Run this after seeding to populate the feed without going through the admin publish flow.
+ *
+ * npx convex run seed:seedFeedEvents
+ */
+export const seedFeedEvents = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+    let created = 0;
+
+    // score_published — one per existing score row
+    const scores = await ctx.db.query('scores').take(500);
+    for (const score of scores) {
+      const existing = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', score.userId)
+            .eq('raceId', score.raceId)
+            .eq('sessionType', score.sessionType),
+        )
+        .first();
+      if (existing) {
+        continue;
+      }
+      const user = await ctx.db.get(score.userId);
+      const race = await ctx.db.get(score.raceId);
+      if (!user || !race) {
+        continue;
+      }
+      // Spread events ~2h apart so the feed looks like a real timeline
+      const offset = created * 2 * HOUR;
+      await ctx.db.insert('feedEvents', {
+        type: 'score_published',
+        userId: score.userId,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        raceId: score.raceId,
+        sessionType: score.sessionType,
+        points: score.points,
+        raceName: race.name,
+        raceSlug: race.slug,
+        season: race.season,
+        revCount: 0,
+        createdAt: now - offset,
+      });
+      created++;
+    }
+
+    // joined_league — one per leagueMember row
+    const memberships = await ctx.db.query('leagueMembers').take(200);
+    for (const membership of memberships) {
+      const user = await ctx.db.get(membership.userId);
+      const league = await ctx.db.get(membership.leagueId);
+      if (!user || !league) {
+        continue;
+      }
+      await ctx.db.insert('feedEvents', {
+        type: 'joined_league',
+        userId: membership.userId,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        leagueId: membership.leagueId,
+        leagueName: league.name,
+        leagueSlug: league.slug,
+        revCount: 0,
+        createdAt: membership.joinedAt,
+      });
+      created++;
+    }
+
+    return { created };
   },
 });

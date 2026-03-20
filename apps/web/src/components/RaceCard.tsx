@@ -150,9 +150,9 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
           ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
           : isMutedPastRace
             ? 'border-border opacity-60 hover:border-border-strong focus-visible:border-border-strong'
-          : isNext
-            ? 'border-accent/70 hover:border-accent'
-            : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
+            : isNext
+              ? 'border-accent/70 hover:border-accent'
+              : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
       }`}
     >
       <div className="relative flex h-full flex-col">

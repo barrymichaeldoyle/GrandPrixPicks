@@ -425,6 +425,7 @@ function AdminRaceDetailPage() {
 
   async function handleCancelRace() {
     if (
+      race &&
       !window.confirm(
         `Mark "${race.name}" as called off? This will cancel any scheduled reminders.`,
       )
@@ -442,7 +443,7 @@ function AdminRaceDetailPage() {
   }
 
   async function handleRestoreRace() {
-    if (!window.confirm(`Restore "${race.name}" to upcoming?`)) {
+    if (race && !window.confirm(`Restore "${race.name}" to upcoming?`)) {
       return;
     }
     setIsCancelling(true);
@@ -464,6 +465,7 @@ function AdminRaceDetailPage() {
     }
     const action = existingResult ? 'Update' : 'Publish';
     if (
+      race &&
       !window.confirm(
         `${action} ${SESSION_LABELS[selectedSession]} results for "${race.name}"? This will trigger scoring for all users.`,
       )

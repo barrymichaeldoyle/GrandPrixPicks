@@ -27,16 +27,18 @@
     "build-storybook": "pnpm --filter @grandprixpicks/web build-storybook",
     "ios": "pnpm --filter @grandprixpicks/mobile exec expo start --ios",
     "android": "pnpm --filter @grandprixpicks/mobile exec expo start --android",
-    "fix": "pnpm --filter @grandprixpicks/web fix",
-    "format": "pnpm --filter @grandprixpicks/web format",
-    "check": "pnpm --filter @grandprixpicks/web check",
+    "fix": "pnpm exec prettier --write . && pnpm lint:fix",
+    "format": "pnpm exec prettier",
+    "check": "pnpm exec prettier --check . && pnpm lint",
     "convex:migrations": "pnpm --filter @grandprixpicks/backend migrations",
     "convex:migrations:prod": "pnpm --filter @grandprixpicks/backend migrations:prod",
     "start": "pnpm --filter @grandprixpicks/web start"
   },
   "devDependencies": {
-    "eslint": "10.0.3",
-    "knip": "5.86.0"
+    "eslint": "catalog:",
+    "knip": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:"
   },
   "packageManager": "pnpm@10.32.1"
 }

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { primaryNavLinks, signedInNavLinks } from '../lib/navigation';
+import { NotificationBell } from './NotificationBell.tsx';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -228,7 +229,7 @@ export function Header({
         className="header-accent-rail pointer-events-none absolute inset-x-0 top-0 h-[2px]"
       />
       <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2">
           <Link to="/" className="group flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/30 bg-accent/10 ring-1 ring-accent/15 transition-colors group-hover:bg-accent/15">
               <Flag
@@ -244,34 +245,52 @@ export function Header({
           {/* Desktop nav - hidden until auth state resolves to prevent flash */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex"
+            className={`font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex transition-opacity duration-150${!isLoaded ? ' opacity-0 pointer-events-none' : ''}`}
           >
-            {isLoaded &&
-              navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
-                  activeProps={{
-                    className:
-                      'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
-                    'aria-current': 'page' as const,
-                  }}
-                  activeOptions={
-                    link.exact
-                      ? { exact: true, includeSearch: false }
-                      : { includeSearch: false }
-                  }
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
+                activeProps={{
+                  className:
+                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
+                  'aria-current': 'page' as const,
+                }}
+                activeOptions={
+                  link.exact
+                    ? { exact: true, includeSearch: false }
+                    : { includeSearch: false }
+                }
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Show when="signed-out">
-            {/* Mobile menu button */}
+        <div
+          className={`flex items-center transition-opacity duration-150${!isLoaded ? ' pointer-events-none opacity-0' : ''}`}
+        >
+          {/* Width-reserving skeleton during load. The parent is opacity-0 so this is
+              invisible, but it still participates in layout and keeps the right side
+              the same width as the signed-in state so the nav doesn't shift. */}
+          {!isLoaded && (
+            <div aria-hidden className="hidden items-center min-[844px]:flex">
+              <div className="h-9 w-9 rounded-full" /> {/* bell */}
+              <div className="h-8 w-20 rounded-full" /> {/* my picks */}
+              <div className="h-9 w-11 rounded-full" /> {/* user button */}
+            </div>
+          )}
+
+          {renderThemeToggle({
+            className:
+              'hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex',
+            iconSize: 20,
+          })}
+
+          {/* Mobile menu button — signed-out only */}
+          {isLoaded && !isSignedIn && (
             <motion.button
               ref={menuButtonRef}
               onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
@@ -305,21 +324,19 @@ export function Header({
                 )}
               </AnimatePresence>
             </motion.button>
-          </Show>
+          )}
 
-          {renderThemeToggle({
-            className:
-              'hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex',
-            iconSize: 20,
-          })}
-
-          <Show when="signed-in">
-            {renderThemeToggle({
-              className:
-                'inline-flex rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden',
-              iconSize: 18,
-            })}
-          </Show>
+          {/* Mobile theme toggle + notification bell — signed-in only */}
+          {isLoaded && isSignedIn && (
+            <>
+              {renderThemeToggle({
+                className:
+                  'inline-flex rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden',
+                iconSize: 18,
+              })}
+              <NotificationBell />
+            </>
+          )}
           <HeaderUser />
         </div>
       </div>
@@ -350,33 +367,32 @@ export function Header({
               className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
-                {isLoaded &&
-                  navLinks.map((link, index) => (
-                    <motion.div
-                      key={link.to}
-                      initial={{ x: -20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.05, duration: 0.2 }}
+                {navLinks.map((link, index) => (
+                  <motion.div
+                    key={link.to}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: index * 0.05, duration: 0.2 }}
+                  >
+                    <Link
+                      to={link.to}
+                      onClick={closeMenu}
+                      className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
+                      activeProps={{
+                        className:
+                          'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
+                        'aria-current': 'page' as const,
+                      }}
+                      activeOptions={
+                        link.exact
+                          ? { exact: true, includeSearch: false }
+                          : { includeSearch: false }
+                      }
                     >
-                      <Link
-                        to={link.to}
-                        onClick={closeMenu}
-                        className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
-                        activeProps={{
-                          className:
-                            'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
-                          'aria-current': 'page' as const,
-                        }}
-                        activeOptions={
-                          link.exact
-                            ? { exact: true, includeSearch: false }
-                            : { includeSearch: false }
-                        }
-                      >
-                        {link.label}
-                      </Link>
-                    </motion.div>
-                  ))}
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
                 <Show when="signed-out">
                   <motion.div
                     initial={{ x: -20, opacity: 0 }}

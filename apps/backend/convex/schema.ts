@@ -374,4 +374,32 @@ export default defineSchema({
   })
     .index('by_event', ['feedEventId'])
     .index('by_user_event', ['userId', 'feedEventId']),
+
+  // ============ IN-APP NOTIFICATIONS ============
+
+  inAppNotifications: defineTable({
+    userId: v.id('users'), // recipient
+    type: v.union(
+      v.literal('rev_received'),
+      v.literal('results_published'),
+      v.literal('session_locked'),
+    ),
+    readAt: v.optional(v.number()),
+    createdAt: v.number(),
+    // race context (results_published + session_locked)
+    raceId: v.optional(v.id('races')),
+    sessionType: v.optional(sessionType),
+    raceName: v.optional(v.string()),
+    raceSlug: v.optional(v.string()),
+    // results_published
+    points: v.optional(v.number()),
+    // rev_received
+    actorUserId: v.optional(v.id('users')),
+    actorUsername: v.optional(v.string()),
+    actorDisplayName: v.optional(v.string()),
+    actorAvatarUrl: v.optional(v.string()),
+    feedEventId: v.optional(v.id('feedEvents')),
+  })
+    .index('by_user_created', ['userId', 'createdAt'])
+    .index('by_user_unread', ['userId', 'readAt']),
 });

@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
+import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import { scoreTopFive } from './lib/scoring';
 import { scheduleReminder } from './notifications';
@@ -280,6 +281,7 @@ const F1_RACES_2026: Array<{
   hasSprint?: boolean;
   sprintQualiDate?: string;
   sprintDate?: string;
+  cancelled?: boolean;
 }> = [
   {
     round: 1,
@@ -311,6 +313,7 @@ const F1_RACES_2026: Array<{
     slug: 'bahrain-2026',
     qualiDate: '2026-04-11T16:00:00Z',
     raceDate: '2026-04-12T15:00:00Z',
+    cancelled: true,
   },
   {
     round: 5,
@@ -318,6 +321,7 @@ const F1_RACES_2026: Array<{
     slug: 'saudi-arabia-2026',
     qualiDate: '2026-04-18T17:00:00Z',
     raceDate: '2026-04-19T17:00:00Z',
+    cancelled: true,
   },
   {
     round: 6,
@@ -520,6 +524,8 @@ export const seedRaces = internalMutation({
       if (existing) {
         // Full sync: overwrite all session and lock times from seed so new
         // fields (e.g. sprint for Canada) and time fixes are applied.
+        // Only force status to 'cancelled' from seed data — never overwrite
+        // 'finished' with 'upcoming', as that would reset completed races.
         await ctx.db.patch(existing._id, {
           raceStartAt,
           predictionLockAt,
@@ -531,11 +537,13 @@ export const seedRaces = internalMutation({
           sprintStartAt,
           sprintLockAt,
           timeZone,
+          ...(race.cancelled ? { status: 'cancelled' } : {}),
           updatedAt: now,
         });
         const updatedRace = await ctx.db.get(existing._id);
         if (updatedRace) {
           await scheduleReminder(ctx, updatedRace);
+          await scheduleSessionLockNotifications(ctx, updatedRace);
         }
         updated++;
         continue;
@@ -556,13 +564,14 @@ export const seedRaces = internalMutation({
         timeZone,
         raceStartAt,
         predictionLockAt,
-        status: 'upcoming',
+        status: race.cancelled ? 'cancelled' : 'upcoming',
         createdAt: now,
         updatedAt: now,
       });
       const insertedRace = await ctx.db.get(raceId);
       if (insertedRace) {
         await scheduleReminder(ctx, insertedRace);
+        await scheduleSessionLockNotifications(ctx, insertedRace);
       }
       created++;
     }

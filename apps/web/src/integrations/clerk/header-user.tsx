@@ -1,4 +1,4 @@
-import { Show, SignInButton, UserButton } from '@clerk/react';
+import { SignInButton, UserButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -15,8 +15,12 @@ const signInButtonClasses =
  * User avatar when signed in; Sign in button when signed out.
  * The Sign in button is hidden on mobile (min-[844px]:block) so it
  * only appears in the header on desktop, and lives in the mobile menu on small screens.
+ *
+ * Returns null while Clerk is loading so the parent's opacity-0 skeleton
+ * can hold the layout width without a timing mismatch.
  */
 export function HeaderUser() {
+  const { isLoaded, isSignedIn } = useAuth();
   const me = useQuery(api.users.me);
   const [isMobile, setIsMobile] = useState(false);
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
@@ -37,22 +41,26 @@ export function HeaderUser() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  return (
-    <>
-      <Show when="signed-in">
-        <div className="flex items-center gap-2">
-          <Link
-            to={myPicksHref}
-            className="hidden rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover min-[844px]:inline-flex"
-            activeProps={{
-              className:
-                'hidden min-[844px]:inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold text-accent-hover nav-link-active bg-accent/15 transition-colors',
-              'aria-current': 'page' as const,
-            }}
-            activeOptions={{ includeSearch: false }}
-          >
-            My Picks
-          </Link>
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (isSignedIn) {
+    return (
+      <div className="flex items-center">
+        <Link
+          to={myPicksHref}
+          className="hidden rounded-full border border-transparent px-1 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover min-[844px]:inline-flex"
+          activeProps={{
+            className:
+              'hidden min-[844px]:inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold text-accent-hover nav-link-active bg-accent/15 transition-colors',
+            'aria-current': 'page' as const,
+          }}
+          activeOptions={{ includeSearch: false }}
+        >
+          My Picks
+        </Link>
+        <div className="flex items-center pl-1.5">
           <UserButton
             appearance={{
               elements: {
@@ -107,16 +115,17 @@ export function HeaderUser() {
             </UserButton.MenuItems>
           </UserButton>
         </div>
-      </Show>
-      <Show when="signed-out">
-        <div className="hidden min-[844px]:block">
-          <SignInButton mode="modal">
-            <button type="button" className={signInButtonClasses}>
-              Sign in
-            </button>
-          </SignInButton>
-        </div>
-      </Show>
-    </>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hidden min-[844px]:block">
+      <SignInButton mode="modal">
+        <button type="button" className={signInButtonClasses}>
+          Sign in
+        </button>
+      </SignInButton>
+    </div>
   );
 }

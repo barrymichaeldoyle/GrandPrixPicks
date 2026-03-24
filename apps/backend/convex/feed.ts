@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
@@ -76,6 +77,20 @@ export const writeFeedEventsForSession = internalMutation({
           createdAt: now,
         });
       }
+
+      // In-app notification: results are ready
+      await ctx.scheduler.runAfter(
+        0,
+        internal.inAppNotifications.createResultsNotification,
+        {
+          userId: score.userId,
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          raceName: race.name,
+          raceSlug: race.slug,
+          points: score.points,
+        },
+      );
     }
   },
 });
@@ -597,6 +612,21 @@ export const giveRev = mutation({
     const event = await ctx.db.get(args.feedEventId);
     if (event) {
       await ctx.db.patch(args.feedEventId, { revCount: event.revCount + 1 });
+
+      // In-app notification: tell the post owner they received a rev
+      await ctx.scheduler.runAfter(
+        0,
+        internal.inAppNotifications.createRevNotification,
+        {
+          recipientUserId: event.userId,
+          actorUserId: viewer._id,
+          feedEventId: args.feedEventId,
+          raceId: event.raceId,
+          sessionType: event.sessionType,
+          raceName: event.raceName,
+          raceSlug: event.raceSlug,
+        },
+      );
     }
   },
 });

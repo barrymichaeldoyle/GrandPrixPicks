@@ -788,6 +788,10 @@ export async function scheduleReminder(
   ctx: MutationCtx,
   race: Doc<'races'>,
 ): Promise<void> {
+  if (race.status === 'cancelled') {
+    return;
+  }
+
   // Compute the first session lock time for this weekend
   const firstLockTime = race.hasSprint
     ? race.sprintQualiLockAt

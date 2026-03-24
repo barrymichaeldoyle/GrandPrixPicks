@@ -146,7 +146,7 @@ function HomePage() {
                 className="mt-1 h-10 w-10 shrink-0 text-accent"
                 aria-hidden="true"
               />
-              <h1 className="text-3xl font-black tracking-tight text-text sm:text-5xl">
+              <h1 className="text-3xl font-bold tracking-tight text-text sm:text-5xl">
                 Grand Prix Picks
               </h1>
             </motion.div>

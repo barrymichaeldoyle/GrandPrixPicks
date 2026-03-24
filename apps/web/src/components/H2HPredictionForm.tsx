@@ -2,8 +2,9 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { getWebH2HDraftStorageKey } from '@grandprixpicks/shared/picks';
 import confetti from 'canvas-confetti';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { Check, Save } from 'lucide-react';
+import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -17,10 +18,10 @@ import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
 import { Button } from './Button';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
-import { InlineLoader } from './InlineLoader';
 
 interface H2HPredictionFormProps {
   raceId: Id<'races'>;
+  matchups: ComponentProps<typeof H2HMatchupGrid>['matchups'];
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
   /** Existing picks keyed by matchupId → predictedWinnerId. */
@@ -38,12 +39,12 @@ type H2HDraft = {
 
 export function H2HPredictionForm({
   raceId,
+  matchups,
   sessionType,
   existingPicks,
   onSuccess,
   onDirtyChange,
 }: H2HPredictionFormProps) {
-  const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
 
@@ -69,10 +70,6 @@ export function H2HPredictionForm({
     }
     setHasHydratedDraft(true);
   }, [draftKey, existingPicks]);
-
-  if (matchups === undefined) {
-    return <InlineLoader />;
-  }
 
   const totalMatchups = matchups.length;
   const selectedCount = Object.keys(selections).length;

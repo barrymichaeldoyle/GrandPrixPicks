@@ -5231,3 +5231,57 @@ export const seedFeedEvents = internalMutation({
     return { created };
   },
 });
+
+/**
+ * Seed revs on existing feed events so the Rev button has real data to show.
+ * Randomly assigns 1–4 revs per event using other users in the system.
+ *
+ * npx convex run seed:seedRevs
+ */
+export const seedRevs = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const events = await ctx.db.query('feedEvents').take(50);
+    const users = await ctx.db.query('users').take(50);
+    if (users.length < 2) {
+      return { created: 0 };
+    }
+
+    let created = 0;
+
+    for (const event of events) {
+      // Pick a random subset of users (1–4) to rev this event, excluding the event owner
+      const others = users.filter((u) => u._id !== event.userId);
+      const shuffled = others.sort(() => Math.random() - 0.5);
+      const revCount = Math.floor(Math.random() * 4) + 1;
+      const revers = shuffled.slice(0, Math.min(revCount, shuffled.length));
+
+      for (const user of revers) {
+        // Skip if already reved
+        const existing = await ctx.db
+          .query('revs')
+          .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
+          .filter((q) => q.eq(q.field('userId'), user._id))
+          .first();
+        if (existing) {
+          continue;
+        }
+        await ctx.db.insert('revs', {
+          feedEventId: event._id,
+          userId: user._id,
+          createdAt: Date.now(),
+        });
+        created++;
+      }
+
+      // Update revCount on the event to match
+      const totalRevs = await ctx.db
+        .query('revs')
+        .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
+        .collect();
+      await ctx.db.patch(event._id, { revCount: totalRevs.length });
+    }
+
+    return { created };
+  },
+});

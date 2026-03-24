@@ -1,18 +1,22 @@
-import { api } from '@convex-generated/api';
-import type { Doc } from '@convex-generated/dataModel';
-import { useQuery } from 'convex/react';
+import type { Doc, Id } from '@convex-generated/dataModel';
+import type { ComponentProps } from 'react';
 import { useState } from 'react';
 
 import type { SessionType } from '@/lib/sessions';
 
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 import { H2HPredictionForm } from './H2HPredictionForm';
-import { InlineLoader } from './InlineLoader';
 
 type Race = Doc<'races'>;
+type H2HPredictions = Partial<
+  Record<SessionType, Record<string, Id<'drivers'>> | null>
+>;
+type Matchups = ComponentProps<typeof H2HMatchupGrid>['matchups'];
 
 interface H2HWeekendSummaryProps {
   race: Race;
+  h2hPredictions: H2HPredictions | null;
+  matchups: Matchups;
   selectedSession: SessionType;
   /** Controlled editing: when set, parent can hide its own header. */
   editingSession?: SessionType | null;
@@ -22,16 +26,13 @@ interface H2HWeekendSummaryProps {
 
 export function H2HWeekendSummary({
   race,
+  h2hPredictions,
+  matchups,
   selectedSession,
   editingSession: controlledEditing,
   onEditingSessionChange,
   onEditingDirtyChange,
 }: H2HWeekendSummaryProps) {
-  const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
-    raceId: race._id,
-  });
-  const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
-
   const [internalEditing, setInternalEditing] = useState<SessionType | null>(
     null,
   );
@@ -47,10 +48,6 @@ export function H2HWeekendSummary({
   const hasH2HPredictions =
     h2hPredictions && Object.values(h2hPredictions).some((p) => p !== null);
 
-  if (h2hPredictions === undefined) {
-    return <InlineLoader />;
-  }
-
   // If user has no H2H predictions yet, show the form
   if (!hasH2HPredictions) {
     return (
@@ -59,7 +56,7 @@ export function H2HWeekendSummary({
           Pick each teammate matchup once. We&apos;ll apply it across the
           weekend, and you can edit sessions before they start.
         </p>
-        <H2HPredictionForm raceId={race._id} />
+        <H2HPredictionForm raceId={race._id} matchups={matchups} />
       </div>
     );
   }
@@ -71,6 +68,7 @@ export function H2HWeekendSummary({
       <div>
         <H2HPredictionForm
           raceId={race._id}
+          matchups={matchups}
           sessionType={editingSession}
           existingPicks={existingPicks}
           onSuccess={() => setEditingSession(null)}
@@ -85,7 +83,7 @@ export function H2HWeekendSummary({
   return (
     <div className="space-y-4">
       <H2HMatchupGrid
-        matchups={matchups ?? []}
+        matchups={matchups}
         selections={selectedSessionPicks}
         mode="readonly"
         readonlyClickTooltip="Click edit above to change"

@@ -1,9 +1,10 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
-import { Flag, Flame, Gauge, Trophy, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { Check, Flag, Flame, Gauge, Users, X } from 'lucide-react';
+import type { ComponentType, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Avatar } from './Avatar';
@@ -86,24 +87,6 @@ function formatRelativeTime(timestamp: number): string {
   });
 }
 
-function ScoreBar({ points }: { points: number }) {
-  const pct = Math.round((points / 25) * 100);
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-border">
-        <div
-          className="h-full rounded-full bg-accent transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-xs font-bold text-text tabular-nums">
-        {points}
-        <span className="font-normal text-text-muted">/25</span>
-      </span>
-    </div>
-  );
-}
-
 function UserLink({
   username,
   displayName,
@@ -119,7 +102,7 @@ function UserLink({
     <Link
       to="/p/$username"
       params={{ username }}
-      className="font-semibold text-text hover:text-accent"
+      className="font-bold text-accent hover:text-accent-hover"
     >
       {name}
     </Link>
@@ -209,6 +192,7 @@ function H2HPicksDialog({
     raceId,
     sessionType,
   });
+  const ROW_COUNT = 11;
 
   return createPortal(
     <div
@@ -219,11 +203,15 @@ function H2HPicksDialog({
         }
       }}
     >
-      <div className="mx-4 w-full max-w-xs rounded-xl border border-border bg-surface p-5 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-text">
-            {displayName}&apos;s H2H picks
-          </h3>
+      <div className="mx-4 w-full max-w-xs rounded-xl border border-border bg-surface shadow-xl">
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 pt-4 pb-2">
+          <div>
+            <h3 className="font-semibold text-text">Head to Head</h3>
+            <p className="text-xs text-text-muted">
+              {displayName}&apos;s picks
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -234,61 +222,40 @@ function H2HPicksDialog({
           </button>
         </div>
 
-        {picks === undefined ? (
-          <div className="space-y-3">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-9 animate-pulse rounded-lg bg-surface-muted"
-              />
-            ))}
-          </div>
-        ) : !picks || picks.length === 0 ? (
-          <p className="text-sm text-text-muted">
-            No H2H picks for this session.
-          </p>
-        ) : (
-          <div className="space-y-1.5">
-            {picks.map((pick) => {
-              const d1Picked = pick.predictedWinnerId === pick.driver1._id;
-              const d1Won =
-                pick.hasResult && pick.actualWinnerId === pick.driver1._id;
-              const d2Won =
-                pick.hasResult && pick.actualWinnerId === pick.driver2._id;
+        <div className="border-t border-border" />
 
-              function badgeWrapClass(
-                isPicked: boolean,
-                isWinner: boolean,
-              ): string {
-                if (!pick.hasResult) {
-                  return isPicked
-                    ? 'rounded-md ring-2 ring-accent/60'
-                    : 'opacity-40';
-                }
-                if (isPicked && isWinner) {
-                  return 'rounded-md ring-2 ring-success';
-                }
-                if (isWinner) {
-                  return 'rounded-md ring-2 ring-success';
-                }
-                if (isPicked) {
-                  return 'rounded-md ring-2 ring-error/60 opacity-60';
-                }
-                return 'opacity-25';
-              }
+        {/* Rows */}
+        <div className="py-1">
+          {picks === undefined ? (
+            [...Array(ROW_COUNT)].map((_, i) => (
+              <div key={i} className="flex h-9 items-center gap-2 px-4">
+                <div className="h-2 w-20 shrink-0 animate-pulse rounded bg-surface-muted" />
+                <div className="ml-auto h-6 w-10 shrink-0 animate-pulse rounded-md bg-surface-muted" />
+                <div className="h-2 w-2.5 shrink-0 animate-pulse rounded bg-surface-muted" />
+                <div className="h-6 w-10 shrink-0 animate-pulse rounded-md bg-surface-muted" />
+                <div className="h-4 w-4 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+              </div>
+            ))
+          ) : !picks || picks.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-text-muted">
+              No H2H picks for this session.
+            </p>
+          ) : (
+            picks.map((pick) => {
+              const d1Picked = pick.predictedWinnerId === pick.driver1._id;
 
               return (
                 <div
                   key={pick.matchupId}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-muted/50"
+                  className="flex h-9 items-center gap-2 px-4"
                 >
-                  {/* Team label */}
-                  <span className="w-[4.5rem] shrink-0 truncate text-[10px] text-text-muted">
+                  <span className="w-20 shrink-0 truncate text-[10px] leading-none text-text-muted">
                     {pick.team}
                   </span>
 
-                  {/* Driver 1 */}
-                  <span className={badgeWrapClass(d1Picked, d1Won)}>
+                  <span
+                    className={`ml-auto inline-flex shrink-0 ${d1Picked ? '' : 'opacity-30'}`}
+                  >
                     <DriverBadge
                       code={pick.driver1.code}
                       team={pick.driver1.team}
@@ -298,12 +265,13 @@ function H2HPicksDialog({
                     />
                   </span>
 
-                  <span className="shrink-0 text-[10px] text-text-muted/50">
+                  <span className="shrink-0 text-[10px] leading-none text-text-muted/40">
                     vs
                   </span>
 
-                  {/* Driver 2 */}
-                  <span className={badgeWrapClass(!d1Picked, d2Won)}>
+                  <span
+                    className={`inline-flex shrink-0 ${!d1Picked ? '' : 'opacity-30'}`}
+                  >
                     <DriverBadge
                       code={pick.driver2.code}
                       team={pick.driver2.team}
@@ -313,53 +281,27 @@ function H2HPicksDialog({
                     />
                   </span>
 
-                  {/* Result */}
-                  <span
-                    className={[
-                      'ml-auto shrink-0 text-xs font-bold',
-                      !pick.hasResult
-                        ? 'text-text-muted/40'
-                        : pick.correct
-                          ? 'text-success'
-                          : 'text-error',
-                    ].join(' ')}
-                  >
-                    {!pick.hasResult ? '–' : pick.correct ? '✓' : '✗'}
+                  <span className="flex w-4 shrink-0 items-center">
+                    {pick.hasResult ? (
+                      pick.correct ? (
+                        <Check className="h-4 w-4 text-success" />
+                      ) : (
+                        <X className="h-4 w-4 text-error" />
+                      )
+                    ) : null}
                   </span>
                 </div>
               );
-            })}
-
-            {/* Legend */}
-            <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-[10px] text-text-muted">
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm ring-2 ring-success" />
-                winner
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm ring-2 ring-accent/60" />
-                picked
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="inline-block h-2.5 w-2.5 rounded-sm opacity-60 ring-2 ring-error/60" />
-                wrong pick
-              </span>
-            </div>
-          </div>
-        )}
+            })
+          )}
+        </div>
       </div>
     </div>,
     document.body,
   );
 }
 
-function ItemHeader({
-  event,
-  icon,
-}: {
-  event: FeedEvent;
-  icon: React.ReactNode;
-}) {
+function ItemHeader({ event, icon }: { event: FeedEvent; icon: ReactNode }) {
   return (
     <div className="flex items-center gap-2">
       <Link
@@ -382,40 +324,186 @@ function ItemHeader({
   );
 }
 
-function ItemFooter({
-  event,
-  comment,
+function FollowButton({
+  userId,
+  isFollowing,
 }: {
-  event: FeedEvent;
-  comment?: string;
+  userId: Id<'users'>;
+  isFollowing: boolean;
 }) {
+  const follow = useMutation(api.follows.follow);
+  const unfollow = useMutation(api.follows.unfollow);
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
+  const [hovered, setHovered] = useState(false);
+
+  const following = optimistic ?? isFollowing;
+
+  async function handleClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setOptimistic(!following);
+    try {
+      if (following) {
+        await unfollow({ followeeId: userId });
+      } else {
+        await follow({ followeeId: userId });
+      }
+    } catch {
+      setOptimistic(null);
+    }
+  }
+
   return (
-    <div className="flex items-center gap-1">
-      <RevButton
-        feedEventId={event._id}
-        revCount={event.revCount}
-        viewerHasReved={event.viewerHasReved}
-      />
-      <span className="text-xs text-text-muted" suppressHydrationWarning>
-        · {formatRelativeTime(event.createdAt)}
-      </span>
-      {comment && (
-        <span className="ml-auto text-xs text-text-muted/70 italic">
-          {comment}
-        </span>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+        following
+          ? hovered
+            ? 'border border-error/40 bg-error/10 text-error'
+            : 'border border-border bg-surface-muted text-text-muted'
+          : 'border border-accent/40 bg-accent/10 text-accent hover:bg-accent/20'
+      }`}
+    >
+      {following ? (hovered ? 'Unfollow' : 'Following') : 'Follow'}
+    </button>
   );
 }
 
-function ScorePublishedItem({ event }: { event: FeedEvent }) {
+function RevsModal({
+  feedEventId,
+  onClose,
+}: {
+  feedEventId: Id<'feedEvents'>;
+  onClose: () => void;
+}) {
+  const users = useQuery(api.feed.getRevUsers, { feedEventId });
+  const me = useQuery(api.users.me, {});
+  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
+  const followedSet = new Set(followedIds ?? []);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-border bg-surface shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h2 className="text-sm font-semibold text-text">Rev'd by</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="h-72 overflow-y-auto py-2">
+          {users === undefined ? (
+            <div className="space-y-1 px-4 py-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-2">
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-surface-muted" />
+                  <div className="h-3 w-32 animate-pulse rounded bg-surface-muted" />
+                  <div className="ml-auto h-6 w-16 animate-pulse rounded-full bg-surface-muted" />
+                </div>
+              ))}
+            </div>
+          ) : users.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-sm text-text-muted">No revs yet.</p>
+            </div>
+          ) : (
+            users.map((user) =>
+              user ? (
+                <div
+                  key={user.userId}
+                  className="flex items-center gap-3 px-4 py-2 hover:bg-surface-muted"
+                >
+                  <Link
+                    to="/p/$username"
+                    params={{ username: user.username ?? '' }}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                    onClick={onClose}
+                    tabIndex={user.username ? 0 : -1}
+                  >
+                    <Avatar
+                      avatarUrl={user.avatarUrl}
+                      username={user.username}
+                      size="sm"
+                    />
+                    <span className="truncate text-sm font-medium text-text">
+                      {user.displayName ?? user.username ?? 'Unknown'}
+                    </span>
+                  </Link>
+                  {me && user.userId !== me._id && (
+                    <FollowButton
+                      userId={user.userId}
+                      isFollowing={followedSet.has(user.userId)}
+                    />
+                  )}
+                </div>
+              ) : null,
+            )
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function ItemFooter({
+  event,
+  grouped,
+}: {
+  event: FeedEvent;
+  grouped?: boolean;
+}) {
+  const [revsOpen, setRevsOpen] = useState(false);
+
+  return (
+    <>
+      <div className="flex items-center gap-1">
+        <RevButton
+          feedEventId={event._id}
+          revCount={event.revCount}
+          viewerHasReved={event.viewerHasReved}
+          onCountClick={() => setRevsOpen(true)}
+        />
+        {!grouped && (
+          <span className="text-xs text-text-muted" suppressHydrationWarning>
+            · {formatRelativeTime(event.createdAt)}
+          </span>
+        )}
+      </div>
+      {revsOpen && (
+        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      )}
+    </>
+  );
+}
+
+function ScorePublishedItem({
+  event,
+  grouped,
+}: {
+  event: FeedEvent;
+  grouped?: boolean;
+}) {
   const [h2hOpen, setH2hOpen] = useState(false);
+  const [revsOpen, setRevsOpen] = useState(false);
 
   return (
     <>
       <div className="space-y-2.5">
-        {/* Header: avatar + name + icon */}
-        <div className="flex items-center gap-2">
+        {/* Header: avatar + name + rev button */}
+        <div className="flex items-start gap-2">
           <Link
             to="/p/$username"
             params={{ username: event.username ?? '' }}
@@ -428,33 +516,53 @@ function ScorePublishedItem({ event }: { event: FeedEvent }) {
               size="sm"
             />
           </Link>
-          <p className="min-w-0 flex-1 text-sm leading-snug text-text-muted">
-            <UserLink
-              username={event.username}
-              displayName={event.displayName}
-            />{' '}
-            in{' '}
-            {event.raceSlug ? (
-              <Link
-                to="/races/$raceSlug"
-                params={{ raceSlug: event.raceSlug }}
-                className="font-medium text-text hover:text-accent"
-              >
-                {event.raceName}
-              </Link>
-            ) : (
-              <span className="font-medium text-text">{event.raceName}</span>
-            )}{' '}
-            <span className="text-text-muted">
-              {SESSION_LABELS[event.sessionType ?? ''] ?? event.sessionType}
-            </span>
-          </p>
-          <Trophy className="h-4 w-4 shrink-0 text-text-muted/50" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm leading-snug text-text-muted">
+              <UserLink
+                username={event.username}
+                displayName={event.displayName}
+              />
+              {!grouped && (
+                <>
+                  {' '}
+                  in{' '}
+                  {event.raceSlug ? (
+                    <Link
+                      to="/races/$raceSlug"
+                      params={{ raceSlug: event.raceSlug }}
+                      className="font-medium text-text hover:text-accent"
+                    >
+                      {event.raceName}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-text">
+                      {event.raceName}
+                    </span>
+                  )}{' '}
+                  <span className="text-text-muted">
+                    {SESSION_LABELS[event.sessionType ?? ''] ??
+                      event.sessionType}
+                  </span>
+                </>
+              )}
+            </p>
+            {event.username && (
+              <p className="text-[11px] text-text-muted">@{event.username}</p>
+            )}
+          </div>
+          <div className="shrink-0">
+            <RevButton
+              feedEventId={event._id}
+              revCount={event.revCount}
+              viewerHasReved={event.viewerHasReved}
+              onCountClick={() => setRevsOpen(true)}
+            />
+          </div>
         </div>
 
-        {/* Scored picks */}
+        {/* Scored picks + H2H */}
         {event.picks && event.picks.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {event.picks.map((pick) => (
               <div
                 key={pick.predictedPosition}
@@ -471,34 +579,56 @@ function ScorePublishedItem({ event }: { event: FeedEvent }) {
                   pickPoints={pick.points}
                   size="sm"
                 />
+                <span
+                  className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
+                    pick.points === 5
+                      ? 'text-success'
+                      : pick.points === 3
+                        ? 'text-warning'
+                        : pick.points === 1
+                          ? 'text-text-muted'
+                          : 'text-error/60'
+                  }`}
+                >
+                  +{pick.points}
+                </span>
               </div>
             ))}
+            {event.h2hScore && event.raceId && event.sessionType && (
+              <button
+                type="button"
+                onClick={() => setH2hOpen(true)}
+                className="mb-0.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+              >
+                H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
+                <svg
+                  className="h-2.5 w-2.5 opacity-70"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 4l4 4-4 4" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
 
-        {/* Score + H2H */}
-        <div className="flex items-center gap-3">
-          <ScoreBar points={event.points ?? 0} />
-          {event.h2hScore && event.raceId && event.sessionType && (
-            <button
-              type="button"
-              onClick={() => setH2hOpen(true)}
-              className="rounded-full border border-border bg-surface-muted px-2 py-0.5 text-[11px] font-medium text-text-muted transition-colors hover:border-accent/40 hover:text-text"
-            >
-              H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
-            </button>
-          )}
-        </div>
-
-        {/* Footer */}
-        <ItemFooter
-          event={event}
-          comment={
-            event.points !== undefined
-              ? getScoreComment(event.points, event.picks)
-              : undefined
-          }
-        />
+        {/* Total points + comment */}
+        {event.points !== undefined && (
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm font-bold text-accent tabular-nums">
+              + {event.points} {event.points === 1 ? 'point' : 'points'}
+            </span>
+            <p className="flex-1 text-right text-xs text-text-muted italic">
+              - {getScoreComment(event.points, event.picks)}
+            </p>
+          </div>
+        )}
       </div>
 
       {h2hOpen && event.raceId && event.sessionType && (
@@ -511,6 +641,9 @@ function ScorePublishedItem({ event }: { event: FeedEvent }) {
           displayName={event.displayName ?? event.username ?? 'User'}
           onClose={() => setH2hOpen(false)}
         />
+      )}
+      {revsOpen && (
+        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
       )}
     </>
   );
@@ -556,11 +689,35 @@ function StreakMilestoneItem({ event }: { event: FeedEvent }) {
   );
 }
 
-export function FeedItem({ event }: { event: FeedEvent }) {
+export function FeedItem({
+  event,
+  grouped,
+  position,
+}: {
+  event: FeedEvent;
+  grouped?: boolean;
+  position?: 'first' | 'middle' | 'last';
+}) {
+  const radiusClass =
+    position === 'first'
+      ? 'rounded-t-none'
+      : position === 'middle'
+        ? 'rounded-none'
+        : position === 'last'
+          ? 'rounded-b-xl rounded-t-none'
+          : 'rounded-xl';
+
+  const borderClass =
+    position === 'first' || position === 'middle' || position === 'last'
+      ? 'border-t-0'
+      : '';
+
   return (
-    <div className="rounded-xl border border-border bg-surface px-4 py-3">
+    <div
+      className={`border border-border bg-surface p-2.5 ${radiusClass} ${borderClass}`}
+    >
       {event.type === 'score_published' ? (
-        <ScorePublishedItem event={event} />
+        <ScorePublishedItem event={event} grouped={grouped} />
       ) : event.type === 'streak_milestone' ? (
         <StreakMilestoneItem event={event} />
       ) : (
@@ -588,7 +745,7 @@ export function FeedEmptyState({
   icon: Icon = Gauge,
   message,
 }: {
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: ComponentType<{ className?: string }>;
   message: string;
 }) {
   return (
@@ -603,6 +760,7 @@ export type SessionHeader = {
   raceName: string;
   sessionType: string;
   raceSlug?: string;
+  createdAt?: number;
   top5: {
     code: string;
     displayName: string;
@@ -611,51 +769,113 @@ export type SessionHeader = {
   }[];
 };
 
-export function SessionSeparator({ session }: { session: SessionHeader }) {
+export function SessionSeparator({
+  session,
+  grouped,
+}: {
+  session: SessionHeader;
+  grouped?: boolean;
+}) {
   const label = SESSION_LABELS[session.sessionType] ?? session.sessionType;
   const countryCode = session.raceSlug
     ? getCountryCodeForRace({ slug: session.raceSlug })
     : null;
 
-  const header = (
-    <div className="flex items-center gap-2">
-      {countryCode ? (
-        <RaceFlag countryCode={countryCode} size="sm" />
-      ) : (
-        <Flag className="h-3.5 w-3.5 shrink-0 text-accent" />
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [isStuck, setIsStuck] = useState(false);
+
+  useEffect(() => {
+    if (!grouped) {
+      return;
+    }
+    const el = sentinelRef.current;
+    if (!el) {
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) =>
+      setIsStuck(!entry.isIntersecting),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [grouped]);
+
+  const roundedClass = grouped
+    ? isStuck
+      ? 'rounded-none'
+      : 'rounded-t-xl'
+    : 'rounded-xl';
+
+  const content = (
+    <div className="overflow-hidden">
+      {/* Top row: flag + race name/session/time */}
+      <div className="flex items-stretch border-b border-accent/20">
+        {countryCode ? (
+          <div className="h-10 shrink-0 self-stretch overflow-hidden border-r border-accent/20">
+            <RaceFlag countryCode={countryCode} size="full" />
+          </div>
+        ) : (
+          <div className="flex w-10 shrink-0 items-center justify-center">
+            <Flag className="h-4 w-4 text-accent" />
+          </div>
+        )}
+        <div className="flex flex-1 items-center justify-between gap-2 px-2 py-1">
+          <div>
+            <p className="font-title text-sm leading-tight font-semibold text-text">
+              {session.raceName}
+            </p>
+            <p className="text-xs text-text-muted">{label}</p>
+          </div>
+          {session.createdAt && (
+            <span
+              className="shrink-0 text-xs text-text-muted/50"
+              suppressHydrationWarning
+            >
+              {formatRelativeTime(session.createdAt)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom row: actual results */}
+      {session.top5.length > 0 && (
+        <div className="flex gap-2 px-3 pt-2 pb-2.5">
+          {session.top5.map((driver, i) => (
+            <div key={driver.code} className="flex flex-col items-center gap-1">
+              <span className="text-[10px] font-medium text-text-muted">
+                P{i + 1}
+              </span>
+              <DriverBadge
+                code={driver.code}
+                team={driver.team}
+                displayName={driver.displayName}
+                nationality={driver.nationality}
+                size="sm"
+              />
+            </div>
+          ))}
+        </div>
       )}
-      <span className="text-xs font-semibold text-text">
-        {session.raceName}
-      </span>
-      <span className="text-xs text-text-muted">— {label}</span>
     </div>
   );
 
   return (
-    <div className="rounded-xl border border-accent/20 bg-accent/5 px-4 py-3">
-      {session.raceSlug ? (
-        <Link to="/races/$raceSlug" params={{ raceSlug: session.raceSlug }}>
-          {header}
-        </Link>
-      ) : (
-        header
-      )}
-      <div className="mt-3 flex gap-3">
-        {session.top5.map((driver, i) => (
-          <div key={driver.code} className="flex flex-col items-center gap-1">
-            <span className="text-[10px] font-medium text-text-muted">
-              P{i + 1}
-            </span>
-            <DriverBadge
-              code={driver.code}
-              team={driver.team}
-              displayName={driver.displayName}
-              nationality={driver.nationality}
-              size="sm"
-            />
-          </div>
-        ))}
+    <>
+      {grouped && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
+      <div
+        className={[
+          'overflow-hidden border border-accent/20',
+          grouped ? 'sticky top-0 z-10 bg-surface-muted' : 'bg-accent/5',
+          roundedClass,
+        ].join(' ')}
+      >
+        {session.raceSlug ? (
+          <Link to="/races/$raceSlug" params={{ raceSlug: session.raceSlug }}>
+            {content}
+          </Link>
+        ) : (
+          content
+        )}
       </div>
-    </div>
+    </>
   );
 }

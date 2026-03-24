@@ -55,9 +55,11 @@ export function H2HSection({
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
+  const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
   const selectedSessionLockTime = getRaceSessionLockAt(race, selectedSession);
   const selectedSessionLocked = Date.now() >= selectedSessionLockTime;
-  const isLoadingPredictions = h2hPredictions === undefined;
+  const isLoadingPredictions =
+    h2hPredictions === undefined || matchups === undefined;
   const canEditSelectedSession = Boolean(
     !isLoadingPredictions && hasH2HPredictions && !selectedSessionLocked,
   );
@@ -162,6 +164,8 @@ export function H2HSection({
         ) : (
           <H2HWeekendSummary
             race={race}
+            h2hPredictions={h2hPredictions}
+            matchups={matchups}
             selectedSession={selectedSession}
             editingSession={editingSession}
             onEditingSessionChange={setEditingSession}

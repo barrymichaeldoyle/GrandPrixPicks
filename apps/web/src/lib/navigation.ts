@@ -14,13 +14,17 @@ export const primaryNavLinks: SiteNavLink[] = [
 
 /** Nav links for signed-in users. */
 export const signedInNavLinks: SiteNavLink[] = [
-  { to: '/', label: 'Home', exact: true },
+  { to: '/feed', label: 'Feed' },
   { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
 ];
 
 export const footerExploreLinks: SiteNavLink[] = [
-  ...primaryNavLinks,
+  { to: '/', label: 'Home', exact: true },
+  { to: '/feed', label: 'Feed' },
+  { to: '/races', label: 'Races', exact: true },
+  { to: '/leaderboard', label: 'Leaderboard' },
+  { to: '/leagues', label: 'Leagues' },
   { to: '/me', label: 'My Picks' },
 ];

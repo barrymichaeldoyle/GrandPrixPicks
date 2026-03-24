@@ -628,6 +628,32 @@ export const removeRev = mutation({
   },
 });
 
+export const getRevUsers = query({
+  args: { feedEventId: v.id('feedEvents') },
+  handler: async (ctx, args) => {
+    const revs = await ctx.db
+      .query('revs')
+      .withIndex('by_event', (q) => q.eq('feedEventId', args.feedEventId))
+      .collect();
+
+    const users = await Promise.all(
+      revs.map(async (rev) => {
+        const user = await ctx.db.get(rev.userId);
+        return user
+          ? {
+              userId: user._id,
+              username: user.username,
+              displayName: user.displayName,
+              avatarUrl: user.avatarUrl,
+            }
+          : null;
+      }),
+    );
+
+    return users.filter(Boolean);
+  },
+});
+
 // ============ Backfill ============
 
 /**

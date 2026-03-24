@@ -63,17 +63,19 @@ export function DriverBadge({
       <div className="flex items-stretch">
         {/* Number block with team color */}
         <div
-          className="flex w-14 shrink-0 flex-col items-center justify-center rounded-l-xl py-2"
+          className="flex w-16 shrink-0 flex-col items-center justify-center rounded-l-xl py-3"
           style={{ backgroundColor: color }}
         >
-          {number != null && (
-            <span className="font-title text-xl font-bold tracking-tight text-white">
-              {number}
+          <div className="flex flex-col items-center justify-center rounded-full bg-black/25 px-2 py-1.5 shadow-inner">
+            {number != null && (
+              <span className="font-title text-lg leading-none font-bold tracking-tight text-white">
+                {number}
+              </span>
+            )}
+            <span className="font-title text-xs leading-none font-bold tracking-[0.16em] text-white uppercase">
+              {code}
             </span>
-          )}
-          <span className="font-title text-[10px] font-bold tracking-[0.16em] text-white/80 uppercase">
-            {code}
-          </span>
+          </div>
         </div>
 
         {/* Driver info */}

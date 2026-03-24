@@ -490,7 +490,13 @@ function AdminRaceDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-8">
+        <Button
+          asChild
+          size="sm"
+          variant="text"
+          leftIcon={ArrowLeft}
+          className="mb-8"
+        >
           <Link to="/admin">Back to Admin</Link>
         </Button>
 

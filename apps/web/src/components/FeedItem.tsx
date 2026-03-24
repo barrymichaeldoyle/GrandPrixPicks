@@ -503,7 +503,7 @@ function ScorePublishedItem({
     <>
       <div className="space-y-2.5">
         {/* Header: avatar + name + rev button */}
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <Link
             to="/p/$username"
             params={{ username: event.username ?? '' }}
@@ -562,38 +562,40 @@ function ScorePublishedItem({
 
         {/* Scored picks + H2H */}
         {event.picks && event.picks.length > 0 && (
-          <div className="flex items-center gap-2">
-            {event.picks.map((pick) => (
-              <div
-                key={pick.predictedPosition}
-                className="flex flex-col items-center gap-0.5"
-              >
-                <span className="text-[10px] font-medium text-text-muted">
-                  P{pick.predictedPosition}
-                </span>
-                <ScoredDriverBadge
-                  code={pick.code}
-                  team={pick.team}
-                  displayName={pick.displayName}
-                  nationality={pick.nationality}
-                  pickPoints={pick.points}
-                  size="sm"
-                />
-                <span
-                  className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
-                    pick.points === 5
-                      ? 'text-success'
-                      : pick.points === 3
-                        ? 'text-warning'
-                        : pick.points === 1
-                          ? 'text-text-muted'
-                          : 'text-error/60'
-                  }`}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-2">
+              {event.picks.map((pick) => (
+                <div
+                  key={pick.predictedPosition}
+                  className="flex flex-col items-center gap-0.5"
                 >
-                  +{pick.points}
-                </span>
-              </div>
-            ))}
+                  <span className="text-[10px] font-medium text-text-muted">
+                    P{pick.predictedPosition}
+                  </span>
+                  <ScoredDriverBadge
+                    code={pick.code}
+                    team={pick.team}
+                    displayName={pick.displayName}
+                    nationality={pick.nationality}
+                    pickPoints={pick.points}
+                    size="sm"
+                  />
+                  <span
+                    className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
+                      pick.points === 5
+                        ? 'text-success'
+                        : pick.points === 3
+                          ? 'text-warning'
+                          : pick.points === 1
+                            ? 'text-text-muted'
+                            : 'text-error/60'
+                    }`}
+                  >
+                    +{pick.points}
+                  </span>
+                </div>
+              ))}
+            </div>
             {event.h2hScore && event.raceId && event.sessionType && (
               <button
                 type="button"
@@ -622,7 +624,11 @@ function ScorePublishedItem({
         {event.points !== undefined && (
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-bold text-accent tabular-nums">
-              + {event.points} {event.points === 1 ? 'point' : 'points'}
+              +{' '}
+              {event.points + (event.h2hScore?.points ?? 0)}{' '}
+              {event.points + (event.h2hScore?.points ?? 0) === 1
+                ? 'point'
+                : 'points'}
             </span>
             <p className="flex-1 text-right text-xs text-text-muted italic">
               - {getScoreComment(event.points, event.picks)}

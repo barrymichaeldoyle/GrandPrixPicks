@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Copy,
   Crown,
+  Gauge,
   Globe,
   Layers,
   Lock,
@@ -34,6 +35,12 @@ import { TabSwitch } from '@/components/TabSwitch';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button';
+import {
+  FeedEmptyState,
+  FeedItem,
+  FeedItemSkeleton,
+  SessionSeparator,
+} from '../../components/FeedItem';
 import {
   LeagueMembersList,
   LeagueMembersListSkeleton,
@@ -253,7 +260,7 @@ function LeagueDetailContent({ league }: { league: League }) {
         {/* Share link — visible to all members */}
         {isMember && <ShareLinkSection slug={league.slug} />}
 
-        {isMember && <LeagueMembers leagueId={league._id} />}
+        {isMember && <LeagueTabs leagueId={league._id} />}
       </div>
     </div>
   );
@@ -370,6 +377,127 @@ function useStickyValue<T>(value: T | undefined): T | undefined {
     ref.current = value;
   }
   return ref.current;
+}
+
+const VIEW_OPTIONS = [
+  { value: 'standings' as const, label: 'Standings', leftIcon: Trophy },
+  { value: 'feed' as const, label: 'Feed', leftIcon: Gauge },
+];
+
+function LeagueTabs({ leagueId }: { leagueId: Id<'leagues'> }) {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const view: LeagueView = search.view ?? 'standings';
+
+  return (
+    <div>
+      <div className="mb-4">
+        <TabSwitch
+          value={view}
+          onChange={(v) =>
+            navigate({
+              search: (prev) => ({ ...prev, view: v }),
+              replace: true,
+            })
+          }
+          options={VIEW_OPTIONS}
+          className="flex gap-1"
+          buttonClassName="flex-1"
+          ariaLabel="League view"
+        />
+      </div>
+      {view === 'standings' ? (
+        <LeagueMembers leagueId={leagueId} />
+      ) : (
+        <LeagueFeed leagueId={leagueId} />
+      )}
+    </div>
+  );
+}
+
+function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
+  const feed = useQuery(api.feed.getLeagueFeed, { leagueId });
+
+  if (feed === undefined) {
+    return (
+      <div className="space-y-3">
+        <FeedItemSkeleton />
+        <FeedItemSkeleton />
+        <FeedItemSkeleton />
+        <FeedItemSkeleton />
+      </div>
+    );
+  }
+
+  if (feed.events.length === 0) {
+    return (
+      <FeedEmptyState
+        icon={Gauge}
+        message="No activity yet. Scores will appear here once race results are published."
+      />
+    );
+  }
+
+  type FeedEvent = (typeof feed.events)[number];
+  type Group =
+    | { kind: 'session'; key: string; events: FeedEvent[] }
+    | { kind: 'standalone'; event: FeedEvent };
+
+  const groups: Group[] = [];
+  const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
+
+  for (const event of feed.events) {
+    if (event.type === 'score_published' && event.raceId && event.sessionType) {
+      const key = `${event.raceId}_${event.sessionType}`;
+      let group = sessionGroupMap.get(key);
+      if (!group) {
+        group = { kind: 'session', key, events: [] };
+        sessionGroupMap.set(key, group);
+        groups.push(group);
+      }
+      group.events.push(event);
+    } else {
+      groups.push({ kind: 'standalone', event });
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {groups.map((group) => {
+        if (group.kind === 'standalone') {
+          return <FeedItem key={group.event._id} event={group.event} />;
+        }
+        const session = feed.sessions[group.key];
+        const isMulti = group.events.length > 1;
+        const sessionWithTime = {
+          ...session,
+          createdAt: group.events[group.events.length - 1]?.createdAt,
+        };
+        return (
+          <div key={group.key}>
+            <SessionSeparator session={sessionWithTime} grouped={isMulti} />
+            {group.events.map((event, i) => {
+              const position = !isMulti
+                ? undefined
+                : i === 0
+                  ? 'first'
+                  : i === group.events.length - 1
+                    ? 'last'
+                    : 'middle';
+              return (
+                <FeedItem
+                  key={event._id}
+                  event={event}
+                  grouped={isMulti}
+                  position={position}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 const TIME_SCOPE_OPTIONS = [

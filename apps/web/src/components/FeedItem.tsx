@@ -624,8 +624,7 @@ function ScorePublishedItem({
         {event.points !== undefined && (
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-bold text-accent tabular-nums">
-              +{' '}
-              {event.points + (event.h2hScore?.points ?? 0)}{' '}
+              + {event.points + (event.h2hScore?.points ?? 0)}{' '}
               {event.points + (event.h2hScore?.points ?? 0) === 1
                 ? 'point'
                 : 'points'}

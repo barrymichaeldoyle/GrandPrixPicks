@@ -245,7 +245,7 @@ export function Header({
           {/* Desktop nav - hidden until auth state resolves to prevent flash */}
           <nav
             aria-label="Main navigation"
-            className={`font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex transition-opacity duration-150${!isLoaded ? ' opacity-0 pointer-events-none' : ''}`}
+            className={`font-title hidden items-center gap-1 rounded-full p-1.5 transition-opacity min-[844px]:flex duration-150${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
           >
             {navLinks.map((link) => (
               <Link
@@ -270,7 +270,7 @@ export function Header({
         </div>
 
         <div
-          className={`flex items-center transition-opacity duration-150${!isLoaded ? ' pointer-events-none opacity-0' : ''}`}
+          className={`flex items-center transition-opacity duration-150${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
         >
           {/* Width-reserving skeleton during load. The parent is opacity-0 so this is
               invisible, but it still participates in layout and keeps the right side

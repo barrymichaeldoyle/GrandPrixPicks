@@ -10,14 +10,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import {
   ArrowLeft,
-  Check,
-  CircleX,
   Hash,
   History,
   Info,
   Settings,
   Star,
-  Swords,
   Trophy,
   User,
 } from 'lucide-react';
@@ -26,18 +23,18 @@ import { displayTeamName } from '@/lib/display';
 
 import { Avatar } from '../../components/Avatar';
 import { Button, primaryButtonStyles } from '../../components/Button';
-import { DriverBadge, TEAM_COLORS } from '../../components/DriverBadge';
+import { TEAM_COLORS } from '../../components/DriverBadge';
+import {
+  FeedEmptyState,
+  FeedItem,
+  FeedItemSkeleton,
+} from '../../components/FeedItem';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
 import { getCountryCodeForRace, RaceFlag } from '../../components/RaceCard';
-import {
-  fromProfileHistory,
-  RaceScoreCard,
-} from '../../components/RaceScoreCard';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
-import { getSessionsForWeekend } from '../../lib/sessions';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -86,7 +83,7 @@ function ProfilePage() {
   const { initialProfile } = Route.useLoaderData();
   const { from, fromLabel } = Route.useSearch();
   const matches = useMatches();
-  const { isSignedIn } = useAuth();
+  useAuth();
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const currentProfile = profile ?? initialProfile;
@@ -100,16 +97,13 @@ function ProfilePage() {
     api.predictions.getUserPredictionHistory,
     currentProfile ? { userId: currentProfile._id } : 'skip',
   );
-  const h2hHistory = useQuery(
-    api.h2h.getUserH2HPredictionHistory,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
-  );
-  const h2hPicksByRace = useQuery(
-    api.h2h.getUserH2HPicksByRace,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
-  );
 
   const drivers = useQuery(api.drivers.listDrivers);
+
+  const userFeed = useQuery(
+    api.feed.getUserFeed,
+    currentProfile ? { userId: currentProfile._id } : 'skip',
+  );
 
   const followCounts = useQuery(
     api.follows.getFollowCounts,
@@ -432,71 +426,45 @@ function ProfilePage() {
           </div>
         )}
 
-        {/* Prediction history */}
-        {weekends === undefined ? (
-          <PageLoader />
-        ) : weekends.length === 0 ? (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <History className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h2 className="mb-2 text-xl font-semibold text-text">
-              No predictions yet
-            </h2>
-            <p className="text-text-muted">
-              {isOwner
-                ? 'Make your first prediction to start tracking your scores.'
-                : 'This user has not made any predictions yet.'}
-            </p>
-            {isOwner && (
-              <Link
-                to="/races"
-                className={`mt-4 inline-block ${primaryButtonStyles('md')}`}
-              >
-                View Races
-              </Link>
-            )}
+        {/* Result feed */}
+        {userFeed === undefined ? (
+          <div className="space-y-3">
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
+            <FeedItemSkeleton />
           </div>
+        ) : userFeed.events.length === 0 ? (
+          weekends?.length === 0 ? (
+            <div className="rounded-xl border border-border bg-surface p-8 text-center">
+              <History className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+              <h2 className="mb-2 text-xl font-semibold text-text">
+                No predictions yet
+              </h2>
+              <p className="text-text-muted">
+                {isOwner
+                  ? 'Make your first prediction to start tracking your scores.'
+                  : 'This user has not made any predictions yet.'}
+              </p>
+              {isOwner && (
+                <Link
+                  to="/races"
+                  className={`mt-4 inline-block ${primaryButtonStyles('md')}`}
+                >
+                  View Races
+                </Link>
+              )}
+            </div>
+          ) : (
+            <FeedEmptyState
+              icon={History}
+              message="Results will appear here once scores are published."
+            />
+          )
         ) : (
-          <div className="space-y-4">
-            {(() => {
-              // Weekends are sorted by raceDate descending; the next race
-              // is the earliest upcoming one (last in the filtered list).
-              const nextRaceId = weekends
-                .filter((w) => w.raceStatus === 'upcoming')
-                .at(-1)?.raceId;
-
-              return weekends.map((weekend) => (
-                <ProfileWeekendCard
-                  key={weekend.raceId}
-                  weekend={weekend}
-                  currentUserId={currentProfile._id}
-                  isOwner={isOwner}
-                  isSignedIn={!!isSignedIn}
-                  isNextRace={weekend.raceId === nextRaceId}
-                  drivers={drivers}
-                  h2hWeekendPoints={
-                    h2hHistory?.find((entry) => entry.raceId === weekend.raceId)
-                      ?.totalPoints ?? null
-                  }
-                  h2hWeekendMaxPoints={
-                    h2hHistory?.find((entry) => entry.raceId === weekend.raceId)
-                      ? Object.values(
-                          h2hHistory.find(
-                            (entry) => entry.raceId === weekend.raceId,
-                          )!.sessions,
-                        ).reduce(
-                          (sum, session) => sum + (session?.totalPicks ?? 0),
-                          0,
-                        )
-                      : null
-                  }
-                  hasH2HPicks={Boolean(
-                    h2hPicksByRace?.some(
-                      (entry) => entry.raceId === weekend.raceId,
-                    ),
-                  )}
-                />
-              ));
-            })()}
+          <div className="space-y-3">
+            {userFeed.events.map((event) => (
+              <FeedItem key={event._id} event={event} />
+            ))}
           </div>
         )}
       </div>
@@ -504,202 +472,3 @@ function ProfilePage() {
   );
 }
 
-function ProfileWeekendCard({
-  weekend,
-  currentUserId,
-  isOwner,
-  isSignedIn,
-  isNextRace,
-  drivers,
-  h2hWeekendPoints,
-  h2hWeekendMaxPoints,
-  hasH2HPicks,
-}: {
-  weekend: NonNullable<
-    NonNullable<
-      ReturnType<
-        typeof useQuery<typeof api.predictions.getUserPredictionHistory>
-      >
-    >[number]
-  >;
-  currentUserId: string;
-  isOwner: boolean;
-  isSignedIn: boolean;
-  isNextRace: boolean;
-  drivers: ReturnType<typeof useQuery<typeof api.drivers.listDrivers>>;
-  h2hWeekendPoints: number | null;
-  h2hWeekendMaxPoints: number | null;
-  hasH2HPicks: boolean;
-}) {
-  const detailedPicks = useQuery(api.h2h.getUserH2HDetailedPicks, {
-    userId: currentUserId as never,
-    raceId: weekend.raceId as never,
-  });
-  const compactSessionExtras =
-    isOwner && hasH2HPicks && detailedPicks
-      ? Object.fromEntries(
-          getSessionsForWeekend(weekend.hasSprint).map((session) => [
-            session,
-            <CompactH2HSessionPicks
-              key={session}
-              picks={detailedPicks[session] ?? null}
-            />,
-          ]),
-        )
-      : undefined;
-  const compactSessionPointOverrides =
-    isOwner && hasH2HPicks && detailedPicks
-      ? Object.fromEntries(
-          getSessionsForWeekend(weekend.hasSprint).map((session) => [
-            session,
-            (detailedPicks[session] ?? []).reduce(
-              (sum, pick) => sum + (pick.isCorrect ? 1 : 0),
-              0,
-            ),
-          ]),
-        )
-      : undefined;
-
-  return (
-    <RaceScoreCard
-      data={fromProfileHistory(weekend, drivers)}
-      variant="compact"
-      compactSummaryOnly={!isOwner}
-      defaultExpanded={isOwner}
-      compactSummaryMeta={
-        isOwner && h2hWeekendPoints !== null ? (
-          <span className="text-xs text-text-muted">
-            H2H{' '}
-            <span className="font-semibold text-accent">
-              {h2hWeekendPoints} pts
-            </span>
-          </span>
-        ) : undefined
-      }
-      compactScoreRing={
-        isOwner && h2hWeekendPoints !== null
-          ? {
-              earned: weekend.totalPoints + h2hWeekendPoints,
-              max: (() => {
-                const top5Max = Object.values(weekend.sessions).reduce(
-                  (sum, session) =>
-                    sum + (session && session.points !== null ? 25 : 0),
-                  0,
-                );
-                return top5Max + (h2hWeekendMaxPoints ?? 0);
-              })(),
-            }
-          : undefined
-      }
-      compactSessionExtras={compactSessionExtras}
-      compactSessionPointOverrides={compactSessionPointOverrides}
-      viewer={{
-        isSignedIn,
-        isOwner,
-      }}
-      isNextRace={isNextRace}
-    />
-  );
-}
-
-function CompactH2HSessionPicks({
-  picks,
-}: {
-  picks:
-    | {
-        matchupId: string;
-        team: string;
-        driver1: {
-          _id: string;
-          code: string;
-          displayName: string;
-          number: number | null;
-          team: string | null;
-          nationality: string | null;
-        };
-        driver2: {
-          _id: string;
-          code: string;
-          displayName: string;
-          number: number | null;
-          team: string | null;
-          nationality: string | null;
-        };
-        predictedWinnerId: string;
-        actualWinnerId: string | null;
-        isCorrect: boolean | null;
-      }[]
-    | null;
-}) {
-  if (!picks || picks.length === 0) {
-    return null;
-  }
-
-  const sessionPoints = picks.reduce(
-    (sum, pick) => sum + (pick.isCorrect ? 1 : 0),
-    0,
-  );
-  const hasResolvedResults = picks.some((pick) => pick.actualWinnerId !== null);
-
-  return (
-    <div className="rounded-lg border border-border/70 bg-surface-muted/25 px-3 py-2">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Swords className="h-4 w-4 text-accent" />
-          <h4 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
-            H2H
-          </h4>
-        </div>
-        {hasResolvedResults ? (
-          <span className="text-xs font-semibold text-accent">
-            {sessionPoints} pts
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {picks.map((pick) => {
-          const driver =
-            pick.predictedWinnerId === pick.driver1._id
-              ? pick.driver1
-              : pick.driver2;
-
-          return (
-            <div key={pick.matchupId} className="relative inline-flex">
-              <DriverBadge
-                code={driver.code}
-                team={driver.team}
-                displayName={driver.displayName}
-                number={driver.number}
-                nationality={driver.nationality}
-                size="sm"
-              />
-              {pick.isCorrect !== null ? (
-                <span
-                  className={`absolute -top-1.5 -right-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full border border-surface ${
-                    pick.isCorrect
-                      ? 'bg-success text-white'
-                      : 'bg-error text-white'
-                  }`}
-                >
-                  {pick.isCorrect ? (
-                    <Check
-                      className="h-2.5 w-2.5"
-                      strokeWidth={3}
-                      aria-label="Correct H2H pick"
-                    />
-                  ) : (
-                    <CircleX
-                      className="h-2.5 w-2.5"
-                      strokeWidth={2.5}
-                      aria-label="Incorrect H2H pick"
-                    />
-                  )}
-                </span>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

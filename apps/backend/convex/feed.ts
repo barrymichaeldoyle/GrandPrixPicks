@@ -599,6 +599,53 @@ async function enrichScoreEvent(
 }
 
 /**
+ * Profile feed: score_published events for a specific user, most recent first.
+ * Used on the profile page to show a user's result history in feed style.
+ */
+export const getUserFeed = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+
+    const rawEvents = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_user_created', (q) => q.eq('userId', args.userId))
+      .order('desc')
+      .take(100);
+
+    const events = rawEvents
+      .filter((e) => e.type === 'score_published')
+      .slice(0, 50);
+
+    const [enrichedEvents, sessions] = await Promise.all([
+      Promise.all(
+        events.map(async (event) => {
+          const [viewerRev, scoreEnrichment] = await Promise.all([
+            viewer
+              ? ctx.db
+                  .query('revs')
+                  .withIndex('by_user_event', (q) =>
+                    q.eq('userId', viewer._id).eq('feedEventId', event._id),
+                  )
+                  .first()
+              : Promise.resolve(null),
+            enrichScoreEvent(ctx, event),
+          ]);
+          return {
+            ...event,
+            viewerHasReved: viewerRev !== null,
+            ...scoreEnrichment,
+          };
+        }),
+      ),
+      buildSessionHeaders(ctx, events),
+    ]);
+
+    return { events: enrichedEvents, sessions };
+  },
+});
+
+/**
  * Personalized home feed: events from the viewer + people they follow.
  * Sorted by most recent first. Includes session headers for score_published events.
  */

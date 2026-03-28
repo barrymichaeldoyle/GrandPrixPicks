@@ -17,7 +17,7 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     usernameChangedAt: v.optional(v.number()),
     // Notification preferences (all optional — undefined treated as default)
-    // Email: opt-in, default false
+    // Email: opt-out, default true
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
     // Push: opt-out, default true (if device is subscribed)

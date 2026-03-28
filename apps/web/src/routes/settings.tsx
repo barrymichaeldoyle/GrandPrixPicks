@@ -431,8 +431,8 @@ function SettingsPage() {
     emailPredictionReminders:
       optimisticNotif?.emailPredictionReminders ??
       me?.emailPredictionReminders ??
-      false,
-    emailResults: optimisticNotif?.emailResults ?? me?.emailResults ?? false,
+      true,
+    emailResults: optimisticNotif?.emailResults ?? me?.emailResults ?? true,
     pushPredictionReminders:
       optimisticNotif?.pushPredictionReminders ??
       me?.pushPredictionReminders ??

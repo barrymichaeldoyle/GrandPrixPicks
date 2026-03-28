@@ -1,12 +1,12 @@
 import type { Doc } from '../_generated/dataModel';
 
-/** Email: opt-in — undefined means off */
+/** Email: opt-out — undefined means on */
 export function wantsEmailPredictionReminders(user: Doc<'users'>): boolean {
-  return user.emailPredictionReminders ?? false;
+  return user.emailPredictionReminders ?? true;
 }
 
 export function wantsEmailResults(user: Doc<'users'>): boolean {
-  return user.emailResults ?? false;
+  return user.emailResults ?? true;
 }
 
 /** Push: opt-out — undefined means on (user subscribed, so assume they want notifications) */

@@ -13,12 +13,6 @@ import {
 } from './lib/auth';
 import { syncUserToStandings } from './lib/standings';
 
-const notificationChannelValidator = v.union(
-  v.literal('none'),
-  v.literal('email'),
-  v.literal('push'),
-  v.literal('both'),
-);
 
 type AccountDeletionSummary = {
   follows: number;
@@ -303,12 +297,12 @@ export const me = query({
       email: viewer.email,
       avatarUrl: viewer.avatarUrl,
       usernameChangedAt: viewer.usernameChangedAt,
-      emailReminders: viewer.emailReminders,
+      emailPredictionReminders: viewer.emailPredictionReminders,
       emailResults: viewer.emailResults,
-      pushReminders: viewer.pushReminders,
+      pushPredictionReminders: viewer.pushPredictionReminders,
       pushResults: viewer.pushResults,
-      predictionReminderChannel: viewer.predictionReminderChannel,
-      resultsNotificationChannel: viewer.resultsNotificationChannel,
+      pushSessionLocked: viewer.pushSessionLocked,
+      pushRevReceived: viewer.pushRevReceived,
       timezone: viewer.timezone,
       locale: viewer.locale,
       isAdmin: viewer.isAdmin ?? false,
@@ -632,35 +626,16 @@ export const hasSeasonPassForSeason = query({
 
 export const updateNotificationSettings = mutation({
   args: {
-    emailReminders: v.optional(v.boolean()),
+    emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
-    pushReminders: v.optional(v.boolean()),
+    pushPredictionReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
-    predictionReminderChannel: v.optional(notificationChannelValidator),
-    resultsNotificationChannel: v.optional(notificationChannelValidator),
+    pushSessionLocked: v.optional(v.boolean()),
+    pushRevReceived: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
-    const patch: Record<string, unknown> = { updatedAt: Date.now() };
-    if (args.emailReminders !== undefined) {
-      patch.emailReminders = args.emailReminders;
-    }
-    if (args.emailResults !== undefined) {
-      patch.emailResults = args.emailResults;
-    }
-    if (args.pushReminders !== undefined) {
-      patch.pushReminders = args.pushReminders;
-    }
-    if (args.pushResults !== undefined) {
-      patch.pushResults = args.pushResults;
-    }
-    if (args.predictionReminderChannel !== undefined) {
-      patch.predictionReminderChannel = args.predictionReminderChannel;
-    }
-    if (args.resultsNotificationChannel !== undefined) {
-      patch.resultsNotificationChannel = args.resultsNotificationChannel;
-    }
-    await ctx.db.patch(viewer._id, patch);
+    await ctx.db.patch(viewer._id, { ...args, updatedAt: Date.now() });
   },
 });
 

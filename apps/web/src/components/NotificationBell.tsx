@@ -67,8 +67,8 @@ function NotificationItem({
     const actor =
       notification.actorDisplayName ?? notification.actorUsername ?? 'Someone';
     const content = notification.raceName
-      ? `${actor} reved your ${sessionLabel} post — ${notification.raceName}`
-      : `${actor} reved your post`;
+      ? `${actor} reved your ${sessionLabel} prediction — ${notification.raceName}`
+      : `${actor} reved your prediction`;
 
     const inner = (
       <div className="flex items-start gap-3 px-4 py-3">

@@ -15,8 +15,7 @@ const variants = {
     'border border-transparent bg-error hover:bg-error/90 text-white disabled:opacity-50 disabled:cursor-not-allowed',
   saved:
     'border border-success/30 bg-success-muted text-success cursor-default',
-  loading:
-    'border border-transparent bg-button-accent text-white opacity-90 cursor-wait',
+  loading: 'cursor-wait opacity-70',
   secondary:
     'border border-border bg-surface hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
   text: 'border border-transparent bg-transparent text-accent hover:bg-accent-muted/50 disabled:text-text-muted disabled:hover:bg-transparent disabled:cursor-not-allowed',
@@ -77,7 +76,7 @@ function Button({
   ref,
   ...rest
 }: ButtonProps) {
-  const effectiveVariant = saved ? 'saved' : loading ? 'loading' : variant;
+  const effectiveVariant = saved ? 'saved' : variant;
   const isDisabled = disabled || loading || saved;
 
   const activeStyles =
@@ -89,6 +88,7 @@ function Button({
     base,
     sizes[size],
     variants[effectiveVariant],
+    loading ? variants.loading : '',
     activeStyles,
     tooltip ? undefined : className,
   ]

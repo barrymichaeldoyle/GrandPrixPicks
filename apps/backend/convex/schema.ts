@@ -16,10 +16,18 @@ export default defineSchema({
     username: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     usernameChangedAt: v.optional(v.number()),
-    emailReminders: v.optional(v.boolean()),
+    // Notification preferences (all optional — undefined treated as default)
+    // Email: opt-in, default false
+    emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
-    pushReminders: v.optional(v.boolean()),
+    // Push: opt-out, default true (if device is subscribed)
+    pushPredictionReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
+    pushSessionLocked: v.optional(v.boolean()),
+    pushRevReceived: v.optional(v.boolean()),
+    // Legacy fields — kept so existing documents remain valid, no longer written
+    emailReminders: v.optional(v.boolean()),
+    pushReminders: v.optional(v.boolean()),
     predictionReminderChannel: v.optional(
       v.union(
         v.literal('none'),

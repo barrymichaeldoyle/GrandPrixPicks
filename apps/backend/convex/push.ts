@@ -6,9 +6,10 @@ import type { Id } from './_generated/dataModel';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import {
-  getPredictionReminderChannel,
-  getResultsNotificationChannel,
-  includesPush,
+  wantsPushPredictionReminders,
+  wantsPushResults,
+  wantsPushRevReceived,
+  wantsPushSessionLocked,
 } from './lib/notificationChannels';
 
 const sessionTypeValidator = v.union(
@@ -125,7 +126,7 @@ export const sendPushRemindersForRace = internalMutation({
     );
     const usersWithReminderPushEnabled = new Set(
       subscribedUsers
-        .filter((u) => u && includesPush(getPredictionReminderChannel(u)))
+        .filter((u) => u && wantsPushPredictionReminders(u))
         .map((u) => u!._id as string),
     );
 
@@ -218,7 +219,7 @@ export const sendPushResultsForSession = internalMutation({
     );
     const usersWithResultPushEnabled = new Set(
       subscribedUsers
-        .filter((u) => u && includesPush(getResultsNotificationChannel(u)))
+        .filter((u) => u && wantsPushResults(u))
         .map((u) => u!._id as string),
     );
 
@@ -254,6 +255,114 @@ export const sendPushResultsForSession = internalMutation({
     }
 
     return { queued: subscriptions.length };
+  },
+});
+
+/**
+ * Internal mutation: send push notifications to users whose session just locked.
+ * Called from inAppNotifications.notifyUsersSessionLocked.
+ */
+export const sendPushForSessionLocked = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    userIds: v.array(v.id('users')),
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      return { skipped: true, reason: 'Race not found' };
+    }
+
+    const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
+    const subscriptions: Array<{
+      endpoint: string;
+      p256dh: string;
+      auth: string;
+    }> = [];
+
+    for (const userId of args.userIds) {
+      const user = await ctx.db.get(userId);
+      if (!user || !wantsPushSessionLocked(user)) {
+        continue;
+      }
+      const subs = await ctx.db
+        .query('pushSubscriptions')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .collect();
+      for (const sub of subs) {
+        subscriptions.push({
+          endpoint: sub.endpoint,
+          p256dh: sub.p256dh,
+          auth: sub.auth,
+        });
+      }
+    }
+
+    if (subscriptions.length === 0) {
+      return { skipped: true, reason: 'No eligible subscriptions' };
+    }
+
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.pushNotifications.sendPushBatch,
+        {
+          subscriptions: subscriptions.slice(i, i + BATCH_SIZE),
+          title: `🔒 ${race.name} — ${sessionLabel}`,
+          body: 'This session is now locked. View your picks.',
+          url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
+        },
+      );
+    }
+
+    return { queued: subscriptions.length };
+  },
+});
+
+/**
+ * Internal mutation: send a push notification when someone revs a post.
+ * Called from inAppNotifications.createRevNotification.
+ */
+export const sendPushForRevReceived = internalMutation({
+  args: {
+    recipientUserId: v.id('users'),
+    actorDisplayName: v.optional(v.string()),
+    raceSlug: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const recipient = await ctx.db.get(args.recipientUserId);
+    if (!recipient || !wantsPushRevReceived(recipient)) {
+      return { skipped: true, reason: 'User not found or push disabled' };
+    }
+
+    const subs = await ctx.db
+      .query('pushSubscriptions')
+      .withIndex('by_user', (q) => q.eq('userId', args.recipientUserId))
+      .collect();
+
+    if (subs.length === 0) {
+      return { skipped: true, reason: 'No subscriptions' };
+    }
+
+    const actorName = args.actorDisplayName ?? 'Someone';
+    const url = args.raceSlug
+      ? `/races/${args.raceSlug}?utm_source=push&utm_medium=push&utm_campaign=rev_received`
+      : `/?utm_source=push&utm_medium=push&utm_campaign=rev_received`;
+
+    await ctx.scheduler.runAfter(0, internal.pushNotifications.sendPushBatch, {
+      subscriptions: subs.map((s) => ({
+        endpoint: s.endpoint,
+        p256dh: s.p256dh,
+        auth: s.auth,
+      })),
+      title: '⭐ New rev',
+      body: `${actorName} reved your prediction`,
+      url,
+    });
+
+    return { queued: subs.length };
   },
 });
 

@@ -112,6 +112,12 @@ export const createRevNotification = internalMutation({
       raceSlug: args.raceSlug,
       createdAt: Date.now(),
     });
+
+    await ctx.scheduler.runAfter(0, internal.push.sendPushForRevReceived, {
+      recipientUserId: args.recipientUserId,
+      actorDisplayName: actor.displayName,
+      raceSlug: args.raceSlug,
+    });
   },
 });
 
@@ -179,6 +185,7 @@ export const notifyUsersSessionLocked = internalMutation({
       .take(500);
 
     const now = Date.now();
+    const notifiedUserIds: Array<typeof predictions[number]['userId']> = [];
 
     for (const prediction of predictions) {
       // Skip if we've already notified this user for this session lock
@@ -206,6 +213,16 @@ export const notifyUsersSessionLocked = internalMutation({
         raceName: race.name,
         raceSlug: race.slug,
         createdAt: now,
+      });
+
+      notifiedUserIds.push(prediction.userId);
+    }
+
+    if (notifiedUserIds.length > 0) {
+      await ctx.scheduler.runAfter(0, internal.push.sendPushForSessionLocked, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        userIds: notifiedUserIds,
       });
     }
 

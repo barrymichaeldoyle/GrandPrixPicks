@@ -7,10 +7,9 @@ import type { MutationCtx } from './_generated/server';
 import { internalMutation, mutation } from './_generated/server';
 import { getViewer, requireAdmin } from './lib/auth';
 import {
-  getPredictionReminderChannel,
-  getResultsNotificationChannel,
-  includesEmail,
-  includesPush,
+  wantsEmailPredictionReminders,
+  wantsEmailResults,
+  wantsPushPredictionReminders,
 } from './lib/notificationChannels';
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -75,7 +74,7 @@ export const sendPredictionReminders = internalMutation({
     // Find users with email set and reminders enabled (default true)
     const allUsers = await ctx.db.query('users').collect();
     const eligibleUsers = allUsers.filter(
-      (u) => u.email && includesEmail(getPredictionReminderChannel(u)),
+      (u) => u.email && wantsEmailPredictionReminders(u),
     );
 
     // Find users who already have predictions for this race
@@ -323,7 +322,7 @@ export const sendResultEmailsForSession = internalMutation({
     // 4. Load all users, filter to eligible
     const allUsers = await ctx.db.query('users').collect();
     const notificationEligibleUsers = allUsers.filter(
-      (u) => u.email && includesEmail(getResultsNotificationChannel(u)),
+      (u) => u.email && wantsEmailResults(u),
     );
 
     if (notificationEligibleUsers.length === 0) {
@@ -508,9 +507,7 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
     let emailQueued = false;
     let pushQueued = 0;
 
-    const reminderChannel = getPredictionReminderChannel(user);
-
-    if (user.email && includesEmail(reminderChannel)) {
+    if (user.email && wantsEmailPredictionReminders(user)) {
       await ctx.scheduler.runAfter(
         0,
         internal.emails.sendReminderEmails.sendH2HNudge,
@@ -528,7 +525,7 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect();
 
-    if (includesPush(reminderChannel) && subscriptions.length > 0) {
+    if (wantsPushPredictionReminders(user) && subscriptions.length > 0) {
       await ctx.scheduler.runAfter(
         0,
         internal.pushNotifications.sendPushBatch,
@@ -564,8 +561,6 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       return { skipped: true, reason: 'User not found' };
     }
 
-    const reminderChannel = getPredictionReminderChannel(user);
-
     const firstPrediction = await ctx.db
       .query('predictions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
@@ -577,10 +572,10 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .collect();
 
-    const remindersEnabled =
-      includesEmail(reminderChannel) || includesPush(reminderChannel);
-    const canEmail = Boolean(user.email) && includesEmail(reminderChannel);
-    const canPush = includesPush(reminderChannel) && subscriptions.length > 0;
+    const canEmail = Boolean(user.email) && wantsEmailPredictionReminders(user);
+    const canPush =
+      wantsPushPredictionReminders(user) && subscriptions.length > 0;
+    const remindersEnabled = canEmail || canPush;
 
     const eligibility = getSignupPredictionNudgeEligibility({
       hasPredictions,
@@ -661,7 +656,7 @@ export const sendH2HRemindersForRace = internalMutation({
 
     const allUsers = await ctx.db.query('users').collect();
     const eligibleUsers = allUsers.filter(
-      (u) => u.email && includesEmail(getPredictionReminderChannel(u)),
+      (u) => u.email && wantsEmailPredictionReminders(u),
     );
 
     const allPredictions = await ctx.db

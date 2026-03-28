@@ -70,63 +70,32 @@ function ToggleSwitch({
   );
 }
 
-type NotificationChannel = 'none' | 'email' | 'push' | 'both';
-
-const notificationChannelOptions: {
-  label: string;
-  value: NotificationChannel;
-}[] = [
-  { label: 'None', value: 'none' },
-  { label: 'Email', value: 'email' },
-  { label: 'App', value: 'push' },
-  { label: 'Both', value: 'both' },
-];
-
-function NotificationChannelItem({
+function NotificationRow({
   label,
   description,
-  value,
+  checked,
   onChange,
-  disabledValues = [],
-  options = notificationChannelOptions,
+  loading = false,
 }: {
   label: string;
-  description: string;
-  value: NotificationChannel;
-  onChange: (channel: NotificationChannel) => void;
-  disabledValues?: NotificationChannel[];
-  options?: {
-    label: string;
-    value: NotificationChannel;
-  }[];
+  description?: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  loading?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3 py-4">
+    <div className="flex items-center justify-between gap-4 py-3">
       <div>
-        <p className="font-medium text-text">{label}</p>
-        <p className="text-sm text-text-muted">{description}</p>
+        <p className="text-sm font-medium text-text">{label}</p>
+        {description && (
+          <p className="text-xs text-text-muted">{description}</p>
+        )}
       </div>
-      <div className="inline-flex w-full max-w-sm rounded-lg border border-border bg-surface p-1">
-        {options.map((option) => {
-          const isActive = option.value === value;
-          const isDisabled = disabledValues.includes(option.value);
-          return (
-            <button
-              key={option.value}
-              type="button"
-              className={`flex-1 rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-button-accent text-white'
-                  : 'text-text-muted hover:bg-surface-muted hover:text-text'
-              } ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
-              onClick={() => onChange(option.value)}
-              disabled={isDisabled}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+      <ToggleSwitch
+        checked={checked}
+        onChange={() => onChange(!checked)}
+        loading={loading}
+      />
     </div>
   );
 }
@@ -246,40 +215,6 @@ export const Route = createFileRoute('/settings')({
 });
 
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
-
-function channelFromLegacyFlags(
-  emailEnabled: boolean | undefined,
-  pushEnabled: boolean | undefined,
-): NotificationChannel {
-  const email = emailEnabled ?? true;
-  const push = pushEnabled ?? true;
-  if (email && push) {
-    return 'both';
-  }
-  if (email) {
-    return 'email';
-  }
-  if (push) {
-    return 'push';
-  }
-  return 'none';
-}
-
-function channelIncludesPush(channel: NotificationChannel): boolean {
-  return channel === 'push' || channel === 'both';
-}
-
-function stripPushFromChannel(
-  channel: NotificationChannel,
-): NotificationChannel {
-  if (channel === 'both') {
-    return 'email';
-  }
-  if (channel === 'push') {
-    return 'none';
-  }
-  return channel;
-}
 
 function SeasonPassSection({
   season,
@@ -403,21 +338,38 @@ function SettingsPageSkeleton() {
             id="notifications"
             title="Notifications"
             icon={<Bell className="h-5 w-5 text-text-muted" />}
-            contentClassName="divide-y divide-border px-4"
           >
-            <div className="flex min-h-[74px] items-center justify-between gap-4 py-4">
-              <div>
-                <div className="mb-2 h-4 w-48 animate-pulse rounded bg-surface-muted" />
-                <div className="h-3 w-72 max-w-full animate-pulse rounded bg-surface-muted" />
+            <div className="space-y-6 p-4">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  In-App
+                </p>
+                <div className="divide-y divide-border rounded-lg border border-border px-3">
+                  {[40, 32, 32].map((w, i) => (
+                    <div key={i} className="flex items-center gap-3 py-3">
+                      <div
+                        className={`h-3 w-${w} animate-pulse rounded bg-surface-muted`}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
-            </div>
-            <div className="flex min-h-[74px] items-center justify-between gap-4 py-4">
-              <div>
-                <div className="mb-2 h-4 w-44 animate-pulse rounded bg-surface-muted" />
-                <div className="h-3 w-72 max-w-full animate-pulse rounded bg-surface-muted" />
+              <div className="space-y-1">
+                <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  Email
+                </p>
+                <div className="divide-y divide-border rounded-lg border border-border px-3">
+                  {[0, 1].map((i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-4 py-3"
+                    >
+                      <div className="h-3 w-40 animate-pulse rounded bg-surface-muted" />
+                      <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="h-6 w-11 shrink-0 animate-pulse rounded-full bg-surface-muted" />
             </div>
           </SettingsSection>
         </div>
@@ -463,56 +415,34 @@ function SettingsPage() {
     unsubscribe: unsubscribePush,
   } = usePushNotifications();
 
-  const initialPredictionChannel = me
-    ? (me.predictionReminderChannel ??
-      channelFromLegacyFlags(me.emailReminders, me.pushReminders))
-    : 'both';
-  const initialResultsChannel = me
-    ? (me.resultsNotificationChannel ??
-      channelFromLegacyFlags(me.emailResults, me.pushResults))
-    : 'both';
+  // Notification preference state — optimistic overrides server values
+  type NotifSettings = {
+    emailPredictionReminders: boolean;
+    emailResults: boolean;
+    pushPredictionReminders: boolean;
+    pushResults: boolean;
+    pushSessionLocked: boolean;
+    pushRevReceived: boolean;
+  };
+  const [optimisticNotif, setOptimisticNotif] =
+    useState<Partial<NotifSettings> | null>(null);
 
-  const [optimisticPredictionChannel, setOptimisticPredictionChannel] =
-    useState<NotificationChannel | null>(null);
-  const [optimisticResultsChannel, setOptimisticResultsChannel] =
-    useState<NotificationChannel | null>(null);
-
-  const predictionChannel =
-    optimisticPredictionChannel ?? initialPredictionChannel;
-  const resultsChannel = optimisticResultsChannel ?? initialResultsChannel;
-
-  useEffect(() => {
-    if (
-      optimisticPredictionChannel !== null &&
-      initialPredictionChannel === optimisticPredictionChannel
-    ) {
-      setOptimisticPredictionChannel(null);
-    }
-  }, [optimisticPredictionChannel, initialPredictionChannel]);
-
-  useEffect(() => {
-    if (
-      optimisticResultsChannel !== null &&
-      initialResultsChannel === optimisticResultsChannel
-    ) {
-      setOptimisticResultsChannel(null);
-    }
-  }, [optimisticResultsChannel, initialResultsChannel]);
-
-  const canUsePushChannels = isPushSupported && pushPermission !== 'denied';
-  const notificationChannelChoices = canUsePushChannels
-    ? notificationChannelOptions
-    : notificationChannelOptions.filter(
-        (option) => option.value === 'none' || option.value === 'email',
-      );
-  const disabledNotificationValues: NotificationChannel[] =
-    canUsePushChannels && !isPushLoading ? [] : ['push', 'both'];
-  const visiblePredictionChannel = canUsePushChannels
-    ? predictionChannel
-    : stripPushFromChannel(predictionChannel);
-  const visibleResultsChannel = canUsePushChannels
-    ? resultsChannel
-    : stripPushFromChannel(resultsChannel);
+  const notifSettings: NotifSettings = {
+    emailPredictionReminders:
+      optimisticNotif?.emailPredictionReminders ??
+      me?.emailPredictionReminders ??
+      false,
+    emailResults: optimisticNotif?.emailResults ?? me?.emailResults ?? false,
+    pushPredictionReminders:
+      optimisticNotif?.pushPredictionReminders ??
+      me?.pushPredictionReminders ??
+      true,
+    pushResults: optimisticNotif?.pushResults ?? me?.pushResults ?? true,
+    pushSessionLocked:
+      optimisticNotif?.pushSessionLocked ?? me?.pushSessionLocked ?? true,
+    pushRevReceived:
+      optimisticNotif?.pushRevReceived ?? me?.pushRevReceived ?? true,
+  };
 
   // Regional (timezone, locale) optimistic state
   const [optimisticTimezone, setOptimisticTimezone] = useState<
@@ -617,44 +547,19 @@ function SettingsPage() {
     }
   }
 
-  function updateNotificationChannels(
-    nextPredictionChannel: NotificationChannel,
-    nextResultsChannel: NotificationChannel,
-  ) {
-    const normalizedPredictionChannel = canUsePushChannels
-      ? nextPredictionChannel
-      : stripPushFromChannel(nextPredictionChannel);
-    const normalizedResultsChannel = canUsePushChannels
-      ? nextResultsChannel
-      : stripPushFromChannel(nextResultsChannel);
-
-    setOptimisticPredictionChannel(normalizedPredictionChannel);
-    setOptimisticResultsChannel(normalizedResultsChannel);
-
+  function updateNotifSetting(patch: Partial<NotifSettings>) {
+    setOptimisticNotif((prev) => ({ ...prev, ...patch }));
     void (async () => {
       try {
-        const needsPush =
-          channelIncludesPush(normalizedPredictionChannel) ||
-          channelIncludesPush(normalizedResultsChannel);
-
-        if (needsPush) {
-          if (!canUsePushChannels) {
-            throw new Error('Push channel unavailable');
-          }
-          if (!isPushSubscribed) {
-            await subscribePush();
-          }
-        } else if (isPushSubscribed) {
-          await unsubscribePush();
+        // If enabling a push type and not yet subscribed, subscribe first
+        const enablingPush =
+          patch.pushPredictionReminders === true || patch.pushResults === true;
+        if (enablingPush && !isPushSubscribed) {
+          await subscribePush();
         }
-
-        await updateNotifications({
-          predictionReminderChannel: normalizedPredictionChannel,
-          resultsNotificationChannel: normalizedResultsChannel,
-        });
+        await updateNotifications(patch);
       } catch {
-        setOptimisticPredictionChannel(null);
-        setOptimisticResultsChannel(null);
+        setOptimisticNotif(null);
       }
     })();
   }
@@ -959,37 +864,134 @@ function SettingsPage() {
             id="notifications"
             title="Notifications"
             icon={<Bell className="h-5 w-5 text-text-muted" />}
-            contentClassName="divide-y divide-border px-4"
           >
-            <NotificationChannelItem
-              label="Prediction reminders"
-              description="Get reminders before picks lock for each race weekend. Reminders won't be sent if you've already saved your prediction."
-              value={visiblePredictionChannel}
-              onChange={(next) => {
-                updateNotificationChannels(next, visibleResultsChannel);
-              }}
-              disabledValues={disabledNotificationValues}
-              options={notificationChannelChoices}
-            />
-            <NotificationChannelItem
-              label="Result notifications"
-              description="Get notified when session results are published and scores are calculated."
-              value={visibleResultsChannel}
-              onChange={(next) => {
-                updateNotificationChannels(visiblePredictionChannel, next);
-              }}
-              disabledValues={disabledNotificationValues}
-              options={notificationChannelChoices}
-            />
-            {isPushSupported && pushPermission === 'denied' && (
-              <div className="py-4">
-                <p className="font-medium text-text">Push notifications</p>
-                <p className="text-sm text-text-muted">
-                  Notifications are blocked. Enable them in your browser
-                  settings to receive alerts.
+            <div className="space-y-6 p-4">
+              {/* In-App */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  In-App
                 </p>
+                <p className="text-xs text-text-muted">
+                  Always shown in the notification bell.
+                </p>
+                <div className="divide-y divide-border rounded-lg border border-border px-3">
+                  <div className="py-3 text-sm text-text">
+                    Results &amp; scores
+                  </div>
+                  <div className="py-3 text-sm text-text">
+                    Session locked (when you have picks)
+                  </div>
+                  <div className="py-3 text-sm text-text">
+                    Revs on your predictions (grouped)
+                  </div>
+                </div>
               </div>
-            )}
+
+              {/* Push — hidden if not supported */}
+              {isPushSupported && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                    Push
+                  </p>
+                  {pushPermission === 'denied' ? (
+                    <p className="text-xs text-text-muted">
+                      Notifications are blocked. Enable them in your browser or
+                      device settings.
+                    </p>
+                  ) : !isPushSubscribed ? (
+                    <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-3">
+                      <p className="text-sm text-text-muted">
+                        Get alerts on this device, even when the app isn&apos;t
+                        open.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => void subscribePush()}
+                        loading={isPushLoading}
+                      >
+                        Enable
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border rounded-lg border border-border px-3">
+                      <NotificationRow
+                        label="Prediction reminders"
+                        checked={notifSettings.pushPredictionReminders}
+                        onChange={(value) =>
+                          updateNotifSetting({ pushPredictionReminders: value })
+                        }
+                        loading={isPushLoading}
+                      />
+                      <NotificationRow
+                        label="Results &amp; scores"
+                        checked={notifSettings.pushResults}
+                        onChange={(value) =>
+                          updateNotifSetting({ pushResults: value })
+                        }
+                        loading={isPushLoading}
+                      />
+                      <NotificationRow
+                        label="Session locked"
+                        checked={notifSettings.pushSessionLocked}
+                        onChange={(value) =>
+                          updateNotifSetting({ pushSessionLocked: value })
+                        }
+                        loading={isPushLoading}
+                      />
+                      <NotificationRow
+                        label="Revs on your predictions"
+                        checked={notifSettings.pushRevReceived}
+                        onChange={(value) =>
+                          updateNotifSetting({ pushRevReceived: value })
+                        }
+                        loading={isPushLoading}
+                      />
+                      <div className="flex items-center justify-between gap-4 py-3">
+                        <p className="text-xs text-text-muted">
+                          Removes push access for this device only.
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => void unsubscribePush()}
+                          loading={isPushLoading}
+                        >
+                          Disable
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Email */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  Email
+                </p>
+                <div className="divide-y divide-border rounded-lg border border-border px-3">
+                  <NotificationRow
+                    label="Prediction reminders"
+                    description="Sent 24h before picks lock. Not sent if you've already predicted."
+                    checked={notifSettings.emailPredictionReminders}
+                    onChange={(value) =>
+                      updateNotifSetting({
+                        emailPredictionReminders: value,
+                      })
+                    }
+                  />
+                  <NotificationRow
+                    label="Results &amp; scores"
+                    description="Sent when session results and your score are published."
+                    checked={notifSettings.emailResults}
+                    onChange={(value) =>
+                      updateNotifSetting({ emailResults: value })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
           </SettingsSection>
         </div>
       </div>

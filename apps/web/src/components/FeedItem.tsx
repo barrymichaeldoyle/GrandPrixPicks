@@ -145,8 +145,11 @@ function getScoreComment(
     if (missed.length === 5) {
       return 'Not a single top-5 pick landed.';
     }
-    if (exact.length === 0 && missed.length === 0) {
+    if (exact.length === 0 && missed.length === 0 && near.length === 0) {
       return 'All five in the top 5, just the wrong order.';
+    }
+    if (exact.length === 0 && missed.length === 0) {
+      return 'Every pick scored, nothing spot on though.';
     }
     if (near.length >= 3) {
       return `${near.length} picks just one spot off.`;

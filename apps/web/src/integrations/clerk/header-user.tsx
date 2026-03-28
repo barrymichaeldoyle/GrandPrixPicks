@@ -50,7 +50,7 @@ export function HeaderUser() {
       <div className="flex items-center">
         <Link
           to={myPicksHref}
-          className="hidden rounded-full border border-transparent px-1 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover min-[844px]:inline-flex"
+          className="hidden rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover min-[844px]:inline-flex"
           activeProps={{
             className:
               'hidden min-[844px]:inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold text-accent-hover nav-link-active bg-accent/15 transition-colors',

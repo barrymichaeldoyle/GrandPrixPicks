@@ -9,37 +9,6 @@ import type {
   WeekendCardData,
 } from './types';
 
-// ───────────────────────── Profile History Adapter ─────────────────────────
-
-type HistoryBreakdownItem = {
-  driverId: Id<'drivers'>;
-  predictedPosition: number;
-  actualPosition?: number;
-  points: number;
-};
-
-type HistorySessionData = {
-  picks: { driverId: Id<'drivers'>; code: string }[];
-  points: number | null;
-  breakdown: HistoryBreakdownItem[] | null;
-  submittedAt: number;
-  isHidden?: boolean;
-} | null;
-
-type HistoryWeekend = {
-  raceId: Id<'races'>;
-  raceSlug: string;
-  raceName: string;
-  raceRound: number;
-  raceStatus: string;
-  raceDate: number;
-  hasSprint: boolean;
-  sessions: Record<SessionType, HistorySessionData>;
-  totalPoints: number;
-  hasScores: boolean;
-  submittedAt: number;
-};
-
 type DriverRecord = {
   _id: Id<'drivers'>;
   code: string;
@@ -48,86 +17,6 @@ type DriverRecord = {
   number?: number | null;
   nationality?: string | null;
 };
-
-export function fromProfileHistory(
-  weekend: HistoryWeekend,
-  drivers: DriverRecord[] | undefined,
-): WeekendCardData {
-  const driverMap = new Map(drivers?.map((d) => [d._id, d]));
-
-  const sessionTypes: SessionType[] = [
-    'quali',
-    'sprint_quali',
-    'sprint',
-    'race',
-  ];
-  const sessions = {} as Record<SessionType, SessionCardData | null>;
-  let scoredSessionCount = 0;
-
-  for (const st of sessionTypes) {
-    const sd = weekend.sessions[st];
-    if (!sd) {
-      sessions[st] = null;
-      continue;
-    }
-
-    const hasResults = sd.points !== null;
-    if (hasResults) {
-      scoredSessionCount++;
-    }
-
-    const picks: DriverRef[] = sd.picks.map((p) => {
-      const driver = driverMap.get(p.driverId);
-      return {
-        driverId: p.driverId,
-        code: p.code,
-        displayName: driver?.displayName,
-        team: driver?.team,
-        number: driver?.number,
-        nationality: driver?.nationality,
-      };
-    });
-
-    const breakdown: PickBreakdown[] | null = sd.breakdown
-      ? sd.breakdown.map((b) => ({
-          driverId: b.driverId,
-          predictedPosition: b.predictedPosition,
-          actualPosition: b.actualPosition,
-          points: b.points,
-        }))
-      : null;
-
-    sessions[st] = {
-      picks,
-      points: sd.points,
-      breakdown,
-      actualTop5: null, // not available from history query
-      fullClassification: null, // not available from history query
-      isHidden: sd.isHidden ?? false,
-      isLocked:
-        sd.isHidden === true ||
-        sd.points !== null ||
-        weekend.raceStatus !== 'upcoming',
-      hasResults,
-    };
-  }
-
-  return {
-    raceId: weekend.raceId,
-    raceSlug: weekend.raceSlug,
-    raceName: weekend.raceName,
-    raceRound: weekend.raceRound,
-    raceStatus: weekend.raceStatus as 'upcoming' | 'locked' | 'finished',
-    raceDate: weekend.raceDate,
-    hasSprint: weekend.hasSprint,
-    sessions,
-    totalPoints: weekend.totalPoints,
-    maxPoints: scoredSessionCount * 25,
-    scoredSessionCount,
-  };
-}
-
-// ───────────────────────── Race Detail Adapter ─────────────────────────
 
 type ScoreBreakdownItem = {
   driverId: Id<'drivers'>;

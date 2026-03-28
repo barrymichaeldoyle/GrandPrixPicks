@@ -19,7 +19,6 @@
         "src/lib/og/templates.ts"
       ],
       "ignoreDependencies": [
-        "@clerk/tanstack-react-start",
         "@tanstack/router-plugin",
         "tailwindcss",
         "babel-plugin-react-compiler"

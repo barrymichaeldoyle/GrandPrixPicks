@@ -270,19 +270,8 @@ export function Header({
         </div>
 
         <div
-          className={`flex items-center transition-opacity duration-150${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
+          className={`flex items-center transition-opacity duration-150 min-[844px]:w-[200px] min-[844px]:shrink-0 min-[844px]:justify-end${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
         >
-          {/* Width-reserving skeleton during load. The parent is opacity-0 so this is
-              invisible, but it still participates in layout and keeps the right side
-              the same width as the signed-in state so the nav doesn't shift. */}
-          {!isLoaded && (
-            <div aria-hidden className="hidden items-center min-[844px]:flex">
-              <div className="h-9 w-9 rounded-full" /> {/* bell */}
-              <div className="h-8 w-20 rounded-full" /> {/* my picks */}
-              <div className="h-9 w-11 rounded-full" /> {/* user button */}
-            </div>
-          )}
-
           {renderThemeToggle({
             className:
               'hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex',

@@ -19,6 +19,7 @@ import { CookieConsent } from '../components/CookieConsent';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
+import { OfflineBanner } from '../components/OfflineBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
@@ -271,6 +272,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 isDark={isDark}
                 onThemeChange={setTheme}
               />
+              <OfflineBanner />
               <CookieConsent />
               <div
                 ref={mainRef}

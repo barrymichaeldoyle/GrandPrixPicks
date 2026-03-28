@@ -3,11 +3,17 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+const OFFLINE_DELAY_MS = 3000;
+
 function useIsOffline() {
   const [browserOffline, setBrowserOffline] = useState(
     () => typeof navigator !== 'undefined' && !navigator.onLine,
   );
   const { isWebSocketConnected, hasEverConnected } = useConvexConnectionState();
+  const [showBanner, setShowBanner] = useState(false);
+
+  const isRawOffline =
+    browserOffline || (hasEverConnected && !isWebSocketConnected);
 
   useEffect(() => {
     function handleOnline() {
@@ -24,8 +30,16 @@ function useIsOffline() {
     };
   }, []);
 
-  // Show if browser is offline OR if Convex had connected and then dropped
-  return browserOffline || (hasEverConnected && !isWebSocketConnected);
+  useEffect(() => {
+    if (!isRawOffline) {
+      setShowBanner(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowBanner(true), OFFLINE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isRawOffline]);
+
+  return showBanner;
 }
 
 export function OfflineBanner() {

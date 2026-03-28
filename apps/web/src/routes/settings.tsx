@@ -600,7 +600,11 @@ function SettingsPage() {
       setShowUsernameConfirm(false);
 
       if (usernameChanged) {
-        navigate({ to: '/p/$username', params: { username: trimmedUsername } });
+        navigate({
+          to: '/p/$username',
+          params: { username: trimmedUsername },
+          search: { from: undefined, fromLabel: undefined },
+        });
       }
     } catch (e) {
       setEditError(

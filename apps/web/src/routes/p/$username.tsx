@@ -9,6 +9,7 @@ import {
 import { ConvexHttpClient } from 'convex/browser';
 import { useQuery } from 'convex/react';
 import {
+  ArrowLeft,
   Check,
   CircleX,
   Hash,
@@ -24,7 +25,7 @@ import {
 import { displayTeamName } from '@/lib/display';
 
 import { Avatar } from '../../components/Avatar';
-import { primaryButtonStyles } from '../../components/Button';
+import { Button, primaryButtonStyles } from '../../components/Button';
 import { DriverBadge, TEAM_COLORS } from '../../components/DriverBadge';
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
@@ -42,6 +43,11 @@ import { canonicalMeta, defaultOgImage } from '../../lib/site';
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
 export const Route = createFileRoute('/p/$username')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === 'string' ? search.from : undefined,
+    fromLabel:
+      typeof search.fromLabel === 'string' ? search.fromLabel : undefined,
+  }),
   component: ProfilePage,
   loader: async ({ params }) => {
     const profile = await convex.query(api.users.getProfileByUsername, {
@@ -78,6 +84,7 @@ export const Route = createFileRoute('/p/$username')({
 function ProfilePage() {
   const { username } = Route.useParams();
   const { initialProfile } = Route.useLoaderData();
+  const { from, fromLabel } = Route.useSearch();
   const matches = useMatches();
   const { isSignedIn } = useAuth();
 
@@ -168,6 +175,17 @@ function ProfilePage() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
+        {from && (
+          <Button
+            asChild
+            size="sm"
+            variant="text"
+            leftIcon={ArrowLeft}
+            className="mb-4"
+          >
+            <Link to={from}>Back to {fromLabel ?? 'previous page'}</Link>
+          </Button>
+        )}
         {/* Profile header */}
         <div className="mb-4">
           <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
@@ -205,6 +223,7 @@ function ProfilePage() {
                         <Link
                           to="/p/$username/followers"
                           params={{ username: currentProfile.username }}
+                          search={{ from: undefined, fromLabel: undefined }}
                           className="font-bold text-accent hover:text-accent/90"
                         >
                           {followCounts.followerCount === 1
@@ -218,6 +237,7 @@ function ProfilePage() {
                         <Link
                           to="/p/$username/following"
                           params={{ username: currentProfile.username }}
+                          search={{ from: undefined, fromLabel: undefined }}
                           className="font-bold text-accent hover:text-accent/90"
                         >
                           following

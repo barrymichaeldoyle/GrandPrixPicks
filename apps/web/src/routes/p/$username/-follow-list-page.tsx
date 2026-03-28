@@ -50,6 +50,7 @@ function FollowListUserRow({
       <Link
         to="/p/$username"
         params={{ username: user.username ?? 'anonymous' }}
+        search={{ from: undefined, fromLabel: undefined }}
         className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3 transition-colors hover:bg-surface-muted"
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -138,7 +139,11 @@ export function FollowListPage({
         leftIcon={ArrowLeft}
         className="mb-4"
       >
-        <Link to="/p/$username" params={{ username }}>
+        <Link
+          to="/p/$username"
+          params={{ username }}
+          search={{ from: undefined, fromLabel: undefined }}
+        >
           Back to {displayName}
         </Link>
       </Button>

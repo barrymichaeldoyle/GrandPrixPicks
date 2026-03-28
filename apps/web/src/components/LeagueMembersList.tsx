@@ -1,4 +1,4 @@
-import { Crown, UserCheck, UserPlus } from 'lucide-react';
+import { ArrowUpRight, Crown, UserCheck, UserPlus } from 'lucide-react';
 
 import { Tooltip } from './Tooltip';
 
@@ -75,7 +75,7 @@ export function LeagueMembersListSkeleton({ rows = 5 }: { rows?: number }) {
         return (
           <div
             key={index}
-            className={`flex items-center gap-3 px-4 py-3 sm:gap-4 ${
+            className={`flex items-center gap-2 py-2 pr-2 pl-3 sm:gap-3 sm:py-3 sm:pr-3 sm:pl-4 ${
               index < rows - 1 ? 'border-b border-border' : ''
             }`}
           >
@@ -124,7 +124,7 @@ export function LeagueMembersList({
       {members.map((member, index) => (
         <div
           key={member._id}
-          className={`flex items-center gap-3 px-4 py-3 sm:gap-4 ${
+          className={`flex items-center gap-2 py-2 pr-2 pl-3 sm:gap-3 sm:py-3 sm:pr-3 sm:pl-4 ${
             index < members.length - 1 ? 'border-b border-border' : ''
           } ${member.isViewer ? 'bg-accent-muted' : ''}`}
         >
@@ -140,23 +140,27 @@ export function LeagueMembersList({
           </div>
 
           {/* Avatar */}
-          {member.avatarUrl ? (
-            <img
-              src={member.avatarUrl}
-              alt=""
-              className="h-8 w-8 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                member.isViewer
-                  ? 'bg-accent text-white'
-                  : 'bg-surface-muted text-text-muted'
-              }`}
-            >
-              {member.displayName.charAt(0).toUpperCase()}
-            </span>
-          )}
+          {renderProfileLink({
+            username: member.username,
+            className: 'shrink-0',
+            children: member.avatarUrl ? (
+              <img
+                src={member.avatarUrl}
+                alt={member.displayName}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+                  member.isViewer
+                    ? 'bg-accent text-white'
+                    : 'bg-surface-muted text-text-muted'
+                }`}
+              >
+                {member.displayName.charAt(0).toUpperCase()}
+              </span>
+            ),
+          })}
 
           {/* Name + meta */}
           <div className="min-w-0 flex-1">
@@ -258,42 +262,57 @@ export function LeagueMembersList({
               )}
           </div>
 
-          {/* Follow button */}
-          <div className="hidden h-11 w-11 shrink-0 items-center justify-center sm:flex">
-            {!member.isViewer && member.isFollowing !== undefined ? (
-              <Tooltip
-                content={
+          {/* Right actions: view top, follow bottom on mobile; side-by-side on desktop */}
+          <div
+            className={`flex shrink-0 flex-col items-stretch gap-1 sm:flex-row sm:items-center sm:gap-1.5 ${
+              !member.isViewer && member.isFollowing !== undefined
+                ? 'justify-between self-stretch'
+                : 'justify-center'
+            }`}
+          >
+            {renderProfileLink({
+              username: member.username,
+              className:
+                'flex items-center justify-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text',
+              children: (
+                <>
+                  <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                  View
+                </>
+              ),
+            })}
+            {!member.isViewer && member.isFollowing !== undefined && (
+              <button
+                type="button"
+                onClick={() =>
                   member.isFollowing
-                    ? 'Following (click to unfollow)'
-                    : 'Follow'
+                    ? onUnfollow?.(member.userId)
+                    : onFollow?.(member.userId)
                 }
+                aria-label={
+                  member.isFollowing
+                    ? `Unfollow @${member.username}`
+                    : `Follow @${member.username}`
+                }
+                className={`flex items-center justify-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  member.isFollowing
+                    ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
+                    : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
+                }`}
               >
-                <button
-                  type="button"
-                  onClick={() =>
-                    member.isFollowing
-                      ? onUnfollow?.(member.userId)
-                      : onFollow?.(member.userId)
-                  }
-                  aria-label={
-                    member.isFollowing
-                      ? `Unfollow @${member.username}`
-                      : `Follow @${member.username}`
-                  }
-                  className={`flex h-11 w-11 items-center justify-center rounded-lg border transition-colors ${
-                    member.isFollowing
-                      ? 'border-success/40 bg-success/10 text-success hover:border-error/40 hover:bg-error/10 hover:text-error'
-                      : 'border-border bg-surface text-text-muted hover:bg-surface-muted hover:text-text'
-                  }`}
-                >
-                  {member.isFollowing ? (
-                    <UserCheck className="h-5 w-5" aria-hidden="true" />
-                  ) : (
-                    <UserPlus className="h-5 w-5" aria-hidden="true" />
-                  )}
-                </button>
-              </Tooltip>
-            ) : null}
+                {member.isFollowing ? (
+                  <>
+                    <UserCheck className="h-3 w-3" aria-hidden="true" />
+                    Following
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-3 w-3" aria-hidden="true" />
+                    Follow
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       ))}

@@ -43,6 +43,7 @@ function MyPredictionsPage() {
       void navigate({
         to: '/p/$username',
         params: { username: me.username },
+        search: { from: undefined, fromLabel: undefined },
         replace: true,
       });
     }

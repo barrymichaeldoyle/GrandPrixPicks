@@ -102,6 +102,7 @@ function UserLink({
     <Link
       to="/p/$username"
       params={{ username }}
+      search={{ from: undefined, fromLabel: undefined }}
       className="font-bold text-accent hover:text-accent-hover"
     >
       {name}
@@ -307,6 +308,7 @@ function ItemHeader({ event, icon }: { event: FeedEvent; icon: ReactNode }) {
       <Link
         to="/p/$username"
         params={{ username: event.username ?? '' }}
+        search={{ from: undefined, fromLabel: undefined }}
         className="shrink-0"
         tabIndex={event.username ? 0 : -1}
       >
@@ -428,6 +430,7 @@ function RevsModal({
                   <Link
                     to="/p/$username"
                     params={{ username: user.username ?? '' }}
+                    search={{ from: undefined, fromLabel: undefined }}
                     className="flex min-w-0 flex-1 items-center gap-3"
                     onClick={onClose}
                     tabIndex={user.username ? 0 : -1}
@@ -507,6 +510,7 @@ function ScorePublishedItem({
           <Link
             to="/p/$username"
             params={{ username: event.username ?? '' }}
+            search={{ from: undefined, fromLabel: undefined }}
             className="shrink-0"
             tabIndex={event.username ? 0 : -1}
           >

@@ -1329,6 +1329,7 @@ function CombinedTableRow({ entry }: { entry: CombinedLeaderboardEntry }) {
         <Link
           to="/p/$username"
           params={{ username: entry.username }}
+          search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
           <span className="font-semibold text-accent">
@@ -1374,6 +1375,7 @@ function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
         <Link
           to="/p/$username"
           params={{ username: entry.username }}
+          search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
           <span className="font-semibold text-accent">
@@ -1419,6 +1421,7 @@ function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
         <Link
           to="/p/$username"
           params={{ username: entry.username }}
+          search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
           <span className="font-semibold text-accent">
@@ -1454,6 +1457,7 @@ function SmallLeaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           key={entry.userId}
           to="/p/$username"
           params={{ username: entry.username }}
+          search={{ from: undefined, fromLabel: undefined }}
           className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors last:border-0 hover:opacity-90 ${
             entry.isViewer ? 'rounded-lg bg-accent-muted px-2' : ''
           }`}
@@ -1539,6 +1543,7 @@ function PodiumCard({
     <Link
       to="/p/$username"
       params={{ username: entry.username }}
+      search={{ from: undefined, fromLabel: undefined }}
       className={`${className} ${marginTop} relative block cursor-pointer rounded-xl border p-3 transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-lg sm:p-4 ${borderStyle}`}
     >
       {/* Desktop: YOU badge top-right */}

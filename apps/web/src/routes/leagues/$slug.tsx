@@ -260,7 +260,9 @@ function LeagueDetailContent({ league }: { league: League }) {
         {/* Share link — visible to all members */}
         {isMember && <ShareLinkSection slug={league.slug} />}
 
-        {isMember && <LeagueTabs leagueId={league._id} />}
+        {isMember && (
+          <LeagueTabs leagueId={league._id} leagueName={league.name} />
+        )}
       </div>
     </div>
   );
@@ -384,7 +386,13 @@ const VIEW_OPTIONS = [
   { value: 'feed' as const, label: 'Feed', leftIcon: Gauge },
 ];
 
-function LeagueTabs({ leagueId }: { leagueId: Id<'leagues'> }) {
+function LeagueTabs({
+  leagueId,
+  leagueName,
+}: {
+  leagueId: Id<'leagues'>;
+  leagueName: string;
+}) {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const view: LeagueView = search.view ?? 'standings';
@@ -407,7 +415,7 @@ function LeagueTabs({ leagueId }: { leagueId: Id<'leagues'> }) {
         />
       </div>
       {view === 'standings' ? (
-        <LeagueMembers leagueId={leagueId} />
+        <LeagueMembers leagueId={leagueId} leagueName={leagueName} />
       ) : (
         <LeagueFeed leagueId={leagueId} />
       )}
@@ -511,9 +519,16 @@ const GAME_MODE_OPTIONS = [
   { value: 'h2h' as const, label: 'H2H', leftIcon: Swords },
 ];
 
-function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
+function LeagueMembers({
+  leagueId,
+  leagueName,
+}: {
+  leagueId: Id<'leagues'>;
+  leagueName: string;
+}) {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { slug } = Route.useParams();
 
   const timeScope: TimeScope = search.time ?? 'weekend';
   const gameMode: GameMode = search.mode ?? 'combined';
@@ -848,7 +863,12 @@ function LeagueMembers({ leagueId }: { leagueId: Id<'leagues'> }) {
         showPredictionStatus={showPredictionStatus}
         gameMode={gameMode}
         renderProfileLink={({ username, className, children }) => (
-          <Link to="/p/$username" params={{ username }} className={className}>
+          <Link
+            to="/p/$username"
+            params={{ username }}
+            search={{ from: `/leagues/${slug}`, fromLabel: leagueName }}
+            className={className}
+          >
             {children}
           </Link>
         )}

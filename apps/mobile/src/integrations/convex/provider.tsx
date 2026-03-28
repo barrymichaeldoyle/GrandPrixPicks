@@ -1,17 +1,17 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { ConvexProviderWithClerk } from "convex/react-clerk";
-import type { ReactNode } from "react";
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ConvexProviderWithClerk } from 'convex/react-clerk';
+import type { ReactNode } from 'react';
 
-import { useMobileConfig } from "../../providers/mobile-config";
+import { useMobileConfig } from '../../providers/mobile-config';
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient =
-  typeof convexUrl === "string" && convexUrl.length > 0
+  typeof convexUrl === 'string' && convexUrl.length > 0
     ? new ConvexReactClient(convexUrl)
     : null;
 const fallbackConvexClient = new ConvexReactClient(
-  "https://placeholder.convex.cloud",
+  'https://placeholder.convex.cloud',
 );
 
 export function MobileConvexProvider({ children }: { children: ReactNode }) {

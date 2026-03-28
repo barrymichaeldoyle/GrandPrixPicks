@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "references": [{ "path": "../../packages/shared" }],
-  "include": ["App.tsx", "**/*.ts", "**/*.tsx", "eslint.config.js"],
+  "include": ["App.tsx", "**/*.ts", "**/*.tsx"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ES2022"],

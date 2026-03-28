@@ -101,9 +101,7 @@ function runConvex(functionName, args, targetFlags, dryRun) {
   try {
     return JSON.parse(stdout);
   } catch {
-    throw new Error(
-      `Failed to parse output from ${functionName}: ${stdout}`,
-    );
+    throw new Error(`Failed to parse output from ${functionName}: ${stdout}`);
   }
 }
 

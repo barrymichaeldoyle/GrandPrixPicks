@@ -10,17 +10,17 @@ Convex functions run inside transactions with budgets for time, reads, and write
 
 These are the current values from the [Convex limits docs](https://docs.convex.dev/production/state/limits). Check that page for the latest numbers.
 
-| Resource | Limit |
-|---|---|
-| Query/mutation execution time | 1 second (user code only, excludes DB operations) |
-| Action execution time | 10 minutes |
-| Data read per transaction | 16 MiB |
-| Data written per transaction | 16 MiB |
+| Resource                          | Limit                                                 |
+| --------------------------------- | ----------------------------------------------------- |
+| Query/mutation execution time     | 1 second (user code only, excludes DB operations)     |
+| Action execution time             | 10 minutes                                            |
+| Data read per transaction         | 16 MiB                                                |
+| Data written per transaction      | 16 MiB                                                |
 | Documents scanned per transaction | 32,000 (includes documents filtered out by `.filter`) |
-| Index ranges read per transaction | 4,096 (each `db.get` and `db.query` call) |
-| Documents written per transaction | 16,000 |
-| Individual document size | 1 MiB |
-| Function return value size | 16 MiB |
+| Index ranges read per transaction | 4,096 (each `db.get` and `db.query` call)             |
+| Documents written per transaction | 16,000                                                |
+| Individual document size          | 1 MiB                                                 |
+| Function return value size        | 16 MiB                                                |
 
 ## Symptoms
 
@@ -56,15 +56,15 @@ Never `.collect()` without a limit on a table that can grow unbounded.
 
 ```ts
 // Bad: unbounded read, breaks as the table grows
-const messages = await ctx.db.query("messages").collect();
+const messages = await ctx.db.query('messages').collect();
 ```
 
 ```ts
 // Good: paginate or limit
 const messages = await ctx.db
-  .query("messages")
-  .withIndex("by_channel", (q) => q.eq("channelId", channelId))
-  .order("desc")
+  .query('messages')
+  .withIndex('by_channel', (q) => q.eq('channelId', channelId))
+  .order('desc')
   .take(50);
 ```
 
@@ -82,7 +82,7 @@ If a mutation needs to update hundreds of documents, split it into a self-schedu
 // Bad: one mutation updating every row
 export const backfillAll = internalMutation({
   handler: async (ctx) => {
-    const docs = await ctx.db.query("items").collect();
+    const docs = await ctx.db.query('items').collect();
     for (const doc of docs) {
       await ctx.db.patch(doc._id, { newField: computeValue(doc) });
     }
@@ -97,7 +97,7 @@ export const backfillBatch = internalMutation({
   handler: async (ctx, args) => {
     const batchSize = args.batchSize ?? 100;
     const result = await ctx.db
-      .query("items")
+      .query('items')
       .paginate({ cursor: args.cursor ?? null, numItems: batchSize });
 
     for (const doc of result.page) {
@@ -127,7 +127,7 @@ Actions run outside the transaction and can call mutations to write results back
 export const processUpload = mutation({
   handler: async (ctx, args) => {
     const result = expensiveComputation(args.data);
-    await ctx.db.insert("results", result);
+    await ctx.db.insert('results', result);
   },
 });
 ```
@@ -150,7 +150,7 @@ Only return what the client needs. If a query fetches full documents but the com
 // Bad: returns full documents including large content fields
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db.query("articles").take(20);
+    return await ctx.db.query('articles').take(20);
   },
 });
 ```
@@ -159,7 +159,7 @@ export const list = query({
 // Good: project to only the fields the client needs
 export const list = query({
   handler: async (ctx) => {
-    const articles = await ctx.db.query("articles").take(20);
+    const articles = await ctx.db.query('articles').take(20);
     return articles.map((a) => ({
       _id: a._id,
       title: a.title,
@@ -179,7 +179,7 @@ Inside queries and mutations, `ctx.runQuery` and `ctx.runMutation` have overhead
 export const createProject = mutation({
   handler: async (ctx, args) => {
     const user = await ctx.runQuery(api.users.getCurrentUser);
-    await ctx.db.insert("projects", { ...args, ownerId: user._id });
+    await ctx.db.insert('projects', { ...args, ownerId: user._id });
   },
 });
 ```
@@ -189,7 +189,7 @@ export const createProject = mutation({
 export const createProject = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    await ctx.db.insert("projects", { ...args, ownerId: user._id });
+    await ctx.db.insert('projects', { ...args, ownerId: user._id });
   },
 });
 ```

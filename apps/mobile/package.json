@@ -9,7 +9,12 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "pnpm exec eslint"
+    "lint": "pnpm exec oxlint -c ../../.oxlintrc.json .",
+    "lint:fix": "pnpm exec oxlint -c ../../.oxlintrc.json . --fix",
+    "fix": "pnpm run format && pnpm run lint:fix",
+    "format": "pnpm --dir ../.. exec prettier --write apps/mobile",
+    "format:check": "pnpm --dir ../.. exec prettier --check apps/mobile",
+    "check": "pnpm run format:check && pnpm run lint"
   },
   "dependencies": {
     "@clerk/clerk-expo": "2.19.31",
@@ -43,12 +48,7 @@
     }
   },
   "devDependencies": {
-    "@tanstack/eslint-config": "0.4.0",
     "@types/react": "19.2.14",
-    "eslint": "catalog:",
-    "eslint-config-prettier": "catalog:",
-    "eslint-plugin-prettier": "catalog:",
-    "eslint-plugin-simple-import-sort": "catalog:",
     "typescript": "catalog:"
   }
 }

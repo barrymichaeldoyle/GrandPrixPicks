@@ -1,14 +1,14 @@
 import { useClerk, useOAuth, useUser } from '@clerk/clerk-expo';
-import { Ionicons } from "@expo/vector-icons";
-import * as AuthSession from "expo-auth-session";
-import * as WebBrowser from "expo-web-browser";
-import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ExternalLinkButton } from "../components/ExternalLinkButton";
-import { useMobileConfig } from "../providers/mobile-config";
-import { colors, radii } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
+import { ExternalLinkButton } from '../components/ExternalLinkButton';
+import { useMobileConfig } from '../providers/mobile-config';
+import { colors, radii } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -58,7 +58,7 @@ function ClerkEnabledProfileScreen() {
   const { titleFontFamily } = useTypography();
   const { signOut } = useClerk();
   const { isSignedIn, user } = useUser();
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
   const [status, setStatus] = useState<string | null>(null);
 
   async function handleSignIn() {
@@ -72,16 +72,16 @@ function ClerkEnabledProfileScreen() {
         await setActive({ session: createdSessionId });
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Sign-in failed");
+      setStatus(error instanceof Error ? error.message : 'Sign-in failed');
     }
   }
 
   async function handleSignOut() {
     try {
       await signOut();
-      setStatus("Signed out");
+      setStatus('Signed out');
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Sign-out failed");
+      setStatus(error instanceof Error ? error.message : 'Sign-out failed');
     }
   }
 
@@ -98,7 +98,7 @@ function ClerkEnabledProfileScreen() {
       {isSignedIn ? (
         <>
           <Text style={styles.body}>
-            Signed in as {user.primaryEmailAddress?.emailAddress ?? "user"}.
+            Signed in as {user.primaryEmailAddress?.emailAddress ?? 'user'}.
           </Text>
           <Pressable onPress={handleSignOut} style={styles.button}>
             <Text style={styles.buttonText}>Sign Out</Text>
@@ -119,7 +119,7 @@ function ClerkEnabledProfileScreen() {
 
 const styles = StyleSheet.create({
   button: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.lg,
     paddingVertical: 12,
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.text,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   body: {
     color: colors.textMuted,
@@ -143,28 +143,28 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   emptyHeaderRow: {
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 6,
   },
   emptyTitle: {
     color: colors.text,
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 24,
   },
   envLabel: {
     color: colors.textMuted,
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: '600',
     lineHeight: 16,
     marginTop: 4,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   envValue: {
     color: colors.accentHover,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 18,
   },
   screen: {
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.2,
     lineHeight: 38,
   },

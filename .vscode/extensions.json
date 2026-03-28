@@ -1,8 +1,8 @@
 {
   "recommendations": [
     "antfu.pnpm-catalog-lens",
-    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
+    "oxc.oxc-vscode",
     "streetsidesoftware.code-spell-checker",
     "vitest.explorer",
     "webpro.vscode-knip"

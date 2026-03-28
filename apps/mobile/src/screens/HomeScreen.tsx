@@ -1,10 +1,10 @@
-import { SESSION_LABELS } from "@grandprixpicks/shared/sessions";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { formatRaceDate } from "../lib/dates";
-import { colors, radii } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
-import type { RaceWeekend } from "../types";
+import { formatRaceDate } from '../lib/dates';
+import { colors, radii } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
+import type { RaceWeekend } from '../types';
 
 type HomeScreenProps = {
   onOpenRace?: (raceSlug: string) => void;
@@ -12,29 +12,29 @@ type HomeScreenProps = {
 };
 
 const SLUG_TO_COUNTRY: Record<string, string> = {
-  australia: "au",
-  bahrain: "bh",
-  belgium: "be",
-  brazil: "br",
-  canada: "ca",
-  china: "cn",
-  hungary: "hu",
-  italy: "it",
-  japan: "jp",
-  mexico: "mx",
-  monaco: "mc",
-  netherlands: "nl",
-  portugal: "pt",
-  qatar: "qa",
-  saudi: "sa",
-  singapore: "sg",
-  spain: "es",
-  "united-states": "us",
-  usa: "us",
+  australia: 'au',
+  bahrain: 'bh',
+  belgium: 'be',
+  brazil: 'br',
+  canada: 'ca',
+  china: 'cn',
+  hungary: 'hu',
+  italy: 'it',
+  japan: 'jp',
+  mexico: 'mx',
+  monaco: 'mc',
+  netherlands: 'nl',
+  portugal: 'pt',
+  qatar: 'qa',
+  saudi: 'sa',
+  singapore: 'sg',
+  spain: 'es',
+  'united-states': 'us',
+  usa: 'us',
 };
 
 function getCountryCodeForRaceSlug(slug: string): string | null {
-  const key = slug.replace(/-\d{4}$/, "").toLowerCase();
+  const key = slug.replace(/-\d{4}$/, '').toLowerCase();
   return SLUG_TO_COUNTRY[key] ?? null;
 }
 
@@ -106,7 +106,7 @@ export function HomeScreen({ races, onOpenRace }: HomeScreenProps) {
         </View>
         <Text style={styles.raceMeta}>{nextRace.country}</Text>
         <Text style={styles.raceMeta}>
-          {nextRace.hasSprint ? "Sprint weekend" : "Standard weekend"}
+          {nextRace.hasSprint ? 'Sprint weekend' : 'Standard weekend'}
         </Text>
 
         <View style={styles.divider} />
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   openButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.md,
     marginTop: 2,
@@ -176,11 +176,11 @@ const styles = StyleSheet.create({
   openButtonText: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   raceHeaderRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     gap: 8,
     minWidth: 0,
   },
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 30,
   },
   screen: {
@@ -208,17 +208,17 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     borderRadius: 5,
     borderWidth: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   flagImage: {
     height: 20,
     width: 30,
   },
   sessionRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     gap: 12,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     paddingVertical: 2,
   },
   sessionTime: {
@@ -226,10 +226,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     flexShrink: 1,
     lineHeight: 16,
-    textAlign: "right",
+    textAlign: 'right',
   },
   sessionTimes: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
     flex: 1,
     gap: 2,
     minWidth: 0,
@@ -239,19 +239,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     flexShrink: 1,
     lineHeight: 15,
-    textAlign: "right",
+    textAlign: 'right',
   },
   sessionType: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '600',
     lineHeight: 18,
     maxWidth: 110,
   },
   title: {
     color: colors.text,
     fontSize: 36,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.2,
     lineHeight: 40,
   },

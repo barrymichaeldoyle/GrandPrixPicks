@@ -1,12 +1,13 @@
 {
-  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
   "prettier.requireConfig": true,
+  "oxc.configPath": ".oxlintrc.json",
+  "oxc.fixKind": "safe_fix",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.fixAll.oxc": "always"
   },
-  "eslint.useFlatConfig": true,
-  "eslint.codeActionsOnSave.mode": "all",
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },

@@ -7,7 +7,6 @@ type RouteEvent = {
 };
 
 // Nitro route files are convention-based and require a default export.
-// eslint-disable-next-line no-restricted-syntax
 export default async function handler(event: RouteEvent) {
   try {
     const result = await handleClerkWebhook(event.req);

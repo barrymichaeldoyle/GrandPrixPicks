@@ -1,4 +1,4 @@
-import { getRaceTimeZoneFromSlug } from "@grandprixpicks/shared/raceTimezones";
+import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 
 export function formatRaceDate(isoDate: string, raceSlug: string) {
   const date = new Date(isoDate);
@@ -6,14 +6,14 @@ export function formatRaceDate(isoDate: string, raceSlug: string) {
 
   return {
     local: new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
+      dateStyle: 'medium',
+      timeStyle: 'short',
     }).format(date),
     track: new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: raceTimeZone ?? "UTC",
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: raceTimeZone ?? 'UTC',
     }).format(date),
-    trackTimeZone: raceTimeZone ?? "UTC",
+    trackTimeZone: raceTimeZone ?? 'UTC',
   };
 }

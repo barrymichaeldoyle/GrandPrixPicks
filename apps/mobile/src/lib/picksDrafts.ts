@@ -1,9 +1,9 @@
 import {
   getConnectedDraftStorageKey,
   getLocalRaceDraftStorageKey,
-} from "@grandprixpicks/shared/picks";
-import type { SessionType } from "@grandprixpicks/shared/sessions";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+} from '@grandprixpicks/shared/picks';
+import type { SessionType } from '@grandprixpicks/shared/sessions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;

@@ -376,7 +376,6 @@ export const submitPrediction = mutation({
     const nextRace = upcomingRaces[0];
 
     // Runtime guard: type doesn't reflect that upcomingRaces can be empty or not match
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error('Predictions are only open for the next upcoming race');
     }
@@ -526,7 +525,6 @@ export const randomizePredictions = mutation({
       .sort((a, b) => a.raceStartAt - b.raceStartAt);
     const nextRace = upcomingRaces[0];
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error('Predictions are only open for the next upcoming race');
     }

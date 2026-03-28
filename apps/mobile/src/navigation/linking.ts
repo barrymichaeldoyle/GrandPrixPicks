@@ -1,31 +1,31 @@
-import type { LinkingOptions } from "@react-navigation/native";
+import type { LinkingOptions } from '@react-navigation/native';
 
-import type { RootTabParamList } from "./types";
+import type { RootTabParamList } from './types';
 
 export const linking: LinkingOptions<RootTabParamList> = {
   config: {
     screens: {
       HomeTab: {
-        path: "home",
+        path: 'home',
         screens: {
-          HomeMain: "",
-          RaceDetail: "races/:raceSlug",
+          HomeMain: '',
+          RaceDetail: 'races/:raceSlug',
         },
       },
       PicksTab: {
-        path: "picks",
+        path: 'picks',
         screens: {
-          PicksMain: "",
-          RaceDetail: "races/:raceSlug",
+          PicksMain: '',
+          RaceDetail: 'races/:raceSlug',
         },
       },
       ProfileTab: {
-        path: "profile",
+        path: 'profile',
         screens: {
-          ProfileMain: "",
+          ProfileMain: '',
         },
       },
     },
   },
-  prefixes: ["grandprixpicks://", "https://grandprixpicks.com"],
+  prefixes: ['grandprixpicks://', 'https://grandprixpicks.com'],
 };

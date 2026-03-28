@@ -1,13 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "references": [{ "path": "../../packages/shared" }],
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "eslint.config.js",
-    "prettier.config.js",
-    "vite.config.ts"
-  ],
+  "include": ["**/*.ts", "**/*.tsx", "prettier.config.js", "vite.config.ts"],
 
   "compilerOptions": {
     "jsx": "react-jsx",

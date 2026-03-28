@@ -32,15 +32,15 @@ Use the official scaffolding tool. It creates a complete project with the fronte
 
 ### Pick a template
 
-| Template | Stack |
-|----------|-------|
-| `react-vite-shadcn` | React + Vite + Tailwind + shadcn/ui |
-| `nextjs-shadcn` | Next.js App Router + Tailwind + shadcn/ui |
-| `react-vite-clerk-shadcn` | React + Vite + Clerk auth + shadcn/ui |
-| `nextjs-clerk` | Next.js + Clerk auth |
-| `nextjs-convexauth-shadcn` | Next.js + Convex Auth + shadcn/ui |
-| `nextjs-lucia-shadcn` | Next.js + Lucia auth + shadcn/ui |
-| `bare` | Convex backend only, no frontend |
+| Template                   | Stack                                     |
+| -------------------------- | ----------------------------------------- |
+| `react-vite-shadcn`        | React + Vite + Tailwind + shadcn/ui       |
+| `nextjs-shadcn`            | Next.js App Router + Tailwind + shadcn/ui |
+| `react-vite-clerk-shadcn`  | React + Vite + Clerk auth + shadcn/ui     |
+| `nextjs-clerk`             | Next.js + Clerk auth                      |
+| `nextjs-convexauth-shadcn` | Next.js + Convex Auth + shadcn/ui         |
+| `nextjs-lucia-shadcn`      | Next.js + Lucia auth + shadcn/ui          |
+| `bare`                     | Convex backend only, no frontend          |
 
 If the user has not specified a preference, default to `react-vite-shadcn` for simple apps or `nextjs-shadcn` for apps that need SSR or API routes.
 
@@ -77,6 +77,7 @@ npm install
 **Ask the user to run this themselves:**
 
 Tell the user to run `npx convex dev` in their terminal. On first run it will prompt them to log in or develop anonymously. Once running, it will:
+
 - Create a Convex project and dev deployment
 - Write the deployment URL to `.env.local`
 - Create the `convex/` directory with generated types
@@ -111,6 +112,7 @@ my-app/
 ```
 
 The template already has:
+
 - `ConvexProvider` wired into the app root
 - Correct env var names for the framework
 - Tailwind and shadcn/ui ready (for shadcn templates)
@@ -141,7 +143,9 @@ Create the `ConvexReactClient` at module scope, not inside a component:
 ```tsx
 // Bad: re-creates the client on every render
 function App() {
-  const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+  const convex = new ConvexReactClient(
+    import.meta.env.VITE_CONVEX_URL as string,
+  );
   return <ConvexProvider client={convex}>...</ConvexProvider>;
 }
 
@@ -156,14 +160,14 @@ function App() {
 
 ```tsx
 // src/main.tsx
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import App from "./App";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import App from './App';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConvexProvider client={convex}>
       <App />
@@ -176,10 +180,10 @@ createRoot(document.getElementById("root")!).render(
 
 ```tsx
 // app/ConvexClientProvider.tsx
-"use client";
+'use client';
 
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { ReactNode } from "react";
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ReactNode } from 'react';
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -190,9 +194,13 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
 
 ```tsx
 // app/layout.tsx
-import { ConvexClientProvider } from "./ConvexClientProvider";
+import { ConvexClientProvider } from './ConvexClientProvider';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>
@@ -218,11 +226,11 @@ For Vue, Svelte, React Native, TanStack Start, Remix, and others, follow the mat
 
 The env var name depends on the framework:
 
-| Framework | Variable |
-|-----------|----------|
-| Vite | `VITE_CONVEX_URL` |
-| Next.js | `NEXT_PUBLIC_CONVEX_URL` |
-| Remix | `CONVEX_URL` |
+| Framework    | Variable                 |
+| ------------ | ------------------------ |
+| Vite         | `VITE_CONVEX_URL`        |
+| Next.js      | `NEXT_PUBLIC_CONVEX_URL` |
+| Remix        | `CONVEX_URL`             |
 | React Native | `EXPO_PUBLIC_CONVEX_URL` |
 
 `npx convex dev` writes the correct variable to `.env.local` automatically.
@@ -254,8 +262,8 @@ Once the project is set up, create a schema and a query to verify the full loop 
 `convex/schema.ts`:
 
 ```ts
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   tasks: defineTable({
@@ -268,20 +276,20 @@ export default defineSchema({
 `convex/tasks.ts`:
 
 ```ts
-import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { query, mutation } from './_generated/server';
+import { v } from 'convex/values';
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("tasks").collect();
+    return await ctx.db.query('tasks').collect();
   },
 });
 
 export const create = mutation({
   args: { text: v.string() },
   handler: async (ctx, args) => {
-    await ctx.db.insert("tasks", { text: args.text, completed: false });
+    await ctx.db.insert('tasks', { text: args.text, completed: false });
   },
 });
 ```
@@ -289,8 +297,8 @@ export const create = mutation({
 Use in a React component (adjust the import path based on your file location relative to `convex/`):
 
 ```tsx
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../convex/_generated/api';
 
 function Tasks() {
   const tasks = useQuery(api.tasks.list);
@@ -298,8 +306,10 @@ function Tasks() {
 
   return (
     <div>
-      <button onClick={() => create({ text: "New task" })}>Add</button>
-      {tasks?.map((t) => <div key={t._id}>{t.text}</div>)}
+      <button onClick={() => create({ text: 'New task' })}>Add</button>
+      {tasks?.map((t) => (
+        <div key={t._id}>{t.text}</div>
+      ))}
     </div>
   );
 }

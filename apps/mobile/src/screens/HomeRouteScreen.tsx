@@ -1,10 +1,10 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { useRaceWeekends } from "../lib/useRaceWeekends";
-import type { HomeStackParamList } from "../navigation/types";
-import { HomeScreen } from "./HomeScreen";
+import { useRaceWeekends } from '../lib/useRaceWeekends';
+import type { HomeStackParamList } from '../navigation/types';
+import { HomeScreen } from './HomeScreen';
 
-type Props = NativeStackScreenProps<HomeStackParamList, "HomeMain">;
+type Props = NativeStackScreenProps<HomeStackParamList, 'HomeMain'>;
 
 export function HomeRouteScreen({ navigation }: Props) {
   const { races } = useRaceWeekends();
@@ -12,7 +12,7 @@ export function HomeRouteScreen({ navigation }: Props) {
   return (
     <HomeScreen
       races={races}
-      onOpenRace={(raceSlug) => navigation.navigate("RaceDetail", { raceSlug })}
+      onOpenRace={(raceSlug) => navigation.navigate('RaceDetail', { raceSlug })}
     />
   );
 }

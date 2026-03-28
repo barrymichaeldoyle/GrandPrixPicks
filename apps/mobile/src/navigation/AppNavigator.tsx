@@ -1,22 +1,22 @@
-import { Ionicons } from "@expo/vector-icons";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Text } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StyleSheet, Text } from 'react-native';
 
-import { HomeRouteScreen } from "../screens/HomeRouteScreen";
-import { PicksConnectedScreen } from "../screens/PicksConnectedScreen";
-import { ProfileScreen } from "../screens/ProfileScreen";
-import { RaceDetailScreen } from "../screens/RaceDetailScreen";
-import { colors } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
-import { linking } from "./linking";
+import { HomeRouteScreen } from '../screens/HomeRouteScreen';
+import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { RaceDetailScreen } from '../screens/RaceDetailScreen';
+import { colors } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
+import { linking } from './linking';
 import type {
   HomeStackParamList,
   PicksStackParamList,
   ProfileStackParamList,
   RootTabParamList,
-} from "./types";
+} from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -57,7 +57,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
-        options={{ title: "Race Details" }}
+        options={{ title: 'Race Details' }}
       />
     </HomeStack.Navigator>
   );
@@ -83,7 +83,7 @@ function PicksStackNavigator() {
       <PicksStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
-        options={{ title: "Race Details" }}
+        options={{ title: 'Race Details' }}
       />
     </PicksStack.Navigator>
   );
@@ -120,16 +120,16 @@ export function AppNavigator() {
           tabBarActiveTintColor: colors.accent,
           tabBarIcon: ({ color, size }) => {
             const iconName =
-              route.name === "HomeTab"
-                ? "home"
-                : route.name === "PicksTab"
-                  ? "trophy"
-                  : "person";
+              route.name === 'HomeTab'
+                ? 'home'
+                : route.name === 'PicksTab'
+                  ? 'trophy'
+                  : 'person';
             return <Ionicons color={color} name={iconName} size={size} />;
           },
           tabBarInactiveTintColor: colors.textMuted,
           tabBarItemStyle: {
-            justifyContent: "center",
+            justifyContent: 'center',
             paddingBottom: 0,
             paddingTop: 0,
           },
@@ -149,17 +149,17 @@ export function AppNavigator() {
         <Tab.Screen
           component={HomeStackNavigator}
           name="HomeTab"
-          options={{ title: "Home" }}
+          options={{ title: 'Home' }}
         />
         <Tab.Screen
           component={PicksStackNavigator}
           name="PicksTab"
-          options={{ title: "Picks" }}
+          options={{ title: 'Picks' }}
         />
         <Tab.Screen
           component={ProfileStackNavigator}
           name="ProfileTab"
-          options={{ title: "Profile" }}
+          options={{ title: 'Profile' }}
         />
       </Tab.Navigator>
     </NavigationContainer>
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   brandTitle: {
     color: colors.text,
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.3,
   },
 });

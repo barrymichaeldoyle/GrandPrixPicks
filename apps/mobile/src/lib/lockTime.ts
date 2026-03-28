@@ -1,7 +1,7 @@
 import {
   formatLockCountdown,
   getLockStatusViewModel as getSharedLockStatusViewModel,
-} from "@grandprixpicks/shared/picks";
+} from '@grandprixpicks/shared/picks';
 
 export function formatCountdown(msRemaining: number) {
   return formatLockCountdown(msRemaining);

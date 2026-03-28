@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { createContext, useContext } from "react";
+import type { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 
 type MobileConfig = {
   clerkEnabled: boolean;
@@ -14,9 +14,9 @@ const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL ?? null;
 
 const config: MobileConfig = {
   clerkEnabled:
-    typeof clerkPublishableKey === "string" && clerkPublishableKey.length > 0,
+    typeof clerkPublishableKey === 'string' && clerkPublishableKey.length > 0,
   clerkPublishableKey,
-  convexEnabled: typeof convexUrl === "string" && convexUrl.length > 0,
+  convexEnabled: typeof convexUrl === 'string' && convexUrl.length > 0,
   convexUrl,
 };
 

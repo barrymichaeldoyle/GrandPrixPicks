@@ -12,7 +12,6 @@ type RouteEvent = {
 };
 
 // Nitro route files are convention-based and require a default export.
-// eslint-disable-next-line no-restricted-syntax
 export default async function handler(event: RouteEvent) {
   const signatureHeader = event.req.headers.get('paddle-signature');
   const rawBody = await event.req.text();

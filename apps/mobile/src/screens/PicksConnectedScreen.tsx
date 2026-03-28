@@ -1,12 +1,12 @@
-import type { SessionType } from "@grandprixpicks/shared/sessions";
+import type { SessionType } from '@grandprixpicks/shared/sessions';
 import {
   getSessionsForWeekend,
   SESSION_LABELS_SHORT,
-} from "@grandprixpicks/shared/sessions";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useMutation, useQuery } from "convex/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+} from '@grandprixpicks/shared/sessions';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useMutation, useQuery } from 'convex/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -14,24 +14,24 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from 'react-native';
 
-import type { ConvexId } from "../integrations/convex/api";
-import { api } from "../integrations/convex/api";
-import { formatRaceDate } from "../lib/dates";
-import { formatCountdown, getLockStatusViewModel } from "../lib/lockTime";
+import type { ConvexId } from '../integrations/convex/api';
+import { api } from '../integrations/convex/api';
+import { formatRaceDate } from '../lib/dates';
+import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
 import {
   clearConnectedDraft,
   loadConnectedDraft,
   saveConnectedDraft,
-} from "../lib/picksDrafts";
-import { useNow } from "../lib/useNow";
-import { useRaceWeekends } from "../lib/useRaceWeekends";
-import type { PicksStackParamList } from "../navigation/types";
-import { useMobileConfig } from "../providers/mobile-config";
-import { colors, radii } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
-import { PicksScreen } from "./PicksScreen";
+} from '../lib/picksDrafts';
+import { useNow } from '../lib/useNow';
+import { useRaceWeekends } from '../lib/useRaceWeekends';
+import type { PicksStackParamList } from '../navigation/types';
+import { useMobileConfig } from '../providers/mobile-config';
+import { colors, radii } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
+import { PicksScreen } from './PicksScreen';
 
 const MAX_TOP5 = 5;
 
@@ -42,9 +42,9 @@ export function PicksConnectedScreen() {
   const { convexEnabled } = useMobileConfig();
   const { races } = useRaceWeekends();
   const [selectedRaceSlug, setSelectedRaceSlug] = useState<string>(
-    races[0]?.slug ?? "",
+    races[0]?.slug ?? '',
   );
-  const [selectedSession, setSelectedSession] = useState<SessionType>("race");
+  const [selectedSession, setSelectedSession] = useState<SessionType>('race');
   const [top5, setTop5] = useState<Array<string>>([]);
   const [h2hByMatchup, setH2HByMatchup] = useState<Record<string, string>>({});
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -60,25 +60,25 @@ export function PicksConnectedScreen() {
 
   const driversQuery = useQuery(
     api.drivers.listDrivers,
-    convexEnabled ? {} : "skip",
+    convexEnabled ? {} : 'skip',
   );
   const h2hMatchupsQuery = useQuery(
     api.h2h.getMatchupsForSeason,
-    convexEnabled ? { season: 2026 } : "skip",
+    convexEnabled ? { season: 2026 } : 'skip',
   );
   const raceQuery = useQuery(
     api.races.getRaceBySlug,
-    convexEnabled && selectedRaceSlug ? { slug: selectedRaceSlug } : "skip",
+    convexEnabled && selectedRaceSlug ? { slug: selectedRaceSlug } : 'skip',
   );
   const existingTop5Query = useQuery(
     api.predictions.myPredictionForRace,
     convexEnabled && raceQuery
       ? { raceId: raceQuery._id, sessionType: selectedSession }
-      : "skip",
+      : 'skip',
   );
   const existingH2HQuery = useQuery(
     api.h2h.myH2HPredictionsForRace,
-    convexEnabled && raceQuery ? { raceId: raceQuery._id } : "skip",
+    convexEnabled && raceQuery ? { raceId: raceQuery._id } : 'skip',
   );
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
@@ -103,7 +103,7 @@ export function PicksConnectedScreen() {
   }, [raceQuery, selectedSession]);
 
   const selectedSessionLockDisplay = useMemo(() => {
-    if (typeof selectedSessionLockAt !== "number") {
+    if (typeof selectedSessionLockAt !== 'number') {
       return null;
     }
     const slug = raceQuery?.slug ?? selectedRaceSlug;
@@ -121,7 +121,7 @@ export function PicksConnectedScreen() {
 
   useEffect(() => {
     if (!sessionOptions.includes(selectedSession)) {
-      setSelectedSession(sessionOptions[0] ?? "race");
+      setSelectedSession(sessionOptions[0] ?? 'race');
     }
   }, [selectedSession, sessionOptions]);
 
@@ -204,7 +204,7 @@ export function PicksConnectedScreen() {
   ]);
 
   const selectedSessionRemainingMs =
-    typeof selectedSessionLockAt === "number"
+    typeof selectedSessionLockAt === 'number'
       ? selectedSessionLockAt - now
       : null;
   const lockStatus = getLockStatusViewModel(
@@ -252,13 +252,13 @@ export function PicksConnectedScreen() {
       return;
     }
     Alert.alert(
-      "Unsaved changes",
-      "Switch sessions and discard your unsaved changes?",
+      'Unsaved changes',
+      'Switch sessions and discard your unsaved changes?',
       [
-        { style: "cancel", text: "Keep editing" },
+        { style: 'cancel', text: 'Keep editing' },
         {
-          style: "destructive",
-          text: "Discard",
+          style: 'destructive',
+          text: 'Discard',
           onPress: () => {
             void clearConnectedDraft(selectedRaceSlug, selectedSession);
             setIsCurrentDraftDirty(false);
@@ -280,13 +280,13 @@ export function PicksConnectedScreen() {
       return;
     }
     Alert.alert(
-      "Unsaved changes",
-      "Switch races and discard your unsaved changes?",
+      'Unsaved changes',
+      'Switch races and discard your unsaved changes?',
       [
-        { style: "cancel", text: "Keep editing" },
+        { style: 'cancel', text: 'Keep editing' },
         {
-          style: "destructive",
-          text: "Discard",
+          style: 'destructive',
+          text: 'Discard',
           onPress: () => {
             void clearConnectedDraft(selectedRaceSlug, selectedSession);
             setIsCurrentDraftDirty(false);
@@ -307,7 +307,7 @@ export function PicksConnectedScreen() {
     setH2HByMatchup(existingH2HQuery?.[selectedSession] ?? {});
     setIsCurrentDraftDirty(false);
     setRestoredDraftAt(null);
-    setSaveStatus("Draft discarded");
+    setSaveStatus('Draft discarded');
   }
 
   async function handleSave() {
@@ -317,14 +317,14 @@ export function PicksConnectedScreen() {
 
     try {
       await submitPrediction({
-        picks: top5 as Array<ConvexId<"drivers">>,
+        picks: top5 as Array<ConvexId<'drivers'>>,
         raceId: raceQuery._id,
         sessionType: selectedSession,
       });
       await submitH2H({
         picks: h2hMatchupsQuery.map((matchup) => ({
           matchupId: matchup._id,
-          predictedWinnerId: h2hByMatchup[matchup._id] as ConvexId<"drivers">,
+          predictedWinnerId: h2hByMatchup[matchup._id] as ConvexId<'drivers'>,
         })),
         raceId: raceQuery._id,
         sessionType: selectedSession,
@@ -334,7 +334,7 @@ export function PicksConnectedScreen() {
       setRestoredDraftAt(null);
       setSaveStatus(`Saved ${SESSION_LABELS_SHORT[selectedSession]} picks`);
     } catch (error) {
-      setSaveStatus(error instanceof Error ? error.message : "Save failed");
+      setSaveStatus(error instanceof Error ? error.message : 'Save failed');
     }
   }
 
@@ -342,7 +342,7 @@ export function PicksConnectedScreen() {
     return (
       <PicksScreen
         onOpenRace={(raceSlug) =>
-          navigation.navigate("RaceDetail", { raceSlug })
+          navigation.navigate('RaceDetail', { raceSlug })
         }
         races={races}
       />
@@ -377,10 +377,10 @@ export function PicksConnectedScreen() {
       {restoredDraftAt ? (
         <View style={styles.restoredBannerContainer}>
           <Text style={styles.restoredBannerText}>
-            Draft restored:{" "}
+            Draft restored:{' '}
             {new Intl.DateTimeFormat(undefined, {
-              dateStyle: "medium",
-              timeStyle: "short",
+              dateStyle: 'medium',
+              timeStyle: 'short',
             }).format(new Date(restoredDraftAt))}
           </Text>
           <Pressable
@@ -413,7 +413,7 @@ export function PicksConnectedScreen() {
         {selectedRaceSlug ? (
           <Pressable
             onPress={() =>
-              navigation.navigate("RaceDetail", { raceSlug: selectedRaceSlug })
+              navigation.navigate('RaceDetail', { raceSlug: selectedRaceSlug })
             }
             style={styles.openRaceButton}
           >
@@ -450,24 +450,24 @@ export function PicksConnectedScreen() {
           </Text>
         )}
         <Text style={styles.lockMeta}>
-          Your time: {selectedSessionLockDisplay?.local ?? "Unavailable"}
+          Your time: {selectedSessionLockDisplay?.local ?? 'Unavailable'}
         </Text>
         <Text style={styles.lockMeta}>
-          Track time:{" "}
+          Track time:{' '}
           {selectedSessionLockDisplay
             ? `${selectedSessionLockDisplay.track} (${selectedSessionLockDisplay.trackTimeZone})`
-            : "Unavailable"}
+            : 'Unavailable'}
         </Text>
         <Text style={styles.lockMeta}>
-          Countdown:{" "}
-          {typeof selectedSessionLockAt === "number"
+          Countdown:{' '}
+          {typeof selectedSessionLockAt === 'number'
             ? formatCountdown(selectedSessionLockAt - now)
-            : "Unavailable"}
+            : 'Unavailable'}
         </Text>
         <View
           style={[
             styles.lockBadge,
-            lockStatus.badgeTone === "success"
+            lockStatus.badgeTone === 'success'
               ? styles.lockBadgeOpen
               : styles.lockBadgeSoon,
             lockStatus.shouldPulse ? styles.lockBadgePulse : null,
@@ -546,7 +546,7 @@ export function PicksConnectedScreen() {
         <Text style={styles.saveButtonText}>
           {canSave
             ? `Save ${SESSION_LABELS_SHORT[selectedSession]}`
-            : "Complete Top 5 + H2H for this session"}
+            : 'Complete Top 5 + H2H for this session'}
         </Text>
       </Pressable>
 
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: colors.text,
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 24,
   },
   chip: {
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   chipText: {
     color: colors.text,
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   content: {
     gap: 14,
@@ -596,9 +596,9 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   loading: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   loadingText: {
     color: colors.text,
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   lockBadge: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     borderRadius: radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
   lockBadgeText: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   lockBadgePulse: {
     opacity: 0.72,
@@ -643,25 +643,25 @@ const styles = StyleSheet.create({
   matchupLabel: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   matchupRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   openRaceButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.md,
     paddingVertical: 10,
   },
   rowWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   saveButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.lg,
     paddingVertical: 12,
@@ -669,10 +669,10 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   restoredBannerAction: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -681,15 +681,15 @@ const styles = StyleSheet.create({
   restoredBannerActionText: {
     color: colors.text,
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   restoredBannerContainer: {
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.2,
     lineHeight: 38,
   },

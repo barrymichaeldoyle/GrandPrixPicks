@@ -1,17 +1,17 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { StyleSheet, Text, View } from "react-native";
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { formatRaceDate } from "../lib/dates";
-import { useRaceWeekends } from "../lib/useRaceWeekends";
+import { formatRaceDate } from '../lib/dates';
+import { useRaceWeekends } from '../lib/useRaceWeekends';
 import type {
   HomeStackParamList,
   PicksStackParamList,
-} from "../navigation/types";
-import { colors } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
+} from '../navigation/types';
+import { colors } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
 
-type HomeProps = NativeStackScreenProps<HomeStackParamList, "RaceDetail">;
-type PicksProps = NativeStackScreenProps<PicksStackParamList, "RaceDetail">;
+type HomeProps = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
+type PicksProps = NativeStackScreenProps<PicksStackParamList, 'RaceDetail'>;
 type Props = HomeProps | PicksProps;
 
 export function RaceDetailScreen({ route }: Props) {
@@ -46,7 +46,7 @@ export function RaceDetailScreen({ route }: Props) {
       </Text>
       <Text style={styles.meta}>{race.country}</Text>
       <Text style={styles.meta}>
-        {race.hasSprint ? "Sprint weekend" : "Standard weekend"}
+        {race.hasSprint ? 'Sprint weekend' : 'Standard weekend'}
       </Text>
       <View style={styles.divider} />
       {race.sessions.map((session) => {
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   sessionRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
+    alignItems: 'flex-start',
+    flexDirection: 'row',
     gap: 10,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     paddingVertical: 1,
   },
   sessionTime: {
@@ -92,20 +92,20 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     lineHeight: 16,
-    textAlign: "right",
+    textAlign: 'right',
   },
   sessionType: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '600',
     lineHeight: 18,
     maxWidth: 120,
-    textTransform: "capitalize",
+    textTransform: 'capitalize',
   },
   title: {
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.2,
     lineHeight: 38,
   },

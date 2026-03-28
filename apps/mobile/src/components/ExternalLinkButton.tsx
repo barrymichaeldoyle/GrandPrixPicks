@@ -1,6 +1,6 @@
-import { Linking, Pressable, StyleSheet, Text } from "react-native";
+import { Linking, Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radii } from "../theme/tokens";
+import { colors, radii } from '../theme/tokens';
 
 type ExternalLinkButtonProps = {
   label: string;
@@ -25,7 +25,7 @@ export function ExternalLinkButton({ label, url }: ExternalLinkButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.borderStrong,
     borderRadius: radii.md,
@@ -36,6 +36,6 @@ const styles = StyleSheet.create({
   text: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });

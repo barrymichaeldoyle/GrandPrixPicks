@@ -1,9 +1,9 @@
-import type { SessionType } from "@grandprixpicks/shared/sessions";
+import type { SessionType } from '@grandprixpicks/shared/sessions';
 import {
   getSessionsForWeekend,
   SESSION_LABELS_SHORT,
-} from "@grandprixpicks/shared/sessions";
-import { useEffect, useMemo, useState } from "react";
+} from '@grandprixpicks/shared/sessions';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -11,21 +11,21 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+} from 'react-native';
 
-import { mockDrivers } from "../data/mockDrivers";
-import { mockH2HMatchups } from "../data/mockH2H";
-import { formatRaceDate } from "../lib/dates";
-import { formatCountdown, getLockStatusViewModel } from "../lib/lockTime";
+import { mockDrivers } from '../data/mockDrivers';
+import { mockH2HMatchups } from '../data/mockH2H';
+import { formatRaceDate } from '../lib/dates';
+import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
 import {
   clearLocalRaceDraft,
   loadLocalRaceDraft,
   saveLocalRaceDraft,
-} from "../lib/picksDrafts";
-import { useNow } from "../lib/useNow";
-import { colors, radii } from "../theme/tokens";
-import { useTypography } from "../theme/typography";
-import type { RaceWeekend } from "../types";
+} from '../lib/picksDrafts';
+import { useNow } from '../lib/useNow';
+import { colors, radii } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
+import type { RaceWeekend } from '../types';
 
 type PicksScreenProps = {
   onOpenRace?: (raceSlug: string) => void;
@@ -71,11 +71,11 @@ function getEmptyH2HBySession(): H2HBySession {
 export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
   const { titleFontFamily } = useTypography();
   const initialRaceSlug =
-    getNextRaceSlug(races) ?? (races.length > 0 ? races[0].slug : "");
+    getNextRaceSlug(races) ?? (races.length > 0 ? races[0].slug : '');
   const [selectedRaceSlug, setSelectedRaceSlug] = useState(
     () => initialRaceSlug,
   );
-  const [selectedSession, setSelectedSession] = useState<SessionType>("race");
+  const [selectedSession, setSelectedSession] = useState<SessionType>('race');
   const [top5BySession, setTop5BySession] = useState<Top5BySession>(
     getEmptyTop5BySession,
   );
@@ -109,7 +109,7 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
     return Number.isNaN(ms) ? undefined : ms;
   }, [race?.sessions, selectedSession]);
   const selectedSessionLockDisplay = useMemo(() => {
-    if (typeof selectedSessionLockAt !== "number" || !race?.slug) {
+    if (typeof selectedSessionLockAt !== 'number' || !race?.slug) {
       return null;
     }
     return formatRaceDate(
@@ -127,7 +127,7 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
     Object.keys(h2hByMatchup).length === mockH2HMatchups.length;
   const canSave = top5Complete && h2hComplete;
   const selectedSessionRemainingMs =
-    typeof selectedSessionLockAt === "number"
+    typeof selectedSessionLockAt === 'number'
       ? selectedSessionLockAt - now
       : null;
   const lockStatus = getLockStatusViewModel(
@@ -137,7 +137,7 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
 
   useEffect(() => {
     if (!sessionOptions.includes(selectedSession)) {
-      setSelectedSession(sessionOptions[0] ?? "race");
+      setSelectedSession(sessionOptions[0] ?? 'race');
     }
   }, [selectedSession, sessionOptions]);
 
@@ -204,11 +204,11 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
     });
   }
 
-  function movePick(index: number, direction: "up" | "down") {
+  function movePick(index: number, direction: 'up' | 'down') {
     setSavedAt(null);
     setIsCurrentDraftDirty(true);
     setTop5ForSelected((prev) => {
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
       if (targetIndex < 0 || targetIndex >= prev.length) {
         return prev;
       }
@@ -249,12 +249,12 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       return;
     }
     Alert.alert(
-      "Unsaved changes",
-      "Switch sessions and continue with unsaved changes stored as a draft?",
+      'Unsaved changes',
+      'Switch sessions and continue with unsaved changes stored as a draft?',
       [
-        { style: "cancel", text: "Keep editing" },
+        { style: 'cancel', text: 'Keep editing' },
         {
-          text: "Switch",
+          text: 'Switch',
           onPress: () => {
             setSelectedSession(nextSession);
           },
@@ -272,12 +272,12 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       return;
     }
     Alert.alert(
-      "Unsaved changes",
-      "Switch races and continue with unsaved changes stored as a draft?",
+      'Unsaved changes',
+      'Switch races and continue with unsaved changes stored as a draft?',
       [
-        { style: "cancel", text: "Keep editing" },
+        { style: 'cancel', text: 'Keep editing' },
         {
-          text: "Switch",
+          text: 'Switch',
           onPress: () => {
             setSelectedRaceSlug(nextRaceSlug);
           },
@@ -317,10 +317,10 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       {restoredDraftAt ? (
         <View style={styles.restoredBannerContainer}>
           <Text style={styles.restoredBannerText}>
-            Draft restored:{" "}
+            Draft restored:{' '}
             {new Intl.DateTimeFormat(undefined, {
-              dateStyle: "medium",
-              timeStyle: "short",
+              dateStyle: 'medium',
+              timeStyle: 'short',
             }).format(new Date(restoredDraftAt))}
           </Text>
           <Pressable
@@ -358,7 +358,7 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
           })}
         </View>
         <Text style={styles.helperText}>
-          {race ? race.name : "No race selected"}
+          {race ? race.name : 'No race selected'}
         </Text>
         {onOpenRace && selectedRaceSlug ? (
           <Pressable
@@ -394,24 +394,24 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
           })}
         </View>
         <Text style={styles.lockMeta}>
-          Your time: {selectedSessionLockDisplay?.local ?? "Unavailable"}
+          Your time: {selectedSessionLockDisplay?.local ?? 'Unavailable'}
         </Text>
         <Text style={styles.lockMeta}>
-          Track time:{" "}
+          Track time:{' '}
           {selectedSessionLockDisplay
             ? `${selectedSessionLockDisplay.track} (${selectedSessionLockDisplay.trackTimeZone})`
-            : "Unavailable"}
+            : 'Unavailable'}
         </Text>
         <Text style={styles.lockMeta}>
-          Countdown:{" "}
-          {typeof selectedSessionLockAt === "number"
+          Countdown:{' '}
+          {typeof selectedSessionLockAt === 'number'
             ? formatCountdown(selectedSessionLockAt - now)
-            : "Unavailable"}
+            : 'Unavailable'}
         </Text>
         <View
           style={[
             styles.lockBadge,
-            lockStatus.badgeTone === "success"
+            lockStatus.badgeTone === 'success'
               ? styles.lockBadgeOpen
               : styles.lockBadgeSoon,
             lockStatus.shouldPulse ? styles.lockBadgePulse : null,
@@ -424,30 +424,30 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Top 5</Text>
         <Text style={styles.helperText}>
-          {MAX_TOP5 - top5.length} pick{MAX_TOP5 - top5.length === 1 ? "" : "s"}{" "}
+          {MAX_TOP5 - top5.length} pick{MAX_TOP5 - top5.length === 1 ? '' : 's'}{' '}
           remaining
         </Text>
 
         <View style={styles.rankList}>
           {Array.from({ length: MAX_TOP5 }).map((_, index) => {
-            const driver = driverById.get(top5[index] ?? "");
+            const driver = driverById.get(top5[index] ?? '');
             return (
               <View key={`top5-${index}`} style={styles.rankRow}>
                 <Text style={styles.rankLabel}>#{index + 1}</Text>
                 <Text style={styles.rankDriver}>
                   {driver
                     ? `${driver.fullName} (${driver.code})`
-                    : "Select a driver"}
+                    : 'Select a driver'}
                 </Text>
                 <View style={styles.rankActions}>
                   <Pressable
-                    onPress={() => movePick(index, "up")}
+                    onPress={() => movePick(index, 'up')}
                     style={styles.smallButton}
                   >
                     <Text style={styles.smallButtonText}>Up</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => movePick(index, "down")}
+                    onPress={() => movePick(index, 'down')}
                     style={styles.smallButton}
                   >
                     <Text style={styles.smallButtonText}>Down</Text>
@@ -533,16 +533,16 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
         <Text style={styles.saveButtonText}>
           {canSave
             ? `Save ${SESSION_LABELS_SHORT[selectedSession]} Picks`
-            : "Complete Top 5 and H2H to save"}
+            : 'Complete Top 5 and H2H to save'}
         </Text>
       </Pressable>
 
       {savedAt ? (
         <Text style={styles.savedText}>
-          Saved {SESSION_LABELS_SHORT[selectedSession]} locally at{" "}
+          Saved {SESSION_LABELS_SHORT[selectedSession]} locally at{' '}
           {new Intl.DateTimeFormat(undefined, {
-            hour: "2-digit",
-            minute: "2-digit",
+            hour: '2-digit',
+            minute: '2-digit',
           }).format(new Date(savedAt))}
         </Text>
       ) : null}
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: colors.text,
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     lineHeight: 24,
   },
   chip: {
@@ -585,14 +585,14 @@ const styles = StyleSheet.create({
   chipText: {
     color: colors.textMuted,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   chipTextActive: {
     color: colors.text,
   },
   chipWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   driverChip: {
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    width: "48%",
+    width: '48%',
   },
   driverChipActive: {
     backgroundColor: colors.accentMuted,
@@ -615,17 +615,17 @@ const styles = StyleSheet.create({
   driverCode: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   driverName: {
     color: colors.textMuted,
     fontSize: 12,
   },
   driverPool: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   helperText: {
     color: colors.textMuted,
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   lockBadge: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     borderRadius: radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   lockBadgeText: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   lockBadgePulse: {
     opacity: 0.72,
@@ -683,20 +683,20 @@ const styles = StyleSheet.create({
   matchupOptionText: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
   },
   matchupOptions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   matchupTeam: {
     color: colors.text,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   openRaceButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.md,
     marginTop: 2,
@@ -705,10 +705,10 @@ const styles = StyleSheet.create({
   openRaceButtonText: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   rankActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 6,
   },
   rankDriver: {
@@ -720,25 +720,25 @@ const styles = StyleSheet.create({
   rankLabel: {
     color: colors.textMuted,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
     width: 26,
   },
   rankList: {
     gap: 8,
   },
   rankRow: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.borderStrong,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
     paddingHorizontal: 8,
     paddingVertical: 10,
   },
   saveButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: radii.lg,
     marginTop: 4,
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: colors.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   savedText: {
     color: colors.success,
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   restoredBannerAction: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: colors.accent,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -767,15 +767,15 @@ const styles = StyleSheet.create({
   restoredBannerActionText: {
     color: colors.text,
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   restoredBannerContainer: {
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
     borderRadius: radii.md,
     borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
@@ -805,12 +805,12 @@ const styles = StyleSheet.create({
   smallButtonText: {
     color: colors.text,
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   title: {
     color: colors.text,
     fontSize: 34,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.2,
     lineHeight: 38,
   },

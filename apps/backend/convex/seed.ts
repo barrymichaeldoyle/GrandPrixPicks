@@ -2711,7 +2711,6 @@ export const resetToPreSeason = internalAction({
     let totalDeleted = 0;
     let iterations = 0;
     // Intentional unbounded loop; we cap via iterations guard below
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,
@@ -3005,7 +3004,6 @@ export const reseedDevWithLeagues = internalAction({
     // Phase 1: Clear all dev data in batches
     let totalDeleted = 0;
     let iterations = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,
@@ -3071,7 +3069,6 @@ export const reseedDevForPostQualiRaceOpen = internalAction({
   handler: async (ctx, args) => {
     let totalDeleted = 0;
     let iterations = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,
@@ -3137,7 +3134,6 @@ export const reseedDevForUpcomingPredictionBanner = internalAction({
   handler: async (ctx, args) => {
     let totalDeleted = 0;
     let iterations = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,
@@ -4343,7 +4339,6 @@ export const seedLeaderboardScenario = internalAction({
     // Phase 1: Clear all dev data
     let totalDeleted = 0;
     let iterations = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,
@@ -5103,7 +5098,6 @@ export const reseedDevForFeed = internalAction({
     // Phase 1: Clear all dev data
     let totalDeleted = 0;
     let iterations = 0;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const result: { deleted: number; done: boolean } = await ctx.runMutation(
         internal.seed._clearDevDataBatch,

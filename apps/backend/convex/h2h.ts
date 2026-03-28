@@ -781,7 +781,6 @@ export const submitH2HPredictions = mutation({
       .sort((a, b) => a.raceStartAt - b.raceStartAt);
     const nextRace = upcomingRaces[0];
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error(
         'H2H predictions are only open for the next upcoming race',

@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import type { ReactNode } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { MobileClerkProvider } from "../integrations/clerk/provider";
-import { MobileConvexProvider } from "../integrations/convex/provider";
-import { TypographyProvider } from "../theme/typography";
-import { MobileConfigProvider } from "./mobile-config";
+import { MobileClerkProvider } from '../integrations/clerk/provider';
+import { MobileConvexProvider } from '../integrations/convex/provider';
+import { TypographyProvider } from '../theme/typography';
+import { MobileConfigProvider } from './mobile-config';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

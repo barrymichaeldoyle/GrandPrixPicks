@@ -1,4 +1,4 @@
-import type { SessionType } from "@grandprixpicks/shared/sessions";
+import type { SessionType } from '@grandprixpicks/shared/sessions';
 
 export type RaceSession = {
   startsAt: string;

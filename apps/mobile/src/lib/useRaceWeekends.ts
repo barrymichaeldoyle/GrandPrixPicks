@@ -1,16 +1,16 @@
-import { useQuery } from "convex/react";
-import { useMemo } from "react";
+import { useQuery } from 'convex/react';
+import { useMemo } from 'react';
 
-import { mockRaceWeekends } from "../data/mockRaces";
-import { api } from "../integrations/convex/api";
-import { useMobileConfig } from "../providers/mobile-config";
-import { mapConvexRaceToWeekend } from "./races";
+import { mockRaceWeekends } from '../data/mockRaces';
+import { api } from '../integrations/convex/api';
+import { useMobileConfig } from '../providers/mobile-config';
+import { mapConvexRaceToWeekend } from './races';
 
 export function useRaceWeekends() {
   const { convexEnabled } = useMobileConfig();
   const racesQuery = useQuery(
     api.races.listRaces,
-    convexEnabled ? { season: 2026 } : "skip",
+    convexEnabled ? { season: 2026 } : 'skip',
   );
 
   const races = useMemo(() => {

@@ -1,9 +1,9 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View } from "react-native";
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
 
-import { AppNavigator } from "./src/navigation/AppNavigator";
-import { AppProviders } from "./src/providers/AppProviders";
-import { colors } from "./src/theme/tokens";
+import { AppNavigator } from './src/navigation/AppNavigator';
+import { AppProviders } from './src/providers/AppProviders';
+import { colors } from './src/theme/tokens';
 
 export default function App() {
   return (

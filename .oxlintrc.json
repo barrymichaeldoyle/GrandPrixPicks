@@ -1,0 +1,54 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["oxc", "typescript", "unicorn", "import"],
+  "ignorePatterns": [
+    "**/.expo/**",
+    "**/.output/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/storybook-static/**",
+    "apps/backend/convex/_generated/**",
+    "apps/web/.storybook/**",
+    "apps/web/public/sw.js",
+    "apps/mobile/babel.config.cjs",
+    "apps/mobile/index.js",
+    "apps/mobile/metro.config.cjs"
+  ],
+  "rules": {
+    "curly": "error",
+    "func-style": ["error", "declaration"]
+  },
+  "overrides": [
+    {
+      "files": [
+        "apps/web/src/**/*.ts",
+        "apps/web/src/**/*.tsx",
+        "apps/web/server/**/*.ts",
+        "apps/web/server/**/*.tsx"
+      ],
+      "rules": {
+        "typescript/array-type": [
+          "error",
+          {
+            "default": "array",
+            "readonly": "array"
+          }
+        ],
+        "import/no-default-export": "error"
+      }
+    },
+    {
+      "files": [
+        "apps/web/vite.config.ts",
+        "apps/web/server/routes/api/**/*.ts",
+        "apps/web/server/routes/api/**/*.tsx",
+        "apps/web/src/**/*.stories.ts",
+        "apps/web/src/**/*.stories.tsx",
+        "apps/web/src/integrations/tanstack-query/devtools.tsx"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ]
+}

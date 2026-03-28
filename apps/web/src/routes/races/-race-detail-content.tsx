@@ -1,7 +1,16 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
-import { CircleAlert, CircleX, Pencil, Swords } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ChevronDown,
+  ChevronUp,
+  CircleAlert,
+  CircleX,
+  Pencil,
+  Swords,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { Badge } from '../../components/Badge';
@@ -182,6 +191,93 @@ interface H2HResultsSectionProps {
   selectedSession: SessionType;
 }
 
+function SessionBreakdownPillShell({
+  label,
+  variant,
+  value,
+}: {
+  label: ReactNode;
+  variant: 'default' | 'emphasis';
+  value: ReactNode;
+}) {
+  const shellClassName =
+    variant === 'emphasis'
+      ? 'border border-accent/40 bg-accent-muted/30'
+      : 'border border-border bg-surface';
+
+  return (
+    <div
+      className={`w-full rounded-lg px-3 py-1.5 text-sm sm:w-auto ${shellClassName}`}
+    >
+      <div className="flex w-full items-center justify-between gap-1.5 sm:w-auto sm:justify-start sm:gap-2">
+        <span className="min-w-0 shrink text-xs text-text-muted">{label}</span>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function SessionBreakdownStatPill({
+  label,
+  points,
+}: {
+  label: string;
+  points: number;
+}) {
+  return (
+    <SessionBreakdownPillShell
+      label={label}
+      variant="default"
+      value={
+        <div className="leading-tight font-semibold text-accent">
+          +{points} pts
+        </div>
+      }
+    />
+  );
+}
+
+function SessionBreakdownH2HStatPill({
+  points,
+  correctPicks,
+  totalPicks,
+}: {
+  points: number;
+  correctPicks: number;
+  totalPicks: number;
+}) {
+  return (
+    <SessionBreakdownPillShell
+      label={
+        <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
+          <span>H2H</span>
+          <span>
+            {correctPicks}/{totalPicks} correct
+          </span>
+        </span>
+      }
+      variant="default"
+      value={
+        <div className="leading-tight font-semibold text-accent">
+          +{points} pts
+        </div>
+      }
+    />
+  );
+}
+
+function SessionBreakdownSessionGainPill({ points }: { points: number }) {
+  return (
+    <SessionBreakdownPillShell
+      label="Session Gain"
+      variant="emphasis"
+      value={
+        <div className="leading-tight font-bold text-accent">+{points} pts</div>
+      }
+    />
+  );
+}
+
 export function H2HResultsSection({
   raceId,
   selectedSession,
@@ -227,6 +323,8 @@ export function H2HResultsSection({
   const myH2HPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId,
   });
+
+  const [fullResultsExpanded, setFullResultsExpanded] = useState(false);
 
   const sessionHasResults = new Set(availableSessions ?? []);
   const isSelectedSessionScored = sessionHasResults.has(selectedSession);
@@ -347,37 +445,17 @@ export function H2HResultsSection({
         </div>
 
         <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[repeat(3,max-content)]">
-          <div className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-sm sm:w-auto">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xs text-text-muted">Top 5</span>
-              <div className="leading-tight font-semibold text-accent">
-                +{selectedTop5Points} pts
-              </div>
-            </div>
-          </div>
-          <div className="w-full rounded-lg border border-border bg-surface px-3 py-1.5 text-sm sm:w-auto">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xs text-text-muted">H2H</span>
-              <div className="flex items-baseline gap-1.5 sm:gap-2">
-                {myH2HScore && (
-                  <p className="text-xs leading-tight text-text-muted">
-                    {myH2HScore.correctPicks}/{myH2HScore.totalPicks} correct
-                  </p>
-                )}
-                <div className="leading-tight font-semibold text-accent">
-                  +{selectedH2HPoints} pts
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="w-full rounded-lg border border-accent/40 bg-accent-muted/30 px-3 py-1.5 text-sm sm:w-auto">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xs text-text-muted">Session Gain</span>
-              <div className="leading-tight font-bold text-accent">
-                +{sessionPointsGain} pts
-              </div>
-            </div>
-          </div>
+          <SessionBreakdownStatPill label="Top 5" points={selectedTop5Points} />
+          {myH2HScore ? (
+            <SessionBreakdownH2HStatPill
+              points={selectedH2HPoints}
+              correctPicks={myH2HScore.correctPicks}
+              totalPicks={myH2HScore.totalPicks}
+            />
+          ) : (
+            <SessionBreakdownStatPill label="H2H" points={selectedH2HPoints} />
+          )}
+          <SessionBreakdownSessionGainPill points={sessionPointsGain} />
         </div>
       </div>
 
@@ -388,133 +466,195 @@ export function H2HResultsSection({
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="rounded-lg border border-border bg-surface">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-xs uppercase sm:text-sm">
-                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                    Pos
-                  </th>
-                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                    Actual
-                  </th>
-                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                    Top 5
-                  </th>
-                  <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
-                    Pts
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {scoringRows.map((entry) => {
-                  const predictedPos =
-                    entry.position <= 5 ? entry.position : null;
-                  const pickDriverId =
-                    predictedPos !== null
-                      ? selectedTop5Picks?.[predictedPos - 1]
+          <div className="flex flex-col gap-1">
+            <div className="rounded-lg border border-border bg-surface">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border text-xs uppercase sm:text-sm">
+                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                      Pos
+                    </th>
+                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                      Actual
+                    </th>
+                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                      Top 5
+                    </th>
+                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
+                      Pts
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scoringRows.map((entry) => {
+                    const predictedPos =
+                      entry.position <= 5 ? entry.position : null;
+                    const pickDriverId =
+                      predictedPos !== null
+                        ? selectedTop5Picks?.[predictedPos - 1]
+                        : undefined;
+                    const pickDriver = pickDriverId
+                      ? driverById.get(pickDriverId)
                       : undefined;
-                  const pickDriver = pickDriverId
-                    ? driverById.get(pickDriverId)
-                    : undefined;
-                  const top5 = predictedPos
-                    ? top5ByPredictedPosition.get(predictedPos)
-                    : undefined;
-                  const top5Pts = top5?.points ?? 0;
-                  const rowTotal = top5Pts;
-                  const isTop5Actual = entry.position <= 5;
+                    const top5 = predictedPos
+                      ? top5ByPredictedPosition.get(predictedPos)
+                      : undefined;
+                    const top5Pts = top5?.points ?? 0;
+                    const rowTotal = top5Pts;
+                    const isTop5Actual = entry.position <= 5;
 
-                  return (
-                    <tr
-                      key={entry.driverId}
-                      className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
-                    >
-                      <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
-                        P{entry.position}
-                      </td>
-                      <td className="px-2 py-2 sm:px-4">
-                        {renderActualDriverRow(entry)}
-                      </td>
-                      <td className="px-2 py-2 sm:px-4">
-                        {predictedPos !== null ? (
-                          <div className="flex items-center gap-2">
-                            {pickDriver ? (
-                              <DriverBadge
-                                code={pickDriver.code}
-                                team={pickDriver.team}
-                                displayName={pickDriver.displayName}
-                                number={pickDriver.number}
-                                nationality={pickDriver.nationality}
-                              />
-                            ) : (
-                              <span className="text-xs text-text-muted">
-                                No pick
-                              </span>
-                            )}
-                            <span
-                              className={`text-xs font-semibold ${
-                                top5Pts > 0 ? 'text-success' : 'text-text-muted'
-                              }`}
-                            >
-                              +{top5Pts}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-text-muted/60">—</span>
-                        )}
-                      </td>
-                      <td
-                        className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
-                          rowTotal > 0 ? 'text-accent' : 'text-text-muted'
-                        }`}
+                    return (
+                      <tr
+                        key={entry.driverId}
+                        className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
                       >
-                        +{rowTotal}
+                        <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
+                          P{entry.position}
+                        </td>
+                        <td className="px-2 py-2 sm:px-4">
+                          {renderActualDriverRow(entry)}
+                        </td>
+                        <td className="px-2 py-2 sm:px-4">
+                          {predictedPos !== null ? (
+                            <div className="flex items-center gap-2">
+                              {pickDriver ? (
+                                <DriverBadge
+                                  code={pickDriver.code}
+                                  team={pickDriver.team}
+                                  displayName={pickDriver.displayName}
+                                  number={pickDriver.number}
+                                  nationality={pickDriver.nationality}
+                                />
+                              ) : (
+                                <span className="text-xs text-text-muted">
+                                  No pick
+                                </span>
+                              )}
+                              <span
+                                className={`text-xs font-semibold ${
+                                  top5Pts > 0
+                                    ? 'text-success'
+                                    : 'text-text-muted'
+                                }`}
+                              >
+                                +{top5Pts}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-text-muted/60">
+                              —
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
+                            rowTotal > 0 ? 'text-accent' : 'text-text-muted'
+                          }`}
+                        >
+                          +{rowTotal}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {remainingRows.length > 0 && (
+                  <tfoot>
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="border-t border-border px-2 py-0 sm:px-4"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setFullResultsExpanded((v) => !v)}
+                          className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-text-muted transition-colors hover:text-text"
+                        >
+                          {fullResultsExpanded ? (
+                            <>
+                              <ChevronUp size={14} />
+                              Hide full results
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown size={14} />
+                              Show full results (P7–P{classificationRows.length}
+                              )
+                            </>
+                          )}
+                        </button>
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {remainingRows.length > 0 && (
-            <div className="grid gap-3 md:grid-cols-2">
-              {remainingColumns.map((column, index) => (
-                <div
-                  key={index}
-                  className="overflow-hidden rounded-lg border border-border bg-surface"
-                >
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border text-xs uppercase">
-                        <th className="px-3 py-2 text-left text-text-muted">
-                          Pos
-                        </th>
-                        <th className="px-3 py-2 text-left text-text-muted">
-                          Driver
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {column.map((entry) => (
-                        <tr
-                          key={entry.driverId}
-                          className="border-b border-border last:border-0"
-                        >
-                          <td className="px-3 py-2 text-xs font-semibold text-text-muted">
-                            P{entry.position}
-                          </td>
-                          <td className="px-3 py-2">
-                            {renderActualDriverRow(entry, true)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                  </tfoot>
+                )}
+              </table>
             </div>
-          )}
-          <div className="flex items-center justify-between gap-2">
+            <AnimatePresence initial={false}>
+              {fullResultsExpanded && remainingRows.length > 0 && (
+                <motion.div
+                  key="full-results"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid gap-x-1 md:grid-cols-2">
+                    {remainingColumns.map((column, index) => (
+                      <div
+                        key={index}
+                        className={`overflow-hidden border border-border bg-surface ${
+                          index === 0
+                            ? 'rounded-t-lg md:rounded-lg'
+                            : 'rounded-b-lg border-t-0 md:rounded-lg md:border-t'
+                        }`}
+                      >
+                        <table className="w-full">
+                          <thead
+                            className={
+                              index === 1 ? 'hidden md:table-header-group' : ''
+                            }
+                          >
+                            <tr className="border-b border-border text-xs uppercase">
+                              <th className="px-3 py-2 text-left text-text-muted">
+                                Pos
+                              </th>
+                              <th className="px-3 py-2 text-left text-text-muted">
+                                Driver
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {column.map((entry) => (
+                              <tr
+                                key={entry.driverId}
+                                className="border-b border-border last:border-0"
+                              >
+                                <td className="px-3 py-2 text-xs font-semibold text-text-muted">
+                                  P{entry.position}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {renderActualDriverRow(entry, true)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFullResultsExpanded(false)}
+                    className="mt-1 flex w-full items-center justify-center gap-1.5 py-2 text-sm text-text-muted transition-colors hover:text-text"
+                  >
+                    <ChevronUp size={14} />
+                    Hide full results
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-2">
             <div className="flex items-center gap-1.5">
               <Swords className="h-4 w-4 text-accent" />
               <h3 className="text-sm font-semibold text-text">Head-to-Head</h3>
@@ -534,9 +674,15 @@ export function H2HResultsSection({
           <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-text">Session Total</span>
-              <span className="font-semibold text-accent">
-                Top 5 +{selectedTop5Points} | H2H +{selectedH2HPoints} | Total +
-                {sessionPointsGain}
+              <span className="font-semibold">
+                <span className="text-text">Top 5 </span>
+                <span className="text-accent">+{selectedTop5Points}</span>
+                <span className="text-text-muted"> | </span>
+                <span className="text-text">H2H </span>
+                <span className="text-accent">+{selectedH2HPoints}</span>
+                <span className="text-text-muted"> | </span>
+                <span className="text-text">Total </span>
+                <span className="text-accent">+{sessionPointsGain}</span>
               </span>
             </div>
           </div>

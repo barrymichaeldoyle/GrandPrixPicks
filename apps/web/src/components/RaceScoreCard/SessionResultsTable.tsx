@@ -1,3 +1,7 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+
 import { displayTeamName } from '@/lib/display';
 
 import { DriverBadge } from '../DriverBadge';
@@ -29,6 +33,8 @@ export function SessionResultsTable({
       });
     }
   }
+
+  const [expanded, setExpanded] = useState(false);
 
   const hasMyPicks = myPickByPosition.size > 0;
   const scoringRows = classification.slice(0, 6);
@@ -161,40 +167,97 @@ export function SessionResultsTable({
             );
           })}
         </tbody>
+        {remainingRows.length > 0 && (
+          <tfoot>
+            <tr>
+              <td
+                colSpan={hasMyPicks ? 4 : 3}
+                className="border-t border-border px-2 py-0 sm:px-4"
+              >
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="flex w-full items-center justify-center gap-1.5 py-2 text-sm text-text-muted transition-colors hover:text-text"
+                >
+                  {expanded ? (
+                    <>
+                      <ChevronUp size={14} />
+                      Hide full results
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={14} />
+                      Show full results (P7–P{classification.length})
+                    </>
+                  )}
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        )}
       </table>
 
-      {remainingRows.length > 0 && (
-        <div className="border-t border-border bg-surface-muted/20 p-3 sm:p-4">
-          <div className="grid gap-3 md:grid-cols-2">
-            {remainingColumns.map((column, index) => (
-              <table
-                key={index}
-                className="w-full overflow-hidden rounded-lg border border-border/80 bg-surface"
-              >
-                <thead>
-                  <tr className="border-b border-border text-xs tracking-[0.14em] text-text-muted uppercase">
-                    <th className="px-3 py-2 text-left">Pos</th>
-                    <th className="px-3 py-2 text-left">Driver</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {column.map((entry) => (
-                    <tr
-                      key={entry.driverId}
-                      className="border-b border-border last:border-0"
+      <AnimatePresence initial={false}>
+        {expanded && remainingRows.length > 0 && (
+          <motion.div
+            key="full-results"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-border bg-surface-muted/20 p-3 sm:p-4">
+              <div className="grid gap-x-3 md:grid-cols-2">
+                {remainingColumns.map((column, index) => (
+                  <table
+                    key={index}
+                    className={`w-full overflow-hidden border border-border/80 bg-surface ${
+                      index === 0
+                        ? 'rounded-t-lg md:rounded-lg'
+                        : 'rounded-b-lg border-t-0 md:rounded-lg md:border-t'
+                    }`}
+                  >
+                    <thead
+                      className={
+                        index === 1 ? 'hidden md:table-header-group' : ''
+                      }
                     >
-                      <td className="px-3 py-2 text-sm text-text-muted">
-                        P{entry.position}
-                      </td>
-                      <td className="px-3 py-2">{renderDriver(entry, true)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ))}
-          </div>
-        </div>
-      )}
+                      <tr className="border-b border-border text-xs tracking-[0.14em] text-text-muted uppercase">
+                        <th className="px-3 py-2 text-left">Pos</th>
+                        <th className="px-3 py-2 text-left">Driver</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {column.map((entry) => (
+                        <tr
+                          key={entry.driverId}
+                          className="border-b border-border last:border-0"
+                        >
+                          <td className="px-3 py-2 text-sm text-text-muted">
+                            P{entry.position}
+                          </td>
+                          <td className="px-3 py-2">
+                            {renderDriver(entry, true)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text"
+              >
+                <ChevronUp size={14} />
+                Hide full results
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

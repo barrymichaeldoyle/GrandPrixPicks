@@ -30,7 +30,11 @@ type H2HScore = {
 
 type FeedEvent = {
   _id: Id<'feedEvents'>;
-  type: 'score_published' | 'joined_league' | 'streak_milestone';
+  type:
+    | 'score_published'
+    | 'session_locked'
+    | 'joined_league'
+    | 'streak_milestone';
   userId: Id<'users'>;
   username?: string;
   displayName?: string;
@@ -501,6 +505,7 @@ function ScorePublishedItem({
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
   const [revsOpen, setRevsOpen] = useState(false);
+  const isLocked = event.type === 'session_locked';
 
   return (
     <>
@@ -564,7 +569,7 @@ function ScorePublishedItem({
           </div>
         </div>
 
-        {/* Scored picks + H2H */}
+        {/* Picks */}
         {event.picks && event.picks.length > 0 && (
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
@@ -576,67 +581,88 @@ function ScorePublishedItem({
                   <span className="text-[10px] font-medium text-text-muted">
                     P{pick.predictedPosition}
                   </span>
-                  <ScoredDriverBadge
-                    code={pick.code}
-                    team={pick.team}
-                    displayName={pick.displayName}
-                    nationality={pick.nationality}
-                    pickPoints={pick.points}
-                    size="sm"
-                  />
-                  <span
-                    className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
-                      pick.points === 5
-                        ? 'text-success'
-                        : pick.points === 3
-                          ? 'text-warning'
-                          : pick.points === 1
-                            ? 'text-text-muted'
-                            : 'text-error/60'
-                    }`}
-                  >
-                    +{pick.points}
-                  </span>
+                  {isLocked ? (
+                    <DriverBadge
+                      code={pick.code}
+                      team={pick.team}
+                      displayName={pick.displayName}
+                      nationality={pick.nationality}
+                      size="sm"
+                    />
+                  ) : (
+                    <ScoredDriverBadge
+                      code={pick.code}
+                      team={pick.team}
+                      displayName={pick.displayName}
+                      nationality={pick.nationality}
+                      pickPoints={pick.points}
+                      size="sm"
+                    />
+                  )}
+                  {!isLocked && (
+                    <span
+                      className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
+                        pick.points === 5
+                          ? 'text-success'
+                          : pick.points === 3
+                            ? 'text-warning'
+                            : pick.points === 1
+                              ? 'text-text-muted'
+                              : 'text-error/60'
+                      }`}
+                    >
+                      +{pick.points}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
-            {event.h2hScore && event.raceId && event.sessionType && (
-              <button
-                type="button"
-                onClick={() => setH2hOpen(true)}
-                className="mb-0.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
-              >
-                H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
-                <svg
-                  className="h-2.5 w-2.5 opacity-70"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+            {!isLocked &&
+              event.h2hScore &&
+              event.raceId &&
+              event.sessionType && (
+                <button
+                  type="button"
+                  onClick={() => setH2hOpen(true)}
+                  className="mb-0.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
                 >
-                  <path d="M6 4l4 4-4 4" />
-                </svg>
-              </button>
-            )}
+                  H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
+                  <svg
+                    className="h-2.5 w-2.5 opacity-70"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 4l4 4-4 4" />
+                  </svg>
+                </button>
+              )}
           </div>
         )}
 
-        {/* Total points + comment */}
-        {event.points !== undefined && (
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-bold text-accent tabular-nums">
-              + {event.points + (event.h2hScore?.points ?? 0)}{' '}
-              {event.points + (event.h2hScore?.points ?? 0) === 1
-                ? 'point'
-                : 'points'}
-            </span>
-            <p className="flex-1 text-right text-xs text-text-muted italic">
-              - {getScoreComment(event.points, event.picks)}
-            </p>
-          </div>
+        {/* Total points + comment (scored) or pending indicator (locked) */}
+        {isLocked ? (
+          <p className="text-xs text-text-muted/60 italic">
+            Waiting for results...
+          </p>
+        ) : (
+          event.points !== undefined && (
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-bold text-accent tabular-nums">
+                + {event.points + (event.h2hScore?.points ?? 0)}{' '}
+                {event.points + (event.h2hScore?.points ?? 0) === 1
+                  ? 'point'
+                  : 'points'}
+              </span>
+              <p className="flex-1 text-right text-xs text-text-muted italic">
+                - {getScoreComment(event.points, event.picks)}
+              </p>
+            </div>
+          )
         )}
       </div>
 
@@ -725,7 +751,7 @@ export function FeedItem({
     <div
       className={`border border-border bg-surface p-2.5 ${radiusClass} ${borderClass}`}
     >
-      {event.type === 'score_published' ? (
+      {event.type === 'score_published' || event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
       ) : event.type === 'streak_milestone' ? (
         <StreakMilestoneItem event={event} />

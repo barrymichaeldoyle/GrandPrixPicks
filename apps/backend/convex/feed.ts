@@ -15,6 +15,70 @@ const sessionTypeValidator = v.union(
 
 // ============ Internal event writers ============
 
+/**
+ * Write session_locked feed events for every user who has a prediction for a session.
+ * Called at session lock time so followees' picks are revealed in the feed immediately.
+ * Idempotent — skips users who already have a feed event for this race/session.
+ */
+export const writeFeedEventsForSessionLock = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      return;
+    }
+
+    const now = Date.now();
+
+    const predictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .take(500);
+
+    for (const prediction of predictions) {
+      const user = await ctx.db.get(prediction.userId);
+      if (!user) {
+        continue;
+      }
+
+      // Skip if a feed event already exists for this user/race/session
+      const existing = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .first();
+
+      if (existing) {
+        continue;
+      }
+
+      await ctx.db.insert('feedEvents', {
+        type: 'session_locked',
+        userId: prediction.userId,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        raceName: race.name,
+        raceSlug: race.slug,
+        season: race.season,
+        revCount: 0,
+        createdAt: now,
+      });
+    }
+  },
+});
+
 /** Write (or update) score_published feed events for every user who has a score for a session. */
 export const writeFeedEventsForSession = internalMutation({
   args: {
@@ -55,6 +119,7 @@ export const writeFeedEventsForSession = internalMutation({
 
       if (existing) {
         await ctx.db.patch(existing._id, {
+          type: 'score_published',
           points: score.points,
           username: user.username,
           displayName: user.displayName,
@@ -223,7 +288,11 @@ const MAX_FEED_SIZE = 40;
 
 type RawEvent = {
   _id: Id<'feedEvents'>;
-  type: 'score_published' | 'joined_league' | 'streak_milestone';
+  type:
+    | 'score_published'
+    | 'session_locked'
+    | 'joined_league'
+    | 'streak_milestone';
   userId: Id<'users'>;
   username?: string;
   displayName?: string;
@@ -273,7 +342,11 @@ async function buildSessionHeaders(
     }
   >();
   for (const event of events) {
-    if (event.type === 'score_published' && event.raceId && event.sessionType) {
+    if (
+      (event.type === 'score_published' || event.type === 'session_locked') &&
+      event.raceId &&
+      event.sessionType
+    ) {
       const key = `${event.raceId}_${event.sessionType}`;
       if (!combos.has(key)) {
         combos.set(key, {
@@ -373,7 +446,7 @@ type PickEnrichment = {
   points: number;
 };
 
-/** Load picks breakdown + H2H summary for a score_published event. */
+/** Load picks breakdown + H2H summary for a score_published or session_locked event. */
 async function enrichScoreEvent(
   ctx: Pick<QueryCtx, 'db'>,
   event: RawEvent,
@@ -381,8 +454,68 @@ async function enrichScoreEvent(
   picks: Array<PickEnrichment> | undefined;
   h2hScore: { correctPicks: number; totalPicks: number; points: number } | null;
 }> {
-  if (event.type !== 'score_published' || !event.raceId || !event.sessionType) {
+  if (
+    (event.type !== 'score_published' && event.type !== 'session_locked') ||
+    !event.raceId ||
+    !event.sessionType
+  ) {
     return { picks: undefined, h2hScore: null };
+  }
+
+  if (event.type === 'session_locked') {
+    // Results not yet published — load picks from predictions table (unscored)
+    const prediction = await (ctx.db as any)
+      .query('predictions')
+      .withIndex('by_user_race_session', (q: any) =>
+        q
+          .eq('userId', event.userId)
+          .eq('raceId', event.raceId)
+          .eq('sessionType', event.sessionType),
+      )
+      .unique();
+
+    if (
+      !prediction?.picks ||
+      (prediction.picks as Array<unknown>).length === 0
+    ) {
+      return { picks: undefined, h2hScore: null };
+    }
+
+    const driverIds = prediction.picks as Array<string>;
+    const driverMap = new Map<
+      string,
+      {
+        code: string;
+        team?: string;
+        displayName?: string;
+        nationality?: string;
+      }
+    >();
+    for (const driverId of driverIds) {
+      const driver = await (ctx.db as any).get(driverId);
+      if (driver) {
+        driverMap.set(String(driverId), {
+          code: driver.code as string,
+          team: driver.team as string | undefined,
+          displayName: driver.displayName as string | undefined,
+          nationality: driver.nationality as string | undefined,
+        });
+      }
+    }
+
+    const picks: Array<PickEnrichment> = driverIds.map((driverId, index) => {
+      const d = driverMap.get(String(driverId));
+      return {
+        code: d?.code ?? '???',
+        team: d?.team,
+        displayName: d?.displayName,
+        nationality: d?.nationality,
+        predictedPosition: index + 1,
+        points: 0,
+      };
+    });
+
+    return { picks, h2hScore: null };
   }
 
   const [score, h2hRecord] = await Promise.all([

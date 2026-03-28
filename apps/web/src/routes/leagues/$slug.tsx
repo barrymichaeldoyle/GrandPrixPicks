@@ -455,7 +455,11 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
   const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
 
   for (const event of feed.events) {
-    if (event.type === 'score_published' && event.raceId && event.sessionType) {
+    if (
+      (event.type === 'score_published' || event.type === 'session_locked') &&
+      event.raceId &&
+      event.sessionType
+    ) {
       const key = `${event.raceId}_${event.sessionType}`;
       let group = sessionGroupMap.get(key);
       if (!group) {

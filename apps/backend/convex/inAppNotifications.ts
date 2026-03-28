@@ -208,6 +208,13 @@ export const notifyUsersSessionLocked = internalMutation({
         createdAt: now,
       });
     }
+
+    // Write feed events so followees' picks are visible in the feed at lock time
+    await ctx.scheduler.runAfter(
+      0,
+      internal.feed.writeFeedEventsForSessionLock,
+      { raceId: args.raceId, sessionType: args.sessionType },
+    );
   },
 });
 

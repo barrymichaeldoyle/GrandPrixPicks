@@ -54,7 +54,7 @@ function FeedContent() {
     );
   }
 
-  // Group score_published events by race+session; other events render standalone
+  // Group score_published and session_locked events by race+session; other events render standalone
   type Group =
     | { kind: 'session'; key: string; events: (typeof feed.events)[number][] }
     | { kind: 'standalone'; event: (typeof feed.events)[number] };
@@ -63,7 +63,11 @@ function FeedContent() {
   const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
 
   for (const event of feed.events) {
-    if (event.type === 'score_published' && event.raceId && event.sessionType) {
+    if (
+      (event.type === 'score_published' || event.type === 'session_locked') &&
+      event.raceId &&
+      event.sessionType
+    ) {
       const key = `${event.raceId}_${event.sessionType}`;
       let group = sessionGroupMap.get(key);
       if (!group) {

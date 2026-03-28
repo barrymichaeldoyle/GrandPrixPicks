@@ -336,6 +336,7 @@ export default defineSchema({
   feedEvents: defineTable({
     type: v.union(
       v.literal('score_published'),
+      v.literal('session_locked'),
       v.literal('joined_league'),
       v.literal('streak_milestone'),
     ),

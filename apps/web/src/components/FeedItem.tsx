@@ -56,11 +56,11 @@ type FeedEvent = {
   // streak_milestone
   streakCount?: number;
   revCount: number;
-  recentRevUsers?: Array<{
+  recentRevUsers?: {
     userId: Id<'users'>;
     username?: string;
     avatarUrl?: string;
-  }>;
+  }[];
   createdAt: number;
   viewerHasReved: boolean;
 };
@@ -828,7 +828,7 @@ export type SessionHeader = {
   top5: {
     code: string;
     displayName: string;
-    team: string;
+    team?: string;
     nationality?: string;
   }[];
 };

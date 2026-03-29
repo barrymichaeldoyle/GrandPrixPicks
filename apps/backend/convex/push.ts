@@ -329,7 +329,7 @@ export const sendPushForRevReceived = internalMutation({
   args: {
     recipientUserId: v.id('users'),
     actorDisplayName: v.optional(v.string()),
-    raceSlug: v.optional(v.string()),
+    feedEventId: v.id('feedEvents'),
   },
   handler: async (ctx, args) => {
     const recipient = await ctx.db.get(args.recipientUserId);
@@ -347,9 +347,7 @@ export const sendPushForRevReceived = internalMutation({
     }
 
     const actorName = args.actorDisplayName ?? 'Someone';
-    const url = args.raceSlug
-      ? `/races/${args.raceSlug}?utm_source=push&utm_medium=push&utm_campaign=rev_received`
-      : `/?utm_source=push&utm_medium=push&utm_campaign=rev_received`;
+    const url = `/feed/${args.feedEventId}?utm_source=push&utm_medium=push&utm_campaign=rev_received`;
 
     await ctx.scheduler.runAfter(0, internal.pushNotifications.sendPushBatch, {
       subscriptions: subs.map((s) => ({

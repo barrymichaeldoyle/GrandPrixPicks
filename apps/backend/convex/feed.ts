@@ -598,6 +598,28 @@ async function enrichScoreEvent(
   };
 }
 
+/** Return the most recent N users who reved a feed event, for avatar preview. */
+async function getRecentRevUsers(
+  ctx: Pick<QueryCtx, 'db'>,
+  feedEventId: Id<'feedEvents'>,
+  limit = 3,
+): Promise<Array<{ userId: Id<'users'>; username?: string; avatarUrl?: string }>> {
+  const revs = await ctx.db
+    .query('revs')
+    .withIndex('by_event', (q) => q.eq('feedEventId', feedEventId))
+    .order('desc')
+    .take(limit);
+  const users = await Promise.all(
+    revs.map(async (rev) => {
+      const user = await ctx.db.get(rev.userId);
+      return user
+        ? { userId: user._id, username: user.username, avatarUrl: user.avatarUrl }
+        : null;
+    }),
+  );
+  return users.filter((u): u is NonNullable<typeof u> => u !== null);
+}
+
 /**
  * Profile feed: score_published events for a specific user, most recent first.
  * Used on the profile page to show a user's result history in feed style.
@@ -620,7 +642,7 @@ export const getUserFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         events.map(async (event) => {
-          const [viewerRev, scoreEnrichment] = await Promise.all([
+          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
             viewer
               ? ctx.db
                   .query('revs')
@@ -630,10 +652,12 @@ export const getUserFeed = query({
                   .first()
               : Promise.resolve(null),
             enrichScoreEvent(ctx, event),
+            getRecentRevUsers(ctx, event._id),
           ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
+            recentRevUsers,
             ...scoreEnrichment,
           };
         }),
@@ -687,7 +711,7 @@ export const getPersonalizedFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const [viewerRev, scoreEnrichment] = await Promise.all([
+          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
             ctx.db
               .query('revs')
               .withIndex('by_user_event', (q) =>
@@ -695,10 +719,12 @@ export const getPersonalizedFeed = query({
               )
               .first(),
             enrichScoreEvent(ctx, event),
+            getRecentRevUsers(ctx, event._id),
           ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
+            recentRevUsers,
             ...scoreEnrichment,
           };
         }),
@@ -740,7 +766,7 @@ export const getLeagueFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const [viewerRev, scoreEnrichment] = await Promise.all([
+          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
             viewer
               ? ctx.db
                   .query('revs')
@@ -750,10 +776,12 @@ export const getLeagueFeed = query({
                   .first()
               : Promise.resolve(null),
             enrichScoreEvent(ctx, event),
+            getRecentRevUsers(ctx, event._id),
           ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
+            recentRevUsers,
             ...scoreEnrichment,
           };
         }),
@@ -762,6 +790,48 @@ export const getLeagueFeed = query({
     ]);
 
     return { events: enrichedEvents, sessions };
+  },
+});
+
+export const getFeedEvent = query({
+  args: { feedEventId: v.id('feedEvents') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const event = await ctx.db.get(args.feedEventId);
+    if (!event) {
+      return null;
+    }
+
+    const [viewerRev, scoreEnrichment, sessions, recentRevUsers] = await Promise.all([
+      ctx.db
+        .query('revs')
+        .withIndex('by_user_event', (q) =>
+          q.eq('userId', viewer._id).eq('feedEventId', event._id),
+        )
+        .first(),
+      enrichScoreEvent(ctx, event),
+      buildSessionHeaders(ctx, [event]),
+      getRecentRevUsers(ctx, event._id),
+    ]);
+
+    const sessionKey =
+      event.raceId && event.sessionType
+        ? `${event.raceId}_${event.sessionType}`
+        : null;
+
+    return {
+      event: {
+        ...event,
+        viewerHasReved: viewerRev !== null,
+        recentRevUsers,
+        ...scoreEnrichment,
+      },
+      session: sessionKey ? sessions[sessionKey] ?? null : null,
+    };
   },
 });
 
@@ -844,7 +914,8 @@ export const getRevUsers = query({
     const revs = await ctx.db
       .query('revs')
       .withIndex('by_event', (q) => q.eq('feedEventId', args.feedEventId))
-      .collect();
+      .order('desc')
+      .take(100);
 
     const users = await Promise.all(
       revs.map(async (rev) => {

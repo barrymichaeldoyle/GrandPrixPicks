@@ -5156,6 +5156,289 @@ export const reseedDevForFeed = internalAction({
 });
 
 /**
+ * Seed one rev notification for a target user using an existing feed event.
+ *
+ * Run via:
+ *   npx convex run seed:seedRevNotificationForUser '{"username": "barrymichaeldoyle"}'
+ *   npx convex run seed:seedRevNotificationForUser '{"clerkUserId": "user_xxx"}'
+ */
+export const seedRevNotificationForUser = internalMutation({
+  args: {
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const targetUser = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!targetUser) {
+      throw new Error(
+        'Target user not found. Sign in first or provide clerkUserId/username.',
+      );
+    }
+
+    const feedEvent = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_user_created', (q) => q.eq('userId', targetUser._id))
+      .order('desc')
+      .first();
+
+    if (!feedEvent) {
+      throw new Error(
+        'No feed event found for target user. Run seed:reseedDevForFeed first.',
+      );
+    }
+
+    const candidateUsers = await ctx.db.query('users').take(50);
+    const actor =
+      candidateUsers.find((user) => user._id !== targetUser._id) ?? null;
+
+    if (!actor) {
+      throw new Error('No actor user available to create a rev notification.');
+    }
+
+    const existingRev = await ctx.db
+      .query('revs')
+      .withIndex('by_user_event', (q) =>
+        q.eq('userId', actor._id).eq('feedEventId', feedEvent._id),
+      )
+      .first();
+
+    if (!existingRev) {
+      await ctx.db.insert('revs', {
+        feedEventId: feedEvent._id,
+        userId: actor._id,
+        createdAt: Date.now(),
+      });
+
+      await ctx.db.patch(feedEvent._id, {
+        revCount: feedEvent.revCount + 1,
+      });
+    }
+
+    await ctx.runMutation(internal.inAppNotifications.createRevNotification, {
+      recipientUserId: targetUser._id,
+      actorUserId: actor._id,
+      feedEventId: feedEvent._id,
+      raceId: feedEvent.raceId,
+      sessionType: feedEvent.sessionType,
+      raceName: feedEvent.raceName,
+      raceSlug: feedEvent.raceSlug,
+    });
+
+    return {
+      recipientUsername: targetUser.username,
+      actorUsername: actor.username,
+      feedEventId: feedEvent._id,
+      raceSlug: feedEvent.raceSlug,
+    };
+  },
+});
+
+/**
+ * Seed a showcase set of in-app notifications for a target user.
+ *
+ * This clears the user's current in-app notifications and replaces them with
+ * a small set of rev/results/locked rows for layout testing.
+ *
+ * Run via:
+ *   npx convex run seed:seedNotificationShowcaseForUser '{"username": "barrymichaeldoyle"}'
+ */
+export const seedNotificationShowcaseForUser = internalMutation({
+  args: {
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const targetUser = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : args.username
+        ? await ctx.db
+            .query('users')
+            .withIndex('by_username', (q) => q.eq('username', args.username))
+            .unique()
+        : await ctx.db.query('users').first();
+
+    if (!targetUser) {
+      throw new Error(
+        'Target user not found. Sign in first or provide clerkUserId/username.',
+      );
+    }
+
+    const existingNotifications = await ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_user_created', (q) => q.eq('userId', targetUser._id))
+      .take(100);
+
+    for (const notification of existingNotifications) {
+      await ctx.db.delete(notification._id);
+    }
+
+    const feedEvents = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_user_created', (q) => q.eq('userId', targetUser._id))
+      .order('desc')
+      .take(50);
+
+    const feedEventBySession = new Map<
+      SessionType,
+      (typeof feedEvents)[number]
+    >();
+    for (const event of feedEvents) {
+      if (
+        event.sessionType &&
+        !feedEventBySession.has(event.sessionType) &&
+        event.raceName &&
+        event.raceSlug
+      ) {
+        feedEventBySession.set(event.sessionType, event);
+      }
+    }
+
+    const races = await ctx.db.query('races').take(30);
+    const preferredShowcaseRaces = [
+      'las-vegas-2026',
+      'saudi-arabia-2026',
+      'emilia-romagna-2026',
+      'abu-dhabi-2026',
+    ];
+    const showcaseRaces = preferredShowcaseRaces
+      .map((slug) => races.find((race) => race.slug === slug))
+      .filter((race): race is NonNullable<typeof race> => race !== undefined);
+
+    const actorProfiles = [
+      { actorDisplayName: 'Barry Business', actorUsername: 'barrybiz' },
+      { actorDisplayName: 'Caitlyn Davies', actorUsername: 'caitdavies' },
+      { actorDisplayName: 'Alexandra van der Merwe', actorUsername: 'alexvdm' },
+      { actorDisplayName: 'M. J. Thompson-Singh', actorUsername: 'mjts' },
+      { actorDisplayName: 'Sam Okonkwo', actorUsername: 'samokon' },
+    ] as const;
+
+    // Each entry defines how many actors revved that session's feed event.
+    // This lets us showcase single, double, triple and "N others" grouping.
+    const revShowcase: Array<{ sessionType: SessionType; actorCount: number }> =
+      [
+        { sessionType: 'race', actorCount: 5 }, // "Barry, Caitlyn and 3 others"
+        { sessionType: 'quali', actorCount: 3 }, // "Barry, Caitlyn and Alexandra"
+        { sessionType: 'sprint', actorCount: 2 }, // "Barry and Caitlyn"
+        { sessionType: 'sprint_quali', actorCount: 1 }, // "Barry Business"
+      ];
+
+    let created = 0;
+    const now = Date.now();
+
+    for (const [groupIndex, { sessionType, actorCount }] of revShowcase.entries()) {
+      const event = feedEventBySession.get(sessionType);
+      if (!event) {
+        continue;
+      }
+
+      for (let i = 0; i < actorCount; i++) {
+        const actor = actorProfiles[i % actorProfiles.length];
+        await ctx.db.insert('inAppNotifications', {
+          userId: targetUser._id,
+          type: 'rev_received',
+          actorDisplayName: actor.actorDisplayName,
+          actorUsername: actor.actorUsername,
+          feedEventId: event._id,
+          raceId: event.raceId,
+          sessionType,
+          raceName: event.raceName,
+          raceSlug: event.raceSlug,
+          // Actors within the same group have slightly staggered times
+          createdAt: now - groupIndex * 10 * 60_000 - i * 60_000,
+        });
+        created++;
+      }
+    }
+
+    const resultsShowcase = [
+      {
+        race: showcaseRaces[0] ?? null,
+        sessionType: 'race' as const,
+        points: 49,
+        ageMs: 35 * 60_000,
+      },
+      {
+        race: showcaseRaces[1] ?? showcaseRaces[0] ?? null,
+        sessionType: 'sprint_quali' as const,
+        points: 17,
+        ageMs: 90 * 60_000,
+      },
+    ];
+
+    for (const entry of resultsShowcase) {
+      if (!entry.race) {
+        continue;
+      }
+      await ctx.db.insert('inAppNotifications', {
+        userId: targetUser._id,
+        type: 'results_published',
+        raceId: entry.race._id,
+        sessionType: entry.sessionType,
+        raceName: entry.race.name,
+        raceSlug: entry.race.slug,
+        points: entry.points,
+        createdAt: now - entry.ageMs,
+      });
+      created++;
+    }
+
+    const lockShowcase = [
+      {
+        race: showcaseRaces[2] ?? showcaseRaces[0] ?? null,
+        sessionType: 'quali' as const,
+        ageMs: 6 * 60 * 60_000,
+      },
+      {
+        race: showcaseRaces[3] ?? showcaseRaces[1] ?? showcaseRaces[0] ?? null,
+        sessionType: 'race' as const,
+        ageMs: 26 * 60 * 60_000,
+      },
+    ];
+
+    for (const entry of lockShowcase) {
+      if (!entry.race) {
+        continue;
+      }
+      await ctx.db.insert('inAppNotifications', {
+        userId: targetUser._id,
+        type: 'session_locked',
+        raceId: entry.race._id,
+        sessionType: entry.sessionType,
+        raceName: entry.race.name,
+        raceSlug: entry.race.slug,
+        createdAt: now - entry.ageMs,
+      });
+      created++;
+    }
+
+    return {
+      username: targetUser.username,
+      created,
+      revSessionsSeeded: [...feedEventBySession.keys()],
+      showcaseRaceSlugs: showcaseRaces.map((race) => race.slug),
+    };
+  },
+});
+
+/**
  * Backfill feed events from existing scores and league memberships.
  * Run this after seeding to populate the feed without going through the admin publish flow.
  *

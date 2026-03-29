@@ -84,27 +84,41 @@ export function RaceDetailHeader({
         <div
           className={`gap-2 border-t-3 px-3 py-2 sm:px-4 md:flex md:flex-col md:justify-center md:border-t-0 md:border-l-3 ${accentBorderClass}`}
         >
-          <div className="flex flex-wrap items-center justify-around gap-2 md:justify-center">
-            <span className="text-xs text-text-muted">
-              {resultsSummary.label}
-            </span>
-            <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
-              {resultsSummary.showResultsPendingBadge
-                ? 'Results pending'
-                : null}
-            </span>
-          </div>
-          <div className="mt-0.5 flex items-baseline justify-around gap-4 md:justify-center">
-            <div className="leading-none font-bold text-accent">
-              +{resultsSummary.points} pts
+          {resultsSummary.showResultsPendingBadge ||
+          !resultsSummary.allEventsScored ? (
+            <>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <span className="text-xs text-text-muted">
+                  {resultsSummary.label}
+                </span>
+                {resultsSummary.showResultsPendingBadge ? (
+                  <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
+                    Results pending
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-0.5 flex flex-wrap items-baseline justify-center gap-x-4 gap-y-0.5">
+                <div className="leading-none font-bold text-accent">
+                  +{resultsSummary.points} pts
+                </div>
+                {!resultsSummary.allEventsScored ? (
+                  <p className="text-xs text-text-muted">
+                    {resultsSummary.scoredEventCount}/
+                    {resultsSummary.totalEvents} events scored
+                  </p>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <span className="text-xs text-text-muted">
+                {resultsSummary.label}
+              </span>
+              <div className="leading-none font-bold text-accent">
+                +{resultsSummary.points} pts
+              </div>
             </div>
-            {!resultsSummary.allEventsScored && (
-              <p className="text-xs text-text-muted">
-                {resultsSummary.scoredEventCount}/{resultsSummary.totalEvents}{' '}
-                events scored
-              </p>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>

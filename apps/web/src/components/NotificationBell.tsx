@@ -3,10 +3,20 @@ import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Bell, CheckCheck, Gauge, Lock, Trophy } from 'lucide-react';
+import { Bell, CheckCheck, Lock, Trophy } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Avatar } from './Avatar';
+import { getCountryCodeForRace, RaceFlag } from './RaceCard';
+
+type RevActor = {
+  userId?: string;
+  username?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  isFollowed: boolean;
+};
 
 type Notification = {
   _id: Id<'inAppNotifications'>;
@@ -23,6 +33,9 @@ type Notification = {
   actorDisplayName?: string;
   actorAvatarUrl?: string;
   feedEventId?: string;
+  // Grouped rev fields (set by backend when multiple actors rev the same post)
+  actors?: RevActor[];
+  totalRevCount?: number;
 };
 
 function timeAgo(ts: number): string {
@@ -42,6 +55,111 @@ function timeAgo(ts: number): string {
   return `${days}d ago`;
 }
 
+function RevIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 11.5 A6 6 0 1 1 13.5 11.5" />
+      <path d="M8 8 L5.5 5.5" />
+      <circle cx="8" cy="8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function NotificationRaceChip({
+  raceSlug,
+  raceName,
+  sessionType,
+}: {
+  raceSlug?: string;
+  raceName?: string;
+  sessionType?: Notification['sessionType'];
+}) {
+  if (!raceName) {
+    return null;
+  }
+
+  const countryCode = raceSlug
+    ? getCountryCodeForRace({ slug: raceSlug })
+    : null;
+  const sessionLabel = sessionType ? SESSION_LABELS[sessionType] : null;
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-surface-muted/55 px-2.5 py-1 text-xs font-medium text-text">
+      {countryCode ? (
+        <RaceFlag
+          countryCode={countryCode}
+          size="sm"
+          className="rounded-[2px] shadow-none ring-0"
+        />
+      ) : null}
+      <span>{sessionLabel ?? raceName}</span>
+    </span>
+  );
+}
+
+function firstName(actor: RevActor): string {
+  const name = actor.displayName ?? actor.username ?? 'Someone';
+  return name.split(' ')[0];
+}
+
+function RevActorNames({ actors }: { actors: RevActor[] }) {
+  if (actors.length === 0) {
+    return <span className="font-semibold text-text">Someone</span>;
+  }
+
+  function Name({ children }: { children: ReactNode }) {
+    return (
+      <span className="font-semibold text-accent transition-colors group-hover:text-accent-hover">
+        {children}
+      </span>
+    );
+  }
+
+  if (actors.length === 1) {
+    const a = actors[0];
+    const label = a.displayName ?? a.username ?? 'Someone';
+    return <Name>{label}</Name>;
+  }
+  if (actors.length === 2) {
+    return (
+      <>
+        <Name>{firstName(actors[0])}</Name>
+        <span className="font-semibold text-text"> and </span>
+        <Name>{firstName(actors[1])}</Name>
+      </>
+    );
+  }
+  if (actors.length === 3) {
+    return (
+      <>
+        <Name>{firstName(actors[0])}</Name>
+        <span className="font-semibold text-text">, </span>
+        <Name>{firstName(actors[1])}</Name>
+        <span className="font-semibold text-text"> and </span>
+        <Name>{firstName(actors[2])}</Name>
+      </>
+    );
+  }
+  const others = actors.length - 2;
+  return (
+    <>
+      <Name>{firstName(actors[0])}</Name>
+      <span className="font-semibold text-text">, </span>
+      <Name>{firstName(actors[1])}</Name>
+      <span className="font-semibold text-text"> and {others} others</span>
+    </>
+  );
+}
+
 function NotificationItem({
   notification,
   onClose,
@@ -49,13 +167,13 @@ function NotificationItem({
 }: {
   notification: Notification;
   onClose: () => void;
-  onMarkRead: (id: Id<'inAppNotifications'>) => void;
+  onMarkRead: (id: Id<'inAppNotifications'>, feedEventId?: string) => void;
 }) {
   const isUnread = !notification.readAt;
 
   function handleClick() {
     if (isUnread) {
-      onMarkRead(notification._id);
+      onMarkRead(notification._id, notification.feedEventId);
     }
     onClose();
   }
@@ -64,123 +182,167 @@ function NotificationItem({
     ? SESSION_LABELS[notification.sessionType]
     : '';
 
+  const itemClass = `block transition-colors hover:bg-surface-muted/50 ${isUnread ? 'bg-accent/[0.04]' : ''}`;
+
+  function LeftCol({ children }: { children: React.ReactNode }) {
+    return <div className="flex w-8 shrink-0 items-start">{children}</div>;
+  }
+
+  const rightMeta = (
+    <div className="flex shrink-0 flex-col items-end justify-between self-stretch pl-1">
+      <span className={`mt-1 h-2 w-2 rounded-full bg-accent ${isUnread ? 'opacity-100' : 'opacity-0'}`} />
+      <span className="text-[10px] whitespace-nowrap text-text-muted">
+        {timeAgo(notification.createdAt)}
+      </span>
+    </div>
+  );
+
   if (notification.type === 'rev_received') {
-    const actor =
-      notification.actorDisplayName ?? notification.actorUsername ?? 'Someone';
-    const content = notification.raceName
-      ? `${actor} reved your ${sessionLabel} prediction — ${notification.raceName}`
-      : `${actor} reved your prediction`;
-
-    const inner = (
-      <div className="flex items-start gap-3 px-4 py-3">
-        <div className="relative shrink-0">
-          <Avatar
-            avatarUrl={notification.actorAvatarUrl}
-            username={notification.actorUsername}
-            size="sm"
-          />
-          <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-white">
-            <Gauge className="h-2.5 w-2.5" />
-          </span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm leading-snug text-text">{content}</p>
-          <p className="mt-0.5 text-xs text-text-muted">
-            {timeAgo(notification.createdAt)}
-          </p>
-        </div>
-        {isUnread && (
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" />
-        )}
-      </div>
-    );
-
-    if (notification.raceSlug) {
-      return (
-        <Link
-          to="/races/$raceSlug"
-          params={{ raceSlug: notification.raceSlug }}
-          onClick={handleClick}
-          className="block transition-colors hover:bg-surface-muted/50"
-        >
-          {inner}
-        </Link>
-      );
-    }
+    const actors = notification.actors ?? [
+      {
+        userId: notification.actorUserId,
+        username: notification.actorUsername,
+        displayName: notification.actorDisplayName,
+        avatarUrl: notification.actorAvatarUrl,
+        isFollowed: false,
+      },
+    ];
+    const primary = actors[0];
 
     return (
       <Link
-        to="/feed"
+        to={
+          notification.feedEventId
+            ? '/feed/$feedEventId'
+            : notification.raceSlug
+              ? '/races/$raceSlug'
+              : '/feed'
+        }
+        params={
+          notification.feedEventId
+            ? { feedEventId: notification.feedEventId }
+            : notification.raceSlug
+              ? { raceSlug: notification.raceSlug }
+              : undefined
+        }
         onClick={handleClick}
-        className="block transition-colors hover:bg-surface-muted/50"
+        className={itemClass}
       >
-        {inner}
+        <div className="flex items-start gap-3 px-4 py-3">
+          <LeftCol>
+            <div className="relative">
+              <Avatar
+                avatarUrl={primary.avatarUrl}
+                username={primary.username}
+                size="sm"
+              />
+              <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-white">
+                <RevIcon className="h-2.5 w-2.5" />
+              </span>
+            </div>
+          </LeftCol>
+          <div className="min-w-0 flex-1 pt-0.5">
+            <p className="text-sm text-text">
+              <RevActorNames actors={actors} />{' '}
+              <span className="inline-flex items-center gap-0.75">
+                <span className="text-text-muted">gave you a</span>{' '}
+                <span className="inline-flex items-center gap-0.75 font-semibold text-accent">
+                  <RevIcon className="relative top-0.25 h-3.5 w-3.5" />
+                  Rev
+                </span>
+              </span>
+            </p>
+            {notification.raceName && (
+              <div className="mt-1.5">
+                <NotificationRaceChip
+                  raceSlug={notification.raceSlug}
+                  raceName={notification.raceName}
+                  sessionType={notification.sessionType}
+                />
+              </div>
+            )}
+          </div>
+          {rightMeta}
+        </div>
       </Link>
     );
   }
 
   if (notification.type === 'results_published') {
-    const content =
-      notification.raceName && sessionLabel
-        ? `${sessionLabel} results are in — ${notification.raceName}`
-        : 'Your session results are ready';
-    const pts =
-      notification.points !== undefined ? ` · ${notification.points} pts` : '';
+    const hasPoints = notification.points !== undefined;
 
     return (
       <Link
         to="/races/$raceSlug"
         params={{ raceSlug: notification.raceSlug ?? '' }}
         onClick={handleClick}
-        className="block transition-colors hover:bg-surface-muted/50"
+        className={itemClass}
       >
         <div className="flex items-start gap-3 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-500">
-            <Trophy className="h-4 w-4" />
+          <LeftCol>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-green-500">
+              <Trophy className="h-4 w-4" />
+            </div>
+          </LeftCol>
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex items-start gap-2">
+              <p className="flex-1 text-sm leading-snug text-text">Results are in</p>
+              {hasPoints && (
+                <span className="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-500">
+                  +{notification.points} pts
+                </span>
+              )}
+            </div>
+            {notification.raceName && (
+              <div className="mt-2">
+                <NotificationRaceChip
+                  raceSlug={notification.raceSlug}
+                  raceName={notification.raceName}
+                  sessionType={notification.sessionType}
+                />
+              </div>
+            )}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm leading-snug text-text">
-              {content}
-              <span className="font-semibold text-accent">{pts}</span>
-            </p>
-            <p className="mt-0.5 text-xs text-text-muted">
-              {timeAgo(notification.createdAt)}
-            </p>
-          </div>
-          {isUnread && (
-            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" />
-          )}
+          {rightMeta}
         </div>
       </Link>
     );
   }
 
   // session_locked
-  const content =
-    notification.raceName && sessionLabel
-      ? `${sessionLabel} is locked — ${notification.raceName}`
-      : 'A session has locked';
-
   return (
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: notification.raceSlug ?? '' }}
       onClick={handleClick}
-      className="block transition-colors hover:bg-surface-muted/50"
+      className={itemClass}
     >
       <div className="flex items-start gap-3 px-4 py-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
-          <Lock className="h-4 w-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm leading-snug text-text">{content}</p>
-          <p className="mt-0.5 text-xs text-text-muted">
-            See your friends&apos; picks · {timeAgo(notification.createdAt)}
+        <LeftCol>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+            <Lock className="h-4 w-4" />
+          </div>
+        </LeftCol>
+        <div className="min-w-0 flex-1 pt-0.5">
+          <p className="text-sm leading-snug text-text">
+            {notification.raceName && sessionLabel
+              ? `${sessionLabel} is now locked`
+              : 'A session has locked'}
+          </p>
+          {notification.raceName && (
+            <div className="mt-2">
+              <NotificationRaceChip
+                raceSlug={notification.raceSlug}
+                raceName={notification.raceName}
+                sessionType={notification.sessionType}
+              />
+            </div>
+          )}
+          <p className="mt-1.5 text-xs text-text-muted">
+            See your friends&apos; picks
           </p>
         </div>
-        {isUnread && (
-          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-accent" />
-        )}
+        {rightMeta}
       </div>
     </Link>
   );
@@ -198,54 +360,66 @@ export function NotificationBell() {
   const notifications = result?.notifications ?? [];
   const unreadCount = result?.unreadCount ?? 0;
 
-  // Close on outside click
+
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    function handlePointerDown(e: PointerEvent) {
-      const target = e.target as Node | null;
-      if (!target) {
-        return;
-      }
-      if (panelRef.current?.contains(target)) {
-        return;
-      }
-      if (buttonRef.current?.contains(target)) {
-        return;
-      }
-      setOpen(false);
+    const ac = new AbortController();
+    const { signal } = ac;
+
+    function isOutside(target: Node) {
+      return (
+        !panelRef.current?.contains(target) &&
+        !buttonRef.current?.contains(target)
+      );
     }
 
-    document.addEventListener('pointerdown', handlePointerDown, true);
-    return () =>
-      document.removeEventListener('pointerdown', handlePointerDown, true);
-  }, [open]);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
+    // pointerdown fires on disabled buttons (click does not)
+    document.addEventListener(
+      'pointerdown',
+      (e: PointerEvent) => {
+        const target = e.target as Node | null;
+        if (!target || !isOutside(target)) return;
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         setOpen(false);
-        buttonRef.current?.focus();
-      }
-    }
+        // Block the click that may follow for non-disabled elements
+        document.addEventListener(
+          'click',
+          (ce) => {
+            ce.stopPropagation();
+            ce.stopImmediatePropagation();
+          },
+          { capture: true, once: true, signal },
+        );
+      },
+      { capture: true, signal },
+    );
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener(
+      'keydown',
+      (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setOpen(false);
+          buttonRef.current?.focus();
+        }
+      },
+      { signal },
+    );
+
+    return () => ac.abort();
   }, [open]);
 
-  function handleMarkRead(id: Id<'inAppNotifications'>) {
-    markReadMutation({ notificationId: id });
+  function handleMarkRead(id: Id<'inAppNotifications'>, feedEventId?: string) {
+    markReadMutation({
+      notificationId: id,
+      feedEventId: feedEventId as Id<'feedEvents'> | undefined,
+    });
   }
 
   if (result === undefined) {
-    // Loading — show placeholder bell
     return (
       <button
         type="button"
@@ -258,7 +432,6 @@ export function NotificationBell() {
   }
 
   if (result === null) {
-    // Not signed in — don't render
     return null;
   }
 
@@ -284,45 +457,46 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div
-          ref={panelRef}
-          className="absolute top-full right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="text-sm font-semibold text-text">
-              Notifications
-            </span>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={() => markAllReadMutation({})}
-                className="flex items-center gap-1.5 text-xs text-accent transition-colors hover:text-accent-hover"
-              >
-                <CheckCheck className="h-3.5 w-3.5" />
-                Mark all read
-              </button>
-            )}
-          </div>
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" aria-hidden="true" />
+          <div
+            ref={panelRef}
+            className="fixed inset-x-2 top-[65px] z-50 overflow-hidden rounded-xl border border-white/10 bg-surface/95 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-96 md:w-[28rem]"
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+              <span className="text-sm font-semibold text-text">
+                Notifications
+              </span>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => markAllReadMutation({})}
+                  className="flex items-center gap-1.5 text-xs text-accent transition-colors hover:text-accent-hover"
+                >
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  Mark all read
+                </button>
+              )}
+            </div>
 
-          {/* List */}
-          <div className="max-h-[420px] divide-y divide-border/50 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-text-muted">
-                No notifications yet
-              </div>
-            ) : (
-              notifications.map((n) => (
-                <NotificationItem
-                  key={n._id}
-                  notification={n as Notification}
-                  onClose={() => setOpen(false)}
-                  onMarkRead={handleMarkRead}
-                />
-              ))
-            )}
+            <div className="max-h-[460px] divide-y divide-border/50 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-text-muted">
+                  No notifications yet
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <NotificationItem
+                    key={n._id}
+                    notification={n as Notification}
+                    onClose={() => setOpen(false)}
+                    onMarkRead={handleMarkRead}
+                  />
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

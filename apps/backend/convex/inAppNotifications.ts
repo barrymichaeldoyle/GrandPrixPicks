@@ -31,9 +31,69 @@ export const getMyNotifications = query({
       .order('desc')
       .take(MAX_NOTIFICATIONS);
 
-    const unreadCount = notifications.filter((n) => !n.readAt).length;
+    // Fetch followed IDs so rev actors can be ordered: followed first
+    const follows = await ctx.db
+      .query('follows')
+      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
+      .collect();
+    const followedIds = new Set(follows.map((f) => f.followeeId));
 
-    return { notifications, unreadCount };
+    // Group rev_received by feedEventId; pass everything else through unchanged
+    const revsByEventId = new Map<string, typeof notifications>();
+    const result: Array<
+      (typeof notifications)[number] & {
+        actors?: Array<{
+          userId?: Id<'users'>;
+          username?: string;
+          displayName?: string;
+          avatarUrl?: string;
+          isFollowed: boolean;
+        }>;
+        totalRevCount?: number;
+      }
+    > = [];
+
+    for (const n of notifications) {
+      if (n.type === 'rev_received' && n.feedEventId) {
+        const key = n.feedEventId;
+        if (!revsByEventId.has(key)) revsByEventId.set(key, []);
+        revsByEventId.get(key)!.push(n);
+      } else {
+        result.push(n);
+      }
+    }
+
+    for (const revNotifs of revsByEventId.values()) {
+      // Followed actors first, then most recent
+      revNotifs.sort((a, b) => {
+        const aF = a.actorUserId && followedIds.has(a.actorUserId) ? 0 : 1;
+        const bF = b.actorUserId && followedIds.has(b.actorUserId) ? 0 : 1;
+        if (aF !== bF) return aF - bF;
+        return b.createdAt - a.createdAt;
+      });
+
+      const representative = revNotifs[0];
+      const groupUnread = revNotifs.some((n) => !n.readAt);
+
+      result.push({
+        ...representative,
+        readAt: groupUnread ? undefined : representative.readAt,
+        actors: revNotifs.map((n) => ({
+          userId: n.actorUserId,
+          username: n.actorUsername,
+          displayName: n.actorDisplayName,
+          avatarUrl: n.actorAvatarUrl,
+          isFollowed: n.actorUserId ? followedIds.has(n.actorUserId) : false,
+        })),
+        totalRevCount: revNotifs.length,
+      });
+    }
+
+    result.sort((a, b) => b.createdAt - a.createdAt);
+
+    const unreadCount = result.filter((n) => !n.readAt).length;
+
+    return { notifications: result, unreadCount };
   },
 });
 
@@ -60,16 +120,40 @@ export const markAllRead = mutation({
 });
 
 export const markRead = mutation({
-  args: { notificationId: v.id('inAppNotifications') },
+  args: {
+    notificationId: v.id('inAppNotifications'),
+    feedEventId: v.optional(v.id('feedEvents')),
+  },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getViewer(ctx));
+    const now = Date.now();
+
+    // For grouped revs, mark all notifications for the feed event as read
+    if (args.feedEventId) {
+      const revNotifs = await ctx.db
+        .query('inAppNotifications')
+        .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
+        .filter((q) =>
+          q.and(
+            q.eq(q.field('type'), 'rev_received'),
+            q.eq(q.field('feedEventId'), args.feedEventId),
+          ),
+        )
+        .collect();
+      for (const n of revNotifs) {
+        if (!n.readAt) {
+          await ctx.db.patch(n._id, { readAt: now });
+        }
+      }
+      return;
+    }
 
     const notification = await ctx.db.get(args.notificationId);
     if (!notification || notification.userId !== viewer._id) {
       return;
     }
     if (!notification.readAt) {
-      await ctx.db.patch(args.notificationId, { readAt: Date.now() });
+      await ctx.db.patch(args.notificationId, { readAt: now });
     }
   },
 });
@@ -116,7 +200,7 @@ export const createRevNotification = internalMutation({
     await ctx.scheduler.runAfter(0, internal.push.sendPushForRevReceived, {
       recipientUserId: args.recipientUserId,
       actorDisplayName: actor.displayName,
-      raceSlug: args.raceSlug,
+      feedEventId: args.feedEventId,
     });
   },
 });

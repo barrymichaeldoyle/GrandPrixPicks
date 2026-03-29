@@ -56,6 +56,7 @@ type FeedEvent = {
   // streak_milestone
   streakCount?: number;
   revCount: number;
+  recentRevUsers?: { userId: string; username?: string; avatarUrl?: string }[];
   createdAt: number;
   viewerHasReved: boolean;
 };
@@ -484,6 +485,7 @@ function ItemFooter({
           feedEventId={event._id}
           revCount={event.revCount}
           viewerHasReved={event.viewerHasReved}
+          recentRevUsers={event.recentRevUsers}
           onCountClick={() => setRevsOpen(true)}
         />
         {!grouped && (
@@ -567,6 +569,7 @@ function ScorePublishedItem({
               feedEventId={event._id}
               revCount={event.revCount}
               viewerHasReved={event.viewerHasReved}
+              recentRevUsers={event.recentRevUsers}
               onCountClick={() => setRevsOpen(true)}
             />
           </div>
@@ -731,10 +734,12 @@ export function FeedItem({
   event,
   grouped,
   position,
+  attachedContent,
 }: {
   event: FeedEvent;
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
+  attachedContent?: ReactNode;
 }) {
   const radiusClass =
     position === 'first'
@@ -754,13 +759,16 @@ export function FeedItem({
     <div
       className={`border border-border bg-surface p-2.5 ${radiusClass} ${borderClass}`}
     >
-      {event.type === 'score_published' || event.type === 'session_locked' ? (
-        <ScorePublishedItem event={event} grouped={grouped} />
-      ) : event.type === 'streak_milestone' ? (
-        <StreakMilestoneItem event={event} />
-      ) : (
-        <JoinedLeagueItem event={event} />
-      )}
+      {event.type === 'score_published' || event.type === 'session_locked'
+        ? <ScorePublishedItem event={event} grouped={grouped} />
+        : event.type === 'streak_milestone'
+          ? <StreakMilestoneItem event={event} />
+          : <JoinedLeagueItem event={event} />}
+      {attachedContent ? (
+        <div className="mt-3 border-t border-border px-1 pt-3">
+          {attachedContent}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 const SIZES = {
+  xs: 'h-5 w-5 text-[9px]',
   sm: 'h-8 w-8 text-sm',
   md: 'h-12 w-12 text-lg',
   lg: 'h-12 w-12 text-xl sm:h-16 sm:w-16 sm:text-2xl lg:h-20 lg:w-20 lg:text-3xl',
@@ -32,7 +33,7 @@ export function Avatar({
 }: {
   avatarUrl?: string | null;
   username?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
 }) {
   const sizeClass = SIZES[size];
   const initial = (username ?? '?')[0].toUpperCase();

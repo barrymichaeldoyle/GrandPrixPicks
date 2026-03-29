@@ -8,78 +8,78 @@
  * @module
  */
 
-import type * as billing from '../billing.js';
-import type * as drivers from '../drivers.js';
-import type * as emails_H2HReminderEmail from '../emails/H2HReminderEmail.js';
-import type * as emails_PredictionReminderEmail from '../emails/PredictionReminderEmail.js';
-import type * as emails_SessionResultsPostRaceMadePredictionsEmail from '../emails/SessionResultsPostRaceMadePredictionsEmail.js';
-import type * as emails_SessionResultsPostRaceMissedPredictionsEmail from '../emails/SessionResultsPostRaceMissedPredictionsEmail.js';
-import type * as emails_SessionResultsPostRaceMissingH2HPredictionsEmail from '../emails/SessionResultsPostRaceMissingH2HPredictionsEmail.js';
-import type * as emails_SessionResultsPreRaceMadePredictionsEmail from '../emails/SessionResultsPreRaceMadePredictionsEmail.js';
-import type * as emails_SessionResultsPreRaceMissedPredictionsEmail from '../emails/SessionResultsPreRaceMissedPredictionsEmail.js';
-import type * as emails_SessionResultsPreRaceMissingH2HPredictionsEmail from '../emails/SessionResultsPreRaceMissingH2HPredictionsEmail.js';
-import type * as emails_SignupNudgeEmail from '../emails/SignupNudgeEmail.js';
-import type * as emails_sendReminderEmails from '../emails/sendReminderEmails.js';
-import type * as emails_sendResultEmails from '../emails/sendResultEmails.js';
-import type * as emails_urls from '../emails/urls.js';
-import type * as feed from '../feed.js';
-import type * as follows from '../follows.js';
-import type * as h2h from '../h2h.js';
-import type * as inAppNotifications from '../inAppNotifications.js';
-import type * as leaderboards from '../leaderboards.js';
-import type * as leagues from '../leagues.js';
-import type * as lib_auth from '../lib/auth.js';
-import type * as lib_email from '../lib/email.js';
-import type * as lib_leaderboard from '../lib/leaderboard.js';
-import type * as lib_notificationChannels from '../lib/notificationChannels.js';
-import type * as lib_raceTimezones from '../lib/raceTimezones.js';
-import type * as lib_scoring from '../lib/scoring.js';
-import type * as lib_standings from '../lib/standings.js';
-import type * as notifications from '../notifications.js';
-import type * as predictions from '../predictions.js';
-import type * as push from '../push.js';
-import type * as pushNotifications from '../pushNotifications.js';
-import type * as races from '../races.js';
-import type * as results from '../results.js';
-import type * as seed from '../seed.js';
-import type * as support from '../support.js';
-import type * as testing from '../testing.js';
-import type * as users from '../users.js';
+import type * as billing from "../billing.js";
+import type * as drivers from "../drivers.js";
+import type * as emails_H2HReminderEmail from "../emails/H2HReminderEmail.js";
+import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
+import type * as emails_SessionResultsPostRaceMadePredictionsEmail from "../emails/SessionResultsPostRaceMadePredictionsEmail.js";
+import type * as emails_SessionResultsPostRaceMissedPredictionsEmail from "../emails/SessionResultsPostRaceMissedPredictionsEmail.js";
+import type * as emails_SessionResultsPostRaceMissingH2HPredictionsEmail from "../emails/SessionResultsPostRaceMissingH2HPredictionsEmail.js";
+import type * as emails_SessionResultsPreRaceMadePredictionsEmail from "../emails/SessionResultsPreRaceMadePredictionsEmail.js";
+import type * as emails_SessionResultsPreRaceMissedPredictionsEmail from "../emails/SessionResultsPreRaceMissedPredictionsEmail.js";
+import type * as emails_SessionResultsPreRaceMissingH2HPredictionsEmail from "../emails/SessionResultsPreRaceMissingH2HPredictionsEmail.js";
+import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
+import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
+import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
+import type * as emails_urls from "../emails/urls.js";
+import type * as feed from "../feed.js";
+import type * as follows from "../follows.js";
+import type * as h2h from "../h2h.js";
+import type * as inAppNotifications from "../inAppNotifications.js";
+import type * as leaderboards from "../leaderboards.js";
+import type * as leagues from "../leagues.js";
+import type * as lib_auth from "../lib/auth.js";
+import type * as lib_email from "../lib/email.js";
+import type * as lib_leaderboard from "../lib/leaderboard.js";
+import type * as lib_notificationChannels from "../lib/notificationChannels.js";
+import type * as lib_raceTimezones from "../lib/raceTimezones.js";
+import type * as lib_scoring from "../lib/scoring.js";
+import type * as lib_standings from "../lib/standings.js";
+import type * as notifications from "../notifications.js";
+import type * as predictions from "../predictions.js";
+import type * as push from "../push.js";
+import type * as pushNotifications from "../pushNotifications.js";
+import type * as races from "../races.js";
+import type * as results from "../results.js";
+import type * as seed from "../seed.js";
+import type * as support from "../support.js";
+import type * as testing from "../testing.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from 'convex/server';
+} from "convex/server";
 
 declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   drivers: typeof drivers;
-  'emails/H2HReminderEmail': typeof emails_H2HReminderEmail;
-  'emails/PredictionReminderEmail': typeof emails_PredictionReminderEmail;
-  'emails/SessionResultsPostRaceMadePredictionsEmail': typeof emails_SessionResultsPostRaceMadePredictionsEmail;
-  'emails/SessionResultsPostRaceMissedPredictionsEmail': typeof emails_SessionResultsPostRaceMissedPredictionsEmail;
-  'emails/SessionResultsPostRaceMissingH2HPredictionsEmail': typeof emails_SessionResultsPostRaceMissingH2HPredictionsEmail;
-  'emails/SessionResultsPreRaceMadePredictionsEmail': typeof emails_SessionResultsPreRaceMadePredictionsEmail;
-  'emails/SessionResultsPreRaceMissedPredictionsEmail': typeof emails_SessionResultsPreRaceMissedPredictionsEmail;
-  'emails/SessionResultsPreRaceMissingH2HPredictionsEmail': typeof emails_SessionResultsPreRaceMissingH2HPredictionsEmail;
-  'emails/SignupNudgeEmail': typeof emails_SignupNudgeEmail;
-  'emails/sendReminderEmails': typeof emails_sendReminderEmails;
-  'emails/sendResultEmails': typeof emails_sendResultEmails;
-  'emails/urls': typeof emails_urls;
+  "emails/H2HReminderEmail": typeof emails_H2HReminderEmail;
+  "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
+  "emails/SessionResultsPostRaceMadePredictionsEmail": typeof emails_SessionResultsPostRaceMadePredictionsEmail;
+  "emails/SessionResultsPostRaceMissedPredictionsEmail": typeof emails_SessionResultsPostRaceMissedPredictionsEmail;
+  "emails/SessionResultsPostRaceMissingH2HPredictionsEmail": typeof emails_SessionResultsPostRaceMissingH2HPredictionsEmail;
+  "emails/SessionResultsPreRaceMadePredictionsEmail": typeof emails_SessionResultsPreRaceMadePredictionsEmail;
+  "emails/SessionResultsPreRaceMissedPredictionsEmail": typeof emails_SessionResultsPreRaceMissedPredictionsEmail;
+  "emails/SessionResultsPreRaceMissingH2HPredictionsEmail": typeof emails_SessionResultsPreRaceMissingH2HPredictionsEmail;
+  "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;
+  "emails/sendReminderEmails": typeof emails_sendReminderEmails;
+  "emails/sendResultEmails": typeof emails_sendResultEmails;
+  "emails/urls": typeof emails_urls;
   feed: typeof feed;
   follows: typeof follows;
   h2h: typeof h2h;
   inAppNotifications: typeof inAppNotifications;
   leaderboards: typeof leaderboards;
   leagues: typeof leagues;
-  'lib/auth': typeof lib_auth;
-  'lib/email': typeof lib_email;
-  'lib/leaderboard': typeof lib_leaderboard;
-  'lib/notificationChannels': typeof lib_notificationChannels;
-  'lib/raceTimezones': typeof lib_raceTimezones;
-  'lib/scoring': typeof lib_scoring;
-  'lib/standings': typeof lib_standings;
+  "lib/auth": typeof lib_auth;
+  "lib/email": typeof lib_email;
+  "lib/leaderboard": typeof lib_leaderboard;
+  "lib/notificationChannels": typeof lib_notificationChannels;
+  "lib/raceTimezones": typeof lib_raceTimezones;
+  "lib/scoring": typeof lib_scoring;
+  "lib/standings": typeof lib_standings;
   notifications: typeof notifications;
   predictions: typeof predictions;
   push: typeof push;
@@ -102,7 +102,7 @@ declare const fullApi: ApiFromModules<{
  */
 export declare const api: FilterApi<
   typeof fullApi,
-  FunctionReference<any, 'public'>
+  FunctionReference<any, "public">
 >;
 
 /**
@@ -115,33 +115,33 @@ export declare const api: FilterApi<
  */
 export declare const internal: FilterApi<
   typeof fullApi,
-  FunctionReference<any, 'internal'>
+  FunctionReference<any, "internal">
 >;
 
 export declare const components: {
   resend: {
     lib: {
       cancelEmail: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         { emailId: string },
         null
       >;
       cleanupAbandonedEmails: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         { olderThan?: number },
         null
       >;
       cleanupOldEmails: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         { olderThan?: number },
         null
       >;
       createManualEmail: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         {
           from: string;
           headers?: Array<{ name: string; value: string }>;
@@ -152,8 +152,8 @@ export declare const components: {
         string
       >;
       get: FunctionReference<
-        'query',
-        'internal',
+        "query",
+        "internal",
         { emailId: string },
         {
           bcc?: Array<string>;
@@ -174,14 +174,14 @@ export declare const components: {
           resendId?: string;
           segment: number;
           status:
-            | 'waiting'
-            | 'queued'
-            | 'cancelled'
-            | 'sent'
-            | 'delivered'
-            | 'delivery_delayed'
-            | 'bounced'
-            | 'failed';
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
           subject?: string;
           template?: {
             id: string;
@@ -192,8 +192,8 @@ export declare const components: {
         } | null
       >;
       getStatus: FunctionReference<
-        'query',
-        'internal',
+        "query",
+        "internal",
         { emailId: string },
         {
           bounced: boolean;
@@ -204,25 +204,25 @@ export declare const components: {
           failed: boolean;
           opened: boolean;
           status:
-            | 'waiting'
-            | 'queued'
-            | 'cancelled'
-            | 'sent'
-            | 'delivered'
-            | 'delivery_delayed'
-            | 'bounced'
-            | 'failed';
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
         } | null
       >;
       handleEmailEvent: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         { event: any },
         null
       >;
       sendEmail: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         {
           bcc?: Array<string>;
           cc?: Array<string>;
@@ -248,21 +248,21 @@ export declare const components: {
         string
       >;
       updateManualEmail: FunctionReference<
-        'mutation',
-        'internal',
+        "mutation",
+        "internal",
         {
           emailId: string;
           errorMessage?: string;
           resendId?: string;
           status:
-            | 'waiting'
-            | 'queued'
-            | 'cancelled'
-            | 'sent'
-            | 'delivered'
-            | 'delivery_delayed'
-            | 'bounced'
-            | 'failed';
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
         },
         null
       >;

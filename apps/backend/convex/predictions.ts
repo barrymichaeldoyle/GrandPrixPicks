@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import { findNextPredictionRace } from './races';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -370,10 +371,7 @@ export const submitPrediction = mutation({
 
     // Only allow predictions for the next upcoming race
     const allRaces = await ctx.db.query('races').collect();
-    const upcomingRaces = allRaces
-      .filter((r) => r.raceStartAt > now)
-      .sort((a, b) => a.raceStartAt - b.raceStartAt);
-    const nextRace = upcomingRaces[0];
+    const nextRace = findNextPredictionRace(allRaces, now);
 
     // Runtime guard: type doesn't reflect that upcomingRaces can be empty or not match
     if (!nextRace || nextRace._id !== args.raceId) {
@@ -520,10 +518,7 @@ export const randomizePredictions = mutation({
 
     // Only allow predictions for the next upcoming race
     const allRaces = await ctx.db.query('races').collect();
-    const upcomingRaces = allRaces
-      .filter((r) => r.raceStartAt > now)
-      .sort((a, b) => a.raceStartAt - b.raceStartAt);
-    const nextRace = upcomingRaces[0];
+    const nextRace = findNextPredictionRace(allRaces, now);
 
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error('Predictions are only open for the next upcoming race');

@@ -12,6 +12,53 @@ const raceStatusValidator = v.union(
   v.literal('finished'),
 );
 
+type PredictionRace = {
+  _id: string;
+  season: number;
+  round: number;
+  status: string;
+  predictionLockAt: number;
+};
+
+export function findNextPredictionRace<T extends PredictionRace>(
+  races: Array<T>,
+  now: number,
+): T | null {
+  return (
+    races
+      .filter(
+        (race) =>
+          race.status !== 'cancelled' &&
+          race.status !== 'finished' &&
+          race.predictionLockAt > now,
+      )
+      .sort((a, b) => {
+        if (a.season !== b.season) {
+          return a.season - b.season;
+        }
+        return a.round - b.round;
+      })[0] ?? null
+  );
+}
+
+export function getPredictionOpenAtFromRaces<T extends PredictionRace>(
+  races: Array<T>,
+  race: T,
+): number | null {
+  const previousRace =
+    races
+      .filter(
+        (candidate) =>
+          candidate.season === race.season &&
+          candidate.round < race.round &&
+          candidate.status !== 'cancelled',
+      )
+      .sort((a, b) => b.round - a.round)
+      .at(0) ?? null;
+
+  return previousRace?.predictionLockAt ?? null;
+}
+
 export const listRaces = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -30,11 +77,7 @@ export const getNextRace = query({
   handler: async (ctx): Promise<Doc<'races'> | null> => {
     const now = Date.now();
     const races = await ctx.db.query('races').collect();
-    const upcoming = races
-      .filter((r) => r.raceStartAt > now && r.status !== 'cancelled')
-      .sort((a, b) => a.raceStartAt - b.raceStartAt);
-
-    return upcoming[0] ?? null;
+    return findNextPredictionRace(races, now);
   },
 });
 
@@ -78,7 +121,7 @@ export const getRaceBySlugOrLegacyRef = query({
 });
 
 /**
- * When predictions open for this race (previous non-cancelled race's start time).
+ * When predictions open for this race (previous non-cancelled race's final prediction lock).
  * Null for round 1 (no previous race).
  */
 export const getPredictionOpenAt = query({
@@ -90,17 +133,7 @@ export const getPredictionOpenAt = query({
     }
 
     const allRaces = await ctx.db.query('races').collect();
-    const previousRace = allRaces
-      .filter(
-        (r) =>
-          r.season === race.season &&
-          r.round < race.round &&
-          r.status !== 'cancelled',
-      )
-      .sort((a, b) => b.round - a.round)
-      .at(0);
-
-    return previousRace?.raceStartAt ?? null;
+    return getPredictionOpenAtFromRaces(allRaces, race);
   },
 });
 

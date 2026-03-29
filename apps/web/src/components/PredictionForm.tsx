@@ -303,6 +303,8 @@ export function PredictionForm({
   onDirtyChange,
 }: PredictionFormProps) {
   const drivers = useQuery(api.drivers.listDrivers);
+  const race = useQuery(api.races.getRace, { raceId });
+  const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
 
@@ -314,6 +316,14 @@ export function PredictionForm({
   const [errorMessage, setErrorMessage] = useState('');
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const draft = loadPredictionDraft<Top5Draft>(draftKey);
@@ -439,6 +449,28 @@ export function PredictionForm({
   if (drivers === undefined) {
     return <InlineLoader />;
   }
+
+  const sessionLockAt =
+    sessionType === 'quali'
+      ? race?.qualiLockAt
+      : sessionType === 'sprint_quali'
+        ? race?.sprintQualiLockAt
+        : sessionType === 'sprint'
+          ? race?.sprintLockAt
+          : sessionType === 'race'
+            ? race?.predictionLockAt
+            : race?.predictionLockAt;
+  const isRaceCurrentlyOpen = nextPredictionRace?._id === raceId;
+  const isSessionCurrentlyLocked =
+    sessionType !== undefined &&
+    sessionLockAt !== undefined &&
+    now >= sessionLockAt;
+  const submissionBlockedMessage = isSessionCurrentlyLocked
+    ? 'This session is already locked. You can still view your picks, but you can’t save changes now.'
+    : nextPredictionRace !== undefined && !isRaceCurrentlyOpen
+      ? 'Predictions are closed for this race right now. Open the current prediction race instead.'
+      : null;
+  const isSubmissionBlocked = submissionBlockedMessage !== null;
 
   const pickedDrivers = picks
     .map((id) => drivers.find((d) => d._id === id))
@@ -654,7 +686,10 @@ export function PredictionForm({
                 loading={isSubmitting}
                 saved={isUnchangedFromSaved}
                 disabled={
-                  picks.length !== 5 || isSubmitting || isUnchangedFromSaved
+                  picks.length !== 5 ||
+                  isSubmitting ||
+                  isUnchangedFromSaved ||
+                  isSubmissionBlocked
                 }
                 onClick={handleSubmit}
                 data-testid="submit-prediction"
@@ -690,13 +725,18 @@ export function PredictionForm({
                 </span>
               )}
             </div>
+            {submissionBlockedMessage ? (
+              <p className="mt-2 text-center text-sm text-warning">
+                {submissionBlockedMessage}
+              </p>
+            ) : null}
             <p className="mt-2 text-center text-xs text-text-muted">
               You can edit your picks any time before this session starts.
             </p>
           </div>
 
           {/* Available Drivers - selection pool (right column on desktop) */}
-          <div className="lg:min-w-0 lg:flex-[2]">
+          <div className="lg:min-w-0 lg:flex-2">
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
               {picks.length >= 5 ? (

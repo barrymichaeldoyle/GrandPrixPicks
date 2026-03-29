@@ -9,6 +9,7 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
+import { findNextPredictionRace } from './races';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -776,10 +777,7 @@ export const submitH2HPredictions = mutation({
 
     // Only allow predictions for the next upcoming race
     const allRaces = await ctx.db.query('races').collect();
-    const upcomingRaces = allRaces
-      .filter((r) => r.raceStartAt > now)
-      .sort((a, b) => a.raceStartAt - b.raceStartAt);
-    const nextRace = upcomingRaces[0];
+    const nextRace = findNextPredictionRace(allRaces, now);
 
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error(

@@ -48,8 +48,8 @@ export function deriveCardState({
       sessionEntries.filter((e) => e.data.hasResults).length &&
     scoredSessions.length > 0;
 
-  // Not the next race and still upcoming
-  if (data.raceStatus === 'upcoming' && !isNextRace) {
+  // Not the next race and still upcoming (but not already locked)
+  if (data.raceStatus === 'upcoming' && !isNextRace && !hasLockedSessions) {
     return 'not_yet_open';
   }
 

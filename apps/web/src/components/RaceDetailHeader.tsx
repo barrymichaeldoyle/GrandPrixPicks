@@ -88,11 +88,11 @@ export function RaceDetailHeader({
             <span className="text-xs text-text-muted">
               {resultsSummary.label}
             </span>
-            {resultsSummary.showResultsPendingBadge ? (
-              <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
-                Results pending
-              </span>
-            ) : null}
+            <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
+              {resultsSummary.showResultsPendingBadge
+                ? 'Results pending'
+                : null}
+            </span>
           </div>
           <div className="mt-0.5 flex items-baseline justify-around gap-4 md:justify-center">
             <div className="leading-none font-bold text-accent">

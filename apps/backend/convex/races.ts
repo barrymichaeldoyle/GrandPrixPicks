@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
+import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 
 const raceStatusValidator = v.union(
@@ -178,10 +179,14 @@ export const adminUpsertRace = mutation({
         status: args.status,
         updatedAt: now,
       });
+      const updatedRace = await ctx.db.get(args.raceId);
+      if (updatedRace) {
+        await scheduleSessionLockNotifications(ctx, updatedRace);
+      }
       return args.raceId;
     }
 
-    return await ctx.db.insert('races', {
+    const newRaceId = await ctx.db.insert('races', {
       season: args.season,
       round: args.round,
       name: args.name,
@@ -193,6 +198,11 @@ export const adminUpsertRace = mutation({
       createdAt: now,
       updatedAt: now,
     });
+    const newRace = await ctx.db.get(newRaceId);
+    if (newRace) {
+      await scheduleSessionLockNotifications(ctx, newRace);
+    }
+    return newRaceId;
   },
 });
 

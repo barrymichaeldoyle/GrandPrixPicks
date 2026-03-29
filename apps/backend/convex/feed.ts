@@ -867,6 +867,76 @@ export const getRevUsers = query({
 // ============ Backfill ============
 
 /**
+ * Backfill session_locked feed events for a specific race+session.
+ * Use this when the scheduler failed to fire (e.g. race wasn't scheduled via adminUpsertRace).
+ * Safe to run on production — idempotent, skips users who already have an event.
+ *
+ * Run via:
+ *   npx convex run feed:backfillSessionLockFeedEvents '{"raceId": "<id>", "sessionType": "quali"}'
+ */
+export const backfillSessionLockFeedEvents = mutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+
+    const now = Date.now();
+    let created = 0;
+
+    const predictions = await ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .take(500);
+
+    for (const prediction of predictions) {
+      const user = await ctx.db.get(prediction.userId);
+      if (!user) {
+        continue;
+      }
+
+      const existing = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .first();
+
+      if (existing) {
+        continue;
+      }
+
+      await ctx.db.insert('feedEvents', {
+        type: 'session_locked',
+        userId: prediction.userId,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        raceName: race.name,
+        raceSlug: race.slug,
+        season: race.season,
+        revCount: 0,
+        createdAt: now,
+      });
+      created++;
+    }
+
+    return { created };
+  },
+});
+
+/**
  * Backfill score_published feed events for all published results in a season.
  * Safe to run on production — fully idempotent (upserts, never duplicates).
  * Uses real publishedAt timestamps so events appear at the correct time in the feed.

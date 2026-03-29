@@ -16,7 +16,8 @@
   ],
   "rules": {
     "curly": "error",
-    "func-style": ["error", "declaration"]
+    "func-style": ["error", "declaration"],
+    "typescript/no-explicit-any": "error"
   },
   "overrides": [
     {

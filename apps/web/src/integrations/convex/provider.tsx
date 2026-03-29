@@ -3,7 +3,7 @@ import { ConvexReactClient } from 'convex/react';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import type { PropsWithChildren } from 'react';
 
-const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL;
+const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
 if (!CONVEX_URL) {
   console.error('missing environment variable CONVEX_URL');
 }

@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
@@ -8,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar } from './Avatar';
 
 type Notification = {
-  _id: string;
+  _id: Id<'inAppNotifications'>;
   type: 'rev_received' | 'results_published' | 'session_locked';
   readAt?: number;
   createdAt: number;
@@ -48,7 +49,7 @@ function NotificationItem({
 }: {
   notification: Notification;
   onClose: () => void;
-  onMarkRead: (id: string) => void;
+  onMarkRead: (id: Id<'inAppNotifications'>) => void;
 }) {
   const isUnread = !notification.readAt;
 
@@ -239,8 +240,8 @@ export function NotificationBell() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
-  function handleMarkRead(id: string) {
-    markReadMutation({ notificationId: id as any });
+  function handleMarkRead(id: Id<'inAppNotifications'>) {
+    markReadMutation({ notificationId: id });
   }
 
   if (result === undefined) {

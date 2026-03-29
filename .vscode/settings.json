@@ -1,5 +1,10 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeLens": true,
+  "javascript.referencesCodeLens.enabled": true,
+  "javascript.referencesCodeLens.showOnAllFunctions": true,
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.referencesCodeLens.showOnAllFunctions": true,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "prettier.requireConfig": true,

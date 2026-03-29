@@ -3184,6 +3184,62 @@ export const reseedDevForUpcomingPredictionBanner = internalAction({
 });
 
 /**
+ * Reset dev database to the "post-Japan, Bahrain/Saudi cancelled, Miami next" scenario:
+ * - Clears dev predictions, results, scores, standings, fake users, leagues
+ * - Resets races to their seeded 2026 dates/statuses
+ * - Ensures drivers and 2026 H2H matchups exist
+ * - Marks japan-2026 as finished with race/quali results published in the past
+ * - Leaves bahrain-2026 and saudi-arabia-2026 cancelled from the base calendar seed
+ * - Ensures miami-2026 remains upcoming, making it the active prediction race
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevForPostJapanMiamiGap
+ */
+export const reseedDevForPostJapanMiamiGap = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    let totalDeleted = 0;
+    let iterations = 0;
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    await ctx.runMutation(internal.seed.seedDrivers);
+    await ctx.runMutation(internal.seed.seedH2HMatchups);
+
+    const scenario: {
+      japanRaceId: Id<'races'>;
+      japanRaceFinishedAt: number;
+      miamiRaceId: Id<'races'>;
+      miamiRaceStartAt: number;
+      cancelledRaceSlugs: string[];
+    } = await ctx.runMutation(internal.seed._seedPostJapanMiamiGapScenario);
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      ...scenario,
+    };
+  },
+});
+
+/**
  * Internal: configure australia-2026 with quali locked and race still open,
  * leaving the main user with no predictions for that race.
  */
@@ -3344,6 +3400,108 @@ export const _seedUpcomingPredictionBannerScenario = internalMutation({
       mainUserEmail: mainUser.email,
       username: mainUser.username,
       variant: args.variant,
+    };
+  },
+});
+
+export const _seedPostJapanMiamiGapScenario = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers. Run seedDrivers first.');
+    }
+
+    const japanRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'japan-2026'))
+      .unique();
+    const bahrainRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'bahrain-2026'))
+      .unique();
+    const saudiRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'saudi-arabia-2026'))
+      .unique();
+    const miamiRace = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'miami-2026'))
+      .unique();
+
+    if (!japanRace || !bahrainRace || !saudiRace || !miamiRace) {
+      throw new Error(
+        'japan-2026, bahrain-2026, saudi-arabia-2026, and miami-2026 races are required. Run seedRaces first.',
+      );
+    }
+
+    const japanQualiAt = now - 28 * HOUR;
+    const japanRaceAt = now - 24 * HOUR;
+    const publishedAt = now - 23 * HOUR;
+    const classification = drivers.map((driver) => driver._id);
+    await ctx.db.patch(japanRace._id, {
+      status: 'finished',
+      qualiStartAt: japanQualiAt,
+      qualiLockAt: japanQualiAt,
+      raceStartAt: japanRaceAt,
+      predictionLockAt: japanRaceAt,
+      updatedAt: now,
+    });
+
+    await ctx.db.patch(bahrainRace._id, {
+      status: 'cancelled',
+      updatedAt: now,
+    });
+    await ctx.db.patch(saudiRace._id, {
+      status: 'cancelled',
+      updatedAt: now,
+    });
+    await ctx.db.patch(miamiRace._id, {
+      status: 'upcoming',
+      updatedAt: now,
+    });
+
+    const existingJapanQuali = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', japanRace._id).eq('sessionType', 'quali'),
+      )
+      .unique();
+    if (!existingJapanQuali) {
+      await ctx.db.insert('results', {
+        raceId: japanRace._id,
+        sessionType: 'quali',
+        classification,
+        publishedAt,
+        updatedAt: publishedAt,
+      });
+    }
+
+    const existingJapanRace = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', japanRace._id).eq('sessionType', 'race'),
+      )
+      .unique();
+    if (!existingJapanRace) {
+      await ctx.db.insert('results', {
+        raceId: japanRace._id,
+        sessionType: 'race',
+        classification,
+        publishedAt: publishedAt + HOUR,
+        updatedAt: publishedAt + HOUR,
+      });
+    }
+
+    return {
+      japanRaceId: japanRace._id,
+      japanRaceFinishedAt: japanRaceAt,
+      miamiRaceId: miamiRace._id,
+      miamiRaceStartAt: miamiRace.raceStartAt,
+      cancelledRaceSlugs: ['bahrain-2026', 'saudi-arabia-2026'],
     };
   },
 });

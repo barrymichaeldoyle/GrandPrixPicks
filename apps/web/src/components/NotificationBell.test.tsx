@@ -47,11 +47,18 @@ vi.mock('./RaceCard', () => ({
 function dispatchPointerDown(target: Element) {
   const event =
     typeof window.PointerEvent === 'function'
-      ? new window.PointerEvent('pointerdown', { bubbles: true, button: 0 })
-      : Object.assign(new MouseEvent('pointerdown', { bubbles: true }), {
+      ? new window.PointerEvent('pointerdown', {
+          bubbles: true,
+          cancelable: true,
           button: 0,
-        });
-  target.dispatchEvent(event);
+        })
+      : Object.assign(
+          new MouseEvent('pointerdown', { bubbles: true, cancelable: true }),
+          {
+            button: 0,
+          },
+        );
+  return target.dispatchEvent(event);
 }
 
 function renderNotificationBell() {
@@ -65,7 +72,8 @@ function renderNotificationBell() {
 
   return {
     button: () => container.querySelector('button[aria-expanded]'),
-    isPanelOpen: () => container.textContent?.includes('No notifications yet'),
+    backdrop: () => document.body.querySelector('button[aria-label="Close notifications"]'),
+    isPanelOpen: () => document.body.textContent?.includes('No notifications yet'),
     unmount: () => {
       act(() => {
         root.unmount();
@@ -81,7 +89,7 @@ describe('NotificationBell', () => {
     document.body.innerHTML = '';
   });
 
-  it('stays closed when pressing the bell while the panel is already open', () => {
+  it('toggles closed when pressing the bell while the panel is already open', () => {
     const view = renderNotificationBell();
     const button = view.button();
 
@@ -100,6 +108,62 @@ describe('NotificationBell', () => {
     });
 
     expect(view.isPanelOpen()).toBe(false);
+    view.unmount();
+  });
+
+  it('closes from the backdrop tap sequence', () => {
+    const view = renderNotificationBell();
+    const button = view.button();
+
+    expect(button).not.toBeNull();
+
+    act(() => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(view.isPanelOpen()).toBe(true);
+
+    const backdrop = view.backdrop();
+
+    expect(backdrop).not.toBeNull();
+
+    let pointerResult = true;
+    act(() => {
+      if (backdrop) {
+        pointerResult = dispatchPointerDown(backdrop);
+        backdrop.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      }
+    });
+
+    expect(pointerResult).toBe(false);
+    expect(view.isPanelOpen()).toBe(false);
+    view.unmount();
+  });
+
+  it('renders a full-screen backdrop in the portal and consumes pointerdown', () => {
+    const view = renderNotificationBell();
+    const button = view.button();
+
+    expect(button).not.toBeNull();
+
+    act(() => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const backdrop = view.backdrop();
+
+    expect(backdrop).not.toBeNull();
+    expect(backdrop?.parentElement).toBe(document.body);
+    expect(view.isPanelOpen()).toBe(true);
+
+    let pointerResult = true;
+    act(() => {
+      if (backdrop) {
+        pointerResult = dispatchPointerDown(backdrop);
+      }
+    });
+
+    expect(pointerResult).toBe(false);
+    expect(view.isPanelOpen()).toBe(true);
     view.unmount();
   });
 });

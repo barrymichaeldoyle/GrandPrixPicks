@@ -6,6 +6,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { Bell, CheckCheck, Lock, Trophy } from 'lucide-react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { Avatar } from './Avatar';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
@@ -404,6 +405,19 @@ export function NotificationBell() {
     setOpen((value) => !value);
   }
 
+  function handleBackdropPointerDown(
+    event: ReactMouseEvent<HTMLButtonElement>,
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function handleBackdropClick(event: ReactMouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpen(false);
+  }
+
   if (result === undefined) {
     return (
       <button
@@ -420,38 +434,19 @@ export function NotificationBell() {
     return null;
   }
 
-  return (
-    <div className="relative">
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-        aria-expanded={open}
-        onClick={handleButtonClick}
-        className="relative rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-      >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span
-            aria-hidden
-            className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] leading-none font-bold text-white"
-          >
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
-
-      {open && (
+  const panel = open
+    ? createPortal(
         <>
           <button
             type="button"
             aria-label="Close notifications"
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40 bg-black/40"
+            onPointerDown={handleBackdropPointerDown}
+            onClick={handleBackdropClick}
+            className="fixed inset-0 z-[90] bg-black/40"
           />
           <div
             ref={panelRef}
-            className="fixed inset-x-2 top-[65px] z-50 overflow-hidden rounded-xl border border-white/10 bg-surface/95 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-96 md:w-[28rem]"
+            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-xl border border-white/10 bg-surface/95 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
               <span className="text-sm font-semibold text-text">
@@ -486,8 +481,32 @@ export function NotificationBell() {
               )}
             </div>
           </div>
-        </>
-      )}
+        </>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+        aria-expanded={open}
+        onClick={handleButtonClick}
+        className="relative rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      >
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span
+            aria-hidden
+            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] leading-none font-bold text-white"
+          >
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+      {panel}
     </div>
   );
 }

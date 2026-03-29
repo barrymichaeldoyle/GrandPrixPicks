@@ -12,8 +12,8 @@ npm install @convex-dev/migrations
 
 ```typescript
 // convex/convex.config.ts
-import { defineApp } from "convex/server";
-import migrations from "@convex-dev/migrations/convex.config.js";
+import { defineApp } from 'convex/server';
+import migrations from '@convex-dev/migrations/convex.config.js';
 
 const app = defineApp();
 app.use(migrations);
@@ -22,9 +22,9 @@ export default app;
 
 ```typescript
 // convex/migrations.ts
-import { Migrations } from "@convex-dev/migrations";
-import { components } from "./_generated/api.js";
-import { DataModel } from "./_generated/dataModel.js";
+import { Migrations } from '@convex-dev/migrations';
+import { components } from './_generated/api.js';
+import { DataModel } from './_generated/dataModel.js';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 export const run = migrations.runner();
@@ -39,10 +39,10 @@ The `migrateOne` function processes a single document. The component handles bat
 ```typescript
 // convex/migrations.ts
 export const addDefaultRole = migrations.define({
-  table: "users",
+  table: 'users',
   migrateOne: async (ctx, user) => {
     if (user.role === undefined) {
-      await ctx.db.patch(user._id, { role: "user" });
+      await ctx.db.patch(user._id, { role: 'user' });
     }
   },
 });
@@ -52,7 +52,7 @@ Shorthand: if you return an object, it is applied as a patch automatically.
 
 ```typescript
 export const clearDeprecatedField = migrations.define({
-  table: "users",
+  table: 'users',
   migrateOne: () => ({ legacyField: undefined }),
 });
 ```
@@ -136,7 +136,7 @@ If documents are large or the table has heavy write traffic, reduce the batch si
 
 ```typescript
 export const migrateHeavyTable = migrations.define({
-  table: "largeDocuments",
+  table: 'largeDocuments',
   batchSize: 10,
   migrateOne: async (ctx, doc) => {
     // migration logic
@@ -150,10 +150,9 @@ Process only matching documents instead of the full table:
 
 ```typescript
 export const fixEmptyNames = migrations.define({
-  table: "users",
-  customRange: (query) =>
-    query.withIndex("by_name", (q) => q.eq("name", "")),
-  migrateOne: () => ({ name: "<unknown>" }),
+  table: 'users',
+  customRange: (query) => query.withIndex('by_name', (q) => q.eq('name', '')),
+  migrateOne: () => ({ name: '<unknown>' }),
 });
 ```
 
@@ -163,7 +162,7 @@ By default each document in a batch is processed serially. Enable parallel proce
 
 ```typescript
 export const clearField = migrations.define({
-  table: "myTable",
+  table: 'myTable',
   parallelize: true,
   migrateOne: () => ({ optionalField: undefined }),
 });

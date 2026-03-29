@@ -13,7 +13,6 @@ import {
 } from './lib/auth';
 import { syncUserToStandings } from './lib/standings';
 
-
 type AccountDeletionSummary = {
   follows: number;
   supportRequests: number;

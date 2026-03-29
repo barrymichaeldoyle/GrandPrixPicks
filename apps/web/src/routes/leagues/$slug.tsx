@@ -612,7 +612,9 @@ function LeagueMembers({
         : stickyWeekendH2H;
   })();
 
-  const showPredictionStatus = nextRace?.status === 'upcoming';
+  const showPredictionStatus =
+    nextRace?.status === 'upcoming' &&
+    (timeScope !== 'weekend' || effectiveRaceId === nextRace._id);
   const members = useQuery(api.leagues.getLeagueMembers, {
     leagueId,
     raceId: showPredictionStatus ? nextRace._id : undefined,

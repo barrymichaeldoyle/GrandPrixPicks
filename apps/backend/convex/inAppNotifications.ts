@@ -185,7 +185,7 @@ export const notifyUsersSessionLocked = internalMutation({
       .take(500);
 
     const now = Date.now();
-    const notifiedUserIds: Array<typeof predictions[number]['userId']> = [];
+    const notifiedUserIds: Array<(typeof predictions)[number]['userId']> = [];
 
     for (const prediction of predictions) {
       // Skip if we've already notified this user for this session lock

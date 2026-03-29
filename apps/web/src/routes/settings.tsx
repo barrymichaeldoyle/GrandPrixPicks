@@ -868,7 +868,7 @@ function SettingsPage() {
             <div className="space-y-6 p-4">
               {/* In-App */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
                   In-App
                 </p>
                 <p className="text-xs text-text-muted">

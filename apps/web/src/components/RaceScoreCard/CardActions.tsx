@@ -83,7 +83,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       return null;
     }
     return (
-      <div className="p-4">
+      <div className="pb-3">
         <h2 className="mb-2 text-xl font-semibold text-text">
           Predictions Locked
         </h2>

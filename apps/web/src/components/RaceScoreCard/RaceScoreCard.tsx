@@ -405,7 +405,7 @@ function FullCard({
       <CardActions data={data} cardState={cardState} variant="full" />
 
       {showSessions && (
-        <div className="grid grid-cols-1 gap-4 p-2 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 pb-2 lg:grid-cols-2">
           {sessions.map((session) => {
             const sessionData = data.sessions[session];
             if (!sessionData) {

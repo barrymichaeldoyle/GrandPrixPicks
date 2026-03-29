@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "semi": true,
+  "singleQuote": true,
+  "sortPackageJson": false,
+  "sortTailwindcss": {
+    "stylesheet": "./apps/web/src/styles.css"
+  },
+  "trailingComma": "all",
+  "ignorePatterns": [
+    "apps/backend/convex/_generated",
+    "apps/web/src/routeTree.gen.ts",
+    "convex/_generated",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock"
+  ]
+}

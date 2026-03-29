@@ -1,85 +1,46 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeLens": true,
-  "references.preferredLocation": "peek",
-  "javascript.referencesCodeLens.enabled": true,
-  "javascript.referencesCodeLens.showOnAllFunctions": true,
-  "typescript.referencesCodeLens.enabled": true,
-  "typescript.referencesCodeLens.showOnAllFunctions": true,
+  "oxc.fmt.configPath": ".oxfmtrc.json",
+  "oxc.enable.oxfmt": true,
+  "oxc.path.oxfmt": "C:\\Users\\Barry\\Dev\\GrandPrixPicks\\node_modules\\.bin\\oxfmt.CMD",
+  "oxc.path.node": "C:\\Program Files\\nodejs\\node.exe",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
-  "prettier.requireConfig": true,
-  "oxc.configPath": ".oxlintrc.json",
-  "oxc.fixKind": "safe_fix",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.oxc": "always"
+  "[javascript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
   },
-  "files.watcherExclude": {
-    "**/routeTree.gen.ts": true
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
   },
-  "search.exclude": {
-    "**/routeTree.gen.ts": true
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
   },
-  "files.readonlyInclude": {
-    "**/routeTree.gen.ts": true
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.formatOnSave": true
   },
   "cSpell.words": [
-    "Albon",
-    "Alonso",
-    "Antonelli",
-    "appinstalled",
-    "Arvid",
-    "barrymdoyle",
-    "Bearman",
-    "beforeinstallprompt",
-    "Bortoleto",
-    "Bottas",
-    "changefreq",
-    "cloudflared",
-    "codegen",
-    "Colapinto",
-    "cooldown",
-    "cursorrules",
-    "dedup",
-    "dhabi",
-    "flagcdn",
     "followee",
-    "Gasly",
-    "grandprixpicks",
-    "Hadjar",
-    "Hülkenberg",
-    "imola",
-    "Isack",
-    "Kimi",
-    "Kolkata",
-    "Lando",
-    "Leclerc",
-    "Lindblad",
-    "matchups",
-    "maxage",
-    "networkless",
-    "Nico",
-    "nums",
-    "Ocon",
-    "orbitron",
-    "Pérez",
-    "Piastri",
-    "pnponly",
-    "posthog",
+    "followees",
+    "oxfmt",
+    "oxlint",
     "quali",
-    "resvg",
-    "Sainz",
-    "Sauber",
-    "Segoe",
-    "tanstack",
-    "tanstackstart",
-    "unsubmitted",
-    "unwasm",
-    "Valtteri",
-    "Verstappen",
-    "viewbox",
-    "vinxi",
-    "VITE",
-    "workerd"
+    "Reved",
+    "stylesheet"
   ]
 }

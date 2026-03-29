@@ -282,7 +282,7 @@ export function Tooltip({
     <span
       ref={tooltipRef}
       id={tooltipId}
-      className="pointer-events-none fixed z-[9999] transition-[opacity,transform] duration-150 ease-out"
+      className="pointer-events-none fixed z-9999 transition-[opacity,transform] duration-150 ease-out"
       role="tooltip"
       style={{
         left: coords.left,

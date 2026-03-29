@@ -56,7 +56,11 @@ type FeedEvent = {
   // streak_milestone
   streakCount?: number;
   revCount: number;
-  recentRevUsers?: { userId: string; username?: string; avatarUrl?: string }[];
+  recentRevUsers?: Array<{
+    userId: Id<'users'>;
+    username?: string;
+    avatarUrl?: string;
+  }>;
   createdAt: number;
   viewerHasReved: boolean;
 };
@@ -480,7 +484,7 @@ function ItemFooter({
 
   return (
     <>
-      <div className="flex items-center gap-1">
+      <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
         <RevButton
           feedEventId={event._id}
           revCount={event.revCount}
@@ -489,8 +493,11 @@ function ItemFooter({
           onCountClick={() => setRevsOpen(true)}
         />
         {!grouped && (
-          <span className="text-xs text-text-muted" suppressHydrationWarning>
-            · {formatRelativeTime(event.createdAt)}
+          <span
+            className="shrink-0 text-xs text-text-muted/50"
+            suppressHydrationWarning
+          >
+            {formatRelativeTime(event.createdAt)}
           </span>
         )}
       </div>
@@ -515,7 +522,7 @@ function ScorePublishedItem({
   return (
     <>
       <div className="space-y-2.5">
-        {/* Header: avatar + name + rev button */}
+        {/* Header: avatar + name */}
         <div className="flex items-center gap-2">
           <Link
             to="/p/$username"
@@ -563,15 +570,6 @@ function ScorePublishedItem({
             {event.username && (
               <p className="text-[11px] text-text-muted">@{event.username}</p>
             )}
-          </div>
-          <div className="shrink-0">
-            <RevButton
-              feedEventId={event._id}
-              revCount={event.revCount}
-              viewerHasReved={event.viewerHasReved}
-              recentRevUsers={event.recentRevUsers}
-              onCountClick={() => setRevsOpen(true)}
-            />
           </div>
         </div>
 
@@ -670,6 +668,24 @@ function ScorePublishedItem({
             </div>
           )
         )}
+
+        <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
+          <RevButton
+            feedEventId={event._id}
+            revCount={event.revCount}
+            viewerHasReved={event.viewerHasReved}
+            recentRevUsers={event.recentRevUsers}
+            onCountClick={() => setRevsOpen(true)}
+          />
+          {!grouped && (
+            <span
+              className="shrink-0 text-xs text-text-muted/50"
+              suppressHydrationWarning
+            >
+              {formatRelativeTime(event.createdAt)}
+            </span>
+          )}
+        </div>
       </div>
 
       {h2hOpen && event.raceId && event.sessionType && (
@@ -759,11 +775,13 @@ export function FeedItem({
     <div
       className={`border border-border bg-surface p-2.5 ${radiusClass} ${borderClass}`}
     >
-      {event.type === 'score_published' || event.type === 'session_locked'
-        ? <ScorePublishedItem event={event} grouped={grouped} />
-        : event.type === 'streak_milestone'
-          ? <StreakMilestoneItem event={event} />
-          : <JoinedLeagueItem event={event} />}
+      {event.type === 'score_published' || event.type === 'session_locked' ? (
+        <ScorePublishedItem event={event} grouped={grouped} />
+      ) : event.type === 'streak_milestone' ? (
+        <StreakMilestoneItem event={event} />
+      ) : (
+        <JoinedLeagueItem event={event} />
+      )}
       {attachedContent ? (
         <div className="mt-3 border-t border-border px-1 pt-3">
           {attachedContent}

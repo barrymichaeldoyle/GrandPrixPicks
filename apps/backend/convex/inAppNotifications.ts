@@ -39,7 +39,7 @@ export const getMyNotifications = query({
     const followedIds = new Set(follows.map((f) => f.followeeId));
 
     // Group rev_received by feedEventId; pass everything else through unchanged
-    const revsByEventId = new Map<string, typeof notifications>();
+    const revsByEventId = new Map<Id<'feedEvents'>, typeof notifications>();
     const result: Array<
       (typeof notifications)[number] & {
         actors?: Array<{
@@ -56,7 +56,9 @@ export const getMyNotifications = query({
     for (const n of notifications) {
       if (n.type === 'rev_received' && n.feedEventId) {
         const key = n.feedEventId;
-        if (!revsByEventId.has(key)) revsByEventId.set(key, []);
+        if (!revsByEventId.has(key)) {
+          revsByEventId.set(key, []);
+        }
         revsByEventId.get(key)!.push(n);
       } else {
         result.push(n);
@@ -68,7 +70,9 @@ export const getMyNotifications = query({
       revNotifs.sort((a, b) => {
         const aF = a.actorUserId && followedIds.has(a.actorUserId) ? 0 : 1;
         const bF = b.actorUserId && followedIds.has(b.actorUserId) ? 0 : 1;
-        if (aF !== bF) return aF - bF;
+        if (aF !== bF) {
+          return aF - bF;
+        }
         return b.createdAt - a.createdAt;
       });
 

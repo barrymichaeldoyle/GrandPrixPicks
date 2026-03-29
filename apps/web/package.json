@@ -21,8 +21,8 @@
     "lint": "pnpm exec oxlint -c ../../.oxlintrc.json src server vite.config.ts",
     "lint:fix": "pnpm exec oxlint -c ../../.oxlintrc.json src server vite.config.ts --fix",
     "fix": "pnpm run format && pnpm run lint:fix",
-    "format": "pnpm --dir ../.. exec prettier --write apps/web",
-    "format:check": "pnpm --dir ../.. exec prettier --check apps/web",
+    "format": "pnpm --dir ../.. exec oxfmt apps/web",
+    "format:check": "pnpm --dir ../.. exec oxfmt --check apps/web",
     "check": "pnpm run format:check && pnpm run lint",
     "knip": "pnpm --dir ../.. knip",
     "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"

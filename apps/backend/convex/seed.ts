@@ -5343,7 +5343,10 @@ export const seedNotificationShowcaseForUser = internalMutation({
     let created = 0;
     const now = Date.now();
 
-    for (const [groupIndex, { sessionType, actorCount }] of revShowcase.entries()) {
+    for (const [
+      groupIndex,
+      { sessionType, actorCount },
+    ] of revShowcase.entries()) {
       const event = feedEventBySession.get(sessionType);
       if (!event) {
         continue;
@@ -5527,8 +5530,8 @@ export const seedFeedEvents = internalMutation({
 export const seedRevs = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const events = await ctx.db.query('feedEvents').take(50);
-    const users = await ctx.db.query('users').take(50);
+    const events = await ctx.db.query('feedEvents').take(200);
+    const users = await ctx.db.query('users').take(100);
     if (users.length < 2) {
       return { created: 0 };
     }
@@ -5546,8 +5549,9 @@ export const seedRevs = internalMutation({
         // Skip if already reved
         const existing = await ctx.db
           .query('revs')
-          .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
-          .filter((q) => q.eq(q.field('userId'), user._id))
+          .withIndex('by_user_event', (q) =>
+            q.eq('userId', user._id).eq('feedEventId', event._id),
+          )
           .first();
         if (existing) {
           continue;

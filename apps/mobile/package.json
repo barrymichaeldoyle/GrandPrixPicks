@@ -12,8 +12,8 @@
     "lint": "pnpm exec oxlint -c ../../.oxlintrc.json .",
     "lint:fix": "pnpm exec oxlint -c ../../.oxlintrc.json . --fix",
     "fix": "pnpm run format && pnpm run lint:fix",
-    "format": "pnpm --dir ../.. exec prettier --write apps/mobile",
-    "format:check": "pnpm --dir ../.. exec prettier --check apps/mobile",
+    "format": "pnpm --dir ../.. exec oxfmt apps/mobile",
+    "format:check": "pnpm --dir ../.. exec oxfmt --check apps/mobile",
     "check": "pnpm run format:check && pnpm run lint"
   },
   "dependencies": {

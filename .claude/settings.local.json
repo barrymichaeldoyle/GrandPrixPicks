@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(pnpm info:*)",
+      "WebFetch(domain:oxc.rs)"
     ]
   }
 }

@@ -4,14 +4,14 @@ import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import { Bell, CheckCheck, Lock, Trophy } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Avatar } from './Avatar';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
 
 type RevActor = {
-  userId?: string;
+  userId?: Id<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
@@ -23,16 +23,16 @@ type Notification = {
   type: 'rev_received' | 'results_published' | 'session_locked';
   readAt?: number;
   createdAt: number;
-  raceId?: string;
+  raceId?: Id<'races'>;
   sessionType?: 'quali' | 'sprint_quali' | 'sprint' | 'race';
   raceName?: string;
   raceSlug?: string;
   points?: number;
-  actorUserId?: string;
+  actorUserId?: Id<'users'>;
   actorUsername?: string;
   actorDisplayName?: string;
   actorAvatarUrl?: string;
-  feedEventId?: string;
+  feedEventId?: Id<'feedEvents'>;
   // Grouped rev fields (set by backend when multiple actors rev the same post)
   actors?: RevActor[];
   totalRevCount?: number;
@@ -167,7 +167,10 @@ function NotificationItem({
 }: {
   notification: Notification;
   onClose: () => void;
-  onMarkRead: (id: Id<'inAppNotifications'>, feedEventId?: string) => void;
+  onMarkRead: (
+    id: Id<'inAppNotifications'>,
+    feedEventId?: Id<'feedEvents'>,
+  ) => void;
 }) {
   const isUnread = !notification.readAt;
 
@@ -190,7 +193,9 @@ function NotificationItem({
 
   const rightMeta = (
     <div className="flex shrink-0 flex-col items-end justify-between self-stretch pl-1">
-      <span className={`mt-1 h-2 w-2 rounded-full bg-accent ${isUnread ? 'opacity-100' : 'opacity-0'}`} />
+      <span
+        className={`mt-1 h-2 w-2 rounded-full bg-accent ${isUnread ? 'opacity-100' : 'opacity-0'}`}
+      />
       <span className="text-[10px] whitespace-nowrap text-text-muted">
         {timeAgo(notification.createdAt)}
       </span>
@@ -286,7 +291,9 @@ function NotificationItem({
           </LeftCol>
           <div className="min-w-0 flex-1 pt-0.5">
             <div className="flex items-start gap-2">
-              <p className="flex-1 text-sm leading-snug text-text">Results are in</p>
+              <p className="flex-1 text-sm leading-snug text-text">
+                Results are in
+              </p>
               {hasPoints && (
                 <span className="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-500">
                   +{notification.points} pts
@@ -360,7 +367,6 @@ export function NotificationBell() {
   const notifications = result?.notifications ?? [];
   const unreadCount = result?.unreadCount ?? 0;
 
-
   useEffect(() => {
     if (!open) {
       return;
@@ -368,35 +374,6 @@ export function NotificationBell() {
 
     const ac = new AbortController();
     const { signal } = ac;
-
-    function isOutside(target: Node) {
-      return (
-        !panelRef.current?.contains(target) &&
-        !buttonRef.current?.contains(target)
-      );
-    }
-
-    // pointerdown fires on disabled buttons (click does not)
-    document.addEventListener(
-      'pointerdown',
-      (e: PointerEvent) => {
-        const target = e.target as Node | null;
-        if (!target || !isOutside(target)) return;
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        setOpen(false);
-        // Block the click that may follow for non-disabled elements
-        document.addEventListener(
-          'click',
-          (ce) => {
-            ce.stopPropagation();
-            ce.stopImmediatePropagation();
-          },
-          { capture: true, once: true, signal },
-        );
-      },
-      { capture: true, signal },
-    );
 
     document.addEventListener(
       'keydown',
@@ -412,11 +389,19 @@ export function NotificationBell() {
     return () => ac.abort();
   }, [open]);
 
-  function handleMarkRead(id: Id<'inAppNotifications'>, feedEventId?: string) {
+  function handleMarkRead(
+    id: Id<'inAppNotifications'>,
+    feedEventId?: Id<'feedEvents'>,
+  ) {
     markReadMutation({
       notificationId: id,
-      feedEventId: feedEventId as Id<'feedEvents'> | undefined,
+      feedEventId,
     });
+  }
+
+  function handleButtonClick(event: ReactMouseEvent<HTMLButtonElement>) {
+    event.stopPropagation();
+    setOpen((value) => !value);
   }
 
   if (result === undefined) {
@@ -442,7 +427,7 @@ export function NotificationBell() {
         type="button"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleButtonClick}
         className="relative rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
       >
         <Bell className="h-5 w-5" />
@@ -458,7 +443,12 @@ export function NotificationBell() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40" aria-hidden="true" />
+          <button
+            type="button"
+            aria-label="Close notifications"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 bg-black/40"
+          />
           <div
             ref={panelRef}
             className="fixed inset-x-2 top-[65px] z-50 overflow-hidden rounded-xl border border-white/10 bg-surface/95 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-96 md:w-[28rem]"

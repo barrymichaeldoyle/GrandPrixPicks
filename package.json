@@ -28,8 +28,8 @@
     "ios": "pnpm --filter @grandprixpicks/mobile exec expo start --ios",
     "android": "pnpm --filter @grandprixpicks/mobile exec expo start --android",
     "fix": "pnpm run format && pnpm run lint:fix",
-    "format": "pnpm exec prettier --write .",
-    "format:check": "pnpm exec prettier --check .",
+    "format": "pnpm exec oxfmt .",
+    "format:check": "pnpm exec oxfmt --check .",
     "check": "pnpm run format:check && pnpm run lint",
     "convex:migrations": "pnpm --filter @grandprixpicks/backend migrations",
     "convex:migrations:prod": "pnpm --filter @grandprixpicks/backend migrations:prod",
@@ -37,9 +37,8 @@
   },
   "devDependencies": {
     "knip": "catalog:",
+    "oxfmt": "catalog:",
     "oxlint": "1.57.0",
-    "prettier": "catalog:",
-    "prettier-plugin-tailwindcss": "catalog:",
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"

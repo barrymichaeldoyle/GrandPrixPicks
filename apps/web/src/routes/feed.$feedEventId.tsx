@@ -61,10 +61,7 @@ function RevsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
         <div className="divide-y divide-border/60">
           {revUsers.map((user) =>
             user ? (
-              <div
-                key={user.userId}
-                className="flex items-center gap-3 py-3"
-              >
+              <div key={user.userId} className="flex items-center gap-3 py-3">
                 <Link
                   to="/p/$username"
                   params={{ username: user.username ?? '' }}
@@ -168,7 +165,9 @@ function FeedEventPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {feedEvent.session && <SessionSeparator session={feedEvent.session} />}
+            {feedEvent.session && (
+              <SessionSeparator session={feedEvent.session} />
+            )}
             <FeedItem
               event={feedEvent.event}
               attachedContent={

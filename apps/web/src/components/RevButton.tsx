@@ -1,15 +1,21 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 
 import { Avatar } from './Avatar';
+
+const RECENT_REV_PREVIEW_LIMIT = 5;
 
 interface RevButtonProps {
   feedEventId: Id<'feedEvents'>;
   revCount: number;
   viewerHasReved: boolean;
-  recentRevUsers?: Array<{ userId: string; username?: string; avatarUrl?: string }>;
+  recentRevUsers?: {
+    userId: Id<'users'>;
+    username?: string;
+    avatarUrl?: string;
+  }[];
   onCountClick?: () => void;
 }
 
@@ -22,11 +28,36 @@ export function RevButton({
 }: RevButtonProps) {
   const giveRev = useMutation(api.feed.giveRev);
   const removeRev = useMutation(api.feed.removeRev);
+  const me = useQuery(api.users.me);
   const [optimisticReved, setOptimisticReved] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
 
   const reved = optimisticReved ?? viewerHasReved;
   const count = optimisticCount ?? revCount;
+  const displayedRecentRevUsers = (() => {
+    const baseUsers = recentRevUsers ?? [];
+
+    if (!me) {
+      return baseUsers;
+    }
+
+    if (optimisticReved === true) {
+      return [
+        {
+          userId: me._id,
+          username: me.username,
+          avatarUrl: me.avatarUrl ?? undefined,
+        },
+        ...baseUsers.filter((user) => user.userId !== me._id),
+      ].slice(0, RECENT_REV_PREVIEW_LIMIT);
+    }
+
+    if (optimisticReved === false) {
+      return baseUsers.filter((user) => user.userId !== me._id);
+    }
+
+    return baseUsers;
+  })();
 
   async function handleRevClick() {
     const willRev = !reved;
@@ -63,7 +94,7 @@ export function RevButton({
 
   return (
     <div
-      className={`inline-flex items-center rounded-full border transition-colors ${
+      className={`inline-flex min-h-8 items-center rounded-full border transition-colors ${
         reved
           ? 'border-accent/40 bg-accent/10'
           : 'border-border/70 bg-surface-muted/30 hover:border-border'
@@ -83,14 +114,16 @@ export function RevButton({
         <span>Rev</span>
       </button>
 
-      <div className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`} />
+      <div
+        className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`}
+      />
 
       <button
         type="button"
         onClick={onCountClick}
         title="See who Rev'd"
         disabled={count === 0}
-        className={`inline-flex items-center justify-center gap-1 rounded-r-full px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors ${
+        className={`inline-flex min-h-8 items-center justify-center gap-1 rounded-r-full px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors ${
           reved
             ? 'text-accent hover:bg-accent/10'
             : count > 0
@@ -98,25 +131,29 @@ export function RevButton({
               : 'text-text-muted/30'
         }`}
       >
-        {recentRevUsers && recentRevUsers.length > 0 ? (
+        {displayedRecentRevUsers.length > 0 ? (
           <>
             <span className="flex items-center">
-              {recentRevUsers.map((u, i) => (
+              {displayedRecentRevUsers.map((u, i) => (
                 <span
                   key={u.userId}
                   className="rounded-full ring-1 ring-surface"
-                  style={{ marginLeft: i > 0 ? '-4px' : undefined }}
+                  style={{ marginLeft: i > 0 ? '-5px' : undefined }}
                 >
-                  <Avatar avatarUrl={u.avatarUrl} username={u.username} size="xs" />
+                  <Avatar
+                    avatarUrl={u.avatarUrl}
+                    username={u.username}
+                    size="xs"
+                  />
                 </span>
               ))}
             </span>
-            {count > recentRevUsers.length && (
-              <span>+{count - recentRevUsers.length}</span>
+            {count > displayedRecentRevUsers.length && (
+              <span>+{count - displayedRecentRevUsers.length}</span>
             )}
           </>
         ) : (
-          <span className="min-w-[1ch]">{count}</span>
+          <span className="min-w-5 text-center">{count}</span>
         )}
       </button>
     </div>

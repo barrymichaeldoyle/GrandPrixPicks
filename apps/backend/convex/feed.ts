@@ -1,8 +1,8 @@
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
-import type { QueryCtx } from './_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
+import type { DatabaseReader } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 
@@ -12,6 +12,11 @@ const sessionTypeValidator = v.union(
   v.literal('sprint'),
   v.literal('race'),
 );
+
+/** Matches `results.sessionType` / index fields — use when narrowing from feed `string` fields. */
+type SessionType = Doc<'results'>['sessionType'];
+
+type DbCtx = { db: DatabaseReader };
 
 // ============ Internal event writers ============
 
@@ -313,7 +318,7 @@ type RawEvent = {
 
 /** Build a map of session headers (top-5 results) for all score_published events. */
 async function buildSessionHeaders(
-  ctx: Pick<QueryCtx, 'db'>,
+  ctx: DbCtx,
   events: Array<RawEvent>,
 ): Promise<
   Record<
@@ -325,7 +330,7 @@ async function buildSessionHeaders(
       top5: Array<{
         code: string;
         displayName: string;
-        team: string;
+        team?: string;
         nationality?: string;
       }>;
     }
@@ -336,7 +341,7 @@ async function buildSessionHeaders(
     string,
     {
       raceId: Id<'races'>;
-      sessionType: string;
+      sessionType: SessionType;
       raceName?: string;
       raceSlug?: string;
     }
@@ -351,7 +356,7 @@ async function buildSessionHeaders(
       if (!combos.has(key)) {
         combos.set(key, {
           raceId: event.raceId,
-          sessionType: event.sessionType,
+          sessionType: event.sessionType as SessionType,
           raceName: event.raceName,
           raceSlug: event.raceSlug,
         });
@@ -368,14 +373,14 @@ async function buildSessionHeaders(
   const driverIdsNeeded = new Set<Id<'drivers'>>();
 
   for (const [key, { raceId, sessionType }] of combos) {
-    const result = await (ctx.db as any)
+    const result = await ctx.db
       .query('results')
-      .withIndex('by_race_session', (q: any) =>
+      .withIndex('by_race_session', (q) =>
         q.eq('raceId', raceId).eq('sessionType', sessionType),
       )
       .unique();
     if (result) {
-      const top5 = result.classification.slice(0, 5) as Array<Id<'drivers'>>;
+      const top5 = result.classification.slice(0, 5);
       top5ByKey.set(key, top5);
       for (const id of top5) {
         driverIdsNeeded.add(id);
@@ -386,16 +391,21 @@ async function buildSessionHeaders(
   // Load all needed drivers in one pass
   const driverMap = new Map<
     string,
-    { code: string; displayName: string; team: string; nationality?: string }
+    {
+      code: string;
+      displayName: string;
+      team?: string;
+      nationality?: string;
+    }
   >();
   for (const driverId of driverIdsNeeded) {
-    const driver = await (ctx.db as any).get(driverId);
+    const driver = await ctx.db.get(driverId);
     if (driver) {
       driverMap.set(String(driverId), {
-        code: driver.code as string,
-        displayName: driver.displayName as string,
-        team: driver.team as string,
-        nationality: driver.nationality as string | undefined,
+        code: driver.code,
+        displayName: driver.displayName,
+        team: driver.team,
+        nationality: driver.nationality,
       });
     }
   }
@@ -410,7 +420,7 @@ async function buildSessionHeaders(
       top5: Array<{
         code: string;
         displayName: string;
-        team: string;
+        team?: string;
         nationality?: string;
       }>;
     }
@@ -448,7 +458,7 @@ type PickEnrichment = {
 
 /** Load picks breakdown + H2H summary for a score_published or session_locked event. */
 async function enrichScoreEvent(
-  ctx: Pick<QueryCtx, 'db'>,
+  ctx: DbCtx,
   event: RawEvent,
 ): Promise<{
   picks: Array<PickEnrichment> | undefined;
@@ -462,26 +472,26 @@ async function enrichScoreEvent(
     return { picks: undefined, h2hScore: null };
   }
 
+  const sessionType = event.sessionType as SessionType;
+  const raceId = event.raceId;
+
   if (event.type === 'session_locked') {
     // Results not yet published — load picks from predictions table (unscored)
-    const prediction = await (ctx.db as any)
+    const prediction = await ctx.db
       .query('predictions')
-      .withIndex('by_user_race_session', (q: any) =>
+      .withIndex('by_user_race_session', (q) =>
         q
           .eq('userId', event.userId)
-          .eq('raceId', event.raceId)
-          .eq('sessionType', event.sessionType),
+          .eq('raceId', raceId)
+          .eq('sessionType', sessionType),
       )
       .unique();
 
-    if (
-      !prediction?.picks ||
-      (prediction.picks as Array<unknown>).length === 0
-    ) {
+    if (!prediction?.picks || prediction.picks.length === 0) {
       return { picks: undefined, h2hScore: null };
     }
 
-    const driverIds = prediction.picks as Array<string>;
+    const driverIds = prediction.picks;
     const driverMap = new Map<
       string,
       {
@@ -492,13 +502,13 @@ async function enrichScoreEvent(
       }
     >();
     for (const driverId of driverIds) {
-      const driver = await (ctx.db as any).get(driverId);
+      const driver = await ctx.db.get(driverId);
       if (driver) {
         driverMap.set(String(driverId), {
-          code: driver.code as string,
-          team: driver.team as string | undefined,
-          displayName: driver.displayName as string | undefined,
-          nationality: driver.nationality as string | undefined,
+          code: driver.code,
+          team: driver.team,
+          displayName: driver.displayName,
+          nationality: driver.nationality,
         });
       }
     }
@@ -519,29 +529,29 @@ async function enrichScoreEvent(
   }
 
   const [score, h2hRecord] = await Promise.all([
-    (ctx.db as any)
+    ctx.db
       .query('scores')
-      .withIndex('by_user_race_session', (q: any) =>
+      .withIndex('by_user_race_session', (q) =>
         q
           .eq('userId', event.userId)
-          .eq('raceId', event.raceId)
-          .eq('sessionType', event.sessionType),
+          .eq('raceId', raceId)
+          .eq('sessionType', sessionType),
       )
       .unique(),
-    (ctx.db as any)
+    ctx.db
       .query('h2hScores')
-      .withIndex('by_user_race_session', (q: any) =>
+      .withIndex('by_user_race_session', (q) =>
         q
           .eq('userId', event.userId)
-          .eq('raceId', event.raceId)
-          .eq('sessionType', event.sessionType),
+          .eq('raceId', raceId)
+          .eq('sessionType', sessionType),
       )
       .unique(),
   ]);
 
   let picks: Array<PickEnrichment> | undefined;
 
-  if (score?.breakdown && (score.breakdown as Array<unknown>).length > 0) {
+  if (score?.breakdown && score.breakdown.length > 0) {
     const driverMap = new Map<
       string,
       {
@@ -551,28 +561,21 @@ async function enrichScoreEvent(
         nationality?: string;
       }
     >();
-    for (const pick of score.breakdown as Array<{ driverId: string }>) {
+    for (const pick of score.breakdown) {
       const id = String(pick.driverId);
       if (!driverMap.has(id)) {
-        const driver = await (ctx.db as any).get(pick.driverId);
+        const driver = await ctx.db.get(pick.driverId);
         if (driver) {
           driverMap.set(id, {
-            code: driver.code as string,
-            team: driver.team as string | undefined,
-            displayName: driver.displayName as string | undefined,
-            nationality: driver.nationality as string | undefined,
+            code: driver.code,
+            team: driver.team,
+            displayName: driver.displayName,
+            nationality: driver.nationality,
           });
         }
       }
     }
-    picks = (
-      score.breakdown as Array<{
-        driverId: string;
-        predictedPosition: number;
-        actualPosition?: number;
-        points: number;
-      }>
-    ).map((pick) => {
+    picks = score.breakdown.map((pick) => {
       const d = driverMap.get(String(pick.driverId));
       return {
         code: d?.code ?? '???',
@@ -590,9 +593,9 @@ async function enrichScoreEvent(
     picks,
     h2hScore: h2hRecord
       ? {
-          correctPicks: h2hRecord.correctPicks as number,
-          totalPicks: h2hRecord.totalPicks as number,
-          points: h2hRecord.points as number,
+          correctPicks: h2hRecord.correctPicks,
+          totalPicks: h2hRecord.totalPicks,
+          points: h2hRecord.points,
         }
       : null,
   };
@@ -600,10 +603,12 @@ async function enrichScoreEvent(
 
 /** Return the most recent N users who reved a feed event, for avatar preview. */
 async function getRecentRevUsers(
-  ctx: Pick<QueryCtx, 'db'>,
+  ctx: DbCtx,
   feedEventId: Id<'feedEvents'>,
-  limit = 3,
-): Promise<Array<{ userId: Id<'users'>; username?: string; avatarUrl?: string }>> {
+  limit = 5,
+): Promise<
+  Array<{ userId: Id<'users'>; username?: string; avatarUrl?: string }>
+> {
   const revs = await ctx.db
     .query('revs')
     .withIndex('by_event', (q) => q.eq('feedEventId', feedEventId))
@@ -613,7 +618,11 @@ async function getRecentRevUsers(
     revs.map(async (rev) => {
       const user = await ctx.db.get(rev.userId);
       return user
-        ? { userId: user._id, username: user.username, avatarUrl: user.avatarUrl }
+        ? {
+            userId: user._id,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+          }
         : null;
     }),
   );
@@ -642,18 +651,19 @@ export const getUserFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         events.map(async (event) => {
-          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
-            viewer
-              ? ctx.db
-                  .query('revs')
-                  .withIndex('by_user_event', (q) =>
-                    q.eq('userId', viewer._id).eq('feedEventId', event._id),
-                  )
-                  .first()
-              : Promise.resolve(null),
-            enrichScoreEvent(ctx, event),
-            getRecentRevUsers(ctx, event._id),
-          ]);
+          const [viewerRev, scoreEnrichment, recentRevUsers] =
+            await Promise.all([
+              viewer
+                ? ctx.db
+                    .query('revs')
+                    .withIndex('by_user_event', (q) =>
+                      q.eq('userId', viewer._id).eq('feedEventId', event._id),
+                    )
+                    .first()
+                : Promise.resolve(null),
+              enrichScoreEvent(ctx, event),
+              getRecentRevUsers(ctx, event._id),
+            ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
@@ -711,16 +721,17 @@ export const getPersonalizedFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
-            ctx.db
-              .query('revs')
-              .withIndex('by_user_event', (q) =>
-                q.eq('userId', viewer._id).eq('feedEventId', event._id),
-              )
-              .first(),
-            enrichScoreEvent(ctx, event),
-            getRecentRevUsers(ctx, event._id),
-          ]);
+          const [viewerRev, scoreEnrichment, recentRevUsers] =
+            await Promise.all([
+              ctx.db
+                .query('revs')
+                .withIndex('by_user_event', (q) =>
+                  q.eq('userId', viewer._id).eq('feedEventId', event._id),
+                )
+                .first(),
+              enrichScoreEvent(ctx, event),
+              getRecentRevUsers(ctx, event._id),
+            ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
@@ -766,18 +777,19 @@ export const getLeagueFeed = query({
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
         page.map(async (event) => {
-          const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
-            viewer
-              ? ctx.db
-                  .query('revs')
-                  .withIndex('by_user_event', (q) =>
-                    q.eq('userId', viewer._id).eq('feedEventId', event._id),
-                  )
-                  .first()
-              : Promise.resolve(null),
-            enrichScoreEvent(ctx, event),
-            getRecentRevUsers(ctx, event._id),
-          ]);
+          const [viewerRev, scoreEnrichment, recentRevUsers] =
+            await Promise.all([
+              viewer
+                ? ctx.db
+                    .query('revs')
+                    .withIndex('by_user_event', (q) =>
+                      q.eq('userId', viewer._id).eq('feedEventId', event._id),
+                    )
+                    .first()
+                : Promise.resolve(null),
+              enrichScoreEvent(ctx, event),
+              getRecentRevUsers(ctx, event._id),
+            ]);
           return {
             ...event,
             viewerHasReved: viewerRev !== null,
@@ -806,17 +818,18 @@ export const getFeedEvent = query({
       return null;
     }
 
-    const [viewerRev, scoreEnrichment, sessions, recentRevUsers] = await Promise.all([
-      ctx.db
-        .query('revs')
-        .withIndex('by_user_event', (q) =>
-          q.eq('userId', viewer._id).eq('feedEventId', event._id),
-        )
-        .first(),
-      enrichScoreEvent(ctx, event),
-      buildSessionHeaders(ctx, [event]),
-      getRecentRevUsers(ctx, event._id),
-    ]);
+    const [viewerRev, scoreEnrichment, sessions, recentRevUsers] =
+      await Promise.all([
+        ctx.db
+          .query('revs')
+          .withIndex('by_user_event', (q) =>
+            q.eq('userId', viewer._id).eq('feedEventId', event._id),
+          )
+          .first(),
+        enrichScoreEvent(ctx, event),
+        buildSessionHeaders(ctx, [event]),
+        getRecentRevUsers(ctx, event._id),
+      ]);
 
     const sessionKey =
       event.raceId && event.sessionType
@@ -830,7 +843,7 @@ export const getFeedEvent = query({
         recentRevUsers,
         ...scoreEnrichment,
       },
-      session: sessionKey ? sessions[sessionKey] ?? null : null,
+      session: sessionKey ? (sessions[sessionKey] ?? null) : null,
     };
   },
 });

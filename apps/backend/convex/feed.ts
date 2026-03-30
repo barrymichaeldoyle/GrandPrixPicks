@@ -682,10 +682,11 @@ export const getUserFeed = query({
 /**
  * Personalized home feed: events from the viewer + people they follow.
  * Sorted by most recent first. Includes session headers for score_published events.
+ * Pass `cursor` (a createdAt timestamp) to load events older than that point.
  */
 export const getPersonalizedFeed = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { cursor: v.optional(v.number()) },
+  handler: async (ctx, { cursor }) => {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return null;
@@ -708,13 +709,17 @@ export const getPersonalizedFeed = query({
     for (const userId of userIds) {
       const events = await ctx.db
         .query('feedEvents')
-        .withIndex('by_user_created', (q) => q.eq('userId', userId))
+        .withIndex('by_user_created', (q) => {
+          const base = q.eq('userId', userId);
+          return cursor !== undefined ? base.lt('createdAt', cursor) : base;
+        })
         .order('desc')
         .take(EVENTS_PER_USER);
       allEvents.push(...events);
     }
 
     allEvents.sort((a, b) => b.createdAt - a.createdAt);
+    const hasMore = allEvents.length >= MAX_FEED_SIZE;
     const page = allEvents.slice(0, MAX_FEED_SIZE);
 
     // Enrich events with rev status, picks, and H2H summary
@@ -743,35 +748,40 @@ export const getPersonalizedFeed = query({
       buildSessionHeaders(ctx, page),
     ]);
 
-    return { events: enrichedEvents, sessions };
+    return { events: enrichedEvents, sessions, hasMore };
   },
 });
 
 /**
  * Feed scoped to a league: events from all members of the league.
  * Used on the league detail page.
+ * Pass `cursor` (a createdAt timestamp) to load events older than that point.
  */
 export const getLeagueFeed = query({
-  args: { leagueId: v.id('leagues') },
-  handler: async (ctx, args) => {
+  args: { leagueId: v.id('leagues'), cursor: v.optional(v.number()) },
+  handler: async (ctx, { leagueId, cursor }) => {
     const viewer = await getViewer(ctx);
 
     const members = await ctx.db
       .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
+      .withIndex('by_league', (q) => q.eq('leagueId', leagueId))
       .take(200);
 
     const allEvents: Array<RawEvent> = [];
     for (const member of members) {
       const events = await ctx.db
         .query('feedEvents')
-        .withIndex('by_user_created', (q) => q.eq('userId', member.userId))
+        .withIndex('by_user_created', (q) => {
+          const base = q.eq('userId', member.userId);
+          return cursor !== undefined ? base.lt('createdAt', cursor) : base;
+        })
         .order('desc')
         .take(EVENTS_PER_USER);
       allEvents.push(...events);
     }
 
     allEvents.sort((a, b) => b.createdAt - a.createdAt);
+    const hasMore = allEvents.length >= MAX_FEED_SIZE;
     const page = allEvents.slice(0, MAX_FEED_SIZE);
 
     const [enrichedEvents, sessions] = await Promise.all([
@@ -801,7 +811,7 @@ export const getLeagueFeed = query({
       buildSessionHeaders(ctx, page),
     ]);
 
-    return { events: enrichedEvents, sessions };
+    return { events: enrichedEvents, sessions, hasMore };
   },
 });
 

@@ -3,6 +3,7 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { Gauge } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '../../components/Button';
 import {
@@ -31,10 +32,60 @@ export const Route = createFileRoute('/feed/')({
   },
 });
 
-function FeedContent() {
-  const feed = useQuery(api.feed.getPersonalizedFeed, {});
+// Pre-allocate up to 5 pages of feed (5 × 40 = 200 events max)
+const MAX_EXTRA_PAGES = 4;
 
-  if (feed === undefined) {
+function FeedContent() {
+  const [extraCursors, setExtraCursors] = useState<(number | null)[]>(
+    Array(MAX_EXTRA_PAGES).fill(null),
+  );
+
+  const page0 = useQuery(api.feed.getPersonalizedFeed, {});
+  const page1 = useQuery(
+    api.feed.getPersonalizedFeed,
+    extraCursors[0] !== null ? { cursor: extraCursors[0] } : 'skip',
+  );
+  const page2 = useQuery(
+    api.feed.getPersonalizedFeed,
+    extraCursors[1] !== null ? { cursor: extraCursors[1] } : 'skip',
+  );
+  const page3 = useQuery(
+    api.feed.getPersonalizedFeed,
+    extraCursors[2] !== null ? { cursor: extraCursors[2] } : 'skip',
+  );
+  const page4 = useQuery(
+    api.feed.getPersonalizedFeed,
+    extraCursors[3] !== null ? { cursor: extraCursors[3] } : 'skip',
+  );
+
+  const allPageData = [page0, page1, page2, page3, page4];
+  const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
+  const activePages = allPageData.slice(0, activePagesCount);
+  const isLoadingMore =
+    activePagesCount > 1 && activePages.some((p) => p === undefined);
+
+  const loadedPages = activePages.filter(
+    (p): p is NonNullable<typeof p> => p !== undefined,
+  );
+  const lastLoadedPage = loadedPages.at(-1);
+
+  const hasMore =
+    (lastLoadedPage?.hasMore ?? false) && activePagesCount <= MAX_EXTRA_PAGES;
+
+  const handleLoadMore = () => {
+    if (!lastLoadedPage?.events.length) return;
+    const minCreatedAt = Math.min(
+      ...lastLoadedPage.events.map((e) => e.createdAt),
+    );
+    setExtraCursors((prev) => {
+      const next = [...prev];
+      const idx = next.findIndex((c) => c === null);
+      if (idx !== -1) next[idx] = minCreatedAt;
+      return next;
+    });
+  };
+
+  if (page0 === undefined) {
     return (
       <div className="space-y-3">
         <FeedItemSkeleton />
@@ -45,7 +96,11 @@ function FeedContent() {
     );
   }
 
-  if (!feed || feed.events.length === 0) {
+  // Merge events and sessions from all loaded pages
+  const allEvents = loadedPages.flatMap((p) => p.events);
+  const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
+
+  if (allEvents.length === 0) {
     return (
       <FeedEmptyState
         icon={Gauge}
@@ -55,13 +110,13 @@ function FeedContent() {
   }
 
   type Group =
-    | { kind: 'session'; key: string; events: (typeof feed.events)[number][] }
-    | { kind: 'standalone'; event: (typeof feed.events)[number] };
+    | { kind: 'session'; key: string; events: (typeof allEvents)[number][] }
+    | { kind: 'standalone'; event: (typeof allEvents)[number] };
 
   const groups: Group[] = [];
   const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
 
-  for (const event of feed.events) {
+  for (const event of allEvents) {
     if (
       (event.type === 'score_published' || event.type === 'session_locked') &&
       event.raceId &&
@@ -86,7 +141,7 @@ function FeedContent() {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
         }
-        const session = feed.sessions[group.key];
+        const session = allSessions[group.key];
         const isMulti = group.events.length > 1;
         const sessionWithTime = {
           ...session,
@@ -115,6 +170,19 @@ function FeedContent() {
           </div>
         );
       })}
+      {isLoadingMore && (
+        <div className="space-y-3">
+          <FeedItemSkeleton />
+          <FeedItemSkeleton />
+        </div>
+      )}
+      {hasMore && !isLoadingMore && (
+        <div className="flex justify-center pt-2">
+          <Button variant="secondary" size="md" onClick={handleLoadMore}>
+            Load more
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

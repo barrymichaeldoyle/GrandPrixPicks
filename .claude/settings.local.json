@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npx kill-port:*)",
       "Bash(pnpm info:*)",
-      "WebFetch(domain:oxc.rs)"
+      "WebFetch(domain:oxc.rs)",
+      "Bash(pnpm --filter backend exec tsc --noEmit)",
+      "Bash(pnpm --filter web exec tsc --noEmit)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

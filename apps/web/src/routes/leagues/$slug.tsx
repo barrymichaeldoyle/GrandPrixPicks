@@ -423,10 +423,60 @@ function LeagueTabs({
   );
 }
 
-function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
-  const feed = useQuery(api.feed.getLeagueFeed, { leagueId });
+const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 
-  if (feed === undefined) {
+function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
+  const [extraCursors, setExtraCursors] = useState<(number | null)[]>(
+    Array(MAX_LEAGUE_FEED_EXTRA_PAGES).fill(null),
+  );
+
+  const page0 = useQuery(api.feed.getLeagueFeed, { leagueId });
+  const page1 = useQuery(
+    api.feed.getLeagueFeed,
+    extraCursors[0] !== null ? { leagueId, cursor: extraCursors[0] } : 'skip',
+  );
+  const page2 = useQuery(
+    api.feed.getLeagueFeed,
+    extraCursors[1] !== null ? { leagueId, cursor: extraCursors[1] } : 'skip',
+  );
+  const page3 = useQuery(
+    api.feed.getLeagueFeed,
+    extraCursors[2] !== null ? { leagueId, cursor: extraCursors[2] } : 'skip',
+  );
+  const page4 = useQuery(
+    api.feed.getLeagueFeed,
+    extraCursors[3] !== null ? { leagueId, cursor: extraCursors[3] } : 'skip',
+  );
+
+  const allPageData = [page0, page1, page2, page3, page4];
+  const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
+  const activePages = allPageData.slice(0, activePagesCount);
+  const isLoadingMore =
+    activePagesCount > 1 && activePages.some((p) => p === undefined);
+
+  const loadedPages = activePages.filter(
+    (p): p is NonNullable<typeof p> => p !== undefined,
+  );
+  const lastLoadedPage = loadedPages.at(-1);
+
+  const hasMore =
+    (lastLoadedPage?.hasMore ?? false) &&
+    activePagesCount <= MAX_LEAGUE_FEED_EXTRA_PAGES;
+
+  const handleLoadMore = () => {
+    if (!lastLoadedPage?.events.length) return;
+    const minCreatedAt = Math.min(
+      ...lastLoadedPage.events.map((e) => e.createdAt),
+    );
+    setExtraCursors((prev) => {
+      const next = [...prev];
+      const idx = next.findIndex((c) => c === null);
+      if (idx !== -1) next[idx] = minCreatedAt;
+      return next;
+    });
+  };
+
+  if (page0 === undefined) {
     return (
       <div className="space-y-3">
         <FeedItemSkeleton />
@@ -437,7 +487,10 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     );
   }
 
-  if (feed.events.length === 0) {
+  const allEvents = loadedPages.flatMap((p) => p.events);
+  const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
+
+  if (allEvents.length === 0) {
     return (
       <FeedEmptyState
         icon={Gauge}
@@ -446,7 +499,7 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     );
   }
 
-  type FeedEvent = (typeof feed.events)[number];
+  type FeedEvent = (typeof allEvents)[number];
   type Group =
     | { kind: 'session'; key: string; events: FeedEvent[] }
     | { kind: 'standalone'; event: FeedEvent };
@@ -454,7 +507,7 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
   const groups: Group[] = [];
   const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
 
-  for (const event of feed.events) {
+  for (const event of allEvents) {
     if (
       (event.type === 'score_published' || event.type === 'session_locked') &&
       event.raceId &&
@@ -479,7 +532,7 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
         }
-        const session = feed.sessions[group.key];
+        const session = allSessions[group.key];
         const isMulti = group.events.length > 1;
         const sessionWithTime = {
           ...session,
@@ -508,6 +561,19 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
           </div>
         );
       })}
+      {isLoadingMore && (
+        <div className="space-y-3">
+          <FeedItemSkeleton />
+          <FeedItemSkeleton />
+        </div>
+      )}
+      {hasMore && !isLoadingMore && (
+        <div className="flex justify-center pt-2">
+          <Button variant="secondary" size="md" onClick={handleLoadMore}>
+            Load more
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

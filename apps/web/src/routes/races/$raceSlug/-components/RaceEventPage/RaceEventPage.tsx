@@ -16,7 +16,7 @@ import { H2HResultsSection, H2HSection } from '../../../-race-detail-content';
 
 import { RaceEventPageLayout } from '../RaceEventPageLayout/RaceEventPageLayout';
 
-export type PredictionFormSlotProps = {
+type PredictionFormSlotProps = {
   raceId: Id<'races'>;
   existingPicks?: Id<'drivers'>[];
   sessionType?: SessionType;
@@ -24,7 +24,7 @@ export type PredictionFormSlotProps = {
   onDirtyChange?: (dirty: boolean) => void;
 };
 
-export type H2HSectionSlotProps = {
+type H2HSectionSlotProps = {
   race: Doc<'races'>;
   selectedSession: SessionType;
   editingSession: SessionType | null;
@@ -36,7 +36,7 @@ export type H2HSectionSlotProps = {
   hasUnsavedEditingChanges: boolean;
 };
 
-export type H2HResultsSectionSlotProps = {
+type H2HResultsSectionSlotProps = {
   raceId: Id<'races'>;
   selectedSession: SessionType;
 };

@@ -51,12 +51,12 @@ export function useNow(intervalMs = 1_000): number {
 
     syncNow();
 
-    const handleStorage = (event: StorageEvent) => {
+    function handleStorage(event: StorageEvent) {
       if (event.key === DEV_NOW_STORAGE_KEY) {
         syncNow();
       }
     };
-    const handleManualChange = () => {
+    function handleManualChange() {
       syncNow();
     };
     window.addEventListener('storage', handleStorage);

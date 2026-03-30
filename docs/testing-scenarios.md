@@ -222,9 +222,10 @@ Note:
 - CI runs the smoke file when these repository secrets are configured:
   - `CLERK_SECRET_KEY`
   - `VITE_CLERK_PUBLISHABLE_KEY`
-  - `CLERK_JWT_KEY`
-  - `VITE_CONVEX_URL`
-  - `CONVEX_DEPLOYMENT`
+- `CLERK_JWT_KEY`
+- `VITE_CONVEX_URL`
+- `CONVEX_DEPLOYMENT`
+- `CONVEX_DEPLOY_KEY`
 
 ## Adding A New Scenario
 

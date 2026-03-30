@@ -118,6 +118,7 @@ jobs:
       CLERK_JWT_KEY: ${{ secrets.CLERK_JWT_KEY }}
       VITE_CONVEX_URL: ${{ secrets.VITE_CONVEX_URL }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
     steps:
       - name: Checkout
@@ -140,7 +141,7 @@ jobs:
         shell: bash
         run: |
           missing=0
-          for name in CLERK_SECRET_KEY VITE_CLERK_PUBLISHABLE_KEY CLERK_JWT_KEY VITE_CONVEX_URL CONVEX_DEPLOYMENT; do
+          for name in CLERK_SECRET_KEY VITE_CLERK_PUBLISHABLE_KEY CLERK_JWT_KEY VITE_CONVEX_URL CONVEX_DEPLOYMENT CONVEX_DEPLOY_KEY; do
             if [ -z "${!name}" ]; then
               echo "Missing $name"
               missing=1

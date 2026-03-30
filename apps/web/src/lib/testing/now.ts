@@ -45,10 +45,6 @@ function subscribeToDevNow(onStoreChange: () => void) {
   };
 }
 
-export function getDevNowOverride(): number | null {
-  return readDevNowOverride();
-}
-
 export function useDevNowOverride(): number | null {
   return useSyncExternalStore(
     subscribeToDevNow,

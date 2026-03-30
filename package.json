@@ -18,6 +18,8 @@
     "email:dev": "pnpm --filter @grandprixpicks/backend email:dev",
     "test": "pnpm --filter @grandprixpicks/web test",
     "test:ci": "pnpm --filter @grandprixpicks/web test:ci",
+    "test:e2e": "pnpm --filter @grandprixpicks/web test:e2e",
+    "test:e2e:headed": "pnpm --filter @grandprixpicks/web test:e2e:headed",
     "typecheck": "pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/web typecheck && pnpm --filter @grandprixpicks/backend typecheck",
     "lint": "pnpm --filter @grandprixpicks/web lint && pnpm --filter @grandprixpicks/backend lint && pnpm --filter @grandprixpicks/mobile lint",
     "lint:fix": "pnpm --filter @grandprixpicks/web lint:fix && pnpm --filter @grandprixpicks/backend lint:fix && pnpm --filter @grandprixpicks/mobile lint:fix",
@@ -37,6 +39,7 @@
     "start": "pnpm --filter @grandprixpicks/web start"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "knip": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "1.57.0",

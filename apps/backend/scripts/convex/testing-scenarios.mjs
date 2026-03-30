@@ -3,7 +3,8 @@
 import { spawnSync } from 'node:child_process';
 
 function parseArgs(argv) {
-  const [command = 'list', ...rest] = argv;
+  const normalizedArgv = argv[0] === '--' ? argv.slice(1) : argv;
+  const [command = 'list', ...rest] = normalizedArgv;
   const result = {
     command,
     scenario: undefined,

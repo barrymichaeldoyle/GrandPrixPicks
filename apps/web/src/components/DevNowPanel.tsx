@@ -9,7 +9,11 @@ import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
 } from '../lib/raceSessions';
-import { clearDevNow, getDevNowOverride, setDevNow } from '../lib/testing/now';
+import {
+  clearDevNow,
+  setDevNow,
+  useDevNowOverride,
+} from '../lib/testing/now';
 
 type Race = Doc<'races'>;
 
@@ -25,7 +29,7 @@ export function DevNowPanel({
   }
 
   const [isOpen, setIsOpen] = useState(false);
-  const overrideNow = getDevNowOverride();
+  const overrideNow = useDevNowOverride();
   const presets: Array<{
     label: string;
     timestamp: number;
@@ -53,9 +57,16 @@ export function DevNowPanel({
   ];
 
   return (
-    <div className="fixed bottom-4 left-4 z-50">
+    <div
+      className="fixed bottom-4 left-4 z-50"
+      data-testid="dev-now-panel"
+      data-override-active={overrideNow == null ? 'false' : 'true'}
+    >
       {isOpen ? (
-        <div className="w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur">
+        <div
+          className="w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur"
+          data-testid="dev-now-panel-content"
+        >
           <div className="mb-2 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <p className="min-w-0 flex-1 text-sm font-semibold text-text">
@@ -63,9 +74,13 @@ export function DevNowPanel({
               </p>
               <div className="flex shrink-0 items-center gap-2">
                 {overrideNow == null ? (
-                  <Badge variant="upcoming">Real time</Badge>
+                  <span data-testid="dev-now-status">
+                    <Badge variant="upcoming">Real time</Badge>
+                  </span>
                 ) : (
-                  <Badge variant="locked">Override active</Badge>
+                  <span data-testid="dev-now-status">
+                    <Badge variant="locked">Override active</Badge>
+                  </span>
                 )}
                 <Button
                   variant="text"
@@ -73,12 +88,13 @@ export function DevNowPanel({
                   className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-surface-muted/40 p-0 hover:bg-surface-muted"
                   onClick={() => setIsOpen(false)}
                   title="Close dev time controls"
+                  data-testid="dev-now-close"
                 >
                   <X size={14} />
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-text-muted" data-testid="dev-now-effective">
               Effective now: {formatDateTime(now)}
             </p>
             <p className="truncate text-xs text-text-muted">{race.name}</p>
@@ -89,6 +105,7 @@ export function DevNowPanel({
               size="sm"
               onClick={() => clearDevNow()}
               className="col-span-2"
+              data-testid="dev-now-reset"
             >
               Reset To Real Time
             </Button>
@@ -100,6 +117,7 @@ export function DevNowPanel({
                 className="justify-start rounded-md border border-border bg-surface-muted/50 px-2 py-2 text-left text-xs"
                 onClick={() => setDevNow(preset.timestamp)}
                 title={formatDateTime(preset.timestamp)}
+                data-testid={`dev-now-preset-${preset.label.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`}
               >
                 {preset.label}
               </Button>
@@ -116,6 +134,7 @@ export function DevNowPanel({
               : 'border-warning/50 bg-warning/12 text-warning hover:bg-warning/18'
           }`}
           title="Open dev time controls"
+          data-testid="dev-now-trigger"
         >
           <Clock3 size={16} />
         </button>

@@ -2,7 +2,13 @@ import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, internalQuery } from './_generated/server';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from './_generated/server';
+import { getOrCreateViewer, getViewer, requireAdmin } from './lib/auth';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import {
   getScenarioDefinition,
@@ -32,6 +38,7 @@ type ScenarioContext = {
   drivers: Array<Doc<'drivers'>>;
   primary: ScenarioActor;
   secondary: ScenarioActor;
+  matchupIds: Array<Id<'h2hMatchups'>>;
 };
 
 type ReadCtx = QueryCtx | MutationCtx;
@@ -39,6 +46,14 @@ type ReadCtx = QueryCtx | MutationCtx;
 export const listScenarios = internalQuery({
   args: {},
   handler: async () => {
+    return scenarioList;
+  },
+});
+
+export const listScenariosAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    requireAdmin(await getViewer(ctx));
     return scenarioList;
   },
 });
@@ -87,6 +102,64 @@ export const applyScenario = internalMutation({
       drivers,
       primary,
       secondary,
+      matchupIds: await ensureScenarioMatchups(ctx, drivers),
+    };
+
+    const race = await buildScenario(ctx, scenarioContext);
+    return await buildScenarioSummary(ctx, {
+      namespace,
+      scenario: args.scenario,
+      raceId: race._id,
+    });
+  },
+});
+
+export const applyScenarioAdmin = mutation({
+  args: {
+    scenario: scenarioNameValidator,
+    namespace: v.optional(v.string()),
+    resetFirst: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    requireAdmin(await getOrCreateViewer(ctx));
+    const definition = getScenarioDefinition(args.scenario);
+    const namespace = args.namespace ?? defaultNamespace(args.scenario);
+
+    if (args.resetFirst ?? true) {
+      await clearNamespaceData(ctx, namespace);
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error(
+        'Seed drivers first before applying a testing scenario.',
+      );
+    }
+
+    const now = Date.now();
+    const slugPrefix = toSlug(namespace);
+    const primary = await upsertScenarioUser(ctx, {
+      namespace,
+      role: 'primary',
+      displayName: 'Scenario Primary',
+      isAdmin: false,
+    });
+    const secondary = await upsertScenarioUser(ctx, {
+      namespace,
+      role: 'secondary',
+      displayName: 'Scenario Rival',
+      isAdmin: false,
+    });
+
+    const scenarioContext: ScenarioContext = {
+      namespace,
+      slugPrefix,
+      definition,
+      now,
+      drivers,
+      primary,
+      secondary,
+      matchupIds: await ensureScenarioMatchups(ctx, drivers),
     };
 
     const race = await buildScenario(ctx, scenarioContext);
@@ -107,11 +180,33 @@ export const clearScenario = internalMutation({
   },
 });
 
+export const clearScenarioAdmin = mutation({
+  args: {
+    namespace: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireAdmin(await getOrCreateViewer(ctx));
+    return await clearNamespaceData(ctx, args.namespace);
+  },
+});
+
 export const getScenarioSummary = internalQuery({
   args: {
     namespace: v.string(),
   },
   handler: async (ctx, args) => {
+    return await buildScenarioSummary(ctx, {
+      namespace: args.namespace,
+    });
+  },
+});
+
+export const getScenarioSummaryAdmin = query({
+  args: {
+    namespace: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireAdmin(await getViewer(ctx));
     return await buildScenarioSummary(ctx, {
       namespace: args.namespace,
     });
@@ -128,44 +223,65 @@ async function buildScenario(
     phase: scenario.definition.racePhase,
   });
 
-  if (scenario.definition.predictionShape === 'complete') {
-    await upsertStandardPredictions(ctx, {
+  if (
+    scenario.definition.predictionShape === 'complete' ||
+    scenario.definition.predictionShape === 'top5_only'
+  ) {
+    await upsertWeekendPredictions(ctx, {
       raceId: race._id,
       userId: scenario.primary.userId,
       drivers: scenario.drivers,
       submittedAt: scenario.now - 2 * HOUR,
+      hasSprint: scenario.definition.weekendType === 'sprint',
+    });
+  }
+
+  if (scenario.definition.predictionShape === 'top5_only') {
+  } else if (scenario.definition.predictionShape === 'complete') {
+    await upsertWeekendH2HPredictions(ctx, {
+      raceId: race._id,
+      userId: scenario.primary.userId,
+      matchupIds: scenario.matchupIds,
+      drivers: scenario.drivers,
+      submittedAt: scenario.now - 2 * HOUR,
+      hasSprint: scenario.definition.weekendType === 'sprint',
     });
   }
 
   if (scenario.definition.resultsShape === 'partial') {
-    const qualiClassification = [
+    const earlyClassification = [
       scenario.drivers[1]._id,
       scenario.drivers[0]._id,
       scenario.drivers[2]._id,
       scenario.drivers[3]._id,
       scenario.drivers[4]._id,
     ];
+    const earlySession: Extract<
+      SessionType,
+      'quali' | 'sprint_quali'
+    > =
+      scenario.definition.weekendType === 'sprint' ? 'sprint_quali' : 'quali';
 
     await upsertResult(ctx, {
       raceId: race._id,
-      sessionType: 'quali',
-      classification: qualiClassification,
+      sessionType: earlySession,
+      classification: earlyClassification,
       publishedAt: scenario.now - HOUR,
     });
 
     await upsertScore(ctx, {
       raceId: race._id,
       user: scenario.primary,
-      sessionType: 'quali',
+      sessionType: earlySession,
       points: 18,
       picks: driverIdsFromDocs(scenario.drivers),
-      classification: qualiClassification,
+      classification: earlyClassification,
     });
 
     await upsertScore(ctx, {
       raceId: race._id,
       user: scenario.secondary,
-      sessionType: 'quali',
+      sessionType: earlySession,
       points: 21,
       picks: [
         scenario.drivers[1]._id,
@@ -174,8 +290,20 @@ async function buildScenario(
         scenario.drivers[3]._id,
         scenario.drivers[4]._id,
       ],
-      classification: qualiClassification,
+      classification: earlyClassification,
     });
+
+    if (scenario.definition.predictionShape === 'complete') {
+      await upsertH2HResultsAndScores(ctx, {
+        raceId: race._id,
+        sessionType: earlySession,
+        matchupIds: scenario.matchupIds,
+        drivers: scenario.drivers,
+        primary: scenario.primary,
+        secondary: scenario.secondary,
+        publishedAt: scenario.now - HOUR,
+      });
+    }
   }
 
   if (scenario.definition.resultsShape === 'complete') {
@@ -193,6 +321,88 @@ async function buildScenario(
       scenario.drivers[4]._id,
       scenario.drivers[3]._id,
     ];
+    const sprintQualiClassification = [
+      scenario.drivers[2]._id,
+      scenario.drivers[0]._id,
+      scenario.drivers[1]._id,
+      scenario.drivers[3]._id,
+      scenario.drivers[4]._id,
+    ];
+    const sprintClassification = [
+      scenario.drivers[0]._id,
+      scenario.drivers[1]._id,
+      scenario.drivers[3]._id,
+      scenario.drivers[2]._id,
+      scenario.drivers[4]._id,
+    ];
+
+    if (scenario.definition.weekendType === 'sprint') {
+      await upsertResult(ctx, {
+        raceId: race._id,
+        sessionType: 'sprint_quali',
+        classification: sprintQualiClassification,
+        publishedAt: scenario.now - 12 * HOUR,
+      });
+      await upsertResult(ctx, {
+        raceId: race._id,
+        sessionType: 'sprint',
+        classification: sprintClassification,
+        publishedAt: scenario.now - 9 * HOUR,
+      });
+      await upsertScore(ctx, {
+        raceId: race._id,
+        user: scenario.primary,
+        sessionType: 'sprint_quali',
+        points: 14,
+        picks: driverIdsFromDocs(scenario.drivers),
+        classification: sprintQualiClassification,
+      });
+      await upsertScore(ctx, {
+        raceId: race._id,
+        user: scenario.primary,
+        sessionType: 'sprint',
+        points: 17,
+        picks: driverIdsFromDocs(scenario.drivers),
+        classification: sprintClassification,
+      });
+      await upsertScore(ctx, {
+        raceId: race._id,
+        user: scenario.secondary,
+        sessionType: 'sprint_quali',
+        points: 19,
+        picks: sprintQualiClassification,
+        classification: sprintQualiClassification,
+      });
+      await upsertScore(ctx, {
+        raceId: race._id,
+        user: scenario.secondary,
+        sessionType: 'sprint',
+        points: 20,
+        picks: sprintClassification,
+        classification: sprintClassification,
+      });
+
+      if (scenario.definition.predictionShape === 'complete') {
+        await upsertH2HResultsAndScores(ctx, {
+          raceId: race._id,
+          sessionType: 'sprint_quali',
+          matchupIds: scenario.matchupIds,
+          drivers: scenario.drivers,
+          primary: scenario.primary,
+          secondary: scenario.secondary,
+          publishedAt: scenario.now - 12 * HOUR,
+        });
+        await upsertH2HResultsAndScores(ctx, {
+          raceId: race._id,
+          sessionType: 'sprint',
+          matchupIds: scenario.matchupIds,
+          drivers: scenario.drivers,
+          primary: scenario.primary,
+          secondary: scenario.secondary,
+          publishedAt: scenario.now - 9 * HOUR,
+        });
+      }
+    }
 
     await upsertResult(ctx, {
       raceId: race._id,
@@ -239,6 +449,27 @@ async function buildScenario(
       picks: raceClassification,
       classification: raceClassification,
     });
+
+    if (scenario.definition.predictionShape === 'complete') {
+      await upsertH2HResultsAndScores(ctx, {
+        raceId: race._id,
+        sessionType: 'quali',
+        matchupIds: scenario.matchupIds,
+        drivers: scenario.drivers,
+        primary: scenario.primary,
+        secondary: scenario.secondary,
+        publishedAt: scenario.now - 6 * HOUR,
+      });
+      await upsertH2HResultsAndScores(ctx, {
+        raceId: race._id,
+        sessionType: 'race',
+        matchupIds: scenario.matchupIds,
+        drivers: scenario.drivers,
+        primary: scenario.primary,
+        secondary: scenario.secondary,
+        publishedAt: scenario.now - 3 * HOUR,
+      });
+    }
   }
 
   return race;
@@ -453,6 +684,14 @@ async function upsertScenarioRace(
     slug,
     timeZone: getRaceTimeZoneFromSlug('australia-2026') ?? 'UTC',
     hasSprint: args.weekendType === 'sprint',
+    sprintQualiStartAt:
+      args.weekendType === 'sprint' ? timings.sprintQualiStartAt : undefined,
+    sprintQualiLockAt:
+      args.weekendType === 'sprint' ? timings.sprintQualiLockAt : undefined,
+    sprintStartAt:
+      args.weekendType === 'sprint' ? timings.sprintStartAt : undefined,
+    sprintLockAt:
+      args.weekendType === 'sprint' ? timings.sprintLockAt : undefined,
     qualiStartAt: timings.qualiStartAt,
     qualiLockAt: timings.qualiLockAt,
     raceStartAt: timings.raceStartAt,
@@ -473,30 +712,62 @@ async function upsertScenarioRace(
   return (await ctx.db.get(raceId))!;
 }
 
-async function upsertStandardPredictions(
+async function upsertWeekendPredictions(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
     userId: Id<'users'>;
     drivers: Array<Doc<'drivers'>>;
     submittedAt: number;
+    hasSprint: boolean;
   },
 ) {
   const picks = driverIdsFromDocs(args.drivers);
-  await upsertPrediction(ctx, {
-    raceId: args.raceId,
-    userId: args.userId,
-    sessionType: 'quali',
-    picks,
-    submittedAt: args.submittedAt,
-  });
-  await upsertPrediction(ctx, {
-    raceId: args.raceId,
-    userId: args.userId,
-    sessionType: 'race',
-    picks,
-    submittedAt: args.submittedAt,
-  });
+  const sessions: Array<
+    Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>
+  > = args.hasSprint
+    ? ['sprint_quali', 'sprint', 'quali', 'race']
+    : ['quali', 'race'];
+  for (const sessionType of sessions) {
+    await upsertPrediction(ctx, {
+      raceId: args.raceId,
+      userId: args.userId,
+      sessionType,
+      picks,
+      submittedAt: args.submittedAt,
+    });
+  }
+}
+
+async function upsertWeekendH2HPredictions(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    userId: Id<'users'>;
+    matchupIds: Array<Id<'h2hMatchups'>>;
+    drivers: Array<Doc<'drivers'>>;
+    submittedAt: number;
+    hasSprint: boolean;
+  },
+) {
+  const sessions: Array<
+    Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>
+  > = args.hasSprint
+    ? ['sprint_quali', 'sprint', 'quali', 'race']
+    : ['quali', 'race'];
+
+  for (const sessionType of sessions) {
+    for (const matchupId of args.matchupIds) {
+      await upsertH2HPrediction(ctx, {
+        raceId: args.raceId,
+        userId: args.userId,
+        matchupId,
+        sessionType,
+        predictedWinnerId: args.drivers[0]._id,
+        submittedAt: args.submittedAt,
+      });
+    }
+  }
 }
 
 async function upsertPrediction(
@@ -504,7 +775,7 @@ async function upsertPrediction(
   args: {
     raceId: Id<'races'>;
     userId: Id<'users'>;
-    sessionType: Extract<SessionType, 'quali' | 'race'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
     picks: Array<Id<'drivers'>>;
     submittedAt: number;
   },
@@ -542,7 +813,7 @@ async function upsertResult(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
-    sessionType: Extract<SessionType, 'quali' | 'race'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
     classification: Array<Id<'drivers'>>;
     publishedAt: number;
   },
@@ -579,7 +850,7 @@ async function upsertScore(
   args: {
     raceId: Id<'races'>;
     user: ScenarioActor;
-    sessionType: Extract<SessionType, 'quali' | 'race'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
     points: number;
     picks: Array<Id<'drivers'>>;
     classification: Array<Id<'drivers'>>;
@@ -630,6 +901,212 @@ async function upsertScore(
     createdAt: now,
     updatedAt: now,
   });
+}
+
+async function upsertH2HPrediction(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    userId: Id<'users'>;
+    matchupId: Id<'h2hMatchups'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    predictedWinnerId: Id<'drivers'>;
+    submittedAt: number;
+  },
+) {
+  const existing = await ctx.db
+    .query('h2hPredictions')
+    .withIndex('by_user_race_session_matchup', (q) =>
+      q
+        .eq('userId', args.userId)
+        .eq('raceId', args.raceId)
+        .eq('sessionType', args.sessionType)
+        .eq('matchupId', args.matchupId),
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      predictedWinnerId: args.predictedWinnerId,
+      submittedAt: args.submittedAt,
+      updatedAt: args.submittedAt,
+    });
+    return existing._id;
+  }
+
+  return await ctx.db.insert('h2hPredictions', {
+    userId: args.userId,
+    raceId: args.raceId,
+    sessionType: args.sessionType,
+    matchupId: args.matchupId,
+    predictedWinnerId: args.predictedWinnerId,
+    submittedAt: args.submittedAt,
+    updatedAt: args.submittedAt,
+  });
+}
+
+async function upsertH2HResult(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    matchupId: Id<'h2hMatchups'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    winnerId: Id<'drivers'>;
+    publishedAt: number;
+  },
+) {
+  const existing = await ctx.db
+    .query('h2hResults')
+    .withIndex('by_race_session_matchup', (q) =>
+      q
+        .eq('raceId', args.raceId)
+        .eq('sessionType', args.sessionType)
+        .eq('matchupId', args.matchupId),
+    )
+    .unique();
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      winnerId: args.winnerId,
+      publishedAt: args.publishedAt,
+    });
+    return existing._id;
+  }
+
+  return await ctx.db.insert('h2hResults', {
+    raceId: args.raceId,
+    sessionType: args.sessionType,
+    matchupId: args.matchupId,
+    winnerId: args.winnerId,
+    publishedAt: args.publishedAt,
+  });
+}
+
+async function upsertH2HScore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    user: ScenarioActor;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    correctPicks: number;
+    totalPicks: number;
+    points: number;
+  },
+) {
+  const now = Date.now();
+  const existing = await ctx.db
+    .query('h2hScores')
+    .withIndex('by_user_race_session', (q) =>
+      q
+        .eq('userId', args.user.userId)
+        .eq('raceId', args.raceId)
+        .eq('sessionType', args.sessionType),
+    )
+    .unique();
+
+  const payload = {
+    points: args.points,
+    correctPicks: args.correctPicks,
+    totalPicks: args.totalPicks,
+    updatedAt: now,
+  };
+
+  if (existing) {
+    await ctx.db.patch(existing._id, payload);
+    return existing._id;
+  }
+
+  return await ctx.db.insert('h2hScores', {
+    userId: args.user.userId,
+    raceId: args.raceId,
+    sessionType: args.sessionType,
+    points: args.points,
+    correctPicks: args.correctPicks,
+    totalPicks: args.totalPicks,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+async function upsertH2HResultsAndScores(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    matchupIds: Array<Id<'h2hMatchups'>>;
+    drivers: Array<Doc<'drivers'>>;
+    primary: ScenarioActor;
+    secondary: ScenarioActor;
+    publishedAt: number;
+  },
+) {
+  for (const [index, matchupId] of args.matchupIds.entries()) {
+    await upsertH2HResult(ctx, {
+      raceId: args.raceId,
+      matchupId,
+      sessionType: args.sessionType,
+      winnerId: index % 2 === 0 ? args.drivers[0]._id : args.drivers[1]._id,
+      publishedAt: args.publishedAt,
+    });
+  }
+
+  const totalPicks = args.matchupIds.length;
+  await upsertH2HScore(ctx, {
+    raceId: args.raceId,
+    user: args.primary,
+    sessionType: args.sessionType,
+    correctPicks: Math.max(0, totalPicks - 2),
+    totalPicks,
+    points: Math.max(0, totalPicks - 2),
+  });
+  await upsertH2HScore(ctx, {
+    raceId: args.raceId,
+    user: args.secondary,
+    sessionType: args.sessionType,
+    correctPicks: Math.max(0, totalPicks - 1),
+    totalPicks,
+    points: Math.max(0, totalPicks - 1),
+  });
+}
+
+async function ensureScenarioMatchups(
+  ctx: MutationCtx,
+  drivers: Array<Doc<'drivers'>>,
+): Promise<Array<Id<'h2hMatchups'>>> {
+  const existing = await ctx.db
+    .query('h2hMatchups')
+    .withIndex('by_season', (q) => q.eq('season', 2026))
+    .collect();
+
+  const ids: Array<Id<'h2hMatchups'>> = existing.map((matchup) => matchup._id);
+  const existingTeams = new Set(existing.map((matchup) => matchup.team));
+  const byTeam = new Map<string, Array<Doc<'drivers'>>>();
+
+  for (const driver of drivers) {
+    if (!driver.team) {
+      continue;
+    }
+    const list = byTeam.get(driver.team) ?? [];
+    list.push(driver);
+    byTeam.set(driver.team, list);
+  }
+
+  for (const [team, teamDrivers] of byTeam.entries()) {
+    if (teamDrivers.length < 2 || existingTeams.has(team)) {
+      continue;
+    }
+    const matchupId = await ctx.db.insert('h2hMatchups', {
+      season: 2026,
+      team,
+      driver1Id: teamDrivers[0]._id,
+      driver2Id: teamDrivers[1]._id,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    ids.push(matchupId);
+  }
+
+  return ids;
 }
 
 async function deletePredictionsByUser(
@@ -768,6 +1245,10 @@ function buildTimings(phase: RacePhase, now: number) {
   if (phase === 'upcoming_open') {
     return {
       status: 'upcoming',
+      sprintQualiStartAt: now + DAY,
+      sprintQualiLockAt: now + DAY,
+      sprintStartAt: now + 36 * HOUR,
+      sprintLockAt: now + 36 * HOUR,
       qualiStartAt: now + 2 * DAY,
       qualiLockAt: now + 2 * DAY,
       raceStartAt: now + 3 * DAY,
@@ -778,6 +1259,10 @@ function buildTimings(phase: RacePhase, now: number) {
   if (phase === 'locked_pending_results' || phase === 'partial_results') {
     return {
       status: 'locked',
+      sprintQualiStartAt: now - 50 * HOUR,
+      sprintQualiLockAt: now - 50 * HOUR,
+      sprintStartAt: now - 30 * HOUR,
+      sprintLockAt: now - 30 * HOUR,
       qualiStartAt: now - 26 * HOUR,
       qualiLockAt: now - 26 * HOUR,
       raceStartAt: now - 30 * MINUTE,
@@ -787,6 +1272,10 @@ function buildTimings(phase: RacePhase, now: number) {
 
   return {
     status: 'finished',
+    sprintQualiStartAt: now - 54 * HOUR,
+    sprintQualiLockAt: now - 54 * HOUR,
+    sprintStartAt: now - 30 * HOUR,
+    sprintLockAt: now - 30 * HOUR,
     qualiStartAt: now - 30 * HOUR,
     qualiLockAt: now - 30 * HOUR,
     raceStartAt: now - 6 * HOUR,
@@ -833,8 +1322,14 @@ const DAY = 24 * HOUR;
 const SCENARIO_NAME_MAP: Record<ScenarioName, true> = {
   race_upcoming_signed_in_no_picks: true,
   race_upcoming_signed_in_complete: true,
+  race_upcoming_signed_in_top5_only: true,
+  race_upcoming_signed_in_complete_h2h: true,
   race_locked_signed_in_no_picks: true,
   race_locked_signed_in_complete_no_results: true,
+  race_locked_signed_in_complete_h2h_no_results: true,
   race_partial_results_standard: true,
+  race_partial_results_sprint: true,
   race_finished_scored_standard: true,
+  race_finished_scored_sprint: true,
+  race_finished_scored_h2h_standard: true,
 };

@@ -72,8 +72,10 @@ function renderNotificationBell() {
 
   return {
     button: () => container.querySelector('button[aria-expanded]'),
-    backdrop: () => document.body.querySelector('button[aria-label="Close notifications"]'),
-    isPanelOpen: () => document.body.textContent?.includes('No notifications yet'),
+    backdrop: () =>
+      document.body.querySelector('button[aria-label="Close notifications"]'),
+    isPanelOpen: () =>
+      document.body.textContent?.includes('No notifications yet'),
     unmount: () => {
       act(() => {
         root.unmount();

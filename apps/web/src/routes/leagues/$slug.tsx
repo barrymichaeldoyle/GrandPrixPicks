@@ -463,18 +463,22 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     (lastLoadedPage?.hasMore ?? false) &&
     activePagesCount <= MAX_LEAGUE_FEED_EXTRA_PAGES;
 
-  const handleLoadMore = () => {
-    if (!lastLoadedPage?.events.length) return;
+  function handleLoadMore() {
+    if (!lastLoadedPage?.events.length) {
+      return;
+    }
     const minCreatedAt = Math.min(
       ...lastLoadedPage.events.map((e) => e.createdAt),
     );
     setExtraCursors((prev) => {
       const next = [...prev];
       const idx = next.findIndex((c) => c === null);
-      if (idx !== -1) next[idx] = minCreatedAt;
+      if (idx !== -1) {
+        next[idx] = minCreatedAt;
+      }
       return next;
     });
-  };
+  }
 
   if (page0 === undefined) {
     return (

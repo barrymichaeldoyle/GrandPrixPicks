@@ -43,9 +43,9 @@ describe('findNextPredictionRace', () => {
       predictionLockAt: now + 7 * 24 * 60 * 60 * 1000,
     };
 
-    expect(
-      findNextPredictionRace([nextWeekend, currentWeekend], now),
-    ).toEqual(currentWeekend);
+    expect(findNextPredictionRace([nextWeekend, currentWeekend], now)).toEqual(
+      currentWeekend,
+    );
   });
 
   it('opens the next upcoming race as soon as the previous weekend final lock passes', () => {

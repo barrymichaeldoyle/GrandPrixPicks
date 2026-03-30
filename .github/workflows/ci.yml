@@ -111,7 +111,6 @@ jobs:
   web-e2e-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    if: ${{ secrets.CLERK_SECRET_KEY != '' && secrets.VITE_CLERK_PUBLISHABLE_KEY != '' && secrets.CLERK_JWT_KEY != '' && secrets.VITE_CONVEX_URL != '' && secrets.CONVEX_DEPLOYMENT != '' }}
     env:
       CI: true
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
@@ -136,14 +135,35 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prod=false
 
+      - name: Check required e2e secrets
+        id: secret_check
+        shell: bash
+        run: |
+          missing=0
+          for name in CLERK_SECRET_KEY VITE_CLERK_PUBLISHABLE_KEY CLERK_JWT_KEY VITE_CONVEX_URL CONVEX_DEPLOYMENT; do
+            if [ -z "${!name}" ]; then
+              echo "Missing $name"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 0 ]; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Skipping web e2e smoke::Required Clerk/Convex secrets are not configured for this repository."
+          fi
+
       - name: Install Playwright browser
+        if: ${{ steps.secret_check.outputs.run_e2e == 'true' }}
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run web e2e smoke
+        if: ${{ steps.secret_check.outputs.run_e2e == 'true' }}
         run: pnpm test:e2e:smoke
 
       - name: Upload Playwright report
-        if: ${{ always() }}
+        if: ${{ always() && steps.secret_check.outputs.run_e2e == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -151,7 +171,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload Playwright test results
-        if: ${{ failure() }}
+        if: ${{ failure() && steps.secret_check.outputs.run_e2e == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results

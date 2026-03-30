@@ -40,7 +40,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
-import { Button } from './Button';
+import { Button } from './Button/Button';
 import { TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { InlineLoader } from './InlineLoader';
@@ -289,6 +289,8 @@ interface PredictionFormProps {
   onSuccess?: () => void;
   /** Emits whether the form currently has unsaved changes. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Disable route navigation blocking in environments like Storybook. */
+  enableNavigationBlocker?: boolean;
 }
 
 type Top5Draft = {
@@ -302,6 +304,7 @@ export function PredictionForm({
   sessionType,
   onSuccess,
   onDirtyChange,
+  enableNavigationBlocker = true,
 }: PredictionFormProps) {
   const drivers = useQuery(api.drivers.listDrivers);
   const race = useQuery(api.races.getRace, { raceId });
@@ -423,11 +426,11 @@ export function PredictionForm({
     shouldBlockFn: () => hasChanges,
     enableBeforeUnload: true,
     withResolver: true,
-    disabled: !hasChanges,
+    disabled: !enableNavigationBlocker || !hasChanges,
   });
 
   useEffect(() => {
-    if (blocker.status !== 'blocked') {
+    if (!enableNavigationBlocker || blocker.status !== 'blocked') {
       return;
     }
     const confirmLeave = window.confirm(
@@ -438,7 +441,7 @@ export function PredictionForm({
     } else {
       blocker.reset();
     }
-  }, [blocker]);
+  }, [blocker, enableNavigationBlocker]);
 
   if (drivers === undefined) {
     return <InlineLoader />;

@@ -2,12 +2,12 @@ import type { Doc } from '@convex-generated/dataModel';
 import { Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import type { SessionType } from '../lib/sessions';
-import { InlineLoader } from './InlineLoader';
-import { RaceDetailHeader } from './RaceDetailHeader';
-import { SessionEventSummary } from './SessionEventSummary';
-import type { TabSwitchOption } from './TabSwitch';
-import { TabSwitch } from './TabSwitch';
+import type { SessionType } from '../../../../../lib/sessions';
+import { InlineLoader } from '../../../../../components/InlineLoader';
+import { RaceDetailHeader } from '../../../../../components/RaceDetailHeader';
+import { SessionEventSummary } from '../../../../../components/SessionEventSummary';
+import type { TabSwitchOption } from '../../../../../components/TabSwitch';
+import { TabSwitch } from '../../../../../components/TabSwitch';
 
 function getStatusStyles(isPredictable: boolean): {
   border: string;
@@ -179,6 +179,7 @@ export function RaceEventPageLayout({
                         </section>
                       )}
                       <section
+                        data-testid="race-top5-section"
                         className={
                           showReadonlyPredictions
                             ? `space-y-2 ${top5SectionLayoutClass}`
@@ -199,7 +200,12 @@ export function RaceEventPageLayout({
                         <div className="min-w-0">{top5MainContent}</div>
                       </section>
                       {showReadonlyH2H && (
-                        <section className="space-y-2">{h2hContent}</section>
+                        <section
+                          className="space-y-2"
+                          data-testid="race-h2h-section"
+                        >
+                          {h2hContent}
+                        </section>
                       )}
                     </div>
                   )}

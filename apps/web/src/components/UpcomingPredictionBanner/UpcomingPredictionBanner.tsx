@@ -1,14 +1,13 @@
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { ArrowRight, Dices } from 'lucide-react';
+import { Dices } from 'lucide-react';
 import { useState } from 'react';
 
-import { useUpcomingPredictionBannerDismissal } from '../hooks/useUpcomingPredictionBannerDismissal';
-import { toUserFacingMessage } from '../lib/userFacingError';
-import { Button } from './Button';
-import { ConfirmDialog } from './ConfirmDialog';
+import { useUpcomingPredictionBannerDismissal } from '../../hooks/useUpcomingPredictionBannerDismissal';
+import { toUserFacingMessage } from '../../lib/userFacingError';
+import { ConfirmDialog } from '../ConfirmDialog';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;
@@ -201,18 +200,11 @@ export function UpcomingPredictionBanner() {
           setError(null);
           setShowConfirm(true);
         }}
-        makePicksControl={
-          <Button asChild size="sm" rightIcon={ArrowRight}>
-            <Link to="/races/$raceSlug" params={{ raceSlug: activeRace.slug }}>
-              Make picks
-            </Link>
-          </Button>
-        }
       />
       <ConfirmDialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
-        onConfirm={() => void handleRandomize()}
+        onConfirm={handleRandomize}
         title={
           <span className="flex items-center gap-2 font-semibold">
             <Dices size={16} className="text-accent" /> {confirmTitle}

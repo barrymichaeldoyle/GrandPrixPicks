@@ -16,12 +16,12 @@ import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
 import { CookieConsent } from '../components/CookieConsent';
-import { ErrorBoundary } from '../components/ErrorBoundary';
+import { ErrorBoundary } from '../components/error/ErrorBoundary';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
-import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner';
+import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
 import { THEME_KEY, useTheme } from '../hooks/useTheme';
 import { AppClerkProvider } from '../integrations/clerk/provider';
@@ -280,7 +280,9 @@ function RootDocument({ children }: PropsWithChildren) {
               >
                 <ScrollToTop scrollContainerRef={mainRef} />
                 <div className="flex min-h-full flex-col">
-                  <UpcomingPredictionBanner />
+                  <ErrorBoundary fallback={null}>
+                    <UpcomingPredictionBanner />
+                  </ErrorBoundary>
                   <main id="main-content" className="min-h-0 flex-1">
                     <ErrorBoundary>{children}</ErrorBoundary>
                   </main>

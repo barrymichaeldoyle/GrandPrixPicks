@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { Gauge } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '../../components/Button';
+import { Button } from '../../components/Button/Button';
 import {
   FeedEmptyState,
   FeedItem,

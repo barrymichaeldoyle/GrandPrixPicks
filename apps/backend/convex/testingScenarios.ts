@@ -63,6 +63,9 @@ export const applyScenario = internalMutation({
     scenario: scenarioNameValidator,
     namespace: v.optional(v.string()),
     resetFirst: v.optional(v.boolean()),
+    primaryClerkUserId: v.optional(v.string()),
+    primaryEmail: v.optional(v.string()),
+    primaryDisplayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const definition = getScenarioDefinition(args.scenario);
@@ -74,9 +77,7 @@ export const applyScenario = internalMutation({
 
     const drivers = await ctx.db.query('drivers').collect();
     if (drivers.length < 5) {
-      throw new Error(
-        'Seed drivers first before applying a testing scenario.',
-      );
+      throw new Error('Seed drivers first before applying a testing scenario.');
     }
 
     const now = Date.now();
@@ -84,8 +85,10 @@ export const applyScenario = internalMutation({
     const primary = await upsertScenarioUser(ctx, {
       namespace,
       role: 'primary',
-      displayName: 'Scenario Primary',
+      displayName: args.primaryDisplayName ?? 'Scenario Primary',
       isAdmin: false,
+      clerkUserId: args.primaryClerkUserId,
+      email: args.primaryEmail,
     });
     const secondary = await upsertScenarioUser(ctx, {
       namespace,
@@ -119,6 +122,9 @@ export const applyScenarioAdmin = mutation({
     scenario: scenarioNameValidator,
     namespace: v.optional(v.string()),
     resetFirst: v.optional(v.boolean()),
+    primaryClerkUserId: v.optional(v.string()),
+    primaryEmail: v.optional(v.string()),
+    primaryDisplayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     requireAdmin(await getOrCreateViewer(ctx));
@@ -131,9 +137,7 @@ export const applyScenarioAdmin = mutation({
 
     const drivers = await ctx.db.query('drivers').collect();
     if (drivers.length < 5) {
-      throw new Error(
-        'Seed drivers first before applying a testing scenario.',
-      );
+      throw new Error('Seed drivers first before applying a testing scenario.');
     }
 
     const now = Date.now();
@@ -141,8 +145,10 @@ export const applyScenarioAdmin = mutation({
     const primary = await upsertScenarioUser(ctx, {
       namespace,
       role: 'primary',
-      displayName: 'Scenario Primary',
+      displayName: args.primaryDisplayName ?? 'Scenario Primary',
       isAdmin: false,
+      clerkUserId: args.primaryClerkUserId,
+      email: args.primaryEmail,
     });
     const secondary = await upsertScenarioUser(ctx, {
       namespace,
@@ -213,10 +219,11 @@ export const getScenarioSummaryAdmin = query({
   },
 });
 
-async function buildScenario(
-  ctx: MutationCtx,
-  scenario: ScenarioContext,
-) {
+async function buildScenario(ctx: MutationCtx, scenario: ScenarioContext) {
+  if (scenario.definition.racePhase === 'upcoming_open') {
+    await upsertScenarioPreviousRace(ctx, scenario);
+  }
+
   const race = await upsertScenarioRace(ctx, scenario, {
     name: readableRaceName(scenario.definition.name),
     weekendType: scenario.definition.weekendType,
@@ -256,10 +263,7 @@ async function buildScenario(
       scenario.drivers[3]._id,
       scenario.drivers[4]._id,
     ];
-    const earlySession: Extract<
-      SessionType,
-      'quali' | 'sprint_quali'
-    > =
+    const earlySession: Extract<SessionType, 'quali' | 'sprint_quali'> =
       scenario.definition.weekendType === 'sprint' ? 'sprint_quali' : 'quali';
 
     await upsertResult(ctx, {
@@ -484,8 +488,10 @@ async function buildScenarioSummary(
   },
 ) {
   const slugPrefix = `${toSlug(args.namespace)}-`;
+  const primaryEmail = scenarioPrimaryEmail(args.namespace);
   const users = (await ctx.db.query('users').collect()).filter((user) =>
-    user.clerkUserId.startsWith(`${args.namespace}__`),
+    user.clerkUserId.startsWith(`${args.namespace}__`) ||
+    user.email === primaryEmail,
   );
   const races = (await ctx.db.query('races').collect()).filter((race) =>
     race.slug.startsWith(slugPrefix),
@@ -519,7 +525,10 @@ async function buildScenarioSummary(
     : [];
 
   const primaryUser =
-    users.find((user) => user.clerkUserId.endsWith('__primary')) ?? null;
+    users.find(
+      (user) =>
+        user.clerkUserId.endsWith('__primary') || user.email === primaryEmail,
+    ) ?? null;
 
   return {
     scenario: scenario?.name ?? null,
@@ -571,13 +580,11 @@ async function buildScenarioSummary(
   };
 }
 
-async function clearNamespaceData(
-  ctx: MutationCtx,
-  namespace: string,
-) {
+async function clearNamespaceData(ctx: MutationCtx, namespace: string) {
   const slugPrefix = `${toSlug(namespace)}-`;
+  const primaryEmail = scenarioPrimaryEmail(namespace);
   const users = (await ctx.db.query('users').collect()).filter((user) =>
-    user.clerkUserId.startsWith(`${namespace}__`),
+    user.clerkUserId.startsWith(`${namespace}__`) || user.email === primaryEmail,
   );
   const races = (await ctx.db.query('races').collect()).filter((race) =>
     race.slug.startsWith(slugPrefix),
@@ -622,11 +629,13 @@ async function upsertScenarioUser(
     role: 'primary' | 'secondary';
     displayName: string;
     isAdmin: boolean;
+    clerkUserId?: string;
+    email?: string;
   },
 ): Promise<ScenarioActor> {
   const now = Date.now();
-  const clerkUserId = `${args.namespace}__${args.role}`;
-  const email = `${clerkUserId}@example.com`;
+  const clerkUserId = args.clerkUserId ?? `${args.namespace}__${args.role}`;
+  const email = args.email ?? `${clerkUserId}@example.com`;
 
   const existing = await ctx.db
     .query('users')
@@ -673,13 +682,14 @@ async function upsertScenarioRace(
 ) {
   const timings = buildTimings(args.phase, scenario.now);
   const slug = `${scenario.slugPrefix}-race`;
+  const round = getScenarioRaceRound(scenario.definition);
   const existing = await ctx.db
     .query('races')
     .withIndex('by_slug', (q) => q.eq('slug', slug))
     .unique();
   const payload = {
     season: 2026,
-    round: 99,
+    round,
     name: args.name,
     slug,
     timeZone: getRaceTimeZoneFromSlug('australia-2026') ?? 'UTC',
@@ -697,6 +707,48 @@ async function upsertScenarioRace(
     raceStartAt: timings.raceStartAt,
     predictionLockAt: timings.predictionLockAt,
     status: timings.status,
+    updatedAt: scenario.now,
+  };
+
+  if (existing) {
+    await ctx.db.patch(existing._id, payload);
+    return (await ctx.db.get(existing._id))!;
+  }
+
+  const raceId = await ctx.db.insert('races', {
+    ...payload,
+    createdAt: scenario.now,
+  });
+  return (await ctx.db.get(raceId))!;
+}
+
+async function upsertScenarioPreviousRace(
+  ctx: MutationCtx,
+  scenario: ScenarioContext,
+) {
+  const slug = `${scenario.slugPrefix}-previous-race`;
+  const currentRound = getScenarioRaceRound(scenario.definition);
+  const existing = await ctx.db
+    .query('races')
+    .withIndex('by_slug', (q) => q.eq('slug', slug))
+    .unique();
+
+  const payload = {
+    season: 2026,
+    round: currentRound - 1,
+    name: `${readableRaceName(scenario.definition.name)} Previous`,
+    slug,
+    timeZone: getRaceTimeZoneFromSlug('australia-2026') ?? 'UTC',
+    hasSprint: false,
+    sprintQualiStartAt: undefined,
+    sprintQualiLockAt: undefined,
+    sprintStartAt: undefined,
+    sprintLockAt: undefined,
+    qualiStartAt: scenario.now - 6 * DAY,
+    qualiLockAt: scenario.now - 6 * DAY,
+    raceStartAt: scenario.now - 5 * DAY,
+    predictionLockAt: scenario.now - 5 * DAY,
+    status: 'finished' as const,
     updatedAt: scenario.now,
   };
 
@@ -775,7 +827,10 @@ async function upsertPrediction(
   args: {
     raceId: Id<'races'>;
     userId: Id<'users'>;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     picks: Array<Id<'drivers'>>;
     submittedAt: number;
   },
@@ -813,7 +868,10 @@ async function upsertResult(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     classification: Array<Id<'drivers'>>;
     publishedAt: number;
   },
@@ -850,7 +908,10 @@ async function upsertScore(
   args: {
     raceId: Id<'races'>;
     user: ScenarioActor;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     points: number;
     picks: Array<Id<'drivers'>>;
     classification: Array<Id<'drivers'>>;
@@ -909,7 +970,10 @@ async function upsertH2HPrediction(
     raceId: Id<'races'>;
     userId: Id<'users'>;
     matchupId: Id<'h2hMatchups'>;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     predictedWinnerId: Id<'drivers'>;
     submittedAt: number;
   },
@@ -950,7 +1014,10 @@ async function upsertH2HResult(
   args: {
     raceId: Id<'races'>;
     matchupId: Id<'h2hMatchups'>;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     winnerId: Id<'drivers'>;
     publishedAt: number;
   },
@@ -987,7 +1054,10 @@ async function upsertH2HScore(
   args: {
     raceId: Id<'races'>;
     user: ScenarioActor;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     correctPicks: number;
     totalPicks: number;
     points: number;
@@ -1032,7 +1102,10 @@ async function upsertH2HResultsAndScores(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
-    sessionType: Extract<SessionType, 'quali' | 'sprint_quali' | 'sprint' | 'race'>;
+    sessionType: Extract<
+      SessionType,
+      'quali' | 'sprint_quali' | 'sprint' | 'race'
+    >;
     matchupIds: Array<Id<'h2hMatchups'>>;
     drivers: Array<Doc<'drivers'>>;
     primary: ScenarioActor;
@@ -1109,10 +1182,7 @@ async function ensureScenarioMatchups(
   return ids;
 }
 
-async function deletePredictionsByUser(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-) {
+async function deletePredictionsByUser(ctx: MutationCtx, userId: Id<'users'>) {
   const docs = await ctx.db
     .query('predictions')
     .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -1122,10 +1192,7 @@ async function deletePredictionsByUser(
   }
 }
 
-async function deletePredictionsByRace(
-  ctx: MutationCtx,
-  raceId: Id<'races'>,
-) {
+async function deletePredictionsByRace(ctx: MutationCtx, raceId: Id<'races'>) {
   const docs = await ctx.db
     .query('predictions')
     .withIndex('by_race_session', (q) => q.eq('raceId', raceId))
@@ -1135,10 +1202,7 @@ async function deletePredictionsByRace(
   }
 }
 
-async function deleteScoresByUser(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-) {
+async function deleteScoresByUser(ctx: MutationCtx, userId: Id<'users'>) {
   const docs = await ctx.db
     .query('scores')
     .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -1148,10 +1212,7 @@ async function deleteScoresByUser(
   }
 }
 
-async function deleteScoresByRace(
-  ctx: MutationCtx,
-  raceId: Id<'races'>,
-) {
+async function deleteScoresByRace(ctx: MutationCtx, raceId: Id<'races'>) {
   const docs = await ctx.db
     .query('scores')
     .withIndex('by_race_session', (q) => q.eq('raceId', raceId))
@@ -1187,10 +1248,7 @@ async function deleteH2HPredictionsByRace(
   }
 }
 
-async function deleteH2HScoresByUser(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-) {
+async function deleteH2HScoresByUser(ctx: MutationCtx, userId: Id<'users'>) {
   const docs = await ctx.db
     .query('h2hScores')
     .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -1200,10 +1258,7 @@ async function deleteH2HScoresByUser(
   }
 }
 
-async function deleteH2HScoresByRace(
-  ctx: MutationCtx,
-  raceId: Id<'races'>,
-) {
+async function deleteH2HScoresByRace(ctx: MutationCtx, raceId: Id<'races'>) {
   const docs = await ctx.db
     .query('h2hScores')
     .withIndex('by_race_session', (q) => q.eq('raceId', raceId))
@@ -1291,7 +1346,32 @@ function defaultNamespace(scenario: ScenarioName) {
   return `scenario__${scenario}`;
 }
 
-function parseScenarioNameFromNamespace(namespace: string): ScenarioName | null {
+function scenarioPrimaryEmail(namespace: string) {
+  return `${namespace}@example.com`;
+}
+
+function getScenarioRaceRound(definition: ScenarioDefinition) {
+  if (definition.racePhase !== 'upcoming_open') {
+    return 99;
+  }
+
+  switch (definition.name) {
+    case 'race_upcoming_signed_in_no_picks':
+      return -20;
+    case 'race_upcoming_signed_in_complete':
+      return -19;
+    case 'race_upcoming_signed_in_top5_only':
+      return -18;
+    case 'race_upcoming_signed_in_complete_h2h':
+      return -17;
+    default:
+      return 0;
+  }
+}
+
+function parseScenarioNameFromNamespace(
+  namespace: string,
+): ScenarioName | null {
   if (!namespace.startsWith('scenario__')) {
     return null;
   }

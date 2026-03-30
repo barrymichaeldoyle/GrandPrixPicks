@@ -37,20 +37,20 @@ The Convex API lives in [testingScenarios.ts](/Users/barry/dev/grand-prix-picks/
 
 Use this as the supported QA matrix for the current system.
 
-| Scenario | Weekend | Predictions | Results | Purpose |
-| --- | --- | --- | --- | --- |
-| `race_upcoming_signed_in_no_picks` | standard | none | none | Verify first-run signed-in state before any picks exist. |
-| `race_upcoming_signed_in_complete` | standard | top 5 only | none | Verify upcoming race with saved top 5 and no H2H warning path. |
-| `race_upcoming_signed_in_top5_only` | standard | top 5 only | none | Verify the “H2H picks incomplete” prompt on an open session. |
-| `race_upcoming_signed_in_complete_h2h` | standard | top 5 + H2H | none | Verify fully completed upcoming predictions with no incomplete nudges. |
-| `race_locked_signed_in_no_picks` | standard | none | none | Verify post-lock empty state and blocked editing. |
-| `race_locked_signed_in_complete_no_results` | standard | top 5 only | none | Verify locked weekend with top 5 present and no results yet. |
-| `race_locked_signed_in_complete_h2h_no_results` | standard | top 5 + H2H | none | Verify locked weekend with full prediction coverage before result publication. |
-| `race_partial_results_standard` | standard | top 5 only | partial | Verify early-result publishing on a non-sprint weekend. |
-| `race_partial_results_sprint` | sprint | top 5 only | partial | Verify sprint-session result progression and tab state. |
-| `race_finished_scored_standard` | standard | top 5 only | complete | Verify fully scored standard weekend state and rank visibility. |
-| `race_finished_scored_sprint` | sprint | top 5 only | complete | Verify fully scored sprint weekend state across all sessions. |
-| `race_finished_scored_h2h_standard` | standard | top 5 + H2H | complete | Verify fully scored H2H and Top 5 post-race summaries. |
+| Scenario                                        | Weekend  | Predictions | Results  | Purpose                                                                        |
+| ----------------------------------------------- | -------- | ----------- | -------- | ------------------------------------------------------------------------------ |
+| `race_upcoming_signed_in_no_picks`              | standard | none        | none     | Verify first-run signed-in state before any picks exist.                       |
+| `race_upcoming_signed_in_complete`              | standard | top 5 only  | none     | Verify upcoming race with saved top 5 and no H2H warning path.                 |
+| `race_upcoming_signed_in_top5_only`             | standard | top 5 only  | none     | Verify the “H2H picks incomplete” prompt on an open session.                   |
+| `race_upcoming_signed_in_complete_h2h`          | standard | top 5 + H2H | none     | Verify fully completed upcoming predictions with no incomplete nudges.         |
+| `race_locked_signed_in_no_picks`                | standard | none        | none     | Verify post-lock empty state and blocked editing.                              |
+| `race_locked_signed_in_complete_no_results`     | standard | top 5 only  | none     | Verify locked weekend with top 5 present and no results yet.                   |
+| `race_locked_signed_in_complete_h2h_no_results` | standard | top 5 + H2H | none     | Verify locked weekend with full prediction coverage before result publication. |
+| `race_partial_results_standard`                 | standard | top 5 only  | partial  | Verify early-result publishing on a non-sprint weekend.                        |
+| `race_partial_results_sprint`                   | sprint   | top 5 only  | partial  | Verify sprint-session result progression and tab state.                        |
+| `race_finished_scored_standard`                 | standard | top 5 only  | complete | Verify fully scored standard weekend state and rank visibility.                |
+| `race_finished_scored_sprint`                   | sprint   | top 5 only  | complete | Verify fully scored sprint weekend state across all sessions.                  |
+| `race_finished_scored_h2h_standard`             | standard | top 5 + H2H | complete | Verify fully scored H2H and Top 5 post-race summaries.                         |
 
 ## Principles
 
@@ -209,11 +209,22 @@ Run it from the repo root:
 pnpm test:e2e
 ```
 
+Run just the seeded Chromium smoke file:
+
+```sh
+pnpm test:e2e:smoke
+```
+
 Note:
 
-- The current Playwright setup targets public or admin-independent flows.
-- Authenticated Clerk flows are not covered yet.
+- The current Playwright setup now covers both public and authenticated Clerk-backed smoke flows.
 - To run browser tests locally, Playwright browsers may still need to be installed with `pnpm exec playwright install`.
+- CI runs the smoke file when these repository secrets are configured:
+  - `CLERK_SECRET_KEY`
+  - `VITE_CLERK_PUBLISHABLE_KEY`
+  - `CLERK_JWT_KEY`
+  - `VITE_CONVEX_URL`
+  - `CONVEX_DEPLOYMENT`
 
 ## Adding A New Scenario
 

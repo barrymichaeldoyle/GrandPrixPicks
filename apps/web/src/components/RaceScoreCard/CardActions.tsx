@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Ban, Lock, LogIn } from 'lucide-react';
 
 import { formatDate, formatTime } from '../../lib/date';
-import { Button } from '../Button';
+import { Button } from '../Button/Button';
 import type { CardDisplayState } from './state';
 import type { WeekendCardData } from './types';
 

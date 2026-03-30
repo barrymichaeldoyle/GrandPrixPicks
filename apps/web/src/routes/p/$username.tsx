@@ -22,7 +22,7 @@ import {
 import { displayTeamName } from '@/lib/display';
 
 import { Avatar } from '../../components/Avatar';
-import { Button, primaryButtonStyles } from '../../components/Button';
+import { Button, primaryButtonStyles } from '../../components/Button/Button';
 import { TEAM_COLORS } from '../../components/DriverBadge';
 import {
   FeedEmptyState,

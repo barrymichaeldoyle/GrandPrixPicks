@@ -143,4 +143,3 @@ export const raceEventStoryScenarios: Record<
     scoredSessions: ['quali', 'race'],
   },
 };
-

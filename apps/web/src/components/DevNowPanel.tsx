@@ -3,27 +3,17 @@ import { Clock3, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '../components/Badge';
-import { Button } from '../components/Button';
+import { Button } from './Button/Button';
 import { formatDateTime } from '../lib/date';
 import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
 } from '../lib/raceSessions';
-import {
-  clearDevNow,
-  setDevNow,
-  useDevNowOverride,
-} from '../lib/testing/now';
+import { clearDevNow, setDevNow, useDevNowOverride } from '../lib/testing/now';
 
 type Race = Doc<'races'>;
 
-export function DevNowPanel({
-  race,
-  now,
-}: {
-  race: Race | null;
-  now: number;
-}) {
+export function DevNowPanel({ race, now }: { race: Race | null; now: number }) {
   if (!race) {
     return null;
   }
@@ -94,7 +84,10 @@ export function DevNowPanel({
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-text-muted" data-testid="dev-now-effective">
+            <p
+              className="text-xs text-text-muted"
+              data-testid="dev-now-effective"
+            >
               Effective now: {formatDateTime(now)}
             </p>
             <p className="truncate text-xs text-text-muted">{race.name}</p>

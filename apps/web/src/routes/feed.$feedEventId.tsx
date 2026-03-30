@@ -6,7 +6,7 @@ import { useQuery } from 'convex/react';
 import { ArrowLeft, Gauge } from 'lucide-react';
 
 import { Avatar } from '../components/Avatar';
-import { Button } from '../components/Button';
+import { Button } from '../components/Button/Button';
 import {
   FeedItem,
   FeedItemSkeleton,

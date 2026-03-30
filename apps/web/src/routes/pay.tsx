@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components/Button';
+import { Button } from '@/components/Button/Button';
 
 import { canonicalMeta } from '../lib/site';
 

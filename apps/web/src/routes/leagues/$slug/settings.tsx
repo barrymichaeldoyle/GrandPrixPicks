@@ -22,7 +22,7 @@ import { useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../../../components/Button';
+import { Button } from '../../../components/Button/Button';
 import { PageLoader } from '../../../components/PageLoader';
 import { canonicalMeta, defaultOgImage } from '../../../lib/site';
 

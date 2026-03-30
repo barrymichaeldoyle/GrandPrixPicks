@@ -1,5 +1,4 @@
 import { useQuery } from 'convex/react';
-import { useMemo } from 'react';
 
 import { mockRaceWeekends } from '../data/mockRaces';
 import { api } from '../integrations/convex/api';
@@ -13,20 +12,15 @@ export function useRaceWeekends() {
     convexEnabled ? { season: 2026 } : 'skip',
   );
 
-  const races = useMemo(() => {
-    if (!convexEnabled || racesQuery === undefined) {
-      return mockRaceWeekends;
-    }
-
-    const mapped = racesQuery
-      .map((race) => mapConvexRaceToWeekend(race))
-      .filter((race): race is NonNullable<typeof race> => race !== null);
-
-    return mapped.length > 0 ? mapped : mockRaceWeekends;
-  }, [convexEnabled, racesQuery]);
+  const races =
+    !convexEnabled || racesQuery === undefined
+      ? mockRaceWeekends
+      : racesQuery
+          .map((race) => mapConvexRaceToWeekend(race))
+          .filter((race): race is NonNullable<typeof race> => race !== null);
 
   return {
     isLoading: convexEnabled && racesQuery === undefined,
-    races,
+    races: races.length > 0 ? races : mockRaceWeekends,
   };
 }

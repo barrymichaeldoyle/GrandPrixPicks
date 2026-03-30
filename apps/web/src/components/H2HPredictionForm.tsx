@@ -16,7 +16,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
-import { Button } from './Button';
+import { Button } from './Button/Button';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 
 interface H2HPredictionFormProps {

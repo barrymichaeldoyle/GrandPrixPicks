@@ -19,6 +19,7 @@
     "test": "pnpm --filter @grandprixpicks/web test",
     "test:ci": "pnpm --filter @grandprixpicks/web test:ci",
     "test:e2e": "pnpm --filter @grandprixpicks/web test:e2e",
+    "test:e2e:smoke": "pnpm --filter @grandprixpicks/web test:e2e:smoke",
     "test:e2e:headed": "pnpm --filter @grandprixpicks/web test:e2e:headed",
     "test:e2e:ui": "pnpm --filter @grandprixpicks/web test:e2e:ui",
     "typecheck": "pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/web typecheck && pnpm --filter @grandprixpicks/backend typecheck",

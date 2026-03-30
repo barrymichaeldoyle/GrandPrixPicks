@@ -1,10 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
 
 import { StorybookRouter } from '@/stories/router-decorator';
 
-import { Button } from './Button';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const meta = {
@@ -29,40 +26,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  args: {
-    makePicksControl: (
-      <Button asChild size="sm" rightIcon={ArrowRight}>
-        <Link to="/races/$raceSlug" params={{ raceSlug: 'miami-2026' }}>
-          Make picks
-        </Link>
-      </Button>
-    ),
-  },
-};
+export const Default: Story = {};
 
 export const Randomizing: Story = {
   args: {
     isRandomizing: true,
-    makePicksControl: (
-      <Button asChild size="sm" rightIcon={ArrowRight}>
-        <Link to="/races/$raceSlug" params={{ raceSlug: 'miami-2026' }}>
-          Make picks
-        </Link>
-      </Button>
-    ),
   },
 };
 
 export const WithError: Story = {
   args: {
     error: 'Predictions are only open for the next upcoming race.',
-    makePicksControl: (
-      <Button asChild size="sm" rightIcon={ArrowRight}>
-        <Link to="/races/$raceSlug" params={{ raceSlug: 'miami-2026' }}>
-          Make picks
-        </Link>
-      </Button>
-    ),
   },
 };

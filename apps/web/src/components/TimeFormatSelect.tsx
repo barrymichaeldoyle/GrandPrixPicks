@@ -1,4 +1,4 @@
-import { Button } from './Button';
+import { Button } from './Button/Button';
 
 function getDefaultTimeFormat(): 'en-US' | 'en-GB' {
   if (typeof Intl === 'undefined') {

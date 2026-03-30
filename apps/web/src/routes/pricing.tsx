@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '../components/Button';
+import { Button } from '../components/Button/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 

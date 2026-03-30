@@ -4,8 +4,14 @@ import { Component } from 'react';
 
 import { ErrorFallback } from './ErrorFallback';
 
+interface FallbackRenderProps {
+  error: unknown;
+  reset: () => void;
+}
+
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode | ((props: FallbackRenderProps) => ReactNode);
 }
 
 interface State {
@@ -42,8 +48,23 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      if (typeof this.props.fallback === 'function') {
+        return this.props.fallback({
+          error: this.state.error,
+          reset: this.handleReset,
+        });
+      }
+
+      if (this.props.fallback !== undefined) {
+        return this.props.fallback;
+      }
+
       return (
-        <ErrorFallback error={this.state.error} reset={this.handleReset} />
+        <ErrorFallback
+          error={this.state.error}
+          reset={this.handleReset}
+          reportToSentry={false}
+        />
       );
     }
 

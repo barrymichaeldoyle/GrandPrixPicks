@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import posthog from 'posthog-js';
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from './Button';
+import { Button } from './Button/Button';
 
 const COOKIE_CONSENT_KEY = 'gpp_cookie_consent_v1';
 

@@ -14,6 +14,9 @@ function parseArgs(argv) {
     previewName: undefined,
     deploymentName: undefined,
     dryRun: false,
+    primaryClerkUserId: undefined,
+    primaryEmail: undefined,
+    primaryDisplayName: undefined,
   };
 
   if (command === 'apply' && rest[0] && !rest[0].startsWith('--')) {
@@ -47,6 +50,21 @@ function parseArgs(argv) {
     }
     if (arg === '--dry-run') {
       result.dryRun = true;
+      continue;
+    }
+    if (arg === '--primary-clerk-user-id') {
+      result.primaryClerkUserId = rest[i + 1];
+      i++;
+      continue;
+    }
+    if (arg === '--primary-email') {
+      result.primaryEmail = rest[i + 1];
+      i++;
+      continue;
+    }
+    if (arg === '--primary-display-name') {
+      result.primaryDisplayName = rest[i + 1];
+      i++;
       continue;
     }
   }
@@ -86,7 +104,10 @@ function buildInvocation(parsed) {
     if (!parsed.namespace) {
       throw new Error('summary requires --namespace');
     }
-    return ['testingScenarios:getScenarioSummary', { namespace: parsed.namespace }];
+    return [
+      'testingScenarios:getScenarioSummary',
+      { namespace: parsed.namespace },
+    ];
   }
 
   if (parsed.command === 'clear') {
@@ -106,6 +127,9 @@ function buildInvocation(parsed) {
         scenario: parsed.scenario,
         namespace: parsed.namespace,
         resetFirst: parsed.resetFirst,
+        primaryClerkUserId: parsed.primaryClerkUserId,
+        primaryEmail: parsed.primaryEmail,
+        primaryDisplayName: parsed.primaryDisplayName,
       },
     ];
   }

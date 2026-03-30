@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 
-import { Button } from '@/components/Button';
+import { Button } from '@/components/Button/Button';
 
 import { PageHero } from '../components/PageHero';
 import { canonicalMeta, defaultOgImage } from '../lib/site';

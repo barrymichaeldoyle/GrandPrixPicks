@@ -6,7 +6,7 @@ import { Flag } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
-import { Button } from '@/components/Button';
+import { Button } from '@/components/Button/Button';
 import { InlineLoader } from '@/components/InlineLoader';
 import { formatCalendarDate } from '@/lib/date';
 
@@ -230,7 +230,8 @@ function AdminScenarioPanel() {
                   to="/races/$raceSlug"
                   params={{
                     raceSlug:
-                      lastSummary.routes.webRaceDetail.split('/races/')[1] ?? '',
+                      lastSummary.routes.webRaceDetail.split('/races/')[1] ??
+                      '',
                   }}
                 >
                   Open Race Page
@@ -263,7 +264,9 @@ function AdminScenarioPanel() {
                       <p>Phase: {latestState.racePhase}</p>
                       <p>Top 5/H2H: {latestState.predictionShape}</p>
                       <p>Results: {latestState.resultsShape}</p>
-                      <p>Race rank visible: {latestState.hasRank ? 'yes' : 'no'}</p>
+                      <p>
+                        Race rank visible: {latestState.hasRank ? 'yes' : 'no'}
+                      </p>
                     </div>
                   ) : (
                     <p className="mt-2 text-slate-400">No state summary.</p>
@@ -278,7 +281,9 @@ function AdminScenarioPanel() {
                     <div className="mt-2 space-y-1 text-slate-300">
                       <p>Race: {latestRace.name}</p>
                       <p>Status: {latestRace.status}</p>
-                      <p>Sprint weekend: {latestRace.hasSprint ? 'yes' : 'no'}</p>
+                      <p>
+                        Sprint weekend: {latestRace.hasSprint ? 'yes' : 'no'}
+                      </p>
                       <p>Slug: {latestRace.slug}</p>
                     </div>
                   ) : (

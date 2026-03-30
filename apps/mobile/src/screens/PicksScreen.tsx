@@ -3,7 +3,7 @@ import {
   getSessionsForWeekend,
   SESSION_LABELS_SHORT,
 } from '@grandprixpicks/shared/sessions';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -86,41 +86,31 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const now = useNow();
 
-  const race = useMemo(
-    () => races.find((item) => item.slug === selectedRaceSlug),
-    [races, selectedRaceSlug],
-  );
+  const race = races.find((item) => item.slug === selectedRaceSlug);
 
-  const sessionOptions = useMemo(
-    () => getSessionsForWeekend(Boolean(race?.hasSprint)),
-    [race?.hasSprint],
-  );
+  const sessionOptions = getSessionsForWeekend(Boolean(race?.hasSprint));
 
   const top5 = top5BySession[selectedSession];
   const h2hByMatchup = h2hBySession[selectedSession];
-  const selectedSessionLockAt = useMemo(() => {
-    const session = race?.sessions.find(
-      (item) => item.type === selectedSession,
-    );
-    if (!session) {
+  const selectedSessionData = race?.sessions.find(
+    (item) => item.type === selectedSession,
+  );
+  const selectedSessionLockAt = (() => {
+    if (!selectedSessionData) {
       return undefined;
     }
-    const ms = new Date(session.startsAt).getTime();
+    const ms = new Date(selectedSessionData.startsAt).getTime();
     return Number.isNaN(ms) ? undefined : ms;
-  }, [race?.sessions, selectedSession]);
-  const selectedSessionLockDisplay = useMemo(() => {
-    if (typeof selectedSessionLockAt !== 'number' || !race?.slug) {
-      return null;
-    }
-    return formatRaceDate(
-      new Date(selectedSessionLockAt).toISOString(),
-      race.slug,
-    );
-  }, [race?.slug, selectedSessionLockAt]);
+  })();
+  const selectedSessionLockDisplay =
+    typeof selectedSessionLockAt !== 'number' || !race?.slug
+      ? null
+      : formatRaceDate(
+          new Date(selectedSessionLockAt).toISOString(),
+          race.slug,
+        );
 
-  const driverById = useMemo(() => {
-    return new Map(mockDrivers.map((driver) => [driver.id, driver]));
-  }, []);
+  const driverById = new Map(mockDrivers.map((driver) => [driver.id, driver]));
 
   const top5Complete = top5.length === MAX_TOP5;
   const h2hComplete =

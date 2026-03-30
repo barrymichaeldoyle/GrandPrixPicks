@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { Children, cloneElement, isValidElement } from 'react';
 
-import { Tooltip } from './Tooltip';
+import { Tooltip } from '../Tooltip';
 
 const base =
   'inline-flex items-center justify-center gap-1 font-semibold leading-none rounded-lg transition-colors [&_svg]:shrink-0 [&_svg]:block';

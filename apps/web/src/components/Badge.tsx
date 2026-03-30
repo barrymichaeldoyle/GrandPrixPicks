@@ -94,7 +94,9 @@ export function StatusBadge({ status, isNext }: StatusBadgeProps) {
     return <Badge variant="cancelled">Called Off</Badge>;
   }
   const effectiveStatus: BadgeVariant =
-    status === 'upcoming' && !isNext ? 'not_yet_open' : (status as BadgeVariant);
+    status === 'upcoming' && !isNext
+      ? 'not_yet_open'
+      : (status as BadgeVariant);
 
   return <Badge variant={effectiveStatus} />;
 }

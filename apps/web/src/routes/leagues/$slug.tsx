@@ -34,7 +34,7 @@ import { useRef, useState } from 'react';
 import { TabSwitch } from '@/components/TabSwitch';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../../components/Button';
+import { Button } from '../../components/Button/Button';
 import {
   FeedEmptyState,
   FeedItem,

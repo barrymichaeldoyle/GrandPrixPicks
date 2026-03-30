@@ -6,7 +6,7 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Avatar } from '../../../components/Avatar';
-import { Button } from '../../../components/Button';
+import { Button } from '../../../components/Button/Button';
 import { FollowButton } from '../../../components/FollowButton';
 
 type FollowListUser = {

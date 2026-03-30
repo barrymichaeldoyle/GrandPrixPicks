@@ -3,6 +3,10 @@
   "oxc.enable.oxfmt": true,
   "oxc.path.oxfmt": "C:\\Users\\Barry\\Dev\\GrandPrixPicks\\node_modules\\.bin\\oxfmt.CMD",
   "oxc.path.node": "C:\\Program Files\\nodejs\\node.exe",
+  "javascript.referencesCodeLens.enabled": true,
+  "javascript.referencesCodeLens.showOnAllFunctions": true,
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.referencesCodeLens.showOnAllFunctions": true,
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
@@ -35,14 +39,24 @@
     "editor.formatOnSave": true
   },
   "cSpell.words": [
+    "Antonelli",
+    "barrymdoyle",
+    "dedup",
     "followee",
     "followees",
     "grandprixpicks",
+    "Kimi",
+    "Lando",
+    "Leclerc",
     "matchups",
+    "nums",
     "oxfmt",
     "oxlint",
+    "Piastri",
+    "posthog",
     "quali",
     "Reved",
-    "stylesheet"
+    "stylesheet",
+    "tanstackstart"
   ]
 }

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from './Button';
+import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Tooltip } from './Tooltip';
 

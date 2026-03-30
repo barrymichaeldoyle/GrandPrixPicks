@@ -1,5 +1,6 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import tailwindcss from '@tailwindcss/vite';
+import { fileURLToPath } from 'node:url';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
@@ -17,8 +18,35 @@ const config: StorybookConfig = {
         'name' in p &&
         (p as { name?: string }).name !== 'tanstack-devtools-vite',
     );
+    const existingAliases = config.resolve?.alias;
+    const alias = [
+      ...(Array.isArray(existingAliases)
+        ? existingAliases
+        : existingAliases
+          ? Object.entries(existingAliases).map(([find, replacement]) => ({
+              find,
+              replacement,
+            }))
+          : []),
+      {
+        find: '@clerk/react',
+        replacement: fileURLToPath(
+          new URL('../src/storybook/mockClerkReact.tsx', import.meta.url),
+        ),
+      },
+      {
+        find: 'convex/react',
+        replacement: fileURLToPath(
+          new URL('../src/storybook/mockConvexReact.tsx', import.meta.url),
+        ),
+      },
+    ];
     return {
       ...config,
+      resolve: {
+        ...config.resolve,
+        alias,
+      },
       plugins: [...plugins, tailwindcss()],
     };
   },

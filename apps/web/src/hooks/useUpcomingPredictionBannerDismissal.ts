@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const DISMISS_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -54,18 +54,12 @@ export function useUpcomingPredictionBannerDismissal(
     setDismissed(isDismissed(raceSlug, nudgeKind));
   }, [nudgeKind, raceSlug]);
 
-  const dismiss = useMemo(
-    () =>
-      raceSlug
-        ? () => {
-            recordDismissal(raceSlug, nudgeKind);
-            setDismissed(true);
-          }
-        : () => {
-            setDismissed(true);
-          },
-    [nudgeKind, raceSlug],
-  );
+  function dismiss() {
+    if (raceSlug) {
+      recordDismissal(raceSlug, nudgeKind);
+    }
+    setDismissed(true);
+  }
 
   return { dismissed, dismiss };
 }

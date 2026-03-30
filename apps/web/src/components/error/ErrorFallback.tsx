@@ -3,13 +3,14 @@ import { Link, useRouter } from '@tanstack/react-router';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { toUserFacingMessage } from '@/lib/userFacingError';
+import { toUserFacingErrorDetails } from '@/lib/userFacingError';
 
-import { Button } from './Button';
+import { Button } from '../Button/Button';
 
 interface ErrorFallbackProps {
   error: unknown;
   reset?: () => void;
+  reportToSentry?: boolean;
 }
 
 function getErrorObject(error: unknown): Error {
@@ -19,11 +20,19 @@ function getErrorObject(error: unknown): Error {
   return new Error(String(error));
 }
 
-export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
+export function ErrorFallback({
+  error,
+  reset,
+  reportToSentry = true,
+}: ErrorFallbackProps) {
   const router = useRouter();
   const errorObj = getErrorObject(error);
 
   useEffect(() => {
+    if (!reportToSentry) {
+      return;
+    }
+
     Sentry.captureException(errorObj, {
       tags: {
         location:
@@ -31,7 +40,7 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
         component: 'ErrorFallback',
       },
     });
-  }, [errorObj]);
+  }, [errorObj, reportToSentry]);
 
   function handleRetry() {
     if (reset) {
@@ -40,6 +49,12 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
       router.invalidate();
     }
   }
+
+  const { message: userFacingMessage, isGenericFallback } =
+    toUserFacingErrorDetails(error);
+  const errorMessage = isGenericFallback && reportToSentry
+    ? `${userFacingMessage} This has been reported automatically.`
+    : userFacingMessage;
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">
@@ -53,12 +68,7 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
         </h1>
 
         <p className="mb-8 text-text-muted">
-          {(() => {
-            const msg = toUserFacingMessage(error);
-            return msg === 'Something went wrong. Please try again.'
-              ? `${msg} This has been reported automatically.`
-              : msg;
-          })()}
+          {errorMessage}
         </p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">

@@ -1,7 +1,7 @@
 import { Orbitron_700Bold } from '@expo-google-fonts/orbitron';
 import { useFonts } from 'expo-font';
 import type { ReactNode } from 'react';
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext } from 'react';
 
 type TypographyContextValue = {
   titleFontFamily?: string;
@@ -13,12 +13,9 @@ export function TypographyProvider({ children }: { children: ReactNode }) {
   const [fontsLoaded] = useFonts({
     Orbitron_700Bold,
   });
-  const value = useMemo<TypographyContextValue>(
-    () => ({
-      titleFontFamily: fontsLoaded ? 'Orbitron_700Bold' : undefined,
-    }),
-    [fontsLoaded],
-  );
+  const value: TypographyContextValue = {
+    titleFontFamily: fontsLoaded ? 'Orbitron_700Bold' : undefined,
+  };
 
   return (
     <TypographyContext.Provider value={value}>

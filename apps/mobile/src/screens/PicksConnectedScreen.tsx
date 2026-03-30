@@ -6,7 +6,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -53,10 +53,7 @@ export function PicksConnectedScreen() {
   const now = useNow();
   const hydratedKeyRef = useRef<string | null>(null);
 
-  const raceFromList = useMemo(
-    () => races.find((race) => race.slug === selectedRaceSlug),
-    [races, selectedRaceSlug],
-  );
+  const raceFromList = races.find((race) => race.slug === selectedRaceSlug);
 
   const driversQuery = useQuery(
     api.drivers.listDrivers,
@@ -84,34 +81,31 @@ export function PicksConnectedScreen() {
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
 
-  const sessionOptions = useMemo(() => {
-    const hasSprint = Boolean(raceQuery?.hasSprint ?? raceFromList?.hasSprint);
-    return getSessionsForWeekend(hasSprint);
-  }, [raceFromList?.hasSprint, raceQuery?.hasSprint]);
+  const hasSprint = Boolean(raceQuery?.hasSprint ?? raceFromList?.hasSprint);
+  const sessionOptions = getSessionsForWeekend(hasSprint);
 
-  const selectedSessionLockAt = useMemo(() => {
-    if (!raceQuery) {
-      return undefined;
-    }
-    const lockBySession: Record<SessionType, number | undefined> = {
-      quali: raceQuery.qualiLockAt,
-      sprint_quali: raceQuery.sprintQualiLockAt,
-      sprint: raceQuery.sprintLockAt,
-      race: raceQuery.predictionLockAt,
-    };
-    return lockBySession[selectedSession];
-  }, [raceQuery, selectedSession]);
+  const selectedSessionLockAt = !raceQuery
+    ? undefined
+    : {
+        quali: raceQuery.qualiLockAt,
+        sprint_quali: raceQuery.sprintQualiLockAt,
+        sprint: raceQuery.sprintLockAt,
+        race: raceQuery.predictionLockAt,
+      }[selectedSession];
 
-  const selectedSessionLockDisplay = useMemo(() => {
-    if (typeof selectedSessionLockAt !== 'number') {
-      return null;
-    }
-    const slug = raceQuery?.slug ?? selectedRaceSlug;
-    if (!slug) {
-      return null;
-    }
-    return formatRaceDate(new Date(selectedSessionLockAt).toISOString(), slug);
-  }, [raceQuery?.slug, selectedRaceSlug, selectedSessionLockAt]);
+  const selectedSessionLockDisplay =
+    typeof selectedSessionLockAt !== 'number'
+      ? null
+      : (() => {
+          const slug = raceQuery?.slug ?? selectedRaceSlug;
+          if (!slug) {
+            return null;
+          }
+          return formatRaceDate(
+            new Date(selectedSessionLockAt).toISOString(),
+            slug,
+          );
+        })();
 
   useEffect(() => {
     if (!selectedRaceSlug && races.length > 0) {
@@ -212,16 +206,12 @@ export function PicksConnectedScreen() {
     now,
   );
   const isSelectedSessionLocked = lockStatus.isLocked;
-  const canSave = useMemo(() => {
-    if (!h2hMatchupsQuery) {
-      return false;
-    }
-    return (
-      !isSelectedSessionLocked &&
-      top5.length === MAX_TOP5 &&
-      Object.keys(h2hByMatchup).length === h2hMatchupsQuery.length
-    );
-  }, [h2hByMatchup, h2hMatchupsQuery, isSelectedSessionLocked, top5.length]);
+  const canSave = Boolean(
+    h2hMatchupsQuery &&
+    !isSelectedSessionLocked &&
+    top5.length === MAX_TOP5 &&
+    Object.keys(h2hByMatchup).length === h2hMatchupsQuery.length,
+  );
 
   function toggleTop5(driverId: string) {
     setSaveStatus(null);

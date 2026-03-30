@@ -17,6 +17,18 @@
   "rules": {
     "curly": "error",
     "func-style": ["error", "declaration"],
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react",
+            "importNames": ["useMemo", "useCallback"],
+            "message": "React Compiler is the default; avoid manual memoization hooks."
+          }
+        ]
+      }
+    ],
     "typescript/no-explicit-any": "error"
   },
   "overrides": [

@@ -47,7 +47,7 @@ export function HeaderUser() {
 
   if (isSignedIn) {
     return (
-      <div className="flex items-center">
+      <div className="flex items-center" data-testid="header-user-authenticated">
         <Link
           to={myPicksHref}
           className="hidden rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover min-[844px]:inline-flex"
@@ -120,9 +120,13 @@ export function HeaderUser() {
   }
 
   return (
-    <div className="hidden min-[844px]:block">
+    <div className="hidden min-[844px]:block" data-testid="header-user-anonymous">
       <SignInButton mode="modal">
-        <button type="button" className={signInButtonClasses}>
+        <button
+          type="button"
+          className={signInButtonClasses}
+          data-testid="header-sign-in-button"
+        >
           Sign in
         </button>
       </SignInButton>

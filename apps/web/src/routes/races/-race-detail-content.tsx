@@ -14,9 +14,9 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { Badge } from '../../components/Badge';
-import { Button } from '../../components/Button';
+import { Button } from '../../components/Button/Button';
 import { DriverBadge } from '../../components/DriverBadge';
-import { ErrorBoundary } from '../../components/ErrorBoundary';
+import { ErrorBoundary } from '../../components/error/ErrorBoundary';
 import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
 import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
 import { InlineLoader } from '../../components/InlineLoader';
@@ -126,12 +126,13 @@ export function H2HSection({
                   leftIcon={Pencil}
                   onClick={() => setEditingSession(selectedSession)}
                   title={`Edit ${SESSION_LABELS[selectedSession]} Predictions`}
+                  data-testid="h2h-edit-button"
                 >
                   <span className="hidden sm:inline">Edit</span>
                 </Button>
               ) : (
                 <Tooltip content="This session has started — predictions can't be changed">
-                  <span className="inline-flex">
+                  <span className="inline-flex" data-testid="h2h-locked-badge">
                     <Badge variant="locked" />
                   </span>
                 </Tooltip>

@@ -75,7 +75,10 @@ function RacesPage() {
     hasScrolledToNextRaceRef.current = true;
   }, []);
 
-  const featuredRace = nextRace ?? orderedRaces.find((race) => race.status !== 'cancelled') ?? null;
+  const featuredRace =
+    nextRace ??
+    orderedRaces.find((race) => race.status !== 'cancelled') ??
+    null;
 
   return (
     <>
@@ -122,7 +125,9 @@ function RacesPage() {
           )}
         </div>
       </div>
-      {import.meta.env.DEV ? <DevNowPanel race={featuredRace} now={now} /> : null}
+      {import.meta.env.DEV ? (
+        <DevNowPanel race={featuredRace} now={now} />
+      ) : null}
     </>
   );
 }

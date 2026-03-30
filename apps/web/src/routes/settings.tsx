@@ -24,7 +24,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Avatar } from '../components/Avatar';
-import { Button } from '../components/Button';
+import { Button } from '../components/Button/Button';
 import { PageHero } from '../components/PageHero';
 import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';

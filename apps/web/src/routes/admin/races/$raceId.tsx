@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/Button';
+import { Button } from '@/components/Button/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 import { PageLoader } from '@/components/PageLoader';
 

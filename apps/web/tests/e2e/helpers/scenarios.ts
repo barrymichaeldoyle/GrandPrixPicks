@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { ensureE2EEnvLoaded } from './env.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,12 +22,31 @@ type ScenarioSummary = {
   } | null;
 };
 
-export function applyScenario(scenario: string, namespace?: string) {
-  const args = ['-s', 'scenario', '--', 'apply', scenario];
-  if (namespace) {
-    args.push('--namespace', namespace);
-  }
+type ApplyScenarioOptions = {
+  namespace?: string;
+  primaryClerkUserId?: string;
+  primaryEmail?: string;
+  primaryDisplayName?: string;
+};
 
+export function applyScenario(
+  scenario: string,
+  options: ApplyScenarioOptions = {},
+) {
+  ensureE2EEnvLoaded();
+  const args = ['-s', 'scenario', '--', 'apply', scenario];
+  if (options.namespace) {
+    args.push('--namespace', options.namespace);
+  }
+  if (options.primaryClerkUserId) {
+    args.push('--primary-clerk-user-id', options.primaryClerkUserId);
+  }
+  if (options.primaryEmail) {
+    args.push('--primary-email', options.primaryEmail);
+  }
+  if (options.primaryDisplayName) {
+    args.push('--primary-display-name', options.primaryDisplayName);
+  }
   const stdout = execFileSync('pnpm', args, {
     cwd: repoRoot,
     encoding: 'utf8',

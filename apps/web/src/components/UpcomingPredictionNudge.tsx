@@ -1,7 +1,7 @@
 import { ArrowRight, Dices, Flag, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Link } from '@tanstack/react-router';
 
-import { Button } from './Button';
+import { Button } from './Button/Button';
 import { Flag as CountryFlag } from './Flag';
 import { getCountryCodeForRace } from './RaceCard';
 
@@ -14,7 +14,6 @@ interface UpcomingPredictionNudgeProps {
   error?: string | null;
   onRandomizeClick?: () => void;
   onDismiss?: () => void;
-  makePicksControl?: ReactNode;
 }
 
 export function UpcomingPredictionNudge({
@@ -26,7 +25,6 @@ export function UpcomingPredictionNudge({
   error = null,
   onRandomizeClick,
   onDismiss,
-  makePicksControl,
 }: UpcomingPredictionNudgeProps) {
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
 
@@ -77,11 +75,11 @@ export function UpcomingPredictionNudge({
                 </div>
                 {error && <p className="mt-1 text-xs text-error">{error}</p>}
                 <div className="mt-3 flex flex-row flex-wrap gap-2 max-sm:flex-col sm:mt-4 [&>*]:w-full [&>*]:min-w-0 sm:[&>*]:w-auto">
-                  {makePicksControl ?? (
-                    <Button size="sm" rightIcon={ArrowRight}>
+                  <Button asChild size="sm" rightIcon={ArrowRight}>
+                    <Link to="/races/$raceSlug" params={{ raceSlug }}>
                       Make picks
-                    </Button>
-                  )}
+                    </Link>
+                  </Button>
                   <Button
                     size="sm"
                     variant="secondary"

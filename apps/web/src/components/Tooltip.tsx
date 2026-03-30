@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -66,6 +66,37 @@ function computeConstrainedPosition(
   return { top, left, placement };
 }
 
+function updateTooltipPosition(
+  triggerEl: HTMLSpanElement,
+  tooltipEl: HTMLSpanElement,
+  placement: 'top' | 'bottom',
+  distance: number,
+  setCoords: Dispatch<SetStateAction<{ top: number; left: number }>>,
+  setEffectivePlacement: Dispatch<SetStateAction<'top' | 'bottom'>>,
+) {
+  const triggerRect = triggerEl.getBoundingClientRect();
+  const tooltipRect = tooltipEl.getBoundingClientRect();
+
+  const {
+    top,
+    left,
+    placement: nextPlacement,
+  } = computeConstrainedPosition(
+    triggerRect,
+    tooltipRect.width,
+    tooltipRect.height,
+    placement,
+    distance,
+  );
+
+  setCoords((prev) =>
+    prev.top === top && prev.left === left ? prev : { top, left },
+  );
+  setEffectivePlacement((prev) =>
+    prev === nextPlacement ? prev : nextPlacement,
+  );
+}
+
 /**
  * A custom tooltip that appears quickly on hover.
  * Renders in a portal to avoid clipping by overflow containers.
@@ -106,37 +137,21 @@ export function Tooltip({
     setIsVisible(true);
   }
 
-  function updatePosition() {
+  useLayoutEffect(() => {
     const triggerEl = triggerRef.current;
     const tooltipEl = tooltipRef.current;
-    if (!triggerEl || !tooltipEl) {
+    if (!isVisible || !triggerEl || !tooltipEl) {
       return;
     }
-
-    const triggerRect = triggerEl.getBoundingClientRect();
-    const tooltipRect = tooltipEl.getBoundingClientRect();
-
-    const {
-      top,
-      left,
-      placement: p,
-    } = computeConstrainedPosition(
-      triggerRect,
-      tooltipRect.width,
-      tooltipRect.height,
+    updateTooltipPosition(
+      triggerEl,
+      tooltipEl,
       placement,
       distance,
+      setCoords,
+      setEffectivePlacement,
     );
-    setCoords({ top, left });
-    setEffectivePlacement(p);
-  }
-
-  useLayoutEffect(() => {
-    if (!isVisible || !tooltipRef.current) {
-      return;
-    }
-    updatePosition();
-  }, [isVisible, updatePosition]);
+  }, [distance, isVisible, placement]);
 
   useEffect(
     () => () => {
@@ -159,7 +174,19 @@ export function Tooltip({
       setIsVisible(false);
     }
     function handleResize() {
-      updatePosition();
+      const triggerEl = triggerRef.current;
+      const tooltipEl = tooltipRef.current;
+      if (!triggerEl || !tooltipEl) {
+        return;
+      }
+      updateTooltipPosition(
+        triggerEl,
+        tooltipEl,
+        placement,
+        distance,
+        setCoords,
+        setEffectivePlacement,
+      );
     }
     window.addEventListener('scroll', handleScroll, true);
     window.addEventListener('resize', handleResize);
@@ -169,7 +196,7 @@ export function Tooltip({
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(rafId);
     };
-  }, [isVisible, updatePosition]);
+  }, [distance, isVisible, placement]);
 
   // Close when the tooltip was opened by touch or click and the user interacts outside.
   useEffect(() => {

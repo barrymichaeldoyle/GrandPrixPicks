@@ -31,8 +31,34 @@ const raceSlugRoute = createRoute({
   component: StoryOutlet,
 });
 
+const profilesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'p',
+  component: StoryOutlet,
+});
+
+const profileUsernameRoute = createRoute({
+  getParentRoute: () => profilesRoute,
+  path: '$username',
+  component: StoryOutlet,
+});
+
+const leaguesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'leagues',
+  component: StoryOutlet,
+});
+
+const leagueSlugRoute = createRoute({
+  getParentRoute: () => leaguesRoute,
+  path: '$slug',
+  component: StoryOutlet,
+});
+
 const routeTree = rootRoute.addChildren([
   racesRoute.addChildren([raceSlugRoute]),
+  profilesRoute.addChildren([profileUsernameRoute]),
+  leaguesRoute.addChildren([leagueSlugRoute]),
 ]);
 
 const router = createRouter({

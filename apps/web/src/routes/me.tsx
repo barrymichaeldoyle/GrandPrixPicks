@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { LogIn } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { Button } from '../components/Button';
+import { Button } from '../components/Button/Button';
 import { PageLoader } from '../components/PageLoader';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 

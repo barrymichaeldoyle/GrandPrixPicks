@@ -1,6 +1,8 @@
 import type { Preview } from '@storybook/react';
 import '../src/styles.css';
 
+import { StorybookMockProviders } from '../src/storybook/mockAppRuntime';
+
 const preview: Preview = {
   parameters: {
     controls: {
@@ -24,26 +26,28 @@ const preview: Preview = {
     },
   },
   initialGlobals: {
-    theme: 'light',
+    theme: 'dark',
   },
   decorators: [
     (Story, context) => {
       const theme = context.globals.theme ?? 'light';
       const themeClass = theme === 'dark' ? 'dark' : '';
       return (
-        <div
-          className={themeClass}
-          data-theme={theme}
-          style={{
-            height: '100vh',
-            overflowY: 'auto',
-            boxSizing: 'border-box',
-            padding: '1rem',
-            backgroundColor: 'var(--page)',
-          }}
-        >
-          <Story />
-        </div>
+        <StorybookMockProviders>
+          <div
+            className={themeClass}
+            data-theme={theme}
+            style={{
+              height: '100vh',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
+              padding: '1rem',
+              backgroundColor: 'var(--page)',
+            }}
+          >
+            <Story />
+          </div>
+        </StorybookMockProviders>
       );
     },
   ],

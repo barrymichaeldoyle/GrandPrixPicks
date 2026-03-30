@@ -115,7 +115,19 @@ export async function signInE2EClerkIdentity(
     });
   }
   await page.waitForFunction(
-    () => window.Clerk?.loaded === true && Boolean(window.Clerk?.user?.id),
+    () => {
+      const clerkWindow = window as Window & {
+        Clerk?: {
+          loaded?: boolean;
+          user?: { id?: string | null } | null;
+        };
+      };
+
+      return (
+        clerkWindow.Clerk?.loaded === true &&
+        Boolean(clerkWindow.Clerk?.user?.id)
+      );
+    },
     undefined,
     { timeout: 20_000 },
   );

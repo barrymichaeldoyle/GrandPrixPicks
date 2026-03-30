@@ -65,6 +65,7 @@ export function fromRaceDetail({
   drivers,
   availableSessions,
   predictionOpenAt,
+  now,
 }: {
   race: Doc<'races'>;
   weekendPredictions: {
@@ -76,9 +77,9 @@ export function fromRaceDetail({
   drivers: DriverRecord[] | undefined;
   availableSessions: SessionType[];
   predictionOpenAt?: number | null;
+  now: number;
 }): WeekendCardData {
   const driverMap = new Map(drivers?.map((d) => [d._id, d]));
-  const now = Date.now();
 
   const sessionTypes: SessionType[] = [
     'quali',
@@ -181,7 +182,7 @@ export function fromRaceDetail({
     raceSlug: race.slug,
     raceName: race.name,
     raceRound: race.round,
-    raceStatus: race.status as 'upcoming' | 'locked' | 'finished',
+    raceStatus: race.status as 'upcoming' | 'locked' | 'finished' | 'cancelled',
     raceDate: race.raceStartAt,
     hasSprint: race.hasSprint ?? false,
     sessions,

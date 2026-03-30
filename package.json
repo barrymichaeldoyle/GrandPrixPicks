@@ -33,6 +33,7 @@
     "check": "pnpm run format:check && pnpm run lint",
     "convex:migrations": "pnpm --filter @grandprixpicks/backend migrations",
     "convex:migrations:prod": "pnpm --filter @grandprixpicks/backend migrations:prod",
+    "scenario": "pnpm --filter @grandprixpicks/backend scenario",
     "start": "pnpm --filter @grandprixpicks/web start"
   },
   "devDependencies": {

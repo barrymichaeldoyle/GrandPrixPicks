@@ -494,7 +494,7 @@ function ItemFooter({
         />
         {!grouped && (
           <span
-            className="shrink-0 text-xs text-text-muted/50"
+            className="shrink-0 text-xs text-text-muted"
             suppressHydrationWarning
           >
             {formatRelativeTime(event.createdAt)}
@@ -679,7 +679,7 @@ function ScorePublishedItem({
           />
           {!grouped && (
             <span
-              className="shrink-0 text-xs text-text-muted/50"
+              className="shrink-0 text-xs text-text-muted"
               suppressHydrationWarning
             >
               {formatRelativeTime(event.createdAt)}
@@ -891,7 +891,7 @@ export function SessionSeparator({
           </div>
           {session.createdAt && (
             <span
-              className="shrink-0 text-xs text-text-muted/50"
+              className="shrink-0 text-xs text-text-muted"
               suppressHydrationWarning
             >
               {formatRelativeTime(session.createdAt)}

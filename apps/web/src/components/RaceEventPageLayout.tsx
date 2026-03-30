@@ -92,9 +92,10 @@ export function RaceEventPageLayout({
   // Also show for a race that's in-play but whose status hasn't been updated
   // yet by the admin (e.g. race started but DB still says 'upcoming').
   const raceIsActiveOrPlayable =
-    isPredictable ||
-    race.status === 'locked' ||
-    (race.status !== 'finished' && hasPredictions);
+    race.status !== 'cancelled' &&
+    (isPredictable ||
+      race.status === 'locked' ||
+      (race.status !== 'finished' && hasPredictions));
   const showReadonlyPredictions = raceIsActiveOrPlayable && hasPredictions;
   // Show H2H once the user has at least Top 5 picks for the weekend so they
   // can submit their first H2H entry even if they skipped earlier sessions.

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { DevNowPanel } from '../../components/DevNowPanel';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { PredictionForm } from '../../components/PredictionForm';
 import { RaceEventPageLayout } from '../../components/RaceEventPageLayout';
@@ -26,6 +27,7 @@ import {
   SESSION_LABELS_SHORT,
 } from '../../lib/sessions';
 import { canonicalMeta, defaultOgImage, siteConfig } from '../../lib/site';
+import { useNow } from '../../lib/testing/now';
 import { H2HResultsSection, H2HSection } from './-race-detail-content';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -148,7 +150,7 @@ function RaceDetailPage() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const now = Date.now();
+  const now = useNow();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
   function getSessionLockAt(session: SessionType): number {
     return race ? getRaceSessionLockAt(race, session) : 0;
@@ -367,6 +369,7 @@ function RaceDetailPage() {
       availableSessions: availableSessions ?? [],
       predictionOpenAt:
         predictionOpenAt === undefined ? null : predictionOpenAt,
+      now,
     });
     if (raceRank) {
       data.raceRank = raceRank;
@@ -529,130 +532,134 @@ function RaceDetailPage() {
   }
 
   return (
-    <RaceEventPageLayout
-      race={currentRace}
-      isNextRace={isNextRace}
-      isPredictable={isPredictable}
-      isAuthLoaded={isAuthLoaded}
-      isSignedIn={!!isSignedIn}
-      isPredictionsLoading={
-        (isPredictable && weekendPredictions === undefined) ||
-        isViewerPredictionDataLoading
-      }
-      hasPredictions={!!hasPredictions}
-      hasH2HPredictions={hasH2HPredictions}
-      hasPublishedResults={hasPublishedResults}
-      allEventsScored={allEventsScored}
-      pointsSoFar={pointsSoFar}
-      scoredEventCount={scoredEventCount}
-      weekendSessions={weekendSessions}
-      selectedSession={selectedSession}
-      onSelectedSessionChange={handleSessionTabChange}
-      sessionTabOptions={predictionSessionOptions}
-      showSessionTabs={
-        weekendSessions.length > 1 && (!!hasPredictions || hasPublishedResults)
-      }
-      trackTimeZone={trackTimeZone}
-      getSessionStartAt={getSessionStartAt}
-      getSessionLockAt={getSessionLockAt}
-      isSessionPublished={(session) => publishedSessionSet.has(session)}
-      randomizeControl={
-        <RandomizeButton
-          raceId={race._id}
-          hasPredictions={!!hasPredictions}
-          hasH2HPredictions={hasH2HPredictions}
-        />
-      }
-      backLink={<BackToRacesLink />}
-      leaderboardLink={<LeaderboardLink />}
-      initialTop5Content={renderInitialForm()}
-      top5MainContent={
-        top5EditingSession
-          ? renderTop5EditForm()
-          : (renderLateSessionEntryForm() ??
-            (cardData && (
-              <ErrorBoundary>
-                <RaceScoreCard
-                  data={selectedSessionCardData ?? cardData}
-                  variant="full"
-                  viewer={{
-                    isSignedIn: !!isSignedIn,
-                    isOwner: true,
-                  }}
-                  isNextRace={isNextRace}
-                  onEditSession={
-                    canManagePredictions ? setTop5EditingSession : undefined
-                  }
-                />
-              </ErrorBoundary>
-            )))
-      }
-      top5HeaderAside={
-        canManagePredictions && selectedSessionData ? (
-          <div className="flex items-center gap-2">
-            {selectedSessionData.isLocked &&
-              !selectedSessionData.hasResults && (
-                <Tooltip content="This session has started — predictions can't be changed">
-                  <span className="shrink-0">
-                    <Badge variant="locked" />
-                  </span>
-                </Tooltip>
-              )}
-            {top5EditingSession ? (
-              <Button
-                variant="text"
-                size="inline"
-                leftIcon={CircleX}
-                onClick={() => {
-                  if (top5HasUnsavedChanges) {
-                    const confirmStop = window.confirm(
-                      'You have unsaved Top 5 changes. Stop editing and discard them?',
-                    );
-                    if (!confirmStop) {
-                      return;
+    <>
+      <RaceEventPageLayout
+        race={currentRace}
+        isNextRace={isNextRace}
+        isPredictable={isPredictable}
+        isAuthLoaded={isAuthLoaded}
+        isSignedIn={!!isSignedIn}
+        isPredictionsLoading={
+          (isPredictable && weekendPredictions === undefined) ||
+          isViewerPredictionDataLoading
+        }
+        hasPredictions={!!hasPredictions}
+        hasH2HPredictions={hasH2HPredictions}
+        hasPublishedResults={hasPublishedResults}
+        allEventsScored={allEventsScored}
+        pointsSoFar={pointsSoFar}
+        scoredEventCount={scoredEventCount}
+        weekendSessions={weekendSessions}
+        selectedSession={selectedSession}
+        onSelectedSessionChange={handleSessionTabChange}
+        sessionTabOptions={predictionSessionOptions}
+        showSessionTabs={
+          weekendSessions.length > 1 &&
+          (!!hasPredictions || hasPublishedResults)
+        }
+        trackTimeZone={trackTimeZone}
+        getSessionStartAt={getSessionStartAt}
+        getSessionLockAt={getSessionLockAt}
+        isSessionPublished={(session) => publishedSessionSet.has(session)}
+        randomizeControl={
+          <RandomizeButton
+            raceId={race._id}
+            hasPredictions={!!hasPredictions}
+            hasH2HPredictions={hasH2HPredictions}
+          />
+        }
+        backLink={<BackToRacesLink />}
+        leaderboardLink={<LeaderboardLink />}
+        initialTop5Content={renderInitialForm()}
+        top5MainContent={
+          top5EditingSession
+            ? renderTop5EditForm()
+            : (renderLateSessionEntryForm() ??
+              (cardData && (
+                <ErrorBoundary>
+                  <RaceScoreCard
+                    data={selectedSessionCardData ?? cardData}
+                    variant="full"
+                    viewer={{
+                      isSignedIn: !!isSignedIn,
+                      isOwner: true,
+                    }}
+                    isNextRace={isNextRace}
+                    onEditSession={
+                      canManagePredictions ? setTop5EditingSession : undefined
                     }
-                  }
-                  setTop5EditingSession(null);
-                }}
-                title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
-              >
-                Stop Editing
-              </Button>
-            ) : (
-              canEditSelectedSession && (
+                  />
+                </ErrorBoundary>
+              )))
+        }
+        top5HeaderAside={
+          canManagePredictions && selectedSessionData ? (
+            <div className="flex items-center gap-2">
+              {selectedSessionData.isLocked &&
+                !selectedSessionData.hasResults && (
+                  <Tooltip content="This session has started — predictions can't be changed">
+                    <span className="shrink-0">
+                      <Badge variant="locked" />
+                    </span>
+                  </Tooltip>
+                )}
+              {top5EditingSession ? (
                 <Button
                   variant="text"
                   size="inline"
-                  leftIcon={Pencil}
-                  onClick={() => setTop5EditingSession(selectedSession)}
-                  title={`Edit ${SESSION_LABELS[selectedSession]}`}
+                  leftIcon={CircleX}
+                  onClick={() => {
+                    if (top5HasUnsavedChanges) {
+                      const confirmStop = window.confirm(
+                        'You have unsaved Top 5 changes. Stop editing and discard them?',
+                      );
+                      if (!confirmStop) {
+                        return;
+                      }
+                    }
+                    setTop5EditingSession(null);
+                  }}
+                  title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
                 >
-                  <span className="hidden sm:inline">Edit</span>
+                  Stop Editing
                 </Button>
-              )
-            )}
-          </div>
-        ) : null
-      }
-      h2hContent={
-        <H2HSection
-          race={race}
-          selectedSession={selectedSession}
-          editingSession={h2hEditingSession}
-          onEditingSessionChange={setH2hEditingSession}
-          onEditingDirtyChange={setH2hHasUnsavedChanges}
-          hasUnsavedEditingChanges={h2hHasUnsavedChanges}
-          showRandomizeButton={!hasH2HPredictions}
-          hasPredictions={!!hasPredictions}
-          hasH2HPredictions={hasH2HPredictions}
-        />
-      }
-      h2hResultsContent={
-        <H2HResultsSection
-          raceId={race._id}
-          selectedSession={selectedSession}
-        />
-      }
-    />
+              ) : (
+                canEditSelectedSession && (
+                  <Button
+                    variant="text"
+                    size="inline"
+                    leftIcon={Pencil}
+                    onClick={() => setTop5EditingSession(selectedSession)}
+                    title={`Edit ${SESSION_LABELS[selectedSession]}`}
+                  >
+                    <span className="hidden sm:inline">Edit</span>
+                  </Button>
+                )
+              )}
+            </div>
+          ) : null
+        }
+        h2hContent={
+          <H2HSection
+            race={race}
+            selectedSession={selectedSession}
+            editingSession={h2hEditingSession}
+            onEditingSessionChange={setH2hEditingSession}
+            onEditingDirtyChange={setH2hHasUnsavedChanges}
+            hasUnsavedEditingChanges={h2hHasUnsavedChanges}
+            showRandomizeButton={!hasH2HPredictions}
+            hasPredictions={!!hasPredictions}
+            hasH2HPredictions={hasH2HPredictions}
+          />
+        }
+        h2hResultsContent={
+          <H2HResultsSection
+            raceId={race._id}
+            selectedSession={selectedSession}
+          />
+        }
+      />
+      {import.meta.env.DEV ? <DevNowPanel race={currentRace} now={now} /> : null}
+    </>
   );
 }

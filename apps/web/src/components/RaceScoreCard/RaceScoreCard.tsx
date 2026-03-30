@@ -117,7 +117,9 @@ function CompactCard({
   const [hasManualToggle, setHasManualToggle] = useState(false);
   const sessions = getSessionsForWeekend(data.hasSprint);
   const canExpand =
-    cardState !== 'hidden_upcoming' && cardState !== 'not_yet_open';
+    cardState !== 'hidden_upcoming' &&
+    cardState !== 'not_yet_open' &&
+    cardState !== 'cancelled';
 
   useEffect(() => {
     if (!hasManualToggle) {
@@ -397,6 +399,7 @@ function FullCard({
 
   const showSessions =
     cardState !== 'not_yet_open' &&
+    cardState !== 'cancelled' &&
     cardState !== 'open_no_picks_unauth' &&
     cardState !== 'hidden_upcoming';
 

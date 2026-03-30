@@ -25,6 +25,7 @@ import { Tooltip } from '../../components/Tooltip';
 import { getRaceSessionLockAt } from '../../lib/raceSessions';
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
+import { useNow } from '../../lib/testing/now';
 
 // ───────────────────────── H2H Sections ─────────────────────────
 
@@ -65,8 +66,9 @@ export function H2HSection({
     raceId: race._id,
   });
   const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
+  const now = useNow();
   const selectedSessionLockTime = getRaceSessionLockAt(race, selectedSession);
-  const selectedSessionLocked = Date.now() >= selectedSessionLockTime;
+  const selectedSessionLocked = now >= selectedSessionLockTime;
   const isLoadingPredictions =
     h2hPredictions === undefined || matchups === undefined;
   const canEditSelectedSession = Boolean(

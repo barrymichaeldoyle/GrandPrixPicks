@@ -1105,7 +1105,9 @@ export const checkScoringComplete = internalMutation({
         }
       }
 
-      if (!args.suppressNotifications) {
+      if (!args.suppressNotifications && !result.notificationsSent) {
+        await ctx.db.patch(args.resultId, { notificationsSent: true });
+
         // Schedule result notification emails (30s delay for standings to settle)
         await ctx.scheduler.runAfter(
           30_000,

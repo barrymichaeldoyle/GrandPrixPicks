@@ -6,7 +6,9 @@
       "WebFetch(domain:oxc.rs)",
       "Bash(pnpm --filter backend exec tsc --noEmit)",
       "Bash(pnpm --filter web exec tsc --noEmit)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm --filter @grandprixpicks/web tsc --noEmit)",
+      "Bash(pnpm lint:*)"
     ]
   }
 }

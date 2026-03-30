@@ -49,7 +49,7 @@ export type WeekendCardData = {
   raceSlug: string;
   raceName: string;
   raceRound: number;
-  raceStatus: 'upcoming' | 'locked' | 'finished';
+  raceStatus: 'upcoming' | 'locked' | 'finished' | 'cancelled';
   raceDate: number;
   hasSprint: boolean;
   sessions: Record<SessionType, SessionCardData | null>;

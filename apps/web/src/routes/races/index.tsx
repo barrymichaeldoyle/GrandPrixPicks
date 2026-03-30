@@ -4,9 +4,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Calendar } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
+import { DevNowPanel } from '../../components/DevNowPanel';
 import { PageHero } from '../../components/PageHero';
 import { RaceCard } from '../../components/RaceCard';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
+import { useNow } from '../../lib/testing/now';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -43,6 +45,7 @@ export const Route = createFileRoute('/races/')({
 
 function RacesPage() {
   const { races, nextRace } = Route.useLoaderData();
+  const now = useNow(0);
   const nextRaceRef = useRef<HTMLDivElement | null>(null);
   const hasScrolledToNextRaceRef = useRef(false);
   const orderedRaces = [...races].sort((a, b) => a.round - b.round);
@@ -72,49 +75,54 @@ function RacesPage() {
     hasScrolledToNextRaceRef.current = true;
   }, []);
 
-  return (
-    <div className="min-h-screen bg-page">
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <PageHero
-          eyebrow="Race Calendar"
-          title="2026 Season"
-          subtitle="Predict the top 5 finishers for each Grand Prix"
-        />
+  const featuredRace = nextRace ?? orderedRaces.find((race) => race.status !== 'cancelled') ?? null;
 
-        {races.length === 0 ? (
-          <div className="py-16 text-center">
-            <Calendar className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h2 className="mb-2 text-xl font-semibold text-text">
-              No races scheduled yet
-            </h2>
-            <p className="text-text-muted">
-              Check back soon for the 2026 race calendar
-            </p>
-          </div>
-        ) : (
-          <div className="reveal-up reveal-delay-2">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {orderedRaces.map((race) => (
-                <div
-                  key={race._id}
-                  ref={
-                    nextRace != null && nextRace._id === race._id
-                      ? nextRaceRef
-                      : null
-                  }
-                  className="scroll-mt-24"
-                >
-                  <RaceCard
-                    race={race}
-                    isNext={nextRace != null && nextRace._id === race._id}
-                    predictionOpenAt={getPredictionOpenAt(race)}
-                  />
-                </div>
-              ))}
+  return (
+    <>
+      <div className="min-h-screen bg-page">
+        <div className="mx-auto max-w-7xl px-4 py-6">
+          <PageHero
+            eyebrow="Race Calendar"
+            title="2026 Season"
+            subtitle="Predict the top 5 finishers for each Grand Prix"
+          />
+
+          {races.length === 0 ? (
+            <div className="py-16 text-center">
+              <Calendar className="mx-auto mb-4 h-16 w-16 text-text-muted" />
+              <h2 className="mb-2 text-xl font-semibold text-text">
+                No races scheduled yet
+              </h2>
+              <p className="text-text-muted">
+                Check back soon for the 2026 race calendar
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="reveal-up reveal-delay-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {orderedRaces.map((race) => (
+                  <div
+                    key={race._id}
+                    ref={
+                      nextRace != null && nextRace._id === race._id
+                        ? nextRaceRef
+                        : null
+                    }
+                    className="scroll-mt-24"
+                  >
+                    <RaceCard
+                      race={race}
+                      isNext={nextRace != null && nextRace._id === race._id}
+                      predictionOpenAt={getPredictionOpenAt(race)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      {import.meta.env.DEV ? <DevNowPanel race={featuredRace} now={now} /> : null}
+    </>
   );
 }

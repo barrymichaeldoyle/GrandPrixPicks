@@ -1,6 +1,6 @@
 import { SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
-import { Lock, LogIn } from 'lucide-react';
+import { Ban, Lock, LogIn } from 'lucide-react';
 
 import { formatDate, formatTime } from '../../lib/date';
 import { Button } from '../Button';
@@ -19,9 +19,24 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       ? undefined
       : `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
+  if (cardState === 'cancelled') {
+    return (
+      <>
+        <div className="mb-2 flex items-center gap-2">
+          <Ban className="h-5 w-5 text-error" />
+          <h2 className="text-xl font-semibold text-text">Race Called Off</h2>
+        </div>
+        <p className="text-sm text-text-muted">
+          This race has been cancelled. No predictions or results will be
+          recorded for this round.
+        </p>
+      </>
+    );
+  }
+
   if (cardState === 'not_yet_open') {
     return (
-      <div className="p-4">
+      <>
         <div className="mb-2 flex items-center gap-2">
           <Lock className="h-5 w-5 text-text-muted" />
           <h2 className="text-xl font-semibold text-text">Not Yet Open</h2>
@@ -44,7 +59,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
             <p className="mt-2">Check back soon!</p>
           )}
         </div>
-      </div>
+      </>
     );
   }
 

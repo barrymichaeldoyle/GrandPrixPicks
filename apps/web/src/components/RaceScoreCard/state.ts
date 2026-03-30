@@ -4,6 +4,7 @@ import type { WeekendCardData } from './types';
 
 export type CardDisplayState =
   | 'not_yet_open'
+  | 'cancelled'
   | 'open_no_picks_auth'
   | 'open_no_picks_unauth'
   | 'open_has_picks'
@@ -47,6 +48,10 @@ export function deriveCardState({
     scoredSessions.length ===
       sessionEntries.filter((e) => e.data.hasResults).length &&
     scoredSessions.length > 0;
+
+  if (data.raceStatus === 'cancelled') {
+    return 'cancelled';
+  }
 
   // Not the next race and still upcoming (but not already locked)
   if (data.raceStatus === 'upcoming' && !isNextRace && !hasLockedSessions) {
@@ -104,6 +109,7 @@ export function deriveCardState({
 
 export const BORDER_LEFT_COLORS: Record<CardDisplayState, string> = {
   not_yet_open: '',
+  cancelled: '',
   open_no_picks_auth: 'rounded-l-sm border-l-8 border-l-accent/30',
   open_no_picks_unauth: 'rounded-l-sm border-l-8 border-l-accent/30',
   open_has_picks: 'rounded-l-sm border-l-8 border-l-accent/30',

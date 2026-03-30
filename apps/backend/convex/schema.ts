@@ -130,6 +130,8 @@ export default defineSchema({
         v.literal('complete'),
       ),
     ),
+    // Set to true after result notifications are sent; prevents re-sending on result corrections
+    notificationsSent: v.optional(v.boolean()),
     publishedAt: v.number(),
     updatedAt: v.number(),
   }).index('by_race_session', ['raceId', 'sessionType']),

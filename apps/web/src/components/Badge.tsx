@@ -82,18 +82,19 @@ export function Badge({ variant, icon, children }: BadgeProps) {
   );
 }
 
-type RaceStatus = 'upcoming' | 'locked' | 'finished';
-
 interface StatusBadgeProps {
-  /** Race status from Convex: "upcoming" | "locked" | "finished". */
+  /** Race status from Convex: "upcoming" | "locked" | "finished" | "cancelled". */
   status: string;
   /** When true and status is upcoming, shows "Open for predictions". When false and status is upcoming, shows "Not yet open". */
   isNext?: boolean;
 }
 
 export function StatusBadge({ status, isNext }: StatusBadgeProps) {
+  if (status === 'cancelled') {
+    return <Badge variant="cancelled">Called Off</Badge>;
+  }
   const effectiveStatus: BadgeVariant =
-    status === 'upcoming' && !isNext ? 'not_yet_open' : (status as RaceStatus);
+    status === 'upcoming' && !isNext ? 'not_yet_open' : (status as BadgeVariant);
 
   return <Badge variant={effectiveStatus} />;
 }

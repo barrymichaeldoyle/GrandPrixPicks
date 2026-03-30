@@ -12,6 +12,7 @@ import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
 } from '../lib/lock';
+import { useNow } from '../lib/testing/now';
 import { Badge } from './Badge';
 import { Flag } from './Flag';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
@@ -122,7 +123,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   // Only the next upcoming race is open for predictions
   const isPredictable = race.status === 'upcoming' && isNext;
   const isNotYetOpen = race.status === 'upcoming' && !isNext;
-  const now = Date.now();
+  const now = useNow();
   const isCancelled = race.status === 'cancelled';
   const isCompleted = race.status === 'finished';
   const isPastRace = race.raceStartAt <= now;
@@ -133,7 +134,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   const timezoneLabel = Intl.DateTimeFormat(undefined, {
     timeZoneName: 'short',
   })
-    .formatToParts(Date.now())
+    .formatToParts(now)
     .find((p) => p.type === 'timeZoneName')?.value;
   const scheduleEntries = getScheduleEntries(race);
   const msUntilLock = race.predictionLockAt - now;

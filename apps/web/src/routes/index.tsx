@@ -16,13 +16,14 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 import { Button } from '../components/Button';
+import { DevNowPanel } from '../components/DevNowPanel';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { getCountryCodeForRace, RaceFlag } from '../components/RaceCard';
 import { formatDate, formatTime, useCountdown } from '../lib/date';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { useNow } from '../lib/testing/now';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -73,18 +74,9 @@ function HomePage() {
   const {
     nextRace,
     currentOrRecentRace,
-    now: initialNow,
   } = Route.useLoaderData();
-  const [now, setNow] = useState(initialNow);
+  const now = useNow();
   const { isSignedIn } = useAuth();
-
-  useEffect(() => {
-    setNow(Date.now());
-    const id = window.setInterval(() => {
-      setNow(Date.now());
-    }, 1_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const cooldownEndsAt = currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000;
   const showNextRace = nextRace != null && now >= cooldownEndsAt;
@@ -116,7 +108,8 @@ function HomePage() {
   const nextEventCountdown = useCountdown(nextEvent?.at ?? 0);
 
   return (
-    <div className="bg-page">
+    <>
+      <div className="bg-page">
       {/* Hero Section */}
       <section className="relative isolate overflow-hidden px-6 py-14 sm:py-18">
         <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-8">
@@ -485,27 +478,31 @@ function HomePage() {
         </FaqItem>
       </FaqSection>
 
-      <section className="mx-auto max-w-5xl px-6 pb-14">
-        <div className="rounded-xl border border-border bg-surface p-4 text-center sm:p-5">
-          <p className="text-sm text-text-muted">
-            Want more details?
-            <Link
-              to="/support"
-              className="ml-1 font-semibold text-accent hover:text-accent/85"
-            >
-              Ask a question
-            </Link>
-            {' or '}
-            <Link
-              to="/races"
-              className="font-semibold text-accent hover:text-accent/85"
-            >
-              browse all races
-            </Link>
-            .
-          </p>
-        </div>
-      </section>
-    </div>
+        <section className="mx-auto max-w-5xl px-6 pb-14">
+          <div className="rounded-xl border border-border bg-surface p-4 text-center sm:p-5">
+            <p className="text-sm text-text-muted">
+              Want more details?
+              <Link
+                to="/support"
+                className="ml-1 font-semibold text-accent hover:text-accent/85"
+              >
+                Ask a question
+              </Link>
+              {' or '}
+              <Link
+                to="/races"
+                className="font-semibold text-accent hover:text-accent/85"
+              >
+                browse all races
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+      </div>
+      {import.meta.env.DEV ? (
+        <DevNowPanel race={featuredRace ?? null} now={now} />
+      ) : null}
+    </>
   );
 }

@@ -14,6 +14,7 @@
     "check": "pnpm run format:check && pnpm run lint",
     "migrations": "node scripts/convex/run-migrations.mjs",
     "migrations:prod": "node scripts/convex/run-migrations.mjs --prod",
+    "scenario": "dotenv -e ../../.env.local -- node scripts/convex/testing-scenarios.mjs",
     "backfill:top5": "node scripts/convex/backfill-top5-scores.mjs",
     "backfill:top5:prod": "node scripts/convex/backfill-top5-scores.mjs --prod",
     "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit -p convex/tsconfig.json"

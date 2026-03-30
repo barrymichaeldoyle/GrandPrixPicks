@@ -35,6 +35,7 @@ import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
+import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
 import type * as notifications from "../notifications.js";
 import type * as predictions from "../predictions.js";
 import type * as push from "../push.js";
@@ -44,6 +45,7 @@ import type * as results from "../results.js";
 import type * as seed from "../seed.js";
 import type * as support from "../support.js";
 import type * as testing from "../testing.js";
+import type * as testingScenarios from "../testingScenarios.js";
 import type * as users from "../users.js";
 
 import type {
@@ -80,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   "lib/raceTimezones": typeof lib_raceTimezones;
   "lib/scoring": typeof lib_scoring;
   "lib/standings": typeof lib_standings;
+  "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
   notifications: typeof notifications;
   predictions: typeof predictions;
   push: typeof push;
@@ -89,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   support: typeof support;
   testing: typeof testing;
+  testingScenarios: typeof testingScenarios;
   users: typeof users;
 }>;
 

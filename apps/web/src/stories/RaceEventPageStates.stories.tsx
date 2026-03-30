@@ -18,6 +18,7 @@ import {
 } from '../lib/raceSessions';
 import type { SessionType } from '../lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '../lib/sessions';
+import { raceEventStoryScenarios } from './scenarios/raceEventScenarios';
 
 const meta = {
   title: 'Pages/Race Event Page',
@@ -361,86 +362,57 @@ function Scenario({
   );
 }
 
-export const NoPredictionsYet: Story = {
-  render: () => (
+function renderCatalogScenario(
+  scenario: (typeof raceEventStoryScenarios)[keyof typeof raceEventStoryScenarios],
+) {
+  return (
     <Scenario
       race={makeRace({
-        slug: 'miami-2026',
-        name: 'Miami Grand Prix',
-        status: 'upcoming',
-        hasSprint: true,
-        raceStartAt: now + 3 * DAY,
+        slug: scenario.race.slug,
+        name: scenario.race.name,
+        status: scenario.race.status,
+        hasSprint: scenario.race.hasSprint,
+        raceStartAt: now + scenario.race.raceStartAtOffsetMs,
       })}
-      isNextRace={true}
-      isAuthLoaded={true}
-      isSignedIn={true}
-      hasPredictions={false}
-      hasPublishedResults={false}
-      allEventsScored={false}
-      scoredSessions={[]}
+      isNextRace={scenario.isNextRace}
+      isAuthLoaded={scenario.isAuthLoaded}
+      isSignedIn={scenario.isSignedIn}
+      hasPredictions={scenario.hasPredictions}
+      hasPublishedResults={scenario.hasPublishedResults}
+      allEventsScored={scenario.allEventsScored}
+      scoredSessions={scenario.scoredSessions}
     />
-  ),
-};
+  );
+}
 
-export const HalfwayWeekend: Story = {
-  render: () => (
-    <Scenario
-      race={makeRace({
-        slug: 'miami-2026',
-        name: 'Miami Grand Prix',
-        status: 'locked',
-        hasSprint: true,
-        raceStartAt: now + 6 * HOUR,
-      })}
-      isNextRace={true}
-      isAuthLoaded={true}
-      isSignedIn={true}
-      hasPredictions={true}
-      hasPublishedResults={true}
-      allEventsScored={false}
-      scoredSessions={['sprint_quali', 'sprint', 'quali']}
-    />
-  ),
-};
-
-export const PostRaceWeekend: Story = {
-  render: () => (
-    <Scenario
-      race={makeRace({
-        slug: 'monaco-2026',
-        name: 'Monaco Grand Prix',
-        status: 'finished',
-        hasSprint: false,
-        raceStartAt: now - 7 * DAY,
-      })}
-      isNextRace={false}
-      isAuthLoaded={true}
-      isSignedIn={true}
-      hasPredictions={true}
-      hasPublishedResults={true}
-      allEventsScored={true}
-      scoredSessions={['quali', 'race']}
-    />
-  ),
+export const UpcomingNoPicks: Story = {
+  render: () =>
+    renderCatalogScenario(raceEventStoryScenarios.race_upcoming_signed_in_no_picks),
 };
 
 export const UpcomingWithPredictions: Story = {
-  render: () => (
-    <Scenario
-      race={makeRace({
-        slug: 'canada-2026',
-        name: 'Canadian Grand Prix',
-        status: 'upcoming',
-        hasSprint: true,
-        raceStartAt: now + 4 * DAY,
-      })}
-      isNextRace={true}
-      isAuthLoaded={true}
-      isSignedIn={true}
-      hasPredictions={true}
-      hasPublishedResults={false}
-      allEventsScored={false}
-      scoredSessions={[]}
-    />
-  ),
+  render: () =>
+    renderCatalogScenario(raceEventStoryScenarios.race_upcoming_signed_in_complete),
+};
+
+export const LockedNoPredictions: Story = {
+  render: () =>
+    renderCatalogScenario(raceEventStoryScenarios.race_locked_signed_in_no_picks),
+};
+
+export const LockedWithPredictions: Story = {
+  render: () =>
+    renderCatalogScenario(
+      raceEventStoryScenarios.race_locked_signed_in_complete_no_results,
+    ),
+};
+
+export const PartialResults: Story = {
+  render: () =>
+    renderCatalogScenario(raceEventStoryScenarios.race_partial_results_standard),
+};
+
+export const FinishedScored: Story = {
+  render: () =>
+    renderCatalogScenario(raceEventStoryScenarios.race_finished_scored_standard),
 };

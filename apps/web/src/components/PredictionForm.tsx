@@ -39,6 +39,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
+import { useNow } from '../lib/testing/now';
 import { Button } from './Button';
 import { TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
@@ -316,14 +317,7 @@ export function PredictionForm({
   const [errorMessage, setErrorMessage] = useState('');
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setNow(Date.now());
-    }, 1_000);
-    return () => window.clearInterval(interval);
-  }, []);
+  const now = useNow();
 
   useEffect(() => {
     const draft = loadPredictionDraft<Top5Draft>(draftKey);

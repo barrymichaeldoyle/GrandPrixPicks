@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 const DEV_NOW_STORAGE_KEY = 'gpp:dev-now';
 const DEV_NOW_EVENT = 'gpp:dev-now-change';
 
-export function getNow(): number {
+function getNow(): number {
   return getDevNowOverride() ?? Date.now();
 }
 
@@ -83,6 +83,3 @@ export function useNow(intervalMs = 1_000): number {
   return now;
 }
 
-export function getDevNowStorageKey() {
-  return DEV_NOW_STORAGE_KEY;
-}

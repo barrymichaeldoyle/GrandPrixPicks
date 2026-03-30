@@ -1,6 +1,6 @@
 import type { SessionType } from '../../lib/sessions';
 
-export type RaceEventScenarioName =
+type RaceEventScenarioName =
   | 'race_upcoming_signed_in_no_picks'
   | 'race_upcoming_signed_in_complete'
   | 'race_locked_signed_in_no_picks'
@@ -8,7 +8,7 @@ export type RaceEventScenarioName =
   | 'race_partial_results_standard'
   | 'race_finished_scored_standard';
 
-export type RaceEventStoryScenario = {
+type RaceEventStoryScenario = {
   scenario: RaceEventScenarioName;
   storyName: string;
   race: {

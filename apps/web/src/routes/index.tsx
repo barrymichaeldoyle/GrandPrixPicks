@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
@@ -8,7 +7,6 @@ import {
   CalendarDays,
   Clock,
   Flag,
-  Gauge,
   Lock,
   ShieldCheck,
   Swords,
@@ -73,7 +71,6 @@ export const Route = createFileRoute('/')({
 function HomePage() {
   const { nextRace, currentOrRecentRace } = Route.useLoaderData();
   const now = useNow();
-  const { isSignedIn } = useAuth();
 
   const cooldownEndsAt = currentOrRecentRace.raceStartAt + 24 * 60 * 60 * 1000;
   const showNextRace = nextRace != null && now >= cooldownEndsAt;
@@ -288,15 +285,6 @@ function HomePage() {
             </motion.aside>
           </div>
         </section>
-
-        {/* Feed prompt — signed-in users have a dedicated /feed page */}
-        {isSignedIn && (
-          <section className="mx-auto max-w-3xl px-6 pb-2">
-            <Button asChild variant="secondary" size="sm" leftIcon={Gauge}>
-              <Link to="/feed">Go to your feed</Link>
-            </Button>
-          </section>
-        )}
 
         {/* Why play */}
         <section className="mx-auto max-w-6xl px-6 pb-6">

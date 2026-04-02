@@ -6,6 +6,7 @@ import { Dices } from 'lucide-react';
 import { useState } from 'react';
 
 import { useUpcomingPredictionBannerDismissal } from '../../hooks/useUpcomingPredictionBannerDismissal';
+import type { SessionType } from '../../lib/sessions';
 import { toUserFacingMessage } from '../../lib/userFacingError';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
@@ -13,6 +14,18 @@ import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;
 const STANDARD_SESSIONS = ['quali', 'race'] as const;
 const NUDGE_DELAY_MS = 24 * 60 * 60 * 1000;
+
+export function getOpenUpcomingSessions(params: {
+  hasSprint: boolean;
+  now: number;
+  lockAtBySession: Partial<Record<SessionType, number | undefined>>;
+}): SessionType[] {
+  const sessions = params.hasSprint ? [...SPRINT_SESSIONS] : [...STANDARD_SESSIONS];
+  return sessions.filter((sessionType) => {
+    const lockAt = params.lockAtBySession[sessionType];
+    return typeof lockAt !== 'number' || params.now < lockAt;
+  });
+}
 
 export function shouldDelayUpcomingPredictionBanner(params: {
   predictionOpenAt: number | null;
@@ -110,19 +123,36 @@ export function UpcomingPredictionBanner() {
     return null;
   }
   const activeRace = currentRace;
+  const now = Date.now();
 
-  const racePath = `/races/${activeRace.slug}`;
-  const isOnRacePredictionPage =
-    pathname === racePath || pathname.startsWith(`${racePath}/`);
   const relevantSessions = activeRace.hasSprint
-    ? SPRINT_SESSIONS
-    : STANDARD_SESSIONS;
+    ? getOpenUpcomingSessions({
+        hasSprint: true,
+        now,
+        lockAtBySession: {
+          quali: activeRace.qualiLockAt,
+          sprint_quali: activeRace.sprintQualiLockAt,
+          sprint: activeRace.sprintLockAt,
+          race: activeRace.predictionLockAt,
+        },
+      })
+    : getOpenUpcomingSessions({
+        hasSprint: false,
+        now,
+        lockAtBySession: {
+          quali: activeRace.qualiLockAt,
+          race: activeRace.predictionLockAt,
+        },
+      });
   const hasAnyTop5Predictions = relevantSessions.some(
     (sessionType) => weekendPredictions?.predictions[sessionType] != null,
   );
   const hasCompleteH2H = relevantSessions.every(
     (sessionType) => h2hPredictions?.[sessionType] != null,
   );
+  const racePath = `/races/${activeRace.slug}`;
+  const isOnRacePredictionPage =
+    pathname === racePath || pathname.startsWith(`${racePath}/`);
   const shouldShowTop5Nudge = !hasAnyTop5Predictions;
   const shouldShowH2HNudge = shouldShowUpcomingH2HNudge({
     hasAnyTop5Predictions,
@@ -132,7 +162,7 @@ export function UpcomingPredictionBanner() {
     predictionOpenAt,
     shouldShowTop5Nudge,
     shouldShowH2HNudge,
-    now: Date.now(),
+    now,
   });
 
   if (

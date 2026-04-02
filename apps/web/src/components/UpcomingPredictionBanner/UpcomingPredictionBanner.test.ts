@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  getOpenUpcomingSessions,
   shouldDelayUpcomingPredictionBanner,
   shouldShowUpcomingH2HNudge,
 } from './UpcomingPredictionBanner';
@@ -73,5 +74,39 @@ describe('shouldShowUpcomingH2HNudge', () => {
         hasCompleteH2H: true,
       }),
     ).toBe(false);
+  });
+});
+
+describe('getOpenUpcomingSessions', () => {
+  it('excludes locked sprint sessions from the required session set', () => {
+    const now = Date.now();
+
+    expect(
+      getOpenUpcomingSessions({
+        hasSprint: true,
+        now,
+        lockAtBySession: {
+          sprint_quali: now - 1,
+          sprint: now + 60_000,
+          quali: now + 120_000,
+          race: now + 180_000,
+        },
+      }),
+    ).toEqual(['sprint', 'quali', 'race']);
+  });
+
+  it('returns an empty list once all remaining sessions are locked', () => {
+    const now = Date.now();
+
+    expect(
+      getOpenUpcomingSessions({
+        hasSprint: false,
+        now,
+        lockAtBySession: {
+          quali: now - 120_000,
+          race: now - 60_000,
+        },
+      }),
+    ).toEqual([]);
   });
 });

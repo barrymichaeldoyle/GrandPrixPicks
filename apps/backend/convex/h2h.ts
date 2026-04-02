@@ -18,6 +18,11 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 
+const MAX_H2H_MATCHUPS = 16;
+const MAX_H2H_SESSIONS_PER_WEEKEND = 4;
+const MAX_H2H_PREDICTIONS_PER_RACE =
+  MAX_H2H_MATCHUPS * MAX_H2H_SESSIONS_PER_WEEKEND;
+
 function getWeekendSessions(hasSprint: boolean): Array<SessionType> {
   return hasSprint
     ? ['quali', 'sprint_quali', 'sprint', 'race']
@@ -54,7 +59,7 @@ export const getMatchupsForSeason = query({
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', season))
-      .take(32);
+      .take(MAX_H2H_MATCHUPS);
 
     const enriched = await Promise.all(
       matchups.map(async (m) => {
@@ -100,7 +105,7 @@ export const myH2HPredictionsForRace = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .take(32);
+      .take(MAX_H2H_PREDICTIONS_PER_RACE);
 
     // Group by sessionType → { [matchupId]: predictedWinnerId }
     const bySession: Record<SessionType, Record<string, Id<'drivers'>> | null> =
@@ -523,7 +528,7 @@ export const getUserH2HDetailedPicks = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', args.userId).eq('raceId', args.raceId),
       )
-      .take(32);
+      .take(MAX_H2H_PREDICTIONS_PER_RACE);
 
     if (predictions.length === 0) {
       return null;
@@ -533,13 +538,13 @@ export const getUserH2HDetailedPicks = query({
     const allResults = await ctx.db
       .query('h2hResults')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .take(32);
+      .take(MAX_H2H_PREDICTIONS_PER_RACE);
 
     // Fetch matchups for season 2026
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', race.season))
-      .take(32);
+      .take(MAX_H2H_MATCHUPS);
 
     // Build driver cache
     const driverIds = new Set<string>();
@@ -804,7 +809,7 @@ export const submitH2HPredictions = mutation({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .take(32);
+      .take(MAX_H2H_PREDICTIONS_PER_RACE);
     const hasExistingPredictionsForRace = existingForRace.length > 0;
 
     const sessionsToUpdate = resolveH2HSessionsToUpdate({

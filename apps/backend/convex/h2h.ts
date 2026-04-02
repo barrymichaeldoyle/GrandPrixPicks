@@ -9,7 +9,7 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
-import { findNextPredictionRace } from './races';
+import { streamRankedLeaderboardRows } from './lib/leaderboard';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -54,7 +54,7 @@ export const getMatchupsForSeason = query({
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', season))
-      .collect();
+      .take(32);
 
     const enriched = await Promise.all(
       matchups.map(async (m) => {
@@ -100,7 +100,7 @@ export const myH2HPredictionsForRace = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(32);
 
     // Group by sessionType → { [matchupId]: predictedWinnerId }
     const bySession: Record<SessionType, Record<string, Id<'drivers'>> | null> =
@@ -135,7 +135,7 @@ export const getH2HResultsForRace = query({
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', sessionType),
       )
-      .collect();
+      .take(16);
 
     if (results.length === 0) {
       return null;
@@ -212,7 +212,7 @@ export const getMyH2HWeekendScore = query({
     const scores = await ctx.db
       .query('h2hScores')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(500);
 
     const forRace = scores.filter((s) => s.raceId === args.raceId);
 
@@ -238,47 +238,30 @@ export const getH2HSeasonLeaderboard = query({
     const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
     const offset = Math.max(0, args.offset ?? 0);
 
-    const standings = await ctx.db
-      .query('h2hSeasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', season))
-      .collect();
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', season))
+        .order('desc'),
+      { offset, limit, viewerId: viewer?._id },
+    );
 
-    const allRows = standings.sort((a, b) => b.totalPoints - a.totalPoints);
+    const viewerEntry =
+      viewer && ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            correctPicks: ranked.viewerRow.correctPicks,
+            totalPicks: ranked.viewerRow.totalPicks,
+            isViewer: true,
+          }
+        : null;
 
-    let viewerEntry: {
-      rank: number;
-      userId: Id<'users'>;
-      username: string;
-      displayName?: string;
-      points: number;
-      raceCount: number;
-      correctPicks: number;
-      totalPicks: number;
-      isViewer: boolean;
-    } | null = null;
-
-    if (viewer) {
-      const viewerIndex = allRows.findIndex((r) => r.userId === viewer._id);
-      if (viewerIndex !== -1) {
-        const viewerRow = allRows[viewerIndex];
-        viewerEntry = {
-          rank: viewerIndex + 1,
-          userId: viewer._id,
-          username: viewer.username ?? 'Anonymous',
-          displayName: viewer.displayName,
-          points: viewerRow.totalPoints,
-          raceCount: viewerRow.raceCount,
-          correctPicks: viewerRow.correctPicks,
-          totalPicks: viewerRow.totalPicks,
-          isViewer: true,
-        };
-      }
-    }
-
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
-
-    const enrichedRows = paginatedRows.map((row, index) => ({
+    const enrichedRows = ranked.pageRows.map((row, index) => ({
       rank: offset + index + 1,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
@@ -293,8 +276,8 @@ export const getH2HSeasonLeaderboard = query({
 
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -311,7 +294,7 @@ export const myH2HPredictionHistory = query({
     const h2hScores = await ctx.db
       .query('h2hScores')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(500);
 
     // Group by raceId
     const byRace = new Map<Id<'races'>, Array<(typeof h2hScores)[number]>>();
@@ -378,7 +361,7 @@ export const myH2HPicksByRace = query({
     const predictions = await ctx.db
       .query('h2hPredictions')
       .withIndex('by_user_race_session', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(500);
 
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();
     for (const pred of predictions) {
@@ -408,7 +391,7 @@ export const getUserH2HPredictionHistory = query({
     const h2hScores = await ctx.db
       .query('h2hScores')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .collect();
+      .take(500);
 
     const byRace = new Map<Id<'races'>, Array<(typeof h2hScores)[number]>>();
     for (const score of h2hScores) {
@@ -471,7 +454,7 @@ export const getUserH2HPicksByRace = query({
     const predictions = await ctx.db
       .query('h2hPredictions')
       .withIndex('by_user_race_session', (q) => q.eq('userId', args.userId))
-      .collect();
+      .take(500);
 
     const now = Date.now();
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();
@@ -540,7 +523,7 @@ export const getUserH2HDetailedPicks = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', args.userId).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(32);
 
     if (predictions.length === 0) {
       return null;
@@ -550,13 +533,13 @@ export const getUserH2HDetailedPicks = query({
     const allResults = await ctx.db
       .query('h2hResults')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(32);
 
     // Fetch matchups for season 2026
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', race.season))
-      .collect();
+      .take(32);
 
     // Build driver cache
     const driverIds = new Set<string>();
@@ -691,7 +674,7 @@ export const getH2HPicksForFeedItem = query({
           .eq('raceId', args.raceId)
           .eq('sessionType', args.sessionType),
       )
-      .collect();
+      .take(16);
 
     if (preds.length === 0) {
       return null;
@@ -702,7 +685,7 @@ export const getH2HPicksForFeedItem = query({
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )
-      .collect();
+      .take(16);
 
     const resultByMatchup = new Map<string, Id<'drivers'>>();
     for (const r of results) {
@@ -776,8 +759,12 @@ export const submitH2HPredictions = mutation({
     const now = Date.now();
 
     // Only allow predictions for the next upcoming race
-    const allRaces = await ctx.db.query('races').collect();
-    const nextRace = findNextPredictionRace(allRaces, now);
+    const nextRace = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .first();
 
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error(
@@ -817,7 +804,7 @@ export const submitH2HPredictions = mutation({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(32);
     const hasExistingPredictionsForRace = existingForRace.length > 0;
 
     const sessionsToUpdate = resolveH2HSessionsToUpdate({

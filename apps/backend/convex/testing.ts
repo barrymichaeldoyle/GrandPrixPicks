@@ -602,7 +602,7 @@ export const setupReminderTest = mutation({
     // Find the race
     const race = await ctx.db
       .query('races')
-      .filter((q) => q.eq(q.field('slug'), args.raceSlug))
+      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
       .first();
     if (!race) {
       throw new Error(`Race not found: ${args.raceSlug}`);

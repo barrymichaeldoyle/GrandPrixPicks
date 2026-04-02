@@ -8,6 +8,7 @@ import {
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
   sortByPointsWithStableTieBreak,
+  streamRankedLeaderboardRows,
 } from './leaderboard';
 
 function user(id: string): Id<'users'> {
@@ -179,6 +180,31 @@ describe('leaderboard helpers', () => {
         points: 20,
         breakdown: [{ test: true }],
       },
+    ]);
+  });
+
+  it('streams ranked leaderboard rows with stable tie-breaks and filtered viewer rank', async () => {
+    async function* rows() {
+      yield { userId: user('z'), totalPoints: 30, raceCount: 3 };
+      yield { userId: user('a'), totalPoints: 30, raceCount: 3 };
+      yield { userId: user('b'), totalPoints: 20, raceCount: 3 };
+      yield { userId: user('c'), totalPoints: 20, raceCount: 3 };
+    }
+
+    const result = await streamRankedLeaderboardRows(rows(), {
+      offset: 1,
+      limit: 2,
+      viewerId: user('c'),
+      includeRow: (row) => row.userId !== user('b'),
+    });
+
+    expect(result.totalCount).toBe(3);
+    expect(result.hasMore).toBe(false);
+    expect(result.viewerRank).toBe(3);
+    expect(result.viewerRow?.userId).toBe(user('c'));
+    expect(result.pageRows.map((row) => row.userId)).toEqual([
+      user('z'),
+      user('c'),
     ]);
   });
 });

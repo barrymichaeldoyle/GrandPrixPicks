@@ -277,7 +277,7 @@ export const getMyWeekendScore = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(8);
 
     if (scores.length === 0) {
       return null;
@@ -313,7 +313,7 @@ export const getMyScoresForRace = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(8);
 
     if (scores.length === 0) {
       return null;
@@ -409,7 +409,7 @@ export const getAllResultsForRace = query({
     const results = await ctx.db
       .query('results')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(8);
 
     const sessionTypes: Array<SessionType> = [];
 
@@ -439,7 +439,7 @@ export const getEnrichedTop5BySession = query({
     const results = await ctx.db
       .query('results')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(8);
 
     const bySession: Partial<
       Record<
@@ -492,7 +492,7 @@ export const getRaceRank = query({
     const allScores = await ctx.db
       .query('scores')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(5000);
 
     if (allScores.length === 0) {
       return null;

@@ -5,13 +5,115 @@ import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
 import {
-  buildViewerEntryFromRows,
   clampLeaderboardPagination,
   getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
-  sortByPointsWithStableTieBreak,
+  streamRankedLeaderboardRows,
 } from './lib/leaderboard';
+
+type CombinedRow = {
+  userId: Id<'users'>;
+  username?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  top5Points: number;
+  h2hPoints: number;
+  raceCount: number;
+};
+
+function sortCombinedRows(rows: ReadonlyArray<CombinedRow>) {
+  return [...rows].sort((a, b) => {
+    const aTotal = a.top5Points + a.h2hPoints;
+    const bTotal = b.top5Points + b.h2hPoints;
+    if (aTotal !== bTotal) {
+      return bTotal - aTotal;
+    }
+    return String(a.userId).localeCompare(String(b.userId));
+  });
+}
+
+function buildCombinedViewerEntry(
+  rows: ReadonlyArray<CombinedRow>,
+  viewer: Awaited<ReturnType<typeof getViewer>>,
+) {
+  if (!viewer) {
+    return null;
+  }
+
+  const idx = rows.findIndex((r) => r.userId === viewer._id);
+  if (idx === -1) {
+    return null;
+  }
+
+  const row = rows[idx];
+  return {
+    rank: idx + 1,
+    userId: viewer._id,
+    username: viewer.username ?? 'Anonymous',
+    displayName: viewer.displayName,
+    points: row.top5Points + row.h2hPoints,
+    top5Points: row.top5Points,
+    h2hPoints: row.h2hPoints,
+    raceCount: row.raceCount,
+    isViewer: true,
+  };
+}
+
+async function loadCombinedSeasonRows(
+  ctx: QueryCtx,
+  params: {
+    season: number;
+    includeRow?: (userId: Id<'users'>) => boolean;
+  },
+) {
+  const includeRow = params.includeRow ?? (() => true);
+  const userMap = new Map<string, CombinedRow>();
+
+  for await (const row of ctx.db
+    .query('seasonStandings')
+    .withIndex('by_season_points', (q) => q.eq('season', params.season))
+    .order('desc')) {
+    if (!includeRow(row.userId)) {
+      continue;
+    }
+    userMap.set(row.userId, {
+      userId: row.userId,
+      username: row.username,
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      top5Points: row.totalPoints,
+      h2hPoints: 0,
+      raceCount: row.raceCount,
+    });
+  }
+
+  for await (const row of ctx.db
+    .query('h2hSeasonStandings')
+    .withIndex('by_season_points', (q) => q.eq('season', params.season))
+    .order('desc')) {
+    if (!includeRow(row.userId)) {
+      continue;
+    }
+    const existing = userMap.get(row.userId);
+    if (existing) {
+      existing.h2hPoints = row.totalPoints;
+      existing.raceCount = Math.max(existing.raceCount, row.raceCount);
+      continue;
+    }
+    userMap.set(row.userId, {
+      userId: row.userId,
+      username: row.username,
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      top5Points: 0,
+      h2hPoints: row.totalPoints,
+      raceCount: row.raceCount,
+    });
+  }
+
+  return sortCombinedRows([...userMap.values()]);
+}
 
 export const getSeasonLeaderboard = query({
   args: {
@@ -27,28 +129,37 @@ export const getSeasonLeaderboard = query({
       args.offset,
     );
 
-    const standings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', season))
-      .collect();
-
-    const allRows = sortByPointsWithStableTieBreak(standings);
-    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
-
-    // Paginate results
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', season))
+        .order('desc'),
+      { offset, limit, viewerId: viewer?._id },
+    );
 
     const enrichedRows = mapRowsToLeaderboardEntries(
-      paginatedRows,
+      ranked.pageRows,
       offset,
       viewer?._id,
     );
 
+    const viewerEntry =
+      viewer && ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            isViewer: true,
+          }
+        : null;
+
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -70,39 +181,50 @@ export const getFriendsLeaderboard = query({
       args.offset,
     );
 
-    // Get all users the viewer follows
     const followRows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(5000);
 
     const friendIds = new Set<string>(followRows.map((f) => f.followeeId));
     friendIds.add(viewer._id);
 
-    const standings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', 2026))
-      .collect();
-
-    const allRows = sortByPointsWithStableTieBreak(
-      standings.filter((s) => friendIds.has(s.userId)),
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .order('desc'),
+      {
+        offset,
+        limit,
+        viewerId: viewer._id,
+        includeRow: (row) => friendIds.has(row.userId),
+      },
     );
-    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
-
-    // Paginate
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
 
     const enrichedRows = mapRowsToLeaderboardEntries(
-      paginatedRows,
+      ranked.pageRows,
       offset,
       viewer._id,
     );
 
+    const viewerEntry =
+      ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            isViewer: true,
+          }
+        : null;
+
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -127,33 +249,40 @@ export const getFriendsH2HLeaderboard = query({
     const followRows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(5000);
 
     const friendIds = new Set<string>(followRows.map((f) => f.followeeId));
     friendIds.add(viewer._id);
 
-    const standings = await ctx.db
-      .query('h2hSeasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', 2026))
-      .collect();
-
-    const allRows = sortByPointsWithStableTieBreak(
-      standings.filter((s) => friendIds.has(s.userId)),
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .order('desc'),
+      {
+        offset,
+        limit,
+        viewerId: viewer._id,
+        includeRow: (row) => friendIds.has(row.userId),
+      },
     );
-    const viewerEntryBase = buildViewerEntryFromRows(allRows, viewer);
-    const viewerEntry = viewerEntryBase
-      ? {
-          ...viewerEntryBase,
-          correctPicks: allRows[viewerEntryBase.rank - 1].correctPicks,
-          totalPicks: allRows[viewerEntryBase.rank - 1].totalPicks,
-        }
-      : null;
 
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
+    const viewerEntry =
+      ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            correctPicks: ranked.viewerRow.correctPicks,
+            totalPicks: ranked.viewerRow.totalPicks,
+            isViewer: true,
+          }
+        : null;
 
-    // Use denormalized user data — no user doc reads needed
-    const enrichedRows = paginatedRows.map((row, index) => {
+    const enrichedRows = ranked.pageRows.map((row, index) => {
       const isViewer = row.userId === viewer._id;
       return {
         rank: offset + index + 1,
@@ -171,8 +300,8 @@ export const getFriendsH2HLeaderboard = query({
 
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -190,7 +319,7 @@ export const getLeagueLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -203,30 +332,42 @@ export const getLeagueLeaderboard = query({
       args.offset,
     );
 
-    const standings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', 2026))
-      .collect();
-
-    const allRows = sortByPointsWithStableTieBreak(
-      standings.filter((s) => memberIds.has(s.userId)),
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .order('desc'),
+      {
+        offset,
+        limit,
+        viewerId: viewer._id,
+        includeRow: (row) => memberIds.has(row.userId),
+      },
     );
-    const viewerEntry = buildViewerEntryFromRows(allRows, viewer);
-
-    // Paginate
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
 
     const enrichedRows = mapRowsToLeaderboardEntries(
-      paginatedRows,
+      ranked.pageRows,
       offset,
       viewer._id,
     );
 
+    const viewerEntry =
+      ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            isViewer: true,
+          }
+        : null;
+
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -246,86 +387,8 @@ export const getCombinedSeasonLeaderboard = query({
       args.offset,
     );
 
-    const [top5Standings, h2hStandings] = await Promise.all([
-      ctx.db
-        .query('seasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', season))
-        .collect(),
-      ctx.db
-        .query('h2hSeasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', season))
-        .collect(),
-    ]);
-
-    type CombinedRow = {
-      userId: Id<'users'>;
-      username?: string;
-      displayName?: string;
-      avatarUrl?: string;
-      top5Points: number;
-      h2hPoints: number;
-      raceCount: number;
-    };
-
-    const userMap = new Map<string, CombinedRow>();
-
-    for (const row of top5Standings) {
-      userMap.set(row.userId, {
-        userId: row.userId,
-        username: row.username,
-        displayName: row.displayName,
-        avatarUrl: row.avatarUrl,
-        top5Points: row.totalPoints,
-        h2hPoints: 0,
-        raceCount: row.raceCount,
-      });
-    }
-
-    for (const row of h2hStandings) {
-      const existing = userMap.get(row.userId);
-      if (existing) {
-        existing.h2hPoints = row.totalPoints;
-        existing.raceCount = Math.max(existing.raceCount, row.raceCount);
-      } else {
-        userMap.set(row.userId, {
-          userId: row.userId,
-          username: row.username,
-          displayName: row.displayName,
-          avatarUrl: row.avatarUrl,
-          top5Points: 0,
-          h2hPoints: row.totalPoints,
-          raceCount: row.raceCount,
-        });
-      }
-    }
-
-    const allRows = [...userMap.values()].sort((a, b) => {
-      const aTotal = a.top5Points + a.h2hPoints;
-      const bTotal = b.top5Points + b.h2hPoints;
-      if (aTotal !== bTotal) {
-        return bTotal - aTotal;
-      }
-      return String(a.userId).localeCompare(String(b.userId));
-    });
-
-    let viewerEntry = null;
-    if (viewer) {
-      const idx = allRows.findIndex((r) => r.userId === viewer._id);
-      if (idx !== -1) {
-        const row = allRows[idx];
-        viewerEntry = {
-          rank: idx + 1,
-          userId: viewer._id,
-          username: viewer.username ?? 'Anonymous',
-          displayName: viewer.displayName,
-          points: row.top5Points + row.h2hPoints,
-          top5Points: row.top5Points,
-          h2hPoints: row.h2hPoints,
-          raceCount: row.raceCount,
-          isViewer: true,
-        };
-      }
-    }
+    const allRows = await loadCombinedSeasonRows(ctx, { season });
+    const viewerEntry = buildCombinedViewerEntry(allRows, viewer);
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
@@ -366,89 +429,16 @@ export const getFriendsCombinedLeaderboard = query({
     const followRows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(5000);
 
     const friendIds = new Set<string>(followRows.map((f) => f.followeeId));
     friendIds.add(viewer._id);
 
-    const [top5Standings, h2hStandings] = await Promise.all([
-      ctx.db
-        .query('seasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', 2026))
-        .collect(),
-      ctx.db
-        .query('h2hSeasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', 2026))
-        .collect(),
-    ]);
-
-    type CombinedRow = {
-      userId: Id<'users'>;
-      username?: string;
-      displayName?: string;
-      avatarUrl?: string;
-      top5Points: number;
-      h2hPoints: number;
-      raceCount: number;
-    };
-
-    const userMap = new Map<string, CombinedRow>();
-
-    for (const row of top5Standings.filter((s) => friendIds.has(s.userId))) {
-      userMap.set(row.userId, {
-        userId: row.userId,
-        username: row.username,
-        displayName: row.displayName,
-        avatarUrl: row.avatarUrl,
-        top5Points: row.totalPoints,
-        h2hPoints: 0,
-        raceCount: row.raceCount,
-      });
-    }
-
-    for (const row of h2hStandings.filter((s) => friendIds.has(s.userId))) {
-      const existing = userMap.get(row.userId);
-      if (existing) {
-        existing.h2hPoints = row.totalPoints;
-        existing.raceCount = Math.max(existing.raceCount, row.raceCount);
-      } else {
-        userMap.set(row.userId, {
-          userId: row.userId,
-          username: row.username,
-          displayName: row.displayName,
-          avatarUrl: row.avatarUrl,
-          top5Points: 0,
-          h2hPoints: row.totalPoints,
-          raceCount: row.raceCount,
-        });
-      }
-    }
-
-    const allRows = [...userMap.values()].sort((a, b) => {
-      const aTotal = a.top5Points + a.h2hPoints;
-      const bTotal = b.top5Points + b.h2hPoints;
-      if (aTotal !== bTotal) {
-        return bTotal - aTotal;
-      }
-      return String(a.userId).localeCompare(String(b.userId));
+    const allRows = await loadCombinedSeasonRows(ctx, {
+      season: 2026,
+      includeRow: (userId) => friendIds.has(userId),
     });
-
-    let viewerEntry = null;
-    const viewerIdx = allRows.findIndex((r) => r.userId === viewer._id);
-    if (viewerIdx !== -1) {
-      const row = allRows[viewerIdx];
-      viewerEntry = {
-        rank: viewerIdx + 1,
-        userId: viewer._id,
-        username: viewer.username ?? 'Anonymous',
-        displayName: viewer.displayName,
-        points: row.top5Points + row.h2hPoints,
-        top5Points: row.top5Points,
-        h2hPoints: row.h2hPoints,
-        raceCount: row.raceCount,
-        isViewer: true,
-      };
-    }
+    const viewerEntry = buildCombinedViewerEntry(allRows, viewer);
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
@@ -513,7 +503,7 @@ export const getCombinedRaceLeaderboard = query({
       const followRows = await ctx.db
         .query('follows')
         .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-        .collect();
+        .take(5000);
       friendIds = new Set([viewer._id, ...followRows.map((f) => f.followeeId)]);
     }
 
@@ -521,11 +511,11 @@ export const getCombinedRaceLeaderboard = query({
       ctx.db
         .query('scores')
         .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .collect(),
+        .take(5000),
       ctx.db
         .query('h2hScores')
         .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .collect(),
+        .take(5000),
     ]);
 
     type RaceEntry = {
@@ -661,14 +651,14 @@ export const getH2HRaceLeaderboard = query({
       const followRows = await ctx.db
         .query('follows')
         .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-        .collect();
+        .take(5000);
       friendIds = new Set([viewer._id, ...followRows.map((f) => f.followeeId)]);
     }
 
     const h2hScores = await ctx.db
       .query('h2hScores')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(5000);
 
     type H2HEntry = {
       userId: Id<'users'>;
@@ -749,7 +739,7 @@ export const getRaceLeaderboard = query({
     const followRows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(5000);
     const friendIds = new Set([
       viewer._id,
       ...followRows.map((f) => f.followeeId),
@@ -778,7 +768,7 @@ export const getLeagueCombinedSeasonLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -791,84 +781,11 @@ export const getLeagueCombinedSeasonLeaderboard = query({
       args.offset,
     );
 
-    const [top5Standings, h2hStandings] = await Promise.all([
-      ctx.db
-        .query('seasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', 2026))
-        .collect(),
-      ctx.db
-        .query('h2hSeasonStandings')
-        .withIndex('by_season_points', (q) => q.eq('season', 2026))
-        .collect(),
-    ]);
-
-    type CombinedRow = {
-      userId: Id<'users'>;
-      username?: string;
-      displayName?: string;
-      avatarUrl?: string;
-      top5Points: number;
-      h2hPoints: number;
-      raceCount: number;
-    };
-
-    const userMap = new Map<string, CombinedRow>();
-
-    for (const row of top5Standings.filter((s) => memberIds.has(s.userId))) {
-      userMap.set(row.userId, {
-        userId: row.userId,
-        username: row.username,
-        displayName: row.displayName,
-        avatarUrl: row.avatarUrl,
-        top5Points: row.totalPoints,
-        h2hPoints: 0,
-        raceCount: row.raceCount,
-      });
-    }
-
-    for (const row of h2hStandings.filter((s) => memberIds.has(s.userId))) {
-      const existing = userMap.get(row.userId);
-      if (existing) {
-        existing.h2hPoints = row.totalPoints;
-        existing.raceCount = Math.max(existing.raceCount, row.raceCount);
-      } else {
-        userMap.set(row.userId, {
-          userId: row.userId,
-          username: row.username,
-          displayName: row.displayName,
-          avatarUrl: row.avatarUrl,
-          top5Points: 0,
-          h2hPoints: row.totalPoints,
-          raceCount: row.raceCount,
-        });
-      }
-    }
-
-    const allRows = [...userMap.values()].sort((a, b) => {
-      const aTotal = a.top5Points + a.h2hPoints;
-      const bTotal = b.top5Points + b.h2hPoints;
-      if (aTotal !== bTotal) {
-        return bTotal - aTotal;
-      }
-      return String(a.userId).localeCompare(String(b.userId));
+    const allRows = await loadCombinedSeasonRows(ctx, {
+      season: 2026,
+      includeRow: (userId) => memberIds.has(userId),
     });
-
-    let viewerEntry = null;
-    const idx = allRows.findIndex((r) => r.userId === viewer._id);
-    if (idx !== -1) {
-      const row = allRows[idx];
-      viewerEntry = {
-        rank: idx + 1,
-        userId: viewer._id,
-        username: viewer.username ?? 'Anonymous',
-        displayName: viewer.displayName,
-        points: row.top5Points + row.h2hPoints,
-        top5Points: row.top5Points,
-        h2hPoints: row.h2hPoints,
-        raceCount: row.raceCount,
-        isViewer: true,
-      };
-    }
+    const viewerEntry = buildCombinedViewerEntry(allRows, viewer);
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
@@ -902,7 +819,7 @@ export const getLeagueH2HSeasonLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -915,28 +832,35 @@ export const getLeagueH2HSeasonLeaderboard = query({
       args.offset,
     );
 
-    const standings = await ctx.db
-      .query('h2hSeasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', 2026))
-      .collect();
-
-    const allRows = sortByPointsWithStableTieBreak(
-      standings.filter((s) => memberIds.has(s.userId)),
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', 2026))
+        .order('desc'),
+      {
+        offset,
+        limit,
+        viewerId: viewer._id,
+        includeRow: (row) => memberIds.has(row.userId),
+      },
     );
 
-    const viewerEntryBase = buildViewerEntryFromRows(allRows, viewer);
-    const viewerEntry = viewerEntryBase
-      ? {
-          ...viewerEntryBase,
-          correctPicks: allRows[viewerEntryBase.rank - 1].correctPicks,
-          totalPicks: allRows[viewerEntryBase.rank - 1].totalPicks,
-        }
-      : null;
+    const viewerEntry =
+      ranked.viewerRank !== null && ranked.viewerRow
+        ? {
+            rank: ranked.viewerRank,
+            userId: viewer._id,
+            username: viewer.username ?? 'Anonymous',
+            displayName: viewer.displayName,
+            points: ranked.viewerRow.totalPoints,
+            raceCount: ranked.viewerRow.raceCount,
+            correctPicks: ranked.viewerRow.correctPicks,
+            totalPicks: ranked.viewerRow.totalPicks,
+            isViewer: true,
+          }
+        : null;
 
-    const paginatedRows = allRows.slice(offset, offset + limit);
-    const hasMore = offset + limit < allRows.length;
-
-    const enrichedRows = paginatedRows.map((row, index) => ({
+    const enrichedRows = ranked.pageRows.map((row, index) => ({
       rank: offset + index + 1,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
@@ -951,8 +875,8 @@ export const getLeagueH2HSeasonLeaderboard = query({
 
     return {
       entries: enrichedRows,
-      totalCount: allRows.length,
-      hasMore,
+      totalCount: ranked.totalCount,
+      hasMore: ranked.hasMore,
       viewerEntry,
     };
   },
@@ -969,7 +893,7 @@ export const getLeagueRaceLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -1009,7 +933,7 @@ export const getLeagueRaceLeaderboard = query({
     const scores = await ctx.db
       .query('scores')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(5000);
 
     const userMap = new Map<
       string,
@@ -1059,7 +983,7 @@ export const getLeagueCombinedRaceLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -1100,11 +1024,11 @@ export const getLeagueCombinedRaceLeaderboard = query({
       ctx.db
         .query('scores')
         .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .collect(),
+        .take(5000),
       ctx.db
         .query('h2hScores')
         .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .collect(),
+        .take(5000),
     ]);
 
     type RaceEntry = {
@@ -1203,7 +1127,7 @@ export const getLeagueH2HRaceLeaderboard = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(5000);
 
     const memberIds = new Set<string>(members.map((m) => m.userId));
 
@@ -1243,7 +1167,7 @@ export const getLeagueH2HRaceLeaderboard = query({
     const h2hScores = await ctx.db
       .query('h2hScores')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
+      .take(5000);
 
     type H2HEntry = {
       userId: Id<'users'>;
@@ -1333,7 +1257,7 @@ export async function getRaceLeaderboardForViewer(
   const scores = await ctx.db
     .query('scores')
     .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-    .collect();
+    .take(5000);
 
   const userMap = new Map<
     string,

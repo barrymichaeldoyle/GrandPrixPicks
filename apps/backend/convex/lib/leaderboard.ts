@@ -26,6 +26,14 @@ type Viewer = {
   displayName?: string;
 } | null;
 
+type RankedStreamResult<T> = {
+  pageRows: Array<T>;
+  totalCount: number;
+  hasMore: boolean;
+  viewerRank: number | null;
+  viewerRow: T | null;
+};
+
 export function clampLeaderboardPagination(
   limit: number | undefined,
   offset: number | undefined,
@@ -88,6 +96,73 @@ export function mapRowsToLeaderboardEntries<T extends RowBase>(
     raceCount: row.raceCount,
     isViewer: viewerId ? row.userId === viewerId : false,
   }));
+}
+
+export async function streamRankedLeaderboardRows<T extends RowBase>(
+  rows: AsyncIterable<T>,
+  params: {
+    offset: number;
+    limit: number;
+    viewerId?: Id<'users'>;
+    includeRow?: (row: T) => boolean;
+  },
+): Promise<RankedStreamResult<T>> {
+  const includeRow = params.includeRow ?? (() => true);
+  const pageRows: Array<T> = [];
+  let totalCount = 0;
+  let viewerRank: number | null = null;
+  let viewerRow: T | null = null;
+  let currentGroup: Array<T> = [];
+  let currentPoints: number | null = null;
+
+  function flushGroup() {
+    if (currentGroup.length === 0) {
+      return;
+    }
+
+    currentGroup.sort((a, b) => String(a.userId).localeCompare(String(b.userId)));
+
+    for (const row of currentGroup) {
+      if (!includeRow(row)) {
+        continue;
+      }
+
+      totalCount += 1;
+      if (
+        totalCount > params.offset &&
+        pageRows.length < params.limit
+      ) {
+        pageRows.push(row);
+      }
+
+      if (params.viewerId && row.userId === params.viewerId) {
+        viewerRank = totalCount;
+        viewerRow = row;
+      }
+    }
+
+    currentGroup = [];
+    currentPoints = null;
+  }
+
+  for await (const row of rows) {
+    if (currentPoints !== null && row.totalPoints !== currentPoints) {
+      flushGroup();
+    }
+
+    currentPoints = row.totalPoints;
+    currentGroup.push(row);
+  }
+
+  flushGroup();
+
+  return {
+    pageRows,
+    totalCount,
+    hasMore: params.offset + params.limit < totalCount,
+    viewerRank,
+    viewerRow,
+  };
 }
 
 export function getRaceLeaderboardAccess(params: {

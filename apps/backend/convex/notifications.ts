@@ -756,8 +756,9 @@ export const triggerRemindersForNextRace = internalMutation({
     const now = Date.now();
     const race = await ctx.db
       .query('races')
-      .withIndex('by_predictionLockAt', (q) => q.gt('predictionLockAt', now))
-      .filter((q) => q.eq(q.field('status'), 'upcoming'))
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
       .first();
 
     if (!race) {

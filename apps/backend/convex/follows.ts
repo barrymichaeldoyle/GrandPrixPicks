@@ -3,6 +3,10 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 
+// The app currently treats follow relationships as a capped social graph rather than
+// an infinite feed substrate. Keep the hard limit aligned with read-side bounds.
+const MAX_FOLLOWS_PER_USER = 5000;
+
 export const follow = mutation({
   args: { followeeId: v.id('users') },
   handler: async (ctx, args) => {
@@ -26,6 +30,14 @@ export const follow = mutation({
 
     if (existing) {
       return existing._id;
+    }
+
+    const existingFollows = await ctx.db
+      .query('follows')
+      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
+      .take(MAX_FOLLOWS_PER_USER + 1);
+    if (existingFollows.length >= MAX_FOLLOWS_PER_USER) {
+      throw new Error('You have reached the maximum number of users you can follow');
     }
 
     return await ctx.db.insert('follows', {
@@ -65,7 +77,7 @@ export const getViewerFollowedIds = query({
     const follows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(MAX_FOLLOWS_PER_USER);
     return follows.map((f) => f.followeeId as string);
   },
 });
@@ -95,12 +107,12 @@ export const getFollowCounts = query({
     const followerRecords = await ctx.db
       .query('follows')
       .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
-      .collect();
+      .take(MAX_FOLLOWS_PER_USER);
 
     const followingRecords = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
-      .collect();
+      .take(MAX_FOLLOWS_PER_USER);
 
     // Only count follows where the related user still exists (matches listFollowers/listFollowing)
     const followerUsers = await Promise.all(
@@ -129,7 +141,7 @@ export const listFollowers = query({
     const follows = await ctx.db
       .query('follows')
       .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
-      .collect();
+      .take(MAX_FOLLOWS_PER_USER);
 
     const users = await Promise.all(
       follows.map((f) => ctx.db.get(f.followerId)),
@@ -158,7 +170,7 @@ export const listFollowing = query({
     const follows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
-      .collect();
+      .take(MAX_FOLLOWS_PER_USER);
 
     const users = await Promise.all(
       follows.map((f) => ctx.db.get(f.followeeId)),

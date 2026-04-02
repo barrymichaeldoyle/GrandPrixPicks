@@ -11,6 +11,7 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
+import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import { syncUserToStandings } from './lib/standings';
 
 type AccountDeletionSummary = {
@@ -547,7 +548,7 @@ export const getUserStats = query({
     const predictions = await ctx.db
       .query('predictions')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .collect();
+      .take(500);
     const weekendRaceIds = new Set(predictions.map((p) => p.raceId));
     const weekendCount = weekendRaceIds.size;
 
@@ -565,32 +566,26 @@ export const getUserStats = query({
     const totalPoints = userStanding?.totalPoints ?? 0;
     const scoredWeekends = userStanding?.raceCount ?? 0;
 
-    const allStandings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', season))
-      .collect();
-
-    const sortedStandings = allStandings.sort(
-      (a, b) => b.totalPoints - a.totalPoints,
+    const seasonRanked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', season))
+        .order('desc'),
+      { offset: 0, limit: 1, viewerId: args.userId },
     );
-    const rankIndex = sortedStandings.findIndex(
-      (r) => r.userId === args.userId,
-    );
-    const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
-    const totalPlayers = sortedStandings.length;
+    const seasonRank = seasonRanked.viewerRank;
+    const totalPlayers = seasonRanked.totalCount;
 
     // H2H rank from h2hSeasonStandings
-    const allH2HStandings = await ctx.db
-      .query('h2hSeasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', season))
-      .collect();
-
-    const sortedH2H = allH2HStandings.sort(
-      (a, b) => b.totalPoints - a.totalPoints,
+    const h2hRanked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', season))
+        .order('desc'),
+      { offset: 0, limit: 1, viewerId: args.userId },
     );
-    const h2hRankIndex = sortedH2H.findIndex((r) => r.userId === args.userId);
-    const h2hSeasonRank = h2hRankIndex === -1 ? null : h2hRankIndex + 1;
-    const h2hTotalPlayers = sortedH2H.length;
+    const h2hSeasonRank = h2hRanked.viewerRank;
+    const h2hTotalPlayers = h2hRanked.totalCount;
 
     return {
       totalPoints,
@@ -693,7 +688,7 @@ export const getProfileOgData = query({
     const predictions = await ctx.db
       .query('predictions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
+      .take(500);
     const weekendCount = new Set(predictions.map((p) => p.raceId)).size;
 
     // Get season standing
@@ -707,14 +702,14 @@ export const getProfileOgData = query({
     const totalPoints = userStanding?.totalPoints ?? 0;
 
     // Compute rank
-    const allStandings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', season))
-      .collect();
-
-    const sorted = allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
-    const rankIndex = sorted.findIndex((r) => r.userId === user._id);
-    const seasonRank = rankIndex === -1 ? null : rankIndex + 1;
+    const ranked = await streamRankedLeaderboardRows(
+      ctx.db
+        .query('seasonStandings')
+        .withIndex('by_season_points', (q) => q.eq('season', season))
+        .order('desc'),
+      { offset: 0, limit: 1, viewerId: user._id },
+    );
+    const seasonRank = ranked.viewerRank;
 
     return {
       displayName: user.displayName ?? user.username ?? 'Anonymous',
@@ -722,7 +717,7 @@ export const getProfileOgData = query({
       avatarUrl: user.avatarUrl,
       totalPoints,
       seasonRank,
-      totalPlayers: sorted.length,
+      totalPlayers: ranked.totalCount,
       weekendCount,
     };
   },

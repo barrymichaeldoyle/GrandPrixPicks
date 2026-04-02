@@ -97,6 +97,7 @@ export default defineSchema({
   })
     .index('by_season_round', ['season', 'round'])
     .index('by_slug', ['slug'])
+    .index('by_status_and_predictionLockAt', ['status', 'predictionLockAt'])
     .index('by_predictionLockAt', ['predictionLockAt'])
     .index('by_raceStartAt', ['raceStartAt']),
 
@@ -412,5 +413,13 @@ export default defineSchema({
     feedEventId: v.optional(v.id('feedEvents')),
   })
     .index('by_user_created', ['userId', 'createdAt'])
-    .index('by_user_unread', ['userId', 'readAt']),
+    .index('by_user_unread', ['userId', 'readAt'])
+    .index('by_user_type_and_feedEventId', ['userId', 'type', 'feedEventId'])
+    .index('by_user_type_raceId_and_sessionType', [
+      'userId',
+      'type',
+      'raceId',
+      'sessionType',
+    ])
+    .index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
 });

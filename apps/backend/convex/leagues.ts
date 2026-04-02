@@ -30,6 +30,10 @@ const SEASON_PASS_LIMITS: LeagueLimits = {
   maxPublicLeaguesJoined: Number.POSITIVE_INFINITY,
 };
 
+// League membership views currently materialize the full roster in one request.
+// Keep the write-side contract aligned with that bounded read pattern.
+const MAX_LEAGUE_MEMBERS = 5000;
+
 async function hasSeasonPassForSeason(
   ctx: MutationCtx | QueryCtx,
   userId: Id<'users'>,
@@ -101,7 +105,7 @@ export const getMyLeagues = query({
     const memberships = await ctx.db
       .query('leagueMembers')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     const leagues = await Promise.all(
       memberships.map(async (m) => {
@@ -113,7 +117,7 @@ export const getMyLeagues = query({
         const members = await ctx.db
           .query('leagueMembers')
           .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .collect();
+          .take(MAX_LEAGUE_MEMBERS);
 
         return {
           _id: league._id,
@@ -145,7 +149,7 @@ export const listPublicLeagues = query({
     const leaguesForSeason = await ctx.db
       .query('leagues')
       .withIndex('by_season', (q) => q.eq('season', season))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     const publicLeagues = leaguesForSeason.filter(
       (league) => league.visibility === 'public',
@@ -156,7 +160,7 @@ export const listPublicLeagues = query({
         const members = await ctx.db
           .query('leagueMembers')
           .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .collect();
+          .take(MAX_LEAGUE_MEMBERS);
         const viewerMembership =
           viewer != null
             ? (members.find((m) => m.userId === viewer._id) ?? null)
@@ -202,7 +206,7 @@ export const getLeagueBySlug = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     let viewerRole: 'admin' | 'member' | null = null;
     if (viewer) {
@@ -239,7 +243,7 @@ export const getLeagueMembers = query({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     // Only return members if viewer is a member
     const isMember = members.some((m) => m.userId === viewer._id);
@@ -339,7 +343,7 @@ export const getMyLeagueUsage = query({
     const leaguesForSeason = await ctx.db
       .query('leagues')
       .withIndex('by_season', (q) => q.eq('season', season))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     let createdPrivate = 0;
     let createdPublic = 0;
@@ -358,7 +362,7 @@ export const getMyLeagueUsage = query({
     const memberships = await ctx.db
       .query('leagueMembers')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     let joinedPrivate = 0;
     let joinedPublic = 0;
@@ -544,6 +548,14 @@ export const joinLeague = mutation({
       .unique();
     if (existingMembership) {
       throw new Error('You are already a member of this league');
+    }
+
+    const currentMembers = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .take(MAX_LEAGUE_MEMBERS + 1);
+    if (currentMembers.length >= MAX_LEAGUE_MEMBERS) {
+      throw new Error('This league has reached the maximum number of members');
     }
 
     // Count existing memberships by visibility for this season.

@@ -35,7 +35,7 @@ export const getMyNotifications = query({
     const follows = await ctx.db
       .query('follows')
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .collect();
+      .take(5000);
     const followedIds = new Set(follows.map((f) => f.followeeId));
 
     // Group rev_received by feedEventId; pass everything else through unchanged
@@ -136,12 +136,11 @@ export const markRead = mutation({
     if (args.feedEventId) {
       const revNotifs = await ctx.db
         .query('inAppNotifications')
-        .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
-        .filter((q) =>
-          q.and(
-            q.eq(q.field('type'), 'rev_received'),
-            q.eq(q.field('feedEventId'), args.feedEventId),
-          ),
+        .withIndex('by_user_type_and_feedEventId', (q) =>
+          q
+            .eq('userId', viewer._id)
+            .eq('type', 'rev_received')
+            .eq('feedEventId', args.feedEventId),
         )
         .collect();
       for (const n of revNotifs) {
@@ -223,13 +222,12 @@ export const createResultsNotification = internalMutation({
     // Upsert: one results notification per user/race/session
     const existing = await ctx.db
       .query('inAppNotifications')
-      .withIndex('by_user_created', (q) => q.eq('userId', args.userId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('type'), 'results_published'),
-          q.eq(q.field('raceId'), args.raceId),
-          q.eq(q.field('sessionType'), args.sessionType),
-        ),
+      .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('type', 'results_published')
+          .eq('raceId', args.raceId)
+          .eq('sessionType', args.sessionType),
       )
       .first();
 
@@ -279,13 +277,12 @@ export const notifyUsersSessionLocked = internalMutation({
       // Skip if we've already notified this user for this session lock
       const existing = await ctx.db
         .query('inAppNotifications')
-        .withIndex('by_user_created', (q) => q.eq('userId', prediction.userId))
-        .filter((q) =>
-          q.and(
-            q.eq(q.field('type'), 'session_locked'),
-            q.eq(q.field('raceId'), args.raceId),
-            q.eq(q.field('sessionType'), args.sessionType),
-          ),
+        .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('type', 'session_locked')
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
         )
         .first();
 
@@ -367,20 +364,11 @@ export const deleteNotificationsForSession = internalMutation({
     sessionType: sessionTypeValidator,
   },
   handler: async (ctx, args) => {
-    // We need to scan by raceId/sessionType — no direct index, so filter on user_created
-    // Use by_race pattern: query all results_published for this session
     const toDelete: Array<Id<'inAppNotifications'>> = [];
-
-    // Scan all notifications of the relevant types for this race+session
-    // Since we don't have a race+session index, we'll use a collection approach
-    // This is acceptable for the rollback/admin path (not on hot path)
     const notifications = await ctx.db
       .query('inAppNotifications')
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('raceId'), args.raceId),
-          q.eq(q.field('sessionType'), args.sessionType),
-        ),
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )
       .take(1000);
 

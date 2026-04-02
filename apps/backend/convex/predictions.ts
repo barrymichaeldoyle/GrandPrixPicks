@@ -49,10 +49,10 @@ export const myPredictionHistory = query({
     const predictions = await ctx.db
       .query('predictions')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(500);
 
     // Get all drivers for lookups
-    const allDrivers = await ctx.db.query('drivers').collect();
+    const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
     const driverMap = new Map(allDrivers.map((d) => [d._id, d]));
 
     // Group predictions by raceId
@@ -77,7 +77,7 @@ export const myPredictionHistory = query({
           .withIndex('by_user_race_session', (q) =>
             q.eq('userId', viewer._id).eq('raceId', raceId),
           )
-          .collect();
+          .take(8);
 
         // Build session predictions map
         const sessions: Record<
@@ -153,9 +153,9 @@ export const getUserPredictionHistory = query({
     const predictions = await ctx.db
       .query('predictions')
       .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .collect();
+      .take(500);
 
-    const allDrivers = await ctx.db.query('drivers').collect();
+    const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
     const driverMap = new Map(allDrivers.map((d) => [d._id, d]));
 
     const byRace = new Map<Id<'races'>, Array<(typeof predictions)[0]>>();
@@ -179,7 +179,7 @@ export const getUserPredictionHistory = query({
           .withIndex('by_user_race_session', (q) =>
             q.eq('userId', args.userId).eq('raceId', raceId),
           )
-          .collect();
+          .take(8);
 
         const lockTimes: Record<SessionType, number | undefined> = {
           quali: race.qualiLockAt,
@@ -320,7 +320,7 @@ export const myWeekendPredictions = query({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(8);
 
     // Group by session type
     const bySession: Record<SessionType, Array<Id<'drivers'>> | null> = {
@@ -367,11 +367,15 @@ export const submitPrediction = mutation({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(8);
 
     // Only allow predictions for the next upcoming race
-    const allRaces = await ctx.db.query('races').collect();
-    const nextRace = findNextPredictionRace(allRaces, now);
+    const nextRace = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .first();
 
     // Runtime guard: type doesn't reflect that upcomingRaces can be empty or not match
     if (!nextRace || nextRace._id !== args.raceId) {

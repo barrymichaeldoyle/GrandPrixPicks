@@ -62,13 +62,24 @@ export function getPredictionOpenAtFromRaces<T extends PredictionRace>(
 export const listRaces = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const races = await ctx.db.query('races').collect();
-    const filtered =
-      args.season === undefined
-        ? races
-        : races.filter((r) => r.season === args.season);
+    if (args.season !== undefined) {
+      return await ctx.db
+        .query('races')
+        .withIndex('by_season_round', (q) => q.eq('season', args.season!))
+        .take(40);
+    }
 
-    return filtered.sort((a, b) => a.round - b.round);
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round')
+      .take(100);
+
+    return races.sort((a, b) => {
+      if (a.season !== b.season) {
+        return a.season - b.season;
+      }
+      return a.round - b.round;
+    });
   },
 });
 
@@ -76,8 +87,12 @@ export const getNextRace = query({
   args: {},
   handler: async (ctx): Promise<Doc<'races'> | null> => {
     const now = Date.now();
-    const races = await ctx.db.query('races').collect();
-    return findNextPredictionRace(races, now);
+    return await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .first();
   },
 });
 
@@ -115,8 +130,7 @@ export const getRaceBySlugOrLegacyRef = query({
       return bySlug;
     }
 
-    const races = await ctx.db.query('races').collect();
-    return findRaceBySlugOrLegacyRef(races, args.ref);
+    return await ctx.db.get(args.ref as Id<'races'>);
   },
 });
 
@@ -132,8 +146,11 @@ export const getPredictionOpenAt = query({
       return null;
     }
 
-    const allRaces = await ctx.db.query('races').collect();
-    return getPredictionOpenAtFromRaces(allRaces, race);
+    const seasonRaces = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', race.season))
+      .take(race.round - 1);
+    return getPredictionOpenAtFromRaces(seasonRaces, race);
   },
 });
 
@@ -148,7 +165,10 @@ export const getWeekendLeaderboardRace = query({
     const season = args.season ?? 2026;
     const now = Date.now();
 
-    const races = await ctx.db.query('races').collect();
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', season))
+      .take(40);
     const seasonRaces = races
       .filter((r) => r.season === season && r.status !== 'cancelled')
       .sort((a, b) => a.round - b.round);

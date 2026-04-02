@@ -20,8 +20,7 @@
       ],
       "ignoreDependencies": [
         "@tanstack/router-plugin",
-        "tailwindcss",
-        "babel-plugin-react-compiler"
+        "tailwindcss"
       ],
       "ignoreBinaries": ["cloudflared"]
     },

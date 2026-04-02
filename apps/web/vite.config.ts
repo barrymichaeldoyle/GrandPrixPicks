@@ -6,11 +6,11 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
-import viteReact from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
+import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 import type { PluginOption } from 'vite';
 import { defineConfig } from 'vite';
-import viteTsConfigPaths from 'vite-tsconfig-paths';
 
 // Use Cloudflare Pages preset when CF_PAGES env var is set (during deployment)
 const nitroPreset = process.env.CF_PAGES ? 'cloudflare-pages' : 'node-server';
@@ -27,6 +27,13 @@ const sentryTanstackClientEntry = join(
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.VITE_SENTRY_ORG;
 const sentryProject = process.env.VITE_SENTRY_PROJECT;
+const reactCompiler = reactCompilerPreset();
+reactCompiler.rolldown.filter = {
+  id: {
+    include: ['src/**/*.{js,jsx,ts,tsx}'],
+    exclude: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+  },
+};
 
 const config = defineConfig(({ mode }) => {
   const isProductionBuild = mode === 'production';
@@ -38,6 +45,7 @@ const config = defineConfig(({ mode }) => {
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {
+      tsconfigPaths: true,
       ...(isCloudflarePages ? { conditions: ['browser'] } : {}),
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -104,16 +112,16 @@ const config = defineConfig(({ mode }) => {
               },
             }) as PluginOption,
           ]),
-      viteTsConfigPaths({
-        projects: ['./tsconfig.json'],
-      }) as PluginOption,
       tailwindcss() as PluginOption,
       ...(isVitest ? [] : [tanstackStart() as PluginOption]),
-      viteReact({
-        babel: {
-          plugins: ['babel-plugin-react-compiler'],
-        },
-      }) as PluginOption,
+      viteReact() as PluginOption,
+      ...(isProductionBuild
+        ? [
+            babel({
+              presets: [reactCompiler],
+            }) as PluginOption,
+          ]
+        : []),
       // Sentry plugin last so source maps are generated and can be uploaded
       ...(sentryEnabled
         ? [

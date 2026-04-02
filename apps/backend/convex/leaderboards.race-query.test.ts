@@ -42,7 +42,7 @@ function makeCtx(params: {
           }
           if (table === 'scores') {
             return {
-              collect: () => Promise.resolve(params.scores ?? []),
+              take: (_limit: number) => Promise.resolve(params.scores ?? []),
             };
           }
           throw new Error(`Unsupported table in test ctx: ${table}`);

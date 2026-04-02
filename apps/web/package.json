@@ -62,10 +62,10 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "satori": "0.26.0",
-    "tailwindcss": "4.2.2",
-    "vite-tsconfig-paths": "6.1.1"
+    "tailwindcss": "4.2.2"
   },
   "devDependencies": {
+    "@rolldown/plugin-babel": "0.2.0",
     "@sentry/vite-plugin": "5.1.1",
     "@storybook/addon-vitest": "10.3.4",
     "@storybook/react": "10.3.4",

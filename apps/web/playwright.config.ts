@@ -1,7 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const PORT = 3000;
 const baseURL = `http://localhost:${PORT}`;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const authStorageState = path.resolve(__dirname, 'tests/e2e/.auth/user.json');
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -14,14 +19,32 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
+      name: 'public-chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: [
+        /auth\.setup\.ts$/,
+        /auth-smoke\.spec\.ts$/,
+        /prediction-flow-smoke\.spec\.ts$/,
+      ],
+    },
+    {
+      name: 'auth-setup',
+      testMatch: /auth\.setup\.ts$/,
+    },
+    {
+      name: 'auth-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: authStorageState,
+      },
+      dependencies: ['auth-setup'],
+      testIgnore: [/auth\.setup\.ts$/, /public-smoke\.spec\.ts$/],
     },
   ],
   webServer: {
     command: 'pnpm dev',
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120_000,
   },
 });

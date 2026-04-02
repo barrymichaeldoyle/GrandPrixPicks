@@ -820,7 +820,7 @@ export function FeedEmptyState({
   );
 }
 
-export type SessionHeader = {
+type SessionHeader = {
   raceName: string;
   sessionType: string;
   raceSlug?: string;

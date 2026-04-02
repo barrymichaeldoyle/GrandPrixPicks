@@ -34,7 +34,7 @@
       ]
     },
     "apps/mobile": {
-      "entry": ["App.tsx", "metro.config.cjs"],
+      "entry": ["App.tsx"],
       "project": ["**/*.{ts,tsx,js,cjs}"],
       "ignoreDependencies": [
         "expo-updates",

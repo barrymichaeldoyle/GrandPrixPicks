@@ -1,7 +1,7 @@
 export const GENERIC_USER_FACING_ERROR_MESSAGE =
   'Something went wrong. Please try again.';
 
-export interface UserFacingErrorDetails {
+interface UserFacingErrorDetails {
   message: string;
   isGenericFallback: boolean;
 }

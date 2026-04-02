@@ -35,7 +35,7 @@ type AnyFunctionReference = FunctionReference<
   unknown
 >;
 
-export type StorybookConvexMocks = {
+type StorybookConvexMocks = {
   queries?: Record<string, QueryResolver>;
   mutations?: Record<string, MutationResolver>;
   connectionState?: {

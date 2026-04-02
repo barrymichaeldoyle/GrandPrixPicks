@@ -151,20 +151,18 @@ jobs:
           if [ "$missing" -eq 0 ]; then
             echo "run_e2e=true" >> "$GITHUB_OUTPUT"
           else
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Skipping web e2e smoke::Required Clerk/Convex secrets are not configured for this repository."
+            echo "::error title=Missing web e2e secrets::Required Clerk/Convex secrets are not configured for this repository."
+            exit 1
           fi
 
       - name: Install Playwright browser
-        if: ${{ steps.secret_check.outputs.run_e2e == 'true' }}
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run web e2e smoke
-        if: ${{ steps.secret_check.outputs.run_e2e == 'true' }}
         run: pnpm test:e2e:smoke
 
       - name: Upload Playwright report
-        if: ${{ always() && steps.secret_check.outputs.run_e2e == 'true' }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -172,7 +170,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload Playwright test results
-        if: ${{ failure() && steps.secret_check.outputs.run_e2e == 'true' }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results

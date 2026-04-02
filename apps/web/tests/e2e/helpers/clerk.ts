@@ -87,48 +87,70 @@ export async function signInE2EClerkIdentity(
   identity: E2EClerkIdentity,
   targetPath = '/',
 ) {
-  const signInTokenUrl = await createE2EClerkSignInTokenUrl(
-    identity.userId,
-    targetPath,
-  );
+  let lastError: unknown = null;
 
-  await page.goto(signInTokenUrl, {
-    waitUntil: 'domcontentloaded',
-    timeout: 20_000,
-  });
-  await page.waitForFunction(
-    () => {
-      const href = window.location.href;
-      return (
-        href.includes('localhost:3000') ||
-        href.includes('accounts.dev/default-redirect')
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const signInTokenUrl = await createE2EClerkSignInTokenUrl(
+        identity.userId,
+        targetPath,
       );
-    },
-    undefined,
-    { timeout: 20_000 },
-  );
 
-  if (!page.url().startsWith(E2E_APP_ORIGIN)) {
-    await page.goto(targetPath, {
-      waitUntil: 'domcontentloaded',
-      timeout: 20_000,
-    });
+      await page.goto(signInTokenUrl, {
+        waitUntil: 'commit',
+        timeout: 20_000,
+      });
+      await page.waitForFunction(
+        () => {
+          const href = window.location.href;
+          return (
+            href.includes('localhost:3000') ||
+            href.includes('accounts.dev/default-redirect')
+          );
+        },
+        undefined,
+        { timeout: 20_000 },
+      );
+
+      if (!page.url().startsWith(E2E_APP_ORIGIN)) {
+        await page.goto(targetPath, {
+          waitUntil: 'domcontentloaded',
+          timeout: 20_000,
+        });
+      }
+
+      await page.waitForFunction(
+        () => {
+          const clerkWindow = window as Window & {
+            Clerk?: {
+              loaded?: boolean;
+              user?: { id?: string | null } | null;
+            };
+          };
+
+          return (
+            clerkWindow.Clerk?.loaded === true &&
+            Boolean(clerkWindow.Clerk?.user?.id)
+          );
+        },
+        undefined,
+        { timeout: 20_000 },
+      );
+
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === 3) {
+        break;
+      }
+
+      await page.context().clearCookies().catch(() => null);
+      await page.goto('about:blank').catch(() => null);
+    }
   }
-  await page.waitForFunction(
-    () => {
-      const clerkWindow = window as Window & {
-        Clerk?: {
-          loaded?: boolean;
-          user?: { id?: string | null } | null;
-        };
-      };
 
-      return (
-        clerkWindow.Clerk?.loaded === true &&
-        Boolean(clerkWindow.Clerk?.user?.id)
-      );
-    },
-    undefined,
-    { timeout: 20_000 },
-  );
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Failed to sign in E2E Clerk identity');
 }

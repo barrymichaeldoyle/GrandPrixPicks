@@ -1,5 +1,7 @@
 # Testing Scenarios
 
+For the broader testing entrypoint and command guide, start with [testing.md](/Users/barry/dev/grand-prix-picks/docs/testing.md).
+
 This repo now has a starter testing-scenario scaffold for state-heavy race flows.
 
 The goal is to stop treating the shared dev database as the test harness. Instead, use named, repeatable scenarios that can be applied, summarized, and cleared.
@@ -194,7 +196,7 @@ That test verifies:
 - H2H-complete scenarios stay aligned with complete prediction state
 - the core race phases remain represented in the matrix
 
-There is now also a minimal Playwright smoke harness at [scenario-smoke.spec.ts](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e/scenario-smoke.spec.ts), with the Playwright config living alongside the web app in [playwright.config.ts](/Users/barry/dev/grand-prix-picks/apps/web/playwright.config.ts).
+There is now also a minimal Playwright smoke harness split across [public-smoke.spec.ts](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e/public-smoke.spec.ts), [auth-smoke.spec.ts](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e/auth-smoke.spec.ts), and [prediction-flow-smoke.spec.ts](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e/prediction-flow-smoke.spec.ts), with an authenticated setup project in [auth.setup.ts](/Users/barry/dev/grand-prix-picks/apps/web/tests/e2e/auth.setup.ts) and the Playwright config living alongside the web app in [playwright.config.ts](/Users/barry/dev/grand-prix-picks/apps/web/playwright.config.ts).
 
 Current scope:
 
@@ -202,6 +204,7 @@ Current scope:
 - opens the returned public race route
 - verifies the seeded page renders
 - verifies dev time controls are available in development
+- authenticates once up front for auth-only browser smoke flows, then reuses stored session state
 
 Run it from the repo root:
 
@@ -222,10 +225,10 @@ Note:
 - CI runs the smoke file when these repository secrets are configured:
   - `CLERK_SECRET_KEY`
   - `VITE_CLERK_PUBLISHABLE_KEY`
-- `CLERK_JWT_KEY`
-- `VITE_CONVEX_URL`
-- `CONVEX_DEPLOYMENT`
-- `CONVEX_DEPLOY_KEY`
+  - `CLERK_JWT_KEY`
+  - `VITE_CONVEX_URL`
+  - `CONVEX_DEPLOYMENT`
+  - `CONVEX_DEPLOY_KEY`
 
 ## Adding A New Scenario
 

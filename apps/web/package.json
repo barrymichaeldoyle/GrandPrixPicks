@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
     "test:e2e": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts",
-    "test:e2e:smoke": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts tests/e2e/scenario-smoke.spec.ts --project=chromium",
+    "test:e2e:smoke": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts tests/e2e/public-smoke.spec.ts tests/e2e/auth-smoke.spec.ts tests/e2e/prediction-flow-smoke.spec.ts --project=public-chromium --project=auth-chromium --workers=1",
     "test:e2e:headed": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts --headed",
     "test:e2e:ui": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts --ui",
     "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit",

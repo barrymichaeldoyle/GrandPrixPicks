@@ -82,6 +82,7 @@ export function RaceDetailHeader({
       </div>
       {resultsSummary && (
         <div
+          data-testid="race-results-summary"
           className={`gap-2 border-t-3 px-3 py-2 sm:px-4 md:flex md:flex-col md:justify-center md:border-t-0 md:border-l-3 ${accentBorderClass}`}
         >
           {resultsSummary.showResultsPendingBadge ||

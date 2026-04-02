@@ -438,7 +438,7 @@ export function H2HResultsSection({
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4" data-testid="session-points-breakdown">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />

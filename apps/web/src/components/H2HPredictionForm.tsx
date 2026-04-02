@@ -165,6 +165,7 @@ export function H2HPredictionForm({
       disabled={!allSelected || isSubmitting || isUnchangedFromSaved}
       onClick={handleSubmit}
       leftIcon={isUnchangedFromSaved ? Check : Save}
+      data-testid="h2h-submit-button"
     >
       {isUnchangedFromSaved
         ? 'Saved'
@@ -213,7 +214,11 @@ export function H2HPredictionForm({
         <div className="sm:hidden">{submitButton}</div>
 
         {submitStatus === 'success' && (
-          <span className="text-sm text-success" aria-live="polite">
+          <span
+            className="text-sm text-success"
+            aria-live="polite"
+            data-testid="h2h-submit-success"
+          >
             H2H picks saved.
           </span>
         )}

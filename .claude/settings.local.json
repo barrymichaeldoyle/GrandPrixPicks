@@ -8,7 +8,16 @@
       "Bash(pnpm --filter web exec tsc --noEmit)",
       "mcp__ide__getDiagnostics",
       "Bash(pnpm --filter @grandprixpicks/web tsc --noEmit)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm --filter web lint)",
+      "Bash(pnpm exec:*)",
+      "WebFetch(domain:reactbits.dev)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/DavidHDev/react-bits/main/src/content/Backgrounds/Hyperspeed/Hyperspeed.jsx\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/DavidHDev/react-bits/main/src/content/Backgrounds/Hyperspeed/Hyperspeed.css\")",
+      "Bash(curl -s \"https://api.github.com/repos/DavidHDev/react-bits/contents/src/content/Backgrounds/Hyperspeed\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/DavidHDev/react-bits/main/src/content/Backgrounds/Hyperspeed/HyperSpeedPresets.js\")"
     ]
   }
 }

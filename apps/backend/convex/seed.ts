@@ -5733,3 +5733,125 @@ export const seedRevs = internalMutation({
     return { created };
   },
 });
+
+/**
+ * Seed a sprint weekend in a partially-complete state so the home page hero
+ * can be previewed with all four session statuses visible at once:
+ *   Sprint Qualifying → Finished (results published)
+ *   Sprint            → In Progress (started ~45 min ago, no results)
+ *   Qualifying        → Upcoming (~3 h away)
+ *   Race              → Upcoming (~27 h away)
+ *
+ * The race's raceStartAt is ~27 h in the future so the 12-hour window does
+ * NOT trigger — the home page shows this as the "next race" with a countdown
+ * to Qualifying.
+ *
+ * Run via:
+ *   npx convex run seed:seedHomePageScenario
+ *
+ * To reset back to normal, run seedRaces again or resetToPreSeason.
+ */
+export const seedHomePageScenario = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+
+    // Find a sprint weekend to use
+    const sprintRace = await ctx.db
+      .query('races')
+      .withIndex('by_season_round')
+      .filter((q) => q.eq(q.field('hasSprint'), true))
+      .first();
+
+    if (!sprintRace) {
+      throw new Error(
+        'No sprint weekend found. Run seedRaces first: npx convex run seed:seedRaces',
+      );
+    }
+
+    const drivers = await ctx.db.query('drivers').take(20);
+    if (drivers.length < 5) {
+      throw new Error(
+        'Need at least 5 drivers. Run seedDrivers first: npx convex run seed:seedDrivers',
+      );
+    }
+
+    // Shuffle for a plausible classification
+    const shuffled = [...drivers];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const classification = shuffled.map((d) => d._id);
+
+    // Session timings
+    const sprintQualiStartAt = now - 4 * HOUR; // finished 4h ago
+    const sprintStartAt = now - 45 * 60 * 1000; // started 45min ago — in progress
+    const qualiStartAt = now + 3 * HOUR; // upcoming in 3h
+    const raceStartAt = now + 27 * HOUR; // upcoming tomorrow
+
+    await ctx.db.patch(sprintRace._id, {
+      status: 'upcoming',
+      hasSprint: true,
+      sprintQualiStartAt,
+      sprintQualiLockAt: sprintQualiStartAt,
+      sprintStartAt,
+      sprintLockAt: sprintStartAt,
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      updatedAt: now,
+    });
+
+    // Publish Sprint Qualifying results
+    const existingSQ = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', sprintRace._id).eq('sessionType', 'sprint_quali'),
+      )
+      .unique();
+
+    if (existingSQ) {
+      await ctx.db.patch(existingSQ._id, {
+        classification,
+        scoringStatus: 'complete',
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert('results', {
+        raceId: sprintRace._id,
+        sessionType: 'sprint_quali',
+        classification,
+        scoringStatus: 'complete',
+        publishedAt: now - 3 * HOUR,
+        updatedAt: now,
+      });
+    }
+
+    // Remove any stale results for Sprint / Quali / Race
+    for (const sessionType of ['sprint', 'quali', 'race'] as const) {
+      const existing = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', sprintRace._id).eq('sessionType', sessionType),
+        )
+        .unique();
+      if (existing) {
+        await ctx.db.delete(existing._id);
+      }
+    }
+
+    return {
+      race: sprintRace.name,
+      slug: sprintRace.slug,
+      sessions: {
+        sprint_quali: `Finished — started ${new Date(sprintQualiStartAt).toISOString()}`,
+        sprint: `In progress — started ${new Date(sprintStartAt).toISOString()}`,
+        quali: `Upcoming — ${new Date(qualiStartAt).toISOString()}`,
+        race: `Upcoming — ${new Date(raceStartAt).toISOString()}`,
+      },
+    };
+  },
+});

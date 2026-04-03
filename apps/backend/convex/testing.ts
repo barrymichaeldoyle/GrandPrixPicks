@@ -589,10 +589,13 @@ export const seedTestScenario = internalMutation({
 });
 
 const REMINDER_DELAY_MINUTES = 5;
+const REMINDER_TEST_QUALI_DAYS_AWAY = 4;
+const REMINDER_TEST_RACE_DAYS_AWAY = 5;
 
 /**
  * DEV ONLY: Clear your predictions for a race and reschedule the reminder
- * so it fires in ~5 minutes. Sets quali to start 24h + REMINDER_DELAY_MINUTES from now.
+ * so it fires in ~5 minutes. Sets quali to start several days from now so the
+ * homepage countdown stays in a "days away" state on small screens.
  *
  * Run via: npx convex run testing:setupReminderTest '{"raceSlug": "australia-2026"}'
  */
@@ -621,9 +624,11 @@ export const setupReminderTest = mutation({
       await ctx.db.delete(p._id);
     }
 
-    // Set quali to 24h + REMINDER_DELAY_MINUTES from now so reminder fires in ~5 mins
-    const qualiStartAt = now + 24 * HOUR + REMINDER_DELAY_MINUTES * MINUTE;
-    const raceStartAt = now + 48 * HOUR;
+    // Keep the reminder test window multi-day for saner homepage layout in dev.
+    // The reminder still fires quickly because it is scheduled relative to qualiStartAt.
+    const qualiStartAt =
+      now + REMINDER_TEST_QUALI_DAYS_AWAY * 24 * HOUR + REMINDER_DELAY_MINUTES * MINUTE;
+    const raceStartAt = now + REMINDER_TEST_RACE_DAYS_AWAY * 24 * HOUR;
 
     await ctx.db.patch(race._id, {
       qualiStartAt,

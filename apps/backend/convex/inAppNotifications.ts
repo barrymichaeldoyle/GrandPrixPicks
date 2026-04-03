@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 
@@ -14,6 +14,28 @@ const sessionTypeValidator = v.union(
 );
 
 const MAX_NOTIFICATIONS = 30;
+
+async function loadFollowedActorIds(
+  ctx: Pick<QueryCtx, 'db'>,
+  viewerId: Id<'users'>,
+  actorIds: Iterable<Id<'users'>>,
+) {
+  const followedIds = new Set<Id<'users'>>();
+
+  for (const actorId of actorIds) {
+    const existing = await ctx.db
+      .query('follows')
+      .withIndex('by_follower_followee', (q) =>
+        q.eq('followerId', viewerId).eq('followeeId', actorId),
+      )
+      .unique();
+    if (existing) {
+      followedIds.add(actorId);
+    }
+  }
+
+  return followedIds;
+}
 
 // ============ Public queries ============
 
@@ -31,12 +53,13 @@ export const getMyNotifications = query({
       .order('desc')
       .take(MAX_NOTIFICATIONS);
 
-    // Fetch followed IDs so rev actors can be ordered: followed first
-    const follows = await ctx.db
-      .query('follows')
-      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .take(5000);
-    const followedIds = new Set(follows.map((f) => f.followeeId));
+    const actorIds = new Set<Id<'users'>>();
+    for (const notification of notifications) {
+      if (notification.actorUserId) {
+        actorIds.add(notification.actorUserId);
+      }
+    }
+    const followedIds = await loadFollowedActorIds(ctx, viewer._id, actorIds);
 
     // Group rev_received by feedEventId; pass everything else through unchanged
     const revsByEventId = new Map<Id<'feedEvents'>, typeof notifications>();
@@ -134,18 +157,16 @@ export const markRead = mutation({
 
     // For grouped revs, mark all notifications for the feed event as read
     if (args.feedEventId) {
-      const revNotifs = await ctx.db
+      for await (const notification of ctx.db
         .query('inAppNotifications')
         .withIndex('by_user_type_and_feedEventId', (q) =>
           q
             .eq('userId', viewer._id)
             .eq('type', 'rev_received')
             .eq('feedEventId', args.feedEventId),
-        )
-        .collect();
-      for (const n of revNotifs) {
-        if (!n.readAt) {
-          await ctx.db.patch(n._id, { readAt: now });
+        )) {
+        if (!notification.readAt) {
+          await ctx.db.patch(notification._id, { readAt: now });
         }
       }
       return;
@@ -263,30 +284,26 @@ export const notifyUsersSessionLocked = internalMutation({
       return;
     }
 
-    const predictions = await ctx.db
+    const now = Date.now();
+    const notifiedUserIds: Id<'users'>[] = [];
+    const existingNotificationUserIds = new Set<Id<'users'>>();
+
+    for await (const notification of ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )) {
+      if (notification.type === 'session_locked') {
+        existingNotificationUserIds.add(notification.userId);
+      }
+    }
+
+    for await (const prediction of ctx.db
       .query('predictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(500);
-
-    const now = Date.now();
-    const notifiedUserIds: Array<(typeof predictions)[number]['userId']> = [];
-
-    for (const prediction of predictions) {
-      // Skip if we've already notified this user for this session lock
-      const existing = await ctx.db
-        .query('inAppNotifications')
-        .withIndex('by_user_type_raceId_and_sessionType', (q) =>
-          q
-            .eq('userId', prediction.userId)
-            .eq('type', 'session_locked')
-            .eq('raceId', args.raceId)
-            .eq('sessionType', args.sessionType),
-        )
-        .first();
-
-      if (existing) {
+      )) {
+      if (existingNotificationUserIds.has(prediction.userId)) {
         continue;
       }
 
@@ -301,6 +318,7 @@ export const notifyUsersSessionLocked = internalMutation({
       });
 
       notifiedUserIds.push(prediction.userId);
+      existingNotificationUserIds.add(prediction.userId);
     }
 
     if (notifiedUserIds.length > 0) {
@@ -365,15 +383,12 @@ export const deleteNotificationsForSession = internalMutation({
   },
   handler: async (ctx, args) => {
     const toDelete: Array<Id<'inAppNotifications'>> = [];
-    const notifications = await ctx.db
+    for await (const notification of ctx.db
       .query('inAppNotifications')
       .withIndex('by_raceId_and_sessionType', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(1000);
-
-    for (const n of notifications) {
-      toDelete.push(n._id);
+      )) {
+      toDelete.push(notification._id);
     }
 
     for (const id of toDelete) {

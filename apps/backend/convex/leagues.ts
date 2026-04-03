@@ -85,6 +85,26 @@ async function getLeagueLimitsForUser(
   return { limits, hasSeasonPass };
 }
 
+async function getDefaultLeagueSeason(ctx: MutationCtx | QueryCtx) {
+  const now = Date.now();
+  const nextUpcomingRace = await ctx.db
+    .query('races')
+    .withIndex('by_status_and_predictionLockAt', (q) =>
+      q.eq('status', 'upcoming').gt('predictionLockAt', now),
+    )
+    .first();
+  if (nextUpcomingRace) {
+    return nextUpcomingRace.season;
+  }
+
+  const latestRace = await ctx.db
+    .query('races')
+    .withIndex('by_raceStartAt')
+    .order('desc')
+    .first();
+  return latestRace?.season ?? 2026;
+}
+
 function validateSlug(slug: string): string {
   const trimmed = slug.trim().toLowerCase();
   if (trimmed.length < 3 || trimmed.length > 30) {
@@ -165,7 +185,7 @@ export const listPublicLeagues = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    const season = args.season ?? 2026;
+    const season = args.season ?? (await getDefaultLeagueSeason(ctx));
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
 
     const publicLeagues = await ctx.db
@@ -363,7 +383,7 @@ export const getMyLeagueUsage = query({
       return null;
     }
 
-    const season = args.season ?? 2026;
+    const season = args.season ?? (await getDefaultLeagueSeason(ctx));
     const hasSeasonPass = await hasSeasonPassForSeason(ctx, viewer._id, season);
     const limits = hasSeasonPass ? SEASON_PASS_LIMITS : FREE_LIMITS;
 
@@ -469,7 +489,7 @@ export const createLeague = mutation({
     const password =
       visibility === 'private' ? args.password?.trim() || undefined : undefined;
 
-    const season = 2026; // TODO: derive dynamically when multi-season is supported
+    const season = await getDefaultLeagueSeason(ctx);
     const { limits, hasSeasonPass } = await getLeagueLimitsForUser(
       ctx,
       viewer._id,
@@ -527,7 +547,7 @@ export const createLeague = mutation({
       password,
       visibility,
       createdBy: viewer._id,
-      season: 2026,
+      season,
       memberCount: 1,
       adminCount: 1,
       createdAt: now,
@@ -928,31 +948,5 @@ export const deleteLeague = mutation({
     }
 
     await ctx.db.delete(args.leagueId);
-  },
-});
-
-/**
- * One-off migration: set visibility to 'private' for any league that doesn't have it.
- * Run once from Convex dashboard or: npx convex run leagues:migrateLeagueVisibility
- * Run this after deploying so the function exists on the deployment.
- */
-export const migrateLeagueVisibility = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const leagues = await ctx.db.query('leagues').collect();
-    const now = Date.now();
-    let patched = 0;
-    for (const league of leagues) {
-      const visibility = (league as { visibility?: 'private' | 'public' })
-        .visibility;
-      if (visibility === undefined) {
-        await ctx.db.patch(league._id, {
-          visibility: 'private',
-          updatedAt: now,
-        });
-        patched += 1;
-      }
-    }
-    return { patched, total: leagues.length };
   },
 });

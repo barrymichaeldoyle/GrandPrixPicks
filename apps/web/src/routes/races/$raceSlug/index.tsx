@@ -31,7 +31,7 @@ const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 export const Route = createFileRoute('/races/$raceSlug/')({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { session?: SessionType } => {
+  ): { session?: SessionType; from?: 'home' } => {
     const rawSession = search.session;
     const session =
       rawSession === 'quali' ||
@@ -40,7 +40,8 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       rawSession === 'race'
         ? rawSession
         : undefined;
-    return { session };
+    const from = search.from === 'home' ? ('home' as const) : undefined;
+    return { session, from };
   },
   component: RaceDetailPage,
   loader: async ({ params, location }) => {
@@ -117,6 +118,14 @@ function BackToRacesLink() {
   );
 }
 
+function BackToHomeLink() {
+  return (
+    <Button asChild variant="text" size="sm" leftIcon={ArrowLeft}>
+      <Link to="/">Back to home</Link>
+    </Button>
+  );
+}
+
 function LeaderboardLink() {
   return (
     <Button asChild variant="text" size="sm" leftIcon={Trophy}>
@@ -145,6 +154,7 @@ function RaceDetailPage() {
   const { race, nextRace } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
+  const { from } = search;
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const now = useNow();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
@@ -469,7 +479,7 @@ function RaceDetailPage() {
             hasH2HPredictions={hasH2HPredictions}
           />
         }
-        backLink={<BackToRacesLink />}
+        backLink={from === 'home' ? <BackToHomeLink /> : <BackToRacesLink />}
         leaderboardLink={<LeaderboardLink />}
       />
       {import.meta.env.DEV ? (

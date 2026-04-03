@@ -60,38 +60,38 @@ async function rollbackResultsCore(
   }
 
   const season = race.season;
-  const affectedTop5Scores = await ctx.db
+  const affectedUserIds = new Set<Id<'users'>>();
+  let deletedTop5Scores = 0;
+  let deletedH2HScores = 0;
+  let deletedH2HResults = 0;
+
+  for await (const score of ctx.db
     .query('scores')
     .withIndex('by_race_session', (q) =>
       q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-    )
-    .collect();
-  const affectedH2HScores = await ctx.db
+    )) {
+    affectedUserIds.add(score.userId);
+    await ctx.db.delete(score._id);
+    deletedTop5Scores += 1;
+  }
+
+  for await (const score of ctx.db
     .query('h2hScores')
     .withIndex('by_race_session', (q) =>
       q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-    )
-    .collect();
-  const affectedUserIds = new Set<Id<'users'>>();
-
-  for (const score of affectedTop5Scores) {
+    )) {
     affectedUserIds.add(score.userId);
     await ctx.db.delete(score._id);
+    deletedH2HScores += 1;
   }
 
-  for (const score of affectedH2HScores) {
-    affectedUserIds.add(score.userId);
-    await ctx.db.delete(score._id);
-  }
-
-  const h2hResults = await ctx.db
+  for await (const result of ctx.db
     .query('h2hResults')
     .withIndex('by_race_session', (q) =>
       q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-    )
-    .collect();
-  for (const result of h2hResults) {
+    )) {
     await ctx.db.delete(result._id);
+    deletedH2HResults += 1;
   }
 
   const result = await ctx.db
@@ -126,9 +126,9 @@ async function rollbackResultsCore(
     ok: true,
     deleted: {
       result: result ? 1 : 0,
-      top5Scores: affectedTop5Scores.length,
-      h2hResults: h2hResults.length,
-      h2hScores: affectedH2HScores.length,
+      top5Scores: deletedTop5Scores,
+      h2hResults: deletedH2HResults,
+      h2hScores: deletedH2HScores,
     },
     raceStatus:
       args.sessionType === 'race'
@@ -489,20 +489,16 @@ export const getRaceRank = query({
     }
 
     // Get all scores for this race
-    const allScores = await ctx.db
-      .query('scores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .take(5000);
-
-    if (allScores.length === 0) {
-      return null;
-    }
-
-    // Aggregate points per user
     const pointsByUser = new Map<string, number>();
-    for (const score of allScores) {
+    for await (const score of ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const current = pointsByUser.get(score.userId) ?? 0;
       pointsByUser.set(score.userId, current + score.points);
+    }
+
+    if (pointsByUser.size === 0) {
+      return null;
     }
 
     const viewerPoints = pointsByUser.get(viewer._id);
@@ -533,14 +529,11 @@ async function upsertStandings(
   season: number,
 ) {
   const now = Date.now();
-  const userScores = await ctx.db
-    .query('scores')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .collect();
-
   let totalPoints = 0;
   const raceIds = new Set<string>();
-  for (const s of userScores) {
+  for await (const s of ctx.db
+    .query('scores')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
     totalPoints += s.points;
     raceIds.add(s.raceId);
   }
@@ -584,16 +577,13 @@ async function upsertH2HStandings(
   season: number,
 ) {
   const now = Date.now();
-  const userScores = await ctx.db
-    .query('h2hScores')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .collect();
-
   let totalPoints = 0;
   let correctPicks = 0;
   let totalPicks = 0;
   const raceIds = new Set<string>();
-  for (const s of userScores) {
+  for await (const s of ctx.db
+    .query('h2hScores')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
     totalPoints += s.points;
     correctPicks += s.correctPicks;
     totalPicks += s.totalPicks;
@@ -712,14 +702,34 @@ export const scoreTopFiveForSession = internalMutation({
     suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const predictions = await ctx.db
+    let hasPredictions = false;
+    let batch: Id<'predictions'>[] = [];
+
+    for await (const prediction of ctx.db
       .query('predictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .collect();
+      )) {
+      hasPredictions = true;
+      batch.push(prediction._id);
 
-    if (predictions.length === 0) {
+      if (batch.length < BATCH_SIZE) {
+        continue;
+      }
+
+      await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveBatch, {
+        predictionIds: batch,
+        classification: args.classification,
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        season: args.season,
+        resultId: args.resultId,
+        suppressNotifications: args.suppressNotifications ?? false,
+      });
+      batch = [];
+    }
+
+    if (!hasPredictions) {
       // No predictions to score — mark complete immediately
       await ctx.scheduler.runAfter(0, internal.results.checkScoringComplete, {
         resultId: args.resultId,
@@ -730,13 +740,9 @@ export const scoreTopFiveForSession = internalMutation({
       return;
     }
 
-    // Split into batches and schedule each
-    for (let i = 0; i < predictions.length; i += BATCH_SIZE) {
-      const batch = predictions.slice(i, i + BATCH_SIZE);
-      const predictionIds = batch.map((p) => p._id);
-
+    if (batch.length > 0) {
       await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveBatch, {
-        predictionIds,
+        predictionIds: batch,
         classification: args.classification,
         raceId: args.raceId,
         sessionType: args.sessionType,
@@ -854,11 +860,6 @@ export const scoreH2HForSession = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    const matchups = await ctx.db
-      .query('h2hMatchups')
-      .withIndex('by_season', (q) => q.eq('season', args.season))
-      .collect();
-
     // Build position map from classification
     const classificationPosition = new Map<Id<'drivers'>, number>();
     for (let i = 0; i < args.classification.length; i++) {
@@ -867,7 +868,9 @@ export const scoreH2HForSession = internalMutation({
 
     // Determine H2H winner for each matchup and upsert h2hResults
     // (bounded by team count ~10, fine in one transaction)
-    for (const matchup of matchups) {
+    for await (const matchup of ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', args.season))) {
       const pos1 = classificationPosition.get(matchup.driver1Id);
       const pos2 = classificationPosition.get(matchup.driver2Id);
 
@@ -909,24 +912,36 @@ export const scoreH2HForSession = internalMutation({
     }
 
     // Now batch H2H prediction scoring
-    const h2hPredictions = await ctx.db
+    let hasPredictions = false;
+    let batch: Id<'h2hPredictions'>[] = [];
+    for await (const prediction of ctx.db
       .query('h2hPredictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .collect();
+      )) {
+      hasPredictions = true;
+      batch.push(prediction._id);
 
-    if (h2hPredictions.length === 0) {
+      if (batch.length < BATCH_SIZE) {
+        continue;
+      }
+
+      await ctx.scheduler.runAfter(0, internal.results.scoreH2HBatch, {
+        h2hPredictionIds: batch,
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        season: args.season,
+      });
+      batch = [];
+    }
+
+    if (!hasPredictions) {
       return;
     }
 
-    // Batch by prediction IDs (each batch will group by user internally)
-    for (let i = 0; i < h2hPredictions.length; i += BATCH_SIZE) {
-      const batch = h2hPredictions.slice(i, i + BATCH_SIZE);
-      const predictionIds = batch.map((p) => p._id);
-
+    if (batch.length > 0) {
       await ctx.scheduler.runAfter(0, internal.results.scoreH2HBatch, {
-        h2hPredictionIds: predictionIds,
+        h2hPredictionIds: batch,
         raceId: args.raceId,
         sessionType: args.sessionType,
         season: args.season,
@@ -946,15 +961,14 @@ export const scoreH2HBatch = internalMutation({
     const now = Date.now();
 
     // Load H2H results for this session
-    const h2hResults = await ctx.db
+    const h2hResultMap = new Map<string, Id<'drivers'>>();
+    for await (const result of ctx.db
       .query('h2hResults')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .collect();
-    const h2hResultMap = new Map(
-      h2hResults.map((r) => [r.matchupId.toString(), r.winnerId]),
-    );
+      )) {
+      h2hResultMap.set(result.matchupId.toString(), result.winnerId);
+    }
 
     // Only use the batch to discover affected users. The canonical score for a
     // user/session must always be computed from that user's full prediction set,
@@ -973,15 +987,19 @@ export const scoreH2HBatch = internalMutation({
     for (const userId of affectedUserIds) {
       userIds.add(userId);
 
-      const userPredictions = await ctx.db
+      const userPredictions: Array<
+        Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>
+      > = [];
+      for await (const prediction of ctx.db
         .query('h2hPredictions')
         .withIndex('by_user_race_session', (q) =>
           q
             .eq('userId', userId)
             .eq('raceId', args.raceId)
             .eq('sessionType', args.sessionType),
-        )
-        .collect();
+        )) {
+        userPredictions.push(prediction);
+      }
       const { correctPicks, totalPicks, points } = summarizeH2HScore(
         userPredictions,
         h2hResultMap,
@@ -1055,14 +1073,11 @@ export const checkScoringComplete = internalMutation({
   },
   handler: async (ctx, args) => {
     // Check if all predictions for this session have been scored
-    const predictions = await ctx.db
+    for await (const pred of ctx.db
       .query('predictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .collect();
-
-    for (const pred of predictions) {
+      )) {
       const score = await ctx.db
         .query('scores')
         .withIndex('by_user_race_session', (q) =>
@@ -1123,190 +1138,5 @@ export const checkScoringComplete = internalMutation({
         );
       }
     }
-  },
-});
-
-// ============ Backfill ============
-
-/**
- * One-time backfill: populate denormalized user fields on existing rows.
- * Processes one table at a time in batches to stay within read limits.
- * Run with table arg: "seasonStandings", "h2hSeasonStandings", or "scores".
- */
-export const backfillDenormalizedUserFields = internalMutation({
-  args: {
-    table: v.union(
-      v.literal('seasonStandings'),
-      v.literal('h2hSeasonStandings'),
-      v.literal('scores'),
-    ),
-    cursor: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const BACKFILL_BATCH_SIZE = 500;
-
-    // Cache user lookups within this batch
-    const userCache = new Map<string, Doc<'users'> | null>();
-    async function getUser(userId: Id<'users'>) {
-      const cached = userCache.get(userId);
-      if (cached !== undefined) {
-        return cached;
-      }
-      const user = await ctx.db.get(userId);
-      userCache.set(userId, user);
-      return user;
-    }
-
-    const result = await ctx.db
-      .query(args.table)
-      .paginate({ numItems: BACKFILL_BATCH_SIZE, cursor: args.cursor ?? null });
-
-    let patched = 0;
-    for (const row of result.page) {
-      const user = await getUser(row.userId);
-      if (user) {
-        await ctx.db.patch(row._id, {
-          username: user.username,
-          avatarUrl: user.avatarUrl,
-        });
-        patched++;
-      }
-    }
-
-    return {
-      ok: true,
-      patched,
-      isDone: result.isDone,
-      continueCursor: result.isDone ? null : result.continueCursor,
-    };
-  },
-});
-
-/**
- * One-time repair: requeue Top 5 scoring for published result sessions using the
- * current scoring rules. This rewrites stored score rows and refreshes
- * standings via the normal scoring pipeline without resending notifications.
- */
-export const backfillTopFiveScores = internalMutation({
-  args: {
-    cursor: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const BACKFILL_BATCH_SIZE = 10;
-    const page = await ctx.db
-      .query('results')
-      .paginate({ numItems: BACKFILL_BATCH_SIZE, cursor: args.cursor ?? null });
-
-    let queued = 0;
-
-    for (const result of page.page) {
-      const race = await ctx.db.get(result.raceId);
-      if (!race) {
-        continue;
-      }
-
-      await ctx.scheduler.runAfter(0, internal.results.scoreTopFiveForSession, {
-        raceId: result.raceId,
-        sessionType: result.sessionType,
-        classification: result.classification,
-        season: race.season,
-        resultId: result._id,
-        suppressNotifications: true,
-      });
-      queued++;
-    }
-
-    return {
-      ok: true,
-      queued,
-      isDone: page.isDone,
-      continueCursor: page.isDone ? null : page.continueCursor,
-    };
-  },
-});
-
-/**
- * One-time repair: recompute stored H2H score rows from the full user/race/session
- * prediction set, then refresh affected H2H season standings.
- */
-export const backfillH2HScores = internalMutation({
-  args: {
-    cursor: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const BACKFILL_BATCH_SIZE = 250;
-    const page = await ctx.db
-      .query('h2hScores')
-      .paginate({ numItems: BACKFILL_BATCH_SIZE, cursor: args.cursor ?? null });
-
-    const resultCache = new Map<string, Map<string, Id<'drivers'>>>();
-    const seasonCache = new Map<string, number>();
-    const affectedUserSeasons = new Set<string>();
-    let patched = 0;
-
-    for (const row of page.page) {
-      const cacheKey = `${row.raceId}:${row.sessionType}`;
-      let h2hResultMap = resultCache.get(cacheKey);
-      if (!h2hResultMap) {
-        const h2hResults = await ctx.db
-          .query('h2hResults')
-          .withIndex('by_race_session', (q) =>
-            q.eq('raceId', row.raceId).eq('sessionType', row.sessionType),
-          )
-          .collect();
-        h2hResultMap = new Map(
-          h2hResults.map((result) => [
-            result.matchupId.toString(),
-            result.winnerId,
-          ]),
-        );
-        resultCache.set(cacheKey, h2hResultMap);
-      }
-
-      const predictions = await ctx.db
-        .query('h2hPredictions')
-        .withIndex('by_user_race_session', (q) =>
-          q
-            .eq('userId', row.userId)
-            .eq('raceId', row.raceId)
-            .eq('sessionType', row.sessionType),
-        )
-        .collect();
-      const summary = summarizeH2HScore(predictions, h2hResultMap);
-
-      if (
-        row.points !== summary.points ||
-        row.correctPicks !== summary.correctPicks ||
-        row.totalPicks !== summary.totalPicks
-      ) {
-        await ctx.db.patch(row._id, {
-          points: summary.points,
-          correctPicks: summary.correctPicks,
-          totalPicks: summary.totalPicks,
-          updatedAt: Date.now(),
-        });
-        patched++;
-      }
-
-      let season = seasonCache.get(row.raceId);
-      if (season === undefined) {
-        const race = await ctx.db.get(row.raceId);
-        season = race?.season ?? 2026;
-        seasonCache.set(row.raceId, season);
-      }
-      affectedUserSeasons.add(`${row.userId}:${season}`);
-    }
-
-    for (const entry of affectedUserSeasons) {
-      const [userId, season] = entry.split(':');
-      await upsertH2HStandings(ctx, userId as Id<'users'>, Number(season));
-    }
-
-    return {
-      patched,
-      cursor: page.continueCursor,
-      done: page.isDone,
-      scanned: page.page.length,
-    };
   },
 });

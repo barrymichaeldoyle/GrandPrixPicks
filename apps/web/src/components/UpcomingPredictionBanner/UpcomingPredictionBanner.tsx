@@ -52,13 +52,9 @@ export function shouldShowUpcomingH2HNudge(params: {
   return params.hasAnyTop5Predictions && !params.hasCompleteH2H;
 }
 
-export function UpcomingPredictionBanner() {
+export function useUpcomingPredictionBannerState() {
   const { isLoaded, isSignedIn } = useAuth();
-  const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isRandomizing, setIsRandomizing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
   const predictionOpenAt = useQuery(
@@ -77,10 +73,6 @@ export function UpcomingPredictionBanner() {
     api.h2h.myH2HPredictionsForRace,
     isSignedIn && nextRace ? { raceId: nextRace._id } : 'skip',
   );
-  const randomizePredictions = useMutation(
-    api.predictions.randomizePredictions,
-  );
-  const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const currentRace =
     nextRace && nextRace.status === 'upcoming' ? nextRace : null;
   const nudgeKind =
@@ -107,7 +99,10 @@ export function UpcomingPredictionBanner() {
   );
 
   if (!isLoaded || !isSignedIn) {
-    return null;
+    return {
+      isVisible: false,
+      hasCompleteUpcomingPredictions: false,
+    } as const;
   }
 
   if (
@@ -116,11 +111,17 @@ export function UpcomingPredictionBanner() {
     weekendPredictions === undefined ||
     h2hPredictions === undefined
   ) {
-    return null;
+    return {
+      isVisible: false,
+      hasCompleteUpcomingPredictions: false,
+    } as const;
   }
 
   if (!currentRace) {
-    return null;
+    return {
+      isVisible: false,
+      hasCompleteUpcomingPredictions: false,
+    } as const;
   }
   const activeRace = currentRace;
   const now = Date.now();
@@ -150,6 +151,8 @@ export function UpcomingPredictionBanner() {
   const hasCompleteH2H = relevantSessions.every(
     (sessionType) => h2hPredictions?.[sessionType] != null,
   );
+  const hasCompleteUpcomingPredictions =
+    relevantSessions.length > 0 && hasAnyTop5Predictions && hasCompleteH2H;
   const racePath = `/races/${activeRace.slug}`;
   const isOnRacePredictionPage =
     pathname === racePath || pathname.startsWith(`${racePath}/`);
@@ -171,11 +174,44 @@ export function UpcomingPredictionBanner() {
     shouldDelayBanner ||
     dismissed
   ) {
+    return {
+      isVisible: false,
+      activeRace,
+      hasCompleteUpcomingPredictions,
+      shouldShowH2HNudge,
+      dismiss,
+      matchups,
+    } as const;
+  }
+
+  return {
+    isVisible: true,
+    activeRace,
+    hasCompleteUpcomingPredictions,
+    shouldShowH2HNudge,
+    dismiss,
+    matchups,
+  } as const;
+}
+
+export function UpcomingPredictionBanner() {
+  const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isRandomizing, setIsRandomizing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const randomizePredictions = useMutation(
+    api.predictions.randomizePredictions,
+  );
+  const submitH2H = useMutation(api.h2h.submitH2HPredictions);
+  const bannerState = useUpcomingPredictionBannerState();
+
+  if (!bannerState.isVisible) {
     return null;
   }
 
-  const needsTop5 = shouldShowTop5Nudge;
-  const needsH2H = shouldShowTop5Nudge || shouldShowH2HNudge;
+  const { activeRace, shouldShowH2HNudge, dismiss, matchups } = bannerState;
+  const needsTop5 = !shouldShowH2HNudge;
+  const needsH2H = true;
   const nudgeMessage = shouldShowH2HNudge
     ? 'Your Top 5 picks were recorded. You still need to submit your remaining H2H picks before each session starts.'
     : 'No predictions yet. Make your weekend picks now and adjust them any time before each session starts.';

@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
@@ -98,6 +98,26 @@ function emptyDeletionSummary(): AccountDeletionSummary {
   };
 }
 
+async function getCurrentSeason(ctx: Pick<QueryCtx, 'db'>) {
+  const now = Date.now();
+  const nextUpcomingRace = await ctx.db
+    .query('races')
+    .withIndex('by_status_and_predictionLockAt', (q) =>
+      q.eq('status', 'upcoming').gt('predictionLockAt', now),
+    )
+    .first();
+  if (nextUpcomingRace) {
+    return nextUpcomingRace.season;
+  }
+
+  const latestRace = await ctx.db
+    .query('races')
+    .withIndex('by_raceStartAt')
+    .order('desc')
+    .first();
+  return latestRace?.season ?? 2026;
+}
+
 async function deleteRows<T extends { _id: string }>(
   ctx: MutationCtx,
   rows: Array<T>,
@@ -106,6 +126,19 @@ async function deleteRows<T extends { _id: string }>(
     await ctx.db.delete(row._id as never);
   }
   return rows.length;
+}
+
+async function loadLeagueMembers(
+  ctx: MutationCtx,
+  leagueId: Id<'leagues'>,
+) {
+  const members = [];
+  for await (const member of ctx.db
+    .query('leagueMembers')
+    .withIndex('by_league', (q) => q.eq('leagueId', leagueId))) {
+    members.push(member);
+  }
+  return members;
 }
 
 async function scheduleDeletionBatch(
@@ -338,11 +371,12 @@ async function cleanupLeagueStateForDeletedUser(
 ) {
   const now = Date.now();
   const processedLeagueIds = new Set<string>();
-
-  const memberships = await ctx.db
+  const memberships = [];
+  for await (const membership of ctx.db
     .query('leagueMembers')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .take(5000);
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    memberships.push(membership);
+  }
 
   for (const membership of memberships) {
     const league = await ctx.db.get(membership.leagueId);
@@ -354,10 +388,7 @@ async function cleanupLeagueStateForDeletedUser(
 
     processedLeagueIds.add(String(league._id));
 
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .take(5000);
+    const members = await loadLeagueMembers(ctx, league._id);
 
     const otherMembers = members.filter((m) => m.userId !== userId);
     let adminCount = otherMembers.filter((m) => m.role === 'admin').length;
@@ -378,10 +409,7 @@ async function cleanupLeagueStateForDeletedUser(
     await ctx.db.delete(membership._id);
     summary.leagueMemberships += 1;
 
-    const remainingMembers = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .take(5000);
+    const remainingMembers = await loadLeagueMembers(ctx, league._id);
 
     if (remainingMembers.length === 0) {
       await ctx.db.delete(league._id);
@@ -420,20 +448,14 @@ async function cleanupLeagueStateForDeletedUser(
   }
 
   // Handle leagues created by this user where they are no longer a member.
-  const leaguesCreatedByUser = await ctx.db
+  for await (const league of ctx.db
     .query('leagues')
-    .withIndex('by_createdBy', (q) => q.eq('createdBy', userId))
-    .take(5000);
-
-  for (const league of leaguesCreatedByUser) {
+    .withIndex('by_createdBy', (q) => q.eq('createdBy', userId))) {
     if (processedLeagueIds.has(String(league._id))) {
       continue;
     }
 
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .take(5000);
+    const members = await loadLeagueMembers(ctx, league._id);
 
     if (members.length === 0) {
       await ctx.db.delete(league._id);
@@ -651,21 +673,17 @@ export const adminPredictionStatusForRace = query({
       throw new Error('Race not found');
     }
 
-    const allUsers = await ctx.db.query('users').take(5000);
     const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
 
     const top5ByUser: ProgressByUser = new Map();
     const h2hByUser: ProgressByUser = new Map();
 
     for (const sessionType of requiredSessions) {
-      const submissions = await ctx.db
+      for await (const row of ctx.db
         .query('predictions')
         .withIndex('by_race_session', (q) =>
           q.eq('raceId', race._id).eq('sessionType', sessionType),
-        )
-        .take(5000);
-
-      for (const row of submissions) {
+        )) {
         const key = row.userId as string;
         const existing = top5ByUser.get(key) ?? {
           sessions: new Set<SessionType>(),
@@ -681,14 +699,11 @@ export const adminPredictionStatusForRace = query({
     }
 
     for (const sessionType of requiredSessions) {
-      const submissions = await ctx.db
+      for await (const row of ctx.db
         .query('h2hPredictions')
         .withIndex('by_race_session', (q) =>
           q.eq('raceId', race._id).eq('sessionType', sessionType),
-        )
-        .take(5000);
-
-      for (const row of submissions) {
+        )) {
         const key = row.userId as string;
         const existing = h2hByUser.get(key) ?? {
           sessions: new Set<SessionType>(),
@@ -703,13 +718,18 @@ export const adminPredictionStatusForRace = query({
       }
     }
 
+    const users = [];
+    for await (const user of ctx.db.query('users')) {
+      users.push({
+        _id: user._id as string,
+        username: user.username,
+        displayName: user.displayName,
+        email: user.email,
+      });
+    }
+
     const status = buildAdminPredictionStatus({
-      users: allUsers.map((u) => ({
-        _id: u._id as string,
-        username: u.username,
-        displayName: u.displayName,
-        email: u.email,
-      })),
+      users,
       requiredSessions,
       top5ByUser,
       h2hByUser,
@@ -766,7 +786,7 @@ export const getUserStats = query({
     const weekendCount = weekendRaceIds.size;
 
     // Read from materialized standings instead of full table scans
-    const season = 2026;
+    const season = await getCurrentSeason(ctx);
 
     // Top 5 rank from seasonStandings
     const userStanding = await ctx.db
@@ -895,7 +915,7 @@ export const getProfileOgData = query({
       return null;
     }
 
-    const season = 2026;
+    const season = await getCurrentSeason(ctx);
 
     // Count unique race weekends with predictions
     const weekendRaceIds = new Set<Id<'races'>>();

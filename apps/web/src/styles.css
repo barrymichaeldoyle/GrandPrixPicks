@@ -185,6 +185,145 @@ body {
   background-image: none;
 }
 
+.home-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      42rem 20rem at 50% -2%,
+      rgba(34, 211, 238, 0.14),
+      transparent 68%
+    ),
+    radial-gradient(
+      24rem 18rem at 12% 20%,
+      rgba(20, 184, 166, 0.15),
+      transparent 72%
+    ),
+    radial-gradient(
+      28rem 18rem at 88% 14%,
+      rgba(59, 130, 246, 0.12),
+      transparent 72%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-hero-title,
+.home-hero-race-title {
+  text-shadow:
+    0 1px 0 rgba(15, 23, 42, 0.24),
+    0 10px 26px rgba(2, 6, 23, 0.28);
+}
+
+@media (max-width: 640px) {
+  .home-hero-title {
+    letter-spacing: -0.018em;
+    text-shadow:
+      0 1px 0 rgba(15, 23, 42, 0.3),
+      0 8px 18px rgba(2, 6, 23, 0.24);
+  }
+
+  .home-hero::before {
+    background:
+      radial-gradient(
+        30rem 14rem at 50% 0%,
+        rgba(34, 211, 238, 0.1),
+        transparent 66%
+      ),
+      radial-gradient(
+        18rem 14rem at 12% 20%,
+        rgba(20, 184, 166, 0.12),
+        transparent 72%
+      ),
+      radial-gradient(
+        20rem 14rem at 88% 16%,
+        rgba(59, 130, 246, 0.1),
+        transparent 72%
+      );
+  }
+}
+
+html:not(.dark) .home-hero,
+[data-theme='light'] .home-hero {
+  background:
+    radial-gradient(
+      38rem 18rem at 50% 0%,
+      rgba(34, 211, 238, 0.14),
+      transparent 68%
+    ),
+    radial-gradient(
+      24rem 14rem at 12% 14%,
+      rgba(20, 184, 166, 0.1),
+      transparent 72%
+    ),
+    radial-gradient(
+      26rem 14rem at 88% 16%,
+      rgba(59, 130, 246, 0.1),
+      transparent 72%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(246, 251, 255, 0.82) 0%,
+      rgba(241, 248, 255, 0.42) 42%,
+      transparent 100%
+    );
+}
+
+html:not(.dark) .home-hero-eyebrow,
+[data-theme='light'] .home-hero-eyebrow {
+  border-color: rgba(14, 116, 144, 0.18);
+  background: rgba(255, 255, 255, 0.78);
+  color: #476074;
+  box-shadow: 0 12px 30px -24px rgba(14, 116, 144, 0.28);
+}
+
+html:not(.dark) .home-hero-mark,
+[data-theme='light'] .home-hero-mark {
+  color: #0f8f83;
+}
+
+html:not(.dark) .home-hero-title,
+[data-theme='light'] .home-hero-title,
+html:not(.dark) .home-hero-race-title,
+[data-theme='light'] .home-hero-race-title,
+html:not(.dark) .home-hero-countdown-label,
+[data-theme='light'] .home-hero-countdown-label,
+html:not(.dark) .home-hero-state-title,
+[data-theme='light'] .home-hero-state-title {
+  color: #0f172a;
+}
+
+html:not(.dark) .home-hero-copy,
+[data-theme='light'] .home-hero-copy,
+html:not(.dark) .home-hero-countdown-copy,
+[data-theme='light'] .home-hero-countdown-copy,
+html:not(.dark) .home-hero-state-copy,
+[data-theme='light'] .home-hero-state-copy {
+  color: #51657a;
+}
+
+html:not(.dark) .home-hero-neutral-badge,
+[data-theme='light'] .home-hero-neutral-badge {
+  border-color: rgba(14, 116, 144, 0.16);
+  background: rgba(255, 255, 255, 0.76);
+  color: #557085;
+}
+
+html:not(.dark) .home-hero-sprint-badge,
+[data-theme='light'] .home-hero-sprint-badge {
+  border-color: rgba(6, 182, 212, 0.24);
+  background: rgba(34, 211, 238, 0.14);
+  color: #0f766e;
+}
+
+html:not(.dark) .home-hero-race-flag,
+[data-theme='light'] .home-hero-race-flag {
+  border-color: rgba(148, 163, 184, 0.42);
+  box-shadow: 0 10px 24px -20px rgba(15, 23, 42, 0.3);
+}
+
+
 /* Light mode card elevation: give standard surface cards more depth.
    Targets common card shells without affecting form controls/buttons. */
 :where(

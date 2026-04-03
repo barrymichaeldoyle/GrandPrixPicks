@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import { mutation } from './_generated/server';
 import { getOrCreateViewer, requireViewer } from './lib/auth';
 
@@ -33,7 +34,16 @@ export const submitRequest = mutation({
       updatedAt: now,
     });
 
-    // TODO: Wire up email notification to support once email provider is configured.
+    await ctx.scheduler.runAfter(0, internal.emails.sendSupportEmail.sendNewSupportRequest, {
+      userId: viewer._id,
+      email: viewer.email,
+      displayName: viewer.displayName,
+      username: viewer.username,
+      category: args.category?.trim() || undefined,
+      subject,
+      message,
+      createdAt: now,
+    });
 
     return { success: true };
   },

@@ -6,7 +6,6 @@ import { mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
   getViewer,
-  requireAdmin,
   requireViewer,
 } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
@@ -877,104 +876,5 @@ export const submitH2HPredictions = mutation({
     }
 
     return { ok: true, updatedCount };
-  },
-});
-
-export const adminBackfillMissingH2HSessionsForRace = mutation({
-  args: {
-    raceId: v.id('races'),
-    dryRun: v.optional(v.boolean()),
-  },
-  handler: async (ctx, args) => {
-    const viewer = requireViewer(await getOrCreateViewer(ctx));
-    requireAdmin(viewer);
-
-    const race = await ctx.db.get(args.raceId);
-    if (!race) {
-      throw new Error('Race not found');
-    }
-
-    const weekendSessions = getWeekendSessions(Boolean(race.hasSprint));
-    const dryRun = args.dryRun ?? false;
-    const now = Date.now();
-
-    const users = await ctx.db.query('users').collect();
-    let usersScanned = 0;
-    let usersWithH2H = 0;
-    let usersBackfilled = 0;
-    let sessionsBackfilled = 0;
-    let picksBackfilled = 0;
-
-    for (const user of users) {
-      usersScanned++;
-
-      const userPredictions = await ctx.db
-        .query('h2hPredictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', user._id).eq('raceId', args.raceId),
-        )
-        .collect();
-
-      if (userPredictions.length === 0) {
-        continue;
-      }
-      usersWithH2H++;
-
-      const existingSessions = new Set(
-        userPredictions.map((p) => p.sessionType as SessionType),
-      );
-      const missingSessions = weekendSessions.filter(
-        (session) => !existingSessions.has(session),
-      );
-
-      if (missingSessions.length === 0) {
-        continue;
-      }
-
-      const latestPrediction = userPredictions.reduce((latest, current) =>
-        current.updatedAt > latest.updatedAt ? current : latest,
-      );
-      const sourceSession = latestPrediction.sessionType as SessionType;
-      const sourceSessionPredictions = userPredictions.filter(
-        (p) => p.sessionType === sourceSession,
-      );
-
-      if (sourceSessionPredictions.length === 0) {
-        continue;
-      }
-
-      usersBackfilled++;
-      sessionsBackfilled += missingSessions.length;
-      picksBackfilled +=
-        missingSessions.length * sourceSessionPredictions.length;
-
-      if (dryRun) {
-        continue;
-      }
-
-      for (const sessionType of missingSessions) {
-        for (const sourcePick of sourceSessionPredictions) {
-          await ctx.db.insert('h2hPredictions', {
-            userId: user._id,
-            raceId: args.raceId,
-            sessionType,
-            matchupId: sourcePick.matchupId,
-            predictedWinnerId: sourcePick.predictedWinnerId,
-            submittedAt: sourcePick.submittedAt,
-            updatedAt: now,
-          });
-        }
-      }
-    }
-
-    return {
-      dryRun,
-      raceId: args.raceId,
-      usersScanned,
-      usersWithH2H,
-      usersBackfilled,
-      sessionsBackfilled,
-      picksBackfilled,
-    };
   },
 });

@@ -16,6 +16,9 @@ test.describe('[flow] smoke', () => {
       namespace: 'scenario__race_upcoming_signed_in_no_picks__pwauth',
     });
 
+    await expect(page.getByText('Weekend picks are open')).toBeVisible();
+    await page.getByRole('link', { name: 'Make picks' }).click();
+
     await expect(page.getByTestId('your-picks')).toBeVisible();
     await expect(page.getByTestId('submit-prediction')).toBeDisabled();
 

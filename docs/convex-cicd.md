@@ -31,7 +31,6 @@ Migrations are defined in:
 Current entries:
 
 1. `seed:migrateSessionTypes`
-2. `leagues:migrateLeagueVisibility`
 
 To add a new migration:
 

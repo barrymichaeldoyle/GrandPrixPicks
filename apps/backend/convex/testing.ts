@@ -683,10 +683,10 @@ async function ensureTestDrivers(ctx: MutationCtx) {
 
 async function deleteDocs(
   ctx: MutationCtx,
-  docs: Array<{ _id: Id<any> }>,
+  docs: Array<{ _id: string }>,
 ) {
   for (const doc of docs) {
-    await ctx.db.delete(doc._id);
+    await ctx.db.delete(doc._id as Id<'users'>);
   }
 }
 

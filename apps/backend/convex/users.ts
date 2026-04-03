@@ -1,6 +1,7 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
@@ -33,119 +34,51 @@ type AccountDeletionSummary = {
   users: number;
 };
 
-async function cleanupLeagueStateForDeletedUser(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  summary: AccountDeletionSummary,
-) {
-  const now = Date.now();
-  const processedLeagueIds = new Set<string>();
+const DELETION_BATCH_SIZE = 200;
+const DELETION_STEPS = [
+  'follows_as_follower',
+  'follows_as_followee',
+  'support_requests',
+  'user_season_passes',
+  'push_subscriptions',
+  'processed_paddle_webhook_events',
+  'predictions',
+  'h2h_predictions',
+  'scores',
+  'h2h_scores',
+  'season_standings',
+  'h2h_season_standings',
+  'cleanup_leagues',
+  'delete_user',
+] as const;
 
-  const memberships = await ctx.db
-    .query('leagueMembers')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .collect();
+type AccountDeletionStep = (typeof DELETION_STEPS)[number];
 
-  for (const membership of memberships) {
-    const league = await ctx.db.get(membership.leagueId);
-    if (!league) {
-      await ctx.db.delete(membership._id);
-      summary.leagueMemberships += 1;
-      continue;
-    }
+const accountDeletionSummaryValidator = v.object({
+  follows: v.number(),
+  supportRequests: v.number(),
+  userSeasonPasses: v.number(),
+  pushSubscriptions: v.number(),
+  processedPaddleWebhookEvents: v.number(),
+  predictions: v.number(),
+  h2hPredictions: v.number(),
+  scores: v.number(),
+  h2hScores: v.number(),
+  seasonStandings: v.number(),
+  h2hSeasonStandings: v.number(),
+  leagueMemberships: v.number(),
+  leaguesDeleted: v.number(),
+  leaguesReassigned: v.number(),
+  leagueAdminsPromoted: v.number(),
+  users: v.number(),
+});
 
-    processedLeagueIds.add(String(league._id));
+const accountDeletionStepValidator = v.union(
+  ...DELETION_STEPS.map((step) => v.literal(step)),
+);
 
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .collect();
-
-    const otherMembers = members.filter((m) => m.userId !== userId);
-
-    if (membership.role === 'admin' && otherMembers.length > 0) {
-      const hasAnotherAdmin = otherMembers.some((m) => m.role === 'admin');
-      if (!hasAnotherAdmin) {
-        const promote = [...otherMembers].sort(
-          (a, b) => a.joinedAt - b.joinedAt,
-        )[0];
-        if (promote.role !== 'admin') {
-          await ctx.db.patch(promote._id, { role: 'admin' });
-          summary.leagueAdminsPromoted += 1;
-        }
-      }
-    }
-
-    await ctx.db.delete(membership._id);
-    summary.leagueMemberships += 1;
-
-    const remainingMembers = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .collect();
-
-    if (remainingMembers.length === 0) {
-      await ctx.db.delete(league._id);
-      summary.leaguesDeleted += 1;
-      continue;
-    }
-
-    if (
-      league.createdBy === userId ||
-      !remainingMembers.some((m) => m.userId === league.createdBy)
-    ) {
-      const replacement =
-        remainingMembers.find((m) => m.role === 'admin') ?? remainingMembers[0];
-      if (replacement.userId !== league.createdBy) {
-        await ctx.db.patch(league._id, {
-          createdBy: replacement.userId,
-          updatedAt: now,
-        });
-        summary.leaguesReassigned += 1;
-      }
-    }
-  }
-
-  // Handle leagues created by this user where they are no longer a member.
-  const leaguesCreatedByUser = (await ctx.db.query('leagues').collect()).filter(
-    (league) => league.createdBy === userId,
-  );
-
-  for (const league of leaguesCreatedByUser) {
-    if (processedLeagueIds.has(String(league._id))) {
-      continue;
-    }
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .collect();
-
-    if (members.length === 0) {
-      await ctx.db.delete(league._id);
-      summary.leaguesDeleted += 1;
-      continue;
-    }
-
-    const replacement = members.find((m) => m.role === 'admin') ?? members[0];
-    if (replacement.userId !== league.createdBy) {
-      await ctx.db.patch(league._id, {
-        createdBy: replacement.userId,
-        updatedAt: now,
-      });
-      summary.leaguesReassigned += 1;
-    }
-  }
-}
-
-async function deleteAllDataForUser(
-  ctx: MutationCtx,
-  user: {
-    _id: Id<'users'>;
-    clerkUserId: string;
-  },
-) {
-  const summary: AccountDeletionSummary = {
+function emptyDeletionSummary(): AccountDeletionSummary {
+  return {
     follows: 0,
     supportRequests: 0,
     userSeasonPasses: 0,
@@ -163,124 +96,403 @@ async function deleteAllDataForUser(
     leagueAdminsPromoted: 0,
     users: 0,
   };
-
-  const followsAsFollower = await ctx.db
-    .query('follows')
-    .withIndex('by_follower', (q) => q.eq('followerId', user._id))
-    .collect();
-  const followsAsFollowee = await ctx.db
-    .query('follows')
-    .withIndex('by_followee', (q) => q.eq('followeeId', user._id))
-    .collect();
-
-  const followIds = new Set<string>();
-  for (const row of followsAsFollower) {
-    followIds.add(String(row._id));
-  }
-  for (const row of followsAsFollowee) {
-    followIds.add(String(row._id));
-  }
-  for (const followId of followIds) {
-    await ctx.db.delete(followId as Id<'follows'>);
-  }
-  summary.follows = followIds.size;
-
-  const supportRequests = await ctx.db
-    .query('supportRequests')
-    .withIndex('by_user', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of supportRequests) {
-    await ctx.db.delete(row._id);
-  }
-  summary.supportRequests = supportRequests.length;
-
-  const userSeasonPasses = await ctx.db
-    .query('userSeasonPasses')
-    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of userSeasonPasses) {
-    await ctx.db.delete(row._id);
-  }
-  summary.userSeasonPasses = userSeasonPasses.length;
-
-  const pushSubscriptions = await ctx.db
-    .query('pushSubscriptions')
-    .withIndex('by_user', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of pushSubscriptions) {
-    await ctx.db.delete(row._id);
-  }
-  summary.pushSubscriptions = pushSubscriptions.length;
-
-  const processedPaddleWebhookEvents = (
-    await ctx.db.query('processedPaddleWebhookEvents').collect()
-  ).filter((row) => row.clerkUserId === user.clerkUserId);
-  for (const row of processedPaddleWebhookEvents) {
-    await ctx.db.delete(row._id);
-  }
-  summary.processedPaddleWebhookEvents = processedPaddleWebhookEvents.length;
-
-  const predictions = await ctx.db
-    .query('predictions')
-    .withIndex('by_user', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of predictions) {
-    await ctx.db.delete(row._id);
-  }
-  summary.predictions = predictions.length;
-
-  const h2hPredictions = await ctx.db
-    .query('h2hPredictions')
-    .withIndex('by_user_race_session', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of h2hPredictions) {
-    await ctx.db.delete(row._id);
-  }
-  summary.h2hPredictions = h2hPredictions.length;
-
-  const scores = await ctx.db
-    .query('scores')
-    .withIndex('by_user', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of scores) {
-    await ctx.db.delete(row._id);
-  }
-  summary.scores = scores.length;
-
-  const h2hScores = await ctx.db
-    .query('h2hScores')
-    .withIndex('by_user', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of h2hScores) {
-    await ctx.db.delete(row._id);
-  }
-  summary.h2hScores = h2hScores.length;
-
-  const seasonStandings = await ctx.db
-    .query('seasonStandings')
-    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of seasonStandings) {
-    await ctx.db.delete(row._id);
-  }
-  summary.seasonStandings = seasonStandings.length;
-
-  const h2hSeasonStandings = await ctx.db
-    .query('h2hSeasonStandings')
-    .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-    .collect();
-  for (const row of h2hSeasonStandings) {
-    await ctx.db.delete(row._id);
-  }
-  summary.h2hSeasonStandings = h2hSeasonStandings.length;
-
-  await cleanupLeagueStateForDeletedUser(ctx, user._id, summary);
-
-  await ctx.db.delete(user._id);
-  summary.users = 1;
-
-  return summary;
 }
+
+async function deleteRows<T extends { _id: string }>(
+  ctx: MutationCtx,
+  rows: Array<T>,
+): Promise<number> {
+  for (const row of rows) {
+    await ctx.db.delete(row._id as never);
+  }
+  return rows.length;
+}
+
+async function scheduleDeletionBatch(
+  ctx: MutationCtx,
+  args: {
+    userId: Id<'users'>;
+    clerkUserId: string;
+    step: AccountDeletionStep;
+    summary: AccountDeletionSummary;
+  },
+) {
+  await ctx.scheduler.runAfter(0, internal.users.processUserDeletionBatch, args);
+}
+
+async function processDeletionStep(
+  ctx: MutationCtx,
+  args: {
+    userId: Id<'users'>;
+    clerkUserId: string;
+    step: AccountDeletionStep;
+    summary: AccountDeletionSummary;
+  },
+): Promise<{
+  summary: AccountDeletionSummary;
+  repeatCurrentStep: boolean;
+  nextStep: AccountDeletionStep | null;
+}> {
+  const summary = { ...args.summary };
+
+  switch (args.step) {
+    case 'follows_as_follower': {
+      const rows = await ctx.db
+        .query('follows')
+        .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.follows += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'follows_as_followee',
+      };
+    }
+    case 'follows_as_followee': {
+      const rows = await ctx.db
+        .query('follows')
+        .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.follows += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'support_requests',
+      };
+    }
+    case 'support_requests': {
+      const rows = await ctx.db
+        .query('supportRequests')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.supportRequests += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'user_season_passes',
+      };
+    }
+    case 'user_season_passes': {
+      const rows = await ctx.db
+        .query('userSeasonPasses')
+        .withIndex('by_user_season', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.userSeasonPasses += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'push_subscriptions',
+      };
+    }
+    case 'push_subscriptions': {
+      const rows = await ctx.db
+        .query('pushSubscriptions')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.pushSubscriptions += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'processed_paddle_webhook_events',
+      };
+    }
+    case 'processed_paddle_webhook_events': {
+      const rows = await ctx.db
+        .query('processedPaddleWebhookEvents')
+        .withIndex('by_clerkUserId', (q) =>
+          q.eq('clerkUserId', args.clerkUserId),
+        )
+        .take(DELETION_BATCH_SIZE);
+      summary.processedPaddleWebhookEvents += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'predictions',
+      };
+    }
+    case 'predictions': {
+      const rows = await ctx.db
+        .query('predictions')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.predictions += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'h2h_predictions',
+      };
+    }
+    case 'h2h_predictions': {
+      const rows = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_user_race_session', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.h2hPredictions += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'scores',
+      };
+    }
+    case 'scores': {
+      const rows = await ctx.db
+        .query('scores')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.scores += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'h2h_scores',
+      };
+    }
+    case 'h2h_scores': {
+      const rows = await ctx.db
+        .query('h2hScores')
+        .withIndex('by_user', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.h2hScores += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'season_standings',
+      };
+    }
+    case 'season_standings': {
+      const rows = await ctx.db
+        .query('seasonStandings')
+        .withIndex('by_user_season', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.seasonStandings += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'h2h_season_standings',
+      };
+    }
+    case 'h2h_season_standings': {
+      const rows = await ctx.db
+        .query('h2hSeasonStandings')
+        .withIndex('by_user_season', (q) => q.eq('userId', args.userId))
+        .take(DELETION_BATCH_SIZE);
+      summary.h2hSeasonStandings += await deleteRows(ctx, rows);
+      return {
+        summary,
+        repeatCurrentStep: rows.length === DELETION_BATCH_SIZE,
+        nextStep: 'cleanup_leagues',
+      };
+    }
+    case 'cleanup_leagues': {
+      await cleanupLeagueStateForDeletedUser(ctx, args.userId, summary);
+      return {
+        summary,
+        repeatCurrentStep: false,
+        nextStep: 'delete_user',
+      };
+    }
+    case 'delete_user': {
+      const user = await ctx.db.get(args.userId);
+      if (user) {
+        await ctx.db.delete(args.userId);
+        summary.users = 1;
+      }
+      return {
+        summary,
+        repeatCurrentStep: false,
+        nextStep: null,
+      };
+    }
+  }
+}
+
+async function startUserDeletion(
+  ctx: MutationCtx,
+  user: {
+    _id: Id<'users'>;
+    clerkUserId: string;
+    deletingAt?: number;
+  },
+) {
+  if (user.deletingAt) {
+    return { scheduled: false as const, alreadyScheduled: true as const };
+  }
+
+  await ctx.db.patch(user._id, {
+    deletingAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  await scheduleDeletionBatch(ctx, {
+    userId: user._id,
+    clerkUserId: user.clerkUserId,
+    step: 'follows_as_follower',
+    summary: emptyDeletionSummary(),
+  });
+
+  return { scheduled: true as const, alreadyScheduled: false as const };
+}
+
+async function cleanupLeagueStateForDeletedUser(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  summary: AccountDeletionSummary,
+) {
+  const now = Date.now();
+  const processedLeagueIds = new Set<string>();
+
+  const memberships = await ctx.db
+    .query('leagueMembers')
+    .withIndex('by_user', (q) => q.eq('userId', userId))
+    .take(5000);
+
+  for (const membership of memberships) {
+    const league = await ctx.db.get(membership.leagueId);
+    if (!league) {
+      await ctx.db.delete(membership._id);
+      summary.leagueMemberships += 1;
+      continue;
+    }
+
+    processedLeagueIds.add(String(league._id));
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .take(5000);
+
+    const otherMembers = members.filter((m) => m.userId !== userId);
+    let adminCount = otherMembers.filter((m) => m.role === 'admin').length;
+
+    if (membership.role === 'admin' && otherMembers.length > 0) {
+      if (adminCount === 0) {
+        const promote = [...otherMembers].sort(
+          (a, b) => a.joinedAt - b.joinedAt,
+        )[0];
+        if (promote.role !== 'admin') {
+          await ctx.db.patch(promote._id, { role: 'admin' });
+          summary.leagueAdminsPromoted += 1;
+          adminCount += 1;
+        }
+      }
+    }
+
+    await ctx.db.delete(membership._id);
+    summary.leagueMemberships += 1;
+
+    const remainingMembers = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .take(5000);
+
+    if (remainingMembers.length === 0) {
+      await ctx.db.delete(league._id);
+      summary.leaguesDeleted += 1;
+      continue;
+    }
+
+    if (
+      league.createdBy === userId ||
+      !remainingMembers.some((m) => m.userId === league.createdBy)
+    ) {
+      const replacement =
+        remainingMembers.find((m) => m.role === 'admin') ?? remainingMembers[0];
+      if (replacement.userId !== league.createdBy) {
+        await ctx.db.patch(league._id, {
+          createdBy: replacement.userId,
+          memberCount: remainingMembers.length,
+          adminCount,
+          updatedAt: now,
+        });
+        summary.leaguesReassigned += 1;
+      } else {
+        await ctx.db.patch(league._id, {
+          memberCount: remainingMembers.length,
+          adminCount,
+          updatedAt: now,
+        });
+      }
+    } else {
+      await ctx.db.patch(league._id, {
+        memberCount: remainingMembers.length,
+        adminCount,
+        updatedAt: now,
+      });
+    }
+  }
+
+  // Handle leagues created by this user where they are no longer a member.
+  const leaguesCreatedByUser = await ctx.db
+    .query('leagues')
+    .withIndex('by_createdBy', (q) => q.eq('createdBy', userId))
+    .take(5000);
+
+  for (const league of leaguesCreatedByUser) {
+    if (processedLeagueIds.has(String(league._id))) {
+      continue;
+    }
+
+    const members = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+      .take(5000);
+
+    if (members.length === 0) {
+      await ctx.db.delete(league._id);
+      summary.leaguesDeleted += 1;
+      continue;
+    }
+
+    const replacement = members.find((m) => m.role === 'admin') ?? members[0];
+    const adminCount = members.filter((m) => m.role === 'admin').length;
+    if (replacement.userId !== league.createdBy) {
+      await ctx.db.patch(league._id, {
+        createdBy: replacement.userId,
+        memberCount: members.length,
+        adminCount,
+        updatedAt: now,
+      });
+      summary.leaguesReassigned += 1;
+    } else {
+      await ctx.db.patch(league._id, {
+        memberCount: members.length,
+        adminCount,
+        updatedAt: now,
+      });
+    }
+  }
+}
+
+export const processUserDeletionBatch = internalMutation({
+  args: {
+    userId: v.id('users'),
+    clerkUserId: v.string(),
+    step: accountDeletionStepValidator,
+    summary: accountDeletionSummaryValidator,
+  },
+  handler: async (ctx, args) => {
+    const result = await processDeletionStep(ctx, args);
+    const nextStep = result.repeatCurrentStep ? args.step : result.nextStep;
+
+    if (nextStep) {
+      await scheduleDeletionBatch(ctx, {
+        userId: args.userId,
+        clerkUserId: args.clerkUserId,
+        step: nextStep,
+        summary: result.summary,
+      });
+      return {
+        completed: false as const,
+        scheduledStep: nextStep,
+        summary: result.summary,
+      };
+    }
+
+    return {
+      completed: true as const,
+      scheduledStep: null,
+      summary: result.summary,
+    };
+  },
+});
 
 export const me = query({
   args: {},
@@ -439,7 +651,7 @@ export const adminPredictionStatusForRace = query({
       throw new Error('Race not found');
     }
 
-    const allUsers = await ctx.db.query('users').collect();
+    const allUsers = await ctx.db.query('users').take(5000);
     const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
 
     const top5ByUser: ProgressByUser = new Map();
@@ -451,7 +663,7 @@ export const adminPredictionStatusForRace = query({
         .withIndex('by_race_session', (q) =>
           q.eq('raceId', race._id).eq('sessionType', sessionType),
         )
-        .collect();
+        .take(5000);
 
       for (const row of submissions) {
         const key = row.userId as string;
@@ -474,7 +686,7 @@ export const adminPredictionStatusForRace = query({
         .withIndex('by_race_session', (q) =>
           q.eq('raceId', race._id).eq('sessionType', sessionType),
         )
-        .collect();
+        .take(5000);
 
       for (const row of submissions) {
         const key = row.userId as string;
@@ -545,11 +757,12 @@ export const getUserStats = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
     // Count unique race weekends with predictions
-    const predictions = await ctx.db
+    const weekendRaceIds = new Set<Id<'races'>>();
+    for await (const prediction of ctx.db
       .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .take(500);
-    const weekendRaceIds = new Set(predictions.map((p) => p.raceId));
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))) {
+      weekendRaceIds.add(prediction.raceId);
+    }
     const weekendCount = weekendRaceIds.size;
 
     // Read from materialized standings instead of full table scans
@@ -685,11 +898,13 @@ export const getProfileOgData = query({
     const season = 2026;
 
     // Count unique race weekends with predictions
-    const predictions = await ctx.db
+    const weekendRaceIds = new Set<Id<'races'>>();
+    for await (const prediction of ctx.db
       .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .take(500);
-    const weekendCount = new Set(predictions.map((p) => p.raceId)).size;
+      .withIndex('by_user', (q) => q.eq('userId', user._id))) {
+      weekendRaceIds.add(prediction.raceId);
+    }
+    const weekendCount = weekendRaceIds.size;
 
     // Get season standing
     const userStanding = await ctx.db
@@ -828,15 +1043,16 @@ export const deleteUserFromClerkWebhook = mutation({
       return { handled: false as const, reason: 'user_not_found' as const };
     }
 
-    const deleted = await deleteAllDataForUser(ctx, {
+    const scheduled = await startUserDeletion(ctx, {
       _id: user._id,
       clerkUserId: user.clerkUserId,
+      deletingAt: user.deletingAt,
     });
 
     return {
       handled: true as const,
       userId: user._id,
-      deleted,
+      scheduled,
     };
   },
 });
@@ -855,15 +1071,16 @@ export const deleteUserFromClerkWebhookInternal = internalMutation({
       return { handled: false as const, reason: 'user_not_found' as const };
     }
 
-    const deleted = await deleteAllDataForUser(ctx, {
+    const scheduled = await startUserDeletion(ctx, {
       _id: user._id,
       clerkUserId: user.clerkUserId,
+      deletingAt: user.deletingAt,
     });
 
     return {
       handled: true as const,
       userId: user._id,
-      deleted,
+      scheduled,
     };
   },
 });

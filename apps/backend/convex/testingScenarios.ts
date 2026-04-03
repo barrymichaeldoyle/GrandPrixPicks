@@ -72,7 +72,7 @@ export const applyScenario = internalMutation({
     const namespace = args.namespace ?? defaultNamespace(args.scenario);
 
     if (args.resetFirst ?? true) {
-      await clearNamespaceData(ctx, namespace);
+      await clearAllScenarioData(ctx);
     }
 
     const drivers = await ctx.db.query('drivers').collect();
@@ -132,7 +132,7 @@ export const applyScenarioAdmin = mutation({
     const namespace = args.namespace ?? defaultNamespace(args.scenario);
 
     if (args.resetFirst ?? true) {
-      await clearNamespaceData(ctx, namespace);
+      await clearAllScenarioData(ctx);
     }
 
     const drivers = await ctx.db.query('drivers').collect();
@@ -622,6 +622,47 @@ async function clearNamespaceData(ctx: MutationCtx, namespace: string) {
   };
 }
 
+async function clearAllScenarioData(ctx: MutationCtx) {
+  const users = (await ctx.db.query('users').collect()).filter(
+    (user) =>
+      user.clerkUserId.startsWith('scenario__') ||
+      user.email?.startsWith('scenario__') === true,
+  );
+  const races = (await ctx.db.query('races').collect()).filter((race) =>
+    race.slug.startsWith('scenario-'),
+  );
+
+  for (const user of users) {
+    await deletePredictionsByUser(ctx, user._id);
+    await deleteScoresByUser(ctx, user._id);
+    await deleteH2HPredictionsByUser(ctx, user._id);
+    await deleteH2HScoresByUser(ctx, user._id);
+    await deleteStandingsByUser(ctx, 'seasonStandings', user._id);
+    await deleteStandingsByUser(ctx, 'h2hSeasonStandings', user._id);
+  }
+
+  for (const race of races) {
+    await deletePredictionsByRace(ctx, race._id);
+    await deleteScoresByRace(ctx, race._id);
+    await deleteResultsByRace(ctx, 'results', race._id);
+    await deleteH2HPredictionsByRace(ctx, race._id);
+    await deleteH2HScoresByRace(ctx, race._id);
+    await deleteResultsByRace(ctx, 'h2hResults', race._id);
+    await ctx.db.delete(race._id);
+  }
+
+  for (const user of users) {
+    await ctx.db.delete(user._id);
+  }
+
+  return {
+    deleted: {
+      users: users.length,
+      races: races.length,
+    },
+  };
+}
+
 async function upsertScenarioUser(
   ctx: MutationCtx,
   args: {
@@ -637,10 +678,16 @@ async function upsertScenarioUser(
   const clerkUserId = args.clerkUserId ?? `${args.namespace}__${args.role}`;
   const email = args.email ?? `${clerkUserId}@example.com`;
 
-  const existing = await ctx.db
+  const existingByClerkUserId = await ctx.db
     .query('users')
     .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', clerkUserId))
     .unique();
+  const existingByEmail =
+    existingByClerkUserId || !args.email
+      ? null
+      : (await ctx.db.query('users').collect()).find((user) => user.email === email) ??
+        null;
+  const existing = existingByClerkUserId ?? existingByEmail;
 
   const userId = existing
     ? existing._id
@@ -665,7 +712,7 @@ async function upsertScenarioUser(
   return {
     role: args.role,
     userId,
-    clerkUserId,
+    clerkUserId: existing?.clerkUserId ?? clerkUserId,
     email,
     displayName: args.displayName,
   };

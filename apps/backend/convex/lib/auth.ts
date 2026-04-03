@@ -3,20 +3,56 @@ import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { syncUserToStandings } from './standings';
 
+export function getIdentityKeys(identity: {
+  tokenIdentifier?: string;
+  subject?: string;
+}): { primary: string; legacy: string | null } | null {
+  const primary = identity.tokenIdentifier ?? identity.subject;
+  if (!primary) {
+    return null;
+  }
+
+  return {
+    primary,
+    legacy: identity.subject && identity.subject !== primary ? identity.subject : null,
+  };
+}
+
+async function findViewerByIdentity(
+  ctx: QueryCtx | MutationCtx,
+  keys: { primary: string; legacy: string | null },
+): Promise<Doc<'users'> | null> {
+  const current = await ctx.db
+    .query('users')
+    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', keys.primary))
+    .unique();
+
+  if (current) {
+    return current;
+  }
+
+  if (!keys.legacy) {
+    return null;
+  }
+
+  return await ctx.db
+    .query('users')
+    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', keys.legacy!))
+    .unique();
+}
+
 export async function getViewer(ctx: QueryCtx): Promise<Doc<'users'> | null> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
     return null;
   }
 
-  const clerkUserId = identity.subject;
+  const keys = getIdentityKeys(identity);
+  if (!keys) {
+    return null;
+  }
 
-  const existing = await ctx.db
-    .query('users')
-    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', clerkUserId))
-    .unique();
-
-  return existing ?? null;
+  return await findViewerByIdentity(ctx, keys);
 }
 
 export async function getOrCreateViewer(
@@ -28,7 +64,12 @@ export async function getOrCreateViewer(
     return null;
   }
 
-  const clerkUserId = identity.subject;
+  const identityKeys = getIdentityKeys(identity);
+  if (!identityKeys) {
+    return null;
+  }
+
+  const clerkUserId = identityKeys.primary;
   const now = Date.now();
 
   // Extract user data from Clerk identity
@@ -46,10 +87,7 @@ export async function getOrCreateViewer(
     .preferredUsername;
   const avatarUrl = identity.pictureUrl;
 
-  const existing = await ctx.db
-    .query('users')
-    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', clerkUserId))
-    .unique();
+  const existing = await findViewerByIdentity(ctx, identityKeys);
 
   if (existing) {
     // Sync user data from Clerk if it has changed.
@@ -60,9 +98,17 @@ export async function getOrCreateViewer(
     const patch: Partial<
       Pick<
         Doc<'users'>,
-        'email' | 'avatarUrl' | 'timezone' | 'locale' | 'updatedAt'
+        | 'clerkUserId'
+        | 'email'
+        | 'avatarUrl'
+        | 'timezone'
+        | 'locale'
+        | 'updatedAt'
       >
     > = {};
+    if (existing.clerkUserId !== clerkUserId) {
+      patch.clerkUserId = clerkUserId;
+    }
     if (email !== undefined && existing.email !== email) {
       patch.email = email;
     }

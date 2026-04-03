@@ -60,6 +60,19 @@ function buildCombinedViewerEntry(
   };
 }
 
+async function getLeagueMemberIds(
+  ctx: QueryCtx,
+  leagueId: Id<'leagues'>,
+): Promise<Set<string>> {
+  const memberIds = new Set<string>();
+  for await (const member of ctx.db
+    .query('leagueMembers')
+    .withIndex('by_league', (q) => q.eq('leagueId', leagueId))) {
+    memberIds.add(member.userId);
+  }
+  return memberIds;
+}
+
 async function loadCombinedSeasonRows(
   ctx: QueryCtx,
   params: {
@@ -315,13 +328,7 @@ export const getLeagueLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
@@ -507,17 +514,6 @@ export const getCombinedRaceLeaderboard = query({
       friendIds = new Set([viewer._id, ...followRows.map((f) => f.followeeId)]);
     }
 
-    const [top5Scores, h2hScores] = await Promise.all([
-      ctx.db
-        .query('scores')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .take(5000),
-      ctx.db
-        .query('h2hScores')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .take(5000),
-    ]);
-
     type RaceEntry = {
       userId: Id<'users'>;
       username?: string;
@@ -529,7 +525,9 @@ export const getCombinedRaceLeaderboard = query({
 
     const userMap = new Map<string, RaceEntry>();
 
-    for (const score of top5Scores) {
+    for await (const score of ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.top5Points += score.points;
@@ -545,7 +543,9 @@ export const getCombinedRaceLeaderboard = query({
       }
     }
 
-    for (const score of h2hScores) {
+    for await (const score of ctx.db
+      .query('h2hScores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.h2hPoints += score.points;
@@ -655,11 +655,6 @@ export const getH2HRaceLeaderboard = query({
       friendIds = new Set([viewer._id, ...followRows.map((f) => f.followeeId)]);
     }
 
-    const h2hScores = await ctx.db
-      .query('h2hScores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .take(5000);
-
     type H2HEntry = {
       userId: Id<'users'>;
       points: number;
@@ -668,7 +663,9 @@ export const getH2HRaceLeaderboard = query({
     };
 
     const userMap = new Map<string, H2HEntry>();
-    for (const score of h2hScores) {
+    for await (const score of ctx.db
+      .query('h2hScores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.points += score.points;
@@ -764,13 +761,7 @@ export const getLeagueCombinedSeasonLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
@@ -815,13 +806,7 @@ export const getLeagueH2HSeasonLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return { entries: [], totalCount: 0, hasMore: false, viewerEntry: null };
@@ -889,13 +874,7 @@ export const getLeagueRaceLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return {
@@ -930,11 +909,6 @@ export const getLeagueRaceLeaderboard = query({
       return { status: access.status, reason: access.reason, entries: [] };
     }
 
-    const scores = await ctx.db
-      .query('scores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .take(5000);
-
     const userMap = new Map<
       string,
       {
@@ -946,7 +920,12 @@ export const getLeagueRaceLeaderboard = query({
       }
     >();
 
-    for (const score of scores.filter((s) => memberIds.has(s.userId))) {
+    for await (const score of ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      if (!memberIds.has(score.userId)) {
+        continue;
+      }
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.points += score.points;
@@ -979,13 +958,7 @@ export const getLeagueCombinedRaceLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return {
@@ -1020,17 +993,6 @@ export const getLeagueCombinedRaceLeaderboard = query({
       return { status: access.status, reason: access.reason, entries: [] };
     }
 
-    const [top5Scores, h2hScores] = await Promise.all([
-      ctx.db
-        .query('scores')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .take(5000),
-      ctx.db
-        .query('h2hScores')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .take(5000),
-    ]);
-
     type RaceEntry = {
       userId: Id<'users'>;
       username?: string;
@@ -1042,7 +1004,12 @@ export const getLeagueCombinedRaceLeaderboard = query({
 
     const userMap = new Map<string, RaceEntry>();
 
-    for (const score of top5Scores.filter((s) => memberIds.has(s.userId))) {
+    for await (const score of ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      if (!memberIds.has(score.userId)) {
+        continue;
+      }
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.top5Points += score.points;
@@ -1058,7 +1025,12 @@ export const getLeagueCombinedRaceLeaderboard = query({
       }
     }
 
-    for (const score of h2hScores.filter((s) => memberIds.has(s.userId))) {
+    for await (const score of ctx.db
+      .query('h2hScores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      if (!memberIds.has(score.userId)) {
+        continue;
+      }
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.h2hPoints += score.points;
@@ -1123,13 +1095,7 @@ export const getLeagueH2HRaceLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .take(5000);
-
-    const memberIds = new Set<string>(members.map((m) => m.userId));
+    const memberIds = await getLeagueMemberIds(ctx, args.leagueId);
 
     if (!viewer || !memberIds.has(viewer._id)) {
       return {
@@ -1164,11 +1130,6 @@ export const getLeagueH2HRaceLeaderboard = query({
       return { status: access.status, reason: access.reason, entries: [] };
     }
 
-    const h2hScores = await ctx.db
-      .query('h2hScores')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .take(5000);
-
     type H2HEntry = {
       userId: Id<'users'>;
       points: number;
@@ -1178,7 +1139,12 @@ export const getLeagueH2HRaceLeaderboard = query({
 
     const userMap = new Map<string, H2HEntry>();
 
-    for (const score of h2hScores.filter((s) => memberIds.has(s.userId))) {
+    for await (const score of ctx.db
+      .query('h2hScores')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      if (!memberIds.has(score.userId)) {
+        continue;
+      }
       const existing = userMap.get(score.userId);
       if (existing) {
         existing.points += score.points;
@@ -1254,11 +1220,6 @@ export async function getRaceLeaderboardForViewer(
     return { status: access.status, reason: access.reason, entries: [] };
   }
 
-  const scores = await ctx.db
-    .query('scores')
-    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-    .take(5000);
-
   const userMap = new Map<
     string,
     {
@@ -1271,7 +1232,9 @@ export async function getRaceLeaderboardForViewer(
     }
   >();
 
-  for (const score of scores) {
+  for await (const score of ctx.db
+    .query('scores')
+    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
     const existing = userMap.get(score.userId);
     if (existing) {
       existing.points += score.points;

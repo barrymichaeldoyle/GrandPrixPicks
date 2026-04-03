@@ -38,14 +38,11 @@ export const writeFeedEventsForSessionLock = internalMutation({
 
     const now = Date.now();
 
-    const predictions = await ctx.db
+    for await (const prediction of ctx.db
       .query('predictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(500);
-
-    for (const prediction of predictions) {
+      )) {
       const user = await ctx.db.get(prediction.userId);
       if (!user) {
         continue;
@@ -98,14 +95,11 @@ export const writeFeedEventsForSession = internalMutation({
 
     const now = Date.now();
 
-    const scores = await ctx.db
+    for await (const score of ctx.db
       .query('scores')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(500);
-
-    for (const score of scores) {
+      )) {
       const user = await ctx.db.get(score.userId);
       if (!user) {
         continue;
@@ -218,16 +212,13 @@ export const writeStreakEventsForRaceSession = internalMutation({
       .take(30);
 
     // Everyone who scored in this race session
-    const scores = await ctx.db
+    const now = Date.now();
+
+    for await (const score of ctx.db
       .query('scores')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', 'race'),
-      )
-      .take(500);
-
-    const now = Date.now();
-
-    for (const score of scores) {
+      )) {
       // Count consecutive races going backwards from this one
       let streak = 0;
       for (let i = seasonRaces.length - 1; i >= 0; i--) {

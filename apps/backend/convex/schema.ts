@@ -47,6 +47,7 @@ export default defineSchema({
     timezone: v.optional(v.string()),
     locale: v.optional(v.string()),
     isAdmin: v.optional(v.boolean()),
+    deletingAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -315,7 +316,9 @@ export default defineSchema({
       v.literal('ignored_user_not_found'),
     ),
     createdAt: v.number(),
-  }).index('by_eventId', ['eventId']),
+  })
+    .index('by_eventId', ['eventId'])
+    .index('by_clerkUserId', ['clerkUserId']),
 
   leagues: defineTable({
     name: v.string(),
@@ -325,11 +328,16 @@ export default defineSchema({
     visibility: v.union(v.literal('private'), v.literal('public')),
     createdBy: v.id('users'),
     season: v.number(),
+    memberCount: v.optional(v.number()),
+    adminCount: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_slug', ['slug'])
     .index('by_season', ['season'])
+    .index('by_season_and_visibility', ['season', 'visibility'])
+    .index('by_createdBy', ['createdBy'])
+    .index('by_createdBy_and_season', ['createdBy', 'season'])
     .index('by_visibility', ['visibility']),
 
   leagueMembers: defineTable({

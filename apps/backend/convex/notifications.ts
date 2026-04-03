@@ -71,27 +71,31 @@ export const sendPredictionReminders = internalMutation({
       return { skipped: true, reason: 'Race not upcoming' };
     }
 
-    // Find users with email set and reminders enabled (default true)
-    const allUsers = await ctx.db.query('users').collect();
-    const eligibleUsers = allUsers.filter(
-      (u) => u.email && wantsEmailPredictionReminders(u),
-    );
-
-    // Find users who already have predictions for this race
-    const predictions = await ctx.db
+    const usersWithPredictions = new Set<Id<'users'>>();
+    for await (const prediction of ctx.db
       .query('predictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
-    const usersWithPredictions = new Set(predictions.map((p) => p.userId));
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      usersWithPredictions.add(prediction.userId);
+    }
 
-    // Filter to users who haven't predicted
-    const recipients = eligibleUsers
-      .filter((u) => !usersWithPredictions.has(u._id))
-      .map((u) => ({
-        email: u.email!,
-        timezone: u.timezone,
-        locale: u.locale,
-      }));
+    const recipients: Array<{
+      email: string;
+      timezone?: string;
+      locale?: string;
+    }> = [];
+    for await (const user of ctx.db.query('users')) {
+      if (!user.email || !wantsEmailPredictionReminders(user)) {
+        continue;
+      }
+      if (usersWithPredictions.has(user._id)) {
+        continue;
+      }
+      recipients.push({
+        email: user.email,
+        timezone: user.timezone,
+        locale: user.locale,
+      });
+    }
 
     if (recipients.length === 0) {
       return { skipped: true, reason: 'No eligible recipients' };
@@ -272,10 +276,12 @@ export const sendResultEmailsForSession = internalMutation({
     );
 
     // 2. Load all season standings, sorted desc by totalPoints → global rank
-    const allStandings = await ctx.db
+    const allStandings = [];
+    for await (const standing of ctx.db
       .query('seasonStandings')
-      .withIndex('by_season_points', (q) => q.eq('season', race.season))
-      .collect();
+      .withIndex('by_season_points', (q) => q.eq('season', race.season))) {
+      allStandings.push(standing);
+    }
     // Index sorts ascending; we need descending for ranking
     allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
 
@@ -287,43 +293,39 @@ export const sendResultEmailsForSession = internalMutation({
     const globalTotal = allStandings.length;
 
     // 3. Load all scores for this race+session
-    const allScores = await ctx.db
+    const scoreMap = new Map<string, Doc<'scores'>>();
+    for await (const s of ctx.db
       .query('scores')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .collect();
-    const scoreMap = new Map<string, Doc<'scores'>>();
-    for (const s of allScores) {
+      )) {
       scoreMap.set(s.userId, s);
     }
 
-    const [racePredictions, h2hPredictionsForSession] = await Promise.all([
-      ctx.db
-        .query('predictions')
-        .withIndex('by_race_session', (q) =>
-          q.eq('raceId', args.raceId).eq('sessionType', 'race'),
-        )
-        .collect(),
-      ctx.db
-        .query('h2hPredictions')
-        .withIndex('by_race_session', (q) =>
-          q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-        )
-        .collect(),
-    ]);
-    const usersWithRacePredictions = new Set(
-      racePredictions.map((prediction) => prediction.userId),
-    );
-    const usersWithH2HPredictions = new Set(
-      h2hPredictionsForSession.map((prediction) => prediction.userId),
-    );
+    const usersWithRacePredictions = new Set<Id<'users'>>();
+    for await (const prediction of ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', 'race'),
+      )) {
+      usersWithRacePredictions.add(prediction.userId);
+    }
+    const usersWithH2HPredictions = new Set<Id<'users'>>();
+    for await (const prediction of ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )) {
+      usersWithH2HPredictions.add(prediction.userId);
+    }
 
     // 4. Load all users, filter to eligible
-    const allUsers = await ctx.db.query('users').collect();
-    const notificationEligibleUsers = allUsers.filter(
-      (u) => u.email && wantsEmailResults(u),
-    );
+    const notificationEligibleUsers: Array<Doc<'users'>> = [];
+    for await (const user of ctx.db.query('users')) {
+      if (user.email && wantsEmailResults(user)) {
+        notificationEligibleUsers.push(user);
+      }
+    }
 
     if (notificationEligibleUsers.length === 0) {
       return { skipped: true, reason: 'No eligible recipients' };
@@ -475,13 +477,13 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
         .withIndex('by_user_race_session', (q) =>
           q.eq('userId', args.userId).eq('raceId', args.raceId),
         )
-        .collect(),
+        .take(8),
       ctx.db
         .query('h2hPredictions')
         .withIndex('by_user_race_session', (q) =>
           q.eq('userId', args.userId).eq('raceId', args.raceId),
         )
-        .collect(),
+        .take(32),
     ]);
 
     const top5Sessions = new Set(
@@ -523,7 +525,7 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
     const subscriptions = await ctx.db
       .query('pushSubscriptions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
+      .take(20);
 
     if (wantsPushPredictionReminders(user) && subscriptions.length > 0) {
       await ctx.scheduler.runAfter(
@@ -570,7 +572,7 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
     const subscriptions = await ctx.db
       .query('pushSubscriptions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .collect();
+      .take(20);
 
     const canEmail = Boolean(user.email) && wantsEmailPredictionReminders(user);
     const canPush =
@@ -654,28 +656,26 @@ export const sendH2HRemindersForRace = internalMutation({
 
     const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
 
-    const allUsers = await ctx.db.query('users').collect();
-    const eligibleUsers = allUsers.filter(
-      (u) => u.email && wantsEmailPredictionReminders(u),
-    );
+    const eligibleUsers: Array<Doc<'users'>> = [];
+    for await (const user of ctx.db.query('users')) {
+      if (user.email && wantsEmailPredictionReminders(user)) {
+        eligibleUsers.push(user);
+      }
+    }
 
-    const allPredictions = await ctx.db
-      .query('predictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
     const top5ByUser = new Map<string, Set<SessionType>>();
-    for (const p of allPredictions) {
+    for await (const p of ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const sessions = top5ByUser.get(p.userId) ?? new Set<SessionType>();
       sessions.add(p.sessionType as SessionType);
       top5ByUser.set(p.userId, sessions);
     }
 
-    const allH2HPredictions = await ctx.db
-      .query('h2hPredictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-      .collect();
     const h2hByUser = new Map<string, Set<SessionType>>();
-    for (const p of allH2HPredictions) {
+    for await (const p of ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       const sessions = h2hByUser.get(p.userId) ?? new Set<SessionType>();
       sessions.add(p.sessionType as SessionType);
       h2hByUser.set(p.userId, sessions);

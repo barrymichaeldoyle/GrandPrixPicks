@@ -1,10 +1,15 @@
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { mutation, query } from './_generated/server';
-import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import { internalMutation, mutation, query } from './_generated/server';
+import {
+  getOrCreateViewer,
+  getViewer,
+  requireAdmin,
+  requireViewer,
+} from './lib/auth';
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 const RESERVED_LEAGUE_SLUGS = new Set(['create']);
@@ -33,6 +38,40 @@ const SEASON_PASS_LIMITS: LeagueLimits = {
 // League membership views currently materialize the full roster in one request.
 // Keep the write-side contract aligned with that bounded read pattern.
 const MAX_LEAGUE_MEMBERS = 5000;
+
+export function countAdmins(
+  members: ReadonlyArray<{ role: 'admin' | 'member' }>,
+): number {
+  return members.reduce(
+    (count, member) => count + (member.role === 'admin' ? 1 : 0),
+    0,
+  );
+}
+
+async function resolveLeagueCounts(
+  ctx: QueryCtx | MutationCtx,
+  league: Doc<'leagues'>,
+): Promise<{ memberCount: number; adminCount: number }> {
+  if (
+    league.memberCount !== undefined &&
+    league.adminCount !== undefined
+  ) {
+    return {
+      memberCount: league.memberCount,
+      adminCount: league.adminCount,
+    };
+  }
+
+  const members = await ctx.db
+    .query('leagueMembers')
+    .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+    .take(MAX_LEAGUE_MEMBERS);
+
+  return {
+    memberCount: members.length,
+    adminCount: countAdmins(members),
+  };
+}
 
 async function hasSeasonPassForSeason(
   ctx: MutationCtx | QueryCtx,
@@ -113,11 +152,7 @@ export const getMyLeagues = query({
         if (!league) {
           return null;
         }
-
-        const members = await ctx.db
-          .query('leagueMembers')
-          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .take(MAX_LEAGUE_MEMBERS);
+        const counts = await resolveLeagueCounts(ctx, league);
 
         return {
           _id: league._id,
@@ -125,7 +160,7 @@ export const getMyLeagues = query({
           slug: league.slug,
           description: league.description,
           season: league.season,
-          memberCount: members.length,
+          memberCount: counts.memberCount,
           viewerRole: m.role,
           visibility: league.visibility,
         };
@@ -146,25 +181,25 @@ export const listPublicLeagues = query({
     const season = args.season ?? 2026;
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
 
-    const leaguesForSeason = await ctx.db
+    const publicLeagues = await ctx.db
       .query('leagues')
-      .withIndex('by_season', (q) => q.eq('season', season))
+      .withIndex('by_season_and_visibility', (q) =>
+        q.eq('season', season).eq('visibility', 'public'),
+      )
       .take(MAX_LEAGUE_MEMBERS);
-
-    const publicLeagues = leaguesForSeason.filter(
-      (league) => league.visibility === 'public',
-    );
 
     const leagues = await Promise.all(
       publicLeagues.map(async (league) => {
-        const members = await ctx.db
-          .query('leagueMembers')
-          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .take(MAX_LEAGUE_MEMBERS);
         const viewerMembership =
           viewer != null
-            ? (members.find((m) => m.userId === viewer._id) ?? null)
+            ? await ctx.db
+                .query('leagueMembers')
+                .withIndex('by_league_user', (q) =>
+                  q.eq('leagueId', league._id).eq('userId', viewer._id),
+                )
+                .unique()
             : null;
+        const counts = await resolveLeagueCounts(ctx, league);
 
         return {
           _id: league._id,
@@ -172,7 +207,7 @@ export const listPublicLeagues = query({
           slug: league.slug,
           description: league.description,
           season: league.season,
-          memberCount: members.length,
+          memberCount: counts.memberCount,
           viewerRole: viewerMembership?.role ?? null,
           createdAt: league.createdAt,
         };
@@ -203,18 +238,16 @@ export const getLeagueBySlug = query({
       return null;
     }
 
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .take(MAX_LEAGUE_MEMBERS);
-
-    let viewerRole: 'admin' | 'member' | null = null;
-    if (viewer) {
-      const viewerMembership = members.find((m) => m.userId === viewer._id);
-      viewerRole = viewerMembership?.role ?? null;
-    }
-
-    const adminCount = members.filter((m) => m.role === 'admin').length;
+    const viewerMembership =
+      viewer != null
+        ? await ctx.db
+            .query('leagueMembers')
+            .withIndex('by_league_user', (q) =>
+              q.eq('leagueId', league._id).eq('userId', viewer._id),
+            )
+            .unique()
+        : null;
+    const counts = await resolveLeagueCounts(ctx, league);
 
     return {
       _id: league._id,
@@ -222,9 +255,9 @@ export const getLeagueBySlug = query({
       slug: league.slug,
       description: league.description,
       season: league.season,
-      memberCount: members.length,
-      adminCount,
-      viewerRole,
+      memberCount: counts.memberCount,
+      adminCount: counts.adminCount,
+      viewerRole: viewerMembership?.role ?? null,
       hasPassword: !!league.password,
       createdBy: league.createdBy,
       visibility: league.visibility,
@@ -251,35 +284,36 @@ export const getLeagueMembers = query({
       return [];
     }
 
+    const users = await Promise.all(members.map((m) => ctx.db.get(m.userId)));
+    const userMap = new Map(
+      users
+        .filter((user): user is NonNullable<typeof user> => user !== null)
+        .map((user) => [user._id, user]),
+    );
+
+    let raceTop5Predictions = new Set<Id<'users'>>();
+    let raceH2HPredictions = new Set<Id<'users'>>();
+    if (args.raceId !== undefined) {
+      for await (const prediction of ctx.db
+        .query('predictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', args.raceId!).eq('sessionType', 'race'),
+        )) {
+        raceTop5Predictions.add(prediction.userId);
+      }
+
+      for await (const prediction of ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', args.raceId!).eq('sessionType', 'race'),
+        )) {
+        raceH2HPredictions.add(prediction.userId);
+      }
+    }
+
     const enriched = await Promise.all(
       members.map(async (m) => {
-        const user = await ctx.db.get(m.userId);
-
-        let top5Picked: boolean | undefined;
-        let h2hPicked: boolean | undefined;
-        if (args.raceId !== undefined) {
-          const top5Prediction = await ctx.db
-            .query('predictions')
-            .withIndex('by_user_race_session', (q) =>
-              q
-                .eq('userId', m.userId)
-                .eq('raceId', args.raceId!)
-                .eq('sessionType', 'race'),
-            )
-            .first();
-          top5Picked = top5Prediction !== null;
-
-          const h2hPrediction = await ctx.db
-            .query('h2hPredictions')
-            .withIndex('by_user_race_session', (q) =>
-              q
-                .eq('userId', m.userId)
-                .eq('raceId', args.raceId!)
-                .eq('sessionType', 'race'),
-            )
-            .first();
-          h2hPicked = h2hPrediction !== null;
-        }
+        const user = userMap.get(m.userId);
 
         return {
           _id: m._id,
@@ -289,8 +323,14 @@ export const getLeagueMembers = query({
           displayName: user?.displayName ?? user?.username ?? 'Anonymous',
           username: user?.username ?? 'Anonymous',
           avatarUrl: user?.avatarUrl,
-          top5Picked,
-          h2hPicked,
+          top5Picked:
+            args.raceId !== undefined
+              ? raceTop5Predictions.has(m.userId)
+              : undefined,
+          h2hPicked:
+            args.raceId !== undefined
+              ? raceH2HPredictions.has(m.userId)
+              : undefined,
         };
       }),
     );
@@ -340,17 +380,16 @@ export const getMyLeagueUsage = query({
     const hasSeasonPass = await hasSeasonPassForSeason(ctx, viewer._id, season);
     const limits = hasSeasonPass ? SEASON_PASS_LIMITS : FREE_LIMITS;
 
-    const leaguesForSeason = await ctx.db
+    const createdLeagues = await ctx.db
       .query('leagues')
-      .withIndex('by_season', (q) => q.eq('season', season))
+      .withIndex('by_createdBy_and_season', (q) =>
+        q.eq('createdBy', viewer._id).eq('season', season),
+      )
       .take(MAX_LEAGUE_MEMBERS);
 
     let createdPrivate = 0;
     let createdPublic = 0;
-    for (const league of leaguesForSeason) {
-      if (league.createdBy !== viewer._id) {
-        continue;
-      }
+    for (const league of createdLeagues) {
       if (league.visibility === 'private') {
         createdPrivate += 1;
       }
@@ -458,17 +497,16 @@ export const createLeague = mutation({
     }
 
     // Count leagues created by this user for the season, by visibility.
-    const leaguesForSeason = await ctx.db
+    const createdLeagues = await ctx.db
       .query('leagues')
-      .withIndex('by_season', (q) => q.eq('season', season))
-      .collect();
+      .withIndex('by_createdBy_and_season', (q) =>
+        q.eq('createdBy', viewer._id).eq('season', season),
+      )
+      .take(MAX_LEAGUE_MEMBERS);
 
     let createdPrivate = 0;
     let createdPublic = 0;
-    for (const league of leaguesForSeason) {
-      if (league.createdBy !== viewer._id) {
-        continue;
-      }
+    for (const league of createdLeagues) {
       if (league.visibility === 'private') {
         createdPrivate += 1;
       }
@@ -503,6 +541,8 @@ export const createLeague = mutation({
       visibility,
       createdBy: viewer._id,
       season: 2026,
+      memberCount: 1,
+      adminCount: 1,
       createdAt: now,
       updatedAt: now,
     });
@@ -562,7 +602,7 @@ export const joinLeague = mutation({
     const memberships = await ctx.db
       .query('leagueMembers')
       .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     let privateJoined = 0;
     let publicJoined = 0;
@@ -613,6 +653,13 @@ export const joinLeague = mutation({
       role: 'member',
       joinedAt: Date.now(),
     });
+    await ctx.db.patch(league._id, {
+      memberCount:
+        league.memberCount !== undefined
+          ? league.memberCount + 1
+          : currentMembers.length + 1,
+      updatedAt: Date.now(),
+    });
 
     await ctx.scheduler.runAfter(0, internal.feed.writeJoinedLeagueFeedEvent, {
       userId: viewer._id,
@@ -642,8 +689,8 @@ export const leaveLeague = mutation({
       const admins = await ctx.db
         .query('leagueMembers')
         .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-        .collect();
-      const adminCount = admins.filter((m) => m.role === 'admin').length;
+        .take(MAX_LEAGUE_MEMBERS);
+      const adminCount = countAdmins(admins);
       const memberCount = admins.length;
 
       if (adminCount === 1 && memberCount > 1) {
@@ -654,6 +701,20 @@ export const leaveLeague = mutation({
     }
 
     await ctx.db.delete(membership._id);
+    const league = await ctx.db.get(args.leagueId);
+    if (league) {
+      await ctx.db.patch(league._id, {
+        memberCount: Math.max(
+          0,
+          (league.memberCount ?? 1) - 1,
+        ),
+        adminCount:
+          membership.role === 'admin'
+            ? Math.max(0, (league.adminCount ?? 1) - 1)
+            : league.adminCount,
+        updatedAt: Date.now(),
+      });
+    }
   },
 });
 
@@ -776,6 +837,13 @@ export const promoteMember = mutation({
     }
 
     await ctx.db.patch(membership._id, { role: 'admin' });
+    const league = await ctx.db.get(args.leagueId);
+    if (league) {
+      await ctx.db.patch(league._id, {
+        adminCount: (league.adminCount ?? 1) + 1,
+        updatedAt: Date.now(),
+      });
+    }
   },
 });
 
@@ -789,8 +857,8 @@ export const demoteMember = mutation({
       const admins = await ctx.db
         .query('leagueMembers')
         .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-        .collect();
-      const adminCount = admins.filter((m) => m.role === 'admin').length;
+        .take(MAX_LEAGUE_MEMBERS);
+      const adminCount = countAdmins(admins);
       if (adminCount === 1) {
         throw new Error(
           'You are the last admin. Promote another member first.',
@@ -812,6 +880,13 @@ export const demoteMember = mutation({
     }
 
     await ctx.db.patch(membership._id, { role: 'member' });
+    const league = await ctx.db.get(args.leagueId);
+    if (league) {
+      await ctx.db.patch(league._id, {
+        adminCount: Math.max(0, (league.adminCount ?? 1) - 1),
+        updatedAt: Date.now(),
+      });
+    }
   },
 });
 
@@ -836,6 +911,17 @@ export const removeMember = mutation({
     }
 
     await ctx.db.delete(membership._id);
+    const league = await ctx.db.get(args.leagueId);
+    if (league) {
+      await ctx.db.patch(league._id, {
+        memberCount: Math.max(0, (league.memberCount ?? 1) - 1),
+        adminCount:
+          membership.role === 'admin'
+            ? Math.max(0, (league.adminCount ?? 1) - 1)
+            : league.adminCount,
+        updatedAt: Date.now(),
+      });
+    }
   },
 });
 
@@ -849,7 +935,7 @@ export const deleteLeague = mutation({
     const members = await ctx.db
       .query('leagueMembers')
       .withIndex('by_league', (q) => q.eq('leagueId', args.leagueId))
-      .collect();
+      .take(MAX_LEAGUE_MEMBERS);
 
     for (const member of members) {
       await ctx.db.delete(member._id);
@@ -882,5 +968,66 @@ export const migrateLeagueVisibility = mutation({
       }
     }
     return { patched, total: leagues.length };
+  },
+});
+
+export const backfillLeagueCounts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = requireViewer(await getOrCreateViewer(ctx));
+    requireAdmin(viewer);
+
+    await ctx.scheduler.runAfter(0, internal.leagues.backfillLeagueCountsBatch, {
+      cursor: null,
+    });
+
+    return { scheduled: true };
+  },
+});
+
+export const backfillLeagueCountsBatch = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query('leagues').paginate({
+      cursor: args.cursor,
+      numItems: 100,
+    });
+
+    let patched = 0;
+    const now = Date.now();
+
+    for (const league of result.page) {
+      if (
+        league.memberCount !== undefined &&
+        league.adminCount !== undefined
+      ) {
+        continue;
+      }
+
+      const members = await ctx.db
+        .query('leagueMembers')
+        .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+        .take(MAX_LEAGUE_MEMBERS);
+      await ctx.db.patch(league._id, {
+        memberCount: members.length,
+        adminCount: countAdmins(members),
+        updatedAt: now,
+      });
+      patched += 1;
+    }
+
+    if (!result.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.leagues.backfillLeagueCountsBatch,
+        {
+          cursor: result.continueCursor,
+        },
+      );
+    }
+
+    return { patched, isDone: result.isDone };
   },
 });

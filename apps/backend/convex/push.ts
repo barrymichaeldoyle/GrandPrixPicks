@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import {
@@ -18,6 +19,45 @@ const sessionTypeValidator = v.union(
   v.literal('sprint'),
   v.literal('race'),
 );
+
+type PushSubscriptionPayload = {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
+async function getSubscriptionsForUser(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<'users'>,
+): Promise<Array<PushSubscriptionPayload>> {
+  const subscriptions: Array<PushSubscriptionPayload> = [];
+  for await (const sub of ctx.db
+    .query('pushSubscriptions')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    subscriptions.push({
+      endpoint: sub.endpoint,
+      p256dh: sub.p256dh,
+      auth: sub.auth,
+    });
+  }
+  return subscriptions;
+}
+
+async function getSubscriptionsByUser(
+  ctx: MutationCtx,
+): Promise<Map<Id<'users'>, Array<PushSubscriptionPayload>>> {
+  const subscriptionsByUser = new Map<Id<'users'>, Array<PushSubscriptionPayload>>();
+  for await (const sub of ctx.db.query('pushSubscriptions')) {
+    const existing = subscriptionsByUser.get(sub.userId) ?? [];
+    existing.push({
+      endpoint: sub.endpoint,
+      p256dh: sub.p256dh,
+      auth: sub.auth,
+    });
+    subscriptionsByUser.set(sub.userId, existing);
+  }
+  return subscriptionsByUser;
+}
 
 export const saveSubscription = mutation({
   args: {
@@ -82,10 +122,7 @@ export const getSubscriptionsForUsers = internalQuery({
     }> = [];
 
     for (const userId of args.userIds) {
-      const subs = await ctx.db
-        .query('pushSubscriptions')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .collect();
+      const subs = await getSubscriptionsForUser(ctx, userId);
       for (const sub of subs) {
         results.push({
           userId,
@@ -115,12 +152,12 @@ export const sendPushRemindersForRace = internalMutation({
       return { skipped: true, reason: 'Race not upcoming' };
     }
 
-    const allSubs = await ctx.db.query('pushSubscriptions').collect();
-    if (allSubs.length === 0) {
+    const subscriptionsByUser = await getSubscriptionsByUser(ctx);
+    if (subscriptionsByUser.size === 0) {
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
-    const subscribedUserIds = [...new Set(allSubs.map((s) => s.userId))];
+    const subscribedUserIds = [...subscriptionsByUser.keys()];
     const subscribedUsers = await Promise.all(
       subscribedUserIds.map((userId) => ctx.db.get(userId)),
     );
@@ -133,16 +170,15 @@ export const sendPushRemindersForRace = internalMutation({
     let targetUserIds: Set<string>;
 
     if (args.filterUnpredicted) {
-      const predictions = await ctx.db
+      const usersWithPredictions = new Set<string>();
+      for await (const prediction of ctx.db
         .query('predictions')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
-        .collect();
-      const usersWithPredictions = new Set(
-        predictions.map((p) => p.userId as string),
-      );
+        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+        usersWithPredictions.add(prediction.userId as string);
+      }
       const allSubUserIds = new Set(
-        allSubs
-          .map((s) => s.userId as string)
+        subscribedUserIds
+          .map((id) => id as string)
           .filter((id) => usersWithReminderPushEnabled.has(id)),
       );
       targetUserIds = new Set(
@@ -150,8 +186,8 @@ export const sendPushRemindersForRace = internalMutation({
       );
     } else {
       targetUserIds = new Set(
-        allSubs
-          .map((s) => s.userId as string)
+        subscribedUserIds
+          .map((id) => id as string)
           .filter((id) => usersWithReminderPushEnabled.has(id)),
       );
     }
@@ -171,9 +207,9 @@ export const sendPushRemindersForRace = internalMutation({
       : 'prediction_reminder';
     const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=${utmCampaign}`;
 
-    const subscriptionsToNotify = allSubs
-      .filter((s) => targetUserIds.has(s.userId as string))
-      .map((s) => ({ endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth }));
+    const subscriptionsToNotify = [...subscriptionsByUser.entries()]
+      .filter(([userId]) => targetUserIds.has(userId as string))
+      .flatMap(([, subscriptions]) => subscriptions);
 
     const BATCH_SIZE = 100;
     for (let i = 0; i < subscriptionsToNotify.length; i += BATCH_SIZE) {
@@ -208,12 +244,12 @@ export const sendPushResultsForSession = internalMutation({
       return { skipped: true, reason: 'Race not found' };
     }
 
-    const allSubs = await ctx.db.query('pushSubscriptions').collect();
-    if (allSubs.length === 0) {
+    const subscriptionsByUser = await getSubscriptionsByUser(ctx);
+    if (subscriptionsByUser.size === 0) {
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
-    const subscribedUserIds = [...new Set(allSubs.map((s) => s.userId))];
+    const subscribedUserIds = [...subscriptionsByUser.keys()];
     const subscribedUsers = await Promise.all(
       subscribedUserIds.map((userId) => ctx.db.get(userId)),
     );
@@ -228,13 +264,9 @@ export const sendPushResultsForSession = internalMutation({
     const body = `Session results are in. See how you scored!`;
     const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=results`;
 
-    const subscriptions = allSubs
-      .filter((s) => usersWithResultPushEnabled.has(s.userId as string))
-      .map((s) => ({
-        endpoint: s.endpoint,
-        p256dh: s.p256dh,
-        auth: s.auth,
-      }));
+    const subscriptions = [...subscriptionsByUser.entries()]
+      .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))
+      .flatMap(([, userSubscriptions]) => userSubscriptions);
 
     if (subscriptions.length === 0) {
       return { skipped: true, reason: 'No eligible subscriptions' };
@@ -286,10 +318,7 @@ export const sendPushForSessionLocked = internalMutation({
       if (!user || !wantsPushSessionLocked(user)) {
         continue;
       }
-      const subs = await ctx.db
-        .query('pushSubscriptions')
-        .withIndex('by_user', (q) => q.eq('userId', userId))
-        .collect();
+      const subs = await getSubscriptionsForUser(ctx, userId);
       for (const sub of subs) {
         subscriptions.push({
           endpoint: sub.endpoint,
@@ -337,10 +366,7 @@ export const sendPushForRevReceived = internalMutation({
       return { skipped: true, reason: 'User not found or push disabled' };
     }
 
-    const subs = await ctx.db
-      .query('pushSubscriptions')
-      .withIndex('by_user', (q) => q.eq('userId', args.recipientUserId))
-      .collect();
+    const subs = await getSubscriptionsForUser(ctx, args.recipientUserId);
 
     if (subs.length === 0) {
       return { skipped: true, reason: 'No subscriptions' };

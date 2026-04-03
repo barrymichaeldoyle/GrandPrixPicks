@@ -4,7 +4,6 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
-import { findNextPredictionRace } from './races';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -46,10 +45,12 @@ export const myPredictionHistory = query({
       return [];
     }
 
-    const predictions = await ctx.db
+    const predictions = [];
+    for await (const prediction of ctx.db
       .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .take(500);
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))) {
+      predictions.push(prediction);
+    }
 
     // Get all drivers for lookups
     const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
@@ -150,10 +151,12 @@ export const getUserPredictionHistory = query({
     const viewer = await getViewer(ctx);
     const isOwner = viewer ? viewer._id === args.userId : false;
 
-    const predictions = await ctx.db
+    const predictions = [];
+    for await (const prediction of ctx.db
       .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .take(500);
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))) {
+      predictions.push(prediction);
+    }
 
     const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
     const driverMap = new Map(allDrivers.map((d) => [d._id, d]));
@@ -456,7 +459,7 @@ export const submitPrediction = mutation({
       .withIndex('by_user_race_session', (q) =>
         q.eq('userId', viewer._id).eq('raceId', args.raceId),
       )
-      .collect();
+      .take(8);
     const postSessionCount = new Set(existingAfter.map((p) => p.sessionType))
       .size;
     const raceSessionPrediction = existingAfter.find(
@@ -521,14 +524,18 @@ export const randomizePredictions = mutation({
     const now = Date.now();
 
     // Only allow predictions for the next upcoming race
-    const allRaces = await ctx.db.query('races').collect();
-    const nextRace = findNextPredictionRace(allRaces, now);
+    const nextRace = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .first();
 
     if (!nextRace || nextRace._id !== args.raceId) {
       throw new Error('Predictions are only open for the next upcoming race');
     }
 
-    const drivers = await ctx.db.query('drivers').collect();
+    const drivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
     const driverIds = drivers.map((d) => d._id);
 
     const sessions: Array<SessionType> = race.hasSprint

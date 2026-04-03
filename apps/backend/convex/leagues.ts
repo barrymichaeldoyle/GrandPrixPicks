@@ -48,28 +48,16 @@ export function countAdmins(
   );
 }
 
-async function resolveLeagueCounts(
-  ctx: QueryCtx | MutationCtx,
+function requireLeagueCounts(
   league: Doc<'leagues'>,
-): Promise<{ memberCount: number; adminCount: number }> {
-  if (
-    league.memberCount !== undefined &&
-    league.adminCount !== undefined
-  ) {
-    return {
-      memberCount: league.memberCount,
-      adminCount: league.adminCount,
-    };
+): { memberCount: number; adminCount: number } {
+  if (league.memberCount === undefined || league.adminCount === undefined) {
+    throw new Error('League counts are missing. Run the league count backfill.');
   }
 
-  const members = await ctx.db
-    .query('leagueMembers')
-    .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-    .take(MAX_LEAGUE_MEMBERS);
-
   return {
-    memberCount: members.length,
-    adminCount: countAdmins(members),
+    memberCount: league.memberCount,
+    adminCount: league.adminCount,
   };
 }
 
@@ -152,7 +140,7 @@ export const getMyLeagues = query({
         if (!league) {
           return null;
         }
-        const counts = await resolveLeagueCounts(ctx, league);
+        const counts = requireLeagueCounts(league);
 
         return {
           _id: league._id,
@@ -199,7 +187,7 @@ export const listPublicLeagues = query({
                 )
                 .unique()
             : null;
-        const counts = await resolveLeagueCounts(ctx, league);
+        const counts = requireLeagueCounts(league);
 
         return {
           _id: league._id,
@@ -247,7 +235,7 @@ export const getLeagueBySlug = query({
             )
             .unique()
         : null;
-    const counts = await resolveLeagueCounts(ctx, league);
+    const counts = requireLeagueCounts(league);
 
     return {
       _id: league._id,
@@ -653,11 +641,9 @@ export const joinLeague = mutation({
       role: 'member',
       joinedAt: Date.now(),
     });
+    const counts = requireLeagueCounts(league);
     await ctx.db.patch(league._id, {
-      memberCount:
-        league.memberCount !== undefined
-          ? league.memberCount + 1
-          : currentMembers.length + 1,
+      memberCount: counts.memberCount + 1,
       updatedAt: Date.now(),
     });
 
@@ -703,15 +689,13 @@ export const leaveLeague = mutation({
     await ctx.db.delete(membership._id);
     const league = await ctx.db.get(args.leagueId);
     if (league) {
+      const counts = requireLeagueCounts(league);
       await ctx.db.patch(league._id, {
-        memberCount: Math.max(
-          0,
-          (league.memberCount ?? 1) - 1,
-        ),
+        memberCount: Math.max(0, counts.memberCount - 1),
         adminCount:
           membership.role === 'admin'
-            ? Math.max(0, (league.adminCount ?? 1) - 1)
-            : league.adminCount,
+            ? Math.max(0, counts.adminCount - 1)
+            : counts.adminCount,
         updatedAt: Date.now(),
       });
     }
@@ -839,8 +823,9 @@ export const promoteMember = mutation({
     await ctx.db.patch(membership._id, { role: 'admin' });
     const league = await ctx.db.get(args.leagueId);
     if (league) {
+      const counts = requireLeagueCounts(league);
       await ctx.db.patch(league._id, {
-        adminCount: (league.adminCount ?? 1) + 1,
+        adminCount: counts.adminCount + 1,
         updatedAt: Date.now(),
       });
     }
@@ -882,8 +867,9 @@ export const demoteMember = mutation({
     await ctx.db.patch(membership._id, { role: 'member' });
     const league = await ctx.db.get(args.leagueId);
     if (league) {
+      const counts = requireLeagueCounts(league);
       await ctx.db.patch(league._id, {
-        adminCount: Math.max(0, (league.adminCount ?? 1) - 1),
+        adminCount: Math.max(0, counts.adminCount - 1),
         updatedAt: Date.now(),
       });
     }
@@ -913,12 +899,13 @@ export const removeMember = mutation({
     await ctx.db.delete(membership._id);
     const league = await ctx.db.get(args.leagueId);
     if (league) {
+      const counts = requireLeagueCounts(league);
       await ctx.db.patch(league._id, {
-        memberCount: Math.max(0, (league.memberCount ?? 1) - 1),
+        memberCount: Math.max(0, counts.memberCount - 1),
         adminCount:
           membership.role === 'admin'
-            ? Math.max(0, (league.adminCount ?? 1) - 1)
-            : league.adminCount,
+            ? Math.max(0, counts.adminCount - 1)
+            : counts.adminCount,
         updatedAt: Date.now(),
       });
     }

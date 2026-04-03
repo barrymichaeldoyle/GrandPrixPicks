@@ -5758,6 +5758,7 @@ export const seedHomePageScenario = internalMutation({
     const HOUR = 60 * 60 * 1000;
 
     // Find a sprint weekend to use
+    // query-hygiene-ignore db-filter: dev-only seed helper selecting any sprint weekend
     const sprintRace = await ctx.db
       .query('races')
       .withIndex('by_season_round')

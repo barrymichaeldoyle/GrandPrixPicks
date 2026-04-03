@@ -3,11 +3,10 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, mutation, query } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
   getViewer,
-  requireAdmin,
   requireViewer,
 } from './lib/auth';
 
@@ -52,7 +51,7 @@ function requireLeagueCounts(
   league: Doc<'leagues'>,
 ): { memberCount: number; adminCount: number } {
   if (league.memberCount === undefined || league.adminCount === undefined) {
-    throw new Error('League counts are missing. Run the league count backfill.');
+    throw new Error('League counts are missing.');
   }
 
   return {
@@ -955,66 +954,5 @@ export const migrateLeagueVisibility = mutation({
       }
     }
     return { patched, total: leagues.length };
-  },
-});
-
-export const backfillLeagueCounts = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const viewer = requireViewer(await getOrCreateViewer(ctx));
-    requireAdmin(viewer);
-
-    await ctx.scheduler.runAfter(0, internal.leagues.backfillLeagueCountsBatch, {
-      cursor: null,
-    });
-
-    return { scheduled: true };
-  },
-});
-
-export const backfillLeagueCountsBatch = internalMutation({
-  args: {
-    cursor: v.union(v.string(), v.null()),
-  },
-  handler: async (ctx, args) => {
-    const result = await ctx.db.query('leagues').paginate({
-      cursor: args.cursor,
-      numItems: 100,
-    });
-
-    let patched = 0;
-    const now = Date.now();
-
-    for (const league of result.page) {
-      if (
-        league.memberCount !== undefined &&
-        league.adminCount !== undefined
-      ) {
-        continue;
-      }
-
-      const members = await ctx.db
-        .query('leagueMembers')
-        .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-        .take(MAX_LEAGUE_MEMBERS);
-      await ctx.db.patch(league._id, {
-        memberCount: members.length,
-        adminCount: countAdmins(members),
-        updatedAt: now,
-      });
-      patched += 1;
-    }
-
-    if (!result.isDone) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.leagues.backfillLeagueCountsBatch,
-        {
-          cursor: result.continueCursor,
-        },
-      );
-    }
-
-    return { patched, isDone: result.isDone };
   },
 });

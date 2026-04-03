@@ -305,7 +305,7 @@ async function processDeletionStep(
   }
 }
 
-async function startUserDeletion(
+export async function startUserDeletion(
   ctx: MutationCtx,
   user: {
     _id: Id<'users'>;

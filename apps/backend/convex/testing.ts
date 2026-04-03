@@ -3,7 +3,6 @@ import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
 import {
   internalMutation,
-  internalQuery,
   type MutationCtx,
   mutation,
 } from './_generated/server';
@@ -650,43 +649,12 @@ export const setupReminderTest = mutation({
   },
 });
 
-async function ensureTestDrivers(ctx: MutationCtx) {
-  let drivers = await ctx.db.query('drivers').withIndex('by_code').take(2);
-  if (drivers.length >= 2) {
-    return drivers;
-  }
-
-  const now = Date.now();
-  const needed = 2 - drivers.length;
-  const createdIds: Array<Id<'drivers'>> = [];
-  for (let i = 0; i < needed; i += 1) {
-    const index = drivers.length + i + 1;
-    const driverId = await ctx.db.insert('drivers', {
-      code: `T${index}`.slice(0, 3),
-      displayName: `Test Driver ${index}`,
-      createdAt: now,
-      updatedAt: now,
-    });
-    createdIds.push(driverId);
-  }
-
-  const createdDrivers = await Promise.all(createdIds.map((id) => ctx.db.get(id)));
-  return [
-    ...drivers,
-    ...createdDrivers.filter(
-      (
-        driver,
-      ): driver is NonNullable<typeof driver> => driver !== null,
-    ),
-  ];
-}
-
 async function deleteDocs(
   ctx: MutationCtx,
   docs: Array<{ _id: string }>,
 ) {
   for (const doc of docs) {
-    await ctx.db.delete(doc._id as Id<'users'>);
+    await ctx.db.delete(doc._id as never);
   }
 }
 
@@ -694,172 +662,116 @@ function isPresent<T>(value: T | null): value is T {
   return value !== null;
 }
 
-export const createDeletionFixture = internalMutation({
+async function findUserByEmail(ctx: MutationCtx, email?: string) {
+  if (!email) {
+    return null;
+  }
+
+  for await (const user of ctx.db.query('users')) {
+    if (user.email === email) {
+      return user;
+    }
+  }
+
+  return null;
+}
+
+async function upsertLeagueSmokeUser(
+  ctx: MutationCtx,
+  args: {
+    clerkUserId: string;
+    email?: string;
+    displayName: string;
+  },
+) {
+  const now = Date.now();
+  const existingByClerkUserId = await ctx.db
+    .query('users')
+    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+    .unique();
+  const existingByEmail =
+    existingByClerkUserId || !args.email
+      ? null
+      : await findUserByEmail(ctx, args.email);
+  const existing = existingByClerkUserId ?? existingByEmail;
+
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      email: args.email ?? existing.email,
+      displayName: args.displayName,
+      updatedAt: now,
+    });
+    return existing._id;
+  }
+
+  return await ctx.db.insert('users', {
+    clerkUserId: args.clerkUserId,
+    email: args.email,
+    displayName: args.displayName,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+export const createLeagueSmokeFixture = internalMutation({
   args: {
     namespace: v.string(),
+    primaryClerkUserId: v.string(),
+    primaryEmail: v.optional(v.string()),
+    primaryDisplayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
     const ns = args.namespace.trim();
-    const primaryClerkUserId = `${ns}__primary`;
-    const memberClerkUserId = `${ns}__member`;
-    const ownerClerkUserId = `${ns}__owner`;
+    const ownedLeagueSlug = `${ns.toLowerCase()}-pit-wall`;
+    const publicLeagueSlug = `${ns.toLowerCase()}-open-paddock`;
+    const mateClerkUserId = `${ns}__mate`;
+    const hostClerkUserId = `${ns}__host`;
 
-    const existingPrimary = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', primaryClerkUserId))
-      .unique();
-    if (existingPrimary) {
-      return {
-        namespace: ns,
-        primaryUserId: existingPrimary._id,
-        primaryClerkUserId,
-        alreadyExisted: true,
-      };
+    const existingLeagues = (
+      await Promise.all([
+        ctx.db
+          .query('leagues')
+          .withIndex('by_slug', (q) => q.eq('slug', ownedLeagueSlug))
+          .unique(),
+        ctx.db
+          .query('leagues')
+          .withIndex('by_slug', (q) => q.eq('slug', publicLeagueSlug))
+          .unique(),
+      ])
+    ).filter(isPresent);
+
+    for (const league of existingLeagues) {
+      await deleteDocs(
+        ctx,
+        await ctx.db
+          .query('leagueMembers')
+          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
+          .collect(),
+      );
+      await ctx.db.delete(league._id);
     }
 
-    const [driver1, driver2] = await ensureTestDrivers(ctx);
-
-    const primaryUserId = await ctx.db.insert('users', {
-      clerkUserId: primaryClerkUserId,
-      email: `${ns}__primary@example.com`,
-      displayName: `${ns} Primary`,
-      createdAt: now,
-      updatedAt: now,
+    const primaryUserId = await upsertLeagueSmokeUser(ctx, {
+      clerkUserId: args.primaryClerkUserId,
+      email: args.primaryEmail,
+      displayName: args.primaryDisplayName ?? 'Scenario Primary',
     });
-    const memberUserId = await ctx.db.insert('users', {
-      clerkUserId: memberClerkUserId,
-      email: `${ns}__member@example.com`,
-      displayName: `${ns} Member`,
-      createdAt: now,
-      updatedAt: now,
+    const mateUserId = await upsertLeagueSmokeUser(ctx, {
+      clerkUserId: mateClerkUserId,
+      email: `${ns}__mate@example.com`,
+      displayName: 'League Mate',
     });
-    const ownerUserId = await ctx.db.insert('users', {
-      clerkUserId: ownerClerkUserId,
-      email: `${ns}__owner@example.com`,
-      displayName: `${ns} Owner`,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const raceId = await ctx.db.insert('races', {
-      season: 2026,
-      round: 999,
-      name: `${ns} Test GP`,
-      slug: `${ns.toLowerCase()}-test-gp-2026`,
-      raceStartAt: now + 24 * 60 * 60 * 1000,
-      predictionLockAt: now + 24 * 60 * 60 * 1000,
-      status: 'upcoming',
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const matchupId = await ctx.db.insert('h2hMatchups', {
-      season: 2026,
-      team: `${ns} Team`,
-      driver1Id: driver1._id,
-      driver2Id: driver2._id,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await ctx.db.insert('follows', {
-      followerId: primaryUserId,
-      followeeId: memberUserId,
-      createdAt: now,
-    });
-    await ctx.db.insert('follows', {
-      followerId: ownerUserId,
-      followeeId: primaryUserId,
-      createdAt: now,
-    });
-    await ctx.db.insert('supportRequests', {
-      userId: primaryUserId,
-      subject: `${ns} subject`,
-      message: `${ns} message`,
-      status: 'open',
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('userSeasonPasses', {
-      userId: primaryUserId,
-      season: 2026,
-      paddleCheckoutId: `${ns}__checkout`,
-      paddleProductId: `${ns}__product`,
-      createdAt: now,
-    });
-    await ctx.db.insert('pushSubscriptions', {
-      userId: primaryUserId,
-      endpoint: `https://push.example.com/${ns}`,
-      p256dh: `${ns}__p256dh`,
-      auth: `${ns}__auth`,
-      createdAt: now,
-    });
-    await ctx.db.insert('processedPaddleWebhookEvents', {
-      eventId: `${ns}__event`,
-      clerkUserId: primaryClerkUserId,
-      season: 2026,
-      status: 'processed',
-      createdAt: now,
-    });
-    await ctx.db.insert('predictions', {
-      userId: primaryUserId,
-      raceId,
-      sessionType: 'race',
-      picks: [driver1._id, driver2._id, driver1._id, driver2._id, driver1._id].slice(
-        0,
-        5,
-      ) as Array<Id<'drivers'>>,
-      submittedAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('h2hPredictions', {
-      userId: primaryUserId,
-      raceId,
-      sessionType: 'race',
-      matchupId,
-      predictedWinnerId: driver1._id,
-      submittedAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('scores', {
-      userId: primaryUserId,
-      raceId,
-      sessionType: 'race',
-      points: 7,
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('h2hScores', {
-      userId: primaryUserId,
-      raceId,
-      sessionType: 'race',
-      points: 1,
-      correctPicks: 1,
-      totalPicks: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('seasonStandings', {
-      userId: primaryUserId,
-      season: 2026,
-      totalPoints: 7,
-      raceCount: 1,
-      updatedAt: now,
-    });
-    await ctx.db.insert('h2hSeasonStandings', {
-      userId: primaryUserId,
-      season: 2026,
-      totalPoints: 1,
-      raceCount: 1,
-      correctPicks: 1,
-      totalPicks: 1,
-      updatedAt: now,
+    const hostUserId = await upsertLeagueSmokeUser(ctx, {
+      clerkUserId: hostClerkUserId,
+      email: `${ns}__host@example.com`,
+      displayName: 'League Host',
     });
 
     const ownedLeagueId = await ctx.db.insert('leagues', {
-      name: `${ns} Owned League`,
-      slug: `${ns.toLowerCase()}-owned-league`,
+      name: 'Pit Wall Club',
+      slug: ownedLeagueSlug,
+      description: 'A private test league for smoke coverage.',
       visibility: 'private',
       createdBy: primaryUserId,
       season: 2026,
@@ -876,16 +788,17 @@ export const createDeletionFixture = internalMutation({
     });
     await ctx.db.insert('leagueMembers', {
       leagueId: ownedLeagueId,
-      userId: memberUserId,
+      userId: mateUserId,
       role: 'member',
       joinedAt: now,
     });
 
-    const soloLeagueId = await ctx.db.insert('leagues', {
-      name: `${ns} Solo League`,
-      slug: `${ns.toLowerCase()}-solo-league`,
-      visibility: 'private',
-      createdBy: primaryUserId,
+    const publicLeagueId = await ctx.db.insert('leagues', {
+      name: 'Open Paddock',
+      slug: publicLeagueSlug,
+      description: 'A public league for discover-tab smoke coverage.',
+      visibility: 'public',
+      createdBy: hostUserId,
       season: 2026,
       memberCount: 1,
       adminCount: 1,
@@ -893,465 +806,26 @@ export const createDeletionFixture = internalMutation({
       updatedAt: now,
     });
     await ctx.db.insert('leagueMembers', {
-      leagueId: soloLeagueId,
-      userId: primaryUserId,
+      leagueId: publicLeagueId,
+      userId: hostUserId,
       role: 'admin',
-      joinedAt: now,
-    });
-
-    const sharedLeagueId = await ctx.db.insert('leagues', {
-      name: `${ns} Shared League`,
-      slug: `${ns.toLowerCase()}-shared-league`,
-      visibility: 'private',
-      createdBy: ownerUserId,
-      season: 2026,
-      memberCount: 2,
-      adminCount: 1,
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('leagueMembers', {
-      leagueId: sharedLeagueId,
-      userId: ownerUserId,
-      role: 'admin',
-      joinedAt: now,
-    });
-    await ctx.db.insert('leagueMembers', {
-      leagueId: sharedLeagueId,
-      userId: primaryUserId,
-      role: 'member',
       joinedAt: now,
     });
 
     return {
       namespace: ns,
-      primaryUserId,
-      primaryClerkUserId,
-      ownedLeagueId,
-      soloLeagueId,
-      sharedLeagueId,
-      alreadyExisted: false,
-    };
-  },
-});
-
-export const getDeletionFixtureState = internalQuery({
-  args: {
-    namespace: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const ns = args.namespace.trim();
-    const primaryClerkUserId = `${ns}__primary`;
-    const primaryUser = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', primaryClerkUserId))
-      .unique();
-
-    const leagueRows = await ctx.db.query('leagues').collect();
-    const leagues = [];
-    for (const league of leagueRows.filter((row) => row.name.startsWith(ns))) {
-      const members = await ctx.db
-        .query('leagueMembers')
-        .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-        .take(20);
-      leagues.push({
-        name: league.name,
-        slug: league.slug,
-        createdBy: league.createdBy,
-        memberCount: league.memberCount ?? null,
-        adminCount: league.adminCount ?? null,
-        actualMemberCount: members.length,
-        actualAdminCount: members.filter((member) => member.role === 'admin')
-          .length,
-      });
-    }
-
-    if (!primaryUser) {
-      return {
-        namespace: ns,
-        primaryExists: false,
-        leagues,
-      };
-    }
-
-    const [followsAsFollower, followsAsFollowee, supportRequests, passes, pushSubs] =
-      await Promise.all([
-        ctx.db
-          .query('follows')
-          .withIndex('by_follower', (q) => q.eq('followerId', primaryUser._id))
-          .take(20),
-        ctx.db
-          .query('follows')
-          .withIndex('by_followee', (q) => q.eq('followeeId', primaryUser._id))
-          .take(20),
-        ctx.db
-          .query('supportRequests')
-          .withIndex('by_user', (q) => q.eq('userId', primaryUser._id))
-          .take(20),
-        ctx.db
-          .query('userSeasonPasses')
-          .withIndex('by_user_season', (q) => q.eq('userId', primaryUser._id))
-          .take(20),
-        ctx.db
-          .query('pushSubscriptions')
-          .withIndex('by_user', (q) => q.eq('userId', primaryUser._id))
-          .take(20),
-      ]);
-
-    const processedEvents = await ctx.db
-      .query('processedPaddleWebhookEvents')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', primaryClerkUserId))
-      .take(20);
-    const predictions = await ctx.db
-      .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-    const h2hPredictions = await ctx.db
-      .query('h2hPredictions')
-      .withIndex('by_user_race_session', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-    const scores = await ctx.db
-      .query('scores')
-      .withIndex('by_user', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-    const h2hScores = await ctx.db
-      .query('h2hScores')
-      .withIndex('by_user', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-    const seasonStandings = await ctx.db
-      .query('seasonStandings')
-      .withIndex('by_user_season', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-    const h2hSeasonStandings = await ctx.db
-      .query('h2hSeasonStandings')
-      .withIndex('by_user_season', (q) => q.eq('userId', primaryUser._id))
-      .take(20);
-
-    return {
-      namespace: ns,
-      primaryExists: true,
-      primaryUserId: primaryUser._id,
-      deletingAt: primaryUser.deletingAt ?? null,
-      counts: {
-        followsAsFollower: followsAsFollower.length,
-        followsAsFollowee: followsAsFollowee.length,
-        supportRequests: supportRequests.length,
-        userSeasonPasses: passes.length,
-        pushSubscriptions: pushSubs.length,
-        processedPaddleWebhookEvents: processedEvents.length,
-        predictions: predictions.length,
-        h2hPredictions: h2hPredictions.length,
-        scores: scores.length,
-        h2hScores: h2hScores.length,
-        seasonStandings: seasonStandings.length,
-        h2hSeasonStandings: h2hSeasonStandings.length,
+      ownedLeague: {
+        id: ownedLeagueId,
+        name: 'Pit Wall Club',
+        slug: ownedLeagueSlug,
+        route: `/leagues/${ownedLeagueSlug}`,
       },
-      leagues,
-    };
-  },
-});
-
-export const clearDeletionFixture = internalMutation({
-  args: {
-    namespace: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const ns = args.namespace.trim();
-    const primaryClerkUserId = `${ns}__primary`;
-    const memberClerkUserId = `${ns}__member`;
-    const ownerClerkUserId = `${ns}__owner`;
-    const raceSlug = `${ns.toLowerCase()}-test-gp-2026`;
-    const leagueSlugs = [
-      `${ns.toLowerCase()}-owned-league`,
-      `${ns.toLowerCase()}-solo-league`,
-      `${ns.toLowerCase()}-shared-league`,
-    ];
-
-    const users = (
-      await Promise.all([
-        ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', primaryClerkUserId))
-          .unique(),
-        ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', memberClerkUserId))
-          .unique(),
-        ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', ownerClerkUserId))
-          .unique(),
-      ])
-    ).filter(isPresent);
-
-    for (const user of users) {
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('follows')
-          .withIndex('by_follower', (q) => q.eq('followerId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('follows')
-          .withIndex('by_followee', (q) => q.eq('followeeId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('supportRequests')
-          .withIndex('by_user', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('userSeasonPasses')
-          .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('pushSubscriptions')
-          .withIndex('by_user', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('predictions')
-          .withIndex('by_user', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('h2hPredictions')
-          .withIndex('by_user_race_session', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('scores')
-          .withIndex('by_user', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('h2hScores')
-          .withIndex('by_user', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('seasonStandings')
-          .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('h2hSeasonStandings')
-          .withIndex('by_user_season', (q) => q.eq('userId', user._id))
-          .collect(),
-      );
-    }
-
-    await deleteDocs(
-      ctx,
-      await ctx.db
-        .query('processedPaddleWebhookEvents')
-        .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', primaryClerkUserId))
-        .collect(),
-    );
-
-    const leagues = (
-      await Promise.all(
-        leagueSlugs.map((slug) =>
-          ctx.db.query('leagues').withIndex('by_slug', (q) => q.eq('slug', slug)).unique(),
-        ),
-      )
-    ).filter(isPresent);
-
-    for (const league of leagues) {
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('leagueMembers')
-          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .collect(),
-      );
-      await ctx.db.delete(league._id);
-    }
-
-    const race = await ctx.db
-      .query('races')
-      .withIndex('by_slug', (q) => q.eq('slug', raceSlug))
-      .unique();
-    if (race) {
-      await ctx.db.delete(race._id);
-    }
-
-    for (const matchup of await ctx.db.query('h2hMatchups').collect()) {
-      if (matchup.team === `${ns} Team`) {
-        await ctx.db.delete(matchup._id);
-      }
-    }
-
-    for (const user of users) {
-      await ctx.db.delete(user._id);
-    }
-
-    return {
-      namespace: ns,
-      deletedUsers: users.length,
-      deletedLeagues: leagues.length,
-      deletedRace: race !== null,
-    };
-  },
-});
-
-export const createLeagueBackfillFixture = internalMutation({
-  args: {
-    namespace: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-    const ns = args.namespace.trim();
-    const slug = `${ns.toLowerCase()}-backfill-league`;
-
-    const existing = await ctx.db
-      .query('leagues')
-      .withIndex('by_slug', (q) => q.eq('slug', slug))
-      .unique();
-    if (existing) {
-      return { slug, leagueId: existing._id, alreadyExisted: true };
-    }
-
-    const adminUserId = await ctx.db.insert('users', {
-      clerkUserId: `${ns}__backfill_admin`,
-      email: `${ns}__backfill_admin@example.com`,
-      displayName: `${ns} Backfill Admin`,
-      createdAt: now,
-      updatedAt: now,
-    });
-    const memberUserId = await ctx.db.insert('users', {
-      clerkUserId: `${ns}__backfill_member`,
-      email: `${ns}__backfill_member@example.com`,
-      displayName: `${ns} Backfill Member`,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const leagueId = await ctx.db.insert('leagues', {
-      name: `${ns} Backfill League`,
-      slug,
-      visibility: 'private',
-      createdBy: adminUserId,
-      season: 2026,
-      createdAt: now,
-      updatedAt: now,
-    });
-    await ctx.db.insert('leagueMembers', {
-      leagueId,
-      userId: adminUserId,
-      role: 'admin',
-      joinedAt: now,
-    });
-    await ctx.db.insert('leagueMembers', {
-      leagueId,
-      userId: memberUserId,
-      role: 'member',
-      joinedAt: now,
-    });
-
-    return { slug, leagueId, alreadyExisted: false };
-  },
-});
-
-export const getLeagueBackfillFixtureState = internalQuery({
-  args: {
-    slug: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const league = await ctx.db
-      .query('leagues')
-      .withIndex('by_slug', (q) => q.eq('slug', args.slug))
-      .unique();
-    if (!league) {
-      return null;
-    }
-
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-      .take(20);
-
-    return {
-      leagueId: league._id,
-      slug: league.slug,
-      memberCount: league.memberCount ?? null,
-      adminCount: league.adminCount ?? null,
-      actualMemberCount: members.length,
-      actualAdminCount: members.filter((member) => member.role === 'admin')
-        .length,
-    };
-  },
-});
-
-export const clearLeagueBackfillFixture = internalMutation({
-  args: {
-    namespace: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const ns = args.namespace.trim();
-    const slug = `${ns.toLowerCase()}-backfill-league`;
-    const adminClerkUserId = `${ns}__backfill_admin`;
-    const memberClerkUserId = `${ns}__backfill_member`;
-
-    const league = await ctx.db
-      .query('leagues')
-      .withIndex('by_slug', (q) => q.eq('slug', slug))
-      .unique();
-    if (league) {
-      await deleteDocs(
-        ctx,
-        await ctx.db
-          .query('leagueMembers')
-          .withIndex('by_league', (q) => q.eq('leagueId', league._id))
-          .collect(),
-      );
-      await ctx.db.delete(league._id);
-    }
-
-    const users = (
-      await Promise.all([
-        ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', adminClerkUserId))
-          .unique(),
-        ctx.db
-          .query('users')
-          .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', memberClerkUserId))
-          .unique(),
-      ])
-    ).filter(isPresent);
-
-    for (const user of users) {
-      await ctx.db.delete(user._id);
-    }
-
-    return {
-      namespace: ns,
-      deletedLeague: league !== null,
-      deletedUsers: users.length,
+      publicLeague: {
+        id: publicLeagueId,
+        name: 'Open Paddock',
+        slug: publicLeagueSlug,
+        route: `/leagues/${publicLeagueSlug}`,
+      },
     };
   },
 });

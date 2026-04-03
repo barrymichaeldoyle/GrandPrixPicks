@@ -25,6 +25,14 @@ function makeCtx(params: {
     breakdown?: unknown;
   }>;
 }) {
+  const scoreQuery = {
+    async *[Symbol.asyncIterator]() {
+      for (const score of params.scores ?? []) {
+        yield score;
+      }
+    },
+  };
+
   return {
     db: {
       get: () => Promise.resolve(params.race),
@@ -41,9 +49,7 @@ function makeCtx(params: {
             };
           }
           if (table === 'scores') {
-            return {
-              take: (_limit: number) => Promise.resolve(params.scores ?? []),
-            };
+            return scoreQuery;
           }
           throw new Error(`Unsupported table in test ctx: ${table}`);
         },

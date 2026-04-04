@@ -1,11 +1,20 @@
 import { v } from 'convex/values';
 
+import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 
 // The app currently treats follow relationships as a capped social graph rather than
 // an infinite feed substrate. Keep the hard limit aligned with read-side bounds.
 const MAX_FOLLOWS_PER_USER = 5000;
+
+async function getExistingUsersForFollows(
+  ctx: Parameters<typeof getViewer>[0],
+  userIds: Id<'users'>[],
+): Promise<Array<Doc<'users'>>> {
+  const users = await Promise.all(userIds.map((userId) => ctx.db.get(userId)));
+  return users.filter((user): user is Doc<'users'> => user != null);
+}
 
 export const follow = mutation({
   args: { followeeId: v.id('users') },
@@ -104,10 +113,12 @@ export const isFollowing = query({
 export const getFollowCounts = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const followerRecords = await ctx.db
+    const followerIds: Id<'users'>[] = [];
+    for await (const follow of ctx.db
       .query('follows')
-      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
-      .take(MAX_FOLLOWS_PER_USER);
+      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))) {
+      followerIds.push(follow.followerId);
+    }
 
     const followingRecords = await ctx.db
       .query('follows')
@@ -115,16 +126,15 @@ export const getFollowCounts = query({
       .take(MAX_FOLLOWS_PER_USER);
 
     // Only count follows where the related user still exists (matches listFollowers/listFollowing)
-    const followerUsers = await Promise.all(
-      followerRecords.map((f) => ctx.db.get(f.followerId)),
-    );
-    const followingUsers = await Promise.all(
-      followingRecords.map((f) => ctx.db.get(f.followeeId)),
+    const followerUsers = await getExistingUsersForFollows(ctx, followerIds);
+    const followingUsers = await getExistingUsersForFollows(
+      ctx,
+      followingRecords.map((f) => f.followeeId),
     );
 
     return {
-      followerCount: followerUsers.filter((u) => u != null).length,
-      followingCount: followingUsers.filter((u) => u != null).length,
+      followerCount: followerUsers.length,
+      followingCount: followingUsers.length,
     };
   },
 });
@@ -138,17 +148,16 @@ export const listFollowers = query({
       return null;
     }
 
-    const follows = await ctx.db
+    const followerIds: Id<'users'>[] = [];
+    for await (const follow of ctx.db
       .query('follows')
-      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
-      .take(MAX_FOLLOWS_PER_USER);
+      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))) {
+      followerIds.push(follow.followerId);
+    }
 
-    const users = await Promise.all(
-      follows.map((f) => ctx.db.get(f.followerId)),
-    );
+    const users = await getExistingUsersForFollows(ctx, followerIds);
 
     return users
-      .filter((u): u is NonNullable<typeof u> => u != null)
       .map((u) => ({
         _id: u._id,
         username: u.username,

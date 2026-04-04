@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { deriveClerkSubjectFromStoredId, getIdentityKeys } from './auth';
+import {
+  deriveClerkSubjectFromStoredId,
+  findUserByClerkIdentity,
+  getIdentityKeys,
+} from './auth';
 
 describe('getIdentityKeys', () => {
   it('prefers tokenIdentifier and keeps subject as legacy when they differ', () => {
@@ -52,5 +56,57 @@ describe('deriveClerkSubjectFromStoredId', () => {
     expect(
       deriveClerkSubjectFromStoredId('https://clerk.example.com|user_123'),
     ).toBe('user_123');
+  });
+});
+
+describe('findUserByClerkIdentity', () => {
+  it('falls back to clerkSubject when token lookups miss', async () => {
+    const user = { _id: 'u1', clerkUserId: 'issuer|user_123' };
+    const unique = vi.fn(async ({ indexName, value }: {
+      indexName: string;
+      value: string;
+    }) => {
+      if (indexName === 'by_clerkSubject' && value === 'user_123') {
+        return user;
+      }
+      return null;
+    });
+
+    const ctx = {
+      db: {
+        query: vi.fn(() => ({
+          withIndex: (indexName: string, builder: (q: {
+            eq: (field: string, value: string) => unknown;
+          }) => unknown) => {
+            let value = '';
+            builder({
+              eq: (_field, nextValue) => {
+                value = nextValue;
+                return null;
+              },
+            });
+
+            return {
+              unique: () => unique({ indexName, value }),
+            };
+          },
+        })),
+      },
+    };
+
+    await expect(
+      findUserByClerkIdentity(ctx as never, {
+        tokenIdentifier: 'https://clerk.example.com|user_123',
+      }),
+    ).resolves.toBe(user);
+    expect(unique).toHaveBeenCalledTimes(2);
+    expect(unique).toHaveBeenNthCalledWith(1, {
+      indexName: 'by_clerkUserId',
+      value: 'https://clerk.example.com|user_123',
+    });
+    expect(unique).toHaveBeenNthCalledWith(2, {
+      indexName: 'by_clerkSubject',
+      value: 'user_123',
+    });
   });
 });

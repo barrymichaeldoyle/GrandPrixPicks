@@ -426,26 +426,34 @@ function LeagueTabs({
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 
 function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
-  const [extraCursors, setExtraCursors] = useState<(number | null)[]>(
+  const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_LEAGUE_FEED_EXTRA_PAGES).fill(null),
   );
 
   const page0 = useQuery(api.feed.getLeagueFeed, { leagueId });
   const page1 = useQuery(
     api.feed.getLeagueFeed,
-    extraCursors[0] !== null ? { leagueId, cursor: extraCursors[0] } : 'skip',
+    extraCursors[0] !== null
+      ? { leagueId, paginationCursor: extraCursors[0] }
+      : 'skip',
   );
   const page2 = useQuery(
     api.feed.getLeagueFeed,
-    extraCursors[1] !== null ? { leagueId, cursor: extraCursors[1] } : 'skip',
+    extraCursors[1] !== null
+      ? { leagueId, paginationCursor: extraCursors[1] }
+      : 'skip',
   );
   const page3 = useQuery(
     api.feed.getLeagueFeed,
-    extraCursors[2] !== null ? { leagueId, cursor: extraCursors[2] } : 'skip',
+    extraCursors[2] !== null
+      ? { leagueId, paginationCursor: extraCursors[2] }
+      : 'skip',
   );
   const page4 = useQuery(
     api.feed.getLeagueFeed,
-    extraCursors[3] !== null ? { leagueId, cursor: extraCursors[3] } : 'skip',
+    extraCursors[3] !== null
+      ? { leagueId, paginationCursor: extraCursors[3] }
+      : 'skip',
   );
 
   const allPageData = [page0, page1, page2, page3, page4];
@@ -464,17 +472,14 @@ function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     activePagesCount <= MAX_LEAGUE_FEED_EXTRA_PAGES;
 
   function handleLoadMore() {
-    if (!lastLoadedPage?.events.length) {
+    if (!lastLoadedPage?.nextCursor) {
       return;
     }
-    const minCreatedAt = Math.min(
-      ...lastLoadedPage.events.map((e) => e.createdAt),
-    );
     setExtraCursors((prev) => {
       const next = [...prev];
       const idx = next.findIndex((c) => c === null);
       if (idx !== -1) {
-        next[idx] = minCreatedAt;
+        next[idx] = lastLoadedPage.nextCursor;
       }
       return next;
     });

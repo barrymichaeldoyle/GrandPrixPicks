@@ -36,26 +36,34 @@ export const Route = createFileRoute('/feed/')({
 const MAX_EXTRA_PAGES = 4;
 
 function FeedContent() {
-  const [extraCursors, setExtraCursors] = useState<(number | null)[]>(
+  const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
   );
 
   const page0 = useQuery(api.feed.getPersonalizedFeed, {});
   const page1 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[0] !== null ? { cursor: extraCursors[0] } : 'skip',
+    extraCursors[0] !== null
+      ? { paginationCursor: extraCursors[0] }
+      : 'skip',
   );
   const page2 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[1] !== null ? { cursor: extraCursors[1] } : 'skip',
+    extraCursors[1] !== null
+      ? { paginationCursor: extraCursors[1] }
+      : 'skip',
   );
   const page3 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[2] !== null ? { cursor: extraCursors[2] } : 'skip',
+    extraCursors[2] !== null
+      ? { paginationCursor: extraCursors[2] }
+      : 'skip',
   );
   const page4 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[3] !== null ? { cursor: extraCursors[3] } : 'skip',
+    extraCursors[3] !== null
+      ? { paginationCursor: extraCursors[3] }
+      : 'skip',
   );
 
   const allPageData = [page0, page1, page2, page3, page4];
@@ -73,17 +81,14 @@ function FeedContent() {
     (lastLoadedPage?.hasMore ?? false) && activePagesCount <= MAX_EXTRA_PAGES;
 
   function handleLoadMore() {
-    if (!lastLoadedPage?.events.length) {
+    if (!lastLoadedPage?.nextCursor) {
       return;
     }
-    const minCreatedAt = Math.min(
-      ...lastLoadedPage.events.map((e) => e.createdAt),
-    );
     setExtraCursors((prev) => {
       const next = [...prev];
       const idx = next.findIndex((c) => c === null);
       if (idx !== -1) {
-        next[idx] = minCreatedAt;
+        next[idx] = lastLoadedPage.nextCursor;
       }
       return next;
     });

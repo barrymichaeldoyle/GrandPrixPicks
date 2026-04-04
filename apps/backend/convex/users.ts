@@ -16,7 +16,15 @@ import {
   requireViewer,
 } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
-import { syncUserToStandings } from './lib/standings';
+import {
+  STANDINGS_SYNC_BATCH_SIZE,
+  STANDINGS_SYNC_STEPS,
+  nextStandingsSyncStep,
+  normalizeStandingsSyncFields,
+  syncUserToStandings,
+  type StandingsSyncFields,
+  type StandingsSyncStep,
+} from './lib/standings';
 
 type AccountDeletionSummary = {
   follows: number;
@@ -39,6 +47,14 @@ type AccountDeletionSummary = {
 
 const DELETION_BATCH_SIZE = 200;
 const CLERK_SUBJECT_BACKFILL_BATCH_SIZE = 100;
+const standingsSyncFieldsValidator = v.object({
+  username: v.optional(v.string()),
+  displayName: v.optional(v.string()),
+  avatarUrl: v.optional(v.string()),
+});
+const standingsSyncStepValidator = v.union(
+  ...STANDINGS_SYNC_STEPS.map((step) => v.literal(step)),
+);
 const DELETION_STEPS = [
   'follows_as_follower',
   'follows_as_followee',
@@ -100,6 +116,16 @@ function emptyDeletionSummary(): AccountDeletionSummary {
     leagueAdminsPromoted: 0,
     users: 0,
   };
+}
+
+async function patchRows<T extends { _id: string }>(
+  ctx: MutationCtx,
+  rows: Array<T>,
+  patch: StandingsSyncFields,
+) {
+  for (const row of rows) {
+    await ctx.db.patch(row._id as never, patch);
+  }
 }
 
 async function getCurrentSeason(ctx: Pick<QueryCtx, 'db'>) {
@@ -1041,6 +1067,124 @@ export const updateProfile = mutation({
     }
 
     return { success: true };
+  },
+});
+
+export const syncUserToStandingsBatch = internalMutation({
+  args: {
+    userId: v.id('users'),
+    fields: standingsSyncFieldsValidator,
+    step: standingsSyncStepValidator,
+    cursor: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const fields = normalizeStandingsSyncFields(args.fields);
+    if (Object.keys(fields).length === 0) {
+      return {
+        done: true,
+        step: args.step,
+        patched: 0,
+      };
+    }
+
+    const paginationOpts = {
+      numItems: STANDINGS_SYNC_BATCH_SIZE,
+      cursor: args.cursor,
+    };
+    let patched = 0;
+
+    switch (args.step) {
+      case 'season_standings': {
+        const page = await ctx.db
+          .query('seasonStandings')
+          .withIndex('by_user_season', (q) => q.eq('userId', args.userId))
+          .paginate(paginationOpts);
+        patched = page.page.length;
+        await patchRows(ctx, page.page, fields);
+
+        if (!page.isDone) {
+          await ctx.scheduler.runAfter(
+            0,
+            internal.users.syncUserToStandingsBatch,
+            {
+              userId: args.userId,
+              fields,
+              step: args.step,
+              cursor: page.continueCursor,
+            },
+          );
+          return { done: false, step: args.step, patched: page.page.length };
+        }
+        break;
+      }
+      case 'h2h_season_standings': {
+        const page = await ctx.db
+          .query('h2hSeasonStandings')
+          .withIndex('by_user_season', (q) => q.eq('userId', args.userId))
+          .paginate(paginationOpts);
+        patched = page.page.length;
+        await patchRows(ctx, page.page, fields);
+
+        if (!page.isDone) {
+          await ctx.scheduler.runAfter(
+            0,
+            internal.users.syncUserToStandingsBatch,
+            {
+              userId: args.userId,
+              fields,
+              step: args.step,
+              cursor: page.continueCursor,
+            },
+          );
+          return { done: false, step: args.step, patched: page.page.length };
+        }
+        break;
+      }
+      case 'scores': {
+        const page = await ctx.db
+          .query('scores')
+          .withIndex('by_user', (q) => q.eq('userId', args.userId))
+          .paginate(paginationOpts);
+        patched = page.page.length;
+        await patchRows(ctx, page.page, fields);
+
+        if (!page.isDone) {
+          await ctx.scheduler.runAfter(
+            0,
+            internal.users.syncUserToStandingsBatch,
+            {
+              userId: args.userId,
+              fields,
+              step: args.step,
+              cursor: page.continueCursor,
+            },
+          );
+          return { done: false, step: args.step, patched: page.page.length };
+        }
+        break;
+      }
+      default: {
+        const exhaustiveCheck: never = args.step;
+        return exhaustiveCheck;
+      }
+    }
+
+    const nextStep = nextStandingsSyncStep(args.step as StandingsSyncStep);
+    if (nextStep) {
+      await ctx.scheduler.runAfter(0, internal.users.syncUserToStandingsBatch, {
+        userId: args.userId,
+        fields,
+        step: nextStep,
+        cursor: null,
+      });
+    }
+
+    return {
+      done: nextStep === null,
+      step: args.step,
+      patched,
+      nextStep,
+    };
   },
 });
 

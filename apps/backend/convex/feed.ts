@@ -20,6 +20,37 @@ type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
 
+async function getPersonalizedFeedUserIds(
+  ctx: DbCtx,
+  viewerId: Id<'users'>,
+) {
+  const userIds = new Set<Id<'users'>>();
+  userIds.add(viewerId);
+
+  for await (const follow of ctx.db
+    .query('follows')
+    .withIndex('by_follower', (q) => q.eq('followerId', viewerId))) {
+    userIds.add(follow.followeeId);
+  }
+
+  return userIds;
+}
+
+async function getLeagueFeedUserIds(
+  ctx: DbCtx,
+  leagueId: Id<'leagues'>,
+) {
+  const userIds = new Set<Id<'users'>>();
+
+  for await (const member of ctx.db
+    .query('leagueMembers')
+    .withIndex('by_league', (q) => q.eq('leagueId', leagueId))) {
+    userIds.add(member.userId);
+  }
+
+  return userIds;
+}
+
 async function backfillScorePublishedFeedEventsForRace(
   ctx: MutationCtx,
   race: Doc<'races'>,
@@ -343,8 +374,9 @@ export const writeStreakEventsForRaceSession = internalMutation({
 
 // ============ Feed queries ============
 
-const EVENTS_PER_USER = 15;
 const MAX_FEED_SIZE = 40;
+const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
+const MAX_FEED_SCAN_BATCHES = 5;
 
 type RawEvent = {
   _id: Id<'feedEvents'>;
@@ -370,6 +402,70 @@ type RawEvent = {
   revCount: number;
   createdAt: number;
 };
+
+/**
+ * Build one page of feed by scanning the global feed chronologically and filtering
+ * to the relevant social graph in memory.
+ *
+ * We intentionally do not query each followee/member separately and merge the
+ * results. That older shape silently truncated at fixed graph sizes, and the
+ * first attempted fix turned into one query per source, which can blow past
+ * Convex limits for large leagues or power users.
+ *
+ * Using the global `feedEvents.by_created` index keeps the query budget bounded,
+ * and using Convex's opaque pagination cursor avoids dropping same-timestamp
+ * events across pages.
+ */
+async function buildFilteredFeedPage(
+  ctx: DbCtx,
+  allowedUserIds: Set<Id<'users'>>,
+  paginationCursor: string | null,
+) {
+  const events: RawEvent[] = [];
+  let cursor = paginationCursor;
+  let hasMore = false;
+
+  for (let batch = 0; batch < MAX_FEED_SCAN_BATCHES; batch += 1) {
+    const page = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_created')
+      .order('desc')
+      .paginate({
+        cursor,
+        numItems: FEED_SCAN_BATCH_SIZE,
+      });
+
+    for (const event of page.page as RawEvent[]) {
+      if (!allowedUserIds.has(event.userId)) {
+        continue;
+      }
+
+      events.push(event);
+      if (events.length === MAX_FEED_SIZE) {
+        return {
+          page: events,
+          hasMore: !page.isDone,
+          nextCursor: page.continueCursor,
+        };
+      }
+    }
+
+    if (page.isDone) {
+      hasMore = false;
+      cursor = null;
+      break;
+    }
+
+    hasMore = true;
+    cursor = page.continueCursor;
+  }
+
+  return {
+    page: events,
+    hasMore,
+    nextCursor: cursor,
+  };
+}
 
 /** Build a map of session headers (top-5 results) for all score_published events. */
 async function buildSessionHeaders(
@@ -737,45 +833,22 @@ export const getUserFeed = query({
 /**
  * Personalized home feed: events from the viewer + people they follow.
  * Sorted by most recent first. Includes session headers for score_published events.
- * Pass `cursor` (a createdAt timestamp) to load events older than that point.
+ * Pass `paginationCursor` from the previous page to load more results.
  */
 export const getPersonalizedFeed = query({
-  args: { cursor: v.optional(v.number()) },
-  handler: async (ctx, { cursor }) => {
+  args: { paginationCursor: v.optional(v.string()) },
+  handler: async (ctx, { paginationCursor }) => {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return null;
     }
 
-    // Collect user IDs to include in the feed
-    const userIds = new Set<Id<'users'>>();
-    userIds.add(viewer._id);
-
-    const follows = await ctx.db
-      .query('follows')
-      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
-      .take(150);
-    for (const f of follows) {
-      userIds.add(f.followeeId);
-    }
-
-    // Load recent events per user and merge
-    const allEvents: Array<RawEvent> = [];
-    for (const userId of userIds) {
-      const events = await ctx.db
-        .query('feedEvents')
-        .withIndex('by_user_created', (q) => {
-          const base = q.eq('userId', userId);
-          return cursor !== undefined ? base.lt('createdAt', cursor) : base;
-        })
-        .order('desc')
-        .take(EVENTS_PER_USER);
-      allEvents.push(...events);
-    }
-
-    allEvents.sort((a, b) => b.createdAt - a.createdAt);
-    const hasMore = allEvents.length >= MAX_FEED_SIZE;
-    const page = allEvents.slice(0, MAX_FEED_SIZE);
+    const userIds = await getPersonalizedFeedUserIds(ctx, viewer._id);
+    const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
+      ctx,
+      userIds,
+      paginationCursor ?? null,
+    );
 
     // Enrich events with rev status, picks, and H2H summary
     const [enrichedEvents, sessions] = await Promise.all([
@@ -803,41 +876,26 @@ export const getPersonalizedFeed = query({
       buildSessionHeaders(ctx, page),
     ]);
 
-    return { events: enrichedEvents, sessions, hasMore };
+    return { events: enrichedEvents, sessions, hasMore, nextCursor };
   },
 });
 
 /**
  * Feed scoped to a league: events from all members of the league.
  * Used on the league detail page.
- * Pass `cursor` (a createdAt timestamp) to load events older than that point.
+ * Pass `paginationCursor` from the previous page to load more results.
  */
 export const getLeagueFeed = query({
-  args: { leagueId: v.id('leagues'), cursor: v.optional(v.number()) },
-  handler: async (ctx, { leagueId, cursor }) => {
+  args: { leagueId: v.id('leagues'), paginationCursor: v.optional(v.string()) },
+  handler: async (ctx, { leagueId, paginationCursor }) => {
     const viewer = await getViewer(ctx);
 
-    const members = await ctx.db
-      .query('leagueMembers')
-      .withIndex('by_league', (q) => q.eq('leagueId', leagueId))
-      .take(200);
-
-    const allEvents: Array<RawEvent> = [];
-    for (const member of members) {
-      const events = await ctx.db
-        .query('feedEvents')
-        .withIndex('by_user_created', (q) => {
-          const base = q.eq('userId', member.userId);
-          return cursor !== undefined ? base.lt('createdAt', cursor) : base;
-        })
-        .order('desc')
-        .take(EVENTS_PER_USER);
-      allEvents.push(...events);
-    }
-
-    allEvents.sort((a, b) => b.createdAt - a.createdAt);
-    const hasMore = allEvents.length >= MAX_FEED_SIZE;
-    const page = allEvents.slice(0, MAX_FEED_SIZE);
+    const memberUserIds = await getLeagueFeedUserIds(ctx, leagueId);
+    const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
+      ctx,
+      memberUserIds,
+      paginationCursor ?? null,
+    );
 
     const [enrichedEvents, sessions] = await Promise.all([
       Promise.all(
@@ -866,7 +924,7 @@ export const getLeagueFeed = query({
       buildSessionHeaders(ctx, page),
     ]);
 
-    return { events: enrichedEvents, sessions, hasMore };
+    return { events: enrichedEvents, sessions, hasMore, nextCursor };
   },
 });
 

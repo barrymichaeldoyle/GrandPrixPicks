@@ -383,6 +383,7 @@ export default defineSchema({
     revCount: v.number(),
     createdAt: v.number(),
   })
+    .index('by_created', ['createdAt'])
     .index('by_user_created', ['userId', 'createdAt'])
     .index('by_user_race_session', ['userId', 'raceId', 'sessionType'])
     .index('by_race_session', ['raceId', 'sessionType'])

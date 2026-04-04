@@ -1,4 +1,5 @@
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
+import type { FunctionReference } from 'convex/server';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -15,6 +16,7 @@ import {
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
+export const USER_NOTIFICATION_BATCH_SIZE = 200;
 
 /** Map race slug prefix to ISO 3166-1 alpha-2 country code (mirrors RaceCard.tsx). */
 const SLUG_TO_COUNTRY: Record<string, string> = {
@@ -59,113 +61,54 @@ function getCountryCodeForRace(slug: string): string | null {
   return SLUG_TO_COUNTRY[key] ?? null;
 }
 
-/**
- * Scheduled mutation: sends prediction reminder emails for a race.
- * Called by the scheduler 24h before the first session locks.
- */
-export const sendPredictionReminders = internalMutation({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    const race = await ctx.db.get(args.raceId);
-    if (!race || race.status !== 'upcoming') {
-      return { skipped: true, reason: 'Race not upcoming' };
-    }
+function getUsersBatchQuery(
+  ctx: MutationCtx,
+  startAfter?: string,
+) {
+  return startAfter
+    ? ctx.db
+        .query('users')
+        .withIndex('by_clerkUserId', (q) => q.gt('clerkUserId', startAfter))
+    : ctx.db.query('users').withIndex('by_clerkUserId');
+}
 
-    const usersWithPredictions = new Set<Id<'users'>>();
-    for await (const prediction of ctx.db
-      .query('predictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-      usersWithPredictions.add(prediction.userId);
-    }
-
-    const recipients: Array<{
-      email: string;
-      timezone?: string;
-      locale?: string;
-    }> = [];
-    for await (const user of ctx.db.query('users')) {
-      if (!user.email || !wantsEmailPredictionReminders(user)) {
-        continue;
-      }
-      if (usersWithPredictions.has(user._id)) {
-        continue;
-      }
-      recipients.push({
-        email: user.email,
-        timezone: user.timezone,
-        locale: user.locale,
-      });
-    }
-
-    if (recipients.length === 0) {
-      return { skipped: true, reason: 'No eligible recipients' };
-    }
-
-    // Build session schedule for the email
-    const sessions: Array<{
-      label: string;
-      startAt: number;
-      isSprint: boolean;
-    }> = [];
-    if (race.hasSprint) {
-      if (race.sprintQualiStartAt) {
-        sessions.push({
-          label: 'Sprint Qualifying',
-          startAt: race.sprintQualiStartAt,
-          isSprint: true,
-        });
-      }
-      if (race.sprintStartAt) {
-        sessions.push({
-          label: 'Sprint',
-          startAt: race.sprintStartAt,
-          isSprint: true,
-        });
-      }
-    }
-    if (race.qualiStartAt) {
+function buildPredictionReminderSessions(race: Doc<'races'>) {
+  const sessions: Array<{
+    label: string;
+    startAt: number;
+    isSprint: boolean;
+  }> = [];
+  if (race.hasSprint) {
+    if (race.sprintQualiStartAt) {
       sessions.push({
-        label: 'Qualifying',
-        startAt: race.qualiStartAt,
-        isSprint: false,
+        label: 'Sprint Qualifying',
+        startAt: race.sprintQualiStartAt,
+        isSprint: true,
       });
     }
+    if (race.sprintStartAt) {
+      sessions.push({
+        label: 'Sprint',
+        startAt: race.sprintStartAt,
+        isSprint: true,
+      });
+    }
+  }
+  if (race.qualiStartAt) {
     sessions.push({
-      label: 'Race',
-      startAt: race.raceStartAt,
+      label: 'Qualifying',
+      startAt: race.qualiStartAt,
       isSprint: false,
     });
+  }
+  sessions.push({
+    label: 'Race',
+    startAt: race.raceStartAt,
+    isSprint: false,
+  });
+  return sessions;
+}
 
-    // Schedule send action in batches of BATCH_SIZE
-    let scheduled = 0;
-    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-      const batch = recipients.slice(i, i + BATCH_SIZE);
-      await ctx.scheduler.runAfter(
-        0,
-        internal.emails.sendReminderEmails.sendBatch,
-        {
-          recipients: batch,
-          raceName: race.name,
-          timeUntilLock: '24 hours',
-          raceId: race._id,
-          raceSlug: race.slug,
-          sessions,
-          round: race.round,
-          countryCode: getCountryCodeForRace(race.slug),
-          hasSprint: race.hasSprint ?? false,
-        },
-      );
-      scheduled++;
-    }
-
-    return { recipientCount: recipients.length, batchesScheduled: scheduled };
-  },
-});
-
-/**
- * Schedule (or reschedule) the 24h prediction reminder for a race.
- * Called from seedRaces after each race is created/updated.
- */
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
@@ -245,6 +188,128 @@ export function getSignupPredictionNudgeEligibility(params: {
 }
 
 /**
+ * Scheduled mutation: sends prediction reminder emails for a race.
+ * Called by the scheduler 24h before the first session locks.
+ */
+export const sendPredictionReminders = internalMutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race || race.status !== 'upcoming') {
+      return { skipped: true, reason: 'Race not upcoming' };
+    }
+
+    const result = await sendPredictionRemindersBatchCore(ctx, {
+      raceId: args.raceId,
+    });
+    return result;
+  },
+});
+
+export async function sendPredictionRemindersBatchCore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    startAfter?: string;
+    recipientCount?: number;
+    batchesScheduled?: number;
+  },
+) {
+  const race = await ctx.db.get(args.raceId);
+  if (!race || race.status !== 'upcoming') {
+    return { skipped: true, reason: 'Race not upcoming' as const };
+  }
+
+  const usersWithPredictions = new Set<Id<'users'>>();
+  for await (const prediction of ctx.db
+    .query('predictions')
+    .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+    usersWithPredictions.add(prediction.userId);
+  }
+
+  const users = await getUsersBatchQuery(ctx, args.startAfter).take(
+    USER_NOTIFICATION_BATCH_SIZE,
+  );
+
+  const recipients: Array<{
+    email: string;
+    timezone?: string;
+    locale?: string;
+  }> = [];
+  for (const user of users) {
+    if (!user.email || !wantsEmailPredictionReminders(user)) {
+      continue;
+    }
+    if (usersWithPredictions.has(user._id)) {
+      continue;
+    }
+    recipients.push({
+      email: user.email,
+      timezone: user.timezone,
+      locale: user.locale,
+    });
+  }
+
+  const sessions = buildPredictionReminderSessions(race);
+  const countryCode = getCountryCodeForRace(race.slug);
+  let recipientCount = args.recipientCount ?? 0;
+  let batchesScheduled = args.batchesScheduled ?? 0;
+
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE);
+    await ctx.scheduler.runAfter(
+      0,
+      internal.emails.sendReminderEmails.sendBatch,
+      {
+        recipients: batch,
+        raceName: race.name,
+        timeUntilLock: '24 hours',
+        raceId: race._id,
+        raceSlug: race.slug,
+        sessions,
+        round: race.round,
+        countryCode,
+        hasSprint: race.hasSprint ?? false,
+      },
+    );
+    batchesScheduled++;
+  }
+  recipientCount += recipients.length;
+
+  const lastUser = users[users.length - 1];
+  if (lastUser && users.length === USER_NOTIFICATION_BATCH_SIZE) {
+    await ctx.scheduler.runAfter(
+      0,
+      'notifications:sendPredictionRemindersBatch' as unknown as FunctionReference<'mutation'>,
+      {
+        raceId: args.raceId,
+        startAfter: lastUser.clerkUserId,
+        recipientCount,
+        batchesScheduled,
+      },
+    );
+  }
+
+  return {
+    recipientCount,
+    batchesScheduled,
+    done: users.length < USER_NOTIFICATION_BATCH_SIZE,
+  };
+}
+
+export const sendPredictionRemindersBatch = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    startAfter: v.optional(v.string()),
+    recipientCount: v.optional(v.number()),
+    batchesScheduled: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    return await sendPredictionRemindersBatchCore(ctx, args);
+  },
+});
+
+/**
  * Scheduled mutation: gathers data and fans out result notification emails.
  * Called ~30s after scoring completes for a session.
  */
@@ -254,10 +319,52 @@ export const sendResultEmailsForSession = internalMutation({
     sessionType: sessionTypeValidator,
   },
   handler: async (ctx, args) => {
+    const result = await sendResultEmailsForSessionBatchCore(ctx, args);
+    return result;
+  },
+});
+
+type ResultEmailVariant =
+  | 'pre_race_ready'
+  | 'pre_race_missing_h2h'
+  | 'pre_race_missed'
+  | 'post_race_ready'
+  | 'post_race_missing_h2h'
+  | 'post_race_missed';
+
+type ResultEmailRecipientPayload = {
+  email: string;
+  variant: ResultEmailVariant;
+  sessionPoints: number;
+  bestPick: {
+    code: string;
+    position: number;
+    points: number;
+  } | null;
+  globalRank: number;
+  globalTotal: number;
+  leagueRanks: Array<{
+    leagueName: string;
+    rank: number;
+    total: number;
+  }>;
+  racePredictionCtaLabel?: string;
+};
+
+async function sendResultEmailsForSessionBatchCore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    sessionType: SessionType;
+    startAfter?: string;
+    recipientCount?: number;
+    batchesScheduled?: number;
+  },
+) {
     // 1. Load race
     const race = await ctx.db.get(args.raceId);
     if (!race) {
-      return { skipped: true, reason: 'Race not found' };
+      return { skipped: true, reason: 'Race not found' as const };
     }
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
@@ -275,24 +382,20 @@ export const sendResultEmailsForSession = internalMutation({
       nextRace && nextRace.status === 'upcoming',
     );
 
-    // 2. Load all season standings, sorted desc by totalPoints → global rank
     const allStandings = [];
     for await (const standing of ctx.db
       .query('seasonStandings')
       .withIndex('by_season_points', (q) => q.eq('season', race.season))) {
       allStandings.push(standing);
     }
-    // Index sorts ascending; we need descending for ranking
     allStandings.sort((a, b) => b.totalPoints - a.totalPoints);
 
-    // Build userId → globalRank map
     const globalRankMap = new Map<string, number>();
     for (let i = 0; i < allStandings.length; i++) {
       globalRankMap.set(allStandings[i].userId, i + 1);
     }
     const globalTotal = allStandings.length;
 
-    // 3. Load all scores for this race+session
     const scoreMap = new Map<string, Doc<'scores'>>();
     for await (const s of ctx.db
       .query('scores')
@@ -319,50 +422,20 @@ export const sendResultEmailsForSession = internalMutation({
       usersWithH2HPredictions.add(prediction.userId);
     }
 
-    // 4. Load all users, filter to eligible
-    const notificationEligibleUsers: Array<Doc<'users'>> = [];
-    for await (const user of ctx.db.query('users')) {
-      if (user.email && wantsEmailResults(user)) {
-        notificationEligibleUsers.push(user);
-      }
-    }
+    const users = await getUsersBatchQuery(ctx, args.startAfter).take(
+      USER_NOTIFICATION_BATCH_SIZE,
+    );
 
-    if (notificationEligibleUsers.length === 0) {
-      return { skipped: true, reason: 'No eligible recipients' };
-    }
-
-    // 5. Build per-user payloads
-    type RecipientPayload = {
-      email: string;
-      variant:
-        | 'pre_race_ready'
-        | 'pre_race_missing_h2h'
-        | 'pre_race_missed'
-        | 'post_race_ready'
-        | 'post_race_missing_h2h'
-        | 'post_race_missed';
-      sessionPoints: number;
-      bestPick: {
-        code: string;
-        position: number;
-        points: number;
-      } | null;
-      globalRank: number;
-      globalTotal: number;
-      leagueRanks: Array<{
-        leagueName: string;
-        rank: number;
-        total: number;
-      }>;
-      racePredictionCtaLabel?: string;
-    };
-
-    const recipients: Array<RecipientPayload> = [];
+    const recipients: Array<ResultEmailRecipientPayload> = [];
     const isPreRaceSession = args.sessionType !== 'race';
     const canStillEditRacePredictions =
       isPreRaceSession && race.predictionLockAt > now;
 
-    for (const user of notificationEligibleUsers) {
+    for (const user of users) {
+      if (!user.email || !wantsEmailResults(user)) {
+        continue;
+      }
+
       const score = scoreMap.get(user._id);
       const hasRacePrediction = usersWithRacePredictions.has(user._id);
       const hasH2HPrediction = usersWithH2HPredictions.has(user._id);
@@ -373,7 +446,7 @@ export const sendResultEmailsForSession = internalMutation({
         }
 
         recipients.push({
-          email: user.email!,
+          email: user.email,
           variant: isPreRaceSession ? 'pre_race_missed' : 'post_race_missed',
           sessionPoints: 0,
           bestPick: null,
@@ -391,7 +464,7 @@ export const sendResultEmailsForSession = internalMutation({
       }
 
       recipients.push({
-        email: user.email!,
+        email: user.email,
         variant: isPreRaceSession
           ? hasH2HPrediction
             ? 'pre_race_ready'
@@ -413,13 +486,9 @@ export const sendResultEmailsForSession = internalMutation({
       });
     }
 
-    if (recipients.length === 0) {
-      return { skipped: true, reason: 'No eligible recipients' };
-    }
-
-    // 6. Batch recipients into groups of 50 → schedule sendBatch
+    let recipientCount = args.recipientCount ?? 0;
+    let batchesScheduled = args.batchesScheduled ?? 0;
     const countryCode = getCountryCodeForRace(race.slug);
-    let scheduled = 0;
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
       const batch = recipients.slice(i, i + BATCH_SIZE);
       await ctx.scheduler.runAfter(
@@ -439,10 +508,42 @@ export const sendResultEmailsForSession = internalMutation({
           }),
         },
       );
-      scheduled++;
+      batchesScheduled++;
+    }
+    recipientCount += recipients.length;
+
+    const lastUser = users[users.length - 1];
+    if (lastUser && users.length === USER_NOTIFICATION_BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        'notifications:sendResultEmailsForSessionBatch' as unknown as FunctionReference<'mutation'>,
+        {
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          startAfter: lastUser.clerkUserId,
+          recipientCount,
+          batchesScheduled,
+        },
+      );
     }
 
-    return { recipientCount: recipients.length, batchesScheduled: scheduled };
+    return {
+      recipientCount,
+      batchesScheduled,
+      done: users.length < USER_NOTIFICATION_BATCH_SIZE,
+    };
+}
+
+export const sendResultEmailsForSessionBatch = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    startAfter: v.optional(v.string()),
+    recipientCount: v.optional(v.number()),
+    batchesScheduled: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    return await sendResultEmailsForSessionBatchCore(ctx, args);
   },
 });
 
@@ -549,6 +650,119 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
   },
 });
 
+export async function sendH2HRemindersForRaceBatchCore(
+  ctx: MutationCtx,
+  args: {
+    raceId: Id<'races'>;
+    startAfter?: string;
+    scheduled?: number;
+  },
+) {
+    const race = await ctx.db.get(args.raceId);
+    if (!race || race.status !== 'upcoming') {
+      return { skipped: true, reason: 'Race not upcoming' as const };
+    }
+    if (race.predictionLockAt <= Date.now()) {
+      return { skipped: true, reason: 'Predictions locked' as const };
+    }
+
+    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
+
+    const top5ByUser = new Map<string, Set<SessionType>>();
+    for await (const p of ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      const sessions = top5ByUser.get(p.userId) ?? new Set<SessionType>();
+      sessions.add(p.sessionType as SessionType);
+      top5ByUser.set(p.userId, sessions);
+    }
+
+    const h2hByUser = new Map<string, Set<SessionType>>();
+    for await (const p of ctx.db
+      .query('h2hPredictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      const sessions = h2hByUser.get(p.userId) ?? new Set<SessionType>();
+      sessions.add(p.sessionType as SessionType);
+      h2hByUser.set(p.userId, sessions);
+    }
+
+    const candidateUserIds = [...top5ByUser.keys()].filter((userId) => {
+      const top5Sessions = top5ByUser.get(userId) ?? new Set<SessionType>();
+      const h2hSessions = h2hByUser.get(userId) ?? new Set<SessionType>();
+      const hasCompleteTop5 = requiredSessions.every((s) => top5Sessions.has(s));
+      const hasCompleteH2H = requiredSessions.every((s) => h2hSessions.has(s));
+      return hasCompleteTop5 && !hasCompleteH2H;
+    });
+
+    candidateUserIds.sort((a, b) => String(a).localeCompare(String(b)));
+    const startIndex = args.startAfter
+      ? candidateUserIds.findIndex((id) => String(id) > args.startAfter!)
+      : 0;
+    const page =
+      startIndex === -1
+        ? []
+        : candidateUserIds.slice(
+            startIndex,
+            startIndex + USER_NOTIFICATION_BATCH_SIZE,
+          );
+
+    const racePath = `/races/${race.slug}`;
+    let scheduled = args.scheduled ?? 0;
+    for (const userId of page) {
+      const user = await ctx.db.get(userId as Id<'users'>);
+      if (!user?.email || !wantsEmailPredictionReminders(user)) {
+        continue;
+      }
+
+      await ctx.scheduler.runAfter(
+        0,
+        internal.emails.sendReminderEmails.sendH2HNudge,
+        { email: user.email, raceName: race.name, racePath },
+      );
+      scheduled++;
+    }
+
+    const lastUserId = page[page.length - 1];
+    if (lastUserId && startIndex + page.length < candidateUserIds.length) {
+      await ctx.scheduler.runAfter(
+        0,
+        'notifications:sendH2HRemindersForRaceBatch' as unknown as FunctionReference<'mutation'>,
+        {
+          raceId: args.raceId,
+          startAfter: String(lastUserId),
+          scheduled,
+        },
+      );
+    }
+
+    return {
+      scheduled,
+      done: startIndex === -1 || startIndex + page.length >= candidateUserIds.length,
+    };
+}
+
+/**
+ * Internal mutation: batch H2H reminder emails for users who completed Top 5
+ * but still haven't submitted all H2H picks for the race.
+ */
+export const sendH2HRemindersForRace = internalMutation({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    return await sendH2HRemindersForRaceBatchCore(ctx, args);
+  },
+});
+
+export const sendH2HRemindersForRaceBatch = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    startAfter: v.optional(v.string()),
+    scheduled: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    return await sendH2HRemindersForRaceBatchCore(ctx, args);
+  },
+});
+
 /**
  * Scheduled mutation: 1h after signup, nudge users who still haven't made
  * any Top 5 prediction.
@@ -636,78 +850,6 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
     }
 
     return { ok: true, emailQueued, pushQueued };
-  },
-});
-
-/**
- * Internal mutation: batch H2H reminder emails for users who completed Top 5
- * but still haven't submitted all H2H picks for the race.
- */
-export const sendH2HRemindersForRace = internalMutation({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    const race = await ctx.db.get(args.raceId);
-    if (!race || race.status !== 'upcoming') {
-      return { skipped: true, reason: 'Race not upcoming' };
-    }
-    if (race.predictionLockAt <= Date.now()) {
-      return { skipped: true, reason: 'Predictions locked' };
-    }
-
-    const requiredSessions = requiredSessionsForRace(race.hasSprint ?? false);
-
-    const eligibleUsers: Array<Doc<'users'>> = [];
-    for await (const user of ctx.db.query('users')) {
-      if (user.email && wantsEmailPredictionReminders(user)) {
-        eligibleUsers.push(user);
-      }
-    }
-
-    const top5ByUser = new Map<string, Set<SessionType>>();
-    for await (const p of ctx.db
-      .query('predictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-      const sessions = top5ByUser.get(p.userId) ?? new Set<SessionType>();
-      sessions.add(p.sessionType as SessionType);
-      top5ByUser.set(p.userId, sessions);
-    }
-
-    const h2hByUser = new Map<string, Set<SessionType>>();
-    for await (const p of ctx.db
-      .query('h2hPredictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-      const sessions = h2hByUser.get(p.userId) ?? new Set<SessionType>();
-      sessions.add(p.sessionType as SessionType);
-      h2hByUser.set(p.userId, sessions);
-    }
-
-    const racePath = `/races/${race.slug}`;
-    let scheduled = 0;
-    for (const user of eligibleUsers) {
-      const top5Sessions = top5ByUser.get(user._id) ?? new Set<SessionType>();
-      const h2hSessions = h2hByUser.get(user._id) ?? new Set<SessionType>();
-
-      const hasCompleteTop5 = requiredSessions.every((s) =>
-        top5Sessions.has(s),
-      );
-      if (!hasCompleteTop5) {
-        continue;
-      }
-
-      const hasCompleteH2H = requiredSessions.every((s) => h2hSessions.has(s));
-      if (hasCompleteH2H) {
-        continue;
-      }
-
-      await ctx.scheduler.runAfter(
-        0,
-        internal.emails.sendReminderEmails.sendH2HNudge,
-        { email: user.email!, raceName: race.name, racePath },
-      );
-      scheduled++;
-    }
-
-    return { scheduled };
   },
 });
 

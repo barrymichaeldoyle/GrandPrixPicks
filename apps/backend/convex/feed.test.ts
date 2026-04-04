@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Id } from './_generated/dataModel';
-import {
-  buildFilteredFeedPage,
-} from './feed';
+import { buildFilteredFeedPage } from './feed';
 
 const MAX_FEED_SIZE = 40;
 const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
@@ -35,55 +33,71 @@ function makeEvent(id: string, owner: string, createdAt: number): FeedEvent {
   };
 }
 
-function makeCtx(
-  pagesByCursor: Record<
-    string,
-    { page: FeedEvent[]; isDone: boolean; continueCursor: string | null }
-  >,
-) {
-  const paginate = vi.fn(async ({ cursor }: { cursor: string | null }) => {
-    const key = cursor ?? '__start__';
-    const page = pagesByCursor[key];
+function makeCtx(pagesByCreatedAt: Record<string, FeedEvent[]>) {
+  const take = vi.fn(async (numItems: number) => {
+    const range = queryRangeState.current;
+    const key = range === null ? '__start__' : String(range);
+    const page = pagesByCreatedAt[key];
     if (!page) {
-      throw new Error(`Unexpected cursor ${key}`);
+      throw new Error(`Unexpected createdAt range ${key}`);
     }
-    return page;
+    return page.slice(0, numItems);
   });
+
+  const queryRangeState: { current: number | null } = { current: null };
 
   const ctx = {
     db: {
       query: vi.fn(() => ({
-        withIndex: vi.fn(() => ({
-          order: vi.fn(() => ({
-            paginate,
-          })),
-        })),
+        withIndex: vi.fn(
+          (
+            _indexName: string,
+            cb?: (q: {
+              lte: (_field: string, value: number) => unknown;
+            }) => unknown,
+          ) => {
+            queryRangeState.current = null;
+            if (cb) {
+              cb({
+                lte: (_field: string, value: number) => {
+                  queryRangeState.current = value;
+                  return null;
+                },
+              });
+            }
+            return {
+              order: vi.fn(() => ({
+                take,
+              })),
+            };
+          },
+        ),
       })),
     },
   };
 
-  return { ctx, paginate };
+  return { ctx, take };
 }
 
 describe('buildFilteredFeedPage', () => {
   it('uses opaque cursors so same-timestamp events can appear on later pages', async () => {
     const allowed = userId('u1');
-    const pagesByCursor = {
-      __start__: {
-        page: Array.from({ length: MAX_FEED_SIZE }, (_, index) =>
+    const pagesByCreatedAt = {
+      __start__: [
+        ...Array.from({ length: MAX_FEED_SIZE }, (_, index) =>
           makeEvent(`page1-${index}`, 'u1', 1_000),
         ),
-        isDone: false,
-        continueCursor: 'cursor-page-2',
-      },
-      'cursor-page-2': {
-        page: [makeEvent('page2-tied', 'u1', 1_000)],
-        isDone: true,
-        continueCursor: null,
-      },
+        makeEvent('page2-tied', 'u1', 1_000),
+      ],
+      '1000': [
+        ...Array.from({ length: MAX_FEED_SIZE }, (_, index) =>
+          makeEvent(`page1-${index}`, 'u1', 1_000),
+        ),
+        makeEvent('page2-tied', 'u1', 1_000),
+      ],
     };
 
-    const { ctx, paginate } = makeCtx(pagesByCursor);
+    const { ctx, take } = makeCtx(pagesByCreatedAt);
 
     const firstPage = await buildFilteredFeedPage(
       ctx as never,
@@ -97,45 +111,43 @@ describe('buildFilteredFeedPage', () => {
     );
 
     expect(firstPage.page).toHaveLength(MAX_FEED_SIZE);
-    expect(firstPage.nextCursor).toBe('cursor-page-2');
+    expect(firstPage.nextCursor).toBe(
+      JSON.stringify({
+        createdAt: 1_000,
+        seenEventIdsAtCreatedAt: Array.from(
+          { length: MAX_FEED_SIZE },
+          (_, index) => `page1-${index}`,
+        ),
+      }),
+    );
     expect(secondPage.page.map((event) => event._id)).toEqual([
       feedEventId('page2-tied'),
     ]);
     expect(secondPage.hasMore).toBe(false);
-    expect(paginate).toHaveBeenNthCalledWith(1, {
-      cursor: null,
-      numItems: FEED_SCAN_BATCH_SIZE,
-    });
-    expect(paginate).toHaveBeenNthCalledWith(2, {
-      cursor: 'cursor-page-2',
-      numItems: FEED_SCAN_BATCH_SIZE,
-    });
+    expect(take).toHaveBeenNthCalledWith(
+      1,
+      FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES,
+    );
+    expect(take).toHaveBeenNthCalledWith(
+      2,
+      FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES + MAX_FEED_SIZE,
+    );
   });
 
   it('keeps the global scan bounded when relevant events are sparse', async () => {
-    const pagesByCursor: Record<
-      string,
-      { page: FeedEvent[]; isDone: boolean; continueCursor: string | null }
-    > = {};
-
-    for (let batch = 0; batch < MAX_FEED_SCAN_BATCHES; batch += 1) {
-      const cursor = batch === 0 ? '__start__' : `cursor-${batch}`;
-      const nextCursor =
-        batch === MAX_FEED_SCAN_BATCHES - 1 ? `cursor-${batch + 1}` : `cursor-${batch + 1}`;
-      pagesByCursor[cursor] = {
-        page: Array.from({ length: FEED_SCAN_BATCH_SIZE }, (_, index) =>
+    const pagesByCreatedAt = {
+      __start__: Array.from(
+        { length: FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES },
+        (_, index) =>
           makeEvent(
-            `batch-${batch}-${index}`,
-            index === 0 ? 'allowed' : `other-${batch}-${index}`,
-            10_000 - batch * FEED_SCAN_BATCH_SIZE - index,
+            `event-${index}`,
+            index % FEED_SCAN_BATCH_SIZE === 0 ? 'allowed' : `other-${index}`,
+            10_000 - index,
           ),
-        ),
-        isDone: false,
-        continueCursor: nextCursor,
-      };
-    }
+      ),
+    };
 
-    const { ctx, paginate } = makeCtx(pagesByCursor);
+    const { ctx, take } = makeCtx(pagesByCreatedAt);
 
     const result = await buildFilteredFeedPage(
       ctx as never,
@@ -145,7 +157,12 @@ describe('buildFilteredFeedPage', () => {
 
     expect(result.page).toHaveLength(MAX_FEED_SCAN_BATCHES);
     expect(result.hasMore).toBe(true);
-    expect(result.nextCursor).toBe(`cursor-${MAX_FEED_SCAN_BATCHES}`);
-    expect(paginate).toHaveBeenCalledTimes(MAX_FEED_SCAN_BATCHES);
+    expect(result.nextCursor).toBe(
+      JSON.stringify({
+        createdAt: 9_801,
+        seenEventIdsAtCreatedAt: ['event-199'],
+      }),
+    );
+    expect(take).toHaveBeenCalledTimes(1);
   });
 });

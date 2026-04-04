@@ -20,10 +20,7 @@ type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
 
-async function getPersonalizedFeedUserIds(
-  ctx: DbCtx,
-  viewerId: Id<'users'>,
-) {
+async function getPersonalizedFeedUserIds(ctx: DbCtx, viewerId: Id<'users'>) {
   const userIds = new Set<Id<'users'>>();
   userIds.add(viewerId);
 
@@ -36,10 +33,7 @@ async function getPersonalizedFeedUserIds(
   return userIds;
 }
 
-async function getLeagueFeedUserIds(
-  ctx: DbCtx,
-  leagueId: Id<'leagues'>,
-) {
+async function getLeagueFeedUserIds(ctx: DbCtx, leagueId: Id<'leagues'>) {
   const userIds = new Set<Id<'users'>>();
 
   for await (const member of ctx.db
@@ -421,50 +415,116 @@ export async function buildFilteredFeedPage(
   allowedUserIds: Set<Id<'users'>>,
   paginationCursor: string | null,
 ) {
+  const parsedCursor = parseFeedCursor(paginationCursor);
   const events: RawEvent[] = [];
-  let cursor = paginationCursor;
-  let hasMore = false;
+  const queryLimit =
+    FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES +
+    parsedCursor.seenEventIdsAtCreatedAt.size;
 
-  for (let batch = 0; batch < MAX_FEED_SCAN_BATCHES; batch += 1) {
-    const page = await ctx.db
-      .query('feedEvents')
-      .withIndex('by_created')
-      .order('desc')
-      .paginate({
-        cursor,
-        numItems: FEED_SCAN_BATCH_SIZE,
-      });
+  const scanned = (
+    parsedCursor.createdAt === null
+      ? await ctx.db
+          .query('feedEvents')
+          .withIndex('by_created')
+          .order('desc')
+          .take(queryLimit)
+      : await ctx.db
+          .query('feedEvents')
+          .withIndex('by_created', (q) =>
+            q.lte('createdAt', parsedCursor.createdAt!),
+          )
+          .order('desc')
+          .take(queryLimit)
+  ) as RawEvent[];
 
-    for (const event of page.page as RawEvent[]) {
-      if (!allowedUserIds.has(event.userId)) {
-        continue;
-      }
+  let lastScannedEvent: RawEvent | null = null;
 
-      events.push(event);
-      if (events.length === MAX_FEED_SIZE) {
-        return {
-          page: events,
-          hasMore: !page.isDone,
-          nextCursor: page.continueCursor,
-        };
-      }
+  for (let index = 0; index < scanned.length; index += 1) {
+    const event = scanned[index]!;
+    if (
+      parsedCursor.createdAt !== null &&
+      event.createdAt === parsedCursor.createdAt &&
+      parsedCursor.seenEventIdsAtCreatedAt.has(String(event._id))
+    ) {
+      continue;
     }
 
-    if (page.isDone) {
-      hasMore = false;
-      cursor = null;
-      break;
+    lastScannedEvent = event;
+
+    if (!allowedUserIds.has(event.userId)) {
+      continue;
     }
 
-    hasMore = true;
-    cursor = page.continueCursor;
+    events.push(event);
+    if (events.length === MAX_FEED_SIZE) {
+      const nextCursor = makeFeedCursor(scanned, index, event.createdAt);
+      return {
+        page: events,
+        hasMore: index < scanned.length - 1 || scanned.length === queryLimit,
+        nextCursor,
+      };
+    }
   }
 
+  const hasMore = scanned.length === queryLimit && lastScannedEvent !== null;
   return {
     page: events,
     hasMore,
-    nextCursor: cursor,
+    nextCursor:
+      hasMore && lastScannedEvent
+        ? makeFeedCursor(
+            scanned,
+            scanned.length - 1,
+            lastScannedEvent.createdAt,
+          )
+        : null,
   };
+}
+
+type FeedCursor = {
+  createdAt: number | null;
+  seenEventIdsAtCreatedAt: Set<string>;
+};
+
+function parseFeedCursor(cursor: string | null): FeedCursor {
+  if (!cursor) {
+    return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+  }
+
+  try {
+    const parsed = JSON.parse(cursor) as {
+      createdAt?: number;
+      seenEventIdsAtCreatedAt?: string[];
+    };
+    if (
+      typeof parsed.createdAt !== 'number' ||
+      !Array.isArray(parsed.seenEventIdsAtCreatedAt)
+    ) {
+      return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+    }
+    return {
+      createdAt: parsed.createdAt,
+      seenEventIdsAtCreatedAt: new Set(parsed.seenEventIdsAtCreatedAt),
+    };
+  } catch {
+    return { createdAt: null, seenEventIdsAtCreatedAt: new Set() };
+  }
+}
+
+function makeFeedCursor(
+  scanned: RawEvent[],
+  inclusiveIndex: number,
+  createdAt: number,
+) {
+  const seenEventIdsAtCreatedAt = scanned
+    .slice(0, inclusiveIndex + 1)
+    .filter((event) => event.createdAt === createdAt)
+    .map((event) => String(event._id));
+
+  return JSON.stringify({
+    createdAt,
+    seenEventIdsAtCreatedAt,
+  });
 }
 
 /** Build a map of session headers (top-5 results) for all score_published events. */
@@ -1181,16 +1241,12 @@ export const backfillFeedEventsForSeason = mutation({
     }
 
     const lastRace = races[races.length - 1];
-    await ctx.scheduler.runAfter(
-      0,
-      api.feed.backfillFeedEventsForSeason,
-      {
-        season,
-        startAfterRound: lastRace.round,
-        created,
-        updated,
-      },
-    );
+    await ctx.scheduler.runAfter(0, api.feed.backfillFeedEventsForSeason, {
+      season,
+      startAfterRound: lastRace.round,
+      created,
+      updated,
+    });
 
     return {
       season,

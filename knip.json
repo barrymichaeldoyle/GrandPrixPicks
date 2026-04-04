@@ -8,7 +8,7 @@
       "entry": [
         "src/start.ts",
         "instrument.server.mjs",
-        "server/routes/api/**/*.ts"
+        "server/routes/**/*.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
       "ignoreFiles": [

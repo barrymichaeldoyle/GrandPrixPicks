@@ -35,7 +35,7 @@ export const Route = createFileRoute('/feed/')({
 // Pre-allocate up to 5 pages of feed (5 × 40 = 200 events max)
 const MAX_EXTRA_PAGES = 4;
 
-function FeedContent() {
+export function FeedContent() {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
   );

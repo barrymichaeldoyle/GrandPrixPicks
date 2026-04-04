@@ -374,9 +374,9 @@ export const writeStreakEventsForRaceSession = internalMutation({
 
 // ============ Feed queries ============
 
-const MAX_FEED_SIZE = 40;
-const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
-const MAX_FEED_SCAN_BATCHES = 5;
+export const MAX_FEED_SIZE = 40;
+export const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
+export const MAX_FEED_SCAN_BATCHES = 5;
 
 type RawEvent = {
   _id: Id<'feedEvents'>;
@@ -416,7 +416,7 @@ type RawEvent = {
  * and using Convex's opaque pagination cursor avoids dropping same-timestamp
  * events across pages.
  */
-async function buildFilteredFeedPage(
+export async function buildFilteredFeedPage(
   ctx: DbCtx,
   allowedUserIds: Set<Id<'users'>>,
   paginationCursor: string | null,

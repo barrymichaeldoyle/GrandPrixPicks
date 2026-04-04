@@ -425,7 +425,7 @@ function LeagueTabs({
 
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 
-function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
+export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_LEAGUE_FEED_EXTRA_PAGES).fill(null),
   );

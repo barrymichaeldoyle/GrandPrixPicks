@@ -2,11 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Id } from './_generated/dataModel';
 import {
-  FEED_SCAN_BATCH_SIZE,
-  MAX_FEED_SCAN_BATCHES,
-  MAX_FEED_SIZE,
   buildFilteredFeedPage,
 } from './feed';
+
+const MAX_FEED_SIZE = 40;
+const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
+const MAX_FEED_SCAN_BATCHES = 5;
 
 type FeedEvent = {
   _id: Id<'feedEvents'>;

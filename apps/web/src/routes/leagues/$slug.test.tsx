@@ -29,7 +29,9 @@ vi.mock('convex/browser', () => ({
 }));
 
 vi.mock('@clerk/react', () => ({
-  SignInButton: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SignInButton: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useAuth: () => ({ isSignedIn: true, isLoaded: true }),
 }));
 
@@ -145,51 +147,54 @@ describe('LeagueFeed', () => {
   it('uses nextCursor from the last league page when loading more', async () => {
     const leagueId = 'league_1' as Id<'leagues'>;
 
-    useQueryMock.mockImplementation(
-      (_query: unknown, args: unknown) => {
-        if (args === 'skip') {
-          return undefined;
-        }
-        if (
-          args &&
-          (args as { leagueId?: Id<'leagues'>; paginationCursor?: string }).leagueId === leagueId &&
-          (args as { paginationCursor?: string }).paginationCursor === undefined
-        ) {
-          return {
-            events: [{ _id: 'league-event-1', type: 'joined_league', createdAt: 10 }],
-            sessions: {},
-            hasMore: true,
-            nextCursor: 'league-cursor-2',
-          };
-        }
-        if (
-          args &&
-          (args as { leagueId?: Id<'leagues'>; paginationCursor?: string }).leagueId === leagueId &&
-          (args as { paginationCursor?: string }).paginationCursor === 'league-cursor-2'
-        ) {
-          return {
-            events: [{ _id: 'league-event-2', type: 'joined_league', createdAt: 9 }],
-            sessions: {},
-            hasMore: false,
-            nextCursor: null,
-          };
-        }
+    useQueryMock.mockImplementation((_query: unknown, args: unknown) => {
+      if (args === 'skip') {
         return undefined;
-      },
-    );
+      }
+      if (
+        args &&
+        (args as { leagueId?: Id<'leagues'>; paginationCursor?: string })
+          .leagueId === leagueId &&
+        (args as { paginationCursor?: string }).paginationCursor === undefined
+      ) {
+        return {
+          events: [
+            { _id: 'league-event-1', type: 'joined_league', createdAt: 10 },
+          ],
+          sessions: {},
+          hasMore: true,
+          nextCursor: 'league-cursor-2',
+        };
+      }
+      if (
+        args &&
+        (args as { leagueId?: Id<'leagues'>; paginationCursor?: string })
+          .leagueId === leagueId &&
+        (args as { paginationCursor?: string }).paginationCursor ===
+          'league-cursor-2'
+      ) {
+        return {
+          events: [
+            { _id: 'league-event-2', type: 'joined_league', createdAt: 9 },
+          ],
+          sessions: {},
+          hasMore: false,
+          nextCursor: null,
+        };
+      }
+      return undefined;
+    });
 
-    let view:
-      | Awaited<ReturnType<typeof renderLeagueFeed>>
-      | undefined;
+    let view: Awaited<ReturnType<typeof renderLeagueFeed>> | undefined;
 
     await act(async () => {
       view = await renderLeagueFeed(leagueId);
     });
 
     const resolvedView = view!;
-    const button = Array.from(resolvedView.container.querySelectorAll('button')).find(
-      (candidate) => candidate.textContent === 'Load more',
-    );
+    const button = Array.from(
+      resolvedView.container.querySelectorAll('button'),
+    ).find((candidate) => candidate.textContent === 'Load more');
 
     expect(button).not.toBeUndefined();
 
@@ -202,6 +207,8 @@ describe('LeagueFeed', () => {
       leagueId,
       paginationCursor: 'league-cursor-2',
     });
+    expect(resolvedView.container.textContent).toContain('league-event-1');
+    expect(resolvedView.container.textContent).toContain('league-event-2');
 
     resolvedView.unmount();
   });

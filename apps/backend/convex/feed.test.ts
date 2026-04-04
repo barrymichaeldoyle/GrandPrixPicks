@@ -165,4 +165,51 @@ describe('buildFilteredFeedPage', () => {
     );
     expect(take).toHaveBeenCalledTimes(1);
   });
+
+  it('treats an invalid cursor as a fresh feed request', async () => {
+    const pagesByCreatedAt = {
+      __start__: [makeEvent('fresh-1', 'u1', 2_000)],
+    };
+
+    const { ctx, take } = makeCtx(pagesByCreatedAt);
+
+    const result = await buildFilteredFeedPage(
+      ctx as never,
+      new Set([userId('u1')]),
+      'not-json',
+    );
+
+    expect(result.page.map((event) => event._id)).toEqual([
+      feedEventId('fresh-1'),
+    ]);
+    expect(result.hasMore).toBe(false);
+    expect(result.nextCursor).toBeNull();
+    expect(take).toHaveBeenCalledOnce();
+  });
+
+  it('carries a scan cursor forward when the first window has no allowed events', async () => {
+    const pagesByCreatedAt = {
+      __start__: Array.from(
+        { length: FEED_SCAN_BATCH_SIZE * MAX_FEED_SCAN_BATCHES },
+        (_, index) => makeEvent(`other-${index}`, 'other', 20_000 - index),
+      ),
+    };
+
+    const { ctx } = makeCtx(pagesByCreatedAt);
+
+    const result = await buildFilteredFeedPage(
+      ctx as never,
+      new Set([userId('allowed')]),
+      null,
+    );
+
+    expect(result.page).toEqual([]);
+    expect(result.hasMore).toBe(true);
+    expect(result.nextCursor).toBe(
+      JSON.stringify({
+        createdAt: 19_801,
+        seenEventIdsAtCreatedAt: ['other-199'],
+      }),
+    );
+  });
 });

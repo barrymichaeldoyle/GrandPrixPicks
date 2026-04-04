@@ -88,30 +88,31 @@ describe('FeedContent', () => {
   });
 
   it('uses nextCursor from the last page when loading more', () => {
-    useQueryMock.mockImplementation(
-      (_query: unknown, args: unknown) => {
-        if (args === 'skip') {
-          return undefined;
-        }
-        if (!args || !('paginationCursor' in (args as Record<string, unknown>))) {
-          return {
-            events: [{ _id: 'event-1', type: 'joined_league', createdAt: 10 }],
-            sessions: {},
-            hasMore: true,
-            nextCursor: 'cursor-page-2',
-          };
-        }
-        if ((args as { paginationCursor?: string }).paginationCursor === 'cursor-page-2') {
-          return {
-            events: [{ _id: 'event-2', type: 'joined_league', createdAt: 9 }],
-            sessions: {},
-            hasMore: false,
-            nextCursor: null,
-          };
-        }
+    useQueryMock.mockImplementation((_query: unknown, args: unknown) => {
+      if (args === 'skip') {
         return undefined;
-      },
-    );
+      }
+      if (!args || !('paginationCursor' in (args as Record<string, unknown>))) {
+        return {
+          events: [{ _id: 'event-1', type: 'joined_league', createdAt: 10 }],
+          sessions: {},
+          hasMore: true,
+          nextCursor: 'cursor-page-2',
+        };
+      }
+      if (
+        (args as { paginationCursor?: string }).paginationCursor ===
+        'cursor-page-2'
+      ) {
+        return {
+          events: [{ _id: 'event-2', type: 'joined_league', createdAt: 9 }],
+          sessions: {},
+          hasMore: false,
+          nextCursor: null,
+        };
+      }
+      return undefined;
+    });
 
     const view = renderFeedContent();
     const button = Array.from(view.container.querySelectorAll('button')).find(
@@ -128,6 +129,8 @@ describe('FeedContent', () => {
     expect(useQueryMock).toHaveBeenCalledWith('getPersonalizedFeed', {
       paginationCursor: 'cursor-page-2',
     });
+    expect(view.container.textContent).toContain('event-1');
+    expect(view.container.textContent).toContain('event-2');
 
     view.unmount();
   });

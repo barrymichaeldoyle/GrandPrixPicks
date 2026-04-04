@@ -113,7 +113,16 @@ const config = defineConfig(({ mode }) => {
             }) as PluginOption,
           ]),
       tailwindcss() as PluginOption,
-      ...(isVitest ? [] : [tanstackStart() as PluginOption]),
+      ...(isVitest
+        ? []
+        : [
+            tanstackStart({
+              router: {
+                routeFileIgnorePattern:
+                  '\\.(test|spec)\\.(ts|tsx|js|jsx)$',
+              },
+            }) as PluginOption,
+          ]),
       viteReact() as PluginOption,
       ...(isProductionBuild
         ? [

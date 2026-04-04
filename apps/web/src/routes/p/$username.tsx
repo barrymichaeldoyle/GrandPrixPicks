@@ -56,7 +56,16 @@ export const Route = createFileRoute('/p/$username')({
     }
     return { initialProfile: profile };
   },
-  head: ({ loaderData, params }) => {
+  head: ({ loaderData, matches, params }) => {
+    const childOwnsHead = matches.some(
+      (match) =>
+        (match.routeId as string) === '/p/$username/followers' ||
+        (match.routeId as string) === '/p/$username/following',
+    );
+    if (childOwnsHead) {
+      return {};
+    }
+
     const name =
       loaderData?.initialProfile?.displayName ??
       loaderData?.initialProfile?.username ??

@@ -11,7 +11,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { Button } from '../components/Button/Button';
 import { PageHero } from '../components/PageHero';
 import { PageLoader } from '../components/PageLoader';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { canonicalMeta, defaultOgImage, noIndexMeta } from '../lib/site';
 
 export const Route = createFileRoute('/support')({
   component: SupportPage,
@@ -30,6 +30,7 @@ export const Route = createFileRoute('/support')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: defaultOgImage },
+        ...noIndexMeta(),
         ...canonical.meta,
       ],
       links: [...canonical.links],

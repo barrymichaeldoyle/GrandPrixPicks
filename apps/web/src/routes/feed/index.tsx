@@ -12,7 +12,7 @@ import {
   FeedItemSkeleton,
   SessionSeparator,
 } from '../../components/FeedItem';
-import { canonicalMeta } from '../../lib/site';
+import { canonicalMeta, noIndexMeta } from '../../lib/site';
 
 export const Route = createFileRoute('/feed/')({
   component: FeedPage,
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/feed/')({
           name: 'description',
           content: "See what's happening with your friends and leagues.",
         },
+        ...noIndexMeta(),
         ...canonical.meta,
       ],
       links: [...canonical.links],
@@ -43,27 +44,19 @@ export function FeedContent() {
   const page0 = useQuery(api.feed.getPersonalizedFeed, {});
   const page1 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[0] !== null
-      ? { paginationCursor: extraCursors[0] }
-      : 'skip',
+    extraCursors[0] !== null ? { paginationCursor: extraCursors[0] } : 'skip',
   );
   const page2 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[1] !== null
-      ? { paginationCursor: extraCursors[1] }
-      : 'skip',
+    extraCursors[1] !== null ? { paginationCursor: extraCursors[1] } : 'skip',
   );
   const page3 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[2] !== null
-      ? { paginationCursor: extraCursors[2] }
-      : 'skip',
+    extraCursors[2] !== null ? { paginationCursor: extraCursors[2] } : 'skip',
   );
   const page4 = useQuery(
     api.feed.getPersonalizedFeed,
-    extraCursors[3] !== null
-      ? { paginationCursor: extraCursors[3] }
-      : 'skip',
+    extraCursors[3] !== null ? { paginationCursor: extraCursors[3] } : 'skip',
   );
 
   const allPageData = [page0, page1, page2, page3, page4];

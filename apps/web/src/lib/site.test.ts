@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canonicalMeta, defaultOgImage, siteConfig } from './site';
+import { canonicalMeta, defaultOgImage, noIndexMeta, siteConfig } from './site';
 
 describe('site config', () => {
   it('builds canonical metadata from route path', () => {
@@ -16,5 +16,11 @@ describe('site config', () => {
 
   it('exports a default og image URL', () => {
     expect(defaultOgImage).toContain('/og-default.png?v=');
+  });
+
+  it('exports noindex metadata for gated pages', () => {
+    expect(noIndexMeta()).toEqual([
+      { name: 'robots', content: 'noindex, follow' },
+    ]);
   });
 });

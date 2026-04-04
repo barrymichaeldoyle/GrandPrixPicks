@@ -42,3 +42,8 @@ export function canonicalMeta(path: string) {
     links: [{ rel: 'canonical', href: url }] as const,
   };
 }
+
+/** Returns robots metadata for pages that should not appear in search results. */
+export function noIndexMeta() {
+  return [{ name: 'robots', content: 'noindex, follow' }] as const;
+}

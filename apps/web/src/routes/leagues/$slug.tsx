@@ -4,6 +4,7 @@ import type { Id } from '@convex-generated/dataModel';
 import {
   createFileRoute,
   Link,
+  notFound,
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
@@ -86,6 +87,9 @@ export const Route = createFileRoute('/leagues/$slug')({
     const league = await convex.query(api.leagues.getLeagueBySlug, {
       slug: params.slug,
     });
+    if (!league) {
+      throw notFound();
+    }
     return { league };
   },
   head: ({ loaderData, params }) => {

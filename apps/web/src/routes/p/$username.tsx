@@ -3,6 +3,7 @@ import { api } from '@convex-generated/api';
 import {
   createFileRoute,
   Link,
+  notFound,
   Outlet,
   useMatches,
 } from '@tanstack/react-router';
@@ -50,6 +51,9 @@ export const Route = createFileRoute('/p/$username')({
     const profile = await convex.query(api.users.getProfileByUsername, {
       username: params.username,
     });
+    if (!profile) {
+      throw notFound();
+    }
     return { initialProfile: profile };
   },
   head: ({ loaderData, params }) => {

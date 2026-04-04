@@ -5,7 +5,7 @@ import { useQuery } from 'convex/react';
 import { UserPlus } from 'lucide-react';
 
 import { PageLoader } from '../../../components/PageLoader';
-import { canonicalMeta, defaultOgImage } from '../../../lib/site';
+import { canonicalMeta, defaultOgImage, noIndexMeta } from '../../../lib/site';
 import { FollowListPage } from './-follow-list-page';
 
 export const Route = createFileRoute('/p/$username/following')({
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/p/$username/following')({
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
         { name: 'twitter:image', content: defaultOgImage },
+        ...noIndexMeta(),
         ...canonical.meta,
       ],
       links: [...canonical.links],

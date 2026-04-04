@@ -5,7 +5,7 @@ type AuthSessionClaims = {
   sub?: unknown;
 };
 
-export type AuthenticatedClerkIdentity = {
+type AuthenticatedClerkIdentity = {
   userId: string;
   subject: string;
   tokenIdentifier: string;

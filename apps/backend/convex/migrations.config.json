@@ -2,5 +2,9 @@
   {
     "name": "seed:migrateSessionTypes",
     "args": {}
+  },
+  {
+    "name": "users:backfillClerkSubjects",
+    "args": {}
   }
 ]

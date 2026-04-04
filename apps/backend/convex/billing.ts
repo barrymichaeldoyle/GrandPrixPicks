@@ -1,6 +1,13 @@
 import { v } from 'convex/values';
 
 import { mutation } from './_generated/server';
+import { findUserByClerkIdentity } from './lib/auth';
+
+export function isTerminalPaddleWebhookEventStatus(
+  status: 'processed' | 'ignored_user_not_found',
+) {
+  return status === 'processed';
+}
 
 /**
  * Idempotently grants a season pass for a Clerk user when Paddle confirms payment.
@@ -8,6 +15,7 @@ import { mutation } from './_generated/server';
 export const grantSeasonPassFromPaddle = mutation({
   args: {
     clerkUserId: v.string(),
+    clerkSubject: v.optional(v.string()),
     season: v.number(),
     webhookKey: v.string(),
     paddleEventId: v.optional(v.string()),
@@ -20,42 +28,59 @@ export const grantSeasonPassFromPaddle = mutation({
       throw new Error('Unauthorized webhook caller');
     }
 
+    let existingEvent:
+      | {
+          _id: string;
+          status: 'processed' | 'ignored_user_not_found';
+        }
+      | null = null;
+
     if (args.paddleEventId) {
-      const existingEvent = await ctx.db
+      existingEvent = await ctx.db
         .query('processedPaddleWebhookEvents')
         .withIndex('by_eventId', (q) => q.eq('eventId', args.paddleEventId!))
         .unique();
 
-      if (existingEvent) {
+      if (
+        existingEvent &&
+        isTerminalPaddleWebhookEventStatus(existingEvent.status)
+      ) {
         return {
-          granted: existingEvent.status === 'processed',
+          granted: true,
           created: false,
           duplicate: true,
-          reason:
-            existingEvent.status === 'ignored_user_not_found'
-              ? ('user_not_found' as const)
-              : undefined,
         };
       }
     }
 
-    const user = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique();
+    const user = await findUserByClerkIdentity(ctx, {
+      tokenIdentifier: args.clerkUserId,
+      subject: args.clerkSubject,
+    });
 
     if (!user) {
       if (args.paddleEventId) {
-        await ctx.db.insert('processedPaddleWebhookEvents', {
-          eventId: args.paddleEventId,
-          eventType: 'transaction.completed',
-          notificationId: args.paddleNotificationId,
-          checkoutId: args.paddleCheckoutId,
-          clerkUserId: args.clerkUserId,
-          season: args.season,
-          status: 'ignored_user_not_found',
-          createdAt: Date.now(),
-        });
+        if (existingEvent) {
+          await ctx.db.patch(existingEvent._id as never, {
+            eventType: 'transaction.completed',
+            notificationId: args.paddleNotificationId,
+            checkoutId: args.paddleCheckoutId,
+            clerkUserId: args.clerkUserId,
+            season: args.season,
+            status: 'ignored_user_not_found',
+          });
+        } else {
+          await ctx.db.insert('processedPaddleWebhookEvents', {
+            eventId: args.paddleEventId,
+            eventType: 'transaction.completed',
+            notificationId: args.paddleNotificationId,
+            checkoutId: args.paddleCheckoutId,
+            clerkUserId: args.clerkUserId,
+            season: args.season,
+            status: 'ignored_user_not_found',
+            createdAt: Date.now(),
+          });
+        }
       }
       return { granted: false, reason: 'user_not_found' as const };
     }
@@ -85,16 +110,27 @@ export const grantSeasonPassFromPaddle = mutation({
       }
 
       if (args.paddleEventId) {
-        await ctx.db.insert('processedPaddleWebhookEvents', {
-          eventId: args.paddleEventId,
-          eventType: 'transaction.completed',
-          notificationId: args.paddleNotificationId,
-          checkoutId: args.paddleCheckoutId,
-          clerkUserId: args.clerkUserId,
-          season: args.season,
-          status: 'processed',
-          createdAt: Date.now(),
-        });
+        if (existingEvent) {
+          await ctx.db.patch(existingEvent._id as never, {
+            eventType: 'transaction.completed',
+            notificationId: args.paddleNotificationId,
+            checkoutId: args.paddleCheckoutId,
+            clerkUserId: args.clerkUserId,
+            season: args.season,
+            status: 'processed',
+          });
+        } else {
+          await ctx.db.insert('processedPaddleWebhookEvents', {
+            eventId: args.paddleEventId,
+            eventType: 'transaction.completed',
+            notificationId: args.paddleNotificationId,
+            checkoutId: args.paddleCheckoutId,
+            clerkUserId: args.clerkUserId,
+            season: args.season,
+            status: 'processed',
+            createdAt: Date.now(),
+          });
+        }
       }
 
       return { granted: true, created: false };
@@ -109,16 +145,27 @@ export const grantSeasonPassFromPaddle = mutation({
     });
 
     if (args.paddleEventId) {
-      await ctx.db.insert('processedPaddleWebhookEvents', {
-        eventId: args.paddleEventId,
-        eventType: 'transaction.completed',
-        notificationId: args.paddleNotificationId,
-        checkoutId: args.paddleCheckoutId,
-        clerkUserId: args.clerkUserId,
-        season: args.season,
-        status: 'processed',
-        createdAt: Date.now(),
-      });
+      if (existingEvent) {
+        await ctx.db.patch(existingEvent._id as never, {
+          eventType: 'transaction.completed',
+          notificationId: args.paddleNotificationId,
+          checkoutId: args.paddleCheckoutId,
+          clerkUserId: args.clerkUserId,
+          season: args.season,
+          status: 'processed',
+        });
+      } else {
+        await ctx.db.insert('processedPaddleWebhookEvents', {
+          eventId: args.paddleEventId,
+          eventType: 'transaction.completed',
+          notificationId: args.paddleNotificationId,
+          checkoutId: args.paddleCheckoutId,
+          clerkUserId: args.clerkUserId,
+          season: args.season,
+          status: 'processed',
+          createdAt: Date.now(),
+        });
+      }
     }
 
     return { granted: true, created: true };

@@ -1,4 +1,5 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import type { FunctionReference } from 'convex/server';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -6,6 +7,8 @@ import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import {
+  deriveClerkSubjectFromStoredId,
+  findUserByClerkIdentity,
   getOrCreateViewer,
   getViewer,
   isAdmin,
@@ -35,6 +38,7 @@ type AccountDeletionSummary = {
 };
 
 const DELETION_BATCH_SIZE = 200;
+const CLERK_SUBJECT_BACKFILL_BATCH_SIZE = 100;
 const DELETION_STEPS = [
   'follows_as_follower',
   'follows_as_followee',
@@ -1044,6 +1048,7 @@ export const deleteUserFromClerkWebhook = mutation({
   args: {
     webhookKey: v.string(),
     clerkUserId: v.string(),
+    clerkSubject: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const expectedWebhookKey = process.env.CLERK_CONVEX_WEBHOOK_KEY;
@@ -1054,10 +1059,10 @@ export const deleteUserFromClerkWebhook = mutation({
       throw new Error('Unauthorized webhook caller');
     }
 
-    const user = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique();
+    const user = await findUserByClerkIdentity(ctx, {
+      tokenIdentifier: args.clerkUserId,
+      subject: args.clerkSubject,
+    });
 
     if (!user) {
       return { handled: false as const, reason: 'user_not_found' as const };
@@ -1080,12 +1085,13 @@ export const deleteUserFromClerkWebhook = mutation({
 export const deleteUserFromClerkWebhookInternal = internalMutation({
   args: {
     clerkUserId: v.string(),
+    clerkSubject: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique();
+    const user = await findUserByClerkIdentity(ctx, {
+      tokenIdentifier: args.clerkUserId,
+      subject: args.clerkSubject,
+    });
 
     if (!user) {
       return { handled: false as const, reason: 'user_not_found' as const };
@@ -1101,6 +1107,66 @@ export const deleteUserFromClerkWebhookInternal = internalMutation({
       handled: true as const,
       userId: user._id,
       scheduled,
+    };
+  },
+});
+
+/**
+ * Migration: backfill users.clerkSubject from the existing stored Clerk identifier.
+ * Safe to re-run; it only patches rows where the derived subject is missing or stale.
+ */
+export const backfillClerkSubjects = internalMutation({
+  args: {
+    startAfter: v.optional(v.string()),
+    updated: v.optional(v.number()),
+    scanned: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const usersQuery = args.startAfter
+      ? ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) => q.gt('clerkUserId', args.startAfter!))
+      : ctx.db.query('users').withIndex('by_clerkUserId');
+
+    const users = await usersQuery.take(CLERK_SUBJECT_BACKFILL_BATCH_SIZE);
+    let updated = args.updated ?? 0;
+    let scanned = args.scanned ?? 0;
+
+    for (const user of users) {
+      scanned += 1;
+      const clerkSubject = deriveClerkSubjectFromStoredId(user.clerkUserId);
+      if (user.clerkSubject === clerkSubject) {
+        continue;
+      }
+
+      await ctx.db.patch(user._id, {
+        clerkSubject,
+        updatedAt: Date.now(),
+      });
+      updated += 1;
+    }
+
+    const lastUser = users[users.length - 1];
+    if (lastUser && users.length === CLERK_SUBJECT_BACKFILL_BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        'users:backfillClerkSubjects' as unknown as FunctionReference<'mutation'>,
+        {
+          startAfter: lastUser.clerkUserId,
+          updated,
+          scanned,
+        },
+      );
+    }
+
+    return {
+      updated,
+      scanned,
+      done: users.length < CLERK_SUBJECT_BACKFILL_BATCH_SIZE,
+      nextStartAfter:
+        users.length === CLERK_SUBJECT_BACKFILL_BATCH_SIZE
+          ? lastUser?.clerkUserId
+          : null,
     };
   },
 });

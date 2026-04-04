@@ -24,6 +24,7 @@ type PaddleCompletedTransactionEvent = {
     id?: string;
     custom_data?: {
       clerkUserId?: string;
+      clerkSubject?: string;
       season?: number;
     };
     items?: {
@@ -140,6 +141,7 @@ export async function verifyPaddleWebhookSignature(params: {
 
 export async function createPaddleSeasonCheckout(params: {
   clerkUserId: string;
+  clerkSubject?: string;
   season?: number;
 }) {
   const config = getPaddleConfig();
@@ -172,6 +174,7 @@ export async function createPaddleSeasonCheckout(params: {
       ],
       custom_data: {
         clerkUserId: params.clerkUserId,
+        clerkSubject: params.clerkSubject,
         season,
       },
     }),
@@ -214,6 +217,7 @@ export async function grantSeasonPassFromWebhook(
   }
 
   const clerkUserId = event.data?.custom_data?.clerkUserId;
+  const clerkSubject = event.data?.custom_data?.clerkSubject;
   const season = event.data?.custom_data?.season;
 
   if (!clerkUserId || !Number.isInteger(season)) {
@@ -236,6 +240,7 @@ export async function grantSeasonPassFromWebhook(
   const result = await convex.mutation(api.billing.grantSeasonPassFromPaddle, {
     webhookKey,
     clerkUserId,
+    clerkSubject,
     season: normalizedSeason,
     paddleEventId: event.event_id,
     paddleNotificationId: event.notification_id,

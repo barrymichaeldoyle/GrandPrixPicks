@@ -213,10 +213,12 @@ export const getMyH2HWeekendScore = query({
       return null;
     }
 
-    const scores = await ctx.db
+    const scores = [];
+    for await (const score of ctx.db
       .query('h2hScores')
-      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .take(500);
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))) {
+      scores.push(score);
+    }
 
     const forRace = scores.filter((s) => s.raceId === args.raceId);
 
@@ -295,10 +297,12 @@ export const myH2HPredictionHistory = query({
       return [];
     }
 
-    const h2hScores = await ctx.db
+    const h2hScores = [];
+    for await (const score of ctx.db
       .query('h2hScores')
-      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
-      .take(500);
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))) {
+      h2hScores.push(score);
+    }
 
     // Group by raceId
     const byRace = new Map<Id<'races'>, Array<(typeof h2hScores)[number]>>();
@@ -362,10 +366,12 @@ export const myH2HPicksByRace = query({
       return [];
     }
 
-    const predictions = await ctx.db
+    const predictions = [];
+    for await (const prediction of ctx.db
       .query('h2hPredictions')
-      .withIndex('by_user_race_session', (q) => q.eq('userId', viewer._id))
-      .take(500);
+      .withIndex('by_user_race_session', (q) => q.eq('userId', viewer._id))) {
+      predictions.push(prediction);
+    }
 
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();
     for (const pred of predictions) {
@@ -392,10 +398,12 @@ export const myH2HPicksByRace = query({
 export const getUserH2HPredictionHistory = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const h2hScores = await ctx.db
+    const h2hScores = [];
+    for await (const score of ctx.db
       .query('h2hScores')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))
-      .take(500);
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))) {
+      h2hScores.push(score);
+    }
 
     const byRace = new Map<Id<'races'>, Array<(typeof h2hScores)[number]>>();
     for (const score of h2hScores) {
@@ -455,10 +463,12 @@ export const getUserH2HPicksByRace = query({
     const viewer = await getViewer(ctx);
     const isOwner = viewer ? viewer._id === args.userId : false;
 
-    const predictions = await ctx.db
+    const predictions = [];
+    for await (const prediction of ctx.db
       .query('h2hPredictions')
-      .withIndex('by_user_race_session', (q) => q.eq('userId', args.userId))
-      .take(500);
+      .withIndex('by_user_race_session', (q) => q.eq('userId', args.userId))) {
+      predictions.push(prediction);
+    }
 
     const now = Date.now();
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();

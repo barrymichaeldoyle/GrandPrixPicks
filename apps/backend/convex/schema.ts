@@ -11,6 +11,7 @@ const sessionType = v.union(
 export default defineSchema({
   users: defineTable({
     clerkUserId: v.string(),
+    clerkSubject: v.optional(v.string()),
     email: v.optional(v.string()),
     displayName: v.optional(v.string()),
     username: v.optional(v.string()),
@@ -52,6 +53,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_clerkUserId', ['clerkUserId'])
+    .index('by_clerkSubject', ['clerkSubject'])
     .index('by_username', ['username']),
 
   drivers: defineTable({

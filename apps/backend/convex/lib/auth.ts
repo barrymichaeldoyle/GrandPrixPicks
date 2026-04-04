@@ -18,26 +18,62 @@ export function getIdentityKeys(identity: {
   };
 }
 
-async function findViewerByIdentity(
-  ctx: QueryCtx | MutationCtx,
-  keys: { primary: string; legacy: string | null },
-): Promise<Doc<'users'> | null> {
-  const current = await ctx.db
-    .query('users')
-    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', keys.primary))
-    .unique();
-
-  if (current) {
-    return current;
+export function deriveClerkSubjectFromStoredId(clerkUserId: string): string {
+  const separatorIndex = clerkUserId.lastIndexOf('|');
+  if (separatorIndex === -1) {
+    return clerkUserId;
   }
 
-  if (!keys.legacy) {
+  return clerkUserId.slice(separatorIndex + 1);
+}
+
+function getClerkLookupCandidates(identity: {
+  tokenIdentifier?: string | null;
+  subject?: string | null;
+}) {
+  const candidates: string[] = [];
+
+  for (const value of [identity.tokenIdentifier, identity.subject]) {
+    if (!value || candidates.includes(value)) {
+      continue;
+    }
+    candidates.push(value);
+  }
+
+  return candidates;
+}
+
+export async function findUserByClerkIdentity(
+  ctx: QueryCtx | MutationCtx,
+  identity: {
+    tokenIdentifier?: string | null;
+    subject?: string | null;
+  },
+): Promise<Doc<'users'> | null> {
+  for (const candidate of getClerkLookupCandidates(identity)) {
+    const current = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', candidate))
+      .unique();
+
+    if (current) {
+      return current;
+    }
+  }
+
+  const subject =
+    identity.subject ??
+    (identity.tokenIdentifier
+      ? deriveClerkSubjectFromStoredId(identity.tokenIdentifier)
+      : null);
+
+  if (!subject) {
     return null;
   }
 
   return await ctx.db
     .query('users')
-    .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', keys.legacy!))
+    .withIndex('by_clerkSubject', (q) => q.eq('clerkSubject', subject))
     .unique();
 }
 
@@ -52,7 +88,10 @@ export async function getViewer(ctx: QueryCtx): Promise<Doc<'users'> | null> {
     return null;
   }
 
-  return await findViewerByIdentity(ctx, keys);
+  return await findUserByClerkIdentity(ctx, {
+    tokenIdentifier: keys.primary,
+    subject: keys.legacy ?? keys.primary,
+  });
 }
 
 export async function getOrCreateViewer(
@@ -87,7 +126,10 @@ export async function getOrCreateViewer(
     .preferredUsername;
   const avatarUrl = identity.pictureUrl;
 
-  const existing = await findViewerByIdentity(ctx, identityKeys);
+  const existing = await findUserByClerkIdentity(ctx, {
+    tokenIdentifier: identityKeys.primary,
+    subject: identity.subject,
+  });
 
   if (existing) {
     // Sync user data from Clerk if it has changed.
@@ -99,6 +141,7 @@ export async function getOrCreateViewer(
       Pick<
         Doc<'users'>,
         | 'clerkUserId'
+        | 'clerkSubject'
         | 'email'
         | 'avatarUrl'
         | 'timezone'
@@ -108,6 +151,9 @@ export async function getOrCreateViewer(
     > = {};
     if (existing.clerkUserId !== clerkUserId) {
       patch.clerkUserId = clerkUserId;
+    }
+    if (identity.subject && existing.clerkSubject !== identity.subject) {
+      patch.clerkSubject = identity.subject;
     }
     if (email !== undefined && existing.email !== email) {
       patch.email = email;
@@ -140,6 +186,7 @@ export async function getOrCreateViewer(
 
   const userId = await ctx.db.insert('users', {
     clerkUserId,
+    clerkSubject: identity.subject,
     email,
     displayName,
     username,

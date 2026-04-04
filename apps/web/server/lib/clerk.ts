@@ -2,6 +2,8 @@ import { verifyWebhook } from '@clerk/backend/webhooks';
 import { ConvexHttpClient } from 'convex/browser';
 import type { FunctionReference } from 'convex/server';
 
+import { buildConvexTokenIdentifier } from './auth';
+
 type ClerkWebhookEvent = {
   type?: string;
   data?: {
@@ -40,6 +42,13 @@ export async function handleClerkWebhook(
     return { handled: false, reason: 'missing_user_id' };
   }
 
+  const clerkSubject = clerkUserId;
+  const tokenIdentifier =
+    buildConvexTokenIdentifier({
+      issuer: process.env.CLERK_JWT_ISSUER_DOMAIN ?? null,
+      subject: clerkSubject,
+    }) ?? clerkUserId;
+
   const convexUrl = process.env.VITE_CONVEX_URL;
   const webhookKey = process.env.CLERK_CONVEX_WEBHOOK_KEY;
   if (!convexUrl) {
@@ -55,7 +64,8 @@ export async function handleClerkWebhook(
 
   const convexResult = await convex.mutation(deleteUserMutation, {
     webhookKey,
-    clerkUserId,
+    clerkUserId: tokenIdentifier,
+    clerkSubject,
   });
 
   return { handled: true, convexResult };

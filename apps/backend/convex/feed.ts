@@ -1,8 +1,8 @@
 import { v } from 'convex/values';
 
-import { internal } from './_generated/api';
+import { api, internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { DatabaseReader } from './_generated/server';
+import type { DatabaseReader, MutationCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 
@@ -13,10 +13,74 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 
+const FEED_BACKFILL_RACES_PER_BATCH = 1;
+
 /** Matches `results.sessionType` / index fields — use when narrowing from feed `string` fields. */
 type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
+
+async function backfillScorePublishedFeedEventsForRace(
+  ctx: MutationCtx,
+  race: Doc<'races'>,
+) {
+  let created = 0;
+  let updated = 0;
+
+  for await (const result of ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) => q.eq('raceId', race._id))) {
+    for await (const score of ctx.db
+      .query('scores')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', race._id).eq('sessionType', result.sessionType),
+      )) {
+      const user = await ctx.db.get(score.userId);
+      if (!user) {
+        continue;
+      }
+
+      const existing = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', score.userId)
+            .eq('raceId', race._id)
+            .eq('sessionType', result.sessionType),
+        )
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          points: score.points,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+        });
+        updated++;
+      } else {
+        await ctx.db.insert('feedEvents', {
+          type: 'score_published',
+          userId: score.userId,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          raceId: race._id,
+          sessionType: result.sessionType,
+          points: score.points,
+          raceName: race.name,
+          raceSlug: race.slug,
+          season: race.season,
+          revCount: 0,
+          createdAt: result.publishedAt,
+        });
+        created++;
+      }
+    }
+  }
+
+  return { created, updated };
+}
 
 // ============ Internal event writers ============
 
@@ -973,14 +1037,11 @@ export const backfillSessionLockFeedEvents = mutation({
     const now = Date.now();
     let created = 0;
 
-    const predictions = await ctx.db
+    for await (const prediction of ctx.db
       .query('predictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(500);
-
-    for (const prediction of predictions) {
+      )) {
       const user = await ctx.db.get(prediction.userId);
       if (!user) {
         continue;
@@ -1031,78 +1092,55 @@ export const backfillSessionLockFeedEvents = mutation({
  *   npx convex run feed:backfillFeedEventsForSeason '{"season": 2026}'
  */
 export const backfillFeedEventsForSeason = mutation({
-  args: { season: v.optional(v.number()) },
+  args: {
+    season: v.optional(v.number()),
+    startAfterRound: v.optional(v.number()),
+    created: v.optional(v.number()),
+    updated: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     const season = args.season ?? 2026;
-    let created = 0;
-    let updated = 0;
+    const startAfterRound = args.startAfterRound ?? 0;
+    let created = args.created ?? 0;
+    let updated = args.updated ?? 0;
 
     const races = await ctx.db
       .query('races')
-      .withIndex('by_season_round', (q) => q.eq('season', season))
-      .collect();
+      .withIndex('by_season_round', (q) =>
+        q.eq('season', season).gt('round', startAfterRound),
+      )
+      .order('asc')
+      .take(FEED_BACKFILL_RACES_PER_BATCH);
 
-    for (const race of races) {
-      const results = await ctx.db
-        .query('results')
-        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-        .collect();
-
-      for (const result of results) {
-        const scores = await ctx.db
-          .query('scores')
-          .withIndex('by_race_session', (q) =>
-            q.eq('raceId', race._id).eq('sessionType', result.sessionType),
-          )
-          .take(500);
-
-        for (const score of scores) {
-          const user = await ctx.db.get(score.userId);
-          if (!user) {
-            continue;
-          }
-
-          const existing = await ctx.db
-            .query('feedEvents')
-            .withIndex('by_user_race_session', (q) =>
-              q
-                .eq('userId', score.userId)
-                .eq('raceId', race._id)
-                .eq('sessionType', result.sessionType),
-            )
-            .first();
-
-          if (existing) {
-            await ctx.db.patch(existing._id, {
-              points: score.points,
-              username: user.username,
-              displayName: user.displayName,
-              avatarUrl: user.avatarUrl,
-            });
-            updated++;
-          } else {
-            await ctx.db.insert('feedEvents', {
-              type: 'score_published',
-              userId: score.userId,
-              username: user.username,
-              displayName: user.displayName,
-              avatarUrl: user.avatarUrl,
-              raceId: race._id,
-              sessionType: result.sessionType,
-              points: score.points,
-              raceName: race.name,
-              raceSlug: race.slug,
-              season: race.season,
-              revCount: 0,
-              createdAt: result.publishedAt,
-            });
-            created++;
-          }
-        }
-      }
+    if (races.length === 0) {
+      return { season, created, updated, done: true };
     }
 
-    return { season, created, updated };
+    for (const race of races) {
+      const delta = await backfillScorePublishedFeedEventsForRace(ctx, race);
+      created += delta.created;
+      updated += delta.updated;
+    }
+
+    const lastRace = races[races.length - 1];
+    await ctx.scheduler.runAfter(
+      0,
+      api.feed.backfillFeedEventsForSeason,
+      {
+        season,
+        startAfterRound: lastRace.round,
+        created,
+        updated,
+      },
+    );
+
+    return {
+      season,
+      created,
+      updated,
+      done: false,
+      lastProcessedRound: lastRace.round,
+    };
   },
 });
 
@@ -1115,20 +1153,15 @@ export const deleteFeedEventsForSession = internalMutation({
     sessionType: sessionTypeValidator,
   },
   handler: async (ctx, args) => {
-    const events = await ctx.db
+    for await (const event of ctx.db
       .query('feedEvents')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
-      )
-      .take(500);
-
-    for (const event of events) {
+      )) {
       // Delete associated revs
-      const revs = await ctx.db
+      for await (const rev of ctx.db
         .query('revs')
-        .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
-        .take(500);
-      for (const rev of revs) {
+        .withIndex('by_event', (q) => q.eq('feedEventId', event._id))) {
         await ctx.db.delete(rev._id);
       }
       await ctx.db.delete(event._id);

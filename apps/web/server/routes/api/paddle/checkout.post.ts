@@ -1,4 +1,4 @@
-import { getAuthenticatedClerkUserId } from '../../../lib/auth';
+import { getAuthenticatedClerkIdentity } from '../../../lib/auth';
 import { createPaddleSeasonCheckout } from '../../../lib/paddle';
 
 const DEFAULT_SEASON = 2026;
@@ -10,9 +10,9 @@ type RouteEvent = {
 
 // Nitro route files are convention-based and require a default export.
 export default async function handler(event: RouteEvent) {
-  let userId: string | null = null;
+  let identity = null;
   try {
-    userId = await getAuthenticatedClerkUserId(event.req);
+    identity = await getAuthenticatedClerkIdentity(event.req);
   } catch (error) {
     console.error('[paddle-checkout] auth_failed', {
       message: error instanceof Error ? error.message : 'unknown_error',
@@ -23,7 +23,7 @@ export default async function handler(event: RouteEvent) {
     });
   }
 
-  if (!userId) {
+  if (!identity) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), {
       status: 401,
       headers: JSON_HEADERS,
@@ -42,7 +42,8 @@ export default async function handler(event: RouteEvent) {
 
   try {
     const checkout = await createPaddleSeasonCheckout({
-      clerkUserId: userId,
+      clerkUserId: identity.tokenIdentifier,
+      clerkSubject: identity.subject,
       season,
     });
 
@@ -54,7 +55,7 @@ export default async function handler(event: RouteEvent) {
     const message =
       error instanceof Error ? error.message : 'Checkout creation failed';
     console.error('[paddle-checkout] create_failed', {
-      userId,
+      userId: identity.userId,
       season,
       message,
     });

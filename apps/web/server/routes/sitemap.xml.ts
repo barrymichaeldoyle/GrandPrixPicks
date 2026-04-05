@@ -3,8 +3,6 @@ import { ConvexHttpClient } from 'convex/browser';
 
 import { siteConfig } from '../../src/lib/site';
 
-const convex = new ConvexHttpClient(process.env.VITE_CONVEX_URL!);
-
 type RouteEvent = {
   req: Request;
 };
@@ -59,6 +57,9 @@ const staticEntries: SitemapEntry[] = [
   },
 ];
 
+const SITEMAP_FETCH_RETRY_COUNT = 5;
+const SITEMAP_FETCH_RETRY_DELAY_MS = 500;
+
 function escapeXml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -97,18 +98,47 @@ function renderSitemap(entries: SitemapEntry[]) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
+function delay(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function loadRaceEntries() {
+  const convexUrl = process.env.VITE_CONVEX_URL;
+  if (!convexUrl) {
+    throw new Error('Missing VITE_CONVEX_URL');
+  }
+
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRY_COUNT; attempt += 1) {
+    try {
+      const convex = new ConvexHttpClient(convexUrl);
+      const races = await convex.query(api.races.listRaces, {});
+      return races
+        .filter((race) => race.status !== 'cancelled')
+        .sort((a, b) => a.round - b.round)
+        .map((race) => ({
+          loc: `${siteConfig.url}/races/${race.slug}`,
+          changefreq: 'daily' as const,
+          lastmod: toIsoDate(race.updatedAt ?? race._creationTime),
+          priority: '0.8',
+        }));
+    } catch (error) {
+      lastError = error;
+      if (attempt < SITEMAP_FETCH_RETRY_COUNT) {
+        await delay(SITEMAP_FETCH_RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export default async function handler(_event: RouteEvent) {
   try {
-    const races = await convex.query(api.races.listRaces, {});
-    const raceEntries: SitemapEntry[] = races
-      .filter((race) => race.status !== 'cancelled')
-      .sort((a, b) => a.round - b.round)
-      .map((race) => ({
-        loc: `${siteConfig.url}/races/${race.slug}`,
-        changefreq: 'daily',
-        lastmod: toIsoDate(race.updatedAt ?? race._creationTime),
-        priority: '0.8',
-      }));
+    const raceEntries = await loadRaceEntries();
 
     return new Response(renderSitemap([...staticEntries, ...raceEntries]), {
       headers: {
@@ -117,12 +147,14 @@ export default async function handler(_event: RouteEvent) {
       },
     });
   } catch (error) {
-    console.error('[sitemap] generation_failed', {
+    console.error('[sitemap] generation_failed_falling_back_to_static', {
       message: error instanceof Error ? error.message : 'unknown_error',
     });
-    return new Response('Could not generate sitemap', {
-      status: 500,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    return new Response(renderSitemap(staticEntries), {
+      headers: {
+        'cache-control': 'public, max-age=300',
+        'content-type': 'application/xml; charset=utf-8',
+      },
     });
   }
 }

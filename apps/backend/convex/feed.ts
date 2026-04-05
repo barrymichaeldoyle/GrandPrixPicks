@@ -890,6 +890,45 @@ export const getUserFeed = query({
   },
 });
 
+export async function getPersonalizedFeedPageData(
+  ctx: DbCtx,
+  viewer: Doc<'users'>,
+  paginationCursor: string | null,
+) {
+  const userIds = await getPersonalizedFeedUserIds(ctx, viewer._id);
+  const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
+    ctx,
+    userIds,
+    paginationCursor,
+  );
+
+  const [enrichedEvents, sessions] = await Promise.all([
+    Promise.all(
+      page.map(async (event) => {
+        const [viewerRev, scoreEnrichment, recentRevUsers] = await Promise.all([
+          ctx.db
+            .query('revs')
+            .withIndex('by_user_event', (q) =>
+              q.eq('userId', viewer._id).eq('feedEventId', event._id),
+            )
+            .first(),
+          enrichScoreEvent(ctx, event),
+          getRecentRevUsers(ctx, event._id),
+        ]);
+        return {
+          ...event,
+          viewerHasReved: viewerRev !== null,
+          recentRevUsers,
+          ...scoreEnrichment,
+        };
+      }),
+    ),
+    buildSessionHeaders(ctx, page),
+  ]);
+
+  return { events: enrichedEvents, sessions, hasMore, nextCursor };
+}
+
 /**
  * Personalized home feed: events from the viewer + people they follow.
  * Sorted by most recent first. Includes session headers for score_published events.
@@ -903,40 +942,11 @@ export const getPersonalizedFeed = query({
       return null;
     }
 
-    const userIds = await getPersonalizedFeedUserIds(ctx, viewer._id);
-    const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
+    return await getPersonalizedFeedPageData(
       ctx,
-      userIds,
+      viewer,
       paginationCursor ?? null,
     );
-
-    // Enrich events with rev status, picks, and H2H summary
-    const [enrichedEvents, sessions] = await Promise.all([
-      Promise.all(
-        page.map(async (event) => {
-          const [viewerRev, scoreEnrichment, recentRevUsers] =
-            await Promise.all([
-              ctx.db
-                .query('revs')
-                .withIndex('by_user_event', (q) =>
-                  q.eq('userId', viewer._id).eq('feedEventId', event._id),
-                )
-                .first(),
-              enrichScoreEvent(ctx, event),
-              getRecentRevUsers(ctx, event._id),
-            ]);
-          return {
-            ...event,
-            viewerHasReved: viewerRev !== null,
-            recentRevUsers,
-            ...scoreEnrichment,
-          };
-        }),
-      ),
-      buildSessionHeaders(ctx, page),
-    ]);
-
-    return { events: enrichedEvents, sessions, hasMore, nextCursor };
   },
 });
 

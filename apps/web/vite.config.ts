@@ -42,6 +42,7 @@ const config = defineConfig(({ mode }) => {
 
   return {
     server: {
+      host: '127.0.0.1',
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {
@@ -118,8 +119,7 @@ const config = defineConfig(({ mode }) => {
         : [
             tanstackStart({
               router: {
-                routeFileIgnorePattern:
-                  '\\.(test|spec)\\.(ts|tsx|js|jsx)$',
+                routeFileIgnorePattern: '\\.(test|spec)\\.(ts|tsx|js|jsx)$',
               },
             }) as PluginOption,
           ]),
@@ -153,6 +153,7 @@ const config = defineConfig(({ mode }) => {
       environment: 'jsdom',
       include: [
         'src/**/*.{test,spec}.{ts,tsx}',
+        'server/**/*.{test,spec}.{ts,tsx}',
         '../../packages/shared/src/**/*.{test,spec}.{ts,tsx}',
         '../backend/convex/**/*.{test,spec}.{ts,tsx}',
       ],

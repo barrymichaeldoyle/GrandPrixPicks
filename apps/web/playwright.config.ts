@@ -3,7 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PORT = 3000;
-const baseURL = `http://localhost:${PORT}`;
+const HOST = '127.0.0.1';
+const baseURL = `http://${HOST}:${PORT}`;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const authStorageState = path.resolve(__dirname, 'tests/e2e/.auth/user.json');
@@ -38,7 +39,11 @@ export default defineConfig({
         storageState: authStorageState,
       },
       dependencies: ['auth-setup'],
-      testIgnore: [/auth\.setup\.ts$/, /public-smoke\.spec\.ts$/],
+      testIgnore: [
+        /auth\.setup\.ts$/,
+        /public-smoke\.spec\.ts$/,
+        /seo-smoke\.spec\.ts$/,
+      ],
     },
   ],
   webServer: {

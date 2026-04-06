@@ -807,15 +807,21 @@ export function FeedItemSkeleton() {
 
 export function FeedEmptyState({
   icon: Icon = Gauge,
+  title,
   message,
+  children,
 }: {
   icon?: ComponentType<{ className?: string }>;
+  title?: string;
   message: string;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
       <Icon className="mx-auto mb-3 h-8 w-8 text-text-muted/50" />
-      <p className="text-sm text-text-muted">{message}</p>
+      {title ? <h2 className="text-lg font-semibold text-text">{title}</h2> : null}
+      <p className={`${title ? 'mt-2' : ''} text-sm text-text-muted`}>{message}</p>
+      {children ? <div className="mt-5">{children}</div> : null}
     </div>
   );
 }

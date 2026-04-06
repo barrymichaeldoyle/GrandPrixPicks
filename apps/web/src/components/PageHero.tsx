@@ -6,6 +6,7 @@ type PageHeroProps = {
   subtitle?: string;
   icon?: ReactNode;
   rightSlot?: ReactNode;
+  bottomSlot?: ReactNode;
   className?: string;
 };
 
@@ -15,6 +16,7 @@ export function PageHero({
   subtitle,
   icon,
   rightSlot,
+  bottomSlot,
   className,
 }: PageHeroProps) {
   return (
@@ -48,6 +50,7 @@ export function PageHero({
           <div className="shrink-0 self-start">{rightSlot}</div>
         ) : null}
       </div>
+      {bottomSlot ? <div className="mt-4">{bottomSlot}</div> : null}
     </header>
   );
 }

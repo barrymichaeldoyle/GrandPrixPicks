@@ -17,6 +17,13 @@ vi.mock('@convex-generated/api', () => ({
       getPersonalizedFeed: 'getPersonalizedFeed',
       getFeedEvent: 'getFeedEvent',
     },
+    follows: {
+      getViewerFollowedIds: 'getViewerFollowedIds',
+      getSuggestedLeagueMembersToFollow: 'getSuggestedLeagueMembersToFollow',
+    },
+    leagues: {
+      getMyLeagues: 'getMyLeagues',
+    },
   },
 }));
 
@@ -51,10 +58,32 @@ vi.mock('../../components/Button/Button', () => ({
 }));
 
 vi.mock('../../components/FeedItem', () => ({
-  FeedEmptyState: ({ message }: { message: string }) => <div>{message}</div>,
+  FeedEmptyState: ({
+    title,
+    message,
+    children,
+  }: {
+    title?: string;
+    message: string;
+    children?: React.ReactNode;
+  }) => (
+    <div>
+      {title ? <div>{title}</div> : null}
+      <div>{message}</div>
+      {children}
+    </div>
+  ),
   FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
   FeedItemSkeleton: () => <div>loading</div>,
   SessionSeparator: () => null,
+}));
+
+vi.mock('../../components/Avatar', () => ({
+  Avatar: () => <div>avatar</div>,
+}));
+
+vi.mock('../../components/FollowButton', () => ({
+  FollowButton: () => <button>Follow</button>,
 }));
 
 vi.mock('../../lib/site', () => ({
@@ -89,6 +118,15 @@ describe('FeedContent', () => {
 
   it('uses nextCursor from the last page when loading more', () => {
     useQueryMock.mockImplementation((_query: unknown, args: unknown) => {
+      if (_query === 'getViewerFollowedIds') {
+        return [];
+      }
+      if (_query === 'getMyLeagues') {
+        return [];
+      }
+      if (_query === 'getSuggestedLeagueMembersToFollow') {
+        return [];
+      }
       if (args === 'skip') {
         return undefined;
       }
@@ -131,6 +169,36 @@ describe('FeedContent', () => {
     });
     expect(view.container.textContent).toContain('event-1');
     expect(view.container.textContent).toContain('event-2');
+
+    view.unmount();
+  });
+
+  it('nudges users with no follows and no leagues toward the leaderboard', () => {
+    useQueryMock.mockImplementation((query: unknown, args: unknown) => {
+      if (query === 'getViewerFollowedIds') {
+        return [];
+      }
+      if (query === 'getMyLeagues') {
+        return [];
+      }
+      if (query === 'getSuggestedLeagueMembersToFollow') {
+        return [];
+      }
+      if (args === 'skip') {
+        return undefined;
+      }
+      return {
+        events: [],
+        sessions: {},
+        hasMore: false,
+        nextCursor: null,
+      };
+    });
+
+    const view = renderFeedContent();
+
+    expect(view.container.textContent).toContain('Find players to follow');
+    expect(view.container.textContent).toContain('Browse leaderboard');
 
     view.unmount();
   });

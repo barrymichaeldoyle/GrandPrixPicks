@@ -363,10 +363,14 @@ function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Flag className="home-hero-mark h-6 w-6 shrink-0 text-cyan-300" aria-hidden="true" />
-                <h1 className="home-hero-title text-3xl font-bold tracking-tight text-white sm:text-5xl">
-                  Grand Prix Picks
+              <div className="flex justify-center">
+                <h1 className="home-hero-title inline-flex items-center gap-3 text-3xl font-bold tracking-tight text-white sm:text-5xl">
+                  <Flag
+                    className="home-hero-mark h-[0.92em] w-[0.92em] shrink-0 text-cyan-300"
+                    aria-hidden="true"
+                    strokeWidth={2.25}
+                  />
+                  <span>Grand Prix Picks</span>
                 </h1>
               </div>
 

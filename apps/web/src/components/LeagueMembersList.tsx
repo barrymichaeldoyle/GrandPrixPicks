@@ -126,15 +126,11 @@ export function LeagueMembersList({
           key={member._id}
           className={`flex items-center gap-2 py-2 pr-2 pl-3 sm:gap-3 sm:py-3 sm:pr-3 sm:pl-4 ${
             index < members.length - 1 ? 'border-b border-border' : ''
-          } ${member.isViewer ? 'bg-accent-muted' : ''}`}
+          } ${member.isViewer ? 'bg-accent/[0.08]' : ''}`}
         >
           {/* Rank — desktop only, left column */}
           <div className="hidden w-8 shrink-0 text-right sm:block">
-            <span
-              className={`text-sm font-semibold tabular-nums ${
-                member.isViewer ? 'text-accent' : 'text-text-muted'
-              }`}
-            >
+            <span className="text-sm font-semibold tabular-nums text-text-muted">
               {member.rank != null ? `#${member.rank}` : '—'}
             </span>
           </div>
@@ -147,13 +143,17 @@ export function LeagueMembersList({
               <img
                 src={member.avatarUrl}
                 alt={member.displayName}
-                className="h-8 w-8 rounded-full object-cover"
+                className={`h-8 w-8 rounded-full object-cover ${
+                  member.isViewer
+                    ? 'ring-2 ring-accent/30 ring-offset-2 ring-offset-surface'
+                    : ''
+                }`}
               />
             ) : (
               <span
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
                   member.isViewer
-                    ? 'bg-accent text-white'
+                    ? 'bg-surface-muted text-text ring-2 ring-accent/30 ring-offset-2 ring-offset-surface'
                     : 'bg-surface-muted text-text-muted'
                 }`}
               >
@@ -172,7 +172,7 @@ export function LeagueMembersList({
                 children: member.displayName,
               })}
               {member.isViewer && (
-                <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.04em] text-accent">
                   YOU
                 </span>
               )}

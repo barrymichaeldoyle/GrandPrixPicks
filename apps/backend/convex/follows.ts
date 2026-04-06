@@ -7,6 +7,8 @@ import { getViewer, requireViewer } from './lib/auth';
 // The app currently treats follow relationships as a capped social graph rather than
 // an infinite feed substrate. Keep the hard limit aligned with read-side bounds.
 const MAX_FOLLOWS_PER_USER = 5000;
+const MAX_SUGGESTED_FOLLOWS = 6;
+const MAX_SUGGESTION_SOURCE_LEAGUES = 25;
 
 async function getExistingUsersForFollows(
   ctx: Parameters<typeof getViewer>[0],
@@ -193,5 +195,111 @@ export const listFollowing = query({
         displayName: u.displayName,
         avatarUrl: u.avatarUrl,
       }));
+  },
+});
+
+export const getSuggestedLeagueMembersToFollow = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return [];
+    }
+
+    const limit = Math.min(
+      Math.max(args.limit ?? 3, 1),
+      MAX_SUGGESTED_FOLLOWS,
+    );
+
+    const memberships = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_user', (q) => q.eq('userId', viewer._id))
+      .take(MAX_SUGGESTION_SOURCE_LEAGUES);
+
+    if (memberships.length === 0) {
+      return [];
+    }
+
+    const follows = await ctx.db
+      .query('follows')
+      .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
+      .take(MAX_FOLLOWS_PER_USER);
+
+    const excludedUserIds = new Set<Id<'users'>>([
+      viewer._id,
+      ...follows.map((follow) => follow.followeeId),
+    ]);
+
+    const candidates = new Map<
+      Id<'users'>,
+      { sharedLeagueNames: string[]; sharedLeagueCount: number }
+    >();
+
+    for (const membership of memberships) {
+      const league = await ctx.db.get(membership.leagueId);
+      if (!league) {
+        continue;
+      }
+
+      const leagueMembers = await ctx.db
+        .query('leagueMembers')
+        .withIndex('by_league', (q) => q.eq('leagueId', membership.leagueId))
+        .take(MAX_FOLLOWS_PER_USER);
+
+      for (const leagueMember of leagueMembers) {
+        if (excludedUserIds.has(leagueMember.userId)) {
+          continue;
+        }
+
+        const existing = candidates.get(leagueMember.userId);
+        if (existing) {
+          existing.sharedLeagueCount += 1;
+          if (
+            existing.sharedLeagueNames.length < 2 &&
+            !existing.sharedLeagueNames.includes(league.name)
+          ) {
+            existing.sharedLeagueNames.push(league.name);
+          }
+          continue;
+        }
+
+        candidates.set(leagueMember.userId, {
+          sharedLeagueNames: [league.name],
+          sharedLeagueCount: 1,
+        });
+      }
+    }
+
+    const users = await Promise.all(
+      Array.from(candidates.keys()).map(async (userId) => {
+        const user = await ctx.db.get(userId);
+        if (!user?.username || !user.displayName) {
+          return null;
+        }
+
+        const candidate = candidates.get(userId);
+        if (!candidate) {
+          return null;
+        }
+
+        return {
+          _id: user._id,
+          username: user.username,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          sharedLeagueCount: candidate.sharedLeagueCount,
+          sharedLeagueNames: candidate.sharedLeagueNames,
+        };
+      }),
+    );
+
+    return users
+      .filter((user): user is NonNullable<typeof user> => user !== null)
+      .sort((a, b) =>
+        b.sharedLeagueCount !== a.sharedLeagueCount
+          ? b.sharedLeagueCount - a.sharedLeagueCount
+          : a.displayName.localeCompare(b.displayName),
+      )
+      .slice(0, limit);
   },
 });

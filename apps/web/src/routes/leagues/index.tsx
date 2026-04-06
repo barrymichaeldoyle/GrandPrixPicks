@@ -85,13 +85,15 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
       return haystack.includes(query);
     });
   })();
+  const hasPublicLeagues = publicLeagues === undefined || publicLeagues.length > 0;
+  const shouldShowDiscoverTab = isSignedIn && hasPublicLeagues;
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>(
     isSignedIn ? 'my' : 'discover',
   );
 
   useEffect(() => {
-    setActiveTab(isSignedIn ? 'my' : 'discover');
-  }, [isSignedIn]);
+    setActiveTab(isSignedIn ? 'my' : hasPublicLeagues ? 'discover' : 'my');
+  }, [hasPublicLeagues, isSignedIn]);
 
   if (leagues === undefined) {
     return <PageLoader />;
@@ -106,13 +108,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           subtitle="Create, join, and discover leagues"
           icon={<Users className="h-8 w-8 text-accent" aria-hidden />}
           rightSlot={
-            !isSignedIn ? (
-              <SignInButton mode="modal">
-                <Button leftIcon={LogIn} size="sm">
-                  Sign In to Create
-                </Button>
-              </SignInButton>
-            ) : privateCreateLimitReached ? (
+            isSignedIn ? privateCreateLimitReached ? (
               <Button
                 size="sm"
                 leftIcon={Plus}
@@ -125,29 +121,33 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               <Button asChild size="sm" leftIcon={Plus}>
                 <Link to="/leagues/create">Create</Link>
               </Button>
-            )
+            ) : null
+          }
+          bottomSlot={
+            isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
+                  Private creates: {privateCreatedCount}/
+                  {leagueUsage.limits.maxPrivateLeaguesCreated}
+                </span>
+                {hasPublicLeagues ? (
+                  <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
+                    Public joins: {publicJoinedCount}/
+                    {leagueUsage.limits.maxPublicLeaguesJoined}
+                  </span>
+                ) : null}
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/45 px-2.5 py-1 font-semibold text-accent transition-colors hover:border-accent/50 hover:bg-accent-muted/70"
+                >
+                  Upgrade to Season Pass for unlimited
+                </Link>
+              </div>
+            ) : null
           }
         />
-        {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
-          <div className="reveal-up reveal-delay-1 mb-6 flex flex-wrap gap-2 text-xs">
-            <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-              Private creates: {privateCreatedCount}/
-              {leagueUsage.limits.maxPrivateLeaguesCreated}
-            </span>
-            <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-              Public joins: {publicJoinedCount}/
-              {leagueUsage.limits.maxPublicLeaguesJoined}
-            </span>
-            <Link
-              to="/pricing"
-              className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/45 px-2.5 py-1 font-semibold text-accent transition-colors hover:border-accent/50 hover:bg-accent-muted/70"
-            >
-              Upgrade to Season Pass for unlimited
-            </Link>
-          </div>
-        ) : null}
 
-        {isSignedIn ? (
+        {shouldShowDiscoverTab ? (
           <div className="reveal-up reveal-delay-1 mb-6 flex gap-1 rounded-lg border border-border bg-surface p-1">
             <Button
               type="button"
@@ -170,17 +170,22 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               Discover
             </Button>
           </div>
-        ) : (
+        ) : !isSignedIn ? (
           <div className="reveal-up reveal-delay-1 mb-8 rounded-xl border border-border bg-surface p-6 text-center">
             <Shield className="mx-auto mb-3 h-10 w-10 text-text-muted" />
             <h2 className="mb-1 text-lg font-semibold text-text">
               Sign in to manage your leagues
             </h2>
             <p className="text-sm text-text-muted">
-              You can still browse public leagues below.
+              Sign in to create leagues and track your standings with other players.
             </p>
+            <SignInButton mode="modal">
+              <Button className="mt-4" leftIcon={LogIn} size="sm">
+                Sign In
+              </Button>
+            </SignInButton>
           </div>
-        )}
+        ) : null}
 
         {isSignedIn && activeTab === 'my' ? (
           <section>
@@ -251,7 +256,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           </section>
         ) : null}
 
-        {!isSignedIn || activeTab === 'discover' ? (
+        {hasPublicLeagues && (!isSignedIn || activeTab === 'discover') ? (
           <section className={isSignedIn ? '' : 'mt-2'}>
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-text">

@@ -2,16 +2,18 @@ import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { Gauge } from 'lucide-react';
+import { Gauge, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '../../components/Button/Button';
+import { Avatar } from '../../components/Avatar';
 import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
   SessionSeparator,
 } from '../../components/FeedItem';
+import { FollowButton } from '../../components/FollowButton';
 import { canonicalMeta, noIndexMeta } from '../../lib/site';
 
 export const Route = createFileRoute('/feed/')({
@@ -58,6 +60,12 @@ export function FeedContent() {
     api.feed.getPersonalizedFeed,
     extraCursors[3] !== null ? { paginationCursor: extraCursors[3] } : 'skip',
   );
+  const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
+  const myLeagues = useQuery(api.leagues.getMyLeagues);
+  const suggestedLeagueMembers = useQuery(
+    api.follows.getSuggestedLeagueMembersToFollow,
+    { limit: 3 },
+  );
 
   const allPageData = [page0, page1, page2, page3, page4];
   const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
@@ -103,10 +111,101 @@ export function FeedContent() {
   const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
 
   if (allEvents.length === 0) {
+    if (
+      followedIds === undefined ||
+      myLeagues === undefined ||
+      suggestedLeagueMembers === undefined
+    ) {
+      return (
+        <FeedEmptyState
+          icon={Gauge}
+          title="Setting up your feed"
+          message="Finding players and leagues to show here."
+        />
+      );
+    }
+
+    const hasLeagues = (myLeagues?.length ?? 0) > 0;
+    const hasSuggestions = (suggestedLeagueMembers?.length ?? 0) > 0;
+    const followsNobody = (followedIds?.length ?? 0) === 0;
+
+    if (hasSuggestions && suggestedLeagueMembers) {
+      return (
+        <FeedEmptyState
+          icon={Gauge}
+          title="Start with people in your leagues"
+          message="Follow a few league-mates to see their scores and activity here."
+        >
+          <div className="space-y-2 text-left">
+            {suggestedLeagueMembers.map((user) => (
+              <div
+                key={user._id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/35 px-3 py-2"
+              >
+                <Link
+                  to="/p/$username"
+                  params={{ username: user.username }}
+                  search={{ from: undefined, fromLabel: undefined }}
+                  className="shrink-0"
+                >
+                  <Avatar
+                    avatarUrl={user.avatarUrl}
+                    username={user.username}
+                    size="sm"
+                  />
+                </Link>
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to="/p/$username"
+                    params={{ username: user.username }}
+                    search={{ from: undefined, fromLabel: undefined }}
+                    className="truncate text-sm font-semibold text-text hover:text-accent"
+                  >
+                    {user.displayName}
+                  </Link>
+                  <p className="truncate text-xs text-text-muted">
+                    {user.sharedLeagueNames.length > 0
+                      ? `In ${user.sharedLeagueNames.join(' and ')}`
+                      : `${user.sharedLeagueCount} shared leagues`}
+                  </p>
+                </div>
+                <FollowButton followeeId={user._id} />
+              </div>
+            ))}
+          </div>
+        </FeedEmptyState>
+      );
+    }
+
+    if (followsNobody) {
+      return (
+        <FeedEmptyState
+          icon={Gauge}
+          title={
+            hasLeagues
+              ? 'You are not following anyone yet'
+              : 'Find players to follow'
+          }
+          message={
+            hasLeagues
+              ? 'Your leagues are a good place to start, or you can browse the leaderboard to find more players.'
+              : 'Browse the leaderboard to find players to follow and start filling your feed.'
+          }
+        >
+          <div className="flex justify-center">
+            <Button asChild variant="primary" size="md" leftIcon={Trophy}>
+              <Link to="/leaderboard">Browse leaderboard</Link>
+            </Button>
+          </div>
+        </FeedEmptyState>
+      );
+    }
+
     return (
       <FeedEmptyState
         icon={Gauge}
-        message="Follow other players or join leagues to see their scores here."
+        title="No recent activity yet"
+        message="The players and leagues in your feed have not posted any new scores yet."
       />
     );
   }

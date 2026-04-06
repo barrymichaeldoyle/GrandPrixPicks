@@ -39,6 +39,18 @@ type ProfileHeadRoute = {
   }) => HeadResult | Record<string, never>;
 };
 
+function asStaticHeadRoute(route: unknown): StaticHeadRoute {
+  return route as StaticHeadRoute;
+}
+
+function asUsernameHeadRoute(route: unknown): UsernameHeadRoute {
+  return route as UsernameHeadRoute;
+}
+
+function asProfileHeadRoute(route: unknown): ProfileHeadRoute {
+  return route as ProfileHeadRoute;
+}
+
 describe('SEO head metadata', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -51,7 +63,11 @@ describe('SEO head metadata', () => {
         import('./support'),
         import('./me'),
       ]);
-    const routes: StaticHeadRoute[] = [feedRoute, supportRoute, meRoute];
+    const routes: StaticHeadRoute[] = [
+      asStaticHeadRoute(feedRoute),
+      asStaticHeadRoute(supportRoute),
+      asStaticHeadRoute(meRoute),
+    ];
 
     for (const [path, route] of [
       ['/feed', routes[0]],
@@ -75,10 +91,10 @@ describe('SEO head metadata', () => {
         import('./p/$username/followers'),
         import('./p/$username/following'),
       ]);
-    const followersHead = (followersRoute as UsernameHeadRoute).head({
+    const followersHead = asUsernameHeadRoute(followersRoute).head({
       params: { username: 'trevord' },
     });
-    const followingHead = (followingRoute as UsernameHeadRoute).head({
+    const followingHead = asUsernameHeadRoute(followingRoute).head({
       params: { username: 'trevord' },
     });
 
@@ -108,7 +124,7 @@ describe('SEO head metadata', () => {
   it('suppresses parent profile canonicals when a follow list child route is active', async () => {
     const { Route: profileRoute } = await import('./p/$username');
 
-    const childHead = (profileRoute as ProfileHeadRoute).head({
+    const childHead = asProfileHeadRoute(profileRoute).head({
       loaderData: {
         initialProfile: { username: 'trevord', displayName: 'Trevor D' },
       },
@@ -118,7 +134,7 @@ describe('SEO head metadata', () => {
 
     expect(childHead).toEqual({});
 
-    const baseHead = (profileRoute as ProfileHeadRoute).head({
+    const baseHead = asProfileHeadRoute(profileRoute).head({
       loaderData: {
         initialProfile: { username: 'trevord', displayName: 'Trevor D' },
       },

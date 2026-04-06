@@ -20,6 +20,7 @@ describe('sitemap.xml route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    process.env.VITE_CONVEX_URL = 'https://example.convex.cloud';
   });
 
   it('renders static URLs and active race detail URLs as XML', async () => {

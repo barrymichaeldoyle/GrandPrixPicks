@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import {
@@ -43,6 +44,21 @@ type ScenarioContext = {
 
 type ReadCtx = QueryCtx | MutationCtx;
 
+async function ensureScenarioDrivers(ctx: MutationCtx) {
+  let drivers = await ctx.db.query('drivers').collect();
+  if (drivers.length >= 5) {
+    return drivers;
+  }
+
+  await ctx.runMutation(internal.seed.seedDrivers, {});
+  drivers = await ctx.db.query('drivers').collect();
+  if (drivers.length < 5) {
+    throw new Error('Unable to seed drivers for testing scenario.');
+  }
+
+  return drivers;
+}
+
 export const listScenarios = internalQuery({
   args: {},
   handler: async () => {
@@ -75,10 +91,7 @@ export const applyScenario = internalMutation({
       await clearAllScenarioData(ctx);
     }
 
-    const drivers = await ctx.db.query('drivers').collect();
-    if (drivers.length < 5) {
-      throw new Error('Seed drivers first before applying a testing scenario.');
-    }
+    const drivers = await ensureScenarioDrivers(ctx);
 
     const now = Date.now();
     const slugPrefix = toSlug(namespace);
@@ -135,10 +148,7 @@ export const applyScenarioAdmin = mutation({
       await clearAllScenarioData(ctx);
     }
 
-    const drivers = await ctx.db.query('drivers').collect();
-    if (drivers.length < 5) {
-      throw new Error('Seed drivers first before applying a testing scenario.');
-    }
+    const drivers = await ensureScenarioDrivers(ctx);
 
     const now = Date.now();
     const slugPrefix = toSlug(namespace);

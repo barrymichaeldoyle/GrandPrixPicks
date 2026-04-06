@@ -16,6 +16,29 @@ vi.mock('convex/browser', () => ({
   },
 }));
 
+type HeadResult = {
+  links?: Array<{ href: string; rel: string }>;
+  meta?: Array<{ content: string; name?: string; property?: string }>;
+};
+
+type StaticHeadRoute = {
+  head: () => HeadResult;
+};
+
+type UsernameHeadRoute = {
+  head: (args: { params: { username: string } }) => HeadResult;
+};
+
+type ProfileHeadRoute = {
+  head: (args: {
+    loaderData: {
+      initialProfile: { displayName: string; username: string };
+    };
+    matches: Array<{ routeId: string }>;
+    params: { username: string };
+  }) => HeadResult | Record<string, never>;
+};
+
 describe('SEO head metadata', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -28,7 +51,7 @@ describe('SEO head metadata', () => {
         import('./support'),
         import('./me'),
       ]);
-    const routes = [feedRoute, supportRoute, meRoute] as Array<any>;
+    const routes: StaticHeadRoute[] = [feedRoute, supportRoute, meRoute];
 
     for (const [path, route] of [
       ['/feed', routes[0]],
@@ -52,10 +75,10 @@ describe('SEO head metadata', () => {
         import('./p/$username/followers'),
         import('./p/$username/following'),
       ]);
-    const followersHead = (followersRoute as any).head({
+    const followersHead = (followersRoute as UsernameHeadRoute).head({
       params: { username: 'trevord' },
     });
-    const followingHead = (followingRoute as any).head({
+    const followingHead = (followingRoute as UsernameHeadRoute).head({
       params: { username: 'trevord' },
     });
 
@@ -85,7 +108,7 @@ describe('SEO head metadata', () => {
   it('suppresses parent profile canonicals when a follow list child route is active', async () => {
     const { Route: profileRoute } = await import('./p/$username');
 
-    const childHead = (profileRoute as any).head({
+    const childHead = (profileRoute as ProfileHeadRoute).head({
       loaderData: {
         initialProfile: { username: 'trevord', displayName: 'Trevor D' },
       },
@@ -95,7 +118,7 @@ describe('SEO head metadata', () => {
 
     expect(childHead).toEqual({});
 
-    const baseHead = (profileRoute as any).head({
+    const baseHead = (profileRoute as ProfileHeadRoute).head({
       loaderData: {
         initialProfile: { username: 'trevord', displayName: 'Trevor D' },
       },

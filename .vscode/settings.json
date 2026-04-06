@@ -42,9 +42,11 @@
     "Antonelli",
     "apos",
     "barrymdoyle",
+    "bufferutil",
     "cloudflared",
     "dedup",
     "domcontentloaded",
+    "esbuild",
     "followee",
     "followees",
     "grandprixpicks",
@@ -59,11 +61,14 @@
     "oxlint",
     "Piastri",
     "posthog",
+    "protobufjs",
     "quali",
     "resvg",
     "Reved",
     "stylesheet",
     "tanstackstart",
-    "VITE"
+    "unrs",
+    "VITE",
+    "workerd"
   ]
 }

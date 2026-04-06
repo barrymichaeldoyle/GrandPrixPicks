@@ -6,6 +6,7 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 import { internalMutation, mutation } from './_generated/server';
+import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getViewer, requireAdmin } from './lib/auth';
 import {
   wantsEmailPredictionReminders,
@@ -990,3 +991,37 @@ export async function scheduleReminder(
     );
   }
 }
+
+/**
+ * CLI-runnable internal mutation: recreates future reminder and lock schedules
+ * for all upcoming races after a backup import into a fresh deployment.
+ *
+ * Run this once on the new deployment after code deploy + env var setup:
+ *   npx convex run notifications:rescheduleUpcomingRaceReminders --prod
+ */
+export const rescheduleUpcomingRaceReminders = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const upcomingRaces = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .take(50);
+
+    const scheduledRaceNames: string[] = [];
+
+    for (const race of upcomingRaces) {
+      await scheduleReminder(ctx, race);
+      await scheduleSessionLockNotifications(ctx, race);
+      scheduledRaceNames.push(race.name);
+    }
+
+    return {
+      ok: true,
+      scheduledCount: scheduledRaceNames.length,
+      scheduledRaceNames,
+    };
+  },
+});

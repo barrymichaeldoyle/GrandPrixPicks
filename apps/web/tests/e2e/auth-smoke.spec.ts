@@ -45,9 +45,7 @@ test.describe('[auth] smoke', () => {
       namespace: 'smoke__league__auth',
     });
 
-    await expect(
-      page.getByRole('heading', { name: 'Leagues' }),
-    ).toBeVisible();
+    await expect(page.locator('h1').filter({ hasText: 'Leagues' })).toBeVisible();
     await expect(page.getByText(fixture.ownedLeague.name)).toBeVisible();
 
     await page.getByRole('tab', { name: 'Discover' }).click();

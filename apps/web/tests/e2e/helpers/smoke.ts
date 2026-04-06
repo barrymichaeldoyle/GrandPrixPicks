@@ -5,7 +5,7 @@ import {
 } from './clerk';
 import { applyScenario } from './scenarios';
 
-export const PLAYWRIGHT_AUTH_NAMESPACE = 'scenario__playwright__primary';
+export const PLAYWRIGHT_AUTH_NAMESPACE = 'playwright_auth_primary';
 
 type SignInScenarioOptions = {
   scenario: string;

@@ -47,7 +47,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm dev',
+    command: 'pnpm run dev:vite',
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,

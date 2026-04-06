@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test';
 
 import { createE2EClerkIdentity } from './clerk';
 import { ensureE2EEnvLoaded } from './env.ts';
+import { PLAYWRIGHT_AUTH_NAMESPACE } from './smoke';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +32,9 @@ export async function seedLeagueFixtureForAuthenticatedUser(
   options: { namespace: string },
 ) {
   ensureE2EEnvLoaded();
-  const clerkIdentity = await createE2EClerkIdentity('scenario__playwright__primary');
+  const clerkIdentity = await createE2EClerkIdentity(
+    PLAYWRIGHT_AUTH_NAMESPACE,
+  );
   const stdout = execFileSync(
     'pnpm',
     [

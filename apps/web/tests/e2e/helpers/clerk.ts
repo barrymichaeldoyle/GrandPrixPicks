@@ -8,7 +8,8 @@ type E2EClerkIdentity = {
   displayName: string;
 };
 
-const E2E_APP_ORIGIN = 'http://localhost:3000';
+const E2E_APP_ORIGIN = process.env.E2E_APP_ORIGIN ?? 'http://127.0.0.1:3000';
+const identityCache = new Map<string, Promise<E2EClerkIdentity>>();
 
 function getRequiredEnv(name: string): string {
   ensureE2EEnvLoaded();
@@ -31,7 +32,44 @@ function getClerkClient() {
   });
 }
 
+async function withClerkRetries<T>(fn: () => Promise<T>): Promise<T> {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === 3) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Clerk request failed');
+}
+
 export async function createE2EClerkIdentity(
+  namespace: string,
+): Promise<E2EClerkIdentity> {
+  const cached = identityCache.get(namespace);
+  if (cached) {
+    return await cached;
+  }
+
+  const promise = createOrLoadE2EClerkIdentity(namespace);
+  identityCache.set(namespace, promise);
+
+  try {
+    return await promise;
+  } catch (error) {
+    identityCache.delete(namespace);
+    throw error;
+  }
+}
+
+async function createOrLoadE2EClerkIdentity(
   namespace: string,
 ): Promise<E2EClerkIdentity> {
   const clerk = getClerkClient();
@@ -43,23 +81,27 @@ export async function createE2EClerkIdentity(
     .replace(/^_+|_+$/g, '')
     .slice(0, 48);
 
-  const existingUsers = await clerk.users.getUserList({
-    externalId: [externalId],
-    limit: 1,
-  });
+  const existingUsers = await withClerkRetries(() =>
+    clerk.users.getUserList({
+      externalId: [externalId],
+      limit: 1,
+    }),
+  );
   const existing = existingUsers.data[0] ?? null;
 
   const user =
     existing ??
-    (await clerk.users.createUser({
-      externalId,
-      emailAddress: [email],
-      username,
-      firstName: 'Scenario',
-      lastName: 'Primary',
-      skipPasswordRequirement: true,
-      skipLegalChecks: true,
-    }));
+    (await withClerkRetries(() =>
+      clerk.users.createUser({
+        externalId,
+        emailAddress: [email],
+        username,
+        firstName: 'Scenario',
+        lastName: 'Primary',
+        skipPasswordRequirement: true,
+        skipLegalChecks: true,
+      }),
+    ));
 
   return {
     userId: user.id,
@@ -104,6 +146,7 @@ export async function signInE2EClerkIdentity(
         () => {
           const href = window.location.href;
           return (
+            href.includes('127.0.0.1:3000') ||
             href.includes('localhost:3000') ||
             href.includes('accounts.dev/default-redirect')
           );

@@ -29,6 +29,7 @@ vi.mock('@convex-generated/api', () => ({
 
 vi.mock('convex/react', () => ({
   useQuery: (...args: unknown[]) => useQueryMock(...args),
+  useMutation: () => vi.fn(),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -43,49 +44,15 @@ vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => () => ({}),
 }));
 
-vi.mock('lucide-react', () => ({
-  Gauge: () => null,
-  Trophy: () => null,
-}));
-
-vi.mock('../../components/Button/Button', () => ({
-  Button: ({
-    children,
-    onClick,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-  }) => <button onClick={onClick}>{children}</button>,
-}));
-
-vi.mock('../../components/FeedItem', () => ({
-  FeedEmptyState: ({
-    title,
-    message,
-    children,
-  }: {
-    title?: string;
-    message: string;
-    children?: React.ReactNode;
-  }) => (
-    <div>
-      {title ? <div>{title}</div> : null}
-      <div>{message}</div>
-      {children}
-    </div>
-  ),
-  FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
-  FeedItemSkeleton: () => <div>loading</div>,
-  SessionSeparator: () => null,
-}));
-
-vi.mock('../../components/Avatar', () => ({
-  Avatar: () => <div>avatar</div>,
-}));
-
-vi.mock('../../components/FollowButton', () => ({
-  FollowButton: () => <button>Follow</button>,
-}));
+vi.mock('../../components/FeedItem', async () => {
+  const actual = await vi.importActual('../../components/FeedItem');
+  return {
+    ...actual,
+    FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
+    FeedItemSkeleton: () => <div>loading</div>,
+    SessionSeparator: () => null,
+  };
+});
 
 vi.mock('../../lib/site', () => ({
   canonicalMeta: () => ({ meta: [], links: [] }),

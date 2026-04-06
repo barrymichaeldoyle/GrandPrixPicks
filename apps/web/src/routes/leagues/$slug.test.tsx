@@ -49,25 +49,6 @@ vi.mock('@tanstack/react-router', () => ({
   useRouterState: () => ({ location: { search: {} } }),
 }));
 
-vi.mock('lucide-react', () => ({
-  Gauge: () => null,
-  ArrowLeft: () => null,
-  CalendarDays: () => null,
-  Check: () => null,
-  ChevronDown: () => null,
-  Copy: () => null,
-  Crown: () => null,
-  Globe: () => null,
-  Layers: () => null,
-  Lock: () => null,
-  LogIn: () => null,
-  Settings: () => null,
-  Shield: () => null,
-  Swords: () => null,
-  Trophy: () => null,
-  Users: () => null,
-}));
-
 vi.mock('canvas-confetti', () => ({
   default: vi.fn(),
 }));
@@ -86,22 +67,15 @@ vi.mock('@/lib/userFacingError', () => ({
   toUserFacingMessage: (error: unknown) => String(error),
 }));
 
-vi.mock('../../components/Button/Button', () => ({
-  Button: ({
-    children,
-    onClick,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-  }) => <button onClick={onClick}>{children}</button>,
-}));
-
-vi.mock('../../components/FeedItem', () => ({
-  FeedEmptyState: ({ message }: { message: string }) => <div>{message}</div>,
-  FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
-  FeedItemSkeleton: () => <div>loading</div>,
-  SessionSeparator: () => null,
-}));
+vi.mock('../../components/FeedItem', async () => {
+  const actual = await vi.importActual('../../components/FeedItem');
+  return {
+    ...actual,
+    FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
+    FeedItemSkeleton: () => <div>loading</div>,
+    SessionSeparator: () => null,
+  };
+});
 
 vi.mock('../../components/LeagueMembersList', () => ({
   LeagueMembersList: () => null,

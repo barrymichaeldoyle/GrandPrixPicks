@@ -156,7 +156,7 @@ function LeagueSettingsContent({
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-2">
+        <Button asChild size="sm" leftIcon={ArrowLeft} className="mb-2" variant="text">
           <Link to="/leagues/$slug" params={{ slug: league.slug }}>
             Back to league
           </Link>

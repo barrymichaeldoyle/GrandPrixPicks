@@ -47,11 +47,7 @@ export function applyScenario(
   if (options.primaryDisplayName) {
     args.push('--primary-display-name', options.primaryDisplayName);
   }
-  const stdout = execFileSync('pnpm', args, {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    env: process.env,
-  }).trim();
+  const stdout = runScenarioApplyWithDriverSeedRetry(args).trim();
 
   try {
     return JSON.parse(stdout) as ScenarioSummary;
@@ -64,5 +60,40 @@ export function applyScenario(
     }
 
     return JSON.parse(stdout.slice(jsonStart, jsonEnd + 1)) as ScenarioSummary;
+  }
+}
+
+function runPnpm(args: string[]) {
+  return execFileSync('pnpm', args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    env: process.env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+function getCommandErrorOutput(error: unknown) {
+  if (!(error instanceof Error)) {
+    return '';
+  }
+
+  const withStreams = error as Error & {
+    stdout?: string | Buffer;
+    stderr?: string | Buffer;
+  };
+  return `${withStreams.stdout?.toString() ?? ''}\n${withStreams.stderr?.toString() ?? ''}`;
+}
+
+function runScenarioApplyWithDriverSeedRetry(args: string[]) {
+  try {
+    return runPnpm(args);
+  } catch (error) {
+    const output = getCommandErrorOutput(error);
+    if (!output.includes('Seed drivers first')) {
+      throw error;
+    }
+
+    runPnpm(['exec', 'convex', 'run', 'seed:seedDrivers']);
+    return runPnpm(args);
   }
 }

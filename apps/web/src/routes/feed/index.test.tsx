@@ -45,6 +45,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('lucide-react', () => ({
   Gauge: () => null,
+  Trophy: () => null,
 }));
 
 vi.mock('../../components/Button/Button', () => ({

@@ -158,6 +158,65 @@ jobs:
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Verify Convex smoke target
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          namespace="scenario__ci_preflight__${GITHUB_RUN_ID}__${GITHUB_RUN_ATTEMPT}"
+          summary_file="$(mktemp)"
+
+          cleanup() {
+            pnpm -s scenario -- clear --namespace "$namespace" >/dev/null 2>&1 || true
+            rm -f "$summary_file"
+          }
+          trap cleanup EXIT
+
+          echo "Checking smoke target deployment alignment"
+          echo "CONVEX_DEPLOYMENT=$CONVEX_DEPLOYMENT"
+          echo "VITE_CONVEX_URL host=$(node --input-type=module -e 'console.log(new URL(process.env.VITE_CONVEX_URL).host)')"
+
+          pnpm -s scenario -- apply race_partial_results_sprint --namespace "$namespace" > "$summary_file"
+
+          node --input-type=module - "$summary_file" <<'EOF'
+          import fs from 'node:fs';
+          import { ConvexHttpClient } from 'convex/browser';
+          import { api } from './apps/backend/convex/_generated/api.js';
+
+          const summaryFile = process.argv[2];
+          const rawOutput = fs.readFileSync(summaryFile, 'utf8').trim();
+          const jsonStart = rawOutput.indexOf('{');
+          const jsonEnd = rawOutput.lastIndexOf('}');
+
+          if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+            throw new Error(`Scenario command did not return JSON.\n${rawOutput}`);
+          }
+
+          const summary = JSON.parse(rawOutput.slice(jsonStart, jsonEnd + 1));
+          const raceSlug = summary?.race?.slug;
+
+          if (!raceSlug) {
+            throw new Error(`Scenario summary did not include a race slug.\n${rawOutput}`);
+          }
+
+          const client = new ConvexHttpClient(process.env.VITE_CONVEX_URL);
+          const race = await client.query(api.races.getRaceBySlug, { slug: raceSlug });
+
+          if (!race) {
+            throw new Error(
+              [
+                'Seeded race was not readable via VITE_CONVEX_URL.',
+                `CONVEX_DEPLOYMENT=${process.env.CONVEX_DEPLOYMENT}`,
+                `VITE_CONVEX_URL=${process.env.VITE_CONVEX_URL}`,
+                `seededRaceSlug=${raceSlug}`,
+                'This usually means the smoke job is seeding one Convex deployment and the web app is reading from another.',
+              ].join('\n'),
+            );
+          }
+
+          console.log(`Verified seeded race ${race.slug} via ${process.env.VITE_CONVEX_URL}`);
+          EOF
+
       - name: Run web e2e smoke
         run: pnpm test:e2e:smoke
 

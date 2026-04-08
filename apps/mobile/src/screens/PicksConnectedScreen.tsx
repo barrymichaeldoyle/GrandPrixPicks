@@ -99,7 +99,7 @@ export function PicksConnectedScreen() {
       ? null
       : (() => {
           const slug = raceQuery?.slug ?? selectedRaceSlug;
-          if (!slug) return null;
+          if (!slug) {return null;}
           return formatRaceDate(new Date(selectedSessionLockAt).toISOString(), slug);
         })();
 
@@ -140,12 +140,12 @@ export function PicksConnectedScreen() {
       hydratedKeyRef.current = null;
       return;
     }
-    if (hydratedKeyRef.current === activeDraftKey) return;
+    if (hydratedKeyRef.current === activeDraftKey) {return;}
 
     let cancelled = false;
     async function hydrateFromDraftOrServer() {
       const draft = await loadConnectedDraft(selectedRaceSlug, selectedSession);
-      if (cancelled) return;
+      if (cancelled) {return;}
       if (draft) {
         setTop5(draft.top5);
         setH2HByMatchup(draft.h2hByMatchup);
@@ -164,7 +164,7 @@ export function PicksConnectedScreen() {
   }, [activeDraftKey, existingH2HQuery, existingTop5Query, raceQuery, selectedRaceSlug, selectedSession]);
 
   useEffect(() => {
-    if (!selectedRaceSlug || !isCurrentDraftDirty || hydratedKeyRef.current !== activeDraftKey) return;
+    if (!selectedRaceSlug || !isCurrentDraftDirty || hydratedKeyRef.current !== activeDraftKey) {return;}
     void saveConnectedDraft(selectedRaceSlug, selectedSession, {
       h2hByMatchup,
       top5,
@@ -179,7 +179,7 @@ export function PicksConnectedScreen() {
   }
 
   function trySwitchSession(nextSession: SessionType) {
-    if (nextSession === selectedSession) return;
+    if (nextSession === selectedSession) {return;}
     if (!isCurrentDraftDirty) {
       setSelectedSession(nextSession);
       return;
@@ -200,7 +200,7 @@ export function PicksConnectedScreen() {
   }
 
   function trySwitchRace(nextRaceSlug: string) {
-    if (nextRaceSlug === selectedRaceSlug) return;
+    if (nextRaceSlug === selectedRaceSlug) {return;}
     if (!isCurrentDraftDirty) {
       hydratedKeyRef.current = null;
       setSelectedRaceSlug(nextRaceSlug);
@@ -222,7 +222,7 @@ export function PicksConnectedScreen() {
   }
 
   async function handleDiscardDraft() {
-    if (!selectedRaceSlug) return;
+    if (!selectedRaceSlug) {return;}
     await clearConnectedDraft(selectedRaceSlug, selectedSession);
     setTop5((existingTop5Query?.picks ?? []) as string[]);
     setH2HByMatchup(existingH2HQuery?.[selectedSession] ?? {});
@@ -232,7 +232,7 @@ export function PicksConnectedScreen() {
   }
 
   async function handleSave() {
-    if (!canSave || !raceQuery || !h2hMatchupsQuery) return;
+    if (!canSave || !raceQuery || !h2hMatchupsQuery) {return;}
     try {
       await submitPrediction({
         picks: top5 as ConvexId<'drivers'>[],

@@ -132,7 +132,7 @@ export function DraggableTop5({ picks, drivers, onChange, disabled = false }: Dr
 
   function handleMove(index: number, direction: 'up' | 'down') {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= picks.length) return;
+    if (targetIndex < 0 || targetIndex >= picks.length) {return;}
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const next = [...picks];
     [next[index], next[targetIndex]] = [next[targetIndex]!, next[index]!];

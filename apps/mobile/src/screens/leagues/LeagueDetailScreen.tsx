@@ -8,6 +8,7 @@ import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import type { LeaguesStackParamList } from '../../navigation/types';
 import { colors, radii } from '../../theme/tokens';
@@ -23,7 +24,7 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
 
   const league = useQuery(api.leagues.getLeagueBySlug, { slug: leagueSlug });
 
-  if (league === undefined) return <LoadingScreen />;
+  if (league === undefined) {return <LoadingScreen />;}
   if (league === null) {
     return (
       <View style={styles.screen}>
@@ -89,13 +90,13 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
   );
 }
 
-function LeaderboardTab({ leagueId }: { leagueId: string }) {
+function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
   const result = useQuery(api.leaderboards.getLeagueCombinedSeasonLeaderboard, {
-    leagueId: leagueId as any,
+    leagueId,
     limit: 50,
   });
 
-  if (result === undefined) return <LoadingScreen />;
+  if (result === undefined) {return <LoadingScreen />;}
 
   const { entries, viewerEntry } = result;
 
@@ -160,12 +161,12 @@ function LeaderboardRow({
   );
 }
 
-function MembersTab({ leagueId }: { leagueId: string }) {
+function MembersTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
   const members = useQuery(api.leagues.getLeagueMembers, {
-    leagueId: leagueId as any,
+    leagueId,
   });
 
-  if (members === undefined) return <LoadingScreen />;
+  if (members === undefined) {return <LoadingScreen />;}
 
   return (
     <FlatList
@@ -192,12 +193,12 @@ function MembersTab({ leagueId }: { leagueId: string }) {
   );
 }
 
-function FeedTab({ leagueId }: { leagueId: string }) {
+function FeedTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
   const result = useQuery(api.feed.getLeagueFeed, {
-    leagueId: leagueId as any,
+    leagueId,
   });
 
-  if (result === undefined) return <LoadingScreen />;
+  if (result === undefined) {return <LoadingScreen />;}
 
   const events = (result?.events ?? []) as FeedEvent[];
 

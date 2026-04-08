@@ -43,13 +43,13 @@ export function LeagueListScreen({ navigation }: Props) {
 
   function handleFind() {
     const slug = slugInput.trim().toLowerCase();
-    if (!slug) return;
+    if (!slug) {return;}
     setJoinError(null);
     setCommittedSlug(slug);
   }
 
   async function handleJoin() {
-    if (!foundLeague) return;
+    if (!foundLeague) {return;}
     try {
       await joinLeague({
         leagueId: foundLeague._id as ConvexId<'leagues'>,
@@ -64,7 +64,7 @@ export function LeagueListScreen({ navigation }: Props) {
     }
   }
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) {return <LoadingScreen />;}
 
   const leagues = (leaguesQuery ?? []).filter((league) => league !== null);
 

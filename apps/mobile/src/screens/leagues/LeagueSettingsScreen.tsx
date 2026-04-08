@@ -34,7 +34,7 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  if (league === undefined) return <LoadingScreen />;
+  if (league === undefined) {return <LoadingScreen />;}
   if (league === null) {
     return (
       <View style={styles.screen}>
@@ -48,7 +48,7 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
   const currentDescription = description ?? (league.description ?? '');
 
   async function handleSave() {
-    if (!league) return;
+    if (!league) {return;}
     setSaveError(null);
     setSaving(true);
     try {
@@ -81,7 +81,7 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
   }
 
   async function handleLeave() {
-    if (!league) return;
+    if (!league) {return;}
     try {
       await leaveLeague({ leagueId: league._id as ConvexId<'leagues'> });
       navigation.navigate('LeagueList');

@@ -1,11 +1,32 @@
 {
   "expo": {
     "name": "Grand Prix Picks",
-    "slug": "grand-prix-picks-mobile",
+    "slug": "grand-prix-picks",
     "scheme": "grandprixpicks",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["ios", "android", "web"],
-    "jsEngine": "hermes"
+    "platforms": ["ios", "android"],
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "color": "#14b8a6"
+        }
+      ]
+    ],
+    "ios": {
+      "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "android": {
+      "package": "com.barrymichaeldoyle.grandprixpicks"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "TODO: add your EAS project ID here"
+      }
+    }
   }
 }

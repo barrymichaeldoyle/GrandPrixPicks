@@ -8,20 +8,34 @@ import { HomeRouteScreen } from '../screens/HomeRouteScreen';
 import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
+import { LeagueListScreen } from '../screens/leagues/LeagueListScreen';
+import { RaceCalendarScreen } from '../screens/races/RaceCalendarScreen';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
+import { AuthGate } from './AuthGate';
 import { linking } from './linking';
+import { SignInScreen } from '../screens/auth/SignInScreen';
 import type {
   HomeStackParamList,
-  PicksStackParamList,
+  LeaguesStackParamList,
+  PredictStackParamList,
   ProfileStackParamList,
+  RacesStackParamList,
   RootTabParamList,
 } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
-const PicksStack = createNativeStackNavigator<PicksStackParamList>();
+const RacesStack = createNativeStackNavigator<RacesStackParamList>();
+const PredictStack = createNativeStackNavigator<PredictStackParamList>();
+const LeaguesStack = createNativeStackNavigator<LeaguesStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+
+const SCREEN_OPTIONS = {
+  contentStyle: { backgroundColor: colors.page },
+  headerStyle: { backgroundColor: colors.surface },
+  headerTintColor: colors.text,
+};
 
 function BrandHeaderTitle() {
   const { titleFontFamily } = useTypography();
@@ -39,20 +53,11 @@ function BrandHeaderTitle() {
 
 function HomeStackNavigator() {
   return (
-    <HomeStack.Navigator
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.page },
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-      }}
-    >
+    <HomeStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <HomeStack.Screen
         component={HomeRouteScreen}
         name="HomeMain"
-        options={{
-          headerShown: true,
-          headerTitle: () => <BrandHeaderTitle />,
-        }}
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
       <HomeStack.Screen
         component={RaceDetailScreen}
@@ -63,48 +68,54 @@ function HomeStackNavigator() {
   );
 }
 
-function PicksStackNavigator() {
+function RacesStackNavigator() {
   return (
-    <PicksStack.Navigator
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.page },
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-      }}
-    >
-      <PicksStack.Screen
-        component={PicksConnectedScreen}
-        name="PicksMain"
-        options={{
-          headerShown: true,
-          headerTitle: () => <BrandHeaderTitle />,
-        }}
+    <RacesStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <RacesStack.Screen
+        component={RaceCalendarScreen}
+        name="RaceCalendar"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
-      <PicksStack.Screen
+      <RacesStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
-        options={{ title: 'Race Details' }}
+        options={({ route }) => ({ title: route.params.raceSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).replace(/-\d{4}$/, '') })}
       />
-    </PicksStack.Navigator>
+    </RacesStack.Navigator>
+  );
+}
+
+function PredictStackNavigator() {
+  return (
+    <PredictStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <PredictStack.Screen
+        component={PicksConnectedScreen}
+        name="PredictMain"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+      />
+    </PredictStack.Navigator>
+  );
+}
+
+function LeaguesStackNavigator() {
+  return (
+    <LeaguesStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <LeaguesStack.Screen
+        component={LeagueListScreen}
+        name="LeagueList"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+      />
+    </LeaguesStack.Navigator>
   );
 }
 
 function ProfileStackNavigator() {
   return (
-    <ProfileStack.Navigator
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.page },
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-      }}
-    >
+    <ProfileStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <ProfileStack.Screen
         component={ProfileScreen}
         name="ProfileMain"
-        options={{
-          headerShown: true,
-          headerTitle: () => <BrandHeaderTitle />,
-        }}
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
     </ProfileStack.Navigator>
   );
@@ -113,55 +124,77 @@ function ProfileStackNavigator() {
 export function AppNavigator() {
   return (
     <NavigationContainer linking={linking}>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          sceneStyle: { backgroundColor: colors.page },
-          tabBarActiveTintColor: colors.accent,
-          tabBarIcon: ({ color, size }) => {
-            const iconName =
-              route.name === 'HomeTab'
-                ? 'home'
-                : route.name === 'PicksTab'
-                  ? 'trophy'
-                  : 'person';
-            return <Ionicons color={color} name={iconName} size={size} />;
-          },
-          tabBarInactiveTintColor: colors.textMuted,
-          tabBarItemStyle: {
-            justifyContent: 'center',
-            paddingBottom: 0,
-            paddingTop: 0,
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            marginBottom: 0,
-          },
-          tabBarStyle: {
-            backgroundColor: colors.surface,
-            borderTopColor: colors.border,
-            height: 76,
-            paddingBottom: 6,
-            paddingTop: 6,
-          },
-        })}
-      >
-        <Tab.Screen
-          component={HomeStackNavigator}
-          name="HomeTab"
-          options={{ title: 'Home' }}
-        />
-        <Tab.Screen
-          component={PicksStackNavigator}
-          name="PicksTab"
-          options={{ title: 'Picks' }}
-        />
-        <Tab.Screen
-          component={ProfileStackNavigator}
-          name="ProfileTab"
-          options={{ title: 'Profile' }}
-        />
-      </Tab.Navigator>
+      <AuthGate fallback={<SignInScreen />}>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            sceneStyle: { backgroundColor: colors.page },
+            tabBarActiveTintColor: colors.accent,
+            tabBarIcon: ({ color, size }) => {
+              const iconName =
+                route.name === 'HomeTab'
+                  ? 'home'
+                  : route.name === 'RacesTab'
+                    ? 'calendar'
+                    : route.name === 'PredictTab'
+                      ? 'trophy'
+                      : route.name === 'LeaguesTab'
+                        ? 'people'
+                        : 'person';
+              return (
+                <Ionicons
+                  color={color}
+                  name={iconName as 'home' | 'calendar' | 'trophy' | 'people' | 'person'}
+                  size={size}
+                />
+              );
+            },
+            tabBarInactiveTintColor: colors.textMuted,
+            tabBarItemStyle: {
+              justifyContent: 'center',
+              paddingBottom: 0,
+              paddingTop: 0,
+            },
+            tabBarLabelStyle: {
+              fontSize: 11,
+              marginBottom: 0,
+            },
+            tabBarStyle: {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+              height: 76,
+              paddingBottom: 6,
+              paddingTop: 6,
+            },
+          })}
+        >
+          <Tab.Screen
+            component={HomeStackNavigator}
+            name="HomeTab"
+            options={{ title: 'Home' }}
+          />
+          <Tab.Screen
+            component={RacesStackNavigator}
+            name="RacesTab"
+            options={{ title: 'Races' }}
+          />
+          <Tab.Screen
+            component={PredictStackNavigator}
+            name="PredictTab"
+            options={{ title: 'Predict' }}
+          />
+          <Tab.Screen
+            component={LeaguesStackNavigator}
+            name="LeaguesTab"
+            options={{ title: 'Leagues' }}
+          />
+          <Tab.Screen
+            component={ProfileStackNavigator}
+            name="ProfileTab"
+            options={{ title: 'Profile' }}
+          />
+        </Tab.Navigator>
+      </AuthGate>
     </NavigationContainer>
   );
 }

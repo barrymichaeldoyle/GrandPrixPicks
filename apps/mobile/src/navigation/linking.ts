@@ -9,20 +9,33 @@ export const linking: LinkingOptions<RootTabParamList> = {
         path: 'home',
         screens: {
           HomeMain: '',
-          RaceDetail: 'races/:raceSlug',
         },
       },
-      PicksTab: {
-        path: 'picks',
+      RacesTab: {
+        path: 'races',
         screens: {
-          PicksMain: '',
-          RaceDetail: 'races/:raceSlug',
+          RaceCalendar: '',
+          RaceDetail: ':raceSlug',
+        },
+      },
+      PredictTab: {
+        path: 'predict',
+        screens: {
+          PredictMain: '',
+        },
+      },
+      LeaguesTab: {
+        path: 'leagues',
+        screens: {
+          LeagueList: '',
+          LeagueDetail: ':leagueSlug',
         },
       },
       ProfileTab: {
         path: 'profile',
         screens: {
           ProfileMain: '',
+          PublicProfile: 'p/:username',
         },
       },
     },

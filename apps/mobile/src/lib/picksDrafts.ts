@@ -3,7 +3,12 @@ import {
   getLocalRaceDraftStorageKey,
 } from '@grandprixpicks/shared/picks';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import {
+  getStoredJson,
+  removeStoredValue,
+  setStoredJson,
+} from './storage';
 
 type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;
@@ -21,18 +26,9 @@ export async function loadConnectedDraft(
   raceSlug: string,
   session: SessionType,
 ): Promise<ConnectedDraft | null> {
-  const raw = await AsyncStorage.getItem(
+  return getStoredJson<ConnectedDraft>(
     getConnectedDraftStorageKey(raceSlug, session),
   );
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw) as ConnectedDraft;
-  } catch {
-    return null;
-  }
 }
 
 export async function saveConnectedDraft(
@@ -40,9 +36,9 @@ export async function saveConnectedDraft(
   session: SessionType,
   draft: ConnectedDraft,
 ) {
-  await AsyncStorage.setItem(
+  await setStoredJson(
     getConnectedDraftStorageKey(raceSlug, session),
-    JSON.stringify(draft),
+    draft,
   );
 }
 
@@ -50,34 +46,25 @@ export async function clearConnectedDraft(
   raceSlug: string,
   session: SessionType,
 ) {
-  await AsyncStorage.removeItem(getConnectedDraftStorageKey(raceSlug, session));
+  await removeStoredValue(getConnectedDraftStorageKey(raceSlug, session));
 }
 
 export async function loadLocalRaceDraft(
   raceSlug: string,
 ): Promise<LocalRaceDraft | null> {
-  const raw = await AsyncStorage.getItem(getLocalRaceDraftStorageKey(raceSlug));
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(raw) as LocalRaceDraft;
-  } catch {
-    return null;
-  }
+  return getStoredJson<LocalRaceDraft>(getLocalRaceDraftStorageKey(raceSlug));
 }
 
 export async function saveLocalRaceDraft(
   raceSlug: string,
   draft: LocalRaceDraft,
 ) {
-  await AsyncStorage.setItem(
+  await setStoredJson(
     getLocalRaceDraftStorageKey(raceSlug),
-    JSON.stringify(draft),
+    draft,
   );
 }
 
 export async function clearLocalRaceDraft(raceSlug: string) {
-  await AsyncStorage.removeItem(getLocalRaceDraftStorageKey(raceSlug));
+  await removeStoredValue(getLocalRaceDraftStorageKey(raceSlug));
 }

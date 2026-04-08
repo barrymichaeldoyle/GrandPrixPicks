@@ -1,16 +1,11 @@
-import { useClerk, useOAuth, useUser } from '@clerk/clerk-expo';
+import { useClerk, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ExternalLinkButton } from '../components/ExternalLinkButton';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
-
-WebBrowser.maybeCompleteAuthSession();
 
 export function ProfileScreen() {
   const { clerkEnabled } = useMobileConfig();
@@ -27,59 +22,36 @@ export function ProfileScreen() {
         >
           Profile
         </Text>
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyHeaderRow}>
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
             <Ionicons
               color={colors.accentHover}
               name="information-circle-outline"
               size={18}
             />
-            <Text style={styles.emptyTitle}>Sign-in not configured</Text>
+            <Text style={styles.infoTitle}>Sign-in not configured</Text>
           </View>
           <Text style={styles.body}>
             Add your Clerk publishable key in mobile env to enable account
             sign-in.
           </Text>
-          <Text style={styles.envLabel}>Required env var</Text>
-          <Text style={styles.envValue}>EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY</Text>
-          <ExternalLinkButton
-            label="Open setup docs"
-            url="https://clerk.com/docs/expo/getting-started/quickstart"
-          />
         </View>
       </View>
     );
   }
 
-  return <ClerkEnabledProfileScreen />;
+  return <SignedInProfileScreen />;
 }
 
-function ClerkEnabledProfileScreen() {
+function SignedInProfileScreen() {
   const { titleFontFamily } = useTypography();
   const { signOut } = useClerk();
-  const { isSignedIn, user } = useUser();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const { user } = useUser();
   const [status, setStatus] = useState<string | null>(null);
-
-  async function handleSignIn() {
-    try {
-      setStatus(null);
-      const { createdSessionId, setActive } = await startOAuthFlow({
-        redirectUrl: AuthSession.makeRedirectUri(),
-      });
-
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-      }
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Sign-in failed');
-    }
-  }
 
   async function handleSignOut() {
     try {
       await signOut();
-      setStatus('Signed out');
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Sign-out failed');
     }
@@ -95,46 +67,37 @@ function ClerkEnabledProfileScreen() {
       >
         Profile
       </Text>
-      {isSignedIn ? (
-        <>
-          <Text style={styles.body}>
-            Signed in as {user.primaryEmailAddress?.emailAddress ?? 'user'}.
-          </Text>
-          <Pressable onPress={handleSignOut} style={styles.button}>
-            <Text style={styles.buttonText}>Sign Out</Text>
-          </Pressable>
-        </>
-      ) : (
-        <>
-          <Text style={styles.body}>Sign in to sync picks with Convex.</Text>
-          <Pressable onPress={handleSignIn} style={styles.button}>
-            <Text style={styles.buttonText}>Sign In With Google</Text>
-          </Pressable>
-        </>
-      )}
+      <Text style={styles.body}>
+        {user?.primaryEmailAddress?.emailAddress ?? 'Signed in'}
+      </Text>
+      <Pressable onPress={handleSignOut} style={styles.button}>
+        <Text style={styles.buttonText}>Sign Out</Text>
+      </Pressable>
       {status ? <Text style={styles.status}>{status}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.accent,
-    borderRadius: radii.lg,
-    paddingVertical: 12,
-  },
-  buttonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
   body: {
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
   },
-  emptyCard: {
+  button: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    paddingVertical: 12,
+  },
+  buttonText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  infoCard: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radii.xl,
@@ -142,30 +105,15 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 14,
   },
-  emptyHeaderRow: {
+  infoRow: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 6,
   },
-  emptyTitle: {
+  infoTitle: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    lineHeight: 24,
-  },
-  envLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
-    lineHeight: 16,
-    marginTop: 4,
-    textTransform: 'uppercase',
-  },
-  envValue: {
-    color: colors.accentHover,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 18,
   },
   screen: {
     backgroundColor: colors.page,
@@ -175,7 +123,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   status: {
-    color: colors.success,
+    color: colors.textMuted,
     fontSize: 13,
   },
   title: {

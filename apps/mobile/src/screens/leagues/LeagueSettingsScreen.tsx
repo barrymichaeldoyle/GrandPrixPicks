@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.lg,
     paddingVertical: 12,
   },

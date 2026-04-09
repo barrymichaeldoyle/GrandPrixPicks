@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   openButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.md,
     marginTop: 2,
     paddingVertical: 10,

@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.lg,
     paddingVertical: 14,
   },

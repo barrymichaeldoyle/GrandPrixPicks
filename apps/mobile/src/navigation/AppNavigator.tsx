@@ -6,9 +6,13 @@ import { StyleSheet, Text } from 'react-native';
 
 import { HomeRouteScreen } from '../screens/HomeRouteScreen';
 import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
+import { FollowListScreen } from '../screens/FollowListScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
+import { LeagueDetailScreen } from '../screens/leagues/LeagueDetailScreen';
 import { LeagueListScreen } from '../screens/leagues/LeagueListScreen';
+import { LeagueSettingsScreen } from '../screens/leagues/LeagueSettingsScreen';
 import { RaceCalendarScreen } from '../screens/races/RaceCalendarScreen';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
@@ -105,6 +109,16 @@ function LeaguesStackNavigator() {
         name="LeagueList"
         options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
+      <LeaguesStack.Screen
+        component={LeagueDetailScreen}
+        name="LeagueDetail"
+        options={({ route }) => ({ title: route.params.leagueSlug })}
+      />
+      <LeaguesStack.Screen
+        component={LeagueSettingsScreen}
+        name="LeagueSettings"
+        options={{ title: 'League settings' }}
+      />
     </LeaguesStack.Navigator>
   );
 }
@@ -116,6 +130,16 @@ function ProfileStackNavigator() {
         component={ProfileScreen}
         name="ProfileMain"
         options={{ headerTitle: () => <BrandHeaderTitle /> }}
+      />
+      <ProfileStack.Screen
+        component={PublicProfileScreen}
+        name="PublicProfile"
+        options={({ route }) => ({ title: `@${route.params.username}` })}
+      />
+      <ProfileStack.Screen
+        component={FollowListScreen}
+        name="FollowerList"
+        options={({ route }) => ({ title: `@${route.params.username}` })}
       />
     </ProfileStack.Navigator>
   );

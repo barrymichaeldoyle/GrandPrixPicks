@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './tokens.generated.css';
 
 @font-face {
   font-family: 'Orbitron';
@@ -15,6 +16,9 @@
 /* ==========================================================================
    Design tokens: semantic colors for light/dark mode.
    Toggle by adding/removing .dark on <html> (or use prefers-color-scheme).
+
+   Dark-mode color vars are AUTO-GENERATED from packages/shared/src/tokens.ts
+   via tokens.generated.css (imported above). Edit tokens.ts, not the CSS.
    ========================================================================== */
 
 :root {
@@ -63,28 +67,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Shared color tokens are injected via tokens.generated.css (imported above).
+   Only web-specific overrides live here. */
 .dark,
-[data-theme='dark'] {
-  --page: #0f172a;
-  --surface: #1e293b;
+[data-theme=’dark’] {
+  /* Aliases used by Tailwind utilities that don’t map 1:1 to shared tokens */
   --surface-raised: #1e293b;
   --surface-hover: #334155;
-  --surface-muted: #334155;
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: #334155;
-  --border-strong: #475569;
-  --accent: #14b8a6;
-  --accent-hover: #2dd4bf;
-  /* Slightly darker teal for primary buttons so they don’t feel washed out in dark mode */
-  --button-accent: #0d9488;
-  --button-accent-hover: #0f766e;
-  --accent-muted: #134e4a;
-  --success: #34d399;
-  --success-muted: #064e3b;
-  --warning: #fbbf24;
-  --warning-muted: #78350f;
-  --error: #f87171;
+  /* Web-only */
   --error-muted: #7f1d1d;
   --overlay: rgba(0, 0, 0, 0.5);
   /* Lighter scrollbar so it’s visible on dark backgrounds */

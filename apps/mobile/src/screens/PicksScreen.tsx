@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   openRaceButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.md,
     marginTop: 2,
     paddingVertical: 10,
@@ -729,7 +729,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.lg,
     marginTop: 4,
     paddingVertical: 12,
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
   },
   restoredBannerAction: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,

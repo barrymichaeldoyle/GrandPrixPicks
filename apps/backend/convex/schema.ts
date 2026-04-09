@@ -306,6 +306,14 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_endpoint', ['endpoint']),
 
+  expoPushTokens: defineTable({
+    userId: v.id('users'),
+    token: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_token', ['token']),
+
   processedPaddleWebhookEvents: defineTable({
     eventId: v.string(),
     eventType: v.optional(v.string()),

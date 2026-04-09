@@ -12,7 +12,8 @@
         {
           "color": "#14b8a6"
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",

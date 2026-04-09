@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   confirmJoinButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.lg,
     paddingVertical: 12,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   findButton: {
     alignItems: 'center',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonAccent,
     borderRadius: radii.md,
     paddingHorizontal: 16,
     paddingVertical: 10,

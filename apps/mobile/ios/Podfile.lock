@@ -28,6 +28,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoAppleAuthentication (55.0.12):
+    - ExpoModulesCore
   - ExpoAsset (55.0.13):
     - ExpoModulesCore
   - ExpoCrypto (55.0.13):
@@ -2124,6 +2126,51 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNSVG (15.15.3):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNSVG/common (= 15.15.3)
+    - Yoga
+  - RNSVG/common (15.15.3):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNWorklets (0.7.2):
     - hermes-engine
     - RCTRequired
@@ -2201,6 +2248,7 @@ DEPENDENCIES:
   - "EXApplication (from `../../../node_modules/.pnpm/expo-application@55.0.13_expo@55.0.12/node_modules/expo-application/ios`)"
   - "EXConstants (from `../../../node_modules/.pnpm/expo-constants@55.0.12_expo@55.0.12_react-native@0.83.4_@babel+core@7.29.0_@react-nativ_ab4bda4ad01222ce590865774137e2e1/node_modules/expo-constants/ios`)"
   - "Expo (from `../../../node_modules/.pnpm/expo@55.0.12_@babel+core@7.29.0_@expo+dom-webview@55.0.3_bufferutil@4.1.0_react-dom@19._c3da1922084c86e12649f1571103931f/node_modules/expo`)"
+  - ExpoAppleAuthentication (from `../../../node_modules/expo-apple-authentication/ios`)
   - "ExpoAsset (from `../../../node_modules/.pnpm/expo-asset@55.0.13_expo@55.0.12_react-native@0.83.4_@babel+core@7.29.0_@react-native+me_2d2b058d872a078f3ad2cdc66fd49dc0/node_modules/expo-asset/ios`)"
   - "ExpoCrypto (from `../../../node_modules/.pnpm/expo-crypto@55.0.13_expo@55.0.12/node_modules/expo-crypto/ios`)"
   - "ExpoDomWebView (from `../../../node_modules/.pnpm/@expo+dom-webview@55.0.3_expo@55.0.12_react-native@0.83.4_@babel+core@7.29.0_@react-nat_2e3ea4308b050428320247fbd217188e/node_modules/@expo/dom-webview/ios`)"
@@ -2294,6 +2342,7 @@ DEPENDENCIES:
   - "RNGestureHandler (from `../../../node_modules/.pnpm/react-native-gesture-handler@2.30.0_react-native@0.83.4_@babel+core@7.29.0_@react-nativ_85ab70c301853f4bca2b0ca09e4763d2/node_modules/react-native-gesture-handler`)"
   - "RNReanimated (from `../../../node_modules/.pnpm/react-native-reanimated@4.2.1_react-native-worklets@0.7.2_@babel+core@7.29.0_react-nati_7c781497a526e3d16c597c8ea7597d95/node_modules/react-native-reanimated`)"
   - "RNScreens (from `../../../node_modules/.pnpm/react-native-screens@4.23.0_react-native@0.83.4_@babel+core@7.29.0_@react-native+metro-_49062eb784418d6562fd4c54b02cb294/node_modules/react-native-screens`)"
+  - RNSVG (from `../../../node_modules/react-native-svg`)
   - "RNWorklets (from `../../../node_modules/.pnpm/react-native-worklets@0.7.2_@babel+core@7.29.0_react-native@0.83.4_@babel+core@7.29.0_@_1a5a90f26eb22772ac105252c15db92f/node_modules/react-native-worklets`)"
   - "Yoga (from `../../../node_modules/.pnpm/react-native@0.83.4_@babel+core@7.29.0_@react-native+metro-config@0.85.0_@babel+core@7._d6e4b4a4ee2dcf3037410244f1f303ef/node_modules/react-native/ReactCommon/yoga`)"
 
@@ -2308,6 +2357,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-constants@55.0.12_expo@55.0.12_react-native@0.83.4_@babel+core@7.29.0_@react-nativ_ab4bda4ad01222ce590865774137e2e1/node_modules/expo-constants/ios"
   Expo:
     :path: "../../../node_modules/.pnpm/expo@55.0.12_@babel+core@7.29.0_@expo+dom-webview@55.0.3_bufferutil@4.1.0_react-dom@19._c3da1922084c86e12649f1571103931f/node_modules/expo"
+  ExpoAppleAuthentication:
+    :path: "../../../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../../../node_modules/.pnpm/expo-asset@55.0.13_expo@55.0.12_react-native@0.83.4_@babel+core@7.29.0_@react-native+me_2d2b058d872a078f3ad2cdc66fd49dc0/node_modules/expo-asset/ios"
   ExpoCrypto:
@@ -2493,6 +2544,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/react-native-reanimated@4.2.1_react-native-worklets@0.7.2_@babel+core@7.29.0_react-nati_7c781497a526e3d16c597c8ea7597d95/node_modules/react-native-reanimated"
   RNScreens:
     :path: "../../../node_modules/.pnpm/react-native-screens@4.23.0_react-native@0.83.4_@babel+core@7.29.0_@react-native+metro-_49062eb784418d6562fd4c54b02cb294/node_modules/react-native-screens"
+  RNSVG:
+    :path: "../../../node_modules/react-native-svg"
   RNWorklets:
     :path: "../../../node_modules/.pnpm/react-native-worklets@0.7.2_@babel+core@7.29.0_react-native@0.83.4_@babel+core@7.29.0_@_1a5a90f26eb22772ac105252c15db92f/node_modules/react-native-worklets"
   Yoga:
@@ -2502,6 +2555,7 @@ SPEC CHECKSUMS:
   EXApplication: 0d08d28385eefde8182c1bb66c59189d9b2ad373
   EXConstants: 97e4a5b18e38331acce952f0e4a6817b0418408f
   Expo: 04f5391a7affe866de03b928cf40d683ec4a3463
+  ExpoAppleAuthentication: b79e329642b0a18b97b824e20607aeb72f9c2412
   ExpoAsset: 3636e70a874487efd0a677f6c064dbc9fc8f174b
   ExpoCrypto: 6816c264ef0d6d9715ed8b3f65f5b7d65685119c
   ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
@@ -2595,6 +2649,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 5494787ce29288a8941fa825663f2b1fa0a5aaf1
   RNReanimated: 78b55da5aeeb417ddb8848d588f5f4e9c3d655fa
   RNScreens: 14243fa0d9842ffa7f8bb2d00b6c3cfd3ca817e8
+  RNSVG: 0bd149b873018bc6e0e3321e2f6435bdba294460
   RNWorklets: c3f37d2c9b920cc27f2600ef99b420bf346b5a4f
   Yoga: acd565934addf7423687593ec490bd4491b2a802
 

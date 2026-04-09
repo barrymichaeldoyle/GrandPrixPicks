@@ -109,6 +109,42 @@ export const deleteSubscription = mutation({
   },
 });
 
+export const saveExpoPushToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getViewer(ctx));
+
+    const existing = await ctx.db
+      .query('expoPushTokens')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .unique();
+
+    if (!existing) {
+      await ctx.db.insert('expoPushTokens', {
+        userId: viewer._id,
+        token: args.token,
+        createdAt: Date.now(),
+      });
+    }
+  },
+});
+
+export const deleteExpoPushToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getViewer(ctx));
+
+    const existing = await ctx.db
+      .query('expoPushTokens')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .unique();
+
+    if (existing && existing.userId === viewer._id) {
+      await ctx.db.delete(existing._id);
+    }
+  },
+});
+
 export const getSubscriptionsForUsers = internalQuery({
   args: {
     userIds: v.array(v.id('users')),

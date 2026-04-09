@@ -3,14 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate-tokens": "tsx scripts/generate-css-tokens.ts",
     "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly"
   },
   "devDependencies": {
+    "tsx": "^4.19.2",
     "typescript": "catalog:"
   },
   "exports": {
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
-    "./sessions": "./src/sessions.ts"
+    "./sessions": "./src/sessions.ts",
+    "./tokens": "./src/tokens.ts"
   }
 }

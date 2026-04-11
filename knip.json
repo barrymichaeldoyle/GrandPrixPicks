@@ -35,11 +35,7 @@
     "apps/mobile": {
       "entry": ["App.tsx"],
       "project": ["**/*.{ts,tsx,js,cjs}"],
-      "ignoreDependencies": [
-        "expo-updates",
-        "react-native-web",
-        "@expo/metro-runtime"
-      ]
+      "ignoreDependencies": ["expo-updates"]
     },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"],

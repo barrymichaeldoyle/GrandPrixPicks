@@ -1,5 +1,5 @@
 // F1 2026 team colors — mirrors apps/web/src/components/DriverBadge.tsx
-export const TEAM_COLORS: Record<string, string> = {
+const TEAM_COLORS: Record<string, string> = {
   Mercedes: '#00D7B6',
   McLaren: '#F47600',
   Ferrari: '#ED1131',

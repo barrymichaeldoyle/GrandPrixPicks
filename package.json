@@ -38,13 +38,16 @@
     "convex:migrations": "pnpm --filter @grandprixpicks/backend migrations",
     "convex:migrations:prod": "pnpm --filter @grandprixpicks/backend migrations:prod",
     "scenario": "pnpm --filter @grandprixpicks/backend scenario",
-    "start": "pnpm --filter @grandprixpicks/web start"
+    "start": "pnpm --filter @grandprixpicks/web start",
+    "pp": "pnpm patch-pulse",
+    "pp:i": "pnpm patch-pulse -i"
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",
-    "knip": "catalog:",
-    "oxfmt": "catalog:",
-    "oxlint": "catalog:",
+    "knip": "6.4.1",
+    "oxfmt": "0.45.0",
+    "oxlint": "1.60.0",
+    "patch-pulse": "4.0.2",
     "typescript": "catalog:"
   },
   "packageManager": "pnpm@10.33.0"

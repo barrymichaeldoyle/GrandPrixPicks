@@ -221,6 +221,7 @@ jobs:
           )
 
       - name: Run web e2e smoke
+        timeout-minutes: 20
         run: pnpm test:e2e:smoke
 
       - name: Upload Playwright report

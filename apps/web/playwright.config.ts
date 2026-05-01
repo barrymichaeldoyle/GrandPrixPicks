@@ -13,7 +13,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? [['dot'], ['html']] : 'list',
+  reporter: process.env.CI ? [['list'], ['html']] : 'list',
   use: {
     baseURL,
     trace: 'on-first-retry',

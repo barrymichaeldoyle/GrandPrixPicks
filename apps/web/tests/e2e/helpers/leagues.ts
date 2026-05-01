@@ -10,6 +10,7 @@ import { PLAYWRIGHT_AUTH_NAMESPACE } from './smoke';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '../../../../');
+const E2E_COMMAND_TIMEOUT_MS = 120_000;
 
 type LeagueFixture = {
   namespace: string;
@@ -53,6 +54,7 @@ export async function seedLeagueFixtureForAuthenticatedUser(
       cwd: repoRoot,
       encoding: 'utf8',
       env: process.env,
+      timeout: E2E_COMMAND_TIMEOUT_MS,
     },
   ).trim();
 

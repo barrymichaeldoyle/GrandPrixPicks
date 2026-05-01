@@ -6,6 +6,7 @@ import { ensureE2EEnvLoaded } from './env.ts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '../../../../');
+const E2E_COMMAND_TIMEOUT_MS = 120_000;
 
 type ScenarioSummary = {
   scenario: string | null;
@@ -69,6 +70,7 @@ function runPnpm(args: string[]) {
     encoding: 'utf8',
     env: process.env,
     stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: E2E_COMMAND_TIMEOUT_MS,
   });
 }
 

@@ -178,10 +178,12 @@ jobs:
 
           pnpm -s scenario -- apply race_partial_results_sprint --namespace "$namespace" > "$summary_file"
 
-          node --input-type=module - "$summary_file" <<'EOF'
+          (
+            cd apps/web
+            node --input-type=module - "$summary_file" <<'EOF'
           import fs from 'node:fs';
           import { ConvexHttpClient } from 'convex/browser';
-          import { api } from './apps/backend/convex/_generated/api.js';
+          import { api } from '../backend/convex/_generated/api.js';
 
           const summaryFile = process.argv[2];
           const rawOutput = fs.readFileSync(summaryFile, 'utf8').trim();
@@ -216,6 +218,7 @@ jobs:
 
           console.log(`Verified seeded race ${race.slug} via ${process.env.VITE_CONVEX_URL}`);
           EOF
+          )
 
       - name: Run web e2e smoke
         run: pnpm test:e2e:smoke

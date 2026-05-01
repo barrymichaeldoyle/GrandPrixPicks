@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Id } from '../_generated/dataModel';
 import {
+  assignCompetitionRanks,
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
   getRaceLeaderboardAccess,
@@ -61,7 +62,7 @@ describe('leaderboard helpers', () => {
     expect(buildViewerEntryFromRows(rows, { _id: user('x') })).toBeNull();
   });
 
-  it('maps rows to ranked entries with offset and viewer flag', () => {
+  it('maps ranked rows to entries with viewer flag', () => {
     const entries = mapRowsToLeaderboardEntries(
       [
         {
@@ -70,14 +71,15 @@ describe('leaderboard helpers', () => {
           avatarUrl: 'a.png',
           totalPoints: 40,
           raceCount: 5,
+          rank: 11,
         },
         {
           userId: user('b'),
           totalPoints: 30,
           raceCount: 5,
+          rank: 12,
         },
       ],
-      10,
       user('b'),
     );
 
@@ -86,6 +88,7 @@ describe('leaderboard helpers', () => {
         rank: 11,
         userId: user('a'),
         username: 'Alice',
+        displayName: undefined,
         avatarUrl: 'a.png',
         points: 40,
         raceCount: 5,
@@ -95,6 +98,7 @@ describe('leaderboard helpers', () => {
         rank: 12,
         userId: user('b'),
         username: 'Anonymous',
+        displayName: undefined,
         avatarUrl: undefined,
         points: 30,
         raceCount: 5,
@@ -160,6 +164,7 @@ describe('leaderboard helpers', () => {
         rank: 1,
         userId: user('c'),
         username: 'Anonymous',
+        displayName: undefined,
         avatarUrl: undefined,
         points: 30,
         breakdown: undefined,
@@ -168,14 +173,16 @@ describe('leaderboard helpers', () => {
         rank: 2,
         userId: user('a'),
         username: 'Anonymous',
+        displayName: undefined,
         avatarUrl: undefined,
         points: 20,
         breakdown: undefined,
       },
       {
-        rank: 3,
+        rank: 2,
         userId: user('b'),
         username: 'Beta',
+        displayName: undefined,
         avatarUrl: undefined,
         points: 20,
         breakdown: [{ test: true }],
@@ -202,9 +209,77 @@ describe('leaderboard helpers', () => {
     expect(result.hasMore).toBe(false);
     expect(result.viewerRank).toBe(3);
     expect(result.viewerRow?.userId).toBe(user('c'));
-    expect(result.pageRows.map((row) => row.userId)).toEqual([
-      user('z'),
-      user('c'),
+    expect(
+      result.pageRows.map((row) => ({ id: row.userId, rank: row.rank })),
+    ).toEqual([
+      { id: user('z'), rank: 1 },
+      { id: user('c'), rank: 3 },
     ]);
+  });
+
+  it('assigns competition ranks so ties share a position and the next group skips', () => {
+    const ranked = assignCompetitionRanks(
+      [
+        { userId: user('a'), totalPoints: 30 },
+        { userId: user('b'), totalPoints: 30 },
+        { userId: user('c'), totalPoints: 30 },
+        { userId: user('d'), totalPoints: 20 },
+        { userId: user('e'), totalPoints: 20 },
+        { userId: user('f'), totalPoints: 5 },
+      ],
+      (row) => row.totalPoints,
+    );
+
+    expect(ranked.map((row) => row.rank)).toEqual([1, 1, 1, 4, 4, 6]);
+  });
+
+  it('streams ranked rows with three-way ties at the top', async () => {
+    async function* rows() {
+      yield { userId: user('a'), totalPoints: 18, raceCount: 1 };
+      yield { userId: user('b'), totalPoints: 18, raceCount: 1 };
+      yield { userId: user('c'), totalPoints: 18, raceCount: 1 };
+      yield { userId: user('d'), totalPoints: 17, raceCount: 1 };
+      yield { userId: user('e'), totalPoints: 17, raceCount: 1 };
+      yield { userId: user('f'), totalPoints: 17, raceCount: 1 };
+      yield { userId: user('g'), totalPoints: 10, raceCount: 1 };
+    }
+
+    const result = await streamRankedLeaderboardRows(rows(), {
+      offset: 0,
+      limit: 50,
+      viewerId: user('e'),
+    });
+
+    expect(result.totalCount).toBe(7);
+    expect(result.viewerRank).toBe(4);
+    expect(result.pageRows.map((row) => row.rank)).toEqual([
+      1, 1, 1, 4, 4, 4, 7,
+    ]);
+  });
+
+  it('uses the shared rank for the viewer when they sit in a tied group', () => {
+    const viewerEntry = buildViewerEntryFromRows(
+      [
+        { userId: user('a'), totalPoints: 18, raceCount: 1 },
+        { userId: user('viewer'), totalPoints: 18, raceCount: 1 },
+        { userId: user('c'), totalPoints: 18, raceCount: 1 },
+        { userId: user('d'), totalPoints: 12, raceCount: 1 },
+      ],
+      { _id: user('viewer'), username: 'Viewer' },
+    );
+
+    expect(viewerEntry?.rank).toBe(1);
+  });
+
+  it('competition-ranks race scores when multiple users tie', () => {
+    const entries = mapRaceScoresToLeaderboardEntries([
+      { userId: user('a'), points: 25 },
+      { userId: user('b'), points: 25 },
+      { userId: user('c'), points: 25 },
+      { userId: user('d'), points: 20 },
+      { userId: user('e'), points: 5 },
+    ]);
+
+    expect(entries.map((entry) => entry.rank)).toEqual([1, 1, 1, 4, 5]);
   });
 });

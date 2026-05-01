@@ -3,8 +3,8 @@ packages:
   - packages/*
 
 catalog:
-  convex: 1.35.1
-  typescript: 6.0.2
+  convex: 1.37.0
+  typescript: 6.0.3
 
 onlyBuiltDependencies:
   - '@clerk/shared'

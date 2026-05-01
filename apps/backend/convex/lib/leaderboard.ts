@@ -26,12 +26,14 @@ type Viewer = {
   displayName?: string;
 } | null;
 
+export type RankedRow<T> = T & { rank: number };
+
 type RankedStreamResult<T> = {
-  pageRows: Array<T>;
+  pageRows: Array<RankedRow<T>>;
   totalCount: number;
   hasMore: boolean;
   viewerRank: number | null;
-  viewerRow: T | null;
+  viewerRow: RankedRow<T> | null;
 };
 
 export function clampLeaderboardPagination(
@@ -56,6 +58,32 @@ export function sortByPointsWithStableTieBreak<T extends RowBase>(
   });
 }
 
+/**
+ * Assigns competition ranks (1, 1, 1, 4, ...) to a list already sorted by
+ * descending points. Tied rows share the rank of the first row in the group;
+ * the next group skips positions to reflect how many rows shared the prior rank.
+ */
+export function assignCompetitionRanks<T>(
+  sorted: ReadonlyArray<T>,
+  getPoints: (row: T) => number,
+): Array<RankedRow<T>> {
+  const ranked: Array<RankedRow<T>> = [];
+  let lastPoints: number | null = null;
+  let lastRank = 0;
+
+  for (let i = 0; i < sorted.length; i++) {
+    const row = sorted[i];
+    const points = getPoints(row);
+    const rank =
+      lastPoints !== null && points === lastPoints ? lastRank : i + 1;
+    lastPoints = points;
+    lastRank = rank;
+    ranked.push({ ...row, rank });
+  }
+
+  return ranked;
+}
+
 export function buildViewerEntryFromRows<T extends RowBase>(
   rows: ReadonlyArray<T>,
   viewer: Viewer,
@@ -64,30 +92,29 @@ export function buildViewerEntryFromRows<T extends RowBase>(
     return null;
   }
 
-  const viewerIndex = rows.findIndex((row) => row.userId === viewer._id);
-  if (viewerIndex === -1) {
+  const ranked = assignCompetitionRanks(rows, (row) => row.totalPoints);
+  const viewerRanked = ranked.find((row) => row.userId === viewer._id);
+  if (!viewerRanked) {
     return null;
   }
 
-  const row = rows[viewerIndex];
   return {
-    rank: viewerIndex + 1,
+    rank: viewerRanked.rank,
     userId: viewer._id,
     username: viewer.username ?? ANONYMOUS,
     displayName: viewer.displayName,
-    points: row.totalPoints,
-    raceCount: row.raceCount,
+    points: viewerRanked.totalPoints,
+    raceCount: viewerRanked.raceCount,
     isViewer: true,
   };
 }
 
 export function mapRowsToLeaderboardEntries<T extends RowBase>(
-  rows: ReadonlyArray<T>,
-  offset: number,
+  rows: ReadonlyArray<RankedRow<T>>,
   viewerId?: Id<'users'>,
 ) {
-  return rows.map((row, index) => ({
-    rank: offset + index + 1,
+  return rows.map((row) => ({
+    rank: row.rank,
     userId: row.userId,
     username: row.username ?? ANONYMOUS,
     displayName: row.displayName,
@@ -108,10 +135,10 @@ export async function streamRankedLeaderboardRows<T extends RowBase>(
   },
 ): Promise<RankedStreamResult<T>> {
   const includeRow = params.includeRow ?? (() => true);
-  const pageRows: Array<T> = [];
+  const pageRows: Array<RankedRow<T>> = [];
   let totalCount = 0;
   let viewerRank: number | null = null;
-  let viewerRow: T | null = null;
+  let viewerRow: RankedRow<T> | null = null;
   let currentGroup: Array<T> = [];
   let currentPoints: number | null = null;
 
@@ -124,19 +151,26 @@ export async function streamRankedLeaderboardRows<T extends RowBase>(
       String(a.userId).localeCompare(String(b.userId)),
     );
 
+    let groupRank: number | null = null;
+
     for (const row of currentGroup) {
       if (!includeRow(row)) {
         continue;
       }
 
       totalCount += 1;
+      if (groupRank === null) {
+        groupRank = totalCount;
+      }
+      const ranked: RankedRow<T> = { ...row, rank: groupRank };
+
       if (totalCount > params.offset && pageRows.length < params.limit) {
-        pageRows.push(row);
+        pageRows.push(ranked);
       }
 
       if (params.viewerId && row.userId === params.viewerId) {
-        viewerRank = totalCount;
-        viewerRow = row;
+        viewerRank = groupRank;
+        viewerRow = ranked;
       }
     }
 
@@ -193,8 +227,10 @@ export function mapRaceScoresToLeaderboardEntries<T extends RaceScoreRowBase>(
     return String(a.userId).localeCompare(String(b.userId));
   });
 
-  return sorted.map((score, index) => ({
-    rank: index + 1,
+  const ranked = assignCompetitionRanks(sorted, (row) => row.points);
+
+  return ranked.map((score) => ({
+    rank: score.rank,
     userId: score.userId,
     username: score.username ?? ANONYMOUS,
     displayName: score.displayName,

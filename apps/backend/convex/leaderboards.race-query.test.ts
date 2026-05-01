@@ -139,7 +139,7 @@ describe('getRaceLeaderboardForViewer', () => {
           breakdown: undefined,
         },
         {
-          rank: 2,
+          rank: 1,
           userId: userId('b'),
           username: 'Anonymous',
           avatarUrl: undefined,

@@ -1506,8 +1506,13 @@ function PodiumCard({
   place: 1 | 2 | 3;
   className?: string;
 }) {
-  const isFirst = place === 1;
-  const marginTop = place === 1 ? '' : place === 2 ? 'sm:mt-8' : 'sm:mt-12';
+  const podiumRank: 1 | 2 | 3 =
+    entry.rank === 1 || entry.rank === 2 || entry.rank === 3
+      ? entry.rank
+      : place;
+  const marginTop =
+    podiumRank === 1 ? '' : podiumRank === 2 ? 'sm:mt-8' : 'sm:mt-12';
+  const isFirst = podiumRank === 1;
 
   const borderStyle = entry.isViewer
     ? 'border-accent ring-2 ring-accent bg-surface'
@@ -1516,25 +1521,29 @@ function PodiumCard({
       : 'border-border bg-surface';
 
   const Icon = isFirst ? Trophy : Medal;
-  const glowColor = isFirst ? '#eab308' : place === 2 ? '#C0C0C0' : '#cd7f32';
+  const glowColor = isFirst
+    ? '#eab308'
+    : podiumRank === 2
+      ? '#C0C0C0'
+      : '#cd7f32';
   const iconColor = isFirst
     ? 'text-warning'
-    : place === 2
+    : podiumRank === 2
       ? 'text-[#C0C0C0]'
       : 'text-[#cd7f32]';
   const bgColor = isFirst
     ? 'bg-warning/20'
-    : place === 2
+    : podiumRank === 2
       ? 'bg-[#C0C0C0]/20'
       : 'bg-[#cd7f32]/20';
   const badgeRing = isFirst
     ? 'ring-1 ring-warning/50'
-    : place === 2
+    : podiumRank === 2
       ? 'ring-1 ring-[#C0C0C0]/50'
       : 'ring-1 ring-[#cd7f32]/50';
   const textColor = isFirst
     ? 'text-warning'
-    : place === 2
+    : podiumRank === 2
       ? 'text-[#C0C0C0]'
       : 'text-[#cd7f32]';
   const placeLabels = { 1: '1st', 2: '2nd', 3: '3rd' };
@@ -1566,7 +1575,7 @@ function PodiumCard({
             className={`text-base font-bold ${textColor}`}
             style={{ textShadow: `0 0 12px ${glowColor}99` }}
           >
-            {placeLabels[place]}
+            {placeLabels[podiumRank]}
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1 text-right">
@@ -1598,7 +1607,7 @@ function PodiumCard({
           className={`text-center text-xl font-bold ${textColor}`}
           style={{ textShadow: `0 0 12px ${glowColor}99` }}
         >
-          {placeLabels[place]}
+          {placeLabels[podiumRank]}
         </div>
         <div className="mt-1 truncate text-center text-sm font-semibold text-accent">
           {entry.displayName ?? entry.username}

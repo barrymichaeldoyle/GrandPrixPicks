@@ -5,6 +5,7 @@ import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { getViewer } from './lib/auth';
 import {
+  assignCompetitionRanks,
   clampLeaderboardPagination,
   getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
@@ -34,21 +35,20 @@ function sortCombinedRows(rows: ReadonlyArray<CombinedRow>) {
 }
 
 function buildCombinedViewerEntry(
-  rows: ReadonlyArray<CombinedRow>,
+  rankedRows: ReadonlyArray<CombinedRow & { rank: number }>,
   viewer: Awaited<ReturnType<typeof getViewer>>,
 ) {
   if (!viewer) {
     return null;
   }
 
-  const idx = rows.findIndex((r) => r.userId === viewer._id);
-  if (idx === -1) {
+  const row = rankedRows.find((r) => r.userId === viewer._id);
+  if (!row) {
     return null;
   }
 
-  const row = rows[idx];
   return {
-    rank: idx + 1,
+    rank: row.rank,
     userId: viewer._id,
     username: viewer.username ?? 'Anonymous',
     displayName: viewer.displayName,
@@ -158,7 +158,11 @@ async function loadCombinedSeasonRows(
     });
   }
 
-  return sortCombinedRows([...userMap.values()]);
+  const sorted = sortCombinedRows([...userMap.values()]);
+  return assignCompetitionRanks(
+    sorted,
+    (row) => row.top5Points + row.h2hPoints,
+  );
 }
 
 export const getSeasonLeaderboard = query({
@@ -185,7 +189,6 @@ export const getSeasonLeaderboard = query({
 
     const enrichedRows = mapRowsToLeaderboardEntries(
       ranked.pageRows,
-      offset,
       viewer?._id,
     );
 
@@ -245,7 +248,6 @@ export const getFriendsLeaderboard = query({
 
     const enrichedRows = mapRowsToLeaderboardEntries(
       ranked.pageRows,
-      offset,
       viewer._id,
     );
 
@@ -318,10 +320,10 @@ export const getFriendsH2HLeaderboard = query({
           }
         : null;
 
-    const enrichedRows = ranked.pageRows.map((row, index) => {
+    const enrichedRows = ranked.pageRows.map((row) => {
       const isViewer = row.userId === viewer._id;
       return {
-        rank: offset + index + 1,
+        rank: row.rank,
         userId: row.userId,
         username: row.username ?? 'Anonymous',
         displayName: row.displayName,
@@ -378,7 +380,6 @@ export const getLeagueLeaderboard = query({
 
     const enrichedRows = mapRowsToLeaderboardEntries(
       ranked.pageRows,
-      offset,
       viewer._id,
     );
 
@@ -424,8 +425,8 @@ export const getCombinedSeasonLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const entries = paginatedRows.map((row, index) => ({
-      rank: offset + index + 1,
+    const entries = paginatedRows.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -469,8 +470,8 @@ export const getFriendsCombinedLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const entries = paginatedRows.map((row, index) => ({
-      rank: offset + index + 1,
+    const entries = paginatedRows.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -606,9 +607,13 @@ export const getCombinedRaceLeaderboard = query({
       }
       return String(a.userId).localeCompare(String(b.userId));
     });
+    const ranked = assignCompetitionRanks(
+      sorted,
+      (row) => row.top5Points + row.h2hPoints,
+    );
 
-    const entries = sorted.map((row, index) => ({
-      rank: index + 1,
+    const entries = ranked.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -706,11 +711,12 @@ export const getH2HRaceLeaderboard = query({
       }
       return String(a.userId).localeCompare(String(b.userId));
     });
+    const ranked = assignCompetitionRanks(sorted, (row) => row.points);
 
-    const entries = sorted.map((row, index) => {
+    const entries = ranked.map((row) => {
       const user = userInfoMap.get(row.userId);
       return {
-        rank: index + 1,
+        rank: row.rank,
         userId: row.userId,
         username: user?.username ?? 'Anonymous',
         displayName: user?.displayName,
@@ -745,9 +751,13 @@ export const getRaceLeaderboard = query({
     }
 
     const friendIds = await getFollowedUserIds(ctx, viewer._id);
-    const filteredEntries = result.entries
-      .filter((e) => friendIds.has(e.userId))
-      .map((e, i) => ({ ...e, rank: i + 1 }));
+    const friendsOnlyEntries = result.entries.filter((e) =>
+      friendIds.has(e.userId),
+    );
+    const filteredEntries = assignCompetitionRanks(
+      friendsOnlyEntries,
+      (row) => row.points,
+    );
 
     return {
       status: 'visible' as const,
@@ -786,8 +796,8 @@ export const getLeagueCombinedSeasonLeaderboard = query({
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
 
-    const entries = paginatedRows.map((row, index) => ({
-      rank: offset + index + 1,
+    const entries = paginatedRows.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -851,8 +861,8 @@ export const getLeagueH2HSeasonLeaderboard = query({
           }
         : null;
 
-    const enrichedRows = ranked.pageRows.map((row, index) => ({
-      rank: offset + index + 1,
+    const enrichedRows = ranked.pageRows.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -1077,9 +1087,13 @@ export const getLeagueCombinedRaceLeaderboard = query({
       }
       return String(a.userId).localeCompare(String(b.userId));
     });
+    const ranked = assignCompetitionRanks(
+      sorted,
+      (row) => row.top5Points + row.h2hPoints,
+    );
 
-    const entries = sorted.map((row, index) => ({
-      rank: index + 1,
+    const entries = ranked.map((row) => ({
+      rank: row.rank,
       userId: row.userId,
       username: row.username ?? 'Anonymous',
       displayName: row.displayName,
@@ -1176,11 +1190,12 @@ export const getLeagueH2HRaceLeaderboard = query({
       }
       return String(a.userId).localeCompare(String(b.userId));
     });
+    const ranked = assignCompetitionRanks(sorted, (row) => row.points);
 
-    const entries = sorted.map((row, index) => {
+    const entries = ranked.map((row) => {
       const user = userInfoMap.get(row.userId);
       return {
-        rank: index + 1,
+        rank: row.rank,
         userId: row.userId,
         username: user?.username ?? 'Anonymous',
         displayName: user?.displayName,

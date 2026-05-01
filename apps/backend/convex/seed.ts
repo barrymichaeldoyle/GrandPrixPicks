@@ -4577,6 +4577,310 @@ export const seedLeaderboardScenario = internalAction({
   },
 });
 
+// ─────────────────────── Leaderboard Ties Scenario ───────────────────────
+
+/**
+ * Internal: Seed a season standings list with deliberate ties so we can verify
+ * competition ranking (1, 1, 1, 4, 4, 4, …) on the leaderboard UI.
+ *
+ * Layout — target user is dropped into the second tier so they can confirm
+ * they share rank 4 with two other users:
+ * - 3 users tied at 100 pts (rank 1)
+ * - target + 2 users tied at 75 pts (rank 4)
+ * - 3 users tied at 50 pts (rank 7)
+ * - 2 users tied at 25 pts (rank 10)
+ * - 1 user at 10 pts (rank 12)
+ */
+const LEADERBOARD_TIES_FAKE_USERS = [
+  // Tied at rank 1 (100 pts)
+  { username: 'TripleApex', displayName: 'Triple Apex', totalPoints: 100 },
+  { username: 'PoleSetter', displayName: 'Pole Setter', totalPoints: 100 },
+  { username: 'GridGuru', displayName: 'Grid Guru', totalPoints: 100 },
+  // Tied at rank 4 with the target user (75 pts)
+  { username: 'DoubleDip', displayName: 'Double Dip', totalPoints: 75 },
+  { username: 'StoppedClock', displayName: 'Stopped Clock', totalPoints: 75 },
+  // Tied at rank 7 (50 pts)
+  { username: 'BoxBoxBox', displayName: 'Box Box Box', totalPoints: 50 },
+  { username: 'PitlanePete', displayName: 'Pitlane Pete', totalPoints: 50 },
+  { username: 'SafetyCar', displayName: 'Safety Car', totalPoints: 50 },
+  // Tied at rank 10 (25 pts)
+  { username: 'BackmarkerBea', displayName: 'Backmarker Bea', totalPoints: 25 },
+  { username: 'YellowFlag', displayName: 'Yellow Flag', totalPoints: 25 },
+  // Solo at rank 12 (10 pts)
+  { username: 'BlackFlagged', displayName: 'Black Flagged', totalPoints: 10 },
+];
+
+export const _seedLeaderboardTiesData = internalMutation({
+  args: { username: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const TARGET_POINTS = 75;
+    const SEASON = 2026;
+
+    const targetUser = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!targetUser) {
+      throw new Error(
+        `User "${args.username}" not found. Sign in to the app first.`,
+      );
+    }
+
+    const drivers = await ctx.db.query('drivers').collect();
+    if (drivers.length < 5) {
+      throw new Error('Need at least 5 drivers. Run seedDrivers first.');
+    }
+    const top5 = drivers.slice(0, 5).map((d) => d._id);
+
+    const allRaces = await ctx.db.query('races').collect();
+    const sortedRaces = [...allRaces].sort((a, b) => a.round - b.round);
+    const racesToFinish = sortedRaces.filter((r) => !r.hasSprint).slice(0, 1);
+    if (racesToFinish.length < 1) {
+      throw new Error('Need at least 1 non-sprint race. Run seedRaces first.');
+    }
+
+    const race = racesToFinish[0];
+    const pastRaceStart = now - 7 * 24 * 60 * 60 * 1000;
+    await ctx.db.patch(race._id, {
+      status: 'finished',
+      raceStartAt: pastRaceStart,
+      predictionLockAt: pastRaceStart - 24 * 60 * 60 * 1000,
+      qualiStartAt: pastRaceStart - 24 * 60 * 60 * 1000,
+      qualiLockAt: pastRaceStart - 24 * 60 * 60 * 1000,
+      updatedAt: now,
+    });
+
+    const classification = drivers.map((d) => d._id);
+    const sessions: Array<SessionType> = ['quali', 'race'];
+    for (const sessionType of sessions) {
+      const existing = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', race._id).eq('sessionType', sessionType),
+        )
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          classification,
+          publishedAt: pastRaceStart + 4 * 60 * 60 * 1000,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert('results', {
+          raceId: race._id,
+          sessionType,
+          classification,
+          publishedAt: pastRaceStart + 4 * 60 * 60 * 1000,
+          updatedAt: now,
+        });
+      }
+    }
+
+    async function writeUserStandings(
+      userId: Id<'users'>,
+      username: string,
+      displayName: string,
+      totalPoints: number,
+    ) {
+      const halfPoints = Math.floor(totalPoints / 2);
+      const remainder = totalPoints - halfPoints;
+      const sessionPoints: Array<[SessionType, number]> = [
+        ['quali', halfPoints],
+        ['race', remainder],
+      ];
+
+      for (const [sessionType, points] of sessionPoints) {
+        const existingPred = await ctx.db
+          .query('predictions')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', userId)
+              .eq('raceId', race._id)
+              .eq('sessionType', sessionType),
+          )
+          .unique();
+        if (existingPred) {
+          await ctx.db.patch(existingPred._id, {
+            picks: top5,
+            updatedAt: now,
+          });
+        } else {
+          await ctx.db.insert('predictions', {
+            userId,
+            raceId: race._id,
+            sessionType,
+            picks: top5,
+            submittedAt: now - 7 * 24 * 60 * 60 * 1000,
+            updatedAt: now,
+          });
+        }
+
+        const existingScore = await ctx.db
+          .query('scores')
+          .withIndex('by_user_race_session', (q) =>
+            q
+              .eq('userId', userId)
+              .eq('raceId', race._id)
+              .eq('sessionType', sessionType),
+          )
+          .unique();
+        if (existingScore) {
+          await ctx.db.patch(existingScore._id, {
+            points,
+            username,
+            displayName,
+            updatedAt: now,
+          });
+        } else {
+          await ctx.db.insert('scores', {
+            userId,
+            raceId: race._id,
+            sessionType,
+            points,
+            username,
+            displayName,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+
+      const existingStanding = await ctx.db
+        .query('seasonStandings')
+        .withIndex('by_user_season', (q) =>
+          q.eq('userId', userId).eq('season', SEASON),
+        )
+        .unique();
+      if (existingStanding) {
+        await ctx.db.patch(existingStanding._id, {
+          totalPoints,
+          raceCount: 1,
+          username,
+          displayName,
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert('seasonStandings', {
+          userId,
+          season: SEASON,
+          totalPoints,
+          raceCount: 1,
+          username,
+          displayName,
+          updatedAt: now,
+        });
+      }
+    }
+
+    let usersCreated = 0;
+    for (let ui = 0; ui < LEADERBOARD_TIES_FAKE_USERS.length; ui++) {
+      const { username, displayName, totalPoints } =
+        LEADERBOARD_TIES_FAKE_USERS[ui];
+
+      let fakeUser = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', username))
+        .unique();
+      if (!fakeUser) {
+        const id = await ctx.db.insert('users', {
+          clerkUserId: `fake_user_ties_${ui}`,
+          username,
+          displayName,
+          email: `${username.toLowerCase()}@example.com`,
+          createdAt: now,
+          updatedAt: now,
+        });
+        fakeUser = await ctx.db.get(id);
+        usersCreated++;
+      }
+      if (!fakeUser) {
+        throw new Error('Failed to create fake user');
+      }
+
+      await writeUserStandings(
+        fakeUser._id,
+        username,
+        displayName,
+        totalPoints,
+      );
+    }
+
+    await writeUserStandings(
+      targetUser._id,
+      targetUser.username ?? args.username,
+      targetUser.displayName ?? args.username,
+      TARGET_POINTS,
+    );
+
+    return {
+      targetUserId: targetUser._id,
+      targetUserPoints: TARGET_POINTS,
+      fakeUsersCreated: usersCreated,
+      raceFinished: race.name,
+    };
+  },
+});
+
+/**
+ * Reset dev DB to a leaderboard-ties testing scenario:
+ * - Clears all dev data, leagues, and standings
+ * - Marks the first non-sprint race as finished with results
+ * - Creates 11 fake users grouped into tied score bands
+ * - Places the target user at rank 4 (tied with two other users at 75 pts)
+ *
+ * Run via:
+ *   npx convex run seed:seedLeaderboardTiesScenario
+ *   npx convex run seed:seedLeaderboardTiesScenario '{"username": "yourname"}'
+ */
+export const seedLeaderboardTiesScenario = internalAction({
+  args: {
+    username: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const username = args.username ?? 'barrymichaeldoyle';
+
+    let totalDeleted = 0;
+    let iterations = 0;
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    await ctx.runMutation(internal.seed._clearLeagueData);
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+    await ctx.runMutation(internal.seed.seedDrivers);
+
+    const seedResult: {
+      targetUserId: Id<'users'>;
+      targetUserPoints: number;
+      fakeUsersCreated: number;
+      raceFinished: string;
+    } = await ctx.runMutation(internal.seed._seedLeaderboardTiesData, {
+      username,
+    });
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      username,
+      expectedRank: 4,
+      ...seedResult,
+    };
+  },
+});
+
 // ─────────────────────── Social Feed Scenario ───────────────────────
 
 const FEED_SCENARIO_FAKE_USERS = [

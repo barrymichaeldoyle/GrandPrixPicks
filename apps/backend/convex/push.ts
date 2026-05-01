@@ -377,7 +377,7 @@ export const sendPushForSessionLocked = internalMutation({
           subscriptions: subscriptions.slice(i, i + BATCH_SIZE),
           title: `🔒 ${race.name} — ${sessionLabel}`,
           body: 'This session is now locked. View your picks.',
-          url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
+          url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
         },
       );
     }

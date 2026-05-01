@@ -319,12 +319,7 @@ function NotificationItem({
 
   // session_locked
   return (
-    <Link
-      to="/races/$raceSlug"
-      params={{ raceSlug: notification.raceSlug ?? '' }}
-      onClick={handleClick}
-      className={itemClass}
-    >
+    <Link to="/feed" onClick={handleClick} className={itemClass}>
       <div className="flex items-start gap-3 px-4 py-3">
         <LeftCol>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">

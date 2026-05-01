@@ -36,8 +36,8 @@ export function SignupNudgeEmail({
       </Head>
       <Preview>
         {raceName
-          ? `Your ${raceName} picks are still waiting — submit now!`
-          : 'Your first picks are still waiting — submit now!'}
+          ? `Pick your top 5 for the ${raceName}.`
+          : 'Pick your top 5 for the next race.'}
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -75,17 +75,13 @@ export function SignupNudgeEmail({
               Welcome to Grand Prix Picks.{' '}
               {raceName ? (
                 <>
-                  Your picks for{' '}
-                  <strong style={{ color: '#0f172a' }}>{raceName}</strong> are
-                  still waiting.
+                  Pick your top 5 for the{' '}
+                  <strong style={{ color: '#0f172a' }}>{raceName}</strong> and
+                  start scoring this weekend.
                 </>
               ) : (
-                'Your first picks are still waiting.'
+                'Pick your top 5 for the next race and start scoring.'
               )}
-            </Text>
-            <Text style={text}>
-              Submit your prediction now so you don&apos;t miss points this
-              weekend.
             </Text>
             <Button className="cta-button" style={button} href={raceUrl}>
               Make My Prediction

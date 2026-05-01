@@ -842,8 +842,8 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
           })),
           title: '🏎️ Make your first prediction',
           body: hasUpcomingRace
-            ? `You still need to submit picks for ${nextRace!.name}.`
-            : 'You still need to submit your first picks.',
+            ? `Pick your top 5 for ${nextRace!.name}.`
+            : 'Pick your top 5 for the next race.',
           url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=signup_nudge`,
         },
       );

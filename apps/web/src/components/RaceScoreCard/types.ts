@@ -39,7 +39,7 @@ export type SessionCardData = {
   hasResults: boolean; // true = results published
 };
 
-export type RaceRank = {
+type RaceRank = {
   position: number;
   totalPlayers: number;
 };

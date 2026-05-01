@@ -1,6 +1,6 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 
-export type RaceSession = {
+type RaceSession = {
   startsAt: string;
   type: SessionType;
 };

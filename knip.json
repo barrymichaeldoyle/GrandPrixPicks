@@ -23,11 +23,7 @@
     },
     "apps/backend": {
       "entry": ["convex/**/*.ts"],
-      "project": ["convex/**/*.ts"],
-      "ignoreDependencies": [
-        "@react-email/components",
-        "@react-email/preview-server"
-      ]
+      "project": ["convex/**/*.ts"]
     },
     "apps/mobile": {
       "entry": ["App.tsx"],

@@ -30,6 +30,7 @@
     "web-push": "3.6.7"
   },
   "devDependencies": {
+    "@react-email/ui": "6.0.5",
     "@types/react": "19.2.14",
     "@types/web-push": "3.6.4",
     "react-email": "6.0.5",

@@ -158,10 +158,7 @@ async function deleteRows<T extends { _id: string }>(
   return rows.length;
 }
 
-async function loadLeagueMembers(
-  ctx: MutationCtx,
-  leagueId: Id<'leagues'>,
-) {
+async function loadLeagueMembers(ctx: MutationCtx, leagueId: Id<'leagues'>) {
   const members = [];
   for await (const member of ctx.db
     .query('leagueMembers')
@@ -180,7 +177,11 @@ async function scheduleDeletionBatch(
     summary: AccountDeletionSummary;
   },
 ) {
-  await ctx.scheduler.runAfter(0, internal.users.processUserDeletionBatch, args);
+  await ctx.scheduler.runAfter(
+    0,
+    internal.users.processUserDeletionBatch,
+    args,
+  );
 }
 
 async function processDeletionStep(
@@ -564,6 +565,7 @@ export const me = query({
       emailPredictionReminders: viewer.emailPredictionReminders,
       emailResults: viewer.emailResults,
       pushPredictionReminders: viewer.pushPredictionReminders,
+      pushPredictionLockReminders: viewer.pushPredictionLockReminders,
       pushResults: viewer.pushResults,
       pushSessionLocked: viewer.pushSessionLocked,
       pushRevReceived: viewer.pushRevReceived,
@@ -886,6 +888,7 @@ export const updateNotificationSettings = mutation({
     emailPredictionReminders: v.optional(v.boolean()),
     emailResults: v.optional(v.boolean()),
     pushPredictionReminders: v.optional(v.boolean()),
+    pushPredictionLockReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
     pushSessionLocked: v.optional(v.boolean()),
     pushRevReceived: v.optional(v.boolean()),
@@ -1269,7 +1272,9 @@ export const backfillClerkSubjects = internalMutation({
     const usersQuery = args.startAfter
       ? ctx.db
           .query('users')
-          .withIndex('by_clerkUserId', (q) => q.gt('clerkUserId', args.startAfter!))
+          .withIndex('by_clerkUserId', (q) =>
+            q.gt('clerkUserId', args.startAfter!),
+          )
       : ctx.db.query('users').withIndex('by_clerkUserId');
 
     const users = await usersQuery.take(CLERK_SUBJECT_BACKFILL_BATCH_SIZE);

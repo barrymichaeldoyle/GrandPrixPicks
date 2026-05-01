@@ -221,7 +221,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
             )}
             {isNotYetOpen && predictionOpenAt != null && (
               <span
-                className="bg-surface-elevated inline-flex items-center rounded-full border border-border-strong/70 px-2 py-0.5 text-xs font-medium text-text"
+                className="inline-flex items-center rounded-full border border-border-strong/70 bg-surface-elevated px-2 py-0.5 text-xs font-medium text-text"
                 suppressHydrationWarning
               >
                 Opens {formatDateLong(predictionOpenAt)}

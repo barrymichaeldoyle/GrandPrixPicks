@@ -22,7 +22,8 @@
       "Bash(npx expo:*)",
       "Bash(xargs sed:*)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(npx tsc *)"
     ]
   }
 }

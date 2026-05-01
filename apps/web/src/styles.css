@@ -318,7 +318,6 @@ html:not(.dark) .home-hero-race-flag,
   box-shadow: 0 10px 24px -20px rgba(15, 23, 42, 0.3);
 }
 
-
 /* Light mode card elevation: give standard surface cards more depth.
    Targets common card shells without affecting form controls/buttons. */
 :where(

@@ -627,7 +627,9 @@ export const setupReminderTest = mutation({
     // Keep the reminder test window multi-day for saner homepage layout in dev.
     // The reminder still fires quickly because it is scheduled relative to qualiStartAt.
     const qualiStartAt =
-      now + REMINDER_TEST_QUALI_DAYS_AWAY * 24 * HOUR + REMINDER_DELAY_MINUTES * MINUTE;
+      now +
+      REMINDER_TEST_QUALI_DAYS_AWAY * 24 * HOUR +
+      REMINDER_DELAY_MINUTES * MINUTE;
     const raceStartAt = now + REMINDER_TEST_RACE_DAYS_AWAY * 24 * HOUR;
 
     await ctx.db.patch(race._id, {
@@ -654,10 +656,7 @@ export const setupReminderTest = mutation({
   },
 });
 
-async function deleteDocs(
-  ctx: MutationCtx,
-  docs: Array<{ _id: string }>,
-) {
+async function deleteDocs(ctx: MutationCtx, docs: Array<{ _id: string }>) {
   for (const doc of docs) {
     await ctx.db.delete(doc._id as never);
   }

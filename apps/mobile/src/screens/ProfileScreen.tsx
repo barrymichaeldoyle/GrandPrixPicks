@@ -64,7 +64,9 @@ function SignedInProfileScreen() {
     me ? { userId: me._id as ConvexId<'users'> } : 'skip',
   );
 
-  if (me === undefined) {return <LoadingScreen />;}
+  if (me === undefined) {
+    return <LoadingScreen />;
+  }
 
   const displayName =
     me?.displayName ?? clerkUser?.fullName ?? me?.username ?? 'You';
@@ -72,18 +74,13 @@ function SignedInProfileScreen() {
   const username = me?.username;
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      style={styles.screen}
-    >
+    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
       {/* Avatar + name */}
       <View style={styles.hero}>
         <Avatar size="lg" src={avatarUrl} name={displayName} />
         <View style={styles.heroText}>
           <Text style={styles.displayName}>{displayName}</Text>
-          {username ? (
-            <Text style={styles.username}>@{username}</Text>
-          ) : null}
+          {username ? <Text style={styles.username}>@{username}</Text> : null}
         </View>
       </View>
 
@@ -130,29 +127,18 @@ function SignedInProfileScreen() {
           <StatBox label="Season pts" value={stats.totalPoints} />
           <StatBox
             label="Global rank"
-            value={
-              stats.seasonRank
-                ? `#${stats.seasonRank}`
-                : '—'
-            }
+            value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
           />
           <StatBox label="Weekends" value={stats.weekendCount} />
           <StatBox
             label="H2H rank"
-            value={
-              stats.h2hSeasonRank
-                ? `#${stats.h2hSeasonRank}`
-                : '—'
-            }
+            value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
           />
         </View>
       ) : null}
 
       {/* Sign out */}
-      <Pressable
-        onPress={() => void signOut()}
-        style={styles.signOutButton}
-      >
+      <Pressable onPress={() => void signOut()} style={styles.signOutButton}>
         <Ionicons color={colors.textMuted} name="log-out-outline" size={16} />
         <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
@@ -160,13 +146,7 @@ function SignedInProfileScreen() {
   );
 }
 
-function StatBox({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={styles.statBox}>
       <Text style={styles.statValue}>{value}</Text>

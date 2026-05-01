@@ -420,6 +420,7 @@ function SettingsPage() {
     emailPredictionReminders: boolean;
     emailResults: boolean;
     pushPredictionReminders: boolean;
+    pushPredictionLockReminders: boolean;
     pushResults: boolean;
     pushSessionLocked: boolean;
     pushRevReceived: boolean;
@@ -436,6 +437,10 @@ function SettingsPage() {
     pushPredictionReminders:
       optimisticNotif?.pushPredictionReminders ??
       me?.pushPredictionReminders ??
+      true,
+    pushPredictionLockReminders:
+      optimisticNotif?.pushPredictionLockReminders ??
+      me?.pushPredictionLockReminders ??
       true,
     pushResults: optimisticNotif?.pushResults ?? me?.pushResults ?? true,
     pushSessionLocked:
@@ -920,6 +925,16 @@ function SettingsPage() {
                         checked={notifSettings.pushPredictionReminders}
                         onChange={(value) =>
                           updateNotifSetting({ pushPredictionReminders: value })
+                        }
+                        loading={isPushLoading}
+                      />
+                      <NotificationRow
+                        label="Picks lock soon"
+                        checked={notifSettings.pushPredictionLockReminders}
+                        onChange={(value) =>
+                          updateNotifSetting({
+                            pushPredictionLockReminders: value,
+                          })
                         }
                         loading={isPushLoading}
                       />

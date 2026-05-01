@@ -1,13 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
 import { useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -28,8 +22,9 @@ type UserRow = {
 
 export function FollowListScreen({ route, navigation }: Props) {
   const { username, tab: initialTab } = route.params;
-  const [activeTab, setActiveTab] =
-    useState<'followers' | 'following'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'followers' | 'following'>(
+    initialTab,
+  );
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
   const followers = useQuery(
@@ -41,7 +36,9 @@ export function FollowListScreen({ route, navigation }: Props) {
     profile ? { userId: profile._id as ConvexId<'users'> } : 'skip',
   );
 
-  if (profile === undefined) {return <LoadingScreen />;}
+  if (profile === undefined) {
+    return <LoadingScreen />;
+  }
   if (profile === null) {
     return (
       <View style={styles.screen}>
@@ -64,8 +61,13 @@ export function FollowListScreen({ route, navigation }: Props) {
       {/* Tab bar */}
       <View style={styles.tabs}>
         <Pressable
-          onPress={() => { setActiveTab('followers'); }}
-          style={[styles.tab, activeTab === 'followers' ? styles.tabActive : null]}
+          onPress={() => {
+            setActiveTab('followers');
+          }}
+          style={[
+            styles.tab,
+            activeTab === 'followers' ? styles.tabActive : null,
+          ]}
         >
           <Text
             style={[
@@ -77,8 +79,13 @@ export function FollowListScreen({ route, navigation }: Props) {
           </Text>
         </Pressable>
         <Pressable
-          onPress={() => { setActiveTab('following'); }}
-          style={[styles.tab, activeTab === 'following' ? styles.tabActive : null]}
+          onPress={() => {
+            setActiveTab('following');
+          }}
+          style={[
+            styles.tab,
+            activeTab === 'following' ? styles.tabActive : null,
+          ]}
         >
           <Text
             style={[
@@ -96,11 +103,15 @@ export function FollowListScreen({ route, navigation }: Props) {
       ) : !list || list.length === 0 ? (
         <EmptyState
           icon="people-outline"
-          title={activeTab === 'followers' ? 'No followers yet' : 'Not following anyone'}
+          title={
+            activeTab === 'followers'
+              ? 'No followers yet'
+              : 'Not following anyone'
+          }
           body={
             activeTab === 'followers'
               ? "When people follow this account, they'll appear here."
-              : "Accounts this user follows will appear here."
+              : 'Accounts this user follows will appear here.'
           }
         />
       ) : (
@@ -110,7 +121,9 @@ export function FollowListScreen({ route, navigation }: Props) {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => { handleUserPress(item); }}
+              onPress={() => {
+                handleUserPress(item);
+              }}
               style={styles.row}
             >
               <Avatar

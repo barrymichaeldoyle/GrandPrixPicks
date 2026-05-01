@@ -24,7 +24,9 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
 
   const league = useQuery(api.leagues.getLeagueBySlug, { slug: leagueSlug });
 
-  if (league === undefined) {return <LoadingScreen />;}
+  if (league === undefined) {
+    return <LoadingScreen />;
+  }
   if (league === null) {
     return (
       <View style={styles.screen}>
@@ -42,20 +44,28 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
         <View style={styles.headerInfo}>
           <Text
             numberOfLines={1}
-            style={[styles.title, titleFontFamily ? { fontFamily: titleFontFamily } : null]}
+            style={[
+              styles.title,
+              titleFontFamily ? { fontFamily: titleFontFamily } : null,
+            ]}
           >
             {league.name}
           </Text>
           <Text style={styles.meta}>
-            {league.memberCount} member{league.memberCount !== 1 ? 's' : ''} · Season {league.season}
+            {league.memberCount} member{league.memberCount !== 1 ? 's' : ''} ·
+            Season {league.season}
           </Text>
           {league.description ? (
-            <Text numberOfLines={2} style={styles.description}>{league.description}</Text>
+            <Text numberOfLines={2} style={styles.description}>
+              {league.description}
+            </Text>
           ) : null}
         </View>
         {isAdmin ? (
           <Pressable
-            onPress={() => navigation.navigate('LeagueSettings', { leagueSlug })}
+            onPress={() =>
+              navigation.navigate('LeagueSettings', { leagueSlug })
+            }
             style={styles.settingsButton}
           >
             <Text style={styles.settingsButtonText}>Settings</Text>
@@ -71,7 +81,12 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
             onPress={() => setActiveTab(tab)}
             style={[styles.tab, activeTab === tab ? styles.tabActive : null]}
           >
-            <Text style={[styles.tabText, activeTab === tab ? styles.tabTextActive : null]}>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab ? styles.tabTextActive : null,
+              ]}
+            >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
           </Pressable>
@@ -96,7 +111,9 @@ function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
     limit: 50,
   });
 
-  if (result === undefined) {return <LoadingScreen />;}
+  if (result === undefined) {
+    return <LoadingScreen />;
+  }
 
   const { entries, viewerEntry } = result;
 
@@ -150,7 +167,9 @@ function LeaderboardRow({
     >
       <Text style={styles.leaderRank}>#{entry.rank}</Text>
       <Avatar imageUrl={entry.avatarUrl} name={name} size="sm" />
-      <Text numberOfLines={1} style={styles.leaderName}>{name}</Text>
+      <Text numberOfLines={1} style={styles.leaderName}>
+        {name}
+      </Text>
       <View style={styles.leaderPoints}>
         <Text style={styles.leaderPtsMain}>{entry.points}</Text>
         <Text style={styles.leaderPtsSub}>
@@ -166,20 +185,26 @@ function MembersTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
     leagueId,
   });
 
-  if (members === undefined) {return <LoadingScreen />;}
+  if (members === undefined) {
+    return <LoadingScreen />;
+  }
 
   return (
     <FlatList
       contentContainerStyle={styles.listContent}
       data={members}
       keyExtractor={(item) => item.userId}
-      ListEmptyComponent={<EmptyState icon="people-outline" title="No members found" />}
+      ListEmptyComponent={
+        <EmptyState icon="people-outline" title="No members found" />
+      }
       renderItem={({ item }) => {
         const name = item.displayName ?? item.username;
         return (
           <View style={styles.memberRow}>
             <Avatar imageUrl={item.avatarUrl} name={name} size="md" />
-            <Text numberOfLines={1} style={styles.memberName}>{name}</Text>
+            <Text numberOfLines={1} style={styles.memberName}>
+              {name}
+            </Text>
             {item.role === 'admin' ? (
               <View style={styles.adminBadge}>
                 <Text style={styles.adminBadgeText}>Admin</Text>
@@ -198,13 +223,17 @@ function FeedTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
     leagueId,
   });
 
-  if (result === undefined) {return <LoadingScreen />;}
+  if (result === undefined) {
+    return <LoadingScreen />;
+  }
 
   const events = (result?.events ?? []) as FeedEvent[];
 
   return (
     <FlatList
-      contentContainerStyle={events.length === 0 ? styles.emptyContainer : styles.listContent}
+      contentContainerStyle={
+        events.length === 0 ? styles.emptyContainer : styles.listContent
+      }
       data={events}
       keyExtractor={(item) => item._id}
       ListEmptyComponent={

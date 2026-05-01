@@ -28,12 +28,10 @@ export const grantSeasonPassFromPaddle = mutation({
       throw new Error('Unauthorized webhook caller');
     }
 
-    let existingEvent:
-      | {
-          _id: string;
-          status: 'processed' | 'ignored_user_not_found';
-        }
-      | null = null;
+    let existingEvent: {
+      _id: string;
+      status: 'processed' | 'ignored_user_not_found';
+    } | null = null;
 
     if (args.paddleEventId) {
       existingEvent = await ctx.db

@@ -194,7 +194,9 @@ for (const absolutePath of files) {
 }
 
 const baseline = JSON.parse(await readFile(baselinePath, 'utf8'));
-const unboundedCollectSummary = buildViolationSummary(unboundedCollectViolations);
+const unboundedCollectSummary = buildViolationSummary(
+  unboundedCollectViolations,
+);
 const dbFilterSummary = buildViolationSummary(dbFilterViolations);
 const unboundedCollectResult = compareAgainstBaseline(
   unboundedCollectSummary,
@@ -233,8 +235,12 @@ if (
   dbFilterResult.regressions.length > 0 ||
   dbFilterResult.newViolations.length > 0
 ) {
-  console.error('Database `.filter((q) => ...)` regressed in Convex functions.');
-  console.error('Prefer an index and `withIndex(...)`, or add a one-off ignore with:');
+  console.error(
+    'Database `.filter((q) => ...)` regressed in Convex functions.',
+  );
+  console.error(
+    'Prefer an index and `withIndex(...)`, or add a one-off ignore with:',
+  );
   console.error(`// ${IGNORE_MARKERS.dbFilter}`);
   printViolations('increased', dbFilterResult.regressions);
   printNewViolations(dbFilterResult.newViolations);

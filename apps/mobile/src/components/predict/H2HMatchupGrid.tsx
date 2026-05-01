@@ -97,10 +97,7 @@ function DriverButton({
       ]}
     >
       <Text
-        style={[
-          styles.driverCode,
-          isSelected ? { color: teamColor } : null,
-        ]}
+        style={[styles.driverCode, isSelected ? { color: teamColor } : null]}
       >
         {driver.code}
       </Text>

@@ -24,7 +24,11 @@ type H2HScore = {
 
 export type FeedEvent = {
   _id: ConvexId<'feedEvents'>;
-  type: 'score_published' | 'session_locked' | 'joined_league' | 'streak_milestone';
+  type:
+    | 'score_published'
+    | 'session_locked'
+    | 'joined_league'
+    | 'streak_milestone';
   userId: ConvexId<'users'>;
   username?: string;
   displayName?: string;
@@ -53,10 +57,18 @@ function formatRelativeTime(timestamp: number): string {
   const minutes = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / 86_400_000);
-  if (minutes < 1) {return 'just now';}
-  if (minutes < 60) {return `${minutes}m ago`;}
-  if (hours < 24) {return `${hours}h ago`;}
-  if (days < 7) {return `${days}d ago`;}
+  if (minutes < 1) {
+    return 'just now';
+  }
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+  if (hours < 24) {
+    return `${hours}h ago`;
+  }
+  if (days < 7) {
+    return `${days}d ago`;
+  }
   return new Date(timestamp).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -64,9 +76,15 @@ function formatRelativeTime(timestamp: number): string {
 }
 
 function pickColor(points: number): string {
-  if (points === 5) {return colors.success;}
-  if (points === 3) {return colors.warning;}
-  if (points === 1) {return '#fb923c';} // orange
+  if (points === 5) {
+    return colors.success;
+  }
+  if (points === 3) {
+    return colors.warning;
+  }
+  if (points === 1) {
+    return '#fb923c';
+  } // orange
   return colors.textMuted;
 }
 
@@ -96,9 +114,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
       <EventHeader event={event} />
 
       <View style={styles.raceRow}>
-        {event.raceSlug ? (
-          <FlagImage raceSlug={event.raceSlug} />
-        ) : null}
+        {event.raceSlug ? <FlagImage raceSlug={event.raceSlug} /> : null}
         <View style={styles.raceInfo}>
           {event.raceName ? (
             <Text style={styles.raceName} numberOfLines={1}>
@@ -126,13 +142,23 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
               <View
                 style={[
                   styles.pickPoints,
-                  { backgroundColor: pick.points > 0 ? pickColor(pick.points) + '33' : colors.surfaceMuted },
+                  {
+                    backgroundColor:
+                      pick.points > 0
+                        ? pickColor(pick.points) + '33'
+                        : colors.surfaceMuted,
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.pickPointsText,
-                    { color: pick.points > 0 ? pickColor(pick.points) : colors.textMuted },
+                    {
+                      color:
+                        pick.points > 0
+                          ? pickColor(pick.points)
+                          : colors.textMuted,
+                    },
                   ]}
                 >
                   {pick.points}pt{pick.points !== 1 ? 's' : ''}

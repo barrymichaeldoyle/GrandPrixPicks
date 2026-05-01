@@ -14,6 +14,10 @@ export function wantsPushPredictionReminders(user: Doc<'users'>): boolean {
   return user.pushPredictionReminders ?? true;
 }
 
+export function wantsPushPredictionLockReminders(user: Doc<'users'>): boolean {
+  return user.pushPredictionLockReminders ?? true;
+}
+
 export function wantsPushResults(user: Doc<'users'>): boolean {
   return user.pushResults ?? true;
 }

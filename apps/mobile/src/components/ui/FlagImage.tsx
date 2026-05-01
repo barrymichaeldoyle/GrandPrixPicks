@@ -10,7 +10,9 @@ type FlagImageProps = {
 export function FlagImage({ raceSlug }: FlagImageProps) {
   const countryCode = getCountryCodeForRaceSlug(raceSlug);
 
-  if (!countryCode) {return null;}
+  if (!countryCode) {
+    return null;
+  }
 
   return (
     <View style={styles.frame}>

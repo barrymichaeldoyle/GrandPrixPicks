@@ -34,16 +34,20 @@ export const submitRequest = mutation({
       updatedAt: now,
     });
 
-    await ctx.scheduler.runAfter(0, internal.emails.sendSupportEmail.sendNewSupportRequest, {
-      userId: viewer._id,
-      email: viewer.email,
-      displayName: viewer.displayName,
-      username: viewer.username,
-      category: args.category?.trim() || undefined,
-      subject,
-      message,
-      createdAt: now,
-    });
+    await ctx.scheduler.runAfter(
+      0,
+      internal.emails.sendSupportEmail.sendNewSupportRequest,
+      {
+        userId: viewer._id,
+        email: viewer.email,
+        displayName: viewer.displayName,
+        username: viewer.username,
+        category: args.category?.trim() || undefined,
+        subject,
+        message,
+        createdAt: now,
+      },
+    );
 
     return { success: true };
   },

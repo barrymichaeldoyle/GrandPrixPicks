@@ -1,6 +1,10 @@
 {
   "unboundedCollect": [
-    { "file": "convex/users.ts", "functionName": "adminPredictionStatusForRace", "count": 3 }
+    {
+      "file": "convex/users.ts",
+      "functionName": "adminPredictionStatusForRace",
+      "count": 3
+    }
   ],
   "dbFilter": []
 }

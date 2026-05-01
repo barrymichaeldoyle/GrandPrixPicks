@@ -120,7 +120,9 @@ export async function streamRankedLeaderboardRows<T extends RowBase>(
       return;
     }
 
-    currentGroup.sort((a, b) => String(a.userId).localeCompare(String(b.userId)));
+    currentGroup.sort((a, b) =>
+      String(a.userId).localeCompare(String(b.userId)),
+    );
 
     for (const row of currentGroup) {
       if (!includeRow(row)) {
@@ -128,10 +130,7 @@ export async function streamRankedLeaderboardRows<T extends RowBase>(
       }
 
       totalCount += 1;
-      if (
-        totalCount > params.offset &&
-        pageRows.length < params.limit
-      ) {
+      if (totalCount > params.offset && pageRows.length < params.limit) {
         pageRows.push(row);
       }
 

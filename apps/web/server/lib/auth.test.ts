@@ -13,7 +13,9 @@ describe('buildConvexTokenIdentifier', () => {
   });
 
   it('returns null when either claim is missing', () => {
-    expect(buildConvexTokenIdentifier({ issuer: null, subject: 'user_123' })).toBeNull();
+    expect(
+      buildConvexTokenIdentifier({ issuer: null, subject: 'user_123' }),
+    ).toBeNull();
     expect(
       buildConvexTokenIdentifier({
         issuer: 'https://clerk.example.com',

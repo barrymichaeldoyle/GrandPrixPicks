@@ -7,6 +7,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import {
+  wantsPushPredictionLockReminders,
   wantsPushPredictionReminders,
   wantsPushResults,
   wantsPushRevReceived,
@@ -46,7 +47,10 @@ async function getSubscriptionsForUser(
 async function getSubscriptionsByUser(
   ctx: MutationCtx,
 ): Promise<Map<Id<'users'>, Array<PushSubscriptionPayload>>> {
-  const subscriptionsByUser = new Map<Id<'users'>, Array<PushSubscriptionPayload>>();
+  const subscriptionsByUser = new Map<
+    Id<'users'>,
+    Array<PushSubscriptionPayload>
+  >();
   for await (const sub of ctx.db.query('pushSubscriptions')) {
     const existing = subscriptionsByUser.get(sub.userId) ?? [];
     existing.push({
@@ -197,73 +201,121 @@ export const sendPushRemindersForRace = internalMutation({
     const subscribedUsers = await Promise.all(
       subscribedUserIds.map((userId) => ctx.db.get(userId)),
     );
-    const usersWithReminderPushEnabled = new Set(
+    const userById = new Map(
       subscribedUsers
-        .filter((u) => u && wantsPushPredictionReminders(u))
-        .map((u) => u!._id as string),
+        .filter((u): u is NonNullable<typeof u> => u !== null)
+        .map((u) => [u._id as string, u]),
     );
 
-    let targetUserIds: Set<string>;
-
-    if (args.filterUnpredicted) {
-      const usersWithPredictions = new Set<string>();
-      for await (const prediction of ctx.db
-        .query('predictions')
-        .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-        usersWithPredictions.add(prediction.userId as string);
-      }
-      const allSubUserIds = new Set(
-        subscribedUserIds
-          .map((id) => id as string)
-          .filter((id) => usersWithReminderPushEnabled.has(id)),
-      );
-      targetUserIds = new Set(
-        [...allSubUserIds].filter((id) => !usersWithPredictions.has(id)),
-      );
-    } else {
-      targetUserIds = new Set(
-        subscribedUserIds
-          .map((id) => id as string)
-          .filter((id) => usersWithReminderPushEnabled.has(id)),
-      );
+    const usersWithPredictions = new Set<string>();
+    for await (const prediction of ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      usersWithPredictions.add(prediction.userId as string);
     }
 
-    if (targetUserIds.size === 0) {
+    // 2h "last chance" path: only unpredicted users who opted in to reminders.
+    if (args.filterUnpredicted) {
+      const targetUserIds = subscribedUserIds
+        .map((id) => id as string)
+        .filter(
+          (id) =>
+            !usersWithPredictions.has(id) &&
+            (() => {
+              const u = userById.get(id);
+              return u ? wantsPushPredictionReminders(u) : false;
+            })(),
+        );
+
+      if (targetUserIds.length === 0) {
+        return { skipped: true, reason: 'No target users' };
+      }
+
+      const subs = targetUserIds.flatMap(
+        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
+      );
+      const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`;
+      await scheduleSendPushBatches(ctx, {
+        subscriptions: subs,
+        title: `⏰ ${race.name}`,
+        body: `Picks close in 2 hours — you haven't made your predictions yet!`,
+        url,
+      });
+      return { queued: subs.length };
+    }
+
+    // 24h path: split into unpredicted (existing reminder) + predicted (new
+    // "lock approaching" reminder, separate opt-out).
+    const unpredictedTargets: Array<string> = [];
+    const predictedTargets: Array<string> = [];
+    for (const id of subscribedUserIds.map((x) => x as string)) {
+      const user = userById.get(id);
+      if (!user) {
+        continue;
+      }
+      if (usersWithPredictions.has(id)) {
+        if (wantsPushPredictionLockReminders(user)) {
+          predictedTargets.push(id);
+        }
+      } else if (wantsPushPredictionReminders(user)) {
+        unpredictedTargets.push(id);
+      }
+    }
+
+    let queued = 0;
+
+    if (unpredictedTargets.length > 0) {
+      const subs = unpredictedTargets.flatMap(
+        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
+      );
+      await scheduleSendPushBatches(ctx, {
+        subscriptions: subs,
+        title: `🏎️ ${race.name}`,
+        body: `Picks open — you have 24 hours to make your predictions`,
+        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
+      });
+      queued += subs.length;
+    }
+
+    if (predictedTargets.length > 0) {
+      const subs = predictedTargets.flatMap(
+        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
+      );
+      await scheduleSendPushBatches(ctx, {
+        subscriptions: subs,
+        title: `🔒 ${race.name}`,
+        body: `Your picks are in. Picks lock in 24 hours — edit before then.`,
+        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=lock_approaching`,
+      });
+      queued += subs.length;
+    }
+
+    if (queued === 0) {
       return { skipped: true, reason: 'No target users' };
     }
-
-    const title = args.filterUnpredicted
-      ? `⏰ ${race.name}`
-      : `🏎️ ${race.name}`;
-    const body = args.filterUnpredicted
-      ? `Picks close in 2 hours — you haven't made your predictions yet!`
-      : `Picks open — you have 24 hours to make your predictions`;
-    const utmCampaign = args.filterUnpredicted
-      ? 'last_chance'
-      : 'prediction_reminder';
-    const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=${utmCampaign}`;
-
-    const subscriptionsToNotify = [...subscriptionsByUser.entries()]
-      .filter(([userId]) => targetUserIds.has(userId as string))
-      .flatMap(([, subscriptions]) => subscriptions);
-
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < subscriptionsToNotify.length; i += BATCH_SIZE) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.pushNotifications.sendPushBatch,
-        {
-          subscriptions: subscriptionsToNotify.slice(i, i + BATCH_SIZE),
-          title,
-          body,
-          url,
-        },
-      );
-    }
-
-    return { queued: subscriptionsToNotify.length };
+    return { queued };
   },
 });
+
+async function scheduleSendPushBatches(
+  ctx: MutationCtx,
+  args: {
+    subscriptions: Array<PushSubscriptionPayload>;
+    title: string;
+    body: string;
+    url: string;
+  },
+): Promise<void> {
+  const BATCH_SIZE = 100;
+  for (let i = 0; i < args.subscriptions.length; i += BATCH_SIZE) {
+    await ctx.scheduler.runAfter(0, internal.pushNotifications.sendPushBatch, {
+      subscriptions: args.subscriptions.slice(i, i + BATCH_SIZE),
+      title: args.title,
+      body: args.body,
+      url: args.url,
+    });
+  }
+}
 
 /**
  * Internal mutation: fans out push notifications to all subscribed users

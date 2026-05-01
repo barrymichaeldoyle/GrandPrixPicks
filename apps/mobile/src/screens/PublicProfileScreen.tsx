@@ -1,12 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQuery } from 'convex/react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -38,7 +32,9 @@ export function PublicProfileScreen({ route, navigation }: Props) {
   const follow = useMutation(api.follows.follow);
   const unfollow = useMutation(api.follows.unfollow);
 
-  if (profile === undefined) {return <LoadingScreen />;}
+  if (profile === undefined) {
+    return <LoadingScreen />;
+  }
   if (profile === null) {
     return (
       <View style={styles.screen}>
@@ -51,7 +47,9 @@ export function PublicProfileScreen({ route, navigation }: Props) {
   const displayName = profile.displayName ?? profile.username ?? username;
 
   async function handleFollowToggle() {
-    if (!profile) {return;}
+    if (!profile) {
+      return;
+    }
     if (isFollowing) {
       await unfollow({ followeeId: profile._id as ConvexId<'users'> });
     } else {

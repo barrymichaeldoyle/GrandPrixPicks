@@ -5,21 +5,12 @@ import { countAdmins } from './leagues';
 describe('countAdmins', () => {
   it('counts only admin members', () => {
     expect(
-      countAdmins([
-        { role: 'admin' },
-        { role: 'member' },
-        { role: 'admin' },
-      ]),
+      countAdmins([{ role: 'admin' }, { role: 'member' }, { role: 'admin' }]),
     ).toBe(2);
   });
 
   it('returns zero when there are no admins', () => {
-    expect(
-      countAdmins([
-        { role: 'member' },
-        { role: 'member' },
-      ]),
-    ).toBe(0);
+    expect(countAdmins([{ role: 'member' }, { role: 'member' }])).toBe(0);
   });
 
   it('returns zero for an empty league', () => {

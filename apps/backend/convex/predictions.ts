@@ -53,7 +53,10 @@ export const myPredictionHistory = query({
     }
 
     // Get all drivers for lookups
-    const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
+    const allDrivers = await ctx.db
+      .query('drivers')
+      .withIndex('by_code')
+      .take(30);
     const driverMap = new Map(allDrivers.map((d) => [d._id, d]));
 
     // Group predictions by raceId
@@ -158,7 +161,10 @@ export const getUserPredictionHistory = query({
       predictions.push(prediction);
     }
 
-    const allDrivers = await ctx.db.query('drivers').withIndex('by_code').take(30);
+    const allDrivers = await ctx.db
+      .query('drivers')
+      .withIndex('by_code')
+      .take(30);
     const driverMap = new Map(allDrivers.map((d) => [d._id, d]));
 
     const byRace = new Map<Id<'races'>, Array<(typeof predictions)[0]>>();

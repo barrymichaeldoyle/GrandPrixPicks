@@ -1,9 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 
-import {
-  renderSignedInOnly,
-  useStorybookMockState,
-} from './mockAppRuntime';
+import { renderSignedInOnly, useStorybookMockState } from './mockAppRuntime';
 
 export function useAuth() {
   return useStorybookMockState().auth;

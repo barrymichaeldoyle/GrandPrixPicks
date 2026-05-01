@@ -4,11 +4,7 @@ import {
 } from '@grandprixpicks/shared/picks';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 
-import {
-  getStoredJson,
-  removeStoredValue,
-  setStoredJson,
-} from './storage';
+import { getStoredJson, removeStoredValue, setStoredJson } from './storage';
 
 type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;
@@ -36,10 +32,7 @@ export async function saveConnectedDraft(
   session: SessionType,
   draft: ConnectedDraft,
 ) {
-  await setStoredJson(
-    getConnectedDraftStorageKey(raceSlug, session),
-    draft,
-  );
+  await setStoredJson(getConnectedDraftStorageKey(raceSlug, session), draft);
 }
 
 export async function clearConnectedDraft(
@@ -59,10 +52,7 @@ export async function saveLocalRaceDraft(
   raceSlug: string,
   draft: LocalRaceDraft,
 ) {
-  await setStoredJson(
-    getLocalRaceDraftStorageKey(raceSlug),
-    draft,
-  );
+  await setStoredJson(getLocalRaceDraftStorageKey(raceSlug), draft);
 }
 
 export async function clearLocalRaceDraft(raceSlug: string) {

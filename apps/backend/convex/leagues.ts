@@ -4,11 +4,7 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
-import {
-  getOrCreateViewer,
-  getViewer,
-  requireViewer,
-} from './lib/auth';
+import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 const RESERVED_LEAGUE_SLUGS = new Set(['create']);
@@ -47,9 +43,10 @@ export function countAdmins(
   );
 }
 
-function requireLeagueCounts(
-  league: Doc<'leagues'>,
-): { memberCount: number; adminCount: number } {
+function requireLeagueCounts(league: Doc<'leagues'>): {
+  memberCount: number;
+  adminCount: number;
+} {
   if (league.memberCount === undefined || league.adminCount === undefined) {
     throw new Error('League counts are missing.');
   }

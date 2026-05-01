@@ -41,13 +41,20 @@ function RankedSlot({
 
   return (
     <View style={[styles.slot, isEmpty ? styles.slotEmpty : null]}>
-      <View style={[styles.slotAccent, { backgroundColor: isEmpty ? colors.border : teamColor }]} />
+      <View
+        style={[
+          styles.slotAccent,
+          { backgroundColor: isEmpty ? colors.border : teamColor },
+        ]}
+      />
       <Text style={styles.slotPosition}>P{position}</Text>
       <View style={styles.slotDriver}>
         {driver ? (
           <>
             <Text style={styles.slotCode}>{driver.code}</Text>
-            <Text numberOfLines={1} style={styles.slotName}>{driver.displayName}</Text>
+            <Text numberOfLines={1} style={styles.slotName}>
+              {driver.displayName}
+            </Text>
           </>
         ) : (
           <Text style={styles.slotPlaceholder}>—</Text>
@@ -58,16 +65,30 @@ function RankedSlot({
           <Pressable
             disabled={!canMoveUp}
             onPress={onMoveUp}
-            style={[styles.arrowButton, !canMoveUp ? styles.arrowDisabled : null]}
+            style={[
+              styles.arrowButton,
+              !canMoveUp ? styles.arrowDisabled : null,
+            ]}
           >
-            <Ionicons color={canMoveUp ? colors.text : colors.textMuted} name="chevron-up" size={14} />
+            <Ionicons
+              color={canMoveUp ? colors.text : colors.textMuted}
+              name="chevron-up"
+              size={14}
+            />
           </Pressable>
           <Pressable
             disabled={!canMoveDown}
             onPress={onMoveDown}
-            style={[styles.arrowButton, !canMoveDown ? styles.arrowDisabled : null]}
+            style={[
+              styles.arrowButton,
+              !canMoveDown ? styles.arrowDisabled : null,
+            ]}
           >
-            <Ionicons color={canMoveDown ? colors.text : colors.textMuted} name="chevron-down" size={14} />
+            <Ionicons
+              color={canMoveDown ? colors.text : colors.textMuted}
+              name="chevron-down"
+              size={14}
+            />
           </Pressable>
           <Pressable onPress={onRemove} style={styles.removeButton}>
             <Ionicons color={colors.textMuted} name="close" size={14} />
@@ -108,13 +129,22 @@ function PoolDriverCard({
       <Text style={[styles.poolCode, inPicks ? styles.poolCodeSelected : null]}>
         {driver.code}
       </Text>
-      <Text numberOfLines={1} style={styles.poolName}>{driver.displayName}</Text>
+      <Text numberOfLines={1} style={styles.poolName}>
+        {driver.displayName}
+      </Text>
     </Pressable>
   );
 }
 
-export function DraggableTop5({ picks, drivers, onChange, disabled = false }: DraggableTop5Props) {
-  const driverMap = new Map<string, Driver>(drivers.map((d) => [d._id as string, d]));
+export function DraggableTop5({
+  picks,
+  drivers,
+  onChange,
+  disabled = false,
+}: DraggableTop5Props) {
+  const driverMap = new Map<string, Driver>(
+    drivers.map((d) => [d._id as string, d]),
+  );
   const pickSet = new Set(picks);
   const poolFull = picks.length >= MAX_PICKS;
 
@@ -132,7 +162,9 @@ export function DraggableTop5({ picks, drivers, onChange, disabled = false }: Dr
 
   function handleMove(index: number, direction: 'up' | 'down') {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= picks.length) {return;}
+    if (targetIndex < 0 || targetIndex >= picks.length) {
+      return;
+    }
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const next = [...picks];
     [next[index], next[targetIndex]] = [next[targetIndex]!, next[index]!];
@@ -171,7 +203,9 @@ export function DraggableTop5({ picks, drivers, onChange, disabled = false }: Dr
       {!disabled ? (
         <View style={styles.pool}>
           <Text style={styles.poolHeader}>
-            {poolFull ? 'Tap a pick above to remove' : `${MAX_PICKS - picks.length} remaining — tap to add`}
+            {poolFull
+              ? 'Tap a pick above to remove'
+              : `${MAX_PICKS - picks.length} remaining — tap to add`}
           </Text>
           <FlatList
             data={drivers}
@@ -192,8 +226,14 @@ export function DraggableTop5({ picks, drivers, onChange, disabled = false }: Dr
         </View>
       ) : (
         <View style={styles.lockedNote}>
-          <Ionicons color={colors.textMuted} name="lock-closed-outline" size={14} />
-          <Text style={styles.lockedNoteText}>Session locked — picks are read-only</Text>
+          <Ionicons
+            color={colors.textMuted}
+            name="lock-closed-outline"
+            size={14}
+          />
+          <Text style={styles.lockedNoteText}>
+            Session locked — picks are read-only
+          </Text>
         </View>
       )}
     </View>

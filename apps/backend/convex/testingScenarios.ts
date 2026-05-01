@@ -499,9 +499,10 @@ async function buildScenarioSummary(
 ) {
   const slugPrefix = `${toSlug(args.namespace)}-`;
   const primaryEmail = scenarioPrimaryEmail(args.namespace);
-  const users = (await ctx.db.query('users').collect()).filter((user) =>
-    user.clerkUserId.startsWith(`${args.namespace}__`) ||
-    user.email === primaryEmail,
+  const users = (await ctx.db.query('users').collect()).filter(
+    (user) =>
+      user.clerkUserId.startsWith(`${args.namespace}__`) ||
+      user.email === primaryEmail,
   );
   const races = (await ctx.db.query('races').collect()).filter((race) =>
     race.slug.startsWith(slugPrefix),
@@ -593,8 +594,10 @@ async function buildScenarioSummary(
 async function clearNamespaceData(ctx: MutationCtx, namespace: string) {
   const slugPrefix = `${toSlug(namespace)}-`;
   const primaryEmail = scenarioPrimaryEmail(namespace);
-  const users = (await ctx.db.query('users').collect()).filter((user) =>
-    user.clerkUserId.startsWith(`${namespace}__`) || user.email === primaryEmail,
+  const users = (await ctx.db.query('users').collect()).filter(
+    (user) =>
+      user.clerkUserId.startsWith(`${namespace}__`) ||
+      user.email === primaryEmail,
   );
   const races = (await ctx.db.query('races').collect()).filter((race) =>
     race.slug.startsWith(slugPrefix),
@@ -695,8 +698,9 @@ async function upsertScenarioUser(
   const existingByEmail =
     existingByClerkUserId || !args.email
       ? null
-      : (await ctx.db.query('users').collect()).find((user) => user.email === email) ??
-        null;
+      : ((await ctx.db.query('users').collect()).find(
+          (user) => user.email === email,
+        ) ?? null);
   const existing = existingByClerkUserId ?? existingByEmail;
 
   const userId = existing

@@ -25,7 +25,10 @@ export function LeagueListScreen({ navigation }: Props) {
   const { titleFontFamily } = useTypography();
   const { convexEnabled } = useMobileConfig();
 
-  const leaguesQuery = useQuery(api.leagues.getMyLeagues, convexEnabled ? {} : 'skip');
+  const leaguesQuery = useQuery(
+    api.leagues.getMyLeagues,
+    convexEnabled ? {} : 'skip',
+  );
 
   const [showJoin, setShowJoin] = useState(false);
   const [slugInput, setSlugInput] = useState('');
@@ -43,13 +46,17 @@ export function LeagueListScreen({ navigation }: Props) {
 
   function handleFind() {
     const slug = slugInput.trim().toLowerCase();
-    if (!slug) {return;}
+    if (!slug) {
+      return;
+    }
     setJoinError(null);
     setCommittedSlug(slug);
   }
 
   async function handleJoin() {
-    if (!foundLeague) {return;}
+    if (!foundLeague) {
+      return;
+    }
     try {
       await joinLeague({
         leagueId: foundLeague._id as ConvexId<'leagues'>,
@@ -64,18 +71,33 @@ export function LeagueListScreen({ navigation }: Props) {
     }
   }
 
-  if (isLoading) {return <LoadingScreen />;}
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   const leagues = (leaguesQuery ?? []).filter((league) => league !== null);
 
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={[styles.title, titleFontFamily ? { fontFamily: titleFontFamily } : null]}>
+        <Text
+          style={[
+            styles.title,
+            titleFontFamily ? { fontFamily: titleFontFamily } : null,
+          ]}
+        >
           Leagues
         </Text>
-        <Pressable onPress={() => { setShowJoin((v) => !v); setJoinError(null); }} style={styles.joinButton}>
-          <Text style={styles.joinButtonText}>{showJoin ? 'Cancel' : 'Join'}</Text>
+        <Pressable
+          onPress={() => {
+            setShowJoin((v) => !v);
+            setJoinError(null);
+          }}
+          style={styles.joinButton}
+        >
+          <Text style={styles.joinButtonText}>
+            {showJoin ? 'Cancel' : 'Join'}
+          </Text>
         </Pressable>
       </View>
 
@@ -87,7 +109,11 @@ export function LeagueListScreen({ navigation }: Props) {
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
-              onChangeText={(v) => { setSlugInput(v); setCommittedSlug(null); setJoinError(null); }}
+              onChangeText={(v) => {
+                setSlugInput(v);
+                setCommittedSlug(null);
+                setJoinError(null);
+              }}
               placeholder="league-slug"
               placeholderTextColor={colors.textMuted}
               style={styles.input}
@@ -103,14 +129,18 @@ export function LeagueListScreen({ navigation }: Props) {
           ) : null}
 
           {committedSlug && foundLeague === null ? (
-            <Text style={styles.joinError}>No league found for "{committedSlug}"</Text>
+            <Text style={styles.joinError}>
+              No league found for "{committedSlug}"
+            </Text>
           ) : null}
 
           {foundLeague ? (
             <View style={styles.foundLeague}>
               <Text style={styles.foundLeagueName}>{foundLeague.name}</Text>
               <Text style={styles.foundLeagueMeta}>
-                {foundLeague.memberCount} member{foundLeague.memberCount !== 1 ? 's' : ''} · Season {foundLeague.season}
+                {foundLeague.memberCount} member
+                {foundLeague.memberCount !== 1 ? 's' : ''} · Season{' '}
+                {foundLeague.season}
               </Text>
               {foundLeague.hasPassword ? (
                 <TextInput
@@ -122,9 +152,16 @@ export function LeagueListScreen({ navigation }: Props) {
                   value={passwordInput}
                 />
               ) : null}
-              {joinError ? <Text style={styles.joinError}>{joinError}</Text> : null}
-              <Pressable onPress={() => void handleJoin()} style={styles.confirmJoinButton}>
-                <Text style={styles.confirmJoinText}>Join {foundLeague.name}</Text>
+              {joinError ? (
+                <Text style={styles.joinError}>{joinError}</Text>
+              ) : null}
+              <Pressable
+                onPress={() => void handleJoin()}
+                style={styles.confirmJoinButton}
+              >
+                <Text style={styles.confirmJoinText}>
+                  Join {foundLeague.name}
+                </Text>
               </Pressable>
             </View>
           ) : null}
@@ -144,18 +181,33 @@ export function LeagueListScreen({ navigation }: Props) {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => navigation.navigate('LeagueDetail', { leagueSlug: item.slug })}
+              onPress={() =>
+                navigation.navigate('LeagueDetail', { leagueSlug: item.slug })
+              }
               style={styles.leagueCard}
             >
               <View style={styles.leagueCardRow}>
                 <View style={styles.leagueInfo}>
-                  <Text numberOfLines={1} style={styles.leagueName}>{item.name}</Text>
+                  <Text numberOfLines={1} style={styles.leagueName}>
+                    {item.name}
+                  </Text>
                   <Text style={styles.leagueMeta}>
-                    {item.memberCount} member{item.memberCount !== 1 ? 's' : ''} · Season {item.season}
+                    {item.memberCount} member{item.memberCount !== 1 ? 's' : ''}{' '}
+                    · Season {item.season}
                   </Text>
                 </View>
-                <View style={[styles.roleBadge, item.viewerRole === 'admin' ? styles.adminBadge : null]}>
-                  <Text style={[styles.roleText, item.viewerRole === 'admin' ? styles.adminText : null]}>
+                <View
+                  style={[
+                    styles.roleBadge,
+                    item.viewerRole === 'admin' ? styles.adminBadge : null,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.roleText,
+                      item.viewerRole === 'admin' ? styles.adminText : null,
+                    ]}
+                  >
                     {item.viewerRole === 'admin' ? 'Admin' : 'Member'}
                   </Text>
                 </View>

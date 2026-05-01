@@ -14,7 +14,10 @@ export function getIdentityKeys(identity: {
 
   return {
     primary,
-    legacy: identity.subject && identity.subject !== primary ? identity.subject : null,
+    legacy:
+      identity.subject && identity.subject !== primary
+        ? identity.subject
+        : null,
   };
 }
 

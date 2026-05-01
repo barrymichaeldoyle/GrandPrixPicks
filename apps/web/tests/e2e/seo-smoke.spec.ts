@@ -20,7 +20,9 @@ test.describe('[public] seo smoke', () => {
 
     const notFoundPage = await page.goto('/races/not-a-real-race');
     expect(notFoundPage?.status()).toBe(404);
-    await expect(page.getByRole('heading', { name: /page not found/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /page not found/i }),
+    ).toBeVisible();
   });
 
   test('emits noindex and correct canonical tags on gated and follow-list pages', async ({
@@ -28,24 +30,22 @@ test.describe('[public] seo smoke', () => {
   }) => {
     await page.goto('/feed');
     await expect
-      .poll(() =>
-        page.locator('meta[name="robots"]').getAttribute('content'),
-      )
+      .poll(() => page.locator('meta[name="robots"]').getAttribute('content'))
       .toBe('noindex, follow');
-    await expect(
-      page.locator('link[rel="canonical"]'),
-    ).toHaveAttribute('href', `${SITE_URL}/feed`);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${SITE_URL}/feed`,
+    );
 
     await page.goto('/p/barrymichaeldoyle/followers');
     await expect
-      .poll(() =>
-        page.locator('meta[name="robots"]').getAttribute('content'),
-      )
+      .poll(() => page.locator('meta[name="robots"]').getAttribute('content'))
       .toBe('noindex, follow');
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
-    await expect(
-      page.locator('link[rel="canonical"]'),
-    ).toHaveAttribute('href', `${SITE_URL}/p/barrymichaeldoyle/followers`);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${SITE_URL}/p/barrymichaeldoyle/followers`,
+    );
   });
 
   test('serves sitemap XML including seeded public race routes', async ({

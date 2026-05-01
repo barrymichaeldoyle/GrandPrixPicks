@@ -60,8 +60,7 @@ export async function getAuthenticatedClerkIdentity(
     typeof sessionClaims?.sub === 'string' ? sessionClaims.sub : auth.userId;
   const tokenIdentifier =
     buildConvexTokenIdentifier({
-      issuer:
-        typeof sessionClaims?.iss === 'string' ? sessionClaims.iss : null,
+      issuer: typeof sessionClaims?.iss === 'string' ? sessionClaims.iss : null,
       subject,
     }) ?? subject;
 

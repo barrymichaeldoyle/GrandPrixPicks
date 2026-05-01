@@ -23,6 +23,7 @@ export default defineSchema({
     emailResults: v.optional(v.boolean()),
     // Push: opt-out, default true (if device is subscribed)
     pushPredictionReminders: v.optional(v.boolean()),
+    pushPredictionLockReminders: v.optional(v.boolean()),
     pushResults: v.optional(v.boolean()),
     pushSessionLocked: v.optional(v.boolean()),
     pushRevReceived: v.optional(v.boolean()),

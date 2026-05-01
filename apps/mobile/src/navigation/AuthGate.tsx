@@ -18,9 +18,7 @@ export function AuthGate({ fallback, children }: AuthGateProps) {
     return <>{children}</>;
   }
 
-  return (
-    <ClerkAuthGate fallback={fallback}>{children}</ClerkAuthGate>
-  );
+  return <ClerkAuthGate fallback={fallback}>{children}</ClerkAuthGate>;
 }
 
 function ClerkAuthGate({ fallback, children }: AuthGateProps) {

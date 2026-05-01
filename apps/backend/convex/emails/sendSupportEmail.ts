@@ -25,7 +25,9 @@ export const sendNewSupportRequest = internalAction({
     const submittedAt = new Date(args.createdAt).toISOString();
     const submitter =
       args.displayName ?? args.username ?? args.email ?? 'Unknown user';
-    const categoryLine = args.category ? `<p><strong>Category:</strong> ${args.category}</p>` : '';
+    const categoryLine = args.category
+      ? `<p><strong>Category:</strong> ${args.category}</p>`
+      : '';
 
     const html = `
       <h1>New Support Request</h1>

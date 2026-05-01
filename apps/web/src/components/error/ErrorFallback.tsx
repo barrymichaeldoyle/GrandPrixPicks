@@ -52,9 +52,10 @@ export function ErrorFallback({
 
   const { message: userFacingMessage, isGenericFallback } =
     toUserFacingErrorDetails(error);
-  const errorMessage = isGenericFallback && reportToSentry
-    ? `${userFacingMessage} This has been reported automatically.`
-    : userFacingMessage;
+  const errorMessage =
+    isGenericFallback && reportToSentry
+      ? `${userFacingMessage} This has been reported automatically.`
+      : userFacingMessage;
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">
@@ -67,9 +68,7 @@ export function ErrorFallback({
           Oops! Something went wrong
         </h1>
 
-        <p className="mb-8 text-text-muted">
-          {errorMessage}
-        </p>
+        <p className="mb-8 text-text-muted">{errorMessage}</p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Button onClick={handleRetry} leftIcon={RefreshCw} variant="primary">

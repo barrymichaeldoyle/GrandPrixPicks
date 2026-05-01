@@ -62,22 +62,24 @@ describe('deriveClerkSubjectFromStoredId', () => {
 describe('findUserByClerkIdentity', () => {
   it('falls back to clerkSubject when token lookups miss', async () => {
     const user = { _id: 'u1', clerkUserId: 'issuer|user_123' };
-    const unique = vi.fn(async ({ indexName, value }: {
-      indexName: string;
-      value: string;
-    }) => {
-      if (indexName === 'by_clerkSubject' && value === 'user_123') {
-        return user;
-      }
-      return null;
-    });
+    const unique = vi.fn(
+      async ({ indexName, value }: { indexName: string; value: string }) => {
+        if (indexName === 'by_clerkSubject' && value === 'user_123') {
+          return user;
+        }
+        return null;
+      },
+    );
 
     const ctx = {
       db: {
         query: vi.fn(() => ({
-          withIndex: (indexName: string, builder: (q: {
-            eq: (field: string, value: string) => unknown;
-          }) => unknown) => {
+          withIndex: (
+            indexName: string,
+            builder: (q: {
+              eq: (field: string, value: string) => unknown;
+            }) => unknown,
+          ) => {
             let value = '';
             builder({
               eq: (_field, nextValue) => {

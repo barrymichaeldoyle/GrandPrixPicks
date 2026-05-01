@@ -85,7 +85,8 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
       return haystack.includes(query);
     });
   })();
-  const hasPublicLeagues = publicLeagues === undefined || publicLeagues.length > 0;
+  const hasPublicLeagues =
+    publicLeagues === undefined || publicLeagues.length > 0;
   const shouldShowDiscoverTab = isSignedIn && hasPublicLeagues;
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>(
     isSignedIn ? 'my' : 'discover',
@@ -108,19 +109,21 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           subtitle="Create, join, and discover leagues"
           icon={<Users className="h-8 w-8 text-accent" aria-hidden />}
           rightSlot={
-            isSignedIn ? privateCreateLimitReached ? (
-              <Button
-                size="sm"
-                leftIcon={Plus}
-                disabled
-                tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
-              >
-                Create
-              </Button>
-            ) : (
-              <Button asChild size="sm" leftIcon={Plus}>
-                <Link to="/leagues/create">Create</Link>
-              </Button>
+            isSignedIn ? (
+              privateCreateLimitReached ? (
+                <Button
+                  size="sm"
+                  leftIcon={Plus}
+                  disabled
+                  tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
+                >
+                  Create
+                </Button>
+              ) : (
+                <Button asChild size="sm" leftIcon={Plus}>
+                  <Link to="/leagues/create">Create</Link>
+                </Button>
+              )
             ) : null
           }
           bottomSlot={
@@ -177,7 +180,8 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               Sign in to manage your leagues
             </h2>
             <p className="text-sm text-text-muted">
-              Sign in to create leagues and track your standings with other players.
+              Sign in to create leagues and track your standings with other
+              players.
             </p>
             <SignInButton mode="modal">
               <Button className="mt-4" leftIcon={LogIn} size="sm">

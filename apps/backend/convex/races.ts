@@ -122,9 +122,10 @@ export function findRaceBySlugOrLegacyRef<
 export const getRaceBySlugOrLegacyRef = query({
   args: { ref: v.string() },
   handler: async (ctx, args) => {
-    const races = await ctx.db.query('races').withIndex('by_season_round').take(
-      100,
-    );
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round')
+      .take(100);
     return findRaceBySlugOrLegacyRef(races, args.ref);
   },
 });

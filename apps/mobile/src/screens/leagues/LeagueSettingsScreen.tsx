@@ -34,7 +34,9 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  if (league === undefined) {return <LoadingScreen />;}
+  if (league === undefined) {
+    return <LoadingScreen />;
+  }
   if (league === null) {
     return (
       <View style={styles.screen}>
@@ -45,10 +47,12 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
 
   const isAdmin = league.viewerRole === 'admin';
   const currentName = name ?? league.name;
-  const currentDescription = description ?? (league.description ?? '');
+  const currentDescription = description ?? league.description ?? '';
 
   async function handleSave() {
-    if (!league) {return;}
+    if (!league) {
+      return;
+    }
     setSaveError(null);
     setSaving(true);
     try {
@@ -81,7 +85,9 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
   }
 
   async function handleLeave() {
-    if (!league) {return;}
+    if (!league) {
+      return;
+    }
     try {
       await leaveLeague({ leagueId: league._id as ConvexId<'leagues'> });
       navigation.navigate('LeagueList');
@@ -111,7 +117,10 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
             <TextInput
               editable={isAdmin}
               maxLength={50}
-              onChangeText={(v) => { setName(v); setSaveError(null); }}
+              onChangeText={(v) => {
+                setName(v);
+                setSaveError(null);
+              }}
               placeholder="League name"
               placeholderTextColor={colors.textMuted}
               style={[styles.input, !isAdmin ? styles.inputDisabled : null]}
@@ -125,13 +134,22 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
               maxLength={200}
               multiline
               numberOfLines={3}
-              onChangeText={(v) => { setDescription(v); setSaveError(null); }}
+              onChangeText={(v) => {
+                setDescription(v);
+                setSaveError(null);
+              }}
               placeholder="Optional description…"
               placeholderTextColor={colors.textMuted}
-              style={[styles.input, styles.inputMultiline, !isAdmin ? styles.inputDisabled : null]}
+              style={[
+                styles.input,
+                styles.inputMultiline,
+                !isAdmin ? styles.inputDisabled : null,
+              ]}
               value={currentDescription}
             />
-            <Text style={styles.charCount}>{currentDescription.length}/200</Text>
+            <Text style={styles.charCount}>
+              {currentDescription.length}/200
+            </Text>
           </View>
 
           {saveError ? <Text style={styles.errorText}>{saveError}</Text> : null}
@@ -140,7 +158,10 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
             <Pressable
               disabled={saving}
               onPress={() => void handleSave()}
-              style={[styles.saveButton, saving ? styles.saveButtonDisabled : null]}
+              style={[
+                styles.saveButton,
+                saving ? styles.saveButtonDisabled : null,
+              ]}
             >
               <Text style={styles.saveButtonText}>
                 {saving ? 'Saving…' : 'Save changes'}

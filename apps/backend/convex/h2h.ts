@@ -3,11 +3,7 @@ import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
-import {
-  getOrCreateViewer,
-  getViewer,
-  requireViewer,
-} from './lib/auth';
+import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 
 const sessionTypeValidator = v.union(

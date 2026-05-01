@@ -43,11 +43,13 @@ export function PicksConnectedScreen() {
   const { races } = useRaceWeekends();
 
   // Default to the next upcoming race
-  const nextRaceSlug = races.find(
-    (r) => new Date(r.weekendStart).getTime() >= Date.now(),
-  )?.slug ?? races[0]?.slug ?? '';
+  const nextRaceSlug =
+    races.find((r) => new Date(r.weekendStart).getTime() >= Date.now())?.slug ??
+    races[0]?.slug ??
+    '';
 
-  const [selectedRaceSlug, setSelectedRaceSlug] = useState<string>(nextRaceSlug);
+  const [selectedRaceSlug, setSelectedRaceSlug] =
+    useState<string>(nextRaceSlug);
   const [selectedSession, setSelectedSession] = useState<SessionType>('race');
   const [top5, setTop5] = useState<string[]>([]);
   const [h2hByMatchup, setH2HByMatchup] = useState<Record<string, string>>({});
@@ -59,7 +61,10 @@ export function PicksConnectedScreen() {
 
   const raceFromList = races.find((race) => race.slug === selectedRaceSlug);
 
-  const driversQuery = useQuery(api.drivers.listDrivers, convexEnabled ? {} : 'skip');
+  const driversQuery = useQuery(
+    api.drivers.listDrivers,
+    convexEnabled ? {} : 'skip',
+  );
   const h2hMatchupsQuery = useQuery(
     api.h2h.getMatchupsForSeason,
     convexEnabled ? { season: 2026 } : 'skip',
@@ -87,24 +92,31 @@ export function PicksConnectedScreen() {
 
   const selectedSessionLockAt = !raceQuery
     ? undefined
-    : ({
+    : {
         quali: raceQuery.qualiLockAt,
         sprint_quali: raceQuery.sprintQualiLockAt,
         sprint: raceQuery.sprintLockAt,
         race: raceQuery.predictionLockAt,
-      })[selectedSession];
+      }[selectedSession];
 
   const selectedSessionLockDisplay =
     typeof selectedSessionLockAt !== 'number'
       ? null
       : (() => {
           const slug = raceQuery?.slug ?? selectedRaceSlug;
-          if (!slug) {return null;}
-          return formatRaceDate(new Date(selectedSessionLockAt).toISOString(), slug);
+          if (!slug) {
+            return null;
+          }
+          return formatRaceDate(
+            new Date(selectedSessionLockAt).toISOString(),
+            slug,
+          );
         })();
 
   const selectedSessionRemainingMs =
-    typeof selectedSessionLockAt === 'number' ? selectedSessionLockAt - now : null;
+    typeof selectedSessionLockAt === 'number'
+      ? selectedSessionLockAt - now
+      : null;
   const lockStatus = getLockStatusViewModel(
     selectedSessionRemainingMs ?? Number.POSITIVE_INFINITY,
     now,
@@ -113,9 +125,9 @@ export function PicksConnectedScreen() {
 
   const canSave = Boolean(
     h2hMatchupsQuery &&
-      !isSelectedSessionLocked &&
-      top5.length === MAX_TOP5 &&
-      Object.keys(h2hByMatchup).length === h2hMatchupsQuery.length,
+    !isSelectedSessionLocked &&
+    top5.length === MAX_TOP5 &&
+    Object.keys(h2hByMatchup).length === h2hMatchupsQuery.length,
   );
 
   useEffect(() => {
@@ -130,7 +142,9 @@ export function PicksConnectedScreen() {
     }
   }, [selectedSession, sessionOptions]);
 
-  const activeDraftKey = selectedRaceSlug ? `${selectedRaceSlug}:${selectedSession}` : null;
+  const activeDraftKey = selectedRaceSlug
+    ? `${selectedRaceSlug}:${selectedSession}`
+    : null;
 
   useEffect(() => {
     if (!raceQuery || !activeDraftKey) {
@@ -140,12 +154,16 @@ export function PicksConnectedScreen() {
       hydratedKeyRef.current = null;
       return;
     }
-    if (hydratedKeyRef.current === activeDraftKey) {return;}
+    if (hydratedKeyRef.current === activeDraftKey) {
+      return;
+    }
 
     let cancelled = false;
     async function hydrateFromDraftOrServer() {
       const draft = await loadConnectedDraft(selectedRaceSlug, selectedSession);
-      if (cancelled) {return;}
+      if (cancelled) {
+        return;
+      }
       if (draft) {
         setTop5(draft.top5);
         setH2HByMatchup(draft.h2hByMatchup);
@@ -160,17 +178,39 @@ export function PicksConnectedScreen() {
       hydratedKeyRef.current = activeDraftKey;
     }
     void hydrateFromDraftOrServer();
-    return () => { cancelled = true; };
-  }, [activeDraftKey, existingH2HQuery, existingTop5Query, raceQuery, selectedRaceSlug, selectedSession]);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeDraftKey,
+    existingH2HQuery,
+    existingTop5Query,
+    raceQuery,
+    selectedRaceSlug,
+    selectedSession,
+  ]);
 
   useEffect(() => {
-    if (!selectedRaceSlug || !isCurrentDraftDirty || hydratedKeyRef.current !== activeDraftKey) {return;}
+    if (
+      !selectedRaceSlug ||
+      !isCurrentDraftDirty ||
+      hydratedKeyRef.current !== activeDraftKey
+    ) {
+      return;
+    }
     void saveConnectedDraft(selectedRaceSlug, selectedSession, {
       h2hByMatchup,
       top5,
       updatedAt: new Date().toISOString(),
     });
-  }, [activeDraftKey, h2hByMatchup, isCurrentDraftDirty, selectedRaceSlug, selectedSession, top5]);
+  }, [
+    activeDraftKey,
+    h2hByMatchup,
+    isCurrentDraftDirty,
+    selectedRaceSlug,
+    selectedSession,
+    top5,
+  ]);
 
   function setH2HPick(matchupId: string, predictedWinnerId: string) {
     setSaveStatus(null);
@@ -179,50 +219,64 @@ export function PicksConnectedScreen() {
   }
 
   function trySwitchSession(nextSession: SessionType) {
-    if (nextSession === selectedSession) {return;}
+    if (nextSession === selectedSession) {
+      return;
+    }
     if (!isCurrentDraftDirty) {
       setSelectedSession(nextSession);
       return;
     }
-    Alert.alert('Unsaved changes', 'Switch sessions and discard unsaved changes?', [
-      { style: 'cancel', text: 'Keep editing' },
-      {
-        style: 'destructive',
-        text: 'Discard',
-        onPress: () => {
-          void clearConnectedDraft(selectedRaceSlug, selectedSession);
-          setIsCurrentDraftDirty(false);
-          hydratedKeyRef.current = null;
-          setSelectedSession(nextSession);
+    Alert.alert(
+      'Unsaved changes',
+      'Switch sessions and discard unsaved changes?',
+      [
+        { style: 'cancel', text: 'Keep editing' },
+        {
+          style: 'destructive',
+          text: 'Discard',
+          onPress: () => {
+            void clearConnectedDraft(selectedRaceSlug, selectedSession);
+            setIsCurrentDraftDirty(false);
+            hydratedKeyRef.current = null;
+            setSelectedSession(nextSession);
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   function trySwitchRace(nextRaceSlug: string) {
-    if (nextRaceSlug === selectedRaceSlug) {return;}
+    if (nextRaceSlug === selectedRaceSlug) {
+      return;
+    }
     if (!isCurrentDraftDirty) {
       hydratedKeyRef.current = null;
       setSelectedRaceSlug(nextRaceSlug);
       return;
     }
-    Alert.alert('Unsaved changes', 'Switch races and discard unsaved changes?', [
-      { style: 'cancel', text: 'Keep editing' },
-      {
-        style: 'destructive',
-        text: 'Discard',
-        onPress: () => {
-          void clearConnectedDraft(selectedRaceSlug, selectedSession);
-          setIsCurrentDraftDirty(false);
-          hydratedKeyRef.current = null;
-          setSelectedRaceSlug(nextRaceSlug);
+    Alert.alert(
+      'Unsaved changes',
+      'Switch races and discard unsaved changes?',
+      [
+        { style: 'cancel', text: 'Keep editing' },
+        {
+          style: 'destructive',
+          text: 'Discard',
+          onPress: () => {
+            void clearConnectedDraft(selectedRaceSlug, selectedSession);
+            setIsCurrentDraftDirty(false);
+            hydratedKeyRef.current = null;
+            setSelectedRaceSlug(nextRaceSlug);
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   async function handleDiscardDraft() {
-    if (!selectedRaceSlug) {return;}
+    if (!selectedRaceSlug) {
+      return;
+    }
     await clearConnectedDraft(selectedRaceSlug, selectedSession);
     setTop5((existingTop5Query?.picks ?? []) as string[]);
     setH2HByMatchup(existingH2HQuery?.[selectedSession] ?? {});
@@ -232,7 +286,9 @@ export function PicksConnectedScreen() {
   }
 
   async function handleSave() {
-    if (!canSave || !raceQuery || !h2hMatchupsQuery) {return;}
+    if (!canSave || !raceQuery || !h2hMatchupsQuery) {
+      return;
+    }
     try {
       await submitPrediction({
         picks: top5 as ConvexId<'drivers'>[],
@@ -261,14 +317,23 @@ export function PicksConnectedScreen() {
     return <PicksScreen races={races} />;
   }
 
-  if (driversQuery === undefined || h2hMatchupsQuery === undefined || raceQuery === undefined) {
+  if (
+    driversQuery === undefined ||
+    h2hMatchupsQuery === undefined ||
+    raceQuery === undefined
+  ) {
     return <LoadingScreen />;
   }
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
       {/* Header */}
-      <Text style={[styles.title, titleFontFamily ? { fontFamily: titleFontFamily } : null]}>
+      <Text
+        style={[
+          styles.title,
+          titleFontFamily ? { fontFamily: titleFontFamily } : null,
+        ]}
+      >
         Predict
       </Text>
 
@@ -287,7 +352,12 @@ export function PicksConnectedScreen() {
               onPress={() => trySwitchRace(race.slug)}
               style={[styles.raceChip, active ? styles.raceChipActive : null]}
             >
-              <Text style={[styles.raceChipText, active ? styles.raceChipTextActive : null]}>
+              <Text
+                style={[
+                  styles.raceChipText,
+                  active ? styles.raceChipTextActive : null,
+                ]}
+              >
                 {race.country}
               </Text>
             </Pressable>
@@ -322,7 +392,10 @@ export function PicksConnectedScreen() {
               timeStyle: 'short',
             }).format(new Date(restoredDraftAt))}
           </Text>
-          <Pressable onPress={() => void handleDiscardDraft()} style={styles.draftDiscard}>
+          <Pressable
+            onPress={() => void handleDiscardDraft()}
+            style={styles.draftDiscard}
+          >
             <Text style={styles.draftDiscardText}>Discard</Text>
           </Pressable>
         </View>
@@ -331,8 +404,7 @@ export function PicksConnectedScreen() {
       {/* Top 5 section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          Top 5{' '}
-          <Text style={styles.sectionCount}>({top5.length}/5)</Text>
+          Top 5 <Text style={styles.sectionCount}>({top5.length}/5)</Text>
         </Text>
         <DraggableTop5
           disabled={isSelectedSessionLocked}
@@ -378,10 +450,14 @@ export function PicksConnectedScreen() {
       </Pressable>
 
       {saveStatus ? (
-        <Text style={[
-          styles.saveStatus,
-          saveStatus.startsWith('✓') ? styles.saveStatusSuccess : styles.saveStatusError,
-        ]}>
+        <Text
+          style={[
+            styles.saveStatus,
+            saveStatus.startsWith('✓')
+              ? styles.saveStatusSuccess
+              : styles.saveStatusError,
+          ]}
+        >
           {saveStatus}
         </Text>
       ) : null}

@@ -20,7 +20,9 @@ export function getOpenUpcomingSessions(params: {
   now: number;
   lockAtBySession: Partial<Record<SessionType, number | undefined>>;
 }): SessionType[] {
-  const sessions = params.hasSprint ? [...SPRINT_SESSIONS] : [...STANDARD_SESSIONS];
+  const sessions = params.hasSprint
+    ? [...SPRINT_SESSIONS]
+    : [...STANDARD_SESSIONS];
   return sessions.filter((sessionType) => {
     const lockAt = params.lockAtBySession[sessionType];
     return typeof lockAt !== 'number' || params.now < lockAt;

@@ -47,7 +47,9 @@ async function withClerkRetries<T>(fn: () => Promise<T>): Promise<T> {
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error('Clerk request failed');
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Clerk request failed');
 }
 
 export async function createE2EClerkIdentity(
@@ -120,7 +122,10 @@ export async function createE2EClerkSignInTokenUrl(
     expiresInSeconds: 300,
   });
   const url = new URL(token.url);
-  url.searchParams.set('redirect_url', new URL(redirectPath, E2E_APP_ORIGIN).toString());
+  url.searchParams.set(
+    'redirect_url',
+    new URL(redirectPath, E2E_APP_ORIGIN).toString(),
+  );
   return url.toString();
 }
 
@@ -188,7 +193,10 @@ export async function signInE2EClerkIdentity(
         break;
       }
 
-      await page.context().clearCookies().catch(() => null);
+      await page
+        .context()
+        .clearCookies()
+        .catch(() => null);
       await page.goto('about:blank').catch(() => null);
     }
   }

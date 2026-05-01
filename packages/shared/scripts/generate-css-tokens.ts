@@ -39,13 +39,19 @@ const lines: string[] = [
   "[data-theme='dark'] {",
 ];
 
-for (const [key, value] of Object.entries(colors) as [keyof typeof colors, string][]) {
+for (const [key, value] of Object.entries(colors) as [
+  keyof typeof colors,
+  string,
+][]) {
   const varName = CSS_VAR_OVERRIDES[key] ?? toKebab(key);
   lines.push(`  --${varName}: ${value};`);
 }
 
 lines.push('}', '');
 
-const outPath = resolve(__dirname, '../../../apps/web/src/tokens.generated.css');
+const outPath = resolve(
+  __dirname,
+  '../../../apps/web/src/tokens.generated.css',
+);
 writeFileSync(outPath, lines.join('\n'));
 console.log(`✓ Generated ${outPath}`);

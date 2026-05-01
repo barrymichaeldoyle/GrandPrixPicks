@@ -83,7 +83,12 @@ function RacesStackNavigator() {
       <RacesStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
-        options={({ route }) => ({ title: route.params.raceSlug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()).replace(/-\d{4}$/, '') })}
+        options={({ route }) => ({
+          title: route.params.raceSlug
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase())
+            .replace(/-\d{4}$/, ''),
+        })}
       />
     </RacesStack.Navigator>
   );
@@ -168,7 +173,14 @@ export function AppNavigator() {
               return (
                 <Ionicons
                   color={color}
-                  name={iconName as 'home' | 'calendar' | 'trophy' | 'people' | 'person'}
+                  name={
+                    iconName as
+                      | 'home'
+                      | 'calendar'
+                      | 'trophy'
+                      | 'people'
+                      | 'person'
+                  }
                   size={size}
                 />
               );

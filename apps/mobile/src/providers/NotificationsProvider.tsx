@@ -19,8 +19,7 @@ Notifications.setNotificationHandler({
 });
 
 async function requestAndGetToken(): Promise<string | null> {
-  const { status: existingStatus } =
-    await Notifications.getPermissionsAsync();
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
   if (existingStatus !== 'granted') {
@@ -51,7 +50,9 @@ async function requestAndGetToken(): Promise<string | null> {
  */
 export function NotificationsProvider() {
   const { clerkEnabled } = useMobileConfig();
-  if (!clerkEnabled) {return null;}
+  if (!clerkEnabled) {
+    return null;
+  }
   return <ClerkAwareNotifications />;
 }
 
@@ -61,12 +62,16 @@ function ClerkAwareNotifications() {
   const tokenRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isSignedIn) {return;}
+    if (!isSignedIn) {
+      return;
+    }
 
     let cancelled = false;
 
     void requestAndGetToken().then((token) => {
-      if (cancelled || !token || tokenRef.current === token) {return;}
+      if (cancelled || !token || tokenRef.current === token) {
+        return;
+      }
       tokenRef.current = token;
       void saveToken({ token });
     });

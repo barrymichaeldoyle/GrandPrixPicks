@@ -58,9 +58,10 @@ describe('sendPredictionRemindersBatchCore', () => {
         query: vi.fn((table: string) => {
           if (table === 'predictions') {
             return {
-              withIndex: () => emptyAsyncQuery<{
-                userId: Id<'users'>;
-              }>(),
+              withIndex: () =>
+                emptyAsyncQuery<{
+                  userId: Id<'users'>;
+                }>(),
             };
           }
 
@@ -68,7 +69,9 @@ describe('sendPredictionRemindersBatchCore', () => {
             return {
               withIndex: (
                 _indexName: string,
-                _builder?: (q: { gt: (field: string, value: string) => unknown }) => unknown,
+                _builder?: (q: {
+                  gt: (field: string, value: string) => unknown;
+                }) => unknown,
               ) => ({
                 take: async (limit: number) => users.slice(0, limit),
               }),

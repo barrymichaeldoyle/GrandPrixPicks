@@ -26,16 +26,30 @@ type Mode = 'signIn' | 'signUp';
 type Screen = 'auth' | 'verify';
 
 function clerkMessage(err: unknown, fallback: string): string {
-  const e = err as { errors?: Array<{ longMessage?: string; message?: string }> };
+  const e = err as {
+    errors?: Array<{ longMessage?: string; message?: string }>;
+  };
   return e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message ?? fallback;
 }
 
 export function SignInScreen() {
   const { titleFontFamily } = useTypography();
-  const { startOAuthFlow: startGoogleFlow } = useOAuth({ strategy: 'oauth_google' });
-  const { startOAuthFlow: startAppleFlow } = useOAuth({ strategy: 'oauth_apple' });
-  const { signIn, setActive: setSignInActive, isLoaded: signInLoaded } = useSignIn();
-  const { signUp, setActive: setSignUpActive, isLoaded: signUpLoaded } = useSignUp();
+  const { startOAuthFlow: startGoogleFlow } = useOAuth({
+    strategy: 'oauth_google',
+  });
+  const { startOAuthFlow: startAppleFlow } = useOAuth({
+    strategy: 'oauth_apple',
+  });
+  const {
+    signIn,
+    setActive: setSignInActive,
+    isLoaded: signInLoaded,
+  } = useSignIn();
+  const {
+    signUp,
+    setActive: setSignUpActive,
+    isLoaded: signUpLoaded,
+  } = useSignUp();
 
   const [mode, setMode] = useState<Mode>('signIn');
   const [screen, setScreen] = useState<Screen>('auth');
@@ -88,11 +102,16 @@ export function SignInScreen() {
   // ── Email sign-in ──────────────────────────────────────────────────────────
 
   async function handleSignIn() {
-    if (!signInLoaded || !signIn) {return;}
+    if (!signInLoaded || !signIn) {
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
-      const result = await signIn.create({ identifier: email.trim(), password });
+      const result = await signIn.create({
+        identifier: email.trim(),
+        password,
+      });
       if (result.status === 'complete' && setSignInActive) {
         await setSignInActive({ session: result.createdSessionId });
       }
@@ -106,7 +125,9 @@ export function SignInScreen() {
   // ── Email sign-up ──────────────────────────────────────────────────────────
 
   async function handleSignUp() {
-    if (!signUpLoaded || !signUp) {return;}
+    if (!signUpLoaded || !signUp) {
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -121,7 +142,9 @@ export function SignInScreen() {
   }
 
   async function handleVerify() {
-    if (!signUpLoaded || !signUp) {return;}
+    if (!signUpLoaded || !signUp) {
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -182,7 +205,10 @@ export function SignInScreen() {
                 autoComplete="one-time-code"
                 keyboardType="number-pad"
                 maxLength={6}
-                onChangeText={(v) => { setCode(v); setError(null); }}
+                onChangeText={(v) => {
+                  setCode(v);
+                  setError(null);
+                }}
                 onSubmitEditing={() => void handleVerify()}
                 placeholder="000000"
                 placeholderTextColor={colors.textMuted}
@@ -197,14 +223,22 @@ export function SignInScreen() {
                 onPress={() => void handleVerify()}
                 style={[
                   styles.submitButton,
-                  (code.length < 6 || loading) ? styles.submitButtonDisabled : null,
+                  code.length < 6 || loading
+                    ? styles.submitButtonDisabled
+                    : null,
                 ]}
               >
                 <Text style={styles.submitButtonText}>
                   {loading ? 'Verifying…' : 'Verify email'}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => { setScreen('auth'); setCode(''); setError(null); }}>
+              <Pressable
+                onPress={() => {
+                  setScreen('auth');
+                  setCode('');
+                  setError(null);
+                }}
+              >
                 <Text style={styles.switchText}>← Back</Text>
               </Pressable>
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -215,18 +249,38 @@ export function SignInScreen() {
               {/* Mode toggle */}
               <View style={styles.toggle}>
                 <Pressable
-                  onPress={() => { switchMode('signIn'); }}
-                  style={[styles.toggleTab, mode === 'signIn' ? styles.toggleTabActive : null]}
+                  onPress={() => {
+                    switchMode('signIn');
+                  }}
+                  style={[
+                    styles.toggleTab,
+                    mode === 'signIn' ? styles.toggleTabActive : null,
+                  ]}
                 >
-                  <Text style={[styles.toggleText, mode === 'signIn' ? styles.toggleTextActive : null]}>
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === 'signIn' ? styles.toggleTextActive : null,
+                    ]}
+                  >
                     Sign in
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => { switchMode('signUp'); }}
-                  style={[styles.toggleTab, mode === 'signUp' ? styles.toggleTabActive : null]}
+                  onPress={() => {
+                    switchMode('signUp');
+                  }}
+                  style={[
+                    styles.toggleTab,
+                    mode === 'signUp' ? styles.toggleTabActive : null,
+                  ]}
                 >
-                  <Text style={[styles.toggleText, mode === 'signUp' ? styles.toggleTextActive : null]}>
+                  <Text
+                    style={[
+                      styles.toggleText,
+                      mode === 'signUp' ? styles.toggleTextActive : null,
+                    ]}
+                  >
                     Sign up
                   </Text>
                 </Pressable>
@@ -235,18 +289,25 @@ export function SignInScreen() {
               {/* OAuth */}
               {Platform.OS === 'ios' ? (
                 <AppleAuthentication.AppleAuthenticationButton
-                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  buttonStyle={
+                    AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                  }
                   buttonType={
                     isSignUp
-                      ? AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP
-                      : AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+                      ? AppleAuthentication.AppleAuthenticationButtonType
+                          .SIGN_UP
+                      : AppleAuthentication.AppleAuthenticationButtonType
+                          .SIGN_IN
                   }
                   cornerRadius={radii.lg}
                   onPress={() => void handleApple()}
                   style={styles.appleButton}
                 />
               ) : null}
-              <Pressable onPress={() => void handleGoogle()} style={styles.googleButton}>
+              <Pressable
+                onPress={() => void handleGoogle()}
+                style={styles.googleButton}
+              >
                 <GoogleLogo />
                 <Text style={styles.googleButtonText}>
                   {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
@@ -265,8 +326,13 @@ export function SignInScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
-                onChangeText={(v) => { setEmail(v); setError(null); }}
-                onSubmitEditing={() => { passwordRef.current?.focus(); }}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  setError(null);
+                }}
+                onSubmitEditing={() => {
+                  passwordRef.current?.focus();
+                }}
                 placeholder="Email"
                 placeholderTextColor={colors.textMuted}
                 returnKeyType="next"
@@ -275,8 +341,13 @@ export function SignInScreen() {
               />
               <TextInput
                 autoComplete={isSignUp ? 'new-password' : 'password'}
-                onChangeText={(v) => { setPassword(v); setError(null); }}
-                onSubmitEditing={() => { void (isSignUp ? handleSignUp() : handleSignIn()); }}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  setError(null);
+                }}
+                onSubmitEditing={() => {
+                  void (isSignUp ? handleSignUp() : handleSignIn());
+                }}
                 placeholder="Password"
                 placeholderTextColor={colors.textMuted}
                 ref={passwordRef}
@@ -287,13 +358,22 @@ export function SignInScreen() {
               />
               <Pressable
                 disabled={!canSubmit}
-                onPress={() => void (isSignUp ? handleSignUp() : handleSignIn())}
-                style={[styles.submitButton, !canSubmit ? styles.submitButtonDisabled : null]}
+                onPress={() =>
+                  void (isSignUp ? handleSignUp() : handleSignIn())
+                }
+                style={[
+                  styles.submitButton,
+                  !canSubmit ? styles.submitButtonDisabled : null,
+                ]}
               >
                 <Text style={styles.submitButtonText}>
                   {loading
-                    ? isSignUp ? 'Creating account…' : 'Signing in…'
-                    : isSignUp ? 'Create account' : 'Sign in'}
+                    ? isSignUp
+                      ? 'Creating account…'
+                      : 'Signing in…'
+                    : isSignUp
+                      ? 'Create account'
+                      : 'Sign in'}
                 </Text>
               </Pressable>
 
@@ -303,14 +383,18 @@ export function SignInScreen() {
               <Text style={styles.legal}>By continuing you agree to our</Text>
               <Text style={styles.legal}>
                 <Text
-                  onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)}
+                  onPress={() =>
+                    void WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)
+                  }
                   style={styles.legalLink}
                 >
                   Terms of Service
                 </Text>
                 {' and '}
                 <Text
-                  onPress={() => void WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)}
+                  onPress={() =>
+                    void WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)
+                  }
                   style={styles.legalLink}
                 >
                   Privacy Policy

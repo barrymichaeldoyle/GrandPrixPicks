@@ -48,7 +48,9 @@ export const follow = mutation({
       .withIndex('by_follower', (q) => q.eq('followerId', viewer._id))
       .take(MAX_FOLLOWS_PER_USER + 1);
     if (existingFollows.length >= MAX_FOLLOWS_PER_USER) {
-      throw new Error('You have reached the maximum number of users you can follow');
+      throw new Error(
+        'You have reached the maximum number of users you can follow',
+      );
     }
 
     return await ctx.db.insert('follows', {
@@ -159,13 +161,12 @@ export const listFollowers = query({
 
     const users = await getExistingUsersForFollows(ctx, followerIds);
 
-    return users
-      .map((u) => ({
-        _id: u._id,
-        username: u.username,
-        displayName: u.displayName,
-        avatarUrl: u.avatarUrl,
-      }));
+    return users.map((u) => ({
+      _id: u._id,
+      username: u.username,
+      displayName: u.displayName,
+      avatarUrl: u.avatarUrl,
+    }));
   },
 });
 
@@ -206,10 +207,7 @@ export const getSuggestedLeagueMembersToFollow = query({
       return [];
     }
 
-    const limit = Math.min(
-      Math.max(args.limit ?? 3, 1),
-      MAX_SUGGESTED_FOLLOWS,
-    );
+    const limit = Math.min(Math.max(args.limit ?? 3, 1), MAX_SUGGESTED_FOLLOWS);
 
     const memberships = await ctx.db
       .query('leagueMembers')

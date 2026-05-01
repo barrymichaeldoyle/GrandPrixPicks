@@ -48,12 +48,16 @@ export const Route = createFileRoute('/')({
 
     const mostRecentStartedRace =
       races
-        .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')
+        .filter(
+          (race) => race.raceStartAt <= now && race.status !== 'cancelled',
+        )
         .sort((a, b) => b.raceStartAt - a.raceStartAt)[0] ?? null;
 
     const [nextRaceResults, recentRaceResults] = await Promise.all([
       nextRace
-        ? convex.query(api.results.getAllResultsForRace, { raceId: nextRace._id })
+        ? convex.query(api.results.getAllResultsForRace, {
+            raceId: nextRace._id,
+          })
         : Promise.resolve([] as SessionType[]),
       mostRecentStartedRace
         ? convex.query(api.results.getAllResultsForRace, {
@@ -104,7 +108,9 @@ interface CountdownParts {
 
 function getCountdownParts(target: number, now: number): CountdownParts | null {
   const diff = target - now;
-  if (diff <= 0) { return null; }
+  if (diff <= 0) {
+    return null;
+  }
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
@@ -114,14 +120,17 @@ function getCountdownParts(target: number, now: number): CountdownParts | null {
 }
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
-  const [tens, ones] = String(value).padStart(2, '0').split('') as [string, string];
+  const [tens, ones] = String(value).padStart(2, '0').split('') as [
+    string,
+    string,
+  ];
   return (
     <div className="flex min-w-0 flex-col items-center gap-1.5 sm:gap-2">
       <div className="flex">
-        <span className="inline-block w-[1ch] text-center font-title text-[2.625rem] font-bold leading-none text-text sm:text-7xl">
+        <span className="font-title inline-block w-[1ch] text-center text-[2.625rem] leading-none font-bold text-text sm:text-7xl">
           {tens}
         </span>
-        <span className="inline-block w-[1ch] text-center font-title text-[2.625rem] font-bold leading-none text-text sm:text-7xl">
+        <span className="font-title inline-block w-[1ch] text-center text-[2.625rem] leading-none font-bold text-text sm:text-7xl">
           {ones}
         </span>
       </div>
@@ -221,15 +230,22 @@ function getSessionStatus(
   publishedSessions: SessionType[],
   now: number,
 ): SessionStatus {
-  if (publishedSessions.includes(session.type)) { return 'finished'; }
-  if (session.startAt <= now) { return 'in_progress'; }
+  if (publishedSessions.includes(session.type)) {
+    return 'finished';
+  }
+  if (session.startAt <= now) {
+    return 'in_progress';
+  }
   return 'upcoming';
 }
 
 function groupSessionsByDay(
   sessions: SessionEntry[],
 ): Array<{ dayKey: string; dayLabel: string; sessions: SessionEntry[] }> {
-  const groups = new Map<string, { dayLabel: string; sessions: SessionEntry[] }>();
+  const groups = new Map<
+    string,
+    { dayLabel: string; sessions: SessionEntry[] }
+  >();
   for (const session of sessions) {
     const d = new Date(session.startAt);
     const dayKey = d.toDateString();
@@ -243,7 +259,10 @@ function groupSessionsByDay(
     }
     groups.get(dayKey)!.sessions.push(session);
   }
-  return Array.from(groups.entries()).map(([dayKey, data]) => ({ dayKey, ...data }));
+  return Array.from(groups.entries()).map(([dayKey, data]) => ({
+    dayKey,
+    ...data,
+  }));
 }
 
 function SessionRow({
@@ -265,10 +284,16 @@ function SessionRow({
     >
       <span className="w-4 shrink-0">
         {status === 'finished' && (
-          <CheckCircle2 className="h-4 w-4 text-success" aria-label="Finished" />
+          <CheckCircle2
+            className="h-4 w-4 text-success"
+            aria-label="Finished"
+          />
         )}
         {status === 'in_progress' && (
-          <Radio className="h-4 w-4 animate-pulse text-accent" aria-label="In progress" />
+          <Radio
+            className="h-4 w-4 animate-pulse text-accent"
+            aria-label="In progress"
+          />
         )}
         {status === 'upcoming' && (
           <Clock
@@ -286,7 +311,7 @@ function SessionRow({
         <span className="flex items-center gap-2">
           <span>{session.label}</span>
           {status === 'in_progress' && (
-            <span className="inline-flex items-center rounded-full border border-cyan-400/45 bg-cyan-400/18 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-accent uppercase shadow-[0_0_0_1px_rgba(34,211,238,0.08)] animate-pulse">
+            <span className="inline-flex animate-pulse items-center rounded-full border border-cyan-400/45 bg-cyan-400/18 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-accent uppercase shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
               Live
             </span>
           )}
@@ -316,8 +341,12 @@ function abbreviateGrandPrix(name: string) {
 // --- Main component ---
 
 function HomePage() {
-  const { nextRace, mostRecentStartedRace, nextRaceResults, recentRaceResults } =
-    Route.useLoaderData();
+  const {
+    nextRace,
+    mostRecentStartedRace,
+    nextRaceResults,
+    recentRaceResults,
+  } = Route.useLoaderData();
   const now = useNow();
   const {
     isVisible: isPredictionBannerVisible,
@@ -329,7 +358,9 @@ function HomePage() {
     mostRecentStartedRace.raceStartAt > now - TWELVE_HOURS_MS;
 
   const featuredRace = showCurrentWeekend ? mostRecentStartedRace : nextRace;
-  const publishedSessions = showCurrentWeekend ? recentRaceResults : nextRaceResults;
+  const publishedSessions = showCurrentWeekend
+    ? recentRaceResults
+    : nextRaceResults;
 
   const sessions = featuredRace ? buildSessions(featuredRace) : [];
 
@@ -344,7 +375,9 @@ function HomePage() {
 
   const allFinished =
     sessions.length > 0 &&
-    sessions.every((s) => getSessionStatus(s, publishedSessions, now) === 'finished');
+    sessions.every(
+      (s) => getSessionStatus(s, publishedSessions, now) === 'finished',
+    );
 
   const anyInProgress = sessions.some(
     (s) => getSessionStatus(s, publishedSessions, now) === 'in_progress',
@@ -374,7 +407,7 @@ function HomePage() {
                 </h1>
               </div>
 
-              <p className="home-hero-copy mx-auto mt-4 max-w-[600px] text-balance text-sm leading-6 text-muted sm:mt-5 sm:text-base">
+              <p className="home-hero-copy text-muted mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance sm:mt-5 sm:text-base">
                 Predict every F1 qualifying, sprint, and race session,
                 <br />
                 then compete on the season leaderboard.
@@ -387,30 +420,45 @@ function HomePage() {
                 className="mx-auto mt-12 flex max-w-4xl flex-col items-center text-center"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.12,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
                 {!isPredictionBannerVisible &&
                   !hasCompleteUpcomingPredictions &&
                   (nextSession || !showCurrentWeekend) && (
-                  <div className="mb-6">
-                    <Button asChild variant="primary" size="md" rightIcon={ArrowRight}>
-                      <Link
-                        to="/races/$raceSlug"
-                        params={{ raceSlug: featuredRace.slug }}
-                        search={{ from: 'home' }}
+                    <div className="mb-6">
+                      <Button
+                        asChild
+                        variant="primary"
+                        size="md"
+                        rightIcon={ArrowRight}
                       >
-                        Make predictions
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-                {!isPredictionBannerVisible && hasCompleteUpcomingPredictions && (
-                  <div className="mb-6">
-                    <Button asChild variant="secondary" size="md" leftIcon={Gauge}>
-                      <Link to="/feed">View Feed</Link>
-                    </Button>
-                  </div>
-                )}
+                        <Link
+                          to="/races/$raceSlug"
+                          params={{ raceSlug: featuredRace.slug }}
+                          search={{ from: 'home' }}
+                        >
+                          Make predictions
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                {!isPredictionBannerVisible &&
+                  hasCompleteUpcomingPredictions && (
+                    <div className="mb-6">
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="md"
+                        leftIcon={Gauge}
+                      >
+                        <Link to="/feed">View Feed</Link>
+                      </Button>
+                    </div>
+                  )}
 
                 {/* Race identity */}
                 <div className="flex items-center justify-center gap-3">
@@ -425,7 +473,9 @@ function HomePage() {
                     <span className="sm:hidden">
                       {abbreviateGrandPrix(featuredRace.name)}
                     </span>
-                    <span className="hidden sm:inline">{featuredRace.name}</span>
+                    <span className="hidden sm:inline">
+                      {featuredRace.name}
+                    </span>
                   </h2>
                 </div>
 
@@ -440,7 +490,7 @@ function HomePage() {
                   )}
                   {showCurrentWeekend && anyInProgress && !allFinished && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2 py-0.5 text-xs font-semibold text-cyan-200">
-                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 animate-pulse" />
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
                       Live
                     </span>
                   )}
@@ -457,9 +507,14 @@ function HomePage() {
                     <div className="mt-10" suppressHydrationWarning>
                       <BigCountdown targetAt={nextSession.startAt} now={now} />
                     </div>
-                    <p className="home-hero-countdown-copy mt-4 text-base text-slate-300" suppressHydrationWarning>
+                    <p
+                      className="home-hero-countdown-copy mt-4 text-base text-slate-300"
+                      suppressHydrationWarning
+                    >
                       until{' '}
-                      <span className="home-hero-countdown-label font-bold text-white">{nextSession.label}</span>
+                      <span className="home-hero-countdown-label font-bold text-white">
+                        {nextSession.label}
+                      </span>
                     </p>
                   </>
                 )}
@@ -477,7 +532,12 @@ function HomePage() {
                           Results published — check the standings!
                         </p>
                         <div className="mt-1 flex gap-2">
-                          <Button asChild variant="primary" size="sm" rightIcon={ArrowRight}>
+                          <Button
+                            asChild
+                            variant="primary"
+                            size="sm"
+                            rightIcon={ArrowRight}
+                          >
                             <Link
                               to="/races/$raceSlug"
                               params={{ raceSlug: featuredRace.slug }}
@@ -508,7 +568,12 @@ function HomePage() {
                 {/* Edge case: next race but all sessions somehow started */}
                 {!nextSession && !showCurrentWeekend && (
                   <div className="mt-8">
-                    <Button asChild variant="primary" size="sm" rightIcon={ArrowRight}>
+                    <Button
+                      asChild
+                      variant="primary"
+                      size="sm"
+                      rightIcon={ArrowRight}
+                    >
                       <Link
                         to="/races/$raceSlug"
                         params={{ raceSlug: featuredRace.slug }}
@@ -528,7 +593,12 @@ function HomePage() {
                 {...fadeUp}
                 className="mt-8 flex flex-wrap justify-center gap-3"
               >
-                <Button asChild variant="primary" size="md" rightIcon={ArrowRight}>
+                <Button
+                  asChild
+                  variant="primary"
+                  size="md"
+                  rightIcon={ArrowRight}
+                >
                   <Link to="/races">View race calendar</Link>
                 </Button>
                 <Button asChild variant="secondary" size="md">
@@ -552,9 +622,11 @@ function HomePage() {
                     className="text-xs text-text-muted/55 tabular-nums"
                     suppressHydrationWarning
                   >
-                    {Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
-                      .formatToParts(now)
-                      .find((p) => p.type === 'timeZoneName')?.value}
+                    {
+                      Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+                        .formatToParts(now)
+                        .find((p) => p.type === 'timeZoneName')?.value
+                    }
                   </span>
                   <Link
                     to="/races/$raceSlug"
@@ -568,31 +640,38 @@ function HomePage() {
               </div>
 
               <div className="space-y-4">
-                {groupSessionsByDay(sessions).map(({ dayKey, dayLabel, sessions: daySessions }) => (
-                  <div key={dayKey}>
-                    <p
-                      className="mb-1 text-xs font-semibold text-text-muted/60"
-                      suppressHydrationWarning
-                    >
-                      {dayLabel}
-                    </p>
-                    <div className="divide-y divide-border/60">
-                      {daySessions.map((session) => {
-                        const status = getSessionStatus(session, publishedSessions, now);
-                        return (
-                          <SessionRow
-                            key={session.type}
-                            session={session}
-                            status={status}
-                            isNext={
-                              !showCurrentWeekend && session.type === nextSession?.type
-                            }
-                          />
-                        );
-                      })}
+                {groupSessionsByDay(sessions).map(
+                  ({ dayKey, dayLabel, sessions: daySessions }) => (
+                    <div key={dayKey}>
+                      <p
+                        className="mb-1 text-xs font-semibold text-text-muted/60"
+                        suppressHydrationWarning
+                      >
+                        {dayLabel}
+                      </p>
+                      <div className="divide-y divide-border/60">
+                        {daySessions.map((session) => {
+                          const status = getSessionStatus(
+                            session,
+                            publishedSessions,
+                            now,
+                          );
+                          return (
+                            <SessionRow
+                              key={session.type}
+                              session={session}
+                              status={status}
+                              isNext={
+                                !showCurrentWeekend &&
+                                session.type === nextSession?.type
+                              }
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
             </div>
           </section>
@@ -611,10 +690,12 @@ function HomePage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
                 <Flag className="h-6 w-6 text-accent" aria-hidden="true" />
               </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">Pick Your Top 5</h3>
+              <h3 className="mb-1 text-lg font-semibold text-text">
+                Pick Your Top 5
+              </h3>
               <p className="text-sm text-text-muted">
-                Before each session — qualifying, sprint, and race — drag and drop to
-                rank the 5 drivers you think will finish on top.
+                Before each session — qualifying, sprint, and race — drag and
+                drop to rank the 5 drivers you think will finish on top.
               </p>
             </motion.div>
 
@@ -630,8 +711,8 @@ function HomePage() {
                 Call the Head-to-Heads
               </h3>
               <p className="text-sm text-text-muted">
-                For every teammate pairing on the grid, predict which driver will finish
-                ahead. Earn bonus points for each correct call.
+                For every teammate pairing on the grid, predict which driver
+                will finish ahead. Earn bonus points for each correct call.
               </p>
             </motion.div>
 
@@ -647,9 +728,9 @@ function HomePage() {
                 Earn Points Every Session
               </h3>
               <p className="text-sm text-text-muted">
-                Exact position earns 5 pts, one place away earns 3, any other top-5 hit
-                earns 1. Head-to-head points stack on top. Sprint weekends have more
-                sessions, so more to play for.
+                Exact position earns 5 pts, one place away earns 3, any other
+                top-5 hit earns 1. Head-to-head points stack on top. Sprint
+                weekends have more sessions, so more to play for.
               </p>
             </motion.div>
 
@@ -665,8 +746,8 @@ function HomePage() {
                 Compete and Follow Friends
               </h3>
               <p className="text-sm text-text-muted">
-                Climb the season leaderboard, follow other players, and compare prediction
-                histories on public profile pages.
+                Climb the season leaderboard, follow other players, and compare
+                prediction histories on public profile pages.
               </p>
             </motion.div>
           </div>
@@ -675,9 +756,10 @@ function HomePage() {
         <FaqSection title="Frequently Asked Questions">
           <FaqItem icon={Target} question="How does scoring work?">
             <p className="mb-3 text-text-muted">
-              The same points system applies to qualifying, sprint qualifying (on sprint
-              weekends), the sprint, and the race. You pick the top 5 for each session;
-              points are awarded by how close your picks are to the actual result:
+              The same points system applies to qualifying, sprint qualifying
+              (on sprint weekends), the sprint, and the race. You pick the top 5
+              for each session; points are awarded by how close your picks are
+              to the actual result:
             </p>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">
@@ -693,7 +775,8 @@ function HomePage() {
               <li className="flex items-center gap-2">
                 <span className="w-16 font-bold text-accent">1 point</span>
                 <span className="text-text-muted">
-                  Driver finishes in the actual top 5, but is off by 2+ positions
+                  Driver finishes in the actual top 5, but is off by 2+
+                  positions
                 </span>
               </li>
               <li className="flex items-center gap-2">
@@ -704,34 +787,34 @@ function HomePage() {
               </li>
             </ul>
             <p className="mt-3 text-sm text-text-muted">
-              Each session scores up to 25 points (all 5 correct). Your weekend total is
-              the sum of quali, sprint (if applicable), and race scores—so sprint weekends
-              can earn you more points.
+              Each session scores up to 25 points (all 5 correct). Your weekend
+              total is the sum of quali, sprint (if applicable), and race
+              scores—so sprint weekends can earn you more points.
             </p>
             <p className="mt-3 text-sm text-text-muted">
-              Head-to-Head scoring is separate: each correct teammate matchup earns 1
-              point per session.
+              Head-to-Head scoring is separate: each correct teammate matchup
+              earns 1 point per session.
             </p>
           </FaqItem>
 
           <FaqItem icon={Lock} question="When do predictions lock?">
             <p className="text-text-muted">
-              Each session locks at its scheduled start time. Qualifying, sprint qualifying
-              (on sprint weekends), the sprint, and the race each have their own deadline.
-              Once a session is locked, you can't change those picks, so get them in before
-              the cutoff.
+              Each session locks at its scheduled start time. Qualifying, sprint
+              qualifying (on sprint weekends), the sprint, and the race each
+              have their own deadline. Once a session is locked, you can't
+              change those picks, so get them in before the cutoff.
             </p>
           </FaqItem>
 
           <FaqItem icon={Clock} question="When can I make predictions?">
             <p className="text-text-muted">
-              You predict for the current weekend only. For each session (quali, sprint
-              quali, sprint, race), you can submit or edit picks until that session's
-              scheduled start time. Future weekends open once the current one is done.
+              You predict for the current weekend only. For each session (quali,
+              sprint quali, sprint, race), you can submit or edit picks until
+              that session's scheduled start time. Future weekends open once the
+              current one is done.
             </p>
           </FaqItem>
         </FaqSection>
-
       </div>
 
       {import.meta.env.DEV ? (

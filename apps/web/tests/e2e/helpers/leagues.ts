@@ -32,9 +32,7 @@ export async function seedLeagueFixtureForAuthenticatedUser(
   options: { namespace: string },
 ) {
   ensureE2EEnvLoaded();
-  const clerkIdentity = await createE2EClerkIdentity(
-    PLAYWRIGHT_AUTH_NAMESPACE,
-  );
+  const clerkIdentity = await createE2EClerkIdentity(PLAYWRIGHT_AUTH_NAMESPACE);
   const stdout = execFileSync(
     'pnpm',
     [

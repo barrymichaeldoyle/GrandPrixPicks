@@ -1,8 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-import {
-  createE2EClerkIdentity,
-} from './clerk';
+import { createE2EClerkIdentity } from './clerk';
 import { applyScenario } from './scenarios';
 
 export const PLAYWRIGHT_AUTH_NAMESPACE = 'playwright_auth_primary';

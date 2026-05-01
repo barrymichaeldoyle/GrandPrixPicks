@@ -21,10 +21,10 @@ export const colors = {
   textMuted: '#94a3b8',
 
   // Accent (teal)
-  accent: '#14b8a6',         // --accent (general use: icons, highlights)
-  accentHover: '#2dd4bf',    // --accent-hover
-  accentMuted: '#134e4a',    // --accent-muted (dark bg tint)
-  buttonAccent: '#0d9488',   // --button-accent (buttons in dark mode — intentionally darker)
+  accent: '#14b8a6', // --accent (general use: icons, highlights)
+  accentHover: '#2dd4bf', // --accent-hover
+  accentMuted: '#134e4a', // --accent-muted (dark bg tint)
+  buttonAccent: '#0d9488', // --button-accent (buttons in dark mode — intentionally darker)
   buttonAccentHover: '#0f766e', // --button-accent-hover
 
   // Semantic

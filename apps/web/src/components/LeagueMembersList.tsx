@@ -130,7 +130,7 @@ export function LeagueMembersList({
         >
           {/* Rank — desktop only, left column */}
           <div className="hidden w-8 shrink-0 text-right sm:block">
-            <span className="text-sm font-semibold tabular-nums text-text-muted">
+            <span className="text-sm font-semibold text-text-muted tabular-nums">
               {member.rank != null ? `#${member.rank}` : '—'}
             </span>
           </div>

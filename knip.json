@@ -18,10 +18,7 @@
         "src/lib/og/styles.ts",
         "src/lib/og/templates.ts"
       ],
-      "ignoreDependencies": [
-        "@tanstack/router-plugin",
-        "tailwindcss"
-      ],
+      "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss"],
       "ignoreBinaries": ["cloudflared"]
     },
     "apps/backend": {

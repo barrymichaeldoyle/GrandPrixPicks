@@ -4,6 +4,7 @@ dist
 storybook-static
 dist-ssr
 *.local
+.claude/settings.local.json
 count.txt
 .env
 .nitro

@@ -624,8 +624,17 @@ function LeagueMembers({
 
   const effectiveRaceId = selectedRaceId ?? weekendDefaultRace?._id;
 
+  const now = Date.now();
   const selectableRaces = (allRaces ?? [])
-    .filter((r) => r.status === 'finished' || r.status === 'locked')
+    .filter((r) => {
+      if (r.status === 'finished' || r.status === 'locked') {
+        return true;
+      }
+      const firstSessionLockAt = r.hasSprint
+        ? (r.sprintQualiLockAt ?? r.qualiLockAt)
+        : r.qualiLockAt;
+      return firstSessionLockAt !== undefined && now >= firstSessionLockAt;
+    })
     .sort((a, b) => a.round - b.round);
 
   // Season queries

@@ -309,22 +309,6 @@ const F1_RACES_2026: Array<{
   },
   {
     round: 4,
-    name: 'Bahrain Grand Prix',
-    slug: 'bahrain-2026',
-    qualiDate: '2026-04-11T16:00:00Z',
-    raceDate: '2026-04-12T15:00:00Z',
-    cancelled: true,
-  },
-  {
-    round: 5,
-    name: 'Saudi Arabian Grand Prix',
-    slug: 'saudi-arabia-2026',
-    qualiDate: '2026-04-18T17:00:00Z',
-    raceDate: '2026-04-19T17:00:00Z',
-    cancelled: true,
-  },
-  {
-    round: 6,
     name: 'Miami Grand Prix',
     slug: 'miami-2026',
     hasSprint: true,
@@ -334,7 +318,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-05-03T20:00:00Z',
   },
   {
-    round: 7,
+    round: 5,
     name: 'Canadian Grand Prix',
     slug: 'canada-2026',
     hasSprint: true,
@@ -344,28 +328,28 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-05-24T20:00:00Z',
   },
   {
-    round: 8,
+    round: 6,
     name: 'Monaco Grand Prix',
     slug: 'monaco-2026',
     qualiDate: '2026-06-06T14:00:00Z',
     raceDate: '2026-06-07T13:00:00Z',
   },
   {
-    round: 9,
+    round: 7,
     name: 'Spanish Grand Prix',
     slug: 'spain-2026',
     qualiDate: '2026-06-13T14:00:00Z',
     raceDate: '2026-06-14T13:00:00Z',
   },
   {
-    round: 10,
+    round: 8,
     name: 'Austrian Grand Prix',
     slug: 'austria-2026',
     qualiDate: '2026-06-27T14:00:00Z',
     raceDate: '2026-06-28T13:00:00Z',
   },
   {
-    round: 11,
+    round: 9,
     name: 'British Grand Prix',
     slug: 'britain-2026',
     hasSprint: true,
@@ -375,21 +359,21 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-07-05T14:00:00Z',
   },
   {
-    round: 12,
+    round: 10,
     name: 'Belgian Grand Prix',
     slug: 'belgium-2026',
     qualiDate: '2026-07-18T14:00:00Z',
     raceDate: '2026-07-19T13:00:00Z',
   },
   {
-    round: 13,
+    round: 11,
     name: 'Hungarian Grand Prix',
     slug: 'hungary-2026',
     qualiDate: '2026-07-25T14:00:00Z',
     raceDate: '2026-07-26T13:00:00Z',
   },
   {
-    round: 14,
+    round: 12,
     name: 'Dutch Grand Prix',
     slug: 'netherlands-2026',
     hasSprint: true,
@@ -399,28 +383,28 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-08-23T13:00:00Z',
   },
   {
-    round: 15,
+    round: 13,
     name: 'Italian Grand Prix',
     slug: 'italy-2026',
     qualiDate: '2026-09-05T14:00:00Z',
     raceDate: '2026-09-06T13:00:00Z',
   },
   {
-    round: 16,
+    round: 14,
     name: 'Madrid Grand Prix',
     slug: 'madrid-2026',
     qualiDate: '2026-09-12T14:00:00Z',
     raceDate: '2026-09-13T13:00:00Z',
   },
   {
-    round: 17,
+    round: 15,
     name: 'Azerbaijan Grand Prix',
     slug: 'azerbaijan-2026',
     qualiDate: '2026-09-25T12:00:00Z',
     raceDate: '2026-09-26T11:00:00Z',
   },
   {
-    round: 18,
+    round: 16,
     name: 'Singapore Grand Prix',
     slug: 'singapore-2026',
     hasSprint: true,
@@ -430,42 +414,42 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-10-11T12:00:00Z',
   },
   {
-    round: 19,
+    round: 17,
     name: 'United States Grand Prix',
     slug: 'usa-2026',
     qualiDate: '2026-10-24T21:00:00Z',
     raceDate: '2026-10-25T20:00:00Z',
   },
   {
-    round: 20,
+    round: 18,
     name: 'Mexican Grand Prix',
     slug: 'mexico-2026',
     qualiDate: '2026-10-31T21:00:00Z',
     raceDate: '2026-11-01T20:00:00Z',
   },
   {
-    round: 21,
+    round: 19,
     name: 'Brazilian Grand Prix',
     slug: 'brazil-2026',
     qualiDate: '2026-11-07T18:00:00Z',
     raceDate: '2026-11-08T17:00:00Z',
   },
   {
-    round: 22,
+    round: 20,
     name: 'Las Vegas Grand Prix',
     slug: 'las-vegas-2026',
     qualiDate: '2026-11-20T04:00:00Z',
     raceDate: '2026-11-21T04:00:00Z',
   },
   {
-    round: 23,
+    round: 21,
     name: 'Qatar Grand Prix',
     slug: 'qatar-2026',
     qualiDate: '2026-11-28T18:00:00Z',
     raceDate: '2026-11-29T16:00:00Z',
   },
   {
-    round: 24,
+    round: 22,
     name: 'Abu Dhabi Grand Prix',
     slug: 'abu-dhabi-2026',
     qualiDate: '2026-12-05T14:00:00Z',
@@ -527,6 +511,7 @@ export const seedRaces = internalMutation({
         // Only force status to 'cancelled' from seed data — never overwrite
         // 'finished' with 'upcoming', as that would reset completed races.
         await ctx.db.patch(existing._id, {
+          round: race.round,
           raceStartAt,
           predictionLockAt,
           qualiStartAt,
@@ -628,6 +613,124 @@ export const seedH2HMatchups = internalMutation({
     }
 
     return { created, skipped, total: H2H_MATCHUPS_2026.length };
+  },
+});
+
+/**
+ * One-off prod cleanup: delete the cancelled bahrain-2026 and saudi-arabia-2026
+ * races and renumber the remaining 2026 races so Miami (originally round 6)
+ * becomes round 4 — matching official F1 numbering after the cancellations.
+ *
+ * Defensively sweeps every table that could hold a foreign key to those races.
+ * If picks were never made (the documented prod state), the orphan sweeps are
+ * no-ops; if any rows somehow exist, they're removed before the race row is
+ * deleted to keep the DB internally consistent.
+ *
+ * Idempotent: safe to re-run. After the first run the slugs no longer exist
+ * and rounds are already correct, so subsequent runs are no-ops.
+ *
+ * Run via:
+ *   npx convex run seed:purgeCancelledBahrainSaudi
+ */
+export const purgeCancelledBahrainSaudi = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cancelledSlugs = ['bahrain-2026', 'saudi-arabia-2026'];
+    const deletedRaceIds: Array<Id<'races'>> = [];
+    let orphansDeleted = 0;
+    let scheduledRemindersCancelled = 0;
+
+    for (const slug of cancelledSlugs) {
+      const race = await ctx.db
+        .query('races')
+        .withIndex('by_slug', (q) => q.eq('slug', slug))
+        .unique();
+      if (!race) {
+        continue;
+      }
+
+      if (race.reminderScheduledId) {
+        try {
+          await ctx.scheduler.cancel(
+            race.reminderScheduledId as Id<'_scheduled_functions'>,
+          );
+          scheduledRemindersCancelled++;
+        } catch {
+          // Already ran or was cancelled — safe to ignore
+        }
+      }
+
+      const tablesByRace = [
+        'predictions',
+        'results',
+        'scores',
+        'h2hPredictions',
+        'h2hResults',
+        'h2hScores',
+      ] as const;
+      for (const table of tablesByRace) {
+        const rows = await ctx.db
+          .query(table)
+          .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+          .collect();
+        for (const row of rows) {
+          await ctx.db.delete(row._id);
+          orphansDeleted++;
+        }
+      }
+
+      const feedRows = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+        .collect();
+      for (const row of feedRows) {
+        const revs = await ctx.db
+          .query('revs')
+          .withIndex('by_event', (q) => q.eq('feedEventId', row._id))
+          .collect();
+        for (const rev of revs) {
+          await ctx.db.delete(rev._id);
+          orphansDeleted++;
+        }
+        await ctx.db.delete(row._id);
+        orphansDeleted++;
+      }
+
+      const inAppRows = await ctx.db
+        .query('inAppNotifications')
+        .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', race._id))
+        .collect();
+      for (const row of inAppRows) {
+        await ctx.db.delete(row._id);
+        orphansDeleted++;
+      }
+
+      await ctx.db.delete(race._id);
+      deletedRaceIds.push(race._id);
+    }
+
+    // Renumber: any 2026 race with round >= 6 in the prior calendar is now
+    // round - 2. After deletion the ordering matches the new seed array.
+    const racesToRenumber = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', 2026).gte('round', 6))
+      .collect();
+    const now = Date.now();
+    let renumbered = 0;
+    for (const race of racesToRenumber) {
+      await ctx.db.patch(race._id, {
+        round: race.round - 2,
+        updatedAt: now,
+      });
+      renumbered++;
+    }
+
+    return {
+      deletedRaces: deletedRaceIds.length,
+      orphansDeleted,
+      scheduledRemindersCancelled,
+      renumbered,
+    };
   },
 });
 
@@ -3184,12 +3287,11 @@ export const reseedDevForUpcomingPredictionBanner = internalAction({
 });
 
 /**
- * Reset dev database to the "post-Japan, Bahrain/Saudi cancelled, Miami next" scenario:
+ * Reset dev database to the "post-Japan, Miami next" scenario:
  * - Clears dev predictions, results, scores, standings, fake users, leagues
  * - Resets races to their seeded 2026 dates/statuses
  * - Ensures drivers and 2026 H2H matchups exist
  * - Marks japan-2026 as finished with race/quali results published in the past
- * - Leaves bahrain-2026 and saudi-arabia-2026 cancelled from the base calendar seed
  * - Ensures miami-2026 remains upcoming, making it the active prediction race
  *
  * Run via:
@@ -3228,7 +3330,6 @@ export const reseedDevForPostJapanMiamiGap = internalAction({
       japanRaceFinishedAt: number;
       miamiRaceId: Id<'races'>;
       miamiRaceStartAt: number;
-      cancelledRaceSlugs: string[];
     } = await ctx.runMutation(internal.seed._seedPostJapanMiamiGapScenario);
 
     return {
@@ -3419,22 +3520,14 @@ export const _seedPostJapanMiamiGapScenario = internalMutation({
       .query('races')
       .withIndex('by_slug', (q) => q.eq('slug', 'japan-2026'))
       .unique();
-    const bahrainRace = await ctx.db
-      .query('races')
-      .withIndex('by_slug', (q) => q.eq('slug', 'bahrain-2026'))
-      .unique();
-    const saudiRace = await ctx.db
-      .query('races')
-      .withIndex('by_slug', (q) => q.eq('slug', 'saudi-arabia-2026'))
-      .unique();
     const miamiRace = await ctx.db
       .query('races')
       .withIndex('by_slug', (q) => q.eq('slug', 'miami-2026'))
       .unique();
 
-    if (!japanRace || !bahrainRace || !saudiRace || !miamiRace) {
+    if (!japanRace || !miamiRace) {
       throw new Error(
-        'japan-2026, bahrain-2026, saudi-arabia-2026, and miami-2026 races are required. Run seedRaces first.',
+        'japan-2026 and miami-2026 races are required. Run seedRaces first.',
       );
     }
 
@@ -3451,14 +3544,6 @@ export const _seedPostJapanMiamiGapScenario = internalMutation({
       updatedAt: now,
     });
 
-    await ctx.db.patch(bahrainRace._id, {
-      status: 'cancelled',
-      updatedAt: now,
-    });
-    await ctx.db.patch(saudiRace._id, {
-      status: 'cancelled',
-      updatedAt: now,
-    });
     await ctx.db.patch(miamiRace._id, {
       status: 'upcoming',
       updatedAt: now,
@@ -3501,7 +3586,6 @@ export const _seedPostJapanMiamiGapScenario = internalMutation({
       japanRaceFinishedAt: japanRaceAt,
       miamiRaceId: miamiRace._id,
       miamiRaceStartAt: miamiRace.raceStartAt,
-      cancelledRaceSlugs: ['bahrain-2026', 'saudi-arabia-2026'],
     };
   },
 });
@@ -5776,7 +5860,6 @@ export const seedNotificationShowcaseForUser = internalMutation({
     const races = await ctx.db.query('races').take(30);
     const preferredShowcaseRaces = [
       'las-vegas-2026',
-      'saudi-arabia-2026',
       'emilia-romagna-2026',
       'abu-dhabi-2026',
     ];

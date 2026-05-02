@@ -24,6 +24,7 @@ import { InlineLoader } from '@/components/InlineLoader';
 import { PageHero } from '@/components/PageHero';
 import { TabSwitch } from '@/components/TabSwitch';
 
+import { isRaceSelectableForLeaderboard } from '../lib/raceSessions';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -162,9 +163,8 @@ function LeaderboardPage() {
   const gameMode: GameMode = search.mode ?? 'combined';
   const scope: Scope = search.scope ?? 'global';
 
-  // Races with results available (finished or locked), sorted by round
   const selectableRaces = allRaces
-    .filter((r) => r.status === 'finished' || r.status === 'locked')
+    .filter((r) => isRaceSelectableForLeaderboard(r))
     .concat(
       defaultRace && !allRaces.some((r) => r._id === defaultRace._id)
         ? [defaultRace]

@@ -47,6 +47,7 @@ import {
   LeagueMembersListSkeleton,
 } from '../../components/LeagueMembersList';
 import { PageLoader } from '../../components/PageLoader';
+import { isRaceSelectableForLeaderboard } from '../../lib/raceSessions';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
@@ -624,17 +625,8 @@ function LeagueMembers({
 
   const effectiveRaceId = selectedRaceId ?? weekendDefaultRace?._id;
 
-  const now = Date.now();
   const selectableRaces = (allRaces ?? [])
-    .filter((r) => {
-      if (r.status === 'finished' || r.status === 'locked') {
-        return true;
-      }
-      const firstSessionLockAt = r.hasSprint
-        ? (r.sprintQualiLockAt ?? r.qualiLockAt)
-        : r.qualiLockAt;
-      return firstSessionLockAt !== undefined && now >= firstSessionLockAt;
-    })
+    .filter((r) => isRaceSelectableForLeaderboard(r))
     .sort((a, b) => a.round - b.round);
 
   // Season queries

@@ -315,7 +315,7 @@ const F1_RACES_2026: Array<{
     sprintQualiDate: '2026-05-01T20:30:00Z',
     sprintDate: '2026-05-02T16:00:00Z',
     qualiDate: '2026-05-02T20:00:00Z',
-    raceDate: '2026-05-03T20:00:00Z',
+    raceDate: '2026-05-03T17:00:00Z',
   },
   {
     round: 5,
@@ -6240,6 +6240,63 @@ export const seedHomePageScenario = internalMutation({
         quali: `Upcoming — ${new Date(qualiStartAt).toISOString()}`,
         race: `Upcoming — ${new Date(raceStartAt).toISOString()}`,
       },
+    };
+  },
+});
+
+/**
+ * One-off ops mutation: F1 brought the 2026 Miami race forward by 3 hours on
+ * race day. Patch raceStartAt + predictionLockAt to 2026-05-03T17:00:00Z and
+ * reschedule the race-session lock notification at the new time.
+ *
+ * Run with: npx convex run seed:fixMiami2026RaceTimeMinusThreeHours --prod
+ */
+export const fixMiami2026RaceTimeMinusThreeHours = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const newRaceStartAt = Date.parse('2026-05-03T17:00:00Z');
+
+    const miami = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'miami-2026'))
+      .unique();
+
+    if (!miami) {
+      throw new Error('miami-2026 race not found');
+    }
+
+    if (miami.status === 'finished' || miami.status === 'cancelled') {
+      throw new Error(
+        `Refusing to patch miami-2026: status is "${miami.status}"`,
+      );
+    }
+
+    if (newRaceStartAt <= Date.now()) {
+      throw new Error(
+        'Refusing to patch miami-2026: new race start is in the past',
+      );
+    }
+
+    const previousRaceStartAt = miami.raceStartAt;
+    const previousPredictionLockAt = miami.predictionLockAt;
+
+    await ctx.db.patch(miami._id, {
+      raceStartAt: newRaceStartAt,
+      predictionLockAt: newRaceStartAt,
+      updatedAt: Date.now(),
+    });
+
+    const updated = await ctx.db.get(miami._id);
+    if (updated) {
+      await scheduleSessionLockNotifications(ctx, updated);
+    }
+
+    return {
+      raceId: miami._id,
+      previousRaceStartAt: new Date(previousRaceStartAt).toISOString(),
+      previousPredictionLockAt: new Date(previousPredictionLockAt).toISOString(),
+      newRaceStartAt: new Date(newRaceStartAt).toISOString(),
+      newPredictionLockAt: new Date(newRaceStartAt).toISOString(),
     };
   },
 });

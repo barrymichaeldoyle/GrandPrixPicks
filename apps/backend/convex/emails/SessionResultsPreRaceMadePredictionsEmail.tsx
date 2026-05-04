@@ -10,7 +10,6 @@ export type SessionResultsPreRaceMadePredictionsEmailProps = {
   logoUrl?: string;
   round?: number;
   countryCode?: string | null;
-  hasSprint?: boolean;
   racePredictionCtaLabel?: string;
 };
 
@@ -23,7 +22,6 @@ export function SessionResultsPreRaceMadePredictionsEmail({
   logoUrl = 'https://grandprixpicks.com/logo-email.png',
   round = 1,
   countryCode = 'au',
-  hasSprint = false,
   racePredictionCtaLabel = 'Review Race Picks',
 }: SessionResultsPreRaceMadePredictionsEmailProps) {
   const props: ResultsEmailShellProps = {
@@ -36,7 +34,6 @@ export function SessionResultsPreRaceMadePredictionsEmail({
     logoUrl,
     round,
     countryCode,
-    hasSprint,
     primaryCtaLabel: 'See My Score',
     secondaryCtaLabel: racePredictionUrl ? racePredictionCtaLabel : undefined,
     secondaryCtaUrl: racePredictionUrl,

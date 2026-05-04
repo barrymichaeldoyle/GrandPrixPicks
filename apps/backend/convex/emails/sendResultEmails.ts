@@ -57,7 +57,6 @@ export const sendBatch = internalAction({
     sessionLabel: v.string(),
     round: v.number(),
     countryCode: v.union(v.string(), v.null()),
-    hasSprint: v.boolean(),
     nextRaceName: v.optional(v.string()),
     nextRaceSlug: v.optional(v.string()),
   },
@@ -77,7 +76,6 @@ export const sendBatch = internalAction({
         logoUrl: `${appUrl}/logo-email.png`,
         round: args.round,
         countryCode: args.countryCode,
-        hasSprint: args.hasSprint,
       };
       const resultsUrl = `${appUrl}/races/${args.raceSlug}?utm_source=email&utm_medium=email&utm_campaign=results`;
       const racePredictionUrl = `${appUrl}/races/${args.raceSlug}?utm_source=email&utm_medium=email&utm_campaign=results_race_cta`;

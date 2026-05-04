@@ -267,7 +267,6 @@ export async function sendPredictionRemindersBatchCore(
         sessions,
         round: race.round,
         countryCode,
-        hasSprint: race.hasSprint ?? false,
       },
     );
     batchesScheduled++;
@@ -499,7 +498,6 @@ async function sendResultEmailsForSessionBatchCore(
         sessionLabel,
         round: race.round,
         countryCode,
-        hasSprint: race.hasSprint ?? false,
         ...(hasUpcomingNextRace && {
           nextRaceName: nextRace!.name,
           nextRaceSlug: nextRace!.slug,

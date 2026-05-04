@@ -11,7 +11,6 @@ export type SessionResultsPostRaceMissingH2HPredictionsEmailProps = {
   logoUrl?: string;
   round?: number;
   countryCode?: string | null;
-  hasSprint?: boolean;
 };
 
 export function SessionResultsPostRaceMissingH2HPredictionsEmail({
@@ -24,7 +23,6 @@ export function SessionResultsPostRaceMissingH2HPredictionsEmail({
   logoUrl = 'https://grandprixpicks.com/logo-email.png',
   round = 1,
   countryCode = 'au',
-  hasSprint = false,
 }: SessionResultsPostRaceMissingH2HPredictionsEmailProps) {
   const props: ResultsEmailShellProps = {
     previewText: `${sessionLabel} results are ready in Grand Prix Picks`,
@@ -38,7 +36,6 @@ export function SessionResultsPostRaceMissingH2HPredictionsEmail({
     logoUrl,
     round,
     countryCode,
-    hasSprint,
     primaryCtaLabel: 'See Weekend Result',
     secondaryCtaLabel: nextRaceUrl ? 'Make Next Race Picks' : undefined,
     secondaryCtaUrl: nextRaceUrl,

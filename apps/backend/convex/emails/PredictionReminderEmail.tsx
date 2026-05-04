@@ -30,7 +30,6 @@ export type PredictionReminderProps = {
   sessions: Array<SessionScheduleItem>;
   round: number;
   countryCode: string | null;
-  hasSprint: boolean;
 };
 
 export function PredictionReminderEmail({
@@ -57,7 +56,6 @@ export function PredictionReminderEmail({
   ],
   round = 1,
   countryCode = 'au',
-  hasSprint = true,
 }: PredictionReminderProps) {
   return (
     <Html>
@@ -116,7 +114,7 @@ export function PredictionReminderEmail({
 
             {/* Race info card (like RaceCard) */}
             <Section style={raceCard}>
-              {/* Flag + Round + Sprint badge row */}
+              {/* Flag + Round row */}
               <Row style={raceHeaderRow}>
                 <Column style={raceHeaderLeft}>
                   {countryCode && (
@@ -129,7 +127,6 @@ export function PredictionReminderEmail({
                     />
                   )}
                   <span style={roundLabel}>Round {round}</span>
-                  {hasSprint && <span style={sprintTag}>SPRINT</span>}
                 </Column>
               </Row>
 
@@ -273,18 +270,6 @@ const roundLabel = {
   fontSize: '13px',
   fontWeight: '500' as const,
   verticalAlign: 'middle',
-};
-
-const sprintTag = {
-  backgroundColor: '#ede9fe',
-  color: '#6d28d9',
-  fontSize: '10px',
-  fontWeight: '700' as const,
-  padding: '2px 6px',
-  borderRadius: '4px',
-  verticalAlign: 'middle',
-  marginLeft: '8px',
-  letterSpacing: '0.03em',
 };
 
 const raceNameStyle = {

@@ -24,7 +24,6 @@ export type ResultsEmailShellProps = {
   logoUrl: string;
   round: number;
   countryCode: string | null;
-  hasSprint: boolean;
   primaryCtaLabel: string;
   secondaryCtaLabel?: string;
   secondaryCtaUrl?: string;
@@ -42,7 +41,6 @@ export function ResultsEmailShell({
   logoUrl,
   round,
   countryCode,
-  hasSprint,
   primaryCtaLabel,
   secondaryCtaLabel,
   secondaryCtaUrl,
@@ -111,7 +109,6 @@ export function ResultsEmailShell({
                     />
                   )}
                   <span style={roundLabel}>Round {round}</span>
-                  {hasSprint && <span style={sprintTag}>SPRINT</span>}
                 </Column>
               </Row>
 
@@ -253,18 +250,6 @@ const roundLabel = {
   fontSize: '13px',
   fontWeight: '500' as const,
   verticalAlign: 'middle',
-};
-
-const sprintTag = {
-  backgroundColor: '#ede9fe',
-  color: '#6d28d9',
-  fontSize: '10px',
-  fontWeight: '700' as const,
-  padding: '2px 6px',
-  borderRadius: '4px',
-  verticalAlign: 'middle',
-  marginLeft: '8px',
-  letterSpacing: '0.03em',
 };
 
 const raceNameStyle = {

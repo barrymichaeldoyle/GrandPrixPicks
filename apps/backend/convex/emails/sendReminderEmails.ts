@@ -54,7 +54,6 @@ export const sendBatch = internalAction({
     ),
     round: v.number(),
     countryCode: v.union(v.string(), v.null()),
-    hasSprint: v.boolean(),
   },
   handler: async (ctx, args) => {
     const appUrl = process.env.APP_URL ?? 'https://grandprixpicks.com';
@@ -100,7 +99,6 @@ export const sendBatch = internalAction({
         sessions: sessionSchedule,
         round: args.round,
         countryCode: args.countryCode,
-        hasSprint: args.hasSprint,
       };
 
       const html = await render(PredictionReminderEmail(props));

@@ -9,7 +9,6 @@ export type SessionResultsPreRaceMissedPredictionsEmailProps = {
   logoUrl?: string;
   round?: number;
   countryCode?: string | null;
-  hasSprint?: boolean;
 };
 
 export function SessionResultsPreRaceMissedPredictionsEmail({
@@ -20,7 +19,6 @@ export function SessionResultsPreRaceMissedPredictionsEmail({
   logoUrl = 'https://grandprixpicks.com/logo-email.png',
   round = 1,
   countryCode = 'au',
-  hasSprint = false,
 }: SessionResultsPreRaceMissedPredictionsEmailProps) {
   const props: ResultsEmailShellProps = {
     previewText: `${sessionLabel} is done. Race predictions are still open.`,
@@ -32,7 +30,6 @@ export function SessionResultsPreRaceMissedPredictionsEmail({
     logoUrl,
     round,
     countryCode,
-    hasSprint,
     primaryCtaLabel: 'Make Race Picks',
     helperText: 'You can still change your race picks until the race starts.',
     footerText:

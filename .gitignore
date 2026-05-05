@@ -18,6 +18,7 @@ todos.json
 debug-storybook.log
 
 # Playwright
+/.playwright-mcp/
 /test-results/
 /playwright-report/
 /playwright/.auth/user.json

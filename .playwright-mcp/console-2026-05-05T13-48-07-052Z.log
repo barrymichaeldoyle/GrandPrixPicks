@@ -132,3 +132,16 @@ https://react.dev/link/hydration-mismatch
 [  896311ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
 [  896313ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
 [  896414ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe:0
+[  899315ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  902319ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  905323ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  908326ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  911328ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  914330ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  917333ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  920336ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  923338ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  926340ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  929343ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  932345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  935348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0

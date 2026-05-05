@@ -1,10 +1,10 @@
-import { ArrowRight, Dices, X } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { ArrowRight, Dices, X } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { useRef, useState } from 'react';
 
-import { Button } from "../Button/Button";
-import { Flag as CountryFlag } from "../Flag";
-import { getCountryCodeForRace } from "../RaceCard";
+import { Button } from '../Button/Button';
+import { Flag as CountryFlag } from '../Flag';
+import { getCountryCodeForRace } from '../RaceCard';
 
 const EXIT_ANIMATION_MS = 320;
 
@@ -22,8 +22,8 @@ interface UpcomingPredictionNudgeProps {
 export function UpcomingPredictionNudge({
   raceName,
   raceSlug,
-  message = "No predictions yet. Make your weekend picks now and adjust them any time before each session starts.",
-  randomizeLabel = "Quick randomize",
+  message = 'No predictions yet. Make your weekend picks now and adjust them any time before each session starts.',
+  randomizeLabel = 'Quick randomize',
   isRandomizing = false,
   error = null,
   onRandomizeClick,
@@ -34,7 +34,9 @@ export function UpcomingPredictionNudge({
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleDismiss() {
-    if (isExiting || !onDismiss) return;
+    if (isExiting || !onDismiss) {
+      return;
+    }
     setIsExiting(true);
     exitTimerRef.current = setTimeout(() => {
       onDismiss();
@@ -42,7 +44,7 @@ export function UpcomingPredictionNudge({
   }
 
   return (
-    <div className={isExiting ? "banner-drop-out" : "banner-drop-in"}>
+    <div className={isExiting ? 'banner-drop-out' : 'banner-drop-in'}>
       <div className="banner-drop-inner relative border-b border-border bg-surface/60">
         <div
           aria-hidden="true"
@@ -111,7 +113,7 @@ export function UpcomingPredictionNudge({
               onClick={onRandomizeClick}
             >
               {isRandomizing ? (
-                "Randomizing..."
+                'Randomizing...'
               ) : (
                 <>
                   <span className="sm:hidden">Randomize</span>

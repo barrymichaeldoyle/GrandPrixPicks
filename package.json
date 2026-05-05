@@ -44,9 +44,9 @@
   },
   "devDependencies": {
     "@playwright/test": "1.59.1",
-    "knip": "6.10.0",
-    "oxfmt": "0.47.0",
-    "oxlint": "1.62.0",
+    "knip": "6.11.0",
+    "oxfmt": "0.48.0",
+    "oxlint": "1.63.0",
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },

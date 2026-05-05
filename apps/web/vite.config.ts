@@ -96,7 +96,7 @@ const config = defineConfig(({ mode }) => {
               wasm: {},
               scanDirs: ['server'],
               rollupConfig: {
-                external: (id) => {
+                external: (id: string) => {
                   if (id.startsWith('cloudflare:')) {
                     return true;
                   }

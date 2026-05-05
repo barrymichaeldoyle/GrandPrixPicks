@@ -1,0 +1,188 @@
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Grand Prix Picks" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e9]
+          - generic [ref=e11]: Grand Prix Picks
+        - navigation "Main navigation" [ref=e12]:
+          - link "Home" [ref=e13] [cursor=pointer]:
+            - /url: /
+          - link "Races" [ref=e14] [cursor=pointer]:
+            - /url: /races
+          - link "Leaderboard" [ref=e15] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Leagues" [ref=e16] [cursor=pointer]:
+            - /url: /leagues
+      - button "Switch to light mode" [ref=e18] [cursor=pointer]:
+        - img [ref=e19]
+  - generic [ref=e26]:
+    - main [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - heading "Grand Prix Picks" [level=1] [ref=e33]:
+              - img [ref=e34]
+              - generic [ref=e36]: Grand Prix Picks
+            - paragraph [ref=e37]:
+              - text: Predict every F1 qualifying, sprint, and race session,
+              - text: then compete on the season leaderboard.
+          - generic [ref=e38]:
+            - link "Make predictions" [ref=e40] [cursor=pointer]:
+              - /url: /races/scenario-race-upcoming-signed-in-complete-h2h-edit-race?from=home
+              - generic [ref=e41]: Make predictions
+              - img [ref=e42]
+            - heading "Upcoming Signed In Complete H2h" [level=2] [ref=e45]
+            - generic [ref=e47]: Round -17
+            - generic [ref=e49]:
+              - generic [ref=e50]:
+                - generic [ref=e51]:
+                  - generic [ref=e52]: "0"
+                  - generic [ref=e53]: "1"
+                - generic [ref=e54]: days
+              - generic [ref=e55]: ":"
+              - generic [ref=e56]:
+                - generic [ref=e57]:
+                  - generic [ref=e58]: "2"
+                  - generic [ref=e59]: "3"
+                - generic [ref=e60]: hrs
+              - generic [ref=e61]: ":"
+              - generic [ref=e62]:
+                - generic [ref=e63]:
+                  - generic [ref=e64]: "5"
+                  - generic [ref=e65]: "0"
+                - generic [ref=e66]: min
+              - generic [ref=e67]: ":"
+              - generic [ref=e68]:
+                - generic [ref=e69]:
+                  - generic [ref=e70]: "3"
+                  - generic [ref=e71]: "4"
+                - generic [ref=e72]: sec
+            - paragraph [ref=e73]: until Qualifying
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Weekend Schedule
+            - generic [ref=e78]:
+              - generic [ref=e79]: GMT+2
+              - link "Open race →" [ref=e80] [cursor=pointer]:
+                - /url: /races/scenario-race-upcoming-signed-in-complete-h2h-edit-race?from=home
+          - generic [ref=e81]:
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: Thursday, May 7
+              - generic [ref=e85]:
+                - img "Upcoming" [ref=e87]
+                - generic [ref=e92]: Qualifying
+                - generic [ref=e93]: 3:37 PM
+            - generic [ref=e94]:
+              - paragraph [ref=e95]: Friday, May 8
+              - generic [ref=e97]:
+                - img "Upcoming" [ref=e99]
+                - generic [ref=e104]: Race
+                - generic [ref=e105]: 3:37 PM
+        - generic [ref=e106]:
+          - heading "How It Works" [level=2] [ref=e107]
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - img [ref=e111]
+              - heading "Pick Your Top 5" [level=3] [ref=e113]
+              - paragraph [ref=e114]: Before each session — qualifying, sprint, and race — drag and drop to rank the 5 drivers you think will finish on top.
+            - generic [ref=e115]:
+              - img [ref=e117]
+              - heading "Call the Head-to-Heads" [level=3] [ref=e126]
+              - paragraph [ref=e127]: For every teammate pairing on the grid, predict which driver will finish ahead. Earn bonus points for each correct call.
+            - generic [ref=e128]:
+              - img [ref=e130]
+              - heading "Earn Points Every Session" [level=3] [ref=e136]
+              - paragraph [ref=e137]: Exact position earns 5 pts, one place away earns 3, any other top-5 hit earns 1. Head-to-head points stack on top. Sprint weekends have more sessions, so more to play for.
+            - generic [ref=e138]:
+              - img [ref=e140]
+              - heading "Compete and Follow Friends" [level=3] [ref=e145]
+              - paragraph [ref=e146]: Climb the season leaderboard, follow other players, and compare prediction histories on public profile pages.
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - img [ref=e149]
+            - heading "Frequently Asked Questions" [level=2] [ref=e152]
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - heading "How does scoring work?" [level=3] [ref=e155]:
+                - img [ref=e156]
+                - text: How does scoring work?
+              - generic [ref=e160]:
+                - paragraph [ref=e161]: "The same points system applies to qualifying, sprint qualifying (on sprint weekends), the sprint, and the race. You pick the top 5 for each session; points are awarded by how close your picks are to the actual result:"
+                - list [ref=e162]:
+                  - listitem [ref=e163]:
+                    - generic [ref=e164]: 5 points
+                    - generic [ref=e165]: Exact position match
+                  - listitem [ref=e166]:
+                    - generic [ref=e167]: 3 points
+                    - generic [ref=e168]: One place away, including P5 picked and P6 actual
+                  - listitem [ref=e169]:
+                    - generic [ref=e170]: 1 point
+                    - generic [ref=e171]: Driver finishes in the actual top 5, but is off by 2+ positions
+                  - listitem [ref=e172]:
+                    - generic [ref=e173]: 0 points
+                    - generic [ref=e174]: Driver finishes outside the top 5
+                - paragraph [ref=e175]: Each session scores up to 25 points (all 5 correct). Your weekend total is the sum of quali, sprint (if applicable), and race scores—so sprint weekends can earn you more points.
+                - paragraph [ref=e176]: "Head-to-Head scoring is separate: each correct teammate matchup earns 1 point per session."
+            - generic [ref=e177]:
+              - heading "When do predictions lock?" [level=3] [ref=e178]:
+                - img [ref=e179]
+                - text: When do predictions lock?
+              - paragraph [ref=e183]: Each session locks at its scheduled start time. Qualifying, sprint qualifying (on sprint weekends), the sprint, and the race each have their own deadline. Once a session is locked, you can't change those picks, so get them in before the cutoff.
+            - generic [ref=e184]:
+              - heading "When can I make predictions?" [level=3] [ref=e185]:
+                - img [ref=e186]
+                - text: When can I make predictions?
+              - paragraph [ref=e190]: You predict for the current weekend only. For each session (quali, sprint quali, sprint, race), you can submit or edit picks until that session's scheduled start time. Future weekends open once the current one is done.
+      - button "Open dev time controls" [ref=e192] [cursor=pointer]:
+        - img [ref=e193]
+    - contentinfo [ref=e196]:
+      - generic [ref=e197]:
+        - generic [ref=e198]:
+          - generic [ref=e199]:
+            - paragraph [ref=e200]:
+              - img [ref=e202]
+              - generic [ref=e204]: Grand Prix Picks
+            - paragraph [ref=e205]: Fan-made prediction game for Formula 1 race weekends. No gambling or real-money betting.
+            - generic [ref=e206]:
+              - generic [ref=e207]: Made by
+              - link "Barry Michael Doyle" [ref=e208] [cursor=pointer]:
+                - /url: https://barrymichaeldoyle.com
+              - link "X (Twitter)" [ref=e210] [cursor=pointer]:
+                - /url: https://x.com/barrymdoyle
+                - img [ref=e211]
+              - link "LinkedIn" [ref=e213] [cursor=pointer]:
+                - /url: https://www.linkedin.com/in/barry-michael-doyle-11369683/
+                - img [ref=e214]
+          - generic [ref=e216]:
+            - heading "Explore" [level=2] [ref=e217]
+            - navigation "Footer site navigation" [ref=e218]:
+              - link "Home" [ref=e219] [cursor=pointer]:
+                - /url: /
+              - link "Feed" [ref=e220] [cursor=pointer]:
+                - /url: /feed
+              - link "Races" [ref=e221] [cursor=pointer]:
+                - /url: /races
+              - link "Leaderboard" [ref=e222] [cursor=pointer]:
+                - /url: /leaderboard
+              - link "Leagues" [ref=e223] [cursor=pointer]:
+                - /url: /leagues
+              - link "My Picks" [ref=e224] [cursor=pointer]:
+                - /url: /me
+          - generic [ref=e225]:
+            - heading "Legal & Support" [level=2] [ref=e226]
+            - navigation "Footer legal navigation" [ref=e227]:
+              - link "Pricing" [ref=e228] [cursor=pointer]:
+                - /url: /pricing
+              - link "Refund Policy" [ref=e229] [cursor=pointer]:
+                - /url: /refund-policy
+              - link "Support" [ref=e230] [cursor=pointer]:
+                - /url: /support
+              - link "Terms of Service" [ref=e231] [cursor=pointer]:
+                - /url: /terms
+              - link "Privacy Policy" [ref=e232] [cursor=pointer]:
+                - /url: /privacy
+        - generic [ref=e233]: 2026 Barry Michael Doyle Software Solutions (Pty) Ltd

@@ -1,0 +1,134 @@
+[   15241ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:14336
+[   15487ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777988641129:66
+[   25022ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3000/:0
+[  469278ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:14336
+[  469347ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <Lazy>
+      <HomePage>
+        <div className="bg-page" data-tsd-source="/src/route...">
+          <section className="home-hero ..." data-tsd-source="/src/route...">
+            <div className="mx-auto w-..." data-tsd-source="/src/route...">
+              <motion.div>
+              <motion.div className="mx-auto mt..." initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} ...>
+                <div className="mx-auto mt..." data-tsd-source="/src/route..." style={{opacity:0, ...}} ref={function}>
+                  <div>
+                  <div>
+                  <div>
+                  <div className="mt-10" suppressHydrationWarning={true} data-tsd-source="/src/route...">
+                    <BigCountdown targetAt={1778161069360} now={1777989356378} data-tsd-source="/src/route...">
+                      <div className="flex items..." suppressHydrationWarning={true} data-tsd-source="/src/route...">
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit value={52} label="sec" data-tsd-source="/src/route...">
+                          <div className="flex min-w..." data-tsd-source="/src/route...">
+                            <div className="flex" data-tsd-source="/src/route...">
+                              <span>
+                              <span
+                                className="font-title inline-block w-[1ch] text-center text-[2.625rem] leading-none fo..."
+                                data-tsd-source="/src/routes/index.tsx:133:9"
+                              >
++                               2
+-                               3
+                            ...
+                  ...
+          ...
+        ...
+
+    at throwOnHydrationMismatch (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:2967:51)
+    at prepareToHydrateHostInstance (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:3020:18)
+    at completeWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:6331:46)
+    at runWithFiberInDEV (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:850:66)
+    at completeUnitOfWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8491:15)
+    at performUnitOfWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8430:23)
+    at workLoopConcurrentByScheduler (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8424:55)
+    at renderRootConcurrent (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8407:64)
+    at performWorkOnRoot (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:7956:145)
+    at performWorkOnRootViaSchedulerTask (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:9058:4)
+[  470013ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989355059:66
+[  615266ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:14336
+[  615334ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <Lazy>
+      <HomePage>
+        <div className="bg-page" data-tsd-source="/src/route...">
+          <section className="home-hero ..." data-tsd-source="/src/route...">
+            <div className="mx-auto w-..." data-tsd-source="/src/route...">
+              <motion.div>
+              <motion.div className="mx-auto mt..." initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} ...>
+                <div className="mx-auto mt..." data-tsd-source="/src/route..." style={{opacity:0, ...}} ref={function}>
+                  <div>
+                  <div>
+                  <div>
+                  <div className="mt-10" suppressHydrationWarning={true} data-tsd-source="/src/route...">
+                    <BigCountdown targetAt={1778161069360} now={1777989502366} data-tsd-source="/src/route...">
+                      <div className="flex items..." suppressHydrationWarning={true} data-tsd-source="/src/route...">
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit>
+                        <CountdownSeparator>
+                        <TimeUnit value={26} label="sec" data-tsd-source="/src/route...">
+                          <div className="flex min-w..." data-tsd-source="/src/route...">
+                            <div className="flex" data-tsd-source="/src/route...">
+                              <span>
+                              <span
+                                className="font-title inline-block w-[1ch] text-center text-[2.625rem] leading-none fo..."
+                                data-tsd-source="/src/routes/index.tsx:133:9"
+                              >
++                               6
+-                               7
+                            ...
+                  ...
+          ...
+        ...
+
+    at throwOnHydrationMismatch (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:2967:51)
+    at prepareToHydrateHostInstance (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:3020:18)
+    at completeWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:6331:46)
+    at runWithFiberInDEV (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:850:66)
+    at completeUnitOfWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8491:15)
+    at performUnitOfWork (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8430:23)
+    at workLoopConcurrentByScheduler (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8424:55)
+    at renderRootConcurrent (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:8407:64)
+    at performWorkOnRoot (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:7956:145)
+    at performWorkOnRootViaSchedulerTask (http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:9058:4)
+[  615500ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989500987:66
+[  619208ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:14336
+[  619431ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989505215:66
+[  694964ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/node_modules/.vite/deps/client-DNRWEmjI.js?v=27acc4ba:14336
+[  695199ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
+[  712523ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/src/components/UpcomingPredictionBanner/UpcomingPredictionNudge.tsx?t=1777989599561:0
+[  712523ms] [ERROR] [vite] Failed to reload /src/components/UpcomingPredictionBanner/UpcomingPredictionNudge.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
+[  846402ms] [LOG] Attempting reconnect in 72ms @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
+[  856413ms] [LOG] WebSocket reconnected at t=162.5s after disconnect due to InactiveServer @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
+[  896311ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:3000/src/routes/__root.tsx?t=1777989580826:66
+[  896313ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://127.0.0.1:3000/__tsd/console-pipe/sse:0
+[  896414ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/__tsd/console-pipe:0

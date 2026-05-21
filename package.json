@@ -43,10 +43,10 @@
     "pp:i": "pnpm patch-pulse -i"
   },
   "devDependencies": {
-    "@playwright/test": "1.59.1",
-    "knip": "6.11.0",
+    "@playwright/test": "1.60.0",
+    "knip": "6.14.1",
     "oxfmt": "0.48.0",
-    "oxlint": "1.63.0",
+    "oxlint": "1.66.0",
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },

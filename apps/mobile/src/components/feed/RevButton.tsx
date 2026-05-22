@@ -1,4 +1,5 @@
 import { useMutation } from 'convex/react';
+import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { api, type ConvexId } from '../../integrations/convex/api';
@@ -20,8 +21,10 @@ export function RevButton({
 
   function handlePress() {
     if (viewerHasReved) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       void removeRev({ feedEventId });
     } else {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       void giveRev({ feedEventId });
     }
   }

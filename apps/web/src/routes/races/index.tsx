@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import { DevNowPanel } from '../../components/DevNowPanel';
 import { PageHero } from '../../components/PageHero';
 import { RaceCard } from '../../components/RaceCard';
+import { SHOW_DEV_TIME_CONTROLS } from '../../lib/devFlags';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 import { useNow } from '../../lib/testing/now';
 
@@ -125,7 +126,7 @@ function RacesPage() {
           )}
         </div>
       </div>
-      {import.meta.env.DEV ? (
+      {SHOW_DEV_TIME_CONTROLS ? (
         <DevNowPanel race={featuredRace} now={now} />
       ) : null}
     </>

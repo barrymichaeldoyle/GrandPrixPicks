@@ -1,6 +1,8 @@
 export type HomeStackParamList = {
   HomeMain: undefined;
   RaceDetail: { raceSlug: string };
+  Notifications: undefined;
+  FeedEventDetail: { feedEventId: string };
 };
 
 export type RacesStackParamList = {
@@ -24,6 +26,8 @@ export type ProfileStackParamList = {
   PublicProfile: { username: string };
   PredictionHistory: { username: string };
   FollowerList: { username: string; tab: 'followers' | 'following' };
+  Leaderboard: undefined;
+  Settings: undefined;
 };
 
 export type RootTabParamList = {

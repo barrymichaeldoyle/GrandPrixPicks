@@ -44,6 +44,12 @@ type ScenarioContext = {
 
 type ReadCtx = QueryCtx | MutationCtx;
 
+function requireAdminTestingScenariosEnabled() {
+  if (process.env.ADMIN_TESTING_SCENARIOS_ENABLED !== 'true') {
+    throw new Error('Testing scenarios are disabled for this deployment.');
+  }
+}
+
 async function ensureScenarioDrivers(ctx: MutationCtx) {
   let drivers = await ctx.db.query('drivers').collect();
   if (drivers.length >= 5) {
@@ -69,6 +75,7 @@ export const listScenarios = internalQuery({
 export const listScenariosAdmin = query({
   args: {},
   handler: async (ctx) => {
+    requireAdminTestingScenariosEnabled();
     requireAdmin(await getViewer(ctx));
     return scenarioList;
   },
@@ -140,6 +147,7 @@ export const applyScenarioAdmin = mutation({
     primaryDisplayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAdminTestingScenariosEnabled();
     requireAdmin(await getOrCreateViewer(ctx));
     const definition = getScenarioDefinition(args.scenario);
     const namespace = args.namespace ?? defaultNamespace(args.scenario);
@@ -201,6 +209,7 @@ export const clearScenarioAdmin = mutation({
     namespace: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAdminTestingScenariosEnabled();
     requireAdmin(await getOrCreateViewer(ctx));
     return await clearNamespaceData(ctx, args.namespace);
   },
@@ -222,6 +231,7 @@ export const getScenarioSummaryAdmin = query({
     namespace: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAdminTestingScenariosEnabled();
     requireAdmin(await getViewer(ctx));
     return await buildScenarioSummary(ctx, {
       namespace: args.namespace,

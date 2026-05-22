@@ -127,9 +127,9 @@ export function FollowListScreen({ route, navigation }: Props) {
               style={styles.row}
             >
               <Avatar
+                imageUrl={item.avatarUrl}
                 name={item.displayName ?? item.username ?? '?'}
                 size="md"
-                src={item.avatarUrl}
               />
               <View style={styles.rowText}>
                 <Text style={styles.rowName}>

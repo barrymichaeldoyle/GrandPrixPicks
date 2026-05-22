@@ -1,18 +1,17 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useRef } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 
-import { RaceCalendarCard } from '../../components/races/RaceCalendarCard';
-import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { RaceCard } from '../../components/races/RaceCard';
+import { RaceCardSkeleton } from '../../components/races/RaceCardSkeleton';
+import { PageHero } from '../../components/ui/PageHero';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import type { RacesStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/tokens';
-import { useTypography } from '../../theme/typography';
 
 type Props = NativeStackScreenProps<RacesStackParamList, 'RaceCalendar'>;
 
 export function RaceCalendarScreen({ navigation }: Props) {
-  const { titleFontFamily } = useTypography();
   const { races, isLoading } = useRaceWeekends();
   const listRef = useRef<FlatList>(null);
 
@@ -31,26 +30,27 @@ export function RaceCalendarScreen({ navigation }: Props) {
   }, [isLoading, nextRaceIndex]);
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return (
+      <View style={styles.screen}>
+        <PageHero title="Races" subtitle="The 2026 F1 calendar." />
+        <View style={styles.skeletonList}>
+          {[0, 1, 2].map((i) => (
+            <RaceCardSkeleton key={i} />
+          ))}
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.screen}>
-      <Text
-        style={[
-          styles.title,
-          titleFontFamily ? { fontFamily: titleFontFamily } : null,
-        ]}
-      >
-        Races
-      </Text>
+      <PageHero title="Races" subtitle="The 2026 F1 calendar." />
       <FlatList
         ref={listRef}
         contentContainerStyle={styles.listContent}
         data={races}
         keyExtractor={(item) => item.slug}
         onScrollToIndexFailed={({ index }) => {
-          // Retry after a short delay if layout not ready
           setTimeout(() => {
             listRef.current?.scrollToIndex({
               index,
@@ -59,12 +59,14 @@ export function RaceCalendarScreen({ navigation }: Props) {
             });
           }, 200);
         }}
-        renderItem={({ item }) => (
-          <RaceCalendarCard
-            race={item}
+        renderItem={({ item, index }) => (
+          <RaceCard
+            isNext={index === nextRaceIndex}
             onPress={() =>
               navigation.navigate('RaceDetail', { raceSlug: item.slug })
             }
+            race={item}
+            round={index + 1}
           />
         )}
         showsVerticalScrollIndicator={false}
@@ -75,21 +77,16 @@ export function RaceCalendarScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   listContent: {
-    gap: 10,
+    gap: 12,
     paddingBottom: 24,
   },
   screen: {
     backgroundColor: colors.page,
     flex: 1,
-    gap: 12,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 12,
   },
-  title: {
-    color: colors.text,
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    lineHeight: 38,
+  skeletonList: {
+    gap: 12,
   },
 });

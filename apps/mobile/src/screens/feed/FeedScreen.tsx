@@ -1,18 +1,21 @@
+import type { NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from 'convex/react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { PageHero } from '../../components/ui/PageHero';
 import { api } from '../../integrations/convex/api';
+import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
-import { useTypography } from '../../theme/typography';
 
 export function FeedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const { titleFontFamily } = useTypography();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
 
   const result = useQuery(
     api.feed.getPersonalizedFeed,
@@ -25,14 +28,10 @@ export function FeedScreen() {
   if (!convexEnabled) {
     return (
       <View style={styles.screen}>
-        <Text
-          style={[
-            styles.title,
-            titleFontFamily ? { fontFamily: titleFontFamily } : null,
-          ]}
-        >
-          Feed
-        </Text>
+        <PageHero
+          subtitle="Live updates from you and the people you follow."
+          title="Feed"
+        />
         <EmptyState
           body="Configure your Convex URL to see your feed."
           icon="pulse-outline"
@@ -48,14 +47,10 @@ export function FeedScreen() {
 
   return (
     <View style={styles.screen}>
-      <Text
-        style={[
-          styles.title,
-          titleFontFamily ? { fontFamily: titleFontFamily } : null,
-        ]}
-      >
-        Feed
-      </Text>
+      <PageHero
+        subtitle="Live updates from you and the people you follow."
+        title="Feed"
+      />
       <FlatList
         contentContainerStyle={
           events.length === 0 ? styles.emptyContainer : styles.listContent
@@ -76,7 +71,16 @@ export function FeedScreen() {
             tintColor={colors.accent}
           />
         }
-        renderItem={({ item }) => <FeedEventCard event={item} />}
+        renderItem={({ item }) => (
+          <FeedEventCard
+            event={item}
+            onPress={() =>
+              navigation.navigate('FeedEventDetail', {
+                feedEventId: String(item._id),
+              })
+            }
+          />
+        )}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -94,15 +98,7 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.page,
     flex: 1,
-    gap: 12,
     paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    lineHeight: 38,
+    paddingTop: 12,
   },
 });

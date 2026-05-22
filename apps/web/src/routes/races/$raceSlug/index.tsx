@@ -27,6 +27,7 @@ import {
   SESSION_LABELS,
   SESSION_LABELS_SHORT,
 } from '../../../lib/sessions';
+import { SHOW_DEV_TIME_CONTROLS } from '../../../lib/devFlags';
 import { canonicalMeta, defaultOgImage, siteConfig } from '../../../lib/site';
 import { useNow } from '../../../lib/testing/now';
 import { RaceEventPage } from './-components/RaceEventPage/RaceEventPage';
@@ -134,10 +135,15 @@ function BackToHomeLink() {
   );
 }
 
-function LeaderboardLink() {
+function LeaderboardLink({ raceId }: { raceId: string }) {
   return (
     <Button asChild variant="text" size="sm" leftIcon={Trophy}>
-      <Link to="/leaderboard">Leaderboard</Link>
+      <Link
+        to="/leaderboard"
+        search={{ time: 'weekend', mode: 'combined', raceId }}
+      >
+        Leaderboard
+      </Link>
     </Button>
   );
 }
@@ -488,9 +494,9 @@ function RaceDetailPage() {
           />
         }
         backLink={from === 'home' ? <BackToHomeLink /> : <BackToRacesLink />}
-        leaderboardLink={<LeaderboardLink />}
+        leaderboardLink={<LeaderboardLink raceId={race._id} />}
       />
-      {import.meta.env.DEV ? (
+      {SHOW_DEV_TIME_CONTROLS ? (
         <DevNowPanel race={currentRace} now={now} />
       ) : null}
     </>

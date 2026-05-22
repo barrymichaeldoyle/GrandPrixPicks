@@ -9,6 +9,8 @@ export const linking: LinkingOptions<RootTabParamList> = {
         path: 'home',
         screens: {
           HomeMain: '',
+          Notifications: 'notifications',
+          FeedEventDetail: 'feed/:feedEventId',
         },
       },
       RacesTab: {
@@ -36,6 +38,9 @@ export const linking: LinkingOptions<RootTabParamList> = {
         screens: {
           ProfileMain: '',
           PublicProfile: 'p/:username',
+          PredictionHistory: 'p/:username/picks',
+          Leaderboard: 'leaderboard',
+          Settings: 'settings',
         },
       },
     },

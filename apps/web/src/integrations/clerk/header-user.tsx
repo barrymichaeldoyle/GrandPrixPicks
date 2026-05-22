@@ -56,7 +56,7 @@ export function HeaderUser() {
         data-testid="header-user-authenticated"
       >
         <div className="flex items-center">
-          <UserButton>
+          <UserButton key={isMobile ? 'mobile' : 'desktop'}>
             <UserButton.MenuItems>
               {isMobile ? (
                 <UserButton.Link

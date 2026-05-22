@@ -175,14 +175,14 @@ export function Header({
       />
       <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <Link to="/" className="group flex items-center gap-2.5">
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/30 bg-accent/10 ring-1 ring-accent/15 transition-colors group-hover:bg-accent/15">
               <Flag
                 className="relative left-0.25 h-5 w-5 text-accent"
                 aria-hidden="true"
               />
             </span>
-            <span className="font-title pr-1 text-xl font-bold tracking-tight transition-colors group-hover:text-accent">
+            <span className="font-title pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent">
               Grand Prix Picks
             </span>
           </Link>
@@ -196,10 +196,10 @@ export function Header({
               <Link
                 key={link.to}
                 to={link.to}
-                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
                 activeProps={{
                   className:
-                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
+                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap',
                   'aria-current': 'page' as const,
                 }}
                 activeOptions={
@@ -214,10 +214,10 @@ export function Header({
             {isSignedIn && (
               <Link
                 to={myPicksHref}
-                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
                 activeProps={{
                   className:
-                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
+                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap',
                   'aria-current': 'page' as const,
                 }}
                 activeOptions={{ includeSearch: false }}
@@ -229,7 +229,7 @@ export function Header({
         </div>
 
         <div
-          className={`flex items-center transition-opacity duration-150 min-[844px]:w-[200px] min-[844px]:shrink-0 min-[844px]:justify-end${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
+          className={`flex items-center gap-2 transition-opacity duration-150 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
         >
           {/* Mobile menu button — signed-out only */}
           {isLoaded && !isSignedIn && (

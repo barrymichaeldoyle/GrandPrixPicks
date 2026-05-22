@@ -4,6 +4,10 @@ import { Calendar, Clock } from 'lucide-react';
 import { formatDate, formatTime } from '../lib/date';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
 
+function abbreviateGrandPrix(name: string) {
+  return name.replace(/\bGrand Prix\b/g, 'GP');
+}
+
 interface RaceDetailHeaderProps {
   race: Doc<'races'>;
   isNextRace: boolean;
@@ -36,7 +40,7 @@ export function RaceDetailHeader({
               src={`https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`}
               srcSet={`https://flagcdn.com/w320/${countryCode.toLowerCase()}.png 2x`}
               alt=""
-              className="h-[80px] w-auto"
+              className="h-[60px] w-auto"
               loading="eager"
               decoding="sync"
             />
@@ -60,7 +64,8 @@ export function RaceDetailHeader({
             Round {race.round}
           </span>
           <h1 className="relative bottom-0.5 truncate text-base leading-tight font-semibold text-text sm:text-lg">
-            {race.name}
+            <span className="sm:hidden">{abbreviateGrandPrix(race.name)}</span>
+            <span className="hidden sm:inline">{race.name}</span>
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-muted">
             <span

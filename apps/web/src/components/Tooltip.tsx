@@ -320,7 +320,7 @@ export function Tooltip({
       }}
     >
       {isDefaultStyle ? (
-        <span className="block max-w-[calc(100vw-16px)] rounded bg-slate-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm dark:bg-slate-700">
+        <span className="block max-w-[calc(100vw-16px)] rounded bg-slate-700 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-sm">
           {content}
         </span>
       ) : (

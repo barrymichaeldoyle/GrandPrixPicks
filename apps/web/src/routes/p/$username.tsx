@@ -298,7 +298,7 @@ function ProfilePage() {
                     </span>
                   </div>
                   <div className="text-xs text-text-muted">
-                    Top 5 · of {stats.totalPlayers}
+                    Top 5 rank of {stats.totalPlayers}
                   </div>
                 </div>
               )}
@@ -311,7 +311,7 @@ function ProfilePage() {
                     </span>
                   </div>
                   <div className="text-xs text-text-muted">
-                    H2H · of {stats.h2hTotalPlayers}
+                    H2H rank of {stats.h2hTotalPlayers}
                   </div>
                 </div>
               )}
@@ -346,20 +346,22 @@ function ProfilePage() {
                 </div>
                 <div className="flex items-stretch">
                   <div
-                    className="flex w-16 shrink-0 flex-col items-center justify-center py-4 text-white"
+                    className="flex w-16 shrink-0 items-center justify-center py-4 text-white"
                     style={{
                       backgroundColor:
                         favoriteDriver.team &&
                         (TEAM_COLORS[favoriteDriver.team] ?? '#666'),
                     }}
                   >
-                    {favoriteDriver.number != null && (
-                      <span className="font-mono text-2xl font-bold">
-                        {favoriteDriver.number}
+                    <span className="inline-flex flex-col items-center gap-1 rounded-lg bg-black/30 px-2 py-1.5 leading-none">
+                      {favoriteDriver.number != null && (
+                        <span className="font-mono text-2xl font-bold">
+                          {favoriteDriver.number}
+                        </span>
+                      )}
+                      <span className="font-mono text-xs font-bold tracking-wider">
+                        {favoriteDriver.code}
                       </span>
-                    )}
-                    <span className="font-mono text-xs font-bold tracking-wider text-white/90">
-                      {favoriteDriver.code}
                     </span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-4">
@@ -470,7 +472,7 @@ function ProfilePage() {
           ) : (
             <FeedEmptyState
               icon={History}
-              message="Results will appear here once scores are published."
+              message="Race-by-race results will appear here once sessions are scored."
             />
           )
         ) : (

@@ -17,15 +17,13 @@ const mutedBadgeStyles =
 
 const variantStyles: Record<BadgeVariant, string> = {
   sprint:
-    'sprint-badge bg-purple-50/80 dark:bg-purple-950/35 border border-purple-300 dark:border-purple-500/40',
+    'sprint-badge bg-purple-950/35 border border-purple-500/40',
   upcoming: successBadgeStyles,
   not_yet_open: mutedBadgeStyles,
-  locked:
-    'border border-warning/40 bg-warning/12 text-warning dark:border-warning/50 dark:bg-warning/18',
+  locked: 'border border-warning/50 bg-warning/18 text-warning',
   submitted: successBadgeStyles,
   finished: mutedBadgeStyles,
-  cancelled:
-    'border border-destructive/40 bg-destructive/10 text-destructive dark:border-destructive/50 dark:bg-destructive/15',
+  cancelled: 'border border-destructive/50 bg-destructive/15 text-destructive',
 };
 
 const statusIcons: Record<

@@ -197,6 +197,34 @@ export function useUpcomingPredictionBannerState() {
 }
 
 export function UpcomingPredictionBanner() {
+  const { isSignedIn } = useAuth();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const profileUsername = pathname.match(/^\/p\/([^/]+)/)?.[1];
+  // Avoid mounting the inner banner, and its prediction queries, on routes
+  // where a "go make picks" nudge is out of context.
+  const viewer = useQuery(
+    api.users.me,
+    isSignedIn && profileUsername != null ? {} : 'skip',
+  );
+
+  if (pathname.startsWith('/settings') || pathname.startsWith('/pricing')) {
+    return null;
+  }
+
+  if (profileUsername != null) {
+    if (viewer === undefined) {
+      return null;
+    }
+
+    if (viewer == null || profileUsername !== viewer.username) {
+      return null;
+    }
+  }
+
+  return <UpcomingPredictionBannerInner />;
+}
+
+function UpcomingPredictionBannerInner() {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
@@ -215,11 +243,9 @@ export function UpcomingPredictionBanner() {
   const needsTop5 = !shouldShowH2HNudge;
   const needsH2H = true;
   const nudgeMessage = shouldShowH2HNudge
-    ? 'Your Top 5 picks were recorded. You still need to submit your remaining H2H picks before each session starts.'
-    : 'No predictions yet. Make your weekend picks now and adjust them any time before each session starts.';
-  const randomizeLabel = shouldShowH2HNudge
-    ? 'Randomize H2H'
-    : 'Quick randomize';
+    ? 'Top 5 picks saved. Submit your H2H picks before each session starts.'
+    : 'No picks yet. Lock them in before each session starts.';
+  const randomizeLabel = shouldShowH2HNudge ? 'Random H2H' : 'Random picks';
   const confirmTitle = shouldShowH2HNudge
     ? 'Randomize H2H Predictions'
     : 'Randomize Predictions';

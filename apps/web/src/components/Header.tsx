@@ -1,5 +1,7 @@
 import { useAuth } from '@clerk/react';
+import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
+import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -23,6 +25,10 @@ export function Header({
 }) {
   const { isSignedIn, isLoaded } = useAuth();
   const navLinks = isSignedIn ? signedInNavLinks : primaryNavLinks;
+  // Used for the "My Picks" nav slot (signed-in only); falls back to /me when
+  // we don't yet know the username (the /me route redirects to /p/$username).
+  const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
+  const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
 
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLElement>(null);
@@ -205,6 +211,20 @@ export function Header({
                 {link.label}
               </Link>
             ))}
+            {isSignedIn && (
+              <Link
+                to={myPicksHref}
+                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
+                activeProps={{
+                  className:
+                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold',
+                  'aria-current': 'page' as const,
+                }}
+                activeOptions={{ includeSearch: false }}
+              >
+                My Picks
+              </Link>
+            )}
           </nav>
         </div>
 

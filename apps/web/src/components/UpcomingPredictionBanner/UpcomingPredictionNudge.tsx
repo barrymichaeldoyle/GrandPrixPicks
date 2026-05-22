@@ -22,8 +22,8 @@ interface UpcomingPredictionNudgeProps {
 export function UpcomingPredictionNudge({
   raceName,
   raceSlug,
-  message = 'No predictions yet. Make your weekend picks now and adjust them any time before each session starts.',
-  randomizeLabel = 'Quick randomize',
+  message = 'No picks yet. Lock them in before each session starts.',
+  randomizeLabel = 'Random picks',
   isRandomizing = false,
   error = null,
   onRandomizeClick,

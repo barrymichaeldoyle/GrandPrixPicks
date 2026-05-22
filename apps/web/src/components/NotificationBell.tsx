@@ -461,8 +461,14 @@ export function NotificationBell() {
 
             <div className="max-h-[460px] divide-y divide-border/50 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="px-4 py-8 text-center text-sm text-text-muted">
-                  No notifications yet
+                <div className="px-5 py-7 text-center">
+                  <p className="text-sm font-medium text-text">
+                    You're all caught up
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-muted">
+                    We'll ping you when sessions lock, results publish, or
+                    someone reacts to your picks.
+                  </p>
                 </div>
               ) : (
                 notifications.map((n) => (

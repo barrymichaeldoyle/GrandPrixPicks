@@ -69,10 +69,12 @@ export function H2HMatchupGrid({
             className="overflow-hidden rounded-lg border border-border bg-surface"
           >
             <div
-              className="px-3 py-1.5 text-xs font-bold tracking-wider text-white uppercase"
+              className="flex justify-center px-2 py-1"
               style={{ backgroundColor: teamColor }}
             >
-              {displayTeamName(matchup.team)}
+              <span className="inline-flex items-center rounded bg-black/30 px-2 py-0.5 text-xs font-bold tracking-wider text-white uppercase">
+                {displayTeamName(matchup.team)}
+              </span>
             </div>
 
             <div className="flex gap-1 p-1">

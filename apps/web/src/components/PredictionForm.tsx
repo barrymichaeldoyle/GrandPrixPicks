@@ -71,18 +71,20 @@ type Driver = Doc<'drivers'>;
 function DriverPickBadge({ driver }: { driver: Driver }) {
   return (
     <div
-      className="flex h-full w-12 shrink-0 flex-col items-center justify-center py-1 text-white sm:w-14"
+      className="flex h-full w-12 shrink-0 items-center justify-center py-1 text-white sm:w-14"
       style={{
         backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
       }}
     >
-      {driver.number != null && (
-        <span className="font-mono text-sm leading-none font-bold sm:text-base">
-          {driver.number}
+      <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-black/30 px-1.5 py-1 leading-none">
+        {driver.number != null && (
+          <span className="font-mono text-sm font-bold sm:text-base">
+            {driver.number}
+          </span>
+        )}
+        <span className="font-mono text-[10px] font-bold tracking-wider sm:text-xs">
+          {driver.code}
         </span>
-      )}
-      <span className="font-mono text-[10px] leading-none font-bold tracking-wider text-white/90 sm:text-xs">
-        {driver.code}
       </span>
     </div>
   );
@@ -246,18 +248,20 @@ function DraggableDriverCard({
         }}
         disabled={disabled}
         aria-label={`${driver.displayName}${disabled ? ' (already selected)' : ''}`}
-        className="flex h-full w-full flex-col items-center justify-center gap-0 rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
+        className="flex h-full w-full items-center justify-center rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
         style={{
           backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
         }}
       >
-        {driver.number != null && (
-          <span className="text-sm leading-none font-bold sm:text-base">
-            {driver.number}
+        <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-black/30 px-2 py-1 leading-none">
+          {driver.number != null && (
+            <span className="text-sm font-bold sm:text-base">
+              {driver.number}
+            </span>
+          )}
+          <span className="text-xs font-bold tracking-wider sm:text-sm">
+            {driver.code}
           </span>
-        )}
-        <span className="text-xs leading-none font-bold tracking-wider sm:text-sm">
-          {driver.code}
         </span>
       </button>
     </div>

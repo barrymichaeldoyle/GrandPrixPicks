@@ -106,7 +106,7 @@ export function DriverBadge({
     'inline-grid place-items-center rounded-md font-mono font-bold tracking-wider text-white uppercase shadow-sm',
     BADGE_SIZES[size],
     showNumber && number != null ? 'gap-1' : '',
-    team === 'Cadillac' ? 'dark:ring-1 dark:ring-white/20' : '',
+    team === 'Cadillac' ? 'ring-1 ring-white/20' : '',
     hasTooltip ? 'cursor-help' : '',
   ]
     .filter(Boolean)

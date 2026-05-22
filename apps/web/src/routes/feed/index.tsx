@@ -66,6 +66,10 @@ export function FeedContent() {
     api.follows.getSuggestedLeagueMembersToFollow,
     { limit: 3 },
   );
+  const topPlayersForFollow = useQuery(
+    api.leaderboards.getCombinedSeasonLeaderboard,
+    { limit: 6 },
+  );
 
   const allPageData = [page0, page1, page2, page3, page4];
   const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
@@ -178,6 +182,9 @@ export function FeedContent() {
     }
 
     if (followsNobody) {
+      const topToFollow = (topPlayersForFollow?.entries ?? [])
+        .filter((p) => !p.isViewer)
+        .slice(0, 5);
       return (
         <FeedEmptyState
           icon={Gauge}
@@ -188,13 +195,53 @@ export function FeedContent() {
           }
           message={
             hasLeagues
-              ? 'Your leagues are a good place to start, or you can browse the leaderboard to find more players.'
-              : 'Browse the leaderboard to find players to follow and start filling your feed.'
+              ? 'Follow players to see their scores and activity here.'
+              : 'Follow players from the leaderboard to start filling your feed.'
           }
         >
-          <div className="flex justify-center">
-            <Button asChild variant="primary" size="md" leftIcon={Trophy}>
-              <Link to="/leaderboard">Browse leaderboard</Link>
+          {topToFollow.length > 0 && (
+            <div className="space-y-2 text-left">
+              <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">
+                Top players this season
+              </p>
+              {topToFollow.map((p) => (
+                <div
+                  key={p.userId}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/35 px-3 py-2"
+                >
+                  <Link
+                    to="/p/$username"
+                    params={{ username: p.username }}
+                    search={{ from: undefined, fromLabel: undefined }}
+                    className="shrink-0"
+                  >
+                    <Avatar
+                      avatarUrl={p.avatarUrl}
+                      username={p.username}
+                      size="sm"
+                    />
+                  </Link>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      to="/p/$username"
+                      params={{ username: p.username }}
+                      search={{ from: undefined, fromLabel: undefined }}
+                      className="truncate text-sm font-semibold text-text hover:text-accent"
+                    >
+                      {p.displayName || p.username}
+                    </Link>
+                    <p className="truncate text-xs text-text-muted">
+                      Rank #{p.rank} · {p.points.toLocaleString()} pts
+                    </p>
+                  </div>
+                  <FollowButton followeeId={p.userId} />
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-3 flex justify-center">
+            <Button asChild variant="secondary" size="md" leftIcon={Trophy}>
+              <Link to="/leaderboard">See full leaderboard</Link>
             </Button>
           </div>
         </FeedEmptyState>

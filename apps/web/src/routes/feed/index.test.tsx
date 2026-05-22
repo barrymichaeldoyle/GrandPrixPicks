@@ -24,6 +24,9 @@ vi.mock('@convex-generated/api', () => ({
     leagues: {
       getMyLeagues: 'getMyLeagues',
     },
+    leaderboards: {
+      getCombinedSeasonLeaderboard: 'getCombinedSeasonLeaderboard',
+    },
   },
 }));
 
@@ -166,7 +169,7 @@ describe('FeedContent', () => {
     const view = renderFeedContent();
 
     expect(view.container.textContent).toContain('Find players to follow');
-    expect(view.container.textContent).toContain('Browse leaderboard');
+    expect(view.container.textContent).toContain('See full leaderboard');
 
     view.unmount();
   });

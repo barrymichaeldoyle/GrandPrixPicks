@@ -50,7 +50,7 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
         onMouseLeave={() => setIsHovered(false)}
         className={`${buttonClass} ${
           isHovered
-            ? 'border border-red-300 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'
+            ? 'border border-red-500/30 bg-red-500/10 text-red-400'
             : 'border border-border bg-surface-muted text-text-muted'
         }`}
       >
@@ -81,7 +81,7 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     <button
       type="button"
       onClick={handleClick}
-      className={`${buttonClass} border border-accent/35 bg-accent-muted text-accent hover:bg-accent-muted/80 dark:border-accent/30 dark:bg-accent-muted/35 dark:text-accent-hover dark:hover:bg-accent-muted/50`}
+      className={`${buttonClass} border border-accent/30 bg-accent-muted/35 text-accent-hover hover:bg-accent-muted/50`}
     >
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
         <UserPlus className="h-3.5 w-3.5" />

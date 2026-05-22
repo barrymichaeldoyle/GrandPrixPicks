@@ -1,9 +1,8 @@
-import { Show, SignInButton, useAuth } from '@clerk/react';
+import { useAuth } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Flag, LogIn, Menu, Moon, Sun, X } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { Flag, Menu, X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { primaryNavLinks, signedInNavLinks } from '../lib/navigation';
@@ -18,17 +17,9 @@ export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
 export function Header({
   mobileMenuOpen,
   onMobileMenuOpenChange,
-  themeKey = 'grand-prix-picks-theme',
-  isDark = false,
-  onThemeChange,
 }: {
   mobileMenuOpen: boolean;
   onMobileMenuOpenChange: (open: boolean) => void;
-  themeKey?: string;
-  /** Current theme; when provided with onThemeChange, theme is controlled by parent. */
-  isDark?: boolean;
-  /** Called when user toggles theme; when provided, parent owns theme state. */
-  onThemeChange?: (dark: boolean) => void;
 }) {
   const { isSignedIn, isLoaded } = useAuth();
   const navLinks = isSignedIn ? signedInNavLinks : primaryNavLinks;
@@ -36,36 +27,6 @@ export function Header({
   const headerRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  // Local theme state only when parent doesn't control it (e.g. Storybook)
-  const [localDark, setLocalDark] = useState(false);
-  const dark = onThemeChange !== undefined ? isDark : localDark;
-
-  useEffect(() => {
-    if (onThemeChange !== undefined) {
-      return;
-    }
-    function syncTheme() {
-      const saved = localStorage.getItem(themeKey);
-      const next = saved === 'dark' ? true : saved === 'light' ? false : true;
-      setLocalDark(next);
-    }
-    syncTheme();
-    return;
-  }, [themeKey, onThemeChange]);
-
-  function toggleTheme() {
-    if (onThemeChange) {
-      onThemeChange(!dark);
-    } else {
-      const next = document.documentElement.classList.toggle('dark');
-      document.documentElement.setAttribute(
-        'data-theme',
-        next ? 'dark' : 'light',
-      );
-      localStorage.setItem(themeKey, next ? 'dark' : 'light');
-      setLocalDark(next);
-    }
-  }
 
   // Keep mobile menu state in sync when crossing the mobile breakpoint
   useEffect(() => {
@@ -193,28 +154,6 @@ export function Header({
     menuButtonRef.current?.focus();
   }
 
-  function renderThemeToggle({
-    className,
-    iconSize,
-    children,
-  }: {
-    className: string;
-    iconSize: number;
-    children?: ReactNode;
-  }) {
-    return (
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className={className}
-        aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        {dark ? <Sun size={iconSize} /> : <Moon size={iconSize} />}
-        {children}
-      </button>
-    );
-  }
-
   return (
     <header
       ref={headerRef}
@@ -272,12 +211,6 @@ export function Header({
         <div
           className={`flex items-center transition-opacity duration-150 min-[844px]:w-[200px] min-[844px]:shrink-0 min-[844px]:justify-end${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
         >
-          {renderThemeToggle({
-            className:
-              'hidden rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:inline-flex',
-            iconSize: 20,
-          })}
-
           {/* Mobile menu button — signed-out only */}
           {isLoaded && !isSignedIn && (
             <motion.button
@@ -315,17 +248,8 @@ export function Header({
             </motion.button>
           )}
 
-          {/* Mobile theme toggle + notification bell — signed-in only */}
-          {isLoaded && isSignedIn && (
-            <>
-              {renderThemeToggle({
-                className:
-                  'inline-flex rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden',
-                iconSize: 18,
-              })}
-              <NotificationBell />
-            </>
-          )}
+          {/* Notification bell — signed-in only */}
+          {isLoaded && isSignedIn && <NotificationBell />}
           <HeaderUser />
         </div>
       </div>
@@ -382,27 +306,6 @@ export function Header({
                     </Link>
                   </motion.div>
                 ))}
-                <Show when="signed-out">
-                  <motion.div
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{
-                      delay: navLinks.length * 0.05,
-                      duration: 0.2,
-                    }}
-                  >
-                    <SignInButton mode="modal">
-                      <button
-                        type="button"
-                        onClick={closeMenu}
-                        className="flex w-full items-center gap-2 rounded-full border-2 border-transparent bg-button-accent px-3 py-2 font-semibold text-white transition-colors hover:bg-button-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-                      >
-                        <LogIn className="h-4 w-4" />
-                        <span>Sign in</span>
-                      </button>
-                    </SignInButton>
-                  </motion.div>
-                </Show>
               </div>
             </motion.nav>
           </>

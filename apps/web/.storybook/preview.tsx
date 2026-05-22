@@ -3,6 +3,38 @@ import '../src/styles.css';
 
 import { StorybookMockProviders } from '../src/storybook/mockAppRuntime';
 
+/**
+ * Viewport presets that match the ones used in real review screenshots.
+ * The toolbar viewport selector applies these to the rendering iframe.
+ */
+const VIEWPORTS = {
+  mobile: {
+    name: 'Mobile (390 × 844)',
+    styles: { width: '390px', height: '844px' },
+    type: 'mobile' as const,
+  },
+  mobileSmall: {
+    name: 'Mobile small (360 × 800)',
+    styles: { width: '360px', height: '800px' },
+    type: 'mobile' as const,
+  },
+  tablet: {
+    name: 'Tablet (768 × 1024)',
+    styles: { width: '768px', height: '1024px' },
+    type: 'tablet' as const,
+  },
+  desktop: {
+    name: 'Desktop (1280 × 800)',
+    styles: { width: '1280px', height: '800px' },
+    type: 'desktop' as const,
+  },
+  desktopWide: {
+    name: 'Desktop wide (1440 × 900)',
+    styles: { width: '1440px', height: '900px' },
+    type: 'desktop' as const,
+  },
+};
+
 const preview: Preview = {
   parameters: {
     controls: {
@@ -13,43 +45,31 @@ const preview: Preview = {
     },
     layout: 'centered',
     backgrounds: { disable: true },
-  },
-  globalTypes: {
-    theme: {
-      description: 'Light / dark mode',
-      toolbar: {
-        title: 'Theme',
-        icon: 'circlehollow',
-        items: ['light', 'dark'],
-        dynamicTitle: true,
-      },
+    viewport: {
+      options: VIEWPORTS,
     },
   },
   initialGlobals: {
-    theme: 'dark',
+    viewport: { value: 'desktopWide', isRotated: false },
   },
   decorators: [
-    (Story, context) => {
-      const theme = context.globals.theme ?? 'light';
-      const themeClass = theme === 'dark' ? 'dark' : '';
-      return (
-        <StorybookMockProviders>
-          <div
-            className={themeClass}
-            data-theme={theme}
-            style={{
-              height: '100vh',
-              overflowY: 'auto',
-              boxSizing: 'border-box',
-              padding: '1rem',
-              backgroundColor: 'var(--page)',
-            }}
-          >
-            <Story />
-          </div>
-        </StorybookMockProviders>
-      );
-    },
+    (Story) => (
+      <StorybookMockProviders>
+        <div
+          className="dark"
+          data-theme="dark"
+          style={{
+            height: '100vh',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
+            padding: '1rem',
+            backgroundColor: 'var(--page)',
+          }}
+        >
+          <Story />
+        </div>
+      </StorybookMockProviders>
+    ),
   ],
 };
 

@@ -13,8 +13,6 @@ const signInButtonClasses =
 
 /**
  * User avatar when signed in; Sign in button when signed out.
- * The Sign in button is hidden on mobile (min-[844px]:block) so it
- * only appears in the header on desktop, and lives in the mobile menu on small screens.
  *
  * Returns null while Clerk is loading so the parent's opacity-0 skeleton
  * can hold the layout width without a timing mismatch.
@@ -123,10 +121,7 @@ export function HeaderUser() {
   }
 
   return (
-    <div
-      className="hidden min-[844px]:block"
-      data-testid="header-user-anonymous"
-    >
+    <div data-testid="header-user-anonymous">
       <SignInButton mode="modal">
         <button
           type="button"

@@ -24,6 +24,12 @@ import {
 } from '../../../../../lib/sessions';
 import { raceEventStoryScenarios } from '../../../../../stories/scenarios/raceEventScenarios';
 import {
+  DAY,
+  fakeId,
+  HOUR,
+  NOW,
+} from '../../../../../storybook/fixtures';
+import {
   StorybookMockProviders,
   buildStorybookConvexMocks,
 } from '../../../../../storybook/mockAppRuntime';
@@ -47,20 +53,14 @@ function StorybookPredictionForm(props: ComponentProps<typeof PredictionForm>) {
   return <PredictionForm {...props} enableNavigationBlocker={false} />;
 }
 
-const now = Date.now();
-const HOUR = 60 * 60 * 1000;
-const DAY = 24 * HOUR;
-
 function fakeRaceId(value: string) {
-  return value as Id<'races'>;
+  return fakeId<'races'>(value);
 }
-
 function fakeDriverId(value: string) {
-  return value as Id<'drivers'>;
+  return fakeId<'drivers'>(value);
 }
-
 function fakeMatchupId(value: string) {
-  return value as Id<'h2hMatchups'>;
+  return fakeId<'h2hMatchups'>(value);
 }
 
 function makeRace({
@@ -78,7 +78,7 @@ function makeRace({
 }) {
   return {
     _id: fakeRaceId(`${slug}-id`),
-    _creationTime: now - 5 * DAY,
+    _creationTime: NOW - 5 * DAY,
     season: 2026,
     round: 7,
     name,
@@ -94,8 +94,8 @@ function makeRace({
     qualiLockAt: raceStartAt - 12 * HOUR,
     raceStartAt,
     predictionLockAt: raceStartAt,
-    createdAt: now - 30 * DAY,
-    updatedAt: now,
+    createdAt: NOW - 30 * DAY,
+    updatedAt: NOW,
   };
 }
 
@@ -147,14 +147,14 @@ function makeDrivers(): DriverRef[] {
 function makeDriverDocs(): Doc<'drivers'>[] {
   return makeDrivers().map((driver, index) => ({
     _id: driver.driverId,
-    _creationTime: now - (index + 1) * HOUR,
+    _creationTime: NOW - (index + 1) * HOUR,
     code: driver.code,
     displayName: driver.displayName ?? driver.code,
     team: driver.team ?? undefined,
     number: driver.number ?? undefined,
     nationality: driver.nationality ?? undefined,
-    createdAt: now - 30 * DAY,
-    updatedAt: now,
+    createdAt: NOW - 30 * DAY,
+    updatedAt: NOW,
   }));
 }
 
@@ -215,7 +215,7 @@ function makeWeekendCardData(
           }))
         : null,
       isHidden: false,
-      isLocked: race.predictionLockAt <= now,
+      isLocked: race.predictionLockAt <= NOW,
       hasResults,
     };
   }
@@ -565,7 +565,7 @@ function renderCatalogScenario(
         name: scenario.race.name,
         status: scenario.race.status,
         hasSprint: scenario.race.hasSprint,
-        raceStartAt: now + scenario.race.raceStartAtOffsetMs,
+        raceStartAt: NOW + scenario.race.raceStartAtOffsetMs,
       })}
       isNextRace={scenario.isNextRace}
       isAuthLoaded={scenario.isAuthLoaded}

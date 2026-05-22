@@ -4,9 +4,8 @@ type SiteNavLink = {
   exact?: boolean;
 };
 
-/** Nav links for signed-out users — home is the marketing/landing page. */
+/** Nav links for signed-out users. The logo handles the home link. */
 export const primaryNavLinks: SiteNavLink[] = [
-  { to: '/', label: 'Home', exact: true },
   { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },

@@ -5,6 +5,7 @@ import {
   DriverBadgeSkeleton,
   ScoredDriverBadge,
 } from './DriverBadge';
+import { mockDrivers } from '../storybook/fixtures';
 
 const meta = {
   title: 'Components/DriverBadge',
@@ -13,11 +14,11 @@ const meta = {
     layout: 'padded',
   },
   args: {
-    code: 'VER',
-    team: 'Red Bull Racing',
-    displayName: 'Max Verstappen',
-    number: 1,
-    nationality: 'NL',
+    code: mockDrivers.VER.code,
+    team: mockDrivers.VER.team,
+    displayName: mockDrivers.VER.displayName,
+    number: mockDrivers.VER.number,
+    nationality: mockDrivers.VER.nationality,
   },
 } satisfies Meta<typeof DriverBadge>;
 
@@ -34,22 +35,8 @@ export const CenteringShowcase: Story = {
           Sizes
         </h3>
         <div className="flex flex-wrap items-center gap-3">
-          <DriverBadge
-            size="sm"
-            code="HAM"
-            team="Ferrari"
-            displayName="Lewis Hamilton"
-            number={44}
-            nationality="GB"
-          />
-          <DriverBadge
-            size="md"
-            code="PIA"
-            team="McLaren"
-            displayName="Oscar Piastri"
-            number={81}
-            nationality="AU"
-          />
+          <DriverBadge size="sm" {...mockDrivers.HAM} />
+          <DriverBadge size="md" {...mockDrivers.PIA} />
         </div>
       </div>
 
@@ -58,23 +45,8 @@ export const CenteringShowcase: Story = {
           With Number
         </h3>
         <div className="flex flex-wrap items-center gap-3">
-          <DriverBadge
-            code="LEC"
-            team="Ferrari"
-            displayName="Charles Leclerc"
-            number={16}
-            nationality="MC"
-            showNumber
-          />
-          <DriverBadge
-            size="sm"
-            code="NOR"
-            team="McLaren"
-            displayName="Lando Norris"
-            number={4}
-            nationality="GB"
-            showNumber
-          />
+          <DriverBadge {...mockDrivers.LEC} showNumber />
+          <DriverBadge size="sm" {...mockDrivers.NOR} showNumber />
         </div>
       </div>
 
@@ -83,22 +55,8 @@ export const CenteringShowcase: Story = {
           Scored + Loading
         </h3>
         <div className="flex flex-wrap items-center gap-3">
-          <ScoredDriverBadge
-            code="RUS"
-            team="Mercedes"
-            displayName="George Russell"
-            number={63}
-            nationality="GB"
-            pickPoints={5}
-          />
-          <ScoredDriverBadge
-            code="ALO"
-            team="Aston Martin"
-            displayName="Fernando Alonso"
-            number={14}
-            nationality="ES"
-            pickPoints={0}
-          />
+          <ScoredDriverBadge {...mockDrivers.RUS} pickPoints={5} />
+          <ScoredDriverBadge {...mockDrivers.ALO} pickPoints={0} />
           <DriverBadgeSkeleton size="sm" />
           <DriverBadgeSkeleton size="md" />
         </div>

@@ -10,6 +10,14 @@ import {
   SessionSeparator,
 } from './FeedItem';
 import {
+  fakeId,
+  HOUR,
+  MINUTE,
+  mockOtherUsers,
+  mockViewer,
+  NOW,
+} from '../storybook/fixtures';
+import {
   StorybookMockProviders,
   buildStorybookConvexMocks,
 } from '../storybook/mockAppRuntime';
@@ -17,51 +25,20 @@ import { StorybookRouter } from '../stories/router-decorator';
 
 type FeedEvent = ComponentProps<typeof FeedItem>['event'];
 
-const now = Date.now();
-const MINUTE = 60 * 1000;
-const HOUR = 60 * MINUTE;
-
-function fakeFeedEventId(value: string) {
-  return value as Id<'feedEvents'>;
-}
-
-function fakeUserId(value: string) {
-  return value as Id<'users'>;
-}
-
-function fakeRaceId(value: string) {
-  return value as Id<'races'>;
-}
-
-function fakeLeagueId(value: string) {
-  return value as Id<'leagues'>;
-}
-
-const viewer = {
-  _id: fakeUserId('viewer'),
-  username: 'barry',
-  avatarUrl: 'https://i.pravatar.cc/80?img=13',
-};
-
-const author = {
-  _id: fakeUserId('user-nina'),
-  username: 'nina',
-  displayName: 'Nina Costa',
-  avatarUrl: 'https://i.pravatar.cc/80?img=5',
-};
-
+const viewer = mockViewer;
+const author = mockOtherUsers[0]!;
 const otherRevUsers = [
   {
-    userId: fakeUserId('user-sam'),
-    username: 'sam',
-    displayName: 'Sam Reid',
-    avatarUrl: 'https://i.pravatar.cc/80?img=12',
+    userId: mockOtherUsers[1]!._id,
+    username: mockOtherUsers[1]!.username,
+    displayName: mockOtherUsers[1]!.displayName,
+    avatarUrl: mockOtherUsers[1]!.avatarUrl,
   },
   {
-    userId: fakeUserId('user-lee'),
-    username: 'lee',
-    displayName: 'Lee Harper',
-    avatarUrl: 'https://i.pravatar.cc/80?img=15',
+    userId: mockOtherUsers[2]!._id,
+    username: mockOtherUsers[2]!.username,
+    displayName: mockOtherUsers[2]!.displayName,
+    avatarUrl: mockOtherUsers[2]!.avatarUrl,
   },
 ];
 
@@ -114,13 +91,13 @@ const h2hPicks = [
 
 function makeFeedEvent(overrides: Partial<FeedEvent> = {}): FeedEvent {
   return {
-    _id: fakeFeedEventId('feed-score-published'),
+    _id: fakeId<'feedEvents'>('feed-score-published'),
     type: 'score_published',
     userId: author._id,
     username: author.username,
     displayName: author.displayName,
     avatarUrl: author.avatarUrl,
-    raceId: fakeRaceId('miami-gp'),
+    raceId: fakeId<'races'>('miami-gp'),
     sessionType: 'race',
     points: 17,
     raceName: 'Miami Grand Prix',
@@ -191,7 +168,7 @@ function makeFeedEvent(overrides: Partial<FeedEvent> = {}): FeedEvent {
         avatarUrl: otherRevUsers[1].avatarUrl,
       },
     ],
-    createdAt: now - 42 * MINUTE,
+    createdAt: NOW - 42 * MINUTE,
     viewerHasReved: false,
     ...overrides,
   };
@@ -199,7 +176,7 @@ function makeFeedEvent(overrides: Partial<FeedEvent> = {}): FeedEvent {
 
 const revUsersByEventId = new Map([
   [
-    fakeFeedEventId('feed-score-published'),
+    fakeId<'feedEvents'>('feed-score-published'),
     [
       {
         userId: viewer._id,
@@ -211,7 +188,7 @@ const revUsersByEventId = new Map([
     ],
   ],
   [
-    fakeFeedEventId('feed-locked'),
+    fakeId<'feedEvents'>('feed-locked'),
     [
       {
         userId: otherRevUsers[0].userId,
@@ -281,11 +258,11 @@ export const ScorePublished: Story = {};
 export const SessionLocked: Story = {
   args: {
     event: makeFeedEvent({
-      _id: fakeFeedEventId('feed-locked'),
+      _id: fakeId<'feedEvents'>('feed-locked'),
       type: 'session_locked',
       points: undefined,
       h2hScore: null,
-      createdAt: now - 12 * MINUTE,
+      createdAt: NOW - 12 * MINUTE,
     }),
   },
 };
@@ -293,7 +270,7 @@ export const SessionLocked: Story = {
 export const JoinedLeague: Story = {
   args: {
     event: makeFeedEvent({
-      _id: fakeFeedEventId('feed-joined-league'),
+      _id: fakeId<'feedEvents'>('feed-joined-league'),
       type: 'joined_league',
       raceId: undefined,
       sessionType: undefined,
@@ -302,11 +279,11 @@ export const JoinedLeague: Story = {
       raceSlug: undefined,
       picks: undefined,
       h2hScore: null,
-      leagueId: fakeLeagueId('legends-league'),
+      leagueId: fakeId<'leagues'>('legends-league'),
       leagueName: 'Legends League',
       leagueSlug: 'legends-league',
       revCount: 2,
-      createdAt: now - 3 * HOUR,
+      createdAt: NOW - 3 * HOUR,
     }),
   },
 };
@@ -314,7 +291,7 @@ export const JoinedLeague: Story = {
 export const StreakMilestone: Story = {
   args: {
     event: makeFeedEvent({
-      _id: fakeFeedEventId('feed-streak'),
+      _id: fakeId<'feedEvents'>('feed-streak'),
       type: 'streak_milestone',
       raceId: undefined,
       sessionType: undefined,
@@ -326,7 +303,7 @@ export const StreakMilestone: Story = {
       streakCount: 5,
       revCount: 7,
       viewerHasReved: true,
-      createdAt: now - 26 * HOUR,
+      createdAt: NOW - 26 * HOUR,
     }),
   },
 };
@@ -337,7 +314,7 @@ export const GroupedSession: Story = {
       raceName: 'Miami Grand Prix',
       sessionType: 'race',
       raceSlug: 'miami-grand-prix',
-      createdAt: now - 50 * MINUTE,
+      createdAt: NOW - 50 * MINUTE,
       top5: [
         {
           code: 'PIA',
@@ -377,16 +354,16 @@ export const GroupedSession: Story = {
         <SessionSeparator session={session} grouped />
         <FeedItem
           event={makeFeedEvent({
-            _id: fakeFeedEventId('feed-group-1'),
-            createdAt: now - 40 * MINUTE,
+            _id: fakeId<'feedEvents'>('feed-group-1'),
+            createdAt: NOW - 40 * MINUTE,
           })}
           grouped
           position="first"
         />
         <FeedItem
           event={makeFeedEvent({
-            _id: fakeFeedEventId('feed-group-2'),
-            userId: fakeUserId('user-oliver'),
+            _id: fakeId<'feedEvents'>('feed-group-2'),
+            userId: fakeId<'users'>('user-oliver'),
             username: 'oliver',
             displayName: 'Oliver Kane',
             avatarUrl: 'https://i.pravatar.cc/80?img=18',
@@ -397,7 +374,7 @@ export const GroupedSession: Story = {
               points: 2,
             },
             revCount: 1,
-            createdAt: now - 39 * MINUTE,
+            createdAt: NOW - 39 * MINUTE,
             viewerHasReved: true,
           })}
           grouped
@@ -405,8 +382,8 @@ export const GroupedSession: Story = {
         />
         <FeedItem
           event={makeFeedEvent({
-            _id: fakeFeedEventId('feed-group-3'),
-            userId: fakeUserId('user-noah'),
+            _id: fakeId<'feedEvents'>('feed-group-3'),
+            userId: fakeId<'users'>('user-noah'),
             username: 'noah',
             displayName: 'Noah Evans',
             avatarUrl: 'https://i.pravatar.cc/80?img=20',
@@ -414,7 +391,7 @@ export const GroupedSession: Story = {
             h2hScore: null,
             revCount: 0,
             recentRevUsers: [],
-            createdAt: now - 38 * MINUTE,
+            createdAt: NOW - 38 * MINUTE,
           })}
           grouped
           position="last"

@@ -3,61 +3,26 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 
 import { H2HMatchupGrid } from './H2HMatchupGrid';
+import { fakeId, mockDrivers } from '../storybook/fixtures';
 
 const matchups = [
   {
-    _id: 'mclaren' as Id<'h2hMatchups'>,
+    _id: fakeId<'h2hMatchups'>('matchup-mclaren'),
     team: 'McLaren',
-    driver1: {
-      _id: 'nor' as Id<'drivers'>,
-      code: 'NOR',
-      displayName: 'Lando Norris',
-      number: 4,
-      nationality: 'GB',
-    },
-    driver2: {
-      _id: 'pia' as Id<'drivers'>,
-      code: 'PIA',
-      displayName: 'Oscar Piastri',
-      number: 81,
-      nationality: 'AU',
-    },
+    driver1: mockDrivers.NOR,
+    driver2: mockDrivers.PIA,
   },
   {
-    _id: 'ferrari' as Id<'h2hMatchups'>,
+    _id: fakeId<'h2hMatchups'>('matchup-ferrari'),
     team: 'Ferrari',
-    driver1: {
-      _id: 'lec' as Id<'drivers'>,
-      code: 'LEC',
-      displayName: 'Charles Leclerc',
-      number: 16,
-      nationality: 'MC',
-    },
-    driver2: {
-      _id: 'ham' as Id<'drivers'>,
-      code: 'HAM',
-      displayName: 'Lewis Hamilton',
-      number: 44,
-      nationality: 'GB',
-    },
+    driver1: mockDrivers.LEC,
+    driver2: mockDrivers.HAM,
   },
   {
-    _id: 'mercedes' as Id<'h2hMatchups'>,
+    _id: fakeId<'h2hMatchups'>('matchup-mercedes'),
     team: 'Mercedes',
-    driver1: {
-      _id: 'rus' as Id<'drivers'>,
-      code: 'RUS',
-      displayName: 'George Russell',
-      number: 63,
-      nationality: 'GB',
-    },
-    driver2: {
-      _id: 'ant' as Id<'drivers'>,
-      code: 'ANT',
-      displayName: 'Kimi Antonelli',
-      number: 12,
-      nationality: 'IT',
-    },
+    driver1: mockDrivers.RUS,
+    driver2: mockDrivers.ANT,
   },
 ] as const;
 
@@ -80,7 +45,7 @@ export const Interactive: Story = {
   render: () => {
     const [selections, setSelections] = useState<Record<string, Id<'drivers'>>>(
       {
-        mclaren: 'pia' as Id<'drivers'>,
+        [matchups[0]._id]: mockDrivers.PIA._id,
       },
     );
 
@@ -106,8 +71,8 @@ export const ReadOnly: Story = {
         matchups={[...matchups]}
         mode="readonly"
         selections={{
-          mclaren: 'nor' as Id<'drivers'>,
-          ferrari: 'ham' as Id<'drivers'>,
+          [matchups[0]._id]: mockDrivers.NOR._id,
+          [matchups[1]._id]: mockDrivers.HAM._id,
         }}
       />
     </div>

@@ -12,8 +12,6 @@ import {
   Globe,
   LoaderCircle,
   LogIn,
-  Moon,
-  Sun,
   Ticket,
   User,
   X,
@@ -30,7 +28,6 @@ import { PageLoader } from '../components/PageLoader';
 import { SettingsSection } from '../components/SettingsSection';
 import { TimeFormatSelect } from '../components/TimeFormatSelect';
 import { TimezoneSelect } from '../components/TimezoneSelect';
-import { useTheme } from '../hooks/useTheme';
 import { formatCalendarDate } from '../lib/date';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
@@ -403,7 +400,6 @@ function SettingsPage() {
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateProfile = useMutation(api.users.updateProfile);
   const updateRegional = useMutation(api.users.updateRegionalSettings);
-  const { isDark, setTheme } = useTheme();
 
   // Push notifications
   const {
@@ -837,32 +833,6 @@ function SettingsPage() {
               });
             }}
           />
-
-          <SettingsSection
-            id="appearance"
-            title="Appearance"
-            icon={
-              isDark ? (
-                <Moon className="h-5 w-5 text-text-muted" />
-              ) : (
-                <Sun className="h-5 w-5 text-text-muted" />
-              )
-            }
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium text-text">Dark mode</p>
-                <p className="text-sm text-text-muted">
-                  Choose light or dark theme across the app.
-                </p>
-              </div>
-              <ToggleSwitch
-                checked={isDark}
-                onChange={() => setTheme(!isDark)}
-                loading={false}
-              />
-            </div>
-          </SettingsSection>
 
           {/* Notifications section */}
           <SettingsSection

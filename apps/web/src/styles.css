@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import './tokens.generated.css';
 
-@custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+/* Dark mode is the only theme — the .dark class is hard-coded on <html>. */
+@custom-variant dark (&);
 
 @font-face {
   font-family: 'Orbitron';
@@ -16,72 +17,35 @@
 }
 
 /* ==========================================================================
-   Design tokens: semantic colors for light/dark mode.
-   Toggle by adding/removing .dark on <html> (or use prefers-color-scheme).
+   Design tokens.
 
-   Dark-mode color vars are AUTO-GENERATED from packages/shared/src/tokens.ts
-   via tokens.generated.css (imported above). Edit tokens.ts, not the CSS.
+   Colour tokens are AUTO-GENERATED from packages/shared/src/tokens.ts via
+   tokens.generated.css (imported above) and target `.dark` (which is
+   hard-coded on <html>). Layout/font vars and web-only colour aliases live
+   here.
    ========================================================================== */
 
-:root:not(.dark):not([data-theme='dark']),
-[data-theme='light'] {
-  --bottom-overlay-offset: 0px;
+:root {
   --app-viewport-height: 100dvh;
   --app-top-overlay-offset: 0px;
   --app-bottom-overlay-offset: 0px;
-  --light-pop: bold;
+  --bottom-overlay-offset: 0px;
   --font-title:
     'Orbitron', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, sans-serif;
-  --page: #f4f8fc;
-  --surface: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface-raised: #ffffff;
-  --surface-hover: #e8f1f8;
-  --surface-muted: #edf3f8;
-  --text: #0f172a;
-  --text-muted: #51657a;
-  --border: #d4e0ec;
-  --border-strong: #b8c9d9;
-  --accent: #0f8f83;
-  --accent-hover: #0f766e;
-  --button-accent: var(--accent);
-  --button-accent-hover: var(--accent-hover);
-  --accent-muted: #c2f3eb;
-  --success: #059669;
-  --success-muted: #d1fae5;
-  --warning: #d97706;
-  --warning-muted: #fef3c7;
-  --error: #dc2626;
-  --error-muted: #fee2e2;
-  --overlay: rgba(15, 23, 42, 0.56);
-  --scrollbar-track: #d4e0ec;
-  --scrollbar-thumb: #7b91a8;
-  --scrollbar-thumb-hover: #5f7389;
-  --light-hero-glow-strong: 0.2;
-  --light-hero-glow-soft: 0.07;
-  --light-hero-rail-opacity: 0.64;
-  --light-hero-shadow-deep: 0.4;
-  --light-hero-shadow-soft: 0.24;
-  --light-section-shadow-deep: 0.33;
-  --light-section-shadow-soft: 0.2;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Shared color tokens are injected via tokens.generated.css (imported above).
-   Only web-specific overrides live here. */
+/* Web-only colour aliases that aren't part of the shared token set. */
 .dark,
 [data-theme='dark'] {
   --surface-raised: var(--surface-elevated);
-  /* Aliases used by Tailwind utilities that don’t map 1:1 to shared tokens */
   --surface-hover: #334155;
-  /* Web-only */
   --error-muted: #7f1d1d;
   --overlay: rgba(0, 0, 0, 0.5);
-  /* Lighter scrollbar so it’s visible on dark backgrounds */
   --scrollbar-track: #334155;
   --scrollbar-thumb: #64748b;
   --scrollbar-thumb-hover: #94a3b8;
@@ -147,20 +111,6 @@ body {
   /* Scroll lives in the main content area so the scrollbar sits below the sticky header */
   overflow: hidden;
   background-color: var(--page);
-  background-image:
-    radial-gradient(
-      1100px 520px at 50% -200px,
-      rgba(15, 143, 131, 0.16) 0%,
-      rgba(15, 143, 131, 0.06) 42%,
-      transparent 78%
-    ),
-    radial-gradient(
-      700px 380px at 100% -120px,
-      rgba(59, 130, 246, 0.1) 0%,
-      transparent 76%
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76) 0%, transparent 40%);
-  background-attachment: fixed;
   color: var(--text);
   font-family:
     ui-sans-serif,
@@ -173,11 +123,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
-}
-
-.dark body,
-[data-theme='dark'] body {
-  background-image: none;
 }
 
 .home-hero::before {
@@ -239,111 +184,55 @@ body {
   }
 }
 
-html:not(.dark) .home-hero,
-[data-theme='light'] .home-hero {
-  background:
-    radial-gradient(
-      38rem 18rem at 50% 0%,
-      rgba(34, 211, 238, 0.14),
-      transparent 68%
-    ),
-    radial-gradient(
-      24rem 14rem at 12% 14%,
-      rgba(20, 184, 166, 0.1),
-      transparent 72%
-    ),
-    radial-gradient(
-      26rem 14rem at 88% 16%,
-      rgba(59, 130, 246, 0.1),
-      transparent 72%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(246, 251, 255, 0.82) 0%,
-      rgba(241, 248, 255, 0.42) 42%,
-      transparent 100%
-    );
+/* Hero speed-line overlay (decorative, behind content) */
+.home-hero-lines {
+  z-index: 0;
+  opacity: 0.55;
+  mix-blend-mode: screen;
 }
 
-html:not(.dark) .home-hero-eyebrow,
-[data-theme='light'] .home-hero-eyebrow {
-  border-color: rgba(14, 116, 144, 0.18);
-  background: rgba(255, 255, 255, 0.78);
-  color: #476074;
-  box-shadow: 0 12px 30px -24px rgba(14, 116, 144, 0.28);
-}
-
-html:not(.dark) .home-hero-mark,
-[data-theme='light'] .home-hero-mark {
-  color: #0f8f83;
-}
-
-html:not(.dark) .home-hero-title,
-[data-theme='light'] .home-hero-title,
-html:not(.dark) .home-hero-race-title,
-[data-theme='light'] .home-hero-race-title,
-html:not(.dark) .home-hero-countdown-label,
-[data-theme='light'] .home-hero-countdown-label,
-html:not(.dark) .home-hero-state-title,
-[data-theme='light'] .home-hero-state-title {
-  color: #0f172a;
-}
-
-html:not(.dark) .home-hero-copy,
-[data-theme='light'] .home-hero-copy,
-html:not(.dark) .home-hero-countdown-copy,
-[data-theme='light'] .home-hero-countdown-copy,
-html:not(.dark) .home-hero-state-copy,
-[data-theme='light'] .home-hero-state-copy {
-  color: #51657a;
-}
-
-html:not(.dark) .home-hero-neutral-badge,
-[data-theme='light'] .home-hero-neutral-badge {
-  border-color: rgba(14, 116, 144, 0.16);
-  background: rgba(255, 255, 255, 0.76);
-  color: #557085;
-}
-
-html:not(.dark) .home-hero-sprint-badge,
-[data-theme='light'] .home-hero-sprint-badge {
-  border-color: rgba(6, 182, 212, 0.24);
-  background: rgba(34, 211, 238, 0.14);
-  color: #0f766e;
-}
-
-html:not(.dark) .home-hero-race-flag,
-[data-theme='light'] .home-hero-race-flag {
-  border-color: rgba(148, 163, 184, 0.42);
-  box-shadow: 0 10px 24px -20px rgba(15, 23, 42, 0.3);
-}
-
-/* Light mode card elevation: give standard surface cards more depth.
-   Targets common card shells without affecting form controls/buttons. */
-:where(
-  .rounded-xl.border.border-border.bg-surface,
-  .rounded-2xl.border.border-border.bg-surface
-) {
+/* Countdown digit "tiles" — flip-clock inspired */
+.home-countdown-digit {
+  background: linear-gradient(
+    180deg,
+    rgba(30, 41, 59, 0.85) 0%,
+    rgba(15, 23, 42, 0.92) 100%
+  );
+  border: 1px solid rgba(148, 163, 184, 0.16);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 10px 30px -22px rgba(15, 23, 42, 0.42),
-    0 2px 10px -8px rgba(15, 23, 42, 0.22);
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
+    0 8px 20px -12px rgba(0, 0, 0, 0.55);
+  color: var(--text);
 }
 
-.dark
-  :where(
-    .rounded-xl.border.border-border.bg-surface,
-    .rounded-2xl.border.border-border.bg-surface
-  ),
-[data-theme='dark']
-  :where(
-    .rounded-xl.border.border-border.bg-surface,
-    .rounded-2xl.border.border-border.bg-surface
-  ) {
-  box-shadow: none;
+/* Season strip — current step gets glow */
+.home-season-step-current {
+  background: rgba(20, 184, 166, 0.08);
 }
 
-/* Page hero polish: richer light-mode depth + subtle accent atmosphere. */
+/* Past rounds: desaturate + dim the flag so chronological direction reads at a glance. */
+.home-season-step-past {
+  opacity: 0.5;
+}
+.home-season-step-past img {
+  filter: grayscale(0.85);
+}
+.home-season-step-past:hover img {
+  filter: grayscale(0.3);
+}
+
+/* Rank badge: slight bevel for the metallic look */
+.home-podium-rank-1,
+.home-podium-rank-2,
+.home-podium-rank-3 {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+/* Page hero shell — theme-agnostic positioning */
 .page-hero {
   position: relative;
   overflow: hidden;
@@ -352,224 +241,6 @@ html:not(.dark) .home-hero-race-flag,
 .page-hero > * {
   position: relative;
   z-index: 1;
-}
-
-html:not(.dark) .page-hero::before,
-[data-theme='light'] .page-hero::before {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      680px 230px at 14% 0%,
-      rgba(15, 143, 131, var(--light-hero-glow-strong)) 0%,
-      rgba(15, 143, 131, var(--light-hero-glow-soft)) 44%,
-      transparent 74%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.86) 0%,
-      rgba(255, 255, 255, 0.46) 56%,
-      rgba(255, 255, 255, 0.34) 100%
-    );
-}
-
-html:not(.dark) .page-hero::after,
-[data-theme='light'] .page-hero::after {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 3px;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--accent) 70%, #ffffff 30%) 18%,
-    var(--accent) 48%,
-    color-mix(in srgb, var(--accent) 72%, #ffffff 28%) 82%,
-    transparent 100%
-  );
-  opacity: var(--light-hero-rail-opacity);
-}
-
-html:not(.dark) .page-hero,
-[data-theme='light'] .page-hero {
-  border-color: color-mix(in srgb, var(--border) 82%, var(--accent) 18%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.92) inset,
-    0 16px 40px -34px rgba(15, 23, 42, var(--light-hero-shadow-deep)),
-    0 6px 15px -14px rgba(15, 23, 42, var(--light-hero-shadow-soft));
-}
-
-html:not(.dark) .page-hero-eyebrow,
-[data-theme='light'] .page-hero-eyebrow {
-  position: relative;
-  z-index: 1;
-  border-color: color-mix(in srgb, var(--border) 76%, var(--accent) 24%);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 42%, var(--accent-muted) 58%) 0%,
-    color-mix(in srgb, var(--surface) 58%, var(--accent-muted) 42%) 100%
-  );
-  color: color-mix(in srgb, var(--text-muted) 70%, var(--accent) 30%);
-}
-
-html:not(.dark) .page-hero.page-hero--high-contrast,
-[data-theme='light'] .page-hero.page-hero--high-contrast {
-  border-color: color-mix(in srgb, var(--border) 58%, var(--accent) 42%);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 70%, var(--accent-muted) 30%) 0%,
-    color-mix(in srgb, var(--surface) 88%, var(--accent-muted) 12%) 100%
-  );
-}
-
-html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-title,
-[data-theme='light'] .page-hero.page-hero--high-contrast .page-hero-title {
-  color: color-mix(in srgb, var(--text) 88%, #0f172a 12%);
-}
-
-html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-subtitle,
-[data-theme='light'] .page-hero.page-hero--high-contrast .page-hero-subtitle {
-  color: color-mix(in srgb, var(--text) 74%, var(--accent) 26%);
-}
-
-html:not(.dark) .page-hero.page-hero--high-contrast .page-hero-eyebrow,
-[data-theme='light'] .page-hero.page-hero--high-contrast .page-hero-eyebrow {
-  border-color: color-mix(in srgb, var(--border) 52%, var(--accent) 48%);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 28%, var(--accent-muted) 72%) 0%,
-    color-mix(in srgb, var(--surface) 48%, var(--accent-muted) 52%) 100%
-  );
-  color: color-mix(in srgb, var(--text) 68%, var(--accent) 32%);
-}
-
-/* Settings cards: distinct shell + slightly stronger header separation in light mode. */
-html:not(.dark) .settings-section-shell,
-[data-theme='light'] .settings-section-shell {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.88) inset,
-    0 10px 28px -24px rgba(15, 23, 42, var(--light-section-shadow-deep)),
-    0 2px 10px -8px rgba(15, 23, 42, var(--light-section-shadow-soft));
-}
-
-html:not(.dark) .settings-section-header,
-[data-theme='light'] .settings-section-header {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 66%, var(--accent-muted) 34%) 0%,
-    color-mix(in srgb, var(--surface) 86%, var(--accent-muted) 14%) 100%
-  );
-  border-bottom-color: color-mix(in srgb, var(--border) 84%, var(--accent) 16%);
-}
-
-/* Light visual intensity presets
-   - Default/bold: no data-light-pop attr needed (or set to "bold")
-   - Subtle: set <html data-light-pop="subtle"> */
-html[data-light-pop='subtle'] {
-  --light-hero-glow-strong: 0.155;
-  --light-hero-glow-soft: 0.05;
-  --light-hero-rail-opacity: 0.5;
-  --light-hero-shadow-deep: 0.37;
-  --light-hero-shadow-soft: 0.22;
-  --light-section-shadow-deep: 0.29;
-  --light-section-shadow-soft: 0.18;
-}
-
-html[data-light-pop='subtle'] .settings-section-header {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 72%, var(--accent-muted) 28%) 0%,
-    color-mix(in srgb, var(--surface) 89%, var(--accent-muted) 11%) 100%
-  );
-  border-bottom-color: color-mix(in srgb, var(--border) 88%, var(--accent) 12%);
-}
-
-/* Light mode interactive elevation: only for actionable cards. */
-:where(
-  a.rounded-xl.border.border-border.bg-surface,
-  a.rounded-2xl.border.border-border.bg-surface,
-  button.rounded-xl.border.border-border.bg-surface,
-  button.rounded-2xl.border.border-border.bg-surface,
-  [role='button'].rounded-xl.border.border-border.bg-surface,
-  [role='button'].rounded-2xl.border.border-border.bg-surface,
-  .cursor-pointer.rounded-xl.border.border-border.bg-surface,
-  .cursor-pointer.rounded-2xl.border.border-border.bg-surface
-) {
-  transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 180ms ease;
-  will-change: transform, box-shadow;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  :where(
-    a.rounded-xl.border.border-border.bg-surface,
-    a.rounded-2xl.border.border-border.bg-surface,
-    button.rounded-xl.border.border-border.bg-surface,
-    button.rounded-2xl.border.border-border.bg-surface,
-    [role='button'].rounded-xl.border.border-border.bg-surface,
-    [role='button'].rounded-2xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-2xl.border.border-border.bg-surface
-  ):hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.9) inset,
-      0 20px 42px -26px rgba(15, 23, 42, 0.42),
-      0 8px 18px -14px rgba(15, 23, 42, 0.26);
-    border-color: var(--border-strong);
-  }
-}
-
-:where(
-  a.rounded-xl.border.border-border.bg-surface,
-  a.rounded-2xl.border.border-border.bg-surface,
-  button.rounded-xl.border.border-border.bg-surface,
-  button.rounded-2xl.border.border-border.bg-surface,
-  [role='button'].rounded-xl.border.border-border.bg-surface,
-  [role='button'].rounded-2xl.border.border-border.bg-surface,
-  .cursor-pointer.rounded-xl.border.border-border.bg-surface,
-  .cursor-pointer.rounded-2xl.border.border-border.bg-surface
-):focus-visible {
-  transform: translateY(-2px);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 20px 42px -26px rgba(15, 23, 42, 0.42),
-    0 8px 18px -14px rgba(15, 23, 42, 0.26);
-}
-
-.dark
-  :where(
-    a.rounded-xl.border.border-border.bg-surface,
-    a.rounded-2xl.border.border-border.bg-surface,
-    button.rounded-xl.border.border-border.bg-surface,
-    button.rounded-2xl.border.border-border.bg-surface,
-    [role='button'].rounded-xl.border.border-border.bg-surface,
-    [role='button'].rounded-2xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-2xl.border.border-border.bg-surface
-  ),
-[data-theme='dark']
-  :where(
-    a.rounded-xl.border.border-border.bg-surface,
-    a.rounded-2xl.border.border-border.bg-surface,
-    button.rounded-xl.border.border-border.bg-surface,
-    button.rounded-2xl.border.border-border.bg-surface,
-    [role='button'].rounded-xl.border.border-border.bg-surface,
-    [role='button'].rounded-2xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-xl.border.border-border.bg-surface,
-    .cursor-pointer.rounded-2xl.border.border-border.bg-surface
-  ) {
-  transform: none;
-  box-shadow: none;
 }
 
 h1,
@@ -606,16 +277,6 @@ button:disabled,
 .header-grid-sheen {
   background: linear-gradient(
     180deg,
-    rgba(15, 143, 131, 0.22) 0%,
-    rgba(15, 143, 131, 0.07) 46%,
-    transparent 100%
-  );
-}
-
-.dark .header-grid-sheen,
-[data-theme='dark'] .header-grid-sheen {
-  background: linear-gradient(
-    180deg,
     rgba(20, 184, 166, 0.2) 0%,
     rgba(20, 184, 166, 0.05) 45%,
     transparent 100%
@@ -633,27 +294,11 @@ button:disabled,
   );
 }
 
-/* Sprint badge: force colors so they win in both themes (Tailwind order can override otherwise) */
+/* Sprint badge: force colors so Tailwind class-order doesn't override them. */
 .sprint-badge {
-  background-color: rgba(
-    126,
-    34,
-    206,
-    0.18
-  ) !important; /* purple-200, light mode */
-  border-color: #c4b5fd !important; /* purple-300 */
-  color: #5b21b6 !important; /* purple-800, light mode */
-}
-.dark .sprint-badge,
-[data-theme='dark'] .sprint-badge {
-  background-color: rgba(
-    126,
-    34,
-    206,
-    0.3
-  ) !important; /* purple-700, lighter and less opaque */
-  border-color: rgba(167, 139, 250, 0.45) !important; /* purple-300 */
-  color: #c4b5fd !important; /* purple-200, dark mode */
+  background-color: rgba(126, 34, 206, 0.3) !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
+  color: #c4b5fd !important;
 }
 
 /* Race detail: smooth transition when toggling edit vs summary */

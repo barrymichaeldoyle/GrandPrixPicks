@@ -23,7 +23,6 @@ import { OfflineBanner } from '../components/OfflineBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
-import { THEME_KEY, useTheme } from '../hooks/useTheme';
 import { AppClerkProvider } from '../integrations/clerk/provider';
 import { AppConvexProvider } from '../integrations/convex/provider';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
@@ -221,7 +220,6 @@ function PostHogUserSync() {
 
 function RootDocument({ children }: PropsWithChildren) {
   const mainRef = useRef<HTMLDivElement>(null);
-  const { isDark, setTheme } = useTheme();
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
   useEffect(() => {
@@ -231,30 +229,20 @@ function RootDocument({ children }: PropsWithChildren) {
   }, []);
 
   return (
-    <html
-      lang="en"
-      className={isDark ? 'dark' : ''}
-      data-theme={isDark ? 'dark' : 'light'}
-      data-light-pop="bold"
-    >
+    <html lang="en" className="dark" data-theme="dark">
       <head>
         <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("${THEME_KEY}");var d=t==="dark"||(t!=="light");document.documentElement.classList.toggle("dark",d);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`,
-          }}
-        />
       </head>
       <body>
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-x-0 top-0 z-[11] h-[34rem] overflow-hidden"
         >
-          <div className="global-flare-a absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-accent/30 blur-3xl dark:bg-accent/15" />
-          <div className="global-flare-b absolute top-24 right-8 h-72 w-72 rounded-full bg-success/18 blur-3xl dark:bg-success/10" />
-          <div className="global-flare-c absolute top-36 left-8 h-64 w-64 rounded-full bg-warning/20 blur-3xl dark:bg-warning/10" />
+          <div className="global-flare-a absolute top-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl" />
+          <div className="global-flare-b absolute top-24 right-8 h-72 w-72 rounded-full bg-success/10 blur-3xl" />
+          <div className="global-flare-c absolute top-36 left-8 h-64 w-64 rounded-full bg-warning/10 blur-3xl" />
         </div>
-        <AppClerkProvider darkMode={isDark}>
+        <AppClerkProvider darkMode={true}>
           <AppConvexProvider>
             <ProfileSync />
             <PostHogUserSync />
@@ -268,9 +256,6 @@ function RootDocument({ children }: PropsWithChildren) {
               <Header
                 mobileMenuOpen={mobileMenuOpen}
                 onMobileMenuOpenChange={onMobileMenuOpenChange}
-                themeKey={THEME_KEY}
-                isDark={isDark}
-                onThemeChange={setTheme}
               />
               <OfflineBanner />
               <CookieConsent />

@@ -221,6 +221,16 @@ export function UpcomingPredictionBanner() {
     }
   }
 
+  // On /feed, the sidebar surfaces a richer next-race card at lg+, so we hide
+  // the banner there. Below lg the banner still shows.
+  if (pathname === '/feed' || pathname.startsWith('/feed/')) {
+    return (
+      <div className="lg:hidden">
+        <UpcomingPredictionBannerInner />
+      </div>
+    );
+  }
+
   return <UpcomingPredictionBannerInner />;
 }
 

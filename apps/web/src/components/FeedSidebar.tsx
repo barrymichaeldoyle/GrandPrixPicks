@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { ArrowRight, Timer, Trophy, Users } from 'lucide-react';
+import { ArrowRight, Check, Timer, Trophy, Users } from 'lucide-react';
 
 import { Avatar } from './Avatar';
 import { Button } from './Button/Button';
@@ -27,6 +27,10 @@ function CountdownLine({ lockAt }: { lockAt: number }) {
 
 function NextRaceCard() {
   const nextRace = useQuery(api.races.getNextRace, {});
+  const myPredictions = useQuery(
+    api.predictions.myWeekendPredictions,
+    nextRace ? { raceId: nextRace._id } : 'skip',
+  );
 
   if (nextRace === undefined) {
     return (
@@ -44,6 +48,9 @@ function NextRaceCard() {
 
   const countryCode = getCountryCodeForRace({ slug: nextRace.slug });
   const isOpen = nextRace.predictionLockAt > Date.now();
+  const hasAnyPick =
+    myPredictions != null &&
+    Object.values(myPredictions.predictions).some((picks) => picks != null);
 
   return (
     <div className="rounded-xl border border-border bg-surface p-3">
@@ -73,13 +80,14 @@ function NextRaceCard() {
       ) : null}
       <Button
         asChild
-        variant="primary"
+        variant={hasAnyPick ? 'secondary' : 'primary'}
         size="sm"
-        rightIcon={ArrowRight}
+        leftIcon={hasAnyPick ? Check : undefined}
+        rightIcon={hasAnyPick ? undefined : ArrowRight}
         className="mt-3 w-full"
       >
         <Link to="/races/$raceSlug" params={{ raceSlug: nextRace.slug }}>
-          Make picks
+          {hasAnyPick ? 'Edit picks' : 'Make picks'}
         </Link>
       </Button>
     </div>

@@ -2470,6 +2470,7 @@ export const backfillStandings = internalMutation({
 
     let top5Count = 0;
     for (const [userId, data] of top5ByUser) {
+      const user = await ctx.db.get(userId as Id<'users'>);
       const existing = await ctx.db
         .query('seasonStandings')
         .withIndex('by_user_season', (q) =>
@@ -2481,6 +2482,9 @@ export const backfillStandings = internalMutation({
         await ctx.db.patch(existing._id, {
           totalPoints: data.totalPoints,
           raceCount: data.raceIds.size,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       } else {
@@ -2489,6 +2493,9 @@ export const backfillStandings = internalMutation({
           season,
           totalPoints: data.totalPoints,
           raceCount: data.raceIds.size,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       }
@@ -2522,6 +2529,7 @@ export const backfillStandings = internalMutation({
 
     let h2hCount = 0;
     for (const [userId, data] of h2hByUser) {
+      const user = await ctx.db.get(userId as Id<'users'>);
       const existing = await ctx.db
         .query('h2hSeasonStandings')
         .withIndex('by_user_season', (q) =>
@@ -2535,6 +2543,9 @@ export const backfillStandings = internalMutation({
           raceCount: data.raceIds.size,
           correctPicks: data.correctPicks,
           totalPicks: data.totalPicks,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       } else {
@@ -2545,6 +2556,9 @@ export const backfillStandings = internalMutation({
           raceCount: data.raceIds.size,
           correctPicks: data.correctPicks,
           totalPicks: data.totalPicks,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       }

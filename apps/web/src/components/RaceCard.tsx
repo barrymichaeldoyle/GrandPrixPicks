@@ -19,7 +19,7 @@ import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
 type Race = Doc<'races'>;
 
-/** Map race slug prefix to ISO 3166-1 alpha-2 country code for flag images (flagcdn.com). */
+/** Map race slug prefix to ISO 3166-1 alpha-2 country code for flag images. */
 const SLUG_TO_COUNTRY: Record<string, string> = {
   australia: 'au',
   australian: 'au',

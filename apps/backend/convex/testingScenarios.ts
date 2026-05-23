@@ -881,12 +881,13 @@ async function upsertWeekendH2HPredictions(
 
   for (const sessionType of sessions) {
     for (const matchupId of args.matchupIds) {
+      const matchup = await requireScenarioMatchup(ctx, matchupId);
       await upsertH2HPrediction(ctx, {
         raceId: args.raceId,
         userId: args.userId,
         matchupId,
         sessionType,
-        predictedWinnerId: args.drivers[0]._id,
+        predictedWinnerId: matchup.driver1Id,
         submittedAt: args.submittedAt,
       });
     }
@@ -1185,11 +1186,12 @@ async function upsertH2HResultsAndScores(
   },
 ) {
   for (const [index, matchupId] of args.matchupIds.entries()) {
+    const matchup = await requireScenarioMatchup(ctx, matchupId);
     await upsertH2HResult(ctx, {
       raceId: args.raceId,
       matchupId,
       sessionType: args.sessionType,
-      winnerId: index % 2 === 0 ? args.drivers[0]._id : args.drivers[1]._id,
+      winnerId: index % 2 === 0 ? matchup.driver1Id : matchup.driver2Id,
       publishedAt: args.publishedAt,
     });
   }
@@ -1251,6 +1253,17 @@ async function ensureScenarioMatchups(
   }
 
   return ids;
+}
+
+async function requireScenarioMatchup(
+  ctx: MutationCtx,
+  matchupId: Id<'h2hMatchups'>,
+) {
+  const matchup = await ctx.db.get(matchupId);
+  if (!matchup) {
+    throw new Error('Scenario H2H matchup not found.');
+  }
+  return matchup;
 }
 
 async function deletePredictionsByUser(ctx: MutationCtx, userId: Id<'users'>) {
@@ -1371,14 +1384,14 @@ function buildTimings(phase: RacePhase, now: number) {
   if (phase === 'upcoming_open') {
     return {
       status: 'upcoming',
-      sprintQualiStartAt: now + DAY,
-      sprintQualiLockAt: now + DAY,
-      sprintStartAt: now + 36 * HOUR,
-      sprintLockAt: now + 36 * HOUR,
-      qualiStartAt: now + 2 * DAY,
-      qualiLockAt: now + 2 * DAY,
-      raceStartAt: now + 3 * DAY,
-      predictionLockAt: now + 3 * DAY,
+      sprintQualiStartAt: now + 15 * MINUTE,
+      sprintQualiLockAt: now + 15 * MINUTE,
+      sprintStartAt: now + 30 * MINUTE,
+      sprintLockAt: now + 30 * MINUTE,
+      qualiStartAt: now + 45 * MINUTE,
+      qualiLockAt: now + 45 * MINUTE,
+      raceStartAt: now + HOUR,
+      predictionLockAt: now + HOUR,
     };
   }
 

@@ -36,13 +36,10 @@ export function RaceDetailHeader({
           <div
             className={`shrink-0 self-stretch border-r-3 ${accentBorderClass} md:hidden`}
           >
-            <img
-              src={`https://flagcdn.com/w160/${countryCode.toLowerCase()}.png`}
-              srcSet={`https://flagcdn.com/w320/${countryCode.toLowerCase()}.png 2x`}
-              alt=""
-              className="h-[60px] w-auto"
-              loading="eager"
-              decoding="sync"
+            <RaceFlag
+              countryCode={countryCode}
+              size="full"
+              className="h-[60px] !rounded-none ring-0"
             />
           </div>
         )}

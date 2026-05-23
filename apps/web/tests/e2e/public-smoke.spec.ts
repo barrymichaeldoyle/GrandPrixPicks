@@ -16,7 +16,9 @@ test.describe('[public] smoke', () => {
     await expect(
       page.getByRole('heading', { name: summary.race!.name }),
     ).toBeVisible();
-    await expect(page.getByText(/Sprint/i)).toBeVisible();
+    await expect(
+      page.getByRole('tab', { name: /Sprint Quali/i }),
+    ).toBeVisible();
   });
 
   test('shows scored-result summaries on a finished seeded race page', async ({

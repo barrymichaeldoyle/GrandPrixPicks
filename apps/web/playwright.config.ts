@@ -8,6 +8,7 @@ const baseURL = `http://${HOST}:${PORT}`;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const authStorageState = path.resolve(__dirname, 'tests/e2e/.auth/user.json');
+const browserChannel = process.env.PLAYWRIGHT_BROWSER_CHANNEL;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -21,7 +22,7 @@ export default defineConfig({
   projects: [
     {
       name: 'public-chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], channel: browserChannel },
       testIgnore: [
         /auth\.setup\.ts$/,
         /auth-smoke\.spec\.ts$/,
@@ -30,12 +31,14 @@ export default defineConfig({
     },
     {
       name: 'auth-setup',
+      use: { channel: browserChannel },
       testMatch: /auth\.setup\.ts$/,
     },
     {
       name: 'auth-chromium',
       use: {
         ...devices['Desktop Chrome'],
+        channel: browserChannel,
         storageState: authStorageState,
       },
       dependencies: ['auth-setup'],
@@ -47,7 +50,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm run dev:vite',
+    command: 'VITE_ENABLE_DEV_TIME_CONTROLS=true pnpm run dev:vite',
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,

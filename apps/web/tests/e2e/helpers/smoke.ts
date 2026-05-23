@@ -15,6 +15,8 @@ export async function seedScenarioForAuthenticatedUser(
   page: Page,
   options: SignInScenarioOptions,
 ) {
+  await clearScenarioClientState(page);
+
   const clerkIdentity = await createE2EClerkIdentity(PLAYWRIGHT_AUTH_NAMESPACE);
   const summary = applyScenario(options.scenario, {
     namespace: options.namespace,
@@ -34,4 +36,18 @@ export async function pickFirstFiveDrivers(page: Page) {
   for (const code of driverCodes) {
     await page.getByTestId(`driver-${code}`).click();
   }
+}
+
+async function clearScenarioClientState(page: Page) {
+  await page.addInitScript(() => {
+    for (const key of Object.keys(window.localStorage)) {
+      if (
+        key === 'gpp:dev-now' ||
+        key.startsWith('gpp:web:h2h:') ||
+        key.startsWith('gpp:web:top5:')
+      ) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  });
 }

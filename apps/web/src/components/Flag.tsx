@@ -26,15 +26,10 @@ const SIZES = {
     height: 42,
     className: 'h-[42px] w-14',
   },
-  /** Fills container height; parent must have defined height. */
-  full: {
-    width: 0,
-    height: 0,
-    className: 'h-full w-auto object-contain',
-  },
 } as const;
 
-type FlagSize = keyof typeof SIZES;
+type FixedFlagSize = keyof typeof SIZES;
+type FlagSize = FixedFlagSize | 'full';
 
 interface FlagProps {
   /** ISO 3166-1 alpha-2 country code (e.g., "NL", "GB", "US") */
@@ -47,20 +42,36 @@ interface FlagProps {
 
 /** Country flag component backed by same-origin SVG assets. */
 export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
-  const { width, height, className: sizeClassName } = SIZES[size];
   const lowerCode = code.toLowerCase();
+  const src = `${FLAG_BASE_PATH}/${lowerCode}.svg`;
 
-  const isFull = size === 'full';
+  // "full" fills the parent's height with aspect ratio from the SVG's viewBox.
+  // Render the img directly (no wrapper span) so flex stretching cascades and
+  // Tailwind's preflight `max-width: 100%` doesn't conflict with an
+  // inline-block parent whose width depends on the img itself.
+  if (size === 'full') {
+    return (
+      <img
+        src={src}
+        alt=""
+        className={`block h-full w-auto max-w-none object-contain ${className}`}
+        loading="eager"
+        decoding="sync"
+      />
+    );
+  }
+
+  const { width, height, className: sizeClassName } = SIZES[size];
   return (
     <span
-      className={`inline-block shrink-0 overflow-hidden ${isFull ? 'h-full' : ''} ${className}`}
+      className={`inline-block shrink-0 overflow-hidden ${className}`}
     >
       <img
-        src={`${FLAG_BASE_PATH}/${lowerCode}.svg`}
+        src={src}
         alt=""
-        width={isFull ? undefined : width}
-        height={isFull ? undefined : height}
-        className={`${sizeClassName} ${isFull ? '' : 'object-cover'}`}
+        width={width}
+        height={height}
+        className={`${sizeClassName} object-cover`}
         loading="eager"
         decoding="sync"
       />

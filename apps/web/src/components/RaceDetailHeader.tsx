@@ -34,12 +34,12 @@ export function RaceDetailHeader({
       <div className="flex min-w-0 flex-1 items-stretch gap-0">
         {countryCode && (
           <div
-            className={`shrink-0 self-stretch border-r-3 ${accentBorderClass} md:hidden`}
+            className={`h-[60px] shrink-0 self-stretch border-r-3 ${accentBorderClass} md:hidden`}
           >
             <RaceFlag
               countryCode={countryCode}
               size="full"
-              className="h-[60px] !rounded-none ring-0"
+              className="!rounded-none ring-0"
             />
           </div>
         )}
@@ -47,13 +47,11 @@ export function RaceDetailHeader({
           <div
             className={`hidden shrink-0 self-stretch border-r-3 ${accentBorderClass} md:flex md:items-stretch`}
           >
-            <span className="hidden h-full md:flex">
-              <RaceFlag
-                countryCode={countryCode}
-                size="full"
-                className="!rounded-none ring-0"
-              />
-            </span>
+            <RaceFlag
+              countryCode={countryCode}
+              size="full"
+              className="!rounded-none ring-0"
+            />
           </div>
         )}
         <div className="relative flex min-w-0 flex-1 flex-col justify-between px-3 py-3 sm:px-4 sm:py-4">

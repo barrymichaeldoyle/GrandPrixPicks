@@ -538,53 +538,54 @@ function ScorePublishedItem({
             />
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="text-sm leading-snug text-text-muted">
+            <p className="flex flex-wrap items-baseline gap-x-1.5 text-sm leading-snug">
               <UserLink
                 username={event.username}
                 displayName={event.displayName}
               />
-              {!grouped && (
-                <>
-                  {' '}
-                  in{' '}
-                  {event.raceSlug ? (
-                    <Link
-                      to="/races/$raceSlug"
-                      params={{ raceSlug: event.raceSlug }}
-                      className="font-medium text-text hover:text-accent"
-                    >
-                      {event.raceName}
-                    </Link>
-                  ) : (
-                    <span className="font-medium text-text">
-                      {event.raceName}
-                    </span>
-                  )}{' '}
-                  <span className="text-text-muted">
-                    {SESSION_LABELS[event.sessionType ?? ''] ??
-                      event.sessionType}
-                  </span>
-                </>
+              {event.username && (
+                <span className="text-[11px] text-text-muted">
+                  @{event.username}
+                </span>
               )}
             </p>
-            {event.username && (
-              <p className="text-[11px] text-text-muted">@{event.username}</p>
+            {!grouped && event.raceName && (
+              <p className="text-[11px] text-text-muted">
+                in{' '}
+                {event.raceSlug ? (
+                  <Link
+                    to="/races/$raceSlug"
+                    params={{ raceSlug: event.raceSlug }}
+                    className="font-medium text-text hover:text-accent"
+                  >
+                    {event.raceName}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-text">
+                    {event.raceName}
+                  </span>
+                )}
+                {' · '}
+                {SESSION_LABELS[event.sessionType ?? ''] ?? event.sessionType}
+              </p>
             )}
           </div>
         </div>
 
         {/* Picks */}
         {event.picks && event.picks.length > 0 && (
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               {event.picks.map((pick) => (
                 <div
                   key={pick.predictedPosition}
                   className="flex flex-col items-center gap-0.5"
                 >
-                  <span className="text-[10px] font-medium text-text-muted">
-                    P{pick.predictedPosition}
-                  </span>
+                  {!grouped && (
+                    <span className="text-[10px] font-medium text-text-muted">
+                      P{pick.predictedPosition}
+                    </span>
+                  )}
                   {isLocked ? (
                     <DriverBadge
                       code={pick.code}
@@ -654,19 +655,19 @@ function ScorePublishedItem({
             Waiting for results...
           </p>
         ) : (
-          event.points !== undefined && (
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-bold text-accent tabular-nums">
-                + {event.points + (event.h2hScore?.points ?? 0)}{' '}
-                {event.points + (event.h2hScore?.points ?? 0) === 1
-                  ? 'point'
-                  : 'points'}
-              </span>
-              <p className="flex-1 text-right text-xs text-text-muted italic">
-                - {getScoreComment(event.points, event.picks)}
-              </p>
-            </div>
-          )
+          event.points !== undefined && (() => {
+            const total = event.points + (event.h2hScore?.points ?? 0);
+            return (
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span className="text-sm font-bold text-accent tabular-nums">
+                  +{total} {total === 1 ? 'point' : 'points'}
+                </span>
+                <p className="text-xs text-text-muted italic">
+                  {getScoreComment(event.points, event.picks)}
+                </p>
+              </div>
+            );
+          })()
         )}
 
         <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
@@ -882,9 +883,9 @@ export function SessionSeparator({
   const content = (
     <div className="overflow-hidden">
       {/* Top row: flag + race name/session/time */}
-      <div className="flex items-stretch border-b border-accent/20">
+      <div className="flex items-stretch border-b border-border">
         {countryCode ? (
-          <div className="h-10 shrink-0 self-stretch overflow-hidden border-r border-accent/20">
+          <div className="h-10 shrink-0 self-stretch overflow-hidden border-r border-border">
             <RaceFlag countryCode={countryCode} size="full" />
           </div>
         ) : (
@@ -937,8 +938,8 @@ export function SessionSeparator({
       {grouped && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
       <div
         className={[
-          'overflow-hidden border border-accent/20',
-          grouped ? 'sticky top-0 z-10 bg-surface-muted' : 'bg-accent/5',
+          'overflow-hidden border border-border bg-surface',
+          grouped ? 'sticky top-0 z-10' : '',
           roundedClass,
         ].join(' ')}
       >

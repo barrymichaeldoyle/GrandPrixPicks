@@ -2470,6 +2470,7 @@ export const backfillStandings = internalMutation({
 
     let top5Count = 0;
     for (const [userId, data] of top5ByUser) {
+      const user = await ctx.db.get(userId as Id<'users'>);
       const existing = await ctx.db
         .query('seasonStandings')
         .withIndex('by_user_season', (q) =>
@@ -2481,6 +2482,9 @@ export const backfillStandings = internalMutation({
         await ctx.db.patch(existing._id, {
           totalPoints: data.totalPoints,
           raceCount: data.raceIds.size,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       } else {
@@ -2489,6 +2493,9 @@ export const backfillStandings = internalMutation({
           season,
           totalPoints: data.totalPoints,
           raceCount: data.raceIds.size,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       }
@@ -2522,6 +2529,7 @@ export const backfillStandings = internalMutation({
 
     let h2hCount = 0;
     for (const [userId, data] of h2hByUser) {
+      const user = await ctx.db.get(userId as Id<'users'>);
       const existing = await ctx.db
         .query('h2hSeasonStandings')
         .withIndex('by_user_season', (q) =>
@@ -2535,6 +2543,9 @@ export const backfillStandings = internalMutation({
           raceCount: data.raceIds.size,
           correctPicks: data.correctPicks,
           totalPicks: data.totalPicks,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       } else {
@@ -2545,6 +2556,9 @@ export const backfillStandings = internalMutation({
           raceCount: data.raceIds.size,
           correctPicks: data.correctPicks,
           totalPicks: data.totalPicks,
+          username: user?.username,
+          displayName: user?.displayName,
+          avatarUrl: user?.avatarUrl,
           updatedAt: now,
         });
       }
@@ -4997,6 +5011,37 @@ export const _clearFollows = internalMutation({
 });
 
 /**
+ * Internal: Remove duplicate user docs that share a username, keeping the
+ * one matching a given clerkUserId. Caused by Clerk re-issuing user ids for
+ * a recycled namespace while a stale Convex doc still references the prior id.
+ *
+ * Run via:
+ *   npx convex run seed:_dedupeUsersByUsername '{"username": "claude_dev_signin", "keepClerkUserId": "user_xxx"}'
+ */
+export const _dedupeUsersByUsername = internalMutation({
+  args: {
+    username: v.string(),
+    keepClerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const matches = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .collect();
+
+    let deleted = 0;
+    for (const user of matches) {
+      if (user.clerkUserId === args.keepClerkUserId) {
+        continue;
+      }
+      await ctx.db.delete(user._id);
+      deleted++;
+    }
+    return { deleted, kept: matches.length - deleted };
+  },
+});
+
+/**
  * Internal: Build the social feed testing scenario.
  *
  * Creates:
@@ -5018,20 +5063,50 @@ export const _seedFeedScenario = internalMutation({
     const HOUR = 60 * 60 * 1000;
     const DAY = 24 * HOUR;
 
-    // ── Find main user ──
-    const mainUser = args.clerkUserId
+    // ── Find main user (or create stub if clerkUserId provided) ──
+    let mainUser = args.clerkUserId
       ? await ctx.db
           .query('users')
           .withIndex('by_clerkUserId', (q) =>
             q.eq('clerkUserId', args.clerkUserId!),
           )
           .unique()
-      : args.username
-        ? await ctx.db
-            .query('users')
-            .withIndex('by_username', (q) => q.eq('username', args.username))
-            .unique()
-        : await ctx.db.query('users').first();
+      : null;
+
+    // Fallback to username lookup. Realign clerkUserId if needed so we don't
+    // create a duplicate when Clerk has issued a new id for a recycled namespace.
+    if (!mainUser && args.username) {
+      const byUsername = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', args.username))
+        .unique();
+      if (byUsername) {
+        if (args.clerkUserId && byUsername.clerkUserId !== args.clerkUserId) {
+          await ctx.db.patch(byUsername._id, {
+            clerkUserId: args.clerkUserId,
+            updatedAt: now,
+          });
+        }
+        mainUser = await ctx.db.get(byUsername._id);
+      }
+    }
+
+    if (!mainUser && !args.clerkUserId && !args.username) {
+      mainUser = await ctx.db.query('users').first();
+    }
+
+    if (!mainUser && args.clerkUserId && args.username) {
+      const newId = await ctx.db.insert('users', {
+        clerkUserId: args.clerkUserId,
+        username: args.username,
+        displayName: 'Scenario Primary',
+        email: `${args.username}@example.com`,
+        isAdmin: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+      mainUser = await ctx.db.get(newId);
+    }
 
     if (!mainUser) {
       throw new Error(
@@ -5138,6 +5213,8 @@ export const _seedFeedScenario = internalMutation({
       season: 2026,
       createdAt: now - 20 * DAY,
       updatedAt: now,
+      memberCount: 6,
+      adminCount: 1,
     });
     await ctx.db.insert('leagueMembers', {
       leagueId: league1Id,
@@ -5164,6 +5241,8 @@ export const _seedFeedScenario = internalMutation({
       season: 2026,
       createdAt: now - 18 * DAY,
       updatedAt: now,
+      memberCount: 5,
+      adminCount: 1,
     });
     await ctx.db.insert('leagueMembers', {
       leagueId: league2Id,
@@ -5620,6 +5699,129 @@ export const _seedFeedScenario = internalMutation({
 });
 
 /**
+ * Internal: Set up aux dev scenario users (in_leagues / solo / stale) AFTER the
+ * main feed scenario + feed-event backfill have run. Aux state is intentionally
+ * added late so e.g. league joins for these users don't produce joined_league
+ * feed events (which would defeat the empty-state scenarios).
+ */
+export const _seedAuxFeedScenarios = internalMutation({
+  args: {
+    auxScenarios: v.array(
+      v.object({
+        kind: v.union(
+          v.literal('in_leagues'),
+          v.literal('solo'),
+          v.literal('stale'),
+        ),
+        clerkUserId: v.string(),
+        username: v.string(),
+        displayName: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+
+    const pitWall = await ctx.db
+      .query('leagues')
+      .withIndex('by_slug', (q) => q.eq('slug', 'pit-wall-prophets-2026'))
+      .unique();
+
+    const needsGhosts = args.auxScenarios.some((s) => s.kind === 'stale');
+    const ghostUserIds: Array<Id<'users'>> = [];
+    if (needsGhosts) {
+      for (let i = 0; i < 2; i++) {
+        const id = await ctx.db.insert('users', {
+          clerkUserId: `fake_user_ghost_${i}`,
+          username: `silent_predictor_${i + 1}`,
+          displayName: `Silent Predictor ${i + 1}`,
+          email: `silent${i + 1}@example.com`,
+          isAdmin: false,
+          createdAt: now - 30 * DAY,
+          updatedAt: now,
+        });
+        ghostUserIds.push(id);
+      }
+    }
+
+    const created: Array<{ kind: string; username: string }> = [];
+    for (const scenario of args.auxScenarios) {
+      let auxUser = await ctx.db
+        .query('users')
+        .withIndex('by_clerkUserId', (q) =>
+          q.eq('clerkUserId', scenario.clerkUserId),
+        )
+        .unique();
+
+      if (!auxUser) {
+        const byUsername = await ctx.db
+          .query('users')
+          .withIndex('by_username', (q) =>
+            q.eq('username', scenario.username),
+          )
+          .unique();
+        if (byUsername) {
+          if (byUsername.clerkUserId !== scenario.clerkUserId) {
+            await ctx.db.patch(byUsername._id, {
+              clerkUserId: scenario.clerkUserId,
+              updatedAt: now,
+            });
+          }
+          auxUser = await ctx.db.get(byUsername._id);
+        }
+      }
+
+      if (!auxUser) {
+        const auxId = await ctx.db.insert('users', {
+          clerkUserId: scenario.clerkUserId,
+          username: scenario.username,
+          displayName: scenario.displayName,
+          email: `${scenario.username}@example.com`,
+          isAdmin: false,
+          createdAt: now,
+          updatedAt: now,
+        });
+        auxUser = await ctx.db.get(auxId);
+      }
+
+      if (!auxUser) {
+        continue;
+      }
+
+      if (scenario.kind === 'in_leagues' && pitWall) {
+        await ctx.db.insert('leagueMembers', {
+          leagueId: pitWall._id,
+          userId: auxUser._id,
+          role: 'member',
+          joinedAt: now - 5 * DAY,
+        });
+        await ctx.db.patch(pitWall._id, {
+          memberCount: (pitWall.memberCount ?? 0) + 1,
+          updatedAt: now,
+        });
+      } else if (scenario.kind === 'stale') {
+        for (const ghostId of ghostUserIds) {
+          await ctx.db.insert('follows', {
+            followerId: auxUser._id,
+            followeeId: ghostId,
+            createdAt: now - 3 * DAY,
+          });
+        }
+      }
+      // 'solo': no extra state
+
+      created.push({
+        kind: scenario.kind,
+        username: auxUser.username ?? scenario.username,
+      });
+    }
+
+    return { created };
+  },
+});
+
+/**
  * Reset dev database to a rich social feed testing scenario.
  *
  * Sets up:
@@ -5639,8 +5841,38 @@ export const reseedDevForFeed = internalAction({
   args: {
     username: v.optional(v.string()),
     clerkUserId: v.optional(v.string()),
+    auxScenarios: v.optional(
+      v.array(
+        v.object({
+          kind: v.union(
+            v.literal('in_leagues'),
+            v.literal('solo'),
+            v.literal('stale'),
+          ),
+          clerkUserId: v.string(),
+          username: v.string(),
+          displayName: v.string(),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
+    // Phase 0: Dedupe any stale users sharing a username with a scenario user.
+    if (args.clerkUserId && args.username) {
+      await ctx.runMutation(internal.seed._dedupeUsersByUsername, {
+        username: args.username,
+        keepClerkUserId: args.clerkUserId,
+      });
+    }
+    if (args.auxScenarios) {
+      for (const scenario of args.auxScenarios) {
+        await ctx.runMutation(internal.seed._dedupeUsersByUsername, {
+          username: scenario.username,
+          keepClerkUserId: scenario.clerkUserId,
+        });
+      }
+    }
+
     // Phase 1: Clear all dev data
     let totalDeleted = 0;
     let iterations = 0;
@@ -5689,13 +5921,25 @@ export const reseedDevForFeed = internalAction({
       internal.seed.seedFeedEvents,
     );
 
-    // Phase 7: Backfill season standings
+    // Phase 7: Set up aux dev scenario users (after feed events so their joins
+    // don't generate joined_league events that defeat the empty-state scenarios).
+    let auxResult: { created: Array<{ kind: string; username: string }> } = {
+      created: [],
+    };
+    if (args.auxScenarios && args.auxScenarios.length > 0) {
+      auxResult = await ctx.runMutation(internal.seed._seedAuxFeedScenarios, {
+        auxScenarios: args.auxScenarios,
+      });
+    }
+
+    // Phase 8: Backfill season standings
     await ctx.runMutation(internal.seed.backfillStandings, {});
 
     return {
       cleared: totalDeleted,
       racesReset: raceResult.reset,
       ...scenarioResult,
+      auxScenarios: auxResult.created,
       feedEventsCreated: feedResult.created,
     };
   },

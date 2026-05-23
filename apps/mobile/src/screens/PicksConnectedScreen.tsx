@@ -4,6 +4,7 @@ import {
   SESSION_LABELS_SHORT,
 } from '@grandprixpicks/shared/sessions';
 import { useMutation, useQuery } from 'convex/react';
+import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -18,6 +19,7 @@ import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
 import { LockBadge } from '../components/ui/LockBadge';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { PageHero } from '../components/ui/PageHero';
 import { SessionTabBar } from '../components/ui/SessionTabBar';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
@@ -32,13 +34,11 @@ import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
-import { useTypography } from '../theme/typography';
 import { PicksScreen } from './PicksScreen';
 
 const MAX_TOP5 = 5;
 
 export function PicksConnectedScreen() {
-  const { titleFontFamily } = useTypography();
   const { convexEnabled } = useMobileConfig();
   const { races } = useRaceWeekends();
 
@@ -307,8 +307,10 @@ export function PicksConnectedScreen() {
       setIsCurrentDraftDirty(false);
       setRestoredDraftAt(null);
       setSaveStatus(`✓ ${SESSION_LABELS_SHORT[selectedSession]} picks saved`);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       setSaveStatus(error instanceof Error ? error.message : 'Save failed');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   }
 
@@ -327,15 +329,10 @@ export function PicksConnectedScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      {/* Header */}
-      <Text
-        style={[
-          styles.title,
-          titleFontFamily ? { fontFamily: titleFontFamily } : null,
-        ]}
-      >
-        Predict
-      </Text>
+      <PageHero
+        subtitle="Pick your top 5 — points for each correct position."
+        title="Predict"
+      />
 
       {/* Race selector */}
       <ScrollView
@@ -577,12 +574,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     fontWeight: '700',
-  },
-  title: {
-    color: colors.text,
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    lineHeight: 38,
   },
 });

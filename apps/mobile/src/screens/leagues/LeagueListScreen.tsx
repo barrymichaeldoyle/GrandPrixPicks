@@ -12,17 +12,16 @@ import {
 
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { PageHero } from '../../components/ui/PageHero';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import type { LeaguesStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors, radii } from '../../theme/tokens';
-import { useTypography } from '../../theme/typography';
 
 type Props = NativeStackScreenProps<LeaguesStackParamList, 'LeagueList'>;
 
 export function LeagueListScreen({ navigation }: Props) {
-  const { titleFontFamily } = useTypography();
   const { convexEnabled } = useMobileConfig();
 
   const leaguesQuery = useQuery(
@@ -79,27 +78,22 @@ export function LeagueListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            titleFontFamily ? { fontFamily: titleFontFamily } : null,
-          ]}
-        >
-          Leagues
-        </Text>
-        <Pressable
-          onPress={() => {
-            setShowJoin((v) => !v);
-            setJoinError(null);
-          }}
-          style={styles.joinButton}
-        >
-          <Text style={styles.joinButtonText}>
-            {showJoin ? 'Cancel' : 'Join'}
-          </Text>
-        </Pressable>
-      </View>
+      <PageHero
+        action={
+          <Pressable
+            onPress={() => {
+              setShowJoin((v) => !v);
+              setJoinError(null);
+            }}
+            style={styles.joinButton}
+          >
+            <Text style={styles.joinButtonText}>
+              {showJoin ? 'Cancel' : 'Join'}
+            </Text>
+          </Pressable>
+        }
+        title="Leagues"
+      />
 
       {/* Join flow */}
       {showJoin ? (
@@ -281,11 +275,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   input: {
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.border,
@@ -381,13 +370,6 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    lineHeight: 38,
+    paddingTop: 12,
   },
 });

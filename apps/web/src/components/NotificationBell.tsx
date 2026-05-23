@@ -276,11 +276,19 @@ function NotificationItem({
 
   if (notification.type === 'results_published') {
     const hasPoints = notification.points !== undefined;
+    const resultTitle = sessionLabel
+      ? `${sessionLabel} results are in`
+      : 'Results are in';
 
     return (
       <Link
         to="/races/$raceSlug"
         params={{ raceSlug: notification.raceSlug ?? '' }}
+        search={
+          notification.sessionType
+            ? { session: notification.sessionType }
+            : undefined
+        }
         onClick={handleClick}
         className={itemClass}
       >
@@ -293,7 +301,7 @@ function NotificationItem({
           <div className="min-w-0 flex-1 pt-0.5">
             <div className="flex items-start gap-2">
               <p className="flex-1 text-sm leading-snug text-text">
-                Results are in
+                {resultTitle}
               </p>
               {hasPoints && (
                 <span className="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-500">
@@ -329,8 +337,8 @@ function NotificationItem({
         <div className="min-w-0 flex-1 pt-0.5">
           <p className="text-sm leading-snug text-text">
             {notification.raceName && sessionLabel
-              ? `${sessionLabel} is now locked`
-              : 'A session has locked'}
+              ? `${sessionLabel} picks are locked`
+              : 'Session picks are locked'}
           </p>
           {notification.raceName && (
             <div className="mt-2">
@@ -469,6 +477,13 @@ export function NotificationBell() {
                     We'll ping you when sessions lock, results publish, or
                     someone reacts to your picks.
                   </p>
+                  <Link
+                    to="/races"
+                    onClick={() => setOpen(false)}
+                    className="mt-4 inline-flex rounded-lg border border-border px-3 py-2 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/10 hover:text-accent-hover"
+                  >
+                    View race calendar
+                  </Link>
                 </div>
               ) : (
                 notifications.map((n) => (

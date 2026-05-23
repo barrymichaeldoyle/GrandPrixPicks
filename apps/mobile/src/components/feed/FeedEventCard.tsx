@@ -1,5 +1,5 @@
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ConvexId } from '../../integrations/convex/api';
 import { FlagImage } from '../ui/FlagImage';
@@ -202,30 +202,43 @@ function SimpleEventCard({
   );
 }
 
-export function FeedEventCard({ event }: { event: FeedEvent }) {
-  if (event.type === 'score_published') {
-    return <ScorePublishedCard event={event} />;
-  }
+export function FeedEventCard({
+  event,
+  onPress,
+}: {
+  event: FeedEvent;
+  onPress?: () => void;
+}) {
+  const inner = (() => {
+    if (event.type === 'score_published') {
+      return <ScorePublishedCard event={event} />;
+    }
+    if (event.type === 'session_locked') {
+      const sessionLabel = event.sessionType
+        ? SESSION_LABELS[event.sessionType as keyof typeof SESSION_LABELS]
+        : 'session';
+      const description = `Locked their picks for ${sessionLabel}${event.raceName ? ` · ${event.raceName}` : ''}`;
+      return <SimpleEventCard event={event} description={description} />;
+    }
+    if (event.type === 'joined_league') {
+      const description = `Joined ${event.leagueName ?? 'a league'}`;
+      return <SimpleEventCard event={event} description={description} />;
+    }
+    if (event.type === 'streak_milestone') {
+      const description = `🔥 ${event.streakCount}-race prediction streak`;
+      return <SimpleEventCard event={event} description={description} />;
+    }
+    return null;
+  })();
 
-  if (event.type === 'session_locked') {
-    const sessionLabel = event.sessionType
-      ? SESSION_LABELS[event.sessionType as keyof typeof SESSION_LABELS]
-      : 'session';
-    const description = `Locked their picks for ${sessionLabel}${event.raceName ? ` · ${event.raceName}` : ''}`;
-    return <SimpleEventCard event={event} description={description} />;
+  if (!inner || !onPress) {
+    return inner;
   }
-
-  if (event.type === 'joined_league') {
-    const description = `Joined ${event.leagueName ?? 'a league'}`;
-    return <SimpleEventCard event={event} description={description} />;
-  }
-
-  if (event.type === 'streak_milestone') {
-    const description = `🔥 ${event.streakCount}-race prediction streak`;
-    return <SimpleEventCard event={event} description={description} />;
-  }
-
-  return null;
+  return (
+    <Pressable onPress={onPress} style={styles.pressable}>
+      {inner}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -317,6 +330,9 @@ const styles = StyleSheet.create({
   time: {
     color: colors.textMuted,
     fontSize: 12,
+  },
+  pressable: {
+    // No visual change; RN renders children directly, the Pressable just captures the tap.
   },
   username: {
     color: colors.text,

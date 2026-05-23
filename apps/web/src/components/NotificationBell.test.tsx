@@ -1,7 +1,8 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useQuery } from 'convex/react';
 
 import { NotificationBell } from './NotificationBell';
 
@@ -27,9 +28,20 @@ vi.mock('convex/react', () => ({
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
     children,
+    to,
+    params,
+    search,
     ...props
-  }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href="/" {...props}>
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+    to?: string;
+    params?: Record<string, string>;
+    search?: Record<string, unknown>;
+  }) => (
+    <a
+      href={to === '/races/$raceSlug' ? `/races/${params?.raceSlug}` : to}
+      data-search={search ? JSON.stringify(search) : undefined}
+      {...props}
+    >
       {children}
     </a>
   ),
@@ -88,6 +100,10 @@ function renderNotificationBell() {
 }
 
 describe('NotificationBell', () => {
+  beforeEach(() => {
+    vi.mocked(useQuery).mockReturnValue({ notifications: [], unreadCount: 0 });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
@@ -168,6 +184,86 @@ describe('NotificationBell', () => {
 
     expect(pointerResult).toBe(false);
     expect(view.isPanelOpen()).toBe(true);
+    view.unmount();
+  });
+
+  it('links result notifications to the published result session', () => {
+    vi.mocked(useQuery).mockReturnValue({
+      notifications: [
+        {
+          _id: 'notification_1',
+          type: 'results_published',
+          createdAt: Date.now(),
+          raceId: 'race_1',
+          raceName: 'Canadian Grand Prix',
+          raceSlug: 'canadian-grand-prix-2026',
+          sessionType: 'sprint_quali',
+          points: 14,
+        },
+      ],
+      unreadCount: 1,
+    });
+
+    const view = renderNotificationBell();
+    const button = view.button();
+
+    act(() => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const link = document.body.querySelector<HTMLAnchorElement>(
+      'a[href="/races/canadian-grand-prix-2026"]',
+    );
+
+    expect(link).not.toBeNull();
+    expect(link?.dataset.search).toBe('{"session":"sprint_quali"}');
+    expect(document.body.textContent).toContain(
+      'Sprint Quali results are in',
+    );
+    view.unmount();
+  });
+
+  it('shows a race calendar CTA when there are no notifications', () => {
+    const view = renderNotificationBell();
+    const button = view.button();
+
+    act(() => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const link = document.body.querySelector<HTMLAnchorElement>(
+      'a[href="/races"]',
+    );
+
+    expect(link).not.toBeNull();
+    expect(link?.textContent).toBe('View race calendar');
+    view.unmount();
+  });
+
+  it('uses picks-focused copy for locked session notifications', () => {
+    vi.mocked(useQuery).mockReturnValue({
+      notifications: [
+        {
+          _id: 'notification_2',
+          type: 'session_locked',
+          createdAt: Date.now(),
+          raceId: 'race_1',
+          raceName: 'Canadian Grand Prix',
+          raceSlug: 'canadian-grand-prix-2026',
+          sessionType: 'quali',
+        },
+      ],
+      unreadCount: 1,
+    });
+
+    const view = renderNotificationBell();
+    const button = view.button();
+
+    act(() => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(document.body.textContent).toContain('Qualifying picks are locked');
     view.unmount();
   });
 });

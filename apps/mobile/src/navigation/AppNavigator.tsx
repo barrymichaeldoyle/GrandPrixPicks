@@ -4,12 +4,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet, Text } from 'react-native';
 
+import { NotificationBell } from '../components/ui/NotificationBell';
+import { FeedEventDetailScreen } from '../screens/FeedEventDetailScreen';
 import { HomeRouteScreen } from '../screens/HomeRouteScreen';
+import { LeaderboardScreen } from '../screens/LeaderboardScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
 import { FollowListScreen } from '../screens/FollowListScreen';
+import { PredictionHistoryScreen } from '../screens/PredictionHistoryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { LeagueDetailScreen } from '../screens/leagues/LeagueDetailScreen';
 import { LeagueListScreen } from '../screens/leagues/LeagueListScreen';
 import { LeagueSettingsScreen } from '../screens/leagues/LeagueSettingsScreen';
@@ -61,12 +67,29 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={HomeRouteScreen}
         name="HomeMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+        options={({ navigation }) => ({
+          headerTitle: () => <BrandHeaderTitle />,
+          headerRight: () => (
+            <NotificationBell
+              onPress={() => navigation.navigate('Notifications')}
+            />
+          ),
+        })}
       />
       <HomeStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
         options={{ title: 'Race Details' }}
+      />
+      <HomeStack.Screen
+        component={NotificationsScreen}
+        name="Notifications"
+        options={{ title: 'Notifications' }}
+      />
+      <HomeStack.Screen
+        component={FeedEventDetailScreen}
+        name="FeedEventDetail"
+        options={{ title: 'Prediction' }}
       />
     </HomeStack.Navigator>
   );
@@ -145,6 +168,21 @@ function ProfileStackNavigator() {
         component={FollowListScreen}
         name="FollowerList"
         options={({ route }) => ({ title: `@${route.params.username}` })}
+      />
+      <ProfileStack.Screen
+        component={PredictionHistoryScreen}
+        name="PredictionHistory"
+        options={{ title: 'Picks history' }}
+      />
+      <ProfileStack.Screen
+        component={LeaderboardScreen}
+        name="Leaderboard"
+        options={{ title: 'Leaderboard' }}
+      />
+      <ProfileStack.Screen
+        component={SettingsScreen}
+        name="Settings"
+        options={{ title: 'Settings' }}
       />
     </ProfileStack.Navigator>
   );

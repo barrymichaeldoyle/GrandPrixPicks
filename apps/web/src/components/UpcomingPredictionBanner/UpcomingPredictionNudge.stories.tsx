@@ -28,14 +28,16 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const Randomizing: Story = {
+export const SubmitH2H: Story = {
   args: {
-    isRandomizing: true,
+    ctaLabel: 'Submit H2H',
   },
 };
 
-export const WithError: Story = {
+export const Dismissible: Story = {
   args: {
-    error: 'Predictions are only open for the next upcoming race.',
+    onDismiss: () => {
+      // Storybook-only stub
+    },
   },
 };

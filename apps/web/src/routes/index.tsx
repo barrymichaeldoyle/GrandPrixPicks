@@ -26,6 +26,7 @@ import { Flag as CountryFlag } from '../components/Flag';
 import { useUpcomingPredictionBannerState } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { getCountryCodeForRace } from '../components/RaceCard';
 import { formatTime } from '../lib/date';
+import { SHOW_DEV_TIME_CONTROLS } from '../lib/devFlags';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 import { useNow } from '../lib/testing/now';
 
@@ -1185,7 +1186,7 @@ function HomePage() {
         </FaqSection>
       </div>
 
-      {import.meta.env.DEV ? (
+      {SHOW_DEV_TIME_CONTROLS ? (
         <DevNowPanel race={featuredRace ?? null} now={now} />
       ) : null}
     </>

@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreFiles": [".agents/**"],
   "ignoreIssues": {
     "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"]
   },

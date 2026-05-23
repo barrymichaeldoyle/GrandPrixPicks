@@ -90,6 +90,11 @@ The starter API is internal-only and currently exposes:
 - `testingScenarios:getScenarioSummary`
 - `testingScenarios:clearScenario`
 
+The web admin scenario panel is intentionally hidden by default. To use it in a
+local dev build, set `VITE_ENABLE_ADMIN_TESTING_SCENARIOS=true` for the web app
+and `ADMIN_TESTING_SCENARIOS_ENABLED=true` in the target Convex deployment. Do
+not set either flag for production.
+
 ## Suggested Usage
 
 Preferred wrapper commands from the repo root:

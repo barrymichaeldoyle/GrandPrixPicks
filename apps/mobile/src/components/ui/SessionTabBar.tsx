@@ -1,5 +1,6 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { SESSION_LABELS_SHORT } from '@grandprixpicks/shared/sessions';
+import * as Haptics from 'expo-haptics';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { Chip } from './Chip';
@@ -30,7 +31,12 @@ export function SessionTabBar({
           active={session === selected}
           disabled={disabled}
           label={SESSION_LABELS_SHORT[session]}
-          onPress={() => onSelect(session)}
+          onPress={() => {
+            if (session !== selected) {
+              void Haptics.selectionAsync();
+            }
+            onSelect(session);
+          }}
         />
       ))}
     </ScrollView>

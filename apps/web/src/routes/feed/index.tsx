@@ -13,6 +13,7 @@ import {
   FeedItemSkeleton,
   SessionSeparator,
 } from '../../components/FeedItem';
+import { FeedSidebar } from '../../components/FeedSidebar';
 import { FollowButton } from '../../components/FollowButton';
 import { canonicalMeta, noIndexMeta } from '../../lib/site';
 
@@ -290,27 +291,21 @@ export function FeedContent() {
           return <FeedItem key={group.event._id} event={group.event} />;
         }
         const session = allSessions[group.key];
-        const isMulti = group.events.length > 1;
         const sessionWithTime = {
           ...session,
           createdAt: group.events[group.events.length - 1]?.createdAt,
         };
         return (
           <div key={group.key}>
-            <SessionSeparator session={sessionWithTime} grouped={isMulti} />
+            <SessionSeparator session={sessionWithTime} grouped />
             {group.events.map((event, i) => {
-              const position = !isMulti
-                ? undefined
-                : i === 0
-                  ? 'first'
-                  : i === group.events.length - 1
-                    ? 'last'
-                    : 'middle';
+              const isLast = i === group.events.length - 1;
+              const position = isLast ? 'last' : i === 0 ? 'first' : 'middle';
               return (
                 <FeedItem
                   key={event._id}
                   event={event}
-                  grouped={isMulti}
+                  grouped
                   position={position}
                 />
               );
@@ -340,33 +335,41 @@ function FeedPage() {
 
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Gauge className="h-5 w-5 text-accent" />
-            <h1 className="text-xl font-bold text-text">Your Feed</h1>
+      <div className="mx-auto max-w-6xl px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-8">
+        <div className="min-w-0">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Gauge className="h-5 w-5 text-accent" />
+              <h1 className="text-xl font-bold text-text">Your Feed</h1>
+            </div>
           </div>
+
+          {!isLoaded ? (
+            <div className="space-y-3">
+              <FeedItemSkeleton />
+              <FeedItemSkeleton />
+              <FeedItemSkeleton />
+              <FeedItemSkeleton />
+            </div>
+          ) : !isSignedIn ? (
+            <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+              <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
+              <p className="mb-4 text-sm text-text-muted">
+                Sign in to see scores from your friends and leagues.
+              </p>
+              <Button asChild variant="primary" size="md">
+                <Link to="/">Go to home</Link>
+              </Button>
+            </div>
+          ) : (
+            <FeedContent />
+          )}
         </div>
 
-        {!isLoaded ? (
-          <div className="space-y-3">
-            <FeedItemSkeleton />
-            <FeedItemSkeleton />
-            <FeedItemSkeleton />
-            <FeedItemSkeleton />
+        {isSignedIn && (
+          <div className="hidden lg:sticky lg:top-8 lg:block">
+            <FeedSidebar />
           </div>
-        ) : !isSignedIn ? (
-          <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
-            <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
-            <p className="mb-4 text-sm text-text-muted">
-              Sign in to see scores from your friends and leagues.
-            </p>
-            <Button asChild variant="primary" size="md">
-              <Link to="/">Go to home</Link>
-            </Button>
-          </div>
-        ) : (
-          <FeedContent />
         )}
       </div>
     </div>

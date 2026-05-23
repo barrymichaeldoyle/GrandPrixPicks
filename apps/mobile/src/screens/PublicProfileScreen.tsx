@@ -62,9 +62,9 @@ export function PublicProfileScreen({ route, navigation }: Props) {
       {/* Hero */}
       <View style={styles.hero}>
         <Avatar
+          imageUrl={profile.avatarUrl ?? undefined}
           name={displayName}
           size="lg"
-          src={profile.avatarUrl ?? undefined}
         />
         <View style={styles.heroText}>
           <Text style={styles.displayName}>{displayName}</Text>
@@ -146,6 +146,25 @@ export function PublicProfileScreen({ route, navigation }: Props) {
           />
         </View>
       ) : null}
+
+      {/* Picks history link */}
+      {profile.username ? (
+        <Pressable
+          onPress={() =>
+            navigation.navigate('PredictionHistory', {
+              username: profile.username as string,
+            })
+          }
+          style={styles.historyLink}
+        >
+          <View style={styles.historyLinkText}>
+            <Text style={styles.historyLinkLabel}>View picks history</Text>
+            <Text style={styles.historyLinkSubtitle}>
+              {isOwner ? 'Your weekend-by-weekend picks' : `@${profile.username}'s picks per weekend`}
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }
@@ -197,6 +216,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     height: 32,
     width: 1,
+  },
+  historyLink: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  historyLinkLabel: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  historyLinkSubtitle: {
+    color: colors.textMuted,
+    fontSize: 11,
+  },
+  historyLinkText: {
+    gap: 2,
   },
   followLabel: {
     color: colors.textMuted,

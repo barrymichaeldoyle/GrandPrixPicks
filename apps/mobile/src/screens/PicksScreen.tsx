@@ -24,8 +24,8 @@ import {
 } from '../lib/picksDrafts';
 import { useNow } from '../lib/useNow';
 import { colors, radii } from '../theme/tokens';
-import { useTypography } from '../theme/typography';
 import type { RaceWeekend } from '../types';
+import { PageHero } from '../components/ui/PageHero';
 
 type PicksScreenProps = {
   onOpenRace?: (raceSlug: string) => void;
@@ -69,7 +69,6 @@ function getEmptyH2HBySession(): H2HBySession {
 }
 
 export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
-  const { titleFontFamily } = useTypography();
   const initialRaceSlug =
     getNextRaceSlug(races) ?? (races.length > 0 ? races[0].slug : '');
   const [selectedRaceSlug, setSelectedRaceSlug] = useState(
@@ -293,17 +292,10 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
       contentContainerStyle={styles.scrollContent}
       style={styles.screen}
     >
-      <Text
-        style={[
-          styles.title,
-          titleFontFamily ? { fontFamily: titleFontFamily } : null,
-        ]}
-      >
-        Picks
-      </Text>
-      <Text style={styles.body}>
-        Select your Top 5 and H2H picks for each race session.
-      </Text>
+      <PageHero
+        subtitle="Select your Top 5 and H2H picks for each race session."
+        title="Picks"
+      />
       {restoredDraftAt ? (
         <View style={styles.restoredBannerContainer}>
           <Text style={styles.restoredBannerText}>
@@ -541,11 +533,6 @@ export function PicksScreen({ races, onOpenRace }: PicksScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  body: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
   card: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
@@ -796,12 +783,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 11,
     fontWeight: '600',
-  },
-  title: {
-    color: colors.text,
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    lineHeight: 38,
   },
 });

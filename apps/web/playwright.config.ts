@@ -50,7 +50,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'VITE_ENABLE_DEV_TIME_CONTROLS=true pnpm run dev:vite',
+    command:
+      'pnpm run generate-tokens && VITE_ENABLE_DEV_TIME_CONTROLS=true pnpm run dev:vite',
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,

@@ -1,11 +1,7 @@
 import { v } from 'convex/values';
 
 import type { Id } from './_generated/dataModel';
-import {
-  internalMutation,
-  type MutationCtx,
-  mutation,
-} from './_generated/server';
+import { internalMutation, type MutationCtx } from './_generated/server';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import { scheduleReminder } from './notifications';
 
@@ -598,8 +594,9 @@ const REMINDER_TEST_RACE_DAYS_AWAY = 5;
  * homepage countdown stays in a "days away" state on small screens.
  *
  * Run via: npx convex run testing:setupReminderTest '{"raceSlug": "australia-2026"}'
+ * (internal only — not exposed on the public Convex API)
  */
-export const setupReminderTest = mutation({
+export const setupReminderTest = internalMutation({
   args: { raceSlug: v.string() },
   handler: async (ctx, args) => {
     const now = Date.now();

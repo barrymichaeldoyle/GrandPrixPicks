@@ -645,7 +645,11 @@ export const adminPublishResults = mutation({
   },
 });
 
-export const emergencyPublishResults = mutation({
+/**
+ * CLI/dashboard only — not callable from the public Convex API.
+ * Run via: npx convex run results:emergencyPublishResults '{...}'
+ */
+export const emergencyPublishResults = internalMutation({
   args: {
     raceId: v.id('races'),
     classification: v.array(v.id('drivers')),
@@ -675,7 +679,11 @@ export const adminRollbackResults = mutation({
   },
 });
 
-export const emergencyRollbackResults = mutation({
+/**
+ * CLI/dashboard only — not callable from the public Convex API.
+ * Run via: npx convex run results:emergencyRollbackResults '{...}'
+ */
+export const emergencyRollbackResults = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,

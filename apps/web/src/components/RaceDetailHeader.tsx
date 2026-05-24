@@ -34,7 +34,18 @@ export function RaceDetailHeader({
       <div className="flex min-w-0 flex-1 items-stretch gap-0">
         {countryCode && (
           <div
-            className={`flex shrink-0 items-stretch self-stretch border-r-3 ${accentBorderClass}`}
+            className={`h-[60px] shrink-0 self-center border-r-3 ${accentBorderClass} md:hidden`}
+          >
+            <RaceFlag
+              countryCode={countryCode}
+              size="full"
+              className="!rounded-none ring-0"
+            />
+          </div>
+        )}
+        {countryCode && (
+          <div
+            className={`hidden shrink-0 self-stretch border-r-3 ${accentBorderClass} md:flex md:items-stretch`}
           >
             <RaceFlag
               countryCode={countryCode}

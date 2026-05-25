@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { DatabaseReader, MutationCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
@@ -1150,8 +1150,9 @@ export const getRevUsers = query({
  *
  * Run via:
  *   npx convex run feed:backfillSessionLockFeedEvents '{"raceId": "<id>", "sessionType": "quali"}'
+ * (internal only — not exposed on the public Convex API)
  */
-export const backfillSessionLockFeedEvents = mutation({
+export const backfillSessionLockFeedEvents = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
@@ -1218,8 +1219,9 @@ export const backfillSessionLockFeedEvents = mutation({
  * Run via:
  *   npx convex run feed:backfillFeedEventsForSeason
  *   npx convex run feed:backfillFeedEventsForSeason '{"season": 2026}'
+ * (internal only — not exposed on the public Convex API)
  */
-export const backfillFeedEventsForSeason = mutation({
+export const backfillFeedEventsForSeason = internalMutation({
   args: {
     season: v.optional(v.number()),
     startAfterRound: v.optional(v.number()),
@@ -1251,7 +1253,7 @@ export const backfillFeedEventsForSeason = mutation({
     }
 
     const lastRace = races[races.length - 1];
-    await ctx.scheduler.runAfter(0, api.feed.backfillFeedEventsForSeason, {
+    await ctx.scheduler.runAfter(0, internal.feed.backfillFeedEventsForSeason, {
       season,
       startAfterRound: lastRace.round,
       created,

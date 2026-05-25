@@ -20,6 +20,45 @@ type SessionType = Doc<'results'>['sessionType'];
 
 type DbCtx = { db: DatabaseReader };
 
+export function getSessionLockAt(
+  race: Pick<
+    Doc<'races'>,
+    | 'qualiLockAt'
+    | 'sprintQualiLockAt'
+    | 'sprintLockAt'
+    | 'predictionLockAt'
+  >,
+  sessionType: SessionType,
+): number | undefined {
+  switch (sessionType) {
+    case 'quali':
+      return race.qualiLockAt;
+    case 'sprint_quali':
+      return race.sprintQualiLockAt;
+    case 'sprint':
+      return race.sprintLockAt;
+    case 'race':
+      return race.predictionLockAt;
+    default:
+      return undefined;
+  }
+}
+
+export function isSessionLockedAt(
+  race: Pick<
+    Doc<'races'>,
+    | 'qualiLockAt'
+    | 'sprintQualiLockAt'
+    | 'sprintLockAt'
+    | 'predictionLockAt'
+  >,
+  sessionType: SessionType,
+  now: number,
+): boolean {
+  const lockAt = getSessionLockAt(race, sessionType);
+  return lockAt != null && now >= lockAt;
+}
+
 async function getPersonalizedFeedUserIds(ctx: DbCtx, viewerId: Id<'users'>) {
   const userIds = new Set<Id<'users'>>();
   userIds.add(viewerId);
@@ -687,6 +726,11 @@ async function enrichScoreEvent(
   const raceId = event.raceId;
 
   if (event.type === 'session_locked') {
+    const race = await ctx.db.get(raceId);
+    if (!race || !isSessionLockedAt(race, sessionType, Date.now())) {
+      return { picks: undefined, h2hScore: null };
+    }
+
     // Results not yet published — load picks from predictions table (unscored)
     const prediction = await ctx.db
       .query('predictions')
@@ -958,7 +1002,17 @@ export const getPersonalizedFeed = query({
 export const getLeagueFeed = query({
   args: { leagueId: v.id('leagues'), paginationCursor: v.optional(v.string()) },
   handler: async (ctx, { leagueId, paginationCursor }) => {
-    const viewer = await getViewer(ctx);
+    const viewer = requireViewer(await getViewer(ctx));
+
+    const membership = await ctx.db
+      .query('leagueMembers')
+      .withIndex('by_league_user', (q) =>
+        q.eq('leagueId', leagueId).eq('userId', viewer._id),
+      )
+      .unique();
+    if (!membership) {
+      throw new Error('Not a member of this league');
+    }
 
     const memberUserIds = await getLeagueFeedUserIds(ctx, leagueId);
     const { page, hasMore, nextCursor } = await buildFilteredFeedPage(
@@ -1164,6 +1218,12 @@ export const backfillSessionLockFeedEvents = internalMutation({
     }
 
     const now = Date.now();
+    if (!isSessionLockedAt(race, args.sessionType, now)) {
+      throw new Error(
+        `Cannot backfill session_locked feed events before ${args.sessionType} lock`,
+      );
+    }
+
     let created = 0;
 
     for await (const prediction of ctx.db

@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Id } from './_generated/dataModel';
-import { buildFilteredFeedPage, getPersonalizedFeedPageData } from './feed';
+import {
+  buildFilteredFeedPage,
+  getPersonalizedFeedPageData,
+  getSessionLockAt,
+  isSessionLockedAt,
+} from './feed';
 
 const MAX_FEED_SIZE = 40;
 const FEED_SCAN_BATCH_SIZE = MAX_FEED_SIZE;
@@ -432,5 +437,28 @@ describe('getPersonalizedFeedPageData', () => {
         },
       ],
     });
+  });
+});
+
+describe('session lock helpers', () => {
+  const race = {
+    qualiLockAt: 1000,
+    sprintQualiLockAt: 2000,
+    sprintLockAt: 3000,
+    predictionLockAt: 4000,
+  };
+
+  it('maps session types to the correct lock timestamps', () => {
+    expect(getSessionLockAt(race, 'quali')).toBe(1000);
+    expect(getSessionLockAt(race, 'sprint_quali')).toBe(2000);
+    expect(getSessionLockAt(race, 'sprint')).toBe(3000);
+    expect(getSessionLockAt(race, 'race')).toBe(4000);
+  });
+
+  it('treats sessions as locked only at or after lock time', () => {
+    expect(isSessionLockedAt(race, 'quali', 999)).toBe(false);
+    expect(isSessionLockedAt(race, 'quali', 1000)).toBe(true);
+    expect(isSessionLockedAt(race, 'race', 3999)).toBe(false);
+    expect(isSessionLockedAt(race, 'race', 4000)).toBe(true);
   });
 });

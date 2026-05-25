@@ -7,7 +7,6 @@ import { getViewer } from './lib/auth';
 import {
   assignCompetitionRanks,
   clampLeaderboardPagination,
-  getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
   streamRankedLeaderboardRows,
@@ -505,26 +504,6 @@ export const getCombinedRaceLeaderboard = query({
       throw new Error('Race not found');
     }
 
-    let hasSubmittedPrediction = false;
-    if (viewer && race.status !== 'finished') {
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-      hasSubmittedPrediction = submitted !== null;
-    }
-
-    const access = getRaceLeaderboardAccess({
-      raceStatus: race.status,
-      viewerId: viewer?._id,
-      hasSubmittedPrediction,
-    });
-    if (access.status === 'locked') {
-      return { status: access.status, reason: access.reason, entries: [] };
-    }
-
     let friendIds: Set<string> | null = null;
     if (args.friendsOnly && viewer) {
       friendIds = await getFollowedUserIds(ctx, viewer._id);
@@ -646,26 +625,6 @@ export const getH2HRaceLeaderboard = query({
       throw new Error('Race not found');
     }
 
-    let hasSubmittedPrediction = false;
-    if (viewer && race.status !== 'finished') {
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-      hasSubmittedPrediction = submitted !== null;
-    }
-
-    const access = getRaceLeaderboardAccess({
-      raceStatus: race.status,
-      viewerId: viewer?._id,
-      hasSubmittedPrediction,
-    });
-    if (access.status === 'locked') {
-      return { status: access.status, reason: access.reason, entries: [] };
-    }
-
     let friendIds: Set<string> | null = null;
     if (args.friendsOnly && viewer) {
       friendIds = await getFollowedUserIds(ctx, viewer._id);
@@ -745,7 +704,7 @@ export const getRaceLeaderboard = query({
       };
     }
 
-    const result = await getRaceLeaderboardForViewer(ctx, args, viewer);
+    const result = await getRaceLeaderboardForViewer(ctx, args);
     if (result.status !== 'visible' || !args.friendsOnly || !viewer) {
       return result;
     }
@@ -905,26 +864,6 @@ export const getLeagueRaceLeaderboard = query({
       throw new Error('Race not found');
     }
 
-    let hasSubmittedPrediction = false;
-    if (race.status !== 'finished') {
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-      hasSubmittedPrediction = submitted !== null;
-    }
-
-    const access = getRaceLeaderboardAccess({
-      raceStatus: race.status,
-      viewerId: viewer._id,
-      hasSubmittedPrediction,
-    });
-    if (access.status === 'locked') {
-      return { status: access.status, reason: access.reason, entries: [] };
-    }
-
     const userMap = new Map<
       string,
       {
@@ -987,26 +926,6 @@ export const getLeagueCombinedRaceLeaderboard = query({
     const race = await ctx.db.get(args.raceId);
     if (!race) {
       throw new Error('Race not found');
-    }
-
-    let hasSubmittedPrediction = false;
-    if (race.status !== 'finished') {
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-      hasSubmittedPrediction = submitted !== null;
-    }
-
-    const access = getRaceLeaderboardAccess({
-      raceStatus: race.status,
-      viewerId: viewer._id,
-      hasSubmittedPrediction,
-    });
-    if (access.status === 'locked') {
-      return { status: access.status, reason: access.reason, entries: [] };
     }
 
     type RaceEntry = {
@@ -1130,26 +1049,6 @@ export const getLeagueH2HRaceLeaderboard = query({
       throw new Error('Race not found');
     }
 
-    let hasSubmittedPrediction = false;
-    if (race.status !== 'finished') {
-      const submitted = await ctx.db
-        .query('predictions')
-        .withIndex('by_user_race_session', (q) =>
-          q.eq('userId', viewer._id).eq('raceId', args.raceId),
-        )
-        .first();
-      hasSubmittedPrediction = submitted !== null;
-    }
-
-    const access = getRaceLeaderboardAccess({
-      raceStatus: race.status,
-      viewerId: viewer._id,
-      hasSubmittedPrediction,
-    });
-    if (access.status === 'locked') {
-      return { status: access.status, reason: access.reason, entries: [] };
-    }
-
     type H2HEntry = {
       userId: Id<'users'>;
       points: number;
@@ -1214,31 +1113,10 @@ export const getLeagueH2HRaceLeaderboard = query({
 export async function getRaceLeaderboardForViewer(
   ctx: QueryCtx,
   args: { raceId: Id<'races'> },
-  viewer: Awaited<ReturnType<typeof getViewer>>,
 ) {
   const race = await ctx.db.get(args.raceId);
   if (!race) {
     throw new Error('Race not found');
-  }
-
-  let hasSubmittedPrediction = false;
-  if (viewer && race.status !== 'finished') {
-    const submitted = await ctx.db
-      .query('predictions')
-      .withIndex('by_user_race_session', (q) =>
-        q.eq('userId', viewer._id).eq('raceId', args.raceId),
-      )
-      .first();
-    hasSubmittedPrediction = submitted !== null;
-  }
-
-  const access = getRaceLeaderboardAccess({
-    raceStatus: race.status,
-    viewerId: viewer?._id,
-    hasSubmittedPrediction,
-  });
-  if (access.status === 'locked') {
-    return { status: access.status, reason: access.reason, entries: [] };
   }
 
   const userMap = new Map<

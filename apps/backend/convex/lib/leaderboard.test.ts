@@ -5,7 +5,6 @@ import {
   assignCompetitionRanks,
   buildViewerEntryFromRows,
   clampLeaderboardPagination,
-  getRaceLeaderboardAccess,
   mapRaceScoresToLeaderboardEntries,
   mapRowsToLeaderboardEntries,
   sortByPointsWithStableTieBreak,
@@ -105,40 +104,6 @@ describe('leaderboard helpers', () => {
         isViewer: true,
       },
     ]);
-  });
-
-  it('evaluates race leaderboard access rules', () => {
-    expect(
-      getRaceLeaderboardAccess({
-        raceStatus: 'finished',
-        viewerId: undefined,
-        hasSubmittedPrediction: false,
-      }),
-    ).toEqual({ status: 'visible', reason: null });
-
-    expect(
-      getRaceLeaderboardAccess({
-        raceStatus: 'upcoming',
-        viewerId: undefined,
-        hasSubmittedPrediction: false,
-      }),
-    ).toEqual({ status: 'locked', reason: 'sign_in' });
-
-    expect(
-      getRaceLeaderboardAccess({
-        raceStatus: 'locked',
-        viewerId: user('viewer'),
-        hasSubmittedPrediction: false,
-      }),
-    ).toEqual({ status: 'locked', reason: 'no_prediction' });
-
-    expect(
-      getRaceLeaderboardAccess({
-        raceStatus: 'locked',
-        viewerId: user('viewer'),
-        hasSubmittedPrediction: true,
-      }),
-    ).toEqual({ status: 'visible', reason: null });
   });
 
   it('maps race scores with deterministic point sort', () => {

@@ -253,12 +253,7 @@ function DraggableDriverCard({
           backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
         }}
       >
-        <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-black/30 px-2 py-1 leading-none">
-          {driver.number != null && (
-            <span className="text-sm font-bold sm:text-base">
-              {driver.number}
-            </span>
-          )}
+        <span className="inline-flex items-center rounded-md bg-black/30 px-2 py-1 leading-none">
           <span className="text-xs font-bold tracking-wider sm:text-sm">
             {driver.code}
           </span>

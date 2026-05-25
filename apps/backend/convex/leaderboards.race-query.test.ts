@@ -16,7 +16,6 @@ function makeCtx(params: {
     _id: Id<'races'>;
     status: string;
   } | null;
-  hasSubmittedPrediction?: boolean;
   scores?: Array<{
     userId: Id<'users'>;
     username?: string;
@@ -38,16 +37,6 @@ function makeCtx(params: {
       get: () => Promise.resolve(params.race),
       query: (table: string) => ({
         withIndex: (_indexName: string, _builder: unknown) => {
-          if (table === 'predictions') {
-            return {
-              first: () =>
-                Promise.resolve(
-                  params.hasSubmittedPrediction
-                    ? ({ _id: 'prediction' } as const)
-                    : null,
-                ),
-            };
-          }
           if (table === 'scores') {
             return scoreQuery;
           }
@@ -61,52 +50,42 @@ function makeCtx(params: {
 describe('getRaceLeaderboardForViewer', () => {
   it('throws when race does not exist', async () => {
     await expect(
-      getRaceLeaderboardForViewer(
-        makeCtx({ race: null }) as never,
-        { raceId: raceId('r1') },
-        null,
-      ),
+      getRaceLeaderboardForViewer(makeCtx({ race: null }) as never, {
+        raceId: raceId('r1'),
+      }),
     ).rejects.toThrow('Race not found');
   });
 
-  it('locks non-finished race for signed-out users', async () => {
+  it('returns scores to signed-out users on an upcoming race', async () => {
     const result = await getRaceLeaderboardForViewer(
       makeCtx({
         race: { _id: raceId('r1'), status: 'upcoming' },
+        scores: [{ userId: userId('a'), username: 'A', points: 10 }],
       }) as never,
       { raceId: raceId('r1') },
-      null,
     );
 
-    expect(result).toEqual({
-      status: 'locked',
-      reason: 'sign_in',
-      entries: [],
-    });
+    expect(result.status).toBe('visible');
+    expect(result.entries).toHaveLength(1);
   });
 
-  it('locks non-finished race for signed-in users without a prediction', async () => {
+  it('returns scores to signed-in users who have not predicted', async () => {
     const result = await getRaceLeaderboardForViewer(
       makeCtx({
         race: { _id: raceId('r1'), status: 'locked' },
-        hasSubmittedPrediction: false,
+        scores: [{ userId: userId('a'), username: 'A', points: 10 }],
       }) as never,
       { raceId: raceId('r1') },
-      { _id: userId('viewer'), username: 'Viewer' } as never,
     );
 
-    expect(result).toEqual({
-      status: 'locked',
-      reason: 'no_prediction',
-      entries: [],
-    });
+    expect(result.status).toBe('visible');
+    expect(result.entries).toHaveLength(1);
   });
 
   it('returns visible entries sorted by points', async () => {
     const result = await getRaceLeaderboardForViewer(
       makeCtx({
         race: { _id: raceId('r1'), status: 'locked' },
-        hasSubmittedPrediction: true,
         scores: [
           {
             userId: userId('viewer'),
@@ -123,7 +102,6 @@ describe('getRaceLeaderboardForViewer', () => {
         ],
       }) as never,
       { raceId: raceId('r1') },
-      { _id: userId('viewer'), username: 'Viewer' } as never,
     );
 
     expect(result).toEqual({
@@ -181,7 +159,6 @@ describe('getRaceLeaderboardForViewer', () => {
         ],
       }) as never,
       { raceId: raceId('r1') },
-      null,
     );
 
     expect(result).toEqual({
@@ -202,51 +179,6 @@ describe('getRaceLeaderboardForViewer', () => {
           userId: userId('other'),
           username: 'other',
           displayName: undefined,
-          avatarUrl: undefined,
-          points: 10,
-          breakdown: undefined,
-        },
-      ],
-    });
-  });
-
-  it('does not require sign-in or prediction once race is finished', async () => {
-    const result = await getRaceLeaderboardForViewer(
-      makeCtx({
-        race: { _id: raceId('r1'), status: 'finished' },
-        hasSubmittedPrediction: false,
-        scores: [
-          {
-            userId: userId('public'),
-            username: 'Public',
-            points: 12,
-          },
-          {
-            userId: userId('other'),
-            points: 10,
-          },
-        ],
-      }) as never,
-      { raceId: raceId('r1') },
-      null,
-    );
-
-    expect(result).toEqual({
-      status: 'visible',
-      reason: null,
-      entries: [
-        {
-          rank: 1,
-          userId: userId('public'),
-          username: 'Public',
-          avatarUrl: undefined,
-          points: 12,
-          breakdown: undefined,
-        },
-        {
-          rank: 2,
-          userId: userId('other'),
-          username: 'Anonymous',
           avatarUrl: undefined,
           points: 10,
           breakdown: undefined,

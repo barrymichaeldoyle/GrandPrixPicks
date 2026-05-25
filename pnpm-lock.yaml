@@ -218,6 +218,9 @@ importers:
       '@clerk/ui':
         specifier: 1.13.0
         version: 1.13.0(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))(@types/react@19.2.15)(bs58@5.0.0)(fastestsmallesttextencoderdecoder@1.0.22)(react-dom@19.2.6(react@19.2.6))(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.0(@babel/core@7.29.0)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.15)(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6)(typescript@6.0.3)
+      '@convex-dev/react-query':
+        specifier: 0.1.0
+        version: 0.1.0(@tanstack/react-query@5.100.11(react@19.2.6))(convex@1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))
       '@dnd-kit/core':
         specifier: 6.3.1
         version: 6.3.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1064,6 +1067,12 @@ packages:
     peerDependenciesMeta:
       react:
         optional: true
+
+  '@convex-dev/react-query@0.1.0':
+    resolution: {integrity: sha512-ULmBZCtAQDUePdBhUv7hj1Yy4QiCelhi6uEIOtMpjW8db6W9CFKvQwLt9heLngccFyMFfAZdOfSrT+cP4AH0Jw==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.0.0
+      convex: ^1.29.3
 
   '@convex-dev/resend@0.2.4':
     resolution: {integrity: sha512-R009qlbXG+6R0p/WmkTbfHzBo48ocKyfoqRAJ41AQdQDrdW6pPZrVOGgTOTLSIZwmXZp+1BbiNpzjc/+Zh/OVg==}
@@ -9386,6 +9395,11 @@ snapshots:
       convex: 1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6)
     optionalDependencies:
       react: 19.2.6
+
+  '@convex-dev/react-query@0.1.0(@tanstack/react-query@5.100.11(react@19.2.6))(convex@1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))':
+    dependencies:
+      '@tanstack/react-query': 5.100.11(react@19.2.6)
+      convex: 1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6)
 
   '@convex-dev/resend@0.2.4(@react-email/render@2.0.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(convex-helpers@0.1.112(@standard-schema/spec@1.1.0)(convex@1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6)(typescript@6.0.3)(zod@4.4.3))(convex@1.39.1(@clerk/clerk-react@5.61.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@clerk/react@6.7.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(bufferutil@4.1.0)(react@19.2.6)(utf-8-validate@6.0.6))(react@19.2.6)':
     dependencies:

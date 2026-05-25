@@ -121,6 +121,7 @@ export function Tooltip({
   const [isVisible, setIsVisible] = useState(false);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const [doAnimate, setDoAnimate] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const [effectivePlacement, setEffectivePlacement] = useState<
     'top' | 'bottom'
@@ -153,14 +154,14 @@ export function Tooltip({
     );
   }, [distance, isVisible, placement]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    setMounted(true);
+    return () => {
       if (openTimeoutRef.current) {
         clearTimeout(openTimeoutRef.current);
       }
-    },
-    [],
-  );
+    };
+  }, []);
 
   useEffect(() => {
     if (!isVisible) {
@@ -304,8 +305,11 @@ export function Tooltip({
   const isDefaultStyle = typeof content === 'string';
   // Keep tooltip mounted after first show to preserve cached images
   // prerender allows immediate mounting for image preloading
-  const shouldRender = isVisible || hasBeenVisible || prerender;
-  const tooltipEl = typeof document !== 'undefined' && shouldRender && (
+  // Gate on `mounted` so the portal slot matches the server tree during
+  // hydration; otherwise React reconciles the next sibling against the
+  // portal fiber and reports a mismatch.
+  const shouldRender = mounted && (isVisible || hasBeenVisible || prerender);
+  const tooltipEl = shouldRender && (
     <span
       ref={tooltipRef}
       id={tooltipId}

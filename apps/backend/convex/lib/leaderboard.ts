@@ -198,25 +198,6 @@ export async function streamRankedLeaderboardRows<T extends RowBase>(
   };
 }
 
-export function getRaceLeaderboardAccess(params: {
-  raceStatus: string;
-  viewerId?: Id<'users'>;
-  hasSubmittedPrediction: boolean;
-}):
-  | { status: 'visible'; reason: null }
-  | { status: 'locked'; reason: 'sign_in' | 'no_prediction' } {
-  if (params.raceStatus === 'finished') {
-    return { status: 'visible', reason: null };
-  }
-  if (!params.viewerId) {
-    return { status: 'locked', reason: 'sign_in' };
-  }
-  if (!params.hasSubmittedPrediction) {
-    return { status: 'locked', reason: 'no_prediction' };
-  }
-  return { status: 'visible', reason: null };
-}
-
 export function mapRaceScoresToLeaderboardEntries<T extends RaceScoreRowBase>(
   rows: ReadonlyArray<T>,
 ) {

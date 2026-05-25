@@ -1,5 +1,7 @@
 import { useAuth } from '@clerk/react';
+import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
+import { useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   Link,
@@ -7,8 +9,6 @@ import {
   Outlet,
   useMatches,
 } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
-import { useQuery } from 'convex/react';
 import {
   ArrowLeft,
   Hash,
@@ -38,8 +38,6 @@ import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';
 
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
-
 export const Route = createFileRoute('/p/$username')({
   validateSearch: (search: Record<string, unknown>) => ({
     from: typeof search.from === 'string' ? search.from : undefined,
@@ -47,13 +45,34 @@ export const Route = createFileRoute('/p/$username')({
       typeof search.fromLabel === 'string' ? search.fromLabel : undefined,
   }),
   component: ProfilePage,
-  loader: async ({ params }) => {
-    const profile = await convex.query(api.users.getProfileByUsername, {
-      username: params.username,
-    });
+  loader: async ({ context, params }) => {
+    const profile = await context.queryClient.ensureQueryData(
+      convexQuery(api.users.getProfileByUsername, {
+        username: params.username,
+      }),
+    );
     if (!profile) {
       throw notFound();
     }
+
+    await Promise.all([
+      context.queryClient.ensureQueryData(
+        convexQuery(api.users.getUserStats, { userId: profile._id }),
+      ),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.predictions.getUserPredictionHistory, {
+          userId: profile._id,
+        }),
+      ),
+      context.queryClient.ensureQueryData(convexQuery(api.drivers.listDrivers)),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.feed.getUserFeed, { userId: profile._id }),
+      ),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.follows.getFollowCounts, { userId: profile._id }),
+      ),
+    ]);
+
     return { initialProfile: profile };
   },
   head: ({ loaderData, matches, params }) => {
@@ -98,29 +117,39 @@ function ProfilePage() {
   const matches = useMatches();
   useAuth();
 
-  const profile = useQuery(api.users.getProfileByUsername, { username });
+  const { data: profile } = useQuery(
+    convexQuery(api.users.getProfileByUsername, { username }),
+  );
   const currentProfile = profile ?? initialProfile;
 
-  const stats = useQuery(
-    api.users.getUserStats,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
+  const { data: stats } = useQuery(
+    convexQuery(
+      api.users.getUserStats,
+      currentProfile ? { userId: currentProfile._id } : 'skip',
+    ),
   );
 
-  const weekends = useQuery(
-    api.predictions.getUserPredictionHistory,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
+  const { data: weekends } = useQuery(
+    convexQuery(
+      api.predictions.getUserPredictionHistory,
+      currentProfile ? { userId: currentProfile._id } : 'skip',
+    ),
   );
 
-  const drivers = useQuery(api.drivers.listDrivers);
+  const { data: drivers } = useQuery(convexQuery(api.drivers.listDrivers));
 
-  const userFeed = useQuery(
-    api.feed.getUserFeed,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
+  const { data: userFeed } = useQuery(
+    convexQuery(
+      api.feed.getUserFeed,
+      currentProfile ? { userId: currentProfile._id } : 'skip',
+    ),
   );
 
-  const followCounts = useQuery(
-    api.follows.getFollowCounts,
-    currentProfile ? { userId: currentProfile._id } : 'skip',
+  const { data: followCounts } = useQuery(
+    convexQuery(
+      api.follows.getFollowCounts,
+      currentProfile ? { userId: currentProfile._id } : 'skip',
+    ),
   );
 
   const isChildRoute = matches.some(

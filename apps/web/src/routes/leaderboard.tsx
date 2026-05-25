@@ -1,9 +1,9 @@
 import { SignInButton, useAuth } from '@clerk/react';
+import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
-import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CalendarDays,
@@ -11,7 +11,6 @@ import {
   Globe,
   Layers,
   Loader2,
-  Lock,
   Medal,
   Swords,
   Trophy,
@@ -27,10 +26,8 @@ import { TabSwitch } from '@/components/TabSwitch';
 import { isRaceSelectableForLeaderboard } from '../lib/raceSessions';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 const playerCountFormatter = new Intl.NumberFormat('en-US');
 
-const PODIUM_SIZE = 3;
 const PAGE_SIZE = 50;
 
 export const Route = createFileRoute('/leaderboard')({
@@ -56,19 +53,30 @@ export const Route = createFileRoute('/leaderboard')({
       typeof search.raceId === 'string' ? search.raceId : undefined;
     return { time, mode, scope, raceId };
   },
-  loader: async () => {
+  loaderDeps: ({ search }) => search,
+  loader: async ({ context, deps }) => {
     const [defaultRace, allRaces] = await Promise.all([
-      convex.query(api.races.getWeekendLeaderboardRace, {}),
-      convex.query(api.races.listRaces, { season: 2026 }),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.races.getWeekendLeaderboardRace, {}),
+      ),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.races.listRaces, { season: 2026 }),
+      ),
     ]);
+    const selectedRace =
+      allRaces.find((race) => race._id === deps.raceId) ?? defaultRace;
     const [initialSeason, initialWeekend] = await Promise.all([
-      convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
-        limit: PODIUM_SIZE,
-      }),
-      defaultRace
-        ? convex.query(api.leaderboards.getCombinedRaceLeaderboard, {
-            raceId: defaultRace._id,
-          })
+      context.queryClient.ensureQueryData(
+        convexQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
+          limit: PAGE_SIZE,
+        }),
+      ),
+      selectedRace
+        ? context.queryClient.ensureQueryData(
+            convexQuery(api.leaderboards.getCombinedRaceLeaderboard, {
+              raceId: selectedRace._id,
+            }),
+          )
         : Promise.resolve(null),
     ]);
     return { defaultRace, allRaces, initialSeason, initialWeekend };
@@ -157,6 +165,7 @@ function LeaderboardPage() {
   const { defaultRace, allRaces, initialSeason, initialWeekend } =
     Route.useLoaderData();
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const timeScope: TimeScope = search.time ?? 'weekend';
@@ -172,11 +181,9 @@ function LeaderboardPage() {
     )
     .sort((a, b) => a.round - b.round);
 
-  const selectedRaceId = (search.raceId ?? defaultRace?._id) as
-    | Id<'races'>
-    | undefined;
   const selectedRace =
-    allRaces.find((r) => r._id === selectedRaceId) ?? defaultRace;
+    allRaces.find((r) => r._id === search.raceId) ?? defaultRace;
+  const selectedRaceId = selectedRace?._id as Id<'races'> | undefined;
 
   // Season combined (global) – with SSR + pagination
   const [seasonEntries, setSeasonEntries] = useState<
@@ -186,97 +193,121 @@ function LeaderboardPage() {
   const [seasonHasMore, setSeasonHasMore] = useState(initialSeason.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const clientSeasonCombined = useQuery(
-    api.leaderboards.getCombinedSeasonLeaderboard,
-    timeScope === 'season' && gameMode === 'combined' && scope === 'global'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: clientSeasonCombined } = useQuery(
+    convexQuery(
+      api.leaderboards.getCombinedSeasonLeaderboard,
+      timeScope === 'season' && gameMode === 'combined' && scope === 'global'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
-  const seasonTop5Global = useQuery(
-    api.leaderboards.getSeasonLeaderboard,
-    timeScope === 'season' && gameMode === 'top5' && scope === 'global'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: seasonTop5Global } = useQuery(
+    convexQuery(
+      api.leaderboards.getSeasonLeaderboard,
+      timeScope === 'season' && gameMode === 'top5' && scope === 'global'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
-  const seasonH2HGlobal = useQuery(
-    api.h2h.getH2HSeasonLeaderboard,
-    timeScope === 'season' && gameMode === 'h2h' && scope === 'global'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: seasonH2HGlobal } = useQuery(
+    convexQuery(
+      api.h2h.getH2HSeasonLeaderboard,
+      timeScope === 'season' && gameMode === 'h2h' && scope === 'global'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
-  const seasonCombinedFollowing = useQuery(
-    api.leaderboards.getFriendsCombinedLeaderboard,
-    timeScope === 'season' && gameMode === 'combined' && scope === 'following'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: seasonCombinedFollowing } = useQuery(
+    convexQuery(
+      api.leaderboards.getFriendsCombinedLeaderboard,
+      timeScope === 'season' && gameMode === 'combined' && scope === 'following'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
-  const seasonTop5Following = useQuery(
-    api.leaderboards.getFriendsLeaderboard,
-    timeScope === 'season' && gameMode === 'top5' && scope === 'following'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: seasonTop5Following } = useQuery(
+    convexQuery(
+      api.leaderboards.getFriendsLeaderboard,
+      timeScope === 'season' && gameMode === 'top5' && scope === 'following'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
-  const seasonH2HFollowing = useQuery(
-    api.leaderboards.getFriendsH2HLeaderboard,
-    timeScope === 'season' && gameMode === 'h2h' && scope === 'following'
-      ? { limit: PAGE_SIZE }
-      : 'skip',
+  const { data: seasonH2HFollowing } = useQuery(
+    convexQuery(
+      api.leaderboards.getFriendsH2HLeaderboard,
+      timeScope === 'season' && gameMode === 'h2h' && scope === 'following'
+        ? { limit: PAGE_SIZE }
+        : 'skip',
+    ),
   );
 
   // Weekend queries
-  const weekendCombined = useQuery(
-    api.leaderboards.getCombinedRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'combined' &&
-      scope === 'global' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId }
-      : 'skip',
+  const { data: weekendCombined } = useQuery(
+    convexQuery(
+      api.leaderboards.getCombinedRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'combined' &&
+        scope === 'global' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId }
+        : 'skip',
+    ),
   );
-  const weekendTop5 = useQuery(
-    api.leaderboards.getRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'top5' &&
-      scope === 'global' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId }
-      : 'skip',
+  const { data: weekendTop5 } = useQuery(
+    convexQuery(
+      api.leaderboards.getRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'top5' &&
+        scope === 'global' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId }
+        : 'skip',
+    ),
   );
-  const weekendH2H = useQuery(
-    api.leaderboards.getH2HRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'h2h' &&
-      scope === 'global' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId }
-      : 'skip',
+  const { data: weekendH2H } = useQuery(
+    convexQuery(
+      api.leaderboards.getH2HRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'h2h' &&
+        scope === 'global' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId }
+        : 'skip',
+    ),
   );
-  const weekendCombinedFollowing = useQuery(
-    api.leaderboards.getCombinedRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'combined' &&
-      scope === 'following' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId, friendsOnly: true }
-      : 'skip',
+  const { data: weekendCombinedFollowing } = useQuery(
+    convexQuery(
+      api.leaderboards.getCombinedRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'combined' &&
+        scope === 'following' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId, friendsOnly: true }
+        : 'skip',
+    ),
   );
-  const weekendTop5Following = useQuery(
-    api.leaderboards.getRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'top5' &&
-      scope === 'following' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId, friendsOnly: true }
-      : 'skip',
+  const { data: weekendTop5Following } = useQuery(
+    convexQuery(
+      api.leaderboards.getRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'top5' &&
+        scope === 'following' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId, friendsOnly: true }
+        : 'skip',
+    ),
   );
-  const weekendH2HFollowing = useQuery(
-    api.leaderboards.getH2HRaceLeaderboard,
-    timeScope === 'weekend' &&
-      gameMode === 'h2h' &&
-      scope === 'following' &&
-      selectedRaceId
-      ? { raceId: selectedRaceId, friendsOnly: true }
-      : 'skip',
+  const { data: weekendH2HFollowing } = useQuery(
+    convexQuery(
+      api.leaderboards.getH2HRaceLeaderboard,
+      timeScope === 'weekend' &&
+        gameMode === 'h2h' &&
+        scope === 'following' &&
+        selectedRaceId
+        ? { raceId: selectedRaceId, friendsOnly: true }
+        : 'skip',
+    ),
   );
 
   // Sticky values — retain last result so switching back to a tab is instant
@@ -312,9 +343,11 @@ function LeaderboardPage() {
     }
     setIsLoadingMore(true);
     try {
-      const more = await convex.query(
-        api.leaderboards.getCombinedSeasonLeaderboard,
-        { limit: PAGE_SIZE, offset: seasonOffset },
+      const more = await queryClient.fetchQuery(
+        convexQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
+          limit: PAGE_SIZE,
+          offset: seasonOffset,
+        }),
       );
       setSeasonEntries((prev) => [
         ...prev,
@@ -334,7 +367,7 @@ function LeaderboardPage() {
         scope === 'global'
           ? gameMode === 'combined'
             ? (stickyWeekendCombined ??
-              (selectedRaceId === defaultRace?._id ? initialWeekend : null))
+              (selectedRaceId === selectedRace?._id ? initialWeekend : null))
             : gameMode === 'top5'
               ? stickyWeekendTop5
               : stickyWeekendH2H
@@ -501,21 +534,23 @@ function LeaderboardPage() {
 
           {/* Row 2: Scope + game mode */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="sm:border-r sm:border-border sm:pr-4">
-              <TabSwitch
-                value={scope}
-                onChange={(v) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, scope: v }),
-                    replace: true,
-                  })
-                }
-                options={[...SCOPE_OPTIONS]}
-                className="flex gap-1"
-                buttonClassName="flex-1 sm:flex-initial"
-                ariaLabel="Leaderboard scope"
-              />
-            </div>
+            {isAuthLoaded && isSignedIn && (
+              <div className="sm:border-r sm:border-border sm:pr-4">
+                <TabSwitch
+                  value={scope}
+                  onChange={(v) =>
+                    navigate({
+                      search: (prev) => ({ ...prev, scope: v }),
+                      replace: true,
+                    })
+                  }
+                  options={[...SCOPE_OPTIONS]}
+                  className="flex gap-1"
+                  buttonClassName="flex-1 sm:flex-initial"
+                  ariaLabel="Leaderboard scope"
+                />
+              </div>
+            )}
             <TabSwitch
               value={gameMode}
               onChange={(v) =>
@@ -538,11 +573,10 @@ function LeaderboardPage() {
             key={activeViewKey}
             defaultRace={selectedRace}
             initialWeekend={
-              selectedRaceId === defaultRace?._id ? initialWeekend : null
+              selectedRaceId === selectedRace?._id ? initialWeekend : null
             }
             scope={scope}
             gameMode={gameMode}
-            isAuthLoaded={isAuthLoaded}
             isSignedIn={isSignedIn}
             weekendCombined={stickyWeekendCombined}
             weekendTop5={stickyWeekendTop5}
@@ -589,7 +623,6 @@ function WeekendContent({
   initialWeekend,
   scope,
   gameMode,
-  isAuthLoaded,
   isSignedIn,
   weekendCombined,
   weekendTop5,
@@ -602,7 +635,6 @@ function WeekendContent({
   initialWeekend: RaceLeaderboardResult | null;
   scope: Scope;
   gameMode: GameMode;
-  isAuthLoaded: boolean;
   isSignedIn: boolean | undefined;
   weekendCombined: RaceLeaderboardResult | undefined;
   weekendTop5: RaceLeaderboardResult | undefined;
@@ -629,7 +661,6 @@ function WeekendContent({
         <WeekendFollowingContent
           defaultRace={defaultRace}
           gameMode={gameMode}
-          isAuthLoaded={isAuthLoaded}
           isSignedIn={isSignedIn}
           weekendCombinedFollowing={weekendCombinedFollowing}
           weekendTop5Following={weekendTop5Following}
@@ -646,13 +677,7 @@ function WeekendContent({
         ? weekendTop5
         : weekendH2H;
 
-  if (
-    activeData === undefined ||
-    (activeData !== null &&
-      activeData.status === 'locked' &&
-      activeData.reason === 'sign_in' &&
-      isSignedIn)
-  ) {
+  if (activeData === undefined) {
     return <LeaderboardContentLoader />;
   }
 
@@ -665,16 +690,6 @@ function WeekendContent({
           Scores will appear once race results are published.
         </p>
       </div>
-    );
-  }
-
-  if (activeData.status === 'locked') {
-    return (
-      <RaceLeaderboardLocked
-        reason={activeData.reason}
-        isAuthLoaded={isAuthLoaded}
-        isSignedIn={isSignedIn}
-      />
     );
   }
 
@@ -776,54 +791,9 @@ function WeekendContent({
   );
 }
 
-function RaceLeaderboardLocked({
-  reason,
-  isAuthLoaded: isAuthLoadedProp,
-  isSignedIn: isSignedInProp,
-}: {
-  reason: 'sign_in' | 'no_prediction';
-  isAuthLoaded?: boolean;
-  isSignedIn?: boolean;
-}) {
-  const auth = useAuth();
-  const isAuthLoaded = isAuthLoadedProp ?? auth.isLoaded;
-  const isSignedIn = isSignedInProp ?? auth.isSignedIn;
-
-  return (
-    <div className="rounded-xl border border-border bg-surface p-8 text-center">
-      <Lock className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-      <h2 className="mb-2 text-xl font-semibold text-text">
-        Leaderboard locked
-      </h2>
-      {reason === 'sign_in' ? (
-        <>
-          <p className="mb-4 text-text-muted">
-            Sign in to view the weekend leaderboard.
-          </p>
-          {isAuthLoaded && !isSignedIn && (
-            <SignInButton mode="modal">
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
-              >
-                Sign In
-              </button>
-            </SignInButton>
-          )}
-        </>
-      ) : (
-        <p className="text-text-muted">
-          Submit your predictions to unlock this leaderboard.
-        </p>
-      )}
-    </div>
-  );
-}
-
 function WeekendFollowingContent({
   defaultRace,
   gameMode,
-  isAuthLoaded,
   isSignedIn,
   weekendCombinedFollowing,
   weekendTop5Following,
@@ -831,7 +801,6 @@ function WeekendFollowingContent({
 }: {
   defaultRace: { _id: string; name: string; status: string };
   gameMode: GameMode;
-  isAuthLoaded: boolean;
   isSignedIn: boolean | undefined;
   weekendCombinedFollowing: RaceLeaderboardResult | undefined;
   weekendTop5Following: RaceLeaderboardResult | undefined;
@@ -856,13 +825,7 @@ function WeekendFollowingContent({
   }
 
   if (activeData.status === 'locked') {
-    return (
-      <RaceLeaderboardLocked
-        reason={activeData.reason}
-        isAuthLoaded={isAuthLoaded}
-        isSignedIn={isSignedIn}
-      />
-    );
+    return null;
   }
 
   const entries = activeData.entries;

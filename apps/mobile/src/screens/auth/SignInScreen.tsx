@@ -1,8 +1,14 @@
-import { useOAuth, useSignIn, useSignUp } from '@clerk/clerk-expo';
+import {
+  useAuth,
+  useClerk,
+  useSignIn,
+  useSignUp,
+  useSSO,
+} from '@clerk/clerk-expo';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -27,29 +33,39 @@ type Screen = 'auth' | 'verify';
 
 function clerkMessage(err: unknown, fallback: string): string {
   const e = err as {
-    errors?: Array<{ longMessage?: string; message?: string }>;
+    errors?: Array<{ longMessage?: string; message?: string; code?: string }>;
+    message?: string;
   };
-  return e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message ?? fallback;
+  return (
+    e.errors?.[0]?.longMessage ??
+    e.errors?.[0]?.message ??
+    e.message ??
+    fallback
+  );
+}
+
+function isAlreadySignedInError(err: unknown): boolean {
+  const e = err as {
+    errors?: Array<{ code?: string; message?: string }>;
+    message?: string;
+  };
+  const code = e.errors?.[0]?.code ?? '';
+  const message = (e.errors?.[0]?.message ?? e.message ?? '').toLowerCase();
+  return (
+    code === 'session_exists' ||
+    code === 'identifier_already_signed_in' ||
+    message.includes("you're already signed in") ||
+    message.includes('already signed in')
+  );
 }
 
 export function SignInScreen() {
   const { titleFontFamily } = useTypography();
-  const { startOAuthFlow: startGoogleFlow } = useOAuth({
-    strategy: 'oauth_google',
-  });
-  const { startOAuthFlow: startAppleFlow } = useOAuth({
-    strategy: 'oauth_apple',
-  });
-  const {
-    signIn,
-    setActive: setSignInActive,
-    isLoaded: signInLoaded,
-  } = useSignIn();
-  const {
-    signUp,
-    setActive: setSignUpActive,
-    isLoaded: signUpLoaded,
-  } = useSignUp();
+  const { startSSOFlow } = useSSO();
+  const clerk = useClerk();
+  const { isLoaded: authLoaded, isSignedIn, sessionId } = useAuth();
+  const { signIn, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
 
   const [mode, setMode] = useState<Mode>('signIn');
   const [screen, setScreen] = useState<Screen>('auth');
@@ -63,39 +79,79 @@ export function SignInScreen() {
   const passwordRef = useRef<TextInput>(null);
   const codeRef = useRef<TextInput>(null);
 
+  // Recovery for the case where Clerk has a session resource on the device
+  // but `setActive` never fired (e.g. OAuth flow returned a session and then
+  // threw before activating it). Without this, the user sees "You're already
+  // signed in" on every subsequent attempt because client.signIn is non-empty
+  // while useAuth().isSignedIn is still false.
+  useEffect(() => {
+    if (!authLoaded || isSignedIn) {
+      return;
+    }
+    const sessions = clerk.client?.sessions ?? [];
+    const active = sessions.find((s) => s.status === 'active');
+    if (active && clerk.setActive) {
+      void clerk.setActive({ session: active.id }).catch(() => {
+        // If activation fails, clear the stuck state so the user can retry.
+        void clerk.signOut().catch(() => {});
+      });
+    }
+  }, [authLoaded, isSignedIn, sessionId, clerk]);
+
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
     setPassword('');
   }
 
-  // ── OAuth ──────────────────────────────────────────────────────────────────
-
-  async function handleGoogle() {
+  async function clearStuckSession() {
     try {
+      await clerk.signOut();
       setError(null);
-      const { createdSessionId, setActive } = await startGoogleFlow({
-        redirectUrl: AuthSession.makeRedirectUri(),
-      });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
-      }
     } catch (err) {
-      setError(clerkMessage(err, 'Google sign-in failed'));
+      setError(clerkMessage(err, 'Could not clear session'));
     }
   }
 
-  async function handleApple() {
+  // ── OAuth ──────────────────────────────────────────────────────────────────
+
+  async function handleSSO(strategy: 'oauth_google' | 'oauth_apple') {
+    setError(null);
     try {
-      setError(null);
-      const { createdSessionId, setActive } = await startAppleFlow({
+      const { createdSessionId, signIn: ssoSignIn } = await startSSOFlow({
+        strategy,
         redirectUrl: AuthSession.makeRedirectUri(),
       });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
+      if (createdSessionId) {
+        await clerk.setActive({ session: createdSessionId });
+        return;
+      }
+      // No session was created but the flow didn't throw — most commonly the
+      // user dismissed the browser, or signIn returned with a non-complete
+      // status (e.g. needs 2FA, requires more info). Surface a clear message
+      // instead of leaving the user confused.
+      const status = ssoSignIn?.status ?? null;
+      if (status && status !== 'complete') {
+        setError(`Sign-in needs more steps (status: ${status}).`);
       }
     } catch (err) {
-      setError(clerkMessage(err, 'Apple sign-in failed'));
+      if (isAlreadySignedInError(err)) {
+        // Clerk has a session on the device that never got activated. Clear
+        // it so the next tap starts fresh.
+        await clearStuckSession();
+        setError('Cleared a stale session — please try signing in again.');
+        return;
+      }
+      // Log the full error so we can see what's actually going wrong.
+      console.warn(`[auth] ${strategy} flow failed`, err);
+      setError(
+        clerkMessage(
+          err,
+          strategy === 'oauth_google'
+            ? 'Google sign-in failed'
+            : 'Apple sign-in failed',
+        ),
+      );
     }
   }
 
@@ -112,11 +168,16 @@ export function SignInScreen() {
         identifier: email.trim(),
         password,
       });
-      if (result.status === 'complete' && setSignInActive) {
-        await setSignInActive({ session: result.createdSessionId });
+      if (result.status === 'complete') {
+        await clerk.setActive({ session: result.createdSessionId });
       }
     } catch (err) {
-      setError(clerkMessage(err, 'Sign-in failed'));
+      if (isAlreadySignedInError(err)) {
+        await clearStuckSession();
+        setError('Cleared a stale session — please try signing in again.');
+      } else {
+        setError(clerkMessage(err, 'Sign-in failed'));
+      }
     } finally {
       setLoading(false);
     }
@@ -135,7 +196,12 @@ export function SignInScreen() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setScreen('verify');
     } catch (err) {
-      setError(clerkMessage(err, 'Sign-up failed'));
+      if (isAlreadySignedInError(err)) {
+        await clearStuckSession();
+        setError('Cleared a stale session — please try signing up again.');
+      } else {
+        setError(clerkMessage(err, 'Sign-up failed'));
+      }
     } finally {
       setLoading(false);
     }
@@ -149,11 +215,16 @@ export function SignInScreen() {
     setLoading(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({ code });
-      if (result.status === 'complete' && setSignUpActive) {
-        await setSignUpActive({ session: result.createdSessionId });
+      if (result.status === 'complete') {
+        await clerk.setActive({ session: result.createdSessionId });
       }
     } catch (err) {
-      setError(clerkMessage(err, 'Invalid code'));
+      if (isAlreadySignedInError(err)) {
+        await clearStuckSession();
+        setError('Cleared a stale session — please try signing up again.');
+      } else {
+        setError(clerkMessage(err, 'Invalid code'));
+      }
     } finally {
       setLoading(false);
     }
@@ -300,12 +371,12 @@ export function SignInScreen() {
                           .SIGN_IN
                   }
                   cornerRadius={radii.lg}
-                  onPress={() => void handleApple()}
+                  onPress={() => void handleSSO('oauth_apple')}
                   style={styles.appleButton}
                 />
               ) : null}
               <Pressable
-                onPress={() => void handleGoogle()}
+                onPress={() => void handleSSO('oauth_google')}
                 style={styles.googleButton}
               >
                 <GoogleLogo />

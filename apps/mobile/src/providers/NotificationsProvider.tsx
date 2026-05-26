@@ -68,13 +68,22 @@ function ClerkAwareNotifications() {
 
     let cancelled = false;
 
-    void requestAndGetToken().then((token) => {
-      if (cancelled || !token || tokenRef.current === token) {
-        return;
-      }
-      tokenRef.current = token;
-      void saveToken({ token });
-    });
+    void requestAndGetToken()
+      .then((token) => {
+        if (cancelled || !token || tokenRef.current === token) {
+          return;
+        }
+        tokenRef.current = token;
+        void saveToken({ token }).catch((err: unknown) => {
+          console.warn('[notifications] saveExpoPushToken failed', err);
+        });
+      })
+      .catch((err: unknown) => {
+        // Push registration is best-effort — most commonly fails when the
+        // EAS projectId is missing/invalid or the user denies permissions.
+        // Swallow the rejection so it doesn't surface as an unhandled error.
+        console.warn('[notifications] push token registration failed', err);
+      });
 
     const sub = Notifications.addNotificationReceivedListener(() => {
       // No-op — notifications shown automatically via handler above

@@ -34,8 +34,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "TODO: add your EAS project ID here"
+        "projectId": "71791ac4-8281-4067-9b8d-f3773f6367b3"
       }
-    }
+    },
+    "owner": "barrymichaeldoyle"
   }
 }

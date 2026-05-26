@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Doc, Id } from './_generated/dataModel';
-import { summarizeH2HScore } from './results';
+import { pushUniqueBatchItem, summarizeH2HScore } from './results';
 
 function driver(id: string): Id<'drivers'> {
   return id as Id<'drivers'>;
@@ -42,5 +42,25 @@ describe('summarizeH2HScore', () => {
       totalPicks: 4,
       points: 3,
     });
+  });
+});
+
+describe('pushUniqueBatchItem', () => {
+  it('dedupes users before completing batches', () => {
+    const state = {
+      seen: new Set<Id<'users'>>(),
+      batch: [] as Array<Id<'users'>>,
+    };
+
+    const u1 = 'user_1' as Id<'users'>;
+    const u2 = 'user_2' as Id<'users'>;
+    const u3 = 'user_3' as Id<'users'>;
+
+    expect(pushUniqueBatchItem(state, u1, 2)).toBeNull();
+    expect(pushUniqueBatchItem(state, u1, 2)).toBeNull();
+    expect(pushUniqueBatchItem(state, u2, 2)).toEqual([u1, u2]);
+    expect(pushUniqueBatchItem(state, u2, 2)).toBeNull();
+    expect(pushUniqueBatchItem(state, u3, 2)).toBeNull();
+    expect(state.batch).toEqual([u3]);
   });
 });

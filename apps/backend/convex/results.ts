@@ -24,6 +24,32 @@ const sessionTypeValidator = v.union(
 
 const BATCH_SIZE = 20;
 
+export type UniqueBatchState<T extends string> = {
+  seen: Set<T>;
+  batch: T[];
+};
+
+export function pushUniqueBatchItem<T extends string>(
+  state: UniqueBatchState<T>,
+  item: T,
+  batchSize: number,
+): T[] | null {
+  if (state.seen.has(item)) {
+    return null;
+  }
+
+  state.seen.add(item);
+  state.batch.push(item);
+
+  if (state.batch.length < batchSize) {
+    return null;
+  }
+
+  const completed = state.batch;
+  state.batch = [];
+  return completed;
+}
+
 export function summarizeH2HScore(
   predictions: Array<
     Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>
@@ -919,37 +945,40 @@ export const scoreH2HForSession = internalMutation({
       }
     }
 
-    // Now batch H2H prediction scoring
-    let hasPredictions = false;
-    let batch: Id<'h2hPredictions'>[] = [];
+    // Now batch H2H scoring by user. Each user's full session score is
+    // recomputed in one batch, avoiding parallel writes to the same score row.
+    const userBatchState: UniqueBatchState<Id<'users'>> = {
+      seen: new Set(),
+      batch: [],
+    };
     for await (const prediction of ctx.db
       .query('h2hPredictions')
       .withIndex('by_race_session', (q) =>
         q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
       )) {
-      hasPredictions = true;
-      batch.push(prediction._id);
+      const batch = pushUniqueBatchItem(
+        userBatchState,
+        prediction.userId,
+        BATCH_SIZE,
+      );
 
-      if (batch.length < BATCH_SIZE) {
-        continue;
+      if (batch) {
+        await ctx.scheduler.runAfter(0, internal.results.scoreH2HBatch, {
+          userIds: batch,
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          season: args.season,
+        });
       }
-
-      await ctx.scheduler.runAfter(0, internal.results.scoreH2HBatch, {
-        h2hPredictionIds: batch,
-        raceId: args.raceId,
-        sessionType: args.sessionType,
-        season: args.season,
-      });
-      batch = [];
     }
 
-    if (!hasPredictions) {
+    if (userBatchState.seen.size === 0) {
       return;
     }
 
-    if (batch.length > 0) {
+    if (userBatchState.batch.length > 0) {
       await ctx.scheduler.runAfter(0, internal.results.scoreH2HBatch, {
-        h2hPredictionIds: batch,
+        userIds: userBatchState.batch,
         raceId: args.raceId,
         sessionType: args.sessionType,
         season: args.season,
@@ -960,7 +989,7 @@ export const scoreH2HForSession = internalMutation({
 
 export const scoreH2HBatch = internalMutation({
   args: {
-    h2hPredictionIds: v.array(v.id('h2hPredictions')),
+    userIds: v.array(v.id('users')),
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
     season: v.number(),
@@ -978,21 +1007,9 @@ export const scoreH2HBatch = internalMutation({
       h2hResultMap.set(result.matchupId.toString(), result.winnerId);
     }
 
-    // Only use the batch to discover affected users. The canonical score for a
-    // user/session must always be computed from that user's full prediction set,
-    // otherwise later batches overwrite earlier totals with partial counts.
-    const affectedUserIds = new Set<Id<'users'>>();
-    for (const predId of args.h2hPredictionIds) {
-      const pred = await ctx.db.get(predId);
-      if (!pred) {
-        continue;
-      }
-      affectedUserIds.add(pred.userId);
-    }
-
     const userIds = new Set<Id<'users'>>();
 
-    for (const userId of affectedUserIds) {
+    for (const userId of args.userIds) {
       userIds.add(userId);
 
       const userPredictions: Array<

@@ -1,3 +1,14 @@
 .expo/
 dist/
 web-build/
+
+# EAS local build / credentials state
+.eas/
+credentials.json
+
+# iOS / Android signing material — never commit
+*.mobileprovision
+*.p12
+*.p8
+*.keystore
+*.jks

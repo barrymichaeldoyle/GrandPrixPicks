@@ -24,6 +24,19 @@ function getWeekendSessions(hasSprint: boolean): Array<SessionType> {
     : ['quali', 'race'];
 }
 
+/** Whether a viewer may read another user's H2H picks for a session (owners always can). */
+export function canViewH2HPicksForSession(params: {
+  isOwner: boolean;
+  lockTime: number | undefined;
+  now: number;
+}): boolean {
+  if (params.isOwner) {
+    return true;
+  }
+  const { lockTime, now } = params;
+  return lockTime != null && now >= lockTime;
+}
+
 export function resolveH2HSessionsToUpdate(params: {
   hasSprint: boolean;
   requestedSessionType?: SessionType;
@@ -624,10 +637,8 @@ export const getUserH2HDetailedPicks = query({
     };
 
     for (const [sessionType, sessionPredictions] of predictionsBySession) {
-      // Visibility check: non-owner can't see picks before lock
       const lockTime = lockTimes[sessionType];
-      if (!isOwner && (!lockTime || now < lockTime)) {
-        // Hidden — leave as null
+      if (!canViewH2HPicksForSession({ isOwner, lockTime, now })) {
         continue;
       }
 
@@ -676,6 +687,25 @@ export const getH2HPicksForFeedItem = query({
     sessionType: sessionTypeValidator,
   },
   handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    const isOwner = viewer?._id === args.userId;
+
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      return null;
+    }
+
+    const lockTimes: Record<SessionType, number | undefined> = {
+      quali: race.qualiLockAt,
+      sprint_quali: race.sprintQualiLockAt,
+      sprint: race.sprintLockAt,
+      race: race.predictionLockAt,
+    };
+    const lockTime = lockTimes[args.sessionType];
+    if (!canViewH2HPicksForSession({ isOwner, lockTime, now: Date.now() })) {
+      return null;
+    }
+
     const preds = await ctx.db
       .query('h2hPredictions')
       .withIndex('by_user_race_session', (q) =>

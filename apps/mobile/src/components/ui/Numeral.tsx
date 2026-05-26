@@ -10,13 +10,13 @@ import { useTypography } from '../../theme/typography';
  * align. Treat strings as "presentational numerals" too (e.g. "P1", "#3", "5 pts").
  */
 
-export type NumeralVariant =
+type NumeralVariant =
   | 'display' // hero countdowns, big scores
   | 'large' // position numbers (P1), rank (#1)
   | 'body' // inline figures in cards
   | 'small'; // chips, labels
 
-export type NumeralTone =
+type NumeralTone =
   | 'default'
   | 'muted'
   | 'accent'

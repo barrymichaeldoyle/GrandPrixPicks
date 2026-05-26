@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import { canonicalMeta } from '../lib/site';
 
@@ -136,12 +137,18 @@ function PayPage() {
         couponParam ?? (isEarlyBirdActive() ? EARLY_BIRD_CODE : null);
 
       if (!txn) {
+        captureAnalyticsEvent('checkout_open_failed', {
+          reason: 'missing_transaction_id',
+        });
         setErrorMessage('Missing Paddle transaction ID in URL (_ptxn).');
         setStatusMessage('Checkout could not be opened.');
         return;
       }
 
       if (!paddleClientToken) {
+        captureAnalyticsEvent('checkout_open_failed', {
+          reason: 'missing_client_token',
+        });
         setErrorMessage(
           'Missing VITE_PADDLE_CLIENT_TOKEN environment variable.',
         );
@@ -163,10 +170,18 @@ function PayPage() {
           token: paddleClientToken,
           eventCallback: (event) => {
             if (event.name === 'checkout.loaded') {
+              captureAnalyticsEvent('checkout_loaded', {
+                season: DEFAULT_SEASON,
+                paddle_environment: environment,
+              });
               setStatusMessage('Checkout ready.');
             }
 
             if (event.name === 'checkout.completed') {
+              captureAnalyticsEvent('checkout_completed', {
+                season: DEFAULT_SEASON,
+                paddle_environment: environment,
+              });
               completedRef.current = true;
               setStatusMessage('Payment complete. Redirecting...');
               window.location.assign(
@@ -175,6 +190,10 @@ function PayPage() {
             }
 
             if (event.name === 'checkout.closed' && !completedRef.current) {
+              captureAnalyticsEvent('checkout_closed', {
+                season: DEFAULT_SEASON,
+                paddle_environment: environment,
+              });
               window.location.assign('/pricing?checkout=cancelled');
             }
           },
@@ -194,7 +213,15 @@ function PayPage() {
           transactionId: txn,
           discountCode: discountCode ?? undefined,
         });
+        captureAnalyticsEvent('checkout_opened', {
+          season: DEFAULT_SEASON,
+          paddle_environment: environment,
+          has_discount_code: Boolean(discountCode),
+        });
       } catch (error) {
+        captureAnalyticsEvent('checkout_open_failed', {
+          reason: error instanceof Error ? error.message : 'unexpected_error',
+        });
         const message =
           error instanceof Error ? error.message : 'Unexpected checkout error';
         setErrorMessage(message);

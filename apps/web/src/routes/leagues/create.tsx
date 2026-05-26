@@ -5,6 +5,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { AlertCircle, ArrowLeft, Check, Loader2, LogIn } from 'lucide-react';
 import { useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button/Button';
@@ -123,12 +124,25 @@ function CreateLeagueContent() {
         visibility,
         password: visibility === 'private' ? password || undefined : undefined,
       });
+      captureAnalyticsEvent('league_created', {
+        league_slug: result.slug,
+        visibility,
+        season,
+        has_description: Boolean(description),
+        has_password: visibility === 'private' && Boolean(password),
+      });
       setIsRedirecting(true);
       void navigate({
         to: '/leagues/$slug',
         params: { slug: result.slug },
       });
     } catch (err) {
+      captureAnalyticsEvent('league_create_failed', {
+        visibility,
+        season,
+        has_description: Boolean(description),
+        has_password: visibility === 'private' && Boolean(password),
+      });
       if (
         err instanceof Error &&
         err.message.includes(

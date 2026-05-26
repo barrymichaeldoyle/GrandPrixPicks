@@ -7,6 +7,7 @@ import { Check, Save } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
   clearPredictionDraft,
   loadPredictionDraft,
@@ -103,6 +104,13 @@ export function H2HPredictionForm({
         }),
       );
       await submitH2H({ raceId, picks, sessionType });
+      captureAnalyticsEvent('h2h_prediction_submitted', {
+        race_id: raceId,
+        session_type: sessionType ?? 'cascade',
+        is_edit: Boolean(existingPicks && Object.keys(existingPicks).length > 0),
+        restored_draft: Boolean(restoredDraftAt),
+        matchup_count: totalMatchups,
+      });
       setSubmitStatus('success');
       confetti({
         particleCount: 80,
@@ -113,6 +121,13 @@ export function H2HPredictionForm({
       setRestoredDraftAt(null);
       onSuccess?.();
     } catch (error) {
+      captureAnalyticsEvent('h2h_prediction_submit_failed', {
+        race_id: raceId,
+        session_type: sessionType ?? 'cascade',
+        is_edit: Boolean(existingPicks && Object.keys(existingPicks).length > 0),
+        restored_draft: Boolean(restoredDraftAt),
+        matchup_count: totalMatchups,
+      });
       setSubmitStatus('error');
       setErrorMessage(
         error instanceof Error
@@ -176,6 +191,11 @@ export function H2HPredictionForm({
   );
 
   function handleDiscardDraft() {
+    captureAnalyticsEvent('h2h_prediction_draft_discarded', {
+      race_id: raceId,
+      session_type: sessionType ?? 'cascade',
+      matchup_count: totalMatchups,
+    });
     setSelections(existingPicks ?? {});
     setSubmitStatus('idle');
     setErrorMessage('');

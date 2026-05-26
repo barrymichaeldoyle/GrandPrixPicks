@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 import { Button } from '../components/Button/Button';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
@@ -74,6 +76,12 @@ function PricingPage() {
   async function startCheckout() {
     setCheckoutError(null);
     setIsStartingCheckout(true);
+    captureAnalyticsEvent('checkout_started', {
+      season: 2026,
+      source: 'pricing',
+      signed_in: isSignedIn,
+      early_bird_active: isEarlyBirdActive(),
+    });
 
     try {
       const response = await fetch('/api/paddle/checkout', {
@@ -97,8 +105,19 @@ function PricingPage() {
       if (isEarlyBirdActive()) {
         checkoutUrl.searchParams.set('coupon', EARLY_BIRD_CODE);
       }
+      captureAnalyticsEvent('checkout_redirected', {
+        season: 2026,
+        source: 'pricing',
+        early_bird_active: isEarlyBirdActive(),
+      });
       window.location.assign(checkoutUrl.toString());
     } catch (error) {
+      captureAnalyticsEvent('checkout_start_failed', {
+        season: 2026,
+        source: 'pricing',
+        signed_in: isSignedIn,
+        early_bird_active: isEarlyBirdActive(),
+      });
       const message =
         error instanceof Error ? error.message : 'Could not start checkout';
       setCheckoutError(message);

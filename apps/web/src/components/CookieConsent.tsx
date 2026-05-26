@@ -1,6 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import posthog from 'posthog-js';
 import { useEffect, useRef, useState } from 'react';
+
+import {
+  captureAnalyticsEvent,
+  capturePageView,
+  hasOptedInToAnalytics,
+  isAnalyticsConfigured,
+  optInToAnalytics,
+  optOutOfAnalytics,
+} from '@/lib/analytics';
 
 import { Button } from './Button/Button';
 
@@ -16,7 +24,7 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
     if (typeof window === 'undefined') {
       return true;
     }
-    if (!import.meta.env.VITE_POSTHOG_KEY) {
+    if (!isAnalyticsConfigured()) {
       return true;
     }
     try {
@@ -27,7 +35,7 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
     } catch {
       // Continue and fall back to PostHog opt-in state.
     }
-    if (posthog.has_opted_in_capturing()) {
+    if (hasOptedInToAnalytics()) {
       try {
         window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
       } catch {
@@ -78,20 +86,20 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
   }
 
   function accept() {
-    posthog.opt_in_capturing();
+    optInToAnalytics();
     try {
       window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
     } catch {
       // Ignore storage errors and continue.
     }
     // Recover first-visit analytics that were skipped while capturing was opted out.
-    posthog.capture('cookie_consent_accepted');
-    posthog.capture('$pageview');
+    captureAnalyticsEvent('cookie_consent_accepted');
+    capturePageView(window.location.pathname);
     setDecided(true);
   }
 
   function decline() {
-    posthog.opt_out_capturing();
+    optOutOfAnalytics();
     try {
       window.localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
     } catch {

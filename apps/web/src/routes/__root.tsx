@@ -12,7 +12,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { useMutation } from 'convex/react';
 import { Flag, Home } from 'lucide-react';
-import posthog from 'posthog-js';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
@@ -27,6 +26,7 @@ import { useMobileMenu } from '../hooks/useMobileMenu';
 import { AppClerkProvider } from '../integrations/clerk/provider';
 import { AppConvexProvider } from '../integrations/convex/provider';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
+import { identifyAnalyticsUser, resetAnalyticsUser } from '../lib/analytics';
 import { siteConfig } from '../lib/site';
 import appCss from '../styles.css?url';
 
@@ -208,7 +208,7 @@ function ObservabilityUserSync() {
           username: user.username ?? undefined,
           name: user.fullName ?? undefined,
         });
-        posthog.identify(user.id, {
+        identifyAnalyticsUser(user.id, {
           email: user.primaryEmailAddress?.emailAddress,
           name: user.fullName,
           username: user.username,
@@ -218,7 +218,7 @@ function ObservabilityUserSync() {
       if (prevIdRef.current !== null) {
         prevIdRef.current = null;
         Sentry.setUser(null);
-        posthog.reset();
+        resetAnalyticsUser();
       }
     }
   }, [user, isLoaded]);

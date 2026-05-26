@@ -1,10 +1,14 @@
 import * as Sentry from '@sentry/tanstackstart-react';
 import { createRouter } from '@tanstack/react-router';
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
-import posthog from 'posthog-js';
 
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
+import {
+  capturePageView,
+  initAnalytics,
+  isAnalyticsConfigured,
+} from './lib/analytics';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
@@ -51,17 +55,10 @@ export function getRouter() {
   }
 
   if (!router.isServer && import.meta.env.PROD) {
-    if (import.meta.env.VITE_POSTHOG_KEY) {
-      posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-        api_host:
-          import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
-        capture_pageview: false,
-        capture_pageleave: true,
-        opt_out_capturing_by_default: true,
-      });
-
+    if (isAnalyticsConfigured()) {
+      initAnalytics();
       router.subscribe('onResolved', () => {
-        posthog.capture('$pageview');
+        capturePageView(window.location.pathname);
       });
     } else {
       console.warn(

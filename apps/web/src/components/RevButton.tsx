@@ -3,6 +3,8 @@ import type { Id } from '@convex-generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 import { Avatar } from './Avatar';
 
 const RECENT_REV_PREVIEW_LIMIT = 5;
@@ -66,8 +68,14 @@ export function RevButton({
     try {
       if (willRev) {
         await giveRev({ feedEventId });
+        captureAnalyticsEvent('feed_event_reved', {
+          feed_event_id: feedEventId,
+        });
       } else {
         await removeRev({ feedEventId });
+        captureAnalyticsEvent('feed_event_unreved', {
+          feed_event_id: feedEventId,
+        });
       }
     } catch {
       setOptimisticReved(null);

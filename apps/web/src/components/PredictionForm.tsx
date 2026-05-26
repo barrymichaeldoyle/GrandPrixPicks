@@ -25,9 +25,9 @@ import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
 import {
   clearPredictionDraft,
@@ -548,8 +548,12 @@ export function PredictionForm({
 
     try {
       await submitPrediction({ raceId, picks, sessionType });
-      posthog.capture('prediction_submitted', {
+      captureAnalyticsEvent('prediction_submitted', {
+        race_id: raceId,
+        race_slug: race?.slug,
         session_type: sessionType ?? 'cascade',
+        is_edit: Boolean(existingPicks && existingPicks.length > 0),
+        restored_draft: Boolean(restoredDraftAt),
       });
       setSubmitStatus('success');
       if (existingPicks && existingPicks.length > 0) {
@@ -563,6 +567,12 @@ export function PredictionForm({
       setRestoredDraftAt(null);
       onSuccess?.();
     } catch (error) {
+      captureAnalyticsEvent('prediction_submit_failed', {
+        race_id: raceId,
+        race_slug: race?.slug,
+        session_type: sessionType ?? 'cascade',
+        is_edit: Boolean(existingPicks && existingPicks.length > 0),
+      });
       setSubmitStatus('error');
       setErrorMessage(
         error instanceof Error
@@ -580,6 +590,11 @@ export function PredictionForm({
   );
 
   function handleDiscardDraft() {
+    captureAnalyticsEvent('prediction_draft_discarded', {
+      race_id: raceId,
+      race_slug: race?.slug,
+      session_type: sessionType ?? 'cascade',
+    });
     setPicks(existingPicks ?? []);
     setSubmitStatus('idle');
     setErrorMessage('');

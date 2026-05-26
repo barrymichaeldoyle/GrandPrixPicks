@@ -29,6 +29,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 import { PageLoader } from '@/components/PageLoader';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import type { SessionType } from '../../../lib/sessions';
 import { getSessionsForWeekend, SESSION_LABELS } from '../../../lib/sessions';
@@ -480,7 +481,23 @@ function AdminRaceDetailPage() {
         sessionType: selectedSession,
         dnfDriverIds,
       });
+      captureAnalyticsEvent('admin_results_published', {
+        race_id: typedRaceId,
+        race_slug: race?.slug,
+        session_type: selectedSession,
+        classification_count: classification.length,
+        dnf_count: dnfDriverIds.length,
+        is_update: Boolean(existingResult),
+      });
     } catch (error) {
+      captureAnalyticsEvent('admin_results_publish_failed', {
+        race_id: typedRaceId,
+        race_slug: race?.slug,
+        session_type: selectedSession,
+        classification_count: classification.length,
+        dnf_count: dnfDriverIds.length,
+        is_update: Boolean(existingResult),
+      });
       console.error('Failed to publish:', error);
     } finally {
       setIsPublishing(false);

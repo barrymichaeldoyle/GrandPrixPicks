@@ -7,6 +7,8 @@ import type { ComponentType, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 import { Avatar } from './Avatar';
 import { DriverBadge, ScoredDriverBadge } from './DriverBadge';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
@@ -359,8 +361,16 @@ function FollowButton({
     try {
       if (following) {
         await unfollow({ followeeId: userId });
+        captureAnalyticsEvent('user_unfollowed', {
+          followee_id: userId,
+          source: 'feed_item',
+        });
       } else {
         await follow({ followeeId: userId });
+        captureAnalyticsEvent('user_followed', {
+          followee_id: userId,
+          source: 'feed_item',
+        });
       }
     } catch {
       setOptimistic(null);

@@ -5,11 +5,17 @@ import { User, UserCheck, UserPlus } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 interface FollowButtonProps {
   followeeId: Id<'users'>;
+  source?: string;
 }
 
-export function FollowButton({ followeeId }: FollowButtonProps) {
+export function FollowButton({
+  followeeId,
+  source = 'follow_button',
+}: FollowButtonProps) {
   const isFollowing = useQuery(api.follows.isFollowing, { followeeId });
   const followMutation = useMutation(api.follows.follow);
   const unfollowMutation = useMutation(api.follows.unfollow);
@@ -30,8 +36,16 @@ export function FollowButton({ followeeId }: FollowButtonProps) {
     try {
       if (willFollow) {
         await followMutation({ followeeId });
+        captureAnalyticsEvent('user_followed', {
+          followee_id: followeeId,
+          source,
+        });
       } else {
         await unfollowMutation({ followeeId });
+        captureAnalyticsEvent('user_unfollowed', {
+          followee_id: followeeId,
+          source,
+        });
       }
     } catch {
       setOptimistic(null);

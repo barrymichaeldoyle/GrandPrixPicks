@@ -8,6 +8,8 @@ import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
 import { Avatar } from './Avatar';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
 
@@ -397,6 +399,10 @@ export function NotificationBell() {
     id: Id<'inAppNotifications'>,
     feedEventId?: Id<'feedEvents'>,
   ) {
+    captureAnalyticsEvent('notification_marked_read', {
+      notification_id: id,
+      has_feed_event: Boolean(feedEventId),
+    });
     markReadMutation({
       notificationId: id,
       feedEventId,
@@ -405,7 +411,16 @@ export function NotificationBell() {
 
   function handleButtonClick(event: ReactMouseEvent<HTMLButtonElement>) {
     event.stopPropagation();
-    setOpen((value) => !value);
+    setOpen((value) => {
+      const next = !value;
+      captureAnalyticsEvent(
+        next ? 'notifications_opened' : 'notifications_closed',
+        {
+          unread_count: result?.unreadCount ?? 0,
+        },
+      );
+      return next;
+    });
   }
 
   function handleBackdropPointerDown(
@@ -418,6 +433,10 @@ export function NotificationBell() {
   function handleBackdropClick(event: ReactMouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
+    captureAnalyticsEvent('notifications_closed', {
+      unread_count: result?.unreadCount ?? 0,
+      source: 'backdrop',
+    });
     setOpen(false);
   }
 

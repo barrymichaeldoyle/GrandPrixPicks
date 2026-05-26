@@ -29,10 +29,10 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import posthog from 'posthog-js';
 import { useRef, useState } from 'react';
 
 import { TabSwitch } from '@/components/TabSwitch';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button/Button';
@@ -293,9 +293,16 @@ function JoinSection({
         leagueId,
         password: password || undefined,
       });
-      posthog.capture('league_joined');
+      captureAnalyticsEvent('league_joined', {
+        league_id: leagueId,
+        had_password: hasPassword,
+      });
       await confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     } catch (err) {
+      captureAnalyticsEvent('league_join_failed', {
+        league_id: leagueId,
+        had_password: hasPassword,
+      });
       setError(
         err instanceof Error
           ? toUserFacingMessage(err)
@@ -342,7 +349,9 @@ function ShareLinkSection({ slug }: { slug: string }) {
 
   async function copyToClipboard() {
     await navigator.clipboard.writeText(leagueUrl);
-    posthog.capture('league_invite_copied');
+    captureAnalyticsEvent('league_invite_copied', {
+      league_slug: slug,
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -865,6 +874,10 @@ function LeagueMembers({
     setOptimisticFollows((prev) => new Map(prev).set(userId, true));
     try {
       await followMutation({ followeeId: userId as Id<'users'> });
+      captureAnalyticsEvent('user_followed', {
+        followee_id: userId,
+        source: 'league_members',
+      });
     } catch {
       setOptimisticFollows((prev) => {
         const next = new Map(prev);
@@ -878,6 +891,10 @@ function LeagueMembers({
     setOptimisticFollows((prev) => new Map(prev).set(userId, false));
     try {
       await unfollowMutation({ followeeId: userId as Id<'users'> });
+      captureAnalyticsEvent('user_unfollowed', {
+        followee_id: userId,
+        source: 'league_members',
+      });
     } catch {
       setOptimisticFollows((prev) => {
         const next = new Map(prev);

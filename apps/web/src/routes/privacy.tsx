@@ -79,10 +79,10 @@ function PrivacyPage() {
               leaderboard and your public profile page. Your username, display
               name, profile picture, predictions, and scores are publicly
               visible to other users once the relevant session has locked. We
-              may use error-reporting or analytics services (e.g. Sentry) to
-              improve the app; such services may receive limited technical data
-              (e.g. IP address, device info) in accordance with their own
-              policies.
+              may use error-reporting or analytics services (e.g. Sentry and
+              PostHog) to improve the app; such services may receive limited
+              account, usage, and technical data (e.g. IP address, device info)
+              in accordance with their own policies.
             </p>
           </section>
 

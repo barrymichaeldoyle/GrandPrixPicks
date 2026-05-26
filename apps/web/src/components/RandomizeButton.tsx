@@ -2,9 +2,9 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
 import { Dices } from 'lucide-react';
-import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from './Button/Button';
@@ -87,11 +87,22 @@ export function RandomizeButton({
         await submitH2H({ raceId, picks: randomH2HPicks });
       }
 
-      posthog.capture('prediction_randomized', {
+      captureAnalyticsEvent('prediction_randomized', {
+        race_id: raceId,
         mode: needsTop5 ? 'all' : 'h2h',
+        included_top5: needsTop5,
+        included_h2h: needsH2H,
+        h2h_matchup_count: matchups.length,
       });
       setShowConfirm(false);
     } catch (err) {
+      captureAnalyticsEvent('prediction_randomize_failed', {
+        race_id: raceId,
+        mode: needsTop5 ? 'all' : 'h2h',
+        included_top5: needsTop5,
+        included_h2h: needsH2H,
+        h2h_matchup_count: matchups.length,
+      });
       setError(toUserFacingMessage(err));
     } finally {
       setLoading(false);

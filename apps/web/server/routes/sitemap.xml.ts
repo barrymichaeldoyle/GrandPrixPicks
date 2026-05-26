@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 
+import { captureServerException, startServerSpan } from '../lib/sentry';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -138,7 +139,10 @@ async function loadRaceEntries() {
 
 export default async function handler(_event: RouteEvent) {
   try {
-    const raceEntries = await loadRaceEntries();
+    const raceEntries = await startServerSpan(
+      { name: 'sitemap.loadRaceEntries' },
+      loadRaceEntries,
+    );
 
     return new Response(renderSitemap([...staticEntries, ...raceEntries]), {
       headers: {
@@ -147,6 +151,7 @@ export default async function handler(_event: RouteEvent) {
       },
     });
   } catch (error) {
+    captureServerException(error, { name: 'sitemap.generate' });
     console.error('[sitemap] generation_failed_falling_back_to_static', {
       message: error instanceof Error ? error.message : 'unknown_error',
     });

@@ -1,5 +1,6 @@
 import { useAuth, useUser } from '@clerk/react';
 import { api } from '@convex-generated/api';
+import * as Sentry from '@sentry/tanstackstart-react';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -189,8 +190,8 @@ function ProfileSync() {
   return null;
 }
 
-/** Identifies signed-in Clerk users in PostHog and resets on sign-out. */
-function PostHogUserSync() {
+/** Identifies signed-in Clerk users in observability tools and resets on sign-out. */
+function ObservabilityUserSync() {
   const { user, isLoaded } = useUser();
   const prevIdRef = useRef<string | null>(null);
 
@@ -201,6 +202,12 @@ function PostHogUserSync() {
     if (user) {
       if (prevIdRef.current !== user.id) {
         prevIdRef.current = user.id;
+        Sentry.setUser({
+          id: user.id,
+          email: user.primaryEmailAddress?.emailAddress,
+          username: user.username ?? undefined,
+          name: user.fullName ?? undefined,
+        });
         posthog.identify(user.id, {
           email: user.primaryEmailAddress?.emailAddress,
           name: user.fullName,
@@ -210,6 +217,7 @@ function PostHogUserSync() {
     } else {
       if (prevIdRef.current !== null) {
         prevIdRef.current = null;
+        Sentry.setUser(null);
         posthog.reset();
       }
     }
@@ -245,7 +253,7 @@ function RootDocument({ children }: PropsWithChildren) {
         <AppClerkProvider darkMode={true}>
           <AppConvexProvider>
             <ProfileSync />
-            <PostHogUserSync />
+            <ObservabilityUserSync />
             <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
               <a
                 href="#main-content"

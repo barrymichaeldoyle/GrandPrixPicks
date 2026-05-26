@@ -27,6 +27,15 @@ const sentryTanstackClientEntry = join(
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryOrg = process.env.VITE_SENTRY_ORG;
 const sentryProject = process.env.VITE_SENTRY_PROJECT;
+const sentryRelease =
+  process.env.VITE_SENTRY_RELEASE ??
+  process.env.SENTRY_RELEASE ??
+  process.env.CF_PAGES_COMMIT_SHA ??
+  process.env.GITHUB_SHA;
+const sentryDist =
+  process.env.VITE_SENTRY_DIST ??
+  process.env.CF_PAGES_BRANCH ??
+  process.env.GITHUB_RUN_NUMBER;
 const reactCompiler = reactCompilerPreset();
 reactCompiler.rolldown.filter = {
   id: {
@@ -85,6 +94,10 @@ const config = defineConfig(({ mode }) => {
         },
       },
     },
+    define: {
+      'import.meta.env.VITE_SENTRY_RELEASE': JSON.stringify(sentryRelease),
+      'import.meta.env.VITE_SENTRY_DIST': JSON.stringify(sentryDist),
+    },
     plugins: [
       ...(devtools() as PluginOption[]),
       // Skip Nitro and TanStack Start in Vitest to avoid CJS/ESM errors and hanging process
@@ -138,6 +151,12 @@ const config = defineConfig(({ mode }) => {
               org: sentryOrg,
               project: sentryProject,
               authToken: sentryAuthToken,
+              release: sentryRelease
+                ? {
+                    name: sentryRelease,
+                    dist: sentryDist,
+                  }
+                : undefined,
               sourcemaps: {
                 assets: ['.output/public/**', 'dist/**'],
                 filesToDeleteAfterUpload: [

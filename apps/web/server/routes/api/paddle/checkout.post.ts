@@ -1,5 +1,6 @@
 import { getAuthenticatedClerkIdentity } from '../../../lib/auth';
 import { createPaddleSeasonCheckout } from '../../../lib/paddle';
+import { captureServerException, startServerSpan } from '../../../lib/sentry';
 
 const DEFAULT_SEASON = 2026;
 const JSON_HEADERS = { 'content-type': 'application/json' } as const;
@@ -12,8 +13,12 @@ type RouteEvent = {
 export default async function handler(event: RouteEvent) {
   let identity = null;
   try {
-    identity = await getAuthenticatedClerkIdentity(event.req);
+    identity = await startServerSpan(
+      { name: 'api.paddle.checkout.authenticate' },
+      () => getAuthenticatedClerkIdentity(event.req),
+    );
   } catch (error) {
+    captureServerException(error, { name: 'api.paddle.checkout.authenticate' });
     console.error('[paddle-checkout] auth_failed', {
       message: error instanceof Error ? error.message : 'unknown_error',
     });
@@ -41,17 +46,34 @@ export default async function handler(event: RouteEvent) {
   }
 
   try {
-    const checkout = await createPaddleSeasonCheckout({
-      clerkUserId: identity.tokenIdentifier,
-      clerkSubject: identity.subject,
-      season,
-    });
+    const checkout = await startServerSpan(
+      {
+        name: 'api.paddle.checkout.create',
+        tags: {
+          season,
+          clerk_user_id: identity.userId,
+        },
+      },
+      () =>
+        createPaddleSeasonCheckout({
+          clerkUserId: identity.tokenIdentifier,
+          clerkSubject: identity.subject,
+          season,
+        }),
+    );
 
     return {
       checkoutUrl: checkout.checkoutUrl,
       transactionId: checkout.transactionId,
     };
   } catch (error) {
+    captureServerException(error, {
+      name: 'api.paddle.checkout.create',
+      tags: {
+        season,
+        clerk_user_id: identity.userId,
+      },
+    });
     const message =
       error instanceof Error ? error.message : 'Checkout creation failed';
     console.error('[paddle-checkout] create_failed', {

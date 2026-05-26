@@ -34,7 +34,11 @@ export function getRouter() {
     Sentry.init({
       dsn: import.meta.env.VITE_SENTRY_DSN,
       environment: import.meta.env.MODE,
-      tracesSampleRate: 1.0,
+      release: import.meta.env.VITE_SENTRY_RELEASE,
+      dist: import.meta.env.VITE_SENTRY_DIST,
+      tracesSampleRate: Number(
+        import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? '0.2',
+      ),
       sendDefaultPii: true,
       beforeSend(event) {
         const message = event.exception?.values?.[0]?.value ?? '';

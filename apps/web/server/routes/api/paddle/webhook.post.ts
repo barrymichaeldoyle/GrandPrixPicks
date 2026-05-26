@@ -4,6 +4,7 @@ import {
   parsePaddleWebhook,
   verifyPaddleWebhookSignature,
 } from '../../../lib/paddle';
+import { captureServerException, startServerSpan } from '../../../lib/sentry';
 
 const JSON_HEADERS = { 'content-type': 'application/json' } as const;
 
@@ -30,6 +31,10 @@ export default async function handler(event: RouteEvent) {
 
   const webhookSecret = getPaddleConfig().webhookSecret;
   if (!webhookSecret) {
+    captureServerException(new Error('Missing PADDLE_WEBHOOK_SECRET'), {
+      name: 'api.paddle.webhook',
+      tags: { failure_type: 'missing_config' },
+    });
     console.error('[paddle-webhook] missing_webhook_secret');
     return new Response(
       JSON.stringify({ error: 'Missing PADDLE_WEBHOOK_SECRET' }),
@@ -75,7 +80,17 @@ export default async function handler(event: RouteEvent) {
   });
 
   try {
-    const result = await grantSeasonPassFromWebhook(webhookEvent);
+    const result = await startServerSpan(
+      {
+        name: 'api.paddle.webhook.grantSeasonPass',
+        tags: {
+          event_type: webhookEvent.event_type,
+          event_id: webhookEvent.event_id,
+          notification_id: webhookEvent.notification_id,
+        },
+      },
+      () => grantSeasonPassFromWebhook(webhookEvent),
+    );
     console.info('[paddle-webhook] handled', {
       eventType: webhookEvent.event_type ?? null,
       eventId: webhookEvent.event_id ?? null,
@@ -89,6 +104,14 @@ export default async function handler(event: RouteEvent) {
       ...result,
     };
   } catch (error) {
+    captureServerException(error, {
+      name: 'api.paddle.webhook',
+      tags: {
+        event_type: webhookEvent.event_type,
+        event_id: webhookEvent.event_id,
+        notification_id: webhookEvent.notification_id,
+      },
+    });
     console.error('[paddle-webhook] handler_failed', {
       eventType: webhookEvent.event_type ?? null,
       eventId: webhookEvent.event_id ?? null,

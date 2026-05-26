@@ -1,4 +1,5 @@
 import { handleClerkWebhook } from '../../../lib/clerk';
+import { captureServerException, startServerSpan } from '../../../lib/sentry';
 
 const JSON_HEADERS = { 'content-type': 'application/json' } as const;
 
@@ -9,12 +10,15 @@ type RouteEvent = {
 // Nitro route files are convention-based and require a default export.
 export default async function handler(event: RouteEvent) {
   try {
-    const result = await handleClerkWebhook(event.req);
+    const result = await startServerSpan({ name: 'api.clerk.webhook' }, () =>
+      handleClerkWebhook(event.req),
+    );
     return {
       ok: true,
       ...result,
     };
   } catch (error) {
+    captureServerException(error, { name: 'api.clerk.webhook' });
     console.error('[clerk-webhook] handler_failed', {
       message: error instanceof Error ? error.message : 'unknown_error',
     });

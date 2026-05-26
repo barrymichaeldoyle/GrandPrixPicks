@@ -26,6 +26,7 @@
     "dev:signin:solo": "dotenv -e ../../.env.local -- pnpm exec tsx scripts/dev-signin.ts solo",
     "dev:signin:stale": "dotenv -e ../../.env.local -- pnpm exec tsx scripts/dev-signin.ts stale",
     "dev:setup-scenarios": "dotenv -e ../../.env.local -- pnpm exec tsx scripts/setup-dev-scenarios.ts",
+    "posthog:setup": "dotenv -e ../../.env.local -- node scripts/setup-posthog.mjs",
     "generate-tokens": "pnpm --filter @grandprixpicks/shared generate-tokens",
     "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit",
     "lint:barrels": "node scripts/check-no-barrel-indexes.mjs",

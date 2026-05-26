@@ -5,6 +5,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ConvexDoc } from '../../integrations/convex/api';
 import { getTeamColor } from '../../lib/teamColors';
 import { colors, radii } from '../../theme/tokens';
+import { Numeral } from '../ui/Numeral';
 
 type Driver = ConvexDoc<'drivers'>;
 
@@ -47,7 +48,9 @@ function RankedSlot({
           { backgroundColor: isEmpty ? colors.border : teamColor },
         ]}
       />
-      <Text style={styles.slotPosition}>P{position}</Text>
+      <Numeral style={styles.slotPosition} tone="muted" variant="large">
+        {`P${position}`}
+      </Numeral>
       <View style={styles.slotDriver}>
         {driver ? (
           <>
@@ -362,10 +365,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   slotPosition: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
-    width: 26,
+    minWidth: 36,
   },
   slots: {
     gap: 8,

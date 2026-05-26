@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { Numeral } from '../components/ui/Numeral';
 import { PageHero } from '../components/ui/PageHero';
 import { api } from '../integrations/convex/api';
 import type { ConvexId } from '../integrations/convex/api';
@@ -89,9 +90,9 @@ function SignedInProfileScreen() {
           }
           style={styles.followStat}
         >
-          <Text style={styles.followNumber}>
+          <Numeral variant="large">
             {followCounts?.followerCount ?? '—'}
-          </Text>
+          </Numeral>
           <Text style={styles.followLabel}>Followers</Text>
         </Pressable>
         <View style={styles.followDivider} />
@@ -106,9 +107,9 @@ function SignedInProfileScreen() {
           }
           style={styles.followStat}
         >
-          <Text style={styles.followNumber}>
+          <Numeral variant="large">
             {followCounts?.followingCount ?? '—'}
-          </Text>
+          </Numeral>
           <Text style={styles.followLabel}>Following</Text>
         </Pressable>
       </View>
@@ -200,7 +201,7 @@ function ProfileLinkRow({
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
+      <Numeral variant="large">{value}</Numeral>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );

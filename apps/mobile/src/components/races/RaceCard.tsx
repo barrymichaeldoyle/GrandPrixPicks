@@ -10,6 +10,7 @@ import { useNow } from '../../lib/useNow';
 import type { RaceWeekend } from '../../types';
 import { colors, radii } from '../../theme/tokens';
 import { Badge } from '../ui/Badge';
+import { Numeral } from '../ui/Numeral';
 import { PredictionCountdownBadge } from '../ui/PredictionCountdownBadge';
 
 const HEADER_HEIGHT = 58;
@@ -53,20 +54,23 @@ export function RaceCard({ race, isNext, round, onPress }: RaceCardProps) {
     isNext && lockStatus && lockStatus.urgency !== 'open' && !lockStatus.isLocked;
 
   return (
-    <Pressable
-      onPress={() => {
-        void Haptics.selectionAsync();
-        onPress();
-      }}
-      style={[
-        styles.card,
-        {
-          borderColor: isNext ? colors.accent : colors.border,
-          opacity: isFullyPast ? 0.55 : 1,
-        },
-        isNext ? styles.cardGlow : null,
-      ]}
-    >
+    <View style={isNext ? styles.cardGlow : null}>
+      <Pressable
+        onPress={() => {
+          void Haptics.selectionAsync();
+          onPress();
+        }}
+        style={[
+          styles.card,
+          {
+            backgroundColor: isNext
+              ? 'rgba(20, 184, 166, 0.08)'
+              : colors.surface,
+            borderColor: isNext ? colors.accentHover : colors.border,
+            opacity: isFullyPast ? 0.55 : 1,
+          },
+        ]}
+      >
       {/* Header: flag + round + name + chevron */}
       <View
         style={[
@@ -89,7 +93,12 @@ export function RaceCard({ race, isNext, round, onPress }: RaceCardProps) {
         ) : null}
         <View style={styles.headerText}>
           {round != null ? (
-            <Text style={styles.round}>ROUND {round}</Text>
+            <View style={styles.roundRow}>
+              <Text style={styles.round}>ROUND</Text>
+              <Numeral tone="muted" variant="small">
+                {round}
+              </Numeral>
+            </View>
           ) : (
             <Text style={styles.round}>{race.country.toUpperCase()}</Text>
           )}
@@ -160,7 +169,8 @@ export function RaceCard({ race, isNext, round, onPress }: RaceCardProps) {
           </View>
         ) : null}
       </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }
 
@@ -183,11 +193,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardGlow: {
+    borderRadius: radii.xl,
+    elevation: 10,
     shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOffset: { height: 4, width: 0 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
   },
   chevron: {
     paddingHorizontal: 10,
@@ -225,6 +236,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.6,
+  },
+  roundRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
   },
   scheduleHeader: {
     flexDirection: 'row',

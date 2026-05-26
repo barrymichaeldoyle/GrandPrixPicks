@@ -5,7 +5,6 @@ import {
   useSignUp,
   useSSO,
 } from '@clerk/clerk-expo';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';
@@ -359,21 +358,15 @@ export function SignInScreen() {
 
               {/* OAuth */}
               {Platform.OS === 'ios' ? (
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonStyle={
-                    AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                  }
-                  buttonType={
-                    isSignUp
-                      ? AppleAuthentication.AppleAuthenticationButtonType
-                          .SIGN_UP
-                      : AppleAuthentication.AppleAuthenticationButtonType
-                          .SIGN_IN
-                  }
-                  cornerRadius={radii.lg}
+                <Pressable
                   onPress={() => void handleSSO('oauth_apple')}
                   style={styles.appleButton}
-                />
+                >
+                  <AppleLogo />
+                  <Text style={styles.appleButtonText}>
+                    {isSignUp ? 'Sign up with Apple' : 'Sign in with Apple'}
+                  </Text>
+                </Pressable>
               ) : null}
               <Pressable
                 onPress={() => void handleSSO('oauth_google')}
@@ -495,6 +488,18 @@ function AppLogo() {
   );
 }
 
+// Apple logo glyph (white on black, matches HIG "Sign in with Apple" mark).
+function AppleLogo() {
+  return (
+    <Svg height={20} viewBox="0 0 24 24" width={20}>
+      <Path
+        d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.1-2.01-3.77-2.04-1.6-.16-3.13.94-3.95.94-.83 0-2.07-.92-3.41-.89-1.75.03-3.37 1.02-4.27 2.59-1.83 3.17-.47 7.85 1.31 10.41.87 1.26 1.91 2.66 3.27 2.61 1.32-.05 1.82-.85 3.42-.85 1.59 0 2.04.85 3.43.82 1.42-.02 2.31-1.27 3.17-2.54.99-1.46 1.4-2.88 1.42-2.96-.03-.01-2.72-1.05-2.75-4.14zM14.5 4.6c.72-.87 1.21-2.08 1.07-3.29-1.04.04-2.3.69-3.04 1.56-.66.77-1.25 2.01-1.09 3.2 1.16.09 2.34-.59 3.06-1.47z"
+        fill="#ffffff"
+      />
+    </Svg>
+  );
+}
+
 // Google "G" logo using official brand colours
 function GoogleLogo() {
   return (
@@ -530,8 +535,18 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   appleButton: {
+    alignItems: 'center',
+    backgroundColor: '#000',
+    borderRadius: radii.lg,
+    flexDirection: 'row',
+    gap: 12,
     height: 50,
-    width: '100%',
+    justifyContent: 'center',
+  },
+  appleButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
   },
   divider: {
     alignItems: 'center',

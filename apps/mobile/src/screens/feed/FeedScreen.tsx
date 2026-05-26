@@ -1,10 +1,11 @@
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from 'convex/react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
+import { HomeHero } from '../../components/home/HomeHero';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { PageHero } from '../../components/ui/PageHero';
@@ -47,14 +48,8 @@ export function FeedScreen() {
 
   return (
     <View style={styles.screen}>
-      <PageHero
-        subtitle="Live updates from you and the people you follow."
-        title="Feed"
-      />
       <FlatList
-        contentContainerStyle={
-          events.length === 0 ? styles.emptyContainer : styles.listContent
-        }
+        contentContainerStyle={styles.listContent}
         data={events}
         keyExtractor={(item) => item._id}
         ListEmptyComponent={
@@ -63,6 +58,14 @@ export function FeedScreen() {
             icon="pulse-outline"
             title="Nothing here yet"
           />
+        }
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <HomeHero />
+            {events.length > 0 ? (
+              <Text style={styles.feedHeading}>Activity</Text>
+            ) : null}
+          </View>
         }
         refreshControl={
           <RefreshControl
@@ -88,8 +91,17 @@ export function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  emptyContainer: {
-    flex: 1,
+  feedHeading: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    gap: 8,
   },
   listContent: {
     gap: 12,

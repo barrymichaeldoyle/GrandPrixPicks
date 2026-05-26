@@ -1,8 +1,7 @@
 import type { LockStatusViewModel } from '@grandprixpicks/shared/picks';
 import type { StyleProp, TextStyle } from 'react-native';
-import { StyleSheet, Text } from 'react-native';
 
-import { colors } from '../../theme/tokens';
+import { Numeral } from './Numeral';
 
 type CountdownTextProps = {
   lockStatus: LockStatusViewModel;
@@ -10,25 +9,15 @@ type CountdownTextProps = {
 };
 
 export function CountdownText({ lockStatus, style }: CountdownTextProps) {
-  const isWarning = lockStatus.badgeTone === 'warning';
-  const isLocked = lockStatus.isLocked;
-
-  const textColor = isLocked
-    ? colors.textMuted
-    : isWarning
-      ? colors.warning
-      : colors.success;
+  const tone = lockStatus.isLocked
+    ? 'muted'
+    : lockStatus.badgeTone === 'warning'
+      ? 'warning'
+      : 'gain';
 
   return (
-    <Text style={[styles.text, { color: textColor }, style]}>
+    <Numeral style={style} tone={tone} variant="small">
       {lockStatus.label}
-    </Text>
+    </Numeral>
   );
 }
-
-const styles = StyleSheet.create({
-  text: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

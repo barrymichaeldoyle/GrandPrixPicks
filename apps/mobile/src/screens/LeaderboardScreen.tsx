@@ -9,7 +9,9 @@ import { Avatar } from '../components/ui/Avatar';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { Numeral } from '../components/ui/Numeral';
 import { PageHero } from '../components/ui/PageHero';
+import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import type { ProfileStackParamList } from '../navigation/types';
@@ -152,6 +154,8 @@ function PodiumRow({
         : 'rgba(205, 127, 50, 0.18)';
   const iconName = entry.rank === 1 ? 'trophy' : 'medal';
 
+  const podiumRank = entry.rank as 1 | 2 | 3;
+
   return (
     <Pressable
       disabled={!onPress}
@@ -159,16 +163,21 @@ function PodiumRow({
       style={[
         styles.podiumRow,
         entry.isViewer ? styles.viewerRow : null,
-        { borderColor: entry.isViewer ? colors.accent : placeColor },
+        {
+          borderColor: entry.isViewer ? colors.accent : placeColor,
+          shadowColor: entry.isViewer ? colors.accent : placeColor,
+        },
+        styles.podiumGlow,
       ]}
     >
+      <PodiumBackdrop rank={podiumRank} />
       <View
         style={[styles.placeBadge, { backgroundColor: placeBg }]}
       >
         <Ionicons color={placeColor} name={iconName} size={18} />
-        <Text style={[styles.placeText, { color: placeColor }]}>
+        <Numeral style={{ color: placeColor }} variant="small">
           {entry.rank}
-        </Text>
+        </Numeral>
       </View>
       <Avatar imageUrl={entry.avatarUrl} name={entry.displayName ?? entry.username} size="md" />
       <View style={styles.rowText}>
@@ -183,7 +192,7 @@ function PodiumRow({
         </Text>
       </View>
       <View style={styles.pointsCol}>
-        <Text style={styles.pointsValue}>{entry.points}</Text>
+        <Numeral variant="large">{entry.points}</Numeral>
         <Text style={styles.pointsLabel}>pts</Text>
       </View>
     </Pressable>
@@ -203,14 +212,13 @@ function LeaderboardRow({
       onPress={onPress}
       style={[styles.row, entry.isViewer ? styles.viewerRow : null]}
     >
-      <Text
-        style={[
-          styles.rank,
-          entry.isViewer ? styles.rankViewer : null,
-        ]}
+      <Numeral
+        style={styles.rank}
+        tone={entry.isViewer ? 'accent' : 'muted'}
+        variant="small"
       >
         {entry.rank}
-      </Text>
+      </Numeral>
       <Avatar imageUrl={entry.avatarUrl} name={entry.displayName ?? entry.username} size="sm" />
       <View style={styles.rowText}>
         <View style={styles.nameRow}>
@@ -224,7 +232,7 @@ function LeaderboardRow({
         </Text>
       </View>
       <View style={styles.pointsCol}>
-        <Text style={styles.pointsValueSmall}>{entry.points}</Text>
+        <Numeral variant="body">{entry.points}</Numeral>
         <Text style={styles.pointsLabel}>pts</Text>
       </View>
     </Pressable>
@@ -259,6 +267,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
+  podiumGlow: {
+    elevation: 8,
+    shadowOffset: { height: 4, width: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+  },
   podiumRow: {
     alignItems: 'center',
     backgroundColor: colors.surface,
@@ -266,7 +280,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     flexDirection: 'row',
     gap: 12,
+    overflow: 'hidden',
     padding: 12,
+    position: 'relative',
   },
   podiumWrapper: {
     gap: 8,
@@ -332,6 +348,11 @@ const styles = StyleSheet.create({
   viewerRow: {
     backgroundColor: colors.accentMuted,
     borderColor: colors.accent,
+    elevation: 8,
+    shadowColor: colors.accent,
+    shadowOffset: { height: 4, width: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
   },
   viewerStrip: {
     gap: 6,

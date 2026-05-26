@@ -1,7 +1,8 @@
 import type { LockStatusViewModel } from '@grandprixpicks/shared/picks';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { colors, radii } from '../../theme/tokens';
+import { Numeral } from './Numeral';
 
 type LockBadgeProps = {
   lockStatus: LockStatusViewModel;
@@ -10,6 +11,7 @@ type LockBadgeProps = {
 export function LockBadge({ lockStatus }: LockBadgeProps) {
   const isWarning = lockStatus.badgeTone === 'warning';
   const isLocked = lockStatus.isLocked;
+  const tone = isLocked ? 'muted' : isWarning ? 'warning' : 'gain';
 
   return (
     <View
@@ -18,18 +20,9 @@ export function LockBadge({ lockStatus }: LockBadgeProps) {
         isLocked ? styles.locked : isWarning ? styles.warning : styles.open,
       ]}
     >
-      <Text
-        style={[
-          styles.label,
-          isLocked
-            ? styles.lockedText
-            : isWarning
-              ? styles.warningText
-              : styles.openText,
-        ]}
-      >
+      <Numeral tone={tone} variant="small">
         {lockStatus.label}
-      </Text>
+      </Numeral>
     </View>
   );
 }
@@ -42,29 +35,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
   locked: {
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.borderStrong,
-  },
-  lockedText: {
-    color: colors.textMuted,
   },
   open: {
     backgroundColor: colors.successMuted,
     borderColor: colors.success,
   },
-  openText: {
-    color: colors.success,
-  },
   warning: {
     backgroundColor: colors.warningMuted,
     borderColor: colors.warning,
-  },
-  warningText: {
-    color: colors.warning,
   },
 });

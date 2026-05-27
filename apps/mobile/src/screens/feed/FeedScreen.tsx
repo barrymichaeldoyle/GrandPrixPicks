@@ -5,6 +5,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
+import { HomeExplore } from '../../components/home/HomeExplore';
 import { HomeHero } from '../../components/home/HomeHero';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -52,19 +53,15 @@ export function FeedScreen() {
         contentContainerStyle={styles.listContent}
         data={events}
         keyExtractor={(item) => item._id}
-        ListEmptyComponent={
-          <EmptyState
-            body="Picks from you and people you follow will show up here."
-            icon="pulse-outline"
-            title="Nothing here yet"
-          />
-        }
+        ListEmptyComponent={null}
         ListHeaderComponent={
           <View style={styles.header}>
             <HomeHero />
             {events.length > 0 ? (
               <Text style={styles.feedHeading}>Activity</Text>
-            ) : null}
+            ) : (
+              <HomeExplore />
+            )}
           </View>
         }
         refreshControl={

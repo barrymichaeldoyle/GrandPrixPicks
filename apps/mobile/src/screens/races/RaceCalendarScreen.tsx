@@ -1,38 +1,57 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useRef } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { RaceCard } from '../../components/races/RaceCard';
 import { RaceCardSkeleton } from '../../components/races/RaceCardSkeleton';
 import { PageHero } from '../../components/ui/PageHero';
+import { SegmentedTabs } from '../../components/ui/SegmentedTabs';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import type { RacesStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/tokens';
+import type { RaceWeekend } from '../../types';
 
 type Props = NativeStackScreenProps<RacesStackParamList, 'RaceCalendar'>;
 
+type TabValue = 'past' | 'upcoming';
+
+const TAB_OPTIONS: ReadonlyArray<{ value: TabValue; label: string }> = [
+  { value: 'past', label: 'Past' },
+  { value: 'upcoming', label: 'Upcoming' },
+];
+
+function isWeekendFullyPast(race: RaceWeekend, now: number) {
+  return (
+    race.sessions.length > 0 &&
+    race.sessions.every((s) => new Date(s.startsAt).getTime() <= now)
+  );
+}
+
 export function RaceCalendarScreen({ navigation }: Props) {
   const { races, isLoading } = useRaceWeekends();
-  const listRef = useRef<FlatList>(null);
+  const [tab, setTab] = useState<TabValue>('upcoming');
+  const now = Date.now();
 
-  const nextRaceIndex = races.findIndex(
-    (race) => new Date(race.weekendStart).getTime() >= Date.now(),
-  );
+  const indexed = races.map((race, index) => ({ race, round: index + 1 }));
 
-  useEffect(() => {
-    if (!isLoading && nextRaceIndex > 0 && listRef.current) {
-      listRef.current.scrollToIndex({
-        index: nextRaceIndex,
-        animated: false,
-        viewOffset: 16,
-      });
-    }
-  }, [isLoading, nextRaceIndex]);
+  const filtered =
+    tab === 'past'
+      ? indexed.filter(({ race }) => isWeekendFullyPast(race, now)).reverse()
+      : indexed.filter(({ race }) => !isWeekendFullyPast(race, now));
+
+  const nextRaceSlug = indexed.find(
+    ({ race }) => !isWeekendFullyPast(race, now),
+  )?.race.slug;
 
   if (isLoading) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Races" subtitle="The 2026 F1 calendar." />
+        <PageHero subtitle="The 2026 F1 calendar." title="Races" />
+        <SegmentedTabs
+          onChange={setTab}
+          options={TAB_OPTIONS}
+          value={tab}
+        />
         <View style={styles.skeletonList}>
           {[0, 1, 2].map((i) => (
             <RaceCardSkeleton key={i} />
@@ -44,29 +63,33 @@ export function RaceCalendarScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <PageHero title="Races" subtitle="The 2026 F1 calendar." />
+      <PageHero subtitle="The 2026 F1 calendar." title="Races" />
+      <View style={styles.tabs}>
+        <SegmentedTabs
+          onChange={setTab}
+          options={TAB_OPTIONS}
+          value={tab}
+        />
+      </View>
       <FlatList
-        ref={listRef}
         contentContainerStyle={styles.listContent}
-        data={races}
-        keyExtractor={(item) => item.slug}
-        onScrollToIndexFailed={({ index }) => {
-          setTimeout(() => {
-            listRef.current?.scrollToIndex({
-              index,
-              animated: false,
-              viewOffset: 16,
-            });
-          }, 200);
-        }}
-        renderItem={({ item, index }) => (
+        data={filtered}
+        keyExtractor={(item) => item.race.slug}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>
+            {tab === 'past'
+              ? 'No races have finished yet this season.'
+              : 'No upcoming races — see you next season.'}
+          </Text>
+        }
+        renderItem={({ item }) => (
           <RaceCard
-            isNext={index === nextRaceIndex}
+            isNext={tab === 'upcoming' && item.race.slug === nextRaceSlug}
             onPress={() =>
-              navigation.navigate('RaceDetail', { raceSlug: item.slug })
+              navigation.navigate('RaceDetail', { raceSlug: item.race.slug })
             }
-            race={item}
-            round={index + 1}
+            race={item.race}
+            round={item.round}
           />
         )}
         showsVerticalScrollIndicator={false}
@@ -76,8 +99,14 @@ export function RaceCalendarScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: 14,
+    paddingVertical: 32,
+    textAlign: 'center',
+  },
   listContent: {
-    gap: 12,
+    gap: 10,
     paddingBottom: 24,
   },
   screen: {
@@ -87,6 +116,10 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   skeletonList: {
-    gap: 12,
+    gap: 10,
+    marginTop: 12,
+  },
+  tabs: {
+    marginBottom: 12,
   },
 });

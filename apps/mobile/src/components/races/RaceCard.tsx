@@ -1,30 +1,24 @@
-import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { formatRaceDate } from '../../lib/dates';
-import { getLockStatusViewModel } from '../../lib/lockTime';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useNow } from '../../lib/useNow';
 import type { RaceWeekend } from '../../types';
 import { colors, radii } from '../../theme/tokens';
-import { Badge } from '../ui/Badge';
-import { Numeral } from '../ui/Numeral';
-import { PredictionCountdownBadge } from '../ui/PredictionCountdownBadge';
-
-const HEADER_HEIGHT = 58;
-const FLAG_WIDTH = 78;
-const BORDER_WIDTH = 3;
 
 type RaceCardProps = {
   race: RaceWeekend;
-  /** True when this race is the next predictable race. Highlights with accent border + glow. */
+  /** True when this race is the next predictable race. Adds a subtle accent treatment. */
   isNext?: boolean;
-  /** Optional explicit round number; falls back to "—". */
+  /** Round number (1-indexed). */
   round?: number;
   onPress: () => void;
 };
+
+function getRaceSession(race: RaceWeekend) {
+  return race.sessions.find((s) => s.type === 'race') ?? race.sessions[0];
+}
 
 function getFirstOpenSession(race: RaceWeekend, now: number) {
   for (const session of race.sessions) {
@@ -37,258 +31,217 @@ function getFirstOpenSession(race: RaceWeekend, now: number) {
 }
 
 function isWeekendFullyPast(race: RaceWeekend, now: number) {
-  return race.sessions.every((s) => new Date(s.startsAt).getTime() <= now);
+  return (
+    race.sessions.length > 0 &&
+    race.sessions.every((s) => new Date(s.startsAt).getTime() <= now)
+  );
 }
+
+function formatLockDistance(ms: number): string {
+  if (ms <= 0) {
+    return 'locked';
+  }
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  }
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
+const DAY_FORMATTER = new Intl.DateTimeFormat(undefined, { day: '2-digit' });
+const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, { month: 'short' });
 
 export function RaceCard({ race, isNext, round, onPress }: RaceCardProps) {
   const now = useNow();
   const countryCode = getCountryCodeForRaceSlug(race.slug);
+  const raceSession = getRaceSession(race);
+  const raceDate = raceSession ? new Date(raceSession.startsAt) : null;
   const firstOpen = getFirstOpenSession(race, now);
   const isFullyPast = isWeekendFullyPast(race, now);
-  const showFinishedBadge = isFullyPast;
 
-  const lockStatus = firstOpen
-    ? getLockStatusViewModel(firstOpen.startsAt - now, now)
-    : null;
-  const showLockBadge =
-    isNext && lockStatus && lockStatus.urgency !== 'open' && !lockStatus.isLocked;
+  const day = raceDate ? DAY_FORMATTER.format(raceDate) : '—';
+  const month = raceDate
+    ? MONTH_FORMATTER.format(raceDate).toUpperCase()
+    : '—';
 
   return (
-    <View style={isNext ? styles.cardGlow : null}>
-      <Pressable
-        onPress={() => {
-          void Haptics.selectionAsync();
-          onPress();
-        }}
-        style={[
-          styles.card,
-          {
-            backgroundColor: isNext
-              ? 'rgba(20, 184, 166, 0.08)'
-              : colors.surface,
-            borderColor: isNext ? colors.accentHover : colors.border,
-            opacity: isFullyPast ? 0.55 : 1,
-          },
-        ]}
-      >
-      {/* Header: flag + round + name + chevron */}
-      <View
-        style={[
-          styles.header,
-          { borderBottomColor: isNext ? colors.accent : colors.border },
-        ]}
-      >
-        {countryCode ? (
-          <View
-            style={[
-              styles.flagFrame,
-              { borderRightColor: isNext ? colors.accent : colors.border },
-            ]}
-          >
-            <Image
-              source={{ uri: `https://flagcdn.com/w160/${countryCode}.png` }}
-              style={styles.flag}
-            />
-          </View>
-        ) : null}
-        <View style={styles.headerText}>
-          {round != null ? (
-            <View style={styles.roundRow}>
-              <Text style={styles.round}>ROUND</Text>
-              <Numeral tone="muted" variant="small">
-                {round}
-              </Numeral>
-            </View>
-          ) : (
-            <Text style={styles.round}>{race.country.toUpperCase()}</Text>
-          )}
-          <Text numberOfLines={2} style={styles.name}>
-            {race.name}
-          </Text>
-        </View>
-        <Ionicons
-          color={isNext ? colors.accentHover : colors.accent}
-          name="chevron-forward"
-          size={18}
-          style={styles.chevron}
-        />
+    <Pressable
+      onPress={() => {
+        void Haptics.selectionAsync();
+        onPress();
+      }}
+      style={({ pressed }) => [
+        styles.row,
+        isNext ? styles.rowNext : null,
+        pressed ? styles.rowPressed : null,
+      ]}
+    >
+      <View style={styles.dateBlock}>
+        <Text style={[styles.month, isNext ? styles.monthNext : null]}>
+          {month}
+        </Text>
+        <Text style={[styles.day, isNext ? styles.dayNext : null]}>{day}</Text>
       </View>
 
-      {/* Body: status badges + session schedule */}
+      <View style={styles.divider} />
+
       <View style={styles.body}>
-        <View style={styles.badgeRow}>
-          {showFinishedBadge ? <Badge variant="finished" /> : null}
-          {race.hasSprint ? <Badge variant="sprint">SPRINT</Badge> : null}
-          {isNext && firstOpen ? (
-            <PredictionCountdownBadge
-              labelMode="lock"
-              predictionLockAt={firstOpen.startsAt}
-            />
+        <View style={styles.topRow}>
+          {countryCode ? (
+            <View style={styles.flagFrame}>
+              <Image
+                source={{ uri: `https://flagcdn.com/w160/${countryCode}.png` }}
+                style={styles.flag}
+              />
+            </View>
           ) : null}
-          {showLockBadge && lockStatus ? (
-            <Badge variant="warning">{lockStatus.label}</Badge>
+          {round != null ? (
+            <Text style={styles.roundLabel}>ROUND {round}</Text>
+          ) : null}
+          {race.hasSprint ? (
+            <Text style={styles.sprintLabel}>SPRINT</Text>
+          ) : null}
+          {isFullyPast ? (
+            <Text style={styles.finishedLabel}>FINISHED</Text>
           ) : null}
         </View>
-
-        {race.sessions.length > 0 ? (
-          <View style={styles.schedulePanel}>
-            <View style={styles.scheduleHeader}>
-              <View style={styles.scheduleHeaderLeft}>
-                <Ionicons
-                  color={colors.textMuted}
-                  name="calendar-outline"
-                  size={11}
-                />
-                <Text style={styles.scheduleHeaderText}>WEEKEND SESSIONS</Text>
-              </View>
-            </View>
-            {race.sessions.map((session) => {
-              const isRaceSession = session.type === 'race';
-              const formatted = formatRaceDate(session.startsAt, race.slug);
-              return (
-                <View key={session.type} style={styles.scheduleRow}>
-                  <Text
-                    style={[
-                      styles.scheduleLabel,
-                      isRaceSession ? styles.scheduleLabelStrong : null,
-                    ]}
-                  >
-                    {SESSION_LABELS[session.type]}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.scheduleTime,
-                      isRaceSession ? styles.scheduleTimeStrong : null,
-                    ]}
-                  >
-                    {formatted.local}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+        <Text
+          numberOfLines={2}
+          style={[styles.name, isFullyPast ? styles.nameFaded : null]}
+        >
+          {race.name}
+        </Text>
+        {isNext && firstOpen ? (
+          <Text style={styles.lockLine}>
+            <Text style={styles.lockAccent}>Picks lock in </Text>
+            <Text style={styles.lockValue}>
+              {formatLockDistance(firstOpen.startsAt - now)}
+            </Text>
+          </Text>
         ) : null}
       </View>
-      </Pressable>
-    </View>
+
+      <Ionicons
+        color={isNext ? colors.accentHover : colors.textMuted}
+        name="chevron-forward"
+        size={18}
+      />
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
   body: {
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 12,
+    flex: 1,
+    gap: 4,
   },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    borderWidth: BORDER_WIDTH,
-    overflow: 'hidden',
+  dateBlock: {
+    alignItems: 'center',
+    minWidth: 44,
   },
-  cardGlow: {
-    borderRadius: radii.xl,
-    elevation: 10,
-    shadowColor: colors.accent,
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 18,
+  day: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    lineHeight: 24,
   },
-  chevron: {
-    paddingHorizontal: 10,
+  dayNext: {
+    color: colors.accentHover,
+  },
+  divider: {
+    alignSelf: 'stretch',
+    backgroundColor: colors.border,
+    width: StyleSheet.hairlineWidth,
+  },
+  finishedLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
   flag: {
     height: '100%',
     width: '100%',
   },
   flagFrame: {
-    borderRightWidth: BORDER_WIDTH,
-    height: HEADER_HEIGHT,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 14,
     overflow: 'hidden',
-    width: FLAG_WIDTH,
+    width: 22,
   },
-  header: {
-    alignItems: 'stretch',
-    borderBottomWidth: BORDER_WIDTH,
-    flexDirection: 'row',
-    height: HEADER_HEIGHT,
+  lockAccent: {
+    color: colors.textMuted,
+    fontSize: 12,
   },
-  headerText: {
-    flex: 1,
-    gap: 2,
-    justifyContent: 'center',
-    paddingHorizontal: 10,
+  lockLine: {
+    marginTop: 2,
+  },
+  lockValue: {
+    color: colors.accentHover,
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '700',
+  },
+  month: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  monthNext: {
+    color: colors.accentHover,
   },
   name: {
     color: colors.text,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
-    lineHeight: 17,
+    letterSpacing: 0.2,
   },
-  round: {
+  nameFaded: {
+    color: colors.textMuted,
+  },
+  roundLabel: {
     color: colors.textMuted,
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
   },
-  roundRow: {
+  row: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  scheduleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  scheduleHeaderLeft: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  scheduleHeaderText: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  scheduleLabel: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  scheduleLabelStrong: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  schedulePanel: {
-    backgroundColor: 'rgba(51, 65, 85, 0.35)',
+    backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    gap: 2,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  scheduleRow: {
+    borderRadius: radii.lg,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
-  scheduleTime: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontVariant: ['tabular-nums'],
+  rowNext: {
+    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+    borderColor: colors.accent,
+    borderWidth: 1,
   },
-  scheduleTimeStrong: {
-    color: colors.text,
-    fontSize: 12,
-    fontVariant: ['tabular-nums'],
+  rowPressed: {
+    backgroundColor: colors.surfaceElevated,
+  },
+  sprintLabel: {
+    color: colors.accentHover,
+    fontSize: 10,
     fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  topRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
 });

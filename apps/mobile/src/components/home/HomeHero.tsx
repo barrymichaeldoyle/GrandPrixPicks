@@ -1,7 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
@@ -10,8 +17,9 @@ import { useTypography } from '../../theme/typography';
 import type { RaceWeekend } from '../../types';
 import type { HomeStackParamList } from '../../navigation/types';
 import { BigCountdown } from '../ui/BigCountdown';
-import { HeroSpeedLines } from '../ui/HeroSpeedLines';
 import { Numeral } from '../ui/Numeral';
+
+const NARROW_WIDTH = 360;
 
 type NextSession = {
   type: string;
@@ -65,6 +73,8 @@ export function HomeHero() {
   const { titleFontFamily } = useTypography();
   const { races } = useRaceWeekends();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const { width } = useWindowDimensions();
+  const isNarrow = width < NARROW_WIDTH;
 
   const featured = getFeatured(races, Date.now());
   if (!featured) {
@@ -75,103 +85,84 @@ export function HomeHero() {
   const totalRounds = races.length;
 
   return (
-    <View style={styles.halo}>
+    <View style={[styles.content, isNarrow ? styles.contentNarrow : null]}>
+      <View style={styles.identity}>
+        {countryCode ? (
+          <View style={styles.flagBadge}>
+            <Image
+              source={{
+                uri: `https://flagcdn.com/w160/${countryCode}.png`,
+              }}
+              style={styles.flagImage}
+            />
+          </View>
+        ) : null}
+        <Text
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+          numberOfLines={2}
+          style={[
+            styles.raceName,
+            isNarrow ? styles.raceNameNarrow : null,
+            titleFontFamily ? { fontFamily: titleFontFamily } : null,
+          ]}
+        >
+          {race.name}
+        </Text>
+      </View>
+
+      <View style={styles.metaRow}>
+        <Text style={styles.metaLabel}>ROUND</Text>
+        <Numeral style={styles.metaNumeral} tone="muted" variant="small">
+          {round}
+        </Numeral>
+        {totalRounds > 0 ? (
+          <Text style={styles.metaLabel}>{` / ${totalRounds}`}</Text>
+        ) : null}
+        {race.hasSprint ? (
+          <>
+            <Text style={styles.metaDivider}>·</Text>
+            <Text style={styles.metaAccent}>SPRINT WEEKEND</Text>
+          </>
+        ) : null}
+      </View>
+
+      {nextSession ? (
+        <>
+          <View style={styles.countdownWrapper}>
+            <BigCountdown targetAt={nextSession.startAt} />
+          </View>
+          <Text style={styles.countdownCopy}>
+            until{' '}
+            <Text style={styles.countdownTarget}>{nextSession.label}</Text>
+          </Text>
+        </>
+      ) : (
+        <Text style={styles.weekendOver}>Weekend complete</Text>
+      )}
+
       <Pressable
         onPress={() =>
           navigation.navigate('RaceDetail', { raceSlug: race.slug })
         }
-        style={styles.container}
+        style={({ pressed }) => [styles.cta, pressed ? styles.ctaPressed : null]}
       >
-        <HeroSpeedLines />
-      <View style={styles.content}>
-        <View style={styles.identity}>
-          {countryCode ? (
-            <View style={styles.flagBadge}>
-              <Image
-                source={{ uri: `https://flagcdn.com/w160/${countryCode}.png` }}
-                style={styles.flagImage}
-              />
-            </View>
-          ) : null}
-          <Text
-            numberOfLines={2}
-            style={[
-              styles.raceName,
-              titleFontFamily ? { fontFamily: titleFontFamily } : null,
-            ]}
-          >
-            {race.name}
-          </Text>
-        </View>
-
-        <View style={styles.metaRow}>
-          <Text style={styles.metaLabel}>ROUND</Text>
-          <Numeral style={styles.metaNumeral} tone="muted" variant="small">
-            {round}
-          </Numeral>
-          {totalRounds > 0 ? (
-            <Text style={styles.metaLabel}>{` / ${totalRounds}`}</Text>
-          ) : null}
-          {race.hasSprint ? (
-            <>
-              <Text style={styles.metaDivider}>·</Text>
-              <Text style={styles.metaAccent}>SPRINT WEEKEND</Text>
-            </>
-          ) : null}
-        </View>
-
-        {nextSession ? (
-          <>
-            <View style={styles.countdownWrapper}>
-              <BigCountdown targetAt={nextSession.startAt} />
-            </View>
-            <Text style={styles.countdownCopy}>
-              until{' '}
-              <Text style={styles.countdownTarget}>{nextSession.label}</Text>
-            </Text>
-          </>
-        ) : (
-          <Text style={styles.weekendOver}>Weekend complete</Text>
-        )}
-
-        <View style={styles.cta}>
-          <Text style={styles.ctaText}>Make predictions</Text>
-          <Ionicons
-            color={colors.accentHover}
-            name="arrow-forward"
-            size={14}
-          />
-        </View>
-        </View>
+        <Text style={styles.ctaText}>Make predictions</Text>
+        <Ionicons color={colors.accentHover} name="arrow-forward" size={14} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'rgba(20, 184, 166, 0.06)',
-    borderColor: 'rgba(45, 212, 191, 0.45)',
-    borderRadius: radii.xl,
-    borderWidth: 2,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  halo: {
-    borderRadius: radii.xl,
-    elevation: 10,
-    marginBottom: 16,
-    shadowColor: colors.accent,
-    shadowOffset: { height: 6, width: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-  },
   content: {
     alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    position: 'relative',
+    gap: 14,
+    marginBottom: 24,
+  },
+  contentNarrow: {
+    gap: 12,
+    marginBottom: 20,
   },
   countdownCopy: {
     color: colors.textMuted,
@@ -183,33 +174,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   countdownWrapper: {
-    marginTop: 4,
+    alignSelf: 'stretch',
+    marginTop: 2,
   },
   cta: {
     alignItems: 'center',
-    backgroundColor: 'rgba(20, 184, 166, 0.18)',
-    borderColor: 'rgba(45, 212, 191, 0.55)',
-    borderRadius: radii.pill,
-    borderWidth: 1,
+    alignSelf: 'stretch',
+    backgroundColor: colors.buttonAccent,
+    borderRadius: radii.lg,
     flexDirection: 'row',
-    gap: 6,
-    marginTop: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  ctaPressed: {
+    backgroundColor: colors.buttonAccentHover,
   },
   ctaText: {
-    color: colors.accentHover,
-    fontSize: 12,
+    color: colors.text,
+    fontSize: 15,
     fontWeight: '700',
-    letterSpacing: 0.6,
+    letterSpacing: 0.3,
   },
   flagBadge: {
     borderColor: 'rgba(255,255,255,0.2)',
     borderRadius: radii.md,
     borderWidth: 1,
-    height: 34,
+    height: 30,
     overflow: 'hidden',
-    width: 50,
+    width: 44,
   },
   flagImage: {
     height: '100%',
@@ -218,10 +213,9 @@ const styles = StyleSheet.create({
   },
   identity: {
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
+    flexDirection: 'column',
+    gap: 10,
     justifyContent: 'center',
-    paddingHorizontal: 8,
   },
   metaAccent: {
     color: colors.accentHover,
@@ -245,16 +239,19 @@ const styles = StyleSheet.create({
   metaRow: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 4,
     justifyContent: 'center',
   },
   raceName: {
     color: colors.text,
-    flexShrink: 1,
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: 0.3,
     textAlign: 'center',
+  },
+  raceNameNarrow: {
+    fontSize: 21,
   },
   weekendOver: {
     color: colors.accentHover,

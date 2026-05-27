@@ -4,7 +4,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "expo start",
+    "dev": "expo start --dev-client --host lan",
+    "dev:localhost": "expo start --dev-client --host localhost",
+    "dev:tunnel": "expo start --dev-client --tunnel",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

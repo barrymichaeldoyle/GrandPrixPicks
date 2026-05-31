@@ -34,6 +34,8 @@ const ITEMS: ReadonlyArray<ExploreItem> = [
   },
 ];
 
+const HAIRLINE = StyleSheet.hairlineWidth;
+
 export function HomeExplore() {
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
   const tabNav = navigation.getParent<NavigationProp<RootTabParamList>>();
@@ -41,29 +43,32 @@ export function HomeExplore() {
   return (
     <View style={styles.section}>
       <Text style={styles.heading}>Explore</Text>
-      <View style={styles.list}>
-        {ITEMS.map((item) => (
-          <Pressable
-            key={item.tab}
-            onPress={() => tabNav?.navigate(item.tab)}
-            style={({ pressed }) => [
-              styles.card,
-              pressed ? styles.cardPressed : null,
-            ]}
-          >
-            <View style={styles.iconWrap}>
-              <Ionicons color={colors.accentHover} name={item.icon} size={22} />
-            </View>
-            <View style={styles.copy}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.body}>{item.body}</Text>
-            </View>
-            <Ionicons
-              color={colors.textMuted}
-              name="chevron-forward"
-              size={18}
-            />
-          </Pressable>
+      <View>
+        {ITEMS.map((item, i) => (
+          <View key={item.tab}>
+            {i > 0 ? <View style={styles.divider} /> : null}
+            <Pressable
+              onPress={() => tabNav?.navigate(item.tab)}
+              style={styles.row}
+            >
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  color={colors.accentHover}
+                  name={item.icon}
+                  size={20}
+                />
+              </View>
+              <View style={styles.copy}>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.body}>{item.body}</Text>
+              </View>
+              <Ionicons
+                color={colors.textMuted}
+                name="chevron-forward"
+                size={16}
+              />
+            </Pressable>
+          </View>
         ))}
       </View>
     </View>
@@ -73,52 +78,45 @@ export function HomeExplore() {
 const styles = StyleSheet.create({
   body: {
     color: colors.textMuted,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  card: {
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  cardPressed: {
-    backgroundColor: colors.surfaceElevated,
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 2,
   },
   copy: {
     flex: 1,
-    gap: 2,
+  },
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 48,
   },
   heading: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     letterSpacing: 1.4,
-    paddingHorizontal: 4,
     textTransform: 'uppercase',
   },
   iconWrap: {
     alignItems: 'center',
     backgroundColor: 'rgba(20, 184, 166, 0.14)',
     borderRadius: radii.md,
-    height: 40,
+    height: 36,
     justifyContent: 'center',
-    width: 40,
+    width: 36,
   },
-  list: {
-    gap: 10,
+  row: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 12,
   },
   section: {
-    gap: 10,
+    gap: 8,
   },
   title: {
     color: colors.text,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
   },
 });

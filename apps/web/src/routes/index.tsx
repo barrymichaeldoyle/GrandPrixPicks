@@ -25,7 +25,7 @@ import { FaqItem, FaqSection } from '../components/Faq';
 import { Flag as CountryFlag } from '../components/Flag';
 import { useUpcomingPredictionBannerState } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { getCountryCodeForRace } from '../components/RaceCard';
-import { formatTime } from '../lib/date';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { SHOW_DEV_TIME_CONTROLS } from '../lib/devFlags';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
 import { useNow } from '../lib/testing/now';
@@ -282,6 +282,7 @@ function SessionRow({
   status: SessionStatus;
   isNext: boolean;
 }) {
+  const { formatTime } = useUserDateFormat();
   return (
     <div
       className={`flex items-center gap-3 py-2.5 ${

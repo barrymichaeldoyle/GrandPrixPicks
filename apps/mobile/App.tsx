@@ -3,9 +3,13 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { AppProviders } from './src/providers/AppProviders';
+import { Sentry, initSentry } from './src/lib/sentry';
 import { colors } from './src/theme/tokens';
 
-export default function App() {
+// Initialise Sentry before React mounts so early errors are captured.
+initSentry();
+
+function App() {
   return (
     <AppProviders>
       <View style={styles.app}>
@@ -22,3 +26,5 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+export default Sentry.wrap(App);

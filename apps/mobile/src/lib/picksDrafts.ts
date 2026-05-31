@@ -1,7 +1,4 @@
-import {
-  getConnectedDraftStorageKey,
-  getLocalRaceDraftStorageKey,
-} from '@grandprixpicks/shared/picks';
+import { getConnectedDraftStorageKey } from '@grandprixpicks/shared/picks';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 
 import { getStoredJson, removeStoredValue, setStoredJson } from './storage';
@@ -9,12 +6,6 @@ import { getStoredJson, removeStoredValue, setStoredJson } from './storage';
 type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;
   top5: Array<string>;
-  updatedAt: string;
-};
-
-type LocalRaceDraft = {
-  h2hBySession: Record<SessionType, Record<string, string>>;
-  top5BySession: Record<SessionType, Array<string>>;
   updatedAt: string;
 };
 
@@ -42,19 +33,29 @@ export async function clearConnectedDraft(
   await removeStoredValue(getConnectedDraftStorageKey(raceSlug, session));
 }
 
-export async function loadLocalRaceDraft(
+/**
+ * Merge a partial update into the existing draft (preserving the other half).
+ *
+ * The connected draft holds both Top 5 and H2H. Without a read-modify-write,
+ * one editor's save would clobber the other's in-progress work. Drops the
+ * stored draft entirely when the merged result has no picks left.
+ */
+export async function patchConnectedDraft(
   raceSlug: string,
-): Promise<LocalRaceDraft | null> {
-  return getStoredJson<LocalRaceDraft>(getLocalRaceDraftStorageKey(raceSlug));
-}
-
-export async function saveLocalRaceDraft(
-  raceSlug: string,
-  draft: LocalRaceDraft,
+  session: SessionType,
+  patch: Partial<Pick<ConnectedDraft, 'h2hByMatchup' | 'top5'>>,
 ) {
-  await setStoredJson(getLocalRaceDraftStorageKey(raceSlug), draft);
-}
-
-export async function clearLocalRaceDraft(raceSlug: string) {
-  await removeStoredValue(getLocalRaceDraftStorageKey(raceSlug));
+  const existing = await loadConnectedDraft(raceSlug, session);
+  const next: ConnectedDraft = {
+    h2hByMatchup: patch.h2hByMatchup ?? existing?.h2hByMatchup ?? {},
+    top5: patch.top5 ?? existing?.top5 ?? [],
+    updatedAt: new Date().toISOString(),
+  };
+  const isEmpty =
+    next.top5.length === 0 && Object.keys(next.h2hByMatchup).length === 0;
+  if (isEmpty) {
+    await clearConnectedDraft(raceSlug, session);
+    return;
+  }
+  await setStoredJson(getConnectedDraftStorageKey(raceSlug, session), next);
 }

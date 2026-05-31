@@ -1,65 +1,122 @@
 /**
  * Shared date/time formatting for race and prediction UI.
+ *
+ * Every formatter accepts an optional `{ timezone, locale }` so the viewer's
+ * saved Settings can override the device default. For React components, prefer
+ * the `useUserDateFormat()` hook (in `./useUserDateFormat.ts`) which pulls
+ * those values from Convex and returns pre-bound helpers.
  */
 
 import { useEffect, useState } from 'react';
 
 type DateLike = number | string | Date;
 
+export type UserDateSettings = {
+  /** IANA timezone, e.g. "Europe/London". Falls back to the device default. */
+  timezone?: string;
+  /** Locale string, e.g. "en-US" / "en-GB". Falls back to the device default. */
+  locale?: string;
+};
+
 function toDateInput(value: DateLike): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
-export function formatDate(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+/**
+ * Merge `timeZone` into the base options only when settings.timezone is set —
+ * keeps the options object identical when no user setting is provided, which
+ * matters for tests that assert exact `toLocaleX` call shapes.
+ */
+function withTimeZone(
+  base: Intl.DateTimeFormatOptions,
+  settings?: UserDateSettings,
+): Intl.DateTimeFormatOptions {
+  if (settings?.timezone) {
+    return { ...base, timeZone: settings.timezone };
+  }
+  return base;
 }
 
-export function formatTime(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+export function formatDate(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  return toDateInput(timestamp).toLocaleDateString(
+    settings?.locale,
+    withTimeZone(
+      { weekday: 'short', month: 'short', day: 'numeric' },
+      settings,
+    ),
+  );
 }
 
-export function formatDateLong(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+export function formatTime(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  return toDateInput(timestamp).toLocaleTimeString(
+    settings?.locale,
+    withTimeZone({ hour: 'numeric', minute: '2-digit' }, settings),
+  );
 }
 
-export function formatMonthDay(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
+export function formatDateLong(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  return toDateInput(timestamp).toLocaleDateString(
+    settings?.locale,
+    withTimeZone(
+      { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' },
+      settings,
+    ),
+  );
 }
 
-export function formatDateTime(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleString();
+export function formatMonthDay(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  return toDateInput(timestamp).toLocaleDateString(
+    settings?.locale,
+    withTimeZone({ month: 'short', day: 'numeric' }, settings),
+  );
 }
 
-export function formatCalendarDate(timestamp: DateLike): string {
-  return toDateInput(timestamp).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+export function formatDateTime(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  if (!settings || (!settings.timezone && !settings.locale)) {
+    return toDateInput(timestamp).toLocaleString();
+  }
+  return toDateInput(timestamp).toLocaleString(
+    settings.locale,
+    settings.timezone ? { timeZone: settings.timezone } : undefined,
+  );
+}
+
+export function formatCalendarDate(
+  timestamp: DateLike,
+  settings?: UserDateSettings,
+): string {
+  return toDateInput(timestamp).toLocaleDateString(
+    settings?.locale,
+    withTimeZone(
+      { year: 'numeric', month: 'long', day: 'numeric' },
+      settings,
+    ),
+  );
 }
 
 export function formatInTimeZone(
   timestamp: DateLike,
   timeZone: string,
   options: Intl.DateTimeFormatOptions,
+  settings?: UserDateSettings,
 ): string {
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(settings?.locale, {
       ...options,
       timeZone,
     }).format(toDateInput(timestamp));

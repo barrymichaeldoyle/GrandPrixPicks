@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { HeaderBackground } from '../components/ui/HeaderBackground';
 import { NotificationBell } from '../components/ui/NotificationBell';
 import { FeedEventDetailScreen } from '../screens/FeedEventDetailScreen';
 import { HomeRouteScreen } from '../screens/HomeRouteScreen';
@@ -43,21 +44,29 @@ const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 const SCREEN_OPTIONS = {
   contentStyle: { backgroundColor: colors.page },
-  headerStyle: { backgroundColor: colors.surface },
+  headerBackButtonDisplayMode: 'minimal' as const,
+  headerBackground: () => <HeaderBackground />,
+  headerShadowVisible: false,
+  headerStyle: { backgroundColor: 'transparent' },
   headerTintColor: colors.text,
 };
 
 function BrandHeaderTitle() {
   const { titleFontFamily } = useTypography();
   return (
-    <Text
-      style={[
-        styles.brandTitle,
-        titleFontFamily ? { fontFamily: titleFontFamily } : null,
-      ]}
-    >
-      GrandPrixPicks
-    </Text>
+    <View style={styles.brand}>
+      <View style={styles.brandBadge}>
+        <Ionicons color={colors.accent} name="flag" size={14} />
+      </View>
+      <Text
+        style={[
+          styles.brandTitle,
+          titleFontFamily ? { fontFamily: titleFontFamily } : null,
+        ]}
+      >
+        Grand Prix Picks
+      </Text>
+    </View>
   );
 }
 
@@ -233,9 +242,11 @@ export function AppNavigator() {
               fontSize: 11,
               marginBottom: 0,
             },
+            tabBarBackground: () => <HeaderBackground />,
             tabBarStyle: {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.border,
+              backgroundColor: 'transparent',
+              borderTopWidth: 0,
+              elevation: 0,
               height: 76,
               paddingBottom: 6,
               paddingTop: 6,
@@ -274,9 +285,24 @@ export function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
+  brand: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  brandBadge: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 184, 166, 0.12)',
+    borderColor: 'rgba(45, 212, 191, 0.35)',
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 26,
+    justifyContent: 'center',
+    width: 26,
+  },
   brandTitle: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.3,
   },

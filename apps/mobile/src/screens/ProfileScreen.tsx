@@ -8,12 +8,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { PageHero } from '../components/ui/PageHero';
 import { api } from '../integrations/convex/api';
 import type { ConvexId } from '../integrations/convex/api';
 import { useMobileConfig } from '../providers/mobile-config';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
 import type { ProfileStackParamList } from '../navigation/types';
+
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function ProfileScreen() {
   const { clerkEnabled } = useMobileConfig();
@@ -21,16 +22,9 @@ export function ProfileScreen() {
   if (!clerkEnabled) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Profile" />
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons
-              color={colors.accentHover}
-              name="information-circle-outline"
-              size={18}
-            />
-            <Text style={styles.infoTitle}>Sign-in not configured</Text>
-          </View>
+        <View style={styles.signedOutBlock}>
+          <Text style={styles.eyebrow}>Profile</Text>
+          <Text style={styles.title}>Sign-in not configured</Text>
           <Text style={styles.body}>
             Add your Clerk publishable key in mobile env to enable account
             sign-in.
@@ -68,7 +62,6 @@ function SignedInProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      {/* Avatar + name */}
       <View style={styles.hero}>
         <Avatar imageUrl={avatarUrl} name={displayName} size="lg" />
         <View style={styles.heroText}>
@@ -77,7 +70,6 @@ function SignedInProfileScreen() {
         </View>
       </View>
 
-      {/* Follow counts */}
       <View style={styles.followRow}>
         <Pressable
           onPress={() =>
@@ -95,7 +87,7 @@ function SignedInProfileScreen() {
           </Numeral>
           <Text style={styles.followLabel}>Followers</Text>
         </Pressable>
-        <View style={styles.followDivider} />
+        <View style={styles.vDivider} />
         <Pressable
           onPress={() =>
             username
@@ -114,62 +106,72 @@ function SignedInProfileScreen() {
         </Pressable>
       </View>
 
-      {/* Stats grid */}
       {stats ? (
-        <View style={styles.statsGrid}>
-          <StatBox label="Season pts" value={stats.totalPoints} />
-          <StatBox
-            label="Global rank"
-            value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
-          />
-          <StatBox label="Weekends" value={stats.weekendCount} />
-          <StatBox
-            label="H2H rank"
-            value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
-          />
+        <View style={styles.section}>
+          <Text style={styles.sectionEyebrow}>Season stats</Text>
+          <View style={styles.statRow}>
+            <StatCell label="Season pts" value={stats.totalPoints} />
+            <View style={styles.vDivider} />
+            <StatCell
+              label="Global rank"
+              value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
+            />
+            <View style={styles.vDivider} />
+            <StatCell label="Weekends" value={stats.weekendCount} />
+            <View style={styles.vDivider} />
+            <StatCell
+              label="H2H rank"
+              value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
+            />
+          </View>
         </View>
       ) : null}
 
-      {/* Quick links */}
-      <View style={styles.linkList}>
-        {username ? (
-          <>
-            <ProfileLinkRow
-              icon="documents-outline"
-              label="Picks history"
-              onPress={() =>
-                navigation.navigate('PredictionHistory', { username })
-              }
-              subtitle="Every weekend you’ve picked"
-            />
-            <View style={styles.linkDivider} />
-          </>
-        ) : null}
-        <ProfileLinkRow
-          icon="trophy-outline"
-          label="Leaderboard"
-          onPress={() => navigation.navigate('Leaderboard')}
-          subtitle="Season standings"
-        />
-        <View style={styles.linkDivider} />
-        <ProfileLinkRow
-          icon="settings-outline"
-          label="Settings"
-          onPress={() => navigation.navigate('Settings')}
-          subtitle="Profile, notifications, sign out"
-        />
+      <View style={styles.section}>
+        <Text style={styles.sectionEyebrow}>Shortcuts</Text>
+        <View>
+          {username ? (
+            <>
+              <LinkRow
+                icon="documents-outline"
+                label="Picks history"
+                onPress={() =>
+                  navigation.navigate('PredictionHistory', { username })
+                }
+                subtitle="Every weekend you've picked"
+              />
+              <View style={styles.divider} />
+            </>
+          ) : null}
+          <LinkRow
+            icon="trophy-outline"
+            label="Leaderboard"
+            onPress={() => navigation.navigate('Leaderboard')}
+            subtitle="Season standings"
+          />
+          <View style={styles.divider} />
+          <LinkRow
+            icon="settings-outline"
+            label="Settings"
+            onPress={() => navigation.navigate('Settings')}
+            subtitle="Profile, notifications, sign out"
+          />
+        </View>
       </View>
 
-      {/* Sign out */}
-      <Pressable onPress={() => void signOut()} style={styles.signOutButton}>
-        <Ionicons color={colors.textMuted} name="log-out-outline" size={16} />
+      <Pressable
+        hitSlop={8}
+        onPress={() => void signOut()}
+        style={styles.signOutLink}
+      >
+        <Ionicons color={colors.textMuted} name="log-out-outline" size={14} />
         <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
     </ScrollView>
   );
 }
 
-function ProfileLinkRow({
+function LinkRow({
   icon,
   label,
   subtitle,
@@ -182,25 +184,25 @@ function ProfileLinkRow({
 }) {
   return (
     <Pressable onPress={onPress} style={styles.linkRow}>
-      <View style={styles.linkIcon}>
-        <Ionicons color={colors.accent} name={icon} size={18} />
-      </View>
+      <Ionicons color={colors.accent} name={icon} size={18} />
       <View style={styles.linkText}>
         <Text style={styles.linkLabel}>{label}</Text>
         <Text style={styles.linkSubtitle}>{subtitle}</Text>
       </View>
-      <Ionicons
-        color={colors.textMuted}
-        name="chevron-forward"
-        size={16}
-      />
+      <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
     </Pressable>
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string | number }) {
+function StatCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
-    <View style={styles.statBox}>
+    <View style={styles.statCell}>
       <Numeral variant="large">{value}</Numeral>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -212,45 +214,49 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
+    marginTop: 4,
   },
   content: {
-    gap: 20,
+    gap: 24,
     paddingBottom: 40,
     paddingTop: 16,
   },
   displayName: {
     color: colors.text,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
-  followDivider: {
+  divider: {
     backgroundColor: colors.border,
-    height: 32,
-    width: 1,
+    height: HAIRLINE,
+    marginLeft: 30,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   followLabel: {
     color: colors.textMuted,
-    fontSize: 12,
-  },
-  followNumber: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
   followRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
   },
   followStat: {
     alignItems: 'center',
     flex: 1,
-    gap: 2,
+    gap: 0,
+    paddingVertical: 4,
   },
   hero: {
     alignItems: 'center',
@@ -261,113 +267,87 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  linkDivider: {
-    backgroundColor: colors.border,
-    height: 1,
-    marginHorizontal: 14,
-  },
-  linkIcon: {
-    alignItems: 'center',
-    backgroundColor: colors.accentMuted,
-    borderRadius: radii.pill,
-    height: 32,
-    justifyContent: 'center',
-    width: 32,
-  },
   linkLabel: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '700',
   },
-  linkList: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
   linkRow: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 12,
-    paddingHorizontal: 14,
     paddingVertical: 12,
   },
   linkSubtitle: {
     color: colors.textMuted,
     fontSize: 11,
+    marginTop: 2,
   },
   linkText: {
     flex: 1,
-    gap: 2,
-  },
-  infoCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    gap: 8,
-    padding: 14,
-  },
-  infoRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  infoTitle: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
   },
   screen: {
     backgroundColor: colors.page,
     flex: 1,
     paddingHorizontal: 16,
   },
-  signOutButton: {
+  section: {
+    gap: 10,
+  },
+  sectionEyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  signedOutBlock: {
+    gap: 4,
+    paddingTop: 16,
+  },
+  signOutLink: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    alignSelf: 'center',
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: 12,
+    gap: 6,
+    paddingVertical: 8,
   },
   signOutText: {
     color: colors.textMuted,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
-  statBox: {
+  statCell: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
     flex: 1,
-    gap: 4,
-    paddingVertical: 14,
+    gap: 2,
+    paddingVertical: 4,
   },
   statLabel: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
-  statValue: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  statsGrid: {
+  statRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   username: {
     color: colors.textMuted,
     fontSize: 14,
+  },
+  vDivider: {
+    backgroundColor: colors.border,
+    height: 28,
+    width: HAIRLINE,
   },
 });

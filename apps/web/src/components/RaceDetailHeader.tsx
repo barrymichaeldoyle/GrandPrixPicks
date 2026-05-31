@@ -1,7 +1,7 @@
 import type { Doc } from '@convex-generated/dataModel';
 import { Calendar, Clock } from 'lucide-react';
 
-import { formatDate, formatTime } from '../lib/date';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { getCountryCodeForRace, RaceFlag } from './RaceCard';
 
 function abbreviateGrandPrix(name: string) {
@@ -26,6 +26,7 @@ export function RaceDetailHeader({
   isNextRace,
   resultsSummary,
 }: RaceDetailHeaderProps) {
+  const { formatDate, formatTime } = useUserDateFormat();
   const countryCode = getCountryCodeForRace(race);
   const accentBorderClass = isNextRace ? 'border-accent/50' : 'border-border';
 

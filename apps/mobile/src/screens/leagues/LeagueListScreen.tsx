@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
@@ -12,17 +13,20 @@ import {
 
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { PageHero } from '../../components/ui/PageHero';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import type { LeaguesStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
+import { useToast } from '../../providers/ToastProvider';
 import { colors, radii } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<LeaguesStackParamList, 'LeagueList'>;
 
+const HAIRLINE = StyleSheet.hairlineWidth;
+
 export function LeagueListScreen({ navigation }: Props) {
   const { convexEnabled } = useMobileConfig();
+  const { showToast } = useToast();
 
   const leaguesQuery = useQuery(
     api.leagues.getMyLeagues,
@@ -61,10 +65,12 @@ export function LeagueListScreen({ navigation }: Props) {
         leagueId: foundLeague._id as ConvexId<'leagues'>,
         password: passwordInput.trim() || undefined,
       });
+      const name = foundLeague.name;
       setShowJoin(false);
       setSlugInput('');
       setCommittedSlug(null);
       setPasswordInput('');
+      showToast(`Joined ${name}`, 'success');
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : 'Failed to join');
     }
@@ -75,30 +81,36 @@ export function LeagueListScreen({ navigation }: Props) {
   }
 
   const leagues = (leaguesQuery ?? []).filter((league) => league !== null);
+  const count = leagues.length;
 
   return (
     <View style={styles.screen}>
-      <PageHero
-        action={
-          <Pressable
-            onPress={() => {
-              setShowJoin((v) => !v);
-              setJoinError(null);
-            }}
-            style={styles.joinButton}
-          >
-            <Text style={styles.joinButtonText}>
-              {showJoin ? 'Cancel' : 'Join'}
-            </Text>
-          </Pressable>
-        }
-        title="Leagues"
-      />
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.eyebrow}>Leagues</Text>
+          <Text style={styles.title}>Your leagues</Text>
+          <Text style={styles.headerMeta}>
+            {count > 0
+              ? `${count} ${count === 1 ? 'league' : 'leagues'}`
+              : 'Join with a code to compete with friends'}
+          </Text>
+        </View>
+        <Pressable
+          hitSlop={8}
+          onPress={() => {
+            setShowJoin((v) => !v);
+            setJoinError(null);
+          }}
+        >
+          <Text style={styles.joinToggle}>
+            {showJoin ? 'Cancel' : 'Join'}
+          </Text>
+        </Pressable>
+      </View>
 
-      {/* Join flow */}
       {showJoin ? (
-        <View style={styles.joinCard}>
-          <Text style={styles.joinTitle}>Join by code</Text>
+        <View style={styles.joinBlock}>
+          <Text style={styles.sectionEyebrow}>Join by code</Text>
           <View style={styles.joinRow}>
             <TextInput
               autoCapitalize="none"
@@ -130,12 +142,14 @@ export function LeagueListScreen({ navigation }: Props) {
 
           {foundLeague ? (
             <View style={styles.foundLeague}>
-              <Text style={styles.foundLeagueName}>{foundLeague.name}</Text>
-              <Text style={styles.foundLeagueMeta}>
-                {foundLeague.memberCount} member
-                {foundLeague.memberCount !== 1 ? 's' : ''} · Season{' '}
-                {foundLeague.season}
-              </Text>
+              <View>
+                <Text style={styles.foundLeagueName}>{foundLeague.name}</Text>
+                <Text style={styles.foundLeagueMeta}>
+                  {foundLeague.memberCount} member
+                  {foundLeague.memberCount !== 1 ? 's' : ''} · Season{' '}
+                  {foundLeague.season}
+                </Text>
+              </View>
               {foundLeague.hasPassword ? (
                 <TextInput
                   onChangeText={setPasswordInput}
@@ -173,62 +187,50 @@ export function LeagueListScreen({ navigation }: Props) {
           contentContainerStyle={styles.listContent}
           data={leagues}
           keyExtractor={(item) => item._id}
+          ItemSeparatorComponent={() => <View style={styles.divider} />}
           renderItem={({ item }) => (
             <Pressable
               onPress={() =>
                 navigation.navigate('LeagueDetail', { leagueSlug: item.slug })
               }
-              style={styles.leagueCard}
+              style={styles.leagueRow}
             >
-              <View style={styles.leagueCardRow}>
-                <View style={styles.leagueInfo}>
-                  <Text numberOfLines={1} style={styles.leagueName}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.leagueMeta}>
-                    {item.memberCount} member{item.memberCount !== 1 ? 's' : ''}{' '}
-                    · Season {item.season}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.roleBadge,
-                    item.viewerRole === 'admin' ? styles.adminBadge : null,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.roleText,
-                      item.viewerRole === 'admin' ? styles.adminText : null,
-                    ]}
-                  >
-                    {item.viewerRole === 'admin' ? 'Admin' : 'Member'}
-                  </Text>
-                </View>
+              <View style={styles.leagueInfo}>
+                <Text numberOfLines={1} style={styles.leagueName}>
+                  {item.name}
+                </Text>
+                <Text style={styles.leagueMeta}>
+                  {item.memberCount} member
+                  {item.memberCount !== 1 ? 's' : ''} · Season {item.season}
+                </Text>
               </View>
+              {item.viewerRole === 'admin' ? (
+                <Text style={styles.adminTag}>ADMIN</Text>
+              ) : null}
+              <Ionicons
+                color={colors.textMuted}
+                name="chevron-forward"
+                size={16}
+              />
             </Pressable>
           )}
           showsVerticalScrollIndicator={false}
         />
       )}
 
-      {/* Create league CTA */}
-      <View style={styles.createBanner}>
-        <Text style={styles.createBannerText}>
-          Create leagues at grandprixpicks.com
-        </Text>
-      </View>
+      <Text style={styles.createBannerText}>
+        Create leagues at grandprixpicks.com
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  adminBadge: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-  },
-  adminText: {
+  adminTag: {
     color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   confirmJoinButton: {
     alignItems: 'center',
@@ -241,15 +243,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  createBanner: {
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    paddingTop: 12,
-  },
   createBannerText: {
     color: colors.textMuted,
-    fontSize: 12,
+    fontSize: 11,
+    paddingTop: 8,
     textAlign: 'center',
+  },
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   findButton: {
     alignItems: 'center',
@@ -275,36 +284,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  header: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    paddingBottom: 4,
+  },
+  headerLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  headerMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: 4,
+  },
   input: {
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.border,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: HAIRLINE,
     color: colors.text,
     flex: 1,
     fontSize: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  joinButton: {
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  joinButtonText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  joinCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    gap: 12,
-    padding: 14,
+  joinBlock: {
+    gap: 10,
   },
   joinError: {
     color: colors.error,
@@ -318,22 +326,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  joinTitle: {
-    color: colors.text,
-    fontSize: 15,
+  joinToggle: {
+    color: colors.accent,
+    fontSize: 13,
     fontWeight: '700',
-  },
-  leagueCard: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: 14,
-  },
-  leagueCardRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
+    letterSpacing: 0.3,
   },
   leagueInfo: {
     flex: 1,
@@ -348,28 +345,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  leagueRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 14,
+  },
   listContent: {
-    flex: 1,
-    gap: 10,
-  },
-  roleBadge: {
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  roleText: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
+    flexGrow: 1,
   },
   screen: {
     backgroundColor: colors.page,
     flex: 1,
-    gap: 14,
+    gap: 16,
     paddingBottom: 16,
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  sectionEyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 });

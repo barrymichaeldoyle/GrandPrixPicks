@@ -13,7 +13,7 @@ import { CountdownText } from '../components/ui/CountdownText';
 import { LockBadge } from '../components/ui/LockBadge';
 import { PageHero } from '../components/ui/PageHero';
 import { api } from '../integrations/convex/api';
-import { formatRaceDate } from '../lib/dates';
+import { useUserDateFormat } from '../lib/dates';
 import { getLockStatusViewModel } from '../lib/lockTime';
 import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
@@ -30,11 +30,13 @@ type RacesProps = NativeStackScreenProps<RacesStackParamList, 'RaceDetail'>;
 type Props = HomeProps | RacesProps;
 
 const SESSION_ORDER: SessionType[] = ['sprint_quali', 'sprint', 'quali', 'race'];
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function RaceDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
   const { races } = useRaceWeekends();
   const now = useNow();
+  const { formatRaceDate } = useUserDateFormat();
   const rootNav = useNavigation<NavigationProp<RootTabParamList>>();
 
   const raceIndex = races.findIndex(
@@ -42,7 +44,6 @@ export function RaceDetailScreen({ route }: Props) {
   );
   const race = raceIndex >= 0 ? races[raceIndex] : undefined;
 
-  // Convex race doc — gives us _id to fetch results / scores
   const raceDoc = useQuery(
     api.races.getRaceBySlug,
     convexEnabled && race ? { slug: race.slug } : 'skip',
@@ -69,7 +70,6 @@ export function RaceDetailScreen({ route }: Props) {
     (s) => new Date(s.startsAt).getTime() - now > 0,
   );
 
-  // Sessions with published results, in canonical order
   const publishedSessions: SessionType[] = SESSION_ORDER.filter(
     (type) =>
       Array.isArray(actualTop5BySession?.[type]) &&
@@ -84,69 +84,70 @@ export function RaceDetailScreen({ route }: Props) {
     >
       <RaceDetailHero race={race} round={raceIndex + 1} />
 
-      {/* Results — only shown when at least one session is published */}
       {publishedSessions.length > 0 ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Results</Text>
-          {publishedSessions.map((sessionType) => {
-            const actual = actualTop5BySession?.[sessionType] ?? [];
-            const myScore = myScoresBySession?.[sessionType] ?? null;
-            return (
-              <SessionResultsCard
-                actual={actual}
-                key={`results-${sessionType}`}
-                pickBreakdown={myScore?.enrichedBreakdown}
-                session={sessionType}
-                totalPoints={myScore?.points}
-              />
-            );
-          })}
+          <Text style={styles.eyebrow}>Results</Text>
+          <View style={styles.resultsList}>
+            {publishedSessions.map((sessionType, i) => {
+              const actual = actualTop5BySession?.[sessionType] ?? [];
+              const myScore = myScoresBySession?.[sessionType] ?? null;
+              return (
+                <View key={`results-${sessionType}`}>
+                  {i > 0 ? <View style={styles.thickDivider} /> : null}
+                  <SessionResultsCard
+                    actual={actual}
+                    pickBreakdown={myScore?.enrichedBreakdown}
+                    session={sessionType}
+                    totalPoints={myScore?.points}
+                  />
+                </View>
+              );
+            })}
+          </View>
         </View>
       ) : null}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sessions</Text>
-        {race.sessions.map((session) => {
-          const msRemaining = new Date(session.startsAt).getTime() - now;
-          const lockStatus = getLockStatusViewModel(msRemaining, now);
-          const formatted = formatRaceDate(session.startsAt, race.slug);
-          const isPublished = publishedSessions.includes(
-            session.type as SessionType,
-          );
+        <Text style={styles.eyebrow}>Sessions</Text>
+        <View>
+          {race.sessions.map((session, i) => {
+            const msRemaining = new Date(session.startsAt).getTime() - now;
+            const lockStatus = getLockStatusViewModel(msRemaining, now);
+            const formatted = formatRaceDate(session.startsAt, race.slug);
+            const isPublished = publishedSessions.includes(
+              session.type as SessionType,
+            );
 
-          return (
-            <View key={session.type} style={styles.sessionRow}>
-              <View style={styles.sessionLeft}>
-                <Text style={styles.sessionType}>
-                  {SESSION_LABELS[session.type]}
-                </Text>
-                <Text style={styles.sessionTime}>{formatted.local}</Text>
-                <Text style={styles.sessionTrack}>
-                  {formatted.track} ({formatted.trackTimeZone})
-                </Text>
-              </View>
-              <View style={styles.sessionRight}>
-                {isPublished ? (
-                  <View style={styles.publishedBadge}>
-                    <Ionicons
-                      color={colors.accent}
-                      name="checkmark-circle"
-                      size={11}
-                    />
-                    <Text style={styles.publishedText}>PUBLISHED</Text>
+            return (
+              <View key={session.type}>
+                {i > 0 ? <View style={styles.divider} /> : null}
+                <View style={styles.sessionRow}>
+                  <View style={styles.sessionLeft}>
+                    <Text style={styles.sessionType}>
+                      {SESSION_LABELS[session.type]}
+                    </Text>
+                    <Text style={styles.sessionTime}>{formatted.local}</Text>
+                    <Text style={styles.sessionTrack}>
+                      {formatted.track} ({formatted.trackTimeZone})
+                    </Text>
                   </View>
-                ) : (
-                  <>
-                    <LockBadge lockStatus={lockStatus} />
-                    {!lockStatus.isLocked ? (
-                      <CountdownText lockStatus={lockStatus} />
-                    ) : null}
-                  </>
-                )}
+                  <View style={styles.sessionRight}>
+                    {isPublished ? (
+                      <Text style={styles.publishedText}>PUBLISHED</Text>
+                    ) : (
+                      <>
+                        <LockBadge lockStatus={lockStatus} />
+                        {!lockStatus.isLocked ? (
+                          <CountdownText lockStatus={lockStatus} />
+                        ) : null}
+                      </>
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
 
       {hasOpenSession ? (
@@ -155,7 +156,7 @@ export function RaceDetailScreen({ route }: Props) {
           style={styles.cta}
         >
           <Ionicons color={colors.text} name="trophy-outline" size={16} />
-          <Text style={styles.ctaText}>Edit My Picks</Text>
+          <Text style={styles.ctaText}>Make My Picks</Text>
         </Pressable>
       ) : null}
     </ScrollView>
@@ -164,7 +165,7 @@ export function RaceDetailScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   content: {
-    gap: 16,
+    gap: 22,
     paddingBottom: 32,
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -183,40 +184,39 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+  },
+  eyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    paddingBottom: 2,
+    textTransform: 'uppercase',
+  },
   notFound: {
     backgroundColor: colors.page,
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  publishedBadge: {
-    alignItems: 'center',
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
   publishedText: {
     color: colors.accent,
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
+  },
+  resultsList: {
+    gap: 4,
   },
   scroll: {
     backgroundColor: colors.page,
     flex: 1,
   },
   section: {
-    gap: 10,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
+    gap: 8,
   },
   sessionLeft: {
     flex: 1,
@@ -228,14 +228,10 @@ const styles = StyleSheet.create({
   },
   sessionRow: {
     alignItems: 'flex-start',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
     justifyContent: 'space-between',
-    padding: 12,
+    paddingVertical: 12,
   },
   sessionTime: {
     color: colors.textMuted,
@@ -248,6 +244,11 @@ const styles = StyleSheet.create({
   sessionType: {
     color: colors.text,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  thickDivider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginVertical: 12,
   },
 });

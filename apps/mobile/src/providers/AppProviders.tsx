@@ -7,6 +7,7 @@ import { MobileConvexProvider } from '../integrations/convex/provider';
 import { TypographyProvider } from '../theme/typography';
 import { MobileConfigProvider } from './mobile-config';
 import { NotificationsProvider } from './NotificationsProvider';
+import { ToastProvider } from './ToastProvider';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +18,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <MobileClerkProvider>
               <MobileConvexProvider>
                 <NotificationsProvider />
-                {children}
+                <ToastProvider>{children}</ToastProvider>
               </MobileConvexProvider>
             </MobileClerkProvider>
           </TypographyProvider>

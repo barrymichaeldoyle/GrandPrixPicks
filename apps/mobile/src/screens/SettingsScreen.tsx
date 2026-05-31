@@ -1,11 +1,13 @@
 import { useClerk } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,10 +19,10 @@ import {
 
 import { TimezonePickerModal } from '../components/settings/TimezonePickerModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { PageHero } from '../components/ui/PageHero';
 import { api } from '../integrations/convex/api';
 import { usePushPermission } from '../lib/usePushPermission';
 import { useMobileConfig } from '../providers/mobile-config';
+import { useToast } from '../providers/ToastProvider';
 import { colors, radii } from '../theme/tokens';
 
 type NotificationKey =
@@ -76,6 +78,7 @@ const EMAIL_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
 export function SettingsScreen() {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
   const { signOut } = useClerk();
+  const { showToast } = useToast();
 
   const me = useQuery(api.users.me, clerkEnabled && convexEnabled ? {} : 'skip');
   const updateProfile = useMutation(api.users.updateProfile);
@@ -139,6 +142,7 @@ export function SettingsScreen() {
       await updateProfile({ displayName: trimmed });
       setIsEditingName(false);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast('Display name saved', 'success');
     } catch (err) {
       setNameError(err instanceof Error ? err.message : 'Failed to save.');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -151,22 +155,26 @@ export function SettingsScreen() {
     void Haptics.selectionAsync();
     updateNotifications({ [key]: value }).catch((err) => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert(
-        'Could not update',
-        err instanceof Error ? err.message : 'Try again later.',
+      showToast(
+        err instanceof Error ? err.message : 'Could not update setting',
+        'error',
       );
     });
   }
 
   function handleTimezoneSelect(tz: string | null) {
     void Haptics.selectionAsync();
-    updateRegional({ timezone: tz }).catch((err) => {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert(
-        'Could not update timezone',
-        err instanceof Error ? err.message : 'Try again later.',
-      );
-    });
+    updateRegional({ timezone: tz })
+      .then(() => {
+        showToast('Timezone updated', 'success');
+      })
+      .catch((err) => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        showToast(
+          err instanceof Error ? err.message : 'Could not update timezone',
+          'error',
+        );
+      });
   }
 
   function handleTimeFormatSelect(format: 'en-US' | 'en-GB') {
@@ -174,13 +182,20 @@ export function SettingsScreen() {
       return;
     }
     void Haptics.selectionAsync();
-    updateRegional({ locale: format }).catch((err) => {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert(
-        'Could not update time format',
-        err instanceof Error ? err.message : 'Try again later.',
-      );
-    });
+    updateRegional({ locale: format })
+      .then(() => {
+        showToast(
+          `Time format set to ${format === 'en-US' ? '12-hour' : '24-hour'}`,
+          'success',
+        );
+      })
+      .catch((err) => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        showToast(
+          err instanceof Error ? err.message : 'Could not update time format',
+          'error',
+        );
+      });
   }
 
   function handleSignOut() {
@@ -203,10 +218,10 @@ export function SettingsScreen() {
       contentContainerStyle={styles.content}
       style={styles.screen}
     >
-      <PageHero
-        subtitle="Manage your profile, notifications, and account."
-        title="Settings"
-      />
+      <View style={styles.header}>
+        <Text style={styles.eyebrow}>Settings</Text>
+        <Text style={styles.title}>Account</Text>
+      </View>
 
       {/* Profile */}
       <SettingsSection title="Profile">
@@ -393,7 +408,27 @@ export function SettingsScreen() {
           <Text style={styles.signOutText}>Sign out</Text>
         </Pressable>
       </SettingsSection>
+
+      <VersionFooter />
     </ScrollView>
+  );
+}
+
+function VersionFooter() {
+  const version = Constants.expoConfig?.version ?? '—';
+  const nativeBuild =
+    Platform.OS === 'ios'
+      ? Constants.expoConfig?.ios?.buildNumber
+      : String(Constants.expoConfig?.android?.versionCode ?? '');
+  const channel = (Constants.expoConfig?.extra as { eas?: { channel?: string } } | undefined)?.eas
+    ?.channel;
+  const parts = [
+    `v${version}`,
+    nativeBuild ? `(${nativeBuild})` : null,
+    channel ? `· ${channel}` : null,
+  ].filter(Boolean);
+  return (
+    <Text style={styles.versionText}>Grand Prix Picks {parts.join(' ')}</Text>
   );
 }
 
@@ -404,10 +439,22 @@ function SettingsSection({
   title: string;
   children: React.ReactNode;
 }) {
+  // Insert hairline dividers between children
+  const items = Array.isArray(children) ? children : [children];
+  const withDividers: React.ReactNode[] = [];
+  items.forEach((child, i) => {
+    if (child == null || child === false) {
+      return;
+    }
+    if (withDividers.length > 0) {
+      withDividers.push(<View key={`d-${i}`} style={styles.rowDivider} />);
+    }
+    withDividers.push(child);
+  });
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionBody}>{children}</View>
+      <View style={styles.sectionBody}>{withDividers}</View>
     </View>
   );
 }
@@ -502,10 +549,38 @@ function PushPermissionRow({
 
 const styles = StyleSheet.create({
   content: {
-    gap: 20,
+    gap: 26,
     paddingBottom: 32,
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    gap: 4,
+    marginBottom: 4,
+  },
+  rowDivider: {
+    backgroundColor: colors.border,
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 12,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  versionText: {
+    color: colors.textMuted,
+    fontSize: 11,
+    paddingTop: 8,
+    textAlign: 'center',
   },
   editRow: {
     alignItems: 'center',
@@ -595,11 +670,8 @@ const styles = StyleSheet.create({
   },
   permissionRow: {
     alignItems: 'center',
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
     flexDirection: 'row',
     gap: 12,
-    paddingBottom: 12,
   },
   permissionRowText: {
     flex: 1,
@@ -635,23 +707,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    gap: 8,
+    gap: 10,
   },
-  sectionBody: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    gap: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
+  sectionBody: {},
   sectionTitle: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    paddingHorizontal: 4,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    paddingBottom: 2,
     textTransform: 'uppercase',
   },
   signOutRow: {

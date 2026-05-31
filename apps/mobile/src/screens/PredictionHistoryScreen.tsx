@@ -3,15 +3,15 @@ import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { PageHero } from '../components/ui/PageHero';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { useUserDateFormat } from '../lib/dates';
+import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import type { ProfileStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
@@ -56,13 +56,14 @@ const SESSION_ORDER_SPRINT: SessionType[] = [
   'quali',
   'race',
 ];
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 function pointColor(points: number): string {
   if (points >= 5) {
     return colors.success;
   }
   if (points >= 3) {
-    return colors.accent;
+    return colors.accentHover;
   }
   if (points >= 1) {
     return colors.warning;
@@ -73,6 +74,7 @@ function pointColor(points: number): string {
 export function PredictionHistoryScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
   const { username } = route.params;
+  const { refreshing, onRefresh } = useRefreshSpinner();
 
   const profile = useQuery(
     api.users.getProfileByUsername,
@@ -89,7 +91,7 @@ export function PredictionHistoryScreen({ route }: Props) {
   if (!convexEnabled) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Picks history" />
+        <Header subtitle="Picks history" />
         <EmptyState
           body="Configure Convex to view picks history."
           icon="cloud-offline-outline"
@@ -106,9 +108,9 @@ export function PredictionHistoryScreen({ route }: Props) {
   if (profile === null) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Picks history" />
+        <Header subtitle="Picks history" />
         <EmptyState
-          body="That player doesn’t exist."
+          body="That player doesn't exist."
           icon="person-outline"
           title="User not found"
         />
@@ -130,30 +132,48 @@ export function PredictionHistoryScreen({ route }: Props) {
           body={
             isOwner
               ? 'Your picks will show up here once you make your first prediction.'
-              : `${displayName} hasn’t submitted any predictions yet.`
+              : `${displayName} hasn't submitted any predictions yet.`
           }
           icon="documents-outline"
           title="No picks yet"
         />
       }
       ListHeaderComponent={
-        <PageHero
+        <Header
           subtitle={
             isOwner
-              ? 'Every weekend you’ve picked, with scoring.'
-              : `Picks made by @${profile.username ?? username}.`
+              ? 'Every weekend you have picked, with scoring'
+              : `@${profile.username ?? username}`
           }
-          title="Picks history"
         />
       }
-      renderItem={({ item }) => <WeekendCard weekend={item} />}
+      ItemSeparatorComponent={() => <View style={styles.weekendDivider} />}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.accent]}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          tintColor={colors.accent}
+        />
+      }
+      renderItem={({ item }) => <WeekendBlock weekend={item} />}
       showsVerticalScrollIndicator={false}
       style={styles.screen}
     />
   );
 }
 
-function WeekendCard({ weekend }: { weekend: Weekend }) {
+function Header({ subtitle }: { subtitle: string }) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.eyebrow}>Picks history</Text>
+      <Text style={styles.headerSub}>{subtitle}</Text>
+    </View>
+  );
+}
+
+function WeekendBlock({ weekend }: { weekend: Weekend }) {
+  const { formatLongDate } = useUserDateFormat();
   const sessionOrder = weekend.hasSprint
     ? SESSION_ORDER_SPRINT
     : SESSION_ORDER_REGULAR;
@@ -162,37 +182,37 @@ function WeekendCard({ weekend }: { weekend: Weekend }) {
     .filter(
       (s): s is { type: SessionType; data: SessionData } => s.data !== null,
     );
-  const raceDate = new Date(weekend.raceDate).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const raceDate = formatLongDate(new Date(weekend.raceDate).toISOString());
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
+    <View style={styles.weekend}>
+      <View style={styles.weekendHeader}>
         <FlagImage raceSlug={weekend.raceSlug} />
-        <View style={styles.cardHeaderText}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
+        <View style={styles.weekendHeaderText}>
+          <Text style={styles.weekendTitle} numberOfLines={1}>
             {weekend.raceName}
           </Text>
-          <Text style={styles.cardMeta}>
+          <Text style={styles.weekendMeta}>
             Round {weekend.raceRound} · {raceDate}
           </Text>
         </View>
         {weekend.hasScores ? (
-          <View style={styles.totalPill}>
-            <Ionicons color={colors.accent} name="trophy" size={11} />
-            <Text style={styles.totalPillText}>{weekend.totalPoints} pts</Text>
+          <View style={styles.weekendPoints}>
+            <Ionicons color={colors.accentHover} name="trophy" size={11} />
+            <Text style={styles.weekendPointsText}>
+              {weekend.totalPoints} pts
+            </Text>
           </View>
         ) : (
-          <Badge variant="neutral">PENDING</Badge>
+          <Text style={styles.pendingText}>PENDING</Text>
         )}
       </View>
 
-      {sessions.map(({ type, data }) => (
-        <SessionRow data={data} key={`${weekend.raceId}-${type}`} type={type} />
-      ))}
+      <View style={styles.sessions}>
+        {sessions.map(({ type, data }) => (
+          <SessionRow data={data} key={`${weekend.raceId}-${type}`} type={type} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -216,7 +236,6 @@ function SessionRow({
     );
   }
 
-  // If we have a breakdown (scored), render colored pills per pick
   if (data.breakdown && data.breakdown.length > 0) {
     const codeByDriverId = new Map(data.picks.map((p) => [p.driverId, p.code]));
     const sortedBreakdown = [...data.breakdown].sort(
@@ -244,7 +263,6 @@ function SessionRow({
     );
   }
 
-  // Unscored picks (race not yet finished)
   return (
     <View style={styles.sessionBlock}>
       <View style={styles.sessionBlockHeader}>
@@ -273,17 +291,20 @@ function PickPill({
   code: string;
   points?: number;
 }) {
-  const color = points != null ? pointColor(points) : colors.textMuted;
+  const isScored = points != null;
+  const color = isScored ? pointColor(points) : colors.textMuted;
   return (
     <View
       style={[
         styles.pickPill,
-        { borderColor: points != null ? color : colors.border },
+        isScored
+          ? { borderColor: color, backgroundColor: 'transparent' }
+          : null,
       ]}
     >
       <Text style={styles.pickPos}>P{position}</Text>
       <Text style={styles.pickCode}>{code}</Text>
-      {points != null ? (
+      {isScored ? (
         <Text style={[styles.pickPoints, { color }]}>+{points}</Text>
       ) : null}
     </View>
@@ -291,37 +312,31 @@ function PickPill({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    gap: 10,
-    marginBottom: 12,
-    padding: 12,
-  },
-  cardHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  cardHeaderText: {
-    flex: 1,
-    gap: 2,
-  },
-  cardMeta: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  cardTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
   content: {
     paddingBottom: 32,
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    gap: 4,
+    marginBottom: 18,
+  },
+  headerSub: {
+    color: colors.textMuted,
+    fontSize: 13,
+  },
+  pendingText: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
   },
   pickCode: {
     color: colors.text,
@@ -337,8 +352,9 @@ const styles = StyleSheet.create({
   pickPill: {
     alignItems: 'center',
     backgroundColor: 'rgba(51, 65, 85, 0.35)',
+    borderColor: colors.border,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: HAIRLINE,
     flexDirection: 'row',
     gap: 6,
     paddingHorizontal: 8,
@@ -373,9 +389,9 @@ const styles = StyleSheet.create({
   },
   sessionLabel: {
     color: colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.4,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   sessionPending: {
@@ -384,7 +400,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   sessionPoints: {
-    color: colors.accent,
+    color: colors.accentHover,
     fontSize: 13,
     fontVariant: ['tabular-nums'],
     fontWeight: '800',
@@ -393,20 +409,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  totalPill: {
+  sessions: {
+    gap: 12,
+  },
+  weekend: {
+    gap: 12,
+    paddingVertical: 4,
+  },
+  weekendDivider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginVertical: 14,
+  },
+  weekendHeader: {
     alignItems: 'center',
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-    borderRadius: radii.pill,
-    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  weekendHeaderText: {
+    flex: 1,
+    gap: 2,
+  },
+  weekendMeta: {
+    color: colors.textMuted,
+    fontSize: 11,
+  },
+  weekendPoints: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
   },
-  totalPillText: {
-    color: colors.accent,
-    fontSize: 11,
+  weekendPointsText: {
+    color: colors.accentHover,
+    fontSize: 12,
+    fontVariant: ['tabular-nums'],
     fontWeight: '800',
+  },
+  weekendTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

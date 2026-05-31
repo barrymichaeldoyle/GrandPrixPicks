@@ -11,6 +11,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=dot",
     "lint": "pnpm exec oxlint -c ../../.oxlintrc.json .",
     "lint:fix": "pnpm exec oxlint -c ../../.oxlintrc.json . --fix",
     "fix": "pnpm run format && pnpm run lint:fix",
@@ -26,10 +28,12 @@
     "@react-navigation/bottom-tabs": "7.15.5",
     "@react-navigation/native": "7.1.33",
     "@react-navigation/native-stack": "7.14.4",
+    "@sentry/react-native": "~7.11.0",
     "convex": "catalog:",
     "expo": "~55.0.26",
     "expo-apple-authentication": "~55.0.13",
     "expo-auth-session": "~55.0.16",
+    "expo-constants": "~55.0.16",
     "expo-font": "~55.0.8",
     "expo-haptics": "~55.0.14",
     "expo-notifications": "~55.0.23",
@@ -39,12 +43,15 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-native": "0.83.6",
+    "react-native-draggable-flatlist": "^4.0.3",
     "react-native-gesture-handler": "2.30.0",
     "react-native-mmkv": "^4.3.1",
     "react-native-nitro-modules": "^0.35.4",
+    "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "4.23.0",
-    "react-native-svg": "15.15.3"
+    "react-native-svg": "15.15.3",
+    "react-native-worklets": "0.7.4"
   },
   "expo": {
     "install": {
@@ -56,7 +63,8 @@
   },
   "devDependencies": {
     "@types/react": "19.2.14",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "4.1.7"
   },
   "version": "1.0.0"
 }

@@ -13,17 +13,3 @@ export type RaceWeekend = {
   slug: string;
   weekendStart: string;
 };
-
-export type Driver = {
-  code: string;
-  fullName: string;
-  id: string;
-  team: string;
-};
-
-export type H2HMatchup = {
-  driverAId: string;
-  driverBId: string;
-  id: string;
-  team: string;
-};

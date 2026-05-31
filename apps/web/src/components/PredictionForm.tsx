@@ -20,6 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
+import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { useBlocker } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
 import { useMutation, useQuery } from 'convex/react';
@@ -34,10 +35,9 @@ import {
   loadPredictionDraft,
   savePredictionDraft,
 } from '@/lib/predictionDrafts';
-import { teamStandingsIndex } from '@/lib/teams';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { formatDateTime } from '../lib/date';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import type { SessionType } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { Button } from './Button/Button';
@@ -309,6 +309,7 @@ export function PredictionForm({
   const race = useQuery(api.races.getRace, { raceId });
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
+  const { formatDateTime } = useUserDateFormat();
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
 
   const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);

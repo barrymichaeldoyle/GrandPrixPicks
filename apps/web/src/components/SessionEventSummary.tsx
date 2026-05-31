@@ -1,6 +1,6 @@
 import { CalendarClock, CheckCircle2, CircleDot, Lock } from 'lucide-react';
 
-import { formatDate, formatInTimeZone, formatTime } from '../lib/date';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
@@ -37,6 +37,7 @@ export function SessionEventSummary({
   trackTimeZone?: string;
   now?: number;
 }) {
+  const { formatDate, formatTime, formatInTimeZone } = useUserDateFormat();
   const lockStatus = getLockStatusViewModel({
     msRemaining: lockAt - now,
   });

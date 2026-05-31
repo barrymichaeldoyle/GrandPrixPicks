@@ -526,13 +526,12 @@ function GoogleLogo() {
 
 const styles = StyleSheet.create({
   actions: {
-    backgroundColor: colors.surface,
     borderTopColor: colors.border,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     gap: 12,
     paddingBottom: 48,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 28,
   },
   appleButton: {
     alignItems: 'center',
@@ -591,10 +590,10 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   input: {
-    backgroundColor: colors.page,
+    backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     color: colors.text,
     fontSize: 15,
     height: 50,
@@ -617,12 +616,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   logoMark: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    marginBottom: 8,
-    padding: 16,
+    marginBottom: 4,
   },
   screen: {
     backgroundColor: colors.page,
@@ -664,27 +658,26 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   toggle: {
-    backgroundColor: colors.page,
-    borderRadius: radii.lg,
+    borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    padding: 4,
+    marginBottom: 4,
   },
   toggleTab: {
     alignItems: 'center',
-    borderColor: 'transparent',
-    borderRadius: radii.md,
-    borderWidth: 1,
+    borderBottomColor: 'transparent',
+    borderBottomWidth: 2,
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   toggleTabActive: {
-    backgroundColor: colors.buttonAccent,
-    borderColor: colors.buttonAccent,
+    borderBottomColor: colors.accent,
   },
   toggleText: {
     color: colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   toggleTextActive: {
     color: colors.text,

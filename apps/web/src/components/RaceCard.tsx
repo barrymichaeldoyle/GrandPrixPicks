@@ -2,17 +2,13 @@ import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Calendar } from 'lucide-react';
 
-import {
-  formatDate,
-  formatDateLong,
-  formatTime,
-  useCountdown,
-} from '../lib/date';
+import { useCountdown } from '../lib/date';
 import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
 } from '../lib/lock';
 import { useNow } from '../lib/testing/now';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { Badge } from './Badge';
 import { Flag } from './Flag';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
@@ -124,6 +120,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   const isPredictable = race.status === 'upcoming' && isNext;
   const isNotYetOpen = race.status === 'upcoming' && !isNext;
   const now = useNow();
+  const { formatDate, formatDateLong, formatTime } = useUserDateFormat();
   const isCancelled = race.status === 'cancelled';
   const isCompleted = race.status === 'finished';
   const isPastRace = race.raceStartAt <= now;

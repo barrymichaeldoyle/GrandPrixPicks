@@ -289,11 +289,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   picks: {
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    gap: 0,
+    paddingVertical: 2,
   },
   raceInfo: {
     flex: 1,

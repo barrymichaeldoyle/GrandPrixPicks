@@ -14,6 +14,7 @@
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./sessions": "./src/sessions.ts",
+    "./teams": "./src/teams.ts",
     "./tokens": "./src/tokens.ts"
   }
 }

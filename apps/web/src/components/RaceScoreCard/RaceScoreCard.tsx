@@ -3,8 +3,8 @@ import { ArrowRight, ChevronDown, EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
-import { formatMonthDay } from '../../lib/date';
 import type { SessionType } from '../../lib/sessions';
+import { useUserDateFormat } from '../../lib/useUserDateFormat';
 import { getSessionsForWeekend } from '../../lib/sessions';
 import { Badge, StatusBadge } from '../Badge';
 import { getCountryCodeForRace, RaceFlag } from '../RaceCard';
@@ -255,6 +255,7 @@ function CompactSummaryCard({
   isNextRace: boolean;
   linkToRace: boolean;
 }) {
+  const { formatMonthDay } = useUserDateFormat();
   const sessions = getSessionsForWeekend(data.hasSprint);
   const countryCode = getCountryCodeForRace({ slug: data.raceSlug });
   const hasSubmitted = sessions.some(

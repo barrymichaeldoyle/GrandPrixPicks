@@ -22,6 +22,8 @@ type H2HMatchupGridProps = {
   onSelect?: (matchupId: string, driverId: string) => void;
 };
 
+const HAIRLINE = StyleSheet.hairlineWidth;
+
 export function H2HMatchupGrid({
   matchups,
   selections,
@@ -37,33 +39,38 @@ export function H2HMatchupGrid({
   }
 
   return (
-    <View style={styles.grid}>
-      {matchups.map((matchup) => {
+    <View>
+      {matchups.map((matchup, index) => {
         const teamColor = getTeamColor(matchup.team);
         const selected = selections[matchup._id];
 
         return (
-          <View key={matchup._id} style={styles.matchup}>
-            <View style={styles.matchupHeader}>
-              <View style={[styles.teamDot, { backgroundColor: teamColor }]} />
-              <Text style={styles.teamName}>{matchup.team}</Text>
-            </View>
-            <View style={styles.matchupRow}>
-              <DriverButton
-                driver={matchup.driver1}
-                isSelected={selected === matchup.driver1._id}
-                mode={mode}
-                onPress={() => onSelect?.(matchup._id, matchup.driver1._id)}
-                teamColor={teamColor}
+          <View key={matchup._id}>
+            {index > 0 ? <View style={styles.divider} /> : null}
+            <View style={styles.row}>
+              <View
+                style={[styles.stripe, { backgroundColor: teamColor }]}
               />
-              <Text style={styles.vs}>vs</Text>
-              <DriverButton
-                driver={matchup.driver2}
-                isSelected={selected === matchup.driver2._id}
-                mode={mode}
-                onPress={() => onSelect?.(matchup._id, matchup.driver2._id)}
-                teamColor={teamColor}
-              />
+              <Text numberOfLines={1} style={styles.team}>
+                {matchup.team}
+              </Text>
+              <View style={styles.pickPair}>
+                <DriverButton
+                  driver={matchup.driver1}
+                  isSelected={selected === matchup.driver1._id}
+                  mode={mode}
+                  onPress={() => onSelect?.(matchup._id, matchup.driver1._id)}
+                  teamColor={teamColor}
+                />
+                <Text style={styles.vs}>vs</Text>
+                <DriverButton
+                  driver={matchup.driver2}
+                  isSelected={selected === matchup.driver2._id}
+                  mode={mode}
+                  onPress={() => onSelect?.(matchup._id, matchup.driver2._id)}
+                  teamColor={teamColor}
+                />
+              </View>
             </View>
           </View>
         );
@@ -92,12 +99,18 @@ function DriverButton({
       style={[
         styles.driverButton,
         isSelected
-          ? { backgroundColor: teamColor + '33', borderColor: teamColor }
+          ? {
+              backgroundColor: teamColor,
+              borderColor: teamColor,
+            }
           : null,
       ]}
     >
       <Text
-        style={[styles.driverCode, isSelected ? { color: teamColor } : null]}
+        style={[
+          styles.driverCode,
+          isSelected ? styles.driverCodeSelected : null,
+        ]}
       >
         {driver.code}
       </Text>
@@ -106,19 +119,27 @@ function DriverButton({
 }
 
 const styles = StyleSheet.create({
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 7,
+  },
   driverButton: {
     alignItems: 'center',
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.borderStrong,
+    borderColor: colors.border,
     borderRadius: radii.md,
-    borderWidth: 1,
-    flex: 1,
-    paddingVertical: 10,
+    borderWidth: HAIRLINE,
+    minWidth: 56,
+    paddingVertical: 7,
   },
   driverCode: {
     color: colors.text,
     fontSize: 13,
     fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  driverCodeSelected: {
+    color: '#fff',
   },
   empty: {
     paddingVertical: 8,
@@ -127,40 +148,33 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 13,
   },
-  grid: {
+  pickPair: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 8,
   },
-  matchup: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+  row: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
-    padding: 12,
+    paddingVertical: 10,
   },
-  matchupHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
+  stripe: {
+    alignSelf: 'stretch',
+    borderRadius: 1.5,
+    width: 3,
   },
-  matchupRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  teamDot: {
-    borderRadius: 4,
-    height: 8,
-    width: 8,
-  },
-  teamName: {
-    color: colors.textMuted,
+  team: {
+    color: colors.text,
+    flex: 1,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   vs: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
 });

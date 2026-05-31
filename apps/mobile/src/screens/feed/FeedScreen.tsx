@@ -11,6 +11,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { PageHero } from '../../components/ui/PageHero';
 import { api } from '../../integrations/convex/api';
+import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
@@ -18,6 +19,7 @@ import { colors } from '../../theme/tokens';
 export function FeedScreen() {
   const { convexEnabled } = useMobileConfig();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const { refreshing, onRefresh } = useRefreshSpinner();
 
   const result = useQuery(
     api.feed.getPersonalizedFeed,
@@ -67,7 +69,8 @@ export function FeedScreen() {
         refreshControl={
           <RefreshControl
             colors={[colors.accent]}
-            refreshing={false}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
             tintColor={colors.accent}
           />
         }

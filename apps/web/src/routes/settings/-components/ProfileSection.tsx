@@ -3,7 +3,7 @@ import { AlertTriangle, User } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { SettingsSection } from '@/components/SettingsSection';
-import { formatCalendarDate } from '@/lib/date';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
 
 import type { SettingsUser } from './settingsTypes';
 
@@ -38,6 +38,7 @@ export function ProfileSection({
   onUsernameChange: (value: string) => void;
   onSave: () => void;
 }) {
+  const { formatCalendarDate } = useUserDateFormat();
   const usernameChanged =
     username.trim().toLowerCase() !== (user?.username ?? '');
 

@@ -3,17 +3,23 @@ import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
-import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { PageHero } from '../components/ui/PageHero';
 import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import type { ProfileStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
@@ -32,10 +38,12 @@ type CombinedEntry = {
 };
 
 const PAGE_LIMIT = 100;
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function LeaderboardScreen() {
   const { convexEnabled } = useMobileConfig();
   const navigation = useNavigation<NavigationProp<ProfileStackParamList>>();
+  const { refreshing, onRefresh } = useRefreshSpinner();
 
   const result = useQuery(
     api.leaderboards.getCombinedSeasonLeaderboard,
@@ -53,7 +61,7 @@ export function LeaderboardScreen() {
   if (!convexEnabled) {
     return (
       <View style={styles.screen}>
-        <PageHero subtitle="2026 Season standings." title="Leaderboard" />
+        <Header subtitle="2026 standings" />
         <EmptyState
           body="Configure Convex to see standings."
           icon="trophy-outline"
@@ -75,17 +83,14 @@ export function LeaderboardScreen() {
   const podium = entries.slice(0, 3);
   const rest = entries.slice(3);
   const totalCount = result.totalCount ?? 0;
+  const subtitle =
+    totalCount > 0
+      ? `${totalCount.toLocaleString()} ${totalCount === 1 ? 'player' : 'players'} · Combined`
+      : '2026 Combined standings';
 
   return (
     <View style={styles.screen}>
-      <PageHero
-        subtitle={
-          totalCount > 0
-            ? `${totalCount.toLocaleString()} ${totalCount === 1 ? 'player' : 'players'} · Combined`
-            : '2026 Combined standings.'
-        }
-        title="Leaderboard"
-      />
+      <Header subtitle={subtitle} />
       <FlatList
         contentContainerStyle={styles.listContent}
         data={rest}
@@ -109,17 +114,30 @@ export function LeaderboardScreen() {
                   onPress={() => handleRowPress(entry.username)}
                 />
               ))}
+              {rest.length > 0 ? (
+                <Text style={styles.restEyebrow}>The chasing pack</Text>
+              ) : null}
               {viewerOutsideTop && viewerEntry ? (
                 <View style={styles.viewerStrip}>
                   <Text style={styles.viewerStripLabel}>Your rank</Text>
                   <LeaderboardRow
                     entry={viewerEntry}
                     onPress={() => handleRowPress(viewerEntry.username)}
+                    showDivider={false}
                   />
                 </View>
               ) : null}
             </View>
           ) : null
+        }
+        ItemSeparatorComponent={() => <View style={styles.divider} />}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.accent]}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            tintColor={colors.accent}
+          />
         }
         renderItem={({ item }) => (
           <LeaderboardRow
@@ -129,6 +147,16 @@ export function LeaderboardScreen() {
         )}
         showsVerticalScrollIndicator={false}
       />
+    </View>
+  );
+}
+
+function Header({ subtitle }: { subtitle: string }) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.eyebrow}>Leaderboard</Text>
+      <Text style={styles.title}>2026 Season</Text>
+      <Text style={styles.headerMeta}>{subtitle}</Text>
     </View>
   );
 }
@@ -146,14 +174,7 @@ function PodiumRow({
       : entry.rank === 2
         ? '#C0C0C0'
         : '#CD7F32';
-  const placeBg =
-    entry.rank === 1
-      ? 'rgba(251, 191, 36, 0.18)'
-      : entry.rank === 2
-        ? 'rgba(192, 192, 192, 0.18)'
-        : 'rgba(205, 127, 50, 0.18)';
   const iconName = entry.rank === 1 ? 'trophy' : 'medal';
-
   const podiumRank = entry.rank as 1 | 2 | 3;
 
   return (
@@ -162,30 +183,27 @@ function PodiumRow({
       onPress={onPress}
       style={[
         styles.podiumRow,
-        entry.isViewer ? styles.viewerRow : null,
-        {
-          borderColor: entry.isViewer ? colors.accent : placeColor,
-          shadowColor: entry.isViewer ? colors.accent : placeColor,
-        },
-        styles.podiumGlow,
+        entry.isViewer ? styles.viewerTint : null,
       ]}
     >
       <PodiumBackdrop rank={podiumRank} />
-      <View
-        style={[styles.placeBadge, { backgroundColor: placeBg }]}
-      >
-        <Ionicons color={placeColor} name={iconName} size={18} />
-        <Numeral style={{ color: placeColor }} variant="small">
+      <View style={styles.podiumLeft}>
+        <Ionicons color={placeColor} name={iconName} size={20} />
+        <Numeral style={{ color: placeColor }} variant="large">
           {entry.rank}
         </Numeral>
       </View>
-      <Avatar imageUrl={entry.avatarUrl} name={entry.displayName ?? entry.username} size="md" />
+      <Avatar
+        imageUrl={entry.avatarUrl}
+        name={entry.displayName ?? entry.username}
+        size="md"
+      />
       <View style={styles.rowText}>
         <View style={styles.nameRow}>
           <Text numberOfLines={1} style={styles.name}>
             {entry.displayName ?? entry.username}
           </Text>
-          {entry.isViewer ? <Badge variant="accent">YOU</Badge> : null}
+          {entry.isViewer ? <Text style={styles.youTag}>YOU</Text> : null}
         </View>
         <Text style={styles.subline}>
           {entry.top5Points} Top 5 · {entry.h2hPoints} H2H
@@ -202,15 +220,21 @@ function PodiumRow({
 function LeaderboardRow({
   entry,
   onPress,
+  showDivider = true,
 }: {
   entry: CombinedEntry;
   onPress?: () => void;
+  showDivider?: boolean;
 }) {
   return (
     <Pressable
       disabled={!onPress}
       onPress={onPress}
-      style={[styles.row, entry.isViewer ? styles.viewerRow : null]}
+      style={[
+        styles.row,
+        entry.isViewer ? styles.viewerTint : null,
+        !showDivider ? styles.rowNoDivider : null,
+      ]}
     >
       <Numeral
         style={styles.rank}
@@ -219,13 +243,17 @@ function LeaderboardRow({
       >
         {entry.rank}
       </Numeral>
-      <Avatar imageUrl={entry.avatarUrl} name={entry.displayName ?? entry.username} size="sm" />
+      <Avatar
+        imageUrl={entry.avatarUrl}
+        name={entry.displayName ?? entry.username}
+        size="sm"
+      />
       <View style={styles.rowText}>
         <View style={styles.nameRow}>
           <Text numberOfLines={1} style={styles.name}>
             {entry.displayName ?? entry.username}
           </Text>
-          {entry.isViewer ? <Badge variant="accent">YOU</Badge> : null}
+          {entry.isViewer ? <Text style={styles.youTag}>YOU</Text> : null}
         </View>
         <Text style={styles.subline}>
           {entry.top5Points} · {entry.h2hPoints}
@@ -240,8 +268,28 @@ function LeaderboardRow({
 }
 
 const styles = StyleSheet.create({
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 12,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    gap: 2,
+    paddingBottom: 16,
+  },
+  headerMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: 4,
+  },
   listContent: {
-    gap: 8,
     paddingBottom: 32,
   },
   name: {
@@ -255,29 +303,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
-  placeBadge: {
+  podiumLeft: {
     alignItems: 'center',
-    borderRadius: radii.pill,
     flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  placeText: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  podiumGlow: {
-    elevation: 8,
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
+    gap: 6,
+    minWidth: 48,
   },
   podiumRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    borderWidth: 2,
     flexDirection: 'row',
     gap: 12,
     overflow: 'hidden',
@@ -286,7 +320,7 @@ const styles = StyleSheet.create({
   },
   podiumWrapper: {
     gap: 8,
-    paddingBottom: 12,
+    paddingBottom: 18,
   },
   pointsCol: {
     alignItems: 'flex-end',
@@ -297,18 +331,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.4,
   },
-  pointsValue: {
-    color: colors.text,
-    fontSize: 20,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '800',
-  },
-  pointsValueSmall: {
-    color: colors.text,
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '700',
-  },
   rank: {
     color: colors.textMuted,
     fontSize: 13,
@@ -317,19 +339,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: 28,
   },
-  rankViewer: {
-    color: colors.accent,
+  restEyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    paddingTop: 12,
+    textTransform: 'uppercase',
   },
   row: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     paddingVertical: 10,
+  },
+  rowNoDivider: {
+    paddingHorizontal: 12,
   },
   rowText: {
     flex: 1,
@@ -345,24 +371,32 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 11,
   },
-  viewerRow: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-    elevation: 8,
-    shadowColor: colors.accent,
-    shadowOffset: { height: 4, width: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
+  title: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   viewerStrip: {
     gap: 6,
-    marginTop: 8,
+    marginTop: 10,
   },
   viewerStripLabel: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.6,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  viewerTint: {
+    backgroundColor: 'rgba(20, 184, 166, 0.10)',
+    borderRadius: radii.md,
+  },
+  youTag: {
+    color: colors.accent,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
 });

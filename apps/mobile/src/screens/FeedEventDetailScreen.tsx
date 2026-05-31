@@ -7,12 +7,11 @@ import { FeedEventCard } from '../components/feed/FeedEventCard';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { PageHero } from '../components/ui/PageHero';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import type { HomeStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'FeedEventDetail'>;
 
@@ -22,6 +21,8 @@ type RevUser = {
   displayName?: string;
   avatarUrl?: string;
 };
+
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function FeedEventDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
@@ -39,7 +40,6 @@ export function FeedEventDetailScreen({ route }: Props) {
   if (!convexEnabled) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Prediction" />
         <EmptyState
           body="Configure Convex to view this prediction."
           icon="cloud-offline-outline"
@@ -56,9 +56,8 @@ export function FeedEventDetailScreen({ route }: Props) {
   if (detail === null) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Prediction" />
         <EmptyState
-          body="This feed item doesn’t exist or is no longer available."
+          body="This feed item doesn't exist or is no longer available."
           icon="alert-circle-outline"
           title="Not found"
         />
@@ -82,11 +81,12 @@ export function FeedEventDetailScreen({ route }: Props) {
       ListHeaderComponent={
         <View style={styles.headerWrap}>
           <FeedEventCard event={event} />
-          <Text style={styles.sectionTitle}>
-            Revs {users.length > 0 ? `(${users.length})` : ''}
+          <Text style={styles.sectionEyebrow}>
+            Revs{users.length > 0 ? ` · ${users.length}` : ''}
           </Text>
         </View>
       }
+      ItemSeparatorComponent={() => <View style={styles.divider} />}
       renderItem={({ item }) => <RevUserRow user={item} />}
       showsVerticalScrollIndicator={false}
       style={styles.screen}
@@ -111,10 +111,14 @@ function RevUserRow({ user }: { user: RevUser }) {
 
 const styles = StyleSheet.create({
   content: {
-    gap: 8,
     paddingBottom: 32,
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 52,
   },
   emptyRevs: {
     color: colors.textMuted,
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerWrap: {
-    gap: 16,
+    gap: 18,
     paddingBottom: 8,
   },
   revName: {
@@ -133,13 +137,8 @@ const styles = StyleSheet.create({
   },
   revRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
-    paddingHorizontal: 12,
     paddingVertical: 10,
   },
   revRowText: {
@@ -154,9 +153,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.page,
     flex: 1,
   },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
+  sectionEyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
 });

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useUserDateFormat } from '../../lib/dates';
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useNow } from '../../lib/useNow';
 import type { RaceWeekend } from '../../types';
@@ -53,20 +54,17 @@ function formatLockDistance(ms: number): string {
   return `${minutes}m`;
 }
 
-const DAY_FORMATTER = new Intl.DateTimeFormat(undefined, { day: '2-digit' });
-const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, { month: 'short' });
-
 export function RaceCard({ race, isNext, round, onPress }: RaceCardProps) {
   const now = useNow();
+  const { formatDay, formatMonth } = useUserDateFormat();
   const countryCode = getCountryCodeForRaceSlug(race.slug);
   const raceSession = getRaceSession(race);
-  const raceDate = raceSession ? new Date(raceSession.startsAt) : null;
   const firstOpen = getFirstOpenSession(race, now);
   const isFullyPast = isWeekendFullyPast(race, now);
 
-  const day = raceDate ? DAY_FORMATTER.format(raceDate) : '—';
-  const month = raceDate
-    ? MONTH_FORMATTER.format(raceDate).toUpperCase()
+  const day = raceSession ? formatDay(raceSession.startsAt) : '—';
+  const month = raceSession
+    ? formatMonth(raceSession.startsAt).toUpperCase()
     : '—';
 
   return (

@@ -17,12 +17,14 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import type { LeaguesStackParamList } from '../../navigation/types';
+import { useToast } from '../../providers/ToastProvider';
 import { colors, radii } from '../../theme/tokens';
 
 type Props = NativeStackScreenProps<LeaguesStackParamList, 'LeagueSettings'>;
 
 export function LeagueSettingsScreen({ route, navigation }: Props) {
   const { leagueSlug } = route.params;
+  const { showToast } = useToast();
 
   const league = useQuery(api.leagues.getLeagueBySlug, { slug: leagueSlug });
 
@@ -62,6 +64,7 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
         description: currentDescription.trim() || undefined,
       });
       navigation.goBack();
+      showToast('League updated', 'success');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
@@ -88,13 +91,15 @@ export function LeagueSettingsScreen({ route, navigation }: Props) {
     if (!league) {
       return;
     }
+    const name = league.name;
     try {
       await leaveLeague({ leagueId: league._id as ConvexId<'leagues'> });
       navigation.navigate('LeagueList');
+      showToast(`Left ${name}`, 'info');
     } catch (err) {
-      Alert.alert(
-        'Cannot leave',
-        err instanceof Error ? err.message : 'Failed to leave league',
+      showToast(
+        err instanceof Error ? err.message : 'Could not leave league',
+        'error',
       );
     }
   }
@@ -213,7 +218,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   content: {
-    gap: 20,
+    gap: 26,
     paddingBottom: 40,
     paddingTop: 16,
   },
@@ -301,8 +306,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
 });

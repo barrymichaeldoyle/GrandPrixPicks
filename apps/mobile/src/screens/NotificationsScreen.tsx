@@ -1,15 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
-import { PageHero } from '../components/ui/PageHero';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useMobileConfig } from '../providers/mobile-config';
+import { useToast } from '../providers/ToastProvider';
 import { colors, radii } from '../theme/tokens';
 
 type Notification = {
@@ -32,6 +40,8 @@ type Notification = {
   }>;
   totalRevCount?: number;
 };
+
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -58,6 +68,8 @@ function formatRelativeTime(timestamp: number): string {
 
 export function NotificationsScreen() {
   const { convexEnabled } = useMobileConfig();
+  const { refreshing, onRefresh } = useRefreshSpinner();
+  const { showToast } = useToast();
   const result = useQuery(
     api.inAppNotifications.getMyNotifications,
     convexEnabled ? {} : 'skip',
@@ -65,15 +77,23 @@ export function NotificationsScreen() {
   const markRead = useMutation(api.inAppNotifications.markRead);
   const markAllRead = useMutation(api.inAppNotifications.markAllRead);
 
-  function handleMarkAll() {
+  async function handleMarkAll() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    void markAllRead({});
+    try {
+      await markAllRead({});
+      showToast('All notifications marked read', 'success');
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Could not mark all read',
+        'error',
+      );
+    }
   }
 
   if (!convexEnabled) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Notifications" />
+        <Header subtitle="Notifications" />
         <EmptyState
           body="Configure Convex to receive notifications."
           icon="notifications-off-outline"
@@ -90,7 +110,7 @@ export function NotificationsScreen() {
   if (result === null) {
     return (
       <View style={styles.screen}>
-        <PageHero title="Notifications" />
+        <Header subtitle="Notifications" />
         <EmptyState
           body="Sign in to view notifications."
           icon="notifications-off-outline"
@@ -105,20 +125,15 @@ export function NotificationsScreen() {
 
   return (
     <View style={styles.screen}>
-      <PageHero
+      <Header
+        subtitle={unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
         action={
           unreadCount > 0 ? (
-            <Pressable onPress={handleMarkAll} style={styles.markAllButton}>
+            <Pressable hitSlop={8} onPress={() => void handleMarkAll()}>
               <Text style={styles.markAllText}>Mark all read</Text>
             </Pressable>
-          ) : undefined
+          ) : null
         }
-        subtitle={
-          unreadCount > 0
-            ? `${unreadCount} unread`
-            : 'You’re all caught up.'
-        }
-        title="Notifications"
       />
       <FlatList
         contentContainerStyle={
@@ -130,9 +145,18 @@ export function NotificationsScreen() {
         keyExtractor={(item) => String(item._id)}
         ListEmptyComponent={
           <EmptyState
-            body="When you get revs, results, or session locks, they’ll appear here."
+            body="When you get revs, results, or session locks, they'll appear here."
             icon="notifications-outline"
             title="No notifications yet"
+          />
+        }
+        ItemSeparatorComponent={() => <View style={styles.divider} />}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.accent]}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            tintColor={colors.accent}
           />
         }
         renderItem={({ item }) => (
@@ -152,6 +176,25 @@ export function NotificationsScreen() {
   );
 }
 
+function Header({
+  subtitle,
+  action,
+}: {
+  subtitle: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <Text style={styles.eyebrow}>Inbox</Text>
+        <Text style={styles.title}>Notifications</Text>
+        <Text style={styles.headerSub}>{subtitle}</Text>
+      </View>
+      {action ?? null}
+    </View>
+  );
+}
+
 function NotificationRow({
   notification,
   onPress,
@@ -164,7 +207,7 @@ function NotificationRow({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.row, isUnread ? styles.unread : null]}
+      style={[styles.row, isUnread ? styles.unreadTint : null]}
     >
       <NotificationIcon notification={notification} />
       <View style={styles.rowText}>
@@ -249,8 +292,36 @@ function getNotificationSubtitle(notification: Notification): string {
 }
 
 const styles = StyleSheet.create({
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 52,
+  },
   emptyContainer: {
     flex: 1,
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+  },
+  headerLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  headerSub: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: 4,
   },
   iconBubble: {
     alignItems: 'center',
@@ -260,31 +331,20 @@ const styles = StyleSheet.create({
     width: 36,
   },
   listContent: {
-    gap: 8,
     paddingBottom: 24,
   },
-  markAllButton: {
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
   markAllText: {
-    color: colors.text,
+    color: colors.accent,
     fontSize: 12,
     fontWeight: '700',
+    letterSpacing: 0.3,
   },
   row: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
-    padding: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 12,
   },
   rowSubtitle: {
     color: colors.textMuted,
@@ -310,8 +370,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  unread: {
-    borderColor: colors.accent,
+  title: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  unreadTint: {
+    backgroundColor: 'rgba(20, 184, 166, 0.07)',
+    borderRadius: radii.md,
   },
   unreadDot: {
     backgroundColor: colors.accent,

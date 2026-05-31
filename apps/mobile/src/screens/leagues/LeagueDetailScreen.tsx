@@ -17,6 +17,9 @@ import { useTypography } from '../../theme/typography';
 type Props = NativeStackScreenProps<LeaguesStackParamList, 'LeagueDetail'>;
 type Tab = 'leaderboard' | 'members' | 'feed';
 
+const HAIRLINE = StyleSheet.hairlineWidth;
+const TABS: ReadonlyArray<Tab> = ['leaderboard', 'members', 'feed'];
+
 export function LeagueDetailScreen({ route, navigation }: Props) {
   const { leagueSlug } = route.params;
   const { titleFontFamily } = useTypography();
@@ -39,9 +42,9 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerInfo}>
+          <Text style={styles.eyebrow}>League</Text>
           <Text
             numberOfLines={1}
             style={[
@@ -63,37 +66,42 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
         </View>
         {isAdmin ? (
           <Pressable
-            onPress={() =>
-              navigation.navigate('LeagueSettings', { leagueSlug })
-            }
-            style={styles.settingsButton}
+            hitSlop={8}
+            onPress={() => navigation.navigate('LeagueSettings', { leagueSlug })}
           >
-            <Text style={styles.settingsButtonText}>Settings</Text>
+            <Text style={styles.settingsLink}>Settings</Text>
           </Pressable>
         ) : null}
       </View>
 
-      {/* Tab bar */}
       <View style={styles.tabs}>
-        {(['leaderboard', 'members', 'feed'] as Tab[]).map((tab) => (
-          <Pressable
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab ? styles.tabActive : null]}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab ? styles.tabTextActive : null,
-              ]}
+        {TABS.map((tab) => {
+          const active = activeTab === tab;
+          return (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={styles.tab}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.tabText,
+                  active ? styles.tabTextActive : null,
+                ]}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+              <View
+                style={[
+                  styles.tabUnderline,
+                  active ? styles.tabUnderlineActive : null,
+                ]}
+              />
+            </Pressable>
+          );
+        })}
       </View>
 
-      {/* Tab content */}
       {activeTab === 'leaderboard' ? (
         <LeaderboardTab leagueId={league._id} />
       ) : activeTab === 'members' ? (
@@ -122,6 +130,7 @@ function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
       contentContainerStyle={styles.listContent}
       data={entries}
       keyExtractor={(item) => item.userId}
+      ItemSeparatorComponent={() => <View style={styles.divider} />}
       ListEmptyComponent={
         <EmptyState
           body="No scores yet — predictions will appear here after sessions are scored."
@@ -131,7 +140,10 @@ function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
       }
       ListFooterComponent={
         viewerEntry && !entries.some((e) => e.isViewer) ? (
-          <LeaderboardRow entry={viewerEntry} pinned />
+          <View style={styles.pinnedFooter}>
+            <Text style={styles.pinnedLabel}>Your rank</Text>
+            <LeaderboardRow entry={viewerEntry} />
+          </View>
         ) : null
       }
       renderItem={({ item }) => <LeaderboardRow entry={item} />}
@@ -142,7 +154,6 @@ function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
 
 function LeaderboardRow({
   entry,
-  pinned = false,
 }: {
   entry: {
     rank: number;
@@ -154,15 +165,13 @@ function LeaderboardRow({
     h2hPoints: number;
     isViewer: boolean;
   };
-  pinned?: boolean;
 }) {
   const name = entry.displayName ?? entry.username;
   return (
     <View
       style={[
         styles.leaderRow,
-        entry.isViewer ? styles.leaderRowViewer : null,
-        pinned ? styles.leaderRowPinned : null,
+        entry.isViewer ? styles.viewerTint : null,
       ]}
     >
       <Text style={styles.leaderRank}>#{entry.rank}</Text>
@@ -170,6 +179,7 @@ function LeaderboardRow({
       <Text numberOfLines={1} style={styles.leaderName}>
         {name}
       </Text>
+      {entry.isViewer ? <Text style={styles.youTag}>YOU</Text> : null}
       <View style={styles.leaderPoints}>
         <Text style={styles.leaderPtsMain}>{entry.points}</Text>
         <Text style={styles.leaderPtsSub}>
@@ -194,6 +204,7 @@ function MembersTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
       contentContainerStyle={styles.listContent}
       data={members}
       keyExtractor={(item) => item.userId}
+      ItemSeparatorComponent={() => <View style={styles.divider} />}
       ListEmptyComponent={
         <EmptyState icon="people-outline" title="No members found" />
       }
@@ -206,9 +217,7 @@ function MembersTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
               {name}
             </Text>
             {item.role === 'admin' ? (
-              <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>Admin</Text>
-              </View>
+              <Text style={styles.adminTag}>ADMIN</Text>
             ) : null}
           </View>
         );
@@ -232,7 +241,7 @@ function FeedTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
   return (
     <FlatList
       contentContainerStyle={
-        events.length === 0 ? styles.emptyContainer : styles.listContent
+        events.length === 0 ? styles.emptyContainer : styles.feedListContent
       }
       data={events}
       keyExtractor={(item) => item._id}
@@ -250,40 +259,51 @@ function FeedTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
 }
 
 const styles = StyleSheet.create({
-  adminBadge: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  adminBadgeText: {
+  adminTag: {
     color: colors.accent,
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   description: {
     color: colors.textMuted,
     fontSize: 13,
     lineHeight: 18,
+    marginTop: 4,
+  },
+  divider: {
+    backgroundColor: colors.border,
+    height: HAIRLINE,
+    marginLeft: 12,
   },
   emptyContainer: {
     flex: 1,
   },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  feedListContent: {
+    gap: 8,
+    paddingBottom: 24,
+  },
   header: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   headerInfo: {
     flex: 1,
-    gap: 3,
+    gap: 2,
   },
   leaderName: {
     color: colors.text,
     flex: 1,
     fontSize: 14,
+    fontWeight: '700',
   },
   leaderPoints: {
     alignItems: 'flex-end',
@@ -291,7 +311,8 @@ const styles = StyleSheet.create({
   leaderPtsMain: {
     color: colors.text,
     fontSize: 15,
-    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    fontWeight: '800',
   },
   leaderPtsSub: {
     color: colors.textMuted,
@@ -300,48 +321,48 @@ const styles = StyleSheet.create({
   leaderRank: {
     color: colors.textMuted,
     fontSize: 12,
+    fontVariant: ['tabular-nums'],
     fontWeight: '700',
     width: 32,
   },
   leaderRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
-    padding: 12,
-  },
-  leaderRowPinned: {
-    borderColor: colors.accent,
-    marginTop: 4,
-  },
-  leaderRowViewer: {
-    borderColor: colors.accent,
+    paddingHorizontal: 6,
+    paddingVertical: 10,
   },
   listContent: {
-    gap: 8,
     paddingBottom: 24,
   },
   memberName: {
     color: colors.text,
     flex: 1,
     fontSize: 14,
+    fontWeight: '700',
   },
   memberRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 10,
-    padding: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 10,
   },
   meta: {
     color: colors.textMuted,
     fontSize: 12,
+    marginTop: 2,
+  },
+  pinnedFooter: {
+    gap: 6,
+    paddingTop: 18,
+  },
+  pinnedLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   screen: {
     backgroundColor: colors.page,
@@ -350,46 +371,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  settingsButton: {
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  settingsButtonText: {
-    color: colors.text,
+  settingsLink: {
+    color: colors.accent,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   tab: {
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
+    alignItems: 'center',
     flex: 1,
-    paddingVertical: 7,
-  },
-  tabActive: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
+    gap: 6,
   },
   tabs: {
+    borderBottomColor: colors.border,
+    borderBottomWidth: HAIRLINE,
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
   },
   tabText: {
     color: colors.textMuted,
     fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    paddingVertical: 4,
   },
   tabTextActive: {
-    color: colors.accent,
+    color: colors.text,
+  },
+  tabUnderline: {
+    backgroundColor: 'transparent',
+    height: 2,
+    width: '60%',
+  },
+  tabUnderlineActive: {
+    backgroundColor: colors.accent,
   },
   title: {
     color: colors.text,
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.2,
+  },
+  viewerTint: {
+    backgroundColor: 'rgba(20, 184, 166, 0.10)',
+    borderRadius: radii.md,
+  },
+  youTag: {
+    color: colors.accent,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
 });

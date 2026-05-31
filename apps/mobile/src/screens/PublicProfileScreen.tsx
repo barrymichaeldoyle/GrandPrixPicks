@@ -1,15 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQuery } from 'convex/react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { Numeral } from '../components/ui/Numeral';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import type { ProfileStackParamList } from '../navigation/types';
 import { colors, radii } from '../theme/tokens';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'PublicProfile'>;
+
+const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function PublicProfileScreen({ route, navigation }: Props) {
   const { username } = route.params;
@@ -59,7 +63,6 @@ export function PublicProfileScreen({ route, navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      {/* Hero */}
       <View style={styles.hero}>
         <Avatar
           imageUrl={profile.avatarUrl ?? undefined}
@@ -74,7 +77,6 @@ export function PublicProfileScreen({ route, navigation }: Props) {
         </View>
       </View>
 
-      {/* Follow counts */}
       <View style={styles.followRow}>
         <Pressable
           onPress={() =>
@@ -87,12 +89,12 @@ export function PublicProfileScreen({ route, navigation }: Props) {
           }
           style={styles.followStat}
         >
-          <Text style={styles.followNumber}>
+          <Numeral variant="large">
             {followCounts?.followerCount ?? '—'}
-          </Text>
+          </Numeral>
           <Text style={styles.followLabel}>Followers</Text>
         </Pressable>
-        <View style={styles.followDivider} />
+        <View style={styles.vDivider} />
         <Pressable
           onPress={() =>
             profile.username
@@ -104,14 +106,13 @@ export function PublicProfileScreen({ route, navigation }: Props) {
           }
           style={styles.followStat}
         >
-          <Text style={styles.followNumber}>
+          <Numeral variant="large">
             {followCounts?.followingCount ?? '—'}
-          </Text>
+          </Numeral>
           <Text style={styles.followLabel}>Following</Text>
         </Pressable>
       </View>
 
-      {/* Follow / Unfollow button */}
       {!isOwner && isFollowing !== undefined ? (
         <Pressable
           onPress={() => void handleFollowToggle()}
@@ -131,23 +132,27 @@ export function PublicProfileScreen({ route, navigation }: Props) {
         </Pressable>
       ) : null}
 
-      {/* Stats */}
       {stats ? (
-        <View style={styles.statsGrid}>
-          <StatBox label="Season pts" value={stats.totalPoints} />
-          <StatBox
-            label="Global rank"
-            value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
-          />
-          <StatBox label="Weekends" value={stats.weekendCount} />
-          <StatBox
-            label="H2H rank"
-            value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
-          />
+        <View style={styles.section}>
+          <Text style={styles.sectionEyebrow}>Season stats</Text>
+          <View style={styles.statRow}>
+            <StatCell label="Season pts" value={stats.totalPoints} />
+            <View style={styles.vDivider} />
+            <StatCell
+              label="Global rank"
+              value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
+            />
+            <View style={styles.vDivider} />
+            <StatCell label="Weekends" value={stats.weekendCount} />
+            <View style={styles.vDivider} />
+            <StatCell
+              label="H2H rank"
+              value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
+            />
+          </View>
         </View>
       ) : null}
 
-      {/* Picks history link */}
       {profile.username ? (
         <Pressable
           onPress={() =>
@@ -158,21 +163,34 @@ export function PublicProfileScreen({ route, navigation }: Props) {
           style={styles.historyLink}
         >
           <View style={styles.historyLinkText}>
-            <Text style={styles.historyLinkLabel}>View picks history</Text>
+            <Text style={styles.historyLinkLabel}>Picks history</Text>
             <Text style={styles.historyLinkSubtitle}>
-              {isOwner ? 'Your weekend-by-weekend picks' : `@${profile.username}'s picks per weekend`}
+              {isOwner
+                ? 'Your weekend-by-weekend picks'
+                : `@${profile.username}'s picks per weekend`}
             </Text>
           </View>
+          <Ionicons
+            color={colors.textMuted}
+            name="chevron-forward"
+            size={16}
+          />
         </Pressable>
       ) : null}
     </ScrollView>
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string | number }) {
+function StatCell({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
   return (
-    <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
+    <View style={styles.statCell}>
+      <Numeral variant="large">{value}</Numeral>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
@@ -180,14 +198,15 @@ function StatBox({ label, value }: { label: string; value: string | number }) {
 
 const styles = StyleSheet.create({
   content: {
-    gap: 20,
+    gap: 22,
     paddingBottom: 40,
     paddingTop: 16,
   },
   displayName: {
     color: colors.text,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   errorText: {
     color: colors.error,
@@ -203,6 +222,7 @@ const styles = StyleSheet.create({
   },
   followButtonActive: {
     backgroundColor: colors.buttonAccent,
+    borderColor: colors.buttonAccent,
   },
   followButtonText: {
     color: colors.accent,
@@ -210,56 +230,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   followButtonTextActive: {
-    color: colors.page,
-  },
-  followDivider: {
-    backgroundColor: colors.border,
-    height: 32,
-    width: 1,
-  },
-  historyLink: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  historyLinkLabel: {
     color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  historyLinkSubtitle: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  historyLinkText: {
-    gap: 2,
   },
   followLabel: {
     color: colors.textMuted,
-    fontSize: 12,
-  },
-  followNumber: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
   followRow: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
   },
   followStat: {
     alignItems: 'center',
     flex: 1,
-    gap: 2,
+    paddingVertical: 4,
   },
   hero: {
     alignItems: 'center',
@@ -270,39 +259,65 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
+  historyLink: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  historyLinkLabel: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  historyLinkSubtitle: {
+    color: colors.textMuted,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  historyLinkText: {
+    flex: 1,
+  },
   screen: {
     backgroundColor: colors.page,
     flex: 1,
     paddingHorizontal: 16,
   },
-  statBox: {
+  section: {
+    gap: 10,
+  },
+  sectionEyebrow: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  statCell: {
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
     flex: 1,
-    gap: 4,
-    paddingVertical: 14,
+    gap: 2,
+    paddingVertical: 4,
   },
   statLabel: {
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
-  statValue: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '800',
-  },
-  statsGrid: {
+  statRow: {
+    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
   },
   username: {
     color: colors.textMuted,
     fontSize: 14,
+  },
+  vDivider: {
+    backgroundColor: colors.border,
+    height: 28,
+    width: HAIRLINE,
   },
 });

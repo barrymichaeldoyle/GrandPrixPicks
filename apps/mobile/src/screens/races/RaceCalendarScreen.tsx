@@ -1,12 +1,12 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { RaceCard } from '../../components/races/RaceCard';
 import { RaceCardSkeleton } from '../../components/races/RaceCardSkeleton';
-import { PageHero } from '../../components/ui/PageHero';
 import { SegmentedTabs } from '../../components/ui/SegmentedTabs';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
+import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import type { RacesStackParamList } from '../../navigation/types';
 import { colors } from '../../theme/tokens';
 import type { RaceWeekend } from '../../types';
@@ -29,6 +29,7 @@ function isWeekendFullyPast(race: RaceWeekend, now: number) {
 
 export function RaceCalendarScreen({ navigation }: Props) {
   const { races, isLoading } = useRaceWeekends();
+  const { refreshing, onRefresh } = useRefreshSpinner();
   const [tab, setTab] = useState<TabValue>('upcoming');
   const now = Date.now();
 
@@ -46,12 +47,14 @@ export function RaceCalendarScreen({ navigation }: Props) {
   if (isLoading) {
     return (
       <View style={styles.screen}>
-        <PageHero subtitle="The 2026 F1 calendar." title="Races" />
-        <SegmentedTabs
-          onChange={setTab}
-          options={TAB_OPTIONS}
-          value={tab}
-        />
+        <Header />
+        <View style={styles.tabs}>
+          <SegmentedTabs
+            onChange={setTab}
+            options={TAB_OPTIONS}
+            value={tab}
+          />
+        </View>
         <View style={styles.skeletonList}>
           {[0, 1, 2].map((i) => (
             <RaceCardSkeleton key={i} />
@@ -63,7 +66,7 @@ export function RaceCalendarScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <PageHero subtitle="The 2026 F1 calendar." title="Races" />
+      <Header />
       <View style={styles.tabs}>
         <SegmentedTabs
           onChange={setTab}
@@ -82,6 +85,14 @@ export function RaceCalendarScreen({ navigation }: Props) {
               : 'No upcoming races — see you next season.'}
           </Text>
         }
+        refreshControl={
+          <RefreshControl
+            colors={[colors.accent]}
+            onRefresh={onRefresh}
+            refreshing={refreshing}
+            tintColor={colors.accent}
+          />
+        }
         renderItem={({ item }) => (
           <RaceCard
             isNext={tab === 'upcoming' && item.race.slug === nextRaceSlug}
@@ -98,12 +109,32 @@ export function RaceCalendarScreen({ navigation }: Props) {
   );
 }
 
+function Header() {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.eyebrow}>2026 SEASON</Text>
+      <Text style={styles.title}>Calendar</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   emptyText: {
     color: colors.textMuted,
     fontSize: 14,
     paddingVertical: 32,
     textAlign: 'center',
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  header: {
+    gap: 4,
+    marginBottom: 14,
   },
   listContent: {
     gap: 10,
@@ -121,5 +152,11 @@ const styles = StyleSheet.create({
   },
   tabs: {
     marginBottom: 12,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
 });

@@ -29,6 +29,7 @@
     "apps/mobile": {
       "entry": ["App.tsx"],
       "project": ["**/*.{ts,tsx,js,cjs}"],
+      "ignoreFiles": ["babel.config.js"],
       "ignoreDependencies": ["expo-updates"]
     },
     "packages/shared": {

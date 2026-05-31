@@ -147,6 +147,8 @@ export function FollowListScreen({ route, navigation }: Props) {
   );
 }
 
+const HAIRLINE = StyleSheet.hairlineWidth;
+
 const styles = StyleSheet.create({
   errorText: {
     color: colors.error,
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
     borderBottomColor: colors.border,
-    borderBottomWidth: 1,
+    borderBottomWidth: HAIRLINE,
     flexDirection: 'row',
     gap: 12,
     paddingHorizontal: 16,
@@ -167,8 +169,8 @@ const styles = StyleSheet.create({
   },
   rowName: {
     color: colors.text,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
   rowText: {
     flex: 1,
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
   },
   rowUsername: {
     color: colors.textMuted,
-    fontSize: 13,
+    fontSize: 12,
   },
   screen: {
     backgroundColor: colors.page,
@@ -194,15 +196,16 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   tabTextActive: {
     color: colors.text,
   },
   tabs: {
     borderBottomColor: colors.border,
-    borderBottomWidth: 1,
+    borderBottomWidth: HAIRLINE,
     flexDirection: 'row',
   },
 });

@@ -15,8 +15,8 @@ import {
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { formatDateTime } from '../lib/date';
 import type { SessionType } from '../lib/sessions';
+import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { Button } from './Button/Button';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 
@@ -47,6 +47,7 @@ export function H2HPredictionForm({
   onDirtyChange,
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
+  const { formatDateTime } = useUserDateFormat();
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
 
   const [selections, setSelections] = useState<Record<string, Id<'drivers'>>>(

@@ -1,3 +1,4 @@
+import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useNow } from '../../lib/useNow';
@@ -9,13 +10,6 @@ type BigCountdownProps = {
   targetAt: number;
 };
 
-type Parts = {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-};
-
 // HomeHero outer paddings: 16 (screen) + 14–20 (card content) per side.
 // Reserve the larger value so we never overflow on narrow phones.
 const HERO_HORIZONTAL_INSET = (16 + 20) * 2;
@@ -23,23 +17,10 @@ const GAP = 8;
 const MAX_TILE_WIDTH = 78;
 const MIN_TILE_WIDTH = 48;
 
-function getParts(target: number, now: number): Parts | null {
-  const diff = target - now;
-  if (diff <= 0) {
-    return null;
-  }
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-    minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-    seconds: Math.floor((diff % (1000 * 60)) / 1000),
-  };
-}
-
 export function BigCountdown({ targetAt }: BigCountdownProps) {
   const now = useNow();
   const { width } = useWindowDimensions();
-  const parts = getParts(targetAt, now);
+  const parts = getCountdownParts(targetAt - now);
 
   if (!parts) {
     return <Text style={styles.startingNow}>Starting now</Text>;

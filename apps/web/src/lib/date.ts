@@ -7,16 +7,13 @@
  * those values from Convex and returns pre-bound helpers.
  */
 
+import type { UserDateSettings } from '@grandprixpicks/shared/dates';
+import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import { useEffect, useState } from 'react';
 
-type DateLike = number | string | Date;
+export type { UserDateSettings } from '@grandprixpicks/shared/dates';
 
-export type UserDateSettings = {
-  /** IANA timezone, e.g. "Europe/London". Falls back to the device default. */
-  timezone?: string;
-  /** Locale string, e.g. "en-US" / "en-GB". Falls back to the device default. */
-  locale?: string;
-};
+type DateLike = number | string | Date;
 
 function toDateInput(value: DateLike): Date {
   return value instanceof Date ? value : new Date(value);
@@ -129,18 +126,13 @@ export function formatInTimeZone(
 
 /** Human-readable countdown (e.g. "23d 3h 5m 9s" or "2h 30m 15s"). */
 function getTimeUntil(timestamp: number): string {
-  const now = Date.now();
-  const diff = timestamp - now;
+  const parts = getCountdownParts(timestamp - Date.now());
 
-  if (diff <= 0) {
+  if (!parts) {
     return 'Started';
   }
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
+  const { days, hours, minutes, seconds } = parts;
   if (days > 0) {
     return `${days}d ${hours}h ${minutes}m ${seconds}s`;
   }

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import * as Haptics from 'expo-haptics';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -39,12 +40,13 @@ function isWeekendFullyPast(race: RaceWeekend, now: number) {
 }
 
 function formatLockDistance(ms: number): string {
-  if (ms <= 0) {
+  const parts = getCountdownParts(ms);
+
+  if (!parts) {
     return 'locked';
   }
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+
+  const { days, hours, minutes } = parts;
   if (days > 0) {
     return `${days}d ${hours}h`;
   }

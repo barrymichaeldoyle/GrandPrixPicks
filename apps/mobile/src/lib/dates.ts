@@ -1,14 +1,10 @@
+import type { UserDateSettings } from '@grandprixpicks/shared/dates';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 import { useQuery } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
 
-export type UserDateSettings = {
-  /** IANA timezone, e.g. "Europe/London". Falls back to the device default. */
-  timezone?: string;
-  /** Locale string, e.g. "en-US" / "en-GB". Falls back to the device default. */
-  locale?: string;
-};
+export type { UserDateSettings } from '@grandprixpicks/shared/dates';
 
 /**
  * Format a race-related ISO date into "your time" + "track time" pair.

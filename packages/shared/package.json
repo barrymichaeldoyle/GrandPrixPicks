@@ -11,6 +11,7 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./dates": "./src/dates.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./sessions": "./src/sessions.ts",

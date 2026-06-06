@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ConvexHttpClient } from 'convex/browser';
 import { motion } from 'framer-motion';
@@ -106,26 +107,6 @@ export const Route = createFileRoute('/')({
 
 // --- Countdown ---
 
-interface CountdownParts {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
-
-function getCountdownParts(target: number, now: number): CountdownParts | null {
-  const diff = target - now;
-  if (diff <= 0) {
-    return null;
-  }
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-    minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-    seconds: Math.floor((diff % (1000 * 60)) / 1000),
-  };
-}
-
 function TimeUnit({ value, label }: { value: number; label: string }) {
   const [tens, ones] = String(value).padStart(2, '0').split('') as [
     string,
@@ -158,7 +139,7 @@ function CountdownSeparator() {
 }
 
 function BigCountdown({ targetAt, now }: { targetAt: number; now: number }) {
-  const parts = getCountdownParts(targetAt, now);
+  const parts = getCountdownParts(targetAt - now);
 
   if (!parts) {
     return (

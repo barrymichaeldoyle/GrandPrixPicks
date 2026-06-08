@@ -1,4 +1,14 @@
+import type { SyntheticEvent } from 'react';
+
 const FLAG_BASE_PATH = '/flags';
+
+/**
+ * If a flag asset is missing (404), hide the element so we show an empty box
+ * instead of the browser's broken-image glyph. Keeps layout via visibility.
+ */
+function hideBrokenFlag(e: SyntheticEvent<HTMLImageElement>) {
+  e.currentTarget.style.visibility = 'hidden';
+}
 
 const SIZES = {
   xs: {
@@ -57,6 +67,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
         className={`block h-full w-auto max-w-none object-contain ${className}`}
         loading="eager"
         decoding="sync"
+        onError={hideBrokenFlag}
       />
     );
   }
@@ -74,6 +85,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
         className={`${sizeClassName} object-cover`}
         loading="eager"
         decoding="sync"
+        onError={hideBrokenFlag}
       />
     </span>
   );

@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
@@ -300,5 +300,34 @@ export const adminRestoreRace = mutation({
       status: 'upcoming',
       updatedAt: Date.now(),
     });
+  },
+});
+
+/**
+ * CLI/dashboard only — not callable from the public Convex API.
+ * Run via: npx convex run --prod races:emergencySetRaceStatus \
+ *   '{"raceId":"...","status":"upcoming"}'
+ */
+export const emergencySetRaceStatus = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    status: v.union(
+      v.literal('upcoming'),
+      v.literal('locked'),
+      v.literal('finished'),
+      v.literal('cancelled'),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+    const previous = race.status;
+    await ctx.db.patch(args.raceId, {
+      status: args.status,
+      updatedAt: Date.now(),
+    });
+    return { ok: true, previous, status: args.status };
   },
 });

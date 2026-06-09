@@ -15,7 +15,7 @@ export type InitialAuth = {
   userId: string | null;
 };
 
-export const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
+const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
   isSignedIn: false,
   userId: null,
 };

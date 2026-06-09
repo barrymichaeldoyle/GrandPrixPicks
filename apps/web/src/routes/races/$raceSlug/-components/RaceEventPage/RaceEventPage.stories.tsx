@@ -23,12 +23,7 @@ import {
   SESSION_LABELS_SHORT,
 } from '../../../../../lib/sessions';
 import { raceEventStoryScenarios } from '../../../../../stories/scenarios/raceEventScenarios';
-import {
-  DAY,
-  fakeId,
-  HOUR,
-  NOW,
-} from '../../../../../storybook/fixtures';
+import { DAY, fakeId, HOUR, NOW } from '../../../../../storybook/fixtures';
 import {
   StorybookMockProviders,
   buildStorybookConvexMocks,

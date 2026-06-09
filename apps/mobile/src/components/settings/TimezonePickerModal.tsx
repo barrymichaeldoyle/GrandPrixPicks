@@ -147,9 +147,7 @@ export function TimezonePickerModal({
                 style={[styles.row, isSelected ? styles.rowSelected : null]}
               >
                 <View style={styles.rowText}>
-                  <Text style={styles.rowLabel}>
-                    {item.replace(/_/g, ' ')}
-                  </Text>
+                  <Text style={styles.rowLabel}>{item.replace(/_/g, ' ')}</Text>
                   <Text style={styles.rowOffset}>{getOffset(item)}</Text>
                 </View>
                 {isSelected ? (

@@ -7,7 +7,7 @@ import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
-import { primaryNavLinks, signedInNavLinks } from '../lib/navigation';
+import { primaryNavLinks } from '../lib/navigation';
 import { NotificationBell } from './NotificationBell.tsx';
 
 const FOCUSABLE_SELECTOR =
@@ -15,6 +15,37 @@ const FOCUSABLE_SELECTOR =
 
 /** Mobile menu: viewport width <= 843px is "mobile". Keep min-[844px] classes below in sync. */
 export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
+
+const NAV_LINK_CLASS =
+  'rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover';
+const NAV_LINK_ACTIVE_CLASS =
+  'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap';
+
+function DesktopNavLink({
+  to,
+  label,
+  exact,
+}: {
+  to: string;
+  label: string;
+  exact?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={NAV_LINK_CLASS}
+      activeProps={{
+        className: NAV_LINK_ACTIVE_CLASS,
+        'aria-current': 'page' as const,
+      }}
+      activeOptions={
+        exact ? { exact: true, includeSearch: false } : { includeSearch: false }
+      }
+    >
+      {label}
+    </Link>
+  );
+}
 
 export function Header({
   mobileMenuOpen,
@@ -24,9 +55,12 @@ export function Header({
   onMobileMenuOpenChange: (open: boolean) => void;
 }) {
   const { isSignedIn, isLoaded } = useAuth();
-  const navLinks = isSignedIn ? signedInNavLinks : primaryNavLinks;
-  // Used for the "My Picks" nav slot (signed-in only); falls back to /me when
-  // we don't yet know the username (the /me route redirects to /p/$username).
+  // Public links are auth-independent, so they render immediately (SSR + first
+  // paint). Only the signed-in extras (Feed, My Picks) and the right-hand
+  // Sign in / avatar cluster wait for Clerk to resolve.
+  const showSignedInLinks = isLoaded && isSignedIn;
+  // "My Picks" falls back to /me until we know the username (the /me route
+  // redirects to /p/$username).
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
 
@@ -187,49 +221,30 @@ export function Header({
             </span>
           </Link>
 
-          {/* Desktop nav - hidden until auth state resolves to prevent flash */}
+          {/* Desktop nav — public links render immediately (auth-independent);
+              the signed-in extras reveal once Clerk resolves, so there's no
+              flash of the signed-out nav swapping to the signed-in one. */}
           <nav
             aria-label="Main navigation"
-            className={`font-title hidden items-center gap-1 rounded-full p-1.5 transition-opacity min-[844px]:flex duration-150${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
+            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex"
           >
-            {navLinks.map((link) => (
-              <Link
+            {showSignedInLinks && <DesktopNavLink to="/feed" label="Feed" />}
+            {primaryNavLinks.map((link) => (
+              <DesktopNavLink
                 key={link.to}
                 to={link.to}
-                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
-                activeProps={{
-                  className:
-                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap',
-                  'aria-current': 'page' as const,
-                }}
-                activeOptions={
-                  link.exact
-                    ? { exact: true, includeSearch: false }
-                    : { includeSearch: false }
-                }
-              >
-                {link.label}
-              </Link>
+                label={link.label}
+                exact={link.exact}
+              />
             ))}
-            {isSignedIn && (
-              <Link
-                to={myPicksHref}
-                className="rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover"
-                activeProps={{
-                  className:
-                    'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap',
-                  'aria-current': 'page' as const,
-                }}
-                activeOptions={{ includeSearch: false }}
-              >
-                My Picks
-              </Link>
+            {showSignedInLinks && (
+              <DesktopNavLink to={myPicksHref} label="My Picks" />
             )}
           </nav>
         </div>
 
         <div
-          className={`flex items-center gap-2 transition-opacity duration-150 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
+          className={`flex items-center gap-2 transition-opacity duration-150 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end ${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
         >
           {/* Mobile menu button — signed-out only */}
           {isLoaded && !isSignedIn && (
@@ -300,7 +315,7 @@ export function Header({
               className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
-                {navLinks.map((link, index) => (
+                {primaryNavLinks.map((link, index) => (
                   <motion.div
                     key={link.to}
                     initial={{ x: -20, opacity: 0 }}

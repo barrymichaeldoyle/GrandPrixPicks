@@ -12,9 +12,7 @@ import {
   Gauge,
   Lock,
   Radio,
-  Swords,
   Target,
-  Trophy,
   Users,
 } from 'lucide-react';
 
@@ -49,34 +47,52 @@ export const Route = createFileRoute('/')({
     const [nextRace, races, topPlayers] = await Promise.all([
       convex.query(api.races.getNextRace),
       convex.query(api.races.listRaces, {}),
-      convex.query(api.leaderboards.getCombinedSeasonLeaderboard, { limit: 10 }),
+      convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
+        limit: 10,
+      }),
     ]);
 
-    const mostRecentStartedRace =
-      races
-        .filter(
-          (race) => race.raceStartAt <= now && race.status !== 'cancelled',
-        )
-        .sort((a, b) => b.raceStartAt - a.raceStartAt)[0] ?? null;
+    const startedRaces = races
+      .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')
+      .sort((a, b) => b.raceStartAt - a.raceStartAt);
+    const mostRecentStartedRace = startedRaces[0] ?? null;
 
-    const [nextRaceResults, recentRaceResults] = await Promise.all([
-      nextRace
-        ? convex.query(api.results.getAllResultsForRace, {
-            raceId: nextRace._id,
-          })
-        : Promise.resolve([] as SessionType[]),
-      mostRecentStartedRace
-        ? convex.query(api.results.getAllResultsForRace, {
-            raceId: mostRecentStartedRace._id,
-          })
-        : Promise.resolve([] as SessionType[]),
-    ]);
+    // Social proof reflects the most recent race that actually has scored
+    // players — not just the most recent started race, which may not be scored
+    // yet (mid-weekend) or may be a dev-only scenario race with no entries.
+    const scoredCandidates = startedRaces.slice(0, 6);
+
+    const [nextRaceResults, recentRaceResults, candidateLeaderboards] =
+      await Promise.all([
+        nextRace
+          ? convex.query(api.results.getAllResultsForRace, {
+              raceId: nextRace._id,
+            })
+          : Promise.resolve([] as SessionType[]),
+        mostRecentStartedRace
+          ? convex.query(api.results.getAllResultsForRace, {
+              raceId: mostRecentStartedRace._id,
+            })
+          : Promise.resolve([] as SessionType[]),
+        Promise.all(
+          scoredCandidates.map((race) =>
+            convex.query(api.leaderboards.getCombinedRaceLeaderboard, {
+              raceId: race._id,
+            }),
+          ),
+        ),
+      ]);
+
+    const recentRacePlayerCount =
+      candidateLeaderboards.find((lb) => lb.entries.length > 0)?.entries
+        .length ?? 0;
 
     return {
       nextRace,
       mostRecentStartedRace,
       nextRaceResults,
       recentRaceResults,
+      recentRacePlayerCount,
       races,
       topPlayers: topPlayers.entries,
       now,
@@ -86,7 +102,7 @@ export const Route = createFileRoute('/')({
     const title =
       'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season';
     const description =
-      'Predict the top 5 finishers for every qualifying, sprint, and race session. Call teammate head-to-heads and compete with friends on the season leaderboard.';
+      'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game — qualifying, sprint, and race sessions plus teammate head-to-heads.';
     const canonical = canonicalMeta('/');
     return {
       meta: [
@@ -328,6 +344,16 @@ function abbreviateGrandPrix(name: string) {
   return name.replace(/\bGrand Prix\b/g, 'GP');
 }
 
+// "Monaco Grand Prix" → "Monaco"; used for race-specific CTA labels.
+function raceShortName(name: string) {
+  const short = name
+    .replace(/\bGrand Prix\b/gi, '')
+    .replace(/\bGP\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return short || name;
+}
+
 // --- Decorative hero background ---
 
 function HeroSpeedLines() {
@@ -462,7 +488,7 @@ function SeasonStrip({
           All races →
         </Link>
       </div>
-      <div className="-mx-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="-mx-3 [scrollbar-width:none] overflow-x-auto px-3 pb-2 [&::-webkit-scrollbar]:hidden">
         <ol className="flex min-w-max items-center gap-1.5 sm:gap-2">
           {sorted.map((race, i) => {
             const isCurrent = race._id === currentRaceId;
@@ -534,7 +560,9 @@ function SeasonStrip({
       {currentIndex >= 0 && (
         <p className="mt-1 text-center text-[11px] text-text-muted sm:text-left">
           Round {sorted[currentIndex]!.round} of {sorted.length} ·{' '}
-          {sorted.length - currentIndex - (sorted[currentIndex]!.status === 'finished' ? 0 : 1)}{' '}
+          {sorted.length -
+            currentIndex -
+            (sorted[currentIndex]!.status === 'finished' ? 0 : 1)}{' '}
           races remaining
         </p>
       )}
@@ -560,26 +588,18 @@ const PODIUM_RANK_CLASSES: Record<1 | 2 | 3, string> = {
   3: 'home-podium-rank-3 bg-gradient-to-br from-orange-300 to-orange-600 text-orange-950',
 };
 
-function LeaderboardTeaser({
-  players,
-}: {
-  players: ReadonlyArray<TopPlayer>;
-}) {
+function LeaderboardTeaser({ players }: { players: ReadonlyArray<TopPlayer> }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-muted">
-            <Crown
-              className="h-4 w-4 text-accent"
-              aria-hidden="true"
-              strokeWidth={2.25}
-            />
-          </span>
-          <h2 className="text-sm font-semibold tracking-wide text-text uppercase">
-            Top Players
-          </h2>
-        </div>
+    <div>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
+          <Crown
+            className="h-3.5 w-3.5 text-accent"
+            aria-hidden="true"
+            strokeWidth={2.25}
+          />
+          Top Players
+        </p>
         <Link
           to="/leaderboard"
           className="text-xs font-medium text-accent hover:text-accent-hover"
@@ -587,7 +607,7 @@ function LeaderboardTeaser({
           Full leaderboard →
         </Link>
       </div>
-      <ol className="divide-y divide-border/35">
+      <ol className="divide-y divide-border/60">
         {players.map((p) => {
           const name = p.displayName || p.username;
           const initial = (name || '?').slice(0, 1).toUpperCase();
@@ -596,10 +616,7 @@ function LeaderboardTeaser({
               ? PODIUM_RANK_CLASSES[p.rank as 1 | 2 | 3]
               : null;
           return (
-            <li
-              key={p.userId}
-              className="flex items-center gap-3 py-2.5"
-            >
+            <li key={p.userId} className="flex items-center gap-3 py-2.5">
               {podiumRank ? (
                 <span
                   className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ${podiumRank}`}
@@ -607,7 +624,7 @@ function LeaderboardTeaser({
                   {p.rank}
                 </span>
               ) : (
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center text-xs font-semibold tabular-nums text-text-muted">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center text-xs font-semibold text-text-muted tabular-nums">
                   {p.rank}
                 </span>
               )}
@@ -630,12 +647,11 @@ function LeaderboardTeaser({
                 </span>
                 {p.raceCount > 0 && (
                   <span className="text-[11px] text-text-muted">
-                    {p.raceCount}{' '}
-                    {p.raceCount === 1 ? 'race' : 'races'}
+                    {p.raceCount} {p.raceCount === 1 ? 'race' : 'races'}
                   </span>
                 )}
               </span>
-              <span className="shrink-0 text-sm font-bold tabular-nums text-accent">
+              <span className="shrink-0 text-sm font-bold text-accent tabular-nums">
                 {p.points.toLocaleString()}
                 <span className="ml-1 text-[10px] font-medium tracking-wider text-text-muted uppercase">
                   pts
@@ -649,6 +665,110 @@ function LeaderboardTeaser({
   );
 }
 
+// --- Compact "how it works" strip (near top) ---
+
+const HOW_IT_WORKS_STEPS: ReadonlyArray<{ title: string; copy: string }> = [
+  { title: 'Pick your top 5', copy: 'Rank who you think finishes ahead.' },
+  {
+    title: 'Predict teammate battles',
+    copy: 'Call each head-to-head for bonus points.',
+  },
+  {
+    title: 'Score points and climb',
+    copy: 'Earn points every session and rise up the leaderboard.',
+  },
+];
+
+function HowItWorksStrip() {
+  return (
+    <div>
+      <p className="mb-4 text-xs font-semibold tracking-widest text-text-muted uppercase">
+        How it works
+      </p>
+      <motion.ol
+        {...fadeUp}
+        className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-3"
+      >
+        {HOW_IT_WORKS_STEPS.map((step, i) => (
+          <li key={step.title} className="flex items-start gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-muted text-sm font-bold text-accent tabular-nums">
+              {i + 1}
+            </span>
+            <span className="flex flex-col">
+              <span className="text-sm font-semibold text-text">
+                {step.title}
+              </span>
+              <span className="text-xs text-text-muted">{step.copy}</span>
+            </span>
+          </li>
+        ))}
+      </motion.ol>
+    </div>
+  );
+}
+
+// --- Play with friends (private leagues) promo ---
+
+function PlayWithFriends() {
+  return (
+    <motion.div
+      {...fadeUp}
+      className="flex flex-col gap-4 rounded-2xl border border-accent/25 bg-accent-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+    >
+      <div className="flex items-start gap-3">
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15 sm:flex">
+          <Users className="h-5 w-5 text-accent" aria-hidden="true" />
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold text-text">Play with friends</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Create a private league, invite your group, and compete every race
+            weekend.
+          </p>
+        </div>
+      </div>
+      <div className="shrink-0">
+        <Button asChild variant="primary" size="md" leftIcon={Users}>
+          <Link to="/leagues/create">Create a League</Link>
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
+// --- Social proof (above the leaderboard teaser) ---
+
+function SocialProof({
+  playerCount,
+  raceSlug,
+}: {
+  playerCount: number;
+  raceSlug: string | null;
+}) {
+  return (
+    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <p className="text-sm text-text-muted">
+        <span className="font-semibold text-text">
+          {playerCount.toLocaleString()}{' '}
+          {playerCount === 1 ? 'player' : 'players'}
+        </span>{' '}
+        made picks last race. Think you can beat them?
+      </p>
+      {raceSlug && (
+        <Link
+          to="/races/$raceSlug"
+          params={{ raceSlug }}
+          search={{ from: 'home' }}
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-accent hover:text-accent-hover"
+        >
+          Make your picks
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
 // --- Main component ---
 
 function HomePage() {
@@ -657,6 +777,7 @@ function HomePage() {
     mostRecentStartedRace,
     nextRaceResults,
     recentRaceResults,
+    recentRacePlayerCount,
     races,
     topPlayers,
   } = Route.useLoaderData();
@@ -685,6 +806,9 @@ function HomePage() {
       : null;
 
   const countryCode = featuredRace ? getCountryCodeForRace(featuredRace) : null;
+  const featuredShortName = featuredRace
+    ? raceShortName(featuredRace.name)
+    : '';
 
   const allFinished =
     sessions.length > 0 &&
@@ -720,6 +844,16 @@ function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               >
+                {/* Brand eyebrow — instantly says what the site is */}
+                <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
+                  <Flag
+                    className="h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                    strokeWidth={2.5}
+                  />
+                  Free F1 Prediction Game
+                </p>
+
                 {/* Race identity — flag + name, larger and integrated */}
                 <div className="flex items-center gap-3 sm:gap-5">
                   {countryCode && (
@@ -794,7 +928,7 @@ function HomePage() {
                 {!isPredictionBannerVisible &&
                   !hasCompleteUpcomingPredictions &&
                   (nextSession || !showCurrentWeekend) && (
-                    <div className="mt-5 sm:mt-7">
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
                       <Button
                         asChild
                         variant="primary"
@@ -806,14 +940,22 @@ function HomePage() {
                           params={{ raceSlug: featuredRace.slug }}
                           search={{ from: 'home' }}
                         >
-                          Make predictions
+                          Make {featuredShortName} Picks
                         </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="md"
+                        leftIcon={Users}
+                      >
+                        <Link to="/leagues/create">Create a League</Link>
                       </Button>
                     </div>
                   )}
                 {!isPredictionBannerVisible &&
                   hasCompleteUpcomingPredictions && (
-                    <div className="mt-5 sm:mt-7">
+                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
                       <Button
                         asChild
                         variant="secondary"
@@ -821,6 +963,14 @@ function HomePage() {
                         leftIcon={Gauge}
                       >
                         <Link to="/feed">View Feed</Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="md"
+                        leftIcon={Users}
+                      >
+                        <Link to="/leagues/create">Create a League</Link>
                       </Button>
                     </div>
                   )}
@@ -895,22 +1045,22 @@ function HomePage() {
 
             {/* No race at all — fall back to brand-led hero */}
             {!featuredRace && (
-              <motion.div
-                {...fadeUp}
-                className="mx-auto max-w-3xl text-center"
-              >
-                <h1 className="home-hero-title inline-flex items-center gap-3 text-3xl font-bold tracking-tight text-white sm:text-5xl">
+              <motion.div {...fadeUp} className="mx-auto max-w-3xl text-center">
+                <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
                   <Flag
-                    className="home-hero-mark h-[0.92em] w-[0.92em] shrink-0 text-cyan-300"
+                    className="h-3.5 w-3.5 shrink-0"
                     aria-hidden="true"
-                    strokeWidth={2.25}
+                    strokeWidth={2.5}
                   />
-                  <span>Grand Prix Picks</span>
+                  Free F1 Prediction Game
+                </p>
+                <h1 className="home-hero-title text-3xl font-bold tracking-tight text-white sm:text-5xl">
+                  Pick the top 5 every Grand Prix weekend
                 </h1>
                 <p className="home-hero-copy mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance text-slate-300 sm:mt-5 sm:text-base">
-                  Predict every F1 qualifying, sprint, and race session,
-                  <br />
-                  then compete on the season leaderboard.
+                  Predict qualifying, sprint, and race finishes, call the
+                  teammate head-to-heads, and compete with friends across the
+                  season.
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
                   <Button
@@ -919,14 +1069,26 @@ function HomePage() {
                     size="md"
                     rightIcon={ArrowRight}
                   >
-                    <Link to="/races">View race calendar</Link>
+                    <Link to="/races">Make Your Picks</Link>
                   </Button>
-                  <Button asChild variant="secondary" size="md">
-                    <Link to="/leaderboard">See leaderboard</Link>
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="md"
+                    leftIcon={Users}
+                  >
+                    <Link to="/leagues/create">Create a League</Link>
                   </Button>
                 </div>
               </motion.div>
             )}
+          </div>
+        </section>
+
+        {/* Compact "how it works" — quick orientation near the top */}
+        <section className="px-3 pt-1 pb-8 sm:pt-2">
+          <div className="mx-auto w-full max-w-3xl">
+            <HowItWorksStrip />
           </div>
         </section>
 
@@ -1012,89 +1174,26 @@ function HomePage() {
           </section>
         )}
 
+        {/* Play with friends — push private leagues into the top half */}
+        <section className="px-3 pt-2 pb-8 sm:pb-10">
+          <div className="mx-auto w-full max-w-3xl">
+            <PlayWithFriends />
+          </div>
+        </section>
+
         {topPlayers.length > 0 && (
           <section className="px-3 pt-2 pb-10">
             <div className="mx-auto w-full max-w-3xl">
+              {recentRacePlayerCount > 0 && (
+                <SocialProof
+                  playerCount={recentRacePlayerCount}
+                  raceSlug={nextRace?.slug ?? featuredRace?.slug ?? null}
+                />
+              )}
               <LeaderboardTeaser players={topPlayers} />
             </div>
           </section>
         )}
-
-        {/* How It Works */}
-        <section className="mx-auto max-w-5xl border-t border-border/40 px-6 pt-12 pb-12">
-          <h2 className="mb-8 text-center text-2xl font-bold text-text">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <motion.div
-              {...fadeUp}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Flag className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Pick Your Top 5
-              </h3>
-              <p className="text-sm text-text-muted">
-                Before each session — qualifying, sprint, and race — drag and
-                drop to rank the 5 drivers you think will finish on top.
-              </p>
-            </motion.div>
-
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.06 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Swords className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Call the Head-to-Heads
-              </h3>
-              <p className="text-sm text-text-muted">
-                For every teammate pairing on the grid, predict which driver
-                will finish ahead. Earn bonus points for each correct call.
-              </p>
-            </motion.div>
-
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.1 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Trophy className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Earn Points Every Session
-              </h3>
-              <p className="text-sm text-text-muted">
-                Exact position earns 5 pts, one place away earns 3, any other
-                top-5 hit earns 1. Head-to-head points stack on top. Sprint
-                weekends have more sessions, so more to play for.
-              </p>
-            </motion.div>
-
-            <motion.div
-              {...fadeUp}
-              transition={{ ...fadeUp.transition, delay: 0.16 }}
-              className="rounded-xl border border-border bg-surface p-5"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-accent-muted">
-                <Users className="h-6 w-6 text-accent" aria-hidden="true" />
-              </div>
-              <h3 className="mb-1 text-lg font-semibold text-text">
-                Compete and Follow Friends
-              </h3>
-              <p className="text-sm text-text-muted">
-                Climb the season leaderboard, follow other players, and compare
-                prediction histories on public profile pages.
-              </p>
-            </motion.div>
-          </div>
-        </section>
 
         <FaqSection title="Frequently Asked Questions">
           <FaqItem icon={Target} question="How does scoring work?">

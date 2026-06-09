@@ -80,7 +80,10 @@ export function SettingsScreen() {
   const { signOut } = useClerk();
   const { showToast } = useToast();
 
-  const me = useQuery(api.users.me, clerkEnabled && convexEnabled ? {} : 'skip');
+  const me = useQuery(
+    api.users.me,
+    clerkEnabled && convexEnabled ? {} : 'skip',
+  );
   const updateProfile = useMutation(api.users.updateProfile);
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateRegional = useMutation(api.users.updateRegionalSettings);
@@ -214,10 +217,7 @@ export function SettingsScreen() {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      style={styles.screen}
-    >
+    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>Settings</Text>
         <Text style={styles.title}>Account</Text>
@@ -303,11 +303,7 @@ export function SettingsScreen() {
               <Text style={styles.fieldHelp}>Using device default</Text>
             ) : null}
           </View>
-          <Ionicons
-            color={colors.textMuted}
-            name="chevron-forward"
-            size={16}
-          />
+          <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
         </Pressable>
 
         <View style={styles.field}>
@@ -420,8 +416,9 @@ function VersionFooter() {
     Platform.OS === 'ios'
       ? Constants.expoConfig?.ios?.buildNumber
       : String(Constants.expoConfig?.android?.versionCode ?? '');
-  const channel = (Constants.expoConfig?.extra as { eas?: { channel?: string } } | undefined)?.eas
-    ?.channel;
+  const channel = (
+    Constants.expoConfig?.extra as { eas?: { channel?: string } } | undefined
+  )?.eas?.channel;
   const parts = [
     `v${version}`,
     nativeBuild ? `(${nativeBuild})` : null,
@@ -473,7 +470,9 @@ function NotificationToggleRow({
   disabled?: boolean;
 }) {
   return (
-    <View style={[styles.toggleRow, disabled ? styles.toggleRowDisabled : null]}>
+    <View
+      style={[styles.toggleRow, disabled ? styles.toggleRowDisabled : null]}
+    >
       <View style={styles.toggleText}>
         <Text style={styles.toggleLabel}>{label}</Text>
         <Text style={styles.toggleHelp}>{help}</Text>

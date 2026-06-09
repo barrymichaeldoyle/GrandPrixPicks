@@ -34,9 +34,7 @@ export function SegmentedTabs<T extends string>({
               pressed && !isActive ? styles.segmentPressed : null,
             ]}
           >
-            <Text
-              style={[styles.label, isActive ? styles.labelActive : null]}
-            >
+            <Text style={[styles.label, isActive ? styles.labelActive : null]}>
               {option.label}
             </Text>
           </Pressable>

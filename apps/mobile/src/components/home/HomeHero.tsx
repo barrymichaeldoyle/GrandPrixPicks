@@ -37,7 +37,11 @@ const SESSION_LABEL: Record<string, string> = {
 function getFeatured(
   races: ReadonlyArray<RaceWeekend>,
   now: number,
-): { race: RaceWeekend; round: number; nextSession: NextSession | null } | null {
+): {
+  race: RaceWeekend;
+  round: number;
+  nextSession: NextSession | null;
+} | null {
   const sorted = races
     .slice()
     .sort(
@@ -145,7 +149,10 @@ export function HomeHero() {
         onPress={() =>
           navigation.navigate('RaceDetail', { raceSlug: race.slug })
         }
-        style={({ pressed }) => [styles.cta, pressed ? styles.ctaPressed : null]}
+        style={({ pressed }) => [
+          styles.cta,
+          pressed ? styles.ctaPressed : null,
+        ]}
       >
         <Text style={styles.ctaText}>Make predictions</Text>
         <Ionicons color={colors.accentHover} name="arrow-forward" size={14} />

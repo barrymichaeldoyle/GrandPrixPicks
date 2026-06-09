@@ -210,20 +210,18 @@ function WeekendBlock({ weekend }: { weekend: Weekend }) {
 
       <View style={styles.sessions}>
         {sessions.map(({ type, data }) => (
-          <SessionRow data={data} key={`${weekend.raceId}-${type}`} type={type} />
+          <SessionRow
+            data={data}
+            key={`${weekend.raceId}-${type}`}
+            type={type}
+          />
         ))}
       </View>
     </View>
   );
 }
 
-function SessionRow({
-  type,
-  data,
-}: {
-  type: SessionType;
-  data: SessionData;
-}) {
+function SessionRow({ type, data }: { type: SessionType; data: SessionData }) {
   if (data.isHidden) {
     return (
       <View style={styles.sessionRow}>

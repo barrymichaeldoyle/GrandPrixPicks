@@ -217,9 +217,7 @@ describe('NotificationBell', () => {
 
     expect(link).not.toBeNull();
     expect(link?.dataset.search).toBe('{"session":"sprint_quali"}');
-    expect(document.body.textContent).toContain(
-      'Sprint Quali results are in',
-    );
+    expect(document.body.textContent).toContain('Sprint Quali results are in');
     view.unmount();
   });
 
@@ -231,9 +229,8 @@ describe('NotificationBell', () => {
       button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
-    const link = document.body.querySelector<HTMLAnchorElement>(
-      'a[href="/races"]',
-    );
+    const link =
+      document.body.querySelector<HTMLAnchorElement>('a[href="/races"]');
 
     expect(link).not.toBeNull();
     expect(link?.textContent).toBe('View race calendar');

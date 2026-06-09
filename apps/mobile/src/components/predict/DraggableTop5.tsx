@@ -124,7 +124,9 @@ function PickedRow({
 function EmptySlot({ position }: { position: number }) {
   return (
     <View style={[styles.slot, styles.slotEmpty]}>
-      <View style={[styles.slotBadge, { backgroundColor: colors.surfaceMuted }]}>
+      <View
+        style={[styles.slotBadge, { backgroundColor: colors.surfaceMuted }]}
+      >
         <Numeral style={styles.slotEmptyPosition} tone="muted" variant="large">
           {`P${position}`}
         </Numeral>
@@ -242,7 +244,12 @@ export function DraggableTop5({
     onChange(picks.filter((_, i) => i !== index));
   }
 
-  function renderItem({ item, drag, isActive, getIndex }: RenderItemParams<PickedItem>) {
+  function renderItem({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<PickedItem>) {
     const index = getIndex() ?? item.index;
     return (
       <ScaleDecorator>
@@ -279,10 +286,7 @@ export function DraggableTop5({
           />
         ) : null}
         {Array.from({ length: emptyCount }).map((_, i) => (
-          <EmptySlot
-            key={`empty-${i}`}
-            position={pickedItems.length + i + 1}
-          />
+          <EmptySlot key={`empty-${i}`} position={pickedItems.length + i + 1} />
         ))}
       </View>
 

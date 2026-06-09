@@ -74,9 +74,7 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
 
   const { width, height, className: sizeClassName } = SIZES[size];
   return (
-    <span
-      className={`inline-block shrink-0 overflow-hidden ${className}`}
-    >
+    <span className={`inline-block shrink-0 overflow-hidden ${className}`}>
       <img
         src={src}
         alt=""

@@ -47,7 +47,7 @@ app/
 ```ts
 // app/api/hello+api.ts
 export function GET(request: Request) {
-  return Response.json({ message: "Hello from Expo!" });
+  return Response.json({ message: 'Hello from Expo!' });
 }
 ```
 
@@ -92,8 +92,8 @@ export function GET(request: Request, { id }: { id: string }) {
 ```ts
 export function GET(request: Request) {
   const url = new URL(request.url);
-  const page = url.searchParams.get("page") ?? "1";
-  const limit = url.searchParams.get("limit") ?? "10";
+  const page = url.searchParams.get('page') ?? '1';
+  const limit = url.searchParams.get('limit') ?? '10';
 
   return Response.json({ page, limit });
 }
@@ -103,10 +103,10 @@ export function GET(request: Request) {
 
 ```ts
 export function GET(request: Request) {
-  const auth = request.headers.get("Authorization");
+  const auth = request.headers.get('Authorization');
 
   if (!auth) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   return Response.json({ authenticated: true });
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
   const { email, password } = await request.json();
 
   if (!email || !password) {
-    return Response.json({ error: "Missing fields" }, { status: 400 });
+    return Response.json({ error: 'Missing fields' }, { status: 400 });
   }
 
   return Response.json({ success: true });
@@ -136,15 +136,15 @@ Use `process.env` for server-side secrets:
 export async function POST(request: Request) {
   const { prompt } = await request.json();
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4",
-      messages: [{ role: "user", content: prompt }],
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
     }),
   });
 
@@ -164,9 +164,9 @@ Add CORS for web clients:
 
 ```ts
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export function OPTIONS() {
@@ -174,7 +174,7 @@ export function OPTIONS() {
 }
 
 export function GET() {
-  return Response.json({ data: "value" }, { headers: corsHeaders });
+  return Response.json({ data: 'value' }, { headers: corsHeaders });
 }
 ```
 
@@ -187,8 +187,8 @@ export async function POST(request: Request) {
     // Process...
     return Response.json({ success: true });
   } catch (error) {
-    console.error("API error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    console.error('API error:', error);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 ```
@@ -257,16 +257,16 @@ API routes run on Cloudflare Workers. Key limitations:
 ```ts
 // Use Web Crypto instead of Node crypto
 const hash = await crypto.subtle.digest(
-  "SHA-256",
-  new TextEncoder().encode("data")
+  'SHA-256',
+  new TextEncoder().encode('data'),
 );
 
 // Use fetch instead of node-fetch
-const response = await fetch("https://api.example.com");
+const response = await fetch('https://api.example.com');
 
 // Use Response/Request (already available)
 return new Response(JSON.stringify(data), {
-  headers: { "Content-Type": "application/json" },
+  headers: { 'Content-Type': 'application/json' },
 });
 ```
 
@@ -284,7 +284,7 @@ Example with Turso:
 
 ```ts
 // app/api/users+api.ts
-import { createClient } from "@libsql/client/web";
+import { createClient } from '@libsql/client/web';
 
 const db = createClient({
   url: process.env.TURSO_URL!,
@@ -292,7 +292,7 @@ const db = createClient({
 });
 
 export async function GET() {
-  const result = await db.execute("SELECT * FROM users");
+  const result = await db.execute('SELECT * FROM users');
   return Response.json(result.rows);
 }
 ```
@@ -301,14 +301,14 @@ export async function GET() {
 
 ```ts
 // From React Native components
-const response = await fetch("/api/hello");
+const response = await fetch('/api/hello');
 const data = await response.json();
 
 // With body
-const response = await fetch("/api/users", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ name: "John" }),
+const response = await fetch('/api/users', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'John' }),
 });
 ```
 
@@ -319,21 +319,21 @@ const response = await fetch("/api/users", {
 ```ts
 // utils/auth.ts
 export async function requireAuth(request: Request) {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    throw new Response(JSON.stringify({ error: "Unauthorized" }), {
+    throw new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
   // Verify token...
-  return { userId: "123" };
+  return { userId: '123' };
 }
 
 // app/api/protected+api.ts
-import { requireAuth } from "../../utils/auth";
+import { requireAuth } from '../../utils/auth';
 
 export async function GET(request: Request) {
   const { userId } = await requireAuth(request);
@@ -347,10 +347,10 @@ export async function GET(request: Request) {
 // app/api/weather+api.ts
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const city = url.searchParams.get("city");
+  const city = url.searchParams.get('city');
 
   const response = await fetch(
-    `https://api.weather.com/v1/current?city=${city}&key=${process.env.WEATHER_API_KEY}`
+    `https://api.weather.com/v1/current?city=${city}&key=${process.env.WEATHER_API_KEY}`,
   );
 
   return Response.json(await response.json());

@@ -8,7 +8,14 @@ import {
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
@@ -21,10 +28,7 @@ import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
 import { getTeamColor } from '../lib/teamColors';
 import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
-import {
-  loadConnectedDraft,
-  patchConnectedDraft,
-} from '../lib/picksDrafts';
+import { loadConnectedDraft, patchConnectedDraft } from '../lib/picksDrafts';
 import { useNow } from '../lib/useNow';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
@@ -51,10 +55,7 @@ function getSessionLockAt(
 
 export function PicksConnectedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const nextRace = useQuery(
-    api.races.getNextRace,
-    convexEnabled ? {} : 'skip',
-  );
+  const nextRace = useQuery(api.races.getNextRace, convexEnabled ? {} : 'skip');
 
   if (!convexEnabled) {
     return <NotAvailableState />;
@@ -75,7 +76,9 @@ function PredictForRace({ race }: { race: RaceDoc }) {
   const now = useNow();
   const { showToast } = useToast();
   const driversQuery = useQuery(api.drivers.listDrivers, {});
-  const matchupsQuery = useQuery(api.h2h.getMatchupsForSeason, { season: 2026 });
+  const matchupsQuery = useQuery(api.h2h.getMatchupsForSeason, {
+    season: 2026,
+  });
   const weekendPredictions = useQuery(api.predictions.myWeekendPredictions, {
     raceId: race._id,
   });
@@ -85,7 +88,9 @@ function PredictForRace({ race }: { race: RaceDoc }) {
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
-  const randomizePredictions = useMutation(api.predictions.randomizePredictions);
+  const randomizePredictions = useMutation(
+    api.predictions.randomizePredictions,
+  );
 
   const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
 
@@ -127,7 +132,9 @@ function PredictForRace({ race }: { race: RaceDoc }) {
     sprint: null,
     race: null,
   };
-  const hasAnyTop5 = Object.values(predictionsBySession).some((p) => p !== null);
+  const hasAnyTop5 = Object.values(predictionsBySession).some(
+    (p) => p !== null,
+  );
   const hasAnyH2H = Object.values(h2hPredictions ?? {}).some((s) => s !== null);
 
   const selectedLockAt = getSessionLockAt(race, selectedSession);
@@ -402,10 +409,7 @@ function SessionTabs({
           >
             <View style={styles.tabLabelRow}>
               <Text
-                style={[
-                  styles.tabLabel,
-                  active ? styles.tabLabelActive : null,
-                ]}
+                style={[styles.tabLabel, active ? styles.tabLabelActive : null]}
               >
                 {SESSION_LABELS_SHORT[session]}
               </Text>
@@ -474,9 +478,7 @@ function EditToggle({
         name={editing ? 'close' : 'pencil'}
         size={12}
       />
-      <Text style={styles.editToggleText}>
-        {editing ? 'Cancel' : 'Edit'}
-      </Text>
+      <Text style={styles.editToggleText}>{editing ? 'Cancel' : 'Edit'}</Text>
     </Pressable>
   );
 }

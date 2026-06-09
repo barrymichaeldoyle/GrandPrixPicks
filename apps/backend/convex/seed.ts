@@ -3654,7 +3654,7 @@ const LEADERBOARD_SCENARIO_FAKE_USERS = [
  * Uses the first 3 races in the calendar; marks them as finished with results.
  */
 export const _seedLeaderboardData = internalMutation({
-  args: { username: v.string() },
+  args: { username: v.string(), raceCount: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const now = Date.now();
     const DAY = 24 * 60 * 60 * 1000;
@@ -3691,12 +3691,16 @@ export const _seedLeaderboardData = internalMutation({
       return result;
     }
 
-    // Select first 3 races sorted by round (use non-sprint for simplicity)
+    // Finish the first N rounds of the season (default 3). Sprint weekends are
+    // included and get their full session set so mid-season data is realistic.
+    const raceCount = args.raceCount ?? 3;
     const allRaces = await ctx.db.query('races').collect();
-    const sortedRaces = [...allRaces].sort((a, b) => a.round - b.round);
-    const racesToFinish = sortedRaces.filter((r) => !r.hasSprint).slice(0, 3);
-    if (racesToFinish.length < 3) {
-      throw new Error('Need at least 3 non-sprint races. Run seedRaces first.');
+    const sortedRaces = [...allRaces]
+      .filter((r) => r.round > 0)
+      .sort((a, b) => a.round - b.round);
+    const racesToFinish = sortedRaces.slice(0, raceCount);
+    if (racesToFinish.length < raceCount) {
+      throw new Error(`Need at least ${raceCount} races. Run seedRaces first.`);
     }
 
     // Mark races as finished, create fresh results
@@ -3724,7 +3728,9 @@ export const _seedLeaderboardData = internalMutation({
         updatedAt: now,
       });
 
-      const sessions: Array<SessionType> = ['quali', 'race'];
+      const sessions: Array<SessionType> = race.hasSprint
+        ? ['sprint_quali', 'sprint', 'quali', 'race']
+        : ['quali', 'race'];
       const sessionData: Array<SessionClassification> = [];
 
       for (let si = 0; si < sessions.length; si++) {
@@ -3901,7 +3907,7 @@ export const _seedLeaderboardData = internalMutation({
  * Target user gets ~65% accuracy and also gets h2hPredictions created.
  */
 export const _seedH2HLeaderboardData = internalMutation({
-  args: { username: v.string() },
+  args: { username: v.string(), raceCount: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const now = Date.now();
 
@@ -3921,12 +3927,13 @@ export const _seedH2HLeaderboardData = internalMutation({
       throw new Error('No H2H matchups found. Run seedH2HMatchups first.');
     }
 
-    // Use the same 3 finished non-sprint races that _seedLeaderboardData set up
+    // Use the same finished races that _seedLeaderboardData set up.
+    const raceCount = args.raceCount ?? 3;
     const allRaces = await ctx.db.query('races').collect();
     const finishedRaces = [...allRaces]
-      .filter((r) => !r.hasSprint && r.status === 'finished')
+      .filter((r) => r.round > 0 && r.status === 'finished')
       .sort((a, b) => a.round - b.round)
-      .slice(0, 3);
+      .slice(0, raceCount);
     if (finishedRaces.length === 0) {
       throw new Error('No finished races. Run _seedLeaderboardData first.');
     }
@@ -3944,7 +3951,9 @@ export const _seedH2HLeaderboardData = internalMutation({
 
     for (let ri = 0; ri < finishedRaces.length; ri++) {
       const race = finishedRaces[ri];
-      const sessions: Array<SessionType> = ['quali', 'race'];
+      const sessions: Array<SessionType> = race.hasSprint
+        ? ['sprint_quali', 'sprint', 'quali', 'race']
+        : ['quali', 'race'];
 
       for (let si = 0; si < sessions.length; si++) {
         const sessionType = sessions[si];
@@ -4003,7 +4012,7 @@ export const _seedH2HLeaderboardData = internalMutation({
           raceId: race._id,
           sessionType,
           raceRound: race.round,
-          sessionIndex: ri * 2 + si,
+          sessionIndex: allSessions.length,
           winners,
         });
       }
@@ -4490,6 +4499,8 @@ export const _seedLeagueLeaderboardData = internalMutation({
       password: 'pitwall',
       createdBy: targetUser._id,
       season: 2026,
+      memberCount: 8,
+      adminCount: 1,
       createdAt: now,
       updatedAt: now,
     });
@@ -4518,6 +4529,8 @@ export const _seedLeagueLeaderboardData = internalMutation({
       password: 'drszone',
       createdBy: fakeUserIds[7],
       season: 2026,
+      memberCount: 6,
+      adminCount: 1,
       createdAt: now,
       updatedAt: now,
     });
@@ -4551,6 +4564,8 @@ export const _seedLeagueLeaderboardData = internalMutation({
       visibility: 'public',
       createdBy: fakeUserIds[12],
       season: 2026,
+      memberCount: 5,
+      adminCount: 1,
       createdAt: now,
       updatedAt: now,
     });
@@ -4668,6 +4683,99 @@ export const seedLeaderboardScenario = internalAction({
       username,
       rank: 6,
       currentRace: weekendResult.raceName,
+      leagues: leagueResult.leaguesCreated,
+      ...seedResult,
+      ...h2hResult,
+    };
+  },
+});
+
+/**
+ * Reset the dev DB to a coherent "through Monaco" mid-season state.
+ *
+ * - Clears all dev data + leagues and resets every race to its real 2026
+ *   calendar date. The real calendar already places Monaco (round 6) just
+ *   before the dev `now` and the Spanish GP (round 7) just after it.
+ * - Finishes rounds 1–6 (Australia → Monaco) with top-5 results, scores,
+ *   season standings, and the matching H2H data — sprint weekends included.
+ * - Leaves the Spanish GP fully open with no picks, so it becomes the next
+ *   race to predict against.
+ * - Recreates the three demo leagues.
+ *
+ * Run via:
+ *   npx convex run seed:reseedDevThroughMonaco
+ *   npx convex run seed:reseedDevThroughMonaco '{"username":"yourname"}'
+ */
+export const reseedDevThroughMonaco = internalAction({
+  args: { username: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const username = args.username ?? 'barrymichaeldoyle';
+    const RACE_COUNT = 6; // rounds 1–6, ending with Monaco
+
+    // Phase 1: Clear all dev data
+    let totalDeleted = 0;
+    let iterations = 0;
+    while (true) {
+      const result: { deleted: number; done: boolean } = await ctx.runMutation(
+        internal.seed._clearDevDataBatch,
+      );
+      totalDeleted += result.deleted;
+      iterations++;
+      if (result.done) {
+        break;
+      }
+      if (iterations > 200) {
+        throw new Error('Too many iterations clearing dev data');
+      }
+    }
+
+    // Phase 2: Clear leagues
+    await ctx.runMutation(internal.seed._clearLeagueData);
+
+    // Phase 3: Reset every race to its real 2026 calendar date (upcoming)
+    const raceResult: { reset: number } = await ctx.runMutation(
+      internal.seed._resetRacesToUpcoming,
+    );
+
+    // Phase 4: Ensure drivers and H2H matchups exist
+    await ctx.runMutation(internal.seed.seedDrivers);
+    await ctx.runMutation(internal.seed.seedH2HMatchups);
+
+    // Phase 5: Finish rounds 1–6 with top-5 results, scores, and standings
+    const seedResult: {
+      targetUserId: Id<'users'>;
+      targetUserPoints: number;
+      racesFinished: number;
+      sessionsPerRace: number;
+      fakeUsersCreated: number;
+    } = await ctx.runMutation(internal.seed._seedLeaderboardData, {
+      username,
+      raceCount: RACE_COUNT,
+    });
+
+    // Phase 6: Finish rounds 1–6 head-to-head results, scores, and standings
+    const h2hResult: {
+      h2hResultsCreated: number;
+      h2hScoresCreated: number;
+      h2hPredictionsCreated: number;
+      h2hStandingsCreated: number;
+    } = await ctx.runMutation(internal.seed._seedH2HLeaderboardData, {
+      username,
+      raceCount: RACE_COUNT,
+    });
+
+    // Phase 7: Recreate the demo leagues
+    const leagueResult: { leaguesCreated: number } = await ctx.runMutation(
+      internal.seed._seedLeagueLeaderboardData,
+      { username },
+    );
+
+    return {
+      cleared: totalDeleted,
+      racesReset: raceResult.reset,
+      throughRace: 'Monaco Grand Prix',
+      nextOpenRace: 'Spanish Grand Prix',
+      username,
       leagues: leagueResult.leaguesCreated,
       ...seedResult,
       ...h2hResult,
@@ -5757,9 +5865,7 @@ export const _seedAuxFeedScenarios = internalMutation({
       if (!auxUser) {
         const byUsername = await ctx.db
           .query('users')
-          .withIndex('by_username', (q) =>
-            q.eq('username', scenario.username),
-          )
+          .withIndex('by_username', (q) => q.eq('username', scenario.username))
           .unique();
         if (byUsername) {
           if (byUsername.clerkUserId !== scenario.clerkUserId) {

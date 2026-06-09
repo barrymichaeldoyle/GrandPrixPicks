@@ -194,13 +194,7 @@ function LinkRow({
   );
 }
 
-function StatCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={styles.statCell}>
       <Numeral variant="large">{value}</Numeral>

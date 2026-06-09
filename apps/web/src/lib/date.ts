@@ -99,10 +99,7 @@ export function formatCalendarDate(
 ): string {
   return toDateInput(timestamp).toLocaleDateString(
     settings?.locale,
-    withTimeZone(
-      { year: 'numeric', month: 'long', day: 'numeric' },
-      settings,
-    ),
+    withTimeZone({ year: 'numeric', month: 'long', day: 'numeric' }, settings),
   );
 }
 

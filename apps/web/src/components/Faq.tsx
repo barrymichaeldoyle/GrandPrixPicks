@@ -39,10 +39,7 @@ export function FaqItem({ icon: Icon, question, children }: FaqItemProps) {
       className="rounded-xl border border-border bg-surface p-4 sm:p-6"
     >
       <h3 className="mb-3 flex items-center gap-2 text-base font-semibold text-text sm:gap-3 sm:text-lg">
-        <Icon
-          className="h-5 w-5 shrink-0 text-accent"
-          aria-hidden="true"
-        />
+        <Icon className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
         {question}
       </h3>
       <div className="sm:pl-8">{children}</div>

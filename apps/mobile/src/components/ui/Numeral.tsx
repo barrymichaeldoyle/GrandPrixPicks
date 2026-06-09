@@ -16,13 +16,7 @@ type NumeralVariant =
   | 'body' // inline figures in cards
   | 'small'; // chips, labels
 
-type NumeralTone =
-  | 'default'
-  | 'muted'
-  | 'accent'
-  | 'gain'
-  | 'loss'
-  | 'warning';
+type NumeralTone = 'default' | 'muted' | 'accent' | 'gain' | 'loss' | 'warning';
 
 type NumeralProps = {
   children: string | number;

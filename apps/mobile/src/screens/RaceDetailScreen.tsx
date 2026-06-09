@@ -29,7 +29,12 @@ type HomeProps = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
 type RacesProps = NativeStackScreenProps<RacesStackParamList, 'RaceDetail'>;
 type Props = HomeProps | RacesProps;
 
-const SESSION_ORDER: SessionType[] = ['sprint_quali', 'sprint', 'quali', 'race'];
+const SESSION_ORDER: SessionType[] = [
+  'sprint_quali',
+  'sprint',
+  'quali',
+  'race',
+];
 const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function RaceDetailScreen({ route }: Props) {

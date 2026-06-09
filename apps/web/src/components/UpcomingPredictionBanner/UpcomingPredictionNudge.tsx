@@ -55,7 +55,7 @@ export function UpcomingPredictionNudge({
               <CountryFlag code={countryCode} size="md" />
             </span>
           )}
-          <span className="min-w-0 flex-1 truncate font-title text-sm leading-none font-semibold text-text group-hover:text-accent">
+          <span className="font-title min-w-0 flex-1 truncate text-sm leading-none font-semibold text-text group-hover:text-accent">
             {raceName}
           </span>
           <span className="shrink-0 text-xs leading-none font-semibold text-accent">

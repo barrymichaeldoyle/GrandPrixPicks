@@ -30,9 +30,12 @@ export function useUserDateFormat() {
     settings,
     formatDate: (timestamp: DateLike) => formatDate(timestamp, settings),
     formatTime: (timestamp: DateLike) => formatTime(timestamp, settings),
-    formatDateLong: (timestamp: DateLike) => formatDateLong(timestamp, settings),
-    formatMonthDay: (timestamp: DateLike) => formatMonthDay(timestamp, settings),
-    formatDateTime: (timestamp: DateLike) => formatDateTime(timestamp, settings),
+    formatDateLong: (timestamp: DateLike) =>
+      formatDateLong(timestamp, settings),
+    formatMonthDay: (timestamp: DateLike) =>
+      formatMonthDay(timestamp, settings),
+    formatDateTime: (timestamp: DateLike) =>
+      formatDateTime(timestamp, settings),
     formatCalendarDate: (timestamp: DateLike) =>
       formatCalendarDate(timestamp, settings),
     formatInTimeZone: (

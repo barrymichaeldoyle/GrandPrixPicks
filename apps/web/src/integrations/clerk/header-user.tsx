@@ -25,7 +25,7 @@ const signInButtonClasses =
  */
 export function HeaderUser() {
   const { isLoaded, isSignedIn } = useAuth();
-  const me = useQuery(api.users.me);
+  const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const [isMobile, setIsMobile] = useState(false);
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
 

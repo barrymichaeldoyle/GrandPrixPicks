@@ -665,7 +665,8 @@ function ScorePublishedItem({
             Waiting for results...
           </p>
         ) : (
-          event.points !== undefined && (() => {
+          event.points !== undefined &&
+          (() => {
             const total = event.points + (event.h2hScore?.points ?? 0);
             return (
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">

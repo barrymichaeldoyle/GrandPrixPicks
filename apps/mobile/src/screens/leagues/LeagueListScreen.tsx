@@ -102,9 +102,7 @@ export function LeagueListScreen({ navigation }: Props) {
             setJoinError(null);
           }}
         >
-          <Text style={styles.joinToggle}>
-            {showJoin ? 'Cancel' : 'Join'}
-          </Text>
+          <Text style={styles.joinToggle}>{showJoin ? 'Cancel' : 'Join'}</Text>
         </Pressable>
       </View>
 

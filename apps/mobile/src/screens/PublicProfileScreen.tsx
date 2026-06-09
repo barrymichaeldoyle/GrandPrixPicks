@@ -170,24 +170,14 @@ export function PublicProfileScreen({ route, navigation }: Props) {
                 : `@${profile.username}'s picks per weekend`}
             </Text>
           </View>
-          <Ionicons
-            color={colors.textMuted}
-            name="chevron-forward"
-            size={16}
-          />
+          <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
         </Pressable>
       ) : null}
     </ScrollView>
   );
 }
 
-function StatCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
     <View style={styles.statCell}>
       <Numeral variant="large">{value}</Numeral>

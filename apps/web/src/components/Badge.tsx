@@ -16,8 +16,7 @@ const mutedBadgeStyles =
   'bg-surface-muted text-text-muted border border-border';
 
 const variantStyles: Record<BadgeVariant, string> = {
-  sprint:
-    'sprint-badge bg-purple-950/35 border border-purple-500/40',
+  sprint: 'sprint-badge bg-purple-950/35 border border-purple-500/40',
   upcoming: successBadgeStyles,
   not_yet_open: mutedBadgeStyles,
   locked: 'border border-warning/50 bg-warning/18 text-warning',

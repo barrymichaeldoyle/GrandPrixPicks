@@ -7,8 +7,8 @@ Add native iOS toolbar items to Stack screens. Items can be placed in the header
 ## Notes app example
 
 ```tsx
-import { Stack } from "expo-router";
-import { ScrollView } from "react-native";
+import { Stack } from 'expo-router';
+import { ScrollView } from 'react-native';
 
 export default function FoldersScreen() {
   return (
@@ -45,9 +45,9 @@ export default function FoldersScreen() {
 ## Mail inbox example
 
 ```tsx
-import { Color, Stack } from "expo-router";
-import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Color, Stack } from 'expo-router';
+import { useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
 export default function InboxScreen() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function InboxScreen() {
           onPress={() => setIsFilterOpen((prev) => !prev)}
         />
         <Stack.Toolbar.View hidden={!isFilterOpen}>
-          <View style={{ width: 70, height: 32, justifyContent: "center" }}>
+          <View style={{ width: 70, height: 32, justifyContent: 'center' }}>
             <Text style={{ fontSize: 12, fontWeight: 700 }}>Filter by</Text>
             <Text
               style={{
@@ -177,7 +177,7 @@ Embed custom React Native components. When adding a custom view make sure that t
 
 ```tsx
 <Stack.Toolbar.View>
-  <View style={{ width: 70, height: 32, justifyContent: "center" }}>
+  <View style={{ width: 70, height: 32, justifyContent: 'center' }}>
     <Text style={{ fontSize: 12, fontWeight: 700 }}>Filter by</Text>
   </View>
 </Stack.Toolbar.View>

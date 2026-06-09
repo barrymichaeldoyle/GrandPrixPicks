@@ -69,7 +69,7 @@ function NextRaceCard() {
             className="overflow-hidden rounded-sm border border-border shadow-sm"
           />
         ) : null}
-        <span className="min-w-0 flex-1 truncate font-title text-sm font-bold text-text group-hover:text-accent">
+        <span className="font-title min-w-0 flex-1 truncate text-sm font-bold text-text group-hover:text-accent">
           {nextRace.name}
         </span>
       </Link>

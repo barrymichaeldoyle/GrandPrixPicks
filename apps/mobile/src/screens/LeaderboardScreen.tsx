@@ -181,10 +181,7 @@ function PodiumRow({
     <Pressable
       disabled={!onPress}
       onPress={onPress}
-      style={[
-        styles.podiumRow,
-        entry.isViewer ? styles.viewerTint : null,
-      ]}
+      style={[styles.podiumRow, entry.isViewer ? styles.viewerTint : null]}
     >
       <PodiumBackdrop rank={podiumRank} />
       <View style={styles.podiumLeft}>

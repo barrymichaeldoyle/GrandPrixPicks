@@ -108,7 +108,9 @@ export function H2HPredictionForm({
       captureAnalyticsEvent('h2h_prediction_submitted', {
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
-        is_edit: Boolean(existingPicks && Object.keys(existingPicks).length > 0),
+        is_edit: Boolean(
+          existingPicks && Object.keys(existingPicks).length > 0,
+        ),
         restored_draft: Boolean(restoredDraftAt),
         matchup_count: totalMatchups,
       });
@@ -125,7 +127,9 @@ export function H2HPredictionForm({
       captureAnalyticsEvent('h2h_prediction_submit_failed', {
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
-        is_edit: Boolean(existingPicks && Object.keys(existingPicks).length > 0),
+        is_edit: Boolean(
+          existingPicks && Object.keys(existingPicks).length > 0,
+        ),
         restored_draft: Boolean(restoredDraftAt),
         matchup_count: totalMatchups,
       });

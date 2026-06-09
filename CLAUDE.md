@@ -17,6 +17,7 @@ convex/       # Root-level _generated only — actual Convex code lives in apps/
 ```
 
 Workspace package names:
+
 - `@grandprixpicks/web`
 - `@grandprixpicks/mobile`
 - `@grandprixpicks/backend`
@@ -25,6 +26,7 @@ Workspace package names:
 ## Tech Stack
 
 ### Web (`apps/web`)
+
 - React 19 + TanStack Router (file-based routing) + TanStack Query
 - Tailwind CSS 4
 - Vite 7 + Nitro (SSR)
@@ -33,6 +35,7 @@ Workspace package names:
 - Playwright (E2E), Vitest (unit), Storybook (component)
 
 ### Mobile (`apps/mobile`)
+
 - Expo SDK ~55 + React Native 0.83
 - React Navigation (native-stack + bottom-tabs)
 - `@clerk/clerk-expo` for auth
@@ -41,6 +44,7 @@ Workspace package names:
 - Available Expo skills: `expo-dev-client`, `expo-deployment`, `expo-module`, `building-native-ui`, `expo-tailwind-setup`, `expo-cicd-workflows`, `upgrading-expo`, `use-dom`, `native-data-fetching`, `expo-api-routes`
 
 ### Backend (`apps/backend`)
+
 - Convex (backend-as-a-service with real-time subscriptions)
 - Clerk for auth (OpenID Connect, JWT verification)
 - React Email for transactional emails

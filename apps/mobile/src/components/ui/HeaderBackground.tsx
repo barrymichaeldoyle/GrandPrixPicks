@@ -45,7 +45,11 @@ export function HeaderBackground() {
             <LinearGradient id="header-rail" x1="0" x2="1" y1="0" y2="0">
               <Stop offset="0%" stopColor={colors.accent} stopOpacity="0" />
               <Stop offset="18%" stopColor={colors.accent} stopOpacity="0.9" />
-              <Stop offset="50%" stopColor={colors.accentHover} stopOpacity="1" />
+              <Stop
+                offset="50%"
+                stopColor={colors.accentHover}
+                stopOpacity="1"
+              />
               <Stop offset="82%" stopColor={colors.accent} stopOpacity="0.9" />
               <Stop offset="100%" stopColor={colors.accent} stopOpacity="0" />
             </LinearGradient>

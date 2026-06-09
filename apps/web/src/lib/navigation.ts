@@ -4,16 +4,12 @@ type SiteNavLink = {
   exact?: boolean;
 };
 
-/** Nav links for signed-out users. The logo handles the home link. */
+/**
+ * Public nav links — auth-independent, so the header renders them immediately
+ * (SSR + first paint). The signed-in extras (Feed, My Picks) are rendered
+ * directly in the header once Clerk resolves.
+ */
 export const primaryNavLinks: SiteNavLink[] = [
-  { to: '/races', label: 'Races', exact: true },
-  { to: '/leaderboard', label: 'Leaderboard' },
-  { to: '/leagues', label: 'Leagues' },
-];
-
-/** Nav links for signed-in users. */
-export const signedInNavLinks: SiteNavLink[] = [
-  { to: '/feed', label: 'Feed' },
   { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },

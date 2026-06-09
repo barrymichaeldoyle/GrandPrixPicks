@@ -49,11 +49,7 @@ export function RaceCalendarScreen({ navigation }: Props) {
       <View style={styles.screen}>
         <Header />
         <View style={styles.tabs}>
-          <SegmentedTabs
-            onChange={setTab}
-            options={TAB_OPTIONS}
-            value={tab}
-          />
+          <SegmentedTabs onChange={setTab} options={TAB_OPTIONS} value={tab} />
         </View>
         <View style={styles.skeletonList}>
           {[0, 1, 2].map((i) => (
@@ -68,11 +64,7 @@ export function RaceCalendarScreen({ navigation }: Props) {
     <View style={styles.screen}>
       <Header />
       <View style={styles.tabs}>
-        <SegmentedTabs
-          onChange={setTab}
-          options={TAB_OPTIONS}
-          value={tab}
-        />
+        <SegmentedTabs onChange={setTab} options={TAB_OPTIONS} value={tab} />
       </View>
       <FlatList
         contentContainerStyle={styles.listContent}

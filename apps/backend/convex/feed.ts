@@ -23,10 +23,7 @@ type DbCtx = { db: DatabaseReader };
 export function getSessionLockAt(
   race: Pick<
     Doc<'races'>,
-    | 'qualiLockAt'
-    | 'sprintQualiLockAt'
-    | 'sprintLockAt'
-    | 'predictionLockAt'
+    'qualiLockAt' | 'sprintQualiLockAt' | 'sprintLockAt' | 'predictionLockAt'
   >,
   sessionType: SessionType,
 ): number | undefined {
@@ -47,10 +44,7 @@ export function getSessionLockAt(
 export function isSessionLockedAt(
   race: Pick<
     Doc<'races'>,
-    | 'qualiLockAt'
-    | 'sprintQualiLockAt'
-    | 'sprintLockAt'
-    | 'predictionLockAt'
+    'qualiLockAt' | 'sprintQualiLockAt' | 'sprintLockAt' | 'predictionLockAt'
   >,
   sessionType: SessionType,
   now: number,

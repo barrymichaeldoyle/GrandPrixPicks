@@ -31,7 +31,12 @@ type ToastProps = {
 
 const VARIANT_STYLES: Record<
   ToastVariant,
-  { bg: string; border: string; fg: string; icon: React.ComponentProps<typeof Ionicons>['name'] }
+  {
+    bg: string;
+    border: string;
+    fg: string;
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+  }
 > = {
   success: {
     bg: colors.successMuted,

@@ -126,7 +126,9 @@ export function NotificationsScreen() {
   return (
     <View style={styles.screen}>
       <Header
-        subtitle={unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
+        subtitle={
+          unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"
+        }
         action={
           unreadCount > 0 ? (
             <Pressable hitSlop={8} onPress={() => void handleMarkAll()}>
@@ -239,14 +241,19 @@ function NotificationIcon({ notification }: { notification: Notification }) {
   }
   if (notification.type === 'results_published') {
     return (
-      <View style={[styles.iconBubble, { backgroundColor: colors.accentMuted }]}>
+      <View
+        style={[styles.iconBubble, { backgroundColor: colors.accentMuted }]}
+      >
         <Ionicons color={colors.accent} name="trophy" size={18} />
       </View>
     );
   }
   return (
     <View
-      style={[styles.iconBubble, { backgroundColor: 'rgba(251, 191, 36, 0.18)' }]}
+      style={[
+        styles.iconBubble,
+        { backgroundColor: 'rgba(251, 191, 36, 0.18)' },
+      ]}
     >
       <Ionicons color={colors.warning} name="lock-closed" size={18} />
     </View>
@@ -277,7 +284,9 @@ function getNotificationTitle(notification: Notification): string {
 
 function getNotificationSubtitle(notification: Notification): string {
   const session = notification.sessionType
-    ? notification.sessionType.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+    ? notification.sessionType
+        .replace(/_/g, ' ')
+        .replace(/^./, (c) => c.toUpperCase())
     : null;
   if (notification.type === 'rev_received') {
     if (notification.raceName) {

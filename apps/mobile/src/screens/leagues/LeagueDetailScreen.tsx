@@ -67,7 +67,9 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
         {isAdmin ? (
           <Pressable
             hitSlop={8}
-            onPress={() => navigation.navigate('LeagueSettings', { leagueSlug })}
+            onPress={() =>
+              navigation.navigate('LeagueSettings', { leagueSlug })
+            }
           >
             <Text style={styles.settingsLink}>Settings</Text>
           </Pressable>
@@ -84,10 +86,7 @@ export function LeagueDetailScreen({ route, navigation }: Props) {
               style={styles.tab}
             >
               <Text
-                style={[
-                  styles.tabText,
-                  active ? styles.tabTextActive : null,
-                ]}
+                style={[styles.tabText, active ? styles.tabTextActive : null]}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </Text>
@@ -168,12 +167,7 @@ function LeaderboardRow({
 }) {
   const name = entry.displayName ?? entry.username;
   return (
-    <View
-      style={[
-        styles.leaderRow,
-        entry.isViewer ? styles.viewerTint : null,
-      ]}
-    >
+    <View style={[styles.leaderRow, entry.isViewer ? styles.viewerTint : null]}>
       <Text style={styles.leaderRank}>#{entry.rank}</Text>
       <Avatar imageUrl={entry.avatarUrl} name={name} size="sm" />
       <Text numberOfLines={1} style={styles.leaderName}>

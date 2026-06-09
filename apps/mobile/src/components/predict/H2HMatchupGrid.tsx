@@ -48,9 +48,7 @@ export function H2HMatchupGrid({
           <View key={matchup._id}>
             {index > 0 ? <View style={styles.divider} /> : null}
             <View style={styles.row}>
-              <View
-                style={[styles.stripe, { backgroundColor: teamColor }]}
-              />
+              <View style={[styles.stripe, { backgroundColor: teamColor }]} />
               <Text numberOfLines={1} style={styles.team}>
                 {matchup.team}
               </Text>

@@ -724,6 +724,81 @@ export const emergencyRollbackResults = internalMutation({
   handler: async (ctx, args) => rollbackResultsCore(ctx, args),
 });
 
+/**
+ * CLI/dashboard only — not callable from the public Convex API.
+ * Fixes a result that was published under the wrong session: rolls back the
+ * `fromSession` result (and its scores/H2H/standings/feed) and republishes the
+ * exact same classification under `toSession`. By default it reuses the
+ * classification already entered; pass `classification` to override it.
+ *
+ * Run via:
+ *   npx convex run --prod results:emergencyMoveResultToSession \
+ *     '{"raceId":"...","fromSession":"race","toSession":"quali","restoreRaceStatus":"locked"}'
+ */
+export const emergencyMoveResultToSession = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    fromSession: sessionTypeValidator,
+    toSession: sessionTypeValidator,
+    // Race status to restore when fromSession is 'race' (it was flipped to
+    // 'finished' by the bad publish). Ignored for non-race fromSession.
+    restoreRaceStatus: v.optional(
+      v.union(
+        v.literal('upcoming'),
+        v.literal('locked'),
+        v.literal('finished'),
+      ),
+    ),
+    // Optional override; defaults to the classification already on fromSession.
+    classification: v.optional(v.array(v.id('drivers'))),
+    dnfDriverIds: v.optional(v.array(v.id('drivers'))),
+    suppressNotifications: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    if (args.fromSession === args.toSession) {
+      throw new Error('fromSession and toSession must differ');
+    }
+
+    const existing = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.fromSession),
+      )
+      .unique();
+
+    if (!existing) {
+      throw new Error(`No result found for session "${args.fromSession}"`);
+    }
+
+    // Capture the entered data before the rollback deletes the row.
+    const classification = args.classification ?? existing.classification;
+    const dnfDriverIds = args.dnfDriverIds ?? existing.dnfDriverIds;
+
+    const rollback = await rollbackResultsCore(ctx, {
+      raceId: args.raceId,
+      sessionType: args.fromSession,
+      restoreRaceStatus: args.restoreRaceStatus,
+    });
+
+    const publish = await publishResultsCore(ctx, {
+      raceId: args.raceId,
+      sessionType: args.toSession,
+      classification,
+      dnfDriverIds,
+      suppressNotifications: args.suppressNotifications,
+    });
+
+    return {
+      ok: true,
+      movedFrom: args.fromSession,
+      movedTo: args.toSession,
+      classificationLength: classification.length,
+      rollback,
+      publish,
+    };
+  },
+});
+
 // ============ Top-5 scoring fan-out ============
 
 export const scoreTopFiveForSession = internalMutation({

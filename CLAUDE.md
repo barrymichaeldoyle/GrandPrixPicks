@@ -143,14 +143,19 @@ _generated/            # Auto-generated types (do not edit)
 
 ### Scoring (`apps/backend/convex/lib/scoring.ts`)
 
-Users pick exactly 5 drivers per session. Points per pick:
+Users pick exactly 5 drivers per session. Scoring is **order-sensitive** — a pick's
+points depend on its predicted position (slot 1–5) vs the driver's actual finishing
+position. Points per pick, evaluated in order:
 
 - **5 pts** — Exact position match
-- **3 pts** — Off by 1 position
-- **1 pt** — In actual top 5, off by 2+
-- **0 pts** — Not in actual top 5
+- **3 pts** — Off by exactly 1 position (this wins even when the driver finishes
+  just outside the top 5, e.g. predicted P5, finished P6)
+- **1 pt** — Driver finished in actual top 5, off by 2+
+- **0 pts** — Otherwise (driver not in top 5 and not off-by-one)
 
-Max 25 pts/session. Season leaderboard = sum of all session scores.
+Max 25 pts/session. Season leaderboard = sum of all session scores. Scoring is
+identical across every session type (quali / sprint_quali / sprint / race) — there
+is one `scoreTopFive()` and no per-session branching in the point math.
 
 ### Key Business Rules
 

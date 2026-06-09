@@ -7,6 +7,7 @@ import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
+import { useInitialAuth } from '../integrations/clerk/initial-auth';
 import { primaryNavLinks } from '../lib/navigation';
 import { NotificationBell } from './NotificationBell.tsx';
 
@@ -54,11 +55,13 @@ export function Header({
   mobileMenuOpen: boolean;
   onMobileMenuOpenChange: (open: boolean) => void;
 }) {
-  const { isSignedIn, isLoaded } = useAuth();
-  // Public links are auth-independent, so they render immediately (SSR + first
-  // paint). Only the signed-in extras (Feed, My Picks) and the right-hand
-  // Sign in / avatar cluster wait for Clerk to resolve.
-  const showSignedInLinks = isLoaded && isSignedIn;
+  const { isSignedIn: clientSignedIn, isLoaded } = useAuth();
+  const initialAuth = useInitialAuth();
+  // Auth state is resolved on the server (initialAuth) so the header renders the
+  // correct nav on the first paint; once Clerk's client SDK loads it becomes the
+  // source of truth (and corrects any stale cookie).
+  const isSignedIn = isLoaded ? clientSignedIn : initialAuth.isSignedIn;
+  const showSignedInLinks = isSignedIn;
   // "My Picks" falls back to /me until we know the username (the /me route
   // redirects to /p/$username).
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
@@ -243,11 +246,9 @@ export function Header({
           </nav>
         </div>
 
-        <div
-          className={`flex items-center gap-2 transition-opacity duration-150 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end ${!isLoaded ? 'pointer-events-none opacity-0' : ''}`}
-        >
-          {/* Mobile menu button — signed-out only */}
-          {isLoaded && !isSignedIn && (
+        <div className="flex items-center gap-2 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end">
+          {/* Mobile menu button — signed-out only (auth state known from SSR) */}
+          {!isSignedIn && (
             <motion.button
               ref={menuButtonRef}
               onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}

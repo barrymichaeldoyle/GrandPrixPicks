@@ -23,6 +23,10 @@ import { OfflineBanner } from '../components/OfflineBanner';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { useMobileMenu } from '../hooks/useMobileMenu';
+import {
+  fetchInitialAuth,
+  InitialAuthProvider,
+} from '../integrations/clerk/initial-auth';
 import { AppClerkProvider } from '../integrations/clerk/provider';
 import { AppConvexProvider } from '../integrations/convex/provider';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
@@ -127,6 +131,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     ],
   }),
 
+  // Resolve the viewer's signed-in/out state on the server (edge-safe Clerk
+  // backend) so the header renders the correct nav on the first paint.
+  loader: async () => {
+    const initialAuth = await fetchInitialAuth();
+    return { initialAuth };
+  },
+
   notFoundComponent: NotFoundPage,
   shellComponent: RootDocument,
 });
@@ -227,6 +238,7 @@ function ObservabilityUserSync() {
 }
 
 function RootDocument({ children }: PropsWithChildren) {
+  const { initialAuth } = Route.useLoaderData();
   const mainRef = useRef<HTMLDivElement>(null);
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
@@ -239,6 +251,12 @@ function RootDocument({ children }: PropsWithChildren) {
   return (
     <html lang="en" className="dark" data-theme="dark">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -252,50 +270,52 @@ function RootDocument({ children }: PropsWithChildren) {
         </div>
         <AppClerkProvider darkMode={true}>
           <AppConvexProvider>
-            <ProfileSync />
-            <ObservabilityUserSync />
-            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
-              >
-                Skip to main content
-              </a>
-              <Header
-                mobileMenuOpen={mobileMenuOpen}
-                onMobileMenuOpenChange={onMobileMenuOpenChange}
-              />
-              <OfflineBanner />
-              <CookieConsent />
-              <div
-                ref={mainRef}
-                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
-              >
-                <ScrollToTop scrollContainerRef={mainRef} />
-                <div className="flex min-h-full flex-col">
-                  <ErrorBoundary fallback={null}>
-                    <UpcomingPredictionBanner />
-                  </ErrorBoundary>
-                  <main id="main-content" className="min-h-0 flex-1">
-                    <ErrorBoundary>{children}</ErrorBoundary>
-                  </main>
-                  <Footer />
-                </div>
-                <TanStackDevtools
-                  config={{
-                    position: 'bottom-right',
-                    openHotkey: ['CtrlOrMeta', 'A'],
-                  }}
-                  plugins={[
-                    {
-                      name: 'Tanstack Router',
-                      render: <TanStackRouterDevtoolsPanel />,
-                    },
-                    TanStackQueryDevtools,
-                  ]}
+            <InitialAuthProvider value={initialAuth}>
+              <ProfileSync />
+              <ObservabilityUserSync />
+              <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
+                >
+                  Skip to main content
+                </a>
+                <Header
+                  mobileMenuOpen={mobileMenuOpen}
+                  onMobileMenuOpenChange={onMobileMenuOpenChange}
                 />
+                <OfflineBanner />
+                <CookieConsent />
+                <div
+                  ref={mainRef}
+                  className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+                >
+                  <ScrollToTop scrollContainerRef={mainRef} />
+                  <div className="flex min-h-full flex-col">
+                    <ErrorBoundary fallback={null}>
+                      <UpcomingPredictionBanner />
+                    </ErrorBoundary>
+                    <main id="main-content" className="min-h-0 flex-1">
+                      <ErrorBoundary>{children}</ErrorBoundary>
+                    </main>
+                    <Footer />
+                  </div>
+                  <TanStackDevtools
+                    config={{
+                      position: 'bottom-right',
+                      openHotkey: ['CtrlOrMeta', 'A'],
+                    }}
+                    plugins={[
+                      {
+                        name: 'Tanstack Router',
+                        render: <TanStackRouterDevtoolsPanel />,
+                      },
+                      TanStackQueryDevtools,
+                    ]}
+                  />
+                </div>
               </div>
-            </div>
+            </InitialAuthProvider>
           </AppConvexProvider>
         </AppClerkProvider>
         <Scripts />

@@ -63,8 +63,8 @@ before accepting a scan-plus-filter pattern.
 export const listOpen = query({
   args: {},
   handler: async (ctx) => {
-    const tasks = await ctx.db.query("tasks").collect();
-    return tasks.filter((task) => task.status === "open");
+    const tasks = await ctx.db.query('tasks').collect();
+    return tasks.filter((task) => task.status === 'open');
   },
 });
 ```
@@ -75,8 +75,8 @@ export const listOpen = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db
-      .query("tasks")
-      .filter((q) => q.eq(q.field("status"), "open"))
+      .query('tasks')
+      .filter((q) => q.eq(q.field('status'), 'open'))
       .collect();
   },
 });
@@ -88,8 +88,8 @@ export const listOpen = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db
-      .query("tasks")
-      .withIndex("by_status", (q) => q.eq("status", "open"))
+      .query('tasks')
+      .withIndex('by_status', (q) => q.eq('status', 'open'))
       .collect();
   },
 });
@@ -117,9 +117,9 @@ rollout and consult `skills/convex-migration-helper/SKILL.md`.
 ```ts
 // Bad: optional booleans can miss older rows where the field is undefined
 const projects = await ctx.db
-  .query("projects")
-  .withIndex("by_archived_and_updated", (q) => q.eq("isArchived", false))
-  .order("desc")
+  .query('projects')
+  .withIndex('by_archived_and_updated', (q) => q.eq('isArchived', false))
+  .order('desc')
   .take(20);
 ```
 
@@ -137,16 +137,16 @@ and delete.
 
 ```ts
 // Bad: two indexes where one would do
-defineTable({ team: v.id("teams"), user: v.id("users") })
-  .index("by_team", ["team"])
-  .index("by_team_and_user", ["team", "user"]);
+defineTable({ team: v.id('teams'), user: v.id('users') })
+  .index('by_team', ['team'])
+  .index('by_team_and_user', ['team', 'user']);
 ```
 
 ```ts
 // Good: single compound index serves both query patterns
-defineTable({ team: v.id("teams"), user: v.id("users") }).index(
-  "by_team_and_user",
-  ["team", "user"],
+defineTable({ team: v.id('teams'), user: v.id('users') }).index(
+  'by_team_and_user',
+  ['team', 'user'],
 );
 ```
 
@@ -190,7 +190,7 @@ Rules:
 
 ```ts
 // Bad: missing denormalized data becomes a placeholder and blocks correctness
-const ownerName = project.ownerName ?? "Unknown owner";
+const ownerName = project.ownerName ?? 'Unknown owner';
 ```
 
 ```ts
@@ -259,17 +259,17 @@ Digest tables are a tradeoff, not a default:
 ```ts
 // Bad: list page reads source docs, then joins owner data per row
 const projects = await ctx.db
-  .query("projects")
-  .withIndex("by_public", (q) => q.eq("isPublic", true))
+  .query('projects')
+  .withIndex('by_public', (q) => q.eq('isPublic', true))
   .collect();
 ```
 
 ```ts
 // Good: list page reads the smaller digest shape first
 const projects = await ctx.db
-  .query("projectDigests")
-  .withIndex("by_public_and_updated", (q) => q.eq("isPublic", true))
-  .order("desc")
+  .query('projectDigests')
+  .withIndex('by_public_and_updated', (q) => q.eq('isPublic', true))
+  .order('desc')
   .take(20);
 ```
 

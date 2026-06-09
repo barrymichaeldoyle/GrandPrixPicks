@@ -4589,6 +4589,44 @@ export const _seedLeagueLeaderboardData = internalMutation({
 });
 
 /**
+ * Backfill the denormalized league member/admin counts from leagueMembers.
+ * Idempotent — safe to run anytime. Repairs leagues that were seeded before the
+ * counts were populated (which made league queries throw "League counts are
+ * missing").
+ */
+export const _backfillLeagueCounts = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const leagues = await ctx.db.query('leagues').collect();
+    let patched = 0;
+    for (const league of leagues) {
+      const members = await ctx.db
+        .query('leagueMembers')
+        .withIndex('by_league_user', (q) => q.eq('leagueId', league._id))
+        .collect();
+      const memberCount = members.length;
+      const adminCount = members.reduce(
+        (count, m) => count + (m.role === 'admin' ? 1 : 0),
+        0,
+      );
+      if (
+        league.memberCount !== memberCount ||
+        league.adminCount !== adminCount
+      ) {
+        await ctx.db.patch(league._id, {
+          memberCount,
+          adminCount,
+          updatedAt: now,
+        });
+        patched++;
+      }
+    }
+    return { leagues: leagues.length, patched };
+  },
+});
+
+/**
  * Reset dev DB to a leaderboard testing scenario:
  * - Clears all dev data (scores, predictions, results, standings, fake users)
  * - Resets races to upcoming dates

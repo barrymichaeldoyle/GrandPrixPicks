@@ -39,7 +39,24 @@ export function captureAnalyticsEvent(
 }
 
 export function capturePageView(path?: string) {
-  captureAnalyticsEvent('$pageview', path ? { path } : undefined);
+  const pagePath =
+    path ??
+    (typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}`);
+
+  if (!pagePath) {
+    captureAnalyticsEvent('$pageview');
+    return;
+  }
+
+  const url = new URL(pagePath, 'https://grandprixpicks.com');
+  captureAnalyticsEvent('$pageview', {
+    path: `${url.pathname}${url.search}`,
+    utm_source: url.searchParams.get('utm_source'),
+    utm_medium: url.searchParams.get('utm_medium'),
+    utm_campaign: url.searchParams.get('utm_campaign'),
+  });
 }
 
 export function identifyAnalyticsUser(

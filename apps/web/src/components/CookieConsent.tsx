@@ -94,7 +94,7 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
     }
     // Recover first-visit analytics that were skipped while capturing was opted out.
     captureAnalyticsEvent('cookie_consent_accepted');
-    capturePageView(window.location.pathname);
+    capturePageView();
     setDecided(true);
   }
 

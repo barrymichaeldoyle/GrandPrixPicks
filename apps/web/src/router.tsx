@@ -58,7 +58,7 @@ export function getRouter() {
     if (isAnalyticsConfigured()) {
       initAnalytics();
       router.subscribe('onResolved', () => {
-        capturePageView(window.location.pathname);
+        capturePageView();
       });
     } else {
       console.warn(

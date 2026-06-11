@@ -121,6 +121,23 @@ export function formatInTimeZone(
   }
 }
 
+export function formatTimeZoneAbbreviation(
+  timestamp: DateLike,
+  timeZone: string,
+  settings?: UserDateSettings,
+): string | undefined {
+  try {
+    return new Intl.DateTimeFormat(settings?.locale, {
+      timeZone,
+      timeZoneName: 'short',
+    })
+      .formatToParts(toDateInput(timestamp))
+      .find((part) => part.type === 'timeZoneName')?.value;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Human-readable countdown (e.g. "23d 3h 5m 9s" or "2h 30m 15s"). */
 function getTimeUntil(timestamp: number): string {
   const parts = getCountdownParts(timestamp - Date.now());

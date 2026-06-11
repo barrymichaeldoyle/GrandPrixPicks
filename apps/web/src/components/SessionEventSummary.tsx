@@ -7,6 +7,17 @@ import {
 } from '../lib/lock';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
+const sessionDateOptions: Intl.DateTimeFormatOptions = {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+};
+
+const sessionTimeOptions: Intl.DateTimeFormatOptions = {
+  hour: 'numeric',
+  minute: '2-digit',
+};
+
 export function SessionEventSummary({
   startsAt,
   lockAt,
@@ -20,7 +31,8 @@ export function SessionEventSummary({
   trackTimeZone?: string;
   now?: number;
 }) {
-  const { formatDate, formatTime, formatInTimeZone } = useUserDateFormat();
+  const { formatDate, formatTime, formatInTimeZone, formatTimeZoneAbbreviation } =
+    useUserDateFormat();
   const lockStatus = getLockStatusViewModel({
     msRemaining: lockAt - now,
   });
@@ -39,29 +51,51 @@ export function SessionEventSummary({
 
   const StatusIcon = statusUi.icon;
   const shouldPulseLockStatusBadge = lockStatus.shouldPulse;
-  const trackDateTime = formatInTimeZone(startsAt, trackTimeZone, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  });
-  const localDateTime = `${formatDate(startsAt)} · ${formatTime(startsAt)}`;
+  const trackDate = formatInTimeZone(
+    startsAt,
+    trackTimeZone,
+    sessionDateOptions,
+  );
+  const trackTime = formatInTimeZone(
+    startsAt,
+    trackTimeZone,
+    sessionTimeOptions,
+  );
+  const trackTimeZoneLabel = formatTimeZoneAbbreviation(
+    startsAt,
+    trackTimeZone,
+  );
+  const localDate = formatDate(startsAt);
+  const localTime = formatTime(startsAt);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm">
-        <span suppressHydrationWarning>
-          <span className="text-text-muted">On track </span>
-          <span className="font-medium text-text">{trackDateTime}</span>
-        </span>
-        <span suppressHydrationWarning>
-          <span className="text-text-muted">Your time </span>
-          <span className="font-medium text-text">{localDateTime}</span>
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <dl className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 text-sm">
+        <dt className="text-text-muted">On track</dt>
+        <dd
+          className="min-w-0 font-medium text-text tabular-nums"
+          suppressHydrationWarning
+        >
+          <span className="inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+            <span>
+              {trackDate} · {trackTime}
+            </span>
+            {trackTimeZoneLabel ? (
+              <span className="text-xs font-normal text-text-muted">
+                {trackTimeZoneLabel}
+              </span>
+            ) : null}
+          </span>
+        </dd>
+        <dt className="text-text-muted">Your time</dt>
+        <dd
+          className="min-w-0 font-medium text-text tabular-nums"
+          suppressHydrationWarning
+        >
+          {localDate} · {localTime}
+        </dd>
+      </dl>
+      <div className="shrink-0 self-start sm:self-center">
         {isOpen ? (
           // The countdown already implies the session is open — skip the
           // redundant "Open" pill and show a single badge.

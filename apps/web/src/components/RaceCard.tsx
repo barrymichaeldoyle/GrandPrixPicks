@@ -143,7 +143,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border-[3px] bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] focus-visible:outline-none ${
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] focus-visible:outline-none ${
         hasCancelledBorder
           ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
           : isMutedPastRace
@@ -154,47 +154,34 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
       }`}
     >
       <div className="relative flex h-full flex-col">
-        {/* Header: corner flag + round + race name */}
-        <div
-          className={`flex h-[58px] items-stretch overflow-hidden border-b-[3px] transition-colors ${
-            isNext
-              ? 'border-accent/70 group-hover:border-accent group-focus-visible:border-accent'
-              : 'border-border group-hover:border-accent/70 group-focus-visible:border-accent/70'
-          }`}
-        >
-          <div className="flex min-w-0 flex-1 items-stretch">
-            {countryCode && (
-              <span
-                className={`inline-flex h-full shrink-0 overflow-hidden border-r-[3px] transition-colors ${
-                  isNext
-                    ? 'border-accent/70 group-hover:border-accent group-focus-visible:border-accent'
-                    : 'border-border group-hover:border-accent/70 group-focus-visible:border-accent/70'
-                }`}
-              >
-                <RaceFlag
-                  countryCode={countryCode}
-                  size="full"
-                  className="rounded-none shadow-none ring-0"
-                />
-              </span>
-            )}
-            <div className="min-w-0 self-center px-2 py-1.5">
-              <p className="text-[11px] font-semibold tracking-wide text-text-muted uppercase">
-                Round {race.round}
-              </p>
-              <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
-                {race.name}
-              </h3>
-            </div>
-          </div>
-          <span className="inline-flex shrink-0 items-center pr-3 pl-2">
-            <ArrowRight
-              size={14}
-              strokeWidth={2}
-              className="text-accent transition-colors group-hover:text-accent-hover group-focus-visible:text-accent-hover"
-              aria-hidden
+        {/* Header: flag + round + race name */}
+        <div className="flex items-center gap-2.5 px-3 pt-2.5">
+          {countryCode && (
+            <RaceFlag
+              countryCode={countryCode}
+              size="md"
+              className="shrink-0 rounded-sm"
             />
-          </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p
+              className={`text-[11px] font-semibold tracking-wide uppercase ${
+                isNext ? 'text-accent' : 'text-text-muted'
+              }`}
+            >
+              Round {race.round}
+              {isNext ? ' · Next Race' : ''}
+            </p>
+            <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
+              {race.name}
+            </h3>
+          </div>
+          <ArrowRight
+            size={14}
+            strokeWidth={2}
+            className="shrink-0 text-accent transition-colors group-hover:text-accent-hover group-focus-visible:text-accent-hover"
+            aria-hidden
+          />
         </div>
 
         <div className="flex h-full flex-col gap-1.5 px-3 pt-2 pb-2.5">
@@ -245,41 +232,36 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
 
           {/* Weekend sessions */}
           {scheduleEntries.length > 0 && (
-            <div className="flex-1 pt-0.5">
-              <div className="flex h-full flex-col rounded-lg border border-border/70 bg-surface-muted/35 p-1.5">
-                <div className="mb-1 flex items-center justify-between text-[11px] font-medium tracking-wide text-text-muted uppercase">
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar size={12} aria-hidden />
-                    Weekend Sessions
-                  </span>
-                  {timezoneLabel ? (
-                    <span suppressHydrationWarning>{timezoneLabel}</span>
-                  ) : null}
-                </div>
-                <div className="grid flex-1 grid-cols-[auto_auto] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
-                  {scheduleEntries.map((entry) => (
-                    <div key={entry.label} className="contents">
-                      <span
-                        className={`font-medium ${
-                          entry.label === 'Race' ? 'text-text' : ''
-                        }`}
-                      >
-                        {entry.label}
-                      </span>
-                      <span
-                        suppressHydrationWarning
-                        className={`text-right tabular-nums ${
-                          entry.label === 'Race'
-                            ? 'font-semibold text-text'
-                            : ''
-                        }`}
-                      >
-                        {formatDate(entry.startAt)} ·{' '}
-                        {formatTime(entry.startAt)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+            <div className="mt-0.5 flex flex-1 flex-col border-t border-border/60 pt-1.5">
+              <div className="mb-1 flex items-center justify-between text-[11px] font-medium tracking-wide text-text-muted uppercase">
+                <span className="inline-flex items-center gap-1">
+                  <Calendar size={12} aria-hidden />
+                  Weekend Sessions
+                </span>
+                {timezoneLabel ? (
+                  <span suppressHydrationWarning>{timezoneLabel}</span>
+                ) : null}
+              </div>
+              <div className="grid flex-1 grid-cols-[auto_1fr] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
+                {scheduleEntries.map((entry) => (
+                  <div key={entry.label} className="contents">
+                    <span
+                      className={`font-medium ${
+                        entry.label === 'Race' ? 'text-text' : ''
+                      }`}
+                    >
+                      {entry.label}
+                    </span>
+                    <span
+                      suppressHydrationWarning
+                      className={`text-right tabular-nums ${
+                        entry.label === 'Race' ? 'font-semibold text-text' : ''
+                      }`}
+                    >
+                      {formatDate(entry.startAt)} · {formatTime(entry.startAt)}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -445,8 +445,11 @@ function RaceDetailPage() {
           ) : (
             <span className="sm:hidden">{SESSION_LABELS[session]}</span>
           )}
+          {/* On the selected tab the status colors (success/warning/accent)
+              are unreadable against the accent background — fall back to the
+              tab's own white text there. */}
           <span
-            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName}`}
+            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName} [[aria-selected=true]_&]:text-white/85`}
           >
             {secondaryLabel}
           </span>

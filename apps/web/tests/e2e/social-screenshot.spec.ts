@@ -34,8 +34,9 @@ test('captures partially completed Top 5 gameplay', async ({ page }) => {
       element.textContent = 'Round 7 · Next Race';
     });
   await page.getByText('On track', { exact: true }).evaluate((element) => {
-    if (element.nextElementSibling) {
-      element.nextElementSibling.textContent = 'Sat, Jun 13, 4:00 PM GMT+2';
+    const value = element.nextElementSibling;
+    if (value) {
+      value.textContent = 'Sat, Jun 13 · 4:00 PM GMT+2';
     }
   });
   await page.getByText('Your time', { exact: true }).evaluate((element) => {

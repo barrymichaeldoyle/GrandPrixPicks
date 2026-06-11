@@ -16,7 +16,6 @@ import {
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import type { SessionType } from '../lib/sessions';
-import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { Button } from './Button/Button';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 
@@ -47,7 +46,6 @@ export function H2HPredictionForm({
   onDirtyChange,
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
-  const { formatDateTime } = useUserDateFormat();
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
 
   const [selections, setSelections] = useState<Record<string, Id<'drivers'>>>(
@@ -175,24 +173,31 @@ export function H2HPredictionForm({
     !hasChanges,
   );
 
-  const submitButton = (
+  const submitButtonProps = {
+    variant: 'primary' as const,
+    loading: isSubmitting,
+    saved: isUnchangedFromSaved,
+    disabled: !allSelected || isSubmitting || isUnchangedFromSaved,
+    onClick: handleSubmit,
+    leftIcon: isUnchangedFromSaved ? Check : Save,
+    'data-testid': 'h2h-submit-button',
+    children: isUnchangedFromSaved
+      ? 'Saved'
+      : existingPicks && Object.keys(existingPicks).length > 0
+        ? 'Save H2H Changes'
+        : 'Save H2H Predictions',
+  };
+
+  const desktopSubmitButton = (
     <Button
-      variant="primary"
+      {...submitButtonProps}
       size="md"
       className="w-100 max-w-full"
-      loading={isSubmitting}
-      saved={isUnchangedFromSaved}
-      disabled={!allSelected || isSubmitting || isUnchangedFromSaved}
-      onClick={handleSubmit}
-      leftIcon={isUnchangedFromSaved ? Check : Save}
-      data-testid="h2h-submit-button"
-    >
-      {isUnchangedFromSaved
-        ? 'Saved'
-        : existingPicks && Object.keys(existingPicks).length > 0
-          ? 'Save H2H Changes'
-          : 'Save H2H Predictions'}
-    </Button>
+    />
+  );
+
+  const mobileSubmitButton = (
+    <Button {...submitButtonProps} size="sm" className="w-full" />
   );
 
   function handleDiscardDraft() {
@@ -212,13 +217,7 @@ export function H2HPredictionForm({
     <>
       {restoredDraftAt ? (
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
-          <span className="text-xs text-text">
-            We restored your unsaved picks from{' '}
-            <span suppressHydrationWarning>
-              {formatDateTime(restoredDraftAt)}
-            </span>
-            {' — '}save below to lock them in.
-          </span>
+          <span className="text-xs text-text">Unsaved draft restored</span>
           <Button variant="text" size="inline" onClick={handleDiscardDraft}>
             Discard Draft
           </Button>
@@ -232,26 +231,26 @@ export function H2HPredictionForm({
         actionCard={
           <div className="hidden items-stretch sm:flex">
             <div className="flex w-full items-center justify-center p-3">
-              {submitButton}
+              {desktopSubmitButton}
             </div>
           </div>
         }
       />
 
       {/* Submit row — sticky on mobile so progress + save stay visible while
-          scrolling the long matchup list. The -mx-3/px-3 pair must mirror the
-          page container's mobile padding (px-3 in RaceEventPageLayout) so the
-          bar bleeds full-width. */}
-      <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page/95 px-3 py-2.5 backdrop-blur-sm sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+          scrolling the long matchup list. The -mx-3/-mb-4 pair mirrors the
+          page container's mobile padding (px-3 py-4 in RaceEventPageLayout)
+          so the bar sits flush without extra dead space above the footer. */}
+      <div className="sticky bottom-0 z-10 -mx-3 -mb-4 border-t border-border bg-page/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] backdrop-blur-sm sm:static sm:z-auto sm:mx-0 sm:mb-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0 sm:backdrop-blur-none">
+        <div className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-3">
           {!allSelected && (
-            <span className="mt-2 w-full text-center text-sm text-text-muted sm:w-auto">
+            <span className="text-center text-sm text-text-muted sm:w-auto">
               {totalMatchups - selectedCount} matchup
               {totalMatchups - selectedCount !== 1 ? 's' : ''} remaining
             </span>
           )}
 
-          <div className="sm:hidden">{submitButton}</div>
+          <div className="sm:hidden">{mobileSubmitButton}</div>
 
           {submitStatus === 'success' && (
             <span

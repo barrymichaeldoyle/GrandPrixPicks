@@ -10,6 +10,7 @@ import {
   formatInTimeZone,
   formatMonthDay,
   formatTime,
+  formatTimeZoneAbbreviation,
 } from './date';
 
 type DateLike = number | string | Date;
@@ -43,5 +44,7 @@ export function useUserDateFormat() {
       timeZone: string,
       options: Intl.DateTimeFormatOptions,
     ) => formatInTimeZone(timestamp, timeZone, options, settings),
+    formatTimeZoneAbbreviation: (timestamp: DateLike, timeZone: string) =>
+      formatTimeZoneAbbreviation(timestamp, timeZone, settings),
   };
 }

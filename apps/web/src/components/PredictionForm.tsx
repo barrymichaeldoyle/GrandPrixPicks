@@ -37,7 +37,6 @@ import {
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { useUserDateFormat } from '../lib/useUserDateFormat';
 import type { SessionType } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { Button } from './Button/Button';
@@ -309,7 +308,6 @@ export function PredictionForm({
   const race = useQuery(api.races.getRace, { raceId });
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
-  const { formatDateTime } = useUserDateFormat();
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
 
   const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);
@@ -615,9 +613,7 @@ export function PredictionForm({
       <div className="space-y-4 sm:space-y-6">
         {restoredDraftAt ? (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
-            <span className="text-xs text-text">
-              Draft restored: {formatDateTime(restoredDraftAt)}
-            </span>
+            <span className="text-xs text-text">Unsaved draft restored</span>
             <Button variant="text" size="inline" onClick={handleDiscardDraft}>
               Discard Draft
             </Button>
@@ -752,12 +748,12 @@ export function PredictionForm({
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
               {picks.length >= 5 ? (
-                <span className="ml-2 text-sm font-normal whitespace-nowrap text-text-muted">
+                <span className="mt-1 block text-sm font-normal text-text-muted sm:mt-0 sm:ml-2 sm:inline">
                   (remove a pick to change)
                 </span>
               ) : (
                 <span
-                  className="mt-1 block text-sm font-normal whitespace-nowrap text-text-muted sm:mt-0 sm:ml-2 sm:inline"
+                  className="mt-1 block text-sm font-normal text-text-muted sm:mt-0 sm:ml-2 sm:inline"
                   data-testid="picks-remaining"
                 >
                   Select {5 - picks.length} more driver

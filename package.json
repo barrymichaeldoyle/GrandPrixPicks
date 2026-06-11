@@ -51,5 +51,5 @@
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },
-  "packageManager": "pnpm@11.5.2"
+  "packageManager": "pnpm@11.5.3"
 }

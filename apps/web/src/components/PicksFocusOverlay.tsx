@@ -6,10 +6,17 @@ import { createPortal } from 'react-dom';
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
 
+/** Sentinel key marking the history entry pushed while the overlay is open. */
+const HISTORY_KEY = 'picksFocusOverlay';
+
 interface PicksFocusOverlayProps {
   open: boolean;
-  /** Called when the user asks to leave (close button, Escape, backdrop). */
+  /** Called when the user asks to leave (close button, Escape, backdrop, Back). */
   onClose: () => void;
+  /** While true the overlay ignores Escape/backdrop/Back and releases its
+      focus trap — set this when a confirm dialog is stacked on top so the
+      two don't fight over the same events. */
+  suspended?: boolean;
   title: ReactNode;
   subtitle?: ReactNode;
   children: ReactNode;
@@ -23,16 +30,29 @@ interface PicksFocusOverlayProps {
 export function PicksFocusOverlay({
   open,
   onClose,
+  suspended = false,
   title,
   subtitle,
   children,
 }: PicksFocusOverlayProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const suspendedRef = useRef(suspended);
+  suspendedRef.current = suspended;
 
+  // Focus the panel on open; hand focus back to the trigger on close.
   useEffect(() => {
-    if (open) {
-      panelRef.current?.focus();
+    if (!open) {
+      return;
     }
+    const previouslyFocused = document.activeElement;
+    panelRef.current?.focus();
+    return () => {
+      if (previouslyFocused instanceof HTMLElement) {
+        previouslyFocused.focus();
+      }
+    };
   }, [open]);
 
   useEffect(() => {
@@ -43,6 +63,46 @@ export function PicksFocusOverlay({
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  // Make browser/hardware Back close the overlay instead of leaving the page
+  // (it's a full-screen takeover on mobile, where Back is the natural close
+  // gesture). We push a same-URL sentinel entry on open; popping it asks to
+  // close. The handler re-pushes the sentinel before asking so that if the
+  // close is declined (unsaved-changes confirm), Back still works next time;
+  // when the overlay does close, the cleanup consumes the sentinel.
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    window.history.pushState(
+      { ...window.history.state, [HISTORY_KEY]: true },
+      '',
+    );
+    function handlePopState() {
+      window.history.pushState(
+        { ...window.history.state, [HISTORY_KEY]: true },
+        '',
+      );
+      if (!suspendedRef.current) {
+        onCloseRef.current();
+      }
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (window.history.state?.[HISTORY_KEY]) {
+        // Consume our sentinel. The resulting popstate is bookkeeping, not a
+        // user Back — swallow it so a chained overlay (Top 5 save → H2H) that
+        // mounted in the meantime doesn't treat it as a close request.
+        function swallowOwnPop(e: PopStateEvent) {
+          window.removeEventListener('popstate', swallowOwnPop);
+          e.stopImmediatePropagation();
+        }
+        window.addEventListener('popstate', swallowOwnPop);
+        window.history.back();
+      }
     };
   }, [open]);
 
@@ -77,11 +137,11 @@ export function PicksFocusOverlay({
   }
 
   useEffect(() => {
-    if (open) {
+    if (open && !suspended) {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [open, handleKeyDown]);
+  }, [open, suspended, handleKeyDown]);
 
   if (!open) {
     return null;
@@ -92,7 +152,7 @@ export function PicksFocusOverlay({
       data-testid="picks-focus-overlay"
       className="fixed inset-0 z-50 flex bg-page sm:items-center sm:justify-center sm:bg-black/60 sm:p-4"
       onClick={(e) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !suspended) {
           onClose();
         }
       }}

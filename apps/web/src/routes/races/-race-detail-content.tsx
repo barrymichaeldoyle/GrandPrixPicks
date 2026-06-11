@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button/Button';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/error/ErrorBoundary';
 import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
@@ -91,8 +92,10 @@ export function H2HSection({
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
 
   const overlayOpen = initialPicksOpen || editingSession !== null;
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   function closeOverlay() {
+    setShowCloseConfirm(false);
     setInitialPicksOpen(false);
     setEditingSession(null);
     onEditingDirtyChange?.(false);
@@ -100,12 +103,8 @@ export function H2HSection({
 
   function requestCloseOverlay() {
     if (hasUnsavedEditingChanges) {
-      const confirmClose = window.confirm(
-        'You have unsaved H2H changes. Close without saving them?',
-      );
-      if (!confirmClose) {
-        return;
-      }
+      setShowCloseConfirm(true);
+      return;
     }
     closeOverlay();
   }
@@ -180,6 +179,7 @@ export function H2HSection({
         <PicksFocusOverlay
           open={overlayOpen}
           onClose={requestCloseOverlay}
+          suspended={showCloseConfirm}
           title={
             editingSession
               ? `${SESSION_LABELS[editingSession]} — Head-to-Head`
@@ -205,6 +205,14 @@ export function H2HSection({
           />
         </PicksFocusOverlay>
       )}
+      <ConfirmDialog
+        open={showCloseConfirm}
+        onClose={() => setShowCloseConfirm(false)}
+        onConfirm={closeOverlay}
+        title="Close without saving?"
+        description="You have unsaved H2H changes. We'll keep them as a draft on this device, but they won't count until you save them."
+        confirmLabel="Close Without Saving"
+      />
     </div>
   );
 }

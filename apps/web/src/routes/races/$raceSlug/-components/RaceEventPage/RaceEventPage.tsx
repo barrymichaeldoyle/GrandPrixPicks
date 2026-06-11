@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { Badge } from '../../../../../components/Badge';
 import { Button } from '../../../../../components/Button/Button';
+import { ConfirmDialog } from '../../../../../components/ConfirmDialog';
 import { ErrorBoundary } from '../../../../../components/error/ErrorBoundary';
 import { PicksFocusOverlay } from '../../../../../components/PicksFocusOverlay';
 import { PredictionForm } from '../../../../../components/PredictionForm';
@@ -155,8 +156,10 @@ export function RaceEventPage({
   // Controlled open state for the H2H first-time picks overlay (lives in
   // H2HSection) so a Top 5 save can chain straight into H2H picks.
   const [h2hInitialPicksOpen, setH2hInitialPicksOpen] = useState(false);
+  const [showTop5CloseConfirm, setShowTop5CloseConfirm] = useState(false);
 
   function closeTop5Overlay() {
+    setShowTop5CloseConfirm(false);
     setTop5StartTarget(null);
     onTop5EditingSessionChange(null);
     onTop5DirtyChange(false);
@@ -173,12 +176,8 @@ export function RaceEventPage({
 
   function requestCloseTop5Overlay() {
     if (top5HasUnsavedChanges) {
-      const confirmClose = window.confirm(
-        'You have unsaved Top 5 changes. Close without saving them?',
-      );
-      if (!confirmClose) {
-        return;
-      }
+      setShowTop5CloseConfirm(true);
+      return;
     }
     closeTop5Overlay();
   }
@@ -357,6 +356,7 @@ export function RaceEventPage({
       <PicksFocusOverlay
         open={top5OverlayOpen}
         onClose={requestCloseTop5Overlay}
+        suspended={showTop5CloseConfirm}
         title={
           top5OverlaySession
             ? `${SESSION_LABELS[top5OverlaySession]} — Top 5`
@@ -385,6 +385,14 @@ export function RaceEventPage({
           />
         </div>
       </PicksFocusOverlay>
+      <ConfirmDialog
+        open={showTop5CloseConfirm}
+        onClose={() => setShowTop5CloseConfirm(false)}
+        onConfirm={closeTop5Overlay}
+        title="Close without saving?"
+        description="You have unsaved Top 5 changes. We'll keep them as a draft on this device, but they won't count until you save them."
+        confirmLabel="Close Without Saving"
+      />
     </>
   );
 }

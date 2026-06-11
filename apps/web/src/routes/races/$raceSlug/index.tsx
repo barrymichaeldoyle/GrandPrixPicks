@@ -199,18 +199,9 @@ function RaceDetailPage() {
       return;
     }
 
-    const hasUnsavedTop5 = top5EditingSession !== null && top5HasUnsavedChanges;
-    const hasUnsavedH2H = h2hEditingSession !== null && h2hHasUnsavedChanges;
-
-    if (hasUnsavedTop5 || hasUnsavedH2H) {
-      const confirmSwitch = window.confirm(
-        'You have unsaved prediction changes for this session. Switch tabs and discard them?',
-      );
-      if (!confirmSwitch) {
-        return;
-      }
-    }
-
+    // No unsaved-changes guard needed here: picks are only edited inside the
+    // focus overlay, which covers the tab bar — the overlay's own close
+    // confirm handles dirty state before tabs are reachable again.
     setTop5EditingSession(null);
     setH2hEditingSession(null);
     setTop5HasUnsavedChanges(false);
@@ -292,6 +283,10 @@ function RaceDetailPage() {
   );
 
   // ─── H2H queries (unchanged) ───
+  // Keep the matchups subscription warm at route level: H2HSection (which
+  // also queries this) only mounts after Top 5 picks exist, and without the
+  // warm cache the Top 5 → H2H chained overlay opens onto a loading spinner.
+  useQuery(api.h2h.getMatchupsForSeason, race ? {} : 'skip');
   const h2hPredictions = useQuery(
     api.h2h.myH2HPredictionsForRace,
     race ? { raceId: race._id } : 'skip',

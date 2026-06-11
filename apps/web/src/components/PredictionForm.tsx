@@ -40,6 +40,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import type { SessionType } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { Button } from './Button/Button';
+import { ConfirmDialog } from './ConfirmDialog';
 import { TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { InlineLoader } from './InlineLoader';
@@ -427,20 +428,6 @@ export function PredictionForm({
     disabled: !enableNavigationBlocker || !hasChanges,
   });
 
-  useEffect(() => {
-    if (!enableNavigationBlocker || blocker.status !== 'blocked') {
-      return;
-    }
-    const confirmLeave = window.confirm(
-      'You have unsaved predictions. Leave this page without submitting your picks?',
-    );
-    if (confirmLeave) {
-      blocker.proceed();
-    } else {
-      blocker.reset();
-    }
-  }, [blocker, enableNavigationBlocker]);
-
   if (drivers === undefined) {
     return <InlineLoader />;
   }
@@ -794,6 +781,16 @@ export function PredictionForm({
           </div>
         </div>
       </div>
+      {enableNavigationBlocker && blocker.status === 'blocked' && (
+        <ConfirmDialog
+          open
+          onClose={() => blocker.reset()}
+          onConfirm={() => blocker.proceed()}
+          title="Leave without saving?"
+          description="You have unsaved picks. We'll keep them as a draft on this device, but they won't count until you save them."
+          confirmLabel="Leave Page"
+        />
+      )}
     </DndContext>
   );
 }

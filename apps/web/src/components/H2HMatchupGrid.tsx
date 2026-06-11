@@ -48,7 +48,7 @@ export function H2HMatchupGrid({
   readonlyClickTooltip,
 }: H2HMatchupGridProps) {
   const gridClassName = [
-    'grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3',
+    'grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3 pb-2',
     className,
   ]
     .filter(Boolean)

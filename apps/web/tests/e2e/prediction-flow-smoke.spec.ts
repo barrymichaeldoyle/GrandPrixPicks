@@ -16,8 +16,10 @@ test.describe('[flow] smoke', () => {
       namespace: 'scenario__race_upcoming_signed_in_no_picks__pwauth',
     });
 
-    await expect(page.getByText('Top 5 Predictions')).toBeVisible();
     await expect(page.getByText('Pick your top 5 drivers.')).toBeVisible();
+    await page.getByTestId('top5-start-button').click();
+
+    await expect(page.getByTestId('picks-focus-overlay')).toBeVisible();
     await expect(page.getByTestId('your-picks')).toBeVisible();
     await expect(page.getByTestId('submit-prediction')).toBeDisabled();
 
@@ -26,9 +28,15 @@ test.describe('[flow] smoke', () => {
     await expect(page.getByTestId('submit-prediction')).toBeEnabled();
     await page.getByTestId('submit-prediction').click();
 
+    // Saving Top 5 chains straight into the H2H picks focus overlay.
+    await expect(page.getByTestId('h2h-submit-button').first()).toBeVisible();
+    await page.getByTestId('picks-focus-close').click();
+
+    await expect(page.getByTestId('picks-focus-overlay')).toHaveCount(0);
     await expect(page.getByTestId('race-top5-section')).toBeVisible();
     await expect(page.getByText('Top 5 Predictions')).toBeVisible();
     await expect(page.getByTestId('your-picks')).toHaveCount(0);
+    await expect(page.getByTestId('h2h-start-button')).toBeVisible();
   });
 
   test('allows H2H editing before lock and becomes locked after a dev-time shift', async ({
@@ -70,8 +78,10 @@ test.describe('[flow] smoke', () => {
     await expect(page.getByTestId('race-h2h-section')).toBeVisible();
     await page.getByTestId('h2h-edit-button').click();
 
-    const editablePick = page
-      .getByTestId('race-h2h-section')
+    const overlay = page.getByTestId('picks-focus-overlay');
+    await expect(overlay).toBeVisible();
+
+    const editablePick = overlay
       .locator('button[aria-pressed="false"]')
       .first();
     const editedPickLabel = await editablePick.getAttribute('aria-label');
@@ -79,12 +89,13 @@ test.describe('[flow] smoke', () => {
     expect(editedPickLabel).toBeTruthy();
 
     await editablePick.click();
-    const submitButton = page
-      .getByTestId('race-h2h-section')
+    const submitButton = overlay
       .getByRole('button', { name: 'Save H2H Changes' })
       .first();
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
+
+    await expect(page.getByTestId('picks-focus-overlay')).toHaveCount(0);
 
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('header-user-authenticated')).toBeVisible();
@@ -94,7 +105,7 @@ test.describe('[flow] smoke', () => {
 
     await expect(
       page
-        .getByTestId('race-h2h-section')
+        .getByTestId('picks-focus-overlay')
         .getByRole('button', { name: editedPickLabel! }),
     ).toHaveAttribute('aria-pressed', 'true');
   });

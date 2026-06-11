@@ -13,3 +13,8 @@ export function displayTeamName(team: string | null | undefined): string {
   }
   return TEAM_DISPLAY_NAMES[team] ?? team;
 }
+
+/** "Spanish Grand Prix" → "Spanish GP"; for compact race labels. */
+export function abbreviateGrandPrix(name: string): string {
+  return name.replace(/\bGrand Prix\b/g, 'GP');
+}

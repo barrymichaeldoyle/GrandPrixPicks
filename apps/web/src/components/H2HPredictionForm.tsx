@@ -189,11 +189,7 @@ export function H2HPredictionForm({
   };
 
   const desktopSubmitButton = (
-    <Button
-      {...submitButtonProps}
-      size="md"
-      className="w-100 max-w-full"
-    />
+    <Button {...submitButtonProps} size="md" className="w-100 max-w-full" />
   );
 
   const mobileSubmitButton = (
@@ -238,10 +234,10 @@ export function H2HPredictionForm({
       />
 
       {/* Submit row — sticky on mobile so progress + save stay visible while
-          scrolling the long matchup list. The -mx-3/-mb-4 pair mirrors the
-          page container's mobile padding (px-3 py-4 in RaceEventPageLayout)
-          so the bar sits flush without extra dead space above the footer. */}
-      <div className="sticky bottom-0 z-10 -mx-3 -mb-4 border-t border-border bg-page/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] backdrop-blur-sm sm:static sm:z-auto sm:mx-0 sm:mb-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0 sm:backdrop-blur-none">
+          scrolling the long matchup list. The -mx-3 mirrors the px-3 mobile
+          padding of PicksFocusOverlay's body (which has no bottom padding on
+          mobile) so the bar spans full width and pins flush at the bottom. */}
+      <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0">
         <div className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-3">
           {!allSelected && (
             <span className="text-center text-sm text-text-muted sm:w-auto">

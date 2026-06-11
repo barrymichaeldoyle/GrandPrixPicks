@@ -24,6 +24,7 @@ import { FaqItem, FaqSection } from '../components/Faq';
 import { Flag as CountryFlag } from '../components/Flag';
 import { useUpcomingPredictionBannerState } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { getCountryCodeForRace } from '../components/RaceCard';
+import { abbreviateGrandPrix } from '../lib/display';
 import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { SHOW_DEV_TIME_CONTROLS } from '../lib/devFlags';
 import { canonicalMeta, defaultOgImage } from '../lib/site';
@@ -123,6 +124,11 @@ export const Route = createFileRoute('/')({
 
 // --- Countdown ---
 
+// Digit boxes scale fluidly below sm so all four units (with separators) fit
+// even on a 320px-wide screen — fixed widths clipped DAYS/SEC on iPhone SE.
+const COUNTDOWN_DIGIT_CLASS =
+  'home-countdown-digit font-title flex h-[clamp(2.6rem,12.5vw,3.5rem)] w-[clamp(1.7rem,9vw,2.5rem)] items-center justify-center rounded-md text-[clamp(1.7rem,8.5vw,2.5rem)] leading-none font-bold text-text sm:h-[5.25rem] sm:w-[3.75rem] sm:rounded-lg sm:text-[4rem]';
+
 function TimeUnit({ value, label }: { value: number; label: string }) {
   const [tens, ones] = String(value).padStart(2, '0').split('') as [
     string,
@@ -131,12 +137,8 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-2 sm:gap-2.5">
       <div className="home-countdown-group flex gap-1 sm:gap-1.5">
-        <span className="home-countdown-digit font-title flex h-[3.5rem] w-[2.5rem] items-center justify-center rounded-md text-[2.5rem] leading-none font-bold text-text sm:h-[5.25rem] sm:w-[3.75rem] sm:rounded-lg sm:text-[4rem]">
-          {tens}
-        </span>
-        <span className="home-countdown-digit font-title flex h-[3.5rem] w-[2.5rem] items-center justify-center rounded-md text-[2.5rem] leading-none font-bold text-text sm:h-[5.25rem] sm:w-[3.75rem] sm:rounded-lg sm:text-[4rem]">
-          {ones}
-        </span>
+        <span className={COUNTDOWN_DIGIT_CLASS}>{tens}</span>
+        <span className={COUNTDOWN_DIGIT_CLASS}>{ones}</span>
       </div>
       <span className="text-[10px] font-semibold tracking-[0.22em] text-text-muted uppercase sm:text-[11px] sm:tracking-widest">
         {label}
@@ -338,10 +340,6 @@ function SessionRow({
       </span>
     </div>
   );
-}
-
-function abbreviateGrandPrix(name: string) {
-  return name.replace(/\bGrand Prix\b/g, 'GP');
 }
 
 // "Monaco Grand Prix" → "Monaco"; used for race-specific CTA labels.
@@ -956,6 +954,24 @@ function HomePage() {
                 {!isPredictionBannerVisible &&
                   hasCompleteUpcomingPredictions && (
                     <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
+                      {/* Returning users mostly come back to tweak their picks —
+                          keep a direct route to them even when they're complete. */}
+                      {nextRace && (
+                        <Button
+                          asChild
+                          variant="primary"
+                          size="md"
+                          rightIcon={ArrowRight}
+                        >
+                          <Link
+                            to="/races/$raceSlug"
+                            params={{ raceSlug: nextRace.slug }}
+                            search={{ from: 'home' }}
+                          >
+                            Review My Picks
+                          </Link>
+                        </Button>
+                      )}
                       <Button
                         asChild
                         variant="secondary"

@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, CircleX, Pencil, Swords } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Swords } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -11,9 +11,11 @@ import { Button } from '../../components/Button/Button';
 import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/error/ErrorBoundary';
 import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
-import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
+import { H2HPredictionForm } from '../../components/H2HPredictionForm';
 import { InlineLoader } from '../../components/InlineLoader';
+import { PicksFocusOverlay } from '../../components/PicksFocusOverlay';
 import { RandomizeButton } from '../../components/RandomizeButton';
+import { StartPicksCta } from '../../components/StartPicksCta';
 import { StepBadge } from '../../components/StepBadge';
 import { Tooltip } from '../../components/Tooltip';
 import { getRaceSessionLockAt } from '../../lib/raceSessions';
@@ -35,6 +37,10 @@ interface H2HSectionProps {
   hasH2HPredictions?: boolean;
   onEditingDirtyChange?: (dirty: boolean) => void;
   hasUnsavedEditingChanges?: boolean;
+  /** Controlled open state for the first-time (cascade) picks overlay, so the
+      parent can auto-open it (e.g. chained right after a Top 5 save). */
+  initialPicksOpen?: boolean;
+  onInitialPicksOpenChange?: (open: boolean) => void;
 }
 
 export function H2HSection({
@@ -47,6 +53,8 @@ export function H2HSection({
   hasH2HPredictions,
   onEditingDirtyChange,
   hasUnsavedEditingChanges = false,
+  initialPicksOpen: controlledInitialPicksOpen,
+  onInitialPicksOpenChange,
 }: H2HSectionProps) {
   const [internalEditing, setInternalEditing] = useState<SessionType | null>(
     null,
@@ -56,6 +64,17 @@ export function H2HSection({
       ? (controlledEditing ?? null)
       : internalEditing;
   const setEditingSession = onEditingSessionChange ?? setInternalEditing;
+  // First-time H2H picks (cascade to all sessions) also happen in the focus
+  // overlay; this tracks whether it's open (from the start CTA, or auto-opened
+  // by the parent right after the Top 5 save).
+  const [internalInitialPicksOpen, setInternalInitialPicksOpen] =
+    useState(false);
+  const initialPicksOpen =
+    onInitialPicksOpenChange !== undefined
+      ? (controlledInitialPicksOpen ?? false)
+      : internalInitialPicksOpen;
+  const setInitialPicksOpen =
+    onInitialPicksOpenChange ?? setInternalInitialPicksOpen;
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
@@ -71,6 +90,26 @@ export function H2HSection({
   const selectedSessionHasH2H =
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
 
+  const overlayOpen = initialPicksOpen || editingSession !== null;
+
+  function closeOverlay() {
+    setInitialPicksOpen(false);
+    setEditingSession(null);
+    onEditingDirtyChange?.(false);
+  }
+
+  function requestCloseOverlay() {
+    if (hasUnsavedEditingChanges) {
+      const confirmClose = window.confirm(
+        'You have unsaved H2H changes. Close without saving them?',
+      );
+      if (!confirmClose) {
+        return;
+      }
+    }
+    closeOverlay();
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -82,27 +121,7 @@ export function H2HSection({
           </h2>
           {hasH2HPredictions && (
             <>
-              {editingSession ? (
-                <Button
-                  variant="text"
-                  size="inline"
-                  leftIcon={CircleX}
-                  onClick={() => {
-                    if (hasUnsavedEditingChanges) {
-                      const confirmStop = window.confirm(
-                        'You have unsaved H2H changes. Stop editing and discard them?',
-                      );
-                      if (!confirmStop) {
-                        return;
-                      }
-                    }
-                    setEditingSession(null);
-                  }}
-                  title={`Stop Editing ${SESSION_LABELS[selectedSession]} H2H Predictions`}
-                >
-                  Stop Editing
-                </Button>
-              ) : canEditSelectedSession ? (
+              {canEditSelectedSession ? (
                 <Button
                   variant="text"
                   size="inline"
@@ -139,18 +158,53 @@ export function H2HSection({
       <ErrorBoundary>
         {isLoadingPredictions ? (
           <InlineLoader />
-        ) : (
-          <H2HWeekendSummary
-            race={race}
-            h2hPredictions={h2hPredictions}
+        ) : hasH2HPredictions ? (
+          <H2HMatchupGrid
             matchups={matchups}
-            selectedSession={selectedSession}
-            editingSession={editingSession}
-            onEditingSessionChange={setEditingSession}
-            onEditingDirtyChange={onEditingDirtyChange}
+            selections={h2hPredictions?.[selectedSession] ?? {}}
+            mode="readonly"
+            readonlyClickTooltip="Click edit above to change"
+          />
+        ) : (
+          <StartPicksCta
+            icon={Swords}
+            description="Pick each teammate matchup once. We'll apply it across the weekend, and you can edit sessions before they start."
+            actionLabel="Pick H2H Winners"
+            onStart={() => setInitialPicksOpen(true)}
+            data-testid="h2h-start-button"
           />
         )}
       </ErrorBoundary>
+
+      {matchups !== undefined && (
+        <PicksFocusOverlay
+          open={overlayOpen}
+          onClose={requestCloseOverlay}
+          title={
+            editingSession
+              ? `${SESSION_LABELS[editingSession]} — Head-to-Head`
+              : 'Head-to-Head Predictions'
+          }
+          subtitle={
+            editingSession
+              ? 'Applies to this session only'
+              : 'Applies to every session this weekend'
+          }
+        >
+          <H2HPredictionForm
+            raceId={race._id}
+            matchups={matchups}
+            sessionType={editingSession ?? undefined}
+            existingPicks={
+              editingSession
+                ? (h2hPredictions?.[editingSession] ?? undefined)
+                : undefined
+            }
+            onSuccess={closeOverlay}
+            onDirtyChange={onEditingDirtyChange}
+          />
+        </PicksFocusOverlay>
+      )}
     </div>
   );
 }

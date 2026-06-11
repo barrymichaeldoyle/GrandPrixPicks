@@ -8,8 +8,11 @@ import { useEffect, useRef } from 'react';
 
 import { HeaderUser } from '../integrations/clerk/header-user.tsx';
 import { useInitialAuth } from '../integrations/clerk/initial-auth';
+import { abbreviateGrandPrix } from '../lib/display';
 import { primaryNavLinks } from '../lib/navigation';
+import { Flag as CountryFlag } from './Flag.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
+import { getCountryCodeForRace } from './RaceCard.tsx';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -44,6 +47,50 @@ function DesktopNavLink({
       }
     >
       {label}
+    </Link>
+  );
+}
+
+/**
+ * Always-available shortcut to the next race's picks for signed-in users —
+ * returning users shouldn't have to go via Races → find the round. Shows the
+ * race flag everywhere; the race name joins it when there's room.
+ */
+function NextRaceQuickLink({ isSignedIn }: { isSignedIn: boolean }) {
+  const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
+
+  if (!isSignedIn || !nextRace || nextRace.status !== 'upcoming') {
+    return null;
+  }
+
+  const countryCode = getCountryCodeForRace(nextRace);
+
+  // Width tiers (measured against logo + desktop nav + bell + avatar; the
+  // avatar must never be pushed out — it's the only nav when signed in):
+  //   <500px: flag-only pill
+  //   500–843px: flag + race name (no desktop nav yet, plenty of room)
+  //   844–899px: hidden — the desktop nav appears at 844 and fills the bar
+  //   900–959px: flag-only
+  //   ≥960px: flag + race name
+  return (
+    <Link
+      to="/races/$raceSlug"
+      params={{ raceSlug: nextRace.slug }}
+      className="flex shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
+      aria-label={`${nextRace.name} — your picks`}
+      title={`${nextRace.name} — your picks`}
+      data-testid="header-next-race-link"
+    >
+      {countryCode ? (
+        <span className="inline-flex h-3.5 shrink-0 overflow-hidden rounded-[2px]">
+          <CountryFlag code={countryCode} size="full" />
+        </span>
+      ) : (
+        <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      )}
+      <span className="hidden min-[500px]:inline min-[844px]:hidden min-[960px]:inline">
+        {abbreviateGrandPrix(nextRace.name)}
+      </span>
     </Link>
   );
 }
@@ -219,7 +266,15 @@ export function Header({
                 aria-hidden="true"
               />
             </span>
-            <span className="font-title pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent">
+            {/* Below 390px (iPhone SE / 12 mini) the wordmark shortens to
+                "GP Picks" — with the next-race pill there isn't room for the
+                full name, and the UserButton must stay visible (it's the only
+                mobile nav when signed in). iPhone 14 Pro (393px) and wider
+                fit the full wordmark alongside the flag-only pill. */}
+            <span className="font-title pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:hidden">
+              GP Picks
+            </span>
+            <span className="font-title hidden pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:inline">
               Grand Prix Picks
             </span>
           </Link>
@@ -283,6 +338,9 @@ export function Header({
               </AnimatePresence>
             </motion.button>
           )}
+
+          {/* Quick link to the next race's picks — signed-in only */}
+          <NextRaceQuickLink isSignedIn={!!isSignedIn} />
 
           {/* Notification bell — signed-in only */}
           {isLoaded && isSignedIn && <NotificationBell />}

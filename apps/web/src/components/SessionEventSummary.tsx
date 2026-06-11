@@ -31,8 +31,12 @@ export function SessionEventSummary({
   trackTimeZone?: string;
   now?: number;
 }) {
-  const { formatDate, formatTime, formatInTimeZone, formatTimeZoneAbbreviation } =
-    useUserDateFormat();
+  const {
+    formatDate,
+    formatTime,
+    formatInTimeZone,
+    formatTimeZoneAbbreviation,
+  } = useUserDateFormat();
   const lockStatus = getLockStatusViewModel({
     msRemaining: lockAt - now,
   });

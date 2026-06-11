@@ -401,17 +401,30 @@ function RaceDetailPage() {
     race?.timeZone ??
     (race ? getRaceTimeZoneFromSlug(race.slug) : undefined) ??
     'UTC';
+  // Single source of truth for the two-step picks flow (tab labels, the
+  // "n of 2 done" header, and the step badges all derive from these).
+  function isTop5SavedForSession(session: SessionType): boolean {
+    return weekendPredictions?.predictions?.[session] != null;
+  }
+  function isH2HSavedForSession(session: SessionType): boolean {
+    return h2hPredictions?.[session] != null;
+  }
+
   const predictionSessionOptions = weekendSessions.map((session) => {
     const sessionData = cardData?.sessions[session] ?? null;
     const hasResults = sessionData?.hasResults ?? false;
     const isLocked = sessionData?.isLocked ?? false;
     const sessionPoints =
       (scores?.[session]?.points ?? 0) + h2hPointsBySession[session];
+    const sessionPicksComplete =
+      isTop5SavedForSession(session) && isH2HSavedForSession(session);
     const secondaryLabel = hasResults
       ? `+${sessionPoints}`
       : isLocked
         ? 'Locked'
-        : 'Open';
+        : sessionPicksComplete
+          ? '✓ Picked'
+          : 'Open';
     const secondaryClassName = hasResults
       ? 'text-accent'
       : isLocked
@@ -476,6 +489,8 @@ function RaceDetailPage() {
         getSessionStartAt={getSessionStartAt}
         getSessionLockAt={getSessionLockAt}
         isSessionPublished={(session) => publishedSessionSet.has(session)}
+        top5SelectedSessionDone={isTop5SavedForSession(selectedSession)}
+        h2hSelectedSessionDone={isH2HSavedForSession(selectedSession)}
         cardData={cardData}
         top5EditingSession={top5EditingSession}
         onTop5EditingSessionChange={setTop5EditingSession}

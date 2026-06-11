@@ -2690,7 +2690,13 @@ export const _clearDevDataBatch = internalMutation({
 });
 
 /**
- * Internal: Reset all races to upcoming with original 2026 calendar dates.
+ * Internal: Make the races table match the real 2026 calendar — every real
+ * race reset to upcoming with its original dates, and any race that isn't on
+ * the calendar deleted. The deleted ones are leftover e2e/testing scenario
+ * races (e.g. `scenario-race-*`, `social-race-*`); their dates hover around
+ * the dev "now", so they would otherwise win `getNextRace` over the real
+ * calendar. Their dependent data is wiped by `_clearDevDataBatch`, so
+ * deleting the race docs is enough.
  */
 export const _resetRacesToUpcoming = internalMutation({
   args: {},
@@ -2698,10 +2704,13 @@ export const _resetRacesToUpcoming = internalMutation({
     const now = Date.now();
     const races = await ctx.db.query('races').collect();
     let reset = 0;
+    let deleted = 0;
 
     for (const race of races) {
       const original = F1_RACES_2026.find((r) => r.slug === race.slug);
       if (!original) {
+        await ctx.db.delete(race._id);
+        deleted++;
         continue;
       }
 
@@ -2730,7 +2739,7 @@ export const _resetRacesToUpcoming = internalMutation({
       reset++;
     }
 
-    return { reset };
+    return { reset, deleted };
   },
 });
 
@@ -4770,10 +4779,10 @@ export const reseedDevThroughMonaco = internalAction({
     // Phase 2: Clear leagues
     await ctx.runMutation(internal.seed._clearLeagueData);
 
-    // Phase 3: Reset every race to its real 2026 calendar date (upcoming)
-    const raceResult: { reset: number } = await ctx.runMutation(
-      internal.seed._resetRacesToUpcoming,
-    );
+    // Phase 3: Reset every real race to its 2026 calendar date (upcoming);
+    // this also drops leftover scenario/test races
+    const raceResult: { reset: number; deleted: number } =
+      await ctx.runMutation(internal.seed._resetRacesToUpcoming);
 
     // Phase 4: Ensure drivers and H2H matchups exist
     await ctx.runMutation(internal.seed.seedDrivers);
@@ -4810,6 +4819,7 @@ export const reseedDevThroughMonaco = internalAction({
 
     return {
       cleared: totalDeleted,
+      scenarioRacesDeleted: raceResult.deleted,
       racesReset: raceResult.reset,
       throughRace: 'Monaco Grand Prix',
       nextOpenRace: 'Spanish Grand Prix',

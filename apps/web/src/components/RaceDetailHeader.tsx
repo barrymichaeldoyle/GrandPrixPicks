@@ -28,42 +28,31 @@ export function RaceDetailHeader({
 }: RaceDetailHeaderProps) {
   const { formatDate, formatTime } = useUserDateFormat();
   const countryCode = getCountryCodeForRace(race);
-  const accentBorderClass = isNextRace ? 'border-accent/50' : 'border-border';
 
   return (
-    <div className="flex flex-col md:flex-row md:items-stretch md:justify-between md:gap-2">
-      <div className="flex min-w-0 flex-1 items-stretch gap-0">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="flex min-w-0 items-center gap-3">
         {countryCode && (
-          <div
-            className={`h-[60px] shrink-0 self-center border-r-3 ${accentBorderClass} md:hidden`}
-          >
-            <RaceFlag
-              countryCode={countryCode}
-              size="full"
-              className="!rounded-none ring-0"
-            />
-          </div>
+          <RaceFlag
+            countryCode={countryCode}
+            size="lg"
+            className="rounded-sm"
+          />
         )}
-        {countryCode && (
-          <div
-            className={`hidden shrink-0 self-stretch border-r-3 ${accentBorderClass} md:flex md:items-stretch`}
+        <div className="min-w-0">
+          <span
+            className={`text-xs font-semibold tracking-wide uppercase ${
+              isNextRace ? 'text-accent' : 'text-text-muted'
+            }`}
           >
-            <RaceFlag
-              countryCode={countryCode}
-              size="full"
-              className="!rounded-none ring-0"
-            />
-          </div>
-        )}
-        <div className="relative flex min-w-0 flex-1 flex-col justify-between px-3 py-3 sm:px-4 sm:py-4">
-          <span className="text-xs font-medium text-text-muted">
             Round {race.round}
+            {isNextRace ? ' · Next Race' : ''}
           </span>
-          <h1 className="relative bottom-0.5 truncate text-base leading-tight font-semibold text-text sm:text-lg">
+          <h1 className="truncate text-lg leading-tight font-semibold text-text sm:text-xl">
             <span className="sm:hidden">{abbreviateGrandPrix(race.name)}</span>
             <span className="hidden sm:inline">{race.name}</span>
           </h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-muted">
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-muted">
             <span
               className="inline-flex items-center gap-1"
               suppressHydrationWarning
@@ -84,43 +73,29 @@ export function RaceDetailHeader({
       {resultsSummary && (
         <div
           data-testid="race-results-summary"
-          className={`gap-2 border-t-3 px-3 py-2 sm:px-4 md:flex md:flex-col md:justify-center md:border-t-0 md:border-l-3 ${accentBorderClass}`}
+          className="shrink-0 sm:text-right"
         >
-          {resultsSummary.showResultsPendingBadge ||
-          !resultsSummary.allEventsScored ? (
-            <>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <span className="text-xs text-text-muted">
-                  {resultsSummary.label}
-                </span>
-                {resultsSummary.showResultsPendingBadge ? (
-                  <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
-                    Results pending
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-0.5 flex flex-wrap items-baseline justify-center gap-x-4 gap-y-0.5">
-                <div className="leading-none font-bold text-accent">
-                  +{resultsSummary.points} pts
-                </div>
-                {!resultsSummary.allEventsScored ? (
-                  <p className="text-xs text-text-muted">
-                    {resultsSummary.scoredEventCount}/
-                    {resultsSummary.totalEvents} events scored
-                  </p>
-                ) : null}
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-0.5 text-center">
-              <span className="text-xs text-text-muted">
-                {resultsSummary.label}
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <span className="text-xs text-text-muted">
+              {resultsSummary.label}
+            </span>
+            {resultsSummary.showResultsPendingBadge ? (
+              <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
+                Results pending
               </span>
-              <div className="leading-none font-bold text-accent">
-                +{resultsSummary.points} pts
-              </div>
+            ) : null}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 sm:justify-end">
+            <div className="leading-none font-bold text-accent">
+              +{resultsSummary.points} pts
             </div>
-          )}
+            {!resultsSummary.allEventsScored ? (
+              <p className="text-xs text-text-muted">
+                {resultsSummary.scoredEventCount}/{resultsSummary.totalEvents}{' '}
+                events scored
+              </p>
+            ) : null}
+          </div>
         </div>
       )}
     </div>

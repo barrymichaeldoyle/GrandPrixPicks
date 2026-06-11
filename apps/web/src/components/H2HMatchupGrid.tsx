@@ -66,13 +66,15 @@ export function H2HMatchupGrid({
         return (
           <div
             key={matchup._id}
-            className="overflow-hidden rounded-lg border border-border bg-surface"
+            className="overflow-hidden rounded-lg bg-surface"
           >
-            <div
-              className="flex justify-center px-2 py-1"
-              style={{ backgroundColor: teamColor }}
-            >
-              <span className="inline-flex items-center rounded bg-black/30 px-2 py-0.5 text-xs font-bold tracking-wider text-white uppercase">
+            <div className="flex items-center gap-1.5 px-3 pt-2">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: teamColor }}
+                aria-hidden="true"
+              />
+              <span className="text-[11px] font-semibold tracking-wider text-text-muted uppercase">
                 {displayTeamName(matchup.team)}
               </span>
             </div>
@@ -85,7 +87,7 @@ export function H2HMatchupGrid({
                 const wasCorrect = isSelected && matchupPoints > 0;
                 const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-md border border-transparent px-3 pt-1 pb-2 ${
                   isSelected
-                    ? 'bg-accent-muted ring-2 ring-accent ring-inset'
+                    ? 'bg-accent-muted/60 ring-1 ring-accent/60 ring-inset'
                     : isInteractive
                       ? 'transition-all hover:bg-surface-muted'
                       : ''

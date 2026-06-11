@@ -62,6 +62,10 @@ type RaceEventPageProps = {
   getSessionStartAt: (session: SessionType) => number;
   getSessionLockAt: (session: SessionType) => number;
   isSessionPublished: (session: SessionType) => boolean;
+  /** Selected session has saved Top 5 picks (drives the step 1 indicator). */
+  top5SelectedSessionDone?: boolean;
+  /** Selected session has saved H2H picks (drives the step 2 indicator). */
+  h2hSelectedSessionDone?: boolean;
   cardData: WeekendCardData | null;
   top5EditingSession: SessionType | null;
   onTop5EditingSessionChange: (session: SessionType | null) => void;
@@ -103,6 +107,8 @@ export function RaceEventPage({
   getSessionStartAt,
   getSessionLockAt,
   isSessionPublished,
+  top5SelectedSessionDone = false,
+  h2hSelectedSessionDone = false,
   cardData,
   top5EditingSession,
   onTop5EditingSessionChange,
@@ -149,7 +155,7 @@ export function RaceEventPage({
     }
 
     return (
-      <div className="p-4">
+      <div>
         <PredictionFormComponent
           raceId={race._id}
           sessionType={top5EditingSession}
@@ -174,7 +180,7 @@ export function RaceEventPage({
     }
 
     return (
-      <div className="space-y-2 p-4">
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Trophy className="h-5 w-5 shrink-0 text-accent" />
           <h2 className="text-xl font-semibold text-text">
@@ -206,7 +212,7 @@ export function RaceEventPage({
     }
 
     return (
-      <div className="space-y-2 p-4">
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Trophy className="h-5 w-5 shrink-0 text-accent" />
           <h2 className="text-xl font-semibold text-text">
@@ -251,6 +257,8 @@ export function RaceEventPage({
       getSessionStartAt={getSessionStartAt}
       getSessionLockAt={getSessionLockAt}
       isSessionPublished={isSessionPublished}
+      top5Done={top5SelectedSessionDone}
+      h2hDone={h2hSelectedSessionDone}
       randomizeControl={randomizeControl}
       backLink={backLink}
       leaderboardLink={leaderboardLink}
@@ -281,7 +289,7 @@ export function RaceEventPage({
                   }
                   onTop5EditingSessionChange(null);
                 }}
-                title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
+                title={`Stop Editing ${SESSION_LABELS[selectedSession]} Top 5 Predictions`}
               >
                 Stop Editing
               </Button>
@@ -291,7 +299,7 @@ export function RaceEventPage({
                 size="inline"
                 leftIcon={Pencil}
                 onClick={() => onTop5EditingSessionChange(selectedSession)}
-                title={`Edit ${SESSION_LABELS[selectedSession]}`}
+                title={`Edit ${SESSION_LABELS[selectedSession]} Top 5 Predictions`}
                 data-testid="top5-edit-button"
               >
                 <span className="hidden sm:inline">Edit</span>

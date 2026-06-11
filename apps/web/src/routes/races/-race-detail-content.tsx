@@ -2,14 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  ChevronDown,
-  ChevronUp,
-  CircleAlert,
-  CircleX,
-  Pencil,
-  Swords,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, CircleX, Pencil, Swords } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -21,6 +14,7 @@ import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
 import { H2HWeekendSummary } from '../../components/H2HWeekendSummary';
 import { InlineLoader } from '../../components/InlineLoader';
 import { RandomizeButton } from '../../components/RandomizeButton';
+import { StepBadge } from '../../components/StepBadge';
 import { Tooltip } from '../../components/Tooltip';
 import { getRaceSessionLockAt } from '../../lib/raceSessions';
 import type { SessionType } from '../../lib/sessions';
@@ -76,27 +70,16 @@ export function H2HSection({
   );
   const selectedSessionHasH2H =
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
-  const shouldHighlightIncompleteH2H = Boolean(
-    !isLoadingPredictions &&
-    hasPredictions &&
-    !selectedSessionHasH2H &&
-    !selectedSessionLocked,
-  );
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Swords className="h-5 w-5 text-accent" />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <StepBadge step={2} done={Boolean(selectedSessionHasH2H)} />
           <h2 className="text-xl font-semibold text-text">
             <span className="sm:hidden">H2H Predictions</span>
             <span className="hidden sm:inline">Head-to-Head Predictions</span>
           </h2>
-          {shouldHighlightIncompleteH2H ? (
-            <Badge variant="locked" icon={<CircleAlert size={14} />}>
-              H2H picks incomplete
-            </Badge>
-          ) : null}
           {hasH2HPredictions && (
             <>
               {editingSession ? (
@@ -115,7 +98,7 @@ export function H2HSection({
                     }
                     setEditingSession(null);
                   }}
-                  title={`Stop editing ${SESSION_LABELS[selectedSession]} predictions`}
+                  title={`Stop Editing ${SESSION_LABELS[selectedSession]} H2H Predictions`}
                 >
                   Stop Editing
                 </Button>
@@ -125,7 +108,7 @@ export function H2HSection({
                   size="inline"
                   leftIcon={Pencil}
                   onClick={() => setEditingSession(selectedSession)}
-                  title={`Edit ${SESSION_LABELS[selectedSession]} Predictions`}
+                  title={`Edit ${SESSION_LABELS[selectedSession]} H2H Predictions`}
                   data-testid="h2h-edit-button"
                 >
                   <span className="hidden sm:inline">Edit</span>
@@ -152,23 +135,6 @@ export function H2HSection({
             )}
         </div>
       </div>
-
-      {shouldHighlightIncompleteH2H ? (
-        <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-3 text-sm text-text">
-          <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
-            <CircleAlert className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div className="space-y-1">
-            <p className="font-medium text-text">
-              Your Top 5 picks were recorded.
-            </p>
-            <p className="text-text-muted">
-              You still need to submit your {SESSION_LABELS[selectedSession]}{' '}
-              H2H picks before this session starts.
-            </p>
-          </div>
-        </div>
-      ) : null}
 
       <ErrorBoundary>
         {isLoadingPredictions ? (
@@ -438,7 +404,7 @@ export function H2HResultsSection({
   }
 
   return (
-    <div className="p-4" data-testid="session-points-breakdown">
+    <div data-testid="session-points-breakdown">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />

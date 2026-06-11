@@ -1,23 +1,14 @@
 import type { Doc } from '@convex-generated/dataModel';
-import { Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import type { SessionType } from '../../../../../lib/sessions';
+import { SESSION_LABELS } from '../../../../../lib/sessions';
 import { InlineLoader } from '../../../../../components/InlineLoader';
 import { RaceDetailHeader } from '../../../../../components/RaceDetailHeader';
 import { SessionEventSummary } from '../../../../../components/SessionEventSummary';
+import { StepBadge } from '../../../../../components/StepBadge';
 import type { TabSwitchOption } from '../../../../../components/TabSwitch';
 import { TabSwitch } from '../../../../../components/TabSwitch';
-
-function getStatusStyles(isPredictable: boolean): {
-  border: string;
-  background: string;
-} {
-  if (isPredictable) {
-    return { border: 'border-accent/40', background: 'bg-surface' };
-  }
-  return { border: 'border-border', background: 'bg-surface' };
-}
 
 type RaceEventPageLayoutProps = {
   race: Doc<'races'>;
@@ -41,6 +32,10 @@ type RaceEventPageLayoutProps = {
   getSessionStartAt: (session: SessionType) => number;
   getSessionLockAt: (session: SessionType) => number;
   isSessionPublished: (session: SessionType) => boolean;
+  /** Selected session has saved Top 5 picks (step 1 of the picks flow). */
+  top5Done?: boolean;
+  /** Selected session has saved H2H picks (step 2 of the picks flow). */
+  h2hDone?: boolean;
   randomizeControl?: ReactNode;
   backLink?: ReactNode;
   leaderboardLink?: ReactNode;
@@ -73,6 +68,8 @@ export function RaceEventPageLayout({
   getSessionStartAt,
   getSessionLockAt,
   isSessionPublished,
+  top5Done = false,
+  h2hDone = false,
   randomizeControl,
   backLink,
   leaderboardLink,
@@ -82,9 +79,6 @@ export function RaceEventPageLayout({
   h2hContent,
   h2hResultsContent,
 }: RaceEventPageLayoutProps) {
-  const statusStyles = getStatusStyles(isPredictable);
-  const top5SectionLayoutClass =
-    'lg:grid lg:grid-cols-[auto,minmax(0,1fr)] lg:items-start lg:gap-3 lg:space-y-0';
   const showResultsPendingBadge =
     race.status === 'locked' && hasPublishedResults && !allEventsScored;
   const selectedSessionHasResults = isSessionPublished(selectedSession);
@@ -112,109 +106,104 @@ export function RaceEventPageLayout({
           </div>
         )}
 
-        <div
-          className={`overflow-hidden rounded-lg border-3 bg-surface ${
-            isNextRace ? 'border-accent/50' : 'border-border'
-          }`}
-        >
-          <RaceDetailHeader
-            race={race}
-            isNextRace={isNextRace}
-            resultsSummary={
-              hasPublishedResults
-                ? {
-                    label: allEventsScored ? 'Weekend Total' : 'Points So Far',
-                    points: pointsSoFar,
-                    showResultsPendingBadge,
-                    scoredEventCount,
-                    totalEvents: weekendSessions.length,
-                    allEventsScored,
-                  }
-                : undefined
-            }
-          />
+        <RaceDetailHeader
+          race={race}
+          isNextRace={isNextRace}
+          resultsSummary={
+            hasPublishedResults
+              ? {
+                  label: allEventsScored ? 'Weekend Total' : 'Points So Far',
+                  points: pointsSoFar,
+                  showResultsPendingBadge,
+                  scoredEventCount,
+                  totalEvents: weekendSessions.length,
+                  allEventsScored,
+                }
+              : undefined
+          }
+        />
 
-          <div className={`border-t-3 ${statusStyles.border}`}>
-            <div className={statusStyles.background}>
-              {!isAuthLoaded || isPredictionsLoading ? (
-                <div className="p-4">
-                  <InlineLoader />
-                </div>
-              ) : isPredictable && isSignedIn && !hasPredictions ? (
-                <div className="relative">
-                  {randomizeControl && (
-                    <div className="absolute top-2 right-2 z-10">
-                      {randomizeControl}
-                    </div>
-                  )}
-                  {initialTop5Content}
-                </div>
-              ) : (
-                <div>
-                  {showSessionTabs && (
-                    <div
-                      className={`border-b-3 ${statusStyles.border} bg-surface-muted/40 p-1`}
-                    >
-                      <TabSwitch
-                        value={selectedSession}
-                        onChange={onSelectedSessionChange}
-                        options={sessionTabOptions}
-                        className="flex gap-1"
-                        buttonClassName="flex-1"
-                        ariaLabel="Predictions by session"
-                      />
-                    </div>
-                  )}
-                  {!showResultsView && (
-                    <div className="space-y-8 p-4">
-                      {showReadonlyPredictions && (
-                        <section className="space-y-2">
-                          <SessionEventSummary
-                            session={selectedSession}
-                            startsAt={getSessionStartAt(selectedSession)}
-                            lockAt={getSessionLockAt(selectedSession)}
-                            hasResults={isSessionPublished(selectedSession)}
-                            trackTimeZone={trackTimeZone}
-                          />
-                        </section>
-                      )}
-                      <section
-                        data-testid="race-top5-section"
-                        className={
-                          showReadonlyPredictions
-                            ? `space-y-2 ${top5SectionLayoutClass}`
-                            : top5SectionLayoutClass
-                        }
-                      >
-                        {showReadonlyPredictions && (
-                          <div className="flex items-center justify-between gap-2 lg:pt-1">
-                            <div className="flex items-center gap-2">
-                              <Trophy className="h-5 w-5 shrink-0 text-accent" />
-                              <h2 className="text-xl font-semibold text-text">
-                                Top 5 Predictions
-                              </h2>
-                              {top5HeaderAside}
-                            </div>
-                          </div>
-                        )}
-                        <div className="min-w-0">{top5MainContent}</div>
-                      </section>
-                      {showReadonlyH2H && (
-                        <section
-                          className="space-y-2"
-                          data-testid="race-h2h-section"
-                        >
-                          {h2hContent}
-                        </section>
-                      )}
-                    </div>
-                  )}
-                  {showResultsView && h2hResultsContent}
-                </div>
-              )}
-            </div>
+        {!isAuthLoaded || isPredictionsLoading ? (
+          <div className="py-8">
+            <InlineLoader />
           </div>
-        </div>
+        ) : isPredictable && isSignedIn && !hasPredictions ? (
+          <div className="relative mt-6">
+            {randomizeControl && (
+              <div className="absolute top-0 right-0 z-10">
+                {randomizeControl}
+              </div>
+            )}
+            {initialTop5Content}
+          </div>
+        ) : (
+          <div className="mt-5">
+            {showSessionTabs && (
+              <div className="rounded-lg bg-surface-muted/50 p-1">
+                <TabSwitch
+                  value={selectedSession}
+                  onChange={onSelectedSessionChange}
+                  options={sessionTabOptions}
+                  className="flex gap-1"
+                  buttonClassName="flex-1"
+                  ariaLabel="Predictions by session"
+                />
+              </div>
+            )}
+            {!showResultsView && (
+              <>
+                {showReadonlyPredictions && (
+                  <div className="mt-3">
+                    <SessionEventSummary
+                      startsAt={getSessionStartAt(selectedSession)}
+                      lockAt={getSessionLockAt(selectedSession)}
+                      hasResults={isSessionPublished(selectedSession)}
+                      trackTimeZone={trackTimeZone}
+                    />
+                  </div>
+                )}
+                {showReadonlyPredictions && (
+                  <div className="mt-7 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+                      Your {SESSION_LABELS[selectedSession]} Picks
+                    </p>
+                    <span className="text-xs font-medium text-text-muted">
+                      {(top5Done ? 1 : 0) + (h2hDone ? 1 : 0)} of 2 done
+                    </span>
+                  </div>
+                )}
+                <div className="mt-4 space-y-8">
+                  <section
+                    data-testid="race-top5-section"
+                    className="space-y-2"
+                  >
+                    {showReadonlyPredictions && (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <StepBadge step={1} done={top5Done} />
+                          <h2 className="text-xl font-semibold text-text">
+                            Top 5 Predictions
+                          </h2>
+                          {top5HeaderAside}
+                        </div>
+                      </div>
+                    )}
+                    <div className="min-w-0">{top5MainContent}</div>
+                  </section>
+                  {showReadonlyH2H && (
+                    <section
+                      className="space-y-2"
+                      data-testid="race-h2h-section"
+                    >
+                      {h2hContent}
+                    </section>
+                  )}
+                </div>
+              </>
+            )}
+            {showResultsView && <div className="mt-5">{h2hResultsContent}</div>}
+          </div>
+        )}
       </div>
     </div>
   );

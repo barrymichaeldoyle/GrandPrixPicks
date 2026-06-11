@@ -211,9 +211,13 @@ export function H2HPredictionForm({
   return (
     <>
       {restoredDraftAt ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
           <span className="text-xs text-text">
-            Draft restored: {formatDateTime(restoredDraftAt)}
+            We restored your unsaved picks from{' '}
+            <span suppressHydrationWarning>
+              {formatDateTime(restoredDraftAt)}
+            </span>
+            {' — '}save below to lock them in.
           </span>
           <Button variant="text" size="inline" onClick={handleDiscardDraft}>
             Discard Draft
@@ -234,30 +238,35 @@ export function H2HPredictionForm({
         }
       />
 
-      {/* Submit row */}
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <div className="sm:hidden">{submitButton}</div>
+      {/* Submit row — sticky on mobile so progress + save stay visible while
+          scrolling the long matchup list. The -mx-3/px-3 pair must mirror the
+          page container's mobile padding (px-3 in RaceEventPageLayout) so the
+          bar bleeds full-width. */}
+      <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page/95 px-3 py-2.5 backdrop-blur-sm sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+          {!allSelected && (
+            <span className="mt-2 w-full text-center text-sm text-text-muted sm:w-auto">
+              {totalMatchups - selectedCount} matchup
+              {totalMatchups - selectedCount !== 1 ? 's' : ''} remaining
+            </span>
+          )}
 
-        {submitStatus === 'success' && (
-          <span
-            className="text-sm text-success"
-            aria-live="polite"
-            data-testid="h2h-submit-success"
-          >
-            H2H picks saved.
-          </span>
-        )}
+          <div className="sm:hidden">{submitButton}</div>
 
-        {!allSelected && (
-          <span className="text-sm text-text-muted">
-            {totalMatchups - selectedCount} matchup
-            {totalMatchups - selectedCount !== 1 ? 's' : ''} remaining
-          </span>
-        )}
+          {submitStatus === 'success' && (
+            <span
+              className="text-sm text-success"
+              aria-live="polite"
+              data-testid="h2h-submit-success"
+            >
+              H2H picks saved.
+            </span>
+          )}
 
-        {submitStatus === 'error' && (
-          <span className="text-sm text-error">{errorMessage}</span>
-        )}
+          {submitStatus === 'error' && (
+            <span className="text-sm text-error">{errorMessage}</span>
+          )}
+        </div>
       </div>
     </>
   );

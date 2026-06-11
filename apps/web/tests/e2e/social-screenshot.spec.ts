@@ -22,40 +22,48 @@ test('captures partially completed Top 5 gameplay', async ({ page }) => {
     'Select 2 more drivers',
   );
 
-  await page.locator('h1').first().evaluate((element) => {
-    element.textContent = 'Spanish Grand Prix';
-  });
-  await page.getByText('Round -17', { exact: true }).evaluate((element) => {
-    element.textContent = 'Round 7';
-  });
-  await page.getByText('On-track time', { exact: true }).evaluate((element) => {
+  await page
+    .locator('h1')
+    .first()
+    .evaluate((element) => {
+      element.textContent = 'Spanish Grand Prix';
+    });
+  await page
+    .getByText('Round -17 · Next Race', { exact: true })
+    .evaluate((element) => {
+      element.textContent = 'Round 7 · Next Race';
+    });
+  await page.getByText('On track', { exact: true }).evaluate((element) => {
     if (element.nextElementSibling) {
       element.nextElementSibling.textContent = 'Sat, Jun 13, 4:00 PM GMT+2';
     }
   });
-  await page.getByText('Your local time', { exact: true }).evaluate((element) => {
+  await page.getByText('Your time', { exact: true }).evaluate((element) => {
     if (element.nextElementSibling) {
       element.nextElementSibling.textContent = 'Sat, Jun 13 · 4:00 PM';
     }
   });
 
-  await page.locator('h1').first().evaluate((heading) => {
-    const content = heading.parentElement?.parentElement;
-    if (!content) {
-      return;
-    }
+  await page
+    .locator('h1')
+    .first()
+    .evaluate((heading) => {
+      const content = heading.parentElement?.parentElement;
+      if (!content) {
+        return;
+      }
 
-    const flag = document.createElement('div');
-    flag.style.cssText =
-      'width:96px;min-width:96px;align-self:stretch;border-right:3px solid rgba(45,212,191,.5);overflow:hidden;';
-    const image = document.createElement('img');
-    image.src = '/flags/es.svg';
-    image.alt = '';
-    image.style.cssText =
-      'display:block;width:100%;height:100%;object-fit:cover;';
-    flag.appendChild(image);
-    content.prepend(flag);
-  });
+      const flag = document.createElement('span');
+      flag.style.cssText =
+        'display:inline-block;width:40px;min-width:40px;height:30px;border-radius:4px;overflow:hidden;';
+      const image = document.createElement('img');
+      image.src = '/flags/es.svg';
+      image.alt = '';
+      image.style.cssText =
+        'display:block;width:100%;height:100%;object-fit:cover;';
+      flag.appendChild(image);
+      content.prepend(flag);
+    });
 
   await page.addStyleTag({
     content: `

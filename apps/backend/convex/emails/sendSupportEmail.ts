@@ -3,7 +3,7 @@
 import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
-import { resend } from '../lib/email';
+import { sendEmail } from '../lib/email';
 
 export const sendNewSupportRequest = internalAction({
   args: {
@@ -41,7 +41,7 @@ export const sendNewSupportRequest = internalAction({
       <pre style="white-space: pre-wrap; font-family: sans-serif;">${args.message}</pre>
     `;
 
-    await resend.sendEmail(ctx, {
+    await sendEmail(ctx, {
       from: fromAddress,
       to: toAddress,
       subject: `[Support] ${args.subject}`,

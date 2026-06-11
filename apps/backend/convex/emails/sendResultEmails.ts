@@ -4,7 +4,7 @@ import { render } from '@react-email/render';
 import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
-import { resend } from '../lib/email';
+import { sendEmail } from '../lib/email';
 import type { SessionResultsPostRaceMadePredictionsEmailProps } from './SessionResultsPostRaceMadePredictionsEmail';
 import { SessionResultsPostRaceMadePredictionsEmail } from './SessionResultsPostRaceMadePredictionsEmail';
 import type { SessionResultsPostRaceMissedPredictionsEmailProps } from './SessionResultsPostRaceMissedPredictionsEmail';
@@ -175,7 +175,7 @@ export const sendBatch = internalAction({
               : `${args.sessionLabel} is done in ${args.raceName}`;
 
       try {
-        await resend.sendEmail(ctx, {
+        await sendEmail(ctx, {
           from: fromAddress,
           to: recipient.email,
           subject,

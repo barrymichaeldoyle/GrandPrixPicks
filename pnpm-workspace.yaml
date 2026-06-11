@@ -15,7 +15,7 @@ allowBuilds:
   workerd: true
 
 catalog:
-  convex: 1.40.0
+  convex: 1.41.0
   typescript: 6.0.3
 
 onlyBuiltDependencies:

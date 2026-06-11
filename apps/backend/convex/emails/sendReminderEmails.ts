@@ -4,7 +4,7 @@ import { render } from '@react-email/render';
 import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
-import { resend } from '../lib/email';
+import { sendEmail } from '../lib/email';
 import { H2HReminderEmail } from './H2HReminderEmail';
 import type { PredictionReminderProps } from './PredictionReminderEmail';
 import { PredictionReminderEmail } from './PredictionReminderEmail';
@@ -105,7 +105,7 @@ export const sendBatch = internalAction({
 
       for (const email of emails) {
         try {
-          await resend.sendEmail(ctx, {
+          await sendEmail(ctx, {
             from: fromAddress,
             to: email,
             subject: `Your ${args.raceName} picks close in ${args.timeUntilLock === '24 hours' ? '24h' : args.timeUntilLock}`,
@@ -147,7 +147,7 @@ export const sendH2HNudge = internalAction({
     );
 
     try {
-      await resend.sendEmail(ctx, {
+      await sendEmail(ctx, {
         from: fromAddress,
         to: args.email,
         subject: `Finish your H2H picks for ${args.raceName}`,
@@ -185,7 +185,7 @@ export const sendSignupNudge = internalAction({
     );
 
     try {
-      await resend.sendEmail(ctx, {
+      await sendEmail(ctx, {
         from: fromAddress,
         to: args.email,
         subject: args.raceName

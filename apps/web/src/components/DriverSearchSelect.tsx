@@ -14,6 +14,8 @@ type DriverSearchSelectProps = {
   positionLabel?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Exposes the search input element (only mounted while no driver is selected) so parents can focus it. */
+  inputRef?: (el: HTMLInputElement | null) => void;
 };
 
 function matchDriver(driver: Driver, query: string): boolean {
@@ -41,6 +43,7 @@ export function DriverSearchSelect({
   positionLabel,
   placeholder = 'Search driver…',
   disabled = false,
+  inputRef: externalInputRef,
 }: DriverSearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -152,7 +155,7 @@ export function DriverSearchSelect({
   return (
     <div ref={containerRef} className="relative w-full">
       <div
-        className={`flex items-center gap-2 rounded-lg border bg-slate-800/50 transition-colors ${
+        className={`flex min-h-10 items-center gap-2 rounded-lg border bg-slate-800/50 transition-colors ${
           open
             ? 'border-yellow-500/60 ring-1 ring-yellow-500/30'
             : 'border-slate-600 hover:border-slate-500'
@@ -195,7 +198,10 @@ export function DriverSearchSelect({
         ) : (
           <>
             <input
-              ref={inputRef}
+              ref={(el) => {
+                inputRef.current = el;
+                externalInputRef?.(el);
+              }}
               type="text"
               value={query}
               onChange={(e) => {

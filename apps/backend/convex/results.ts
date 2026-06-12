@@ -1,4 +1,9 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import {
+  getMissingEarlierSessions,
+  getSessionsForWeekend,
+  SESSION_LABELS_FULL,
+} from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -176,6 +181,10 @@ async function publishResultsCore(
     // completes, everyone who predicted the session gets a results_amended
     // notification. Republishing without a note is a silent correction.
     amendmentNote?: string;
+    // Admin publishes must follow the weekend session order (quali before
+    // race, etc.) — entering them out of order is a pain to undo. Emergency
+    // internal mutations skip this so they can fix exactly that mistake.
+    enforceSessionOrder?: boolean;
   },
 ) {
   if (args.classification.length < 5) {
@@ -185,6 +194,8 @@ async function publishResultsCore(
   const sessionType = args.sessionType ?? 'race';
   const now = Date.now();
   const amendmentNote = args.amendmentNote?.trim();
+
+  const race = await ctx.db.get(args.raceId);
 
   const existing = await ctx.db
     .query('results')
@@ -197,6 +208,39 @@ async function publishResultsCore(
     throw new Error(
       'Cannot amend a result that has not been published yet — publish it normally first',
     );
+  }
+
+  // Republishing an existing result (correction/amendment) is always allowed;
+  // the order check only applies when publishing a session for the first time.
+  if (args.enforceSessionOrder && !existing && race) {
+    const hasSprint = race.hasSprint ?? false;
+    const weekendSessions = getSessionsForWeekend(hasSprint);
+    if (!weekendSessions.includes(sessionType)) {
+      throw new Error(
+        `${SESSION_LABELS_FULL[sessionType]} is not part of this race weekend`,
+      );
+    }
+
+    const publishedSessions: SessionType[] = [];
+    for await (const result of ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
+      publishedSessions.push(result.sessionType);
+    }
+
+    const missing = getMissingEarlierSessions(
+      hasSprint,
+      sessionType,
+      publishedSessions,
+    );
+    if (missing.length > 0) {
+      const missingLabels = missing
+        .map((session) => SESSION_LABELS_FULL[session])
+        .join(' and ');
+      throw new Error(
+        `Results must be published in session order. Publish ${missingLabels} results before ${SESSION_LABELS_FULL[sessionType]}.`,
+      );
+    }
   }
 
   let resultId: Id<'results'>;
@@ -227,7 +271,6 @@ async function publishResultsCore(
     });
   }
 
-  const race = await ctx.db.get(args.raceId);
   const season = race?.season ?? 2026;
 
   if (sessionType === 'race') {
@@ -689,7 +732,7 @@ export const adminPublishResults = mutation({
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     requireAdmin(viewer);
-    return publishResultsCore(ctx, args);
+    return publishResultsCore(ctx, { ...args, enforceSessionOrder: true });
   },
 });
 

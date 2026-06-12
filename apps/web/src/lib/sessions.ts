@@ -1,5 +1,6 @@
 export type { SessionType } from '@grandprixpicks/shared/sessions';
 export {
+  getMissingEarlierSessions,
   getSessionsForWeekend,
   SESSION_LABELS,
   SESSION_LABELS_FULL,

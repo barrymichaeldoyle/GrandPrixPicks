@@ -14,7 +14,12 @@ export const siteConfig = {
   author: {
     name: 'Barry Michael Doyle',
     url: 'https://barrymichaeldoyle.com',
-    twitter: '@barrymdoyle',
+  },
+  social: {
+    x: {
+      handle: '@GrandPrixPicks',
+      url: 'https://x.com/GrandPrixPicks',
+    },
   },
 } as const;
 

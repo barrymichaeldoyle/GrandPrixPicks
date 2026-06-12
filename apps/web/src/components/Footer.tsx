@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Flag } from 'lucide-react';
 
 import { footerExploreLinks } from '../lib/navigation';
+import { siteConfig } from '../lib/site';
 
 function XIcon({ className }: { className?: string }) {
   return (
@@ -54,6 +55,15 @@ export function Footer() {
               Fan-made prediction game for Formula 1 race weekends. No gambling
               or real-money betting.
             </p>
+            <a
+              href={siteConfig.social.x.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
+            >
+              <XIcon className="h-3.5 w-3.5" />
+              <span>Follow {siteConfig.social.x.handle}</span>
+            </a>
             <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
               <span>Made by</span>
               <a
@@ -68,15 +78,6 @@ export function Footer() {
                 aria-hidden
                 className="ml-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
               />
-              <a
-                href="https://x.com/barrymdoyle"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md p-2 text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
-                aria-label="X (Twitter)"
-              >
-                <XIcon className="h-4 w-4" />
-              </a>
               <a
                 href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
                 target="_blank"

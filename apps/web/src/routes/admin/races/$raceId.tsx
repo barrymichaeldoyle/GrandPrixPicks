@@ -24,7 +24,7 @@ import {
   Save,
   Trophy,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
@@ -32,7 +32,11 @@ import { PageLoader } from '@/components/PageLoader';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import type { SessionType } from '../../../lib/sessions';
-import { getSessionsForWeekend, SESSION_LABELS } from '../../../lib/sessions';
+import {
+  getMissingEarlierSessions,
+  getSessionsForWeekend,
+  SESSION_LABELS,
+} from '../../../lib/sessions';
 import { NotFoundPage } from '../../__root';
 
 const LANE_ID_PREFIX = 'lane-';
@@ -45,6 +49,24 @@ function parseLaneId(id: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+/** Nearest empty lane below `fromIndex`, falling back to the nearest one above. */
+function findNextEmptyLane(
+  lanes: ReadonlyArray<Id<'drivers'> | null>,
+  fromIndex: number,
+): number | null {
+  for (let i = fromIndex + 1; i < lanes.length; i++) {
+    if (lanes[i] == null) {
+      return i;
+    }
+  }
+  for (let i = fromIndex - 1; i >= 0; i--) {
+    if (lanes[i] == null) {
+      return i;
+    }
+  }
+  return null;
+}
+
 type DraggableDriverCardProps = {
   driverId: Id<'drivers'>;
   index: number;
@@ -53,6 +75,7 @@ type DraggableDriverCardProps = {
   setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
   toggleClassified: (driverId: Id<'drivers'>) => void;
   dnfDriverIds: Id<'drivers'>[];
+  registerInput: (el: HTMLInputElement | null) => void;
 };
 
 function DraggableDriverCard({
@@ -63,6 +86,7 @@ function DraggableDriverCard({
   setPosition,
   toggleClassified,
   dnfDriverIds,
+  registerInput,
 }: DraggableDriverCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -80,16 +104,16 @@ function DraggableDriverCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex flex-col gap-2 rounded-lg border border-slate-600 bg-slate-700/50 p-3 sm:flex-row sm:items-center ${
+      className={`flex items-center gap-2 rounded-lg ${
         isDragging
-          ? 'z-20 cursor-grabbing shadow-xl ring-2 ring-yellow-500/50'
+          ? 'z-20 cursor-grabbing bg-slate-800 shadow-xl ring-2 ring-yellow-500/50'
           : ''
       }`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="flex shrink-0 cursor-grab touch-none items-center self-center rounded p-1 text-slate-400 hover:bg-slate-600 hover:text-slate-200 active:cursor-grabbing"
+        className="flex shrink-0 cursor-grab touch-none items-center rounded p-1 text-slate-400 hover:bg-slate-600 hover:text-slate-200 active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
         <GripVertical size={20} />
@@ -101,6 +125,7 @@ function DraggableDriverCard({
           excludedIds={excludedIds}
           onChange={(id) => setPosition(index, id)}
           placeholder="Search by name or code…"
+          inputRef={registerInput}
         />
       </div>
       <label className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
@@ -125,6 +150,7 @@ type PositionLaneProps = {
   toggleClassified: (driverId: Id<'drivers'>) => void;
   dnfDriverIds: Id<'drivers'>[];
   activeDriverId: string | null;
+  registerInput: (el: HTMLInputElement | null) => void;
 };
 
 function PositionLane({
@@ -136,6 +162,7 @@ function PositionLane({
   toggleClassified,
   dnfDriverIds,
   activeDriverId,
+  registerInput,
 }: PositionLaneProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `${LANE_ID_PREFIX}${index}`,
@@ -170,6 +197,7 @@ function PositionLane({
               setPosition={setPosition}
               toggleClassified={toggleClassified}
               dnfDriverIds={dnfDriverIds}
+              registerInput={registerInput}
             />
           </div>
         ) : isPlaceholder ? (
@@ -178,13 +206,30 @@ function PositionLane({
           </div>
         ) : (
           <div className="p-1.5">
-            <DriverSearchSelect
-              drivers={drivers}
-              value={null}
-              excludedIds={excludedIds}
-              onChange={(id) => setPosition(index, id)}
-              placeholder="Search by name or code…"
-            />
+            {/* Mirrors the filled-lane row (grip + select + checkbox) with
+                invisible placeholders so picking a driver causes no layout shift. */}
+            <div className="flex items-center gap-2">
+              <div className="invisible shrink-0 p-1" aria-hidden>
+                <GripVertical size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <DriverSearchSelect
+                  drivers={drivers}
+                  value={null}
+                  excludedIds={excludedIds}
+                  onChange={(id) => setPosition(index, id)}
+                  placeholder="Search by name or code…"
+                  inputRef={registerInput}
+                />
+              </div>
+              <span
+                className="invisible flex shrink-0 items-center gap-2 text-xs"
+                aria-hidden
+              >
+                <span className="h-3 w-3" />
+                Classified
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -241,6 +286,20 @@ function AdminRaceDetailPage() {
   const availableSessionsKey = availableSessions.join(',');
   const submittedSessionsKey = submittedSessions?.join(',') ?? '';
 
+  // Results must go in weekend order (quali before race, etc.). Republishing
+  // an already-submitted session is always fine — only first-time publishes
+  // for a session are blocked while earlier sessions are missing.
+  const missingEarlierSessions =
+    submittedSessions === undefined ||
+    submittedSessions.includes(selectedSession)
+      ? []
+      : getMissingEarlierSessions(
+          race?.hasSprint ?? false,
+          selectedSession,
+          submittedSessions,
+        );
+  const sessionOrderBlocked = missingEarlierSessions.length > 0;
+
   useEffect(() => {
     if (race === undefined || submittedSessions === undefined) {
       return;
@@ -282,19 +341,37 @@ function AdminRaceDetailPage() {
     setAmendmentNote('');
   }, [existingResult, selectedSession, driverCount]);
 
+  // Search inputs per lane (only mounted while the lane is empty), so we can
+  // move focus to the next open position after a pick.
+  const laneInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [focusLaneIndex, setFocusLaneIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (focusLaneIndex == null) {
+      return;
+    }
+    laneInputRefs.current[focusLaneIndex]?.focus();
+    setFocusLaneIndex(null);
+  }, [focusLaneIndex]);
+
   function setPosition(index: number, driverId: Id<'drivers'> | null) {
-    setSelectedDrivers((prev) => {
-      const next = [...prev];
-      next[index] = driverId;
-      if (driverId != null) {
-        for (let j = 0; j < next.length; j++) {
-          if (j !== index && next[j] === driverId) {
-            next[j] = null;
-          }
+    const wasEmpty = selectedDrivers[index] == null;
+    const next = [...selectedDrivers];
+    next[index] = driverId;
+    if (driverId != null) {
+      for (let j = 0; j < next.length; j++) {
+        if (j !== index && next[j] === driverId) {
+          next[j] = null;
         }
       }
-      return next;
-    });
+    }
+    setSelectedDrivers(next);
+
+    // Filling an open slot advances focus to the next open slot (preferring
+    // the ones below). Edits to an already-filled lane keep focus where it is.
+    if (driverId != null && wasEmpty) {
+      setFocusLaneIndex(findNextEmptyLane(next, index));
+    }
   }
 
   function toggleClassified(driverId: Id<'drivers'>) {
@@ -470,7 +547,7 @@ function AdminRaceDetailPage() {
   const amendmentNoteMissing = isAmendment && trimmedAmendmentNote.length === 0;
 
   async function handlePublish() {
-    if (classificationOrderError) {
+    if (classificationOrderError || sessionOrderBlocked) {
       return;
     }
     if (!allFilledForHooks || amendmentNoteMissing) {
@@ -614,6 +691,19 @@ function AdminRaceDetailPage() {
             </div>
           </div>
 
+          {sessionOrderBlocked && (
+            <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+              <p className="text-sm text-amber-300">
+                Results are published in weekend order. Publish{' '}
+                {missingEarlierSessions
+                  .map((session) => SESSION_LABELS[session])
+                  .join(' and ')}{' '}
+                results before {SESSION_LABELS[selectedSession]}.
+              </p>
+            </div>
+          )}
+
           <p className="mb-4 text-slate-400">
             Enter the full classification for {SESSION_LABELS[selectedSession]}{' '}
             (P1 to P{driverCount}). Type to search, or drag the grip to reorder
@@ -644,6 +734,9 @@ function AdminRaceDetailPage() {
                     toggleClassified={toggleClassified}
                     dnfDriverIds={dnfDriverIds}
                     activeDriverId={activeDriverId}
+                    registerInput={(el) => {
+                      laneInputRefs.current[index] = el;
+                    }}
                   />
                 );
               })}
@@ -735,6 +828,7 @@ function AdminRaceDetailPage() {
                 isPublishing ||
                 scoringStatus === 'scoring' ||
                 !!classificationOrderError ||
+                sessionOrderBlocked ||
                 amendmentNoteMissing ||
                 (!!existingResult && !hasChanges)
               }

@@ -48,7 +48,7 @@ import {
 } from '../../components/LeagueMembersList';
 import { PageLoader } from '../../components/PageLoader';
 import { isRaceSelectableForLeaderboard } from '../../lib/raceSessions';
-import { canonicalMeta, defaultOgImage } from '../../lib/site';
+import { canonicalMeta, defaultOgImage, siteConfig } from '../../lib/site';
 
 const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -263,7 +263,9 @@ function LeagueDetailContent({ league }: { league: League }) {
         )}
 
         {/* Share link — visible to all members */}
-        {isMember && <ShareLinkSection slug={league.slug} />}
+        {isMember && (
+          <ShareLinkSection slug={league.slug} leagueName={league.name} />
+        )}
 
         {isMember && (
           <LeagueTabs leagueId={league._id} leagueName={league.name} />
@@ -342,10 +344,21 @@ function JoinSection({
   );
 }
 
-function ShareLinkSection({ slug }: { slug: string }) {
+function ShareLinkSection({
+  slug,
+  leagueName,
+}: {
+  slug: string;
+  leagueName: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const leagueUrl = `${window.location.origin}/leagues/${slug}`;
+
+  const xShareUrl = `https://x.com/intent/post?${new URLSearchParams({
+    text: `Join my "${leagueName}" league on ${siteConfig.social.x.handle} and predict the top 5 for every F1 session this season 🏎️`,
+    url: leagueUrl,
+  }).toString()}`;
 
   async function copyToClipboard() {
     await navigator.clipboard.writeText(leagueUrl);
@@ -377,11 +390,38 @@ function ShareLinkSection({ slug }: { slug: string }) {
             <Copy className="h-4 w-4" aria-hidden="true" />
           )}
         </button>
+        <a
+          href={xShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() =>
+            captureAnalyticsEvent('league_invite_shared_x', {
+              league_slug: slug,
+            })
+          }
+          aria-label="Share league on X"
+          className="shrink-0 rounded-lg border border-border p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+        >
+          <XShareIcon className="h-4 w-4" />
+        </a>
         <span aria-live="polite" className="sr-only">
           {copied ? 'Link copied!' : ''}
         </span>
       </div>
     </div>
+  );
+}
+
+function XShareIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
   );
 }
 

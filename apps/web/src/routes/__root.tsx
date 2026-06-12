@@ -47,6 +47,7 @@ const structuredData = {
   url: siteConfig.url,
   applicationCategory: 'GameApplication',
   operatingSystem: 'Any',
+  sameAs: [siteConfig.social.x.url],
   author: {
     '@type': 'Person',
     name: siteConfig.author.name,
@@ -91,7 +92,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content:
           'Grand Prix Picks — make F1 predictions and climb the 2026 leaderboard.',
       },
-      { name: 'twitter:creator', content: '@barrymdoyle' },
+      { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],
     links: [
       {

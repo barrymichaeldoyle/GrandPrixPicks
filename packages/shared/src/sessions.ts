@@ -40,3 +40,23 @@ export function getSessionsForWeekend(
 ): ReadonlyArray<SessionType> {
   return hasSprint ? SESSIONS_SPRINT_WEEKEND : SESSIONS_REGULAR;
 }
+
+/**
+ * Sessions earlier in the weekend that don't have published results yet.
+ * Results must be entered in weekend order (e.g. quali before race), so a
+ * non-empty return value means publishing `sessionType` would be out of order.
+ */
+export function getMissingEarlierSessions(
+  hasSprint: boolean,
+  sessionType: SessionType,
+  publishedSessions: ReadonlyArray<SessionType>,
+): SessionType[] {
+  const order = getSessionsForWeekend(hasSprint);
+  const index = order.indexOf(sessionType);
+  if (index === -1) {
+    return [];
+  }
+  return order
+    .slice(0, index)
+    .filter((session) => !publishedSessions.includes(session));
+}

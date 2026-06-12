@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Pencil, Swords } from 'lucide-react';
+import { ChevronDown, ChevronUp, Gavel, Pencil, Swords } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -27,6 +27,7 @@ import { getRaceSessionLockAt } from '../../lib/raceSessions';
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
 import { useNow } from '../../lib/testing/now';
+import { useUserDateFormat } from '../../lib/useUserDateFormat';
 
 // ───────────────────────── H2H Sections ─────────────────────────
 
@@ -317,6 +318,7 @@ export function H2HResultsSection({
   raceId,
   selectedSession,
 }: H2HResultsSectionProps) {
+  const { formatDate } = useUserDateFormat();
   const drivers = useQuery(api.drivers.listDrivers);
   const availableSessions = useQuery(api.results.getAllResultsForRace, {
     raceId,
@@ -472,6 +474,29 @@ export function H2HResultsSection({
         </div>
       ) : (
         <div className="space-y-3">
+          {selectedTop5Result?.amendedAt != null &&
+            selectedTop5Result.amendmentNote && (
+              <div
+                className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5"
+                data-testid="results-amended-banner"
+              >
+                <Gavel className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                <div className="min-w-0 text-sm">
+                  <p className="font-semibold text-text">
+                    Results amended{' '}
+                    <span
+                      className="font-normal text-text-muted"
+                      suppressHydrationWarning
+                    >
+                      · {formatDate(selectedTop5Result.amendedAt)}
+                    </span>
+                  </p>
+                  <p className="text-text-muted">
+                    {selectedTop5Result.amendmentNote}
+                  </p>
+                </div>
+              </div>
+            )}
           <div className="flex flex-col gap-1">
             <div className="rounded-lg border border-border bg-surface">
               <table className="w-full">

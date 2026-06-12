@@ -253,9 +253,11 @@ export const createResultsNotification = internalMutation({
       .first();
 
     if (existing) {
+      // Quietly keep the points current. Don't reset readAt: silent
+      // corrections shouldn't re-surface this — official amendments announce
+      // themselves through a dedicated results_amended notification instead.
       await ctx.db.patch(existing._id, {
         points: args.points,
-        readAt: undefined, // re-surface if points updated
       });
     } else {
       await ctx.db.insert('inAppNotifications', {
@@ -268,6 +270,77 @@ export const createResultsNotification = internalMutation({
         points: args.points,
         createdAt: Date.now(),
       });
+    }
+  },
+});
+
+/**
+ * Notify everyone who predicted a session that its results were officially
+ * amended (e.g. a stewards' decision changed the classification). Scheduled
+ * from results.checkScoringComplete after rescoring finishes, so the points
+ * on the notification are the corrected ones. Upserts one notification per
+ * user/race/session and re-surfaces it as unread on repeat amendments.
+ */
+export const notifyResultsAmended = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    amendmentNote: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      return;
+    }
+
+    const now = Date.now();
+
+    for await (const prediction of ctx.db
+      .query('predictions')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )) {
+      const score = await ctx.db
+        .query('scores')
+        .withIndex('by_user_race_session', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .unique();
+
+      const existing = await ctx.db
+        .query('inAppNotifications')
+        .withIndex('by_user_type_raceId_and_sessionType', (q) =>
+          q
+            .eq('userId', prediction.userId)
+            .eq('type', 'results_amended')
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType),
+        )
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          amendmentNote: args.amendmentNote,
+          points: score?.points,
+          readAt: undefined, // a new amendment re-surfaces the notification
+          createdAt: now,
+        });
+      } else {
+        await ctx.db.insert('inAppNotifications', {
+          userId: prediction.userId,
+          type: 'results_amended',
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          raceName: race.name,
+          raceSlug: race.slug,
+          points: score?.points,
+          amendmentNote: args.amendmentNote,
+          createdAt: now,
+        });
+      }
     }
   },
 });

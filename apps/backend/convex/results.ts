@@ -171,6 +171,11 @@ async function publishResultsCore(
     sessionType?: SessionType;
     dnfDriverIds?: Array<Id<'drivers'>>;
     suppressNotifications?: boolean;
+    // When set, this republish is an official amendment (stewards' decision
+    // etc.): the result is stamped with the note and, once rescoring
+    // completes, everyone who predicted the session gets a results_amended
+    // notification. Republishing without a note is a silent correction.
+    amendmentNote?: string;
   },
 ) {
   if (args.classification.length < 5) {
@@ -179,6 +184,7 @@ async function publishResultsCore(
 
   const sessionType = args.sessionType ?? 'race';
   const now = Date.now();
+  const amendmentNote = args.amendmentNote?.trim();
 
   const existing = await ctx.db
     .query('results')
@@ -187,12 +193,25 @@ async function publishResultsCore(
     )
     .unique();
 
+  if (amendmentNote && !existing) {
+    throw new Error(
+      'Cannot amend a result that has not been published yet — publish it normally first',
+    );
+  }
+
   let resultId: Id<'results'>;
   if (existing) {
     await ctx.db.patch(existing._id, {
       classification: args.classification,
       dnfDriverIds: args.dnfDriverIds,
       scoringStatus: 'scoring',
+      ...(amendmentNote
+        ? {
+            amendedAt: now,
+            amendmentNote,
+            amendmentNotificationPending: true,
+          }
+        : {}),
       updatedAt: now,
     });
     resultId = existing._id;
@@ -663,6 +682,9 @@ export const adminPublishResults = mutation({
     // Optional list of drivers who did not classify (DNF/DSQ, etc.)
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     suppressNotifications: v.optional(v.boolean()),
+    // Marks a republish as an official amendment and notifies players.
+    // Omit for silent corrections of data-entry mistakes.
+    amendmentNote: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
@@ -682,6 +704,7 @@ export const emergencyPublishResults = internalMutation({
     sessionType: v.optional(sessionTypeValidator),
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     suppressNotifications: v.optional(v.boolean()),
+    amendmentNote: v.optional(v.string()),
   },
   handler: async (ctx, args) => publishResultsCore(ctx, args),
 });
@@ -1235,6 +1258,23 @@ export const checkScoringComplete = internalMutation({
           30_000,
           internal.push.sendPushResultsForSession,
           { raceId: args.raceId, sessionType: args.sessionType },
+        );
+      }
+
+      // Official amendment: now that rescoring is done (so points users see
+      // are the corrected ones), tell everyone who predicted this session.
+      if (result.amendmentNotificationPending && result.amendmentNote) {
+        await ctx.db.patch(args.resultId, {
+          amendmentNotificationPending: false,
+        });
+        await ctx.scheduler.runAfter(
+          0,
+          internal.inAppNotifications.notifyResultsAmended,
+          {
+            raceId: args.raceId,
+            sessionType: args.sessionType,
+            amendmentNote: result.amendmentNote,
+          },
         );
       }
     }

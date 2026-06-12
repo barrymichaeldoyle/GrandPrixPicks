@@ -3,7 +3,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Bell, CheckCheck, Lock, Trophy } from 'lucide-react';
+import { Bell, CheckCheck, Gavel, Lock, Trophy } from 'lucide-react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -24,7 +24,11 @@ type RevActor = {
 
 type Notification = {
   _id: Id<'inAppNotifications'>;
-  type: 'rev_received' | 'results_published' | 'session_locked';
+  type:
+    | 'rev_received'
+    | 'results_published'
+    | 'results_amended'
+    | 'session_locked';
   readAt?: number;
   createdAt: number;
   raceId?: Id<'races'>;
@@ -32,6 +36,7 @@ type Notification = {
   raceName?: string;
   raceSlug?: string;
   points?: number;
+  amendmentNote?: string;
   actorUserId?: Id<'users'>;
   actorUsername?: string;
   actorDisplayName?: string;
@@ -312,6 +317,62 @@ function NotificationItem({
                 </span>
               )}
             </div>
+            {notification.raceName && (
+              <div className="mt-2">
+                <NotificationRaceChip
+                  raceSlug={notification.raceSlug}
+                  raceName={notification.raceName}
+                  sessionType={notification.sessionType}
+                />
+              </div>
+            )}
+          </div>
+          {rightMeta}
+        </div>
+      </Link>
+    );
+  }
+
+  if (notification.type === 'results_amended') {
+    const hasPoints = notification.points !== undefined;
+    const amendedTitle = sessionLabel
+      ? `${sessionLabel} results were amended`
+      : 'Results were amended';
+
+    return (
+      <Link
+        to="/races/$raceSlug"
+        params={{ raceSlug: notification.raceSlug ?? '' }}
+        search={
+          notification.sessionType
+            ? { session: notification.sessionType }
+            : undefined
+        }
+        onClick={handleClick}
+        className={itemClass}
+      >
+        <div className="flex items-start gap-3 px-4 py-3">
+          <LeftCol>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+              <Gavel className="h-4 w-4" />
+            </div>
+          </LeftCol>
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex items-start gap-2">
+              <p className="flex-1 text-sm leading-snug text-text">
+                {amendedTitle}
+              </p>
+              {hasPoints && (
+                <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-500">
+                  now +{notification.points} pts
+                </span>
+              )}
+            </div>
+            {notification.amendmentNote && (
+              <p className="mt-1 text-xs leading-snug text-text-muted">
+                {notification.amendmentNote}
+              </p>
+            )}
             {notification.raceName && (
               <div className="mt-2">
                 <NotificationRaceChip

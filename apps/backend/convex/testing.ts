@@ -45,6 +45,29 @@ export const createTestUser = internalMutation({
   },
 });
 
+// Grant or revoke admin on an existing user (dev/test only). Look up by
+// username since that's what's visible in the UI.
+export const setUserAdmin = internalMutation({
+  args: {
+    username: v.string(),
+    isAdmin: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_username', (q) => q.eq('username', args.username))
+      .unique();
+    if (!user) {
+      throw new Error(`No user with username "${args.username}"`);
+    }
+    await ctx.db.patch(user._id, {
+      isAdmin: args.isAdmin,
+      updatedAt: Date.now(),
+    });
+    return { userId: user._id, isAdmin: args.isAdmin };
+  },
+});
+
 // Create a test race with controllable timing
 export const createTestRace = internalMutation({
   args: {

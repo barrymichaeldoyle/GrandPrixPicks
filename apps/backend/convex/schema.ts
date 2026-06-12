@@ -137,6 +137,14 @@ export default defineSchema({
     ),
     // Set to true after result notifications are sent; prevents re-sending on result corrections
     notificationsSent: v.optional(v.boolean()),
+    // Official amendment (e.g. stewards' decision changed the classification
+    // after results went out). Set when an admin republishes with a note;
+    // silent corrections (data-entry fixes) leave these untouched.
+    amendedAt: v.optional(v.number()),
+    amendmentNote: v.optional(v.string()), // user-facing, shown on race page + notification
+    // Set on amendment publish; cleared by checkScoringComplete once rescoring
+    // finishes and the results_amended notifications have been scheduled.
+    amendmentNotificationPending: v.optional(v.boolean()),
     publishedAt: v.number(),
     updatedAt: v.number(),
   }).index('by_race_session', ['raceId', 'sessionType']),
@@ -414,17 +422,20 @@ export default defineSchema({
     type: v.union(
       v.literal('rev_received'),
       v.literal('results_published'),
+      v.literal('results_amended'),
       v.literal('session_locked'),
     ),
     readAt: v.optional(v.number()),
     createdAt: v.number(),
-    // race context (results_published + session_locked)
+    // race context (results_published + results_amended + session_locked)
     raceId: v.optional(v.id('races')),
     sessionType: v.optional(sessionType),
     raceName: v.optional(v.string()),
     raceSlug: v.optional(v.string()),
-    // results_published
+    // results_published + results_amended
     points: v.optional(v.number()),
+    // results_amended — admin's user-facing explanation of the change
+    amendmentNote: v.optional(v.string()),
     // rev_received
     actorUserId: v.optional(v.id('users')),
     actorUsername: v.optional(v.string()),

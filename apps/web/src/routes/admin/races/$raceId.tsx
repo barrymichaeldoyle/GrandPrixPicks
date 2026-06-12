@@ -229,6 +229,12 @@ function AdminRaceDetailPage() {
   const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  // Republishing an existing result is either a quiet data-entry fix or an
+  // official amendment that notifies players (with a required note).
+  const [updateMode, setUpdateMode] = useState<'correction' | 'amendment'>(
+    'correction',
+  );
+  const [amendmentNote, setAmendmentNote] = useState('');
 
   const driverCount = drivers?.length ?? 0;
   const availableSessions = getSessionsForWeekend(race?.hasSprint ?? false);
@@ -272,6 +278,8 @@ function AdminRaceDetailPage() {
       setSelectedDrivers(Array.from({ length: driverCount }, () => null));
       setDnfDriverIds([]);
     }
+    setUpdateMode('correction');
+    setAmendmentNote('');
   }, [existingResult, selectedSession, driverCount]);
 
   function setPosition(index: number, driverId: Id<'drivers'> | null) {
@@ -457,20 +465,23 @@ function AdminRaceDetailPage() {
     }
   }
 
+  const isAmendment = Boolean(existingResult) && updateMode === 'amendment';
+  const trimmedAmendmentNote = amendmentNote.trim();
+  const amendmentNoteMissing = isAmendment && trimmedAmendmentNote.length === 0;
+
   async function handlePublish() {
     if (classificationOrderError) {
       return;
     }
-    if (!allFilledForHooks) {
+    if (!allFilledForHooks || amendmentNoteMissing) {
       return;
     }
-    const action = existingResult ? 'Update' : 'Publish';
-    if (
-      race &&
-      !window.confirm(
-        `${action} ${SESSION_LABELS[selectedSession]} results for "${race.name}"? This will trigger scoring for all users.`,
-      )
-    ) {
+    const confirmMessage = isAmendment
+      ? `Publish an OFFICIAL AMENDMENT to ${SESSION_LABELS[selectedSession]} results for "${race?.name}"? Everyone who predicted this session will be rescored and notified with your note.`
+      : existingResult
+        ? `Silently correct ${SESSION_LABELS[selectedSession]} results for "${race?.name}"? Scores are recalculated but players are not notified.`
+        : `Publish ${SESSION_LABELS[selectedSession]} results for "${race?.name}"? This will trigger scoring for all users.`;
+    if (race && !window.confirm(confirmMessage)) {
       return;
     }
     setIsPublishing(true);
@@ -480,6 +491,7 @@ function AdminRaceDetailPage() {
         classification,
         sessionType: selectedSession,
         dnfDriverIds,
+        amendmentNote: isAmendment ? trimmedAmendmentNote : undefined,
       });
       captureAnalyticsEvent('admin_results_published', {
         race_id: typedRaceId,
@@ -488,6 +500,7 @@ function AdminRaceDetailPage() {
         classification_count: classification.length,
         dnf_count: dnfDriverIds.length,
         is_update: Boolean(existingResult),
+        is_amendment: isAmendment,
       });
     } catch (error) {
       captureAnalyticsEvent('admin_results_publish_failed', {
@@ -497,6 +510,7 @@ function AdminRaceDetailPage() {
         classification_count: classification.length,
         dnf_count: dnfDriverIds.length,
         is_update: Boolean(existingResult),
+        is_amendment: isAmendment,
       });
       console.error('Failed to publish:', error);
     } finally {
@@ -643,6 +657,76 @@ function AdminRaceDetailPage() {
             </div>
           )}
 
+          {existingResult && (
+            <div className="mb-6 rounded-lg border border-slate-700 bg-slate-900/50 p-4">
+              <p className="mb-3 text-sm font-semibold text-white">
+                How should this update go out?
+              </p>
+              <div className="space-y-2">
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 p-3 transition-colors has-checked:border-yellow-500/60 has-checked:bg-yellow-500/5">
+                  <input
+                    type="radio"
+                    name="update-mode"
+                    checked={updateMode === 'correction'}
+                    onChange={() => setUpdateMode('correction')}
+                    className="mt-0.5 accent-yellow-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-white">
+                      Silent correction
+                    </span>
+                    <span className="block text-sm text-slate-400">
+                      I entered the results wrong. Recalculate scores quietly —
+                      players are not notified.
+                    </span>
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 p-3 transition-colors has-checked:border-yellow-500/60 has-checked:bg-yellow-500/5">
+                  <input
+                    type="radio"
+                    name="update-mode"
+                    checked={updateMode === 'amendment'}
+                    onChange={() => setUpdateMode('amendment')}
+                    className="mt-0.5 accent-yellow-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-white">
+                      Official amendment
+                    </span>
+                    <span className="block text-sm text-slate-400">
+                      The real-world result changed (penalty, stewards&apos;
+                      decision). Players who predicted this session are rescored
+                      and notified, and your note is shown on the race page.
+                    </span>
+                  </span>
+                </label>
+              </div>
+              {updateMode === 'amendment' && (
+                <div className="mt-3">
+                  <textarea
+                    value={amendmentNote}
+                    onChange={(e) => setAmendmentNote(e.target.value)}
+                    rows={2}
+                    maxLength={280}
+                    placeholder={`e.g. "Stewards' decision: Gasly retains P3 after post-race review"`}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-yellow-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Shown to players word-for-word — say what changed and why.
+                  </p>
+                </div>
+              )}
+              {existingResult.amendedAt != null &&
+                existingResult.amendmentNote && (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Previously amended{' '}
+                    {new Date(existingResult.amendedAt).toLocaleString()}:
+                    &ldquo;{existingResult.amendmentNote}&rdquo;
+                  </p>
+                )}
+            </div>
+          )}
+
           <div className="flex items-center gap-4">
             <button
               onClick={handlePublish}
@@ -651,6 +735,7 @@ function AdminRaceDetailPage() {
                 isPublishing ||
                 scoringStatus === 'scoring' ||
                 !!classificationOrderError ||
+                amendmentNoteMissing ||
                 (!!existingResult && !hasChanges)
               }
               className="flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-black transition-colors hover:bg-yellow-600 disabled:cursor-not-allowed disabled:bg-slate-600"
@@ -665,10 +750,15 @@ function AdminRaceDetailPage() {
                   <Loader2 size={20} className="animate-spin" />
                   Scoring in progress...
                 </>
+              ) : isAmendment ? (
+                <>
+                  <Save size={20} />
+                  Publish {SESSION_LABELS[selectedSession]} Amendment
+                </>
               ) : existingResult ? (
                 <>
                   <Save size={20} />
-                  Update {SESSION_LABELS[selectedSession]} Results
+                  Silently Correct {SESSION_LABELS[selectedSession]} Results
                 </>
               ) : (
                 <>
@@ -686,6 +776,11 @@ function AdminRaceDetailPage() {
             {!allFilledForHooks && (
               <span className="text-sm text-slate-400">
                 Fill all {driverCount} positions to publish
+              </span>
+            )}
+            {allFilledForHooks && amendmentNoteMissing && (
+              <span className="text-sm text-slate-400">
+                Add an amendment note to publish
               </span>
             )}
           </div>

@@ -22,13 +22,18 @@ import { colors, radii } from '../theme/tokens';
 
 type Notification = {
   _id: ConvexId<'inAppNotifications'>;
-  type: 'rev_received' | 'results_published' | 'session_locked';
+  type:
+    | 'rev_received'
+    | 'results_published'
+    | 'results_amended'
+    | 'session_locked';
   readAt?: number;
   createdAt: number;
   raceName?: string;
   raceSlug?: string;
   sessionType?: string;
   points?: number;
+  amendmentNote?: string;
   actorUsername?: string;
   actorDisplayName?: string;
   actorAvatarUrl?: string;
@@ -248,6 +253,18 @@ function NotificationIcon({ notification }: { notification: Notification }) {
       </View>
     );
   }
+  if (notification.type === 'results_amended') {
+    return (
+      <View
+        style={[
+          styles.iconBubble,
+          { backgroundColor: 'rgba(251, 191, 36, 0.18)' },
+        ]}
+      >
+        <Ionicons color={colors.warning} name="alert-circle" size={18} />
+      </View>
+    );
+  }
   return (
     <View
       style={[
@@ -279,6 +296,12 @@ function getNotificationTitle(notification: Notification): string {
     const points = notification.points ?? 0;
     return `Results published — ${points} pt${points === 1 ? '' : 's'}`;
   }
+  if (notification.type === 'results_amended') {
+    const points = notification.points;
+    return points !== undefined
+      ? `Results amended — now ${points} pt${points === 1 ? '' : 's'}`
+      : 'Results amended';
+  }
   return 'Session locked';
 }
 
@@ -294,8 +317,8 @@ function getNotificationSubtitle(notification: Notification): string {
     }
     return 'Tap to view in feed';
   }
-  if (notification.type === 'results_published') {
-    return [session, notification.raceName].filter(Boolean).join(' · ');
+  if (notification.type === 'results_amended' && notification.amendmentNote) {
+    return notification.amendmentNote;
   }
   return [session, notification.raceName].filter(Boolean).join(' · ');
 }

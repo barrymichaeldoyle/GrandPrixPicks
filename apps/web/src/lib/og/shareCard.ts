@@ -12,11 +12,19 @@ export type ShareCard =
   | { variant: 'result'; session: SessionType; picks: string[] }
   | { variant: 'h2h_result'; session: SessionType; winners: string[] }
   | {
+      variant: 'h2h_picks';
+      session: SessionType;
+      winners: string[];
+      by?: string;
+    }
+  | {
       variant: 'h2h_score';
       session: SessionType;
       correct: number;
       total: number;
       points: number;
+      /** Per-matchup verdicts in grid order (older links omit them). */
+      picks?: { code: string; correct: boolean }[];
       by?: string;
     }
   | { variant: 'score'; points: number; final: boolean; by?: string };
@@ -24,6 +32,7 @@ export type ShareCard =
 const SESSION_TYPES = ['quali', 'sprint_quali', 'sprint', 'race'] as const;
 
 const DRIVER_CODE_RE = /^[A-Z]{2,4}$/;
+const H2H_PICK_TOKEN_RE = /^[A-Z]{2,4}:[01]$/;
 const MAX_NAME_LENGTH = 40;
 
 function sanitizeName(value: unknown): string | undefined {
@@ -48,11 +57,12 @@ export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
       ...(card.variant === 'picks' && card.by ? { by: card.by } : {}),
     };
   }
-  if (card.variant === 'h2h_result') {
+  if (card.variant === 'h2h_result' || card.variant === 'h2h_picks') {
     return {
-      share: 'h2h_result',
+      share: card.variant,
       session: card.session,
       winners: card.winners.join(','),
+      ...(card.variant === 'h2h_picks' && card.by ? { by: card.by } : {}),
     };
   }
   if (card.variant === 'h2h_score') {
@@ -62,6 +72,13 @@ export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
       correct: String(card.correct),
       total: String(card.total),
       points: String(card.points),
+      ...(card.picks && card.picks.length > 0
+        ? {
+            picks: card.picks
+              .map((pick) => `${pick.code}:${pick.correct ? 1 : 0}`)
+              .join(','),
+          }
+        : {}),
       ...(card.by ? { by: card.by } : {}),
     };
   }
@@ -109,7 +126,7 @@ export function parseShareCard(
     return { variant: 'score', points, final: search.final === '1', by };
   }
 
-  if (search.share === 'h2h_result') {
+  if (search.share === 'h2h_result' || search.share === 'h2h_picks') {
     const session = SESSION_TYPES.find((s) => s === search.session);
     if (!session || typeof search.winners !== 'string') {
       return null;
@@ -121,6 +138,9 @@ export function parseShareCard(
       !winners.every((code) => DRIVER_CODE_RE.test(code))
     ) {
       return null;
+    }
+    if (search.share === 'h2h_picks') {
+      return { variant: 'h2h_picks', session, winners, by };
     }
     return { variant: 'h2h_result', session, winners };
   }
@@ -144,7 +164,21 @@ export function parseShareCard(
     ) {
       return null;
     }
-    return { variant: 'h2h_score', session, correct, total, points, by };
+    let picks: { code: string; correct: boolean }[] | undefined;
+    if (typeof search.picks === 'string') {
+      const tokens = search.picks.split(',');
+      if (
+        tokens.length > 16 ||
+        !tokens.every((token) => H2H_PICK_TOKEN_RE.test(token))
+      ) {
+        return null;
+      }
+      picks = tokens.map((token) => {
+        const [code, verdict] = token.split(':');
+        return { code, correct: verdict === '1' };
+      });
+    }
+    return { variant: 'h2h_score', session, correct, total, points, picks, by };
   }
 
   return null;

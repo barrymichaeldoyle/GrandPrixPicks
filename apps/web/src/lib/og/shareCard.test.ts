@@ -53,6 +53,21 @@ describe('share card codec', () => {
       resultCard,
     );
 
+    const picksCard: ShareCard = {
+      variant: 'h2h_picks',
+      session: 'sprint',
+      winners: ['NOR', 'LEC', 'VER', 'ALO'],
+      by: 'Barry',
+    };
+    const encodedPicks = encodeShareCardSearch(picksCard);
+    expect(encodedPicks).toEqual({
+      share: 'h2h_picks',
+      session: 'sprint',
+      winners: 'NOR,LEC,VER,ALO',
+      by: 'Barry',
+    });
+    expect(parseShareCard(encodedPicks)).toEqual(picksCard);
+
     const scoreCard: ShareCard = {
       variant: 'h2h_score',
       session: 'quali',
@@ -62,6 +77,23 @@ describe('share card codec', () => {
       by: 'Barry',
     };
     expect(parseShareCard(encodeShareCardSearch(scoreCard))).toEqual(scoreCard);
+
+    const scoreCardWithPicks: ShareCard = {
+      variant: 'h2h_score',
+      session: 'quali',
+      correct: 2,
+      total: 3,
+      points: 2,
+      picks: [
+        { code: 'NOR', correct: true },
+        { code: 'LEC', correct: true },
+        { code: 'VER', correct: false },
+      ],
+      by: 'Barry',
+    };
+    const encodedScore = encodeShareCardSearch(scoreCardWithPicks);
+    expect(encodedScore.picks).toBe('NOR:1,LEC:1,VER:0');
+    expect(parseShareCard(encodedScore)).toEqual(scoreCardWithPicks);
   });
 
   it('returns null when share param is absent', () => {
@@ -122,6 +154,23 @@ describe('share card codec', () => {
         share: 'h2h_result',
         session: 'race',
         winners: 'NOR,bad',
+      }),
+    ).toBeNull();
+    expect(
+      parseShareCard({
+        share: 'h2h_picks',
+        session: 'race',
+        winners: '',
+      }),
+    ).toBeNull();
+    expect(
+      parseShareCard({
+        share: 'h2h_score',
+        session: 'race',
+        correct: '2',
+        total: '3',
+        points: '2',
+        picks: 'NOR:1,bad',
       }),
     ).toBeNull();
   });

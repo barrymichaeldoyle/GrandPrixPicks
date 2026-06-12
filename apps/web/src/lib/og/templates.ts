@@ -420,18 +420,44 @@ export function shareResultsTemplate(
   );
 }
 
-export interface ShareH2HResultsOgData {
+export interface ShareH2HPicksOgData {
   raceName: string;
   round: number;
   season: number;
   sessionLabel: string;
+  by?: string;
   flagSrc?: string;
   winners: { code: string; color: string }[];
+}
+
+export type ShareH2HResultsOgData = Omit<ShareH2HPicksOgData, 'by'>;
+
+export function shareH2HPicksTemplate(
+  data: ShareH2HPicksOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return shareH2HWinnersTemplate(
+    data,
+    `${data.by ? `${data.by}'s` : 'My'} H2H Picks · ${data.sessionLabel}`,
+    size,
+  );
 }
 
 export function shareH2HResultsTemplate(
   data: ShareH2HResultsOgData,
   size: OgImageSize = 'og',
+): ReactNode {
+  return shareH2HWinnersTemplate(
+    data,
+    `${data.sessionLabel} H2H Results · Teammate Winners`,
+    size,
+  );
+}
+
+function shareH2HWinnersTemplate(
+  data: ShareH2HResultsOgData,
+  heading: string,
+  size: OgImageSize,
 ): ReactNode {
   return layout(
     size,
@@ -455,7 +481,7 @@ export function shareH2HResultsTemplate(
             color: colors.accent,
           },
         },
-        `${data.sessionLabel} H2H Results \u00b7 Teammate Winners`,
+        heading,
       ),
       raceNameRow(data.raceName, data.flagSrc, 46),
       e(
@@ -521,12 +547,35 @@ export interface ShareH2HScoreOgData {
   correct: number;
   total: number;
   points: number;
+  /** Per-matchup verdicts with resolved team colors (older links omit them). */
+  picks?: { code: string; color: string; correct: boolean }[];
+}
+
+/** Small green check / red cross icon, drawn as SVG so no font glyph is needed. */
+function verdictIcon(correct: boolean): ReactNode {
+  return e(
+    'svg',
+    {
+      width: 20,
+      height: 20,
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: correct ? '#4ade80' : '#f87171',
+      'stroke-width': '4',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    },
+    correct
+      ? e('path', { d: 'M20 6 9 17l-5-5' })
+      : e('path', { d: 'M18 6 6 18M6 6l12 12' }),
+  );
 }
 
 export function shareH2HScoreTemplate(
   data: ShareH2HScoreOgData,
   size: OgImageSize = 'og',
 ): ReactNode {
+  const hasPicks = (data.picks?.length ?? 0) > 0;
   return layout(
     size,
     e(
@@ -535,7 +584,7 @@ export function shareH2HScoreTemplate(
         style: {
           display: 'flex',
           flexDirection: 'column' as const,
-          gap: 22,
+          gap: hasPicks ? 18 : 22,
         },
       },
       e(
@@ -558,7 +607,7 @@ export function shareH2HScoreTemplate(
           'div',
           {
             style: {
-              fontSize: 132,
+              fontSize: hasPicks ? 96 : 132,
               fontWeight: 700,
               fontFamily: 'Orbitron',
               lineHeight: 1,
@@ -585,6 +634,54 @@ export function shareH2HScoreTemplate(
           `+${data.points} pts`,
         ),
       ),
+      hasPicks
+        ? e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                flexWrap: 'wrap' as const,
+                gap: 10,
+              },
+            },
+            ...(data.picks ?? []).map((pick, index) =>
+              e(
+                'div',
+                {
+                  key: `${pick.code}-${index}`,
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 122,
+                    height: 52,
+                    borderRadius: 10,
+                    backgroundColor: pick.color,
+                  },
+                },
+                e(
+                  'div',
+                  {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '5px 12px',
+                      borderRadius: 8,
+                      backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                      fontSize: 24,
+                      fontWeight: 700,
+                      color: 'white',
+                      letterSpacing: 2,
+                    },
+                  },
+                  verdictIcon(pick.correct),
+                  pick.code,
+                ),
+              ),
+            ),
+          )
+        : null,
       raceNameRow(data.raceName, data.flagSrc, 42),
       e(
         'div',

@@ -28,7 +28,10 @@ import { getRaceSessionLockAt } from '../../lib/raceSessions';
 import { encodeShareCardSearch } from '../../lib/og/shareCard';
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
-import { buildH2HScoreShareText } from '../../lib/share';
+import {
+  buildH2HPicksShareText,
+  buildH2HScoreShareText,
+} from '../../lib/share';
 import { siteConfig } from '../../lib/site';
 import { useNow } from '../../lib/testing/now';
 import { useUserDateFormat } from '../../lib/useUserDateFormat';
@@ -100,6 +103,46 @@ export function H2HSection({
   const selectedSessionHasH2H =
     !isLoadingPredictions && h2hPredictions?.[selectedSession] != null;
 
+  // H2H picks sharing (this section only renders before the session has
+  // published results, so these are always pre-result picks).
+  const me = useQuery(api.users.me, {});
+  const selectedSessionH2HPicks = h2hPredictions?.[selectedSession] ?? null;
+  const myH2HPickCodes = (matchups ?? [])
+    .map((matchup) => {
+      const pickId = selectedSessionH2HPicks?.[matchup._id];
+      if (pickId === matchup.driver1._id) {
+        return matchup.driver1.code;
+      }
+      if (pickId === matchup.driver2._id) {
+        return matchup.driver2.code;
+      }
+      return null;
+    })
+    .filter((code): code is string => code != null);
+  const canShareH2HPicks = selectedSessionHasH2H && myH2HPickCodes.length > 0;
+  const h2hPicksShareText = canShareH2HPicks
+    ? buildH2HPicksShareText({
+        raceName: race.name,
+        sessionLabel: SESSION_LABELS[selectedSession],
+        winnerCodes: myH2HPickCodes,
+        accountHandle: siteConfig.social.x.handle,
+        raceHashtag: race.hashtag,
+      })
+    : '';
+  const h2hPicksShareUrl = canShareH2HPicks
+    ? `${siteConfig.url}/races/${race.slug}?${new URLSearchParams({
+        ...encodeShareCardSearch({
+          variant: 'h2h_picks',
+          session: selectedSession,
+          winners: myH2HPickCodes,
+          by: me?.displayName || me?.username || undefined,
+        }),
+        utm_source: 'x',
+        utm_medium: 'social',
+        utm_campaign: 'share_h2h_picks',
+      }).toString()}`
+    : '';
+
   const overlayOpen = initialPicksOpen || editingSession !== null;
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
@@ -167,12 +210,28 @@ export function H2HSection({
         {isLoadingPredictions ? (
           <InlineLoader />
         ) : hasH2HPredictions ? (
-          <H2HMatchupGrid
-            matchups={matchups}
-            selections={h2hPredictions?.[selectedSession] ?? {}}
-            mode="readonly"
-            readonlyClickTooltip="Click edit above to change"
-          />
+          <>
+            <H2HMatchupGrid
+              matchups={matchups}
+              selections={h2hPredictions?.[selectedSession] ?? {}}
+              mode="readonly"
+              readonlyClickTooltip="Click edit above to change"
+            />
+            {canShareH2HPicks && (
+              <div className="mt-3">
+                <ShareOnXButton
+                  text={h2hPicksShareText}
+                  url={h2hPicksShareUrl}
+                  analyticsEvent="h2h_picks_shared_x"
+                  analyticsProps={{
+                    race_slug: race.slug,
+                    session_type: selectedSession,
+                  }}
+                  label="Share my H2H picks on X"
+                />
+              </div>
+            )}
+          </>
         ) : (
           <StartPicksCta
             icon={Swords}
@@ -384,16 +443,24 @@ export function H2HResultsSection({
     matchupId: Id<'h2hMatchups'>;
     team: string;
     myPickId: Id<'drivers'> | null;
+    myPickCode: string | null;
     winnerId: Id<'drivers'>;
     points: number;
   }[] = (h2hResults ?? []).map((result) => {
     const myPickId = selectedSessionPicks?.[result.matchupId] ?? null;
+    const myPickDriver =
+      myPickId === result.driver1?._id
+        ? result.driver1
+        : myPickId === result.driver2?._id
+          ? result.driver2
+          : null;
     const points = myPickId && myPickId === result.winnerId ? 1 : 0;
     return {
       rowId: `h2h-${result.matchupId}`,
       matchupId: result.matchupId,
       team: result.team,
       myPickId,
+      myPickCode: myPickDriver?.code ?? null,
       winnerId: result.winnerId,
       points,
     };
@@ -429,6 +496,10 @@ export function H2HResultsSection({
         sessionLabel: SESSION_LABELS[selectedSession],
         correct: myH2HScore.correctPicks,
         total: myH2HScore.totalPicks,
+        picks: h2hSummaryItems.map((item) => ({
+          code: item.myPickCode,
+          correct: item.points > 0,
+        })),
         accountHandle: siteConfig.social.x.handle,
         raceHashtag: race.hashtag,
       })
@@ -441,6 +512,12 @@ export function H2HResultsSection({
           correct: myH2HScore.correctPicks,
           total: myH2HScore.totalPicks,
           points: myH2HScore.points,
+          // Skipped matchups have no code; the card simply omits their chip.
+          picks: h2hSummaryItems.flatMap((item) =>
+            item.myPickCode
+              ? [{ code: item.myPickCode, correct: item.points > 0 }]
+              : [],
+          ),
           by: h2hShareBy,
         }),
         utm_source: 'x',

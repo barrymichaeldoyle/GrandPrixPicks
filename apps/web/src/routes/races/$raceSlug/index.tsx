@@ -55,7 +55,13 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     from?: 'home';
     // Share-card params (see lib/og/shareCard.ts). Kept as raw strings so the
     // URL stays flat; parsed and validated in the loader.
-    share?: 'picks' | 'result' | 'h2h_result' | 'h2h_score' | 'score';
+    share?:
+      | 'picks'
+      | 'result'
+      | 'h2h_picks'
+      | 'h2h_result'
+      | 'h2h_score'
+      | 'score';
     picks?: string;
     winners?: string;
     correct?: string;
@@ -76,6 +82,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     const share =
       search.share === 'picks' ||
       search.share === 'result' ||
+      search.share === 'h2h_picks' ||
       search.share === 'h2h_result' ||
       search.share === 'h2h_score' ||
       search.share === 'score'

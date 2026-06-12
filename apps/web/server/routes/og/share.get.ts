@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { parseShareCard } from '../../../src/lib/og/shareCard';
 import {
+  shareH2HPicksTemplate,
   shareH2HResultsTemplate,
   shareH2HScoreTemplate,
   sharePicksTemplate,
@@ -73,17 +74,26 @@ export default async function handler(event: RouteEvent) {
             })
           : shareResultsTemplate(data);
       }
-      if (card.variant === 'h2h_result') {
-        return shareH2HResultsTemplate({
+      if (card.variant === 'h2h_result' || card.variant === 'h2h_picks') {
+        const data = {
           raceName: race.name,
           round: race.round,
           season: race.season,
           sessionLabel: SESSION_LABELS[card.session],
           flagSrc,
           winners: await resolvePickColors(convex, card.winners),
-        });
+        };
+        return card.variant === 'h2h_picks'
+          ? shareH2HPicksTemplate({ ...data, by: card.by })
+          : shareH2HResultsTemplate(data);
       }
       if (card.variant === 'h2h_score') {
+        const pickChips = card.picks
+          ? await resolvePickColors(
+              convex,
+              card.picks.map((pick) => pick.code),
+            )
+          : undefined;
         return shareH2HScoreTemplate({
           raceName: race.name,
           round: race.round,
@@ -94,6 +104,10 @@ export default async function handler(event: RouteEvent) {
           correct: card.correct,
           total: card.total,
           points: card.points,
+          picks: pickChips?.map((chip, index) => ({
+            ...chip,
+            correct: card.picks?.[index]?.correct ?? false,
+          })),
         });
       }
       return shareScoreTemplate({

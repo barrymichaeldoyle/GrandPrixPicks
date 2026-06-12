@@ -228,7 +228,7 @@ export function RaceEventPage({
     })
     .join('\n');
   const shareHashtags = ['#F1', race.hashtag].filter(Boolean).join(' ');
-  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name} 🏎️🏁\n\n${sharePicksList}\n\nThink you can beat me on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`;
+  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name} 🎯🏎️\n\n${sharePicksList}\n\nThink you can beat me on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`;
   const sharePicksUrl = canSharePicks
     ? buildSharePageUrl(
         {
@@ -242,8 +242,8 @@ export function RaceEventPage({
     : '';
 
   const shareScoreText = allEventsScored
-    ? `I scored ${pointsSoFar} points at the ${race.name} 🏎️🏁\n\nThink you can beat me next round on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`
-    : `${pointsSoFar} points so far at the ${race.name} 🏎️🏁\n\nFollow the results on ${siteConfig.social.x.handle}.\n\n${shareHashtags}`;
+    ? `I scored ${pointsSoFar} points at the ${race.name} 🏆\n\nThink you can beat me next round on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`
+    : `${pointsSoFar} points so far at the ${race.name} 📈\n\nFollow the results on ${siteConfig.social.x.handle}.\n\n${shareHashtags}`;
   const shareScoreUrl = buildSharePageUrl(
     {
       variant: 'score',

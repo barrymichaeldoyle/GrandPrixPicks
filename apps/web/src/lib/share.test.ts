@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildH2HPicksShareText,
   buildH2HScoreShareText,
   buildOfficialH2HResultShareText,
   buildRaceResultShareText,
@@ -44,18 +45,37 @@ describe('buildRaceResultShareText', () => {
 });
 
 describe('H2H share text', () => {
-  it('formats a player score post', () => {
+  it('formats a player picks post', () => {
     expect(
-      buildH2HScoreShareText({
+      buildH2HPicksShareText({
         raceName: 'Barcelona Grand Prix',
         sessionLabel: 'Qualifying',
-        correct: 7,
-        total: 11,
+        winnerCodes: ['NOR', 'LEC', 'VER'],
         accountHandle: '@GrandPrixPicks',
         raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'I got 7/11 Head-to-Head picks right for the Barcelona Grand Prix Qualifying 🏎️🏁\n\nCan you beat my score on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+      'My Qualifying Head-to-Head picks for the Barcelona Grand Prix ⚔️🏎️💨\n\nNOR · LEC · VER\n\n🏁 Think you can beat me on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+    );
+  });
+
+  it('formats a player score post with a one-line verdict strip', () => {
+    expect(
+      buildH2HScoreShareText({
+        raceName: 'Barcelona Grand Prix',
+        sessionLabel: 'Qualifying',
+        correct: 2,
+        total: 3,
+        picks: [
+          { code: 'NOR', correct: true },
+          { code: 'LEC', correct: true },
+          { code: null, correct: false },
+        ],
+        accountHandle: '@GrandPrixPicks',
+        raceHashtag: '#SpanishGP',
+      }),
+    ).toBe(
+      'I scored 2/3 on my Barcelona Grand Prix Qualifying Head-to-Head picks ⚔️\n\n✅NOR ✅LEC ❌—\n\nCan you beat my score on @GrandPrixPicks?\n\n#F1 #SpanishGP',
     );
   });
 
@@ -69,7 +89,7 @@ describe('H2H share text', () => {
         raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'Barcelona Grand Prix Qualifying Head-to-Head results 🏎️🏁\n\nWinners: NOR · LEC · VER\n\nSee every teammate matchup on @GrandPrixPicks.\n\n#F1 #SpanishGP',
+      'Barcelona Grand Prix Qualifying Head-to-Head results ⚔️🏁\n\nWinners: NOR · LEC · VER\n\nSee every teammate matchup on @GrandPrixPicks.\n\n#F1 #SpanishGP',
     );
   });
 });

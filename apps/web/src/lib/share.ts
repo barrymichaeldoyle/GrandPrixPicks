@@ -34,11 +34,31 @@ export function buildRaceResultShareText({
   return `${raceName} ${sessionLabel} results 🏎️🏁\n\n${classification}\n\nFull results and player scores on ${accountHandle}.\n\n${hashtags}`;
 }
 
+export function buildH2HPicksShareText({
+  raceName,
+  sessionLabel,
+  winnerCodes,
+  accountHandle,
+  raceHashtag,
+}: {
+  raceName: string;
+  sessionLabel: string;
+  winnerCodes: readonly string[];
+  accountHandle: string;
+  raceHashtag?: string;
+}) {
+  const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
+  // Codes only — team names live on the OG card, keeping the post under
+  // X's 280-character limit.
+  return `My ${sessionLabel} Head-to-Head picks for the ${raceName} ⚔️🏎️💨\n\n${winnerCodes.join(' · ')}\n\n🏁 Think you can beat me on ${accountHandle}?\n\n${hashtags}`;
+}
+
 export function buildH2HScoreShareText({
   raceName,
   sessionLabel,
   correct,
   total,
+  picks,
   accountHandle,
   raceHashtag,
 }: {
@@ -46,11 +66,18 @@ export function buildH2HScoreShareText({
   sessionLabel: string;
   correct: number;
   total: number;
+  /** Per-matchup verdicts in grid order; code is null when no pick was made. */
+  picks: ReadonlyArray<{ code: string | null; correct: boolean }>;
   accountHandle: string;
   raceHashtag?: string;
 }) {
+  // Wordle-style one-liner — team names live on the OG card, keeping the
+  // post under X's 280-character limit.
+  const breakdown = picks
+    .map((pick) => `${pick.correct ? '✅' : '❌'}${pick.code ?? '—'}`)
+    .join(' ');
   const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
-  return `I got ${correct}/${total} Head-to-Head picks right for the ${raceName} ${sessionLabel} 🏎️🏁\n\nCan you beat my score on ${accountHandle}?\n\n${hashtags}`;
+  return `I scored ${correct}/${total} on my ${raceName} ${sessionLabel} Head-to-Head picks ⚔️\n\n${breakdown}\n\nCan you beat my score on ${accountHandle}?\n\n${hashtags}`;
 }
 
 export function buildOfficialH2HResultShareText({
@@ -67,7 +94,7 @@ export function buildOfficialH2HResultShareText({
   raceHashtag?: string;
 }) {
   const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
-  return `${raceName} ${sessionLabel} Head-to-Head results 🏎️🏁\n\nWinners: ${winnerCodes.join(' · ')}\n\nSee every teammate matchup on ${accountHandle}.\n\n${hashtags}`;
+  return `${raceName} ${sessionLabel} Head-to-Head results ⚔️🏁\n\nWinners: ${winnerCodes.join(' · ')}\n\nSee every teammate matchup on ${accountHandle}.\n\n${hashtags}`;
 }
 
 /** Builds an X post intent with the link separated from the copy. */

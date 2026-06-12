@@ -3,19 +3,7 @@ import { Flag } from 'lucide-react';
 
 import { footerExploreLinks } from '../lib/navigation';
 import { siteConfig } from '../lib/site';
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="currentColor"
-    >
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
+import { XLogoIcon } from './ShareOnXButton';
 
 function LinkedInIcon({ className }: { className?: string }) {
   return (
@@ -61,7 +49,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
             >
-              <XIcon className="h-3.5 w-3.5" />
+              <XLogoIcon className="h-3.5 w-3.5" />
               <span>Follow {siteConfig.social.x.handle}</span>
             </a>
             <div className="flex flex-wrap items-center gap-x-1 gap-y-1">

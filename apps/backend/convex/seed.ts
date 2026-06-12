@@ -336,7 +336,10 @@ const F1_RACES_2026: Array<{
   },
   {
     round: 7,
-    name: 'Spanish Grand Prix',
+    // "Barcelona" (not "Spanish") — 2026 has two Spanish races; round 14 in
+    // Madrid is the official Spanish GP. Slug stays spain-2026 to preserve
+    // existing URLs and the timezone mapping.
+    name: 'Barcelona Grand Prix',
     slug: 'spain-2026',
     qualiDate: '2026-06-13T14:00:00Z',
     raceDate: '2026-06-14T13:00:00Z',
@@ -506,11 +509,13 @@ export const seedRaces = internalMutation({
         .first();
 
       if (existing) {
-        // Full sync: overwrite all session and lock times from seed so new
-        // fields (e.g. sprint for Canada) and time fixes are applied.
+        // Full sync: overwrite name and all session and lock times from seed
+        // so new fields (e.g. sprint for Canada), renames (e.g. Barcelona GP),
+        // and time fixes are applied.
         // Only force status to 'cancelled' from seed data — never overwrite
         // 'finished' with 'upcoming', as that would reset completed races.
         await ctx.db.patch(existing._id, {
+          name: race.name,
           round: race.round,
           raceStartAt,
           predictionLockAt,
@@ -4742,10 +4747,10 @@ export const seedLeaderboardScenario = internalAction({
  *
  * - Clears all dev data + leagues and resets every race to its real 2026
  *   calendar date. The real calendar already places Monaco (round 6) just
- *   before the dev `now` and the Spanish GP (round 7) just after it.
+ *   before the dev `now` and the Barcelona GP (round 7) just after it.
  * - Finishes rounds 1–6 (Australia → Monaco) with top-5 results, scores,
  *   season standings, and the matching H2H data — sprint weekends included.
- * - Leaves the Spanish GP fully open with no picks, so it becomes the next
+ * - Leaves the Barcelona GP fully open with no picks, so it becomes the next
  *   race to predict against.
  * - Recreates the three demo leagues.
  *
@@ -4822,7 +4827,7 @@ export const reseedDevThroughMonaco = internalAction({
       scenarioRacesDeleted: raceResult.deleted,
       racesReset: raceResult.reset,
       throughRace: 'Monaco Grand Prix',
-      nextOpenRace: 'Spanish Grand Prix',
+      nextOpenRace: 'Barcelona Grand Prix',
       username,
       leagues: leagueResult.leaguesCreated,
       ...seedResult,

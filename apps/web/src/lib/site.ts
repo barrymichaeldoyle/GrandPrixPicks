@@ -32,6 +32,14 @@ const ogBaseUrl =
 export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260302b`;
 
 /**
+ * Absolute URL for a dynamically rendered share-card OG image.
+ * @param search — query string params for the /og/share endpoint
+ */
+export function shareCardOgImageUrl(search: Record<string, string>) {
+  return `${ogBaseUrl}/og/share?${new URLSearchParams(search).toString()}`;
+}
+
+/**
  * Returns canonical meta tags (og:url, twitter:url) and the canonical link
  * for a given path. Use in each route's `head()` to set per-page canonical URLs.
  *

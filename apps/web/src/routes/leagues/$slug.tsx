@@ -31,8 +31,10 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { XLogoIcon } from '@/components/ShareOnXButton';
 import { TabSwitch } from '@/components/TabSwitch';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { buildXShareIntentUrl } from '@/lib/share';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '../../components/Button/Button';
@@ -355,10 +357,10 @@ function ShareLinkSection({
 
   const leagueUrl = `${window.location.origin}/leagues/${slug}`;
 
-  const xShareUrl = `https://x.com/intent/post?${new URLSearchParams({
-    text: `Join my "${leagueName}" league on ${siteConfig.social.x.handle} and predict the top 5 for every F1 session this season 🏎️`,
-    url: leagueUrl,
-  }).toString()}`;
+  const xShareUrl = buildXShareIntentUrl(
+    `Join my "${leagueName}" league on ${siteConfig.social.x.handle} and predict the top 5 for every F1 session this season 🏎️`,
+    leagueUrl,
+  );
 
   async function copyToClipboard() {
     await navigator.clipboard.writeText(leagueUrl);
@@ -402,26 +404,13 @@ function ShareLinkSection({
           aria-label="Share league on X"
           className="shrink-0 rounded-lg border border-border p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
         >
-          <XShareIcon className="h-4 w-4" />
+          <XLogoIcon className="h-4 w-4" />
         </a>
         <span aria-live="polite" className="sr-only">
           {copied ? 'Link copied!' : ''}
         </span>
       </div>
     </div>
-  );
-}
-
-function XShareIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="currentColor"
-    >
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
   );
 }
 

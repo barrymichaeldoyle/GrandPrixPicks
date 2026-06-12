@@ -346,6 +346,228 @@ export function raceTemplate(
   );
 }
 
+// ────────── Share Picks Template ──────────
+
+export interface SharePicksOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  by?: string;
+  /** Country flag as a data URI (SVG), rendered next to the race name. */
+  flagSrc?: string;
+  /** Exactly 5 picks in predicted order, with resolved team colors. */
+  picks: { code: string; color: string }[];
+}
+
+/** Race name row with optional country flag, shared by the share templates. */
+function raceNameRow(
+  raceName: string,
+  flagSrc: string | undefined,
+  fontSize: number,
+): ReactNode {
+  return e(
+    'div',
+    { style: { display: 'flex', alignItems: 'center', gap: 24 } },
+    flagSrc
+      ? e('img', {
+          src: flagSrc,
+          width: 84,
+          height: 56,
+          style: {
+            borderRadius: 8,
+            objectFit: 'cover' as const,
+          },
+        })
+      : null,
+    e(
+      'div',
+      {
+        style: {
+          fontSize,
+          fontWeight: 700,
+          fontFamily: 'Orbitron',
+          lineHeight: 1.1,
+          color: colors.text,
+        },
+      },
+      raceName,
+    ),
+  );
+}
+
+export function sharePicksTemplate(
+  data: SharePicksOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return layout(
+    size,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          gap: 28,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 22,
+            fontWeight: 700,
+            textTransform: 'uppercase' as const,
+            letterSpacing: 3,
+            color: colors.accent,
+          },
+        },
+        `${data.by ? `${data.by}'s` : 'My'} Top 5 \u00b7 ${data.sessionLabel}`,
+      ),
+      raceNameRow(data.raceName, data.flagSrc, 52),
+      e(
+        'div',
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        `Round ${data.round} \u00b7 ${data.season} Season`,
+      ),
+      // Picks row: position + driver code chips in team colors
+      e(
+        'div',
+        { style: { display: 'flex', gap: 20, marginTop: 12 } },
+        ...data.picks.map((pick, i) =>
+          e(
+            'div',
+            {
+              key: String(i),
+              style: {
+                display: 'flex',
+                flexDirection: 'column' as const,
+                alignItems: 'center',
+                gap: 10,
+              },
+            },
+            e(
+              'div',
+              {
+                style: {
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: colors.textMuted,
+                },
+              },
+              `P${i + 1}`,
+            ),
+            e(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 150,
+                  height: 84,
+                  borderRadius: 14,
+                  backgroundColor: pick.color,
+                },
+              },
+              e(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    padding: '8px 18px',
+                    borderRadius: 10,
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                    fontSize: 34,
+                    fontWeight: 700,
+                    color: 'white',
+                    letterSpacing: 2,
+                  },
+                },
+                pick.code,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ────────── Share Score Template ──────────
+
+export interface ShareScoreOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  by?: string;
+  /** Country flag as a data URI (SVG), rendered next to the race name. */
+  flagSrc?: string;
+  points: number;
+  /** True once every event of the weekend has been scored. */
+  final: boolean;
+}
+
+export function shareScoreTemplate(
+  data: ShareScoreOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return layout(
+    size,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          gap: 24,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 22,
+            fontWeight: 700,
+            textTransform: 'uppercase' as const,
+            letterSpacing: 3,
+            color: colors.accent,
+          },
+        },
+        `${data.by ? `${data.by}'s` : 'My'} ${data.final ? 'Weekend Total' : 'Points So Far'}`,
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'baseline', gap: 20 } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 150,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              lineHeight: 1,
+              color: colors.accent,
+            },
+          },
+          String(data.points),
+        ),
+        e(
+          'div',
+          { style: { fontSize: 44, fontWeight: 700, color: colors.text } },
+          'pts',
+        ),
+      ),
+      raceNameRow(data.raceName, data.flagSrc, 44),
+      e(
+        'div',
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        `Round ${data.round} \u00b7 ${data.season} Season`,
+      ),
+    ),
+  );
+}
+
 // ────────── Profile Template ──────────
 
 interface ProfileOgData {

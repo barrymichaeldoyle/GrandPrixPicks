@@ -32,7 +32,16 @@ import {
   SESSION_LABELS_SHORT,
 } from '../../../lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '../../../lib/devFlags';
-import { canonicalMeta, defaultOgImage, siteConfig } from '../../../lib/site';
+import {
+  encodeShareCardSearch,
+  parseShareCard,
+} from '../../../lib/og/shareCard';
+import {
+  canonicalMeta,
+  defaultOgImage,
+  shareCardOgImageUrl,
+  siteConfig,
+} from '../../../lib/site';
 import { useNow } from '../../../lib/testing/now';
 import { RaceEventPage } from './-components/RaceEventPage/RaceEventPage';
 
@@ -41,7 +50,17 @@ const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
 export const Route = createFileRoute('/races/$raceSlug/')({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { session?: SessionType; from?: 'home' } => {
+  ): {
+    session?: SessionType;
+    from?: 'home';
+    // Share-card params (see lib/og/shareCard.ts). Kept as raw strings so the
+    // URL stays flat; parsed and validated in the loader.
+    share?: 'picks' | 'score';
+    picks?: string;
+    points?: string;
+    final?: string;
+    by?: string;
+  } => {
     const rawSession = search.session;
     const session =
       rawSession === 'quali' ||
@@ -51,10 +70,35 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         ? rawSession
         : undefined;
     const from = search.from === 'home' ? ('home' as const) : undefined;
-    return { session, from };
+    const share =
+      search.share === 'picks' || search.share === 'score'
+        ? search.share
+        : undefined;
+    return {
+      session,
+      from,
+      share,
+      picks: typeof search.picks === 'string' ? search.picks : undefined,
+      points: typeof search.points === 'string' ? search.points : undefined,
+      final: typeof search.final === 'string' ? search.final : undefined,
+      by: typeof search.by === 'string' ? search.by : undefined,
+    };
   },
+  // Only depend on share params (so regular session-tab navigation doesn't
+  // re-run the loader). shareSession mirrors `session` for the picks card.
+  loaderDeps: ({ search }) =>
+    search.share === undefined
+      ? {}
+      : {
+          share: search.share,
+          picks: search.picks,
+          points: search.points,
+          final: search.final,
+          by: search.by,
+          shareSession: search.session,
+        },
   component: RaceDetailPage,
-  loader: async ({ params, location }) => {
+  loader: async ({ params, location, deps }) => {
     const [race, nextRace] = await Promise.all([
       convex.query(api.races.getRaceBySlugOrLegacyRef, {
         ref: params.raceSlug,
@@ -71,11 +115,21 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         search: location.search,
       });
     }
-    return { race, nextRace };
+    const shareCard =
+      'share' in deps
+        ? parseShareCard({ ...deps, session: deps.shareSession })
+        : null;
+    return { race, nextRace, shareCard };
   },
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
-    const ogImage = defaultOgImage;
+    const shareCard = loaderData?.shareCard ?? null;
+    const ogImage = shareCard
+      ? shareCardOgImageUrl({
+          race: params.raceSlug,
+          ...encodeShareCardSearch(shareCard),
+        })
+      : defaultOgImage;
     const title = race
       ? `${race.name} Predictions | Grand Prix Picks`
       : 'Race Predictions | Grand Prix Picks';

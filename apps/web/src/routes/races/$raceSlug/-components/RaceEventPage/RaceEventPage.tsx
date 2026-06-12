@@ -1,4 +1,6 @@
+import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
+import { useQuery } from 'convex/react';
 import { Pencil, Swords, Trophy } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,14 +9,22 @@ import { Badge } from '../../../../../components/Badge';
 import { Button } from '../../../../../components/Button/Button';
 import { ConfirmDialog } from '../../../../../components/ConfirmDialog';
 import { ErrorBoundary } from '../../../../../components/error/ErrorBoundary';
+import {
+  FollowXPrompt,
+  hasCompletedFollowPrompt,
+} from '../../../../../components/FollowXPrompt';
 import { PicksFocusOverlay } from '../../../../../components/PicksFocusOverlay';
 import { PredictionForm } from '../../../../../components/PredictionForm';
+import { ShareOnXButton } from '../../../../../components/ShareOnXButton';
 import { StartPicksCta } from '../../../../../components/StartPicksCta';
 import { RaceScoreCard } from '../../../../../components/RaceScoreCard/RaceScoreCard';
 import type { WeekendCardData } from '../../../../../components/RaceScoreCard/types';
 import { Tooltip } from '../../../../../components/Tooltip';
+import type { ShareCard } from '../../../../../lib/og/shareCard';
+import { encodeShareCardSearch } from '../../../../../lib/og/shareCard';
 import type { SessionType } from '../../../../../lib/sessions';
 import { SESSION_LABELS } from '../../../../../lib/sessions';
+import { siteConfig } from '../../../../../lib/site';
 import type { TabSwitchOption } from '../../../../../components/TabSwitch';
 import { H2HResultsSection, H2HSection } from '../../../-race-detail-content';
 
@@ -157,6 +167,7 @@ export function RaceEventPage({
   // H2HSection) so a Top 5 save can chain straight into H2H picks.
   const [h2hInitialPicksOpen, setH2hInitialPicksOpen] = useState(false);
   const [showTop5CloseConfirm, setShowTop5CloseConfirm] = useState(false);
+  const [showFollowPrompt, setShowFollowPrompt] = useState(false);
 
   function closeTop5Overlay() {
     setShowTop5CloseConfirm(false);
@@ -167,6 +178,11 @@ export function RaceEventPage({
 
   function handleTop5Success() {
     closeTop5Overlay();
+    // One-time nudge to follow the brand X account, shown after the first
+    // prediction ever saved on this device.
+    if (!hasCompletedFollowPrompt()) {
+      setShowFollowPrompt(true);
+    }
     // Keep the guided flow rolling: if the user hasn't saved any H2H picks for
     // the weekend yet, open the H2H focus overlay as the next step.
     if (!hasH2HPredictions) {
@@ -181,6 +197,56 @@ export function RaceEventPage({
     }
     closeTop5Overlay();
   }
+
+  const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
+  const shareBy = me?.displayName || me?.username || undefined;
+
+  // Share URLs carry the card payload so the race page can serve a per-user
+  // OG image (rendered by /og/share) when the link is unfurled on X.
+  function buildSharePageUrl(card: ShareCard, campaign: string) {
+    const params = new URLSearchParams({
+      ...encodeShareCardSearch(card),
+      utm_source: 'x',
+      utm_medium: 'social',
+      utm_campaign: campaign,
+    });
+    return `${siteConfig.url}/races/${race.slug}?${params.toString()}`;
+  }
+
+  const selectedSessionPicks = selectedSessionData?.picks ?? [];
+  const canSharePicks =
+    isSignedIn &&
+    selectedSessionData != null &&
+    !selectedSessionData.isHidden &&
+    !selectedSessionData.hasResults &&
+    selectedSessionPicks.length === 5;
+  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name}: ${selectedSessionPicks
+    .map((pick) => pick.code)
+    .join(' · ')} 🏎️ Think you can beat me on ${siteConfig.social.x.handle}?`;
+  const sharePicksUrl = canSharePicks
+    ? buildSharePageUrl(
+        {
+          variant: 'picks',
+          session: selectedSession,
+          picks: selectedSessionPicks.map((pick) => pick.code),
+          by: shareBy,
+        },
+        'share_picks',
+      )
+    : '';
+
+  const shareScoreText = allEventsScored
+    ? `I scored ${pointsSoFar} points at the ${race.name} on ${siteConfig.social.x.handle} 🏎️ Think you can beat me next round?`
+    : `${pointsSoFar} points so far at the ${race.name} on ${siteConfig.social.x.handle} 🏎️`;
+  const shareScoreUrl = buildSharePageUrl(
+    {
+      variant: 'score',
+      points: pointsSoFar,
+      final: allEventsScored,
+      by: shareBy,
+    },
+    'share_score',
+  );
 
   const selectedSessionCardData =
     cardData == null
@@ -313,23 +379,46 @@ export function RaceEventPage({
           ) : null
         }
         top5MainContent={
-          renderLateSessionEntryCta() ??
-          (cardData && selectedSessionCardData ? (
-            <ErrorBoundary>
-              <RaceScoreCard
-                data={selectedSessionCardData}
-                variant="full"
-                viewer={{
-                  isSignedIn,
-                  isOwner: true,
-                }}
-                isNextRace={isNextRace}
-                onEditSession={
-                  canManagePredictions ? onTop5EditingSessionChange : undefined
-                }
-              />
-            </ErrorBoundary>
-          ) : null)
+          <>
+            {showFollowPrompt && (
+              <div className="mb-4">
+                <FollowXPrompt onDismiss={() => setShowFollowPrompt(false)} />
+              </div>
+            )}
+            {renderLateSessionEntryCta() ??
+              (cardData && selectedSessionCardData ? (
+                <ErrorBoundary>
+                  <RaceScoreCard
+                    data={selectedSessionCardData}
+                    variant="full"
+                    viewer={{
+                      isSignedIn,
+                      isOwner: true,
+                    }}
+                    isNextRace={isNextRace}
+                    onEditSession={
+                      canManagePredictions
+                        ? onTop5EditingSessionChange
+                        : undefined
+                    }
+                  />
+                </ErrorBoundary>
+              ) : null)}
+            {canSharePicks && (
+              <div className="mt-3">
+                <ShareOnXButton
+                  text={sharePicksText}
+                  url={sharePicksUrl}
+                  analyticsEvent="picks_shared_x"
+                  analyticsProps={{
+                    race_slug: race.slug,
+                    session_type: selectedSession,
+                  }}
+                  label="Share my picks on X"
+                />
+              </div>
+            )}
+          </>
         }
         h2hContent={
           <H2HSectionComponent
@@ -347,10 +436,27 @@ export function RaceEventPage({
           />
         }
         h2hResultsContent={
-          <H2HResultsSectionComponent
-            raceId={race._id}
-            selectedSession={selectedSession}
-          />
+          <>
+            <H2HResultsSectionComponent
+              raceId={race._id}
+              selectedSession={selectedSession}
+            />
+            {isSignedIn && hasPredictions && (
+              <div className="mt-5 flex justify-center">
+                <ShareOnXButton
+                  text={shareScoreText}
+                  url={shareScoreUrl}
+                  analyticsEvent="score_shared_x"
+                  analyticsProps={{
+                    race_slug: race.slug,
+                    all_events_scored: allEventsScored,
+                    points: pointsSoFar,
+                  }}
+                  label="Share my score on X"
+                />
+              </div>
+            )}
+          </>
         }
       />
       <PicksFocusOverlay

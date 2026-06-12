@@ -3,8 +3,27 @@ import { useMutation, useQuery } from 'convex/react';
 import { useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
+import { useNow } from '@/lib/testing/now';
 
 const MAX_ANNOUNCEMENT_LENGTH = 500;
+
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+function toDatetimeLocalValue(ms: number): string {
+  const date = new Date(ms);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** Parses a datetime-local input value (local time) to ms epoch. */
+function fromDatetimeLocalValue(value: string): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const ms = new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : undefined;
+}
 
 export function AdminBannerTab() {
   const announcement = useQuery(api.announcements.adminGetAnnouncement);
@@ -12,8 +31,12 @@ export function AdminBannerTab() {
   const clearAnnouncement = useMutation(
     api.announcements.adminClearAnnouncement,
   );
+  const now = useNow(30_000);
 
+  // null = untouched, fall back to the saved announcement's value.
   const [message, setMessage] = useState<string | null>(null);
+  const [startsAtInput, setStartsAtInput] = useState<string | null>(null);
+  const [expiresAtInput, setExpiresAtInput] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,17 +46,49 @@ export function AdminBannerTab() {
 
   const draft = message ?? announcement?.message ?? '';
   const trimmedDraft = draft.trim();
+  const startsAtDraft =
+    startsAtInput ??
+    (announcement?.startsAt != null
+      ? toDatetimeLocalValue(announcement.startsAt)
+      : '');
+  const expiresAtDraft =
+    expiresAtInput ??
+    (announcement?.expiresAt != null
+      ? toDatetimeLocalValue(announcement.expiresAt)
+      : '');
+
   const isActive = announcement?.active === true;
+  const isScheduled =
+    isActive && announcement.startsAt != null && now < announcement.startsAt;
+  const isExpired =
+    isActive && announcement.expiresAt != null && now >= announcement.expiresAt;
+  const status = !isActive
+    ? { label: 'Not shown', className: 'bg-slate-700 text-slate-400' }
+    : isScheduled
+      ? { label: 'Scheduled', className: 'bg-amber-500/15 text-amber-400' }
+      : isExpired
+        ? { label: 'Expired', className: 'bg-slate-700 text-slate-400' }
+        : { label: 'Live', className: 'bg-emerald-500/15 text-emerald-400' };
 
   async function handlePublish() {
     setIsSaving(true);
     setError(null);
     try {
-      await setAnnouncement({ message: trimmedDraft });
+      await setAnnouncement({
+        message: trimmedDraft,
+        startsAt: fromDatetimeLocalValue(startsAtDraft),
+        expiresAt: fromDatetimeLocalValue(expiresAtDraft),
+      });
       setMessage(null);
+      setStartsAtInput(null);
+      setExpiresAtInput(null);
     } catch (err) {
       console.error('Failed to publish announcement:', err);
-      setError('Failed to publish — try again.');
+      setError(
+        err instanceof Error && err.message.includes('Auto-hide')
+          ? 'Check the schedule — the auto-hide time must be in the future and after the show-from time.'
+          : 'Failed to publish — try again.',
+      );
     } finally {
       setIsSaving(false);
     }
@@ -58,13 +113,9 @@ export function AdminBannerTab() {
         <div className="mb-1 flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-white">Site Banner</h2>
           <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              isActive
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'bg-slate-700 text-slate-400'
-            }`}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
           >
-            {isActive ? 'Live' : 'Not shown'}
+            {status.label}
           </span>
         </div>
         <p className="mb-4 text-sm text-slate-400">
@@ -93,9 +144,52 @@ export function AdminBannerTab() {
           {draft.length}/{MAX_ANNOUNCEMENT_LENGTH}
         </div>
 
-        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="admin-banner-starts-at"
+              className="mb-1 block text-sm font-medium text-slate-300"
+            >
+              Show from{' '}
+              <span className="font-normal text-slate-500">(optional)</span>
+            </label>
+            <input
+              id="admin-banner-starts-at"
+              type="datetime-local"
+              value={startsAtDraft}
+              onChange={(event) => setStartsAtInput(event.target.value)}
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-slate-400 focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Hold the banner back until then — e.g. when the session was
+              expected to finish. Empty shows it immediately.
+            </p>
+          </div>
+          <div>
+            <label
+              htmlFor="admin-banner-expires-at"
+              className="mb-1 block text-sm font-medium text-slate-300"
+            >
+              Auto-hide at{' '}
+              <span className="font-normal text-slate-500">(optional)</span>
+            </label>
+            <input
+              id="admin-banner-expires-at"
+              type="datetime-local"
+              value={expiresAtDraft}
+              onChange={(event) => setExpiresAtInput(event.target.value)}
+              className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-slate-400 focus:outline-none"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Takes itself down — no need to remember to clear it. Empty keeps
+              it up until you take it down.
+            </p>
+          </div>
+        </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handlePublish}

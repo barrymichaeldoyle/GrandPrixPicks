@@ -3,15 +3,20 @@ import { useQuery } from 'convex/react';
 import { Megaphone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useNow } from '../lib/testing/now';
+
 const DISMISSED_STORAGE_KEY = 'gpp-dismissed-announcement';
 
 /**
  * Admin-managed site-wide banner (e.g. "results will be published late").
  * Dismissal is per-message: editing or reposting the announcement bumps
  * updatedAt, which invalidates earlier dismissals on every device.
+ * The show window is enforced here, not in the query — see getActive.
  */
 export function AnnouncementBanner() {
   const announcement = useQuery(api.announcements.getActive);
+  // Coarse tick: appearing/disappearing within ~30s of the boundary is fine.
+  const now = useNow(30_000);
   // Read after mount — localStorage isn't available during SSR.
   const [dismissedKey, setDismissedKey] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -22,6 +27,14 @@ export function AnnouncementBanner() {
   }, []);
 
   if (!announcement || !hydrated) {
+    return null;
+  }
+
+  const beforeWindow =
+    announcement.startsAt != null && now < announcement.startsAt;
+  const afterWindow =
+    announcement.expiresAt != null && now >= announcement.expiresAt;
+  if (beforeWindow || afterWindow) {
     return null;
   }
 

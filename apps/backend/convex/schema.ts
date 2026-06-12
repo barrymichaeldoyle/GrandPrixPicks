@@ -420,9 +420,15 @@ export default defineSchema({
 
   // Admin-managed site-wide banner (e.g. "results will be published late").
   // Single-document table: adminSetAnnouncement patches the existing doc.
+  // The show window (startsAt/expiresAt) is enforced client-side: Convex
+  // queries don't re-run as time passes, so server-side filtering would
+  // leave connected clients with a stale banner at the boundaries.
   announcements: defineTable({
     message: v.string(),
     active: v.boolean(),
+    // Optional show window (ms epoch). Unset = no bound on that side.
+    startsAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index('by_active', ['active']),

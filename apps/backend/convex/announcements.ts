@@ -5,7 +5,12 @@ import { getViewer, requireAdmin } from './lib/auth';
 
 const MAX_ANNOUNCEMENT_LENGTH = 500;
 
-/** Active site-wide banner, or null. Public — shown to signed-out users too. */
+/**
+ * Active site-wide banner, or null. Public — shown to signed-out users too.
+ * Deliberately does NOT filter by the startsAt/expiresAt window: queries only
+ * re-run on data changes, so time-based filtering here would never make the
+ * banner appear/disappear for connected clients. The client checks the window.
+ */
 export const getActive = query({
   args: {},
   handler: async (ctx) => {
@@ -19,6 +24,8 @@ export const getActive = query({
     return {
       _id: announcement._id,
       message: announcement.message,
+      startsAt: announcement.startsAt ?? null,
+      expiresAt: announcement.expiresAt ?? null,
       updatedAt: announcement.updatedAt,
     };
   },
@@ -33,9 +40,17 @@ export const adminGetAnnouncement = query({
   },
 });
 
-/** Publishes (or replaces) the site-wide banner message. */
+/**
+ * Publishes (or replaces) the site-wide banner message, with an optional show
+ * window — e.g. schedule a "results will be late" notice to appear only once
+ * the session was expected to finish.
+ */
 export const adminSetAnnouncement = mutation({
-  args: { message: v.string() },
+  args: {
+    message: v.string(),
+    startsAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     requireAdmin(await getViewer(ctx));
 
@@ -48,13 +63,27 @@ export const adminSetAnnouncement = mutation({
         `Announcement message must be at most ${MAX_ANNOUNCEMENT_LENGTH} characters`,
       );
     }
-
     const now = Date.now();
+    if (args.expiresAt !== undefined && args.expiresAt <= now) {
+      throw new Error('Auto-hide time must be in the future');
+    }
+    if (
+      args.startsAt !== undefined &&
+      args.expiresAt !== undefined &&
+      args.expiresAt <= args.startsAt
+    ) {
+      throw new Error('Auto-hide time must be after the show-from time');
+    }
+
     const existing = await ctx.db.query('announcements').first();
     if (existing) {
-      await ctx.db.patch(existing._id, {
+      // replace (not patch) so clearing a window actually removes the fields
+      await ctx.db.replace(existing._id, {
         message,
         active: true,
+        startsAt: args.startsAt,
+        expiresAt: args.expiresAt,
+        createdAt: existing.createdAt,
         updatedAt: now,
       });
       return existing._id;
@@ -62,6 +91,8 @@ export const adminSetAnnouncement = mutation({
     return await ctx.db.insert('announcements', {
       message,
       active: true,
+      startsAt: args.startsAt,
+      expiresAt: args.expiresAt,
       createdAt: now,
       updatedAt: now,
     });

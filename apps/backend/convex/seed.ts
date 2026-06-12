@@ -275,6 +275,7 @@ export const seedDrivers = internalMutation({
 const F1_RACES_2026: Array<{
   round: number;
   name: string;
+  hashtag: string;
   slug: string;
   raceDate: string;
   qualiDate: string;
@@ -286,6 +287,7 @@ const F1_RACES_2026: Array<{
   {
     round: 1,
     name: 'Australian Grand Prix',
+    hashtag: '#AustralianGP',
     slug: 'australia-2026',
     qualiDate: '2026-03-07T05:00:00Z',
     raceDate: '2026-03-08T04:00:00Z',
@@ -293,6 +295,7 @@ const F1_RACES_2026: Array<{
   {
     round: 2,
     name: 'Chinese Grand Prix',
+    hashtag: '#ChineseGP',
     slug: 'china-2026',
     hasSprint: true,
     sprintQualiDate: '2026-03-13T07:30:00Z',
@@ -303,6 +306,7 @@ const F1_RACES_2026: Array<{
   {
     round: 3,
     name: 'Japanese Grand Prix',
+    hashtag: '#JapaneseGP',
     slug: 'japan-2026',
     qualiDate: '2026-03-28T06:00:00Z',
     raceDate: '2026-03-29T05:00:00Z',
@@ -310,6 +314,7 @@ const F1_RACES_2026: Array<{
   {
     round: 4,
     name: 'Miami Grand Prix',
+    hashtag: '#MiamiGP',
     slug: 'miami-2026',
     hasSprint: true,
     sprintQualiDate: '2026-05-01T20:30:00Z',
@@ -320,6 +325,7 @@ const F1_RACES_2026: Array<{
   {
     round: 5,
     name: 'Canadian Grand Prix',
+    hashtag: '#CanadianGP',
     slug: 'canada-2026',
     hasSprint: true,
     sprintQualiDate: '2026-05-22T20:30:00Z',
@@ -330,6 +336,7 @@ const F1_RACES_2026: Array<{
   {
     round: 6,
     name: 'Monaco Grand Prix',
+    hashtag: '#MonacoGP',
     slug: 'monaco-2026',
     qualiDate: '2026-06-06T14:00:00Z',
     raceDate: '2026-06-07T13:00:00Z',
@@ -340,6 +347,7 @@ const F1_RACES_2026: Array<{
     // Madrid is the official Spanish GP. Slug stays spain-2026 to preserve
     // existing URLs and the timezone mapping.
     name: 'Barcelona Grand Prix',
+    hashtag: '#SpanishGP',
     slug: 'spain-2026',
     qualiDate: '2026-06-13T14:00:00Z',
     raceDate: '2026-06-14T13:00:00Z',
@@ -347,6 +355,7 @@ const F1_RACES_2026: Array<{
   {
     round: 8,
     name: 'Austrian Grand Prix',
+    hashtag: '#AustrianGP',
     slug: 'austria-2026',
     qualiDate: '2026-06-27T14:00:00Z',
     raceDate: '2026-06-28T13:00:00Z',
@@ -354,6 +363,7 @@ const F1_RACES_2026: Array<{
   {
     round: 9,
     name: 'British Grand Prix',
+    hashtag: '#BritishGP',
     slug: 'britain-2026',
     hasSprint: true,
     sprintQualiDate: '2026-07-03T15:30:00Z',
@@ -364,6 +374,7 @@ const F1_RACES_2026: Array<{
   {
     round: 10,
     name: 'Belgian Grand Prix',
+    hashtag: '#BelgianGP',
     slug: 'belgium-2026',
     qualiDate: '2026-07-18T14:00:00Z',
     raceDate: '2026-07-19T13:00:00Z',
@@ -371,6 +382,7 @@ const F1_RACES_2026: Array<{
   {
     round: 11,
     name: 'Hungarian Grand Prix',
+    hashtag: '#HungarianGP',
     slug: 'hungary-2026',
     qualiDate: '2026-07-25T14:00:00Z',
     raceDate: '2026-07-26T13:00:00Z',
@@ -378,6 +390,7 @@ const F1_RACES_2026: Array<{
   {
     round: 12,
     name: 'Dutch Grand Prix',
+    hashtag: '#DutchGP',
     slug: 'netherlands-2026',
     hasSprint: true,
     sprintQualiDate: '2026-08-21T14:30:00Z',
@@ -388,6 +401,7 @@ const F1_RACES_2026: Array<{
   {
     round: 13,
     name: 'Italian Grand Prix',
+    hashtag: '#ItalianGP',
     slug: 'italy-2026',
     qualiDate: '2026-09-05T14:00:00Z',
     raceDate: '2026-09-06T13:00:00Z',
@@ -395,6 +409,7 @@ const F1_RACES_2026: Array<{
   {
     round: 14,
     name: 'Madrid Grand Prix',
+    hashtag: '#MadridGP',
     slug: 'madrid-2026',
     qualiDate: '2026-09-12T14:00:00Z',
     raceDate: '2026-09-13T13:00:00Z',
@@ -402,6 +417,7 @@ const F1_RACES_2026: Array<{
   {
     round: 15,
     name: 'Azerbaijan Grand Prix',
+    hashtag: '#AzerbaijanGP',
     slug: 'azerbaijan-2026',
     qualiDate: '2026-09-25T12:00:00Z',
     raceDate: '2026-09-26T11:00:00Z',
@@ -409,6 +425,7 @@ const F1_RACES_2026: Array<{
   {
     round: 16,
     name: 'Singapore Grand Prix',
+    hashtag: '#SingaporeGP',
     slug: 'singapore-2026',
     hasSprint: true,
     sprintQualiDate: '2026-10-10T12:30:00Z',
@@ -419,6 +436,7 @@ const F1_RACES_2026: Array<{
   {
     round: 17,
     name: 'United States Grand Prix',
+    hashtag: '#USGP',
     slug: 'usa-2026',
     qualiDate: '2026-10-24T21:00:00Z',
     raceDate: '2026-10-25T20:00:00Z',
@@ -426,6 +444,7 @@ const F1_RACES_2026: Array<{
   {
     round: 18,
     name: 'Mexican Grand Prix',
+    hashtag: '#MexicoGP',
     slug: 'mexico-2026',
     qualiDate: '2026-10-31T21:00:00Z',
     raceDate: '2026-11-01T20:00:00Z',
@@ -433,6 +452,7 @@ const F1_RACES_2026: Array<{
   {
     round: 19,
     name: 'Brazilian Grand Prix',
+    hashtag: '#BrazilianGP',
     slug: 'brazil-2026',
     qualiDate: '2026-11-07T18:00:00Z',
     raceDate: '2026-11-08T17:00:00Z',
@@ -440,6 +460,7 @@ const F1_RACES_2026: Array<{
   {
     round: 20,
     name: 'Las Vegas Grand Prix',
+    hashtag: '#LasVegasGP',
     slug: 'las-vegas-2026',
     qualiDate: '2026-11-20T04:00:00Z',
     raceDate: '2026-11-21T04:00:00Z',
@@ -447,6 +468,7 @@ const F1_RACES_2026: Array<{
   {
     round: 21,
     name: 'Qatar Grand Prix',
+    hashtag: '#QatarGP',
     slug: 'qatar-2026',
     qualiDate: '2026-11-28T18:00:00Z',
     raceDate: '2026-11-29T16:00:00Z',
@@ -454,6 +476,7 @@ const F1_RACES_2026: Array<{
   {
     round: 22,
     name: 'Abu Dhabi Grand Prix',
+    hashtag: '#AbuDhabiGP',
     slug: 'abu-dhabi-2026',
     qualiDate: '2026-12-05T14:00:00Z',
     raceDate: '2026-12-06T13:00:00Z',
@@ -516,6 +539,7 @@ export const seedRaces = internalMutation({
         // 'finished' with 'upcoming', as that would reset completed races.
         await ctx.db.patch(existing._id, {
           name: race.name,
+          hashtag: race.hashtag,
           round: race.round,
           raceStartAt,
           predictionLockAt,
@@ -543,6 +567,7 @@ export const seedRaces = internalMutation({
         season: 2026,
         round: race.round,
         name: race.name,
+        hashtag: race.hashtag,
         slug: race.slug,
         qualiStartAt,
         qualiLockAt,

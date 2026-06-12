@@ -15,7 +15,7 @@ export function XLogoIcon({ className }: { className?: string }) {
 }
 
 interface ShareOnXButtonProps {
-  /** Pre-filled post text (the link is appended by X automatically). */
+  /** Pre-filled post copy (the share helper appends the link). */
   text: string;
   /** URL to attach to the post. */
   url: string;

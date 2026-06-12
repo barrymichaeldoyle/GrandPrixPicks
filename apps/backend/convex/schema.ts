@@ -76,6 +76,7 @@ export default defineSchema({
     season: v.number(), // 2026
     round: v.number(), // 1..N
     name: v.string(), // "Bahrain Grand Prix"
+    hashtag: v.optional(v.string()), // Official event hashtag, e.g. "#BahrainGP"
     slug: v.string(), // "bahrain-2026"
     timeZone: v.optional(v.string()), // IANA timezone, e.g. "Europe/London"
 

@@ -24,6 +24,7 @@ import type { ShareCard } from '../../../../../lib/og/shareCard';
 import { encodeShareCardSearch } from '../../../../../lib/og/shareCard';
 import type { SessionType } from '../../../../../lib/sessions';
 import { SESSION_LABELS } from '../../../../../lib/sessions';
+import { countryCodeToFlagEmoji } from '../../../../../lib/share';
 import { siteConfig } from '../../../../../lib/site';
 import type { TabSwitchOption } from '../../../../../components/TabSwitch';
 import { H2HResultsSection, H2HSection } from '../../../-race-detail-content';
@@ -220,9 +221,14 @@ export function RaceEventPage({
     !selectedSessionData.isHidden &&
     !selectedSessionData.hasResults &&
     selectedSessionPicks.length === 5;
-  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name}: ${selectedSessionPicks
-    .map((pick) => pick.code)
-    .join(' · ')} 🏎️ Think you can beat me on ${siteConfig.social.x.handle}?`;
+  const sharePicksList = selectedSessionPicks
+    .map((pick, index) => {
+      const flag = countryCodeToFlagEmoji(pick.nationality);
+      return `P${index + 1} ${flag ? `${flag} ` : ''}${pick.code}`;
+    })
+    .join('\n');
+  const shareHashtags = ['#F1', race.hashtag].filter(Boolean).join(' ');
+  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name} 🏎️\n\n${sharePicksList}\n\nThink you can beat me on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`;
   const sharePicksUrl = canSharePicks
     ? buildSharePageUrl(
         {
@@ -236,8 +242,8 @@ export function RaceEventPage({
     : '';
 
   const shareScoreText = allEventsScored
-    ? `I scored ${pointsSoFar} points at the ${race.name} on ${siteConfig.social.x.handle} 🏎️ Think you can beat me next round?`
-    : `${pointsSoFar} points so far at the ${race.name} on ${siteConfig.social.x.handle} 🏎️`;
+    ? `I scored ${pointsSoFar} points at the ${race.name} 🏎️\n\nThink you can beat me next round on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`
+    : `${pointsSoFar} points so far at the ${race.name} 🏎️\n\nFollow the results on ${siteConfig.social.x.handle}.\n\n${shareHashtags}`;
   const shareScoreUrl = buildSharePageUrl(
     {
       variant: 'score',

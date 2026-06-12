@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignoreFiles": [".agents/**"],
   "ignoreIssues": {
-    "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"]
+    "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"],
+    "apps/web/src/lib/og/templates.ts": ["exports"]
   },
   "workspaces": {
     "apps/web": {
@@ -12,13 +13,7 @@
         "server/routes/**/*.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
-      "ignoreFiles": [
-        "src/components/RaceCardSkeleton.tsx",
-        "src/lib/og/fonts.ts",
-        "src/lib/og/renderer.ts",
-        "src/lib/og/styles.ts",
-        "src/lib/og/templates.ts"
-      ],
+      "ignoreFiles": ["src/components/RaceCardSkeleton.tsx"],
       "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss"],
       "ignoreBinaries": ["cloudflared"]
     },

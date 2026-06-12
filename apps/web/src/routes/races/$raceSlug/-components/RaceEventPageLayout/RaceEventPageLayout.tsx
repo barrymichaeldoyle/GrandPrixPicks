@@ -137,11 +137,7 @@ export function RaceEventPageLayout({
             )}
             {initialTop5Content}
             <div className="mt-8">
-              <WeekendScheduleList
-                sessions={weekendSessions}
-                getSessionStartAt={getSessionStartAt}
-                getSessionLockAt={getSessionLockAt}
-              />
+              <WeekendScheduleList race={race} />
             </div>
           </div>
         ) : (
@@ -162,11 +158,7 @@ export function RaceEventPageLayout({
               <>
                 {!showReadonlyPredictions && (
                   <div className="mt-5">
-                    <WeekendScheduleList
-                      sessions={weekendSessions}
-                      getSessionStartAt={getSessionStartAt}
-                      getSessionLockAt={getSessionLockAt}
-                    />
+                    <WeekendScheduleList race={race} />
                   </div>
                 )}
                 {showReadonlyPredictions && (

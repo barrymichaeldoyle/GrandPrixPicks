@@ -14,6 +14,10 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '../../../components/Button/Button';
 import { DevNowPanel } from '../../../components/DevNowPanel';
+import {
+  toPointsBySession,
+  useMyH2HScoresBySession,
+} from '../../../hooks/useMyH2HScoresBySession';
 import { fromRaceDetail } from '../../../components/RaceScoreCard/adapters';
 import { RandomizeButton } from '../../../components/RandomizeButton';
 import { Tooltip } from '../../../components/Tooltip';
@@ -291,21 +295,8 @@ function RaceDetailPage() {
     api.h2h.myH2HPredictionsForRace,
     race ? { raceId: race._id } : 'skip',
   );
-  const h2hQualiScore = useQuery(
-    api.h2h.getMyH2HScoreForRace,
-    race ? { raceId: race._id, sessionType: 'quali' } : 'skip',
-  );
-  const h2hSprintQualiScore = useQuery(
-    api.h2h.getMyH2HScoreForRace,
-    race ? { raceId: race._id, sessionType: 'sprint_quali' } : 'skip',
-  );
-  const h2hSprintScore = useQuery(
-    api.h2h.getMyH2HScoreForRace,
-    race ? { raceId: race._id, sessionType: 'sprint' } : 'skip',
-  );
-  const h2hRaceScore = useQuery(
-    api.h2h.getMyH2HScoreForRace,
-    race ? { raceId: race._id, sessionType: 'race' } : 'skip',
+  const { pointsBySession: h2hPointsBySession } = useMyH2HScoresBySession(
+    race?._id,
   );
 
   const isViewerPredictionDataLoading = Boolean(
@@ -323,18 +314,7 @@ function RaceDetailPage() {
     : false;
   const hasPublishedResults = (availableSessions?.length ?? 0) > 0;
   const publishedSessionSet = new Set(availableSessions ?? []);
-  const top5PointsBySession: Record<SessionType, number> = {
-    quali: scores?.quali?.points ?? 0,
-    sprint_quali: scores?.sprint_quali?.points ?? 0,
-    sprint: scores?.sprint?.points ?? 0,
-    race: scores?.race?.points ?? 0,
-  };
-  const h2hPointsBySession: Record<SessionType, number> = {
-    quali: h2hQualiScore?.points ?? 0,
-    sprint_quali: h2hSprintQualiScore?.points ?? 0,
-    sprint: h2hSprintScore?.points ?? 0,
-    race: h2hRaceScore?.points ?? 0,
-  };
+  const top5PointsBySession = toPointsBySession(scores);
   const pointsSoFar = weekendSessions.reduce((sum, session) => {
     if (!publishedSessionSet.has(session)) {
       return sum;

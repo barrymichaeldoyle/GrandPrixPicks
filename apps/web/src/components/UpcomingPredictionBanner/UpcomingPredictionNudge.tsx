@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 
 import { Flag as CountryFlag } from '../Flag';
-import { getCountryCodeForRace } from '../RaceCard';
+import { getCountryCodeForRace } from '../../lib/raceCountries';
 
 const EXIT_ANIMATION_MS = 320;
 

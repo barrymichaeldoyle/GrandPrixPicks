@@ -55,6 +55,41 @@ export function getNextSessionLockAt(
   return race.predictionLockAt;
 }
 
+type RaceSessionTimesShape = Pick<
+  Doc<'races'>,
+  | 'hasSprint'
+  | 'qualiStartAt'
+  | 'sprintQualiStartAt'
+  | 'sprintStartAt'
+  | 'raceStartAt'
+>;
+
+export interface WeekendSessionStart {
+  type: SessionType;
+  startAt: number;
+}
+
+/**
+ * The weekend's sessions with their own scheduled start times, in track
+ * order. Sessions without a scheduled start (e.g. quali times not announced
+ * yet) are omitted — unlike `getRaceSessionStartAt`, this never falls back to
+ * the race start. Label via `SESSION_LABELS[entry.type]` at the call site.
+ */
+export function getWeekendSessionStarts(
+  race: RaceSessionTimesShape,
+): WeekendSessionStart[] {
+  const startAtBySession: Record<SessionType, number | undefined> = {
+    quali: race.qualiStartAt,
+    sprint_quali: race.sprintQualiStartAt,
+    sprint: race.sprintStartAt,
+    race: race.raceStartAt,
+  };
+  return getSessionsForWeekend(!!race.hasSprint).flatMap((type) => {
+    const startAt = startAtBySession[type];
+    return startAt === undefined ? [] : [{ type, startAt }];
+  });
+}
+
 type RaceWeekendShape = Pick<
   Doc<'races'>,
   'hasSprint' | 'qualiLockAt' | 'sprintQualiLockAt'

@@ -33,7 +33,8 @@ import {
 import { Flag } from '../../components/Flag';
 import { FollowButton } from '../../components/FollowButton';
 import { PageLoader } from '../../components/PageLoader';
-import { getCountryCodeForRace, RaceFlag } from '../../components/RaceCard';
+import { getCountryCodeForRace } from '../../lib/raceCountries';
+import { RaceFlag } from '../../components/RaceFlag';
 import { Tooltip } from '../../components/Tooltip';
 import { computeFavoriteTop5Pick } from '../../lib/favorites';
 import { canonicalMeta, defaultOgImage } from '../../lib/site';

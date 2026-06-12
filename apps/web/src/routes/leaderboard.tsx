@@ -16,7 +16,7 @@ import {
   Trophy,
   Users,
 } from 'lucide-react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';
@@ -370,63 +370,60 @@ function LeaderboardPage() {
     }
   }
 
-  // Determine viewer entry for header based on active view
+  // The active dataset for each (scope, gameMode) pair — the single source
+  // the header card, total count, and content components all read from.
+  // `undefined` means the query is still loading; weekend `null` means no
+  // data is available for the selected race.
+  const weekendDataByView = {
+    global: {
+      combined:
+        stickyWeekendCombined ??
+        (selectedRaceId === selectedRace?._id ? initialWeekend : null),
+      top5: stickyWeekendTop5,
+      h2h: stickyWeekendH2H,
+    },
+    following: {
+      combined: stickyWeekendCombinedFollowing,
+      top5: stickyWeekendTop5Following,
+      h2h: stickyWeekendH2HFollowing,
+    },
+  } satisfies Record<Scope, Record<GameMode, RaceLeaderboardResult | null>>;
+  const seasonDataByView = {
+    global: {
+      combined: seasonCombinedData,
+      top5: stickySeasonTop5Global,
+      h2h: stickySeasonH2HGlobal,
+    },
+    following: {
+      combined: stickySeasonCombinedFollowing,
+      top5: stickySeasonTop5Following,
+      h2h: stickySeasonH2HFollowing,
+    },
+  };
+  const activeWeekendData = weekendDataByView[scope][gameMode];
+  const activeSeasonData = seasonDataByView[scope][gameMode];
+
   const headerViewerEntry = (() => {
     if (timeScope === 'weekend') {
-      const data =
-        scope === 'global'
-          ? gameMode === 'combined'
-            ? (stickyWeekendCombined ??
-              (selectedRaceId === selectedRace?._id ? initialWeekend : null))
-            : gameMode === 'top5'
-              ? stickyWeekendTop5
-              : stickyWeekendH2H
-          : gameMode === 'combined'
-            ? stickyWeekendCombinedFollowing
-            : gameMode === 'top5'
-              ? stickyWeekendTop5Following
-              : stickyWeekendH2HFollowing;
-      if (!data || data.status !== 'visible' || data.entries.length === 0) {
+      if (
+        !activeWeekendData ||
+        activeWeekendData.status !== 'visible' ||
+        activeWeekendData.entries.length === 0
+      ) {
         return null;
       }
       return (
-        (data.entries as LeaderboardEntry[]).find((e) => e.isViewer) ?? null
+        (activeWeekendData.entries as LeaderboardEntry[]).find(
+          (e) => e.isViewer,
+        ) ?? null
       );
     }
-    // Season
-    const activeData =
-      scope === 'global'
-        ? gameMode === 'combined'
-          ? seasonCombinedData
-          : gameMode === 'top5'
-            ? stickySeasonTop5Global
-            : stickySeasonH2HGlobal
-        : gameMode === 'combined'
-          ? stickySeasonCombinedFollowing
-          : gameMode === 'top5'
-            ? stickySeasonTop5Following
-            : stickySeasonH2HFollowing;
-    return activeData?.viewerEntry ?? null;
+    return activeSeasonData?.viewerEntry ?? null;
   })();
 
-  const activeTotalCount = (() => {
-    if (timeScope === 'weekend') {
-      return null;
-    } // no count for weekend
-    const activeData =
-      scope === 'global'
-        ? gameMode === 'combined'
-          ? seasonCombinedData
-          : gameMode === 'top5'
-            ? stickySeasonTop5Global
-            : stickySeasonH2HGlobal
-        : gameMode === 'combined'
-          ? stickySeasonCombinedFollowing
-          : gameMode === 'top5'
-            ? stickySeasonTop5Following
-            : stickySeasonH2HFollowing;
-    return activeData?.totalCount ?? 0;
-  })();
+  // No count for weekend boards.
+  const activeTotalCount =
+    timeScope === 'weekend' ? null : (activeSeasonData?.totalCount ?? 0);
 
   const gameModeLabel =
     gameMode === 'combined'
@@ -582,18 +579,10 @@ function LeaderboardPage() {
           <WeekendContent
             key={activeViewKey}
             defaultRace={selectedRace}
-            initialWeekend={
-              selectedRaceId === selectedRace?._id ? initialWeekend : null
-            }
             scope={scope}
             gameMode={gameMode}
             isSignedIn={isSignedIn}
-            weekendCombined={stickyWeekendCombined}
-            weekendTop5={stickyWeekendTop5}
-            weekendH2H={stickyWeekendH2H}
-            weekendCombinedFollowing={stickyWeekendCombinedFollowing}
-            weekendTop5Following={stickyWeekendTop5Following}
-            weekendH2HFollowing={stickyWeekendH2HFollowing}
+            activeData={activeWeekendData}
           />
         ) : (
           <SeasonContent
@@ -628,30 +617,114 @@ type RaceLeaderboardResult =
     }
   | undefined;
 
+/**
+ * Podium + ranked table shared by every leaderboard view. The season board
+ * hides the consolation mini-board while more pages exist and appends its
+ * load-more footer.
+ */
+function LeaderboardBoard({
+  entries,
+  gameMode,
+  showSmallBoard = true,
+  footer,
+}: {
+  entries: LeaderboardEntry[];
+  gameMode: GameMode;
+  showSmallBoard?: boolean;
+  footer?: ReactNode;
+}) {
+  const podiumEntries = entries.slice(0, 3);
+  const tableEntries = entries.slice(3);
+
+  return (
+    <div className="space-y-3">
+      {podiumEntries.length >= 3 && (
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <PodiumCard
+            entry={podiumEntries[0]}
+            place={1}
+            className="order-1 sm:order-2"
+          />
+          <PodiumCard
+            entry={podiumEntries[1]}
+            place={2}
+            className="order-2 sm:order-1"
+          />
+          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="w-12 px-4 py-3 text-left text-sm font-semibold text-text-muted">
+                Rank
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
+                Player
+              </th>
+              {gameMode === 'combined' && (
+                <>
+                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
+                    Top 5
+                  </th>
+                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
+                    H2H
+                  </th>
+                </>
+              )}
+              {gameMode === 'h2h' && (
+                <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
+                  Accuracy
+                </th>
+              )}
+              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
+                Points
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableEntries.map((entry) =>
+              gameMode === 'combined' ? (
+                <CombinedTableRow
+                  key={entry.userId}
+                  entry={entry as CombinedLeaderboardEntry}
+                />
+              ) : gameMode === 'h2h' ? (
+                <H2HTableRow
+                  key={entry.userId}
+                  entry={entry as H2HLeaderboardEntry}
+                />
+              ) : (
+                <LeaderboardRow key={entry.userId} entry={entry} />
+              ),
+            )}
+          </tbody>
+        </table>
+
+        {showSmallBoard && entries.length <= 3 && entries.length > 0 && (
+          <SmallLeaderboard entries={entries} />
+        )}
+      </div>
+
+      {footer}
+    </div>
+  );
+}
+
 function WeekendContent({
   defaultRace,
-  initialWeekend,
   scope,
   gameMode,
   isSignedIn,
-  weekendCombined,
-  weekendTop5,
-  weekendH2H,
-  weekendCombinedFollowing,
-  weekendTop5Following,
-  weekendH2HFollowing,
+  activeData,
 }: {
   defaultRace: { _id: string; name: string; status: string } | null;
-  initialWeekend: RaceLeaderboardResult | null;
   scope: Scope;
   gameMode: GameMode;
   isSignedIn: boolean | undefined;
-  weekendCombined: RaceLeaderboardResult | undefined;
-  weekendTop5: RaceLeaderboardResult | undefined;
-  weekendH2H: RaceLeaderboardResult | undefined;
-  weekendCombinedFollowing: RaceLeaderboardResult | undefined;
-  weekendTop5Following: RaceLeaderboardResult | undefined;
-  weekendH2HFollowing: RaceLeaderboardResult | undefined;
+  activeData: RaceLeaderboardResult | null;
 }) {
   if (!defaultRace) {
     return (
@@ -672,20 +745,11 @@ function WeekendContent({
           defaultRace={defaultRace}
           gameMode={gameMode}
           isSignedIn={isSignedIn}
-          weekendCombinedFollowing={weekendCombinedFollowing}
-          weekendTop5Following={weekendTop5Following}
-          weekendH2HFollowing={weekendH2HFollowing}
+          activeData={activeData ?? undefined}
         />
       </FollowingGuard>
     );
   }
-
-  const activeData =
-    gameMode === 'combined'
-      ? (weekendCombined ?? initialWeekend)
-      : gameMode === 'top5'
-        ? weekendTop5
-        : weekendH2H;
 
   if (activeData === undefined) {
     return <LeaderboardContentLoader />;
@@ -723,106 +787,20 @@ function WeekendContent({
     );
   }
 
-  const podiumEntries = entries.slice(0, 3);
-  const tableEntries = entries.slice(3);
-
-  return (
-    <div className="space-y-3">
-      {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <PodiumCard
-            entry={podiumEntries[0]}
-            place={1}
-            className="order-1 sm:order-2"
-          />
-          <PodiumCard
-            entry={podiumEntries[1]}
-            place={2}
-            className="order-2 sm:order-1"
-          />
-          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="w-12 px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Rank
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Player
-              </th>
-              {gameMode === 'combined' && (
-                <>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    Top 5
-                  </th>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    H2H
-                  </th>
-                </>
-              )}
-              {gameMode === 'h2h' && (
-                <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                  Accuracy
-                </th>
-              )}
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Points
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableEntries.map((entry) =>
-              gameMode === 'combined' ? (
-                <CombinedTableRow
-                  key={entry.userId}
-                  entry={entry as CombinedLeaderboardEntry}
-                />
-              ) : gameMode === 'h2h' ? (
-                <H2HTableRow
-                  key={entry.userId}
-                  entry={entry as H2HLeaderboardEntry}
-                />
-              ) : (
-                <LeaderboardRow key={entry.userId} entry={entry} />
-              ),
-            )}
-          </tbody>
-        </table>
-
-        {entries.length <= 3 && entries.length > 0 && (
-          <SmallLeaderboard entries={entries} />
-        )}
-      </div>
-    </div>
-  );
+  return <LeaderboardBoard entries={entries} gameMode={gameMode} />;
 }
 
 function WeekendFollowingContent({
   defaultRace,
   gameMode,
   isSignedIn,
-  weekendCombinedFollowing,
-  weekendTop5Following,
-  weekendH2HFollowing,
+  activeData,
 }: {
   defaultRace: { _id: string; name: string; status: string };
   gameMode: GameMode;
   isSignedIn: boolean | undefined;
-  weekendCombinedFollowing: RaceLeaderboardResult | undefined;
-  weekendTop5Following: RaceLeaderboardResult | undefined;
-  weekendH2HFollowing: RaceLeaderboardResult | undefined;
+  activeData: RaceLeaderboardResult;
 }) {
-  const activeData =
-    gameMode === 'combined'
-      ? weekendCombinedFollowing
-      : gameMode === 'top5'
-        ? weekendTop5Following
-        : weekendH2HFollowing;
-
   // Treat as loading if: query pending OR Convex returned locked but Clerk says signed in
   // (transient state while auth token propagates to the Convex client)
   if (
@@ -859,82 +837,7 @@ function WeekendFollowingContent({
     );
   }
 
-  const podiumEntries = entries.slice(0, 3);
-  const tableEntries = entries.slice(3);
-
-  return (
-    <div className="space-y-3">
-      {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <PodiumCard
-            entry={podiumEntries[0]}
-            place={1}
-            className="order-1 sm:order-2"
-          />
-          <PodiumCard
-            entry={podiumEntries[1]}
-            place={2}
-            className="order-2 sm:order-1"
-          />
-          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="w-12 px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Rank
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Player
-              </th>
-              {gameMode === 'combined' && (
-                <>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    Top 5
-                  </th>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    H2H
-                  </th>
-                </>
-              )}
-              {gameMode === 'h2h' && (
-                <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                  Accuracy
-                </th>
-              )}
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Points
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableEntries.map((entry) =>
-              gameMode === 'combined' ? (
-                <CombinedTableRow
-                  key={entry.userId}
-                  entry={entry as CombinedLeaderboardEntry}
-                />
-              ) : gameMode === 'h2h' ? (
-                <H2HTableRow
-                  key={entry.userId}
-                  entry={entry as H2HLeaderboardEntry}
-                />
-              ) : (
-                <LeaderboardRow key={entry.userId} entry={entry} />
-              ),
-            )}
-          </tbody>
-        </table>
-
-        {entries.length <= 3 && entries.length > 0 && (
-          <SmallLeaderboard entries={entries} />
-        )}
-      </div>
-    </div>
-  );
+  return <LeaderboardBoard entries={entries} gameMode={gameMode} />;
 }
 
 // ─────────────────────────── Season Content ───────────────────────────
@@ -1002,18 +905,15 @@ function SeasonContent({
     | undefined;
 }) {
   if (scope === 'following') {
+    const data =
+      gameMode === 'combined'
+        ? seasonCombinedFollowing
+        : gameMode === 'top5'
+          ? seasonTop5Following
+          : seasonH2HFollowing;
     return (
       <FollowingGuard>
-        {gameMode === 'combined' ? (
-          <FollowingSeasonContent
-            data={seasonCombinedFollowing}
-            gameMode="combined"
-          />
-        ) : gameMode === 'top5' ? (
-          <FollowingSeasonContent data={seasonTop5Following} gameMode="top5" />
-        ) : (
-          <FollowingSeasonContent data={seasonH2HFollowing} gameMode="h2h" />
-        )}
+        <FollowingSeasonContent data={data} gameMode={gameMode} />
       </FollowingGuard>
     );
   }
@@ -1093,109 +993,39 @@ function SeasonLeaderboardLayout({
     );
   }
 
-  const podiumEntries = entries.slice(0, 3);
-  const tableEntries = entries.slice(3);
-
   return (
-    <div className="space-y-3">
-      {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <PodiumCard
-            entry={podiumEntries[0]}
-            place={1}
-            className="order-1 sm:order-2"
-          />
-          <PodiumCard
-            entry={podiumEntries[1]}
-            place={2}
-            className="order-2 sm:order-1"
-          />
-          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="w-12 px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Rank
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
-                Player
-              </th>
-              {gameMode === 'combined' && (
+    <LeaderboardBoard
+      entries={entries}
+      gameMode={gameMode}
+      showSmallBoard={!hasMore}
+      footer={
+        <div className="flex min-h-[3rem] flex-col items-center justify-center py-4">
+          {hasMore && (
+            <button
+              type="button"
+              disabled={isLoadingMore}
+              onClick={onLoadMore}
+              className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-surface-muted disabled:hover:text-text-muted"
+            >
+              {isLoadingMore ? (
                 <>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    Top 5
-                  </th>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    H2H
-                  </th>
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                  <span>Loading...</span>
                 </>
+              ) : (
+                'Load more'
               )}
-              {gameMode === 'h2h' && (
-                <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                  Accuracy
-                </th>
-              )}
-              <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
-                Points
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableEntries.length > 0
-              ? tableEntries.map((entry) =>
-                  gameMode === 'combined' ? (
-                    <CombinedTableRow
-                      key={entry.userId}
-                      entry={entry as CombinedLeaderboardEntry}
-                    />
-                  ) : gameMode === 'h2h' ? (
-                    <H2HTableRow
-                      key={entry.userId}
-                      entry={entry as H2HLeaderboardEntry}
-                    />
-                  ) : (
-                    <LeaderboardRow key={entry.userId} entry={entry} />
-                  ),
-                )
-              : null}
-          </tbody>
-        </table>
-
-        {!hasMore && entries.length <= 3 && entries.length > 0 && (
-          <SmallLeaderboard entries={entries} />
-        )}
-      </div>
-
-      <div className="flex min-h-[3rem] flex-col items-center justify-center py-4">
-        {hasMore && (
-          <button
-            type="button"
-            disabled={isLoadingMore}
-            onClick={onLoadMore}
-            className="inline-flex min-w-[7.5rem] items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-surface-muted disabled:hover:text-text-muted"
-          >
-            {isLoadingMore ? (
-              <>
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
-                <span>Loading...</span>
-              </>
-            ) : (
-              'Load more'
-            )}
-          </button>
-        )}
-        {!hasMore && entries.length > PAGE_SIZE && (
-          <p className="text-sm text-text-muted">
-            You've reached the end · {playerCountFormatter.format(totalCount)}{' '}
-            players
-          </p>
-        )}
-      </div>
-    </div>
+            </button>
+          )}
+          {!hasMore && entries.length > PAGE_SIZE && (
+            <p className="text-sm text-text-muted">
+              You've reached the end · {playerCountFormatter.format(totalCount)}{' '}
+              players
+            </p>
+          )}
+        </div>
+      }
+    />
   );
 }
 

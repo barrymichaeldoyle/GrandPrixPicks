@@ -13,6 +13,10 @@ import { DriverBadge } from '../../components/DriverBadge';
 import { ErrorBoundary } from '../../components/error/ErrorBoundary';
 import { H2HMatchupGrid } from '../../components/H2HMatchupGrid';
 import { H2HPredictionForm } from '../../components/H2HPredictionForm';
+import {
+  toPointsBySession,
+  useMyH2HScoresBySession,
+} from '../../hooks/useMyH2HScoresBySession';
 import { InlineLoader } from '../../components/InlineLoader';
 import { PicksFocusOverlay } from '../../components/PicksFocusOverlay';
 import { RandomizeButton } from '../../components/RandomizeButton';
@@ -331,26 +335,9 @@ export function H2HResultsSection({
     raceId,
     sessionType: selectedSession,
   });
-  const myH2HScore = useQuery(api.h2h.getMyH2HScoreForRace, {
-    raceId,
-    sessionType: selectedSession,
-  });
-  const myH2HQualiScore = useQuery(api.h2h.getMyH2HScoreForRace, {
-    raceId,
-    sessionType: 'quali',
-  });
-  const myH2HSprintQualiScore = useQuery(api.h2h.getMyH2HScoreForRace, {
-    raceId,
-    sessionType: 'sprint_quali',
-  });
-  const myH2HSprintScore = useQuery(api.h2h.getMyH2HScoreForRace, {
-    raceId,
-    sessionType: 'sprint',
-  });
-  const myH2HRaceScore = useQuery(api.h2h.getMyH2HScoreForRace, {
-    raceId,
-    sessionType: 'race',
-  });
+  const { scoresBySession: myH2HScoresBySession, pointsBySession } =
+    useMyH2HScoresBySession(raceId);
+  const myH2HScore = myH2HScoresBySession[selectedSession];
   const myH2HPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId,
   });
@@ -360,22 +347,10 @@ export function H2HResultsSection({
   const sessionHasResults = new Set(availableSessions ?? []);
   const isSelectedSessionScored = sessionHasResults.has(selectedSession);
 
-  const top5PointsBySession: Record<SessionType, number> = {
-    quali: myTop5Scores?.quali?.points ?? 0,
-    sprint_quali: myTop5Scores?.sprint_quali?.points ?? 0,
-    sprint: myTop5Scores?.sprint?.points ?? 0,
-    race: myTop5Scores?.race?.points ?? 0,
-  };
-
-  const h2hPointsBySession: Record<SessionType, number> = {
-    quali: myH2HQualiScore?.points ?? 0,
-    sprint_quali: myH2HSprintQualiScore?.points ?? 0,
-    sprint: myH2HSprintScore?.points ?? 0,
-    race: myH2HRaceScore?.points ?? 0,
-  };
+  const top5PointsBySession = toPointsBySession(myTop5Scores);
 
   const selectedTop5Points = top5PointsBySession[selectedSession];
-  const selectedH2HPoints = h2hPointsBySession[selectedSession];
+  const selectedH2HPoints = pointsBySession[selectedSession];
   const sessionPointsGain = selectedTop5Points + selectedH2HPoints;
 
   const driverById = new Map(drivers?.map((driver) => [driver._id, driver]));

@@ -7,92 +7,19 @@ import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
 } from '../lib/lock';
-import { getNextSessionLockAt } from '../lib/raceSessions';
+import { getCountryCodeForRace } from '../lib/raceCountries';
+import {
+  getNextSessionLockAt,
+  getWeekendSessionStarts,
+} from '../lib/raceSessions';
+import { SESSION_LABELS } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { Badge } from './Badge';
-import { Flag } from './Flag';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
+import { RaceFlag } from './RaceFlag';
 
 type Race = Doc<'races'>;
-
-/** Map race slug prefix to ISO 3166-1 alpha-2 country code for flag images. */
-const SLUG_TO_COUNTRY: Record<string, string> = {
-  australia: 'au',
-  australian: 'au',
-  china: 'cn',
-  chinese: 'cn',
-  japan: 'jp',
-  japanese: 'jp',
-  bahrain: 'bh',
-  'saudi-arabia': 'sa',
-  'saudi-arabian': 'sa',
-  saudi: 'sa',
-  miami: 'us',
-  canada: 'ca',
-  monaco: 'mc',
-  spain: 'es',
-  madrid: 'es',
-  austria: 'at',
-  britain: 'gb',
-  belgium: 'be',
-  hungary: 'hu',
-  netherlands: 'nl',
-  italy: 'it',
-  'emilia-romagna': 'it',
-  imola: 'it',
-  singapore: 'sg',
-  usa: 'us',
-  'united-states': 'us',
-  mexico: 'mx',
-  brazil: 'br',
-  qatar: 'qa',
-  'abu-dhabi': 'ae',
-  uae: 'ae',
-  portugal: 'pt',
-  'las-vegas': 'us',
-  azerbaijan: 'az',
-};
-
-export function getCountryCodeForRace(race: { slug: string }): string | null {
-  const key = race.slug.replace(/-\d{4}$/, '').toLowerCase();
-  return SLUG_TO_COUNTRY[key] ?? null;
-}
-
-export function RaceFlag({
-  countryCode,
-  size = 'md',
-  className = '',
-}: {
-  countryCode: string;
-  size?: 'sm' | 'md' | 'lg' | 'full';
-  className?: string;
-}) {
-  const flagSize =
-    size === 'full'
-      ? 'full'
-      : size === 'lg'
-        ? 'xl'
-        : size === 'sm'
-          ? 'md'
-          : 'lg';
-  return <Flag code={countryCode} size={flagSize} className={className} />;
-}
-
-function getScheduleEntries(race: Race) {
-  const entries: { label: string; startAt: number }[] = [];
-  if (race.hasSprint && race.sprintQualiStartAt) {
-    entries.push({ label: 'Sprint Quali', startAt: race.sprintQualiStartAt });
-  }
-  if (race.hasSprint && race.sprintStartAt) {
-    entries.push({ label: 'Sprint', startAt: race.sprintStartAt });
-  }
-  if (race.qualiStartAt) {
-    entries.push({ label: 'Quali', startAt: race.qualiStartAt });
-  }
-  entries.push({ label: 'Race', startAt: race.raceStartAt });
-  return entries;
-}
 
 interface RaceCardProps {
   race: Race;
@@ -134,7 +61,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
   })
     .formatToParts(now)
     .find((p) => p.type === 'timeZoneName')?.value;
-  const scheduleEntries = getScheduleEntries(race);
+  const scheduleEntries = getWeekendSessionStarts(race);
   // Count down to the next session that locks (quali/sprint lock before the
   // race), so the card never claims more time than the user actually has.
   const nextSessionLockAt = getNextSessionLockAt(race, now);
@@ -248,18 +175,18 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
               </div>
               <div className="grid flex-1 grid-cols-[auto_1fr] content-end items-baseline gap-x-2 gap-y-1 text-sm text-text-muted">
                 {scheduleEntries.map((entry) => (
-                  <div key={entry.label} className="contents">
+                  <div key={entry.type} className="contents">
                     <span
                       className={`font-medium ${
-                        entry.label === 'Race' ? 'text-text' : ''
+                        entry.type === 'race' ? 'text-text' : ''
                       }`}
                     >
-                      {entry.label}
+                      {SESSION_LABELS[entry.type]}
                     </span>
                     <span
                       suppressHydrationWarning
                       className={`text-right tabular-nums ${
-                        entry.label === 'Race' ? 'font-semibold text-text' : ''
+                        entry.type === 'race' ? 'font-semibold text-text' : ''
                       }`}
                     >
                       {formatDate(entry.startAt)} · {formatTime(entry.startAt)}

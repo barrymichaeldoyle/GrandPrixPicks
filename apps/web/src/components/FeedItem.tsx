@@ -11,7 +11,9 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import { Avatar } from './Avatar';
 import { DriverBadge, ScoredDriverBadge } from './DriverBadge';
-import { getCountryCodeForRace, RaceFlag } from './RaceCard';
+import { getCountryCodeForRace } from '../lib/raceCountries';
+import { SESSION_LABELS_FULL } from '../lib/sessions';
+import { RaceFlag } from './RaceFlag';
 import { RevButton } from './RevButton';
 
 type ScoredPick = {
@@ -67,12 +69,8 @@ type FeedEvent = {
   viewerHasReved: boolean;
 };
 
-const SESSION_LABELS: Record<string, string> = {
-  quali: 'Qualifying',
-  sprint_quali: 'Sprint Qualifying',
-  sprint: 'Sprint',
-  race: 'Race',
-};
+// Feed events carry sessionType as a plain string, so widen the shared map.
+const SESSION_LABELS: Record<string, string> = SESSION_LABELS_FULL;
 
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;

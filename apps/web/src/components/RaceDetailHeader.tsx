@@ -2,7 +2,8 @@ import type { Doc } from '@convex-generated/dataModel';
 import { Calendar, Clock } from 'lucide-react';
 
 import { useUserDateFormat } from '../lib/useUserDateFormat';
-import { getCountryCodeForRace, RaceFlag } from './RaceCard';
+import { getCountryCodeForRace } from '../lib/raceCountries';
+import { RaceFlag } from './RaceFlag';
 
 function abbreviateGrandPrix(name: string) {
   return name.replace(/\bGrand Prix\b/g, 'GP');

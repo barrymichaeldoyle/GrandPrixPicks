@@ -37,6 +37,7 @@ import {
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
+import { getRaceSessionLockAt } from '../lib/raceSessions';
 import type { SessionType } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { Button } from './Button/Button';
@@ -432,16 +433,12 @@ export function PredictionForm({
     return <InlineLoader />;
   }
 
-  const sessionLockAt =
-    sessionType === 'quali'
-      ? race?.qualiLockAt
-      : sessionType === 'sprint_quali'
-        ? race?.sprintQualiLockAt
-        : sessionType === 'sprint'
-          ? race?.sprintLockAt
-          : sessionType === 'race'
-            ? race?.predictionLockAt
-            : race?.predictionLockAt;
+  // Cascade mode (no sessionType) saves until the last session locks. The
+  // helper returns 0 for sessions with no lock time — treat that as unknown
+  // (not locked) rather than locked-since-epoch.
+  const sessionLockAt = race
+    ? getRaceSessionLockAt(race, sessionType ?? 'race') || undefined
+    : undefined;
   const isRaceCurrentlyOpen = nextPredictionRace?._id === raceId;
   const isSessionCurrentlyLocked =
     sessionType !== undefined &&

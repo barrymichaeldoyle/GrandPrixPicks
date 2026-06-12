@@ -18,12 +18,14 @@ import {
 
 import type { Doc } from '@convex-generated/dataModel';
 import type { SessionType } from '../lib/sessions';
+import { SESSION_LABELS } from '../lib/sessions';
+import { getWeekendSessionStarts } from '../lib/raceSessions';
 import { Button } from '../components/Button/Button';
 import { DevNowPanel } from '../components/DevNowPanel';
 import { FaqItem, FaqSection } from '../components/Faq';
 import { Flag as CountryFlag } from '../components/Flag';
 import { useUpcomingPredictionBannerState } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
-import { getCountryCodeForRace } from '../components/RaceCard';
+import { getCountryCodeForRace } from '../lib/raceCountries';
 import { abbreviateGrandPrix } from '../lib/display';
 import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { SHOW_DEV_TIME_CONTROLS } from '../lib/devFlags';
@@ -197,37 +199,13 @@ type SessionEntry = {
   startAt: number;
 };
 
-function buildSessions(race: {
-  hasSprint?: boolean;
-  sprintQualiStartAt?: number;
-  sprintStartAt?: number;
-  qualiStartAt?: number;
-  raceStartAt: number;
-}): SessionEntry[] {
-  const sessions: SessionEntry[] = [];
-  if (race.hasSprint && race.sprintQualiStartAt) {
-    sessions.push({
-      type: 'sprint_quali',
-      label: 'Sprint Qualifying',
-      startAt: race.sprintQualiStartAt,
-    });
-  }
-  if (race.hasSprint && race.sprintStartAt) {
-    sessions.push({
-      type: 'sprint',
-      label: 'Sprint',
-      startAt: race.sprintStartAt,
-    });
-  }
-  if (race.qualiStartAt) {
-    sessions.push({
-      type: 'quali',
-      label: 'Qualifying',
-      startAt: race.qualiStartAt,
-    });
-  }
-  sessions.push({ type: 'race', label: 'Race', startAt: race.raceStartAt });
-  return sessions;
+function buildSessions(
+  race: Parameters<typeof getWeekendSessionStarts>[0],
+): SessionEntry[] {
+  return getWeekendSessionStarts(race).map((entry) => ({
+    ...entry,
+    label: SESSION_LABELS[entry.type],
+  }));
 }
 
 type SessionStatus = 'finished' | 'in_progress' | 'upcoming';

@@ -12,7 +12,7 @@ import { abbreviateGrandPrix } from '../lib/display';
 import { primaryNavLinks } from '../lib/navigation';
 import { Flag as CountryFlag } from './Flag.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
-import { getCountryCodeForRace } from './RaceCard.tsx';
+import { getCountryCodeForRace } from '../lib/raceCountries';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';

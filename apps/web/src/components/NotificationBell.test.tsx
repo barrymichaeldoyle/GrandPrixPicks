@@ -51,8 +51,11 @@ vi.mock('./Avatar', () => ({
   Avatar: () => null,
 }));
 
-vi.mock('./RaceCard', () => ({
+vi.mock('./RaceFlag', () => ({
   RaceFlag: () => null,
+}));
+
+vi.mock('../lib/raceCountries', () => ({
   getCountryCodeForRace: () => null,
 }));
 

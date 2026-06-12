@@ -1,30 +1,25 @@
+import type { Doc } from '@convex-generated/dataModel';
 import { Calendar } from 'lucide-react';
 
-import type { SessionType } from '../lib/sessions';
+import {
+  getRaceSessionLockAt,
+  getWeekendSessionStarts,
+} from '../lib/raceSessions';
 import { SESSION_LABELS } from '../lib/sessions';
 import { useNow } from '../lib/testing/now';
 import { useUserDateFormat } from '../lib/useUserDateFormat';
-
-interface WeekendScheduleListProps {
-  sessions: readonly SessionType[];
-  getSessionStartAt: (session: SessionType) => number;
-  getSessionLockAt: (session: SessionType) => number;
-}
 
 /**
  * Flat list of every session in the weekend with viewer-local start times.
  * Shown on the race page when there's no richer per-session content to show
  * (signed-out visitors, races that aren't open for predictions yet).
  */
-export function WeekendScheduleList({
-  sessions,
-  getSessionStartAt,
-  getSessionLockAt,
-}: WeekendScheduleListProps) {
+export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
   const now = useNow();
   const { settings, formatDate, formatTime, formatTimeZoneAbbreviation } =
     useUserDateFormat();
-  const firstStartAt = getSessionStartAt(sessions[0]);
+  const entries = getWeekendSessionStarts(race);
+  const firstStartAt = entries[0]?.startAt ?? race.raceStartAt;
   const viewerTimeZone =
     settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timezoneLabel = formatTimeZoneAbbreviation(
@@ -49,24 +44,23 @@ export function WeekendScheduleList({
         ) : null}
       </div>
       <div className="mt-1 divide-y divide-border/60">
-        {sessions.map((session) => {
-          const startAt = getSessionStartAt(session);
-          const isLocked = now >= getSessionLockAt(session);
+        {entries.map(({ type, startAt }) => {
+          const isLocked = now >= getRaceSessionLockAt(race, type);
           return (
             <div
-              key={session}
+              key={type}
               className="flex items-baseline justify-between gap-3 py-2 text-sm"
             >
               <span
                 className={
                   isLocked
                     ? 'text-text-muted/60'
-                    : session === 'race'
+                    : type === 'race'
                       ? 'font-medium text-text'
                       : 'text-text'
                 }
               >
-                {SESSION_LABELS[session]}
+                {SESSION_LABELS[type]}
               </span>
               <span className="flex items-baseline gap-2">
                 {isLocked && (

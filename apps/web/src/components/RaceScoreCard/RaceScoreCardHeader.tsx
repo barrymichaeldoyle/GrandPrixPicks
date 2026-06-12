@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 
 import { getSessionsForWeekend } from '../../lib/sessions';
 import { Badge, StatusBadge } from '../Badge';
-import { getCountryCodeForRace, RaceFlag } from '../RaceCard';
+import { getCountryCodeForRace } from '../../lib/raceCountries';
+import { RaceFlag } from '../RaceFlag';
 import { ScoreRing } from '../ScoreRing';
 import type { CardDisplayState } from './state';
 import type { WeekendCardData } from './types';

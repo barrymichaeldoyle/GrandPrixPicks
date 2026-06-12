@@ -15,6 +15,7 @@ import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
+import { AnnouncementBanner } from '../components/AnnouncementBanner';
 import { CookieConsent } from '../components/CookieConsent';
 import { ErrorBoundary } from '../components/error/ErrorBoundary';
 import { Footer } from '../components/Footer';
@@ -286,6 +287,9 @@ function RootDocument({ children }: PropsWithChildren) {
                   onMobileMenuOpenChange={onMobileMenuOpenChange}
                 />
                 <OfflineBanner />
+                <ErrorBoundary fallback={null}>
+                  <AnnouncementBanner />
+                </ErrorBoundary>
                 <CookieConsent />
                 <div
                   ref={mainRef}

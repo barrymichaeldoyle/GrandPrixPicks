@@ -416,6 +416,17 @@ export default defineSchema({
     .index('by_event', ['feedEventId'])
     .index('by_user_event', ['userId', 'feedEventId']),
 
+  // ============ SITE ANNOUNCEMENTS ============
+
+  // Admin-managed site-wide banner (e.g. "results will be published late").
+  // Single-document table: adminSetAnnouncement patches the existing doc.
+  announcements: defineTable({
+    message: v.string(),
+    active: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_active', ['active']),
+
   // ============ IN-APP NOTIFICATIONS ============
 
   inAppNotifications: defineTable({

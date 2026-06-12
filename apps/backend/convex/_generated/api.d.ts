@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as announcements from "../announcements.js";
 import type * as billing from "../billing.js";
 import type * as drivers from "../drivers.js";
 import type * as emails_H2HReminderEmail from "../emails/H2HReminderEmail.js";
@@ -56,6 +57,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  announcements: typeof announcements;
   billing: typeof billing;
   drivers: typeof drivers;
   "emails/H2HReminderEmail": typeof emails_H2HReminderEmail;

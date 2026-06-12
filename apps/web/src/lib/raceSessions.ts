@@ -1,6 +1,7 @@
 import type { Doc } from '@convex-generated/dataModel';
 
 import type { SessionType } from './sessions';
+import { getSessionsForWeekend } from './sessions';
 
 export function getRaceSessionLockAt(
   race: Doc<'races'>,
@@ -32,6 +33,26 @@ export function getRaceSessionStartAt(
     case 'race':
       return race.raceStartAt;
   }
+}
+
+/**
+ * Lock time of the earliest weekend session that hasn't locked yet. Falls back
+ * to the race lock once every session is locked. Countdowns shown while picks
+ * are open ("Xh to predict" / "until lock") must use this, not
+ * `predictionLockAt` — the race session locks last, so counting down to it
+ * overstates how long users have to get their quali/sprint picks in.
+ */
+export function getNextSessionLockAt(
+  race: Doc<'races'>,
+  now: number = Date.now(),
+): number {
+  for (const session of getSessionsForWeekend(!!race.hasSprint)) {
+    const lockAt = getRaceSessionLockAt(race, session);
+    if (lockAt > now) {
+      return lockAt;
+    }
+  }
+  return race.predictionLockAt;
 }
 
 type RaceWeekendShape = Pick<

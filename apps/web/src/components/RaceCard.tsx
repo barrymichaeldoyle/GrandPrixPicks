@@ -7,6 +7,7 @@ import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
 } from '../lib/lock';
+import { getNextSessionLockAt } from '../lib/raceSessions';
 import { useNow } from '../lib/testing/now';
 import { useUserDateFormat } from '../lib/useUserDateFormat';
 import { Badge } from './Badge';
@@ -134,7 +135,10 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
     .formatToParts(now)
     .find((p) => p.type === 'timeZoneName')?.value;
   const scheduleEntries = getScheduleEntries(race);
-  const msUntilLock = race.predictionLockAt - now;
+  // Count down to the next session that locks (quali/sprint lock before the
+  // race), so the card never claims more time than the user actually has.
+  const nextSessionLockAt = getNextSessionLockAt(race, now);
+  const msUntilLock = nextSessionLockAt - now;
   const lockStatus = getLockStatusViewModel({
     msRemaining: msUntilLock,
   });
@@ -215,7 +219,7 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
             )}
             {isPredictable && (
               <PredictionCountdownBadge
-                predictionLockAt={race.predictionLockAt}
+                predictionLockAt={nextSessionLockAt}
                 labelMode="lock"
               />
             )}

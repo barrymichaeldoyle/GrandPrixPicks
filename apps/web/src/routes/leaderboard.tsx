@@ -168,7 +168,17 @@ function LeaderboardPage() {
   const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const timeScope: TimeScope = search.time ?? 'weekend';
+  // Bare /leaderboard defaults to the current race weekend only when that
+  // board has something to show — mid-weekend before any results are
+  // published, season standings beat an empty "No scores yet" state. An
+  // explicit ?raceId (e.g. from a race page link) still means weekend.
+  const weekendHasScores =
+    initialWeekend != null &&
+    initialWeekend.status === 'visible' &&
+    initialWeekend.entries.length > 0;
+  const timeScope: TimeScope =
+    search.time ??
+    (search.raceId != null || weekendHasScores ? 'weekend' : 'season');
   const gameMode: GameMode = search.mode ?? 'combined';
   const scope: Scope = search.scope ?? 'global';
 

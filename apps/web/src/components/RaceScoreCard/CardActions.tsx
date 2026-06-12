@@ -66,9 +66,15 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
 
   if (cardState === 'open_no_picks_unauth' && variant === 'full') {
     return (
-      <div className="rounded-lg border-2 border-dashed border-border py-8 text-center">
+      <div className="rounded-lg border-2 border-dashed border-border px-4 py-8 text-center">
         <LogIn className="mx-auto mb-4 h-12 w-12 text-text-muted" />
-        <p className="mb-4 text-text-muted">Sign in to make your prediction</p>
+        <p className="mb-1 font-semibold text-text">
+          Sign in to make your prediction
+        </p>
+        <p className="mb-4 text-sm text-text-muted">
+          Pick your top 5 for each session and call the teammate battles — it's
+          free, and each session is worth up to 25 points.
+        </p>
         <SignInButton
           mode="modal"
           fallbackRedirectUrl={currentUrl}

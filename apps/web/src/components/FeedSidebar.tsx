@@ -9,6 +9,8 @@ import { Flag } from './Flag';
 import { FollowButton } from './FollowButton';
 import { getCountryCodeForRace } from './RaceCard';
 import { useCountdown } from '../lib/date';
+import { getNextSessionLockAt } from '../lib/raceSessions';
+import { useNow } from '../lib/testing/now';
 
 function CountdownLine({ lockAt }: { lockAt: number }) {
   const label = useCountdown(lockAt);
@@ -31,6 +33,7 @@ function NextRaceCard() {
     api.predictions.myWeekendPredictions,
     nextRace ? { raceId: nextRace._id } : 'skip',
   );
+  const now = useNow();
 
   if (nextRace === undefined) {
     return (
@@ -47,7 +50,7 @@ function NextRaceCard() {
   }
 
   const countryCode = getCountryCodeForRace({ slug: nextRace.slug });
-  const isOpen = nextRace.predictionLockAt > Date.now();
+  const isOpen = nextRace.predictionLockAt > now;
   const hasAnyPick =
     myPredictions != null &&
     Object.values(myPredictions.predictions).some((picks) => picks != null);
@@ -75,7 +78,7 @@ function NextRaceCard() {
       </Link>
       {isOpen ? (
         <div className="mt-2.5">
-          <CountdownLine lockAt={nextRace.predictionLockAt} />
+          <CountdownLine lockAt={getNextSessionLockAt(nextRace, now)} />
         </div>
       ) : null}
       <Button

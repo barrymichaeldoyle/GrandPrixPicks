@@ -71,6 +71,9 @@ export function SessionEventSummary({
   );
   const localDate = formatDate(startsAt);
   const localTime = formatTime(startsAt);
+  // When the viewer's timezone matches the track's offset (e.g. SAST vs CEST
+  // in summer), the two rows would read identically — skip the redundant one.
+  const localMatchesTrack = localDate === trackDate && localTime === trackTime;
 
   return (
     <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
@@ -91,13 +94,17 @@ export function SessionEventSummary({
             ) : null}
           </span>
         </dd>
-        <dt className="text-text-muted">Your time</dt>
-        <dd
-          className="min-w-0 font-medium text-text tabular-nums"
-          suppressHydrationWarning
-        >
-          {localDate} · {localTime}
-        </dd>
+        {!localMatchesTrack && (
+          <>
+            <dt className="text-text-muted">Your time</dt>
+            <dd
+              className="min-w-0 font-medium text-text tabular-nums"
+              suppressHydrationWarning
+            >
+              {localDate} · {localTime}
+            </dd>
+          </>
+        )}
       </dl>
       <div className="shrink-0 self-start sm:self-center">
         {isOpen ? (

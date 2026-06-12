@@ -7,6 +7,7 @@ import { InlineLoader } from '../../../../../components/InlineLoader';
 import { RaceDetailHeader } from '../../../../../components/RaceDetailHeader';
 import { SessionEventSummary } from '../../../../../components/SessionEventSummary';
 import { StepBadge } from '../../../../../components/StepBadge';
+import { WeekendScheduleList } from '../../../../../components/WeekendScheduleList';
 import type { TabSwitchOption } from '../../../../../components/TabSwitch';
 import { TabSwitch } from '../../../../../components/TabSwitch';
 
@@ -135,6 +136,13 @@ export function RaceEventPageLayout({
               </div>
             )}
             {initialTop5Content}
+            <div className="mt-8">
+              <WeekendScheduleList
+                sessions={weekendSessions}
+                getSessionStartAt={getSessionStartAt}
+                getSessionLockAt={getSessionLockAt}
+              />
+            </div>
           </div>
         ) : (
           <div className="mt-5">
@@ -152,6 +160,15 @@ export function RaceEventPageLayout({
             )}
             {!showResultsView && (
               <>
+                {!showReadonlyPredictions && (
+                  <div className="mt-5">
+                    <WeekendScheduleList
+                      sessions={weekendSessions}
+                      getSessionStartAt={getSessionStartAt}
+                      getSessionLockAt={getSessionLockAt}
+                    />
+                  </div>
+                )}
                 {showReadonlyPredictions && (
                   <div className="mt-3">
                     <SessionEventSummary

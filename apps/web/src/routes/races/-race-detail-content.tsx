@@ -20,12 +20,16 @@ import {
 import { InlineLoader } from '../../components/InlineLoader';
 import { PicksFocusOverlay } from '../../components/PicksFocusOverlay';
 import { RandomizeButton } from '../../components/RandomizeButton';
+import { ShareOnXButton } from '../../components/ShareOnXButton';
 import { StartPicksCta } from '../../components/StartPicksCta';
 import { StepBadge } from '../../components/StepBadge';
 import { Tooltip } from '../../components/Tooltip';
 import { getRaceSessionLockAt } from '../../lib/raceSessions';
+import { encodeShareCardSearch } from '../../lib/og/shareCard';
 import type { SessionType } from '../../lib/sessions';
 import { SESSION_LABELS } from '../../lib/sessions';
+import { buildH2HScoreShareText } from '../../lib/share';
+import { siteConfig } from '../../lib/site';
 import { useNow } from '../../lib/testing/now';
 import { useUserDateFormat } from '../../lib/useUserDateFormat';
 
@@ -223,7 +227,7 @@ export function H2HSection({
 }
 
 interface H2HResultsSectionProps {
-  raceId: Id<'races'>;
+  race: Doc<'races'>;
   selectedSession: SessionType;
 }
 
@@ -315,10 +319,12 @@ function SessionBreakdownSessionGainPill({ points }: { points: number }) {
 }
 
 export function H2HResultsSection({
-  raceId,
+  race,
   selectedSession,
 }: H2HResultsSectionProps) {
+  const raceId = race._id;
   const { formatDate } = useUserDateFormat();
+  const me = useQuery(api.users.me, {});
   const drivers = useQuery(api.drivers.listDrivers);
   const availableSessions = useQuery(api.results.getAllResultsForRace, {
     raceId,
@@ -416,6 +422,32 @@ export function H2HResultsSection({
   const h2hPointsMap = Object.fromEntries(
     h2hSummaryItems.map((item) => [item.matchupId, item.points]),
   );
+  const h2hShareBy = me?.displayName || me?.username || undefined;
+  const h2hShareText = myH2HScore
+    ? buildH2HScoreShareText({
+        raceName: race.name,
+        sessionLabel: SESSION_LABELS[selectedSession],
+        correct: myH2HScore.correctPicks,
+        total: myH2HScore.totalPicks,
+        accountHandle: siteConfig.social.x.handle,
+        raceHashtag: race.hashtag,
+      })
+    : '';
+  const h2hShareUrl = myH2HScore
+    ? `${siteConfig.url}/races/${race.slug}?${new URLSearchParams({
+        ...encodeShareCardSearch({
+          variant: 'h2h_score',
+          session: selectedSession,
+          correct: myH2HScore.correctPicks,
+          total: myH2HScore.totalPicks,
+          points: myH2HScore.points,
+          by: h2hShareBy,
+        }),
+        utm_source: 'x',
+        utm_medium: 'social',
+        utm_campaign: 'share_h2h_score',
+      }).toString()}`
+    : '';
 
   function renderActualDriverRow(
     entry: (typeof classificationRows)[number],
@@ -701,6 +733,23 @@ export function H2HResultsSection({
             pointsByMatchup={h2hPointsMap}
             mode="results"
           />
+          {h2hShareText && h2hShareUrl && (
+            <div className="flex justify-center pt-1">
+              <ShareOnXButton
+                text={h2hShareText}
+                url={h2hShareUrl}
+                analyticsEvent="h2h_score_shared_x"
+                analyticsProps={{
+                  race_slug: race.slug,
+                  session_type: selectedSession,
+                  correct_picks: myH2HScore?.correctPicks,
+                  total_picks: myH2HScore?.totalPicks,
+                  points: myH2HScore?.points,
+                }}
+                label="Share my H2H score on X"
+              />
+            </div>
+          )}
 
           <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
             <div className="flex items-center justify-between text-sm">

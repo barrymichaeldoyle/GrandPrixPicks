@@ -360,6 +360,8 @@ export interface SharePicksOgData {
   picks: { code: string; color: string }[];
 }
 
+export type ShareResultsOgData = Omit<SharePicksOgData, 'by'>;
+
 /** Race name row with optional country flag, shared by the share templates. */
 function raceNameRow(
   raceName: string,
@@ -400,6 +402,204 @@ export function sharePicksTemplate(
   data: SharePicksOgData,
   size: OgImageSize = 'og',
 ): ReactNode {
+  return shareTopFiveTemplate(
+    data,
+    `${data.by ? `${data.by}'s` : 'My'} Top 5 \u00b7 ${data.sessionLabel}`,
+    size,
+  );
+}
+
+export function shareResultsTemplate(
+  data: ShareResultsOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return shareTopFiveTemplate(
+    data,
+    `${data.sessionLabel} Results \u00b7 Official Top 5`,
+    size,
+  );
+}
+
+export interface ShareH2HResultsOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  flagSrc?: string;
+  winners: { code: string; color: string }[];
+}
+
+export function shareH2HResultsTemplate(
+  data: ShareH2HResultsOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return layout(
+    size,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          gap: 24,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 22,
+            fontWeight: 700,
+            textTransform: 'uppercase' as const,
+            letterSpacing: 3,
+            color: colors.accent,
+          },
+        },
+        `${data.sessionLabel} H2H Results \u00b7 Teammate Winners`,
+      ),
+      raceNameRow(data.raceName, data.flagSrc, 46),
+      e(
+        'div',
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        `Round ${data.round} \u00b7 ${data.season} Season`,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexWrap: 'wrap' as const,
+            gap: 12,
+            marginTop: 8,
+          },
+        },
+        ...data.winners.map((winner, index) =>
+          e(
+            'div',
+            {
+              key: `${winner.code}-${index}`,
+              style: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 126,
+                height: 62,
+                borderRadius: 12,
+                backgroundColor: winner.color,
+              },
+            },
+            e(
+              'div',
+              {
+                style: {
+                  display: 'flex',
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: 'white',
+                  letterSpacing: 2,
+                },
+              },
+              winner.code,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+export interface ShareH2HScoreOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  by?: string;
+  flagSrc?: string;
+  correct: number;
+  total: number;
+  points: number;
+}
+
+export function shareH2HScoreTemplate(
+  data: ShareH2HScoreOgData,
+  size: OgImageSize = 'og',
+): ReactNode {
+  return layout(
+    size,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          gap: 22,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 22,
+            fontWeight: 700,
+            textTransform: 'uppercase' as const,
+            letterSpacing: 3,
+            color: colors.accent,
+          },
+        },
+        `${data.by ? `${data.by}'s` : 'My'} Head-to-Head \u00b7 ${data.sessionLabel}`,
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'baseline', gap: 22 } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 132,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              lineHeight: 1,
+              color: colors.accent,
+            },
+          },
+          `${data.correct}/${data.total}`,
+        ),
+        e(
+          'div',
+          { style: { fontSize: 36, fontWeight: 700, color: colors.text } },
+          'correct',
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 26,
+              fontWeight: 700,
+              color: colors.textMuted,
+              marginLeft: 12,
+            },
+          },
+          `+${data.points} pts`,
+        ),
+      ),
+      raceNameRow(data.raceName, data.flagSrc, 42),
+      e(
+        'div',
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        `Round ${data.round} \u00b7 ${data.season} Season`,
+      ),
+    ),
+  );
+}
+
+function shareTopFiveTemplate(
+  data: SharePicksOgData | ShareResultsOgData,
+  heading: string,
+  size: OgImageSize,
+): ReactNode {
   return layout(
     size,
     e(
@@ -422,7 +622,7 @@ export function sharePicksTemplate(
             color: colors.accent,
           },
         },
-        `${data.by ? `${data.by}'s` : 'My'} Top 5 \u00b7 ${data.sessionLabel}`,
+        heading,
       ),
       raceNameRow(data.raceName, data.flagSrc, 52),
       e(

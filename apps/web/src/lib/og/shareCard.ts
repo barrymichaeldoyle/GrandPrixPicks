@@ -9,6 +9,16 @@ import type { SessionType } from '../sessions';
  */
 export type ShareCard =
   | { variant: 'picks'; session: SessionType; picks: string[]; by?: string }
+  | { variant: 'result'; session: SessionType; picks: string[] }
+  | { variant: 'h2h_result'; session: SessionType; winners: string[] }
+  | {
+      variant: 'h2h_score';
+      session: SessionType;
+      correct: number;
+      total: number;
+      points: number;
+      by?: string;
+    }
   | { variant: 'score'; points: number; final: boolean; by?: string };
 
 const SESSION_TYPES = ['quali', 'sprint_quali', 'sprint', 'race'] as const;
@@ -30,11 +40,28 @@ function sanitizeName(value: unknown): string | undefined {
 
 /** Search params for a share URL / OG image URL. */
 export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
-  if (card.variant === 'picks') {
+  if (card.variant === 'picks' || card.variant === 'result') {
     return {
-      share: 'picks',
+      share: card.variant,
       session: card.session,
       picks: card.picks.join(','),
+      ...(card.variant === 'picks' && card.by ? { by: card.by } : {}),
+    };
+  }
+  if (card.variant === 'h2h_result') {
+    return {
+      share: 'h2h_result',
+      session: card.session,
+      winners: card.winners.join(','),
+    };
+  }
+  if (card.variant === 'h2h_score') {
+    return {
+      share: 'h2h_score',
+      session: card.session,
+      correct: String(card.correct),
+      total: String(card.total),
+      points: String(card.points),
       ...(card.by ? { by: card.by } : {}),
     };
   }
@@ -56,7 +83,7 @@ export function parseShareCard(
 ): ShareCard | null {
   const by = sanitizeName(search.by);
 
-  if (search.share === 'picks') {
+  if (search.share === 'picks' || search.share === 'result') {
     const session = SESSION_TYPES.find((s) => s === search.session);
     if (!session) {
       return null;
@@ -68,6 +95,9 @@ export function parseShareCard(
     if (picks.length !== 5 || !picks.every((c) => DRIVER_CODE_RE.test(c))) {
       return null;
     }
+    if (search.share === 'result') {
+      return { variant: 'result', session, picks };
+    }
     return { variant: 'picks', session, picks, by };
   }
 
@@ -77,6 +107,44 @@ export function parseShareCard(
       return null;
     }
     return { variant: 'score', points, final: search.final === '1', by };
+  }
+
+  if (search.share === 'h2h_result') {
+    const session = SESSION_TYPES.find((s) => s === search.session);
+    if (!session || typeof search.winners !== 'string') {
+      return null;
+    }
+    const winners = search.winners.split(',');
+    if (
+      winners.length < 1 ||
+      winners.length > 16 ||
+      !winners.every((code) => DRIVER_CODE_RE.test(code))
+    ) {
+      return null;
+    }
+    return { variant: 'h2h_result', session, winners };
+  }
+
+  if (search.share === 'h2h_score') {
+    const session = SESSION_TYPES.find((s) => s === search.session);
+    const correct = Number(search.correct);
+    const total = Number(search.total);
+    const points = Number(search.points);
+    if (
+      !session ||
+      !Number.isInteger(correct) ||
+      !Number.isInteger(total) ||
+      !Number.isInteger(points) ||
+      correct < 0 ||
+      total < 1 ||
+      total > 16 ||
+      correct > total ||
+      points < 0 ||
+      points > 16
+    ) {
+      return null;
+    }
+    return { variant: 'h2h_score', session, correct, total, points, by };
   }
 
   return null;

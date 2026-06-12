@@ -28,6 +28,42 @@ describe('share card codec', () => {
     expect(parseShareCard(encoded)).toEqual({ ...card, by: undefined });
   });
 
+  it('round-trips a result card', () => {
+    const card: ShareCard = {
+      variant: 'result',
+      session: 'quali',
+      picks: ['VER', 'NOR', 'PIA', 'LEC', 'RUS'],
+    };
+    const encoded = encodeShareCardSearch(card);
+    expect(encoded).toEqual({
+      share: 'result',
+      session: 'quali',
+      picks: 'VER,NOR,PIA,LEC,RUS',
+    });
+    expect(parseShareCard(encoded)).toEqual(card);
+  });
+
+  it('round-trips H2H cards', () => {
+    const resultCard: ShareCard = {
+      variant: 'h2h_result',
+      session: 'race',
+      winners: ['NOR', 'LEC', 'VER'],
+    };
+    expect(parseShareCard(encodeShareCardSearch(resultCard))).toEqual(
+      resultCard,
+    );
+
+    const scoreCard: ShareCard = {
+      variant: 'h2h_score',
+      session: 'quali',
+      correct: 7,
+      total: 11,
+      points: 7,
+      by: 'Barry',
+    };
+    expect(parseShareCard(encodeShareCardSearch(scoreCard))).toEqual(scoreCard);
+  });
+
   it('returns null when share param is absent', () => {
     expect(parseShareCard({})).toBeNull();
     expect(parseShareCard({ session: 'race' })).toBeNull();
@@ -51,6 +87,13 @@ describe('share card codec', () => {
         picks: 'VER,NOR,LEC,PIA,<script>',
       }),
     ).toBeNull();
+    expect(
+      parseShareCard({
+        share: 'result',
+        session: 'race',
+        picks: 'VER,NOR',
+      }),
+    ).toBeNull();
   });
 
   it('rejects invalid sessions and points', () => {
@@ -65,6 +108,22 @@ describe('share card codec', () => {
     expect(parseShareCard({ share: 'score', points: '1000' })).toBeNull();
     expect(parseShareCard({ share: 'score', points: '12.5' })).toBeNull();
     expect(parseShareCard({ share: 'score', points: 'abc' })).toBeNull();
+    expect(
+      parseShareCard({
+        share: 'h2h_score',
+        session: 'race',
+        correct: '12',
+        total: '11',
+        points: '12',
+      }),
+    ).toBeNull();
+    expect(
+      parseShareCard({
+        share: 'h2h_result',
+        session: 'race',
+        winners: 'NOR,bad',
+      }),
+    ).toBeNull();
   });
 
   it('sanitizes the by name', () => {
@@ -87,6 +146,9 @@ describe('share card codec', () => {
       points: '10',
       by: longName,
     });
-    expect(parsedLong?.by).toHaveLength(40);
+    expect(parsedLong?.variant).toBe('score');
+    if (parsedLong?.variant === 'score') {
+      expect(parsedLong.by).toHaveLength(40);
+    }
   });
 });

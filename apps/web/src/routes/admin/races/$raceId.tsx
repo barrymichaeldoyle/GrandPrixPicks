@@ -29,7 +29,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 import { PageLoader } from '@/components/PageLoader';
+import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { encodeShareCardSearch } from '@/lib/og/shareCard';
+import {
+  buildOfficialH2HResultShareText,
+  buildRaceResultShareText,
+} from '@/lib/share';
+import { siteConfig } from '@/lib/site';
 
 import type { SessionType } from '../../../lib/sessions';
 import {
@@ -260,6 +267,10 @@ function AdminRaceDetailPage() {
   const [selectedSession, setSelectedSession] = useState<SessionType>('race');
 
   const existingResult = useQuery(api.results.getResultForRace, {
+    raceId: typedRaceId,
+    sessionType: selectedSession,
+  });
+  const h2hResults = useQuery(api.h2h.getH2HResultsForRace, {
     raceId: typedRaceId,
     sessionType: selectedSession,
   });
@@ -508,6 +519,54 @@ function AdminRaceDetailPage() {
   );
 
   const scoringStatus = existingResult?.scoringStatus;
+  const savedTopFive = existingResult?.enrichedClassification.slice(0, 5);
+  const resultShareText =
+    savedTopFive && savedTopFive.length === 5
+      ? buildRaceResultShareText({
+          raceName: race.name,
+          sessionLabel: SESSION_LABELS[selectedSession],
+          drivers: savedTopFive,
+          accountHandle: siteConfig.social.x.handle,
+          raceHashtag: race.hashtag,
+        })
+      : '';
+  const resultShareUrl =
+    savedTopFive && savedTopFive.length === 5
+      ? `${siteConfig.url}/races/${race.slug}?${new URLSearchParams({
+          ...encodeShareCardSearch({
+            variant: 'result',
+            session: selectedSession,
+            picks: savedTopFive.map((driver) => driver.code),
+          }),
+          utm_source: 'x',
+          utm_medium: 'social',
+          utm_campaign: 'admin_share_results',
+        }).toString()}`
+      : '';
+  const h2hWinnerCodes = h2hResults?.map((result) => result.winnerCode) ?? [];
+  const h2hResultShareText =
+    h2hWinnerCodes.length > 0
+      ? buildOfficialH2HResultShareText({
+          raceName: race.name,
+          sessionLabel: SESSION_LABELS[selectedSession],
+          winnerCodes: h2hWinnerCodes,
+          accountHandle: siteConfig.social.x.handle,
+          raceHashtag: race.hashtag,
+        })
+      : '';
+  const h2hResultShareUrl =
+    h2hWinnerCodes.length > 0
+      ? `${siteConfig.url}/races/${race.slug}?${new URLSearchParams({
+          ...encodeShareCardSearch({
+            variant: 'h2h_result',
+            session: selectedSession,
+            winners: h2hWinnerCodes,
+          }),
+          utm_source: 'x',
+          utm_medium: 'social',
+          utm_campaign: 'admin_share_h2h_results',
+        }).toString()}`
+      : '';
 
   async function handleCancelRace() {
     if (
@@ -866,6 +925,35 @@ function AdminRaceDetailPage() {
                 <Check size={16} />
                 Scored
               </span>
+            )}
+            {resultShareText && resultShareUrl && (
+              <ShareOnXButton
+                text={resultShareText}
+                url={resultShareUrl}
+                analyticsEvent="admin_results_shared_x"
+                analyticsProps={{
+                  race_id: typedRaceId,
+                  race_slug: race.slug,
+                  session_type: selectedSession,
+                }}
+                label={`Share ${SESSION_LABELS[selectedSession]} results on X`}
+                className="border-slate-600 px-4 py-3 text-sm text-white hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-slate-800"
+              />
+            )}
+            {h2hResultShareText && h2hResultShareUrl && (
+              <ShareOnXButton
+                text={h2hResultShareText}
+                url={h2hResultShareUrl}
+                analyticsEvent="admin_h2h_results_shared_x"
+                analyticsProps={{
+                  race_id: typedRaceId,
+                  race_slug: race.slug,
+                  session_type: selectedSession,
+                  matchup_count: h2hWinnerCodes.length,
+                }}
+                label={`Share ${SESSION_LABELS[selectedSession]} H2H on X`}
+                className="border-slate-600 px-4 py-3 text-sm text-white hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-slate-800"
+              />
             )}
             {!allFilledForHooks && (
               <span className="text-sm text-slate-400">

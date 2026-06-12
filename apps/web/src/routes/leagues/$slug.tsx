@@ -358,7 +358,7 @@ function ShareLinkSection({
   const leagueUrl = `${window.location.origin}/leagues/${slug}`;
 
   const xShareUrl = buildXShareIntentUrl(
-    `Join my "${leagueName}" league on ${siteConfig.social.x.handle} 🏎️\n\nPredict the top 5 for every F1 session this season.\n\n#F1`,
+    `Join my "${leagueName}" league on ${siteConfig.social.x.handle} 🏎️🏁\n\nPredict the top 5 for every F1 session this season.\n\n#F1`,
     leagueUrl,
   );
 

@@ -55,8 +55,11 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     from?: 'home';
     // Share-card params (see lib/og/shareCard.ts). Kept as raw strings so the
     // URL stays flat; parsed and validated in the loader.
-    share?: 'picks' | 'score';
+    share?: 'picks' | 'result' | 'h2h_result' | 'h2h_score' | 'score';
     picks?: string;
+    winners?: string;
+    correct?: string;
+    total?: string;
     points?: string;
     final?: string;
     by?: string;
@@ -71,7 +74,11 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         : undefined;
     const from = search.from === 'home' ? ('home' as const) : undefined;
     const share =
-      search.share === 'picks' || search.share === 'score'
+      search.share === 'picks' ||
+      search.share === 'result' ||
+      search.share === 'h2h_result' ||
+      search.share === 'h2h_score' ||
+      search.share === 'score'
         ? search.share
         : undefined;
     return {
@@ -79,6 +86,9 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       from,
       share,
       picks: typeof search.picks === 'string' ? search.picks : undefined,
+      winners: typeof search.winners === 'string' ? search.winners : undefined,
+      correct: typeof search.correct === 'string' ? search.correct : undefined,
+      total: typeof search.total === 'string' ? search.total : undefined,
       points: typeof search.points === 'string' ? search.points : undefined,
       final: typeof search.final === 'string' ? search.final : undefined,
       by: typeof search.by === 'string' ? search.by : undefined,
@@ -92,6 +102,9 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       : {
           share: search.share,
           picks: search.picks,
+          winners: search.winners,
+          correct: search.correct,
+          total: search.total,
           points: search.points,
           final: search.final,
           by: search.by,
@@ -130,12 +143,25 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           ...encodeShareCardSearch(shareCard),
         })
       : defaultOgImage;
-    const title = race
-      ? `${race.name} Predictions | Grand Prix Picks`
-      : 'Race Predictions | Grand Prix Picks';
-    const description = race
-      ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
-      : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
+    const title =
+      race &&
+      (shareCard?.variant === 'result' ||
+        shareCard?.variant === 'h2h_result' ||
+        shareCard?.variant === 'h2h_score')
+        ? `${SESSION_LABELS[shareCard.session]} ${shareCard.variant.startsWith('h2h_') ? 'H2H ' : ''}Results: ${race.name} | Grand Prix Picks`
+        : race
+          ? `${race.name} Predictions | Grand Prix Picks`
+          : 'Race Predictions | Grand Prix Picks';
+    const description =
+      race && shareCard?.variant === 'result'
+        ? `Official ${SESSION_LABELS[shareCard.session].toLowerCase()} top 5 for the ${race.name}.`
+        : race &&
+            (shareCard?.variant === 'h2h_result' ||
+              shareCard?.variant === 'h2h_score')
+          ? `${SESSION_LABELS[shareCard.session]} teammate Head-to-Head results for the ${race.name}.`
+          : race
+            ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
+            : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     const canonical = canonicalMeta(`/races/${params.raceSlug}`);
     const scripts: { type: string; children: string }[] = [];
     if (race) {

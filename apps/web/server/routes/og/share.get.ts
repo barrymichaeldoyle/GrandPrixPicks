@@ -4,7 +4,10 @@ import { ConvexHttpClient } from 'convex/browser';
 import { renderOgImage } from '../../../src/lib/og/renderer';
 import { parseShareCard } from '../../../src/lib/og/shareCard';
 import {
+  shareH2HResultsTemplate,
+  shareH2HScoreTemplate,
   sharePicksTemplate,
+  shareResultsTemplate,
   shareScoreTemplate,
 } from '../../../src/lib/og/templates';
 import { getCountryCodeForRace } from '../../../src/lib/raceCountries';
@@ -53,26 +56,56 @@ export default async function handler(event: RouteEvent) {
 
     const flagSrc = await loadFlagDataUri(url.origin, race);
 
-    const template =
-      card.variant === 'picks'
-        ? sharePicksTemplate({
-            raceName: race.name,
-            round: race.round,
-            season: race.season,
-            sessionLabel: SESSION_LABELS[card.session],
-            by: card.by,
-            flagSrc,
-            picks: await resolvePickColors(convex, card.picks),
-          })
-        : shareScoreTemplate({
-            raceName: race.name,
-            round: race.round,
-            season: race.season,
-            by: card.by,
-            flagSrc,
-            points: card.points,
-            final: card.final,
-          });
+    const template = await (async () => {
+      if (card.variant === 'picks' || card.variant === 'result') {
+        const data = {
+          raceName: race.name,
+          round: race.round,
+          season: race.season,
+          sessionLabel: SESSION_LABELS[card.session],
+          flagSrc,
+          picks: await resolvePickColors(convex, card.picks),
+        };
+        return card.variant === 'picks'
+          ? sharePicksTemplate({
+              ...data,
+              by: card.by,
+            })
+          : shareResultsTemplate(data);
+      }
+      if (card.variant === 'h2h_result') {
+        return shareH2HResultsTemplate({
+          raceName: race.name,
+          round: race.round,
+          season: race.season,
+          sessionLabel: SESSION_LABELS[card.session],
+          flagSrc,
+          winners: await resolvePickColors(convex, card.winners),
+        });
+      }
+      if (card.variant === 'h2h_score') {
+        return shareH2HScoreTemplate({
+          raceName: race.name,
+          round: race.round,
+          season: race.season,
+          sessionLabel: SESSION_LABELS[card.session],
+          by: card.by,
+          flagSrc,
+          correct: card.correct,
+          total: card.total,
+          points: card.points,
+        });
+      }
+      return shareScoreTemplate({
+        raceName: race.name,
+        round: race.round,
+        season: race.season,
+        by: card.by,
+        flagSrc,
+        points: card.points,
+        final: card.final,
+      });
+    })();
 
     const png = await startServerSpan({ name: 'og.renderShareCard' }, () =>
       renderOgImage(template),

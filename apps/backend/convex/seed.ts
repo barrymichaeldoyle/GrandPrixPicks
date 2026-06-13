@@ -347,7 +347,7 @@ const F1_RACES_2026: Array<{
     // Madrid is the official Spanish GP. Slug stays spain-2026 to preserve
     // existing URLs and the timezone mapping.
     name: 'Barcelona Grand Prix',
-    hashtag: '#SpanishGP',
+    hashtag: '#BarcelonaGP #SpanishGP',
     slug: 'spain-2026',
     qualiDate: '2026-06-13T14:00:00Z',
     raceDate: '2026-06-14T13:00:00Z',
@@ -401,7 +401,7 @@ const F1_RACES_2026: Array<{
   {
     round: 13,
     name: 'Italian Grand Prix',
-    hashtag: '#ItalianGP',
+    hashtag: '#ItalianGP #MonzaGP',
     slug: 'italy-2026',
     qualiDate: '2026-09-05T14:00:00Z',
     raceDate: '2026-09-06T13:00:00Z',
@@ -409,7 +409,7 @@ const F1_RACES_2026: Array<{
   {
     round: 14,
     name: 'Madrid Grand Prix',
-    hashtag: '#MadridGP',
+    hashtag: '#MadridGP #SpanishGP',
     slug: 'madrid-2026',
     qualiDate: '2026-09-12T14:00:00Z',
     raceDate: '2026-09-13T13:00:00Z',

@@ -1,12 +1,10 @@
 import { api } from '@convex-generated/api';
-import type { Doc, Id } from '@convex-generated/dataModel';
+import type { Id } from '@convex-generated/dataModel';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
   DndContext,
   PointerSensor,
   pointerWithin,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -15,19 +13,15 @@ import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import {
   ArrowLeft,
-  Ban,
   Check,
   CircleAlert,
-  GripVertical,
   Loader2,
-  RotateCcw,
   Save,
   Trophy,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
-import { DriverSearchSelect } from '@/components/DriverSearchSelect';
 import { PageLoader } from '@/components/PageLoader';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -46,203 +40,13 @@ import {
 } from '@/lib/sessions';
 import { NotFoundPage } from '@/routes/__root';
 
-const LANE_ID_PREFIX = 'lane-';
-
-function parseLaneId(id: string): number | null {
-  if (!id.startsWith(LANE_ID_PREFIX)) {
-    return null;
-  }
-  const n = parseInt(id.slice(LANE_ID_PREFIX.length), 10);
-  return Number.isNaN(n) ? null : n;
-}
-
-/** Nearest empty lane below `fromIndex`, falling back to the nearest one above. */
-function findNextEmptyLane(
-  lanes: ReadonlyArray<Id<'drivers'> | null>,
-  fromIndex: number,
-): number | null {
-  for (let i = fromIndex + 1; i < lanes.length; i++) {
-    if (lanes[i] == null) {
-      return i;
-    }
-  }
-  for (let i = fromIndex - 1; i >= 0; i--) {
-    if (lanes[i] == null) {
-      return i;
-    }
-  }
-  return null;
-}
-
-type DraggableDriverCardProps = {
-  driverId: Id<'drivers'>;
-  index: number;
-  excludedIds: Id<'drivers'>[];
-  drivers: Doc<'drivers'>[];
-  setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
-  toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Id<'drivers'>[];
-  registerInput: (el: HTMLInputElement | null) => void;
-};
-
-function DraggableDriverCard({
-  driverId,
-  index,
-  excludedIds,
-  drivers,
-  setPosition,
-  toggleClassified,
-  dnfDriverIds,
-  registerInput,
-}: DraggableDriverCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: driverId,
-      data: { index },
-    });
-
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-2 rounded-lg ${
-        isDragging
-          ? 'z-20 cursor-grabbing bg-slate-800 shadow-xl ring-2 ring-yellow-500/50'
-          : ''
-      }`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="flex shrink-0 cursor-grab touch-none items-center rounded p-1 text-slate-400 hover:bg-slate-600 hover:text-slate-200 active:cursor-grabbing"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical size={20} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <DriverSearchSelect
-          drivers={drivers}
-          value={driverId}
-          excludedIds={excludedIds}
-          onChange={(id) => setPosition(index, id)}
-          placeholder="Search by name or code…"
-          inputRef={registerInput}
-        />
-      </div>
-      <label className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
-        <input
-          type="checkbox"
-          checked={!dnfDriverIds.includes(driverId)}
-          onChange={() => toggleClassified(driverId)}
-          className="h-3 w-3 rounded border-slate-500 bg-slate-800 text-yellow-400"
-        />
-        Classified
-      </label>
-    </div>
-  );
-}
-
-type PositionLaneProps = {
-  index: number;
-  driverId: Id<'drivers'> | null;
-  excludedIds: Id<'drivers'>[];
-  drivers: Doc<'drivers'>[];
-  setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
-  toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Id<'drivers'>[];
-  activeDriverId: string | null;
-  registerInput: (el: HTMLInputElement | null) => void;
-};
-
-function PositionLane({
-  index,
-  driverId,
-  excludedIds,
-  drivers,
-  setPosition,
-  toggleClassified,
-  dnfDriverIds,
-  activeDriverId,
-  registerInput,
-}: PositionLaneProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `${LANE_ID_PREFIX}${index}`,
-    data: { index },
-  });
-
-  const isPlaceholder = driverId != null && activeDriverId === driverId;
-
-  return (
-    <div className="flex items-stretch gap-2">
-      {/* Fixed position label */}
-      <div
-        className="flex w-12 shrink-0 items-center justify-center rounded-l-lg border border-r-0 border-slate-600 bg-slate-800/80 text-sm font-bold text-yellow-400"
-        aria-hidden
-      >
-        P{index + 1}
-      </div>
-      {/* Droppable lane */}
-      <div
-        ref={setNodeRef}
-        className={`min-h-[52px] min-w-0 flex-1 rounded-r-lg border border-slate-600 transition-colors ${
-          isOver ? 'border-yellow-500 bg-yellow-500/10' : 'bg-slate-800/30'
-        } ${isPlaceholder ? 'border-dashed' : ''}`}
-      >
-        {driverId != null && !isPlaceholder ? (
-          <div className="p-1.5">
-            <DraggableDriverCard
-              driverId={driverId}
-              index={index}
-              excludedIds={excludedIds}
-              drivers={drivers}
-              setPosition={setPosition}
-              toggleClassified={toggleClassified}
-              dnfDriverIds={dnfDriverIds}
-              registerInput={registerInput}
-            />
-          </div>
-        ) : isPlaceholder ? (
-          <div className="flex h-full min-h-[50px] items-center justify-center rounded border-2 border-dashed border-slate-500 text-sm text-slate-500">
-            Drop here
-          </div>
-        ) : (
-          <div className="p-1.5">
-            {/* Mirrors the filled-lane row (grip + select + checkbox) with
-                invisible placeholders so picking a driver causes no layout shift. */}
-            <div className="flex items-center gap-2">
-              <div className="invisible shrink-0 p-1" aria-hidden>
-                <GripVertical size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <DriverSearchSelect
-                  drivers={drivers}
-                  value={null}
-                  excludedIds={excludedIds}
-                  onChange={(id) => setPosition(index, id)}
-                  placeholder="Search by name or code…"
-                  inputRef={registerInput}
-                />
-              </div>
-              <span
-                className="invisible flex shrink-0 items-center gap-2 text-xs"
-                aria-hidden
-              >
-                <span className="h-3 w-3" />
-                Classified
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+import {
+  findNextEmptyLane,
+  parseLaneId,
+} from './$raceId/-components/laneUtils';
+import { PositionLane } from './$raceId/-components/PositionLane';
+import { RaceStatusHeader } from './$raceId/-components/RaceStatusHeader';
+import { UpdateModeSelector } from './$raceId/-components/UpdateModeSelector';
 
 export const Route = createFileRoute('/admin/races/$raceId')({
   component: AdminRaceDetailPage,
@@ -667,62 +471,12 @@ function AdminRaceDetailPage() {
           <Link to="/admin">Back to Admin</Link>
         </Button>
 
-        <div className="mb-6 rounded-xl border border-slate-700 bg-slate-800/50 p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <span className="text-sm font-medium text-slate-500">
-                Round {race.round} - {race.season}
-              </span>
-              <h1 className="mt-1 text-2xl font-bold text-white">
-                {race.name}
-              </h1>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-sm ${
-                  race.status === 'upcoming'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : race.status === 'locked'
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : race.status === 'cancelled'
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-slate-500/20 text-slate-400'
-                }`}
-              >
-                {race.status === 'cancelled' ? 'Called Off' : race.status}
-              </span>
-              {race.status !== 'finished' &&
-                race.status !== 'locked' &&
-                (race.status === 'cancelled' ? (
-                  <button
-                    onClick={handleRestoreRace}
-                    disabled={isCancelling}
-                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isCancelling ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <RotateCcw size={14} />
-                    )}
-                    Restore
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleCancelRace}
-                    disabled={isCancelling}
-                    className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isCancelling ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Ban size={14} />
-                    )}
-                    Mark Called Off
-                  </button>
-                ))}
-            </div>
-          </div>
-        </div>
+        <RaceStatusHeader
+          race={race}
+          isCancelling={isCancelling}
+          onCancel={() => void handleCancelRace()}
+          onRestore={() => void handleRestoreRace()}
+        />
 
         <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6">
           <div className="mb-4 flex items-center gap-2">
@@ -810,73 +564,14 @@ function AdminRaceDetailPage() {
           )}
 
           {existingResult && (
-            <div className="mb-6 rounded-lg border border-slate-700 bg-slate-900/50 p-4">
-              <p className="mb-3 text-sm font-semibold text-white">
-                How should this update go out?
-              </p>
-              <div className="space-y-2">
-                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 p-3 transition-colors has-checked:border-yellow-500/60 has-checked:bg-yellow-500/5">
-                  <input
-                    type="radio"
-                    name="update-mode"
-                    checked={updateMode === 'correction'}
-                    onChange={() => setUpdateMode('correction')}
-                    className="mt-0.5 accent-yellow-500"
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-white">
-                      Silent correction
-                    </span>
-                    <span className="block text-sm text-slate-400">
-                      I entered the results wrong. Recalculate scores quietly —
-                      players are not notified.
-                    </span>
-                  </span>
-                </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-700 p-3 transition-colors has-checked:border-yellow-500/60 has-checked:bg-yellow-500/5">
-                  <input
-                    type="radio"
-                    name="update-mode"
-                    checked={updateMode === 'amendment'}
-                    onChange={() => setUpdateMode('amendment')}
-                    className="mt-0.5 accent-yellow-500"
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-white">
-                      Official amendment
-                    </span>
-                    <span className="block text-sm text-slate-400">
-                      The real-world result changed (penalty, stewards&apos;
-                      decision). Players who predicted this session are rescored
-                      and notified, and your note is shown on the race page.
-                    </span>
-                  </span>
-                </label>
-              </div>
-              {updateMode === 'amendment' && (
-                <div className="mt-3">
-                  <textarea
-                    value={amendmentNote}
-                    onChange={(e) => setAmendmentNote(e.target.value)}
-                    rows={2}
-                    maxLength={280}
-                    placeholder={`e.g. "Stewards' decision: Gasly retains P3 after post-race review"`}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-yellow-500 focus:outline-none"
-                  />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Shown to players word-for-word — say what changed and why.
-                  </p>
-                </div>
-              )}
-              {existingResult.amendedAt != null &&
-                existingResult.amendmentNote && (
-                  <p className="mt-3 text-xs text-slate-500">
-                    Previously amended{' '}
-                    {new Date(existingResult.amendedAt).toLocaleString()}:
-                    &ldquo;{existingResult.amendmentNote}&rdquo;
-                  </p>
-                )}
-            </div>
+            <UpdateModeSelector
+              updateMode={updateMode}
+              onUpdateModeChange={setUpdateMode}
+              amendmentNote={amendmentNote}
+              onAmendmentNoteChange={setAmendmentNote}
+              amendedAt={existingResult.amendedAt}
+              previousAmendmentNote={existingResult.amendmentNote}
+            />
           )}
 
           <div className="flex items-center gap-4">

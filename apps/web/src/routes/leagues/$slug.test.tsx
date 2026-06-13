@@ -93,7 +93,7 @@ vi.mock('@/lib/site', () => ({
 }));
 
 async function renderLeagueFeed(leagueId: Id<'leagues'>) {
-  const { LeagueFeed } = await import('./$slug');
+  const { LeagueFeed } = await import('./$slug/-components/LeagueFeed');
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root: Root = createRoot(container);

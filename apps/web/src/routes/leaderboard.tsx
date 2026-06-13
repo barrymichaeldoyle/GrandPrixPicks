@@ -29,7 +29,7 @@ import type {
   Scope,
   TimeScope,
 } from './-leaderboard/types';
-import { useStickyValue } from './-leaderboard/useStickyValue';
+import { useStickyValue } from '@/hooks/useStickyValue';
 import { WeekendContent } from './-leaderboard/WeekendContent';
 
 export const Route = createFileRoute('/leaderboard')({

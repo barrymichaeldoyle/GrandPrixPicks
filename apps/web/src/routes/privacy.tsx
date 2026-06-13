@@ -3,31 +3,18 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 
-import { PageHero } from '../components/PageHero';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { PageHero } from '@/components/PageHero';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPage,
-  head: () => {
-    const title = 'Privacy Policy | Grand Prix Picks';
-    const description =
-      'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.';
-    const canonical = canonicalMeta('/privacy');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Privacy Policy | Grand Prix Picks',
+      description:
+        'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.',
+      path: '/privacy',
+    }),
 });
 
 function PrivacyPage() {

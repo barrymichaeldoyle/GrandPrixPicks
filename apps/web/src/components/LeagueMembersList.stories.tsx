@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import type { LeagueMembersListItem } from './LeagueMembersList';
 import { LeagueMembersList } from './LeagueMembersList';
-import { mockOtherUsers, mockViewer } from '../storybook/fixtures';
+import { mockOtherUsers, mockViewer } from '@/storybook/fixtures';
 
 function storyLink({
   username,

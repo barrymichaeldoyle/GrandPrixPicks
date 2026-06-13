@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 
-import { getSessionsForWeekend } from '../../lib/sessions';
-import { Badge, StatusBadge } from '../Badge';
-import { getCountryCodeForRace } from '../../lib/raceCountries';
-import { RaceFlag } from '../RaceFlag';
-import { ScoreRing } from '../ScoreRing';
+import { getSessionsForWeekend } from '@/lib/sessions';
+import { Badge, StatusBadge } from '@/components/Badge';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { RaceFlag } from '@/components/RaceFlag';
+import { ScoreRing } from '@/components/ScoreRing';
 import type { CardDisplayState } from './state';
 import type { WeekendCardData } from './types';
 import { WeekendSummaryLine } from './WeekendSummaryLine';

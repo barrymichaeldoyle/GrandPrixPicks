@@ -5,15 +5,15 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { ArrowLeft, Gauge } from 'lucide-react';
 
-import { Avatar } from '../components/Avatar';
-import { Button } from '../components/Button/Button';
+import { Avatar } from '@/components/Avatar';
+import { Button } from '@/components/Button/Button';
 import {
   FeedItem,
   FeedItemSkeleton,
   SessionSeparator,
-} from '../components/FeedItem';
-import { FollowButton } from '../components/FollowButton';
-import { canonicalMeta } from '../lib/site';
+} from '@/components/FeedItem';
+import { FollowButton } from '@/components/FollowButton';
+import { canonicalMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/feed/$feedEventId')({
   component: FeedEventPage,

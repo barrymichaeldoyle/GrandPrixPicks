@@ -1,51 +1,35 @@
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
-import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 import {
   createFileRoute,
   Link,
   notFound,
   redirect,
 } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
-import { useQuery } from 'convex/react';
+import { convexHttp as convex } from '@/integrations/convex/client';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '../../../components/Button/Button';
-import { DevNowPanel } from '../../../components/DevNowPanel';
-import {
-  toPointsBySession,
-  useMyH2HScoresBySession,
-} from '../../../hooks/useMyH2HScoresBySession';
-import { fromRaceDetail } from '../../../components/RaceScoreCard/adapters';
-import { RandomizeButton } from '../../../components/RandomizeButton';
-import { Tooltip } from '../../../components/Tooltip';
+import { Button } from '@/components/Button/Button';
+import { DevNowPanel } from '@/components/DevNowPanel';
+import { RandomizeButton } from '@/components/RandomizeButton';
+import { Tooltip } from '@/components/Tooltip';
 import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
-} from '../../../lib/raceSessions';
-import type { SessionType } from '../../../lib/sessions';
+} from '@/lib/raceSessions';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
+import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import {
-  getSessionsForWeekend,
-  SESSION_LABELS,
-  SESSION_LABELS_SHORT,
-} from '../../../lib/sessions';
-import { SHOW_DEV_TIME_CONTROLS } from '../../../lib/devFlags';
-import {
-  encodeShareCardSearch,
-  parseShareCard,
-} from '../../../lib/og/shareCard';
-import {
-  canonicalMeta,
   defaultOgImage,
+  pageMeta,
   shareCardOgImageUrl,
   siteConfig,
-} from '../../../lib/site';
-import { useNow } from '../../../lib/testing/now';
+} from '@/lib/site';
 import { RaceEventPage } from './-components/RaceEventPage/RaceEventPage';
-
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+import { useRaceWeekendData } from './-hooks/useRaceWeekendData';
 
 export const Route = createFileRoute('/races/$raceSlug/')({
   validateSearch: (
@@ -169,7 +153,6 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           : race
             ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
             : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
-    const canonical = canonicalMeta(`/races/${params.raceSlug}`);
     const scripts: { type: string; children: string }[] = [];
     if (race) {
       scripts.push({
@@ -193,18 +176,12 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       });
     }
     return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: ogImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: ogImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
+      ...pageMeta({
+        title,
+        description,
+        path: `/races/${params.raceSlug}`,
+        image: ogImage,
+      }),
       scripts,
     };
   },
@@ -261,8 +238,27 @@ function RaceDetailPage() {
   const search = Route.useSearch();
   const { from } = search;
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const now = useNow();
-  const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
+
+  const {
+    now,
+    weekendSessions,
+    trackTimeZone,
+    cardData,
+    scores,
+    weekendPredictions,
+    isViewerPredictionDataLoading,
+    hasPredictions,
+    hasH2HPredictions,
+    hasPublishedResults,
+    publishedSessionSet,
+    h2hPointsBySession,
+    pointsSoFar,
+    allEventsScored,
+    scoredEventCount,
+    isTop5SavedForSession,
+    isH2HSavedForSession,
+  } = useRaceWeekendData({ race, isAuthLoaded, isSignedIn: !!isSignedIn });
+
   function getSessionLockAt(session: SessionType): number {
     return race ? getRaceSessionLockAt(race, session) : 0;
   }
@@ -320,157 +316,7 @@ function RaceDetailPage() {
     }
   }, [h2hEditingSession]);
 
-  // ─── Queries for RaceScoreCard ───
-  const predictionOpenAt = useQuery(
-    api.races.getPredictionOpenAt,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const weekendPredictions = useQuery(
-    api.predictions.myWeekendPredictions,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const scores = useQuery(
-    api.results.getMyScoresForRace,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const actualTop5BySession = useQuery(
-    api.results.getEnrichedTop5BySession,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const availableSessions = useQuery(
-    api.results.getAllResultsForRace,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const drivers = useQuery(api.drivers.listDrivers);
-  const raceRank = useQuery(
-    api.results.getRaceRank,
-    race ? { raceId: race._id } : 'skip',
-  );
-
-  // Per-session results (fetch when available)
-  const qualiResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('quali')
-      ? { raceId: race._id, sessionType: 'quali' as const }
-      : 'skip',
-  );
-  const sprintQualiResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('sprint_quali')
-      ? { raceId: race._id, sessionType: 'sprint_quali' as const }
-      : 'skip',
-  );
-  const sprintResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('sprint')
-      ? { raceId: race._id, sessionType: 'sprint' as const }
-      : 'skip',
-  );
-  const raceResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('race')
-      ? { raceId: race._id, sessionType: 'race' as const }
-      : 'skip',
-  );
-
-  // ─── H2H queries (unchanged) ───
-  // Keep the matchups subscription warm at route level: H2HSection (which
-  // also queries this) only mounts after Top 5 picks exist, and without the
-  // warm cache the Top 5 → H2H chained overlay opens onto a loading spinner.
-  useQuery(api.h2h.getMatchupsForSeason, race ? {} : 'skip');
-  const h2hPredictions = useQuery(
-    api.h2h.myH2HPredictionsForRace,
-    race ? { raceId: race._id } : 'skip',
-  );
-  const { pointsBySession: h2hPointsBySession } = useMyH2HScoresBySession(
-    race?._id,
-  );
-
-  const isViewerPredictionDataLoading = Boolean(
-    race &&
-    isAuthLoaded &&
-    isSignedIn &&
-    (weekendPredictions == null || h2hPredictions == null),
-  );
-
-  const hasPredictions =
-    weekendPredictions?.predictions &&
-    Object.values(weekendPredictions.predictions).some((p) => p !== null);
-  const hasH2HPredictions = h2hPredictions
-    ? Object.values(h2hPredictions).some((p) => p !== null)
-    : false;
-  const hasPublishedResults = (availableSessions?.length ?? 0) > 0;
-  const publishedSessionSet = new Set(availableSessions ?? []);
-  const top5PointsBySession = toPointsBySession(scores);
-  const pointsSoFar = weekendSessions.reduce((sum, session) => {
-    if (!publishedSessionSet.has(session)) {
-      return sum;
-    }
-    return sum + top5PointsBySession[session] + h2hPointsBySession[session];
-  }, 0);
-  const allEventsScored = weekendSessions.every((session) =>
-    publishedSessionSet.has(session),
-  );
-  const scoredEventCount = weekendSessions.filter((session) =>
-    publishedSessionSet.has(session),
-  ).length;
-
-  // ─── Build card data ───
-  const resultsBySession: Partial<
-    Record<
-      SessionType,
-      {
-        enrichedClassification: NonNullable<
-          typeof qualiResult
-        >['enrichedClassification'];
-      } | null
-    >
-  > = {};
-  if (qualiResult !== undefined) {
-    resultsBySession.quali = qualiResult;
-  }
-  if (sprintQualiResult !== undefined) {
-    resultsBySession.sprint_quali = sprintQualiResult;
-  }
-  if (sprintResult !== undefined) {
-    resultsBySession.sprint = sprintResult;
-  }
-  if (raceResult !== undefined) {
-    resultsBySession.race = raceResult;
-  }
-
-  let cardData = null;
-  if (race) {
-    const data = fromRaceDetail({
-      race,
-      weekendPredictions: weekendPredictions ?? null,
-      scores: scores ?? null,
-      actualTop5BySession: actualTop5BySession ?? null,
-      resultsBySession,
-      drivers: drivers ?? undefined,
-      availableSessions: availableSessions ?? [],
-      predictionOpenAt:
-        predictionOpenAt === undefined ? null : predictionOpenAt,
-      now,
-    });
-    if (raceRank) {
-      data.raceRank = raceRank;
-    }
-    cardData = data;
-  }
   const hasSprintWeekend = race?.hasSprint ?? false;
-  const trackTimeZone =
-    race?.timeZone ??
-    (race ? getRaceTimeZoneFromSlug(race.slug) : undefined) ??
-    'UTC';
-  // Single source of truth for the two-step picks flow (tab labels, the
-  // "n of 2 done" header, and the step badges all derive from these).
-  function isTop5SavedForSession(session: SessionType): boolean {
-    return weekendPredictions?.predictions?.[session] != null;
-  }
-  function isH2HSavedForSession(session: SessionType): boolean {
-    return h2hPredictions?.[session] != null;
-  }
 
   const predictionSessionOptions = weekendSessions.map((session) => {
     const sessionData = cardData?.sessions[session] ?? null;
@@ -533,43 +379,50 @@ function RaceDetailPage() {
       <RaceEventPage
         race={currentRace}
         isNextRace={isNextRace}
-        isAuthLoaded={isAuthLoaded}
-        isSignedIn={!!isSignedIn}
+        viewer={{ isAuthLoaded, isSignedIn: !!isSignedIn }}
         isPredictionsLoading={
           (isPredictable && weekendPredictions === undefined) ||
           isViewerPredictionDataLoading
         }
         isViewerPredictionDataLoading={isViewerPredictionDataLoading}
-        hasPredictions={!!hasPredictions}
-        hasH2HPredictions={hasH2HPredictions}
-        hasPublishedResults={hasPublishedResults}
-        allEventsScored={allEventsScored}
-        pointsSoFar={pointsSoFar}
-        scoredEventCount={scoredEventCount}
-        weekendSessions={weekendSessions}
+        weekendStatus={{
+          hasPredictions,
+          hasH2HPredictions,
+          hasPublishedResults,
+          allEventsScored,
+          pointsSoFar,
+          scoredEventCount,
+        }}
+        schedule={{
+          weekendSessions,
+          trackTimeZone,
+          getStartAt: getSessionStartAt,
+          getLockAt: getSessionLockAt,
+          isPublished: (session) => publishedSessionSet.has(session),
+        }}
         selectedSession={selectedSession}
         onSelectedSessionChange={handleSessionTabChange}
         sessionTabOptions={predictionSessionOptions}
-        trackTimeZone={trackTimeZone}
-        getSessionStartAt={getSessionStartAt}
-        getSessionLockAt={getSessionLockAt}
-        isSessionPublished={(session) => publishedSessionSet.has(session)}
         top5SelectedSessionDone={isTop5SavedForSession(selectedSession)}
         h2hSelectedSessionDone={isH2HSavedForSession(selectedSession)}
         cardData={cardData}
-        top5EditingSession={top5EditingSession}
-        onTop5EditingSessionChange={setTop5EditingSession}
-        top5HasUnsavedChanges={top5HasUnsavedChanges}
-        onTop5DirtyChange={setTop5HasUnsavedChanges}
-        h2hEditingSession={h2hEditingSession}
-        onH2HEditingSessionChange={setH2hEditingSession}
-        h2hHasUnsavedChanges={h2hHasUnsavedChanges}
-        onH2HDirtyChange={setH2hHasUnsavedChanges}
+        top5Editing={{
+          session: top5EditingSession,
+          onSessionChange: setTop5EditingSession,
+          hasUnsavedChanges: top5HasUnsavedChanges,
+          onDirtyChange: setTop5HasUnsavedChanges,
+        }}
+        h2hEditing={{
+          session: h2hEditingSession,
+          onSessionChange: setH2hEditingSession,
+          hasUnsavedChanges: h2hHasUnsavedChanges,
+          onDirtyChange: setH2hHasUnsavedChanges,
+        }}
         existingTop5PicksBySession={weekendPredictions?.predictions}
         randomizeControl={
           <RandomizeButton
             raceId={race._id}
-            hasPredictions={!!hasPredictions}
+            hasPredictions={hasPredictions}
             hasH2HPredictions={hasH2HPredictions}
           />
         }

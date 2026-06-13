@@ -5,33 +5,20 @@ import { useQuery } from 'convex/react';
 import { LogIn } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { Button } from '../components/Button/Button';
-import { PageLoader } from '../components/PageLoader';
-import { canonicalMeta, defaultOgImage, noIndexMeta } from '../lib/site';
+import { Button } from '@/components/Button/Button';
+import { PageLoader } from '@/components/PageLoader';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
-  head: () => {
-    const title = 'My Predictions | Grand Prix Picks';
-    const description =
-      'View your F1 prediction history and track your scores across the 2026 season.';
-    const canonical = canonicalMeta('/me');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...noIndexMeta(),
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'My Predictions | Grand Prix Picks',
+      description:
+        'View your F1 prediction history and track your scores across the 2026 season.',
+      path: '/me',
+      noIndex: true,
+    }),
 });
 
 function MyPredictionsPage() {

@@ -14,9 +14,9 @@ import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
-import { Button } from '../components/Button/Button';
-import { FaqItem, FaqSection } from '../components/Faq';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { Button } from '@/components/Button/Button';
+import { FaqItem, FaqSection } from '@/components/Faq';
+import { pageMeta } from '@/lib/site';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
 const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
@@ -39,26 +39,13 @@ export const Route = createFileRoute('/pricing')({
     return { checkout };
   },
   component: PricingPage,
-  head: () => {
-    const title = 'Pricing | Grand Prix Picks';
-    const description =
-      'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season—unlock unlimited leagues and public leagues.';
-    const canonical = canonicalMeta('/pricing');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Pricing | Grand Prix Picks',
+      description:
+        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season—unlock unlimited leagues and public leagues.',
+      path: '/pricing',
+    }),
 });
 
 function PricingPage() {

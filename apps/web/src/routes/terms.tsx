@@ -3,31 +3,18 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 
-import { PageHero } from '../components/PageHero';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { PageHero } from '@/components/PageHero';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/terms')({
   component: TermsPage,
-  head: () => {
-    const title = 'Terms of Service | Grand Prix Picks';
-    const description =
-      'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.';
-    const canonical = canonicalMeta('/terms');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Terms of Service | Grand Prix Picks',
+      description:
+        'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.',
+      path: '/terms',
+    }),
 });
 
 function TermsPage() {

@@ -5,34 +5,20 @@ import { useQuery } from 'convex/react';
 import { Crown, Globe, LogIn, Plus, Search, Shield, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Button } from '../../components/Button/Button';
-import { PageHero } from '../../components/PageHero';
-import { PageLoader } from '../../components/PageLoader';
-import { canonicalMeta, defaultOgImage } from '../../lib/site';
+import { Button } from '@/components/Button/Button';
+import { PageHero } from '@/components/PageHero';
+import { PageLoader } from '@/components/PageLoader';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
-  head: () => {
-    const title =
-      'F1 Prediction Leagues - Compete with Friends | Grand Prix Picks';
-    const description =
-      'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.';
-    const canonical = canonicalMeta('/leagues');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'F1 Prediction Leagues - Compete with Friends | Grand Prix Picks',
+      description:
+        'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.',
+      path: '/leagues',
+    }),
 });
 
 function LeaguesPage() {

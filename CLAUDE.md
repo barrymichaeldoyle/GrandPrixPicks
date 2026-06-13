@@ -1,6 +1,9 @@
 # Grand Prix Picks
 
-F1 prediction game where users pick their top 5 drivers for each session of a race weekend and earn points based on accuracy.
+F1 prediction game where users pick their top 5 drivers for each session of a
+race weekend and earn points based on accuracy. Beyond the core Top 5 game it
+also has teammate Head-to-Head (H2H) picks, private leagues, an activity feed,
+following/followers, a paid season pass, and push + in-app notifications.
 
 ## Monorepo Layout
 
@@ -48,6 +51,8 @@ Workspace package names:
 - Convex (backend-as-a-service with real-time subscriptions)
 - Clerk for auth (OpenID Connect, JWT verification)
 - React Email for transactional emails
+- Paddle for billing (season pass) — webhooks verified in the web server layer
+- Expo push + web push for notifications
 
 ## Commands (run from repo root)
 
@@ -69,30 +74,56 @@ Workspace package names:
 ```
 routes/                # TanStack Router file-based routes
   __root.tsx           # Root layout (providers, theme, header/footer)
-  index.tsx            # Home page
+  index.tsx            # Home page (countdown, season strip, teaser sections)
   races/index.tsx      # Race calendar listing
-  races/$raceId.tsx    # Race detail + prediction form / results
-  leaderboard.tsx      # Season standings
-  my-predictions.tsx   # User's prediction history (auth required)
+  races/$raceSlug/     # Race detail — resolved by slug (legacy ids redirect)
+    index.tsx          # Route component: loader + RaceDetailPage
+    -components/        # Page-private components (RaceEventPage, H2H sections)
+    -hooks/             # Page-private hooks (useRaceWeekendData)
+  leaderboard.tsx      # Season + weekend standings (Top 5 / H2H / combined)
+  leagues/             # Private leagues: index, create, $slug, $slug/settings
+  feed.tsx + feed/     # Activity feed (+ feed.$feedEventId.tsx detail)
+  p/$username/         # Public profiles (+ followers / following lists)
+  me.tsx               # Redirect to the signed-in user's profile
+  settings.tsx         # Account settings (profile, regional, notifications)
+  pricing.tsx, pay.tsx, refund-policy.tsx  # Season pass / Paddle checkout
+  support.tsx          # Support request form
   admin/               # Admin routes (race management, result publishing)
   terms.tsx, privacy.tsx
-components/            # React components
+components/            # Shared React components (app-wide)
   PredictionForm.tsx   # Drag-and-drop top-5 driver picker
+  RaceScoreCard/       # Per-session picks + results card (composed)
   RaceCard.tsx         # Race display card with countdown
-  RaceResults.tsx      # Results table with scoring breakdown
-  WeekendPredictions.tsx # Summary of all session predictions
   DriverBadge.tsx      # Team-colored driver display
+  H2HMatchupGrid.tsx, H2HPredictionForm.tsx  # Head-to-head UI
   Header.tsx           # Nav bar with mobile menu, theme toggle
-  Footer.tsx, Badge.tsx, Button.tsx, Flag.tsx, Tooltip.tsx, etc.
+  admin/, error/, Button/, UpcomingPredictionBanner/   # Grouped components
 integrations/          # Provider wrappers (Clerk, Convex, TanStack Query)
-hooks/                 # Custom hooks
+hooks/                 # App-wide custom hooks
 lib/
   date.ts              # Date formatting utilities
-  sessions.ts          # Session types and ordering
+  sessions.ts          # Session types, labels, weekend ordering
+  raceSessions.ts      # Per-session lock/start time helpers
+  share.ts             # X (Twitter) share-text builders
+  og/                  # OG share-card encoding + image templates (Satori→resvg PNG)
+  analytics.ts, site.ts, teamColors.ts, ...
 router.tsx             # TanStack Router config with Sentry
 start.ts               # Server entry with Clerk middleware
 routeTree.gen.ts       # Auto-generated (do not edit)
+
+server/                # Nitro server routes & helpers (outside src/)
+  routes/og/share.get.ts          # Per-user OG image rendering
+  routes/x.get.ts                 # X share-intent redirect
+  routes/sitemap.xml.ts
+  routes/api/paddle/*             # Paddle checkout + webhook
+  routes/api/clerk/webhook.post.ts
+  lib/                            # paddle, clerk, sentry, auth helpers
 ```
+
+**Route co-location convention**: TanStack treats a leading `-` as "not a
+route". Page-private components and hooks live in `-components/` and `-hooks/`
+folders next to the route that owns them (see `races/$raceSlug/`). Promote to
+top-level `components/` / `hooks/` only when shared across routes.
 
 ### `apps/mobile/src/`
 
@@ -114,21 +145,33 @@ Mobile entry: `apps/mobile/App.tsx`, `apps/mobile/index.js`, `apps/mobile/app.js
 ### `apps/backend/convex/`
 
 ```
-schema.ts              # Database schema (10 tables)
+schema.ts              # Database schema (see Database Tables below)
 lib/
   auth.ts              # getViewer, requireViewer, requireAdmin helpers
   scoring.ts           # scoreTopFive() scoring algorithm
-predictions.ts         # Prediction queries/mutations
-results.ts             # Result publishing + auto-scoring
+predictions.ts         # Top 5 prediction queries/mutations
+results.ts             # Result publishing + auto-scoring (Top 5 + H2H)
 races.ts               # Race queries/mutations
-leaderboards.ts        # Season leaderboard with pagination
 drivers.ts             # Driver roster queries
-users.ts               # User profile management
+leaderboards.ts        # Season + weekend leaderboards with pagination
+h2h.ts                 # Head-to-head matchups, predictions, scoring
+leagues.ts             # Private leagues + membership
+follows.ts             # Follower / following graph
+feed.ts                # Activity feed events + "revs" (kudos)
+notifications.ts       # Notification scheduling/batching (nudges, milestones)
+push.ts, pushNotifications.ts  # Expo + web push delivery / tokens
+inAppNotifications.ts  # In-app notification bell feed
+billing.ts             # Season pass entitlement (Paddle)
+announcements.ts       # Site-wide admin announcement banner
+support.ts             # Support request intake
+users.ts               # User profile management + deletion
 seed.ts                # 2026 season seeding + test data generators
-testing.ts             # Test utilities
+testing.ts, testingScenarios.ts   # Dev/test utilities + scenario catalog
 emails/                # React Email templates
 _generated/            # Auto-generated types (do not edit)
 ```
+
+Many modules have co-located `*.test.ts` files (convex-test based).
 
 ## Domain Model
 
@@ -165,10 +208,27 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 - Specific mode: edit picks for individual sessions
 - Admin publishes results per session → auto-calculates all user scores
 - Race status: `upcoming` → `locked` → `finished`
+- **H2H**: per-session teammate matchups; pick a winner from each pair, 1 pt per
+  correct pick. Fully implemented (predictions, scoring, leaderboard, race UI).
+- **Leagues**: private leagues with a shareable slug; members get a league-scoped
+  leaderboard and feed.
+- **Season pass**: a paid (Paddle) per-season entitlement (`userSeasonPasses`)
+  gates premium surfaces.
+- **Feed**: activity events (score published, session locked, joined league,
+  streak milestone); other users can "rev" (kudos) an event.
 
 ### Database Tables (Convex)
 
-`users`, `drivers`, `races`, `predictions`, `results`, `scores`, `h2hMatchups`, `h2hPredictions`, `h2hResults`, `h2hScores`
+Grouped by area (24 tables):
+
+- **Core game**: `users`, `drivers`, `races`, `predictions`, `results`, `scores`,
+  `seasonStandings`
+- **Head-to-head**: `h2hMatchups`, `h2hPredictions`, `h2hResults`, `h2hScores`,
+  `h2hSeasonStandings`
+- **Social**: `follows`, `feedEvents`, `revs`, `leagues`, `leagueMembers`
+- **Notifications**: `inAppNotifications`, `pushSubscriptions`, `expoPushTokens`
+- **Billing / ops**: `userSeasonPasses`, `processedPaddleWebhookEvents`,
+  `announcements`, `supportRequests`
 
 ## Data Fetching
 

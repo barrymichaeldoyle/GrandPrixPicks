@@ -301,21 +301,6 @@ button:disabled,
   color: #c4b5fd !important;
 }
 
-/* Race detail: smooth transition when toggling edit vs summary */
-@keyframes race-detail-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.race-detail-content-in {
-  animation: race-detail-fade-in 0.2s ease-out forwards;
-}
-
 /* Global background flare motion */
 @keyframes flare-drift-a {
   0% {

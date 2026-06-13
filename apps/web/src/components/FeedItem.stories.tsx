@@ -16,12 +16,12 @@ import {
   mockOtherUsers,
   mockViewer,
   NOW,
-} from '../storybook/fixtures';
+} from '@/storybook/fixtures';
 import {
   StorybookMockProviders,
   buildStorybookConvexMocks,
-} from '../storybook/mockAppRuntime';
-import { StorybookRouter } from '../stories/router-decorator';
+} from '@/storybook/mockAppRuntime';
+import { StorybookRouter } from '@/stories/router-decorator';
 
 type FeedEvent = ComponentProps<typeof FeedItem>['event'];
 

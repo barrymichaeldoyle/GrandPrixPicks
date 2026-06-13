@@ -11,8 +11,8 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import { Avatar } from './Avatar';
 import { DriverBadge, ScoredDriverBadge } from './DriverBadge';
-import { getCountryCodeForRace } from '../lib/raceCountries';
-import { SESSION_LABELS_FULL } from '../lib/sessions';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { SESSION_LABELS_FULL } from '@/lib/sessions';
 import { RaceFlag } from './RaceFlag';
 import { RevButton } from './RevButton';
 

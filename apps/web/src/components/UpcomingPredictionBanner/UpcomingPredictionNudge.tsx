@@ -2,8 +2,8 @@ import { ArrowRight, X } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 
-import { Flag as CountryFlag } from '../Flag';
-import { getCountryCodeForRace } from '../../lib/raceCountries';
+import { Flag as CountryFlag } from '@/components/Flag';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 const EXIT_ANIMATION_MS = 320;
 

@@ -10,6 +10,23 @@ export function countryCodeToFlagEmoji(countryCode?: string | null) {
   );
 }
 
+/** `#F1` plus the race-specific hashtag (e.g. `#MonacoGP`), space-joined. */
+function formatRaceHashtags(raceHashtag?: string) {
+  return ['#F1', raceHashtag].filter(Boolean).join(' ');
+}
+
+/** `P1 🇬🇧 NOR\nP2 ...` — one driver per line with its flag, in pick order. */
+function formatPositionList(
+  drivers: ReadonlyArray<{ code: string; nationality?: string | null }>,
+) {
+  return drivers
+    .map((driver, index) => {
+      const flag = countryCodeToFlagEmoji(driver.nationality);
+      return `P${index + 1} ${flag ? `${flag} ` : ''}${driver.code}`;
+    })
+    .join('\n');
+}
+
 export function buildRaceResultShareText({
   raceName,
   sessionLabel,
@@ -23,15 +40,51 @@ export function buildRaceResultShareText({
   accountHandle: string;
   raceHashtag?: string;
 }) {
-  const classification = drivers
-    .map((driver, index) => {
-      const flag = countryCodeToFlagEmoji(driver.nationality);
-      return `P${index + 1} ${flag ? `${flag} ` : ''}${driver.code}`;
-    })
-    .join('\n');
-  const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
+  return `${raceName} ${sessionLabel} results 🏎️🏁\n\n${formatPositionList(
+    drivers,
+  )}\n\nFull results and player scores on ${accountHandle}.\n\n${formatRaceHashtags(
+    raceHashtag,
+  )}`;
+}
 
-  return `${raceName} ${sessionLabel} results 🏎️🏁\n\n${classification}\n\nFull results and player scores on ${accountHandle}.\n\n${hashtags}`;
+export function buildPicksShareText({
+  raceName,
+  sessionLabel,
+  picks,
+  accountHandle,
+  raceHashtag,
+}: {
+  raceName: string;
+  sessionLabel: string;
+  picks: ReadonlyArray<{ code: string; nationality?: string | null }>;
+  accountHandle: string;
+  raceHashtag?: string;
+}) {
+  return `My ${sessionLabel} top 5 for the ${raceName} 🎯🏎️\n\n${formatPositionList(
+    picks,
+  )}\n\nThink you can beat me on ${accountHandle}?\n\n${formatRaceHashtags(
+    raceHashtag,
+  )}`;
+}
+
+export function buildScoreShareText({
+  raceName,
+  points,
+  isFinal,
+  accountHandle,
+  raceHashtag,
+}: {
+  raceName: string;
+  points: number;
+  /** True once every weekend session is scored (final tally vs. running total). */
+  isFinal: boolean;
+  accountHandle: string;
+  raceHashtag?: string;
+}) {
+  const hashtags = formatRaceHashtags(raceHashtag);
+  return isFinal
+    ? `I scored ${points} points at the ${raceName} 🏆\n\nThink you can beat me next round on ${accountHandle}?\n\n${hashtags}`
+    : `${points} points so far at the ${raceName} 📈\n\nFollow the results on ${accountHandle}.\n\n${hashtags}`;
 }
 
 export function buildH2HPicksShareText({
@@ -47,7 +100,7 @@ export function buildH2HPicksShareText({
   accountHandle: string;
   raceHashtag?: string;
 }) {
-  const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
+  const hashtags = formatRaceHashtags(raceHashtag);
   // Codes only — team names live on the OG card, keeping the post under
   // X's 280-character limit.
   return `My ${sessionLabel} Head-to-Head picks for the ${raceName} ⚔️🏎️💨\n\n${winnerCodes.join(' · ')}\n\n🏁 Think you can beat me on ${accountHandle}?\n\n${hashtags}`;
@@ -76,7 +129,7 @@ export function buildH2HScoreShareText({
   const breakdown = picks
     .map((pick) => `${pick.correct ? '✅' : '❌'}${pick.code ?? '—'}`)
     .join(' ');
-  const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
+  const hashtags = formatRaceHashtags(raceHashtag);
   return `I scored ${correct}/${total} on my ${raceName} ${sessionLabel} Head-to-Head picks ⚔️\n\n${breakdown}\n\nCan you beat my score on ${accountHandle}?\n\n${hashtags}`;
 }
 
@@ -93,7 +146,7 @@ export function buildOfficialH2HResultShareText({
   accountHandle: string;
   raceHashtag?: string;
 }) {
-  const hashtags = ['#F1', raceHashtag].filter(Boolean).join(' ');
+  const hashtags = formatRaceHashtags(raceHashtag);
   return `${raceName} ${sessionLabel} Head-to-Head results ⚔️🏁\n\nWinners: ${winnerCodes.join(' · ')}\n\nSee every teammate matchup on ${accountHandle}.\n\n${hashtags}`;
 }
 

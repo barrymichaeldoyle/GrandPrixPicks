@@ -5,7 +5,7 @@ import {
   DriverBadgeSkeleton,
   ScoredDriverBadge,
 } from './DriverBadge';
-import { mockDrivers } from '../storybook/fixtures';
+import { mockDrivers } from '@/storybook/fixtures';
 
 const meta = {
   title: 'Components/DriverBadge',

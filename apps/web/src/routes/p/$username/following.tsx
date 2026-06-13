@@ -4,33 +4,20 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { UserPlus } from 'lucide-react';
 
-import { PageLoader } from '../../../components/PageLoader';
-import { canonicalMeta, defaultOgImage, noIndexMeta } from '../../../lib/site';
+import { PageLoader } from '@/components/PageLoader';
+import { pageMeta } from '@/lib/site';
 import { FollowListPage } from './-follow-list-page';
 
 export const Route = createFileRoute('/p/$username/following')({
   component: FollowingPage,
   loader: ({ params }) => ({ username: params.username }),
-  head: ({ params }) => {
-    const title = `Who ${params.username} follows | Grand Prix Picks`;
-    const description = `See who ${params.username} follows on Grand Prix Picks.`;
-    const canonical = canonicalMeta(`/p/${params.username}/following`);
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...noIndexMeta(),
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: ({ params }) =>
+    pageMeta({
+      title: `Who ${params.username} follows | Grand Prix Picks`,
+      description: `See who ${params.username} follows on Grand Prix Picks.`,
+      path: `/p/${params.username}/following`,
+      noIndex: true,
+    }),
 });
 
 function FollowingPage() {

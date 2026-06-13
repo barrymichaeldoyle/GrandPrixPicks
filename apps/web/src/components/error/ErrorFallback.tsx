@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 import { toUserFacingErrorDetails } from '@/lib/userFacingError';
 
-import { Button } from '../Button/Button';
+import { Button } from '@/components/Button/Button';
 
 interface ErrorFallbackProps {
   error: unknown;

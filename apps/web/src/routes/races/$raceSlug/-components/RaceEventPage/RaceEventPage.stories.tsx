@@ -5,30 +5,27 @@ import { ArrowLeft, Trophy } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
 
-import { Button } from '../../../../../components/Button/Button';
-import { PredictionForm } from '../../../../../components/PredictionForm';
-import { RandomizeButton } from '../../../../../components/RandomizeButton';
+import { Button } from '@/components/Button/Button';
+import { PredictionForm } from '@/components/PredictionForm';
+import { RandomizeButton } from '@/components/RandomizeButton';
 import type {
   DriverRef,
   WeekendCardData,
-} from '../../../../../components/RaceScoreCard/types';
-import type { TabSwitchOption } from '../../../../../components/TabSwitch';
+} from '@/components/RaceScoreCard/types';
+import type { TabSwitchOption } from '@/components/TabSwitch';
 import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
-} from '../../../../../lib/raceSessions';
-import type { SessionType } from '../../../../../lib/sessions';
-import {
-  SESSION_LABELS,
-  SESSION_LABELS_SHORT,
-} from '../../../../../lib/sessions';
-import { raceEventStoryScenarios } from '../../../../../stories/scenarios/raceEventScenarios';
-import { DAY, fakeId, HOUR, NOW } from '../../../../../storybook/fixtures';
+} from '@/lib/raceSessions';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
+import { raceEventStoryScenarios } from '@/stories/scenarios/raceEventScenarios';
+import { DAY, fakeId, HOUR, NOW } from '@/storybook/fixtures';
 import {
   StorybookMockProviders,
   buildStorybookConvexMocks,
-} from '../../../../../storybook/mockAppRuntime';
-import { StorybookRouter } from '../../../../../stories/router-decorator';
+} from '@/storybook/mockAppRuntime';
+import { StorybookRouter } from '@/stories/router-decorator';
 
 import { RaceEventPage } from './RaceEventPage';
 
@@ -498,33 +495,41 @@ function Scenario({
         <RaceEventPage
           race={race}
           isNextRace={isNextRace}
-          isAuthLoaded={isAuthLoaded}
-          isSignedIn={isSignedIn}
+          viewer={{ isAuthLoaded, isSignedIn }}
           isPredictionsLoading={false}
           isViewerPredictionDataLoading={false}
-          hasPredictions={hasPredictions}
-          hasH2HPredictions={hasPredictions}
-          hasPublishedResults={hasPublishedResults}
-          allEventsScored={allEventsScored}
-          pointsSoFar={pointsSoFar}
-          scoredEventCount={scoredEventCount}
-          weekendSessions={weekendSessions}
+          weekendStatus={{
+            hasPredictions,
+            hasH2HPredictions: hasPredictions,
+            hasPublishedResults,
+            allEventsScored,
+            pointsSoFar,
+            scoredEventCount,
+          }}
+          schedule={{
+            weekendSessions,
+            trackTimeZone: race.timeZone,
+            getStartAt: getSessionStartAt,
+            getLockAt: getSessionLockAt,
+            isPublished: (session: SessionType) =>
+              scoredSessions.includes(session),
+          }}
           selectedSession={selectedSession}
           onSelectedSessionChange={setSelectedSession}
           sessionTabOptions={sessionTabOptions}
-          trackTimeZone={race.timeZone}
-          getSessionStartAt={getSessionStartAt}
-          getSessionLockAt={getSessionLockAt}
-          isSessionPublished={(session) => scoredSessions.includes(session)}
           cardData={cardData}
-          top5EditingSession={top5EditingSession}
-          onTop5EditingSessionChange={setTop5EditingSession}
-          top5HasUnsavedChanges={top5HasUnsavedChanges}
-          onTop5DirtyChange={setTop5HasUnsavedChanges}
-          h2hEditingSession={h2hEditingSession}
-          onH2HEditingSessionChange={setH2hEditingSession}
-          h2hHasUnsavedChanges={h2hHasUnsavedChanges}
-          onH2HDirtyChange={setH2hHasUnsavedChanges}
+          top5Editing={{
+            session: top5EditingSession,
+            onSessionChange: setTop5EditingSession,
+            hasUnsavedChanges: top5HasUnsavedChanges,
+            onDirtyChange: setTop5HasUnsavedChanges,
+          }}
+          h2hEditing={{
+            session: h2hEditingSession,
+            onSessionChange: setH2hEditingSession,
+            hasUnsavedChanges: h2hHasUnsavedChanges,
+            onDirtyChange: setH2hHasUnsavedChanges,
+          }}
           existingTop5PicksBySession={top5PredictionsBySession}
           randomizeControl={
             <RandomizeButton

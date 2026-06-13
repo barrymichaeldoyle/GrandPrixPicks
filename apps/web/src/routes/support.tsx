@@ -8,34 +8,21 @@ import { useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../components/Button/Button';
-import { PageHero } from '../components/PageHero';
-import { PageLoader } from '../components/PageLoader';
-import { canonicalMeta, defaultOgImage, noIndexMeta } from '../lib/site';
+import { Button } from '@/components/Button/Button';
+import { PageHero } from '@/components/PageHero';
+import { PageLoader } from '@/components/PageLoader';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/support')({
   component: SupportPage,
-  head: () => {
-    const title = 'Support | Grand Prix Picks';
-    const description =
-      'Get help with Grand Prix Picks. Submit bugs, ask questions, or share feedback with the developer.';
-    const canonical = canonicalMeta('/support');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...noIndexMeta(),
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Support | Grand Prix Picks',
+      description:
+        'Get help with Grand Prix Picks. Submit bugs, ask questions, or share feedback with the developer.',
+      path: '/support',
+      noIndex: true,
+    }),
 });
 
 function SupportPage() {

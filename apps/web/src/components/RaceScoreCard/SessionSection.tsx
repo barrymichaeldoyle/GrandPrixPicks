@@ -1,7 +1,7 @@
 import { Lock, Trophy } from 'lucide-react';
 
-import type { SessionType } from '../../lib/sessions';
-import { SESSION_LABELS } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
 import { SessionPicksGrid } from './SessionPicksGrid';
 import { SessionResultsTable } from './SessionResultsTable';
 import type { SessionCardData } from './types';

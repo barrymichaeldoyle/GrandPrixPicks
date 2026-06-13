@@ -38,13 +38,13 @@ import {
 } from '@/lib/share';
 import { siteConfig } from '@/lib/site';
 
-import type { SessionType } from '../../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 import {
   getMissingEarlierSessions,
   getSessionsForWeekend,
   SESSION_LABELS,
-} from '../../../lib/sessions';
-import { NotFoundPage } from '../../__root';
+} from '@/lib/sessions';
+import { NotFoundPage } from '@/routes/__root';
 
 const LANE_ID_PREFIX = 'lane-';
 

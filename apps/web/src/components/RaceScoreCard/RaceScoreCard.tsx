@@ -3,12 +3,12 @@ import { ArrowRight, ChevronDown, EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 
-import type { SessionType } from '../../lib/sessions';
-import { useUserDateFormat } from '../../lib/useUserDateFormat';
-import { getSessionsForWeekend } from '../../lib/sessions';
-import { Badge, StatusBadge } from '../Badge';
-import { getCountryCodeForRace } from '../../lib/raceCountries';
-import { RaceFlag } from '../RaceFlag';
+import type { SessionType } from '@/lib/sessions';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
+import { getSessionsForWeekend } from '@/lib/sessions';
+import { Badge, StatusBadge } from '@/components/Badge';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { RaceFlag } from '@/components/RaceFlag';
 import { CardActions } from './CardActions';
 import { RaceScoreCardHeader } from './RaceScoreCardHeader';
 import { SessionSection } from './SessionSection';

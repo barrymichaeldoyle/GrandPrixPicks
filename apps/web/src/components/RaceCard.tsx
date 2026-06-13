@@ -2,19 +2,19 @@ import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Calendar } from 'lucide-react';
 
-import { useCountdown } from '../lib/date';
+import { useCountdown } from '@/lib/date';
 import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
-} from '../lib/lock';
-import { getCountryCodeForRace } from '../lib/raceCountries';
+} from '@/lib/lock';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import {
   getNextSessionLockAt,
   getWeekendSessionStarts,
-} from '../lib/raceSessions';
-import { SESSION_LABELS } from '../lib/sessions';
-import { useNow } from '../lib/testing/now';
-import { useUserDateFormat } from '../lib/useUserDateFormat';
+} from '@/lib/raceSessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { Badge } from './Badge';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 import { RaceFlag } from './RaceFlag';

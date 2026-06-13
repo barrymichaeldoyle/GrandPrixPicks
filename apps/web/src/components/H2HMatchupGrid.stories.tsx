@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 
 import { H2HMatchupGrid } from './H2HMatchupGrid';
-import { fakeId, mockDrivers } from '../storybook/fixtures';
+import { fakeId, mockDrivers } from '@/storybook/fixtures';
 
 const matchups = [
   {

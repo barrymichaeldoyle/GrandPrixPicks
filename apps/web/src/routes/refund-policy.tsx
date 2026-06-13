@@ -3,31 +3,18 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 
-import { PageHero } from '../components/PageHero';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { PageHero } from '@/components/PageHero';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/refund-policy')({
   component: RefundPolicyPage,
-  head: () => {
-    const title = 'Refund Policy | Grand Prix Picks';
-    const description =
-      'Refund policy for Grand Prix Picks purchases, processed in accordance with Paddle refund terms.';
-    const canonical = canonicalMeta('/refund-policy');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Refund Policy | Grand Prix Picks',
+      description:
+        'Refund policy for Grand Prix Picks purchases, processed in accordance with Paddle refund terms.',
+      path: '/refund-policy',
+    }),
 });
 
 function RefundPolicyPage() {

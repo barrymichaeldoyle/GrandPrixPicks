@@ -1,7 +1,7 @@
 import { ConvexQueryClient } from '@convex-dev/react-query';
 import { QueryClient } from '@tanstack/react-query';
 
-import { convex } from '../convex/client';
+import { convex } from '@/integrations/convex/client';
 
 export function getContext() {
   const convexQueryClient = new ConvexQueryClient(convex);

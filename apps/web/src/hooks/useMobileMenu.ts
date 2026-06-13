@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import { useEffect, useState } from 'react';
 
-import { MEDIA_MATCH_BREAKPOINT } from '../components/Header';
+import { MEDIA_MATCH_BREAKPOINT } from '@/components/Header';
 
 /**
  * Manages mobile menu open state and applies inert to main content when the menu

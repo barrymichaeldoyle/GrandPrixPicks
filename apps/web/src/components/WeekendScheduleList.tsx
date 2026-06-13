@@ -4,10 +4,10 @@ import { Calendar } from 'lucide-react';
 import {
   getRaceSessionLockAt,
   getWeekendSessionStarts,
-} from '../lib/raceSessions';
-import { SESSION_LABELS } from '../lib/sessions';
-import { useNow } from '../lib/testing/now';
-import { useUserDateFormat } from '../lib/useUserDateFormat';
+} from '@/lib/raceSessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
 
 /**
  * Flat list of every session in the weekend with viewer-local start times.

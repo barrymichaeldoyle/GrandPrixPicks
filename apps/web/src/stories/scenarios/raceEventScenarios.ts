@@ -1,4 +1,4 @@
-import type { SessionType } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 
 type RaceEventScenarioName =
   | 'race_upcoming_signed_in_no_picks'

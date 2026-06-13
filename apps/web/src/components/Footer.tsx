@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { Flag } from 'lucide-react';
 
-import { footerExploreLinks } from '../lib/navigation';
-import { siteConfig } from '../lib/site';
+import { footerExploreLinks } from '@/lib/navigation';
+import { siteConfig } from '@/lib/site';
 import { XLogoIcon } from './ShareOnXButton';
 
 function LinkedInIcon({ className }: { className?: string }) {

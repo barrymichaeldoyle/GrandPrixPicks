@@ -24,8 +24,9 @@ vi.mock('convex/react', () => ({
   useMutation: vi.fn(() => vi.fn()),
 }));
 
-vi.mock('convex/browser', () => ({
-  ConvexHttpClient: class MockConvexHttpClient {},
+vi.mock('@/integrations/convex/client', () => ({
+  convex: {},
+  convexHttp: { query: vi.fn() },
 }));
 
 vi.mock('@clerk/react', () => ({
@@ -67,7 +68,7 @@ vi.mock('@/lib/userFacingError', () => ({
   toUserFacingMessage: (error: unknown) => String(error),
 }));
 
-vi.mock('../../components/FeedItem', async () => {
+vi.mock('@/components/FeedItem', async () => {
   const actual = await vi.importActual('../../components/FeedItem');
   return {
     ...actual,
@@ -77,16 +78,16 @@ vi.mock('../../components/FeedItem', async () => {
   };
 });
 
-vi.mock('../../components/LeagueMembersList', () => ({
+vi.mock('@/components/LeagueMembersList', () => ({
   LeagueMembersList: () => null,
   LeagueMembersListSkeleton: () => null,
 }));
 
-vi.mock('../../components/PageLoader', () => ({
+vi.mock('@/components/PageLoader', () => ({
   PageLoader: () => null,
 }));
 
-vi.mock('../../lib/site', () => ({
+vi.mock('@/lib/site', () => ({
   canonicalMeta: () => ({ meta: [], links: [] }),
   defaultOgImage: '',
 }));

@@ -8,33 +8,20 @@ import { useState } from 'react';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../../components/Button/Button';
-import { PageHero } from '../../components/PageHero';
-import { PageLoader } from '../../components/PageLoader';
-import { canonicalMeta, defaultOgImage } from '../../lib/site';
+import { Button } from '@/components/Button/Button';
+import { PageHero } from '@/components/PageHero';
+import { PageLoader } from '@/components/PageLoader';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/leagues/create')({
   component: CreateLeaguePage,
-  head: () => {
-    const title = 'Create League | Grand Prix Picks';
-    const description =
-      'Create a private or public league for the 2026 Grand Prix Picks season.';
-    const canonical = canonicalMeta('/leagues/create');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Create League | Grand Prix Picks',
+      description:
+        'Create a private or public league for the 2026 Grand Prix Picks season.',
+      path: '/leagues/create',
+    }),
 });
 
 function CreateLeaguePage() {

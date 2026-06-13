@@ -60,3 +60,47 @@ export function canonicalMeta(path: string) {
 export function noIndexMeta() {
   return [{ name: 'robots', content: 'noindex, follow' }] as const;
 }
+
+/**
+ * Builds the standard per-page `head()` payload: title + description, the
+ * Open Graph / Twitter title/description/image, robots (when `noIndex`), and
+ * canonical (og:url, twitter:url, link). Global tags (og:type, og:site_name,
+ * twitter:card) live in `__root.tsx`.
+ *
+ * Routes needing extra tags spread the result and append, e.g.
+ * `const base = pageMeta({ ... }); return { ...base, scripts };`
+ *
+ * @param path — the route path, e.g. '/pricing' or '/races/monaco'
+ * @param image — absolute OG image URL (defaults to the shared image)
+ * @param noIndex — when true, adds `robots: noindex, follow`
+ */
+export function pageMeta({
+  title,
+  description,
+  path,
+  image = defaultOgImage,
+  noIndex = false,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  image?: string;
+  noIndex?: boolean;
+}) {
+  const canonical = canonicalMeta(path);
+  return {
+    meta: [
+      { title },
+      { name: 'description', content: description },
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { property: 'og:image', content: image },
+      { name: 'twitter:title', content: title },
+      { name: 'twitter:description', content: description },
+      { name: 'twitter:image', content: image },
+      ...(noIndex ? noIndexMeta() : []),
+      ...canonical.meta,
+    ],
+    links: [...canonical.links],
+  };
+}

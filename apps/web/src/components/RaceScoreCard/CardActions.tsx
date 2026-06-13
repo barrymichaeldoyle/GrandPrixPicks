@@ -2,8 +2,8 @@ import { SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { Ban, Lock, LogIn } from 'lucide-react';
 
-import { useUserDateFormat } from '../../lib/useUserDateFormat';
-import { Button } from '../Button/Button';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
+import { Button } from '@/components/Button/Button';
 import type { CardDisplayState } from './state';
 import type { WeekendCardData } from './types';
 

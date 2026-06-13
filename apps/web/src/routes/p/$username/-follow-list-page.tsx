@@ -5,9 +5,9 @@ import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, LogIn } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Avatar } from '../../../components/Avatar';
-import { Button } from '../../../components/Button/Button';
-import { FollowButton } from '../../../components/FollowButton';
+import { Avatar } from '@/components/Avatar';
+import { Button } from '@/components/Button/Button';
+import { FollowButton } from '@/components/FollowButton';
 
 type FollowListUser = {
   _id: Id<'users'>;

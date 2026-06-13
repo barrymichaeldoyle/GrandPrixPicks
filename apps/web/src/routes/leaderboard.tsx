@@ -23,8 +23,8 @@ import { InlineLoader } from '@/components/InlineLoader';
 import { PageHero } from '@/components/PageHero';
 import { TabSwitch } from '@/components/TabSwitch';
 
-import { isRaceSelectableForLeaderboard } from '../lib/raceSessions';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
+import { pageMeta } from '@/lib/site';
 
 const playerCountFormatter = new Intl.NumberFormat('en-US');
 
@@ -81,27 +81,14 @@ export const Route = createFileRoute('/leaderboard')({
     ]);
     return { defaultRace, allRaces, initialSeason, initialWeekend };
   },
-  head: () => {
-    const title =
-      '2026 Season Leaderboard - F1 Prediction Rankings | Grand Prix Picks';
-    const description =
-      'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.';
-    const canonical = canonicalMeta('/leaderboard');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title:
+        '2026 Season Leaderboard - F1 Prediction Rankings | Grand Prix Picks',
+      description:
+        'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.',
+      path: '/leaderboard',
+    }),
 });
 
 // ─────────────────────────── Types ───────────────────────────

@@ -1,17 +1,15 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
 import { Calendar } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-import { DevNowPanel } from '../../components/DevNowPanel';
-import { PageHero } from '../../components/PageHero';
-import { RaceCard } from '../../components/RaceCard';
-import { SHOW_DEV_TIME_CONTROLS } from '../../lib/devFlags';
-import { canonicalMeta, defaultOgImage } from '../../lib/site';
-import { useNow } from '../../lib/testing/now';
-
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+import { DevNowPanel } from '@/components/DevNowPanel';
+import { PageHero } from '@/components/PageHero';
+import { RaceCard } from '@/components/RaceCard';
+import { convexHttp as convex } from '@/integrations/convex/client';
+import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { pageMeta } from '@/lib/site';
+import { useNow } from '@/lib/testing/now';
 
 export const Route = createFileRoute('/races/')({
   component: RacesPage,
@@ -22,26 +20,13 @@ export const Route = createFileRoute('/races/')({
     ]);
     return { races, nextRace };
   },
-  head: () => {
-    const title = '2026 F1 Race Calendar & Predictions | Grand Prix Picks';
-    const description =
-      'Browse the full 2026 Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.';
-    const canonical = canonicalMeta('/races');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: '2026 F1 Race Calendar & Predictions | Grand Prix Picks',
+      description:
+        'Browse the full 2026 Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.',
+      path: '/races',
+    }),
 });
 
 function RacesPage() {

@@ -9,7 +9,6 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
-import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
   ArrowLeft,
@@ -37,22 +36,21 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { buildXShareIntentUrl } from '@/lib/share';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../../components/Button/Button';
+import { Button } from '@/components/Button/Button';
 import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
   SessionSeparator,
-} from '../../components/FeedItem';
+} from '@/components/FeedItem';
 import {
   LeagueMembersList,
   LeagueMembersListSkeleton,
-} from '../../components/LeagueMembersList';
-import { PageLoader } from '../../components/PageLoader';
-import { isRaceSelectableForLeaderboard } from '../../lib/raceSessions';
-import { canonicalMeta, defaultOgImage, siteConfig } from '../../lib/site';
-
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+} from '@/components/LeagueMembersList';
+import { PageLoader } from '@/components/PageLoader';
+import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
+import { convexHttp as convex } from '@/integrations/convex/client';
+import { pageMeta, siteConfig } from '@/lib/site';
 
 type TimeScope = 'season' | 'weekend';
 type GameMode = 'combined' | 'top5' | 'h2h';
@@ -105,22 +103,11 @@ export const Route = createFileRoute('/leagues/$slug')({
         ? `${league.name} — ${league.description}`
         : `Compete with other members in ${league.name}. View standings and make your F1 predictions on Grand Prix Picks.`
       : 'View league standings, track member rankings, and compete with friends in this private F1 prediction league.';
-    const ogImage = defaultOgImage;
-    const canonical = canonicalMeta(`/leagues/${params.slug}`);
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: ogImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: ogImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
+    return pageMeta({
+      title,
+      description,
+      path: `/leagues/${params.slug}`,
+    });
   },
 });
 

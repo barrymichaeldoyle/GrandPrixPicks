@@ -2,14 +2,14 @@ import type { Doc } from '@convex-generated/dataModel';
 import { Clock3, X } from 'lucide-react';
 import { useState } from 'react';
 
-import { Badge } from '../components/Badge';
+import { Badge } from '@/components/Badge';
 import { Button } from './Button/Button';
-import { formatDateTime } from '../lib/date';
+import { formatDateTime } from '@/lib/date';
 import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
-} from '../lib/raceSessions';
-import { clearDevNow, setDevNow, useDevNowOverride } from '../lib/testing/now';
+} from '@/lib/raceSessions';
+import { clearDevNow, setDevNow, useDevNowOverride } from '@/lib/testing/now';
 
 type Race = Doc<'races'>;
 

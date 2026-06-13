@@ -1,7 +1,6 @@
 import { api } from '@convex-generated/api';
 import { getCountdownParts } from '@grandprixpicks/shared/dates';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -17,22 +16,21 @@ import {
 } from 'lucide-react';
 
 import type { Doc } from '@convex-generated/dataModel';
-import type { SessionType } from '../lib/sessions';
-import { SESSION_LABELS } from '../lib/sessions';
-import { getWeekendSessionStarts } from '../lib/raceSessions';
-import { Button } from '../components/Button/Button';
-import { DevNowPanel } from '../components/DevNowPanel';
-import { FaqItem, FaqSection } from '../components/Faq';
-import { Flag as CountryFlag } from '../components/Flag';
-import { useUpcomingPredictionBannerState } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
-import { getCountryCodeForRace } from '../lib/raceCountries';
-import { abbreviateGrandPrix } from '../lib/display';
-import { useUserDateFormat } from '../lib/useUserDateFormat';
-import { SHOW_DEV_TIME_CONTROLS } from '../lib/devFlags';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
-import { useNow } from '../lib/testing/now';
-
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { getWeekendSessionStarts } from '@/lib/raceSessions';
+import { Button } from '@/components/Button/Button';
+import { DevNowPanel } from '@/components/DevNowPanel';
+import { FaqItem, FaqSection } from '@/components/Faq';
+import { Flag as CountryFlag } from '@/components/Flag';
+import { useUpcomingPredictionBannerState } from '@/components/UpcomingPredictionBanner/UpcomingPredictionBanner';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { abbreviateGrandPrix } from '@/lib/display';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
+import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { pageMeta } from '@/lib/site';
+import { useNow } from '@/lib/testing/now';
+import { convexHttp as convex } from '@/integrations/convex/client';
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
 
@@ -101,27 +99,13 @@ export const Route = createFileRoute('/')({
       now,
     };
   },
-  head: () => {
-    const title =
-      'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season';
-    const description =
-      'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game — qualifying, sprint, and race sessions plus teammate head-to-heads.';
-    const canonical = canonicalMeta('/');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season',
+      description:
+        'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game — qualifying, sprint, and race sessions plus teammate head-to-heads.',
+      path: '/',
+    }),
 });
 
 // --- Countdown ---

@@ -15,7 +15,7 @@ import {
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import type { SessionType } from '../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 import { Button } from './Button/Button';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 

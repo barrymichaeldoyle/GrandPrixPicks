@@ -1,10 +1,10 @@
 import { CheckCircle2, Lock } from 'lucide-react';
 
-import { useUserDateFormat } from '../lib/useUserDateFormat';
+import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import {
   getLockStatusViewModel,
   getLockUrgencyBadgeClassName,
-} from '../lib/lock';
+} from '@/lib/lock';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 
 const sessionDateOptions: Intl.DateTimeFormatOptions = {

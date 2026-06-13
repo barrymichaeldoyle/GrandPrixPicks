@@ -3,7 +3,7 @@ import { useQuery } from 'convex/react';
 import { Megaphone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { useNow } from '../lib/testing/now';
+import { useNow } from '@/lib/testing/now';
 
 const DISMISSED_STORAGE_KEY = 'gpp-dismissed-announcement';
 

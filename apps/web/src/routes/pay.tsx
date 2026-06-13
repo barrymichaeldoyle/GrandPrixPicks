@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
-import { canonicalMeta } from '../lib/site';
+import { canonicalMeta } from '@/lib/site';
 
 declare global {
   interface Window {

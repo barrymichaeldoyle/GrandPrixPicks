@@ -3,8 +3,8 @@ import { api } from '@convex-generated/api';
 import { useLocation } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 
-import { useUpcomingPredictionBannerDismissal } from '../../hooks/useUpcomingPredictionBannerDismissal';
-import type { SessionType } from '../../lib/sessions';
+import { useUpcomingPredictionBannerDismissal } from '@/hooks/useUpcomingPredictionBannerDismissal';
+import type { SessionType } from '@/lib/sessions';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;

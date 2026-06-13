@@ -10,7 +10,7 @@ import type { AdminPredictionStatus } from '@/components/admin/AdminUsersTab';
 import { AdminUsersTab } from '@/components/admin/AdminUsersTab';
 import { PageLoader } from '@/components/PageLoader';
 
-import { NotFoundPage } from '../__root';
+import { NotFoundPage } from '@/routes/__root';
 
 export const Route = createFileRoute('/admin/')({
   component: AdminPage,

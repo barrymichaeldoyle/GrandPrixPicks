@@ -37,9 +37,9 @@ import {
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { getRaceSessionLockAt } from '../lib/raceSessions';
-import type { SessionType } from '../lib/sessions';
-import { useNow } from '../lib/testing/now';
+import { getRaceSessionLockAt } from '@/lib/raceSessions';
+import type { SessionType } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
 import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
 import { TEAM_COLORS } from './DriverBadge';

@@ -1,5 +1,5 @@
-import type { SessionType } from '../../lib/sessions';
-import { getSessionsForWeekend } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
+import { getSessionsForWeekend } from '@/lib/sessions';
 import type { WeekendCardData } from './types';
 
 export type CardDisplayState =

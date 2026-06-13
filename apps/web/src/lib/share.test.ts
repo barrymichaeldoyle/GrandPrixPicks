@@ -4,7 +4,9 @@ import {
   buildH2HPicksShareText,
   buildH2HScoreShareText,
   buildOfficialH2HResultShareText,
+  buildPicksShareText,
   buildRaceResultShareText,
+  buildScoreShareText,
   buildXShareIntentUrl,
   countryCodeToFlagEmoji,
 } from './share';
@@ -40,6 +42,58 @@ describe('buildRaceResultShareText', () => {
       }),
     ).toBe(
       'Barcelona Grand Prix Qualifying results 🏎️🏁\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nFull results and player scores on @GrandPrixPicks.\n\n#F1 #SpanishGP',
+    );
+  });
+});
+
+describe('buildPicksShareText', () => {
+  it('formats the viewer’s own top 5 with flags and a challenge', () => {
+    expect(
+      buildPicksShareText({
+        raceName: 'Barcelona Grand Prix',
+        sessionLabel: 'Qualifying',
+        accountHandle: '@GrandPrixPicks',
+        raceHashtag: '#SpanishGP',
+        picks: [
+          { code: 'VER', nationality: 'NL' },
+          { code: 'NOR', nationality: 'GB' },
+          { code: 'PIA', nationality: 'AU' },
+          { code: 'LEC', nationality: 'MC' },
+          { code: 'RUS', nationality: 'GB' },
+        ],
+      }),
+    ).toBe(
+      'My Qualifying top 5 for the Barcelona Grand Prix 🎯🏎️\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nThink you can beat me on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+    );
+  });
+});
+
+describe('buildScoreShareText', () => {
+  it('uses the final-tally copy once every session is scored', () => {
+    expect(
+      buildScoreShareText({
+        raceName: 'Barcelona Grand Prix',
+        points: 42,
+        isFinal: true,
+        accountHandle: '@GrandPrixPicks',
+        raceHashtag: '#SpanishGP',
+      }),
+    ).toBe(
+      'I scored 42 points at the Barcelona Grand Prix 🏆\n\nThink you can beat me next round on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+    );
+  });
+
+  it('uses the running-total copy while results are still coming in', () => {
+    expect(
+      buildScoreShareText({
+        raceName: 'Barcelona Grand Prix',
+        points: 18,
+        isFinal: false,
+        accountHandle: '@GrandPrixPicks',
+        raceHashtag: '#SpanishGP',
+      }),
+    ).toBe(
+      '18 points so far at the Barcelona Grand Prix 📈\n\nFollow the results on @GrandPrixPicks.\n\n#F1 #SpanishGP',
     );
   });
 });

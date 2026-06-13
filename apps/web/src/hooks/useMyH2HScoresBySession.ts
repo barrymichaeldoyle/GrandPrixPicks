@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery } from 'convex/react';
 
-import type { SessionType } from '../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 
 /**
  * Collapse a per-session score map (e.g. `getMyScoresForRace` or the result

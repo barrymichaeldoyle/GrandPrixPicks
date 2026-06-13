@@ -1,6 +1,6 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 
-import type { SessionType } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 import type {
   ClassificationEntry,
   DriverRef,

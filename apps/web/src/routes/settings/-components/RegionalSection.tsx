@@ -1,8 +1,8 @@
 import { Globe } from 'lucide-react';
 
-import { SettingsSection } from '../../../components/SettingsSection';
-import { TimeFormatSelect } from '../../../components/TimeFormatSelect';
-import { TimezoneSelect } from '../../../components/TimezoneSelect';
+import { SettingsSection } from '@/components/SettingsSection';
+import { TimeFormatSelect } from '@/components/TimeFormatSelect';
+import { TimezoneSelect } from '@/components/TimezoneSelect';
 
 export function RegionalSection({
   timezone,

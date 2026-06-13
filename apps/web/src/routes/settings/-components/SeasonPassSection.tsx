@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, CheckCircle2, Ticket } from 'lucide-react';
 
-import { Button } from '../../../components/Button/Button';
-import { SettingsSection } from '../../../components/SettingsSection';
+import { Button } from '@/components/Button/Button';
+import { SettingsSection } from '@/components/SettingsSection';
 
 export function SeasonPassSection({
   season,

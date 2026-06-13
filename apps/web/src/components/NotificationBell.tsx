@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import { Avatar } from './Avatar';
-import { getCountryCodeForRace } from '../lib/raceCountries';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
 
 type RevActor = {

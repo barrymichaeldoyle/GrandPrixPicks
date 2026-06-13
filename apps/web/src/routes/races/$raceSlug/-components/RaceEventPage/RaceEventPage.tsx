@@ -5,31 +5,38 @@ import { Pencil, Swords, Trophy } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { useState } from 'react';
 
-import { Badge } from '../../../../../components/Badge';
-import { Button } from '../../../../../components/Button/Button';
-import { ConfirmDialog } from '../../../../../components/ConfirmDialog';
-import { ErrorBoundary } from '../../../../../components/error/ErrorBoundary';
+import { Badge } from '@/components/Badge';
+import { Button } from '@/components/Button/Button';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import {
   FollowXPrompt,
   hasCompletedFollowPrompt,
-} from '../../../../../components/FollowXPrompt';
-import { PicksFocusOverlay } from '../../../../../components/PicksFocusOverlay';
-import { PredictionForm } from '../../../../../components/PredictionForm';
-import { ShareOnXButton } from '../../../../../components/ShareOnXButton';
-import { StartPicksCta } from '../../../../../components/StartPicksCta';
-import { RaceScoreCard } from '../../../../../components/RaceScoreCard/RaceScoreCard';
-import type { WeekendCardData } from '../../../../../components/RaceScoreCard/types';
-import { Tooltip } from '../../../../../components/Tooltip';
-import type { ShareCard } from '../../../../../lib/og/shareCard';
-import { encodeShareCardSearch } from '../../../../../lib/og/shareCard';
-import type { SessionType } from '../../../../../lib/sessions';
-import { SESSION_LABELS } from '../../../../../lib/sessions';
-import { countryCodeToFlagEmoji } from '../../../../../lib/share';
-import { siteConfig } from '../../../../../lib/site';
-import type { TabSwitchOption } from '../../../../../components/TabSwitch';
-import { H2HResultsSection, H2HSection } from '../../../-race-detail-content';
+} from '@/components/FollowXPrompt';
+import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { PredictionForm } from '@/components/PredictionForm';
+import { ShareOnXButton } from '@/components/ShareOnXButton';
+import { StartPicksCta } from '@/components/StartPicksCta';
+import { RaceScoreCard } from '@/components/RaceScoreCard/RaceScoreCard';
+import type { WeekendCardData } from '@/components/RaceScoreCard/types';
+import { Tooltip } from '@/components/Tooltip';
+import type { ShareCard } from '@/lib/og/shareCard';
+import { encodeShareCardSearch } from '@/lib/og/shareCard';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { buildPicksShareText, buildScoreShareText } from '@/lib/share';
+import { siteConfig } from '@/lib/site';
+import type { TabSwitchOption } from '@/components/TabSwitch';
 
-import { RaceEventPageLayout } from '../RaceEventPageLayout/RaceEventPageLayout';
+import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
+import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
+import { RaceEventPageLayout } from '@/routes/races/$raceSlug/-components/RaceEventPageLayout/RaceEventPageLayout';
+import type {
+  PicksEditingState,
+  SessionSchedule,
+  ViewerState,
+  WeekendStatus,
+} from '@/routes/races/$raceSlug/-components/types';
 
 type PredictionFormSlotProps = {
   raceId: Id<'races'>;
@@ -61,37 +68,21 @@ type H2HResultsSectionSlotProps = {
 type RaceEventPageProps = {
   race: Doc<'races'>;
   isNextRace: boolean;
-  isAuthLoaded: boolean;
-  isSignedIn: boolean;
+  viewer: ViewerState;
   isPredictionsLoading: boolean;
   isViewerPredictionDataLoading: boolean;
-  hasPredictions: boolean;
-  hasH2HPredictions: boolean;
-  hasPublishedResults: boolean;
-  allEventsScored: boolean;
-  pointsSoFar: number;
-  scoredEventCount: number;
-  weekendSessions: readonly SessionType[];
+  weekendStatus: WeekendStatus;
+  schedule: SessionSchedule;
   selectedSession: SessionType;
   onSelectedSessionChange: (session: SessionType) => void;
   sessionTabOptions: TabSwitchOption<SessionType>[];
-  trackTimeZone: string;
-  getSessionStartAt: (session: SessionType) => number;
-  getSessionLockAt: (session: SessionType) => number;
-  isSessionPublished: (session: SessionType) => boolean;
   /** Selected session has saved Top 5 picks (drives the step 1 indicator). */
   top5SelectedSessionDone?: boolean;
   /** Selected session has saved H2H picks (drives the step 2 indicator). */
   h2hSelectedSessionDone?: boolean;
   cardData: WeekendCardData | null;
-  top5EditingSession: SessionType | null;
-  onTop5EditingSessionChange: (session: SessionType | null) => void;
-  top5HasUnsavedChanges: boolean;
-  onTop5DirtyChange: (dirty: boolean) => void;
-  h2hEditingSession: SessionType | null;
-  onH2HEditingSessionChange: (session: SessionType | null) => void;
-  h2hHasUnsavedChanges: boolean;
-  onH2HDirtyChange: (dirty: boolean) => void;
+  top5Editing: PicksEditingState;
+  h2hEditing: PicksEditingState;
   existingTop5PicksBySession?: Partial<
     Record<SessionType, Id<'drivers'>[] | null>
   >;
@@ -106,35 +97,19 @@ type RaceEventPageProps = {
 export function RaceEventPage({
   race,
   isNextRace,
-  isAuthLoaded,
-  isSignedIn,
+  viewer,
   isPredictionsLoading,
   isViewerPredictionDataLoading,
-  hasPredictions,
-  hasH2HPredictions,
-  hasPublishedResults,
-  allEventsScored,
-  pointsSoFar,
-  scoredEventCount,
-  weekendSessions,
+  weekendStatus,
+  schedule,
   selectedSession,
   onSelectedSessionChange,
   sessionTabOptions,
-  trackTimeZone,
-  getSessionStartAt,
-  getSessionLockAt,
-  isSessionPublished,
   top5SelectedSessionDone = false,
   h2hSelectedSessionDone = false,
   cardData,
-  top5EditingSession,
-  onTop5EditingSessionChange,
-  top5HasUnsavedChanges,
-  onTop5DirtyChange,
-  h2hEditingSession,
-  onH2HEditingSessionChange,
-  h2hHasUnsavedChanges,
-  onH2HDirtyChange,
+  top5Editing,
+  h2hEditing,
   existingTop5PicksBySession,
   randomizeControl,
   backLink,
@@ -143,6 +118,20 @@ export function RaceEventPage({
   H2HSectionComponent = H2HSection,
   H2HResultsSectionComponent = H2HResultsSection,
 }: RaceEventPageProps) {
+  const { isSignedIn } = viewer;
+  const {
+    hasPredictions,
+    hasH2HPredictions,
+    hasPublishedResults,
+    allEventsScored,
+    pointsSoFar,
+  } = weekendStatus;
+  const {
+    session: top5EditingSession,
+    onSessionChange: onTop5EditingSessionChange,
+    hasUnsavedChanges: top5HasUnsavedChanges,
+    onDirtyChange: onTop5DirtyChange,
+  } = top5Editing;
   const isPredictable = race.status === 'upcoming' && isNextRace;
   const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
   const canManagePredictions = isNextRace;
@@ -221,14 +210,13 @@ export function RaceEventPage({
     !selectedSessionData.isHidden &&
     !selectedSessionData.hasResults &&
     selectedSessionPicks.length === 5;
-  const sharePicksList = selectedSessionPicks
-    .map((pick, index) => {
-      const flag = countryCodeToFlagEmoji(pick.nationality);
-      return `P${index + 1} ${flag ? `${flag} ` : ''}${pick.code}`;
-    })
-    .join('\n');
-  const shareHashtags = ['#F1', race.hashtag].filter(Boolean).join(' ');
-  const sharePicksText = `My ${SESSION_LABELS[selectedSession]} top 5 for the ${race.name} 🎯🏎️\n\n${sharePicksList}\n\nThink you can beat me on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`;
+  const sharePicksText = buildPicksShareText({
+    raceName: race.name,
+    sessionLabel: SESSION_LABELS[selectedSession],
+    picks: selectedSessionPicks,
+    accountHandle: siteConfig.social.x.handle,
+    raceHashtag: race.hashtag,
+  });
   const sharePicksUrl = canSharePicks
     ? buildSharePageUrl(
         {
@@ -241,9 +229,13 @@ export function RaceEventPage({
       )
     : '';
 
-  const shareScoreText = allEventsScored
-    ? `I scored ${pointsSoFar} points at the ${race.name} 🏆\n\nThink you can beat me next round on ${siteConfig.social.x.handle}?\n\n${shareHashtags}`
-    : `${pointsSoFar} points so far at the ${race.name} 📈\n\nFollow the results on ${siteConfig.social.x.handle}.\n\n${shareHashtags}`;
+  const shareScoreText = buildScoreShareText({
+    raceName: race.name,
+    points: pointsSoFar,
+    isFinal: allEventsScored,
+    accountHandle: siteConfig.social.x.handle,
+    raceHashtag: race.hashtag,
+  });
   const shareScoreUrl = buildSharePageUrl(
     {
       variant: 'score',
@@ -332,26 +324,17 @@ export function RaceEventPage({
         race={race}
         isNextRace={isNextRace}
         isPredictable={isPredictable}
-        isAuthLoaded={isAuthLoaded}
-        isSignedIn={isSignedIn}
+        viewer={viewer}
         isPredictionsLoading={isPredictionsLoading}
-        hasPredictions={hasPredictions}
-        hasH2HPredictions={hasH2HPredictions}
-        hasPublishedResults={hasPublishedResults}
-        allEventsScored={allEventsScored}
-        pointsSoFar={pointsSoFar}
-        scoredEventCount={scoredEventCount}
-        weekendSessions={weekendSessions}
+        weekendStatus={weekendStatus}
+        schedule={schedule}
         selectedSession={selectedSession}
         onSelectedSessionChange={onSelectedSessionChange}
         sessionTabOptions={sessionTabOptions}
         showSessionTabs={
-          weekendSessions.length > 1 && (hasPredictions || hasPublishedResults)
+          schedule.weekendSessions.length > 1 &&
+          (hasPredictions || hasPublishedResults)
         }
-        trackTimeZone={trackTimeZone}
-        getSessionStartAt={getSessionStartAt}
-        getSessionLockAt={getSessionLockAt}
-        isSessionPublished={isSessionPublished}
         top5Done={top5SelectedSessionDone}
         h2hDone={h2hSelectedSessionDone}
         randomizeControl={randomizeControl}
@@ -430,10 +413,10 @@ export function RaceEventPage({
           <H2HSectionComponent
             race={race}
             selectedSession={selectedSession}
-            editingSession={h2hEditingSession}
-            onEditingSessionChange={onH2HEditingSessionChange}
-            onEditingDirtyChange={onH2HDirtyChange}
-            hasUnsavedEditingChanges={h2hHasUnsavedChanges}
+            editingSession={h2hEditing.session}
+            onEditingSessionChange={h2hEditing.onSessionChange}
+            onEditingDirtyChange={h2hEditing.onDirtyChange}
+            hasUnsavedEditingChanges={h2hEditing.hasUnsavedChanges}
             showRandomizeButton={!hasH2HPredictions}
             hasPredictions={hasPredictions}
             hasH2HPredictions={hasH2HPredictions}

@@ -1,6 +1,6 @@
 import type { Id } from '@convex-generated/dataModel';
 
-import type { SessionType } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 
 export type PickBreakdown = {
   driverId: Id<'drivers'>;

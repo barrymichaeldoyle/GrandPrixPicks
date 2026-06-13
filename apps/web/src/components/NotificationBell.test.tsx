@@ -55,7 +55,7 @@ vi.mock('./RaceFlag', () => ({
   RaceFlag: () => null,
 }));
 
-vi.mock('../lib/raceCountries', () => ({
+vi.mock('@/lib/raceCountries', () => ({
   getCountryCodeForRace: () => null,
 }));
 

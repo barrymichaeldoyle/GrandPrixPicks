@@ -1,4 +1,4 @@
-import { useCountdown } from '../lib/date';
+import { useCountdown } from '@/lib/date';
 
 interface PredictionCountdownBadgeProps {
   /** Timestamp (ms) when predictions lock. */

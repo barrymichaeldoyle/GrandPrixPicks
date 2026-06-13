@@ -7,10 +7,10 @@ import { Avatar } from './Avatar';
 import { Button } from './Button/Button';
 import { Flag } from './Flag';
 import { FollowButton } from './FollowButton';
-import { getCountryCodeForRace } from '../lib/raceCountries';
-import { useCountdown } from '../lib/date';
-import { getNextSessionLockAt } from '../lib/raceSessions';
-import { useNow } from '../lib/testing/now';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { useCountdown } from '@/lib/date';
+import { getNextSessionLockAt } from '@/lib/raceSessions';
+import { useNow } from '@/lib/testing/now';
 
 function CountdownLine({ lockAt }: { lockAt: number }) {
   const label = useCountdown(lockAt);

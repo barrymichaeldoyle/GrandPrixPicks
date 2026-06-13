@@ -6,13 +6,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-import { HeaderUser } from '../integrations/clerk/header-user.tsx';
-import { useInitialAuth } from '../integrations/clerk/initial-auth';
-import { abbreviateGrandPrix } from '../lib/display';
-import { primaryNavLinks } from '../lib/navigation';
+import { HeaderUser } from '@/integrations/clerk/header-user.tsx';
+import { useInitialAuth } from '@/integrations/clerk/initial-auth';
+import { abbreviateGrandPrix } from '@/lib/display';
+import { primaryNavLinks } from '@/lib/navigation';
 import { Flag as CountryFlag } from './Flag.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
-import { getCountryCodeForRace } from '../lib/raceCountries';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';

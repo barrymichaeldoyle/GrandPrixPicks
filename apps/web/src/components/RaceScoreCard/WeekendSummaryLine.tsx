@@ -1,4 +1,4 @@
-import type { SessionType } from '../../lib/sessions';
+import type { SessionType } from '@/lib/sessions';
 import type { CardDisplayState } from './state';
 import { getWeekendSummary } from './state';
 import type { WeekendCardData } from './types';

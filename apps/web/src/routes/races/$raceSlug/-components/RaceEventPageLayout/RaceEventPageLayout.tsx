@@ -1,38 +1,30 @@
 import type { Doc } from '@convex-generated/dataModel';
 import type { ReactNode } from 'react';
 
-import type { SessionType } from '../../../../../lib/sessions';
-import { SESSION_LABELS } from '../../../../../lib/sessions';
-import { InlineLoader } from '../../../../../components/InlineLoader';
-import { RaceDetailHeader } from '../../../../../components/RaceDetailHeader';
-import { SessionEventSummary } from '../../../../../components/SessionEventSummary';
-import { StepBadge } from '../../../../../components/StepBadge';
-import { WeekendScheduleList } from '../../../../../components/WeekendScheduleList';
-import type { TabSwitchOption } from '../../../../../components/TabSwitch';
-import { TabSwitch } from '../../../../../components/TabSwitch';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
+import { InlineLoader } from '@/components/InlineLoader';
+import { RaceDetailHeader } from '@/components/RaceDetailHeader';
+import { SessionEventSummary } from '@/components/SessionEventSummary';
+import { StepBadge } from '@/components/StepBadge';
+import { WeekendScheduleList } from '@/components/WeekendScheduleList';
+import type { TabSwitchOption } from '@/components/TabSwitch';
+import { TabSwitch } from '@/components/TabSwitch';
+
+import type { SessionSchedule, ViewerState, WeekendStatus } from '../types';
 
 type RaceEventPageLayoutProps = {
   race: Doc<'races'>;
   isNextRace: boolean;
   isPredictable: boolean;
-  isAuthLoaded: boolean;
-  isSignedIn: boolean;
+  viewer: ViewerState;
   isPredictionsLoading: boolean;
-  hasPredictions: boolean;
-  hasH2HPredictions: boolean;
-  hasPublishedResults: boolean;
-  allEventsScored: boolean;
-  pointsSoFar: number;
-  scoredEventCount: number;
-  weekendSessions: readonly SessionType[];
+  weekendStatus: WeekendStatus;
+  schedule: SessionSchedule;
   selectedSession: SessionType;
   onSelectedSessionChange: (session: SessionType) => void;
   sessionTabOptions: TabSwitchOption<SessionType>[];
   showSessionTabs: boolean;
-  trackTimeZone: string;
-  getSessionStartAt: (session: SessionType) => number;
-  getSessionLockAt: (session: SessionType) => number;
-  isSessionPublished: (session: SessionType) => boolean;
   /** Selected session has saved Top 5 picks (step 1 of the picks flow). */
   top5Done?: boolean;
   /** Selected session has saved H2H picks (step 2 of the picks flow). */
@@ -51,24 +43,14 @@ export function RaceEventPageLayout({
   race,
   isNextRace,
   isPredictable,
-  isAuthLoaded,
-  isSignedIn,
+  viewer,
   isPredictionsLoading,
-  hasPredictions,
-  hasH2HPredictions,
-  hasPublishedResults,
-  allEventsScored,
-  pointsSoFar,
-  scoredEventCount,
-  weekendSessions,
+  weekendStatus,
+  schedule,
   selectedSession,
   onSelectedSessionChange,
   sessionTabOptions,
   showSessionTabs,
-  trackTimeZone,
-  getSessionStartAt,
-  getSessionLockAt,
-  isSessionPublished,
   top5Done = false,
   h2hDone = false,
   randomizeControl,
@@ -80,6 +62,22 @@ export function RaceEventPageLayout({
   h2hContent,
   h2hResultsContent,
 }: RaceEventPageLayoutProps) {
+  const { isAuthLoaded, isSignedIn } = viewer;
+  const {
+    hasPredictions,
+    hasH2HPredictions,
+    hasPublishedResults,
+    allEventsScored,
+    pointsSoFar,
+    scoredEventCount,
+  } = weekendStatus;
+  const {
+    weekendSessions,
+    trackTimeZone,
+    getStartAt: getSessionStartAt,
+    getLockAt: getSessionLockAt,
+    isPublished: isSessionPublished,
+  } = schedule;
   const showResultsPendingBadge =
     race.status === 'locked' && hasPublishedResults && !allEventsScored;
   const selectedSessionHasResults = isSessionPublished(selectedSession);

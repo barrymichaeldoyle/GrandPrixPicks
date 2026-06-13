@@ -1,4 +1,4 @@
-import type { SessionType } from '../sessions';
+import type { SessionType } from '@/lib/sessions';
 
 /**
  * Payload for per-user share cards (OG images). Encoded into the race page's

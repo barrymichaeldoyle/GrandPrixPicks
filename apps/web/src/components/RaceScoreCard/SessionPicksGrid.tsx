@@ -2,7 +2,7 @@ import {
   DriverBadge,
   DriverBadgeSkeleton,
   ScoredDriverBadge,
-} from '../DriverBadge';
+} from '@/components/DriverBadge';
 import type { DriverRef, PickBreakdown } from './types';
 
 interface SessionPicksGridProps {

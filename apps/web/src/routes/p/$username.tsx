@@ -22,22 +22,22 @@ import {
 
 import { displayTeamName } from '@/lib/display';
 
-import { Avatar } from '../../components/Avatar';
-import { Button, primaryButtonStyles } from '../../components/Button/Button';
-import { TEAM_COLORS } from '../../components/DriverBadge';
+import { Avatar } from '@/components/Avatar';
+import { Button, primaryButtonStyles } from '@/components/Button/Button';
+import { TEAM_COLORS } from '@/components/DriverBadge';
 import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
-} from '../../components/FeedItem';
-import { Flag } from '../../components/Flag';
-import { FollowButton } from '../../components/FollowButton';
-import { PageLoader } from '../../components/PageLoader';
-import { getCountryCodeForRace } from '../../lib/raceCountries';
-import { RaceFlag } from '../../components/RaceFlag';
-import { Tooltip } from '../../components/Tooltip';
-import { computeFavoriteTop5Pick } from '../../lib/favorites';
-import { canonicalMeta, defaultOgImage } from '../../lib/site';
+} from '@/components/FeedItem';
+import { Flag } from '@/components/Flag';
+import { FollowButton } from '@/components/FollowButton';
+import { PageLoader } from '@/components/PageLoader';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { RaceFlag } from '@/components/RaceFlag';
+import { Tooltip } from '@/components/Tooltip';
+import { computeFavoriteTop5Pick } from '@/lib/favorites';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/p/$username')({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -90,24 +90,11 @@ export const Route = createFileRoute('/p/$username')({
       loaderData?.initialProfile?.displayName ??
       loaderData?.initialProfile?.username ??
       'Profile';
-    const title = `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`;
-    const description = `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`;
-    const ogImage = defaultOgImage;
-    const canonical = canonicalMeta(`/p/${params.username}`);
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: ogImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: ogImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
+    return pageMeta({
+      title: `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`,
+      description: `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`,
+      path: `/p/${params.username}`,
+    });
   },
 });
 

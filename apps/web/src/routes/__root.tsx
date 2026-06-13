@@ -15,25 +15,25 @@ import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useRef } from 'react';
 
-import { AnnouncementBanner } from '../components/AnnouncementBanner';
-import { CookieConsent } from '../components/CookieConsent';
-import { ErrorBoundary } from '../components/error/ErrorBoundary';
-import { Footer } from '../components/Footer';
-import { Header } from '../components/Header';
-import { OfflineBanner } from '../components/OfflineBanner';
-import { ScrollToTop } from '../components/ScrollToTop';
-import { UpcomingPredictionBanner } from '../components/UpcomingPredictionBanner/UpcomingPredictionBanner';
-import { useMobileMenu } from '../hooks/useMobileMenu';
+import { AnnouncementBanner } from '@/components/AnnouncementBanner';
+import { CookieConsent } from '@/components/CookieConsent';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { Footer } from '@/components/Footer';
+import { Header } from '@/components/Header';
+import { OfflineBanner } from '@/components/OfflineBanner';
+import { ScrollToTop } from '@/components/ScrollToTop';
+import { UpcomingPredictionBanner } from '@/components/UpcomingPredictionBanner/UpcomingPredictionBanner';
+import { useMobileMenu } from '@/hooks/useMobileMenu';
 import {
   fetchInitialAuth,
   InitialAuthProvider,
-} from '../integrations/clerk/initial-auth';
-import { AppClerkProvider } from '../integrations/clerk/provider';
-import { AppConvexProvider } from '../integrations/convex/provider';
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
-import { identifyAnalyticsUser, resetAnalyticsUser } from '../lib/analytics';
-import { siteConfig } from '../lib/site';
-import appCss from '../styles.css?url';
+} from '@/integrations/clerk/initial-auth';
+import { AppClerkProvider } from '@/integrations/clerk/provider';
+import { AppConvexProvider } from '@/integrations/convex/provider';
+import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
+import { identifyAnalyticsUser, resetAnalyticsUser } from '@/lib/analytics';
+import { siteConfig } from '@/lib/site';
+import appCss from '@/styles.css?url';
 
 interface MyRouterContext {
   queryClient: QueryClient;

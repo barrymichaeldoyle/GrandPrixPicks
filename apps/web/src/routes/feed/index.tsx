@@ -5,35 +5,27 @@ import { useQuery } from 'convex/react';
 import { Gauge, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '../../components/Button/Button';
-import { Avatar } from '../../components/Avatar';
+import { Button } from '@/components/Button/Button';
+import { Avatar } from '@/components/Avatar';
 import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
   SessionSeparator,
-} from '../../components/FeedItem';
-import { FeedSidebar } from '../../components/FeedSidebar';
-import { FollowButton } from '../../components/FollowButton';
-import { canonicalMeta, noIndexMeta } from '../../lib/site';
+} from '@/components/FeedItem';
+import { FeedSidebar } from '@/components/FeedSidebar';
+import { FollowButton } from '@/components/FollowButton';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/feed/')({
   component: FeedPage,
-  head: () => {
-    const canonical = canonicalMeta('/feed');
-    return {
-      meta: [
-        { title: 'Feed | Grand Prix Picks' },
-        {
-          name: 'description',
-          content: "See what's happening with your friends and leagues.",
-        },
-        ...noIndexMeta(),
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Feed | Grand Prix Picks',
+      description: "See what's happening with your friends and leagues.",
+      path: '/feed',
+      noIndex: true,
+    }),
 });
 
 // Pre-allocate up to 5 pages of feed (5 × 40 = 200 events max)

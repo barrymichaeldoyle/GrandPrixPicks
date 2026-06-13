@@ -17,7 +17,7 @@ import { SeasonPassSection } from './settings/-components/SeasonPassSection';
 import { SettingsPageSkeleton } from './settings/-components/SettingsPageSkeleton';
 import { SignInRequired } from './settings/-components/SignInRequired';
 import type { NotificationSettings } from './settings/-components/settingsTypes';
-import { canonicalMeta, defaultOgImage } from '../lib/site';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/settings')({
   validateSearch: (
@@ -33,25 +33,12 @@ export const Route = createFileRoute('/settings')({
     return { purchase, season };
   },
   component: SettingsPage,
-  head: () => {
-    const title = 'Settings | Grand Prix Picks';
-    const description = 'Manage your Grand Prix Picks account settings.';
-    const canonical = canonicalMeta('/settings');
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
-  },
+  head: () =>
+    pageMeta({
+      title: 'Settings | Grand Prix Picks',
+      description: 'Manage your Grand Prix Picks account settings.',
+      path: '/settings',
+    }),
 });
 
 const SEASON_PASS_SEASON = 2026;

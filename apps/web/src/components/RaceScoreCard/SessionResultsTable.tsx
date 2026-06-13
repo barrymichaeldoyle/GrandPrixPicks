@@ -4,9 +4,9 @@ import { useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
-import { DriverBadge } from '../DriverBadge';
-import { Flag } from '../Flag';
-import { Tooltip } from '../Tooltip';
+import { DriverBadge } from '@/components/DriverBadge';
+import { Flag } from '@/components/Flag';
+import { Tooltip } from '@/components/Tooltip';
 import type { ClassificationEntry, PickBreakdown } from './types';
 
 interface SessionResultsTableProps {

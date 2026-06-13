@@ -2,7 +2,6 @@ import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ConvexHttpClient } from 'convex/browser';
 import { useMutation, useQuery } from 'convex/react';
 import {
   ArrowLeft,
@@ -22,11 +21,10 @@ import { useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
-import { Button } from '../../../components/Button/Button';
-import { PageLoader } from '../../../components/PageLoader';
-import { canonicalMeta, defaultOgImage } from '../../../lib/site';
-
-const convex = new ConvexHttpClient(import.meta.env.VITE_CONVEX_URL);
+import { Button } from '@/components/Button/Button';
+import { PageLoader } from '@/components/PageLoader';
+import { convexHttp as convex } from '@/integrations/convex/client';
+import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/leagues/$slug/settings')({
   component: LeagueSettingsPage,
@@ -44,21 +42,11 @@ export const Route = createFileRoute('/leagues/$slug/settings')({
     const description = league
       ? `Manage settings for ${league.name}.`
       : 'Manage league settings.';
-    const canonical = canonicalMeta(`/leagues/${params.slug}/settings`);
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:image', content: defaultOgImage },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: defaultOgImage },
-        ...canonical.meta,
-      ],
-      links: [...canonical.links],
-    };
+    return pageMeta({
+      title,
+      description,
+      path: `/leagues/${params.slug}/settings`,
+    });
   },
 });
 

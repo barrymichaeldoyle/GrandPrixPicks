@@ -47,7 +47,7 @@ vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => () => ({}),
 }));
 
-vi.mock('../../components/FeedItem', async () => {
+vi.mock('@/components/FeedItem', async () => {
   const actual = await vi.importActual('../../components/FeedItem');
   return {
     ...actual,
@@ -57,7 +57,7 @@ vi.mock('../../components/FeedItem', async () => {
   };
 });
 
-vi.mock('../../lib/site', () => ({
+vi.mock('@/lib/site', () => ({
   canonicalMeta: () => ({ meta: [], links: [] }),
 }));
 

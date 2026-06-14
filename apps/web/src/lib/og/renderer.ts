@@ -1,12 +1,13 @@
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import type { ReactNode } from 'react';
-import satori from 'satori';
+import satori, { init as initSatori } from 'satori/standalone';
 
 import { loadFonts } from './fonts';
 import type { OgImageSize } from './styles';
 import { getOgDimensions } from './styles';
 
 let wasmReady: Promise<void> | null = null;
+let yogaReady: Promise<void> | null = null;
 
 function ensureWasm(): Promise<void> {
   if (!wasmReady) {
@@ -48,11 +49,36 @@ async function doInitWasm() {
   }
 }
 
+function ensureYoga(): Promise<void> {
+  if (!yogaReady) {
+    yogaReady = doInitYoga();
+  }
+  return yogaReady;
+}
+
+async function doInitYoga() {
+  try {
+    const { readFile } = await import('node:fs/promises');
+    const { createRequire } = await import('node:module');
+    const require = createRequire(import.meta.url);
+    const wasmPath = require.resolve('satori/yoga.wasm');
+    const wasmBuffer = await readFile(wasmPath);
+    await initSatori(wasmBuffer);
+    return;
+  } catch {
+    // Node.js approach failed (expected on Cloudflare Workers).
+  }
+
+  // @ts-expect-error — wasm import resolved by unwasm bundler plugin
+  const yogaModule = await import('satori/yoga.wasm');
+  await initSatori(yogaModule.default);
+}
+
 export async function renderOgImage(
   element: ReactNode,
   size: OgImageSize = 'og',
 ): Promise<Uint8Array> {
-  const [fonts] = await Promise.all([loadFonts(), ensureWasm()]);
+  const [fonts] = await Promise.all([loadFonts(), ensureYoga(), ensureWasm()]);
   const { width, height } = getOgDimensions(size);
 
   const svg = await satori(element, {

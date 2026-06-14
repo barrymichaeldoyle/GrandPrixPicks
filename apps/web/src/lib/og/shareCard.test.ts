@@ -13,6 +13,7 @@ describe('share card codec', () => {
     };
     const encoded = encodeShareCardSearch(card);
     expect(encoded).toEqual({
+      share_v: '2',
       share: 'picks',
       session: 'race',
       picks: 'VER,NOR,LEC,PIA,HAM',
@@ -24,7 +25,12 @@ describe('share card codec', () => {
   it('round-trips a score card', () => {
     const card: ShareCard = { variant: 'score', points: 38, final: true };
     const encoded = encodeShareCardSearch(card);
-    expect(encoded).toEqual({ share: 'score', points: '38', final: '1' });
+    expect(encoded).toEqual({
+      share_v: '2',
+      share: 'score',
+      points: '38',
+      final: '1',
+    });
     expect(parseShareCard(encoded)).toEqual({ ...card, by: undefined });
   });
 
@@ -36,6 +42,7 @@ describe('share card codec', () => {
     };
     const encoded = encodeShareCardSearch(card);
     expect(encoded).toEqual({
+      share_v: '2',
       share: 'result',
       session: 'quali',
       picks: 'VER,NOR,PIA,LEC,RUS',
@@ -61,6 +68,7 @@ describe('share card codec', () => {
     };
     const encodedPicks = encodeShareCardSearch(picksCard);
     expect(encodedPicks).toEqual({
+      share_v: '2',
       share: 'h2h_picks',
       session: 'sprint',
       winners: 'NOR,LEC,VER,ALO',

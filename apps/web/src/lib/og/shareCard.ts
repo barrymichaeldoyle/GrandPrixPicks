@@ -34,6 +34,7 @@ const SESSION_TYPES = ['quali', 'sprint_quali', 'sprint', 'race'] as const;
 const DRIVER_CODE_RE = /^[A-Z]{2,4}$/;
 const H2H_PICK_TOKEN_RE = /^[A-Z]{2,4}:[01]$/;
 const MAX_NAME_LENGTH = 40;
+const SHARE_CARD_VERSION = '2';
 
 function sanitizeName(value: unknown): string | undefined {
   if (typeof value !== 'string') {
@@ -51,6 +52,7 @@ function sanitizeName(value: unknown): string | undefined {
 export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
   if (card.variant === 'picks' || card.variant === 'result') {
     return {
+      share_v: SHARE_CARD_VERSION,
       share: card.variant,
       session: card.session,
       picks: card.picks.join(','),
@@ -59,6 +61,7 @@ export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
   }
   if (card.variant === 'h2h_result' || card.variant === 'h2h_picks') {
     return {
+      share_v: SHARE_CARD_VERSION,
       share: card.variant,
       session: card.session,
       winners: card.winners.join(','),
@@ -67,6 +70,7 @@ export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
   }
   if (card.variant === 'h2h_score') {
     return {
+      share_v: SHARE_CARD_VERSION,
       share: 'h2h_score',
       session: card.session,
       correct: String(card.correct),
@@ -83,6 +87,7 @@ export function encodeShareCardSearch(card: ShareCard): Record<string, string> {
     };
   }
   return {
+    share_v: SHARE_CARD_VERSION,
     share: 'score',
     points: String(card.points),
     final: card.final ? '1' : '0',

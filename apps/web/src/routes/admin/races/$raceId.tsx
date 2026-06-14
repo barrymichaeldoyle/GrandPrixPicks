@@ -382,8 +382,8 @@ function AdminRaceDetailPage() {
         ? [
             {
               team: result.team,
-              winnerName: winner.displayName,
-              loserName: loser.displayName,
+              winnerCode: winner.code,
+              loserCode: loser.code,
             },
           ]
         : [];

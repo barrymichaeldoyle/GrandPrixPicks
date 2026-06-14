@@ -133,7 +133,7 @@ describe('H2H share text', () => {
     );
   });
 
-  it('formats an official results reply with full matchup details', () => {
+  it('formats an official results reply with driver codes', () => {
     expect(
       buildOfficialH2HResultReplyText({
         raceName: 'Barcelona Grand Prix',
@@ -141,24 +141,24 @@ describe('H2H share text', () => {
         matchups: [
           {
             team: 'McLaren',
-            winnerName: 'Lando Norris',
-            loserName: 'Oscar Piastri',
+            winnerCode: 'NOR',
+            loserCode: 'PIA',
           },
           {
             team: 'Ferrari',
-            winnerName: 'Charles Leclerc',
-            loserName: 'Lewis Hamilton',
+            winnerCode: 'LEC',
+            loserCode: 'HAM',
           },
           {
             team: 'Red Bull Racing',
-            winnerName: 'Max Verstappen',
-            loserName: 'Yuki Tsunoda',
+            winnerCode: 'VER',
+            loserCode: 'TSU',
           },
         ],
         raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'Barcelona Grand Prix Qualifying Head-to-Head results ⚔️🏁\n\nMcLaren: Lando Norris beat Oscar Piastri\nFerrari: Charles Leclerc beat Lewis Hamilton\nRed Bull Racing: Max Verstappen beat Yuki Tsunoda\n\n#F1 #SpanishGP',
+      'Barcelona Grand Prix Qualifying Head-to-Head results ⚔️🏁\n\nMcLaren: NOR beat PIA\nFerrari: LEC beat HAM\nRed Bull Racing: VER beat TSU\n\n#F1 #SpanishGP',
     );
   });
 });

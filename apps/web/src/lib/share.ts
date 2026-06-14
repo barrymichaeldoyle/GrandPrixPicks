@@ -143,16 +143,18 @@ export function buildOfficialH2HResultReplyText({
   sessionLabel: string;
   matchups: ReadonlyArray<{
     team: string;
-    winnerName: string;
-    loserName: string;
+    winnerCode: string;
+    loserCode: string;
   }>;
   raceHashtag?: string;
 }) {
   const hashtags = formatRaceHashtags(raceHashtag);
+  // Driver codes keep all 11 team lines under X's "Show more" truncation —
+  // full names live on the OG card that accompanies the post.
   const results = matchups
     .map(
-      ({ team, winnerName, loserName }) =>
-        `${team}: ${winnerName} beat ${loserName}`,
+      ({ team, winnerCode, loserCode }) =>
+        `${team}: ${winnerCode} beat ${loserCode}`,
     )
     .join('\n');
   return `${raceName} ${sessionLabel} Head-to-Head results ⚔️🏁\n\n${results}\n\n${hashtags}`;

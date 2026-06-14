@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Check,
   CircleAlert,
+  Copy,
   Loader2,
   Save,
   Trophy,
@@ -27,7 +28,7 @@ import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { encodeShareCardSearch } from '@/lib/og/shareCard';
 import {
-  buildOfficialH2HResultShareText,
+  buildOfficialH2HResultReplyText,
   buildRaceResultShareText,
 } from '@/lib/share';
 import { siteConfig } from '@/lib/site';
@@ -89,6 +90,12 @@ function AdminRaceDetailPage() {
   const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [h2hCopyStatus, setH2hCopyStatus] = useState<
+    'idle' | 'copied' | 'error'
+  >('idle');
+  const h2hCopyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   // Republishing an existing result is either a quiet data-entry fix or an
   // official amendment that notifies players (with a required note).
   const [updateMode, setUpdateMode] = useState<'correction' | 'amendment'>(
@@ -155,6 +162,16 @@ function AdminRaceDetailPage() {
     setUpdateMode('correction');
     setAmendmentNote('');
   }, [existingResult, selectedSession, driverCount]);
+
+  useEffect(() => {
+    setH2hCopyStatus('idle');
+    return () => {
+      if (h2hCopyResetTimeoutRef.current) {
+        clearTimeout(h2hCopyResetTimeoutRef.current);
+        h2hCopyResetTimeoutRef.current = null;
+      }
+    };
+  }, [selectedSession]);
 
   // Search inputs per lane (only mounted while the lane is empty), so we can
   // move focus to the next open position after a pick.
@@ -347,18 +364,41 @@ function AdminRaceDetailPage() {
           utm_campaign: 'admin_share_results',
         }).toString()}`
       : '';
+  const h2hReplyMatchups =
+    h2hResults?.flatMap((result) => {
+      const winner =
+        result.driver1?._id === result.winnerId
+          ? result.driver1
+          : result.driver2?._id === result.winnerId
+            ? result.driver2
+            : null;
+      const loser =
+        result.driver1?._id === result.winnerId
+          ? result.driver2
+          : result.driver2?._id === result.winnerId
+            ? result.driver1
+            : null;
+      return winner && loser
+        ? [
+            {
+              team: result.team,
+              winnerName: winner.displayName,
+              loserName: loser.displayName,
+            },
+          ]
+        : [];
+    }) ?? [];
   const h2hWinnerCodes = h2hResults?.map((result) => result.winnerCode) ?? [];
-  const h2hResultShareText =
-    h2hWinnerCodes.length > 0
-      ? buildOfficialH2HResultShareText({
+  const h2hResultReplyText =
+    h2hReplyMatchups.length > 0
+      ? buildOfficialH2HResultReplyText({
           raceName: race.name,
           sessionLabel: SESSION_LABELS[selectedSession],
-          winnerCodes: h2hWinnerCodes,
-          accountHandle: siteConfig.social.x.handle,
+          matchups: h2hReplyMatchups,
           raceHashtag: race.hashtag,
         })
       : '';
-  const h2hResultShareUrl =
+  const h2hResultReplyUrl =
     h2hWinnerCodes.length > 0
       ? `${siteConfig.url}/races/${race.slug}?${new URLSearchParams({
           ...encodeShareCardSearch({
@@ -368,9 +408,38 @@ function AdminRaceDetailPage() {
           }),
           utm_source: 'x',
           utm_medium: 'social',
-          utm_campaign: 'admin_share_h2h_results',
+          utm_campaign: 'admin_h2h_results_reply',
         }).toString()}`
       : '';
+
+  async function handleCopyH2HReply() {
+    if (!race || !h2hResultReplyText || !h2hResultReplyUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(
+        `${h2hResultReplyText}\n\n${h2hResultReplyUrl}`,
+      );
+      captureAnalyticsEvent('admin_h2h_results_reply_copied', {
+        race_id: typedRaceId,
+        race_slug: race.slug,
+        session_type: selectedSession,
+        matchup_count: h2hReplyMatchups.length,
+      });
+      setH2hCopyStatus('copied');
+      if (h2hCopyResetTimeoutRef.current) {
+        clearTimeout(h2hCopyResetTimeoutRef.current);
+      }
+      h2hCopyResetTimeoutRef.current = setTimeout(() => {
+        setH2hCopyStatus('idle');
+        h2hCopyResetTimeoutRef.current = null;
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy H2H results reply:', error);
+      setH2hCopyStatus('error');
+    }
+  }
 
   async function handleCancelRace() {
     if (
@@ -635,20 +704,24 @@ function AdminRaceDetailPage() {
                 className="border-slate-600 px-4 py-3 text-sm text-white hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-slate-800"
               />
             )}
-            {h2hResultShareText && h2hResultShareUrl && (
-              <ShareOnXButton
-                text={h2hResultShareText}
-                url={h2hResultShareUrl}
-                analyticsEvent="admin_h2h_results_shared_x"
-                analyticsProps={{
-                  race_id: typedRaceId,
-                  race_slug: race.slug,
-                  session_type: selectedSession,
-                  matchup_count: h2hWinnerCodes.length,
-                }}
-                label={`Share ${SESSION_LABELS[selectedSession]} H2H on X`}
-                className="border-slate-600 px-4 py-3 text-sm text-white hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-slate-800"
-              />
+            {h2hResultReplyText && h2hResultReplyUrl && (
+              <button
+                type="button"
+                onClick={() => void handleCopyH2HReply()}
+                aria-label={`Copy ${SESSION_LABELS[selectedSession]} H2H results reply`}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-2 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:outline-none"
+              >
+                {h2hCopyStatus === 'copied' ? (
+                  <Check size={18} aria-hidden="true" />
+                ) : (
+                  <Copy size={18} aria-hidden="true" />
+                )}
+                {h2hCopyStatus === 'copied'
+                  ? 'H2H reply copied'
+                  : h2hCopyStatus === 'error'
+                    ? 'Copy failed'
+                    : 'Copy H2H reply'}
+              </button>
             )}
             {!allFilledForHooks && (
               <span className="text-sm text-slate-400">

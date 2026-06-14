@@ -55,21 +55,24 @@ function getSessionLockAt(
 
 export function PicksConnectedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const nextRace = useQuery(api.races.getNextRace, convexEnabled ? {} : 'skip');
+  const quickPickRace = useQuery(
+    api.races.getQuickPickRace,
+    convexEnabled ? {} : 'skip',
+  );
 
   if (!convexEnabled) {
     return <NotAvailableState />;
   }
 
-  if (nextRace === undefined) {
+  if (quickPickRace === undefined) {
     return <LoadingScreen />;
   }
 
-  if (nextRace === null) {
+  if (quickPickRace === null) {
     return <NoUpcomingRaceState />;
   }
 
-  return <PredictForRace race={nextRace} />;
+  return <PredictForRace race={quickPickRace} />;
 }
 
 function PredictForRace({ race }: { race: RaceDoc }) {

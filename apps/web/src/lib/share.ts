@@ -133,21 +133,29 @@ export function buildH2HScoreShareText({
   return `I scored ${correct}/${total} on my ${raceName} ${sessionLabel} Head-to-Head picks ⚔️\n\n${breakdown}\n\nCan you beat my score on ${accountHandle}?\n\n${hashtags}`;
 }
 
-export function buildOfficialH2HResultShareText({
+export function buildOfficialH2HResultReplyText({
   raceName,
   sessionLabel,
-  winnerCodes,
-  accountHandle,
+  matchups,
   raceHashtag,
 }: {
   raceName: string;
   sessionLabel: string;
-  winnerCodes: readonly string[];
-  accountHandle: string;
+  matchups: ReadonlyArray<{
+    team: string;
+    winnerName: string;
+    loserName: string;
+  }>;
   raceHashtag?: string;
 }) {
   const hashtags = formatRaceHashtags(raceHashtag);
-  return `${raceName} ${sessionLabel} Head-to-Head results ⚔️🏁\n\nWinners: ${winnerCodes.join(' · ')}\n\nSee every teammate matchup on ${accountHandle}.\n\n${hashtags}`;
+  const results = matchups
+    .map(
+      ({ team, winnerName, loserName }) =>
+        `${team}: ${winnerName} beat ${loserName}`,
+    )
+    .join('\n');
+  return `${raceName} ${sessionLabel} Head-to-Head results ⚔️🏁\n\n${results}\n\n${hashtags}`;
 }
 
 /** Builds an X post intent with the link separated from the copy. */

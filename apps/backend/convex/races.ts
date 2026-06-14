@@ -20,6 +20,18 @@ type PredictionRace = {
   predictionLockAt: number;
 };
 
+export function findQuickPickRace<T extends PredictionRace>(
+  races: Array<T>,
+  now: number,
+): T | null {
+  const lockedRace =
+    races
+      .filter((race) => race.status === 'locked')
+      .sort((a, b) => b.predictionLockAt - a.predictionLockAt)[0] ?? null;
+
+  return lockedRace ?? findNextPredictionRace(races, now);
+}
+
 export function findNextPredictionRace<T extends PredictionRace>(
   races: Array<T>,
   now: number,
@@ -87,6 +99,31 @@ export const getNextRace = query({
   args: {},
   handler: async (ctx): Promise<Doc<'races'> | null> => {
     const now = Date.now();
+    return await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'upcoming').gt('predictionLockAt', now),
+      )
+      .first();
+  },
+});
+
+export const getQuickPickRace = query({
+  args: {},
+  handler: async (ctx): Promise<Doc<'races'> | null> => {
+    const now = Date.now();
+    const lockedRace = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'locked'),
+      )
+      .order('desc')
+      .first();
+
+    if (lockedRace) {
+      return lockedRace;
+    }
+
     return await ctx.db
       .query('races')
       .withIndex('by_status_and_predictionLockAt', (q) =>

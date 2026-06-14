@@ -38,7 +38,8 @@ async function doInitWasm() {
   // makes this dynamic import resolve to the bundled module.
   try {
     // @ts-expect-error — wasm import resolved by unwasm bundler plugin
-    await initWasm(import('@resvg/resvg-wasm/index_bg.wasm'));
+    const wasmModule = await import('@resvg/resvg-wasm/index_bg.wasm');
+    await initWasm(wasmModule.default);
   } catch (err) {
     if (err instanceof Error && err.message.includes('Already initialized')) {
       return;

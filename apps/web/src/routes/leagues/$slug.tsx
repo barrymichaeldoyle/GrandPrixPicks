@@ -13,6 +13,7 @@ import { ArrowLeft, LogIn, Shield } from 'lucide-react';
 import { Button } from '@/components/Button/Button';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
+import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 
 import { LeagueDetailContent } from './$slug/-components/LeagueDetailContent';
@@ -51,9 +52,11 @@ export const Route = createFileRoute('/leagues/$slug')({
     return { time, mode, raceId, view };
   },
   loader: async ({ params }) => {
-    const league = await convex.query(api.leagues.getLeagueBySlug, {
-      slug: params.slug,
-    });
+    const league = await withRetry(() =>
+      convex.query(api.leagues.getLeagueBySlug, {
+        slug: params.slug,
+      }),
+    );
     if (!league) {
       throw notFound();
     }

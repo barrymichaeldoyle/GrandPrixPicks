@@ -22,6 +22,7 @@ import { useUpcomingPredictionBannerState } from '@/components/UpcomingPredictio
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 import { convexHttp as convex } from '@/integrations/convex/client';
@@ -47,12 +48,18 @@ export const Route = createFileRoute('/')({
   component: HomePage,
   loader: async () => {
     const now = Date.now();
+    // A flaky mobile connection (or a request dropped by a fast navigation)
+    // makes a single Convex query reject with a transient network error; left
+    // unhandled it would swap the whole home page for the error boundary. Retry
+    // each query so a momentary blip self-heals — genuine outages still throw.
     const [nextRace, races, topPlayers] = await Promise.all([
-      convex.query(api.races.getNextRace),
-      convex.query(api.races.listRaces, {}),
-      convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
-        limit: 10,
-      }),
+      withRetry(() => convex.query(api.races.getNextRace)),
+      withRetry(() => convex.query(api.races.listRaces, {})),
+      withRetry(() =>
+        convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
+          limit: 10,
+        }),
+      ),
     ]);
 
     const startedRaces = races
@@ -68,20 +75,26 @@ export const Route = createFileRoute('/')({
     const [nextRaceResults, recentRaceResults, candidateLeaderboards] =
       await Promise.all([
         nextRace
-          ? convex.query(api.results.getAllResultsForRace, {
-              raceId: nextRace._id,
-            })
+          ? withRetry(() =>
+              convex.query(api.results.getAllResultsForRace, {
+                raceId: nextRace._id,
+              }),
+            )
           : Promise.resolve([] as SessionType[]),
         mostRecentStartedRace
-          ? convex.query(api.results.getAllResultsForRace, {
-              raceId: mostRecentStartedRace._id,
-            })
+          ? withRetry(() =>
+              convex.query(api.results.getAllResultsForRace, {
+                raceId: mostRecentStartedRace._id,
+              }),
+            )
           : Promise.resolve([] as SessionType[]),
         Promise.all(
           scoredCandidates.map((race) =>
-            convex.query(api.leaderboards.getCombinedRaceLeaderboard, {
-              raceId: race._id,
-            }),
+            withRetry(() =>
+              convex.query(api.leaderboards.getCombinedRaceLeaderboard, {
+                raceId: race._id,
+              }),
+            ),
           ),
         ),
       ]);

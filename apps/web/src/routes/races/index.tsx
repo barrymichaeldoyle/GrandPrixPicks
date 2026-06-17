@@ -8,6 +8,7 @@ import { PageHero } from '@/components/PageHero';
 import { RaceCard } from '@/components/RaceCard';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 
@@ -15,8 +16,8 @@ export const Route = createFileRoute('/races/')({
   component: RacesPage,
   loader: async () => {
     const [races, nextRace] = await Promise.all([
-      convex.query(api.races.listRaces, { season: 2026 }),
-      convex.query(api.races.getNextRace),
+      withRetry(() => convex.query(api.races.listRaces, { season: 2026 })),
+      withRetry(() => convex.query(api.races.getNextRace)),
     ]);
     return { races, nextRace };
   },

@@ -24,14 +24,17 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { Button } from '@/components/Button/Button';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
+import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/leagues/$slug/settings')({
   component: LeagueSettingsPage,
   loader: async ({ params }) => {
-    const league = await convex.query(api.leagues.getLeagueBySlug, {
-      slug: params.slug,
-    });
+    const league = await withRetry(() =>
+      convex.query(api.leagues.getLeagueBySlug, {
+        slug: params.slug,
+      }),
+    );
     return { league };
   },
   head: ({ loaderData, params }) => {

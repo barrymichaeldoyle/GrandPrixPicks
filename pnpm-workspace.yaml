@@ -18,6 +18,11 @@ catalog:
   convex: 1.41.0
   typescript: 6.0.3
 
+minimumReleaseAgeExclude:
+  - dompurify@3.4.11
+  - '@convex-dev/resend@0.2.5'
+  - '@react-email/render@2.0.9'
+
 onlyBuiltDependencies:
   - '@clerk/shared'
   - '@sentry/cli'
@@ -39,7 +44,7 @@ overrides:
   '@xmldom/xmldom@<0.8.13': 0.8.13
   'brace-expansion@>=1.0.0 <1.1.13': 1.1.14
   'brace-expansion@>=5.0.0 <5.0.5': 5.0.5
-  'dompurify@<3.4.0': 3.4.0
+  'dompurify@<3.4.9': 3.4.11
   'h3@<2.0.1-rc.21': 2.0.1-rc.21
   'lodash@<4.18.0': 4.18.1
   'minimatch@>=10.0.0 <10.2.3': 10.2.5
@@ -58,8 +63,13 @@ overrides:
   'protobufjs@<=7.5.5': '>=7.5.6'
   '@protobufjs/utf8@<=1.1.0': '>=1.1.1'
   'brace-expansion@>=5.0.0 <5.0.6': '>=5.0.6'
-  'ws@>=8.0.0 <8.20.1': '>=8.20.1'
-  'protobufjs@<=7.5.7': '>=7.5.8'
+  'ws@>=8.0.0 <8.21.0': 8.21.0
+  'protobufjs@<=7.6.2': 7.6.3
   'js-cookie@<=3.0.5': '>=3.0.7'
   'shell-quote@<=1.8.3': '>=1.8.4'
   'esbuild@>=0.17.0 <0.28.1': 0.28.1
+  'ws@>=7.0.0 <7.5.11': 7.5.11
+  'launch-editor@<=2.14.0': 2.14.1
+  'js-yaml@<=4.1.1': 4.2.0
+  '@opentelemetry/core@<2.8.0': 2.8.0
+  '@babel/core@<=7.29.0': 7.29.6

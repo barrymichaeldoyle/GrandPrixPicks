@@ -21,6 +21,7 @@ import {
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { withRetry } from '@/lib/retry';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import {
   defaultOgImage,
@@ -104,10 +105,12 @@ export const Route = createFileRoute('/races/$raceSlug/')({
   component: RaceDetailPage,
   loader: async ({ params, location, deps }) => {
     const [race, nextRace] = await Promise.all([
-      convex.query(api.races.getRaceBySlugOrLegacyRef, {
-        ref: params.raceSlug,
-      }),
-      convex.query(api.races.getNextRace),
+      withRetry(() =>
+        convex.query(api.races.getRaceBySlugOrLegacyRef, {
+          ref: params.raceSlug,
+        }),
+      ),
+      withRetry(() => convex.query(api.races.getNextRace)),
     ]);
     if (!race) {
       throw notFound();

@@ -1,5 +1,31 @@
 {
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm knip)",
+      "Bash(pnpm knip *)",
+      "Bash(pnpm check)",
+      "Bash(pnpm check *)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test *)",
+      "Bash(npm view *)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_navigate_back",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_close",
+      "mcp__mobile__mobile_take_screenshot",
+      "mcp__mobile__mobile_list_elements_on_screen"
+    ]
   }
 }

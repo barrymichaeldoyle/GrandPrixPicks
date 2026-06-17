@@ -22,6 +22,13 @@ minimumReleaseAgeExclude:
   - dompurify@3.4.11
   - '@convex-dev/resend@0.2.5'
   - '@react-email/render@2.0.9'
+  - '@tanstack/react-router@1.170.16'
+  - '@tanstack/react-start-client@1.168.14'
+  - '@tanstack/react-start-rsc@0.1.25'
+  - '@tanstack/react-start-server@1.167.20'
+  - '@tanstack/react-start@1.168.26'
+  - '@tanstack/start-plugin-core@1.171.18'
+  - '@tanstack/start-server-core@1.169.15'
 
 onlyBuiltDependencies:
   - '@clerk/shared'

@@ -13,7 +13,7 @@ export type H2HSessionScore =
   | undefined;
 
 /** The single highest-scoring Top 5 pick of the weekend. */
-export type RecapBestCall = {
+type RecapBestCall = {
   code: string;
   team: string | null;
   displayName?: string;

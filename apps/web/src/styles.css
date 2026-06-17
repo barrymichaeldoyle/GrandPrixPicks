@@ -129,22 +129,14 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      42rem 20rem at 50% -2%,
-      rgba(34, 211, 238, 0.14),
-      transparent 68%
-    ),
-    radial-gradient(
-      24rem 18rem at 12% 20%,
-      rgba(20, 184, 166, 0.15),
-      transparent 72%
-    ),
-    radial-gradient(
-      28rem 18rem at 88% 14%,
-      rgba(59, 130, 246, 0.12),
-      transparent 72%
-    );
+  /* Single cohesive horizon glow (matches the global atmosphere field) — no
+     discrete blobs. */
+  background: radial-gradient(
+    120% 92% at 50% -12%,
+    rgba(34, 211, 238, 0.15) 0%,
+    rgba(34, 211, 238, 0.045) 38%,
+    transparent 66%
+  );
   pointer-events: none;
   z-index: 0;
 }
@@ -165,22 +157,11 @@ body {
   }
 
   .home-hero::before {
-    background:
-      radial-gradient(
-        30rem 14rem at 50% 0%,
-        rgba(34, 211, 238, 0.1),
-        transparent 66%
-      ),
-      radial-gradient(
-        18rem 14rem at 12% 20%,
-        rgba(20, 184, 166, 0.12),
-        transparent 72%
-      ),
-      radial-gradient(
-        20rem 14rem at 88% 16%,
-        rgba(59, 130, 246, 0.1),
-        transparent 72%
-      );
+    background: radial-gradient(
+      135% 80% at 50% -8%,
+      rgba(34, 211, 238, 0.11) 0%,
+      transparent 62%
+    );
   }
 }
 
@@ -301,62 +282,33 @@ button:disabled,
   color: #c4b5fd !important;
 }
 
-/* Global background flare motion */
-@keyframes flare-drift-a {
-  0% {
-    transform: translate3d(-50%, 0, 0) scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: translate3d(calc(-50% + 20px), 18px, 0) scale(1.08);
-    opacity: 0.65;
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0) scale(1);
-    opacity: 0.5;
-  }
+/* App atmosphere — one continuous accent light field across the whole viewport
+   (sits above content as a subtle screen-blended overlay; route pages paint
+   opaque backgrounds, so a behind-layer wouldn't show). No discrete blobs, no
+   grid, no motion — a single horizon glow + diagonal wash give cohesive depth
+   that scales with the viewport, plus fine grain to keep gradients smooth. */
+.app-atmosphere-field {
+  background:
+    radial-gradient(
+      140% 60% at 50% -20%,
+      rgba(34, 211, 238, 0.18) 0%,
+      rgba(34, 211, 238, 0.06) 32%,
+      transparent 60%
+    ),
+    linear-gradient(
+      157deg,
+      rgba(20, 184, 166, 0.11) 0%,
+      transparent 42%,
+      transparent 62%,
+      rgba(59, 130, 246, 0.1) 100%
+    );
+  mix-blend-mode: screen;
 }
 
-@keyframes flare-drift-b {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.38;
-  }
-  50% {
-    transform: translate3d(24px, -14px, 0) scale(1.06);
-    opacity: 0.52;
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.38;
-  }
-}
-
-@keyframes flare-drift-c {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.34;
-  }
-  50% {
-    transform: translate3d(-18px, 20px, 0) scale(1.04);
-    opacity: 0.48;
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.34;
-  }
-}
-
-.global-flare-a {
-  animation: flare-drift-a 14s ease-in-out infinite;
-}
-
-.global-flare-b {
-  animation: flare-drift-b 18s ease-in-out infinite;
-}
-
-.global-flare-c {
-  animation: flare-drift-c 16s ease-in-out infinite;
+.app-atmosphere-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
 }
 
 @keyframes reveal-up {
@@ -466,9 +418,6 @@ button:disabled,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .global-flare-a,
-  .global-flare-b,
-  .global-flare-c,
   .reveal-up,
   .reveal-delay-1,
   .reveal-delay-2,

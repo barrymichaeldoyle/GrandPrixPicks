@@ -38,7 +38,7 @@ export function LeaderboardBoard({
   return (
     <div className="space-y-3">
       {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end sm:gap-2">
           <PodiumCard
             entry={podiumEntries[0]}
             place={1}

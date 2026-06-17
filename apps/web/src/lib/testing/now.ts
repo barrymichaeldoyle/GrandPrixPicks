@@ -69,12 +69,25 @@ export function clearDevNow() {
   window.dispatchEvent(new CustomEvent(DEV_NOW_EVENT));
 }
 
-export function useNow(intervalMs = 1_000): number {
+export function useNow(intervalMs = 1_000, initialNow?: number): number {
   const overrideNow = useDevNowOverride();
-  const [realNow, setRealNow] = useState(() => Date.now());
+  // Seed with the server-provided timestamp when available so the first client
+  // (hydration) render produces the exact same time-derived output as the
+  // server-rendered HTML — otherwise `Date.now()` differs across the two and
+  // React reports a hydration mismatch (e.g. the home-page countdown digits).
+  // We re-read the real clock immediately after mount, so any staleness from
+  // the SSR snapshot self-corrects without tripping hydration.
+  const [realNow, setRealNow] = useState(() => initialNow ?? Date.now());
 
   useEffect(() => {
-    if (overrideNow != null || intervalMs <= 0) {
+    if (overrideNow != null) {
+      return;
+    }
+
+    // Sync to the real clock once hydration has completed.
+    setRealNow(Date.now());
+
+    if (intervalMs <= 0) {
       return;
     }
 

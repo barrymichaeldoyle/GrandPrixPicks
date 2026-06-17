@@ -252,6 +252,7 @@ function RaceDetailPage() {
     hasPublishedResults,
     publishedSessionSet,
     h2hPointsBySession,
+    h2hScoresBySession,
     pointsSoFar,
     allEventsScored,
     scoredEventCount,
@@ -406,6 +407,7 @@ function RaceDetailPage() {
         top5SelectedSessionDone={isTop5SavedForSession(selectedSession)}
         h2hSelectedSessionDone={isH2HSavedForSession(selectedSession)}
         cardData={cardData}
+        h2hScoresBySession={h2hScoresBySession}
         top5Editing={{
           session: top5EditingSession,
           onSessionChange: setTop5EditingSession,

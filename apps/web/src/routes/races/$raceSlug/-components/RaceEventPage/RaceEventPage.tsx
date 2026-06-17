@@ -31,6 +31,9 @@ import type { TabSwitchOption } from '@/components/TabSwitch';
 import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
 import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
 import { RaceEventPageLayout } from '@/routes/races/$raceSlug/-components/RaceEventPageLayout/RaceEventPageLayout';
+import { WeekendRecap } from '@/routes/races/$raceSlug/-components/WeekendRecap/WeekendRecap';
+import type { H2HSessionScore } from '@/routes/races/$raceSlug/-components/WeekendRecap/recap';
+import { deriveWeekendRecap } from '@/routes/races/$raceSlug/-components/WeekendRecap/recap';
 import type {
   PicksEditingState,
   SessionSchedule,
@@ -81,6 +84,8 @@ type RaceEventPageProps = {
   /** Selected session has saved H2H picks (drives the step 2 indicator). */
   h2hSelectedSessionDone?: boolean;
   cardData: WeekendCardData | null;
+  /** The viewer's per-session H2H scores (drives the recap H2H record). */
+  h2hScoresBySession?: Partial<Record<SessionType, H2HSessionScore>>;
   top5Editing: PicksEditingState;
   h2hEditing: PicksEditingState;
   existingTop5PicksBySession?: Partial<
@@ -108,6 +113,7 @@ export function RaceEventPage({
   top5SelectedSessionDone = false,
   h2hSelectedSessionDone = false,
   cardData,
+  h2hScoresBySession = {},
   top5Editing,
   h2hEditing,
   existingTop5PicksBySession,
@@ -246,6 +252,36 @@ export function RaceEventPage({
     'share_score',
   );
 
+  // Post-race "moment": a celebratory weekend summary, shown once the viewer's
+  // own predictions are fully scored. Derived from the already-loaded card
+  // data + H2H scores, so it needs no extra query.
+  const showRecap = isSignedIn && hasPredictions && allEventsScored && cardData;
+  const recapContent = showRecap ? (
+    <ErrorBoundary>
+      <WeekendRecap
+        raceName={race.name}
+        recap={deriveWeekendRecap({
+          cardData,
+          weekendSessions: schedule.weekendSessions,
+          h2hScoresBySession,
+        })}
+        shareSlot={
+          <ShareOnXButton
+            text={shareScoreText}
+            url={shareScoreUrl}
+            analyticsEvent="score_shared_x"
+            analyticsProps={{
+              race_slug: race.slug,
+              all_events_scored: allEventsScored,
+              points: pointsSoFar,
+            }}
+            label="Share my weekend on X"
+          />
+        }
+      />
+    </ErrorBoundary>
+  ) : null;
+
   const selectedSessionCardData =
     cardData == null
       ? null
@@ -340,6 +376,7 @@ export function RaceEventPage({
         randomizeControl={randomizeControl}
         backLink={backLink}
         leaderboardLink={leaderboardLink}
+        recapContent={recapContent}
         initialTop5Content={renderInitialCtas()}
         top5HeaderAside={
           canManagePredictions && selectedSessionData ? (
@@ -430,7 +467,10 @@ export function RaceEventPage({
               race={race}
               selectedSession={selectedSession}
             />
-            {isSignedIn && hasPredictions && (
+            {/* When fully scored, the weekend-score share lives in the recap at
+                the top of the page; here it only covers a partially-scored
+                weekend (e.g. quali in, race pending). */}
+            {isSignedIn && hasPredictions && !allEventsScored && (
               <div className="mt-5 flex justify-center">
                 <ShareOnXButton
                   text={shareScoreText}

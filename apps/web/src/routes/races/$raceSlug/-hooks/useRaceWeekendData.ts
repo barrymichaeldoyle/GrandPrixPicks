@@ -92,9 +92,10 @@ export function useRaceWeekendData({
     api.h2h.myH2HPredictionsForRace,
     race ? { raceId: race._id } : 'skip',
   );
-  const { pointsBySession: h2hPointsBySession } = useMyH2HScoresBySession(
-    race?._id,
-  );
+  const {
+    pointsBySession: h2hPointsBySession,
+    scoresBySession: h2hScoresBySession,
+  } = useMyH2HScoresBySession(race?._id);
 
   const isViewerPredictionDataLoading = Boolean(
     race &&
@@ -197,6 +198,7 @@ export function useRaceWeekendData({
     hasPublishedResults,
     publishedSessionSet,
     h2hPointsBySession,
+    h2hScoresBySession,
     pointsSoFar,
     allEventsScored,
     scoredEventCount,

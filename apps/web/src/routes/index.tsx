@@ -131,8 +131,9 @@ function HomePage() {
     recentRacePlayerCount,
     races,
     topPlayers,
+    now: serverNow,
   } = Route.useLoaderData();
-  const now = useNow();
+  const now = useNow(1_000, serverNow);
   const {
     isVisible: isPredictionBannerVisible,
     hasCompleteUpcomingPredictions,

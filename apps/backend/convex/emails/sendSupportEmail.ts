@@ -5,6 +5,21 @@ import { v } from 'convex/values';
 import { internalAction } from '../_generated/server';
 import { sendEmail } from '../lib/email';
 
+/**
+ * Escape user-supplied values before embedding them in the support email's
+ * HTML body. Without this, an authenticated user can inject markup (links,
+ * scripts, phishing UI) into the email delivered to the support operator's
+ * inbox via the subject / message / category / profile fields.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export const sendNewSupportRequest = internalAction({
   args: {
     userId: v.string(),
@@ -26,19 +41,19 @@ export const sendNewSupportRequest = internalAction({
     const submitter =
       args.displayName ?? args.username ?? args.email ?? 'Unknown user';
     const categoryLine = args.category
-      ? `<p><strong>Category:</strong> ${args.category}</p>`
+      ? `<p><strong>Category:</strong> ${escapeHtml(args.category)}</p>`
       : '';
 
     const html = `
       <h1>New Support Request</h1>
-      <p><strong>Subject:</strong> ${args.subject}</p>
+      <p><strong>Subject:</strong> ${escapeHtml(args.subject)}</p>
       ${categoryLine}
-      <p><strong>From:</strong> ${submitter}</p>
-      <p><strong>User ID:</strong> ${args.userId}</p>
-      <p><strong>Email:</strong> ${args.email ?? 'Not provided'}</p>
+      <p><strong>From:</strong> ${escapeHtml(submitter)}</p>
+      <p><strong>User ID:</strong> ${escapeHtml(args.userId)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(args.email ?? 'Not provided')}</p>
       <p><strong>Submitted At:</strong> ${submittedAt}</p>
       <hr />
-      <pre style="white-space: pre-wrap; font-family: sans-serif;">${args.message}</pre>
+      <pre style="white-space: pre-wrap; font-family: sans-serif;">${escapeHtml(args.message)}</pre>
     `;
 
     await sendEmail(ctx, {

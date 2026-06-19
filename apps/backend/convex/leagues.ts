@@ -5,9 +5,20 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import {
+  hashLeaguePassword,
+  isHashedLeaguePassword,
+  verifyLeaguePassword,
+} from './lib/leaguePassword';
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 const RESERVED_LEAGUE_SLUGS = new Set(['create']);
+
+// Failed password-protected joins allowed before a (user, league) is locked
+// out, and how long the counting window / lockout last.
+const MAX_FAILED_JOIN_ATTEMPTS = 5;
+const JOIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const JOIN_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 type LeagueLimits = {
   maxPrivateLeaguesCreated: number;
@@ -133,6 +144,48 @@ async function requireLeagueAdmin(
     throw new Error('Not a league admin');
   }
   return membership;
+}
+
+/**
+ * Record a failed password-protected join attempt and lock the (user, league)
+ * pair out once too many failures accumulate within the window. Throttles
+ * automated password guessing against private leagues.
+ */
+async function registerFailedJoinAttempt(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  leagueId: Id<'leagues'>,
+  existing: Doc<'leagueJoinAttempts'> | null,
+  now: number,
+): Promise<void> {
+  if (!existing) {
+    await ctx.db.insert('leagueJoinAttempts', {
+      userId,
+      leagueId,
+      failedCount: 1,
+      windowStartedAt: now,
+    });
+    return;
+  }
+
+  // Start a fresh window if the previous one has elapsed.
+  if (now - existing.windowStartedAt > JOIN_ATTEMPT_WINDOW_MS) {
+    await ctx.db.patch(existing._id, {
+      failedCount: 1,
+      windowStartedAt: now,
+      lockedUntil: undefined,
+    });
+    return;
+  }
+
+  const failedCount = existing.failedCount + 1;
+  await ctx.db.patch(existing._id, {
+    failedCount,
+    lockedUntil:
+      failedCount >= MAX_FAILED_JOIN_ATTEMPTS
+        ? now + JOIN_LOCKOUT_MS
+        : existing.lockedUntil,
+  });
 }
 
 // ──────────────────── Queries ────────────────────
@@ -483,8 +536,11 @@ export const createLeague = mutation({
       throw new Error('Description must be 200 characters or less');
     }
 
-    const password =
+    const plainPassword =
       visibility === 'private' ? args.password?.trim() || undefined : undefined;
+    const password = plainPassword
+      ? await hashLeaguePassword(plainPassword)
+      : undefined;
 
     const season = await getDefaultLeagueSeason(ctx);
     const { limits, hasSeasonPass } = await getLeagueLimitsForUser(
@@ -579,8 +635,45 @@ export const joinLeague = mutation({
     const { limits } = await getLeagueLimitsForUser(ctx, viewer._id, season);
 
     if (league.password) {
-      if (!args.password || args.password.trim() !== league.password) {
+      const now = Date.now();
+      const attempt = await ctx.db
+        .query('leagueJoinAttempts')
+        .withIndex('by_user_league', (q) =>
+          q.eq('userId', viewer._id).eq('leagueId', league._id),
+        )
+        .unique();
+
+      if (attempt?.lockedUntil && attempt.lockedUntil > now) {
+        throw new Error(
+          'Too many incorrect password attempts. Please try again later.',
+        );
+      }
+
+      const provided = args.password?.trim() ?? '';
+      const ok =
+        provided.length > 0 &&
+        (await verifyLeaguePassword(provided, league.password));
+
+      if (!ok) {
+        await registerFailedJoinAttempt(
+          ctx,
+          viewer._id,
+          league._id,
+          attempt,
+          now,
+        );
         throw new Error('Incorrect password');
+      }
+
+      // Success: clear the throttle and migrate any legacy plaintext password
+      // to a hash now that we have the cleartext to re-hash.
+      if (attempt) {
+        await ctx.db.delete(attempt._id);
+      }
+      if (!isHashedLeaguePassword(league.password)) {
+        await ctx.db.patch(league._id, {
+          password: await hashLeaguePassword(provided),
+        });
       }
     }
 
@@ -798,7 +891,7 @@ export const setPassword = mutation({
     }
 
     await ctx.db.patch(args.leagueId, {
-      password: trimmed,
+      password: await hashLeaguePassword(trimmed),
       updatedAt: Date.now(),
     });
   },

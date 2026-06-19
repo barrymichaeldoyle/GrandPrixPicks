@@ -370,6 +370,16 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_league_user', ['leagueId', 'userId']),
 
+  // Tracks failed password-protected join attempts per (user, league) to
+  // throttle automated password guessing against private leagues.
+  leagueJoinAttempts: defineTable({
+    userId: v.id('users'),
+    leagueId: v.id('leagues'),
+    failedCount: v.number(),
+    windowStartedAt: v.number(),
+    lockedUntil: v.optional(v.number()),
+  }).index('by_user_league', ['userId', 'leagueId']),
+
   // ============ ACTIVITY FEED ============
 
   feedEvents: defineTable({

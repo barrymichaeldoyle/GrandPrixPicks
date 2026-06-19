@@ -27,6 +27,38 @@ type PushSubscriptionPayload = {
   auth: string;
 };
 
+/**
+ * Allowlist of known web-push provider hosts. `saveSubscription` accepts an
+ * arbitrary endpoint string from the client; without this check an
+ * authenticated user could register an endpoint pointing at internal/metadata
+ * infrastructure and have Convex POST to it from server infra (SSRF) whenever
+ * a push event fires. Real browser Push services only ever live on these hosts.
+ */
+const ALLOWED_PUSH_HOST_SUFFIXES = [
+  'fcm.googleapis.com', // Chrome / Chromium / Android
+  'updates.push.services.mozilla.com', // Firefox
+  'web.push.apple.com', // Safari / iOS web push
+  '.notify.windows.com', // Edge / WNS
+] as const;
+
+function isAllowedPushEndpoint(endpoint: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:') {
+    return false;
+  }
+  const host = url.hostname.toLowerCase();
+  return ALLOWED_PUSH_HOST_SUFFIXES.some((suffix) =>
+    suffix.startsWith('.')
+      ? host.endsWith(suffix)
+      : host === suffix || host.endsWith(`.${suffix}`),
+  );
+}
+
 async function getSubscriptionsForUser(
   ctx: QueryCtx | MutationCtx,
   userId: Id<'users'>,
@@ -71,6 +103,10 @@ export const saveSubscription = mutation({
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getViewer(ctx));
+
+    if (!isAllowedPushEndpoint(args.endpoint)) {
+      throw new Error('Invalid push subscription endpoint');
+    }
 
     // Upsert by endpoint — one row per device
     const existing = await ctx.db

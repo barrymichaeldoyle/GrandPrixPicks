@@ -39,9 +39,38 @@ import { Tooltip } from '@/components/Tooltip';
 import { computeFavoriteTop5Pick } from '@/lib/favorites';
 import { pageMeta } from '@/lib/site';
 
+/**
+ * Only accept same-origin relative paths for the "back" link. Without this an
+ * attacker-crafted `?from=//evil.com` (or `/\evil.com`, or an absolute URL)
+ * renders a trusted-domain "Back to …" link that navigates off-site on
+ * click / middle-click / native href follow (open redirect).
+ */
+function sanitizeInternalPath(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length === 0) {
+    return undefined;
+  }
+  // Must be a path rooted at "/", but not protocol-relative ("//") or a
+  // backslash-smuggled variant ("/\") that browsers treat as a host.
+  if (
+    !value.startsWith('/') ||
+    value.startsWith('//') ||
+    value.startsWith('/\\')
+  ) {
+    return undefined;
+  }
+  // Reject control characters (incl. tab/newline/space) that browsers may
+  // strip to expose a leading "//".
+  for (let i = 0; i < value.length; i++) {
+    if (value.charCodeAt(i) <= 0x20) {
+      return undefined;
+    }
+  }
+  return value;
+}
+
 export const Route = createFileRoute('/p/$username')({
   validateSearch: (search: Record<string, unknown>) => ({
-    from: typeof search.from === 'string' ? search.from : undefined,
+    from: sanitizeInternalPath(search.from),
     fromLabel:
       typeof search.fromLabel === 'string' ? search.fromLabel : undefined,
   }),

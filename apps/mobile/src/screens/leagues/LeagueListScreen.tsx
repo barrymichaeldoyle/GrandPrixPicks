@@ -38,6 +38,7 @@ export function LeagueListScreen({ navigation }: Props) {
   const [committedSlug, setCommittedSlug] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
 
   const foundLeague = useQuery(
     api.leagues.getLeagueBySlug,
@@ -57,9 +58,11 @@ export function LeagueListScreen({ navigation }: Props) {
   }
 
   async function handleJoin() {
-    if (!foundLeague) {
+    if (!foundLeague || isJoining) {
       return;
     }
+    setJoinError(null);
+    setIsJoining(true);
     try {
       await joinLeague({
         leagueId: foundLeague._id as ConvexId<'leagues'>,
@@ -73,6 +76,8 @@ export function LeagueListScreen({ navigation }: Props) {
       showToast(`Joined ${name}`, 'success');
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : 'Failed to join');
+    } finally {
+      setIsJoining(false);
     }
   }
 
@@ -163,10 +168,14 @@ export function LeagueListScreen({ navigation }: Props) {
               ) : null}
               <Pressable
                 onPress={() => void handleJoin()}
-                style={styles.confirmJoinButton}
+                disabled={isJoining}
+                style={[
+                  styles.confirmJoinButton,
+                  isJoining && styles.confirmJoinButtonDisabled,
+                ]}
               >
                 <Text style={styles.confirmJoinText}>
-                  Join {foundLeague.name}
+                  {isJoining ? 'Joining…' : `Join ${foundLeague.name}`}
                 </Text>
               </Pressable>
             </View>
@@ -235,6 +244,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.buttonAccent,
     borderRadius: radii.lg,
     paddingVertical: 12,
+  },
+  confirmJoinButtonDisabled: {
+    opacity: 0.6,
   },
   confirmJoinText: {
     color: colors.text,

@@ -684,7 +684,11 @@ export const joinLeague = mutation({
       )
       .unique();
     if (existingMembership) {
-      throw new Error('You are already a member of this league');
+      // Joining is idempotent: a double-submit or a stale reactive query can
+      // re-fire the mutation after the membership already exists. Return the
+      // success shape rather than throwing — the user's intent (be a member)
+      // is already satisfied.
+      return { leagueId: league._id, slug: league.slug, alreadyMember: true };
     }
 
     const currentMembers = await ctx.db
@@ -761,7 +765,7 @@ export const joinLeague = mutation({
       leagueId: league._id,
     });
 
-    return { leagueId: league._id, slug: league.slug };
+    return { leagueId: league._id, slug: league.slug, alreadyMember: false };
   },
 });
 

@@ -29,6 +29,8 @@ minimumReleaseAgeExclude:
   - '@tanstack/react-start@1.168.26'
   - '@tanstack/start-plugin-core@1.171.18'
   - '@tanstack/start-server-core@1.169.15'
+  - miniflare@4.20260617.0
+  - wrangler@4.102.0
 
 onlyBuiltDependencies:
   - '@clerk/shared'

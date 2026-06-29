@@ -34,8 +34,8 @@ export function UpdateModeSelector({
               Silent correction
             </span>
             <span className="block text-sm text-slate-400">
-              I entered the results wrong. Recalculate scores quietly — players
-              are not notified.
+              I entered the results wrong. Recalculate scores quietly. Players
+              won't be notified.
             </span>
           </span>
         </label>
@@ -70,7 +70,7 @@ export function UpdateModeSelector({
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-yellow-500 focus:outline-none"
           />
           <p className="mt-1 text-xs text-slate-500">
-            Shown to players word-for-word — say what changed and why.
+            Shown to players word-for-word. Say what changed and why.
           </p>
         </div>
       )}

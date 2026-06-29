@@ -274,7 +274,7 @@ export const sendPushRemindersForRace = internalMutation({
       await scheduleSendPushBatches(ctx, {
         subscriptions: subs,
         title: `⏰ ${race.name}`,
-        body: `Picks close in 2 hours — you haven't made your predictions yet!`,
+        body: `Picks close in 2 hours. You haven't made your predictions yet!`,
         url,
       });
       return { queued: subs.length };
@@ -307,7 +307,7 @@ export const sendPushRemindersForRace = internalMutation({
       await scheduleSendPushBatches(ctx, {
         subscriptions: subs,
         title: `🏎️ ${race.name}`,
-        body: `Picks open — you have 24 hours to make your predictions`,
+        body: `Picks are open. You have 24 hours to make your predictions`,
         url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
       });
       queued += subs.length;
@@ -320,7 +320,7 @@ export const sendPushRemindersForRace = internalMutation({
       await scheduleSendPushBatches(ctx, {
         subscriptions: subs,
         title: `🔒 ${race.name}`,
-        body: `Your picks are in. Picks lock in 24 hours — edit before then.`,
+        body: `Your picks are in. Picks lock in 24 hours, so edit before then.`,
         url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=lock_approaching`,
       });
       queued += subs.length;
@@ -384,7 +384,7 @@ export const sendPushResultsForSession = internalMutation({
     );
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
-    const title = `🏁 ${race.name} — ${sessionLabel} results`;
+    const title = `🏁 ${race.name}: ${sessionLabel} results`;
     const body = `Session results are in. See how you scored!`;
     const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=results`;
 
@@ -463,7 +463,7 @@ export const sendPushForSessionLocked = internalMutation({
         internal.pushNotifications.sendPushBatch,
         {
           subscriptions: subscriptions.slice(i, i + BATCH_SIZE),
-          title: `🔒 ${race.name} — ${sessionLabel}`,
+          title: `🔒 ${race.name}: ${sessionLabel}`,
           body: "See everyone's picks.",
           url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
         },

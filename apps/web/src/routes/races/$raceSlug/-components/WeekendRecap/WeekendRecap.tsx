@@ -22,7 +22,7 @@ const TIER_CONFIG: Record<
   onboard: {
     emoji: '✅',
     headline: 'On the board',
-    blurb: 'Points banked — onto the next one.',
+    blurb: 'Points banked. Onto the next one.',
   },
   tough: {
     emoji: '🏁',

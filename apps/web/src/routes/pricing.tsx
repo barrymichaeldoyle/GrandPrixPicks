@@ -43,7 +43,7 @@ export const Route = createFileRoute('/pricing')({
     pageMeta({
       title: 'Pricing | Grand Prix Picks',
       description:
-        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season—unlock unlimited leagues and public leagues.',
+        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and public leagues.',
       path: '/pricing',
     }),
 });

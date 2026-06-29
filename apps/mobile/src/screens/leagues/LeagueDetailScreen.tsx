@@ -132,7 +132,7 @@ function LeaderboardTab({ leagueId }: { leagueId: ConvexId<'leagues'> }) {
       ItemSeparatorComponent={() => <View style={styles.divider} />}
       ListEmptyComponent={
         <EmptyState
-          body="No scores yet — predictions will appear here after sessions are scored."
+          body="No scores yet. Predictions will appear here after sessions are scored."
           icon="trophy-outline"
           title="No standings yet"
         />

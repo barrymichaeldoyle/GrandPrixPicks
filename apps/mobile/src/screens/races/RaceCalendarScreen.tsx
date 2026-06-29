@@ -74,7 +74,7 @@ export function RaceCalendarScreen({ navigation }: Props) {
           <Text style={styles.emptyText}>
             {tab === 'past'
               ? 'No races have finished yet this season.'
-              : 'No upcoming races — see you next season.'}
+              : 'No upcoming races. See you next season.'}
           </Text>
         }
         refreshControl={

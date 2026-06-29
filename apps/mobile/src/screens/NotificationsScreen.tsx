@@ -294,12 +294,12 @@ function getNotificationTitle(notification: Notification): string {
   }
   if (notification.type === 'results_published') {
     const points = notification.points ?? 0;
-    return `Results published — ${points} pt${points === 1 ? '' : 's'}`;
+    return `Results published: ${points} pt${points === 1 ? '' : 's'}`;
   }
   if (notification.type === 'results_amended') {
     const points = notification.points;
     return points !== undefined
-      ? `Results amended — now ${points} pt${points === 1 ? '' : 's'}`
+      ? `Results amended: now ${points} pt${points === 1 ? '' : 's'}`
       : 'Results amended';
   }
   return 'Session locked';

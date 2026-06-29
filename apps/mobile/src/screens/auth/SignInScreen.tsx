@@ -138,7 +138,7 @@ export function SignInScreen() {
         // Clerk has a session on the device that never got activated. Clear
         // it so the next tap starts fresh.
         await clearStuckSession();
-        setError('Cleared a stale session — please try signing in again.');
+        setError('Cleared a stale session. Please try signing in again.');
         return;
       }
       // Log the full error so we can see what's actually going wrong.
@@ -173,7 +173,7 @@ export function SignInScreen() {
     } catch (err) {
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
-        setError('Cleared a stale session — please try signing in again.');
+        setError('Cleared a stale session. Please try signing in again.');
       } else {
         setError(clerkMessage(err, 'Sign-in failed'));
       }
@@ -197,7 +197,7 @@ export function SignInScreen() {
     } catch (err) {
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
-        setError('Cleared a stale session — please try signing up again.');
+        setError('Cleared a stale session. Please try signing up again.');
       } else {
         setError(clerkMessage(err, 'Sign-up failed'));
       }
@@ -220,7 +220,7 @@ export function SignInScreen() {
     } catch (err) {
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
-        setError('Cleared a stale session — please try signing up again.');
+        setError('Cleared a stale session. Please try signing up again.');
       } else {
         setError(clerkMessage(err, 'Invalid code'));
       }

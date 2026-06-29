@@ -61,7 +61,7 @@ export function OfflineBanner() {
             className="flex items-center justify-center gap-2 border-b border-warning/25 bg-warning/10 px-4 py-2 text-sm font-medium text-warning"
           >
             <WifiOff size={14} aria-hidden="true" />
-            <span>No internet connection — data may be outdated</span>
+            <span>No internet connection. Data may be outdated.</span>
           </div>
         </motion.div>
       )}

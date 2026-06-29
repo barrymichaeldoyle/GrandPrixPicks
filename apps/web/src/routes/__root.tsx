@@ -85,13 +85,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         property: 'og:image:alt',
         content:
-          'Grand Prix Picks — make F1 predictions and climb the 2026 leaderboard.',
+          'Grand Prix Picks: make F1 predictions and climb the 2026 leaderboard.',
       },
       { name: 'twitter:card', content: 'summary_large_image' },
       {
         name: 'twitter:image:alt',
         content:
-          'Grand Prix Picks — make F1 predictions and climb the 2026 leaderboard.',
+          'Grand Prix Picks: make F1 predictions and climb the 2026 leaderboard.',
       },
       { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],

@@ -17,7 +17,7 @@ const ITEMS: ReadonlyArray<ExploreItem> = [
   {
     icon: 'trophy-outline',
     title: 'Make your picks',
-    body: 'Top 5 drivers for the next session — every point counts.',
+    body: 'Top 5 drivers for the next session. Every point counts.',
     tab: 'PredictTab',
   },
   {

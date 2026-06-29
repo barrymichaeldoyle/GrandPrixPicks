@@ -69,7 +69,7 @@ export const Route = createFileRoute('/leagues/$slug')({
       : 'League Standings & Predictions | Grand Prix Picks';
     const description = league
       ? league.description
-        ? `${league.name} — ${league.description}`
+        ? `${league.name}: ${league.description}`
         : `Compete with other members in ${league.name}. View standings and make your F1 predictions on Grand Prix Picks.`
       : 'View league standings, track member rankings, and compete with friends in this private F1 prediction league.';
     return pageMeta({

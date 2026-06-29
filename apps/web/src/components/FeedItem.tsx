@@ -133,7 +133,7 @@ function getScoreComment(
       return 'All five called perfectly.';
     }
     if (exact.length === 4) {
-      return 'Four exact calls — nearly flawless.';
+      return 'Four exact calls. Nearly flawless.';
     }
     if (exact.length === 3) {
       return 'Three spot-on predictions.';

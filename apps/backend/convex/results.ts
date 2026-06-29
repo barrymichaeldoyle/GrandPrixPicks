@@ -206,7 +206,7 @@ async function publishResultsCore(
 
   if (amendmentNote && !existing) {
     throw new Error(
-      'Cannot amend a result that has not been published yet — publish it normally first',
+      'Cannot amend a result that has not been published yet. Publish it normally first',
     );
   }
 

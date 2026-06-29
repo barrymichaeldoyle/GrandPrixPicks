@@ -383,7 +383,7 @@ export function RaceEventPage({
             <div className="flex items-center gap-2">
               {selectedSessionData.isLocked &&
               !selectedSessionData.hasResults ? (
-                <Tooltip content="This session has started — predictions can't be changed">
+                <Tooltip content="This session has started. Predictions can't be changed">
                   <span className="shrink-0" data-testid="top5-locked-badge">
                     <Badge variant="locked" />
                   </span>
@@ -494,7 +494,7 @@ export function RaceEventPage({
         suspended={showTop5CloseConfirm}
         title={
           top5OverlaySession
-            ? `${SESSION_LABELS[top5OverlaySession]} — Top 5`
+            ? `${SESSION_LABELS[top5OverlaySession]}: Top 5`
             : 'Top 5 Predictions'
         }
         subtitle={

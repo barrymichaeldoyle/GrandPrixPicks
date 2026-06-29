@@ -171,7 +171,7 @@ export function H2HSection({
                   <span className="hidden sm:inline">Edit</span>
                 </Button>
               ) : (
-                <Tooltip content="This session has started — predictions can't be changed">
+                <Tooltip content="This session has started. Predictions can't be changed">
                   <span className="inline-flex" data-testid="h2h-locked-badge">
                     <Badge variant="locked" />
                   </span>
@@ -237,7 +237,7 @@ export function H2HSection({
           suspended={showCloseConfirm}
           title={
             editingSession
-              ? `${SESSION_LABELS[editingSession]} — Head-to-Head`
+              ? `${SESSION_LABELS[editingSession]}: Head-to-Head`
               : 'Head-to-Head Predictions'
           }
           subtitle={

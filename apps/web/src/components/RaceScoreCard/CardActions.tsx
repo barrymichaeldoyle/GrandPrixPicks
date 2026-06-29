@@ -72,7 +72,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
           Sign in to make your prediction
         </p>
         <p className="mb-4 text-sm text-text-muted">
-          Pick your top 5 for each session and call the teammate battles — it's
+          Pick your top 5 for each session and call the teammate battles. It's
           free, and each session is worth up to 25 points.
         </p>
         <SignInButton
@@ -121,7 +121,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
       <div className="flex items-center justify-center gap-1.5 border-t border-border/60 px-4 py-3">
         <Lock className="h-3.5 w-3.5 text-text-muted/50" />
         <span className="text-sm text-text-muted">
-          Picks submitted — revealed when session locks
+          Picks submitted. Revealed when the session locks.
         </span>
       </div>
     );

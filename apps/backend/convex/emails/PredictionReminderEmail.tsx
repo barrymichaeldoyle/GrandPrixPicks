@@ -67,7 +67,7 @@ export function PredictionReminderEmail({
         `}</style>
       </Head>
       <Preview>
-        {raceName} predictions lock in {timeUntilLock} — submit your picks!
+        {raceName} predictions lock in {timeUntilLock}. Submit your picks!
       </Preview>
       <Body style={body}>
         <Container style={container}>

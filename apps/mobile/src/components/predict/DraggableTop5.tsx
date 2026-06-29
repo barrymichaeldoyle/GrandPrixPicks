@@ -295,7 +295,7 @@ export function DraggableTop5({
           <Text style={styles.poolHeader}>
             {poolFull
               ? 'Tap a pick to remove · long-press a row to reorder'
-              : `${MAX_PICKS - picks.length} remaining — tap to add`}
+              : `${MAX_PICKS - picks.length} remaining. Tap to add`}
           </Text>
           <FlatList
             columnWrapperStyle={styles.poolRow}
@@ -322,7 +322,7 @@ export function DraggableTop5({
             size={14}
           />
           <Text style={styles.lockedNoteText}>
-            Session locked — picks are read-only
+            Session locked. Picks are read-only.
           </Text>
         </View>
       )}

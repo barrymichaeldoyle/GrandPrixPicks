@@ -86,8 +86,8 @@ export function AdminBannerTab() {
       console.error('Failed to publish announcement:', err);
       setError(
         err instanceof Error && err.message.includes('Auto-hide')
-          ? 'Check the schedule — the auto-hide time must be in the future and after the show-from time.'
-          : 'Failed to publish — try again.',
+          ? 'Check the schedule: the auto-hide time must be in the future and after the show-from time.'
+          : 'Failed to publish. Try again.',
       );
     } finally {
       setIsSaving(false);
@@ -101,7 +101,7 @@ export function AdminBannerTab() {
       await clearAnnouncement({});
     } catch (err) {
       console.error('Failed to clear announcement:', err);
-      setError('Failed to take the banner down — try again.');
+      setError('Failed to take the banner down. Try again.');
     } finally {
       setIsSaving(false);
     }
@@ -119,7 +119,7 @@ export function AdminBannerTab() {
           </span>
         </div>
         <p className="mb-4 text-sm text-slate-400">
-          A dismissible message shown to everyone at the top of the site — e.g.
+          A dismissible message shown to everyone at the top of the site, e.g.
           "Results will be published late while we wait for FIA penalty
           decisions." Publishing again replaces the current message and re-shows
           it to users who dismissed the old one.
@@ -137,7 +137,7 @@ export function AdminBannerTab() {
           onChange={(event) => setMessage(event.target.value)}
           rows={3}
           maxLength={MAX_ANNOUNCEMENT_LENGTH}
-          placeholder="e.g. Heads up — this weekend's results may be published a little later than usual."
+          placeholder="e.g. Heads up: this weekend's results may be published a little later than usual."
           className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-slate-400 focus:outline-none"
         />
         <div className="mt-1 text-right text-xs text-slate-500">
@@ -161,7 +161,7 @@ export function AdminBannerTab() {
               className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-slate-400 focus:outline-none"
             />
             <p className="mt-1 text-xs text-slate-500">
-              Hold the banner back until then — e.g. when the session was
+              Hold the banner back until then, e.g. when the session was
               expected to finish. Empty shows it immediately.
             </p>
           </div>
@@ -181,8 +181,8 @@ export function AdminBannerTab() {
               className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white [color-scheme:dark] focus:border-slate-400 focus:outline-none"
             />
             <p className="mt-1 text-xs text-slate-500">
-              Takes itself down — no need to remember to clear it. Empty keeps
-              it up until you take it down.
+              Takes itself down automatically. No need to remember to clear it.
+              Empty keeps it up until you take it down.
             </p>
           </div>
         </div>

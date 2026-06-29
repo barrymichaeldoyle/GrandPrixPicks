@@ -118,7 +118,7 @@ export const Route = createFileRoute('/')({
     pageMeta({
       title: 'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season',
       description:
-        'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game — qualifying, sprint, and race sessions plus teammate head-to-heads.',
+        'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game with qualifying, sprint, and race sessions plus teammate head-to-heads.',
       path: '/',
     }),
 });
@@ -368,7 +368,7 @@ function HomePage() {
                           Race weekend complete
                         </p>
                         <p className="home-hero-state-copy text-sm text-slate-300">
-                          Results published — check the standings!
+                          Results published. Check the standings!
                         </p>
                         <div className="mt-1 flex gap-2">
                           <Button
@@ -397,7 +397,7 @@ function HomePage() {
                           Race weekend in progress
                         </p>
                         <p className="home-hero-state-copy text-sm text-slate-300">
-                          Sessions underway — results coming soon.
+                          Sessions underway. Results coming soon.
                         </p>
                       </>
                     )}
@@ -622,7 +622,7 @@ function HomePage() {
             <p className="mt-3 text-sm text-text-muted">
               Each session scores up to 25 points (all 5 correct). Your weekend
               total is the sum of quali, sprint (if applicable), and race
-              scores—so sprint weekends can earn you more points.
+              scores, so sprint weekends can earn you more points.
             </p>
             <p className="mt-3 text-sm text-text-muted">
               Head-to-Head scoring is separate: each correct teammate matchup

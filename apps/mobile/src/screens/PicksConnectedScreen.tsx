@@ -699,7 +699,7 @@ function Top5Editor({
 
       {lockSoon ? (
         <Text style={styles.warnText}>
-          Heads up — locks soon. Save before the session starts.
+          Heads up: locks soon. Save before the session starts.
         </Text>
       ) : null}
 

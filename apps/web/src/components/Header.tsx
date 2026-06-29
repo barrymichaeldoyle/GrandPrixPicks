@@ -77,8 +77,8 @@ function NextRaceQuickLink({ isSignedIn }: { isSignedIn: boolean }) {
       to="/races/$raceSlug"
       params={{ raceSlug: nextRace.slug }}
       className="flex shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
-      aria-label={`${nextRace.name} — your picks`}
-      title={`${nextRace.name} — your picks`}
+      aria-label={`${nextRace.name}: your picks`}
+      title={`${nextRace.name}: your picks`}
       data-testid="header-next-race-link"
     >
       {countryCode ? (

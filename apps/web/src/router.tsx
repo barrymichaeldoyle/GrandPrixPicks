@@ -49,6 +49,16 @@ export function getRouter() {
         if (message.includes('localhost:3030')) {
           return null;
         }
+        // Environmental third-party script/chunk load failures (e.g. Clerk's
+        // lazy-loaded UI bundle dropped by a flaky network or content blocker).
+        // Unrecoverable client-side, not actionable — drop to reduce noise.
+        if (
+          message.includes('failed_to_load_clerk_ui') ||
+          message.includes('Failed to load Clerk UI') ||
+          /failed to load script/i.test(message)
+        ) {
+          return null;
+        }
         return event;
       },
     });

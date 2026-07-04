@@ -150,23 +150,6 @@ export const getRaceBySlug = query({
   },
 });
 
-export function findRaceBySlugOrLegacyRef<
-  T extends { _id: string; slug: string },
->(races: Array<T>, ref: string): T | null {
-  return races.find((race) => race.slug === ref || race._id === ref) ?? null;
-}
-
-export const getRaceBySlugOrLegacyRef = query({
-  args: { ref: v.string() },
-  handler: async (ctx, args) => {
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_season_round')
-      .take(100);
-    return findRaceBySlugOrLegacyRef(races, args.ref);
-  },
-});
-
 /**
  * When predictions open for this race (previous non-cancelled race's final prediction lock).
  * Null for round 1 (no previous race).

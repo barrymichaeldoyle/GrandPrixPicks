@@ -118,7 +118,7 @@ export const Route = createFileRoute('/')({
     pageMeta({
       title: 'Grand Prix Picks - Free F1 Prediction Game for the 2026 Season',
       description:
-        'Pick the top 5 every Grand Prix weekend and compete with friends across the season. Free F1 prediction game with qualifying, sprint, and race sessions plus teammate head-to-heads.',
+        'Pick the top 5 finishers each Grand Prix weekend and compete with friends. Free F1 prediction game with qualifying, sprint, race, and head-to-head picks.',
       path: '/',
     }),
 });

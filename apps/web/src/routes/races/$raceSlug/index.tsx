@@ -1,11 +1,6 @@
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
-import {
-  createFileRoute,
-  Link,
-  notFound,
-  redirect,
-} from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -23,6 +18,7 @@ import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { withRetry } from '@/lib/retry';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
+import { getRaceLocation } from '@/lib/raceLocations';
 import {
   defaultOgImage,
   pageMeta,
@@ -103,24 +99,15 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           shareSession: search.session,
         },
   component: RaceDetailPage,
-  loader: async ({ params, location, deps }) => {
+  loader: async ({ params, deps }) => {
     const [race, nextRace] = await Promise.all([
       withRetry(() =>
-        convex.query(api.races.getRaceBySlugOrLegacyRef, {
-          ref: params.raceSlug,
-        }),
+        convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
       ),
       withRetry(() => convex.query(api.races.getNextRace)),
     ]);
     if (!race) {
       throw notFound();
-    }
-    if (race && race.slug !== params.raceSlug) {
-      throw redirect({
-        to: '/races/$raceSlug',
-        params: { raceSlug: race.slug },
-        search: location.search,
-      });
     }
     const shareCard =
       'share' in deps
@@ -144,7 +131,9 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         shareCard?.variant === 'h2h_score')
         ? `${SESSION_LABELS[shareCard.session]} ${shareCard.variant.startsWith('h2h_') ? 'H2H ' : ''}Results: ${race.name} | Grand Prix Picks`
         : race
-          ? `${race.name} Predictions | Grand Prix Picks`
+          ? race.status === 'finished'
+            ? `${race.name} ${race.season} Results | Grand Prix Picks`
+            : `${race.name} ${race.season} Predictions | Grand Prix Picks`
           : 'Race Predictions | Grand Prix Picks';
     const description =
       race && shareCard?.variant === 'result'
@@ -154,10 +143,13 @@ export const Route = createFileRoute('/races/$raceSlug/')({
               shareCard?.variant === 'h2h_score')
           ? `${SESSION_LABELS[shareCard.session]} teammate Head-to-Head results for the ${race.name}.`
           : race
-            ? `Pick your top 5 finishers for the ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
+            ? race.status === 'finished'
+              ? `Full results and top 5 finishers for the ${race.season} ${race.name}. See how F1 predictions scored on Grand Prix Picks.`
+              : `Pick your top 5 finishers for the ${race.season} ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
             : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     const scripts: { type: string; children: string }[] = [];
     if (race) {
+      const location = getRaceLocation(race.slug);
       scripts.push({
         type: 'application/ld+json',
         children: JSON.stringify({
@@ -165,11 +157,29 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           '@type': 'SportsEvent',
           name: race.name,
           startDate: new Date(race.raceStartAt).toISOString(),
-          eventStatus: 'https://schema.org/EventScheduled',
+          // Grands Prix run to a 2-hour limit
+          endDate: new Date(
+            race.raceStartAt + 2 * 60 * 60 * 1000,
+          ).toISOString(),
+          eventStatus:
+            race.status === 'cancelled'
+              ? 'https://schema.org/EventCancelled'
+              : 'https://schema.org/EventScheduled',
           eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
           description,
           url: `${siteConfig.url}/races/${params.raceSlug}`,
           sport: 'Formula 1',
+          ...(location && {
+            location: {
+              '@type': 'Place',
+              name: location.circuit,
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: location.locality,
+                addressCountry: location.country,
+              },
+            },
+          }),
           organizer: {
             '@type': 'Organization',
             name: 'Grand Prix Picks',

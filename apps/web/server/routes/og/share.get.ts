@@ -48,8 +48,8 @@ export default async function handler(event: RouteEvent) {
     }
     const convex = new ConvexHttpClient(convexUrl);
 
-    const race = await convex.query(api.races.getRaceBySlugOrLegacyRef, {
-      ref: raceSlug,
+    const race = await convex.query(api.races.getRaceBySlug, {
+      slug: raceSlug,
     });
     if (!race) {
       return DEFAULT_IMAGE_REDIRECT.clone();

@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(pnpm lint)",
@@ -27,5 +24,8 @@
       "mcp__mobile__mobile_take_screenshot",
       "mcp__mobile__mobile_list_elements_on_screen"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": false
   }
 }

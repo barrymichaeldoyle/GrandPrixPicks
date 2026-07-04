@@ -23,6 +23,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
+import { useAutoSaveOnFirstComplete } from '../hooks/useAutoSaveOnFirstComplete';
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
@@ -36,6 +37,12 @@ import { colors, radii } from '../theme/tokens';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
+/**
+ * Grace period after the picks first become complete before auto-saving.
+ * Top 5 gets longer because pick order matters — reordering resets the timer.
+ */
+const TOP5_AUTO_SAVE_DELAY_MS = 2500;
+const H2H_AUTO_SAVE_DELAY_MS = 1200;
 
 type RaceDoc = ConvexDoc<'races'>;
 type DriverId = ConvexId<'drivers'>;
@@ -624,7 +631,19 @@ function Top5Editor({
     void patchConnectedDraft(race.slug, draftSession, { top5: picks });
   }, [draftSession, isDirty, picks, race.slug]);
 
+  // First-time picks save themselves shortly after the 5th driver lands —
+  // users kept filling the list and forgetting the Save button. The delay
+  // leaves room to reorder (any change re-arms it); edits stay manual.
+  const { markInteraction } = useAutoSaveOnFirstComplete({
+    enabled: existingPicks.length === 0 && !sessionIsLocked && !isSubmitting,
+    complete: picks.length === MAX_TOP5,
+    picksSignature: picks.join(','),
+    delayMs: TOP5_AUTO_SAVE_DELAY_MS,
+    save: () => void handleSave(),
+  });
+
   function updatePicks(next: string[]) {
+    markInteraction();
     setIsDirty(true);
     setPicks(next);
   }
@@ -933,6 +952,20 @@ function H2HEditor({
   const isComplete = Object.keys(selections).length === matchups.length;
   const canSave = isComplete && !sessionIsLocked;
 
+  // First-time picks save themselves as the last matchup is tapped — users
+  // kept completing the grid and forgetting the Save button. Edits stay manual.
+  const { markInteraction } = useAutoSaveOnFirstComplete({
+    enabled:
+      Object.keys(existingPicks).length === 0 &&
+      matchups.length > 0 &&
+      !sessionIsLocked &&
+      !isSubmitting,
+    complete: isComplete,
+    picksSignature: JSON.stringify(selections),
+    delayMs: H2H_AUTO_SAVE_DELAY_MS,
+    save: () => void handleSave(),
+  });
+
   async function handleSave() {
     if (!canSave || isSubmitting) {
       return;
@@ -994,6 +1027,7 @@ function H2HEditor({
         matchups={matchups as Array<Matchup>}
         mode={sessionIsLocked ? 'readonly' : 'interactive'}
         onSelect={(matchupId, driverId) => {
+          markInteraction();
           setIsDirty(true);
           setSelections((prev) => ({ ...prev, [matchupId]: driverId }));
         }}

@@ -7,6 +7,7 @@ import { Check, Save } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 
+import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
   clearPredictionDraft,
@@ -36,6 +37,9 @@ type H2HDraft = {
   selections: Record<string, Id<'drivers'>>;
   updatedAt: string;
 };
+
+/** Grace period after the last matchup is picked before auto-saving. */
+const AUTO_SAVE_DELAY_MS = 1200;
 
 export function H2HPredictionForm({
   raceId,
@@ -74,11 +78,29 @@ export function H2HPredictionForm({
   const totalMatchups = matchups.length;
   const selectedCount = Object.keys(selections).length;
   const allSelected = selectedCount === totalMatchups;
+  const isFirstEntry =
+    !existingPicks || Object.keys(existingPicks).length === 0;
+
+  // First-time picks save themselves as the last matchup is tapped — users
+  // kept completing the grid and forgetting the Save button. Edits stay manual.
+  const { markInteraction } = useAutoSaveOnFirstComplete({
+    enabled:
+      isFirstEntry &&
+      hasHydratedDraft &&
+      totalMatchups > 0 &&
+      !isSubmitting &&
+      submitStatus !== 'error',
+    complete: allSelected,
+    picksSignature: JSON.stringify(selections),
+    delayMs: AUTO_SAVE_DELAY_MS,
+    save: () => void handleSubmit({ autoSaved: true }),
+  });
 
   function toggleSelection(
     matchupId: Id<'h2hMatchups'>,
     driverId: Id<'drivers'>,
   ) {
+    markInteraction();
     setSelections((prev) => ({
       ...prev,
       [matchupId]: driverId,
@@ -86,8 +108,8 @@ export function H2HPredictionForm({
     setSubmitStatus('idle');
   }
 
-  async function handleSubmit() {
-    if (!allSelected) {
+  async function handleSubmit(options?: { autoSaved?: boolean }) {
+    if (!allSelected || isSubmitting) {
       return;
     }
 
@@ -111,6 +133,7 @@ export function H2HPredictionForm({
         ),
         restored_draft: Boolean(restoredDraftAt),
         matchup_count: totalMatchups,
+        auto_saved: Boolean(options?.autoSaved),
       });
       setSubmitStatus('success');
       confetti({
@@ -178,7 +201,7 @@ export function H2HPredictionForm({
     loading: isSubmitting,
     saved: isUnchangedFromSaved,
     disabled: !allSelected || isSubmitting || isUnchangedFromSaved,
-    onClick: handleSubmit,
+    onClick: () => void handleSubmit(),
     leftIcon: isUnchangedFromSaved ? Check : Save,
     'data-testid': 'h2h-submit-button',
     children: isUnchangedFromSaved

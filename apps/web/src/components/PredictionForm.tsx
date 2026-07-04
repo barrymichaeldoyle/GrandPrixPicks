@@ -28,6 +28,7 @@ import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
 import {
@@ -298,6 +299,12 @@ type Top5Draft = {
   updatedAt: string;
 };
 
+/**
+ * Grace period after the 5th pick lands before auto-saving. Longer than the
+ * H2H delay because pick order matters here — reordering resets the timer.
+ */
+const AUTO_SAVE_DELAY_MS = 2500;
+
 export function PredictionForm({
   raceId,
   existingPicks,
@@ -369,6 +376,7 @@ export function PredictionForm({
       const oldIndex = picks.indexOf(activeId);
       const newIndex = picks.indexOf(overDriverId);
       if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        markInteraction();
         setPicks(arrayMove(picks, oldIndex, newIndex));
       }
     } else if (picks.length < 5) {
@@ -429,10 +437,6 @@ export function PredictionForm({
     disabled: !enableNavigationBlocker || !hasChanges,
   });
 
-  if (drivers === undefined) {
-    return <InlineLoader />;
-  }
-
   // Cascade mode (no sessionType) saves until the last session locks. The
   // helper returns 0 for sessions with no lock time — treat that as unknown
   // (not locked) rather than locked-since-epoch.
@@ -450,6 +454,28 @@ export function PredictionForm({
       ? 'Predictions are closed for this race right now. Open the current prediction race instead.'
       : null;
   const isSubmissionBlocked = submissionBlockedMessage !== null;
+
+  const isFirstEntry = !existingPicks || existingPicks.length === 0;
+
+  // First-time picks save themselves shortly after the 5th driver lands —
+  // users kept filling the list and forgetting the Save button. The delay
+  // leaves room to reorder (any change re-arms it); edits stay manual.
+  const { markInteraction } = useAutoSaveOnFirstComplete({
+    enabled:
+      isFirstEntry &&
+      hasHydratedDraft &&
+      !isSubmitting &&
+      !isSubmissionBlocked &&
+      submitStatus !== 'error',
+    complete: picks.length === 5,
+    picksSignature: JSON.stringify(picks),
+    delayMs: AUTO_SAVE_DELAY_MS,
+    save: () => void handleSubmit({ autoSaved: true }),
+  });
+
+  if (drivers === undefined) {
+    return <InlineLoader />;
+  }
 
   const pickedDrivers = picks
     .map((id) => drivers.find((d) => d._id === id))
@@ -476,17 +502,20 @@ export function PredictionForm({
     if (picks.includes(driverId)) {
       return;
     }
+    markInteraction();
     setPicks([...picks, driverId]);
     setSubmitStatus('idle');
   }
 
   function removeDriver(driverId: Id<'drivers'>) {
+    markInteraction();
     setPicks(picks.filter((id) => id !== driverId));
     setSubmitStatus('idle');
   }
 
   /** Insert driver at slot index (0–4). Used when dropping from pool onto a row. */
   function addDriverAtPosition(driverId: Id<'drivers'>, slotIndex: number) {
+    markInteraction();
     const without = picks.filter((id) => id !== driverId);
     const next = [...without];
     next.splice(slotIndex, 0, driverId);
@@ -498,6 +527,7 @@ export function PredictionForm({
     if (index === 0) {
       return;
     }
+    markInteraction();
     const newPicks = [...picks];
     [newPicks[index - 1], newPicks[index]] = [
       newPicks[index],
@@ -511,6 +541,7 @@ export function PredictionForm({
     if (index >= picks.length - 1) {
       return;
     }
+    markInteraction();
     const newPicks = [...picks];
     [newPicks[index], newPicks[index + 1]] = [
       newPicks[index + 1],
@@ -520,8 +551,8 @@ export function PredictionForm({
     setSubmitStatus('idle');
   }
 
-  async function handleSubmit() {
-    if (picks.length !== 5) {
+  async function handleSubmit(options?: { autoSaved?: boolean }) {
+    if (picks.length !== 5 || isSubmitting) {
       return;
     }
 
@@ -537,6 +568,7 @@ export function PredictionForm({
         session_type: sessionType ?? 'cascade',
         is_edit: Boolean(existingPicks && existingPicks.length > 0),
         restored_draft: Boolean(restoredDraftAt),
+        auto_saved: Boolean(options?.autoSaved),
       });
       setSubmitStatus('success');
       if (existingPicks && existingPicks.length > 0) {
@@ -683,7 +715,7 @@ export function PredictionForm({
                   isUnchangedFromSaved ||
                   isSubmissionBlocked
                 }
-                onClick={handleSubmit}
+                onClick={() => void handleSubmit()}
                 data-testid="submit-prediction"
               >
                 {isUnchangedFromSaved ? (

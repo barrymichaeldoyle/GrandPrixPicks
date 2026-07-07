@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { createContext, useContext } from 'react';
 
-import { getAuthenticatedClerkIdentity } from '../../../server/lib/auth';
+import { isClerkSessionPresent } from '../../../server/lib/auth';
 
 /**
  * Viewer auth state resolved on the server during SSR. Lets the header render
@@ -12,32 +12,31 @@ import { getAuthenticatedClerkIdentity } from '../../../server/lib/auth';
  */
 export type InitialAuth = {
   isSignedIn: boolean;
-  userId: string | null;
 };
 
 const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
   isSignedIn: false,
-  userId: null,
 };
 
 /**
- * Resolves the viewer's Clerk auth state from the request cookies using the
- * edge-safe `@clerk/backend` SDK (the same primitive the Nitro API routes use),
- * so it runs on Cloudflare without Clerk's `node:fs`-bound server adapter.
+ * Resolves whether the viewer has a Clerk session for the first server render.
+ *
+ * We read Clerk's durable `__client_uat` cookie rather than validating the
+ * `__session` JWT: that token is short-lived (~1 min) and is frequently stale on
+ * a mobile refresh or a resumed tab, in which case validating it reports
+ * signed-out and the header flashes "Sign in" before the client SDK refreshes.
+ * The `__client_uat` signal has no such expiry, so the first paint matches the
+ * real state. This only drives cosmetic first-paint nav — Clerk (client) and
+ * Convex remain the source of truth for anything that actually reads data.
  */
 export const fetchInitialAuth = createServerFn({ method: 'GET' }).handler(
   async (): Promise<InitialAuth> => {
     try {
-      const identity = await getAuthenticatedClerkIdentity(getRequest());
-      return {
-        isSignedIn: identity !== null,
-        userId: identity?.userId ?? null,
-      };
+      return { isSignedIn: isClerkSessionPresent(getRequest()) };
     } catch {
-      // SSR auth is a progressive enhancement: if resolution fails (e.g. missing
-      // CLERK_SECRET_KEY, a transient Clerk error, or a malformed cookie) fall
-      // back to anonymous and let Clerk's client SDK resolve auth, rather than
-      // failing the whole page render.
+      // SSR auth is a progressive enhancement: on any failure fall back to
+      // anonymous and let Clerk's client SDK resolve auth, rather than failing
+      // the whole page render.
       return ANONYMOUS_INITIAL_AUTH;
     }
   },

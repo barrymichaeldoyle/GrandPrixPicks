@@ -220,11 +220,13 @@ export const getUserPredictionHistory = query({
           const isLocked = lockTime != null && now >= lockTime;
 
           if (!isOwner && !isLocked) {
+            // Visitors before lock only learn that picks exist and are hidden.
+            // Do not leak the exact submission time (participation metadata).
             sessions[sessionType] = {
               picks: [],
               points: null,
               breakdown: null,
-              submittedAt: pred.submittedAt,
+              submittedAt: 0,
               isHidden: true,
             };
           } else {
@@ -246,9 +248,13 @@ export const getUserPredictionHistory = query({
           0,
         );
 
-        const latestSubmission = Math.max(
-          ...weekendPredictions.map((p) => p.submittedAt),
-        );
+        // Only surface submission times for sessions the viewer is allowed to
+        // see (own picks, or locked). Hidden sessions carry submittedAt: 0.
+        const visibleSubmissions = Object.values(sessions)
+          .map((s) => (s && !s.isHidden ? s.submittedAt : 0))
+          .filter((t) => t > 0);
+        const latestSubmission =
+          visibleSubmissions.length > 0 ? Math.max(...visibleSubmissions) : 0;
 
         return {
           raceId,

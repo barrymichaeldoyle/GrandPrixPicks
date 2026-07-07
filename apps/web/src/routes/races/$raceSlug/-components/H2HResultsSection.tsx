@@ -19,10 +19,21 @@ import { SESSION_LABELS } from '@/lib/sessions';
 import { buildH2HScoreShareText } from '@/lib/share';
 import { siteConfig } from '@/lib/site';
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
+import type { RaceWeekendInitialResults } from '@/routes/races/$raceSlug/-hooks/useRaceWeekendData';
 
 interface H2HResultsSectionProps {
   race: Doc<'races'>;
   selectedSession: SessionType;
+  /**
+   * Loader-seeded public data (driver roster, which sessions are published, and
+   * the finishing order per session). Renders the actual-results table during
+   * SSR / before the client subscriptions resolve, so a finished race is
+   * crawlable. Viewer-specific data (the pick column, H2H record) stays
+   * client-only and simply shows blanks until Clerk + Convex boot.
+   */
+  initialDrivers?: Doc<'drivers'>[];
+  initialAvailableSessions?: SessionType[];
+  initialResultsBySession?: RaceWeekendInitialResults['resultsBySession'];
 }
 
 function SessionBreakdownPillShell({
@@ -115,18 +126,23 @@ function SessionBreakdownSessionGainPill({ points }: { points: number }) {
 export function H2HResultsSection({
   race,
   selectedSession,
+  initialDrivers,
+  initialAvailableSessions,
+  initialResultsBySession,
 }: H2HResultsSectionProps) {
   const raceId = race._id;
   const { formatDate } = useUserDateFormat();
   const me = useQuery(api.users.me, {});
-  const drivers = useQuery(api.drivers.listDrivers);
-  const availableSessions = useQuery(api.results.getAllResultsForRace, {
-    raceId,
-  });
-  const selectedTop5Result = useQuery(api.results.getResultForRace, {
-    raceId,
-    sessionType: selectedSession,
-  });
+  const drivers = useQuery(api.drivers.listDrivers) ?? initialDrivers;
+  const availableSessions =
+    useQuery(api.results.getAllResultsForRace, {
+      raceId,
+    }) ?? initialAvailableSessions;
+  const selectedTop5Result =
+    useQuery(api.results.getResultForRace, {
+      raceId,
+      sessionType: selectedSession,
+    }) ?? initialResultsBySession?.[selectedSession];
   const myTop5Predictions = useQuery(api.predictions.myWeekendPredictions, {
     raceId,
   });

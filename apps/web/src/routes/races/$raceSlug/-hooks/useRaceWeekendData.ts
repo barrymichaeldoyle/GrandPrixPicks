@@ -2,6 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 import { useQuery } from 'convex/react';
+import type { FunctionReturnType } from 'convex/server';
 
 import { fromRaceDetail } from '@/components/RaceScoreCard/adapters';
 import type { WeekendCardData } from '@/components/RaceScoreCard/types';
@@ -13,10 +14,26 @@ import type { SessionType } from '@/lib/sessions';
 import { getSessionsForWeekend } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 
+/**
+ * Public, published results resolved in the route loader so a finished race
+ * renders its actual finishing order in the server HTML. Used as the initial
+ * value for the client Convex subscriptions until they boot (and so crawlers,
+ * which never run them, still see the results).
+ */
+export type RaceWeekendInitialResults = {
+  availableSessions: FunctionReturnType<
+    typeof api.results.getAllResultsForRace
+  >;
+  resultsBySession: Partial<
+    Record<SessionType, FunctionReturnType<typeof api.results.getResultForRace>>
+  >;
+};
+
 type UseRaceWeekendDataArgs = {
   race: Doc<'races'> | null;
   isAuthLoaded: boolean;
   isSignedIn: boolean;
+  initialResults?: RaceWeekendInitialResults;
 };
 
 /**
@@ -28,6 +45,7 @@ export function useRaceWeekendData({
   race,
   isAuthLoaded,
   isSignedIn,
+  initialResults,
 }: UseRaceWeekendDataArgs) {
   const now = useNow();
   const weekendSessions = getSessionsForWeekend(!!race?.hasSprint);
@@ -48,41 +66,48 @@ export function useRaceWeekendData({
     api.results.getEnrichedTop5BySession,
     race ? { raceId: race._id } : 'skip',
   );
-  const availableSessions = useQuery(
-    api.results.getAllResultsForRace,
-    race ? { raceId: race._id } : 'skip',
-  );
+  const availableSessions =
+    useQuery(
+      api.results.getAllResultsForRace,
+      race ? { raceId: race._id } : 'skip',
+    ) ?? initialResults?.availableSessions;
   const drivers = useQuery(api.drivers.listDrivers);
   const raceRank = useQuery(
     api.results.getRaceRank,
     race ? { raceId: race._id } : 'skip',
   );
 
-  // Per-session results (fetch when available)
-  const qualiResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('quali')
-      ? { raceId: race._id, sessionType: 'quali' as const }
-      : 'skip',
-  );
-  const sprintQualiResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('sprint_quali')
-      ? { raceId: race._id, sessionType: 'sprint_quali' as const }
-      : 'skip',
-  );
-  const sprintResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('sprint')
-      ? { raceId: race._id, sessionType: 'sprint' as const }
-      : 'skip',
-  );
-  const raceResult = useQuery(
-    api.results.getResultForRace,
-    race && availableSessions?.includes('race')
-      ? { raceId: race._id, sessionType: 'race' as const }
-      : 'skip',
-  );
+  // Per-session results (fetch when available). Fall back to the loader-seeded
+  // result so the finishing order is present during SSR / before the client
+  // subscription resolves.
+  const qualiResult =
+    useQuery(
+      api.results.getResultForRace,
+      race && availableSessions?.includes('quali')
+        ? { raceId: race._id, sessionType: 'quali' as const }
+        : 'skip',
+    ) ?? initialResults?.resultsBySession?.quali;
+  const sprintQualiResult =
+    useQuery(
+      api.results.getResultForRace,
+      race && availableSessions?.includes('sprint_quali')
+        ? { raceId: race._id, sessionType: 'sprint_quali' as const }
+        : 'skip',
+    ) ?? initialResults?.resultsBySession?.sprint_quali;
+  const sprintResult =
+    useQuery(
+      api.results.getResultForRace,
+      race && availableSessions?.includes('sprint')
+        ? { raceId: race._id, sessionType: 'sprint' as const }
+        : 'skip',
+    ) ?? initialResults?.resultsBySession?.sprint;
+  const raceResult =
+    useQuery(
+      api.results.getResultForRace,
+      race && availableSessions?.includes('race')
+        ? { raceId: race._id, sessionType: 'race' as const }
+        : 'skip',
+    ) ?? initialResults?.resultsBySession?.race;
 
   // Keep the matchups subscription warm at route level: H2HSection (which
   // also queries this) only mounts after Top 5 picks exist, and without the

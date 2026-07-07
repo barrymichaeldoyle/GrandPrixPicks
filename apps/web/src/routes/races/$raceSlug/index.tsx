@@ -114,11 +114,37 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     if (!race) {
       throw notFound();
     }
+    // Published results are public, so fetch them server-side too: a finished
+    // race then renders its actual finishing order in the SSR HTML (crawlable,
+    // and visible before the client Convex subscriptions boot) rather than an
+    // empty table. Upcoming races have no results, so this is a single cheap
+    // query for them.
+    const availableSessions = await withRetry(() =>
+      convex.query(api.results.getAllResultsForRace, { raceId: race._id }),
+    );
+    const resultEntries = await Promise.all(
+      availableSessions.map(
+        async (sessionType) =>
+          [
+            sessionType,
+            await withRetry(() =>
+              convex.query(api.results.getResultForRace, {
+                raceId: race._id,
+                sessionType,
+              }),
+            ),
+          ] as const,
+      ),
+    );
+    const initialResults = {
+      availableSessions,
+      resultsBySession: Object.fromEntries(resultEntries),
+    };
     const shareCard =
       'share' in deps
         ? parseShareCard({ ...deps, session: deps.shareSession })
         : null;
-    return { race, nextRace, drivers, shareCard };
+    return { race, nextRace, drivers, initialResults, shareCard };
   },
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
@@ -251,7 +277,7 @@ function RaceNotFound() {
 }
 
 function RaceDetailPage() {
-  const { race, nextRace, drivers } = Route.useLoaderData();
+  const { race, nextRace, drivers, initialResults } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const { from } = search;
@@ -285,7 +311,12 @@ function RaceDetailPage() {
     scoredEventCount,
     isTop5SavedForSession,
     isH2HSavedForSession,
-  } = useRaceWeekendData({ race, isAuthLoaded, isSignedIn: !!isSignedIn });
+  } = useRaceWeekendData({
+    race,
+    isAuthLoaded,
+    isSignedIn: !!isSignedIn,
+    initialResults,
+  });
 
   function getSessionLockAt(session: SessionType): number {
     return race ? getRaceSessionLockAt(race, session) : 0;
@@ -409,6 +440,7 @@ function RaceDetailPage() {
         isNextRace={isNextRace}
         viewer={{ isAuthLoaded, isSignedIn: !!isSignedIn }}
         drivers={drivers}
+        initialResults={initialResults}
         isPredictionsLoading={
           (isPredictable && isSignedIn && weekendPredictions === undefined) ||
           isViewerPredictionDataLoading

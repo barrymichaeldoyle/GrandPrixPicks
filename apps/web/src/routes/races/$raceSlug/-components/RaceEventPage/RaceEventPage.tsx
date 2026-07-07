@@ -31,6 +31,7 @@ import type { TabSwitchOption } from '@/components/TabSwitch';
 import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
 import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
 import { SignedOutRacePreview } from '@/routes/races/$raceSlug/-components/SignedOutRacePreview';
+import type { RaceWeekendInitialResults } from '@/routes/races/$raceSlug/-hooks/useRaceWeekendData';
 import { RaceEventPageLayout } from '@/routes/races/$raceSlug/-components/RaceEventPageLayout/RaceEventPageLayout';
 import { WeekendRecap } from '@/routes/races/$raceSlug/-components/WeekendRecap/WeekendRecap';
 import type { H2HSessionScore } from '@/routes/races/$raceSlug/-components/WeekendRecap/recap';
@@ -67,6 +68,9 @@ type H2HSectionSlotProps = {
 type H2HResultsSectionSlotProps = {
   race: Doc<'races'>;
   selectedSession: SessionType;
+  initialDrivers?: Doc<'drivers'>[];
+  initialAvailableSessions?: SessionType[];
+  initialResultsBySession?: RaceWeekendInitialResults['resultsBySession'];
 };
 
 type RaceEventPageProps = {
@@ -75,6 +79,8 @@ type RaceEventPageProps = {
   viewer: ViewerState;
   /** Full driver roster, used for the signed-out (crawlable) driver grid. */
   drivers?: Doc<'drivers'>[];
+  /** Loader-seeded published results, used to SSR the finishing-order table. */
+  initialResults?: RaceWeekendInitialResults;
   isPredictionsLoading: boolean;
   isViewerPredictionDataLoading: boolean;
   weekendStatus: WeekendStatus;
@@ -107,6 +113,7 @@ export function RaceEventPage({
   isNextRace,
   viewer,
   drivers = [],
+  initialResults,
   isPredictionsLoading,
   isViewerPredictionDataLoading,
   weekendStatus,
@@ -486,6 +493,9 @@ export function RaceEventPage({
             <H2HResultsSectionComponent
               race={race}
               selectedSession={selectedSession}
+              initialDrivers={drivers}
+              initialAvailableSessions={initialResults?.availableSessions}
+              initialResultsBySession={initialResults?.resultsBySession}
             />
             {/* When fully scored, the weekend-score share lives in the recap at
                 the top of the page; here it only covers a partially-scored

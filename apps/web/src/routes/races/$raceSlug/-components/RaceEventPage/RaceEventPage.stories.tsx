@@ -496,6 +496,7 @@ function Scenario({
           race={race}
           isNextRace={isNextRace}
           viewer={{ isAuthLoaded, isSignedIn }}
+          drivers={drivers}
           isPredictionsLoading={false}
           isViewerPredictionDataLoading={false}
           weekendStatus={{
@@ -583,6 +584,29 @@ export const UpcomingNoPicks: Story = {
     renderCatalogScenario(
       raceEventStoryScenarios.race_upcoming_signed_in_no_picks,
     ),
+};
+
+// A signed-out visitor on the open race sees the crawlable driver grid and a
+// "play free" CTA instead of a bare sign-in gate.
+export const SignedOutUpcomingPreview: Story = {
+  render: () => (
+    <Scenario
+      race={makeRace({
+        slug: 'spanish-grand-prix',
+        name: 'Spanish Grand Prix',
+        status: 'upcoming',
+        hasSprint: false,
+        raceStartAt: NOW + 5 * DAY,
+      })}
+      isNextRace
+      isAuthLoaded
+      isSignedIn={false}
+      hasPredictions={false}
+      hasPublishedResults={false}
+      allEventsScored={false}
+      scoredSessions={[]}
+    />
+  ),
 };
 
 export const UpcomingWithPredictions: Story = {

@@ -30,6 +30,7 @@ import type { TabSwitchOption } from '@/components/TabSwitch';
 
 import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
 import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
+import { SignedOutRacePreview } from '@/routes/races/$raceSlug/-components/SignedOutRacePreview';
 import { RaceEventPageLayout } from '@/routes/races/$raceSlug/-components/RaceEventPageLayout/RaceEventPageLayout';
 import { WeekendRecap } from '@/routes/races/$raceSlug/-components/WeekendRecap/WeekendRecap';
 import type { H2HSessionScore } from '@/routes/races/$raceSlug/-components/WeekendRecap/recap';
@@ -72,6 +73,8 @@ type RaceEventPageProps = {
   race: Doc<'races'>;
   isNextRace: boolean;
   viewer: ViewerState;
+  /** Full driver roster, used for the signed-out (crawlable) driver grid. */
+  drivers?: Doc<'drivers'>[];
   isPredictionsLoading: boolean;
   isViewerPredictionDataLoading: boolean;
   weekendStatus: WeekendStatus;
@@ -103,6 +106,7 @@ export function RaceEventPage({
   race,
   isNextRace,
   viewer,
+  drivers = [],
   isPredictionsLoading,
   isViewerPredictionDataLoading,
   weekendStatus,
@@ -139,6 +143,14 @@ export function RaceEventPage({
     onDirtyChange: onTop5DirtyChange,
   } = top5Editing;
   const isPredictable = race.status === 'upcoming' && isNextRace;
+  // A signed-out visitor on the open race: swap the bare sign-in gate for a
+  // content-rich preview (driver grid + a clear "play free" CTA) so the page is
+  // useful to crawlers and gives first-timers a reason to sign up.
+  const showSignedOutPreview = isPredictable && !isSignedIn;
+  const currentUrl =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
   const canManagePredictions = isNextRace;
   const canEditSelectedSession = Boolean(
@@ -405,46 +417,54 @@ export function RaceEventPage({
           ) : null
         }
         top5MainContent={
-          <>
-            {showFollowPrompt && (
-              <div className="mb-4">
-                <FollowXPrompt onDismiss={() => setShowFollowPrompt(false)} />
-              </div>
-            )}
-            {renderLateSessionEntryCta() ??
-              (cardData && selectedSessionCardData ? (
-                <ErrorBoundary>
-                  <RaceScoreCard
-                    data={selectedSessionCardData}
-                    variant="full"
-                    viewer={{
-                      isSignedIn,
-                      isOwner: true,
+          showSignedOutPreview ? (
+            <SignedOutRacePreview
+              race={race}
+              drivers={drivers}
+              currentUrl={currentUrl}
+            />
+          ) : (
+            <>
+              {showFollowPrompt && (
+                <div className="mb-4">
+                  <FollowXPrompt onDismiss={() => setShowFollowPrompt(false)} />
+                </div>
+              )}
+              {renderLateSessionEntryCta() ??
+                (cardData && selectedSessionCardData ? (
+                  <ErrorBoundary>
+                    <RaceScoreCard
+                      data={selectedSessionCardData}
+                      variant="full"
+                      viewer={{
+                        isSignedIn,
+                        isOwner: true,
+                      }}
+                      isNextRace={isNextRace}
+                      onEditSession={
+                        canManagePredictions
+                          ? onTop5EditingSessionChange
+                          : undefined
+                      }
+                    />
+                  </ErrorBoundary>
+                ) : null)}
+              {canSharePicks && (
+                <div className="mt-3">
+                  <ShareOnXButton
+                    text={sharePicksText}
+                    url={sharePicksUrl}
+                    analyticsEvent="picks_shared_x"
+                    analyticsProps={{
+                      race_slug: race.slug,
+                      session_type: selectedSession,
                     }}
-                    isNextRace={isNextRace}
-                    onEditSession={
-                      canManagePredictions
-                        ? onTop5EditingSessionChange
-                        : undefined
-                    }
+                    label="Share my picks on X"
                   />
-                </ErrorBoundary>
-              ) : null)}
-            {canSharePicks && (
-              <div className="mt-3">
-                <ShareOnXButton
-                  text={sharePicksText}
-                  url={sharePicksUrl}
-                  analyticsEvent="picks_shared_x"
-                  analyticsProps={{
-                    race_slug: race.slug,
-                    session_type: selectedSession,
-                  }}
-                  label="Share my picks on X"
-                />
-              </div>
-            )}
-          </>
+                </div>
+              )}
+            </>
+          )
         }
         h2hContent={
           <H2HSectionComponent

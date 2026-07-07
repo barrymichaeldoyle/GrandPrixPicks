@@ -1,4 +1,5 @@
 import { useAuth } from '@clerk/react';
+import { useInitialAuth } from '@/integrations/clerk/initial-auth';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { convexHttp as convex } from '@/integrations/convex/client';
@@ -100,11 +101,15 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         },
   component: RaceDetailPage,
   loader: async ({ params, deps }) => {
-    const [race, nextRace] = await Promise.all([
+    // Fetch the driver roster alongside the race so a signed-out visitor (and
+    // search-engine crawlers, which don't run the client Convex subscriptions)
+    // get a real, crawlable grid on the page instead of an empty sign-in gate.
+    const [race, nextRace, drivers] = await Promise.all([
       withRetry(() =>
         convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
       ),
       withRetry(() => convex.query(api.races.getNextRace)),
+      withRetry(() => convex.query(api.drivers.listDrivers)),
     ]);
     if (!race) {
       throw notFound();
@@ -113,7 +118,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       'share' in deps
         ? parseShareCard({ ...deps, session: deps.shareSession })
         : null;
-    return { race, nextRace, shareCard };
+    return { race, nextRace, drivers, shareCard };
   },
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
@@ -246,11 +251,20 @@ function RaceNotFound() {
 }
 
 function RaceDetailPage() {
-  const { race, nextRace } = Route.useLoaderData();
+  const { race, nextRace, drivers } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const { from } = search;
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
+  const initialAuth = useInitialAuth();
+  // Auth is resolved on the server (initialAuth, from the request cookie) so the
+  // page renders real content on the first paint — and for crawlers, which never
+  // boot Clerk's client SDK — instead of blocking on a spinner. Once Clerk's
+  // client loads it becomes the source of truth. `isAuthLoaded` stays false for a
+  // signed-in first paint (so we wait for that viewer's picks) but is true for an
+  // anonymous visitor, whose view needs no client data.
+  const isSignedIn = isLoaded ? !!clientSignedIn : initialAuth.isSignedIn;
+  const isAuthLoaded = isLoaded || !initialAuth.isSignedIn;
 
   const {
     now,
@@ -394,8 +408,9 @@ function RaceDetailPage() {
         race={currentRace}
         isNextRace={isNextRace}
         viewer={{ isAuthLoaded, isSignedIn: !!isSignedIn }}
+        drivers={drivers}
         isPredictionsLoading={
-          (isPredictable && weekendPredictions === undefined) ||
+          (isPredictable && isSignedIn && weekendPredictions === undefined) ||
           isViewerPredictionDataLoading
         }
         isViewerPredictionDataLoading={isViewerPredictionDataLoading}

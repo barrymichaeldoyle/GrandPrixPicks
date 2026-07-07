@@ -6,6 +6,7 @@ import {
   getPersonalizedFeedPageData,
   getSessionLockAt,
   isSessionLockedAt,
+  shouldBroadcastLeagueJoin,
 } from './feed';
 
 const MAX_FEED_SIZE = 40;
@@ -437,6 +438,25 @@ describe('getPersonalizedFeedPageData', () => {
         },
       ],
     });
+  });
+});
+
+describe('shouldBroadcastLeagueJoin', () => {
+  it('broadcasts joins for public leagues without a password', () => {
+    expect(shouldBroadcastLeagueJoin({ visibility: 'public' })).toBe(true);
+  });
+
+  it('never broadcasts joins for private leagues', () => {
+    expect(shouldBroadcastLeagueJoin({ visibility: 'private' })).toBe(false);
+    expect(
+      shouldBroadcastLeagueJoin({ visibility: 'private', password: 'hash' }),
+    ).toBe(false);
+  });
+
+  it('never broadcasts joins for password-protected leagues', () => {
+    expect(
+      shouldBroadcastLeagueJoin({ visibility: 'public', password: 'hash' }),
+    ).toBe(false);
   });
 });
 

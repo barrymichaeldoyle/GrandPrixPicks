@@ -281,6 +281,18 @@ export const writeFeedEventsForSession = internalMutation({
   },
 });
 
+/**
+ * A joined_league feed event exposes the league name + joinable slug to the
+ * joining user's followers. Only broadcast membership of fully public leagues —
+ * private or password-protected leagues would be deanonymized otherwise.
+ */
+export function shouldBroadcastLeagueJoin(league: {
+  visibility: 'private' | 'public';
+  password?: string;
+}): boolean {
+  return league.visibility === 'public' && !league.password;
+}
+
 /** Write a joined_league feed event. Called from leagues.ts after a successful join. */
 export const writeJoinedLeagueFeedEvent = internalMutation({
   args: {
@@ -291,6 +303,10 @@ export const writeJoinedLeagueFeedEvent = internalMutation({
     const user = await ctx.db.get(args.userId);
     const league = await ctx.db.get(args.leagueId);
     if (!user || !league) {
+      return;
+    }
+
+    if (!shouldBroadcastLeagueJoin(league)) {
       return;
     }
 
@@ -1346,5 +1362,43 @@ export const deleteFeedEventsForSession = internalMutation({
       }
       await ctx.db.delete(event._id);
     }
+  },
+});
+
+/**
+ * One-off cleanup: remove joined_league feed events (and their revs) that were
+ * written for private / password-protected leagues before those joins stopped
+ * being broadcast. Run once via `convex run feed:purgePrivateLeagueJoinEvents`.
+ */
+export const purgePrivateLeagueJoinEvents = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    let deletedEvents = 0;
+    let deletedRevs = 0;
+
+    for await (const league of ctx.db.query('leagues')) {
+      if (shouldBroadcastLeagueJoin(league)) {
+        continue;
+      }
+
+      for await (const event of ctx.db
+        .query('feedEvents')
+        .withIndex('by_league_created', (q) => q.eq('leagueId', league._id))) {
+        if (event.type !== 'joined_league') {
+          continue;
+        }
+
+        for await (const rev of ctx.db
+          .query('revs')
+          .withIndex('by_event', (q) => q.eq('feedEventId', event._id))) {
+          await ctx.db.delete(rev._id);
+          deletedRevs += 1;
+        }
+        await ctx.db.delete(event._id);
+        deletedEvents += 1;
+      }
+    }
+
+    return { deletedEvents, deletedRevs };
   },
 });

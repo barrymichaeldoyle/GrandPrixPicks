@@ -19,9 +19,9 @@ build (the same way our Vercel projects deploy Convex during their build).
      build against the just-deployed backend, then publishes. If the Convex
      deploy fails, the whole build fails and nothing is published.
 
-There is no longer a GitHub Action that deploys Convex on push.
-`.github/workflows/convex-production.yml` is kept as a **manual break-glass**
-(Actions tab → Run workflow) for deploying Convex without a web deploy.
+There is no GitHub Action that deploys Convex — production Convex deploys happen
+only via the Cloudflare Pages build. To deploy Convex by hand (e.g. Cloudflare is
+down), run `pnpm deploy:backend` locally.
 
 ## Cloudflare Pages configuration
 
@@ -34,12 +34,13 @@ There is no longer a GitHub Action that deploys Convex on push.
      overridden by the URL `convex deploy` injects; on preview it points the
      preview client at prod Convex.
 
-## Required GitHub secrets
+## GitHub secrets
 
-Only the manual break-glass workflow needs one:
-
-1. `CONVEX_PROD_DEPLOY_KEY`
-   - A Convex Production Deploy Key. If missing, the manual deploy job is skipped.
+No secret is needed for deploying — that is driven by `CONVEX_DEPLOY_KEY` in the
+Cloudflare Pages Production environment. The GitHub secrets that remain
+(`CLERK_*`, `VITE_CLERK_PUBLISHABLE_KEY`, `CONVEX_DEPLOY_KEY`,
+`CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`) are consumed only by the `web-e2e-smoke`
+job in `ci.yml`.
 
 ## Migration registry
 

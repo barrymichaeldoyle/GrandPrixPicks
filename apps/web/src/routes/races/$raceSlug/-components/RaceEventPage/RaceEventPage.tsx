@@ -429,6 +429,7 @@ export function RaceEventPage({
               race={race}
               drivers={drivers}
               currentUrl={currentUrl}
+              onStartPicks={() => setTop5StartTarget('cascade')}
             />
           ) : (
             <>

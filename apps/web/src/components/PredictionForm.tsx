@@ -23,18 +23,22 @@ import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { useBlocker } from '@tanstack/react-router';
 import confetti from 'canvas-confetti';
-import { useMutation, useQuery } from 'convex/react';
+import { useClerk } from '@clerk/react';
+import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
 import {
+  clearPendingSubmit,
   clearPredictionDraft,
+  hasPendingSubmit,
   loadPredictionDraft,
   savePredictionDraft,
+  setPendingSubmit,
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
@@ -318,6 +322,12 @@ export function PredictionForm({
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);
+  // Convex-level auth (not just Clerk's isSignedIn): a signed-out visitor can
+  // build a full set of picks, and we only submit once Convex has the identity
+  // — waiting on this avoids the token-propagation race right after sign-in.
+  const { isAuthenticated } = useConvexAuth();
+  const { openSignIn } = useClerk();
+  const autoSubmitFiredRef = useRef(false);
 
   const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -463,6 +473,9 @@ export function PredictionForm({
   const { markInteraction } = useAutoSaveOnFirstComplete({
     enabled:
       isFirstEntry &&
+      // Signed-out users drive the save explicitly (which opens sign-in); we
+      // never want the auto-save timer to pop a modal on its own.
+      isAuthenticated &&
       hasHydratedDraft &&
       !isSubmitting &&
       !isSubmissionBlocked &&
@@ -551,7 +564,10 @@ export function PredictionForm({
     setSubmitStatus('idle');
   }
 
-  async function handleSubmit(options?: { autoSaved?: boolean }) {
+  async function handleSubmit(options?: {
+    autoSaved?: boolean;
+    afterSignIn?: boolean;
+  }) {
     if (picks.length !== 5 || isSubmitting) {
       return;
     }
@@ -569,6 +585,7 @@ export function PredictionForm({
         is_edit: Boolean(existingPicks && existingPicks.length > 0),
         restored_draft: Boolean(restoredDraftAt),
         auto_saved: Boolean(options?.autoSaved),
+        after_sign_in: Boolean(options?.afterSignIn),
       });
       setSubmitStatus('success');
       if (existingPicks && existingPicks.length > 0) {
@@ -579,6 +596,7 @@ export function PredictionForm({
         });
       }
       clearPredictionDraft(draftKey);
+      clearPendingSubmit(draftKey);
       setRestoredDraftAt(null);
       onSuccess?.();
     } catch (error) {
@@ -598,6 +616,62 @@ export function PredictionForm({
       setIsSubmitting(false);
     }
   }
+
+  const currentUrl =
+    typeof window === 'undefined'
+      ? undefined
+      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  // Try-before-signup: a signed-out visitor can build their picks (kept as a
+  // device draft), then hit save. Instead of the auth-gated mutation, prompt
+  // sign-in; the draft auto-submits once Convex auth lands (see the effect
+  // below), so their picks are saved the moment they finish signing up.
+  function requestSubmit(options?: { autoSaved?: boolean }) {
+    if (picks.length !== 5 || isSubmitting || isSubmissionBlocked) {
+      return;
+    }
+    if (!isAuthenticated) {
+      setPendingSubmit(draftKey);
+      captureAnalyticsEvent('prediction_signin_prompted', {
+        race_id: raceId,
+        race_slug: race?.slug,
+        session_type: sessionType ?? 'cascade',
+      });
+      openSignIn({
+        fallbackRedirectUrl: currentUrl,
+        signUpFallbackRedirectUrl: currentUrl,
+      });
+      return;
+    }
+    void handleSubmit(options);
+  }
+
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      !hasHydratedDraft ||
+      autoSubmitFiredRef.current ||
+      !hasPendingSubmit(draftKey) ||
+      picks.length !== 5 ||
+      isSubmitting ||
+      isSubmissionBlocked
+    ) {
+      return;
+    }
+    autoSubmitFiredRef.current = true;
+    clearPendingSubmit(draftKey);
+    void handleSubmit({ afterSignIn: true });
+    // handleSubmit is a stable closure recreated each render; the ref guard
+    // ensures this fires at most once regardless.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isAuthenticated,
+    hasHydratedDraft,
+    draftKey,
+    picks,
+    isSubmitting,
+    isSubmissionBlocked,
+  ]);
 
   /** When editing existing picks: current selection matches saved → show Saved, disable button */
   const isUnchangedFromSaved = Boolean(
@@ -715,7 +789,7 @@ export function PredictionForm({
                   isUnchangedFromSaved ||
                   isSubmissionBlocked
                 }
-                onClick={() => void handleSubmit()}
+                onClick={() => requestSubmit()}
                 data-testid="submit-prediction"
               >
                 {isUnchangedFromSaved ? (
@@ -725,6 +799,8 @@ export function PredictionForm({
                   </>
                 ) : isSubmitting ? (
                   'Saving...'
+                ) : !isAuthenticated ? (
+                  'Sign in to save your picks'
                 ) : existingPicks && existingPicks.length > 0 ? (
                   'Save Changes'
                 ) : (

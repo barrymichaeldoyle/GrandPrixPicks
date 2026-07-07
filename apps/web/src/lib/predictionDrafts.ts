@@ -40,3 +40,53 @@ export function clearPredictionDraft(key: string) {
     // Ignore storage availability errors.
   }
 }
+
+// ── Pending submit (try-before-signup) ──
+// When a signed-out user finishes their picks and hits "save", we remember that
+// intent so the draft auto-submits the moment they finish signing in. Kept in
+// sessionStorage (not localStorage): it's a single-session handoff across the
+// Clerk modal, and should not resurrect on a later visit.
+
+function canUseSessionStorage() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.sessionStorage !== 'undefined'
+  );
+}
+
+function pendingSubmitKey(draftKey: string) {
+  return `${draftKey}:pending-submit`;
+}
+
+export function setPendingSubmit(draftKey: string) {
+  if (!canUseSessionStorage()) {
+    return;
+  }
+  try {
+    window.sessionStorage.setItem(pendingSubmitKey(draftKey), '1');
+  } catch {
+    // Ignore storage quota or availability errors.
+  }
+}
+
+export function hasPendingSubmit(draftKey: string): boolean {
+  if (!canUseSessionStorage()) {
+    return false;
+  }
+  try {
+    return window.sessionStorage.getItem(pendingSubmitKey(draftKey)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function clearPendingSubmit(draftKey: string) {
+  if (!canUseSessionStorage()) {
+    return;
+  }
+  try {
+    window.sessionStorage.removeItem(pendingSubmitKey(draftKey));
+  } catch {
+    // Ignore storage availability errors.
+  }
+}

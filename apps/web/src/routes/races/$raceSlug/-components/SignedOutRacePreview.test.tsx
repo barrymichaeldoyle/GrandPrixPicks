@@ -84,7 +84,11 @@ describe('SignedOutRacePreview', () => {
   it('renders the play-free CTA and race-specific heading', () => {
     act(() => {
       root.render(
-        <SignedOutRacePreview race={makeRace()} drivers={makeDrivers()} />,
+        <SignedOutRacePreview
+          race={makeRace()}
+          drivers={makeDrivers()}
+          onStartPicks={() => {}}
+        />,
       );
     });
 
@@ -97,7 +101,11 @@ describe('SignedOutRacePreview', () => {
   it('renders the driver grid grouped by team', () => {
     act(() => {
       root.render(
-        <SignedOutRacePreview race={makeRace()} drivers={makeDrivers()} />,
+        <SignedOutRacePreview
+          race={makeRace()}
+          drivers={makeDrivers()}
+          onStartPicks={() => {}}
+        />,
       );
     });
 
@@ -114,10 +122,39 @@ describe('SignedOutRacePreview', () => {
 
   it('omits the driver grid when the roster is empty', () => {
     act(() => {
-      root.render(<SignedOutRacePreview race={makeRace()} drivers={[]} />);
+      root.render(
+        <SignedOutRacePreview
+          race={makeRace()}
+          drivers={[]}
+          onStartPicks={() => {}}
+        />,
+      );
     });
 
     expect(container.textContent).toContain('Make your free picks');
     expect(container.textContent).not.toContain('Driver Grid');
+  });
+
+  it('opens the picker (not a sign-in wall) when the primary CTA is clicked', () => {
+    const onStartPicks = vi.fn();
+    act(() => {
+      root.render(
+        <SignedOutRacePreview
+          race={makeRace()}
+          drivers={makeDrivers()}
+          onStartPicks={onStartPicks}
+        />,
+      );
+    });
+
+    const cta = Array.from(container.querySelectorAll('button')).find((btn) =>
+      btn.textContent?.includes('Make your free picks'),
+    );
+    expect(cta).toBeDefined();
+    act(() => {
+      cta?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onStartPicks).toHaveBeenCalledTimes(1);
   });
 });

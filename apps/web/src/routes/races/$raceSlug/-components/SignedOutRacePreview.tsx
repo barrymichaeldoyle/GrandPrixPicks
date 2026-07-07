@@ -9,19 +9,25 @@ type DriverRecord = Doc<'drivers'>;
 
 /**
  * The signed-out view of an upcoming race. Search engines and first-time
- * visitors never boot Clerk's client SDK, so the interactive Top 5 picker is
- * out of reach for them — this gives that audience real, crawlable content (the
- * driver grid) plus a single, obvious way to start playing. It renders entirely
- * from loader data so it appears in the server-rendered HTML.
+ * visitors never boot Clerk's client SDK, so this gives that audience real,
+ * crawlable content (the driver grid) plus a single, obvious way to start
+ * playing. It renders entirely from loader data so it appears in the
+ * server-rendered HTML.
+ *
+ * The primary CTA opens the Top 5 picker directly (try-before-signup): visitors
+ * build their picks first and only sign in to save them. A secondary link keeps
+ * returning users one tap from signing in.
  */
 export function SignedOutRacePreview({
   race,
   drivers,
   currentUrl,
+  onStartPicks,
 }: {
   race: Doc<'races'>;
   drivers: DriverRecord[];
   currentUrl?: string;
+  onStartPicks: () => void;
 }) {
   const teams = groupByTeam(drivers);
 
@@ -33,19 +39,24 @@ export function SignedOutRacePreview({
           Predict the {race.name} top 5
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-text-muted">
-          Rank who you think finishes ahead, call the teammate head-to-heads,
-          and score points every session. It's free — each session is worth up
-          to 25 points on the season leaderboard.
+          Rank who you think finishes ahead and score points every session. It's
+          free — pick now, no account needed to start.
         </p>
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex flex-col items-center gap-2">
+          <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>
+            Make your free picks
+          </Button>
           <SignInButton
             mode="modal"
             fallbackRedirectUrl={currentUrl}
             signUpFallbackRedirectUrl={currentUrl}
           >
-            <Button size="md" rightIcon={ArrowRight}>
-              Make your free picks
-            </Button>
+            <button
+              type="button"
+              className="text-xs font-medium text-text-muted underline-offset-2 hover:text-text hover:underline"
+            >
+              Already playing? Sign in
+            </button>
           </SignInButton>
         </div>
       </div>

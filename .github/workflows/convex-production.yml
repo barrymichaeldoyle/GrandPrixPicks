@@ -1,9 +1,13 @@
-name: Convex Production Deploy
+name: Convex Production Deploy (manual break-glass)
 
+# Production Convex deploys now happen inside the Cloudflare Pages build
+# (scripts/cloudflare-build.sh runs `convex deploy` before the web build), so
+# the client and server always ship together from the same commit.
+#
+# This workflow is kept as a manual fallback only (Actions tab -> Run workflow)
+# for deploying Convex without a web deploy. It intentionally no longer runs on
+# push to main. Safe to delete entirely if you don't want the fallback.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:

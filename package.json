@@ -10,6 +10,7 @@
     "dev:public": "pnpm --filter @grandprixpicks/web dev:public",
     "build": "pnpm --filter @grandprixpicks/web build",
     "build:cf": "pnpm --filter @grandprixpicks/web build:cf",
+    "cf:postdeploy": "pnpm --filter @grandprixpicks/backend migrations:prod && pnpm build:cf",
     "preview": "pnpm --filter @grandprixpicks/web preview",
     "preview:cf": "pnpm --filter @grandprixpicks/web preview:cf",
     "deploy": "pnpm --filter @grandprixpicks/web deploy",

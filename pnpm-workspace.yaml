@@ -15,7 +15,7 @@ allowBuilds:
   workerd: true
 
 catalog:
-  convex: 1.41.0
+  convex: 1.42.1
   typescript: 6.0.3
 
 minimumReleaseAgeExclude:
@@ -31,6 +31,12 @@ minimumReleaseAgeExclude:
   - '@tanstack/start-server-core@1.169.15'
   - miniflare@4.20260617.0
   - wrangler@4.102.0
+  - '@clerk/backend@3.11.1'
+  - '@clerk/localizations@4.13.0'
+  - '@clerk/react@6.12.0'
+  - '@clerk/shared@4.25.0'
+  - '@clerk/tanstack-react-start@1.4.14'
+  - '@clerk/ui@1.25.0'
 
 onlyBuiltDependencies:
   - '@clerk/shared'

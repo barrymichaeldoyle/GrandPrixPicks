@@ -67,15 +67,17 @@ export function HeaderUser() {
     );
   }
 
-  // Signed in per SSR, but Clerk's client hasn't confirmed the session yet (it's
-  // booting, or briefly reporting signed-out mid-boot) — hold the avatar slot so
-  // the header neither shifts nor flashes "Sign in" before UserButton mounts.
-  // The placeholder must occupy the exact footprint of the real UserButton (a
-  // 28px avatar with no surrounding margin) so swapping them causes no layout
-  // shift in the nav.
+  // Both signed-in states share one fixed 28x28 slot (shrink-0) so the nav never
+  // reflows during the hand-off: the loading pulse, and Clerk's UserButton —
+  // which can render a frame empty on mount, or briefly remount when its `key`
+  // (mobile/desktop) resolves — always sit in a stable-width box. Reserving the
+  // slot means the sibling nav items never bounce even while the avatar itself
+  // is mid-mount.
+  const avatarSlotClasses = 'flex h-7 w-7 shrink-0 items-center justify-center';
+
   if (!confirmedSignedIn) {
     return (
-      <div className="flex items-center" data-testid="header-user-loading">
+      <div className={avatarSlotClasses} data-testid="header-user-loading">
         <span
           className="block h-7 w-7 animate-pulse rounded-full bg-surface-muted"
           aria-hidden="true"
@@ -85,55 +87,53 @@ export function HeaderUser() {
   }
 
   return (
-    <div className="flex items-center" data-testid="header-user-authenticated">
-      <div className="flex items-center">
-        <UserButton key={isMobile ? 'mobile' : 'desktop'}>
-          <UserButton.MenuItems>
-            {isMobile ? (
-              <UserButton.Link
-                label="My Picks"
-                labelIcon={<ListChecks className="h-4 w-4" />}
-                href={myPicksHref}
-              />
-            ) : null}
-            {isMobile ? (
-              <UserButton.Link
-                label="Feed"
-                labelIcon={<Gauge className="h-4 w-4" />}
-                href="/feed"
-              />
-            ) : null}
-            {isMobile ? (
-              <UserButton.Link
-                label="Races"
-                labelIcon={<Flag className="h-4 w-4" />}
-                href="/races"
-              />
-            ) : null}
-            {isMobile ? (
-              <UserButton.Link
-                label="Leagues"
-                labelIcon={<Users className="h-4 w-4" />}
-                href="/leagues"
-              />
-            ) : null}
-            {isMobile ? (
-              <UserButton.Link
-                label="Leaderboard"
-                labelIcon={<Trophy className="h-4 w-4" />}
-                href="/leaderboard"
-              />
-            ) : null}
+    <div className={avatarSlotClasses} data-testid="header-user-authenticated">
+      <UserButton key={isMobile ? 'mobile' : 'desktop'}>
+        <UserButton.MenuItems>
+          {isMobile ? (
             <UserButton.Link
-              label="Settings"
-              labelIcon={<SlidersHorizontal className="h-4 w-4" />}
-              href="/settings"
+              label="My Picks"
+              labelIcon={<ListChecks className="h-4 w-4" />}
+              href={myPicksHref}
             />
-            <UserButton.Action label="manageAccount" />
-            <UserButton.Action label="signOut" />
-          </UserButton.MenuItems>
-        </UserButton>
-      </div>
+          ) : null}
+          {isMobile ? (
+            <UserButton.Link
+              label="Feed"
+              labelIcon={<Gauge className="h-4 w-4" />}
+              href="/feed"
+            />
+          ) : null}
+          {isMobile ? (
+            <UserButton.Link
+              label="Races"
+              labelIcon={<Flag className="h-4 w-4" />}
+              href="/races"
+            />
+          ) : null}
+          {isMobile ? (
+            <UserButton.Link
+              label="Leagues"
+              labelIcon={<Users className="h-4 w-4" />}
+              href="/leagues"
+            />
+          ) : null}
+          {isMobile ? (
+            <UserButton.Link
+              label="Leaderboard"
+              labelIcon={<Trophy className="h-4 w-4" />}
+              href="/leaderboard"
+            />
+          ) : null}
+          <UserButton.Link
+            label="Settings"
+            labelIcon={<SlidersHorizontal className="h-4 w-4" />}
+            href="/settings"
+          />
+          <UserButton.Action label="manageAccount" />
+          <UserButton.Action label="signOut" />
+        </UserButton.MenuItems>
+      </UserButton>
     </div>
   );
 }

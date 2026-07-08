@@ -21,19 +21,19 @@
   "dependencies": {
     "@convex-dev/resend": "0.2.5",
     "@grandprixpicks/shared": "workspace:*",
-    "@react-email/render": "2.0.9",
+    "@react-email/render": "2.0.10",
     "convex": "catalog:",
     "dotenv-cli": "11.0.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "react-email": "6.6.0",
+    "react-email": "6.6.7",
     "web-push": "3.6.7"
   },
   "devDependencies": {
-    "@react-email/ui": "6.6.0",
+    "@react-email/ui": "6.6.7",
     "@types/react": "19.2.17",
     "@types/web-push": "3.6.4",
     "typescript": "catalog:",
-    "vitest": "4.1.9"
+    "vitest": "4.1.10"
   }
 }

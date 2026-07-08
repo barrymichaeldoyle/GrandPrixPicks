@@ -38,7 +38,6 @@ async function doInitWasm() {
   // Production fallback: Nitro's unwasm plugin bundles the WASM and
   // makes this dynamic import resolve to the bundled module.
   try {
-    // @ts-expect-error — wasm import resolved by unwasm bundler plugin
     const wasmModule = await import('@resvg/resvg-wasm/index_bg.wasm');
     await initWasm(wasmModule.default);
   } catch (err) {
@@ -69,7 +68,6 @@ async function doInitYoga() {
     // Node.js approach failed (expected on Cloudflare Workers).
   }
 
-  // @ts-expect-error — wasm import resolved by unwasm bundler plugin
   const yogaModule = await import('satori/yoga.wasm');
   await initSatori(yogaModule.default);
 }

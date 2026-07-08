@@ -118,9 +118,8 @@ export function Header({
 }) {
   // Auth state is resolved on the server (initialAuth) so the header renders the
   // correct nav on the first paint and doesn't flash "Sign in" while Clerk's
-  // client SDK boots. `confirmedSignedIn` gates chrome that needs a live
-  // authenticated client. See {@link useViewerSession}.
-  const { isSignedIn, confirmedSignedIn } = useViewerSession();
+  // client SDK boots. See {@link useViewerSession}.
+  const { isSignedIn } = useViewerSession();
   const showSignedInLinks = isSignedIn;
   // "My Picks" falls back to /me until we know the username (the /me route
   // redirects to /p/$username).
@@ -358,9 +357,10 @@ export function Header({
             initialNextRace={initialNextRace}
           />
 
-          {/* Notification bell — only once Clerk has confirmed the session, so
-              its authenticated query doesn't run against a half-booted client */}
-          {confirmedSignedIn && <NotificationBell />}
+          {/* Notification bell — mounted from the SSR-resolved signed-in state
+              so its slot is reserved on the first paint (no layout shift). The
+              bell renders empty until its query resolves. */}
+          {isSignedIn && <NotificationBell />}
           <HeaderUser />
         </div>
       </div>

@@ -502,7 +502,12 @@ export function NotificationBell() {
     setOpen(false);
   }
 
-  if (result === undefined) {
+  // Render the plain bell whenever there's no data yet: the query is still
+  // loading (undefined), or Convex ran it before Clerk auth resolved so the
+  // viewer query returned null. The bell only mounts for signed-in viewers (see
+  // Header), so keeping its slot reserved from the first paint avoids the nav
+  // shifting when the real data arrives.
+  if (result === undefined || result === null) {
     return (
       <button
         type="button"
@@ -512,10 +517,6 @@ export function NotificationBell() {
         <Bell className="h-5 w-5" />
       </button>
     );
-  }
-
-  if (result === null) {
-    return null;
   }
 
   const panel = open

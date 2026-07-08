@@ -1,5 +1,4 @@
-import { useAuth } from '@clerk/react';
-import { useInitialAuth } from '@/integrations/clerk/initial-auth';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { convexHttp as convex } from '@/integrations/convex/client';
@@ -281,16 +280,15 @@ function RaceDetailPage() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const { from } = search;
-  const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
-  const initialAuth = useInitialAuth();
-  // Auth is resolved on the server (initialAuth, from the request cookie) so the
-  // page renders real content on the first paint — and for crawlers, which never
-  // boot Clerk's client SDK — instead of blocking on a spinner. Once Clerk's
-  // client loads it becomes the source of truth. `isAuthLoaded` stays false for a
-  // signed-in first paint (so we wait for that viewer's picks) but is true for an
-  // anonymous visitor, whose view needs no client data.
-  const isSignedIn = isLoaded ? !!clientSignedIn : initialAuth.isSignedIn;
-  const isAuthLoaded = isLoaded || !initialAuth.isSignedIn;
+  // Auth is resolved on the server (see useViewerSession) so the page renders
+  // real content on the first paint — and for crawlers, which never boot Clerk's
+  // client SDK — instead of blocking on a spinner. `isSignedIn` never downgrades
+  // to signed-out during Clerk's boot transient (which would flash the signed-out
+  // preview at a returning user). `isAuthLoaded` is false only while a
+  // known-signed-in viewer's session is still confirming, so we wait to load
+  // their picks before painting; anonymous visitors never wait.
+  const { isSignedIn, confirmedSignedIn } = useViewerSession();
+  const isAuthLoaded = confirmedSignedIn || !isSignedIn;
 
   const {
     now,

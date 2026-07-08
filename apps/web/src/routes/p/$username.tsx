@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
 import { useQuery } from '@tanstack/react-query';
@@ -132,7 +131,6 @@ function ProfilePage() {
   const { initialProfile } = Route.useLoaderData();
   const { from, fromLabel } = Route.useSearch();
   const matches = useMatches();
-  useAuth();
 
   const { data: profile } = useQuery(
     convexQuery(api.users.getProfileByUsername, { username }),

@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
+import { computeFollowCountsForUser } from './lib/followCounts';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import { scoreTopFive } from './lib/scoring';
 import { scheduleReminder } from './notifications';
@@ -5388,6 +5389,12 @@ export const _seedFeedScenario = internalMutation({
       });
     }
 
+    // Keep the denormalized follow counts in sync for the seeded social graph.
+    for (const userId of [mainUser._id, ...fakeUserIds]) {
+      const counts = await computeFollowCountsForUser(ctx, userId);
+      await ctx.db.patch(userId, { ...counts, updatedAt: now });
+    }
+
     // ── Leagues ──
     const league1Id = await ctx.db.insert('leagues', {
       name: 'Pit Wall Prophets',
@@ -5991,6 +5998,10 @@ export const _seedAuxFeedScenarios = internalMutation({
             followeeId: ghostId,
             createdAt: now - 3 * DAY,
           });
+        }
+        for (const userId of [auxUser._id, ...ghostUserIds]) {
+          const counts = await computeFollowCountsForUser(ctx, userId);
+          await ctx.db.patch(userId, { ...counts, updatedAt: now });
         }
       }
       // 'solo': no extra state

@@ -15,6 +15,11 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
+import {
+  computeFollowCountsForUser,
+  decrementFollowerCount,
+  decrementFollowingCount,
+} from './lib/followCounts';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import {
   STANDINGS_SYNC_BATCH_SIZE,
@@ -205,6 +210,10 @@ async function processDeletionStep(
         .query('follows')
         .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
         .take(DELETION_BATCH_SIZE);
+      // These edges are "deleted user follows X" — drop each X's follower count.
+      for (const row of rows) {
+        await decrementFollowerCount(ctx, row.followeeId);
+      }
       summary.follows += await deleteRows(ctx, rows);
       return {
         summary,
@@ -217,6 +226,10 @@ async function processDeletionStep(
         .query('follows')
         .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))
         .take(DELETION_BATCH_SIZE);
+      // These edges are "X follows deleted user" — drop each X's following count.
+      for (const row of rows) {
+        await decrementFollowingCount(ctx, row.followerId);
+      }
       summary.follows += await deleteRows(ctx, rows);
       return {
         summary,
@@ -1314,6 +1327,77 @@ export const backfillClerkSubjects = internalMutation({
       done: users.length < CLERK_SUBJECT_BACKFILL_BATCH_SIZE,
       nextStartAfter:
         users.length === CLERK_SUBJECT_BACKFILL_BATCH_SIZE
+          ? lastUser?.clerkUserId
+          : null,
+    };
+  },
+});
+
+// Recomputing counts hydrates each follow edge's counterpart, so keep the batch
+// smaller than the clerk-subject backfill to stay within transaction limits.
+const FOLLOW_COUNT_BACKFILL_BATCH_SIZE = 25;
+
+/**
+ * Backfill denormalized follower/following counts on users from the follows
+ * edges (see lib/followCounts.ts). Idempotent — only patches when the stored
+ * count differs — and batched + self-scheduling to stay within limits.
+ */
+export const backfillFollowCounts = internalMutation({
+  args: {
+    startAfter: v.optional(v.string()),
+    updated: v.optional(v.number()),
+    scanned: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const usersQuery = args.startAfter
+      ? ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.gt('clerkUserId', args.startAfter!),
+          )
+      : ctx.db.query('users').withIndex('by_clerkUserId');
+
+    const users = await usersQuery.take(FOLLOW_COUNT_BACKFILL_BATCH_SIZE);
+    let updated = args.updated ?? 0;
+    let scanned = args.scanned ?? 0;
+
+    for (const user of users) {
+      scanned += 1;
+      const { followerCount, followingCount } =
+        await computeFollowCountsForUser(ctx, user._id);
+      if (
+        (user.followerCount ?? 0) === followerCount &&
+        (user.followingCount ?? 0) === followingCount
+      ) {
+        continue;
+      }
+      await ctx.db.patch(user._id, {
+        followerCount,
+        followingCount,
+        updatedAt: Date.now(),
+      });
+      updated += 1;
+    }
+
+    const lastUser = users[users.length - 1];
+    if (lastUser && users.length === FOLLOW_COUNT_BACKFILL_BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        'users:backfillFollowCounts' as unknown as FunctionReference<'mutation'>,
+        {
+          startAfter: lastUser.clerkUserId,
+          updated,
+          scanned,
+        },
+      );
+    }
+
+    return {
+      updated,
+      scanned,
+      done: users.length < FOLLOW_COUNT_BACKFILL_BATCH_SIZE,
+      nextStartAfter:
+        users.length === FOLLOW_COUNT_BACKFILL_BATCH_SIZE
           ? lastUser?.clerkUserId
           : null,
     };

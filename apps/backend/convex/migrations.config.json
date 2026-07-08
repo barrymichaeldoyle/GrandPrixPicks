@@ -6,5 +6,9 @@
   {
     "name": "users:backfillClerkSubjects",
     "args": {}
+  },
+  {
+    "name": "users:backfillFollowCounts",
+    "args": {}
   }
 ]

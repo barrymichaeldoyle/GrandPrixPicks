@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import { applyFollowEdgeDelta } from './lib/followCounts';
 
 // The app currently treats follow relationships as a capped social graph rather than
 // an infinite feed substrate. Keep the hard limit aligned with read-side bounds.
@@ -53,11 +54,13 @@ export const follow = mutation({
       );
     }
 
-    return await ctx.db.insert('follows', {
+    const followId = await ctx.db.insert('follows', {
       followerId: viewer._id,
       followeeId: args.followeeId,
       createdAt: Date.now(),
     });
+    await applyFollowEdgeDelta(ctx, viewer._id, args.followeeId, 1);
+    return followId;
   },
 });
 
@@ -75,6 +78,7 @@ export const unfollow = mutation({
 
     if (existing) {
       await ctx.db.delete(existing._id);
+      await applyFollowEdgeDelta(ctx, viewer._id, args.followeeId, -1);
     }
   },
 });
@@ -117,28 +121,13 @@ export const isFollowing = query({
 export const getFollowCounts = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    const followerIds: Id<'users'>[] = [];
-    for await (const follow of ctx.db
-      .query('follows')
-      .withIndex('by_followee', (q) => q.eq('followeeId', args.userId))) {
-      followerIds.push(follow.followerId);
-    }
-
-    const followingRecords = await ctx.db
-      .query('follows')
-      .withIndex('by_follower', (q) => q.eq('followerId', args.userId))
-      .take(MAX_FOLLOWS_PER_USER);
-
-    // Only count follows where the related user still exists (matches listFollowers/listFollowing)
-    const followerUsers = await getExistingUsersForFollows(ctx, followerIds);
-    const followingUsers = await getExistingUsersForFollows(
-      ctx,
-      followingRecords.map((f) => f.followeeId),
-    );
-
+    // Denormalized counts kept in sync by follow/unfollow and account deletion
+    // (see lib/followCounts.ts), so this is a single point read rather than a
+    // scan of every follow edge plus a lookup of each related user.
+    const user = await ctx.db.get(args.userId);
     return {
-      followerCount: followerUsers.length,
-      followingCount: followingUsers.length,
+      followerCount: user?.followerCount ?? 0,
+      followingCount: user?.followingCount ?? 0,
     };
   },
 });

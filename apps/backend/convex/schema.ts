@@ -50,6 +50,12 @@ export default defineSchema({
     locale: v.optional(v.string()),
     isAdmin: v.optional(v.boolean()),
     deletingAt: v.optional(v.number()),
+    // Denormalized social-graph counts, kept in sync by follow/unfollow and
+    // account deletion so a profile view is a single read instead of scanning
+    // every follows edge. Optional so pre-backfill documents stay valid; treat
+    // undefined as 0. Backfilled by users:backfillFollowCounts.
+    followerCount: v.optional(v.number()),
+    followingCount: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

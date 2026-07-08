@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -7,7 +6,7 @@ import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { HeaderUser } from '@/integrations/clerk/header-user.tsx';
-import { useInitialAuth } from '@/integrations/clerk/initial-auth';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { primaryNavLinks } from '@/lib/navigation';
 import { Flag as CountryFlag } from './Flag.tsx';
@@ -102,12 +101,11 @@ export function Header({
   mobileMenuOpen: boolean;
   onMobileMenuOpenChange: (open: boolean) => void;
 }) {
-  const { isSignedIn: clientSignedIn, isLoaded } = useAuth();
-  const initialAuth = useInitialAuth();
   // Auth state is resolved on the server (initialAuth) so the header renders the
-  // correct nav on the first paint; once Clerk's client SDK loads it becomes the
-  // source of truth (and corrects any stale cookie).
-  const isSignedIn = isLoaded ? clientSignedIn : initialAuth.isSignedIn;
+  // correct nav on the first paint and doesn't flash "Sign in" while Clerk's
+  // client SDK boots. `confirmedSignedIn` gates chrome that needs a live
+  // authenticated client. See {@link useViewerSession}.
+  const { isSignedIn, confirmedSignedIn } = useViewerSession();
   const showSignedInLinks = isSignedIn;
   // "My Picks" falls back to /me until we know the username (the /me route
   // redirects to /p/$username).
@@ -342,8 +340,9 @@ export function Header({
           {/* Quick link to the next race's picks — signed-in only */}
           <NextRaceQuickLink isSignedIn={!!isSignedIn} />
 
-          {/* Notification bell — signed-in only */}
-          {isLoaded && isSignedIn && <NotificationBell />}
+          {/* Notification bell — only once Clerk has confirmed the session, so
+              its authenticated query doesn't run against a half-booted client */}
+          {confirmedSignedIn && <NotificationBell />}
           <HeaderUser />
         </div>
       </div>

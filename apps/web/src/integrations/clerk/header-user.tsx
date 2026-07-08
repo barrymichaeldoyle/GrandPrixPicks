@@ -1,4 +1,4 @@
-import { SignInButton, useAuth, UserButton } from '@clerk/react';
+import { SignInButton, UserButton } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useQuery } from 'convex/react';
 import {
@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { useInitialAuth } from './initial-auth';
+import { useViewerSession } from './useViewerSession';
 
 /** Keep in sync with the header's mobile breakpoint. */
 const MOBILE_MENU_BREAKPOINT = '(max-width: 843px)';
@@ -28,9 +28,7 @@ const signInButtonClasses =
  * SDK loads. This keeps the header layout stable (no shift) and flash-free.
  */
 export function HeaderUser() {
-  const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
-  const initialAuth = useInitialAuth();
-  const isSignedIn = isLoaded ? clientSignedIn : initialAuth.isSignedIn;
+  const { isSignedIn, confirmedSignedIn } = useViewerSession();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const [isMobile, setIsMobile] = useState(false);
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
@@ -69,9 +67,10 @@ export function HeaderUser() {
     );
   }
 
-  // Signed in, but Clerk's client SDK hasn't booted yet — hold the avatar slot
-  // so the header doesn't shift when the real UserButton mounts.
-  if (!isLoaded) {
+  // Signed in per SSR, but Clerk's client hasn't confirmed the session yet (it's
+  // booting, or briefly reporting signed-out mid-boot) — hold the avatar slot so
+  // the header neither shifts nor flashes "Sign in" before UserButton mounts.
+  if (!confirmedSignedIn) {
     return (
       <div className="flex items-center" data-testid="header-user-loading">
         <span

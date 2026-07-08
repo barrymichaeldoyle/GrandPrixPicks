@@ -50,7 +50,7 @@ export function shouldShowUpcomingH2HNudge(params: {
   return params.hasAnyTop5Predictions && !params.hasCompleteH2H;
 }
 
-export function useUpcomingPredictionBannerState() {
+function useUpcomingPredictionBannerState() {
   const { isLoaded, isSignedIn } = useAuth();
   const pathname = useLocation({ select: (location) => location.pathname });
 

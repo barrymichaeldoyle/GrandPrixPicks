@@ -18,7 +18,7 @@ import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { Flag as CountryFlag } from '@/components/Flag';
-import { useUpcomingPredictionBannerState } from '@/components/UpcomingPredictionBanner/UpcomingPredictionBanner';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
@@ -147,10 +147,11 @@ function HomePage() {
     now: serverNow,
   } = Route.useLoaderData();
   const now = useNow(1_000, serverNow);
-  const {
-    isVisible: isPredictionBannerVisible,
-    hasCompleteUpcomingPredictions,
-  } = useUpcomingPredictionBannerState();
+  // SSR-resolved so the hero CTA renders the right signed-in/out variant on the
+  // first paint (no "Make Picks" → "Review" flash). Whether the viewer has
+  // already picked can't be resolved at SSR (it needs an authed read), so the
+  // signed-in CTA uses one pick-state-agnostic label. See useViewerSession.
+  const { isSignedIn } = useViewerSession();
 
   const showCurrentWeekend =
     mostRecentStartedRace != null &&
@@ -289,56 +290,30 @@ function HomePage() {
                   </>
                 )}
 
-                {/* Primary action — moved below countdown */}
-                {!isPredictionBannerVisible &&
-                  !hasCompleteUpcomingPredictions &&
-                  (nextSession || !showCurrentWeekend) && (
-                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
-                      <Button
-                        asChild
-                        variant="primary"
-                        size="md"
-                        rightIcon={ArrowRight}
+                {/* Primary action — branches only on the SSR-stable signed-in
+                    state, so it renders identically on the server and the first
+                    client paint (no flash). The signed-in label is intentionally
+                    pick-state-agnostic ("My … Picks" reads right whether they're
+                    making or reviewing) since pick completeness can't be SSR'd. */}
+                {(nextSession || !showCurrentWeekend) && (
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
+                    <Button
+                      asChild
+                      variant="primary"
+                      size="md"
+                      rightIcon={ArrowRight}
+                    >
+                      <Link
+                        to="/races/$raceSlug"
+                        params={{ raceSlug: featuredRace.slug }}
+                        search={{ from: 'home' }}
                       >
-                        <Link
-                          to="/races/$raceSlug"
-                          params={{ raceSlug: featuredRace.slug }}
-                          search={{ from: 'home' }}
-                        >
-                          Make {featuredShortName} Picks
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="secondary"
-                        size="md"
-                        leftIcon={Users}
-                      >
-                        <Link to="/leagues/create">Create a League</Link>
-                      </Button>
-                    </div>
-                  )}
-                {!isPredictionBannerVisible &&
-                  hasCompleteUpcomingPredictions && (
-                    <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
-                      {/* Returning users mostly come back to tweak their picks —
-                          keep a direct route to them even when they're complete. */}
-                      {nextRace && (
-                        <Button
-                          asChild
-                          variant="primary"
-                          size="md"
-                          rightIcon={ArrowRight}
-                        >
-                          <Link
-                            to="/races/$raceSlug"
-                            params={{ raceSlug: nextRace.slug }}
-                            search={{ from: 'home' }}
-                          >
-                            Review My Picks
-                          </Link>
-                        </Button>
-                      )}
+                        {isSignedIn
+                          ? `My ${featuredShortName} Picks`
+                          : `Make ${featuredShortName} Picks`}
+                      </Link>
+                    </Button>
+                    {isSignedIn && (
                       <Button
                         asChild
                         variant="secondary"
@@ -347,16 +322,17 @@ function HomePage() {
                       >
                         <Link to="/feed">View Feed</Link>
                       </Button>
-                      <Button
-                        asChild
-                        variant="secondary"
-                        size="md"
-                        leftIcon={Users}
-                      >
-                        <Link to="/leagues/create">Create a League</Link>
-                      </Button>
-                    </div>
-                  )}
+                    )}
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="md"
+                      leftIcon={Users}
+                    >
+                      <Link to="/leagues/create">Create a League</Link>
+                    </Button>
+                  </div>
+                )}
 
                 {/* In-progress / complete state (no countdown) */}
                 {!nextSession && showCurrentWeekend && (

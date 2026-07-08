@@ -1,5 +1,6 @@
 import { useAuth, useUser } from '@clerk/react';
 import { api } from '@convex-generated/api';
+import { convexHttp } from '@/integrations/convex/client';
 import * as Sentry from '@sentry/tanstackstart-react';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
@@ -137,7 +138,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // backend) so the header renders the correct nav on the first paint.
   loader: async () => {
     const initialAuth = await fetchInitialAuth();
-    return { initialAuth };
+    // Seed the header's "next race" quick link at SSR so it renders on the first
+    // paint instead of popping in after the client Convex query resolves. The
+    // link is signed-in only, so skip the query for anonymous visitors, and
+    // never let it fail the whole app render.
+    const nextRace = initialAuth.isSignedIn
+      ? await convexHttp.query(api.races.getNextRace).catch(() => null)
+      : null;
+    return { initialAuth, nextRace };
   },
 
   notFoundComponent: NotFoundPage,
@@ -240,7 +248,7 @@ function ObservabilityUserSync() {
 }
 
 function RootDocument({ children }: PropsWithChildren) {
-  const { initialAuth } = Route.useLoaderData();
+  const { initialAuth, nextRace } = Route.useLoaderData();
   const mainRef = useRef<HTMLDivElement>(null);
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
@@ -284,6 +292,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 <Header
                   mobileMenuOpen={mobileMenuOpen}
                   onMobileMenuOpenChange={onMobileMenuOpenChange}
+                  initialNextRace={nextRace}
                 />
                 <OfflineBanner />
                 <ErrorBoundary fallback={null}>

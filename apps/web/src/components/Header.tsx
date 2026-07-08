@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
+import type { FunctionReturnType } from 'convex/server';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, Menu, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -50,13 +51,25 @@ function DesktopNavLink({
   );
 }
 
+type NextRace = FunctionReturnType<typeof api.races.getNextRace>;
+
 /**
  * Always-available shortcut to the next race's picks for signed-in users —
  * returning users shouldn't have to go via Races → find the round. Shows the
  * race flag everywhere; the race name joins it when there's room.
  */
-function NextRaceQuickLink({ isSignedIn }: { isSignedIn: boolean }) {
-  const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
+function NextRaceQuickLink({
+  isSignedIn,
+  initialNextRace,
+}: {
+  isSignedIn: boolean;
+  initialNextRace: NextRace;
+}) {
+  // Fall back to the SSR-seeded race so the link is present on the first paint
+  // (the loader only seeds it when signed in); the live query keeps it current.
+  const nextRace =
+    useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip') ??
+    initialNextRace;
 
   if (!isSignedIn || !nextRace || nextRace.status !== 'upcoming') {
     return null;
@@ -97,9 +110,11 @@ function NextRaceQuickLink({ isSignedIn }: { isSignedIn: boolean }) {
 export function Header({
   mobileMenuOpen,
   onMobileMenuOpenChange,
+  initialNextRace,
 }: {
   mobileMenuOpen: boolean;
   onMobileMenuOpenChange: (open: boolean) => void;
+  initialNextRace: NextRace;
 }) {
   // Auth state is resolved on the server (initialAuth) so the header renders the
   // correct nav on the first paint and doesn't flash "Sign in" while Clerk's
@@ -338,7 +353,10 @@ export function Header({
           )}
 
           {/* Quick link to the next race's picks — signed-in only */}
-          <NextRaceQuickLink isSignedIn={!!isSignedIn} />
+          <NextRaceQuickLink
+            isSignedIn={!!isSignedIn}
+            initialNextRace={initialNextRace}
+          />
 
           {/* Notification bell — only once Clerk has confirmed the session, so
               its authenticated query doesn't run against a half-booted client */}

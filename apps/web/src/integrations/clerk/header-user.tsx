@@ -70,11 +70,14 @@ export function HeaderUser() {
   // Signed in per SSR, but Clerk's client hasn't confirmed the session yet (it's
   // booting, or briefly reporting signed-out mid-boot) — hold the avatar slot so
   // the header neither shifts nor flashes "Sign in" before UserButton mounts.
+  // The placeholder must occupy the exact footprint of the real UserButton (a
+  // 28px avatar with no surrounding margin) so swapping them causes no layout
+  // shift in the nav.
   if (!confirmedSignedIn) {
     return (
       <div className="flex items-center" data-testid="header-user-loading">
         <span
-          className="mx-2 my-1 block h-7 w-7 animate-pulse rounded-full bg-surface-muted"
+          className="block h-7 w-7 animate-pulse rounded-full bg-surface-muted"
           aria-hidden="true"
         />
       </div>

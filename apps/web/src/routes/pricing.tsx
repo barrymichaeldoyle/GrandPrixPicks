@@ -1,4 +1,4 @@
-import { SignInButton, useAuth } from '@clerk/react';
+import { SignInButton } from '@clerk/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import {
@@ -13,6 +13,7 @@ import {
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 
 import { Button } from '@/components/Button/Button';
 import { FaqItem, FaqSection } from '@/components/Faq';
@@ -49,7 +50,9 @@ export const Route = createFileRoute('/pricing')({
 });
 
 function PricingPage() {
-  const { isSignedIn } = useAuth();
+  // SSR-resolved so the checkout CTA renders the right variant on the first
+  // paint instead of flashing "Sign In to Continue" before Clerk boots.
+  const { isSignedIn } = useViewerSession();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const currentUrl =

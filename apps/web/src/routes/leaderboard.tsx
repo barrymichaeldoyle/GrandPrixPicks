@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/react';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
@@ -96,7 +96,9 @@ export const Route = createFileRoute('/leaderboard')({
 function LeaderboardPage() {
   const { defaultRace, allRaces, initialSeason, initialWeekend } =
     Route.useLoaderData();
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
+  // SSR-resolved so the signed-in-only scope selector is present on the first
+  // paint instead of popping in (and shifting the row) once Clerk boots.
+  const { isSignedIn } = useViewerSession();
   const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -473,7 +475,7 @@ function LeaderboardPage() {
 
           {/* Row 2: Scope + game mode */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            {isAuthLoaded && isSignedIn && (
+            {isSignedIn && (
               <div className="sm:border-r sm:border-border sm:pr-4">
                 <TabSwitch
                   value={scope}

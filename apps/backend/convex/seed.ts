@@ -2279,6 +2279,49 @@ export const backfillRaceTimeZones = internalMutation({
 });
 
 /**
+ * Backfill the official event `hashtag` on race docs from the canonical
+ * F1_RACES_2026 map (matched by slug). Races seeded before the hashtag field
+ * existed have no hashtag, so shared picks/results only get `#F1` instead of
+ * the race-specific tag (e.g. `#BelgianGP`). Skips races that already have one
+ * unless `overwriteExisting` is set.
+ */
+export const backfillRaceHashtags = internalMutation({
+  args: {
+    overwriteExisting: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const overwriteExisting = args.overwriteExisting ?? false;
+    const hashtagBySlug = new Map(
+      F1_RACES_2026.map((race) => [race.slug, race.hashtag]),
+    );
+    const races = await ctx.db.query('races').collect();
+    let updated = 0;
+    let skipped = 0;
+
+    for (const race of races) {
+      if (race.hashtag && !overwriteExisting) {
+        skipped++;
+        continue;
+      }
+
+      const hashtag = hashtagBySlug.get(race.slug);
+      if (!hashtag) {
+        skipped++;
+        continue;
+      }
+
+      await ctx.db.patch(race._id, {
+        hashtag,
+        updatedAt: Date.now(),
+      });
+      updated++;
+    }
+
+    return { updated, skipped, total: races.length };
+  },
+});
+
+/**
  * Debug: List all real (non-fake) users with their data.
  */
 export const debugListRealUsers = internalMutation({

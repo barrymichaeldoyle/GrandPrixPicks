@@ -11,7 +11,7 @@ import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
-  SessionSeparator,
+  SessionGroup,
 } from '@/components/FeedItem';
 import { FeedSidebar } from '@/components/FeedSidebar';
 import { FollowButton } from '@/components/FollowButton';
@@ -53,6 +53,7 @@ export function FeedContent() {
     api.feed.getPersonalizedFeed,
     extraCursors[3] !== null ? { paginationCursor: extraCursors[3] } : 'skip',
   );
+  const me = useQuery(api.users.me, {});
   const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
   const myLeagues = useQuery(api.leagues.getMyLeagues);
   const suggestedLeagueMembers = useQuery(
@@ -283,26 +284,13 @@ export function FeedContent() {
           return <FeedItem key={group.event._id} event={group.event} />;
         }
         const session = allSessions[group.key];
-        const sessionWithTime = {
-          ...session,
-          createdAt: group.events[group.events.length - 1]?.createdAt,
-        };
         return (
-          <div key={group.key}>
-            <SessionSeparator session={sessionWithTime} grouped />
-            {group.events.map((event, i) => {
-              const isLast = i === group.events.length - 1;
-              const position = isLast ? 'last' : i === 0 ? 'first' : 'middle';
-              return (
-                <FeedItem
-                  key={event._id}
-                  event={event}
-                  grouped
-                  position={position}
-                />
-              );
-            })}
-          </div>
+          <SessionGroup
+            key={group.key}
+            session={session}
+            events={group.events}
+            viewerId={me?._id}
+          />
         );
       })}
       {isLoadingMore && (

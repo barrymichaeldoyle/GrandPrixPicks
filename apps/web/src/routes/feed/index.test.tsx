@@ -27,6 +27,9 @@ vi.mock('@convex-generated/api', () => ({
     leaderboards: {
       getCombinedSeasonLeaderboard: 'getCombinedSeasonLeaderboard',
     },
+    users: {
+      me: 'me',
+    },
   },
 }));
 
@@ -53,7 +56,6 @@ vi.mock('@/components/FeedItem', async () => {
     ...actual,
     FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
     FeedItemSkeleton: () => <div>loading</div>,
-    SessionSeparator: () => null,
   };
 });
 
@@ -89,6 +91,9 @@ describe('FeedContent', () => {
 
   it('uses nextCursor from the last page when loading more', () => {
     useQueryMock.mockImplementation((_query: unknown, args: unknown) => {
+      if (_query === 'me') {
+        return undefined;
+      }
       if (_query === 'getViewerFollowedIds') {
         return [];
       }

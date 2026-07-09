@@ -10,7 +10,7 @@ import { Button } from '@/components/Button/Button';
 import {
   FeedItem,
   FeedItemSkeleton,
-  SessionSeparator,
+  SessionGroup,
 } from '@/components/FeedItem';
 import { FollowButton } from '@/components/FollowButton';
 import { canonicalMeta } from '@/lib/site';
@@ -122,6 +122,7 @@ function FeedEventSkeleton() {
 function FeedEventPage() {
   const { feedEventId } = Route.useParams();
   const { isLoaded, isSignedIn } = useAuth();
+  const me = useQuery(api.users.me, {});
 
   const feedEvent = useQuery(
     api.feed.getFeedEvent,
@@ -165,15 +166,18 @@ function FeedEventPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {feedEvent.session && (
-              <SessionSeparator session={feedEvent.session} />
+            {feedEvent.session ? (
+              <SessionGroup
+                session={feedEvent.session}
+                events={[feedEvent.event]}
+                viewerId={me?._id}
+              />
+            ) : (
+              <FeedItem event={feedEvent.event} />
             )}
-            <FeedItem
-              event={feedEvent.event}
-              attachedContent={
-                <RevsSection feedEventId={feedEventId as Id<'feedEvents'>} />
-              }
-            />
+            <section className="rounded-xl border border-border bg-surface p-4">
+              <RevsSection feedEventId={feedEventId as Id<'feedEvents'>} />
+            </section>
           </div>
         )}
       </div>

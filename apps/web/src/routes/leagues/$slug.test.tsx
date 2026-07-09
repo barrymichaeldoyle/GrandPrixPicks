@@ -16,6 +16,9 @@ vi.mock('@convex-generated/api', () => ({
     feed: {
       getLeagueFeed: 'getLeagueFeed',
     },
+    users: {
+      me: 'me',
+    },
   },
 }));
 
@@ -74,7 +77,6 @@ vi.mock('@/components/FeedItem', async () => {
     ...actual,
     FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
     FeedItemSkeleton: () => <div>loading</div>,
-    SessionSeparator: () => null,
   };
 });
 

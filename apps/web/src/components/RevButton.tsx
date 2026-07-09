@@ -83,6 +83,8 @@ export function RevButton({
     }
   }
 
+  const showCount = count > 0 || displayedRecentRevUsers.length > 0;
+
   const revIcon = (
     <svg
       className="h-3.5 w-3.5 shrink-0"
@@ -112,7 +114,9 @@ export function RevButton({
         type="button"
         onClick={handleRevClick}
         title={reved ? 'Remove Rev' : 'Give a Rev'}
-        className={`inline-flex items-center gap-1.5 rounded-l-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${
+          showCount ? 'rounded-l-full' : 'rounded-full'
+        } ${
           reved
             ? 'text-accent hover:bg-accent/10'
             : 'text-text-muted hover:bg-surface-muted hover:text-text'
@@ -122,48 +126,52 @@ export function RevButton({
         <span>Rev</span>
       </button>
 
-      <div
-        className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`}
-      />
+      {showCount && (
+        <>
+          <div
+            className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`}
+          />
 
-      <button
-        type="button"
-        onClick={onCountClick}
-        title="See who Rev'd"
-        disabled={count === 0}
-        className={`inline-flex min-h-8 items-center justify-center gap-1 rounded-r-full px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors ${
-          reved
-            ? 'text-accent hover:bg-accent/10'
-            : count > 0
-              ? 'text-text-muted hover:bg-surface-muted hover:text-text'
-              : 'text-text-muted/30'
-        }`}
-      >
-        {displayedRecentRevUsers.length > 0 ? (
-          <>
-            <span className="flex items-center">
-              {displayedRecentRevUsers.map((u, i) => (
-                <span
-                  key={u.userId}
-                  className="rounded-full ring-1 ring-surface"
-                  style={{ marginLeft: i > 0 ? '-5px' : undefined }}
-                >
-                  <Avatar
-                    avatarUrl={u.avatarUrl}
-                    username={u.username}
-                    size="xs"
-                  />
+          <button
+            type="button"
+            onClick={onCountClick}
+            title="See who Rev'd"
+            disabled={count === 0}
+            className={`inline-flex min-h-8 items-center justify-center gap-1 rounded-r-full px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors ${
+              reved
+                ? 'text-accent hover:bg-accent/10'
+                : count > 0
+                  ? 'text-text-muted hover:bg-surface-muted hover:text-text'
+                  : 'text-text-muted/30'
+            }`}
+          >
+            {displayedRecentRevUsers.length > 0 ? (
+              <>
+                <span className="flex items-center">
+                  {displayedRecentRevUsers.map((u, i) => (
+                    <span
+                      key={u.userId}
+                      className="rounded-full ring-1 ring-surface"
+                      style={{ marginLeft: i > 0 ? '-5px' : undefined }}
+                    >
+                      <Avatar
+                        avatarUrl={u.avatarUrl}
+                        username={u.username}
+                        size="xs"
+                      />
+                    </span>
+                  ))}
                 </span>
-              ))}
-            </span>
-            {count > displayedRecentRevUsers.length && (
-              <span>+{count - displayedRecentRevUsers.length}</span>
+                {count > displayedRecentRevUsers.length && (
+                  <span>+{count - displayedRecentRevUsers.length}</span>
+                )}
+              </>
+            ) : (
+              <span className="min-w-5 text-center">{count}</span>
             )}
-          </>
-        ) : (
-          <span className="min-w-5 text-center">{count}</span>
-        )}
-      </button>
+          </button>
+        </>
+      )}
     </div>
   );
 }

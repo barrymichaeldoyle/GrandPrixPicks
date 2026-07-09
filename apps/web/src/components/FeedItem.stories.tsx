@@ -7,7 +7,7 @@ import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
-  SessionSeparator,
+  SessionGroup,
 } from './FeedItem';
 import {
   fakeId,
@@ -349,54 +349,59 @@ export const GroupedSession: Story = {
       ],
     };
 
+    const events = [
+      makeFeedEvent({
+        _id: fakeId<'feedEvents'>('feed-group-1'),
+        createdAt: NOW - 40 * MINUTE,
+      }),
+      makeFeedEvent({
+        _id: fakeId<'feedEvents'>('feed-group-2'),
+        userId: fakeId<'users'>('user-oliver'),
+        username: 'oliver',
+        displayName: 'Oliver Kane',
+        avatarUrl: 'https://i.pravatar.cc/80?img=18',
+        points: 21,
+        h2hScore: {
+          correctPicks: 2,
+          totalPicks: 2,
+          points: 2,
+        },
+        revCount: 3,
+        createdAt: NOW - 39 * MINUTE,
+        viewerHasReved: true,
+      }),
+      makeFeedEvent({
+        _id: fakeId<'feedEvents'>('feed-group-viewer'),
+        userId: viewer._id,
+        username: viewer.username,
+        displayName: viewer.displayName,
+        avatarUrl: viewer.avatarUrl,
+        points: 14,
+        h2hScore: {
+          correctPicks: 1,
+          totalPicks: 2,
+          points: 1,
+        },
+        revCount: 0,
+        recentRevUsers: [],
+        createdAt: NOW - 39 * MINUTE,
+      }),
+      makeFeedEvent({
+        _id: fakeId<'feedEvents'>('feed-group-3'),
+        userId: fakeId<'users'>('user-noah'),
+        username: 'noah',
+        displayName: 'Noah Evans',
+        avatarUrl: 'https://i.pravatar.cc/80?img=20',
+        points: 9,
+        h2hScore: null,
+        revCount: 0,
+        recentRevUsers: [],
+        createdAt: NOW - 38 * MINUTE,
+      }),
+    ];
+
     return (
-      <div>
-        <SessionSeparator session={session} grouped />
-        <FeedItem
-          event={makeFeedEvent({
-            _id: fakeId<'feedEvents'>('feed-group-1'),
-            createdAt: NOW - 40 * MINUTE,
-          })}
-          grouped
-          position="first"
-        />
-        <FeedItem
-          event={makeFeedEvent({
-            _id: fakeId<'feedEvents'>('feed-group-2'),
-            userId: fakeId<'users'>('user-oliver'),
-            username: 'oliver',
-            displayName: 'Oliver Kane',
-            avatarUrl: 'https://i.pravatar.cc/80?img=18',
-            points: 21,
-            h2hScore: {
-              correctPicks: 2,
-              totalPicks: 2,
-              points: 2,
-            },
-            revCount: 1,
-            createdAt: NOW - 39 * MINUTE,
-            viewerHasReved: true,
-          })}
-          grouped
-          position="middle"
-        />
-        <FeedItem
-          event={makeFeedEvent({
-            _id: fakeId<'feedEvents'>('feed-group-3'),
-            userId: fakeId<'users'>('user-noah'),
-            username: 'noah',
-            displayName: 'Noah Evans',
-            avatarUrl: 'https://i.pravatar.cc/80?img=20',
-            points: 9,
-            h2hScore: null,
-            revCount: 0,
-            recentRevUsers: [],
-            createdAt: NOW - 38 * MINUTE,
-          })}
-          grouped
-          position="last"
-        />
-      </div>
+      <SessionGroup session={session} events={events} viewerId={viewer._id} />
     );
   },
 };

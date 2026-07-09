@@ -140,8 +140,9 @@ export function DriverBadgeSkeleton({ size = 'md' }: { size?: 'sm' | 'md' }) {
 /** Wraps a DriverBadge with a scoring indicator ring and opacity. */
 export function ScoredDriverBadge({
   pickPoints,
+  hideDot = false,
   ...driverProps
-}: DriverBadgeProps & { pickPoints?: number }) {
+}: DriverBadgeProps & { pickPoints?: number; hideDot?: boolean }) {
   let ringClass = '';
   let opacityClass = '';
 
@@ -165,7 +166,7 @@ export function ScoredDriverBadge({
         .join(' ')}
     >
       <DriverBadge {...driverProps} />
-      {pickPoints !== undefined && pickPoints >= 3 && (
+      {!hideDot && pickPoints !== undefined && pickPoints >= 3 && (
         <span
           className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-surface ${
             pickPoints === 5 ? 'bg-success' : 'bg-warning'

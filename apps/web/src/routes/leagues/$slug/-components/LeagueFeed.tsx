@@ -9,7 +9,7 @@ import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
-  SessionSeparator,
+  SessionGroup,
 } from '@/components/FeedItem';
 
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
@@ -19,6 +19,7 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
     Array(MAX_LEAGUE_FEED_EXTRA_PAGES).fill(null),
   );
 
+  const me = useQuery(api.users.me, {});
   const page0 = useQuery(api.feed.getLeagueFeed, { leagueId });
   const page1 = useQuery(
     api.feed.getLeagueFeed,
@@ -130,33 +131,13 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
         }
-        const session = allSessions[group.key];
-        const isMulti = group.events.length > 1;
-        const sessionWithTime = {
-          ...session,
-          createdAt: group.events[group.events.length - 1]?.createdAt,
-        };
         return (
-          <div key={group.key}>
-            <SessionSeparator session={sessionWithTime} grouped={isMulti} />
-            {group.events.map((event, i) => {
-              const position = !isMulti
-                ? undefined
-                : i === 0
-                  ? 'first'
-                  : i === group.events.length - 1
-                    ? 'last'
-                    : 'middle';
-              return (
-                <FeedItem
-                  key={event._id}
-                  event={event}
-                  grouped={isMulti}
-                  position={position}
-                />
-              );
-            })}
-          </div>
+          <SessionGroup
+            key={group.key}
+            session={allSessions[group.key]}
+            events={group.events}
+            viewerId={me?._id}
+          />
         );
       })}
       {isLoadingMore && (

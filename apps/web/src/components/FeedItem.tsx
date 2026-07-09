@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Check, Flag, Flame, Gauge, Users, X } from 'lucide-react';
+import { Check, Flag, Flame, Gauge, Trophy, Users, X } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -760,12 +760,10 @@ export function FeedItem({
   event,
   grouped,
   position,
-  attachedContent,
 }: {
   event: FeedEvent;
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
-  attachedContent?: ReactNode;
 }) {
   const radiusClass =
     position === 'first'
@@ -792,11 +790,258 @@ export function FeedItem({
       ) : (
         <JoinedLeagueItem event={event} />
       )}
-      {attachedContent ? (
-        <div className="mt-3 border-t border-border px-1 pt-3">
-          {attachedContent}
+    </div>
+  );
+}
+
+function eventTotalPoints(event: FeedEvent): number {
+  return (event.points ?? 0) + (event.h2hScore?.points ?? 0);
+}
+
+function RankMedal({ rank }: { rank: number | null }) {
+  if (rank === null) {
+    return <span className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />;
+  }
+
+  const medal =
+    rank === 1
+      ? 'bg-warning/15 text-warning ring-1 ring-warning/30'
+      : rank === 2
+        ? 'bg-text-muted/15 text-text-muted ring-1 ring-text-muted/25'
+        : rank === 3
+          ? 'bg-orange-400/15 text-orange-400 ring-1 ring-orange-400/30'
+          : null;
+
+  if (medal) {
+    return (
+      <span
+        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ${medal}`}
+      >
+        {rank}
+      </span>
+    );
+  }
+
+  return (
+    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-xs font-semibold text-text-muted/70 tabular-nums">
+      {rank}
+    </span>
+  );
+}
+
+// 66px gutter matches a player row's rank + avatar so the P1–P5 badges line up
+// as column headers above every player's picks.
+function AnswerKeyRow({ top5 }: { top5: SessionHeader['top5'] }) {
+  return (
+    <div className="flex items-end gap-2.5 border border-t-0 border-border bg-surface-muted/40 px-2.5 py-2">
+      <div className="flex h-8 w-[66px] shrink-0 items-center gap-1.5 text-text-muted">
+        <Trophy className="h-4 w-4 shrink-0 text-accent" />
+        <span className="text-[10px] font-semibold tracking-wide uppercase">
+          Result
+        </span>
+      </div>
+      <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+        {top5.map((driver, i) => (
+          <div key={driver.code} className="flex flex-col items-center gap-0.5">
+            <span className="text-[10px] font-medium text-text-muted">
+              P{i + 1}
+            </span>
+            <DriverBadge
+              code={driver.code}
+              team={driver.team}
+              displayName={driver.displayName}
+              nationality={driver.nationality}
+              size="sm"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SessionLeaderboardRow({
+  event,
+  rank,
+  isViewer,
+  isLast,
+}: {
+  event: FeedEvent;
+  rank: number | null;
+  isViewer: boolean;
+  isLast: boolean;
+}) {
+  const [h2hOpen, setH2hOpen] = useState(false);
+  const [revsOpen, setRevsOpen] = useState(false);
+  const total = eventTotalPoints(event);
+
+  return (
+    <>
+      <div
+        className={`flex items-start gap-2.5 border border-t-0 border-border px-2.5 py-2 ${
+          isLast ? 'rounded-b-xl' : ''
+        } ${isViewer ? 'bg-accent/8 ring-1 ring-inset ring-accent/40' : 'bg-surface'}`}
+      >
+        <RankMedal rank={rank} />
+        <Link
+          to="/p/$username"
+          params={{ username: event.username ?? '' }}
+          search={{ from: undefined, fromLabel: undefined }}
+          className="mt-0.5 shrink-0"
+          tabIndex={event.username ? 0 : -1}
+        >
+          <Avatar
+            avatarUrl={event.avatarUrl}
+            username={event.username}
+            size="sm"
+          />
+        </Link>
+
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-sm leading-snug">
+              <UserLink
+                username={event.username}
+                displayName={event.displayName}
+              />
+              {isViewer && (
+                <span className="rounded-full bg-accent/15 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent uppercase">
+                  You
+                </span>
+              )}
+              {event.username && (
+                <span className="truncate text-[11px] text-text-muted">
+                  @{event.username}
+                </span>
+              )}
+            </p>
+            <span className="shrink-0 text-sm font-bold text-accent tabular-nums">
+              +{total}
+            </span>
+          </div>
+
+          {/* One wrap flow: badges fill first, Rev's ml-auto keeps it right and
+              lets it drop to its own line on narrow screens. */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {(event.picks ?? []).map((pick) => (
+              <ScoredDriverBadge
+                key={pick.predictedPosition}
+                code={pick.code}
+                team={pick.team}
+                displayName={pick.displayName}
+                nationality={pick.nationality}
+                pickPoints={pick.points}
+                hideDot
+                size="sm"
+              />
+            ))}
+            {event.h2hScore && event.raceId && event.sessionType && (
+              <button
+                type="button"
+                onClick={() => setH2hOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+              >
+                H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
+              </button>
+            )}
+            <div className="ml-auto shrink-0">
+              <RevButton
+                feedEventId={event._id}
+                revCount={event.revCount}
+                viewerHasReved={event.viewerHasReved}
+                recentRevUsers={event.recentRevUsers}
+                onCountClick={() => setRevsOpen(true)}
+              />
+            </div>
+          </div>
         </div>
-      ) : null}
+      </div>
+
+      {h2hOpen && event.raceId && event.sessionType && (
+        <H2HPicksDialog
+          userId={event.userId}
+          raceId={event.raceId}
+          sessionType={
+            event.sessionType as 'quali' | 'sprint_quali' | 'sprint' | 'race'
+          }
+          displayName={event.displayName ?? event.username ?? 'User'}
+          onClose={() => setH2hOpen(false)}
+        />
+      )}
+      {revsOpen && (
+        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      )}
+    </>
+  );
+}
+
+// Scored sessions render as a ranked mini-leaderboard; locked/pending ones fall
+// back to the standard stacked rows.
+export function SessionGroup({
+  session,
+  events,
+  viewerId,
+}: {
+  session: SessionHeader;
+  events: FeedEvent[];
+  viewerId?: Id<'users'>;
+}) {
+  const sessionWithTime = {
+    ...session,
+    createdAt: events[events.length - 1]?.createdAt,
+  };
+
+  const isScored =
+    session.top5.length > 0 &&
+    events.every((e) => e.type === 'score_published' && e.points !== undefined);
+
+  if (!isScored) {
+    return (
+      <div>
+        <SessionSeparator session={sessionWithTime} grouped />
+        {events.map((event, i) => (
+          <FeedItem
+            key={event._id}
+            event={event}
+            grouped
+            position={
+              i === events.length - 1 ? 'last' : i === 0 ? 'first' : 'middle'
+            }
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Rank by total points (Top 5 + H2H), descending. Equal scores share a rank.
+  // A lone row isn't a ranking, so skip the medal there.
+  const ranked = [...events].sort(
+    (a, b) => eventTotalPoints(b) - eventTotalPoints(a),
+  );
+  const showRanks = ranked.length > 1;
+  let lastPoints: number | null = null;
+  let lastRank = 0;
+
+  return (
+    <div>
+      <SessionSeparator session={sessionWithTime} grouped showResult={false} />
+      <AnswerKeyRow top5={session.top5} />
+      {ranked.map((event, i) => {
+        const pts = eventTotalPoints(event);
+        if (pts !== lastPoints) {
+          lastRank = i + 1;
+          lastPoints = pts;
+        }
+        return (
+          <SessionLeaderboardRow
+            key={event._id}
+            event={event}
+            rank={showRanks ? lastRank : null}
+            isViewer={!!viewerId && event.userId === viewerId}
+            isLast={i === ranked.length - 1}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -853,12 +1098,14 @@ type SessionHeader = {
   }[];
 };
 
-export function SessionSeparator({
+function SessionSeparator({
   session,
   grouped,
+  showResult = true,
 }: {
   session: SessionHeader;
   grouped?: boolean;
+  showResult?: boolean;
 }) {
   const label = SESSION_LABELS[session.sessionType] ?? session.sessionType;
   const countryCode = session.raceSlug
@@ -921,7 +1168,7 @@ export function SessionSeparator({
       </div>
 
       {/* Bottom row: actual results */}
-      {session.top5.length > 0 && (
+      {showResult && session.top5.length > 0 && (
         <div className="flex gap-2 px-3 pt-2 pb-2.5">
           {session.top5.map((driver, i) => (
             <div key={driver.code} className="flex flex-col items-center gap-1">

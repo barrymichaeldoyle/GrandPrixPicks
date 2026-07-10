@@ -14,7 +14,7 @@ Ship a focused native client for the existing Grand Prix Picks product, **releas
 
 The web app and Convex backend remain the source of truth. Mobile must use the same Convex mutations and server-side validation; it must not reimplement lock authority locally.
 
-This document defines product scope and behavior. `docs/mobile-api-contract.md` remains the lower-level API reference, but it requires the corrections listed under **Backend and contract work** before implementation.
+This document defines product scope and behavior. `docs/mobile-api-contract.md` remains the lower-level API reference, but it requires the corrections listed under **Backend and contract work** before implementation. Implementation status and the remaining human-verification steps live in `docs/mobile-mvp-handoff.md`.
 
 ## MVP principles
 

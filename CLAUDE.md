@@ -96,7 +96,7 @@ components/            # Shared React components (app-wide)
   RaceCard.tsx         # Race display card with countdown
   DriverBadge.tsx      # Team-colored driver display
   H2HMatchupGrid.tsx, H2HPredictionForm.tsx  # Head-to-head UI
-  Header.tsx           # Nav bar with mobile menu, theme toggle
+  Header.tsx           # Nav bar with mobile menu (dark-only theme)
   admin/, error/, Button/, UpcomingPredictionBanner/   # Grouped components
 integrations/          # Provider wrappers (Clerk, Convex, TanStack Query)
 hooks/                 # App-wide custom hooks

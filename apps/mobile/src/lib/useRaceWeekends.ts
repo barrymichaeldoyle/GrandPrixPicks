@@ -12,15 +12,17 @@ export function useRaceWeekends() {
     convexEnabled ? { season: 2026 } : 'skip',
   );
 
-  const races =
-    !convexEnabled || racesQuery === undefined
-      ? mockRaceWeekends
-      : racesQuery
-          .map((race) => mapConvexRaceToWeekend(race))
-          .filter((race): race is NonNullable<typeof race> => race !== null);
+  // Mock data exists only for the unconfigured-Convex dev shell. A connected
+  // app must never show it — while loading, return nothing and let callers
+  // render their loading state.
+  const races = !convexEnabled
+    ? mockRaceWeekends
+    : (racesQuery ?? [])
+        .map((race) => mapConvexRaceToWeekend(race))
+        .filter((race): race is NonNullable<typeof race> => race !== null);
 
   return {
     isLoading: convexEnabled && racesQuery === undefined,
-    races: races.length > 0 ? races : mockRaceWeekends,
+    races,
   };
 }

@@ -9,6 +9,7 @@ import { useQuery } from 'convex/react';
 import { RaceDetailHero } from '../components/races/RaceDetailHero';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { CountdownText } from '../components/ui/CountdownText';
+import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { LockBadge } from '../components/ui/LockBadge';
 import { PageHero } from '../components/ui/PageHero';
 import { api } from '../integrations/convex/api';
@@ -37,7 +38,7 @@ const SESSION_ORDER: SessionType[] = [
 ];
 export function RaceDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
-  const { races } = useRaceWeekends();
+  const { races, isLoading: racesLoading } = useRaceWeekends();
   const now = useNow();
   const { formatRaceDate } = useUserDateFormat();
   const rootNav = useNavigation<NavigationProp<RootTabParamList>>();
@@ -60,6 +61,10 @@ export function RaceDetailScreen({ route }: Props) {
     api.results.getMyScoresForRace,
     convexEnabled && raceDoc ? { raceId: raceDoc._id } : 'skip',
   );
+
+  if (racesLoading) {
+    return <LoadingScreen />;
+  }
 
   if (!race) {
     return (

@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
+import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -119,6 +120,21 @@ function PredictForRace({
 
   const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
 
+  // Result data only subscribes once something has been published.
+  const anyResult = capabilities.some((c) => c.hasResult);
+  const myScoresBySession = useQuery(
+    api.results.getMyScoresForRace,
+    anyResult ? { raceId: race._id } : 'skip',
+  );
+  const actualTop5BySession = useQuery(
+    api.results.getEnrichedTop5BySession,
+    anyResult ? { raceId: race._id } : 'skip',
+  );
+  const myH2HWeekend = useQuery(
+    api.h2h.getMyH2HWeekendScore,
+    anyResult ? { raceId: race._id } : 'skip',
+  );
+
   // Server capabilities are the authority on writability; the device clock
   // only advances the locked state between query refreshes (a Convex query
   // re-runs on data changes, not on the passage of time).
@@ -144,6 +160,17 @@ function PredictForRace({
       setSelectedSession(nextOpenSession);
     }
   }, [nextOpenSession, selectedSession, weekendSessions]);
+
+  const selectedCapability = capabilities.find(
+    (c) => c.sessionType === selectedSession,
+  );
+  const selectedHasResult = Boolean(selectedCapability?.hasResult);
+  const myH2HScoreForSession = useQuery(
+    api.h2h.getMyH2HScoreForRace,
+    selectedHasResult
+      ? { raceId: race._id, sessionType: selectedSession }
+      : 'skip',
+  );
 
   if (
     driversQuery === undefined ||
@@ -180,7 +207,14 @@ function PredictForRace({
     >
       <PageHeader race={race} selectedSession={selectedSession} now={now} />
 
-      {hasAnyTop5 && weekendSessions.length > 1 ? (
+      {anyResult ? (
+        <WeekendPointsStrip
+          h2hTotal={myH2HWeekend?.totalPoints ?? 0}
+          scoresBySession={myScoresBySession ?? null}
+        />
+      ) : null}
+
+      {(hasAnyTop5 || anyResult) && weekendSessions.length > 1 ? (
         <SessionTabs
           sessions={weekendSessions}
           selected={selectedSession}
@@ -193,58 +227,167 @@ function PredictForRace({
         />
       ) : null}
 
-      {!hasAnyTop5 ? (
-        <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
-      ) : null}
+      {selectedHasResult ? (
+        <ScoredSessionSection
+          actual={actualTop5BySession?.[selectedSession] ?? []}
+          h2hPicks={h2hPredictions?.[selectedSession] ?? {}}
+          h2hScore={myH2HScoreForSession ?? null}
+          matchups={matchups}
+          myScore={myScoresBySession?.[selectedSession] ?? null}
+          session={selectedSession}
+        />
+      ) : (
+        <>
+          {!hasAnyTop5 ? (
+            <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
+          ) : null}
 
-      <Top5Section
-        race={race}
-        drivers={drivers}
-        selectedSession={selectedSession}
-        selectedLockAt={selectedLockAt}
-        cascadeMode={!hasAnyTop5}
-        existingPicks={predictionsBySession[selectedSession] ?? []}
-        sessionIsLocked={selectedSessionIsLocked}
-        onSubmit={async (picks, sessionType) => {
-          const isFirstSave = !hasAnyTop5;
-          await submitPrediction({
-            raceId: race._id,
-            picks: picks as DriverId[],
-            sessionType,
-          });
-          if (isFirstSave) {
-            void maybeOfferPush();
-          }
-        }}
-      />
-
-      {hasAnyTop5 || matchups.length === 0 ? (
-        matchups.length === 0 ? null : (
-          <H2HSection
-            cascadeMode={!hasAnyH2H}
-            existingPicks={h2hPredictions?.[selectedSession] ?? {}}
-            matchups={matchups}
+          <Top5Section
             race={race}
+            drivers={drivers}
             selectedSession={selectedSession}
+            selectedLockAt={selectedLockAt}
+            cascadeMode={!hasAnyTop5}
+            existingPicks={predictionsBySession[selectedSession] ?? []}
             sessionIsLocked={selectedSessionIsLocked}
             onSubmit={async (picks, sessionType) => {
-              await submitH2H({
+              const isFirstSave = !hasAnyTop5;
+              await submitPrediction({
                 raceId: race._id,
-                picks: matchups.map((m) => ({
-                  matchupId: m._id,
-                  predictedWinnerId: picks[m._id] as DriverId,
-                })),
+                picks: picks as DriverId[],
                 sessionType,
               });
+              if (isFirstSave) {
+                void maybeOfferPush();
+              }
             }}
           />
-        )
-      ) : (
-        <Text className="text-muted pt-1 text-xs italic">
-          Save your Top 5 first to unlock H2H picks.
-        </Text>
+
+          {hasAnyTop5 || matchups.length === 0 ? (
+            matchups.length === 0 ? null : (
+              <H2HSection
+                cascadeMode={!hasAnyH2H}
+                existingPicks={h2hPredictions?.[selectedSession] ?? {}}
+                matchups={matchups}
+                race={race}
+                selectedSession={selectedSession}
+                sessionIsLocked={selectedSessionIsLocked}
+                onSubmit={async (picks, sessionType) => {
+                  await submitH2H({
+                    raceId: race._id,
+                    picks: matchups.map((m) => ({
+                      matchupId: m._id,
+                      predictedWinnerId: picks[m._id] as DriverId,
+                    })),
+                    sessionType,
+                  });
+                }}
+              />
+            )
+          ) : (
+            <Text className="text-muted pt-1 text-xs italic">
+              Save your Top 5 first to unlock H2H picks.
+            </Text>
+          )}
+        </>
       )}
     </ScrollView>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Scored session — predicted vs actual + points (plan §2 result state)
+// ─────────────────────────────────────────────────────────────────────────
+
+type ResultsCardProps = React.ComponentProps<typeof SessionResultsCard>;
+
+function WeekendPointsStrip({
+  scoresBySession,
+  h2hTotal,
+}: {
+  scoresBySession: Record<string, { points: number } | null> | null;
+  h2hTotal: number;
+}) {
+  const top5Total = scoresBySession
+    ? Object.values(scoresBySession).reduce(
+        (sum, score) => sum + (score?.points ?? 0),
+        0,
+      )
+    : 0;
+  return (
+    <View className="flex-row items-baseline gap-1.5">
+      <Text className="text-muted text-[10px] font-extrabold uppercase">
+        Weekend so far
+      </Text>
+      <Text className="text-sm font-extrabold text-accent-hover">
+        {top5Total + h2hTotal} pts
+      </Text>
+      <Text className="text-muted text-[11px]">
+        {top5Total} Top 5 · {h2hTotal} H2H
+      </Text>
+    </View>
+  );
+}
+
+function ScoredSessionSection({
+  session,
+  actual,
+  myScore,
+  h2hScore,
+  matchups,
+  h2hPicks,
+}: {
+  session: SessionType;
+  actual: ResultsCardProps['actual'];
+  myScore: {
+    points: number;
+    enrichedBreakdown: NonNullable<ResultsCardProps['pickBreakdown']>;
+  } | null;
+  h2hScore: {
+    points: number;
+    correctPicks: number;
+    totalPicks: number;
+  } | null;
+  matchups: ReadonlyArray<Matchup>;
+  h2hPicks: Record<string, string>;
+}) {
+  return (
+    <View className="gap-4">
+      <View className="gap-2">
+        <SectionHeader title="Results" />
+        <SessionResultsCard
+          actual={actual}
+          pickBreakdown={myScore?.enrichedBreakdown}
+          session={session}
+          totalPoints={myScore?.points}
+        />
+      </View>
+      {matchups.length > 0 ? (
+        <View className="gap-2">
+          <SectionHeader
+            title="Head to Head"
+            action={
+              h2hScore ? (
+                <Text className="text-xs">
+                  <Text className="text-foreground font-extrabold">
+                    {h2hScore.correctPicks}/{h2hScore.totalPicks}
+                  </Text>
+                  <Text className="text-muted">
+                    {' '}
+                    correct · {h2hScore.points} pts
+                  </Text>
+                </Text>
+              ) : null
+            }
+          />
+          <H2HReadonly
+            matchups={matchups}
+            selections={h2hPicks}
+            sessionLocked
+          />
+        </View>
+      ) : null}
+    </View>
   );
 }
 

@@ -1,11 +1,11 @@
 # Grand Prix Picks Mobile MVP
 
 Status: proposed  
-Last reviewed: 2026-07-08
+Last reviewed: 2026-07-10
 
 ## Purpose
 
-Ship a focused iOS and Android client for the existing Grand Prix Picks product. The MVP must let an authenticated user complete the core race-weekend loop:
+Ship a focused native client for the existing Grand Prix Picks product, **releasing to the iOS App Store first**. Android ships later from the same Expo codebase; nothing in this MVP may be iOS-only in implementation, but store readiness, device testing, and release gates target iOS. The MVP must let an authenticated user complete the core race-weekend loop:
 
 1. Make Top 5 and Head-to-Head (H2H) picks for the next race weekend.
 2. Return during the weekend and edit any session that has not locked.
@@ -29,7 +29,8 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 
 ### Included
 
-- Clerk sign-in, sign-up, sign-out, and session restoration.
+- Clerk sign-in, sign-up, sign-out, and session restoration. **Sign in with Apple must be offered** (App Review Guideline 4.8 requires it alongside other social logins; already implemented in `SignInScreen.tsx` — do not drop it).
+- In-app account deletion (see More / settings). Required by App Review Guideline 5.1.1(v); a link to web account management does not satisfy it.
 - Upcoming/current race-weekend home screen.
 - Race schedule and per-session state for regular and sprint weekends.
 - Create, view, and edit Top 5 picks.
@@ -41,26 +42,31 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 - Lightweight player views needed by feed and leaderboard navigation.
 - In-app notifications and native push notifications.
 - Basic app settings and links to legal/support pages.
-- A Leagues placeholder that opens league management on the web.
+- A Leagues web handoff that opens league management on the web.
 
 ### Explicitly excluded
 
 - Creating, joining, leaving, discovering, or managing leagues in the app.
 - League detail, league feed, and league leaderboards.
-- Full profile editing, prediction-history profile, followers/following management, and account deletion UI.
-- Billing, season-pass purchase, admin tools, randomize, social sharing, and web/PWA concerns.
+- Full profile editing, prediction-history profile, and followers/following management.
+- Billing and season-pass purchase. If a premium-gated surface is reachable in the app, show a neutral unavailable state — never "buy on the web" copy or a purchase link (App Store steering rules).
+- Admin tools, randomize, social sharing, and web/PWA concerns.
 - A full historical race browser. Historical race detail may be added after the core loop is stable.
+
+### Reconciliation with the existing app
+
+`apps/mobile/src/screens/` already contains screens beyond this scope: `PredictionHistoryScreen`, `FollowListScreen`, and full league screens (`LeagueListScreen`, `LeagueDetailScreen`, `LeagueSettingsScreen`). For anything listed as excluded above, MVP work includes **hiding or removing the existing screen and its navigation entry points**, not merely declining to build it. `PublicProfileScreen` may be kept only if trimmed to the lightweight player view described below. The delivery slices below describe the target state; several are already partially built.
 
 ## Information architecture
 
 Use four native tabs, each with its own navigation stack:
 
-| Tab | Root | Key destinations |
-| --- | --- | --- |
-| Picks | Current weekend | Top 5 editor, H2H editor, session result detail |
-| Feed | Personalized feed | Feed-event detail, lightweight player view |
-| Leaderboard | Rankings | Weekend/season filters, lightweight player view |
-| More | Utility menu | Notifications, settings, leagues placeholder, support/legal, sign out |
+| Tab         | Root              | Key destinations                                                                      |
+| ----------- | ----------------- | ------------------------------------------------------------------------------------- |
+| Picks       | Current weekend   | Top 5 editor, H2H editor, session result detail                                       |
+| Feed        | Personalized feed | Feed-event detail, lightweight player view                                            |
+| Leaderboard | Rankings          | Weekend/season filters, lightweight player view                                       |
+| More        | Utility menu      | Notifications, settings, leagues web handoff, support/legal, delete account, sign out |
 
 The Picks tab is the authenticated landing tab. Notification and deep-link navigation may open a race session or feed event directly and must restore auth before resolving the destination.
 
@@ -94,14 +100,14 @@ The Picks tab is the authenticated landing tab. Notification and deep-link navig
 
 ### Mid-weekend entry matrix
 
-| User state | Selected session | Required behavior |
-| --- | --- | --- |
-| No picks; all sessions open | Any | Guided Top 5 then H2H flow; each first save applies across the weekend. |
+| User state                                             | Selected session  | Required behavior                                                                                                   |
+| ------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------- |
+| No picks; all sessions open                            | Any               | Guided Top 5 then H2H flow; each first save applies across the weekend.                                             |
 | No picks; earlier sessions locked; later sessions open | Next open session | Allow entry. Cascade only persists to still-open sessions and clearly says earlier sessions will not receive picks. |
-| Existing picks; selected session open | Open session | Show saved picks and an Edit action scoped to that session. |
-| Existing picks; selected session locked, no result | Locked session | Read-only picks with a Locked state. Other open sessions remain editable. |
-| Result published | Scored session | Read-only predicted versus actual result, Top 5 points, and H2H score. |
-| Final session locked | Weekend | Entire weekend is read-only; direct users to Feed or Leaderboard. |
+| Existing picks; selected session open                  | Open session      | Show saved picks and an Edit action scoped to that session.                                                         |
+| Existing picks; selected session locked, no result     | Locked session    | Read-only picks with a Locked state. Other open sessions remain editable.                                           |
+| Result published                                       | Scored session    | Read-only predicted versus actual result, Top 5 points, and H2H score.                                              |
+| Final session locked                                   | Weekend           | Entire weekend is read-only; direct users to Feed or Leaderboard.                                                   |
 
 The app should default to the next open session. If none is open, default to the latest session in weekend order.
 
@@ -200,6 +206,7 @@ Requirements:
   - results/amendment -> scored session;
   - Rev -> feed event.
 - Register one Expo push token per installation after permission is granted and remove it when push is disabled or the user signs out.
+- iOS shows the system permission prompt only once. Do not request permission at launch: show an in-app pre-prompt explaining reminders and results notifications, triggered after the user's first successful pick save, and only then request the system permission. If the user declines the pre-prompt, leave the system prompt unspent and offer it again from settings.
 
 ### 8. More / settings
 
@@ -212,11 +219,12 @@ MVP settings:
 - App appearance: system/light/dark, stored locally.
 - Links to support, privacy, terms, and account management on web.
 - Sign out.
+- **Delete account** (in-app, required for App Store approval). Confirm destructively, then delete the Clerk user via the Clerk SDK (`user.delete()`); the existing Clerk webhook (`users.deleteUserFromClerkWebhook`) already cleans up Convex data. Sign the user out and return to the signed-out state on success.
 
-### 9. Leagues placeholder
+### 9. Leagues web handoff
 
-- Show `Leagues are coming to the app`.
-- Explain that existing leagues and league management remain available on web.
+- Show `Leagues are managed on the web` — present-tense utility copy. Never use "coming soon" or placeholder framing: App Review rejects placeholder content under Guideline 2.1.
+- Explain that existing leagues and league management are available on web.
 - Primary action opens the authenticated web league page in the system browser.
 - Preserve a return/deep-link path if practical, but do not embed the web app in a WebView.
 
@@ -232,20 +240,20 @@ MVP settings:
 
 ## Existing backend/API mapping
 
-| Capability | Existing Convex API |
-| --- | --- |
-| Current race | `races.getNextRace`, `races.getQuickPickRace`, `races.getRace`, `races.getRaceBySlug` |
-| Weekend timing | Race document lock/start fields, `races.getPredictionOpenAt` |
-| Driver roster | `drivers.listDrivers` |
-| Top 5 read/write | `predictions.myWeekendPredictions`, `predictions.submitPrediction` |
+| Capability           | Existing Convex API                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Current race         | `races.getNextRace`, `races.getQuickPickRace`, `races.getRace`, `races.getRaceBySlug`                                        |
+| Weekend timing       | Race document lock/start fields, `races.getPredictionOpenAt`                                                                 |
+| Driver roster        | `drivers.listDrivers`                                                                                                        |
+| Top 5 read/write     | `predictions.myWeekendPredictions`, `predictions.submitPrediction`                                                           |
 | Top 5 scores/results | `results.getMyScoresForRace`, `results.getEnrichedTop5BySession`, `results.getAllResultsForRace`, `results.getResultForRace` |
-| H2H read/write | `h2h.getMatchupsForSeason`, `h2h.myH2HPredictionsForRace`, `h2h.submitH2HPredictions` |
-| H2H results/scores | `h2h.getH2HResultsForRace`, `h2h.getMyH2HScoreForRace`, `h2h.getMyH2HWeekendScore` |
-| Feed | `feed.getPersonalizedFeed`, `feed.getFeedEvent`, `feed.giveRev`, `feed.removeRev`, `feed.getRevUsers` |
-| Leaderboards | Combined, Top 5, and H2H season/following/race queries in `leaderboards.ts` and `h2h.ts` |
-| In-app inbox | `inAppNotifications.getMyNotifications`, `markRead`, `markAllRead` |
-| Native push | `push.saveExpoPushToken`, `push.deleteExpoPushToken` |
-| Preferences | `users.me`, `users.syncProfile`, `users.updateNotificationSettings`, `users.updateRegionalSettings` |
+| H2H read/write       | `h2h.getMatchupsForSeason`, `h2h.myH2HPredictionsForRace`, `h2h.submitH2HPredictions`                                        |
+| H2H results/scores   | `h2h.getH2HResultsForRace`, `h2h.getMyH2HScoreForRace`, `h2h.getMyH2HWeekendScore`                                           |
+| Feed                 | `feed.getPersonalizedFeed`, `feed.getFeedEvent`, `feed.giveRev`, `feed.removeRev`, `feed.getRevUsers`                        |
+| Leaderboards         | Combined, Top 5, and H2H season/following/race queries in `leaderboards.ts` and `h2h.ts`                                     |
+| In-app inbox         | `inAppNotifications.getMyNotifications`, `markRead`, `markAllRead`                                                           |
+| Native push          | `push.saveExpoPushToken`, `push.deleteExpoPushToken`                                                                         |
+| Preferences          | `users.me`, `users.syncProfile`, `users.updateNotificationSettings`, `users.updateRegionalSettings`                          |
 
 ## Backend and contract work before mobile implementation
 
@@ -284,14 +292,33 @@ Never include driver picks or private user content in analytics payloads.
 - Published results update the race screen, feed, notification inbox, and weekend leaderboard without an app release.
 - Feed pagination, Revs, and empty-state discovery work for an account with no follows and an account with follows.
 - Every global/following, weekend/season, Combined/Top 5/H2H leaderboard combination renders the correct empty, signed-out, loading, error, and populated state.
-- Push permission, token registration, preference toggles, receipt, and deep-link routing are tested on physical iOS and Android devices.
-- League actions are not exposed natively; the placeholder opens the correct web page.
+- Push permission, token registration, preference toggles, receipt, and deep-link routing are tested on a physical iOS device. (Repeat on Android before the later Android release; not an iOS MVP gate.)
+- A user can delete their account from the app; the Clerk user and Convex data are removed and the app returns to the signed-out state.
+- League actions are not exposed natively; the web handoff opens the correct web page.
+
+## iOS release readiness
+
+Because iOS ships first, the following are MVP release gates (Android equivalents are deferred to the Android release):
+
+- **Sign in with Apple** offered alongside other Clerk social logins (Guideline 4.8).
+- **In-app account deletion** working end to end (Guideline 5.1.1(v)).
+- **No placeholder content** — the leagues surface uses the web-handoff framing above (Guideline 2.1).
+- **No purchase steering** — no season-pass pricing, purchase links, or "buy on web" copy anywhere in the app.
+- **App Privacy nutrition labels** completed in App Store Connect. The analytics section below commits to collecting event data; declare it accurately. If analytics is first-party and not used for cross-app tracking, App Tracking Transparency is not required — keep it that way.
+- **APNs push credentials** configured via EAS; push receipt and deep links verified on a physical device via TestFlight.
+- **Sentry symbolication** — set `SENTRY_AUTH_TOKEN` / org / project secrets on EAS before the first TestFlight build so crash reports arrive with readable frames.
+- **TestFlight** distribution for at least one full race weekend before App Store submission.
+
+Deferred to the Android release: FCM configuration, Play Console setup and data-safety form, Android physical-device matrix, and Play store listing.
 
 ## Recommended delivery slices
 
-1. Foundation: auth, Convex provider, navigation, theme, deep-link shell, current-weekend query.
+Slices 1–5 are partially built in `apps/mobile` today; treat each slice as "finish and verify against this document", including removing out-of-scope screens per the reconciliation section.
+
+1. Foundation: auth (including Sign in with Apple), Convex provider, navigation, theme, deep-link shell, current-weekend query.
 2. Picks: session state, Top 5, H2H, drafts, lock races, result display.
 3. Leaderboard: all non-league dimensions, pagination, lightweight player view.
 4. Feed: pagination, grouped session events, event detail, Revs.
-5. Notifications and settings: inbox, Expo push, preferences, web handoffs.
-6. Hardening: offline reads, foreground refresh, analytics, accessibility, device matrix, store readiness.
+5. Notifications and settings: inbox, Expo push (with the pre-prompt flow), preferences, web handoffs, account deletion.
+6. Hardening and iOS release: offline reads, foreground refresh, analytics, accessibility, iOS device matrix, the iOS release-readiness checklist above, TestFlight.
+7. Android follow-up (post-MVP): FCM, Play readiness, Android device matrix.

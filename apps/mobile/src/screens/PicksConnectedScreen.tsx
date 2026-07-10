@@ -20,6 +20,7 @@ import { useAutoSaveOnFirstComplete } from '../hooks/useAutoSaveOnFirstComplete'
 import { useOfferPushAfterFirstSave } from '../hooks/useOfferPushAfterFirstSave';
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import { useUserDateFormat } from '../lib/dates';
 import { getTeamColor } from '../lib/teamColors';
 import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
@@ -252,10 +253,27 @@ function PredictForRace({
             sessionIsLocked={selectedSessionIsLocked}
             onSubmit={async (picks, sessionType) => {
               const isFirstSave = !hasAnyTop5;
-              await submitPrediction({
-                raceId: race._id,
-                picks: picks as DriverId[],
-                sessionType,
+              const scope = sessionType === undefined ? 'cascade' : 'session';
+              try {
+                await submitPrediction({
+                  raceId: race._id,
+                  picks: picks as DriverId[],
+                  sessionType,
+                });
+              } catch (err) {
+                captureAnalyticsEvent('top5_save_failed', {
+                  scope,
+                  session_locked:
+                    err instanceof Error && /locked/i.test(err.message),
+                });
+                throw err;
+              }
+              captureAnalyticsEvent('top5_saved', {
+                scope,
+                open_sessions: sessionLockState.filter((s) => !s.isLocked)
+                  .length,
+                locked_sessions: sessionLockState.filter((s) => s.isLocked)
+                  .length,
               });
               if (isFirstSave) {
                 void maybeOfferPush();
@@ -273,13 +291,31 @@ function PredictForRace({
                 selectedSession={selectedSession}
                 sessionIsLocked={selectedSessionIsLocked}
                 onSubmit={async (picks, sessionType) => {
-                  await submitH2H({
-                    raceId: race._id,
-                    picks: matchups.map((m) => ({
-                      matchupId: m._id,
-                      predictedWinnerId: picks[m._id] as DriverId,
-                    })),
-                    sessionType,
+                  const scope =
+                    sessionType === undefined ? 'cascade' : 'session';
+                  try {
+                    await submitH2H({
+                      raceId: race._id,
+                      picks: matchups.map((m) => ({
+                        matchupId: m._id,
+                        predictedWinnerId: picks[m._id] as DriverId,
+                      })),
+                      sessionType,
+                    });
+                  } catch (err) {
+                    captureAnalyticsEvent('h2h_save_failed', {
+                      scope,
+                      session_locked:
+                        err instanceof Error && /locked/i.test(err.message),
+                    });
+                    throw err;
+                  }
+                  captureAnalyticsEvent('h2h_saved', {
+                    scope,
+                    open_sessions: sessionLockState.filter((s) => !s.isLocked)
+                      .length,
+                    locked_sessions: sessionLockState.filter((s) => s.isLocked)
+                      .length,
                   });
                 }}
               />
@@ -703,6 +739,14 @@ function Top5Editor({
   const hydratedRef = useRef<string | null>(null);
 
   useEffect(() => {
+    captureAnalyticsEvent('top5_editor_opened', {
+      scope: cascadeMode ? 'cascade' : 'session',
+    });
+    // Once per editor mount, not per prop change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const key = `${race.slug}:${draftSession}`;
     if (hydratedRef.current === key) {
       return;
@@ -751,6 +795,11 @@ function Top5Editor({
   function updatePicks(next: string[]) {
     markInteraction();
     setIsDirty(true);
+    if (picks.length < MAX_TOP5 && next.length === MAX_TOP5) {
+      captureAnalyticsEvent('top5_picks_completed', {
+        scope: cascadeMode ? 'cascade' : 'session',
+      });
+    }
     setPicks(next);
   }
 
@@ -1023,6 +1072,14 @@ function H2HEditor({
   const hydratedRef = useRef<string | null>(null);
 
   useEffect(() => {
+    captureAnalyticsEvent('h2h_editor_opened', {
+      scope: cascadeMode ? 'cascade' : 'session',
+    });
+    // Once per editor mount, not per prop change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const key = `${race.slug}:${draftSession}`;
     if (hydratedRef.current === key) {
       return;
@@ -1139,7 +1196,18 @@ function H2HEditor({
         onSelect={(matchupId, driverId) => {
           markInteraction();
           setIsDirty(true);
-          setSelections((prev) => ({ ...prev, [matchupId]: driverId }));
+          setSelections((prev) => {
+            const next = { ...prev, [matchupId]: driverId };
+            if (
+              Object.keys(prev).length < matchups.length &&
+              Object.keys(next).length === matchups.length
+            ) {
+              captureAnalyticsEvent('h2h_picks_completed', {
+                scope: cascadeMode ? 'cascade' : 'session',
+              });
+            }
+            return next;
+          });
         }}
         selections={selections}
       />

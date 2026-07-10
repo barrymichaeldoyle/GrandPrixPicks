@@ -2,6 +2,7 @@ import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 
 import { api, type ConvexId } from '../../integrations/convex/api';
+import { captureAnalyticsEvent } from '../../lib/analytics';
 import { Pressable, Text } from '../../tw';
 
 type RevButtonProps = {
@@ -22,9 +23,11 @@ export function RevButton({
     if (viewerHasReved) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       void removeRev({ feedEventId });
+      captureAnalyticsEvent('feed_event_unreved');
     } else {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       void giveRev({ feedEventId });
+      captureAnalyticsEvent('feed_event_reved');
     }
   }
 

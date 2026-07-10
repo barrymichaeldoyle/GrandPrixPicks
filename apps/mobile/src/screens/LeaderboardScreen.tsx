@@ -15,6 +15,7 @@ import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
@@ -280,7 +281,12 @@ export function LeaderboardScreen() {
       return;
     }
     void Haptics.selectionAsync();
+    captureAnalyticsEvent('leaderboard_player_opened');
     navigation.navigate('PublicProfile', { username });
+  }
+
+  function changeFilter(filter: string, value: string) {
+    captureAnalyticsEvent('leaderboard_filter_changed', { filter, value });
   }
 
   if (!convexEnabled) {
@@ -356,7 +362,10 @@ export function LeaderboardScreen() {
   const filters = (
     <View className="mb-4 gap-2.5">
       <SegmentedTabs
-        onChange={(v) => setTimeChoice(v)}
+        onChange={(v) => {
+          changeFilter('time', v);
+          setTimeChoice(v);
+        }}
         options={TIME_OPTIONS}
         value={timeScope}
       />
@@ -376,7 +385,10 @@ export function LeaderboardScreen() {
                     : 'border-border'
                 }`}
                 key={race._id}
-                onPress={() => setChosenRaceId(race._id)}
+                onPress={() => {
+                  changeFilter('race', race.slug);
+                  setChosenRaceId(race._id);
+                }}
               >
                 <FlagImage raceSlug={race.slug} />
                 <Text
@@ -392,11 +404,21 @@ export function LeaderboardScreen() {
         </ScrollView>
       ) : null}
       <SegmentedTabs
-        onChange={setScope}
+        onChange={(v) => {
+          changeFilter('scope', v);
+          setScope(v);
+        }}
         options={SCOPE_OPTIONS}
         value={scope}
       />
-      <SegmentedTabs onChange={setMode} options={MODE_OPTIONS} value={mode} />
+      <SegmentedTabs
+        onChange={(v) => {
+          changeFilter('mode', v);
+          setMode(v);
+        }}
+        options={MODE_OPTIONS}
+        value={mode}
+      />
     </View>
   );
 

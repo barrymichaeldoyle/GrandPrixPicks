@@ -10,6 +10,7 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { useDeleteAccount } from '../hooks/useDeleteAccount';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import { obtainExpoPushToken } from '../lib/pushRegistration';
 import { usePushPermission } from '../lib/usePushPermission';
 import { useMobileConfig } from '../providers/mobile-config';
@@ -159,6 +160,10 @@ export function SettingsScreen() {
 
   function toggleNotification(key: NotificationKey, value: boolean) {
     void Haptics.selectionAsync();
+    captureAnalyticsEvent('notification_setting_changed', {
+      setting: key,
+      enabled: value,
+    });
     updateNotifications({ [key]: value }).catch((err) => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(
@@ -412,6 +417,10 @@ export function SettingsScreen() {
           onRequest={async () => {
             void Haptics.selectionAsync();
             const granted = await pushPermission.requestPermission();
+            captureAnalyticsEvent('push_permission_result', {
+              granted,
+              source: 'settings',
+            });
             if (granted) {
               const token = await obtainExpoPushToken();
               if (token) {

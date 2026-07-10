@@ -216,7 +216,7 @@ MVP settings:
 - Toggles for prediction reminders, lock-soon reminders, results, session locked, and Revs.
 - Email toggles for prediction reminders and results may remain available because they already exist server-side.
 - Timezone: device default or explicit IANA timezone.
-- App appearance: system/light/dark, stored locally.
+- ~~App appearance: system/light/dark.~~ Decision (2026-07-11): the app is dark-only, matching web (which hardcodes the dark theme). No appearance setting ships in the MVP; revisit only if web gains a light theme.
 - Links to support, privacy, terms, and account management on web.
 - Sign out.
 - **Delete account** (in-app, required for App Store approval). Confirm destructively, then delete the Clerk user via the Clerk SDK (`user.delete()`); the existing Clerk webhook (`users.deleteUserFromClerkWebhook`) already cleans up Convex data. Sign the user out and return to the signed-out state on success.
@@ -267,6 +267,15 @@ MVP settings:
 8. Add contract tests for a first submission made after earlier sessions lock, for both Top 5 and H2H, including regular and sprint weekends.
 
 ## Analytics
+
+Tooling: PostHog via `posthog-react-native` (same project and EU host as
+web's `posthog-js`). Events share web's snake_case naming (overlapping
+events like `feed_event_reved` reuse web's exact names), users are
+identified by Clerk user id as on web, and capture is manual-only —
+no autocapture or lifecycle events. Enabled only in production builds
+with `EXPO_PUBLIC_POSTHOG_KEY` set (configure it in EAS). Note: web
+gates capture behind cookie-consent opt-in; mobile currently captures
+by default in production — revisit if EU consent parity is wanted.
 
 At minimum capture:
 

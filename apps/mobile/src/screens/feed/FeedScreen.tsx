@@ -1,7 +1,7 @@
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useMutation, useQuery } from 'convex/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';
 import { FeedEventCard } from '../../components/feed/FeedEventCard';
@@ -15,6 +15,7 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { PageHero } from '../../components/ui/PageHero';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
+import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
 import type { FeedStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
@@ -78,6 +79,16 @@ export function FeedScreen() {
 
   const me = useQuery(api.users.me, convexEnabled ? {} : 'skip');
 
+  const feedLoadedRef = useRef(false);
+  useEffect(() => {
+    if (page0 !== undefined && !feedLoadedRef.current) {
+      feedLoadedRef.current = true;
+      captureAnalyticsEvent('feed_loaded', {
+        events: page0?.events.length ?? 0,
+      });
+    }
+  }, [page0]);
+
   const allPageData = [page0, page1, page2, page3, page4];
   const activePagesCount = 1 + extraCursors.filter((c) => c !== null).length;
   const activePages = allPageData.slice(0, activePagesCount);
@@ -95,6 +106,7 @@ export function FeedScreen() {
     if (isLoadingMore || !hasMore || !lastLoadedPage?.nextCursor) {
       return;
     }
+    captureAnalyticsEvent('feed_paginated', { page: activePagesCount + 1 });
     setExtraCursors((prev) => {
       const next = [...prev];
       const idx = next.findIndex((c) => c === null);
@@ -106,6 +118,7 @@ export function FeedScreen() {
   }
 
   function openEvent(event: FeedEvent) {
+    captureAnalyticsEvent('feed_event_opened', { type: event.type });
     navigation.navigate('FeedEventDetail', {
       feedEventId: String(event._id),
     });

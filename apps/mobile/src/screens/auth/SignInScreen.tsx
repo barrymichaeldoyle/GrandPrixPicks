@@ -12,6 +12,7 @@ import type { TextInput as RNTextInput } from 'react-native';
 import { Platform } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
+import { captureAnalyticsEvent } from '../../lib/analytics';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import {
@@ -116,6 +117,8 @@ export function SignInScreen() {
 
   async function handleSSO(strategy: 'oauth_google' | 'oauth_apple') {
     setError(null);
+    const method = strategy === 'oauth_apple' ? 'apple' : 'google';
+    captureAnalyticsEvent('auth_started', { method });
     try {
       const { createdSessionId, signIn: ssoSignIn } = await startSSOFlow({
         strategy,
@@ -123,6 +126,7 @@ export function SignInScreen() {
       });
       if (createdSessionId) {
         await clerk.setActive({ session: createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method });
         return;
       }
       // No session was created but the flow didn't throw — most commonly the
@@ -143,6 +147,7 @@ export function SignInScreen() {
       }
       // Log the full error so we can see what's actually going wrong.
       console.warn(`[auth] ${strategy} flow failed`, err);
+      captureAnalyticsEvent('auth_failed', { method });
       setError(
         clerkMessage(
           err,
@@ -162,6 +167,7 @@ export function SignInScreen() {
     }
     setError(null);
     setLoading(true);
+    captureAnalyticsEvent('auth_started', { method: 'email_sign_in' });
     try {
       const result = await signIn.create({
         identifier: email.trim(),
@@ -169,8 +175,10 @@ export function SignInScreen() {
       });
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method: 'email_sign_in' });
       }
     } catch (err) {
+      captureAnalyticsEvent('auth_failed', { method: 'email_sign_in' });
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
         setError('Cleared a stale session. Please try signing in again.');
@@ -190,11 +198,13 @@ export function SignInScreen() {
     }
     setError(null);
     setLoading(true);
+    captureAnalyticsEvent('auth_started', { method: 'email_sign_up' });
     try {
       await signUp.create({ emailAddress: email.trim(), password });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setScreen('verify');
     } catch (err) {
+      captureAnalyticsEvent('auth_failed', { method: 'email_sign_up' });
       if (isAlreadySignedInError(err)) {
         await clearStuckSession();
         setError('Cleared a stale session. Please try signing up again.');
@@ -216,6 +226,7 @@ export function SignInScreen() {
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === 'complete') {
         await clerk.setActive({ session: result.createdSessionId });
+        captureAnalyticsEvent('auth_completed', { method: 'email_sign_up' });
       }
     } catch (err) {
       if (isAlreadySignedInError(err)) {

@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Alert } from 'react-native';
 
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import {
   hasHandledPushPrePrompt,
   markPushPrePromptHandled,
@@ -37,7 +38,10 @@ export function useOfferPushAfterFirstSave() {
         {
           style: 'cancel',
           text: 'Not now',
-          onPress: () => void markPushPrePromptHandled(),
+          onPress: () => {
+            captureAnalyticsEvent('push_pre_prompt_dismissed');
+            void markPushPrePromptHandled();
+          },
         },
         {
           text: 'Turn on',
@@ -45,6 +49,10 @@ export function useOfferPushAfterFirstSave() {
             void (async () => {
               await markPushPrePromptHandled();
               const token = await obtainExpoPushToken();
+              captureAnalyticsEvent('push_permission_result', {
+                granted: token !== null,
+                source: 'first_save_pre_prompt',
+              });
               if (token) {
                 await saveToken({ token }).catch((err: unknown) => {
                   console.warn('[notifications] saveExpoPushToken failed', err);

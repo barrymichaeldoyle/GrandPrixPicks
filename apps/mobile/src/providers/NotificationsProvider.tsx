@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import { obtainExpoPushTokenIfGranted } from '../lib/pushRegistration';
 import { routePushUrl } from '../lib/pushRouting';
 import { useMobileConfig } from './mobile-config';
@@ -91,7 +92,9 @@ function ClerkAwareNotifications() {
         return;
       }
       handledResponseIdRef.current = id;
-      routePushUrl(urlFromResponse(response));
+      const url = urlFromResponse(response);
+      captureAnalyticsEvent('notification_opened', { url });
+      routePushUrl(url);
     }
 
     const sub = Notifications.addNotificationResponseReceivedListener(handle);

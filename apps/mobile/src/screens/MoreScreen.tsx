@@ -5,6 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Alert } from 'react-native';
 
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import type { MoreStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
@@ -64,7 +65,10 @@ export function MoreScreen() {
           <LinkRow
             icon="people-outline"
             label="Leagues are managed on the web"
-            onPress={() => openOnWeb('/leagues')}
+            onPress={() => {
+              captureAnalyticsEvent('leagues_web_handoff_opened');
+              openOnWeb('/leagues');
+            }}
             subtitle="Open your leagues at grandprixpicks.com"
           />
         </View>

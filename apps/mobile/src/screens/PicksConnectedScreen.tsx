@@ -278,6 +278,9 @@ function PageHeader({
     if (lockStatus.isLocked) {
       return `${SESSION_LABELS[selectedSession]} locked`;
     }
+    if (lockStatus.urgency === 'closing_soon') {
+      return `Closing soon — ${SESSION_LABELS[selectedSession]} locks in ${formatCountdown(remaining)}`;
+    }
     return `${SESSION_LABELS[selectedSession]} locks in ${formatCountdown(remaining)}`;
   })();
 
@@ -299,7 +302,11 @@ function PageHeader({
         <Text className="mt-0.5 text-xs">
           <Text
             className={
-              lockStatus.isLocked ? 'text-muted' : 'font-bold text-accent-hover'
+              lockStatus.isLocked
+                ? 'text-muted'
+                : lockStatus.urgency === 'closing_soon'
+                  ? 'font-bold text-warning'
+                  : 'font-bold text-accent-hover'
             }
           >
             {countdownLabel}

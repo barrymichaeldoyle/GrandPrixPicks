@@ -1,5 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQuery } from 'convex/react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -8,14 +6,17 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
-import type { ProfileStackParamList } from '../navigation/types';
 import { colors, radii } from '../theme/tokens';
 
-type Props = NativeStackScreenProps<ProfileStackParamList, 'PublicProfile'>;
+// Lightweight player view reachable from the Feed and Leaderboard stacks.
+// Only needs the username param, so it is typed independently of any stack.
+type Props = {
+  route: { params: { username: string } };
+};
 
 const HAIRLINE = StyleSheet.hairlineWidth;
 
-export function PublicProfileScreen({ route, navigation }: Props) {
+export function PublicProfileScreen({ route }: Props) {
   const { username } = route.params;
 
   const profile = useQuery(api.users.getProfileByUsername, { username });
@@ -78,39 +79,19 @@ export function PublicProfileScreen({ route, navigation }: Props) {
       </View>
 
       <View style={styles.followRow}>
-        <Pressable
-          onPress={() =>
-            profile.username
-              ? navigation.navigate('FollowerList', {
-                  username: profile.username,
-                  tab: 'followers',
-                })
-              : null
-          }
-          style={styles.followStat}
-        >
+        <View style={styles.followStat}>
           <Numeral variant="large">
             {followCounts?.followerCount ?? '—'}
           </Numeral>
           <Text style={styles.followLabel}>Followers</Text>
-        </Pressable>
+        </View>
         <View style={styles.vDivider} />
-        <Pressable
-          onPress={() =>
-            profile.username
-              ? navigation.navigate('FollowerList', {
-                  username: profile.username,
-                  tab: 'following',
-                })
-              : null
-          }
-          style={styles.followStat}
-        >
+        <View style={styles.followStat}>
           <Numeral variant="large">
             {followCounts?.followingCount ?? '—'}
           </Numeral>
           <Text style={styles.followLabel}>Following</Text>
-        </Pressable>
+        </View>
       </View>
 
       {!isOwner && isFollowing !== undefined ? (
@@ -151,27 +132,6 @@ export function PublicProfileScreen({ route, navigation }: Props) {
             />
           </View>
         </View>
-      ) : null}
-
-      {profile.username ? (
-        <Pressable
-          onPress={() =>
-            navigation.navigate('PredictionHistory', {
-              username: profile.username as string,
-            })
-          }
-          style={styles.historyLink}
-        >
-          <View style={styles.historyLinkText}>
-            <Text style={styles.historyLinkLabel}>Picks history</Text>
-            <Text style={styles.historyLinkSubtitle}>
-              {isOwner
-                ? 'Your weekend-by-weekend picks'
-                : `@${profile.username}'s picks per weekend`}
-            </Text>
-          </View>
-          <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
-        </Pressable>
       ) : null}
     </ScrollView>
   );
@@ -248,25 +208,6 @@ const styles = StyleSheet.create({
   heroText: {
     flex: 1,
     gap: 4,
-  },
-  historyLink: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 12,
-  },
-  historyLinkLabel: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  historyLinkSubtitle: {
-    color: colors.textMuted,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  historyLinkText: {
-    flex: 1,
   },
   screen: {
     backgroundColor: colors.page,

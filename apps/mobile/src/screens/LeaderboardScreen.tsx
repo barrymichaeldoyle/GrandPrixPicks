@@ -20,7 +20,7 @@ import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
-import type { ProfileStackParamList } from '../navigation/types';
+import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
 
@@ -42,7 +42,7 @@ const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function LeaderboardScreen() {
   const { convexEnabled } = useMobileConfig();
-  const navigation = useNavigation<NavigationProp<ProfileStackParamList>>();
+  const navigation = useNavigation<NavigationProp<LeaderboardStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
 
   const result = useQuery(

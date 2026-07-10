@@ -18,19 +18,13 @@ const ITEMS: ReadonlyArray<ExploreItem> = [
     icon: 'trophy-outline',
     title: 'Make your picks',
     body: 'Top 5 drivers for the next session. Every point counts.',
-    tab: 'PredictTab',
+    tab: 'PicksTab',
   },
   {
-    icon: 'calendar-outline',
-    title: 'Browse the calendar',
-    body: 'Every race and session, locked-in times, sprint weekends.',
-    tab: 'RacesTab',
-  },
-  {
-    icon: 'people-outline',
-    title: 'Join a league',
-    body: 'Compete against your friends across the season.',
-    tab: 'LeaguesTab',
+    icon: 'podium-outline',
+    title: 'Check the standings',
+    body: 'Season and weekend leaderboards, Top 5 and H2H.',
+    tab: 'LeaderboardTab',
   },
 ];
 

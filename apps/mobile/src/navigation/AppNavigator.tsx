@@ -7,40 +7,33 @@ import { StyleSheet, Text, View } from 'react-native';
 import { HeaderBackground } from '../components/ui/HeaderBackground';
 import { NotificationBell } from '../components/ui/NotificationBell';
 import { FeedEventDetailScreen } from '../screens/FeedEventDetailScreen';
-import { HomeRouteScreen } from '../screens/HomeRouteScreen';
 import { LeaderboardScreen } from '../screens/LeaderboardScreen';
+import { MoreScreen } from '../screens/MoreScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { PicksConnectedScreen } from '../screens/PicksConnectedScreen';
-import { FollowListScreen } from '../screens/FollowListScreen';
-import { PredictionHistoryScreen } from '../screens/PredictionHistoryScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
 import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { LeagueDetailScreen } from '../screens/leagues/LeagueDetailScreen';
-import { LeagueListScreen } from '../screens/leagues/LeagueListScreen';
-import { LeagueSettingsScreen } from '../screens/leagues/LeagueSettingsScreen';
-import { RaceCalendarScreen } from '../screens/races/RaceCalendarScreen';
+import { FeedScreen } from '../screens/feed/FeedScreen';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { AuthGate } from './AuthGate';
 import { linking } from './linking';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import type {
-  HomeStackParamList,
-  LeaguesStackParamList,
-  PredictStackParamList,
-  ProfileStackParamList,
-  RacesStackParamList,
+  FeedStackParamList,
+  LeaderboardStackParamList,
+  MoreStackParamList,
+  PicksStackParamList,
   RootTabParamList,
 } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
-const HomeStack = createNativeStackNavigator<HomeStackParamList>();
-const RacesStack = createNativeStackNavigator<RacesStackParamList>();
-const PredictStack = createNativeStackNavigator<PredictStackParamList>();
-const LeaguesStack = createNativeStackNavigator<LeaguesStackParamList>();
-const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const PicksStack = createNativeStackNavigator<PicksStackParamList>();
+const FeedStack = createNativeStackNavigator<FeedStackParamList>();
+const LeaderboardStack =
+  createNativeStackNavigator<LeaderboardStackParamList>();
+const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 
 const SCREEN_OPTIONS = {
   contentStyle: { backgroundColor: colors.page },
@@ -49,6 +42,16 @@ const SCREEN_OPTIONS = {
   headerShadowVisible: false,
   headerStyle: { backgroundColor: 'transparent' },
   headerTintColor: colors.text,
+};
+
+const TAB_ICONS: Record<
+  keyof RootTabParamList,
+  React.ComponentProps<typeof Ionicons>['name']
+> = {
+  PicksTab: 'trophy',
+  FeedTab: 'pulse',
+  LeaderboardTab: 'podium',
+  MoreTab: 'ellipsis-horizontal',
 };
 
 function BrandHeaderTitle() {
@@ -70,130 +73,97 @@ function BrandHeaderTitle() {
   );
 }
 
-function HomeStackNavigator() {
+function PicksStackNavigator() {
   return (
-    <HomeStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <HomeStack.Screen
-        component={HomeRouteScreen}
-        name="HomeMain"
-        options={({ navigation }) => ({
-          headerTitle: () => <BrandHeaderTitle />,
-          headerRight: () => (
-            <NotificationBell
-              onPress={() => navigation.navigate('Notifications')}
-            />
-          ),
-        })}
+    <PicksStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <PicksStack.Screen
+        component={PicksConnectedScreen}
+        name="PicksMain"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
-      <HomeStack.Screen
+      <PicksStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
         options={{ title: 'Race Details' }}
       />
-      <HomeStack.Screen
-        component={NotificationsScreen}
-        name="Notifications"
-        options={{ title: 'Notifications' }}
+    </PicksStack.Navigator>
+  );
+}
+
+function FeedStackNavigator() {
+  return (
+    <FeedStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <FeedStack.Screen
+        component={FeedScreen}
+        name="FeedMain"
+        options={({ navigation }) => ({
+          headerTitle: () => <BrandHeaderTitle />,
+          headerRight: () => (
+            <NotificationBell
+              onPress={() =>
+                navigation
+                  .getParent()
+                  ?.navigate('MoreTab', { screen: 'Notifications' })
+              }
+            />
+          ),
+        })}
       />
-      <HomeStack.Screen
+      <FeedStack.Screen
         component={FeedEventDetailScreen}
         name="FeedEventDetail"
         options={{ title: 'Prediction' }}
       />
-    </HomeStack.Navigator>
-  );
-}
-
-function RacesStackNavigator() {
-  return (
-    <RacesStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <RacesStack.Screen
-        component={RaceCalendarScreen}
-        name="RaceCalendar"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
-      />
-      <RacesStack.Screen
-        component={RaceDetailScreen}
-        name="RaceDetail"
-        options={({ route }) => ({
-          title: route.params.raceSlug
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, (c) => c.toUpperCase())
-            .replace(/-\d{4}$/, ''),
-        })}
-      />
-    </RacesStack.Navigator>
-  );
-}
-
-function PredictStackNavigator() {
-  return (
-    <PredictStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <PredictStack.Screen
-        component={PicksConnectedScreen}
-        name="PredictMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
-      />
-    </PredictStack.Navigator>
-  );
-}
-
-function LeaguesStackNavigator() {
-  return (
-    <LeaguesStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <LeaguesStack.Screen
-        component={LeagueListScreen}
-        name="LeagueList"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
-      />
-      <LeaguesStack.Screen
-        component={LeagueDetailScreen}
-        name="LeagueDetail"
-        options={({ route }) => ({ title: route.params.leagueSlug })}
-      />
-      <LeaguesStack.Screen
-        component={LeagueSettingsScreen}
-        name="LeagueSettings"
-        options={{ title: 'League settings' }}
-      />
-    </LeaguesStack.Navigator>
-  );
-}
-
-function ProfileStackNavigator() {
-  return (
-    <ProfileStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <ProfileStack.Screen
-        component={ProfileScreen}
-        name="ProfileMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
-      />
-      <ProfileStack.Screen
+      <FeedStack.Screen
         component={PublicProfileScreen}
         name="PublicProfile"
         options={({ route }) => ({ title: `@${route.params.username}` })}
       />
-      <ProfileStack.Screen
-        component={FollowListScreen}
-        name="FollowerList"
+      <FeedStack.Screen
+        component={RaceDetailScreen}
+        name="RaceDetail"
+        options={{ title: 'Race Details' }}
+      />
+    </FeedStack.Navigator>
+  );
+}
+
+function LeaderboardStackNavigator() {
+  return (
+    <LeaderboardStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <LeaderboardStack.Screen
+        component={LeaderboardScreen}
+        name="LeaderboardMain"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+      />
+      <LeaderboardStack.Screen
+        component={PublicProfileScreen}
+        name="PublicProfile"
         options={({ route }) => ({ title: `@${route.params.username}` })}
       />
-      <ProfileStack.Screen
-        component={PredictionHistoryScreen}
-        name="PredictionHistory"
-        options={{ title: 'Picks history' }}
+    </LeaderboardStack.Navigator>
+  );
+}
+
+function MoreStackNavigator() {
+  return (
+    <MoreStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <MoreStack.Screen
+        component={MoreScreen}
+        name="MoreMain"
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
-      <ProfileStack.Screen
-        component={LeaderboardScreen}
-        name="Leaderboard"
-        options={{ title: 'Leaderboard' }}
+      <MoreStack.Screen
+        component={NotificationsScreen}
+        name="Notifications"
+        options={{ title: 'Notifications' }}
       />
-      <ProfileStack.Screen
+      <MoreStack.Screen
         component={SettingsScreen}
         name="Settings"
         options={{ title: 'Settings' }}
       />
-    </ProfileStack.Navigator>
+    </MoreStack.Navigator>
   );
 }
 
@@ -206,32 +176,13 @@ export function AppNavigator() {
             headerShown: false,
             sceneStyle: { backgroundColor: colors.page },
             tabBarActiveTintColor: colors.accent,
-            tabBarIcon: ({ color, size }) => {
-              const iconName =
-                route.name === 'HomeTab'
-                  ? 'home'
-                  : route.name === 'RacesTab'
-                    ? 'calendar'
-                    : route.name === 'PredictTab'
-                      ? 'trophy'
-                      : route.name === 'LeaguesTab'
-                        ? 'people'
-                        : 'person';
-              return (
-                <Ionicons
-                  color={color}
-                  name={
-                    iconName as
-                      | 'home'
-                      | 'calendar'
-                      | 'trophy'
-                      | 'people'
-                      | 'person'
-                  }
-                  size={size}
-                />
-              );
-            },
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons
+                color={color}
+                name={TAB_ICONS[route.name]}
+                size={size}
+              />
+            ),
             tabBarInactiveTintColor: colors.textMuted,
             tabBarItemStyle: {
               justifyContent: 'center',
@@ -254,29 +205,24 @@ export function AppNavigator() {
           })}
         >
           <Tab.Screen
-            component={HomeStackNavigator}
-            name="HomeTab"
-            options={{ title: 'Home' }}
+            component={PicksStackNavigator}
+            name="PicksTab"
+            options={{ title: 'Picks' }}
           />
           <Tab.Screen
-            component={RacesStackNavigator}
-            name="RacesTab"
-            options={{ title: 'Races' }}
+            component={FeedStackNavigator}
+            name="FeedTab"
+            options={{ title: 'Feed' }}
           />
           <Tab.Screen
-            component={PredictStackNavigator}
-            name="PredictTab"
-            options={{ title: 'Predict' }}
+            component={LeaderboardStackNavigator}
+            name="LeaderboardTab"
+            options={{ title: 'Leaderboard' }}
           />
           <Tab.Screen
-            component={LeaguesStackNavigator}
-            name="LeaguesTab"
-            options={{ title: 'Leagues' }}
-          />
-          <Tab.Screen
-            component={ProfileStackNavigator}
-            name="ProfileTab"
-            options={{ title: 'Profile' }}
+            component={MoreStackNavigator}
+            name="MoreTab"
+            options={{ title: 'More' }}
           />
         </Tab.Navigator>
       </AuthGate>

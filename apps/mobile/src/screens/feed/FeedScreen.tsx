@@ -12,13 +12,13 @@ import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { PageHero } from '../../components/ui/PageHero';
 import { api } from '../../integrations/convex/api';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
-import type { HomeStackParamList } from '../../navigation/types';
+import type { FeedStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
 
 export function FeedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NavigationProp<FeedStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
 
   const result = useQuery(

@@ -5,41 +5,32 @@ import type { RootTabParamList } from './types';
 export const linking: LinkingOptions<RootTabParamList> = {
   config: {
     screens: {
-      HomeTab: {
-        path: 'home',
-        screens: {
-          HomeMain: '',
-          Notifications: 'notifications',
-          FeedEventDetail: 'feed/:feedEventId',
-        },
-      },
-      RacesTab: {
-        path: 'races',
-        screens: {
-          RaceCalendar: '',
-          RaceDetail: ':raceSlug',
-        },
-      },
-      PredictTab: {
+      PicksTab: {
         path: 'predict',
         screens: {
-          PredictMain: '',
+          PicksMain: '',
+          RaceDetail: 'races/:raceSlug',
         },
       },
-      LeaguesTab: {
-        path: 'leagues',
+      FeedTab: {
+        path: 'feed',
         screens: {
-          LeagueList: '',
-          LeagueDetail: ':leagueSlug',
-        },
-      },
-      ProfileTab: {
-        path: 'profile',
-        screens: {
-          ProfileMain: '',
+          FeedMain: '',
+          FeedEventDetail: ':feedEventId',
           PublicProfile: 'p/:username',
-          PredictionHistory: 'p/:username/picks',
-          Leaderboard: 'leaderboard',
+        },
+      },
+      LeaderboardTab: {
+        path: 'leaderboard',
+        screens: {
+          LeaderboardMain: '',
+        },
+      },
+      MoreTab: {
+        path: 'more',
+        screens: {
+          MoreMain: '',
+          Notifications: 'notifications',
           Settings: 'settings',
         },
       },

@@ -18,16 +18,16 @@ import { getLockStatusViewModel } from '../lib/lockTime';
 import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
 import type {
-  HomeStackParamList,
-  RacesStackParamList,
+  FeedStackParamList,
+  PicksStackParamList,
   RootTabParamList,
 } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors, radii } from '../theme/tokens';
 
-type HomeProps = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
-type RacesProps = NativeStackScreenProps<RacesStackParamList, 'RaceDetail'>;
-type Props = HomeProps | RacesProps;
+type PicksProps = NativeStackScreenProps<PicksStackParamList, 'RaceDetail'>;
+type FeedProps = NativeStackScreenProps<FeedStackParamList, 'RaceDetail'>;
+type Props = PicksProps | FeedProps;
 
 const SESSION_ORDER: SessionType[] = [
   'sprint_quali',
@@ -157,7 +157,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {hasOpenSession ? (
         <Pressable
-          onPress={() => rootNav.navigate('PredictTab')}
+          onPress={() => rootNav.navigate('PicksTab')}
           style={styles.cta}
         >
           <Ionicons color={colors.text} name="trophy-outline" size={16} />

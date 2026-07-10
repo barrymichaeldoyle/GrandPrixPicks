@@ -15,7 +15,10 @@ import { useRaceWeekends } from '../../lib/useRaceWeekends';
 import { colors, radii } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import type { RaceWeekend } from '../../types';
-import type { HomeStackParamList } from '../../navigation/types';
+import type {
+  FeedStackParamList,
+  RootTabParamList,
+} from '../../navigation/types';
 import { BigCountdown } from '../ui/BigCountdown';
 import { Numeral } from '../ui/Numeral';
 
@@ -76,7 +79,7 @@ function getFeatured(
 export function HomeHero() {
   const { titleFontFamily } = useTypography();
   const { races } = useRaceWeekends();
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NavigationProp<FeedStackParamList>>();
   const { width } = useWindowDimensions();
   const isNarrow = width < NARROW_WIDTH;
 
@@ -147,7 +150,9 @@ export function HomeHero() {
 
       <Pressable
         onPress={() =>
-          navigation.navigate('RaceDetail', { raceSlug: race.slug })
+          navigation
+            .getParent<NavigationProp<RootTabParamList>>()
+            ?.navigate('PicksTab')
         }
         style={({ pressed }) => [
           styles.cta,

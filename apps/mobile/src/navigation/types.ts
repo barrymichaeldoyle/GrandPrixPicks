@@ -1,39 +1,31 @@
-export type HomeStackParamList = {
-  HomeMain: undefined;
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
+export type PicksStackParamList = {
+  PicksMain: undefined;
   RaceDetail: { raceSlug: string };
-  Notifications: undefined;
+};
+
+export type FeedStackParamList = {
+  FeedMain: undefined;
   FeedEventDetail: { feedEventId: string };
-};
-
-export type RacesStackParamList = {
-  RaceCalendar: undefined;
+  PublicProfile: { username: string };
   RaceDetail: { raceSlug: string };
 };
 
-export type PredictStackParamList = {
-  PredictMain: undefined;
-};
-
-export type LeaguesStackParamList = {
-  LeagueList: undefined;
-  LeagueDetail: { leagueSlug: string };
-  LeagueMembers: { leagueSlug: string };
-  LeagueSettings: { leagueSlug: string };
-};
-
-export type ProfileStackParamList = {
-  ProfileMain: undefined;
+export type LeaderboardStackParamList = {
+  LeaderboardMain: undefined;
   PublicProfile: { username: string };
-  PredictionHistory: { username: string };
-  FollowerList: { username: string; tab: 'followers' | 'following' };
-  Leaderboard: undefined;
+};
+
+export type MoreStackParamList = {
+  MoreMain: undefined;
+  Notifications: undefined;
   Settings: undefined;
 };
 
 export type RootTabParamList = {
-  HomeTab: undefined;
-  RacesTab: undefined;
-  PredictTab: undefined;
-  LeaguesTab: undefined;
-  ProfileTab: undefined;
+  PicksTab: NavigatorScreenParams<PicksStackParamList> | undefined;
+  FeedTab: NavigatorScreenParams<FeedStackParamList> | undefined;
+  LeaderboardTab: NavigatorScreenParams<LeaderboardStackParamList> | undefined;
+  MoreTab: NavigatorScreenParams<MoreStackParamList> | undefined;
 };

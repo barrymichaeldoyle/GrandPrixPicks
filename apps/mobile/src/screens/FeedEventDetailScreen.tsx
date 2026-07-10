@@ -9,11 +9,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
-import type { HomeStackParamList } from '../navigation/types';
+import type { FeedStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
 
-type Props = NativeStackScreenProps<HomeStackParamList, 'FeedEventDetail'>;
+type Props = NativeStackScreenProps<FeedStackParamList, 'FeedEventDetail'>;
 
 type RevUser = {
   userId: ConvexId<'users'>;

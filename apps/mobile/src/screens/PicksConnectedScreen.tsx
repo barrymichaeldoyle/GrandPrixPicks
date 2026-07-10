@@ -24,6 +24,7 @@ import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import { useAutoSaveOnFirstComplete } from '../hooks/useAutoSaveOnFirstComplete';
+import { useOfferPushAfterFirstSave } from '../hooks/useOfferPushAfterFirstSave';
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
@@ -85,6 +86,7 @@ export function PicksConnectedScreen() {
 function PredictForRace({ race }: { race: RaceDoc }) {
   const now = useNow();
   const { showToast } = useToast();
+  const maybeOfferPush = useOfferPushAfterFirstSave();
   const driversQuery = useQuery(api.drivers.listDrivers, {});
   const matchupsQuery = useQuery(api.h2h.getMatchupsForSeason, {
     season: 2026,
@@ -198,6 +200,7 @@ function PredictForRace({ race }: { race: RaceDoc }) {
                 Haptics.NotificationFeedbackType.Success,
               );
               showToast('Random picks saved for the weekend', 'success');
+              void maybeOfferPush();
             } catch (err) {
               void Haptics.notificationAsync(
                 Haptics.NotificationFeedbackType.Error,
@@ -221,11 +224,15 @@ function PredictForRace({ race }: { race: RaceDoc }) {
         existingPicks={predictionsBySession[selectedSession] ?? []}
         sessionIsLocked={selectedSessionIsLocked}
         onSubmit={async (picks, sessionType) => {
+          const isFirstSave = !hasAnyTop5;
           await submitPrediction({
             raceId: race._id,
             picks: picks as DriverId[],
             sessionType,
           });
+          if (isFirstSave) {
+            void maybeOfferPush();
+          }
         }}
       />
 

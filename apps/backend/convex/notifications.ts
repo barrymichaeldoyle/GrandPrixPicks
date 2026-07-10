@@ -8,6 +8,7 @@ import type { MutationCtx } from './_generated/server';
 import { internalMutation, mutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getViewer, requireAdmin } from './lib/auth';
+import { getExpoTokensForUser } from './push';
 import {
   wantsEmailPredictionReminders,
   wantsEmailResults,
@@ -623,23 +624,39 @@ export const sendIncompleteH2HNudgeForUser = internalMutation({
       .query('pushSubscriptions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .take(20);
+    const expoTokens = await getExpoTokensForUser(ctx, user._id);
 
-    if (wantsPushPredictionReminders(user) && subscriptions.length > 0) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.pushNotifications.sendPushBatch,
-        {
-          subscriptions: subscriptions.map((s) => ({
-            endpoint: s.endpoint,
-            p256dh: s.p256dh,
-            auth: s.auth,
-          })),
-          title: `🏎️ ${race.name}`,
-          body: 'Your Top 5 picks were recorded. Submit your H2H picks.',
-          url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`,
-        },
-      );
-      pushQueued = subscriptions.length;
+    if (
+      wantsPushPredictionReminders(user) &&
+      (subscriptions.length > 0 || expoTokens.length > 0)
+    ) {
+      const title = `🏎️ ${race.name}`;
+      const body = 'Your Top 5 picks were recorded. Submit your H2H picks.';
+      const url = `${racePath}?utm_source=push&utm_medium=push&utm_campaign=h2h_nudge`;
+      if (subscriptions.length > 0) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.pushNotifications.sendPushBatch,
+          {
+            subscriptions: subscriptions.map((s) => ({
+              endpoint: s.endpoint,
+              p256dh: s.p256dh,
+              auth: s.auth,
+            })),
+            title,
+            body,
+            url,
+          },
+        );
+      }
+      if (expoTokens.length > 0) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.pushNotifications.sendExpoPushBatch,
+          { tokens: expoTokens, title, body, url },
+        );
+      }
+      pushQueued = subscriptions.length + expoTokens.length;
     }
 
     return { ok: true, emailQueued, pushQueued };
@@ -784,10 +801,12 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
       .query('pushSubscriptions')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .take(20);
+    const expoTokens = await getExpoTokensForUser(ctx, user._id);
 
     const canEmail = Boolean(user.email) && wantsEmailPredictionReminders(user);
     const canPush =
-      wantsPushPredictionReminders(user) && subscriptions.length > 0;
+      wantsPushPredictionReminders(user) &&
+      (subscriptions.length > 0 || expoTokens.length > 0);
     const remindersEnabled = canEmail || canPush;
 
     const eligibility = getSignupPredictionNudgeEligibility({
@@ -827,23 +846,35 @@ export const sendSignupPredictionNudgeForUser = internalMutation({
     }
 
     if (canPush) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.pushNotifications.sendPushBatch,
-        {
-          subscriptions: subscriptions.map((s) => ({
-            endpoint: s.endpoint,
-            p256dh: s.p256dh,
-            auth: s.auth,
-          })),
-          title: '🏎️ Make your first prediction',
-          body: hasUpcomingRace
-            ? `Pick your top 5 for ${nextRace!.name}.`
-            : 'Pick your top 5 for the next race.',
-          url: `${racePath}?utm_source=push&utm_medium=push&utm_campaign=signup_nudge`,
-        },
-      );
-      pushQueued = subscriptions.length;
+      const title = '🏎️ Make your first prediction';
+      const body = hasUpcomingRace
+        ? `Pick your top 5 for ${nextRace!.name}.`
+        : 'Pick your top 5 for the next race.';
+      const url = `${racePath}?utm_source=push&utm_medium=push&utm_campaign=signup_nudge`;
+      if (subscriptions.length > 0) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.pushNotifications.sendPushBatch,
+          {
+            subscriptions: subscriptions.map((s) => ({
+              endpoint: s.endpoint,
+              p256dh: s.p256dh,
+              auth: s.auth,
+            })),
+            title,
+            body,
+            url,
+          },
+        );
+      }
+      if (expoTokens.length > 0) {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.pushNotifications.sendExpoPushBatch,
+          { tokens: expoTokens, title, body, url },
+        );
+      }
+      pushQueued = subscriptions.length + expoTokens.length;
     }
 
     return { ok: true, emailQueued, pushQueued };

@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { useClerk } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import {
   Alert,
@@ -12,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { colors } from '../theme/tokens';
 import type { MoreStackParamList } from '../navigation/types';
 
@@ -21,7 +21,7 @@ const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function MoreScreen() {
   const navigation = useNavigation<NavigationProp<MoreStackParamList>>();
-  const { signOut } = useClerk();
+  const signOut = useSignOutWithCleanup();
 
   function openOnWeb(path: string) {
     void WebBrowser.openBrowserAsync(`${SITE_URL}${path}`);

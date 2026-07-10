@@ -15,10 +15,12 @@ import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { FeedScreen } from '../screens/feed/FeedScreen';
+import { flushPendingPushRoute } from '../lib/pushRouting';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { AuthGate } from './AuthGate';
 import { linking } from './linking';
+import { navigationRef } from './navigationRef';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import type {
   FeedStackParamList,
@@ -169,7 +171,11 @@ function MoreStackNavigator() {
 
 export function AppNavigator() {
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer
+      linking={linking}
+      onReady={flushPendingPushRoute}
+      ref={navigationRef}
+    >
       <AuthGate fallback={<SignInScreen />}>
         <Tab.Navigator
           screenOptions={({ route }) => ({

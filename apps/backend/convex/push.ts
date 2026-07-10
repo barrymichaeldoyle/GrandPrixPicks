@@ -76,6 +76,31 @@ async function getSubscriptionsForUser(
   return subscriptions;
 }
 
+export async function getExpoTokensForUser(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<'users'>,
+): Promise<Array<string>> {
+  const tokens: Array<string> = [];
+  for await (const row of ctx.db
+    .query('expoPushTokens')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    tokens.push(row.token);
+  }
+  return tokens;
+}
+
+async function getExpoTokensByUser(
+  ctx: MutationCtx,
+): Promise<Map<Id<'users'>, Array<string>>> {
+  const tokensByUser = new Map<Id<'users'>, Array<string>>();
+  for await (const row of ctx.db.query('expoPushTokens')) {
+    const existing = tokensByUser.get(row.userId) ?? [];
+    existing.push(row.token);
+    tokensByUser.set(row.userId, existing);
+  }
+  return tokensByUser;
+}
+
 async function getSubscriptionsByUser(
   ctx: MutationCtx,
 ): Promise<Map<Id<'users'>, Array<PushSubscriptionPayload>>> {
@@ -229,11 +254,14 @@ export const sendPushRemindersForRace = internalMutation({
     }
 
     const subscriptionsByUser = await getSubscriptionsByUser(ctx);
-    if (subscriptionsByUser.size === 0) {
+    const expoTokensByUser = await getExpoTokensByUser(ctx);
+    if (subscriptionsByUser.size === 0 && expoTokensByUser.size === 0) {
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
-    const subscribedUserIds = [...subscriptionsByUser.keys()];
+    const subscribedUserIds = [
+      ...new Set([...subscriptionsByUser.keys(), ...expoTokensByUser.keys()]),
+    ];
     const subscribedUsers = await Promise.all(
       subscribedUserIds.map((userId) => ctx.db.get(userId)),
     );
@@ -248,6 +276,28 @@ export const sendPushRemindersForRace = internalMutation({
       .query('predictions')
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
       usersWithPredictions.add(prediction.userId as string);
+    }
+
+    async function sendToUsers(
+      userIds: Array<string>,
+      message: { title: string; body: string; url: string },
+    ): Promise<number> {
+      const subs = userIds.flatMap(
+        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
+      );
+      const tokens = userIds.flatMap(
+        (id) => expoTokensByUser.get(id as Id<'users'>) ?? [],
+      );
+      if (subs.length > 0) {
+        await scheduleSendPushBatches(ctx, {
+          subscriptions: subs,
+          ...message,
+        });
+      }
+      if (tokens.length > 0) {
+        await scheduleSendExpoPushBatches(ctx, { tokens, ...message });
+      }
+      return subs.length + tokens.length;
     }
 
     // 2h "last chance" path: only unpredicted users who opted in to reminders.
@@ -267,17 +317,12 @@ export const sendPushRemindersForRace = internalMutation({
         return { skipped: true, reason: 'No target users' };
       }
 
-      const subs = targetUserIds.flatMap(
-        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
-      );
-      const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`;
-      await scheduleSendPushBatches(ctx, {
-        subscriptions: subs,
+      const queued = await sendToUsers(targetUserIds, {
         title: `⏰ ${race.name}`,
         body: `Picks close in 2 hours. You haven't made your predictions yet!`,
-        url,
+        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`,
       });
-      return { queued: subs.length };
+      return { queued };
     }
 
     // 24h path: split into unpredicted (existing reminder) + predicted (new
@@ -301,29 +346,19 @@ export const sendPushRemindersForRace = internalMutation({
     let queued = 0;
 
     if (unpredictedTargets.length > 0) {
-      const subs = unpredictedTargets.flatMap(
-        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
-      );
-      await scheduleSendPushBatches(ctx, {
-        subscriptions: subs,
+      queued += await sendToUsers(unpredictedTargets, {
         title: `🏎️ ${race.name}`,
         body: `Picks are open. You have 24 hours to make your predictions`,
         url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
       });
-      queued += subs.length;
     }
 
     if (predictedTargets.length > 0) {
-      const subs = predictedTargets.flatMap(
-        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
-      );
-      await scheduleSendPushBatches(ctx, {
-        subscriptions: subs,
+      queued += await sendToUsers(predictedTargets, {
         title: `🔒 ${race.name}`,
         body: `Your picks are in. Picks lock in 24 hours, so edit before then.`,
         url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=lock_approaching`,
       });
-      queued += subs.length;
     }
 
     if (queued === 0) {
@@ -353,6 +388,30 @@ async function scheduleSendPushBatches(
   }
 }
 
+export async function scheduleSendExpoPushBatches(
+  ctx: MutationCtx,
+  args: {
+    tokens: Array<string>;
+    title: string;
+    body: string;
+    url: string;
+  },
+): Promise<void> {
+  const BATCH_SIZE = 100;
+  for (let i = 0; i < args.tokens.length; i += BATCH_SIZE) {
+    await ctx.scheduler.runAfter(
+      0,
+      internal.pushNotifications.sendExpoPushBatch,
+      {
+        tokens: args.tokens.slice(i, i + BATCH_SIZE),
+        title: args.title,
+        body: args.body,
+        url: args.url,
+      },
+    );
+  }
+}
+
 /**
  * Internal mutation: fans out push notifications to all subscribed users
  * when session results are published.
@@ -369,11 +428,14 @@ export const sendPushResultsForSession = internalMutation({
     }
 
     const subscriptionsByUser = await getSubscriptionsByUser(ctx);
-    if (subscriptionsByUser.size === 0) {
+    const expoTokensByUser = await getExpoTokensByUser(ctx);
+    if (subscriptionsByUser.size === 0 && expoTokensByUser.size === 0) {
       return { skipped: true, reason: 'No push subscriptions' };
     }
 
-    const subscribedUserIds = [...subscriptionsByUser.keys()];
+    const subscribedUserIds = [
+      ...new Set([...subscriptionsByUser.keys(), ...expoTokensByUser.keys()]),
+    ];
     const subscribedUsers = await Promise.all(
       subscribedUserIds.map((userId) => ctx.db.get(userId)),
     );
@@ -391,26 +453,22 @@ export const sendPushResultsForSession = internalMutation({
     const subscriptions = [...subscriptionsByUser.entries()]
       .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))
       .flatMap(([, userSubscriptions]) => userSubscriptions);
+    const tokens = [...expoTokensByUser.entries()]
+      .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))
+      .flatMap(([, userTokens]) => userTokens);
 
-    if (subscriptions.length === 0) {
+    if (subscriptions.length === 0 && tokens.length === 0) {
       return { skipped: true, reason: 'No eligible subscriptions' };
     }
 
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.pushNotifications.sendPushBatch,
-        {
-          subscriptions: subscriptions.slice(i, i + BATCH_SIZE),
-          title,
-          body,
-          url,
-        },
-      );
+    if (subscriptions.length > 0) {
+      await scheduleSendPushBatches(ctx, { subscriptions, title, body, url });
+    }
+    if (tokens.length > 0) {
+      await scheduleSendExpoPushBatches(ctx, { tokens, title, body, url });
     }
 
-    return { queued: subscriptions.length };
+    return { queued: subscriptions.length + tokens.length };
   },
 });
 
@@ -436,6 +494,7 @@ export const sendPushForSessionLocked = internalMutation({
       p256dh: string;
       auth: string;
     }> = [];
+    const tokens: Array<string> = [];
 
     for (const userId of args.userIds) {
       const user = await ctx.db.get(userId);
@@ -450,27 +509,26 @@ export const sendPushForSessionLocked = internalMutation({
           auth: sub.auth,
         });
       }
+      tokens.push(...(await getExpoTokensForUser(ctx, userId)));
     }
 
-    if (subscriptions.length === 0) {
+    if (subscriptions.length === 0 && tokens.length === 0) {
       return { skipped: true, reason: 'No eligible subscriptions' };
     }
 
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
-      await ctx.scheduler.runAfter(
-        0,
-        internal.pushNotifications.sendPushBatch,
-        {
-          subscriptions: subscriptions.slice(i, i + BATCH_SIZE),
-          title: `🔒 ${race.name}: ${sessionLabel}`,
-          body: "See everyone's picks.",
-          url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
-        },
-      );
+    const message = {
+      title: `🔒 ${race.name}: ${sessionLabel}`,
+      body: "See everyone's picks.",
+      url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
+    };
+    if (subscriptions.length > 0) {
+      await scheduleSendPushBatches(ctx, { subscriptions, ...message });
+    }
+    if (tokens.length > 0) {
+      await scheduleSendExpoPushBatches(ctx, { tokens, ...message });
     }
 
-    return { queued: subscriptions.length };
+    return { queued: subscriptions.length + tokens.length };
   },
 });
 
@@ -491,26 +549,48 @@ export const sendPushForRevReceived = internalMutation({
     }
 
     const subs = await getSubscriptionsForUser(ctx, args.recipientUserId);
+    const tokens = await getExpoTokensForUser(ctx, args.recipientUserId);
 
-    if (subs.length === 0) {
+    if (subs.length === 0 && tokens.length === 0) {
       return { skipped: true, reason: 'No subscriptions' };
     }
 
     const actorName = args.actorDisplayName ?? 'Someone';
-    const url = `/feed/${args.feedEventId}?utm_source=push&utm_medium=push&utm_campaign=rev_received`;
-
-    await ctx.scheduler.runAfter(0, internal.pushNotifications.sendPushBatch, {
-      subscriptions: subs.map((s) => ({
-        endpoint: s.endpoint,
-        p256dh: s.p256dh,
-        auth: s.auth,
-      })),
+    const message = {
       title: '⭐ New rev',
       body: `${actorName} reved your prediction`,
-      url,
-    });
+      url: `/feed/${args.feedEventId}?utm_source=push&utm_medium=push&utm_campaign=rev_received`,
+    };
 
-    return { queued: subs.length };
+    if (subs.length > 0) {
+      await scheduleSendPushBatches(ctx, {
+        subscriptions: subs.map((s) => ({
+          endpoint: s.endpoint,
+          p256dh: s.p256dh,
+          auth: s.auth,
+        })),
+        ...message,
+      });
+    }
+    if (tokens.length > 0) {
+      await scheduleSendExpoPushBatches(ctx, { tokens, ...message });
+    }
+
+    return { queued: subs.length + tokens.length };
+  },
+});
+
+/** Internal: delete a stale Expo token (called after DeviceNotRegistered). */
+export const deleteStaleExpoToken = internalMutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('expoPushTokens')
+      .withIndex('by_token', (q) => q.eq('token', args.token))
+      .unique();
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
   },
 });
 

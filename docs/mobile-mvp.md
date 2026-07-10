@@ -260,8 +260,8 @@ MVP settings:
 1. Add one mobile-oriented `getCurrentWeekend` query (or formally choose `getNextRace` versus `getQuickPickRace`). The existing APIs differ when race status becomes `locked`, while submission mutations only accept the next `upcoming` race whose final lock is in the future.
 2. Return a server-derived capability model per session: `lockAt`, `hasResult`, `hasTop5`, `hasH2H`, `canCreate`, `canEdit`, and a denial reason. This avoids duplicating subtle web derivation in two clients while mutations remain final authority.
 3. Confirm the race-status transition policy during an active weekend. Mid-weekend submission depends on the race remaining eligible until the final session lock.
-4. Add a stable mobile deep-link payload to every push type; do not make mobile parse web URLs or notification copy.
-5. Confirm Expo push delivery is wired for all five preference categories. Token storage exists, but end-to-end delivery and payload tests are required.
+4. ~~Add a stable mobile deep-link payload to every push type.~~ Done: every push carries `data.url` with a site path — the same contract web push uses. The stable path grammar is `/races/{slug}`, `/feed/{feedEventId}`, and `/feed`; mobile routes exactly these shapes and ignores anything else. If a push ever needs a destination outside that grammar, extend the payload rather than the parser.
+5. ~~Wire Expo push delivery.~~ Done: `sendExpoPushBatch` delivers to Expo tokens alongside web push for all five preference categories, pruning `DeviceNotRegistered` tokens. Still required: end-to-end delivery and deep-link tests on a physical device via TestFlight.
 6. Correct `docs/mobile-api-contract.md`: notification field names are stale, privacy API references do not match current exports, feed/in-app notification APIs are absent, and the full Combined/Top 5/H2H leaderboard matrix is incomplete.
 7. Decide whether a lightweight player summary needs a dedicated query. Reusing full web profile-history queries is unnecessary for MVP navigation.
 8. Add contract tests for a first submission made after earlier sessions lock, for both Top 5 and H2H, including regular and sprint weekends.

@@ -1,10 +1,11 @@
 import { useUser } from '@clerk/clerk-expo';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
 import { useMutation } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
+import { obtainExpoPushTokenIfGranted } from '../lib/pushRegistration';
+import { routePushUrl } from '../lib/pushRouting';
 import { useMobileConfig } from './mobile-config';
 
 // Configure how notifications are displayed when the app is foregrounded
@@ -18,35 +19,20 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function requestAndGetToken(): Promise<string | null> {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    return null;
-  }
-
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      importance: Notifications.AndroidImportance.MAX,
-      name: 'default',
-      vibrationPattern: [0, 250, 250, 250],
-    });
-  }
-
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  return tokenData.data;
+function urlFromResponse(
+  response: Notifications.NotificationResponse | null,
+): string | null {
+  const data = response?.notification.request.content.data as
+    | { url?: unknown }
+    | undefined;
+  return typeof data?.url === 'string' ? data.url : null;
 }
 
 /**
- * Registers for push notifications after sign-in and saves the Expo push
- * token to the backend. Must be mounted inside both Clerk and Convex providers.
- * When Clerk is not configured, renders nothing.
+ * Keeps an already-permitted device registered after sign-in and routes
+ * notification taps to their destination. Never triggers the system
+ * permission prompt itself — that happens via the pre-prompt after the
+ * user's first pick save (or from Settings).
  */
 export function NotificationsProvider() {
   const { clerkEnabled } = useMobileConfig();
@@ -61,6 +47,8 @@ function ClerkAwareNotifications() {
   const saveToken = useMutation(api.push.saveExpoPushToken);
   const tokenRef = useRef<string | null>(null);
 
+  // Silent re-registration: refreshes the server-side token for devices that
+  // already granted permission (reinstalls, token rotation). No prompt.
   useEffect(() => {
     if (!isSignedIn) {
       return;
@@ -68,7 +56,7 @@ function ClerkAwareNotifications() {
 
     let cancelled = false;
 
-    void requestAndGetToken()
+    void obtainExpoPushTokenIfGranted()
       .then((token) => {
         if (cancelled || !token || tokenRef.current === token) {
           return;
@@ -79,21 +67,38 @@ function ClerkAwareNotifications() {
         });
       })
       .catch((err: unknown) => {
-        // Push registration is best-effort — most commonly fails when the
-        // EAS projectId is missing/invalid or the user denies permissions.
-        // Swallow the rejection so it doesn't surface as an unhandled error.
+        // Best-effort — most commonly fails when the EAS projectId is
+        // missing/invalid. Swallow so it doesn't surface as unhandled.
         console.warn('[notifications] push token registration failed', err);
       });
 
-    const sub = Notifications.addNotificationReceivedListener(() => {
-      // No-op — notifications shown automatically via handler above
-    });
-
     return () => {
       cancelled = true;
-      sub.remove();
     };
   }, [isSignedIn, saveToken]);
+
+  // Notification taps: warm-state listener + the response that may have
+  // cold-started the app. pushRouting buffers until the navigator is ready.
+  // A cold-start tap can surface through both paths, so dedupe by id.
+  const handledResponseIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    function handle(response: Notifications.NotificationResponse | null) {
+      if (!response) {
+        return;
+      }
+      const id = response.notification.request.identifier;
+      if (handledResponseIdRef.current === id) {
+        return;
+      }
+      handledResponseIdRef.current = id;
+      routePushUrl(urlFromResponse(response));
+    }
+
+    const sub = Notifications.addNotificationResponseReceivedListener(handle);
+    void Notifications.getLastNotificationResponseAsync().then(handle);
+
+    return () => sub.remove();
+  }, []);
 
   return null;
 }

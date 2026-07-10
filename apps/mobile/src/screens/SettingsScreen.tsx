@@ -1,4 +1,3 @@
-import { useClerk } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import Constants from 'expo-constants';
@@ -19,7 +18,9 @@ import {
 
 import { TimezonePickerModal } from '../components/settings/TimezonePickerModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { api } from '../integrations/convex/api';
+import { obtainExpoPushToken } from '../lib/pushRegistration';
 import { usePushPermission } from '../lib/usePushPermission';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
@@ -77,7 +78,7 @@ const EMAIL_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
 
 export function SettingsScreen() {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
-  const { signOut } = useClerk();
+  const signOut = useSignOutWithCleanup();
   const { showToast } = useToast();
 
   const me = useQuery(
@@ -87,6 +88,7 @@ export function SettingsScreen() {
   const updateProfile = useMutation(api.users.updateProfile);
   const updateNotifications = useMutation(api.users.updateNotificationSettings);
   const updateRegional = useMutation(api.users.updateRegionalSettings);
+  const saveExpoPushToken = useMutation(api.push.saveExpoPushToken);
   const pushPermission = usePushPermission();
   const pushGranted = pushPermission.status === 'granted';
 
@@ -365,6 +367,12 @@ export function SettingsScreen() {
             void Haptics.selectionAsync();
             const granted = await pushPermission.requestPermission();
             if (granted) {
+              const token = await obtainExpoPushToken();
+              if (token) {
+                await saveExpoPushToken({ token }).catch((err: unknown) => {
+                  console.warn('[settings] saveExpoPushToken failed', err);
+                });
+              }
               void Haptics.notificationAsync(
                 Haptics.NotificationFeedbackType.Success,
               );

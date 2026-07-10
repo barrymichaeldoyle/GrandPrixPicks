@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { RootTabParamList } from '../../navigation/types';
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
+import { Pressable, Text, View } from '../../tw';
 
 type ExploreItem = {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -28,33 +28,37 @@ const ITEMS: ReadonlyArray<ExploreItem> = [
   },
 ];
 
-const HAIRLINE = StyleSheet.hairlineWidth;
-
 export function HomeExplore() {
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
   const tabNav = navigation.getParent<NavigationProp<RootTabParamList>>();
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.heading}>Explore</Text>
+    <View className="gap-2">
+      <Text className="text-muted text-[10px] font-extrabold uppercase">
+        Explore
+      </Text>
       <View>
         {ITEMS.map((item, i) => (
           <View key={item.tab}>
-            {i > 0 ? <View style={styles.divider} /> : null}
+            {i > 0 ? <View className="ml-12 h-px bg-border" /> : null}
             <Pressable
+              className="flex-row items-center gap-3 py-3 active:opacity-70"
               onPress={() => tabNav?.navigate(item.tab)}
-              style={styles.row}
             >
-              <View style={styles.iconWrap}>
+              <View className="h-9 w-9 items-center justify-center rounded-md bg-accent/15">
                 <Ionicons
                   color={colors.accentHover}
                   name={item.icon}
                   size={20}
                 />
               </View>
-              <View style={styles.copy}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.body}>{item.body}</Text>
+              <View className="flex-1">
+                <Text className="text-foreground text-sm font-bold">
+                  {item.title}
+                </Text>
+                <Text className="text-muted mt-0.5 text-xs leading-4">
+                  {item.body}
+                </Text>
               </View>
               <Ionicons
                 color={colors.textMuted}
@@ -68,49 +72,3 @@ export function HomeExplore() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  body: {
-    color: colors.textMuted,
-    fontSize: 12,
-    lineHeight: 16,
-    marginTop: 2,
-  },
-  copy: {
-    flex: 1,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 48,
-  },
-  heading: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  iconWrap: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 184, 166, 0.14)',
-    borderRadius: radii.md,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 12,
-  },
-  section: {
-    gap: 8,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});

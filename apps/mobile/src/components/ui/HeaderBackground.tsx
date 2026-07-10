@@ -1,7 +1,7 @@
-import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { colors } from '../../theme/tokens';
+import { View } from '../../tw';
 
 /**
  * Header background — port of the web header's "grid sheen + accent rail" look.
@@ -10,8 +10,8 @@ import { colors } from '../../theme/tokens';
  */
 export function HeaderBackground() {
   return (
-    <View style={styles.container}>
-      <View style={styles.sheenWrap}>
+    <View className="flex-1 bg-surface">
+      <View className="absolute inset-0">
         <Svg
           height="100%"
           preserveAspectRatio="none"
@@ -34,7 +34,7 @@ export function HeaderBackground() {
           />
         </Svg>
       </View>
-      <View style={styles.railWrap}>
+      <View className="absolute inset-x-0 top-0 h-0.5">
         <Svg
           height={2}
           preserveAspectRatio="none"
@@ -60,20 +60,3 @@ export function HeaderBackground() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.surface,
-    flex: 1,
-  },
-  railWrap: {
-    height: 2,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  sheenWrap: {
-    ...StyleSheet.absoluteFill,
-  },
-});

@@ -1,9 +1,9 @@
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
-import { StyleSheet, Text, View } from 'react-native';
 
 import { getTeamColor } from '../../lib/teamColors';
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
+import { Text, View } from '../../tw';
 
 type ActualEntry = {
   position: number;
@@ -40,8 +40,6 @@ function pointColor(points: number): string {
   return colors.textMuted;
 }
 
-const HAIRLINE = StyleSheet.hairlineWidth;
-
 export function SessionResultsCard({
   session,
   actual,
@@ -55,31 +53,41 @@ export function SessionResultsCard({
     : null;
 
   return (
-    <View style={styles.block}>
-      <View style={styles.subhead}>
-        <Text style={styles.sessionLabel}>{SESSION_LABELS[session]}</Text>
+    <View className="gap-2">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-foreground text-sm font-bold">
+          {SESSION_LABELS[session]}
+        </Text>
         {totalPoints != null ? (
-          <Text style={styles.totalInline}>
-            <Text style={styles.totalLabel}>You scored </Text>
-            <Text style={styles.totalValue}>{totalPoints} pts</Text>
+          <Text className="text-xs">
+            <Text className="text-muted">You scored </Text>
+            <Text className="font-extrabold text-accent-hover">
+              {totalPoints} pts
+            </Text>
           </Text>
         ) : breakdownByPredicted ? null : (
-          <Text style={styles.notSubmitted}>No picks submitted</Text>
+          <Text className="text-muted text-[11px] italic">
+            No picks submitted
+          </Text>
         )}
       </View>
 
-      <View style={styles.columnsLabel}>
-        <Text style={styles.columnLabel}>Actual top 5</Text>
+      <View className="flex-row gap-3 pt-1">
+        <Text className="text-muted flex-1 text-[10px] font-extrabold uppercase">
+          Actual top 5
+        </Text>
         {breakdownByPredicted ? (
-          <Text style={styles.columnLabel}>Your picks</Text>
+          <Text className="text-muted flex-1 text-[10px] font-extrabold uppercase">
+            Your picks
+          </Text>
         ) : null}
       </View>
 
-      <View style={styles.columns}>
-        <View style={styles.column}>
+      <View className="flex-row gap-3">
+        <View className="flex-1">
           {actual.map((entry, i) => (
             <View key={`actual-${entry.position}`}>
-              {i > 0 ? <View style={styles.divider} /> : null}
+              {i > 0 ? <View className="ml-1.5 h-px bg-border" /> : null}
               <DriverRow
                 code={entry.code}
                 name={entry.displayName}
@@ -90,10 +98,10 @@ export function SessionResultsCard({
           ))}
         </View>
         {breakdownByPredicted ? (
-          <View style={styles.column}>
+          <View className="flex-1">
             {breakdownByPredicted.map((pick, i) => (
               <View key={`pick-${pick.predictedPosition}`}>
-                {i > 0 ? <View style={styles.divider} /> : null}
+                {i > 0 ? <View className="ml-1.5 h-px bg-border" /> : null}
                 <PickRow pick={pick} />
               </View>
             ))}
@@ -116,12 +124,17 @@ function DriverRow({
   team: string | null;
 }) {
   return (
-    <View style={styles.row}>
-      <View style={[styles.stripe, { backgroundColor: getTeamColor(team) }]} />
-      <Text style={styles.position}>P{position}</Text>
-      <View style={styles.driverText}>
-        <Text style={styles.driverCode}>{code}</Text>
-        <Text numberOfLines={1} style={styles.driverName}>
+    <View className="flex-row items-center gap-2 py-2">
+      <View
+        className="w-[3px] self-stretch rounded-sm"
+        style={{ backgroundColor: getTeamColor(team) }}
+      />
+      <Text className="text-muted w-[22px] text-[11px] font-extrabold">
+        P{position}
+      </Text>
+      <View className="flex-1 gap-px">
+        <Text className="text-foreground text-xs font-extrabold">{code}</Text>
+        <Text className="text-muted text-[10px]" numberOfLines={1}>
           {name}
         </Text>
       </View>
@@ -132,119 +145,26 @@ function DriverRow({
 function PickRow({ pick }: { pick: PickEntry }) {
   const fg = pointColor(pick.points);
   return (
-    <View style={styles.row}>
-      <Text style={styles.position}>P{pick.predictedPosition}</Text>
-      <View style={styles.driverText}>
-        <Text style={styles.driverCode}>{pick.code}</Text>
-        <Text numberOfLines={1} style={styles.driverName}>
+    <View className="flex-row items-center gap-2 py-2">
+      <Text className="text-muted w-[22px] text-[11px] font-extrabold">
+        P{pick.predictedPosition}
+      </Text>
+      <View className="flex-1 gap-px">
+        <Text className="text-foreground text-xs font-extrabold">
+          {pick.code}
+        </Text>
+        <Text className="text-muted text-[10px]" numberOfLines={1}>
           {pick.displayName}
         </Text>
       </View>
-      <View style={[styles.pointsPill, { borderColor: fg }]}>
-        <Text style={[styles.pointsPillText, { color: fg }]}>
+      <View
+        className="rounded-full border px-1.5 py-px"
+        style={{ borderColor: fg }}
+      >
+        <Text className="text-[11px] font-extrabold" style={{ color: fg }}>
           +{pick.points}
         </Text>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  block: {
-    gap: 8,
-  },
-  column: {
-    flex: 1,
-  },
-  columnLabel: {
-    color: colors.textMuted,
-    flex: 1,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  columns: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  columnsLabel: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingTop: 4,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 6,
-  },
-  driverCode: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  driverName: {
-    color: colors.textMuted,
-    fontSize: 10,
-  },
-  driverText: {
-    flex: 1,
-    gap: 1,
-  },
-  notSubmitted: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontStyle: 'italic',
-  },
-  pointsPill: {
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  pointsPillText: {
-    fontSize: 11,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '800',
-  },
-  position: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '800',
-    width: 22,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 8,
-  },
-  sessionLabel: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  stripe: {
-    alignSelf: 'stretch',
-    borderRadius: 1.5,
-    width: 3,
-  },
-  subhead: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  totalInline: {
-    fontSize: 12,
-  },
-  totalLabel: {
-    color: colors.textMuted,
-  },
-  totalValue: {
-    color: colors.accentHover,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '800',
-  },
-});

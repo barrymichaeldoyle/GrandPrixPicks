@@ -1,12 +1,12 @@
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ConvexId } from '../../integrations/convex/api';
+import { colors } from '../../theme/tokens';
+import { Pressable, Text, View } from '../../tw';
 import { FlagImage } from '../ui/FlagImage';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
 import { RevButton } from './RevButton';
-import { colors, radii } from '../../theme/tokens';
 
 type ScoredPick = {
   code: string;
@@ -91,11 +91,13 @@ function pickColor(points: number): string {
 function EventHeader({ event }: { event: FeedEvent }) {
   const name = event.displayName ?? event.username ?? 'Unknown';
   return (
-    <View style={styles.header}>
+    <View className="flex-row items-center gap-2.5">
       <Avatar imageUrl={event.avatarUrl} name={name} size="md" />
-      <View style={styles.headerText}>
-        <Text style={styles.username}>{name}</Text>
-        <Text style={styles.time}>{formatRelativeTime(event.createdAt)}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text className="text-foreground text-sm font-bold">{name}</Text>
+        <Text className="text-muted text-xs">
+          {formatRelativeTime(event.createdAt)}
+        </Text>
       </View>
     </View>
   );
@@ -113,53 +115,65 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
     <Card>
       <EventHeader event={event} />
 
-      <View style={styles.raceRow}>
+      <View className="flex-row items-center gap-2">
         {event.raceSlug ? <FlagImage raceSlug={event.raceSlug} /> : null}
-        <View style={styles.raceInfo}>
+        <View className="flex-1 gap-0.5">
           {event.raceName ? (
-            <Text style={styles.raceName} numberOfLines={1}>
+            <Text
+              className="text-foreground text-[13px] font-semibold"
+              numberOfLines={1}
+            >
               {event.raceName}
             </Text>
           ) : null}
           {sessionLabel ? (
-            <Text style={styles.sessionLabel}>{sessionLabel}</Text>
+            <Text className="text-muted text-[11px]">{sessionLabel}</Text>
           ) : null}
         </View>
-        <View style={[styles.scoreBadge, { borderColor: scoreColor }]}>
-          <Text style={[styles.scoreText, { color: scoreColor }]}>
+        <View
+          className="rounded-md border px-2.5 py-1"
+          style={{ borderColor: scoreColor }}
+        >
+          <Text
+            className="text-base font-extrabold"
+            style={{ color: scoreColor }}
+          >
             {pts}
-            <Text style={styles.scoreMax}>/25</Text>
+            <Text className="text-muted text-[11px]">/25</Text>
           </Text>
         </View>
       </View>
 
       {event.picks && event.picks.length > 0 ? (
-        <View style={styles.picks}>
+        <View className="py-0.5">
           {event.picks.map((pick) => (
-            <View key={pick.predictedPosition} style={styles.pickRow}>
-              <Text style={styles.pickPos}>P{pick.predictedPosition}</Text>
-              <Text style={styles.pickCode}>{pick.code}</Text>
+            <View
+              className="flex-row items-center gap-2 py-[3px]"
+              key={pick.predictedPosition}
+            >
+              <Text className="text-muted w-6 text-xs font-semibold">
+                P{pick.predictedPosition}
+              </Text>
+              <Text className="text-foreground flex-1 text-[13px] font-semibold">
+                {pick.code}
+              </Text>
               <View
-                style={[
-                  styles.pickPoints,
-                  {
-                    backgroundColor:
-                      pick.points > 0
-                        ? pickColor(pick.points) + '33'
-                        : colors.surfaceMuted,
-                  },
-                ]}
+                className="rounded-full px-2 py-0.5"
+                style={{
+                  backgroundColor:
+                    pick.points > 0
+                      ? pickColor(pick.points) + '33'
+                      : colors.surfaceMuted,
+                }}
               >
                 <Text
-                  style={[
-                    styles.pickPointsText,
-                    {
-                      color:
-                        pick.points > 0
-                          ? pickColor(pick.points)
-                          : colors.textMuted,
-                    },
-                  ]}
+                  className="text-[11px] font-bold"
+                  style={{
+                    color:
+                      pick.points > 0
+                        ? pickColor(pick.points)
+                        : colors.textMuted,
+                  }}
                 >
                   {pick.points}pt{pick.points !== 1 ? 's' : ''}
                 </Text>
@@ -169,7 +183,7 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
         </View>
       ) : null}
 
-      <View style={styles.footer}>
+      <View className="flex-row items-center pt-0.5">
         <RevButton
           feedEventId={event._id}
           revCount={event.revCount}
@@ -190,8 +204,8 @@ function SimpleEventCard({
   return (
     <Card>
       <EventHeader event={event} />
-      <Text style={styles.description}>{description}</Text>
-      <View style={styles.footer}>
+      <Text className="text-muted text-sm leading-5">{description}</Text>
+      <View className="flex-row items-center pt-0.5">
         <RevButton
           feedEventId={event._id}
           revCount={event.revCount}
@@ -234,106 +248,5 @@ export function FeedEventCard({
   if (!inner || !onPress) {
     return inner;
   }
-  return (
-    <Pressable onPress={onPress} style={styles.pressable}>
-      {inner}
-    </Pressable>
-  );
+  return <Pressable onPress={onPress}>{inner}</Pressable>;
 }
-
-const styles = StyleSheet.create({
-  description: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  footer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingTop: 2,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  headerText: {
-    flex: 1,
-    gap: 2,
-  },
-  pickCode: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  pickPoints: {
-    borderRadius: radii.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  pickPointsText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  pickPos: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    width: 24,
-  },
-  pickRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 3,
-  },
-  picks: {
-    gap: 0,
-    paddingVertical: 2,
-  },
-  raceInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  raceName: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  raceRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  scoreBadge: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  scoreMax: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  scoreText: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  sessionLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  time: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  pressable: {
-    // No visual change; RN renders children directly, the Pressable just captures the tap.
-  },
-  username: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});

@@ -1,0 +1,48 @@
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+
+@layer theme {
+  @theme {
+    --color-page: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-elevated: #243246;
+    --color-surface-muted: #334155;
+    --color-border: #334155;
+    --color-border-strong: #475569;
+    --color-foreground: #f8fafc;
+    --color-muted: #94a3b8;
+    --color-accent: #14b8a6;
+    --color-accent-hover: #2dd4bf;
+    --color-accent-muted: #134e4a;
+    --color-button-accent: #0d9488;
+    --color-button-accent-hover: #0f766e;
+    --color-error: #f87171;
+    --color-success: #34d399;
+    --color-success-muted: #064e3b;
+    --color-warning: #fbbf24;
+    --color-warning-muted: #78350f;
+
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+}
+
+@media android {
+  :root {
+    --font-mono: monospace;
+    --font-rounded: normal;
+    --font-serif: serif;
+    --font-sans: normal;
+  }
+}
+
+@media ios {
+  :root {
+    --font-mono: ui-monospace;
+    --font-rounded: ui-rounded;
+    --font-serif: ui-serif;
+    --font-sans: system-ui;
+  }
+}

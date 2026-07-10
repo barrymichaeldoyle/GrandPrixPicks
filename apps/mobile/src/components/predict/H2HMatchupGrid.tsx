@@ -1,7 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
 import { getTeamColor } from '../../lib/teamColors';
-import { colors, radii } from '../../theme/tokens';
+import { Pressable, Text, View } from '../../tw';
 
 type H2HDriver = {
   _id: string;
@@ -22,8 +20,6 @@ type H2HMatchupGridProps = {
   onSelect?: (matchupId: string, driverId: string) => void;
 };
 
-const HAIRLINE = StyleSheet.hairlineWidth;
-
 export function H2HMatchupGrid({
   matchups,
   selections,
@@ -32,8 +28,10 @@ export function H2HMatchupGrid({
 }: H2HMatchupGridProps) {
   if (matchups.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>No H2H matchups for this season.</Text>
+      <View className="py-2">
+        <Text className="text-muted text-[13px]">
+          No H2H matchups for this season.
+        </Text>
       </View>
     );
   }
@@ -46,13 +44,19 @@ export function H2HMatchupGrid({
 
         return (
           <View key={matchup._id}>
-            {index > 0 ? <View style={styles.divider} /> : null}
-            <View style={styles.row}>
-              <View style={[styles.stripe, { backgroundColor: teamColor }]} />
-              <Text numberOfLines={1} style={styles.team}>
+            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
+            <View className="flex-row items-center gap-2.5 py-2.5">
+              <View
+                className="w-[3px] self-stretch rounded-sm"
+                style={{ backgroundColor: teamColor }}
+              />
+              <Text
+                className="text-foreground flex-1 text-xs font-bold"
+                numberOfLines={1}
+              >
                 {matchup.team}
               </Text>
-              <View style={styles.pickPair}>
+              <View className="flex-row items-center gap-2">
                 <DriverButton
                   driver={matchup.driver1}
                   isSelected={selected === matchup.driver1._id}
@@ -60,7 +64,9 @@ export function H2HMatchupGrid({
                   onPress={() => onSelect?.(matchup._id, matchup.driver1._id)}
                   teamColor={teamColor}
                 />
-                <Text style={styles.vs}>vs</Text>
+                <Text className="text-muted text-[10px] font-bold uppercase">
+                  vs
+                </Text>
                 <DriverButton
                   driver={matchup.driver2}
                   isSelected={selected === matchup.driver2._id}
@@ -93,86 +99,21 @@ function DriverButton({
   return (
     <Pressable
       disabled={mode === 'readonly'}
+      className="min-w-14 items-center rounded-md border border-border py-[7px]"
       onPress={onPress}
-      style={[
-        styles.driverButton,
+      style={
         isSelected
-          ? {
-              backgroundColor: teamColor,
-              borderColor: teamColor,
-            }
-          : null,
-      ]}
+          ? { backgroundColor: teamColor, borderColor: teamColor }
+          : undefined
+      }
     >
       <Text
-        style={[
-          styles.driverCode,
-          isSelected ? styles.driverCodeSelected : null,
-        ]}
+        className={`text-[13px] font-extrabold ${
+          isSelected ? 'text-white' : 'text-foreground'
+        }`}
       >
         {driver.code}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 7,
-  },
-  driverButton: {
-    alignItems: 'center',
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: HAIRLINE,
-    minWidth: 56,
-    paddingVertical: 7,
-  },
-  driverCode: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  driverCodeSelected: {
-    color: '#fff',
-  },
-  empty: {
-    paddingVertical: 8,
-  },
-  emptyText: {
-    color: colors.textMuted,
-    fontSize: 13,
-  },
-  pickPair: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 10,
-  },
-  stripe: {
-    alignSelf: 'stretch',
-    borderRadius: 1.5,
-    width: 3,
-  },
-  team: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  vs: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-});

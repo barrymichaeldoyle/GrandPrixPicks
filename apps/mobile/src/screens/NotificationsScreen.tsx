@@ -1,14 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -18,7 +10,8 @@ import { api } from '../integrations/convex/api';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import { FlatList, Pressable, RefreshControl, Text, View } from '../tw';
 
 type Notification = {
   _id: ConvexId<'inAppNotifications'>;
@@ -45,8 +38,6 @@ type Notification = {
   }>;
   totalRevCount?: number;
 };
-
-const HAIRLINE = StyleSheet.hairlineWidth;
 
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -97,7 +88,7 @@ export function NotificationsScreen() {
 
   if (!convexEnabled) {
     return (
-      <View style={styles.screen}>
+      <View className="flex-1 bg-page px-4 pt-3">
         <Header subtitle="Notifications" />
         <EmptyState
           body="Configure Convex to receive notifications."
@@ -114,7 +105,7 @@ export function NotificationsScreen() {
 
   if (result === null) {
     return (
-      <View style={styles.screen}>
+      <View className="flex-1 bg-page px-4 pt-3">
         <Header subtitle="Notifications" />
         <EmptyState
           body="Sign in to view notifications."
@@ -129,7 +120,7 @@ export function NotificationsScreen() {
   const unreadCount = result.unreadCount ?? 0;
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-page px-4 pt-3">
       <Header
         subtitle={
           unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"
@@ -137,16 +128,16 @@ export function NotificationsScreen() {
         action={
           unreadCount > 0 ? (
             <Pressable hitSlop={8} onPress={() => void handleMarkAll()}>
-              <Text style={styles.markAllText}>Mark all read</Text>
+              <Text className="text-xs font-bold text-accent">
+                Mark all read
+              </Text>
             </Pressable>
           ) : null
         }
       />
       <FlatList
-        contentContainerStyle={
-          notifications.length === 0
-            ? styles.emptyContainer
-            : styles.listContent
+        contentContainerClassName={
+          notifications.length === 0 ? 'flex-1' : 'pb-6'
         }
         data={notifications}
         keyExtractor={(item) => String(item._id)}
@@ -157,7 +148,9 @@ export function NotificationsScreen() {
             title="No notifications yet"
           />
         }
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
+        ItemSeparatorComponent={() => (
+          <View className="ml-[52px] h-px bg-border" />
+        )}
         refreshControl={
           <RefreshControl
             colors={[colors.accent]}
@@ -191,11 +184,15 @@ function Header({
   action?: React.ReactNode;
 }) {
   return (
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.eyebrow}>Inbox</Text>
-        <Text style={styles.title}>Notifications</Text>
-        <Text style={styles.headerSub}>{subtitle}</Text>
+    <View className="flex-row items-start justify-between gap-3 pb-3">
+      <View className="flex-1 gap-0.5">
+        <Text className="text-[10px] font-extrabold text-accent uppercase">
+          Inbox
+        </Text>
+        <Text className="text-foreground text-[22px] font-extrabold">
+          Notifications
+        </Text>
+        <Text className="text-muted mt-1 text-xs">{subtitle}</Text>
       </View>
       {action ?? null}
     </View>
@@ -213,22 +210,24 @@ function NotificationRow({
 
   return (
     <Pressable
+      className={`flex-row items-center gap-3 px-1.5 py-3 ${
+        isUnread ? 'rounded-md bg-accent/10' : ''
+      }`}
       onPress={onPress}
-      style={[styles.row, isUnread ? styles.unreadTint : null]}
     >
       <NotificationIcon notification={notification} />
-      <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>
+      <View className="flex-1 gap-0.5">
+        <Text className="text-foreground text-sm font-bold">
           {getNotificationTitle(notification)}
         </Text>
-        <Text style={styles.rowSubtitle}>
+        <Text className="text-muted text-xs">
           {getNotificationSubtitle(notification)}
         </Text>
-        <Text style={styles.rowTime}>
+        <Text className="text-muted mt-0.5 text-[10px]">
           {formatRelativeTime(notification.createdAt)}
         </Text>
       </View>
-      {isUnread ? <View style={styles.unreadDot} /> : null}
+      {isUnread ? <View className="h-2 w-2 rounded bg-accent" /> : null}
     </Pressable>
   );
 }
@@ -246,32 +245,20 @@ function NotificationIcon({ notification }: { notification: Notification }) {
   }
   if (notification.type === 'results_published') {
     return (
-      <View
-        style={[styles.iconBubble, { backgroundColor: colors.accentMuted }]}
-      >
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-accent-muted">
         <Ionicons color={colors.accent} name="trophy" size={18} />
       </View>
     );
   }
   if (notification.type === 'results_amended') {
     return (
-      <View
-        style={[
-          styles.iconBubble,
-          { backgroundColor: 'rgba(251, 191, 36, 0.18)' },
-        ]}
-      >
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-warning/20">
         <Ionicons color={colors.warning} name="alert-circle" size={18} />
       </View>
     );
   }
   return (
-    <View
-      style={[
-        styles.iconBubble,
-        { backgroundColor: 'rgba(251, 191, 36, 0.18)' },
-      ]}
-    >
+    <View className="h-9 w-9 items-center justify-center rounded-full bg-warning/20">
       <Ionicons color={colors.warning} name="lock-closed" size={18} />
     </View>
   );
@@ -322,100 +309,3 @@ function getNotificationSubtitle(notification: Notification): string {
   }
   return [session, notification.raceName].filter(Boolean).join(' · ');
 }
-
-const styles = StyleSheet.create({
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 52,
-  },
-  emptyContainer: {
-    flex: 1,
-  },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  header: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-    paddingBottom: 12,
-  },
-  headerLeft: {
-    flex: 1,
-    gap: 2,
-  },
-  headerSub: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  iconBubble: {
-    alignItems: 'center',
-    borderRadius: radii.pill,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-  markAllText: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 12,
-  },
-  rowSubtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
-  },
-  rowTime: {
-    color: colors.textMuted,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  rowTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  unreadTint: {
-    backgroundColor: 'rgba(20, 184, 166, 0.07)',
-    borderRadius: radii.md,
-  },
-  unreadDot: {
-    backgroundColor: colors.accent,
-    borderRadius: 4,
-    height: 8,
-    width: 8,
-  },
-});

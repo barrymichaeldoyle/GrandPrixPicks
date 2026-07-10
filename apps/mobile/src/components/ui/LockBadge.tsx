@@ -1,7 +1,6 @@
 import type { LockStatusViewModel } from '@grandprixpicks/shared/picks';
-import { StyleSheet, View } from 'react-native';
 
-import { colors, radii } from '../../theme/tokens';
+import { View } from '../../tw';
 import { Numeral } from './Numeral';
 
 type LockBadgeProps = {
@@ -15,10 +14,13 @@ export function LockBadge({ lockStatus }: LockBadgeProps) {
 
   return (
     <View
-      style={[
-        styles.badge,
-        isLocked ? styles.locked : isWarning ? styles.warning : styles.open,
-      ]}
+      className={`self-start rounded-full border px-2.5 py-[3px] ${
+        isLocked
+          ? 'border-border-strong bg-surface-muted'
+          : isWarning
+            ? 'border-warning bg-warning-muted'
+            : 'border-success bg-success-muted'
+      }`}
     >
       <Numeral tone={tone} variant="small">
         {lockStatus.label}
@@ -26,25 +28,3 @@ export function LockBadge({ lockStatus }: LockBadgeProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    alignSelf: 'flex-start',
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  locked: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.borderStrong,
-  },
-  open: {
-    backgroundColor: colors.successMuted,
-    borderColor: colors.success,
-  },
-  warning: {
-    backgroundColor: colors.warningMuted,
-    borderColor: colors.warning,
-  },
-});

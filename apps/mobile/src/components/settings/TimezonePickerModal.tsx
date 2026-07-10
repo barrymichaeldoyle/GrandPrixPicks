@@ -1,16 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
 
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
+import { FlatList, Modal, Pressable, Text, TextInput, View } from '../../tw';
 
 const COMMON_TIMEZONES = [
   'UTC',
@@ -92,9 +84,11 @@ export function TimezonePickerModal({
       presentationStyle="formSheet"
       visible={visible}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Choose timezone</Text>
+      <View className="flex-1 bg-page px-4 pt-4">
+        <View className="flex-row items-center justify-between pb-3">
+          <Text className="text-foreground text-[17px] font-bold">
+            Choose timezone
+          </Text>
           <Pressable hitSlop={10} onPress={onClose}>
             <Ionicons color={colors.text} name="close" size={22} />
           </Pressable>
@@ -106,25 +100,27 @@ export function TimezonePickerModal({
           onChangeText={setFilter}
           placeholder="Search timezones…"
           placeholderTextColor={colors.textMuted}
-          style={styles.search}
+          className="text-foreground mb-3 rounded-md border border-border bg-surface-elevated px-3 py-2.5 text-[15px]"
           value={filter}
         />
 
         <Pressable
+          className="mb-3 flex-row items-center gap-3 rounded-md border border-accent bg-accent-muted px-3.5 py-3"
           onPress={() => {
             onSelect(null);
             onClose();
           }}
-          style={styles.deviceRow}
         >
           <Ionicons
             color={colors.accent}
             name="phone-portrait-outline"
             size={18}
           />
-          <View style={styles.deviceRowText}>
-            <Text style={styles.rowLabel}>Use device timezone</Text>
-            <Text style={styles.rowOffset}>
+          <View className="flex-1 gap-0.5">
+            <Text className="text-foreground text-[15px] font-semibold">
+              Use device timezone
+            </Text>
+            <Text className="text-muted text-[11px] font-semibold">
               {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </Text>
           </View>
@@ -140,15 +136,21 @@ export function TimezonePickerModal({
             const isSelected = item === currentValue;
             return (
               <Pressable
+                className={`flex-row items-center gap-3 border-b border-border px-1.5 py-3 ${
+                  isSelected ? 'rounded-md bg-surface' : ''
+                }`}
                 onPress={() => {
                   onSelect(item);
                   onClose();
                 }}
-                style={[styles.row, isSelected ? styles.rowSelected : null]}
               >
-                <View style={styles.rowText}>
-                  <Text style={styles.rowLabel}>{item.replace(/_/g, ' ')}</Text>
-                  <Text style={styles.rowOffset}>{getOffset(item)}</Text>
+                <View className="flex-1 gap-0.5">
+                  <Text className="text-foreground text-[15px] font-semibold">
+                    {item.replace(/_/g, ' ')}
+                  </Text>
+                  <Text className="text-muted text-[11px] font-semibold">
+                    {getOffset(item)}
+                  </Text>
                 </View>
                 {isSelected ? (
                   <Ionicons color={colors.accent} name="checkmark" size={18} />
@@ -162,77 +164,3 @@ export function TimezonePickerModal({
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.page,
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  deviceRow: {
-    alignItems: 'center',
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  deviceRowText: {
-    flex: 1,
-    gap: 2,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: 12,
-  },
-  row: {
-    alignItems: 'center',
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 12,
-  },
-  rowLabel: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  rowOffset: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  rowSelected: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.md,
-  },
-  rowText: {
-    flex: 1,
-    gap: 2,
-  },
-  search: {
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    color: colors.text,
-    fontSize: 15,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-});

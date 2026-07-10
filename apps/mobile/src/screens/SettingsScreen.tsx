@@ -3,18 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { TimezonePickerModal } from '../components/settings/TimezonePickerModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -24,7 +13,16 @@ import { obtainExpoPushToken } from '../lib/pushRegistration';
 import { usePushPermission } from '../lib/usePushPermission';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from '../tw';
 
 type NotificationKey =
   | 'pushPredictionReminders'
@@ -219,18 +217,25 @@ export function SettingsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>Settings</Text>
-        <Text style={styles.title}>Account</Text>
+    <ScrollView
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-[26px] px-4 pb-8 pt-3"
+    >
+      <View className="mb-1 gap-1">
+        <Text className="text-[10px] font-extrabold text-accent uppercase">
+          Settings
+        </Text>
+        <Text className="text-foreground text-2xl font-extrabold">Account</Text>
       </View>
 
       {/* Profile */}
       <SettingsSection title="Profile">
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Display name</Text>
+        <View className="gap-1.5">
+          <Text className="text-muted text-[11px] font-bold uppercase">
+            Display name
+          </Text>
           {isEditingName ? (
-            <View style={styles.editRow}>
+            <View className="flex-row items-center gap-2">
               <TextInput
                 autoFocus
                 editable={!isSavingName}
@@ -241,7 +246,7 @@ export function SettingsScreen() {
                 }}
                 placeholder="Your name"
                 placeholderTextColor={colors.textMuted}
-                style={styles.input}
+                className="text-foreground flex-1 rounded-md border border-border bg-surface-elevated px-3 py-2 text-[15px]"
                 value={displayName}
               />
               <Pressable
@@ -251,41 +256,57 @@ export function SettingsScreen() {
                   setDisplayName(me?.displayName ?? '');
                   setNameError(null);
                 }}
-                style={[styles.smallButton, styles.smallButtonGhost]}
+                className="items-center rounded-md border border-border px-3 py-2"
               >
-                <Text style={styles.smallButtonGhostText}>Cancel</Text>
+                <Text className="text-foreground text-[13px] font-bold">
+                  Cancel
+                </Text>
               </Pressable>
               <Pressable
                 disabled={isSavingName}
                 onPress={() => void handleSaveName()}
-                style={[styles.smallButton, styles.smallButtonPrimary]}
+                className="items-center rounded-md bg-button-accent px-3 py-2"
               >
                 {isSavingName ? (
                   <ActivityIndicator color={colors.text} size="small" />
                 ) : (
-                  <Text style={styles.smallButtonPrimaryText}>Save</Text>
+                  <Text className="text-foreground text-[13px] font-bold">
+                    Save
+                  </Text>
                 )}
               </Pressable>
             </View>
           ) : (
-            <View style={styles.editRow}>
-              <Text style={styles.fieldValue}>{me?.displayName ?? '—'}</Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="text-foreground flex-1 text-[15px] font-semibold">
+                {me?.displayName ?? '—'}
+              </Text>
               <Pressable
                 onPress={() => setIsEditingName(true)}
-                style={[styles.smallButton, styles.smallButtonGhost]}
+                className="items-center rounded-md border border-border px-3 py-2"
               >
-                <Text style={styles.smallButtonGhostText}>Edit</Text>
+                <Text className="text-foreground text-[13px] font-bold">
+                  Edit
+                </Text>
               </Pressable>
             </View>
           )}
-          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
+          {nameError ? (
+            <Text className="text-xs text-error">{nameError}</Text>
+          ) : null}
         </View>
 
         {me?.username ? (
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Username</Text>
-            <Text style={styles.fieldValue}>@{me.username}</Text>
-            <Text style={styles.fieldHelp}>Username changes require web.</Text>
+          <View className="gap-1.5">
+            <Text className="text-muted text-[11px] font-bold uppercase">
+              Username
+            </Text>
+            <Text className="text-foreground flex-1 text-[15px] font-semibold">
+              @{me.username}
+            </Text>
+            <Text className="text-muted text-[11px]">
+              Username changes require web.
+            </Text>
           </View>
         ) : null}
       </SettingsSection>
@@ -293,56 +314,46 @@ export function SettingsScreen() {
       {/* Regional */}
       <SettingsSection title="Regional">
         <Pressable
+          className="flex-row items-center gap-2"
           onPress={() => setTzPickerOpen(true)}
-          style={styles.linkButton}
         >
-          <View style={styles.linkButtonText}>
-            <Text style={styles.fieldLabel}>Timezone</Text>
-            <Text style={styles.fieldValue}>
+          <View className="flex-1 gap-1">
+            <Text className="text-muted text-[11px] font-bold uppercase">
+              Timezone
+            </Text>
+            <Text className="text-foreground flex-1 text-[15px] font-semibold">
               {(me?.timezone ?? deviceTz).replace(/_/g, ' ')}
             </Text>
             {!me?.timezone ? (
-              <Text style={styles.fieldHelp}>Using device default</Text>
+              <Text className="text-muted text-[11px]">
+                Using device default
+              </Text>
             ) : null}
           </View>
           <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
         </Pressable>
 
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Time format</Text>
-          <View style={styles.segmentBar}>
+        <View className="gap-1.5">
+          <Text className="text-muted text-[11px] font-bold uppercase">
+            Time format
+          </Text>
+          <View className="flex-row rounded-md border border-border bg-surface-elevated p-[3px]">
             <Pressable
               onPress={() => handleTimeFormatSelect('en-US')}
-              style={[
-                styles.segment,
-                currentTimeFormat === 'en-US' ? styles.segmentActive : null,
-              ]}
+              className={`flex-1 items-center rounded-md py-2 ${currentTimeFormat === 'en-US' ? 'bg-accent-muted' : ''}`}
             >
               <Text
-                style={[
-                  styles.segmentText,
-                  currentTimeFormat === 'en-US'
-                    ? styles.segmentTextActive
-                    : null,
-                ]}
+                className={`text-[13px] font-bold ${currentTimeFormat === 'en-US' ? 'text-accent' : 'text-muted'}`}
               >
                 12-hour
               </Text>
             </Pressable>
             <Pressable
               onPress={() => handleTimeFormatSelect('en-GB')}
-              style={[
-                styles.segment,
-                currentTimeFormat === 'en-GB' ? styles.segmentActive : null,
-              ]}
+              className={`flex-1 items-center rounded-md py-2 ${currentTimeFormat === 'en-GB' ? 'bg-accent-muted' : ''}`}
             >
               <Text
-                style={[
-                  styles.segmentText,
-                  currentTimeFormat === 'en-GB'
-                    ? styles.segmentTextActive
-                    : null,
-                ]}
+                className={`text-[13px] font-bold ${currentTimeFormat === 'en-GB' ? 'text-accent' : 'text-muted'}`}
               >
                 24-hour
               </Text>
@@ -407,9 +418,12 @@ export function SettingsScreen() {
 
       {/* Account */}
       <SettingsSection title="Account">
-        <Pressable onPress={handleSignOut} style={styles.signOutRow}>
+        <Pressable
+          className="flex-row items-center gap-2.5"
+          onPress={handleSignOut}
+        >
           <Ionicons color={colors.error} name="log-out-outline" size={18} />
-          <Text style={styles.signOutText}>Sign out</Text>
+          <Text className="text-[15px] font-bold text-error">Sign out</Text>
         </Pressable>
       </SettingsSection>
 
@@ -433,7 +447,9 @@ function VersionFooter() {
     channel ? `· ${channel}` : null,
   ].filter(Boolean);
   return (
-    <Text style={styles.versionText}>Grand Prix Picks {parts.join(' ')}</Text>
+    <Text className="text-muted pt-2 text-center text-[11px]">
+      Grand Prix Picks {parts.join(' ')}
+    </Text>
   );
 }
 
@@ -452,14 +468,18 @@ function SettingsSection({
       return;
     }
     if (withDividers.length > 0) {
-      withDividers.push(<View key={`d-${i}`} style={styles.rowDivider} />);
+      withDividers.push(
+        <View className="my-3 h-px bg-border" key={`d-${i}`} />,
+      );
     }
     withDividers.push(child);
   });
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionBody}>{withDividers}</View>
+    <View className="gap-2.5">
+      <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+        {title}
+      </Text>
+      <View>{withDividers}</View>
     </View>
   );
 }
@@ -479,11 +499,11 @@ function NotificationToggleRow({
 }) {
   return (
     <View
-      style={[styles.toggleRow, disabled ? styles.toggleRowDisabled : null]}
+      className={`flex-row items-center justify-between gap-3 ${disabled ? 'opacity-50' : ''}`}
     >
-      <View style={styles.toggleText}>
-        <Text style={styles.toggleLabel}>{label}</Text>
-        <Text style={styles.toggleHelp}>{help}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text className="text-foreground text-sm font-semibold">{label}</Text>
+        <Text className="text-muted text-[11px] leading-[15px]">{help}</Text>
       </View>
       <Switch
         disabled={disabled}
@@ -510,21 +530,23 @@ function PushPermissionRow({
 }) {
   if (status === 'loading' || status === 'granted') {
     return (
-      <View style={styles.permissionRow}>
-        <View style={styles.permissionRowText}>
-          <Text style={styles.permissionLabel}>System permission</Text>
-          <Text style={styles.permissionHelp}>
+      <View className="flex-row items-center gap-3">
+        <View className="flex-1 gap-0.5">
+          <Text className="text-foreground text-sm font-semibold">
+            System permission
+          </Text>
+          <Text className="text-muted text-[11px] leading-[15px]">
             {status === 'loading' ? 'Checking…' : 'Granted'}
           </Text>
         </View>
         {status === 'granted' ? (
-          <View style={styles.permissionBadge}>
+          <View className="flex-row items-center gap-1 rounded-full border border-success/35 bg-success-muted px-2 py-[3px]">
             <Ionicons
               color={colors.success}
               name="checkmark-circle"
               size={14}
             />
-            <Text style={styles.permissionBadgeText}>On</Text>
+            <Text className="text-[11px] font-extrabold text-success">On</Text>
           </View>
         ) : null}
       </View>
@@ -533,252 +555,25 @@ function PushPermissionRow({
 
   const isDenied = status === 'denied';
   return (
-    <View style={styles.permissionRow}>
-      <View style={styles.permissionRowText}>
-        <Text style={styles.permissionLabel}>System permission</Text>
-        <Text style={styles.permissionHelp}>
+    <View className="flex-row items-center gap-3">
+      <View className="flex-1 gap-0.5">
+        <Text className="text-foreground text-sm font-semibold">
+          System permission
+        </Text>
+        <Text className="text-muted text-[11px] leading-[15px]">
           {isDenied
             ? 'Push notifications are disabled in iOS settings.'
             : 'Allow Grand Prix Picks to send push notifications.'}
         </Text>
       </View>
       <Pressable
+        className="rounded-md bg-button-accent px-3 py-2"
         onPress={isDenied || !canAskAgain ? onOpenSettings : onRequest}
-        style={styles.permissionAction}
       >
-        <Text style={styles.permissionActionText}>
+        <Text className="text-foreground text-[13px] font-bold">
           {isDenied || !canAskAgain ? 'Open settings' : 'Allow'}
         </Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: 26,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  header: {
-    gap: 4,
-    marginBottom: 4,
-  },
-  rowDivider: {
-    backgroundColor: colors.border,
-    height: StyleSheet.hairlineWidth,
-    marginVertical: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  versionText: {
-    color: colors.textMuted,
-    fontSize: 11,
-    paddingTop: 8,
-    textAlign: 'center',
-  },
-  editRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 12,
-  },
-  field: {
-    gap: 6,
-  },
-  fieldHelp: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  fieldLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  fieldValue: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  input: {
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    color: colors.text,
-    flex: 1,
-    fontSize: 15,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  linkButton: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  linkButtonText: {
-    flex: 1,
-    gap: 4,
-  },
-  permissionAction: {
-    backgroundColor: colors.buttonAccent,
-    borderRadius: radii.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  permissionActionText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  permissionBadge: {
-    alignItems: 'center',
-    backgroundColor: colors.successMuted,
-    borderColor: 'rgba(52, 211, 153, 0.35)',
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  permissionBadgeText: {
-    color: colors.success,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  permissionHelp: {
-    color: colors.textMuted,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  permissionLabel: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  permissionRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  permissionRowText: {
-    flex: 1,
-    gap: 2,
-  },
-  segment: {
-    alignItems: 'center',
-    borderRadius: radii.md,
-    flex: 1,
-    paddingVertical: 8,
-  },
-  segmentActive: {
-    backgroundColor: colors.accentMuted,
-  },
-  segmentBar: {
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    padding: 3,
-  },
-  segmentText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  segmentTextActive: {
-    color: colors.accent,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionBody: {},
-  sectionTitle: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    paddingBottom: 2,
-    textTransform: 'uppercase',
-  },
-  signOutRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  signOutText: {
-    color: colors.error,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  smallButton: {
-    alignItems: 'center',
-    borderRadius: radii.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  smallButtonGhost: {
-    borderColor: colors.border,
-    borderWidth: 1,
-  },
-  smallButtonGhostText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  smallButtonPrimary: {
-    backgroundColor: colors.buttonAccent,
-  },
-  smallButtonPrimaryText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  toggleHelp: {
-    color: colors.textMuted,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  toggleLabel: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  toggleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  toggleRowDisabled: {
-    opacity: 0.5,
-  },
-  toggleText: {
-    flex: 1,
-    gap: 2,
-  },
-});

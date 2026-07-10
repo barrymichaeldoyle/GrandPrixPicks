@@ -1,8 +1,7 @@
 import type { StyleProp, TextStyle } from 'react-native';
-import { StyleSheet, Text } from 'react-native';
 
-import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
+import { Text } from '../../tw';
 
 /**
  * Numeral — broadcast-style typography for any numeric value in the app.
@@ -42,50 +41,26 @@ export function Numeral({
   return (
     <Text
       allowFontScaling={false}
-      style={[
-        styles.base,
-        styles[variant],
-        { color: toneColors[tone] },
-        fontFamily ? { fontFamily } : null,
-        style,
-      ]}
+      className={`${variantClasses[variant]} ${toneClasses[tone]}`}
+      style={[fontFamily ? { fontFamily } : null, style]}
     >
       {children}
     </Text>
   );
 }
 
-const toneColors: Record<NumeralTone, string> = {
-  default: colors.text,
-  muted: colors.textMuted,
-  accent: colors.accentHover,
-  gain: colors.success,
-  loss: colors.error,
-  warning: colors.warning,
+const toneClasses: Record<NumeralTone, string> = {
+  default: 'text-foreground',
+  muted: 'text-muted',
+  accent: 'text-accent-hover',
+  gain: 'text-success',
+  loss: 'text-error',
+  warning: 'text-warning',
 };
 
-const styles = StyleSheet.create({
-  base: {
-    fontVariant: ['tabular-nums'],
-  },
-  display: {
-    fontSize: 56,
-    letterSpacing: -1,
-    lineHeight: 64,
-  },
-  large: {
-    fontSize: 22,
-    letterSpacing: 0.4,
-    lineHeight: 26,
-  },
-  body: {
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  small: {
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-});
+const variantClasses: Record<NumeralVariant, string> = {
+  display: 'text-[56px] leading-[64px]',
+  large: 'text-[22px] leading-[26px]',
+  body: 'text-[15px] font-semibold',
+  small: 'text-xs font-bold',
+};

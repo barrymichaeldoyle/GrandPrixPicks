@@ -1,9 +1,9 @@
 import { useUser } from '@clerk/clerk-expo';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
+import { ActivityIndicator, View } from '../tw';
 
 type AuthGateProps = {
   fallback: ReactNode;
@@ -26,7 +26,7 @@ function ClerkAuthGate({ fallback, children }: AuthGateProps) {
 
   if (!isLoaded) {
     return (
-      <View style={styles.loader}>
+      <View className="flex-1 items-center justify-center bg-page">
         <ActivityIndicator color={colors.accent} size="large" />
       </View>
     );
@@ -38,12 +38,3 @@ function ClerkAuthGate({ fallback, children }: AuthGateProps) {
 
   return <>{children}</>;
 }
-
-const styles = StyleSheet.create({
-  loader: {
-    alignItems: 'center',
-    backgroundColor: colors.page,
-    flex: 1,
-    justifyContent: 'center',
-  },
-});

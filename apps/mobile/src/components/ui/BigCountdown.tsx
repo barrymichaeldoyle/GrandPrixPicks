@@ -1,9 +1,9 @@
 import { getCountdownParts } from '@grandprixpicks/shared/dates';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import { useNow } from '../../lib/useNow';
-import { colors, radii } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
+import { Text, View } from '../../tw';
 
 type BigCountdownProps = {
   /** Timestamp (ms) the countdown is targeting. */
@@ -23,7 +23,11 @@ export function BigCountdown({ targetAt }: BigCountdownProps) {
   const parts = getCountdownParts(targetAt - now);
 
   if (!parts) {
-    return <Text style={styles.startingNow}>Starting now</Text>;
+    return (
+      <Text className="text-center text-[22px] font-bold text-accent-hover">
+        Starting now
+      </Text>
+    );
   }
 
   const showDays = parts.days > 0;
@@ -35,7 +39,7 @@ export function BigCountdown({ targetAt }: BigCountdownProps) {
   );
 
   return (
-    <View style={[styles.row, { gap: GAP }]}>
+    <View className="flex-row items-center justify-center" style={{ gap: GAP }}>
       {showDays ? (
         <TimeUnit label="days" tileWidth={tileWidth} value={parts.days} />
       ) : null}
@@ -61,12 +65,15 @@ function TimeUnit({
   const fontSize = Math.round(tileWidth * 0.55);
 
   return (
-    <View style={styles.unit}>
-      <View style={[styles.tile, { height: tileHeight, width: tileWidth }]}>
+    <View className="items-center gap-1.5">
+      <View
+        className="items-center justify-center rounded-md border border-accent-hover/20 bg-accent/10"
+        style={{ height: tileHeight, width: tileWidth }}
+      >
         <Text
           allowFontScaling={false}
+          className="text-foreground font-black"
           style={[
-            styles.digitText,
             { fontSize, lineHeight: tileHeight },
             displayFontFamily ? { fontFamily: displayFontFamily } : null,
           ]}
@@ -74,46 +81,9 @@ function TimeUnit({
           {padded}
         </Text>
       </View>
-      <Text style={styles.unitLabel}>{label}</Text>
+      <Text className="text-muted text-[10px] font-bold uppercase">
+        {label}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  digitText: {
-    color: colors.text,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '900',
-    includeFontPadding: false,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  startingNow: {
-    color: colors.accentHover,
-    fontSize: 22,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  tile: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
-    borderColor: 'rgba(45, 212, 191, 0.22)',
-    borderRadius: radii.md,
-    borderWidth: 1,
-    justifyContent: 'center',
-  },
-  unit: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  unitLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-});

@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View } from 'react-native';
 
 import { HeaderBackground } from '../components/ui/HeaderBackground';
 import { NotificationBell } from '../components/ui/NotificationBell';
@@ -18,6 +17,7 @@ import { FeedScreen } from '../screens/feed/FeedScreen';
 import { flushPendingPushRoute } from '../lib/pushRouting';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
+import { Text, View } from '../tw';
 import { AuthGate } from './AuthGate';
 import { linking } from './linking';
 import { navigationRef } from './navigationRef';
@@ -59,15 +59,13 @@ const TAB_ICONS: Record<
 function BrandHeaderTitle() {
   const { titleFontFamily } = useTypography();
   return (
-    <View style={styles.brand}>
-      <View style={styles.brandBadge}>
+    <View className="flex-row items-center gap-2">
+      <View className="h-[26px] w-[26px] items-center justify-center rounded-full border border-accent-hover/35 bg-accent/10">
         <Ionicons color={colors.accent} name="flag" size={14} />
       </View>
       <Text
-        style={[
-          styles.brandTitle,
-          titleFontFamily ? { fontFamily: titleFontFamily } : null,
-        ]}
+        className="text-foreground text-[17px] font-bold"
+        style={titleFontFamily ? { fontFamily: titleFontFamily } : undefined}
       >
         Grand Prix Picks
       </Text>
@@ -235,27 +233,3 @@ export function AppNavigator() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  brand: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  brandBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(20, 184, 166, 0.12)',
-    borderColor: 'rgba(45, 212, 191, 0.35)',
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 26,
-    justifyContent: 'center',
-    width: 26,
-  },
-  brandTitle: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-});

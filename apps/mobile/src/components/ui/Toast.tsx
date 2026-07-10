@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Animated, {
+import {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -10,7 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
+import { AnimatedView, Text, View } from '../../tw';
 
 type ToastVariant = 'success' | 'error' | 'info';
 
@@ -36,6 +36,7 @@ const VARIANT_STYLES: Record<
     border: string;
     fg: string;
     icon: React.ComponentProps<typeof Ionicons>['name'];
+    className: string;
   }
 > = {
   success: {
@@ -43,18 +44,21 @@ const VARIANT_STYLES: Record<
     border: 'rgba(52, 211, 153, 0.6)',
     fg: colors.success,
     icon: 'checkmark-circle',
+    className: 'border-success/60 bg-success-muted',
   },
   error: {
     bg: 'rgba(248, 113, 113, 0.18)',
     border: 'rgba(248, 113, 113, 0.6)',
     fg: colors.error,
     icon: 'alert-circle',
+    className: 'border-error/60 bg-error/20',
   },
   info: {
     bg: colors.accentMuted,
     border: colors.accent,
     fg: colors.accent,
     icon: 'information-circle',
+    className: 'border-accent bg-accent-muted',
   },
 };
 
@@ -101,45 +105,23 @@ export function Toast({ state, durationMs = 2200, onDismiss }: ToastProps) {
 
   return (
     <View
+      className="absolute inset-x-4 bottom-0"
       pointerEvents="box-none"
-      style={[styles.wrap, { paddingBottom: insets.bottom + 12 }]}
+      style={{ paddingBottom: insets.bottom + 12 }}
     >
-      <Animated.View
-        style={[
-          styles.toast,
-          { backgroundColor: variant.bg, borderColor: variant.border },
-          containerStyle,
-        ]}
+      <AnimatedView
+        className={`flex-row items-center gap-2.5 rounded-lg border px-3.5 py-2.5 ${variant.className}`}
+        style={containerStyle}
       >
         <Ionicons color={variant.fg} name={variant.icon} size={18} />
-        <Text numberOfLines={2} style={[styles.message, { color: variant.fg }]}>
+        <Text
+          className="flex-1 text-[13px] font-bold"
+          numberOfLines={2}
+          style={{ color: variant.fg }}
+        >
           {state.message}
         </Text>
-      </Animated.View>
+      </AnimatedView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  message: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  toast: {
-    alignItems: 'center',
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  wrap: {
-    bottom: 0,
-    left: 16,
-    position: 'absolute',
-    right: 16,
-  },
-});

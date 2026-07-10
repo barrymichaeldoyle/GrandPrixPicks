@@ -2,22 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert } from 'react-native';
 
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
-import { colors } from '../theme/tokens';
 import type { MoreStackParamList } from '../navigation/types';
+import { colors } from '../theme/tokens';
+import { Pressable, ScrollView, Text, View } from '../tw';
 
 const SITE_URL = 'https://grandprixpicks.com';
-
-const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function MoreScreen() {
   const navigation = useNavigation<NavigationProp<MoreStackParamList>>();
@@ -39,9 +31,14 @@ export function MoreScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      <View style={styles.section}>
-        <Text style={styles.sectionEyebrow}>Account</Text>
+    <ScrollView
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-6 p-4 pb-8"
+    >
+      <View className="gap-2.5">
+        <Text className="text-muted text-[10px] font-extrabold uppercase">
+          Account
+        </Text>
         <View>
           <LinkRow
             icon="notifications-outline"
@@ -49,7 +46,7 @@ export function MoreScreen() {
             onPress={() => navigation.navigate('Notifications')}
             subtitle="Results, locks, and Revs"
           />
-          <View style={styles.divider} />
+          <View className="ml-[30px] h-px bg-border" />
           <LinkRow
             icon="settings-outline"
             label="Settings"
@@ -59,8 +56,10 @@ export function MoreScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionEyebrow}>Leagues</Text>
+      <View className="gap-2.5">
+        <Text className="text-muted text-[10px] font-extrabold uppercase">
+          Leagues
+        </Text>
         <View>
           <LinkRow
             icon="people-outline"
@@ -71,8 +70,10 @@ export function MoreScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionEyebrow}>Help &amp; legal</Text>
+      <View className="gap-2.5">
+        <Text className="text-muted text-[10px] font-extrabold uppercase">
+          Help &amp; legal
+        </Text>
         <View>
           <LinkRow
             icon="help-buoy-outline"
@@ -80,14 +81,14 @@ export function MoreScreen() {
             onPress={() => openOnWeb('/support')}
             subtitle="Get help or report a problem"
           />
-          <View style={styles.divider} />
+          <View className="ml-[30px] h-px bg-border" />
           <LinkRow
             icon="shield-checkmark-outline"
             label="Privacy policy"
             onPress={() => openOnWeb('/privacy')}
             subtitle="How your data is handled"
           />
-          <View style={styles.divider} />
+          <View className="ml-[30px] h-px bg-border" />
           <LinkRow
             icon="document-text-outline"
             label="Terms of service"
@@ -98,12 +99,12 @@ export function MoreScreen() {
       </View>
 
       <Pressable
+        className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
         hitSlop={8}
         onPress={confirmSignOut}
-        style={styles.signOutLink}
       >
         <Ionicons color={colors.textMuted} name="log-out-outline" size={14} />
-        <Text style={styles.signOutText}>Sign out</Text>
+        <Text className="text-muted text-xs font-semibold">Sign out</Text>
       </Pressable>
     </ScrollView>
   );
@@ -121,71 +122,18 @@ function LinkRow({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={styles.linkRow}>
+    <Pressable
+      className="flex-row items-center gap-3 py-3 active:opacity-70"
+      onPress={onPress}
+    >
       <Ionicons color={colors.accent} name={icon} size={18} />
-      <View style={styles.linkText}>
-        <Text style={styles.linkLabel}>{label}</Text>
-        <Text style={styles.linkSubtitle}>{subtitle}</Text>
+      <View className="flex-1">
+        <Text className="text-foreground text-[15px] font-semibold">
+          {label}
+        </Text>
+        <Text className="text-muted mt-px text-xs">{subtitle}</Text>
       </View>
       <Ionicons color={colors.textMuted} name="chevron-forward" size={16} />
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: 24,
-    padding: 16,
-    paddingBottom: 32,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 30,
-  },
-  linkLabel: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  linkRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 12,
-  },
-  linkSubtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 1,
-  },
-  linkText: {
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionEyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  signOutLink: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 8,
-  },
-  signOutText: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

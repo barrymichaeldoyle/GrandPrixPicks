@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { api } from '../../integrations/convex/api';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
+import { Pressable, Text, View } from '../../tw';
 
 type NotificationBellProps = {
   onPress: () => void;
@@ -26,11 +26,15 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
   }
 
   return (
-    <Pressable hitSlop={10} onPress={handlePress} style={styles.button}>
+    <Pressable
+      className="relative px-2 py-1"
+      hitSlop={10}
+      onPress={handlePress}
+    >
       <Ionicons color={colors.text} name="notifications-outline" size={22} />
       {unreadCount > 0 ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>
+        <View className="absolute -top-0.5 -right-1 h-4 min-w-4 items-center justify-center rounded-lg bg-accent px-1">
+          <Text className="text-[10px] font-extrabold text-page">
             {unreadCount > 9 ? '9+' : unreadCount}
           </Text>
         </View>
@@ -38,29 +42,3 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    alignItems: 'center',
-    backgroundColor: colors.accent,
-    borderRadius: 8,
-    height: 16,
-    justifyContent: 'center',
-    minWidth: 16,
-    paddingHorizontal: 4,
-    position: 'absolute',
-    right: -4,
-    top: -2,
-  },
-  badgeText: {
-    color: '#0f172a',
-    fontSize: 10,
-    fontVariant: ['tabular-nums'],
-    fontWeight: '800',
-  },
-  button: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    position: 'relative',
-  },
-});

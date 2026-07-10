@@ -8,20 +8,20 @@ import {
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';
+import type { TextInput as RNTextInput } from 'react-native';
+import { Platform } from 'react-native';
+import { Path, Svg } from 'react-native-svg';
+
+import { colors } from '../../theme/tokens';
+import { useTypography } from '../../theme/typography';
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { Path, Svg } from 'react-native-svg';
-
-import { colors, radii } from '../../theme/tokens';
-import { useTypography } from '../../theme/typography';
+} from '../../tw';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -75,8 +75,8 @@ export function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const passwordRef = useRef<TextInput>(null);
-  const codeRef = useRef<TextInput>(null);
+  const passwordRef = useRef<RNTextInput>(null);
+  const codeRef = useRef<RNTextInput>(null);
 
   // Recovery for the case where Clerk has a session resource on the device
   // but `setActive` never fired (e.g. OAuth flow returned a session and then
@@ -237,42 +237,43 @@ export function SignInScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.screen}
+      className="flex-1 bg-page"
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerClassName="grow"
         keyboardShouldPersistTaps="handled"
       >
         {/* Hero */}
-        <View style={styles.hero}>
-          <View style={styles.logoMark}>
+        <View className="flex-1 items-center justify-center gap-3 px-6 py-10">
+          <View className="mb-1">
             <AppLogo />
           </View>
           <Text
-            style={[
-              styles.title,
-              titleFontFamily ? { fontFamily: titleFontFamily } : null,
-            ]}
+            className="text-foreground text-4xl font-bold"
+            style={titleFontFamily ? { fontFamily: titleFontFamily } : null}
           >
             GrandPrixPicks
           </Text>
-          <Text style={styles.subtitle}>
+          <Text className="text-muted text-center text-base leading-[22px]">
             Predict the top 5 finishers every race weekend.
           </Text>
         </View>
 
         {/* Actions */}
-        <View style={styles.actions}>
+        <View className="gap-3 border-t border-border px-6 pt-7 pb-12">
           {screen === 'verify' ? (
             /* ── Verification code ── */
             <>
-              <Text style={styles.verifyHeading}>Check your email</Text>
-              <Text style={styles.verifyBody}>
+              <Text className="text-foreground text-center text-xl font-bold">
+                Check your email
+              </Text>
+              <Text className="text-muted text-center text-sm leading-5">
                 We sent a 6-digit code to {email}. Enter it below to confirm
                 your account.
               </Text>
               <TextInput
                 autoComplete="one-time-code"
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-center text-2xl tracking-[8px]"
                 keyboardType="number-pad"
                 maxLength={6}
                 onChangeText={(v) => {
@@ -284,21 +285,17 @@ export function SignInScreen() {
                 placeholderTextColor={colors.textMuted}
                 ref={codeRef}
                 returnKeyType="done"
-                style={[styles.input, styles.inputCode]}
                 textContentType="oneTimeCode"
                 value={code}
               />
               <Pressable
+                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
+                  code.length < 6 || loading ? 'opacity-40' : ''
+                }`}
                 disabled={code.length < 6 || loading}
                 onPress={() => void handleVerify()}
-                style={[
-                  styles.submitButton,
-                  code.length < 6 || loading
-                    ? styles.submitButtonDisabled
-                    : null,
-                ]}
               >
-                <Text style={styles.submitButtonText}>
+                <Text className="text-foreground text-[15px] font-bold">
                   {loading ? 'Verifying…' : 'Verify email'}
                 </Text>
               </Pressable>
@@ -309,47 +306,49 @@ export function SignInScreen() {
                   setError(null);
                 }}
               >
-                <Text style={styles.switchText}>← Back</Text>
+                <Text className="text-center text-[13px] text-accent-hover">
+                  ← Back
+                </Text>
               </Pressable>
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              {error ? (
+                <Text className="text-center text-[13px] text-error">
+                  {error}
+                </Text>
+              ) : null}
             </>
           ) : (
             /* ── Sign in / Sign up ── */
             <>
               {/* Mode toggle */}
-              <View style={styles.toggle}>
+              <View className="mb-1 flex-row border-b border-border">
                 <Pressable
+                  className={`flex-1 items-center border-b-2 py-2.5 ${
+                    mode === 'signIn' ? 'border-accent' : 'border-transparent'
+                  }`}
                   onPress={() => {
                     switchMode('signIn');
                   }}
-                  style={[
-                    styles.toggleTab,
-                    mode === 'signIn' ? styles.toggleTabActive : null,
-                  ]}
                 >
                   <Text
-                    style={[
-                      styles.toggleText,
-                      mode === 'signIn' ? styles.toggleTextActive : null,
-                    ]}
+                    className={`text-[13px] font-bold ${
+                      mode === 'signIn' ? 'text-foreground' : 'text-muted'
+                    }`}
                   >
                     Sign in
                   </Text>
                 </Pressable>
                 <Pressable
+                  className={`flex-1 items-center border-b-2 py-2.5 ${
+                    mode === 'signUp' ? 'border-accent' : 'border-transparent'
+                  }`}
                   onPress={() => {
                     switchMode('signUp');
                   }}
-                  style={[
-                    styles.toggleTab,
-                    mode === 'signUp' ? styles.toggleTabActive : null,
-                  ]}
                 >
                   <Text
-                    style={[
-                      styles.toggleText,
-                      mode === 'signUp' ? styles.toggleTextActive : null,
-                    ]}
+                    className={`text-[13px] font-bold ${
+                      mode === 'signUp' ? 'text-foreground' : 'text-muted'
+                    }`}
                   >
                     Sign up
                   </Text>
@@ -359,36 +358,37 @@ export function SignInScreen() {
               {/* OAuth */}
               {Platform.OS === 'ios' ? (
                 <Pressable
+                  className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-black active:opacity-80"
                   onPress={() => void handleSSO('oauth_apple')}
-                  style={styles.appleButton}
                 >
                   <AppleLogo />
-                  <Text style={styles.appleButtonText}>
+                  <Text className="text-[17px] font-semibold text-white">
                     {isSignUp ? 'Sign up with Apple' : 'Sign in with Apple'}
                   </Text>
                 </Pressable>
               ) : null}
               <Pressable
+                className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-white active:opacity-80"
                 onPress={() => void handleSSO('oauth_google')}
-                style={styles.googleButton}
               >
                 <GoogleLogo />
-                <Text style={styles.googleButtonText}>
+                <Text className="text-[17px] font-semibold text-[#3c4043]">
                   {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
                 </Text>
               </Pressable>
 
               {/* Divider */}
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>or</Text>
-                <View style={styles.dividerLine} />
+              <View className="my-1 flex-row items-center gap-2.5">
+                <View className="h-px flex-1 bg-border" />
+                <Text className="text-muted text-xs">or</Text>
+                <View className="h-px flex-1 bg-border" />
               </View>
 
               {/* Email / password */}
               <TextInput
                 autoCapitalize="none"
                 autoComplete="email"
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
                 keyboardType="email-address"
                 onChangeText={(v) => {
                   setEmail(v);
@@ -400,11 +400,11 @@ export function SignInScreen() {
                 placeholder="Email"
                 placeholderTextColor={colors.textMuted}
                 returnKeyType="next"
-                style={styles.input}
                 value={email}
               />
               <TextInput
                 autoComplete={isSignUp ? 'new-password' : 'password'}
+                className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
                 onChangeText={(v) => {
                   setPassword(v);
                   setError(null);
@@ -417,20 +417,18 @@ export function SignInScreen() {
                 ref={passwordRef}
                 returnKeyType="go"
                 secureTextEntry
-                style={styles.input}
                 value={password}
               />
               <Pressable
+                className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
+                  !canSubmit ? 'opacity-40' : ''
+                }`}
                 disabled={!canSubmit}
                 onPress={() =>
                   void (isSignUp ? handleSignUp() : handleSignIn())
                 }
-                style={[
-                  styles.submitButton,
-                  !canSubmit ? styles.submitButtonDisabled : null,
-                ]}
               >
-                <Text style={styles.submitButtonText}>
+                <Text className="text-foreground text-[15px] font-bold">
                   {loading
                     ? isSignUp
                       ? 'Creating account…'
@@ -441,25 +439,31 @@ export function SignInScreen() {
                 </Text>
               </Pressable>
 
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              {error ? (
+                <Text className="text-center text-[13px] text-error">
+                  {error}
+                </Text>
+              ) : null}
 
               {/* Terms & Privacy */}
-              <Text style={styles.legal}>By continuing you agree to our</Text>
-              <Text style={styles.legal}>
+              <Text className="text-muted -mb-2 text-center text-xs">
+                By continuing you agree to our
+              </Text>
+              <Text className="text-muted text-center text-xs">
                 <Text
+                  className="text-xs text-accent-hover underline"
                   onPress={() =>
                     void WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)
                   }
-                  style={styles.legalLink}
                 >
                   Terms of Service
                 </Text>
                 {' and '}
                 <Text
+                  className="text-xs text-accent-hover underline"
                   onPress={() =>
                     void WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)
                   }
-                  style={styles.legalLink}
                 >
                   Privacy Policy
                 </Text>
@@ -523,175 +527,3 @@ function GoogleLogo() {
     </Svg>
   );
 }
-
-const styles = StyleSheet.create({
-  actions: {
-    borderTopColor: colors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-    paddingBottom: 48,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-  },
-  appleButton: {
-    alignItems: 'center',
-    backgroundColor: '#000',
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    gap: 12,
-    height: 50,
-    justifyContent: 'center',
-  },
-  appleButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  divider: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    marginVertical: 4,
-  },
-  dividerLine: {
-    backgroundColor: colors.border,
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  googleButton: {
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    gap: 12,
-    height: 50,
-    justifyContent: 'center',
-  },
-  googleButtonText: {
-    color: '#3c4043',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  hero: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    color: colors.text,
-    fontSize: 15,
-    height: 50,
-    paddingHorizontal: 14,
-  },
-  inputCode: {
-    fontSize: 24,
-    letterSpacing: 8,
-    textAlign: 'center',
-  },
-  legal: {
-    color: colors.textMuted,
-    fontSize: 12,
-    textAlign: 'center',
-    marginBottom: -8,
-  },
-  legalLink: {
-    color: colors.accentHover,
-    fontSize: 12,
-    textDecorationLine: 'underline',
-  },
-  logoMark: {
-    marginBottom: 4,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  submitButton: {
-    alignItems: 'center',
-    backgroundColor: colors.buttonAccent,
-    borderRadius: radii.lg,
-    height: 50,
-    justifyContent: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.4,
-  },
-  submitButtonText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 16,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  switchText: {
-    color: colors.accentHover,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  title: {
-    color: colors.text,
-    fontSize: 36,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  toggle: {
-    borderBottomColor: colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  toggleTab: {
-    alignItems: 'center',
-    borderBottomColor: 'transparent',
-    borderBottomWidth: 2,
-    flex: 1,
-    paddingVertical: 10,
-  },
-  toggleTabActive: {
-    borderBottomColor: colors.accent,
-  },
-  toggleText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  toggleTextActive: {
-    color: colors.text,
-  },
-  verifyBody: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  verifyHeading: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-});

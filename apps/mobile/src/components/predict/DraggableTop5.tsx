@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -10,7 +9,8 @@ import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 
 import type { ConvexDoc } from '../../integrations/convex/api';
 import { getTeamColor } from '../../lib/teamColors';
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
+import { FlatList, Pressable, Text, View } from '../../tw';
 import { Numeral } from '../ui/Numeral';
 
 type Driver = ConvexDoc<'drivers'>;
@@ -50,7 +50,11 @@ function PickedRow({
   const teamColor = getTeamColor(item.driver.team);
 
   return (
-    <View style={[styles.slot, isActive ? styles.slotActive : null]}>
+    <View
+      className={`flex-row items-center gap-2.5 py-1.5 ${
+        isActive ? 'rounded-md bg-surface-elevated px-1.5' : ''
+      }`}
+    >
       <Pressable
         delayLongPress={120}
         disabled={disabled}
@@ -58,13 +62,18 @@ function PickedRow({
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           drag();
         }}
-        style={[styles.slotBadge, { backgroundColor: teamColor }]}
+        className="h-11 w-[52px] items-center justify-center rounded-md"
+        style={{ backgroundColor: teamColor }}
       >
-        <View style={styles.slotBadgePill}>
+        <View className="items-center gap-px rounded-md bg-black/35 px-1.5 py-[3px]">
           {item.driver.number != null ? (
-            <Text style={styles.slotBadgeNumber}>{item.driver.number}</Text>
+            <Text className="text-sm leading-4 font-extrabold text-white">
+              {item.driver.number}
+            </Text>
           ) : null}
-          <Text style={styles.slotBadgeCode}>{item.driver.code}</Text>
+          <Text className="text-[11px] font-extrabold text-white">
+            {item.driver.code}
+          </Text>
         </View>
       </Pressable>
       <Pressable
@@ -74,23 +83,28 @@ function PickedRow({
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           drag();
         }}
-        style={styles.slotBody}
+        className="flex-1 gap-0.5"
       >
-        <Text numberOfLines={1} style={styles.slotName}>
+        <Text
+          className="text-foreground text-[13px] font-bold"
+          numberOfLines={1}
+        >
           {item.driver.displayName}
         </Text>
         {item.driver.team ? (
-          <Text numberOfLines={1} style={styles.slotTeam}>
+          <Text className="text-muted text-[11px]" numberOfLines={1}>
             {item.driver.team}
           </Text>
         ) : null}
       </Pressable>
       {!disabled ? (
-        <View style={styles.slotActions}>
+        <View className="flex-row gap-1">
           <Pressable
             disabled={!canMoveUp}
             onPress={onMoveUp}
-            style={[styles.iconBtn, !canMoveUp ? styles.iconBtnDisabled : null]}
+            className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
+              canMoveUp ? '' : 'opacity-30'
+            }`}
           >
             <Ionicons
               color={canMoveUp ? colors.text : colors.textMuted}
@@ -101,10 +115,9 @@ function PickedRow({
           <Pressable
             disabled={!canMoveDown}
             onPress={onMoveDown}
-            style={[
-              styles.iconBtn,
-              !canMoveDown ? styles.iconBtnDisabled : null,
-            ]}
+            className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
+              canMoveDown ? '' : 'opacity-30'
+            }`}
           >
             <Ionicons
               color={canMoveDown ? colors.text : colors.textMuted}
@@ -112,7 +125,10 @@ function PickedRow({
               size={14}
             />
           </Pressable>
-          <Pressable onPress={onRemove} style={styles.iconBtn}>
+          <Pressable
+            className="h-7 w-7 items-center justify-center rounded-lg bg-surface-muted"
+            onPress={onRemove}
+          >
             <Ionicons color={colors.textMuted} name="close" size={14} />
           </Pressable>
         </View>
@@ -123,16 +139,14 @@ function PickedRow({
 
 function EmptySlot({ position }: { position: number }) {
   return (
-    <View style={[styles.slot, styles.slotEmpty]}>
-      <View
-        style={[styles.slotBadge, { backgroundColor: colors.surfaceMuted }]}
-      >
-        <Numeral style={styles.slotEmptyPosition} tone="muted" variant="large">
+    <View className="flex-row items-center gap-2.5 py-1.5 opacity-55">
+      <View className="h-11 w-[52px] items-center justify-center rounded-md bg-surface-muted">
+        <Numeral style={{ fontSize: 14 }} tone="muted" variant="large">
           {`P${position}`}
         </Numeral>
       </View>
-      <View style={styles.slotBody}>
-        <Text style={styles.slotPlaceholder}>Pick #{position}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text className="text-muted text-[13px]">Pick #{position}</Text>
       </View>
     </View>
   );
@@ -156,23 +170,25 @@ function PoolDriverCard({
 
   return (
     <Pressable
+      className={`m-[3px] h-14 flex-1 items-center justify-center rounded-md ${
+        inPicks ? 'opacity-40' : isDisabled ? 'opacity-35' : ''
+      }`}
       disabled={isDisabled && !inPicks}
       onPress={onPress}
-      style={[
-        styles.poolCard,
-        { backgroundColor: teamColor },
-        inPicks ? styles.poolCardSelected : null,
-        isDisabled && !inPicks ? styles.poolCardDisabled : null,
-      ]}
+      style={{ backgroundColor: teamColor }}
     >
-      <View style={styles.poolPill}>
+      <View className="flex-row items-center gap-1 rounded-md bg-black/35 px-2 py-1">
         {driver.number != null ? (
-          <Text style={styles.poolNumber}>{driver.number}</Text>
+          <Text className="text-[11px] font-bold text-white opacity-85">
+            {driver.number}
+          </Text>
         ) : null}
-        <Text style={styles.poolCode}>{driver.code}</Text>
+        <Text className="text-[13px] font-extrabold text-white">
+          {driver.code}
+        </Text>
       </View>
       {inPicks ? (
-        <View style={styles.poolCheck}>
+        <View className="absolute top-1 right-1 h-4 w-4 items-center justify-center rounded-full bg-black/55">
           <Ionicons color="#fff" name="checkmark" size={10} />
         </View>
       ) : null}
@@ -269,12 +285,12 @@ export function DraggableTop5({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.slots}>
+    <View className="gap-3.5">
+      <View className="gap-1">
         {pickedItems.length > 0 ? (
           <DraggableFlatList
             activationDistance={8}
-            containerStyle={styles.dragList}
+            containerStyle={{ flexGrow: 0 }}
             data={pickedItems}
             keyExtractor={(item) => item.driverId}
             onDragEnd={({ data }) => {
@@ -291,14 +307,14 @@ export function DraggableTop5({
       </View>
 
       {!disabled ? (
-        <View style={styles.pool}>
-          <Text style={styles.poolHeader}>
+        <View className="gap-2.5">
+          <Text className="text-muted text-xs">
             {poolFull
               ? 'Tap a pick to remove · long-press a row to reorder'
               : `${MAX_PICKS - picks.length} remaining. Tap to add`}
           </Text>
           <FlatList
-            columnWrapperStyle={styles.poolRow}
+            columnWrapperClassName="gap-0"
             data={sortedDrivers}
             keyExtractor={(d) => d._id}
             numColumns={4}
@@ -315,13 +331,13 @@ export function DraggableTop5({
           />
         </View>
       ) : (
-        <View style={styles.lockedNote}>
+        <View className="flex-row items-center gap-1.5 py-1">
           <Ionicons
             color={colors.textMuted}
             name="lock-closed-outline"
             size={14}
           />
-          <Text style={styles.lockedNoteText}>
+          <Text className="text-muted text-xs">
             Session locked. Picks are read-only.
           </Text>
         </View>
@@ -329,158 +345,3 @@ export function DraggableTop5({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 14,
-  },
-  dragList: {
-    flexGrow: 0,
-  },
-  iconBtn: {
-    alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
-    height: 28,
-    justifyContent: 'center',
-    width: 28,
-  },
-  iconBtnDisabled: {
-    opacity: 0.3,
-  },
-  lockedNote: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 4,
-  },
-  lockedNoteText: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  pool: {
-    gap: 10,
-  },
-  poolCard: {
-    alignItems: 'center',
-    borderRadius: radii.md,
-    flex: 1,
-    height: 56,
-    justifyContent: 'center',
-    margin: 3,
-  },
-  poolCardDisabled: {
-    opacity: 0.35,
-  },
-  poolCardSelected: {
-    opacity: 0.4,
-  },
-  poolCheck: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 999,
-    height: 16,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 4,
-    top: 4,
-    width: 16,
-  },
-  poolCode: {
-    color: '#fff',
-    fontFamily: undefined,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-  },
-  poolHeader: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  poolNumber: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-    opacity: 0.85,
-  },
-  poolPill: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: 6,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  poolRow: {
-    gap: 0,
-  },
-  slot: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 6,
-  },
-  slotActions: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  slotActive: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radii.md,
-    paddingHorizontal: 6,
-  },
-  slotBadge: {
-    alignItems: 'center',
-    borderRadius: radii.md,
-    height: 44,
-    justifyContent: 'center',
-    width: 52,
-  },
-  slotBadgeCode: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  slotBadgeNumber: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '800',
-    lineHeight: 16,
-  },
-  slotBadgePill: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    borderRadius: 6,
-    gap: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-  },
-  slotBody: {
-    flex: 1,
-    gap: 2,
-  },
-  slotEmpty: {
-    opacity: 0.55,
-  },
-  slotEmptyPosition: {
-    fontSize: 14,
-  },
-  slotName: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  slotPlaceholder: {
-    color: colors.textMuted,
-    fontSize: 13,
-  },
-  slots: {
-    gap: 4,
-  },
-  slotTeam: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-});

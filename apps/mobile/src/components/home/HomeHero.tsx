@@ -1,19 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
-import { colors, radii } from '../../theme/tokens';
+import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
+import { Image, Pressable, Text, View } from '../../tw';
 import type { RaceWeekend } from '../../types';
 import type {
   FeedStackParamList,
@@ -92,15 +86,18 @@ export function HomeHero() {
   const totalRounds = races.length;
 
   return (
-    <View style={[styles.content, isNarrow ? styles.contentNarrow : null]}>
-      <View style={styles.identity}>
+    <View
+      className={`items-center ${isNarrow ? 'mb-5 gap-3' : 'mb-6 gap-3.5'}`}
+    >
+      <View className="flex-col items-center justify-center gap-2.5">
         {countryCode ? (
-          <View style={styles.flagBadge}>
+          <View className="h-[30px] w-11 overflow-hidden rounded-md border border-white/20">
             <Image
               source={{
                 uri: `https://flagcdn.com/w160/${countryCode}.png`,
               }}
-              style={styles.flagImage}
+              className="h-full w-full"
+              resizeMode="cover"
             />
           </View>
         ) : null}
@@ -108,167 +105,66 @@ export function HomeHero() {
           adjustsFontSizeToFit
           minimumFontScale={0.75}
           numberOfLines={2}
-          style={[
-            styles.raceName,
-            isNarrow ? styles.raceNameNarrow : null,
-            titleFontFamily ? { fontFamily: titleFontFamily } : null,
-          ]}
+          className={`text-foreground text-center font-bold ${
+            isNarrow ? 'text-[21px]' : 'text-2xl'
+          }`}
+          style={titleFontFamily ? { fontFamily: titleFontFamily } : undefined}
         >
           {race.name}
         </Text>
       </View>
 
-      <View style={styles.metaRow}>
-        <Text style={styles.metaLabel}>ROUND</Text>
-        <Numeral style={styles.metaNumeral} tone="muted" variant="small">
+      <View className="flex-row flex-wrap items-center justify-center gap-1">
+        <Text className="text-muted text-[10px] font-bold">ROUND</Text>
+        <Numeral tone="muted" variant="small">
           {round}
         </Numeral>
         {totalRounds > 0 ? (
-          <Text style={styles.metaLabel}>{` / ${totalRounds}`}</Text>
+          <Text className="text-muted text-[10px] font-bold">
+            {` / ${totalRounds}`}
+          </Text>
         ) : null}
         {race.hasSprint ? (
           <>
-            <Text style={styles.metaDivider}>·</Text>
-            <Text style={styles.metaAccent}>SPRINT WEEKEND</Text>
+            <Text className="text-[10px] text-border-strong">·</Text>
+            <Text className="text-[10px] font-bold text-accent-hover">
+              SPRINT WEEKEND
+            </Text>
           </>
         ) : null}
       </View>
 
       {nextSession ? (
         <>
-          <View style={styles.countdownWrapper}>
+          <View className="mt-0.5 self-stretch">
             <BigCountdown targetAt={nextSession.startAt} />
           </View>
-          <Text style={styles.countdownCopy}>
+          <Text className="text-muted text-center text-[13px]">
             until{' '}
-            <Text style={styles.countdownTarget}>{nextSession.label}</Text>
+            <Text className="text-foreground font-bold">
+              {nextSession.label}
+            </Text>
           </Text>
         </>
       ) : (
-        <Text style={styles.weekendOver}>Weekend complete</Text>
+        <Text className="text-center text-sm font-bold text-accent-hover">
+          Weekend complete
+        </Text>
       )}
 
       <Pressable
+        className="mt-1.5 flex-row items-center justify-center gap-2 self-stretch rounded-lg bg-button-accent px-[18px] py-3.5 active:bg-button-accent-hover"
         onPress={() =>
           navigation
             .getParent<NavigationProp<RootTabParamList>>()
             ?.navigate('PicksTab')
         }
-        style={({ pressed }) => [
-          styles.cta,
-          pressed ? styles.ctaPressed : null,
-        ]}
       >
-        <Text style={styles.ctaText}>Make predictions</Text>
+        <Text className="text-foreground text-[15px] font-bold">
+          Make predictions
+        </Text>
         <Ionicons color={colors.accentHover} name="arrow-forward" size={14} />
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 24,
-  },
-  contentNarrow: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  countdownCopy: {
-    color: colors.textMuted,
-    fontSize: 13,
-    textAlign: 'center',
-  },
-  countdownTarget: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  countdownWrapper: {
-    alignSelf: 'stretch',
-    marginTop: 2,
-  },
-  cta: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: colors.buttonAccent,
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    marginTop: 6,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-  },
-  ctaPressed: {
-    backgroundColor: colors.buttonAccentHover,
-  },
-  ctaText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  flagBadge: {
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: radii.md,
-    borderWidth: 1,
-    height: 30,
-    overflow: 'hidden',
-    width: 44,
-  },
-  flagImage: {
-    height: '100%',
-    resizeMode: 'cover',
-    width: '100%',
-  },
-  identity: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    gap: 10,
-    justifyContent: 'center',
-  },
-  metaAccent: {
-    color: colors.accentHover,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-  },
-  metaDivider: {
-    color: colors.borderStrong,
-    fontSize: 10,
-  },
-  metaLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-  },
-  metaNumeral: {
-    color: colors.textMuted,
-  },
-  metaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    justifyContent: 'center',
-  },
-  raceName: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    textAlign: 'center',
-  },
-  raceNameNarrow: {
-    fontSize: 21,
-  },
-  weekendOver: {
-    color: colors.accentHover,
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-});

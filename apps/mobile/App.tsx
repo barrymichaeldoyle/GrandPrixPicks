@@ -1,10 +1,9 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
 
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { AppProviders } from './src/providers/AppProviders';
 import { Sentry, initSentry } from './src/lib/sentry';
-import { colors } from './src/theme/tokens';
+import { View } from './src/tw';
 
 // Initialise Sentry before React mounts so early errors are captured.
 initSentry();
@@ -12,19 +11,12 @@ initSentry();
 function App() {
   return (
     <AppProviders>
-      <View style={styles.app}>
+      <View className="flex-1 bg-page">
         <StatusBar style="light" />
         <AppNavigator />
       </View>
     </AppProviders>
   );
 }
-
-const styles = StyleSheet.create({
-  app: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-});
 
 export default Sentry.wrap(App);

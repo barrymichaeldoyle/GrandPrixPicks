@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { StyleSheet, View } from 'react-native';
 
-import { colors, radii } from '../../theme/tokens';
+import { View } from '../../tw';
 
 type CardProps = {
   children: ReactNode;
@@ -12,23 +11,15 @@ type CardProps = {
 
 export function Card({ children, elevated = false, style }: CardProps) {
   return (
-    <View style={[styles.card, elevated ? styles.elevated : null, style]}>
+    <View
+      className={`gap-3 rounded-xl border p-4 ${
+        elevated
+          ? 'border-border-strong bg-surface-elevated'
+          : 'border-border bg-surface'
+      }`}
+      style={style}
+    >
       {children}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    gap: 12,
-    padding: 16,
-  },
-  elevated: {
-    backgroundColor: colors.surfaceElevated,
-    borderColor: colors.borderStrong,
-  },
-});

@@ -5,7 +5,6 @@ import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RaceDetailHero } from '../components/races/RaceDetailHero';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
@@ -23,7 +22,8 @@ import type {
   RootTabParamList,
 } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import { Pressable, ScrollView, Text, View } from '../tw';
 
 type PicksProps = NativeStackScreenProps<PicksStackParamList, 'RaceDetail'>;
 type FeedProps = NativeStackScreenProps<FeedStackParamList, 'RaceDetail'>;
@@ -35,8 +35,6 @@ const SESSION_ORDER: SessionType[] = [
   'quali',
   'race',
 ];
-const HAIRLINE = StyleSheet.hairlineWidth;
-
 export function RaceDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
   const { races } = useRaceWeekends();
@@ -65,7 +63,7 @@ export function RaceDetailScreen({ route }: Props) {
 
   if (!race) {
     return (
-      <View style={styles.notFound}>
+      <View className="flex-1 bg-page px-4 pt-3">
         <PageHero title="Race not found" />
       </View>
     );
@@ -83,22 +81,24 @@ export function RaceDetailScreen({ route }: Props) {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.content}
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-[22px] px-4 pb-8 pt-3"
       showsVerticalScrollIndicator={false}
-      style={styles.scroll}
     >
       <RaceDetailHero race={race} round={raceIndex + 1} />
 
       {publishedSessions.length > 0 ? (
-        <View style={styles.section}>
-          <Text style={styles.eyebrow}>Results</Text>
-          <View style={styles.resultsList}>
+        <View className="gap-2">
+          <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+            Results
+          </Text>
+          <View className="gap-1">
             {publishedSessions.map((sessionType, i) => {
               const actual = actualTop5BySession?.[sessionType] ?? [];
               const myScore = myScoresBySession?.[sessionType] ?? null;
               return (
                 <View key={`results-${sessionType}`}>
-                  {i > 0 ? <View style={styles.thickDivider} /> : null}
+                  {i > 0 ? <View className="my-3 h-px bg-border" /> : null}
                   <SessionResultsCard
                     actual={actual}
                     pickBreakdown={myScore?.enrichedBreakdown}
@@ -112,8 +112,10 @@ export function RaceDetailScreen({ route }: Props) {
         </View>
       ) : null}
 
-      <View style={styles.section}>
-        <Text style={styles.eyebrow}>Sessions</Text>
+      <View className="gap-2">
+        <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
+          Sessions
+        </Text>
         <View>
           {race.sessions.map((session, i) => {
             const msRemaining = new Date(session.startsAt).getTime() - now;
@@ -125,20 +127,24 @@ export function RaceDetailScreen({ route }: Props) {
 
             return (
               <View key={session.type}>
-                {i > 0 ? <View style={styles.divider} /> : null}
-                <View style={styles.sessionRow}>
-                  <View style={styles.sessionLeft}>
-                    <Text style={styles.sessionType}>
+                {i > 0 ? <View className="h-px bg-border" /> : null}
+                <View className="flex-row items-start justify-between gap-3 py-3">
+                  <View className="flex-1 gap-[3px]">
+                    <Text className="text-foreground text-sm font-bold">
                       {SESSION_LABELS[session.type]}
                     </Text>
-                    <Text style={styles.sessionTime}>{formatted.local}</Text>
-                    <Text style={styles.sessionTrack}>
+                    <Text className="text-muted text-xs">
+                      {formatted.local}
+                    </Text>
+                    <Text className="text-muted text-[11px]">
                       {formatted.track} ({formatted.trackTimeZone})
                     </Text>
                   </View>
-                  <View style={styles.sessionRight}>
+                  <View className="items-end gap-1">
                     {isPublished ? (
-                      <Text style={styles.publishedText}>PUBLISHED</Text>
+                      <Text className="text-[10px] font-extrabold text-accent">
+                        PUBLISHED
+                      </Text>
                     ) : (
                       <>
                         <LockBadge lockStatus={lockStatus} />
@@ -157,103 +163,15 @@ export function RaceDetailScreen({ route }: Props) {
 
       {hasOpenSession ? (
         <Pressable
+          className="flex-row items-center justify-center gap-2 rounded-lg bg-button-accent py-3.5 active:bg-button-accent-hover"
           onPress={() => rootNav.navigate('PicksTab')}
-          style={styles.cta}
         >
           <Ionicons color={colors.text} name="trophy-outline" size={16} />
-          <Text style={styles.ctaText}>Make My Picks</Text>
+          <Text className="text-foreground text-[15px] font-bold">
+            Make My Picks
+          </Text>
         </Pressable>
       ) : null}
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: 22,
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  cta: {
-    alignItems: 'center',
-    backgroundColor: colors.buttonAccent,
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    paddingVertical: 14,
-  },
-  ctaText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-  },
-  eyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    paddingBottom: 2,
-    textTransform: 'uppercase',
-  },
-  notFound: {
-    backgroundColor: colors.page,
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  publishedText: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-  },
-  resultsList: {
-    gap: 4,
-  },
-  scroll: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  section: {
-    gap: 8,
-  },
-  sessionLeft: {
-    flex: 1,
-    gap: 3,
-  },
-  sessionRight: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  sessionRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  sessionTime: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  sessionTrack: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  sessionType: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  thickDivider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginVertical: 12,
-  },
-});

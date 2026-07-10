@@ -1,5 +1,6 @@
-import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+
+import { View } from '../../tw';
 
 /**
  * Podium gradient backdrop — gold/silver/bronze diagonal gradient sitting
@@ -20,7 +21,7 @@ const GRADIENTS: Record<Rank, { id: string; from: string; to: string }> = {
 export function PodiumBackdrop({ rank }: { rank: Rank }) {
   const g = GRADIENTS[rank];
   return (
-    <View pointerEvents="none" style={styles.container}>
+    <View className="absolute inset-0" pointerEvents="none">
       <Svg
         height="100%"
         preserveAspectRatio="none"
@@ -38,13 +39,3 @@ export function PodiumBackdrop({ rank }: { rank: Rank }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-});

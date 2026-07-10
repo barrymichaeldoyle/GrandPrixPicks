@@ -4,15 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useConvex, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { RefreshControl } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -26,7 +18,8 @@ import { api } from '../integrations/convex/api';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import { FlatList, Pressable, ScrollView, Text, View } from '../tw';
 
 type TimeScope = 'weekend' | 'season';
 type GameMode = 'combined' | 'top5' | 'h2h';
@@ -75,7 +68,6 @@ type RaceLite = {
 };
 
 const PAGE_SIZE = 50;
-const HAIRLINE = StyleSheet.hairlineWidth;
 
 const TIME_OPTIONS = [
   { value: 'weekend', label: 'Race Weekend' },
@@ -293,7 +285,7 @@ export function LeaderboardScreen() {
 
   if (!convexEnabled) {
     return (
-      <View style={styles.screen}>
+      <View className="flex-1 bg-page">
         <Header timeScope="season" subtitle="2026 standings" />
         <EmptyState
           body="Configure Convex to see standings."
@@ -362,7 +354,7 @@ export function LeaderboardScreen() {
       : activeSeason === undefined;
 
   const filters = (
-    <View style={styles.filters}>
+    <View className="mb-4 gap-2.5">
       <SegmentedTabs
         onChange={(v) => setTimeChoice(v)}
         options={TIME_OPTIONS}
@@ -370,7 +362,7 @@ export function LeaderboardScreen() {
       />
       {timeScope === 'weekend' && selectableRaces.length > 1 ? (
         <ScrollView
-          contentContainerStyle={styles.raceChips}
+          contentContainerClassName="gap-2"
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -378,19 +370,19 @@ export function LeaderboardScreen() {
             const isSelected = race._id === selectedRaceId;
             return (
               <Pressable
+                className={`flex-row items-center gap-1.5 rounded-full border px-2.5 py-1.5 ${
+                  isSelected
+                    ? 'border-button-accent bg-button-accent'
+                    : 'border-border'
+                }`}
                 key={race._id}
                 onPress={() => setChosenRaceId(race._id)}
-                style={[
-                  styles.raceChip,
-                  isSelected ? styles.raceChipSelected : null,
-                ]}
               >
                 <FlagImage raceSlug={race.slug} />
                 <Text
-                  style={[
-                    styles.raceChipLabel,
-                    isSelected ? styles.raceChipLabelSelected : null,
-                  ]}
+                  className={`text-xs font-bold ${
+                    isSelected ? 'text-foreground' : 'text-muted'
+                  }`}
                 >
                   R{race.round}
                 </Text>
@@ -409,12 +401,14 @@ export function LeaderboardScreen() {
   );
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-page">
       <Header timeScope={timeScope} subtitle={subtitle} />
       <FlatList
-        contentContainerStyle={styles.listContent}
+        contentContainerClassName="px-4 pb-8"
         data={rest}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
+        ItemSeparatorComponent={() => (
+          <View className="ml-[52px] h-px bg-border" />
+        )}
         keyExtractor={(item) => String(item.userId)}
         ListEmptyComponent={
           podium.length === 0 && !isBoardLoading ? (
@@ -430,14 +424,16 @@ export function LeaderboardScreen() {
         }
         ListFooterComponent={
           loadingMore ? (
-            <Text style={styles.loadingMore}>Loading more…</Text>
+            <Text className="text-muted py-4 text-center text-xs">
+              Loading more…
+            </Text>
           ) : null
         }
         ListHeaderComponent={
           <View>
             {filters}
             {podium.length > 0 ? (
-              <View style={styles.podiumWrapper}>
+              <View className="mb-1">
                 {podium.map((entry) => (
                   <PodiumRow
                     entry={entry}
@@ -447,11 +443,15 @@ export function LeaderboardScreen() {
                   />
                 ))}
                 {rest.length > 0 ? (
-                  <Text style={styles.restEyebrow}>The chasing pack</Text>
+                  <Text className="text-muted mt-2.5 mb-1.5 text-[10px] font-extrabold uppercase">
+                    The chasing pack
+                  </Text>
                 ) : null}
                 {viewerOutsideTop && viewerEntry ? (
-                  <View style={styles.viewerStrip}>
-                    <Text style={styles.viewerStripLabel}>Your rank</Text>
+                  <View className="mt-2.5 rounded-lg border border-accent px-2">
+                    <Text className="mt-2 text-[10px] font-extrabold text-accent uppercase">
+                      Your rank
+                    </Text>
                     <BoardRow
                       entry={viewerEntry}
                       mode={mode}
@@ -494,12 +494,14 @@ function Header({
   subtitle: string;
 }) {
   return (
-    <View style={styles.header}>
-      <Text style={styles.eyebrow}>
+    <View className="gap-0.5 px-4 pt-3 pb-3">
+      <Text className="text-[10px] font-extrabold text-accent uppercase">
         {timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
       </Text>
-      <Text style={styles.title}>Leaderboard</Text>
-      <Text style={styles.headerMeta}>{subtitle}</Text>
+      <Text className="text-foreground text-2xl font-extrabold">
+        Leaderboard
+      </Text>
+      <Text className="text-muted text-xs">{subtitle}</Text>
     </View>
   );
 }
@@ -605,12 +607,14 @@ function PodiumRow({
 
   return (
     <Pressable
+      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden rounded-lg px-3 py-3 ${
+        entry.isViewer ? 'bg-accent/10' : ''
+      }`}
       disabled={!onPress}
       onPress={onPress}
-      style={[styles.podiumRow, entry.isViewer ? styles.viewerTint : null]}
     >
       <PodiumBackdrop rank={podiumRank} />
-      <View style={styles.podiumLeft}>
+      <View className="w-[52px] flex-row items-center gap-1.5">
         <Ionicons color={placeColor} name={iconName} size={20} />
         <Numeral style={{ color: placeColor }} variant="large">
           {entry.rank}
@@ -621,18 +625,29 @@ function PodiumRow({
         name={entry.displayName ?? entry.username}
         size="md"
       />
-      <View style={styles.rowText}>
-        <View style={styles.nameRow}>
-          <Text numberOfLines={1} style={styles.name}>
+      <View className="flex-1">
+        <View className="flex-row items-center gap-1.5">
+          <Text
+            className="text-foreground shrink text-sm font-semibold"
+            numberOfLines={1}
+          >
             {entry.displayName ?? entry.username}
           </Text>
-          {entry.isViewer ? <Text style={styles.youTag}>YOU</Text> : null}
+          {entry.isViewer ? (
+            <Text className="text-foreground overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold">
+              YOU
+            </Text>
+          ) : null}
         </View>
-        {subline ? <Text style={styles.subline}>{subline}</Text> : null}
+        {subline ? (
+          <Text className="text-muted mt-px text-[11px]">{subline}</Text>
+        ) : null}
       </View>
-      <View style={styles.pointsCol}>
+      <View className="min-w-11 items-end">
         <Numeral variant="large">{entry.points}</Numeral>
-        <Text style={styles.pointsLabel}>pts</Text>
+        <Text className="text-muted text-[10px] font-semibold uppercase">
+          pts
+        </Text>
       </View>
     </Pressable>
   );
@@ -650,12 +665,14 @@ function BoardRow({
   const subline = modeSubline(entry, mode);
   return (
     <Pressable
+      className={`flex-row items-center gap-2.5 px-1 py-2.5 ${
+        entry.isViewer ? 'bg-accent/10' : ''
+      }`}
       disabled={!onPress}
       onPress={onPress}
-      style={[styles.row, entry.isViewer ? styles.viewerTint : null]}
     >
       <Numeral
-        style={styles.rank}
+        style={{ textAlign: 'center', width: 28 }}
         tone={entry.isViewer ? 'accent' : 'muted'}
         variant="small"
       >
@@ -666,190 +683,30 @@ function BoardRow({
         name={entry.displayName ?? entry.username}
         size="sm"
       />
-      <View style={styles.rowText}>
-        <View style={styles.nameRow}>
-          <Text numberOfLines={1} style={styles.name}>
+      <View className="flex-1">
+        <View className="flex-row items-center gap-1.5">
+          <Text
+            className="text-foreground shrink text-sm font-semibold"
+            numberOfLines={1}
+          >
             {entry.displayName ?? entry.username}
           </Text>
-          {entry.isViewer ? <Text style={styles.youTag}>YOU</Text> : null}
+          {entry.isViewer ? (
+            <Text className="text-foreground overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold">
+              YOU
+            </Text>
+          ) : null}
         </View>
-        {subline ? <Text style={styles.subline}>{subline}</Text> : null}
+        {subline ? (
+          <Text className="text-muted mt-px text-[11px]">{subline}</Text>
+        ) : null}
       </View>
-      <View style={styles.pointsCol}>
+      <View className="min-w-11 items-end">
         <Numeral variant="small">{entry.points}</Numeral>
-        <Text style={styles.pointsLabel}>pts</Text>
+        <Text className="text-muted text-[10px] font-semibold uppercase">
+          pts
+        </Text>
       </View>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 52,
-  },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  filters: {
-    gap: 10,
-    marginBottom: 16,
-  },
-  header: {
-    gap: 2,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  headerMeta: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  listContent: {
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-  },
-  loadingMore: {
-    color: colors.textMuted,
-    fontSize: 12,
-    paddingVertical: 16,
-    textAlign: 'center',
-  },
-  name: {
-    color: colors.text,
-    flexShrink: 1,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  nameRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  podiumLeft: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-    width: 52,
-  },
-  podiumRow: {
-    alignItems: 'center',
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 8,
-    overflow: 'hidden',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  podiumWrapper: {
-    marginBottom: 4,
-  },
-  pointsCol: {
-    alignItems: 'flex-end',
-    minWidth: 44,
-  },
-  pointsLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  raceChip: {
-    alignItems: 'center',
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  raceChipLabel: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  raceChipLabelSelected: {
-    color: colors.text,
-  },
-  raceChipSelected: {
-    backgroundColor: colors.buttonAccent,
-    borderColor: colors.buttonAccent,
-  },
-  raceChips: {
-    gap: 8,
-  },
-  rank: {
-    textAlign: 'center',
-    width: 28,
-  },
-  restEyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    marginBottom: 6,
-    marginTop: 10,
-    textTransform: 'uppercase',
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 4,
-    paddingVertical: 10,
-  },
-  rowText: {
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  subline: {
-    color: colors.textMuted,
-    fontSize: 11,
-    marginTop: 1,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  viewerStrip: {
-    borderColor: colors.accent,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    marginTop: 10,
-    paddingHorizontal: 8,
-  },
-  viewerStripLabel: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    marginTop: 8,
-    textTransform: 'uppercase',
-  },
-  viewerTint: {
-    backgroundColor: 'rgba(20, 184, 166, 0.08)',
-  },
-  youTag: {
-    backgroundColor: colors.accent,
-    borderRadius: 999,
-    color: colors.text,
-    fontSize: 9,
-    fontWeight: '800',
-    overflow: 'hidden',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-});

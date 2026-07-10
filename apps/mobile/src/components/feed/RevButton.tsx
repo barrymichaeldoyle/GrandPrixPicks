@@ -1,9 +1,8 @@
 import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { api, type ConvexId } from '../../integrations/convex/api';
-import { colors, radii } from '../../theme/tokens';
+import { Pressable, Text } from '../../tw';
 
 type RevButtonProps = {
   feedEventId: ConvexId<'feedEvents'>;
@@ -32,36 +31,19 @@ export function RevButton({
   return (
     <Pressable
       onPress={handlePress}
-      style={[styles.button, viewerHasReved ? styles.active : null]}
+      className={`flex-row items-center gap-1 rounded-full border px-3 py-1.5 ${
+        viewerHasReved
+          ? 'border-accent bg-accent-muted'
+          : 'border-border active:bg-surface-elevated'
+      }`}
     >
-      <Text style={[styles.label, viewerHasReved ? styles.activeLabel : null]}>
+      <Text
+        className={`text-xs font-semibold ${
+          viewerHasReved ? 'text-accent' : 'text-muted'
+        }`}
+      >
         ⚡ {revCount > 0 ? revCount : ''}
       </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  active: {
-    backgroundColor: colors.accentMuted,
-    borderColor: colors.accent,
-  },
-  activeLabel: {
-    color: colors.accent,
-  },
-  button: {
-    alignItems: 'center',
-    borderColor: colors.border,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  label: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-});

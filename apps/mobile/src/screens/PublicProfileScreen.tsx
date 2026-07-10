@@ -1,20 +1,17 @@
 import { useMutation, useQuery } from 'convex/react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../components/ui/Avatar';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
-import { colors, radii } from '../theme/tokens';
+import { Pressable, ScrollView, Text, View } from '../tw';
 
 // Lightweight player view reachable from the Feed and Leaderboard stacks.
 // Only needs the username param, so it is typed independently of any stack.
 type Props = {
   route: { params: { username: string } };
 };
-
-const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function PublicProfileScreen({ route }: Props) {
   const { username } = route.params;
@@ -42,8 +39,8 @@ export function PublicProfileScreen({ route }: Props) {
   }
   if (profile === null) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.errorText}>User not found.</Text>
+      <View className="flex-1 bg-page px-4">
+        <Text className="p-4 text-sm text-error">User not found.</Text>
       </View>
     );
   }
@@ -63,50 +60,59 @@ export function PublicProfileScreen({ route }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-      <View style={styles.hero}>
+    <ScrollView
+      className="flex-1 bg-page px-4"
+      contentContainerClassName="gap-[22px] pb-10 pt-4"
+    >
+      <View className="flex-row items-center gap-4">
         <Avatar
           imageUrl={profile.avatarUrl ?? undefined}
           name={displayName}
           size="lg"
         />
-        <View style={styles.heroText}>
-          <Text style={styles.displayName}>{displayName}</Text>
+        <View className="flex-1 gap-1">
+          <Text className="text-foreground text-[22px] font-extrabold">
+            {displayName}
+          </Text>
           {profile.username ? (
-            <Text style={styles.username}>@{profile.username}</Text>
+            <Text className="text-muted text-sm">@{profile.username}</Text>
           ) : null}
         </View>
       </View>
 
-      <View style={styles.followRow}>
-        <View style={styles.followStat}>
+      <View className="flex-row items-center justify-around">
+        <View className="flex-1 items-center py-1">
           <Numeral variant="large">
             {followCounts?.followerCount ?? '—'}
           </Numeral>
-          <Text style={styles.followLabel}>Followers</Text>
+          <Text className="text-muted mt-0.5 text-[11px] font-semibold uppercase">
+            Followers
+          </Text>
         </View>
-        <View style={styles.vDivider} />
-        <View style={styles.followStat}>
+        <View className="h-7 w-px bg-border" />
+        <View className="flex-1 items-center py-1">
           <Numeral variant="large">
             {followCounts?.followingCount ?? '—'}
           </Numeral>
-          <Text style={styles.followLabel}>Following</Text>
+          <Text className="text-muted mt-0.5 text-[11px] font-semibold uppercase">
+            Following
+          </Text>
         </View>
       </View>
 
       {!isOwner && isFollowing !== undefined ? (
         <Pressable
+          className={`items-center rounded-lg border py-2.5 ${
+            isFollowing
+              ? 'border-button-accent bg-button-accent'
+              : 'border-accent'
+          }`}
           onPress={() => void handleFollowToggle()}
-          style={[
-            styles.followButton,
-            isFollowing ? styles.followButtonActive : null,
-          ]}
         >
           <Text
-            style={[
-              styles.followButtonText,
-              isFollowing ? styles.followButtonTextActive : null,
-            ]}
+            className={`text-sm font-bold ${
+              isFollowing ? 'text-foreground' : 'text-accent'
+            }`}
           >
             {isFollowing ? 'Following' : 'Follow'}
           </Text>
@@ -114,18 +120,20 @@ export function PublicProfileScreen({ route }: Props) {
       ) : null}
 
       {stats ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionEyebrow}>Season stats</Text>
-          <View style={styles.statRow}>
+        <View className="gap-2.5">
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
+            Season stats
+          </Text>
+          <View className="flex-row items-center">
             <StatCell label="Season pts" value={stats.totalPoints} />
-            <View style={styles.vDivider} />
+            <View className="h-7 w-px bg-border" />
             <StatCell
               label="Global rank"
               value={stats.seasonRank ? `#${stats.seasonRank}` : '—'}
             />
-            <View style={styles.vDivider} />
+            <View className="h-7 w-px bg-border" />
             <StatCell label="Weekends" value={stats.weekendCount} />
-            <View style={styles.vDivider} />
+            <View className="h-7 w-px bg-border" />
             <StatCell
               label="H2H rank"
               value={stats.h2hSeasonRank ? `#${stats.h2hSeasonRank}` : '—'}
@@ -139,116 +147,11 @@ export function PublicProfileScreen({ route }: Props) {
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
-    <View style={styles.statCell}>
+    <View className="flex-1 items-center gap-0.5 py-1">
       <Numeral variant="large">{value}</Numeral>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text className="text-muted text-center text-[10px] font-bold uppercase">
+        {label}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: 22,
-    paddingBottom: 40,
-    paddingTop: 16,
-  },
-  displayName: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  errorText: {
-    color: colors.error,
-    fontSize: 14,
-    padding: 16,
-  },
-  followButton: {
-    alignItems: 'center',
-    borderColor: colors.accent,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    paddingVertical: 10,
-  },
-  followButtonActive: {
-    backgroundColor: colors.buttonAccent,
-    borderColor: colors.buttonAccent,
-  },
-  followButtonText: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  followButtonTextActive: {
-    color: colors.text,
-  },
-  followLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.4,
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
-  followRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  followStat: {
-    alignItems: 'center',
-    flex: 1,
-    paddingVertical: 4,
-  },
-  hero: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 16,
-  },
-  heroText: {
-    flex: 1,
-    gap: 4,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionEyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  statCell: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 2,
-    paddingVertical: 4,
-  },
-  statLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-  },
-  statRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  username: {
-    color: colors.textMuted,
-    fontSize: 14,
-  },
-  vDivider: {
-    backgroundColor: colors.border,
-    height: 28,
-    width: HAIRLINE,
-  },
-});

@@ -25,7 +25,8 @@
       "entry": ["App.tsx"],
       "project": ["**/*.{ts,tsx,js,cjs}"],
       "ignoreFiles": ["babel.config.cjs"],
-      "ignoreDependencies": ["expo-updates"]
+      "ignoreDependencies": ["expo-updates", "tailwind-merge", "clsx"],
+      "ignore": ["src/tw/index.tsx"]
     },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"],

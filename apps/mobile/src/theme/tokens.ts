@@ -1,1 +1,1 @@
-export { colors, radii } from '@grandprixpicks/shared/tokens';
+export { colors } from '@grandprixpicks/shared/tokens';

@@ -1,6 +1,4 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-
-import { colors } from '../../theme/tokens';
+import { Image, Text, View } from '../../tw';
 
 const SIZES = {
   sm: 24,
@@ -29,8 +27,9 @@ export function Avatar({ imageUrl, name, size = 'md' }: AvatarProps) {
   if (imageUrl) {
     return (
       <Image
+        className="items-center justify-center overflow-hidden"
         source={{ uri: imageUrl }}
-        style={[styles.base, { width: px, height: px, borderRadius: px / 2 }]}
+        style={{ width: px, height: px, borderRadius: px / 2 }}
       />
     );
   }
@@ -39,28 +38,12 @@ export function Avatar({ imageUrl, name, size = 'md' }: AvatarProps) {
 
   return (
     <View
-      style={[
-        styles.base,
-        styles.placeholder,
-        { width: px, height: px, borderRadius: px / 2 },
-      ]}
+      className="items-center justify-center overflow-hidden bg-surface-muted"
+      style={{ width: px, height: px, borderRadius: px / 2 }}
     >
-      <Text style={[styles.initials, { fontSize }]}>{initials}</Text>
+      <Text className="text-foreground font-bold" style={{ fontSize }}>
+        {initials}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  initials: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  placeholder: {
-    backgroundColor: colors.surfaceMuted,
-  },
-});

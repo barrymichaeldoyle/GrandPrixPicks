@@ -8,14 +8,7 @@ import {
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert } from 'react-native';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
@@ -34,7 +27,8 @@ import { loadConnectedDraft, patchConnectedDraft } from '../lib/picksDrafts';
 import { useNow } from '../lib/useNow';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
-import { colors, radii } from '../theme/tokens';
+import { colors } from '../theme/tokens';
+import { Pressable, ScrollView, Text, View } from '../tw';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
@@ -156,8 +150,8 @@ function PredictForRace({ race }: { race: RaceDoc }) {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.content}
-      style={styles.screen}
+      className="flex-1 bg-page"
+      contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"
       showsVerticalScrollIndicator={false}
     >
       <PageHeader race={race} selectedSession={selectedSession} now={now} />
@@ -258,7 +252,7 @@ function PredictForRace({ race }: { race: RaceDoc }) {
           />
         )
       ) : (
-        <Text style={styles.h2hLockedNote}>
+        <Text className="text-muted pt-1 text-xs italic">
           Save your Top 5 first to unlock H2H picks.
         </Text>
       )}
@@ -300,25 +294,30 @@ function PageHeader({
   })();
 
   return (
-    <View style={styles.header}>
-      <Text style={styles.eyebrow}>
+    <View className="gap-1">
+      <Text className="text-[10px] font-extrabold text-accent uppercase">
         Round {race.round} · {race.season}
       </Text>
-      <View style={styles.headerTitleRow}>
+      <View className="flex-row items-center gap-2.5">
         <FlagImage raceSlug={race.slug} />
-        <Text numberOfLines={2} style={styles.headerTitle}>
+        <Text
+          className="text-foreground flex-1 text-[22px] leading-[26px] font-extrabold"
+          numberOfLines={2}
+        >
           {race.name}
         </Text>
       </View>
       {countdownLabel ? (
-        <Text style={styles.headerMeta}>
+        <Text className="mt-0.5 text-xs">
           <Text
-            style={lockStatus.isLocked ? styles.metaMuted : styles.metaAccent}
+            className={
+              lockStatus.isLocked ? 'text-muted' : 'font-bold text-accent-hover'
+            }
           >
             {countdownLabel}
           </Text>
           {lockDisplay ? (
-            <Text style={styles.metaMuted}> · {lockDisplay.local}</Text>
+            <Text className="text-muted"> · {lockDisplay.local}</Text>
           ) : null}
         </Text>
       ) : null}
@@ -361,11 +360,11 @@ function CascadeBanner({
   }
 
   return (
-    <View style={styles.cascadeBlock}>
+    <View className="gap-2">
       {showBanner ? (
-        <View style={styles.cascadeRow}>
+        <View className="flex-row items-start gap-2 py-0.5">
           <Ionicons color={colors.accent} name="flash" size={14} />
-          <Text style={styles.cascadeText}>
+          <Text className="text-muted flex-1 text-xs leading-[17px]">
             First save covers{' '}
             {hasSprint
               ? 'Sprint Quali, Sprint, Quali, and Race'
@@ -375,12 +374,12 @@ function CascadeBanner({
         </View>
       ) : null}
       <Pressable
+        className="flex-row items-center gap-1.5 self-start py-0.5 active:opacity-70"
         hitSlop={6}
         onPress={confirmRandomize}
-        style={styles.randomizeRow}
       >
         <Ionicons color={colors.accent} name="dice" size={13} />
-        <Text style={styles.randomizeText}>
+        <Text className="text-xs font-bold text-accent">
           {mode === 'all' ? 'Randomize all picks' : 'Randomize H2H picks'}
         </Text>
       </Pressable>
@@ -412,7 +411,7 @@ function SessionTabs({
   onSelect: (session: SessionType) => void;
 }) {
   return (
-    <View style={styles.tabRow}>
+    <View className="flex-row gap-1 border-b border-border">
       {sessions.map((session) => {
         const lock = lockState.find((s) => s.session === session);
         const active = session === selected;
@@ -420,13 +419,15 @@ function SessionTabs({
         const hasPicks = predictionsBySession[session] !== null;
         return (
           <Pressable
+            className="flex-1 items-center gap-1.5"
             key={session}
             onPress={() => onSelect(session)}
-            style={styles.tab}
           >
-            <View style={styles.tabLabelRow}>
+            <View className="flex-row items-center gap-1.5 py-1">
               <Text
-                style={[styles.tabLabel, active ? styles.tabLabelActive : null]}
+                className={`text-[13px] font-bold ${
+                  active ? 'text-foreground' : 'text-muted'
+                }`}
               >
                 {SESSION_LABELS_SHORT[session]}
               </Text>
@@ -438,22 +439,17 @@ function SessionTabs({
                 />
               ) : (
                 <View
-                  style={[
-                    styles.tabDot,
-                    {
-                      backgroundColor: hasPicks
-                        ? colors.success
-                        : colors.warning,
-                    },
-                  ]}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{
+                    backgroundColor: hasPicks ? colors.success : colors.warning,
+                  }}
                 />
               )}
             </View>
             <View
-              style={[
-                styles.tabUnderline,
-                active ? styles.tabUnderlineActive : null,
-              ]}
+              className={`h-0.5 w-[60%] ${
+                active ? 'bg-accent' : 'bg-transparent'
+              }`}
             />
           </Pressable>
         );
@@ -474,8 +470,10 @@ function SectionHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionEyebrow}>{title}</Text>
+    <View className="flex-row items-center justify-between pb-0.5">
+      <Text className="text-muted text-[10px] font-extrabold uppercase">
+        {title}
+      </Text>
       {action ?? null}
     </View>
   );
@@ -489,13 +487,19 @@ function EditToggle({
   onToggle: () => void;
 }) {
   return (
-    <Pressable hitSlop={8} onPress={onToggle} style={styles.editToggle}>
+    <Pressable
+      className="flex-row items-center gap-1 active:opacity-70"
+      hitSlop={8}
+      onPress={onToggle}
+    >
       <Ionicons
         color={colors.accent}
         name={editing ? 'close' : 'pencil'}
         size={12}
       />
-      <Text style={styles.editToggleText}>{editing ? 'Cancel' : 'Edit'}</Text>
+      <Text className="text-xs font-bold text-accent">
+        {editing ? 'Cancel' : 'Edit'}
+      </Text>
     </Pressable>
   );
 }
@@ -535,7 +539,7 @@ function Top5Section({
   const showEditToggle = !cascadeMode && !sessionIsLocked;
 
   return (
-    <View style={styles.section}>
+    <View className="gap-2">
       <SectionHeader
         title="Top 5"
         action={
@@ -706,10 +710,10 @@ function Top5Editor({
     : `Save ${SESSION_LABELS_SHORT[selectedSession]} picks`;
 
   return (
-    <View style={styles.editorBody}>
+    <View className="mt-1 gap-3.5">
       {restoredDraftAt ? (
-        <View style={styles.draftRow}>
-          <Text style={styles.draftText}>
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="text-muted flex-1 text-xs">
             Draft from {formatDateTime(restoredDraftAt)}
           </Text>
           <Pressable
@@ -718,13 +722,13 @@ function Top5Editor({
               void handleDiscardDraft();
             }}
           >
-            <Text style={styles.draftDiscard}>Discard</Text>
+            <Text className="text-xs font-bold text-accent">Discard</Text>
           </Pressable>
         </View>
       ) : null}
 
       {lockSoon ? (
-        <Text style={styles.warnText}>
+        <Text className="text-xs text-warning">
           Heads up: locks soon. Save before the session starts.
         </Text>
       ) : null}
@@ -737,13 +741,15 @@ function Top5Editor({
       />
 
       <Pressable
+        className={`items-center rounded-lg bg-button-accent py-3.5 ${
+          !canSave ? 'opacity-40' : ''
+        }`}
         disabled={!canSave || isSubmitting}
         onPress={() => {
           void handleSave();
         }}
-        style={[styles.cta, !canSave ? styles.ctaDisabled : null]}
       >
-        <Text style={styles.ctaText}>
+        <Text className="text-foreground text-sm font-bold">
           {isSubmitting
             ? 'Saving…'
             : sessionIsLocked
@@ -770,7 +776,9 @@ function Top5Readonly({
 
   if (picks.length === 0) {
     return (
-      <Text style={styles.flatEmpty}>No picks saved for this session yet.</Text>
+      <Text className="text-muted py-2 text-xs">
+        No picks saved for this session yet.
+      </Text>
     );
   }
 
@@ -780,20 +788,20 @@ function Top5Readonly({
         const driver = driverById.get(id);
         return (
           <View key={`${id}-${index}`}>
-            {index > 0 ? <View style={styles.divider} /> : null}
-            <View style={styles.flatRow}>
+            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
+            <View className="flex-row items-center gap-2.5 py-2.5">
               <View
-                style={[
-                  styles.accentStripe,
-                  { backgroundColor: getTeamColor(driver?.team) },
-                ]}
+                className="w-[3px] self-stretch rounded-sm"
+                style={{ backgroundColor: getTeamColor(driver?.team) }}
               />
-              <Numeral style={styles.positionLabel} variant="large">
+              <Numeral style={{ minWidth: 30 }} variant="large">
                 {`P${index + 1}`}
               </Numeral>
-              <View style={styles.flatRowBody}>
-                <Text style={styles.driverCode}>{driver?.code ?? '???'}</Text>
-                <Text numberOfLines={1} style={styles.driverName}>
+              <View className="flex-1 gap-0.5">
+                <Text className="text-foreground text-[13px] font-extrabold">
+                  {driver?.code ?? '???'}
+                </Text>
+                <Text className="text-muted text-[11px]" numberOfLines={1}>
                   {driver?.displayName ?? 'Unknown driver'}
                 </Text>
               </View>
@@ -852,7 +860,7 @@ function H2HSection({
   const showEditToggle = !cascadeMode && !sessionIsLocked;
 
   return (
-    <View style={styles.section}>
+    <View className="gap-2">
       <SectionHeader
         title="Head to Head"
         action={
@@ -1013,10 +1021,10 @@ function H2HEditor({
   }
 
   return (
-    <View style={styles.editorBody}>
+    <View className="mt-1 gap-3.5">
       {restoredDraftAt ? (
-        <View style={styles.draftRow}>
-          <Text style={styles.draftText}>
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="text-muted flex-1 text-xs">
             H2H draft from {formatDateTime(restoredDraftAt)}
           </Text>
           <Pressable
@@ -1025,7 +1033,7 @@ function H2HEditor({
               void handleDiscardDraft();
             }}
           >
-            <Text style={styles.draftDiscard}>Discard</Text>
+            <Text className="text-xs font-bold text-accent">Discard</Text>
           </Pressable>
         </View>
       ) : null}
@@ -1042,13 +1050,15 @@ function H2HEditor({
       />
 
       <Pressable
+        className={`items-center rounded-lg bg-button-accent py-3.5 ${
+          !canSave ? 'opacity-40' : ''
+        }`}
         disabled={!canSave || isSubmitting}
         onPress={() => {
           void handleSave();
         }}
-        style={[styles.cta, !canSave ? styles.ctaDisabled : null]}
       >
-        <Text style={styles.ctaText}>
+        <Text className="text-foreground text-sm font-bold">
           {isSubmitting
             ? 'Saving…'
             : sessionIsLocked
@@ -1079,7 +1089,9 @@ function H2HReadonly({
   const hasAny = Object.keys(selections).length > 0;
   if (!hasAny) {
     return (
-      <Text style={styles.flatEmpty}>No H2H picks saved for this session.</Text>
+      <Text className="text-muted py-2 text-xs">
+        No H2H picks saved for this session.
+      </Text>
     );
   }
   return (
@@ -1100,21 +1112,32 @@ function H2HReadonly({
           : null;
         return (
           <View key={matchup._id}>
-            {index > 0 ? <View style={styles.divider} /> : null}
-            <View style={styles.flatRow}>
+            {index > 0 ? <View className="ml-[7px] h-px bg-border" /> : null}
+            <View className="flex-row items-center gap-2.5 py-2.5">
               <View
-                style={[styles.accentStripe, { backgroundColor: teamColor }]}
+                className="w-[3px] self-stretch rounded-sm"
+                style={{ backgroundColor: teamColor }}
               />
-              <Text style={styles.h2hTeam}>{matchup.team}</Text>
-              <View style={styles.h2hPick}>
+              <Text className="text-foreground flex-1 text-xs font-semibold">
+                {matchup.team}
+              </Text>
+              <View className="flex-row items-center gap-1.5">
                 {winner ? (
                   <>
-                    <Text style={styles.h2hWinner}>{winner.code}</Text>
-                    <Text style={styles.h2hOver}>over</Text>
-                    <Text style={styles.h2hLoser}>{loser?.code ?? '—'}</Text>
+                    <Text className="text-foreground text-[13px] font-extrabold">
+                      {winner.code}
+                    </Text>
+                    <Text className="text-muted text-[10px] uppercase">
+                      over
+                    </Text>
+                    <Text className="text-muted text-xs font-bold">
+                      {loser?.code ?? '—'}
+                    </Text>
                   </>
                 ) : (
-                  <Text style={styles.h2hMissing}>Not picked</Text>
+                  <Text className="text-[11px] font-semibold text-warning">
+                    Not picked
+                  </Text>
                 )}
               </View>
               {sessionLocked ? (
@@ -1138,7 +1161,7 @@ function H2HReadonly({
 
 function NoUpcomingRaceState() {
   return (
-    <View style={styles.fallbackWrap}>
+    <View className="flex-1 bg-page py-12">
       <EmptyState
         body="There's no race open for predictions right now. Check back when the next round's picks unlock."
         icon="flag-outline"
@@ -1150,7 +1173,7 @@ function NoUpcomingRaceState() {
 
 function NotAvailableState() {
   return (
-    <View style={styles.fallbackWrap}>
+    <View className="flex-1 bg-page py-12">
       <EmptyState
         body="Predictions need a live connection to the league. Please reconnect to make picks."
         icon="cloud-offline-outline"
@@ -1159,282 +1182,3 @@ function NotAvailableState() {
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────
-
-const HAIRLINE = StyleSheet.hairlineWidth;
-
-const styles = StyleSheet.create({
-  accentStripe: {
-    alignSelf: 'stretch',
-    borderRadius: 2,
-    width: 3,
-  },
-  cascadeBlock: {
-    gap: 8,
-  },
-  cascadeRow: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 2,
-  },
-  cascadeText: {
-    color: colors.textMuted,
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  randomizeRow: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 2,
-  },
-  randomizeText: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  content: {
-    gap: 18,
-    paddingBottom: 40,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  cta: {
-    alignItems: 'center',
-    backgroundColor: colors.buttonAccent,
-    borderRadius: radii.lg,
-    paddingVertical: 14,
-  },
-  ctaDisabled: {
-    opacity: 0.4,
-  },
-  ctaText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 7, // align past the accent stripe
-  },
-  draftDiscard: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  draftRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  draftText: {
-    color: colors.textMuted,
-    flex: 1,
-    fontSize: 12,
-  },
-  driverCode: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  driverName: {
-    color: colors.textMuted,
-    fontSize: 11,
-  },
-  editorBody: {
-    gap: 14,
-    marginTop: 4,
-  },
-  editToggle: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  editToggleText: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  fallbackWrap: {
-    backgroundColor: colors.page,
-    flex: 1,
-    paddingVertical: 48,
-  },
-  flatEmpty: {
-    color: colors.textMuted,
-    fontSize: 12,
-    paddingVertical: 8,
-  },
-  flatRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 10,
-  },
-  flatRowBody: {
-    flex: 1,
-    gap: 2,
-  },
-  h2hLockedNote: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontStyle: 'italic',
-    paddingTop: 4,
-  },
-  h2hLoser: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  h2hMissing: {
-    color: colors.warning,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  h2hOver: {
-    color: colors.textMuted,
-    fontSize: 10,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  h2hPick: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-  },
-  h2hTeam: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  h2hWinner: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  header: {
-    gap: 4,
-  },
-  headerMeta: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  headerTitle: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    lineHeight: 26,
-  },
-  headerTitleRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  metaAccent: {
-    color: colors.accentHover,
-    fontWeight: '700',
-  },
-  metaMuted: {
-    color: colors.textMuted,
-  },
-  positionLabel: {
-    minWidth: 30,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  section: {
-    gap: 8,
-  },
-  sectionEyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: 2,
-  },
-  statusError: {
-    color: colors.error,
-  },
-  statusSuccess: {
-    color: colors.success,
-  },
-  statusText: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  tab: {
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  tabDot: {
-    borderRadius: 999,
-    height: 6,
-    width: 6,
-  },
-  tabLabel: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
-  tabLabelActive: {
-    color: colors.text,
-  },
-  tabLabelRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 4,
-  },
-  tabRow: {
-    borderBottomColor: colors.border,
-    borderBottomWidth: HAIRLINE,
-    flexDirection: 'row',
-    gap: 4,
-  },
-  tabUnderline: {
-    backgroundColor: 'transparent',
-    height: 2,
-    width: '60%',
-  },
-  tabUnderlineActive: {
-    backgroundColor: colors.accent,
-  },
-  warnText: {
-    color: colors.warning,
-    fontSize: 12,
-  },
-});

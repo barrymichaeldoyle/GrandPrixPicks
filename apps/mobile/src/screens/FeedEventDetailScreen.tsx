@@ -1,6 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import type { FeedEvent } from '../components/feed/FeedEventCard';
 import { FeedEventCard } from '../components/feed/FeedEventCard';
@@ -11,7 +10,7 @@ import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import type { FeedStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
-import { colors } from '../theme/tokens';
+import { FlatList, Text, View } from '../tw';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'FeedEventDetail'>;
 
@@ -21,8 +20,6 @@ type RevUser = {
   displayName?: string;
   avatarUrl?: string;
 };
-
-const HAIRLINE = StyleSheet.hairlineWidth;
 
 export function FeedEventDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
@@ -39,7 +36,7 @@ export function FeedEventDetailScreen({ route }: Props) {
 
   if (!convexEnabled) {
     return (
-      <View style={styles.screen}>
+      <View className="flex-1 bg-page">
         <EmptyState
           body="Configure Convex to view this prediction."
           icon="cloud-offline-outline"
@@ -55,7 +52,7 @@ export function FeedEventDetailScreen({ route }: Props) {
 
   if (detail === null) {
     return (
-      <View style={styles.screen}>
+      <View className="flex-1 bg-page">
         <EmptyState
           body="This feed item doesn't exist or is no longer available."
           icon="alert-circle-outline"
@@ -70,26 +67,30 @@ export function FeedEventDetailScreen({ route }: Props) {
 
   return (
     <FlatList
-      contentContainerStyle={styles.content}
+      className="flex-1 bg-page"
+      contentContainerClassName="px-4 pb-8 pt-3"
       data={users}
       keyExtractor={(item) => String(item.userId)}
       ListEmptyComponent={
         revUsers === undefined ? null : (
-          <Text style={styles.emptyRevs}>No revs yet.</Text>
+          <Text className="text-muted py-4 text-center text-[13px]">
+            No revs yet.
+          </Text>
         )
       }
       ListHeaderComponent={
-        <View style={styles.headerWrap}>
+        <View className="gap-[18px] pb-2">
           <FeedEventCard event={event} />
-          <Text style={styles.sectionEyebrow}>
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
             Revs{users.length > 0 ? ` · ${users.length}` : ''}
           </Text>
         </View>
       }
-      ItemSeparatorComponent={() => <View style={styles.divider} />}
+      ItemSeparatorComponent={() => (
+        <View className="ml-[52px] h-px bg-border" />
+      )}
       renderItem={({ item }) => <RevUserRow user={item} />}
       showsVerticalScrollIndicator={false}
-      style={styles.screen}
     />
   );
 }
@@ -97,67 +98,14 @@ export function FeedEventDetailScreen({ route }: Props) {
 function RevUserRow({ user }: { user: RevUser }) {
   const name = user.displayName ?? user.username ?? 'Unknown';
   return (
-    <View style={styles.revRow}>
+    <View className="flex-row items-center gap-3 py-2.5">
       <Avatar imageUrl={user.avatarUrl} name={name} size="md" />
-      <View style={styles.revRowText}>
-        <Text style={styles.revName}>{name}</Text>
+      <View className="flex-1 gap-0.5">
+        <Text className="text-foreground text-sm font-bold">{name}</Text>
         {user.username ? (
-          <Text style={styles.revUsername}>@{user.username}</Text>
+          <Text className="text-muted text-xs">@{user.username}</Text>
         ) : null}
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingBottom: 32,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: HAIRLINE,
-    marginLeft: 52,
-  },
-  emptyRevs: {
-    color: colors.textMuted,
-    fontSize: 13,
-    paddingVertical: 16,
-    textAlign: 'center',
-  },
-  headerWrap: {
-    gap: 18,
-    paddingBottom: 8,
-  },
-  revName: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  revRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 10,
-  },
-  revRowText: {
-    flex: 1,
-    gap: 2,
-  },
-  revUsername: {
-    color: colors.textMuted,
-    fontSize: 12,
-  },
-  screen: {
-    backgroundColor: colors.page,
-    flex: 1,
-  },
-  sectionEyebrow: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-});

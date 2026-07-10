@@ -7,6 +7,7 @@ import { Alert, Platform } from 'react-native';
 
 import { TimezonePickerModal } from '../components/settings/TimezonePickerModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
+import { useDeleteAccount } from '../hooks/useDeleteAccount';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { api } from '../integrations/convex/api';
 import { obtainExpoPushToken } from '../lib/pushRegistration';
@@ -77,6 +78,7 @@ const EMAIL_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
 export function SettingsScreen() {
   const { clerkEnabled, convexEnabled } = useMobileConfig();
   const signOut = useSignOutWithCleanup();
+  const deleteAccount = useDeleteAccount();
   const { showToast } = useToast();
 
   const me = useQuery(
@@ -95,6 +97,7 @@ export function SettingsScreen() {
   const [isSavingName, setIsSavingName] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [tzPickerOpen, setTzPickerOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const detectedLocaleHour12 = (() => {
@@ -210,6 +213,38 @@ export function SettingsScreen() {
         onPress: () => void signOut(),
       },
     ]);
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      'Delete account?',
+      'This permanently deletes your account — every pick, score, league membership, and follower. This cannot be undone.',
+      [
+        { style: 'cancel', text: 'Cancel' },
+        {
+          style: 'destructive',
+          text: 'Delete forever',
+          onPress: () => {
+            setIsDeletingAccount(true);
+            deleteAccount()
+              .catch((err: unknown) => {
+                void Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Error,
+                );
+                showToast(
+                  err instanceof Error
+                    ? err.message
+                    : 'Could not delete your account. Please try again.',
+                  'error',
+                );
+              })
+              .finally(() => {
+                setIsDeletingAccount(false);
+              });
+          },
+        },
+      ],
+    );
   }
 
   if (me === undefined && clerkEnabled && convexEnabled) {
@@ -425,6 +460,23 @@ export function SettingsScreen() {
           <Ionicons color={colors.error} name="log-out-outline" size={18} />
           <Text className="text-[15px] font-bold text-error">Sign out</Text>
         </Pressable>
+        <View className="my-3 h-px bg-border" />
+        <View className="gap-1.5">
+          <Pressable
+            className="flex-row items-center gap-2.5"
+            disabled={isDeletingAccount}
+            onPress={handleDeleteAccount}
+          >
+            <Ionicons color={colors.error} name="trash-outline" size={18} />
+            <Text className="text-[15px] font-bold text-error">
+              {isDeletingAccount ? 'Deleting account…' : 'Delete account'}
+            </Text>
+          </Pressable>
+          <Text className="text-muted text-[11px] leading-[15px]">
+            Permanently removes your account and all picks, scores, and
+            followers. This cannot be undone.
+          </Text>
+        </View>
       </SettingsSection>
 
       <VersionFooter />

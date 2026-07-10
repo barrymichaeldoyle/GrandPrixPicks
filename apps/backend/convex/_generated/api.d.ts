@@ -40,6 +40,7 @@ import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
+import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as notifications from "../notifications.js";
 import type * as predictions from "../predictions.js";
 import type * as push from "../push.js";
@@ -91,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   "lib/scoring": typeof lib_scoring;
   "lib/standings": typeof lib_standings;
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
+  "lib/weekendCapabilities": typeof lib_weekendCapabilities;
   notifications: typeof notifications;
   predictions: typeof predictions;
   push: typeof push;

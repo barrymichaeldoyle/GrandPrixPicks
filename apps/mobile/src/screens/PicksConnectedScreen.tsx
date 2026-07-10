@@ -8,7 +8,6 @@ import {
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
@@ -43,6 +42,19 @@ type RaceDoc = ConvexDoc<'races'>;
 type DriverId = ConvexId<'drivers'>;
 type DriverDoc = ConvexDoc<'drivers'>;
 
+/** Server-derived per-session capability from races.getCurrentWeekend. */
+type SessionCapability = {
+  sessionType: SessionType;
+  lockAt: number | null;
+  isLocked: boolean;
+  hasResult: boolean;
+  hasTop5: boolean;
+  hasH2H: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  denialReason: 'sign_in' | 'session_locked' | 'race_not_submittable' | null;
+};
+
 function getSessionLockAt(
   race: RaceDoc,
   session: SessionType,
@@ -57,8 +69,8 @@ function getSessionLockAt(
 
 export function PicksConnectedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const quickPickRace = useQuery(
-    api.races.getQuickPickRace,
+  const weekend = useQuery(
+    api.races.getCurrentWeekend,
     convexEnabled ? {} : 'skip',
   );
 
@@ -66,20 +78,30 @@ export function PicksConnectedScreen() {
     return <NotAvailableState />;
   }
 
-  if (quickPickRace === undefined) {
+  if (weekend === undefined) {
     return <LoadingScreen />;
   }
 
-  if (quickPickRace === null) {
+  if (weekend === null) {
     return <NoUpcomingRaceState />;
   }
 
-  return <PredictForRace race={quickPickRace} />;
+  return (
+    <PredictForRace
+      capabilities={weekend.sessions as SessionCapability[]}
+      race={weekend.race}
+    />
+  );
 }
 
-function PredictForRace({ race }: { race: RaceDoc }) {
+function PredictForRace({
+  race,
+  capabilities,
+}: {
+  race: RaceDoc;
+  capabilities: SessionCapability[];
+}) {
   const now = useNow();
-  const { showToast } = useToast();
   const maybeOfferPush = useOfferPushAfterFirstSave();
   const driversQuery = useQuery(api.drivers.listDrivers, {});
   const matchupsQuery = useQuery(api.h2h.getMatchupsForSeason, {
@@ -94,18 +116,20 @@ function PredictForRace({ race }: { race: RaceDoc }) {
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
-  const randomizePredictions = useMutation(
-    api.predictions.randomizePredictions,
-  );
 
   const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
 
+  // Server capabilities are the authority on writability; the device clock
+  // only advances the locked state between query refreshes (a Convex query
+  // re-runs on data changes, not on the passage of time).
   const sessionLockState = weekendSessions.map((session) => {
-    const lockAt = getSessionLockAt(race, session);
+    const cap = capabilities.find((c) => c.sessionType === session);
+    const lockAt = cap?.lockAt ?? getSessionLockAt(race, session);
     const remaining =
       typeof lockAt === 'number' ? lockAt - now : Number.POSITIVE_INFINITY;
     const status = getLockStatusViewModel(remaining, now);
-    return { session, lockAt, isLocked: status.isLocked };
+    const isLocked = status.isLocked || cap?.canEdit === false;
+    return { session, lockAt, isLocked, hasResult: cap?.hasResult ?? false };
   });
 
   const nextOpenSession =
@@ -169,44 +193,8 @@ function PredictForRace({ race }: { race: RaceDoc }) {
         />
       ) : null}
 
-      {!hasAnyTop5 || !hasAnyH2H ? (
-        <CascadeBanner
-          hasSprint={Boolean(race.hasSprint)}
-          showBanner={!hasAnyTop5}
-          onRandomize={async () => {
-            try {
-              if (!hasAnyTop5) {
-                await randomizePredictions({ raceId: race._id });
-              }
-              if (!hasAnyH2H && matchups.length > 0) {
-                await submitH2H({
-                  raceId: race._id,
-                  picks: matchups.map((m) => ({
-                    matchupId: m._id,
-                    predictedWinnerId:
-                      Math.random() < 0.5
-                        ? (m.driver1._id as DriverId)
-                        : (m.driver2._id as DriverId),
-                  })),
-                });
-              }
-              void Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Success,
-              );
-              showToast('Random picks saved for the weekend', 'success');
-              void maybeOfferPush();
-            } catch (err) {
-              void Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Error,
-              );
-              showToast(
-                err instanceof Error ? err.message : 'Randomize failed',
-                'error',
-              );
-            }
-          }}
-          mode={!hasAnyTop5 ? 'all' : 'h2h'}
-        />
+      {!hasAnyTop5 ? (
+        <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
       ) : null}
 
       <Top5Section
@@ -325,64 +313,17 @@ function PageHeader({
   );
 }
 
-function CascadeBanner({
-  hasSprint,
-  showBanner,
-  onRandomize,
-  mode,
-}: {
-  hasSprint: boolean;
-  /** When false, suppress the cascade copy (Top 5 is already saved) — keep only the action row. */
-  showBanner: boolean;
-  onRandomize: () => Promise<void>;
-  mode: 'all' | 'h2h';
-}) {
-  function confirmRandomize() {
-    Alert.alert(
-      mode === 'all' ? 'Randomize all picks?' : 'Randomize H2H picks?',
-      mode === 'all'
-        ? `Generates a random Top 5 and Head-to-Head for ${
-            hasSprint
-              ? 'Sprint Quali, Sprint, Quali, and Race'
-              : 'Qualifying and Race'
-          }. You can still edit any session before it starts.`
-        : 'Generates random Head-to-Head picks for the whole weekend. You can still edit any session before it starts.',
-      [
-        { style: 'cancel', text: 'Cancel' },
-        {
-          text: 'Randomize',
-          onPress: () => {
-            void onRandomize();
-          },
-        },
-      ],
-    );
-  }
-
+function CascadeBanner({ hasSprint }: { hasSprint: boolean }) {
   return (
-    <View className="gap-2">
-      {showBanner ? (
-        <View className="flex-row items-start gap-2 py-0.5">
-          <Ionicons color={colors.accent} name="flash" size={14} />
-          <Text className="text-muted flex-1 text-xs leading-[17px]">
-            First save covers{' '}
-            {hasSprint
-              ? 'Sprint Quali, Sprint, Quali, and Race'
-              : 'Qualifying and Race'}
-            . You can fine-tune any session before it starts.
-          </Text>
-        </View>
-      ) : null}
-      <Pressable
-        className="flex-row items-center gap-1.5 self-start py-0.5 active:opacity-70"
-        hitSlop={6}
-        onPress={confirmRandomize}
-      >
-        <Ionicons color={colors.accent} name="dice" size={13} />
-        <Text className="text-xs font-bold text-accent">
-          {mode === 'all' ? 'Randomize all picks' : 'Randomize H2H picks'}
-        </Text>
-      </Pressable>
+    <View className="flex-row items-start gap-2 py-0.5">
+      <Ionicons color={colors.accent} name="flash" size={14} />
+      <Text className="text-muted flex-1 text-xs leading-[17px]">
+        First save covers{' '}
+        {hasSprint
+          ? 'Sprint Quali, Sprint, Quali, and Race'
+          : 'Qualifying and Race'}
+        . You can fine-tune any session before it starts.
+      </Text>
     </View>
   );
 }
@@ -393,8 +334,9 @@ function CascadeBanner({
 
 type SessionLockEntry = {
   session: SessionType;
-  lockAt: number | undefined;
+  lockAt: number | undefined | null;
   isLocked: boolean;
+  hasResult: boolean;
 };
 
 function SessionTabs({
@@ -416,6 +358,7 @@ function SessionTabs({
         const lock = lockState.find((s) => s.session === session);
         const active = session === selected;
         const isLocked = lock?.isLocked ?? false;
+        const hasResult = lock?.hasResult ?? false;
         const hasPicks = predictionsBySession[session] !== null;
         return (
           <Pressable
@@ -431,7 +374,9 @@ function SessionTabs({
               >
                 {SESSION_LABELS_SHORT[session]}
               </Text>
-              {isLocked ? (
+              {hasResult ? (
+                <Ionicons color={colors.success} name="flag" size={10} />
+              ) : isLocked ? (
                 <Ionicons
                   color={colors.textMuted}
                   name="lock-closed"

@@ -1,10 +1,21 @@
+import {
+  getSessionsForWeekend,
+  type SessionType,
+} from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { internalMutation, mutation, query } from './_generated/server';
-import { getOrCreateViewer, requireAdmin, requireViewer } from './lib/auth';
+import {
+  getOrCreateViewer,
+  getViewer,
+  requireAdmin,
+  requireViewer,
+} from './lib/auth';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
+import type { SessionCapability } from './lib/weekendCapabilities';
+import { deriveSessionCapability } from './lib/weekendCapabilities';
 
 const raceStatusValidator = v.union(
   v.literal('upcoming'),
@@ -130,6 +141,111 @@ export const getQuickPickRace = query({
         q.eq('status', 'upcoming').gt('predictionLockAt', now),
       )
       .first();
+  },
+});
+
+/**
+ * The mobile-oriented current-weekend query (MVP plan, backend item 1+2).
+ * Returns the same race `getQuickPickRace` would show — the in-progress
+ * locked race if one exists, otherwise the next submittable race — plus a
+ * server-derived capability for every session in the weekend, so clients
+ * don't re-implement lock/eligibility rules. Mutations remain the final
+ * authority on writes.
+ */
+export const getCurrentWeekend = query({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<{
+    race: Doc<'races'>;
+    serverNow: number;
+    isSubmittable: boolean;
+    sessions: SessionCapability[];
+  } | null> => {
+    const now = Date.now();
+    const viewer = await getViewer(ctx);
+
+    const lockedRace = await ctx.db
+      .query('races')
+      .withIndex('by_status_and_predictionLockAt', (q) =>
+        q.eq('status', 'locked'),
+      )
+      .order('desc')
+      .first();
+    const race =
+      lockedRace ??
+      (await ctx.db
+        .query('races')
+        .withIndex('by_status_and_predictionLockAt', (q) =>
+          q.eq('status', 'upcoming').gt('predictionLockAt', now),
+        )
+        .first());
+
+    if (!race) {
+      return null;
+    }
+
+    // Mirrors the submission mutations' race check: only the next `upcoming`
+    // race with its final lock in the future accepts writes.
+    const isSubmittable =
+      race.status === 'upcoming' && race.predictionLockAt > now;
+
+    const lockAtBySession: Record<SessionType, number | undefined> = {
+      quali: race.qualiLockAt,
+      sprint_quali: race.sprintQualiLockAt,
+      sprint: race.sprintLockAt,
+      race: race.predictionLockAt,
+    };
+
+    const sessions = await Promise.all(
+      getSessionsForWeekend(Boolean(race.hasSprint)).map(
+        async (sessionType) => {
+          const [result, top5, h2h] = await Promise.all([
+            ctx.db
+              .query('results')
+              .withIndex('by_race_session', (q) =>
+                q.eq('raceId', race._id).eq('sessionType', sessionType),
+              )
+              .first(),
+            viewer
+              ? ctx.db
+                  .query('predictions')
+                  .withIndex('by_user_race_session', (q) =>
+                    q
+                      .eq('userId', viewer._id)
+                      .eq('raceId', race._id)
+                      .eq('sessionType', sessionType),
+                  )
+                  .first()
+              : Promise.resolve(null),
+            viewer
+              ? ctx.db
+                  .query('h2hPredictions')
+                  .withIndex('by_user_race_session', (q) =>
+                    q
+                      .eq('userId', viewer._id)
+                      .eq('raceId', race._id)
+                      .eq('sessionType', sessionType),
+                  )
+                  .first()
+              : Promise.resolve(null),
+          ]);
+
+          return deriveSessionCapability({
+            sessionType,
+            lockAt: lockAtBySession[sessionType],
+            now,
+            isSignedIn: viewer !== null,
+            raceIsSubmittable: isSubmittable,
+            hasResult: result !== null,
+            hasTop5: top5 !== null,
+            hasH2H: h2h !== null,
+          });
+        },
+      ),
+    );
+
+    return { race, serverNow: now, isSubmittable, sessions };
   },
 });
 

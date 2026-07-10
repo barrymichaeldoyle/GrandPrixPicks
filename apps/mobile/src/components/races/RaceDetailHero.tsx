@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.4,
   },
   flag: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     height: '100%',
     width: '100%',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(15, 23, 42, 0.82)',
   },
   title: {

@@ -39,7 +39,7 @@ Workspace package names:
 
 ### Mobile (`apps/mobile`)
 
-- Expo SDK ~55 + React Native 0.83
+- Expo SDK ~57 + React Native 0.86
 - React Navigation (native-stack + bottom-tabs)
 - `@clerk/clerk-expo` for auth
 - `react-native-mmkv` for storage, `react-native-nitro-modules`

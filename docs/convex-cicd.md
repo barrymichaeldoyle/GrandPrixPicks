@@ -1,7 +1,7 @@
 # Convex CI/CD + Migrations
 
 Production deploys ship the **web client and the Convex backend together** from
-a single commit, because the Convex deploy runs *inside* the Cloudflare Pages
+a single commit, because the Convex deploy runs _inside_ the Cloudflare Pages
 build (the same way our Vercel projects deploy Convex during their build).
 
 ## What runs where

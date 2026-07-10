@@ -23,7 +23,8 @@
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"]
-      }
+      },
+      "appleTeamId": "LBZ6C9H52C"
     },
     "android": {
       "package": "com.barrymichaeldoyle.grandprixpicks"

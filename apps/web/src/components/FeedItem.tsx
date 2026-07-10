@@ -880,7 +880,7 @@ function SessionLeaderboardRow({
       <div
         className={`flex items-start gap-2.5 border border-t-0 border-border px-2.5 py-2 ${
           isLast ? 'rounded-b-xl' : ''
-        } ${isViewer ? 'bg-accent/8 ring-1 ring-inset ring-accent/40' : 'bg-surface'}`}
+        } ${isViewer ? 'bg-accent/8 ring-1 ring-accent/40 ring-inset' : 'bg-surface'}`}
       >
         <RankMedal rank={rank} />
         <Link

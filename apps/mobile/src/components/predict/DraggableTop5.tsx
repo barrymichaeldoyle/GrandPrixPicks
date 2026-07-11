@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
+  ShadowDecorator,
 } from 'react-native-draggable-flatlist';
 
 import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
@@ -268,18 +269,25 @@ export function DraggableTop5({
   }: RenderItemParams<PickedItem>) {
     const index = getIndex() ?? item.index;
     return (
-      <ScaleDecorator>
-        <PickedRow
-          canMoveDown={index < pickedItems.length - 1}
-          canMoveUp={index > 0}
-          disabled={disabled}
-          drag={drag}
-          isActive={isActive}
-          item={item}
-          onMoveDown={() => handleMove(index, 'down')}
-          onMoveUp={() => handleMove(index, 'up')}
-          onRemove={() => handleRemove(index)}
-        />
+      // The scaled row needs slack on both sides or it clips at the list
+      // container — the list pulls -2 margin and rows pad it back (px-2),
+      // so a 1.03 scale stays inside the bounds.
+      <ScaleDecorator activeScale={1.03}>
+        <ShadowDecorator opacity={0.4} radius={8}>
+          <View className="px-2">
+            <PickedRow
+              canMoveDown={index < pickedItems.length - 1}
+              canMoveUp={index > 0}
+              disabled={disabled}
+              drag={drag}
+              isActive={isActive}
+              item={item}
+              onMoveDown={() => handleMove(index, 'down')}
+              onMoveUp={() => handleMove(index, 'up')}
+              onRemove={() => handleRemove(index)}
+            />
+          </View>
+        </ShadowDecorator>
       </ScaleDecorator>
     );
   }
@@ -290,7 +298,7 @@ export function DraggableTop5({
         {pickedItems.length > 0 ? (
           <DraggableFlatList
             activationDistance={8}
-            containerStyle={{ flexGrow: 0 }}
+            containerStyle={{ flexGrow: 0, marginHorizontal: -8 }}
             data={pickedItems}
             keyExtractor={(item) => item.driverId}
             onDragEnd={({ data }) => {

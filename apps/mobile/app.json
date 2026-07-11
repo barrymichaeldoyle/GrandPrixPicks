@@ -18,7 +18,8 @@
       "expo-secure-store",
       "expo-web-browser",
       "@sentry/react-native",
-      "expo-localization"
+      "expo-localization",
+      "./plugins/withSentryPnpmWorkaround.cjs"
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",

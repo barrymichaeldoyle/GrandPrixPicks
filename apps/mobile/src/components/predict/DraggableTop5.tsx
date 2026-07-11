@@ -21,6 +21,8 @@ type DraggableTop5Props = {
   drivers: Driver[];
   onChange: (picks: string[]) => void;
   disabled?: boolean;
+  /** Primary action (Save CTA), rendered between the picks and the pool. */
+  action?: React.ReactNode;
 };
 
 const MAX_PICKS = 5;
@@ -140,15 +142,13 @@ function PickedRow({
 
 function EmptySlot({ position }: { position: number }) {
   return (
-    <View className="flex-row items-center gap-2.5 py-1.5 opacity-55">
-      <View className="h-11 w-[52px] items-center justify-center rounded-md bg-surface-muted">
-        <Numeral style={{ fontSize: 14 }} tone="muted" variant="large">
+    <View className="flex-row items-center gap-2.5 py-1 opacity-45">
+      <View className="h-8 w-[52px] items-center justify-center rounded-md border border-dashed border-border-strong">
+        <Numeral style={{ fontSize: 12 }} tone="muted" variant="large">
           {`P${position}`}
         </Numeral>
       </View>
-      <View className="flex-1 gap-0.5">
-        <Text className="text-muted text-[13px]">Pick #{position}</Text>
-      </View>
+      <Text className="text-muted flex-1 text-xs">Pick #{position}</Text>
     </View>
   );
 }
@@ -218,6 +218,7 @@ export function DraggableTop5({
   drivers,
   onChange,
   disabled = false,
+  action,
 }: DraggableTop5Props) {
   const sortedDrivers = sortDrivers(drivers);
   const driverMap = new Map<string, Driver>(
@@ -313,6 +314,10 @@ export function DraggableTop5({
           <EmptySlot key={`empty-${i}`} position={pickedItems.length + i + 1} />
         ))}
       </View>
+
+      {/* The primary action sits above the pool so a completed list never
+          buries Save beneath a grid of already-dimmed drivers. */}
+      {action ?? null}
 
       {!disabled ? (
         <View className="gap-2.5">

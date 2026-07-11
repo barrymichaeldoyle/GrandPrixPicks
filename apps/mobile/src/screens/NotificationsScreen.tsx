@@ -183,17 +183,11 @@ function Header({
   subtitle: string;
   action?: React.ReactNode;
 }) {
+  // The nav bar already titles this screen "Notifications" — repeating it
+  // here read as a glitch, so the page header carries only the status line.
   return (
-    <View className="flex-row items-start justify-between gap-3 pb-3">
-      <View className="flex-1 gap-0.5">
-        <Text className="text-[10px] font-extrabold text-accent uppercase">
-          Inbox
-        </Text>
-        <Text className="text-foreground text-[22px] font-extrabold">
-          Notifications
-        </Text>
-        <Text className="text-muted mt-1 text-xs">{subtitle}</Text>
-      </View>
+    <View className="flex-row items-center justify-between gap-3 pb-3">
+      <Text className="text-muted flex-1 text-xs">{subtitle}</Text>
       {action ?? null}
     </View>
   );

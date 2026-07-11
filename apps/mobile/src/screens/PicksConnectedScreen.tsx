@@ -529,22 +529,22 @@ function PageHeader({
         </Text>
       </View>
       {countdownLabel ? (
-        <Text className="mt-0.5 text-xs">
+        <View className="mt-0.5 gap-0.5">
           <Text
-            className={
+            className={`text-xs ${
               lockStatus.isLocked
                 ? 'text-muted'
                 : lockStatus.urgency === 'closing_soon'
                   ? 'font-bold text-warning'
                   : 'font-bold text-accent-hover'
-            }
+            }`}
           >
             {countdownLabel}
           </Text>
           {lockDisplay ? (
-            <Text className="text-muted"> · {lockDisplay.local}</Text>
+            <Text className="text-muted text-[11px]">{lockDisplay.local}</Text>
           ) : null}
-        </Text>
+        </View>
       ) : null}
     </View>
   );
@@ -921,26 +921,27 @@ function Top5Editor({
       ) : null}
 
       <DraggableTop5
+        action={
+          <PrimaryButton
+            disabled={!canSave || isSubmitting}
+            label={
+              isSubmitting
+                ? 'Saving…'
+                : sessionIsLocked
+                  ? 'Session locked'
+                  : picks.length !== MAX_TOP5
+                    ? `Pick ${MAX_TOP5 - picks.length} more`
+                    : ctaLabel
+            }
+            onPress={() => {
+              void handleSave();
+            }}
+          />
+        }
         disabled={sessionIsLocked}
         drivers={drivers}
         onChange={updatePicks}
         picks={picks}
-      />
-
-      <PrimaryButton
-        disabled={!canSave || isSubmitting}
-        label={
-          isSubmitting
-            ? 'Saving…'
-            : sessionIsLocked
-              ? 'Session locked'
-              : picks.length !== MAX_TOP5
-                ? `Pick ${MAX_TOP5 - picks.length} more`
-                : ctaLabel
-        }
-        onPress={() => {
-          void handleSave();
-        }}
       />
     </View>
   );

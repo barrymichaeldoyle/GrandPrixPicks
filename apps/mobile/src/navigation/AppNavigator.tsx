@@ -79,7 +79,18 @@ function PicksStackNavigator() {
       <PicksStack.Screen
         component={PicksConnectedScreen}
         name="PicksMain"
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
+        options={({ navigation }) => ({
+          headerTitle: () => <BrandHeaderTitle />,
+          headerRight: () => (
+            <NotificationBell
+              onPress={() =>
+                navigation
+                  .getParent()
+                  ?.navigate('MoreTab', { screen: 'Notifications' })
+              }
+            />
+          ),
+        })}
       />
       <PicksStack.Screen
         component={RaceDetailScreen}

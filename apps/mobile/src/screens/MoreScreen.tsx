@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { Alert } from 'react-native';
 
+import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { captureAnalyticsEvent } from '../lib/analytics';
 import type { MoreStackParamList } from '../navigation/types';
@@ -32,85 +33,85 @@ export function MoreScreen() {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-page"
-      contentContainerClassName="gap-6 p-4 pb-8"
-    >
-      <View className="gap-2.5">
-        <Text className="text-muted text-[10px] font-extrabold uppercase">
-          Account
-        </Text>
-        <View>
-          <LinkRow
-            icon="notifications-outline"
-            label="Notifications"
-            onPress={() => navigation.navigate('Notifications')}
-            subtitle="Results, locks, and Revs"
-          />
-          <View className="ml-[30px] h-px bg-border" />
-          <LinkRow
-            icon="settings-outline"
-            label="Settings"
-            onPress={() => navigation.navigate('Settings')}
-            subtitle="Profile, notifications, timezone"
-          />
+    <View className="flex-1 bg-page">
+      <ScreenGlow />
+      <ScrollView className="flex-1" contentContainerClassName="gap-6 p-4 pb-8">
+        <View className="gap-2.5">
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
+            Account
+          </Text>
+          <View>
+            <LinkRow
+              icon="notifications-outline"
+              label="Notifications"
+              onPress={() => navigation.navigate('Notifications')}
+              subtitle="Results, locks, and Revs"
+            />
+            <View className="ml-[30px] h-px bg-border" />
+            <LinkRow
+              icon="settings-outline"
+              label="Settings"
+              onPress={() => navigation.navigate('Settings')}
+              subtitle="Profile, notifications, timezone"
+            />
+          </View>
         </View>
-      </View>
 
-      <View className="gap-2.5">
-        <Text className="text-muted text-[10px] font-extrabold uppercase">
-          Leagues
-        </Text>
-        <View>
-          <LinkRow
-            icon="people-outline"
-            label="Leagues are managed on the web"
-            onPress={() => {
-              captureAnalyticsEvent('leagues_web_handoff_opened');
-              openOnWeb('/leagues');
-            }}
-            subtitle="Open your leagues at grandprixpicks.com"
-          />
+        <View className="gap-2.5">
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
+            Leagues
+          </Text>
+          <View>
+            <LinkRow
+              icon="people-outline"
+              label="Leagues are managed on the web"
+              onPress={() => {
+                captureAnalyticsEvent('leagues_web_handoff_opened');
+                openOnWeb('/leagues');
+              }}
+              subtitle="Open your leagues at grandprixpicks.com"
+            />
+          </View>
         </View>
-      </View>
 
-      <View className="gap-2.5">
-        <Text className="text-muted text-[10px] font-extrabold uppercase">
-          Help &amp; legal
-        </Text>
-        <View>
-          <LinkRow
-            icon="help-buoy-outline"
-            label="Support"
-            onPress={() => openOnWeb('/support')}
-            subtitle="Get help or report a problem"
-          />
-          <View className="ml-[30px] h-px bg-border" />
-          <LinkRow
-            icon="shield-checkmark-outline"
-            label="Privacy policy"
-            onPress={() => openOnWeb('/privacy')}
-            subtitle="How your data is handled"
-          />
-          <View className="ml-[30px] h-px bg-border" />
-          <LinkRow
-            icon="document-text-outline"
-            label="Terms of service"
-            onPress={() => openOnWeb('/terms')}
-            subtitle="The rules of the game"
-          />
+        <View className="gap-2.5">
+          <Text className="text-muted text-[10px] font-extrabold uppercase">
+            Help &amp; legal
+          </Text>
+          <View>
+            <LinkRow
+              icon="help-buoy-outline"
+              label="Support"
+              onPress={() => openOnWeb('/support')}
+              subtitle="Get help or report a problem"
+            />
+            <View className="ml-[30px] h-px bg-border" />
+            <LinkRow
+              icon="shield-checkmark-outline"
+              label="Privacy policy"
+              onPress={() => openOnWeb('/privacy')}
+              subtitle="How your data is handled"
+            />
+            <View className="ml-[30px] h-px bg-border" />
+            <LinkRow
+              icon="document-text-outline"
+              label="Terms of service"
+              onPress={() => openOnWeb('/terms')}
+              subtitle="The rules of the game"
+            />
+          </View>
         </View>
-      </View>
 
-      <Pressable
-        className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
-        hitSlop={8}
-        onPress={confirmSignOut}
-      >
-        <Ionicons color={colors.textMuted} name="log-out-outline" size={14} />
-        <Text className="text-muted text-xs font-semibold">Sign out</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable
+          className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
+          hitSlop={8}
+          onPress={confirmSignOut}
+        >
+          <Ionicons color={colors.textMuted} name="log-out-outline" size={14} />
+          <Text className="text-muted text-xs font-semibold">Sign out</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
 

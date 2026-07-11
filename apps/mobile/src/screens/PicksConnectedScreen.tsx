@@ -5,9 +5,11 @@ import {
   SESSION_LABELS_SHORT,
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
+import { buildScoreShareText } from '@grandprixpicks/shared/share';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
+import { Share } from 'react-native';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
@@ -16,8 +18,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
+import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { useAutoSaveOnFirstComplete } from '../hooks/useAutoSaveOnFirstComplete';
 import { useOfferPushAfterFirstSave } from '../hooks/useOfferPushAfterFirstSave';
+import { useRequestReviewAfterScoredWeekend } from '../hooks/useRequestReviewAfterScoredWeekend';
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
@@ -29,15 +34,16 @@ import { useNow } from '../lib/useNow';
 import { useMobileConfig } from '../providers/mobile-config';
 import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
+import { useTypography } from '../theme/typography';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
 /**
- * Grace period after the picks first become complete before auto-saving.
- * Top 5 gets longer because pick order matters — reordering resets the timer.
+ * Grace period after the last H2H matchup is tapped before auto-saving.
+ * Top 5 deliberately has no auto-save — order matters there, so completion
+ * doesn't mean the user is done (see Top5Editor).
  */
-const TOP5_AUTO_SAVE_DELAY_MS = 2500;
 const H2H_AUTO_SAVE_DELAY_MS = 1200;
 
 type RaceDoc = ConvexDoc<'races'>;
@@ -123,6 +129,9 @@ function PredictForRace({
 
   // Result data only subscribes once something has been published.
   const anyResult = capabilities.some((c) => c.hasResult);
+  const weekendFullyScored =
+    capabilities.length > 0 && capabilities.every((c) => c.hasResult);
+  useRequestReviewAfterScoredWeekend(weekendFullyScored);
   const myScoresBySession = useQuery(
     api.results.getMyScoresForRace,
     anyResult ? { raceId: race._id } : 'skip',
@@ -201,133 +210,139 @@ function PredictForRace({
   );
 
   return (
-    <ScrollView
-      className="flex-1 bg-page"
-      contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"
-      showsVerticalScrollIndicator={false}
-    >
-      <PageHeader race={race} selectedSession={selectedSession} now={now} />
+    <View className="flex-1 bg-page">
+      <ScreenGlow />
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"
+        showsVerticalScrollIndicator={false}
+      >
+        <PageHeader race={race} selectedSession={selectedSession} now={now} />
 
-      {anyResult ? (
-        <WeekendPointsStrip
-          h2hTotal={myH2HWeekend?.totalPoints ?? 0}
-          scoresBySession={myScoresBySession ?? null}
-        />
-      ) : null}
-
-      {(hasAnyTop5 || anyResult) && weekendSessions.length > 1 ? (
-        <SessionTabs
-          sessions={weekendSessions}
-          selected={selectedSession}
-          lockState={sessionLockState}
-          predictionsBySession={predictionsBySession}
-          onSelect={(s) => {
-            void Haptics.selectionAsync();
-            setSelectedSession(s);
-          }}
-        />
-      ) : null}
-
-      {selectedHasResult ? (
-        <ScoredSessionSection
-          actual={actualTop5BySession?.[selectedSession] ?? []}
-          h2hPicks={h2hPredictions?.[selectedSession] ?? {}}
-          h2hScore={myH2HScoreForSession ?? null}
-          matchups={matchups}
-          myScore={myScoresBySession?.[selectedSession] ?? null}
-          session={selectedSession}
-        />
-      ) : (
-        <>
-          {!hasAnyTop5 ? (
-            <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
-          ) : null}
-
-          <Top5Section
+        {anyResult ? (
+          <WeekendPointsStrip
+            h2hTotal={myH2HWeekend?.totalPoints ?? 0}
+            isFinal={weekendFullyScored}
             race={race}
-            drivers={drivers}
-            selectedSession={selectedSession}
-            selectedLockAt={selectedLockAt}
-            cascadeMode={!hasAnyTop5}
-            existingPicks={predictionsBySession[selectedSession] ?? []}
-            sessionIsLocked={selectedSessionIsLocked}
-            onSubmit={async (picks, sessionType) => {
-              const isFirstSave = !hasAnyTop5;
-              const scope = sessionType === undefined ? 'cascade' : 'session';
-              try {
-                await submitPrediction({
-                  raceId: race._id,
-                  picks: picks as DriverId[],
-                  sessionType,
-                });
-              } catch (err) {
-                captureAnalyticsEvent('top5_save_failed', {
-                  scope,
-                  session_locked:
-                    err instanceof Error && /locked/i.test(err.message),
-                });
-                throw err;
-              }
-              captureAnalyticsEvent('top5_saved', {
-                scope,
-                open_sessions: sessionLockState.filter((s) => !s.isLocked)
-                  .length,
-                locked_sessions: sessionLockState.filter((s) => s.isLocked)
-                  .length,
-              });
-              if (isFirstSave) {
-                void maybeOfferPush();
-              }
+            scoresBySession={myScoresBySession ?? null}
+          />
+        ) : null}
+
+        {(hasAnyTop5 || anyResult) && weekendSessions.length > 1 ? (
+          <SessionTabs
+            sessions={weekendSessions}
+            selected={selectedSession}
+            lockState={sessionLockState}
+            predictionsBySession={predictionsBySession}
+            onSelect={(s) => {
+              void Haptics.selectionAsync();
+              setSelectedSession(s);
             }}
           />
+        ) : null}
 
-          {hasAnyTop5 || matchups.length === 0 ? (
-            matchups.length === 0 ? null : (
-              <H2HSection
-                cascadeMode={!hasAnyH2H}
-                existingPicks={h2hPredictions?.[selectedSession] ?? {}}
-                matchups={matchups}
-                race={race}
-                selectedSession={selectedSession}
-                sessionIsLocked={selectedSessionIsLocked}
-                onSubmit={async (picks, sessionType) => {
-                  const scope =
-                    sessionType === undefined ? 'cascade' : 'session';
-                  try {
-                    await submitH2H({
-                      raceId: race._id,
-                      picks: matchups.map((m) => ({
-                        matchupId: m._id,
-                        predictedWinnerId: picks[m._id] as DriverId,
-                      })),
-                      sessionType,
-                    });
-                  } catch (err) {
-                    captureAnalyticsEvent('h2h_save_failed', {
-                      scope,
-                      session_locked:
-                        err instanceof Error && /locked/i.test(err.message),
-                    });
-                    throw err;
-                  }
-                  captureAnalyticsEvent('h2h_saved', {
-                    scope,
-                    open_sessions: sessionLockState.filter((s) => !s.isLocked)
-                      .length,
-                    locked_sessions: sessionLockState.filter((s) => s.isLocked)
-                      .length,
+        {selectedHasResult ? (
+          <ScoredSessionSection
+            actual={actualTop5BySession?.[selectedSession] ?? []}
+            h2hPicks={h2hPredictions?.[selectedSession] ?? {}}
+            h2hScore={myH2HScoreForSession ?? null}
+            matchups={matchups}
+            myScore={myScoresBySession?.[selectedSession] ?? null}
+            session={selectedSession}
+          />
+        ) : (
+          <>
+            {!hasAnyTop5 ? (
+              <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
+            ) : null}
+
+            <Top5Section
+              race={race}
+              drivers={drivers}
+              selectedSession={selectedSession}
+              selectedLockAt={selectedLockAt}
+              cascadeMode={!hasAnyTop5}
+              existingPicks={predictionsBySession[selectedSession] ?? []}
+              sessionIsLocked={selectedSessionIsLocked}
+              onSubmit={async (picks, sessionType) => {
+                const isFirstSave = !hasAnyTop5;
+                const scope = sessionType === undefined ? 'cascade' : 'session';
+                try {
+                  await submitPrediction({
+                    raceId: race._id,
+                    picks: picks as DriverId[],
+                    sessionType,
                   });
-                }}
-              />
-            )
-          ) : (
-            <Text className="text-muted pt-1 text-xs italic">
-              Save your Top 5 first to unlock H2H picks.
-            </Text>
-          )}
-        </>
-      )}
-    </ScrollView>
+                } catch (err) {
+                  captureAnalyticsEvent('top5_save_failed', {
+                    scope,
+                    session_locked:
+                      err instanceof Error && /locked/i.test(err.message),
+                  });
+                  throw err;
+                }
+                captureAnalyticsEvent('top5_saved', {
+                  scope,
+                  open_sessions: sessionLockState.filter((s) => !s.isLocked)
+                    .length,
+                  locked_sessions: sessionLockState.filter((s) => s.isLocked)
+                    .length,
+                });
+                if (isFirstSave) {
+                  void maybeOfferPush();
+                }
+              }}
+            />
+
+            {hasAnyTop5 || matchups.length === 0 ? (
+              matchups.length === 0 ? null : (
+                <H2HSection
+                  cascadeMode={!hasAnyH2H}
+                  existingPicks={h2hPredictions?.[selectedSession] ?? {}}
+                  matchups={matchups}
+                  race={race}
+                  selectedSession={selectedSession}
+                  sessionIsLocked={selectedSessionIsLocked}
+                  onSubmit={async (picks, sessionType) => {
+                    const scope =
+                      sessionType === undefined ? 'cascade' : 'session';
+                    try {
+                      await submitH2H({
+                        raceId: race._id,
+                        picks: matchups.map((m) => ({
+                          matchupId: m._id,
+                          predictedWinnerId: picks[m._id] as DriverId,
+                        })),
+                        sessionType,
+                      });
+                    } catch (err) {
+                      captureAnalyticsEvent('h2h_save_failed', {
+                        scope,
+                        session_locked:
+                          err instanceof Error && /locked/i.test(err.message),
+                      });
+                      throw err;
+                    }
+                    captureAnalyticsEvent('h2h_saved', {
+                      scope,
+                      open_sessions: sessionLockState.filter((s) => !s.isLocked)
+                        .length,
+                      locked_sessions: sessionLockState.filter(
+                        (s) => s.isLocked,
+                      ).length,
+                    });
+                  }}
+                />
+              )
+            ) : (
+              <Text className="text-muted pt-1 text-xs italic">
+                Save your Top 5 first to unlock H2H picks.
+              </Text>
+            )}
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -338,11 +353,16 @@ function PredictForRace({
 type ResultsCardProps = React.ComponentProps<typeof SessionResultsCard>;
 
 function WeekendPointsStrip({
+  race,
   scoresBySession,
   h2hTotal,
+  isFinal,
 }: {
+  race: RaceDoc;
   scoresBySession: Record<string, { points: number } | null> | null;
   h2hTotal: number;
+  /** Every weekend session has a published result. */
+  isFinal: boolean;
 }) {
   const top5Total = scoresBySession
     ? Object.values(scoresBySession).reduce(
@@ -350,17 +370,46 @@ function WeekendPointsStrip({
         0,
       )
     : 0;
+  const totalPoints = top5Total + h2hTotal;
+
+  async function handleShare() {
+    void Haptics.selectionAsync();
+    const result = await Share.share({
+      message: buildScoreShareText({
+        raceName: race.name,
+        points: totalPoints,
+        isFinal,
+        accountHandle: '@GrandPrixPicks',
+        raceHashtag: race.hashtag,
+      }),
+    });
+    captureAnalyticsEvent('score_share_opened', {
+      final: isFinal,
+      completed: result.action === Share.sharedAction,
+    });
+  }
+
   return (
-    <View className="flex-row items-baseline gap-1.5">
-      <Text className="text-muted text-[10px] font-extrabold uppercase">
-        Weekend so far
-      </Text>
-      <Text className="text-sm font-extrabold text-accent-hover">
-        {top5Total + h2hTotal} pts
-      </Text>
-      <Text className="text-muted text-[11px]">
-        {top5Total} Top 5 · {h2hTotal} H2H
-      </Text>
+    <View className="flex-row items-center gap-1.5">
+      <View className="flex-1 flex-row items-baseline gap-1.5">
+        <Text className="text-muted text-[10px] font-extrabold uppercase">
+          Weekend so far
+        </Text>
+        <Text className="text-sm font-extrabold text-accent-hover">
+          {totalPoints} pts
+        </Text>
+        <Text className="text-muted text-[11px]">
+          {top5Total} Top 5 · {h2hTotal} H2H
+        </Text>
+      </View>
+      <Pressable
+        className="flex-row items-center gap-1 rounded-full border border-border px-2.5 py-1 active:opacity-70"
+        hitSlop={6}
+        onPress={() => void handleShare()}
+      >
+        <Ionicons color={colors.accent} name="share-outline" size={13} />
+        <Text className="text-[11px] font-bold text-accent">Share</Text>
+      </Pressable>
     </View>
   );
 }
@@ -441,6 +490,7 @@ function PageHeader({
   now: number;
 }) {
   const { formatRaceDate } = useUserDateFormat();
+  const { titleFontFamily } = useTypography();
   const lockAt = getSessionLockAt(race, selectedSession);
   const remaining =
     typeof lockAt === 'number' ? lockAt - now : Number.POSITIVE_INFINITY;
@@ -471,8 +521,9 @@ function PageHeader({
       <View className="flex-row items-center gap-2.5">
         <FlagImage raceSlug={race.slug} />
         <Text
-          className="text-foreground flex-1 text-[22px] leading-[26px] font-extrabold"
+          className="text-foreground flex-1 text-[22px] leading-[28px] font-bold"
           numberOfLines={2}
+          style={titleFontFamily ? { fontFamily: titleFontFamily } : undefined}
         >
           {race.name}
         </Text>
@@ -781,19 +832,11 @@ function Top5Editor({
     void patchConnectedDraft(race.slug, draftSession, { top5: picks });
   }, [draftSession, isDirty, picks, race.slug]);
 
-  // First-time picks save themselves shortly after the 5th driver lands —
-  // users kept filling the list and forgetting the Save button. The delay
-  // leaves room to reorder (any change re-arms it); edits stay manual.
-  const { markInteraction } = useAutoSaveOnFirstComplete({
-    enabled: existingPicks.length === 0 && !sessionIsLocked && !isSubmitting,
-    complete: picks.length === MAX_TOP5,
-    picksSignature: picks.join(','),
-    delayMs: TOP5_AUTO_SAVE_DELAY_MS,
-    save: () => void handleSave(),
-  });
-
+  // No auto-save here, unlike H2H: picking the 5th driver is where
+  // reordering STARTS, not where the interaction ends, and a timer-based
+  // save kept firing mid-shuffle and flipping the editor to read-only
+  // under the user's finger. Top 5 always saves via the explicit CTA.
   function updatePicks(next: string[]) {
-    markInteraction();
     setIsDirty(true);
     if (picks.length < MAX_TOP5 && next.length === MAX_TOP5) {
       captureAnalyticsEvent('top5_picks_completed', {
@@ -884,25 +927,21 @@ function Top5Editor({
         picks={picks}
       />
 
-      <Pressable
-        className={`items-center rounded-lg bg-button-accent py-3.5 ${
-          !canSave ? 'opacity-40' : ''
-        }`}
+      <PrimaryButton
         disabled={!canSave || isSubmitting}
-        onPress={() => {
-          void handleSave();
-        }}
-      >
-        <Text className="text-foreground text-sm font-bold">
-          {isSubmitting
+        label={
+          isSubmitting
             ? 'Saving…'
             : sessionIsLocked
               ? 'Session locked'
               : picks.length !== MAX_TOP5
                 ? `Pick ${MAX_TOP5 - picks.length} more`
-                : ctaLabel}
-        </Text>
-      </Pressable>
+                : ctaLabel
+        }
+        onPress={() => {
+          void handleSave();
+        }}
+      />
     </View>
   );
 }
@@ -1212,17 +1251,10 @@ function H2HEditor({
         selections={selections}
       />
 
-      <Pressable
-        className={`items-center rounded-lg bg-button-accent py-3.5 ${
-          !canSave ? 'opacity-40' : ''
-        }`}
+      <PrimaryButton
         disabled={!canSave || isSubmitting}
-        onPress={() => {
-          void handleSave();
-        }}
-      >
-        <Text className="text-foreground text-sm font-bold">
-          {isSubmitting
+        label={
+          isSubmitting
             ? 'Saving…'
             : sessionIsLocked
               ? 'Session locked'
@@ -1230,9 +1262,12 @@ function H2HEditor({
                 ? `Pick ${matchups.length - Object.keys(selections).length} more`
                 : cascadeMode
                   ? 'Save weekend H2H'
-                  : `Save ${SESSION_LABELS_SHORT[selectedSession]} H2H`}
-        </Text>
-      </Pressable>
+                  : `Save ${SESSION_LABELS_SHORT[selectedSession]} H2H`
+        }
+        onPress={() => {
+          void handleSave();
+        }}
+      />
     </View>
   );
 }

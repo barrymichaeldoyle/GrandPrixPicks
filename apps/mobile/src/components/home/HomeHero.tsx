@@ -1,13 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useWindowDimensions } from 'react-native';
 
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
-import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
-import { Image, Pressable, Text, View } from '../../tw';
+import { Image, Text, View } from '../../tw';
 import type { RaceWeekend } from '../../types';
 import type {
   FeedStackParamList,
@@ -15,6 +13,7 @@ import type {
 } from '../../navigation/types';
 import { BigCountdown } from '../ui/BigCountdown';
 import { Numeral } from '../ui/Numeral';
+import { PrimaryButton } from '../ui/PrimaryButton';
 
 const NARROW_WIDTH = 360;
 
@@ -152,19 +151,16 @@ export function HomeHero() {
         </Text>
       )}
 
-      <Pressable
-        className="mt-1.5 flex-row items-center justify-center gap-2 self-stretch rounded-lg bg-button-accent px-[18px] py-3.5 active:bg-button-accent-hover"
-        onPress={() =>
-          navigation
-            .getParent<NavigationProp<RootTabParamList>>()
-            ?.navigate('PicksTab')
-        }
-      >
-        <Text className="text-foreground text-[15px] font-bold">
-          Make predictions
-        </Text>
-        <Ionicons color={colors.accentHover} name="arrow-forward" size={14} />
-      </Pressable>
+      <View className="mt-1.5 self-stretch">
+        <PrimaryButton
+          label="Make predictions"
+          onPress={() =>
+            navigation
+              .getParent<NavigationProp<RootTabParamList>>()
+              ?.navigate('PicksTab')
+          }
+        />
+      </View>
     </View>
   );
 }

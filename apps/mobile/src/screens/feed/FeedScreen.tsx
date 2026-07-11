@@ -13,6 +13,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
 import { PageHero } from '../../components/ui/PageHero';
+import { ScreenGlow } from '../../components/ui/ScreenGlow';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
@@ -175,6 +176,7 @@ export function FeedScreen() {
 
   return (
     <View className="flex-1 bg-page px-4 pt-3">
+      <ScreenGlow />
       <FlatList
         contentContainerClassName="gap-3 pb-6"
         data={groups}

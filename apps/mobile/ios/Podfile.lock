@@ -92,6 +92,8 @@ PODS:
     - ExpoModulesCore
   - ExpoSecureStore (57.0.0):
     - ExpoModulesCore
+  - ExpoStoreReview (57.0.0):
+    - ExpoModulesCore
   - ExpoWebBrowser (57.0.0):
     - ExpoModulesCore
   - FBLazyVector (0.86.0)
@@ -2369,6 +2371,7 @@ DEPENDENCIES:
   - "ExpoModulesWorkletsAdapter (from `../../../node_modules/.pnpm/expo-modules-core@57.0.3_react-native-worklets@0.10.0_@babel+core@7.29.6_@react-native+_f547ea39b21d2307e5c8a8dfedbb529c/node_modules/expo-modules-core`)"
   - "ExpoNotifications (from `../../../node_modules/.pnpm/expo-notifications@57.0.3_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nat_744de27d5999b3fc72c9920513577f44/node_modules/expo-notifications/ios`)"
   - "ExpoSecureStore (from `../../../node_modules/.pnpm/expo-secure-store@57.0.0_expo@57.0.4/node_modules/expo-secure-store/ios`)"
+  - "ExpoStoreReview (from `../../../node_modules/.pnpm/expo-store-review@57.0.0_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nati_a317c239a15bece32cba33027a2c8dd9/node_modules/expo-store-review/ios`)"
   - "ExpoWebBrowser (from `../../../node_modules/.pnpm/expo-web-browser@57.0.0_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nativ_684fe46b41fdf1fb4a4077e5eb9ff761/node_modules/expo-web-browser/ios`)"
   - "FBLazyVector (from `../../../node_modules/.pnpm/react-native@0.86.0_@babel+core@7.29.6_@react-native+metro-config@0.86.0_@babel+core@7._c3c74656344b9d974646b4b2bd1248a1/node_modules/react-native/Libraries/FBLazyVector`)"
   - "hermes-engine (from `../../../node_modules/.pnpm/react-native@0.86.0_@babel+core@7.29.6_@react-native+metro-config@0.86.0_@babel+core@7._c3c74656344b9d974646b4b2bd1248a1/node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)"
@@ -2504,6 +2507,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/.pnpm/expo-notifications@57.0.3_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nat_744de27d5999b3fc72c9920513577f44/node_modules/expo-notifications/ios"
   ExpoSecureStore:
     :path: "../../../node_modules/.pnpm/expo-secure-store@57.0.0_expo@57.0.4/node_modules/expo-secure-store/ios"
+  ExpoStoreReview:
+    :path: "../../../node_modules/.pnpm/expo-store-review@57.0.0_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nati_a317c239a15bece32cba33027a2c8dd9/node_modules/expo-store-review/ios"
   ExpoWebBrowser:
     :path: "../../../node_modules/.pnpm/expo-web-browser@57.0.0_expo@57.0.4_react-native@0.86.0_@babel+core@7.29.6_@react-nativ_684fe46b41fdf1fb4a4077e5eb9ff761/node_modules/expo-web-browser/ios"
   FBLazyVector:
@@ -2698,6 +2703,7 @@ SPEC CHECKSUMS:
   ExpoModulesWorkletsAdapter: 2842c840132cfcdd3d7259ada242428bba49ffe0
   ExpoNotifications: 02cd9efc076d8a4a64d36eee3297c9d84bb7e719
   ExpoSecureStore: be2276d312c1f213605c0864772510239605ec37
+  ExpoStoreReview: e99127fb832c99c516859711b55b06636c48cb1c
   ExpoWebBrowser: 32dfd25ad5d384028137a0de71991f28663562e0
   FBLazyVector: b3e7ad108f0d882e30445c5527d774e3fd432f3d
   hermes-engine: e50e0dae67ef73ad3e3ba9e338c4cc95573050d6

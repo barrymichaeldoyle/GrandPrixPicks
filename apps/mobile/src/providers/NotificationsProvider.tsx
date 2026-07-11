@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/clerk-expo';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
@@ -47,6 +47,18 @@ function ClerkAwareNotifications() {
   const { isSignedIn } = useUser();
   const saveToken = useMutation(api.push.saveExpoPushToken);
   const tokenRef = useRef<string | null>(null);
+
+  // Mirror the in-app unread count on the home-screen icon badge.
+  const notifications = useQuery(
+    api.inAppNotifications.getMyNotifications,
+    isSignedIn ? {} : 'skip',
+  );
+  const unreadCount = isSignedIn ? (notifications?.unreadCount ?? 0) : 0;
+  useEffect(() => {
+    void Notifications.setBadgeCountAsync(unreadCount).catch(() => {
+      // Badge permission not granted — nothing to do.
+    });
+  }, [unreadCount]);
 
   // Silent re-registration: refreshes the server-side token for devices that
   // already granted permission (reinstalls, token rotation). No prompt.

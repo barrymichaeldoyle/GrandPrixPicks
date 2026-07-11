@@ -11,7 +11,9 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
+import { PageHero } from '../components/ui/PageHero';
 import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
+import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
@@ -360,7 +362,7 @@ export function LeaderboardScreen() {
       : activeSeason === undefined;
 
   const filters = (
-    <View className="mb-4 gap-2.5">
+    <View className="mb-4 gap-2.5 rounded-xl border border-border bg-surface/60 p-2.5">
       <SegmentedTabs
         onChange={(v) => {
           changeFilter('time', v);
@@ -424,6 +426,7 @@ export function LeaderboardScreen() {
 
   return (
     <View className="flex-1 bg-page">
+      <ScreenGlow />
       <Header timeScope={timeScope} subtitle={subtitle} />
       <FlatList
         contentContainerClassName="px-4 pb-8"
@@ -516,14 +519,12 @@ function Header({
   subtitle: string;
 }) {
   return (
-    <View className="gap-0.5 px-4 pt-3 pb-3">
-      <Text className="text-[10px] font-extrabold text-accent uppercase">
-        {timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
-      </Text>
-      <Text className="text-foreground text-2xl font-extrabold">
-        Leaderboard
-      </Text>
-      <Text className="text-muted text-xs">{subtitle}</Text>
+    <View className="px-4 pt-3 pb-3">
+      <PageHero
+        eyebrow={timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
+        subtitle={subtitle}
+        title="Leaderboard"
+      />
     </View>
   );
 }
@@ -625,22 +626,31 @@ function PodiumRow({
         : '#CD7F32';
   const iconName = entry.rank === 1 ? 'trophy' : 'medal';
   const podiumRank = Math.min(Math.max(entry.rank, 1), 3) as 1 | 2 | 3;
+  const ordinal = ['1st', '2nd', '3rd'][entry.rank - 1] ?? `#${entry.rank}`;
   const subline = modeSubline(entry, mode);
 
   return (
     <Pressable
-      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden rounded-lg px-3 py-3 ${
+      className={`mb-2 flex-row items-center gap-2.5 overflow-hidden rounded-xl border border-border px-3 py-3 ${
         entry.isViewer ? 'bg-accent/10' : ''
       }`}
       disabled={!onPress}
       onPress={onPress}
     >
       <PodiumBackdrop rank={podiumRank} />
-      <View className="w-[52px] flex-row items-center gap-1.5">
-        <Ionicons color={placeColor} name={iconName} size={20} />
-        <Numeral style={{ color: placeColor }} variant="large">
-          {entry.rank}
-        </Numeral>
+      <View className="w-[74px] flex-row items-center gap-2">
+        <View
+          className="h-9 w-9 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${placeColor}26` }}
+        >
+          <Ionicons color={placeColor} name={iconName} size={17} />
+        </View>
+        <Text
+          className="text-[13px] font-extrabold"
+          style={{ color: placeColor }}
+        >
+          {ordinal}
+        </Text>
       </View>
       <Avatar
         imageUrl={entry.avatarUrl}

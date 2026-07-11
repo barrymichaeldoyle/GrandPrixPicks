@@ -4891,10 +4891,17 @@ export const reseedDevThroughMonaco = internalAction({
       { username },
     );
 
+    // Phase 8: Backfill feed events from the seeded scores — without this
+    // the personalized feed stays empty no matter who you follow.
+    const feedResult: { created: number } = await ctx.runMutation(
+      internal.seed.seedFeedEvents,
+    );
+
     return {
       cleared: totalDeleted,
       scenarioRacesDeleted: raceResult.deleted,
       racesReset: raceResult.reset,
+      feedEventsCreated: feedResult.created,
       throughRace: 'Monaco Grand Prix',
       nextOpenRace: 'Barcelona Grand Prix',
       username,

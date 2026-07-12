@@ -18,7 +18,7 @@ import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
 import { useRefreshSpinner } from '../../lib/useRefreshSpinner';
-import type { FeedStackParamList } from '../../navigation/types';
+import type { HomeStackParamList } from '../../navigation/types';
 import { useMobileConfig } from '../../providers/mobile-config';
 import { colors } from '../../theme/tokens';
 import { FlatList, Pressable, RefreshControl, Text, View } from '../../tw';
@@ -42,7 +42,7 @@ type FeedGroup =
 
 export function FeedScreen() {
   const { convexEnabled } = useMobileConfig();
-  const navigation = useNavigation<NavigationProp<FeedStackParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { refreshing, onRefresh } = useRefreshSpinner();
 
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
@@ -246,7 +246,7 @@ export function FeedScreen() {
  * so a new account can fill its feed without leaving the tab.
  */
 function TopPlayersToFollow() {
-  const navigation = useNavigation<NavigationProp<FeedStackParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const topPlayers = useQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
     limit: 6,
   });

@@ -33,7 +33,7 @@ function navigateTo(url: string): boolean {
 
   const feedEventMatch = /^\/feed\/([^/]+)$/.exec(path);
   if (feedEventMatch) {
-    navigationRef.navigate('FeedTab', {
+    navigationRef.navigate('HomeTab', {
       screen: 'FeedEventDetail',
       params: { feedEventId: feedEventMatch[1] },
     });
@@ -41,7 +41,7 @@ function navigateTo(url: string): boolean {
   }
 
   if (path === '/feed') {
-    navigationRef.navigate('FeedTab', { screen: 'FeedMain' });
+    navigationRef.navigate('HomeTab', { screen: 'HomeMain' });
     return true;
   }
 

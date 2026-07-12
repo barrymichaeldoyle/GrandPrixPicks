@@ -12,10 +12,10 @@ export const linking: LinkingOptions<RootTabParamList> = {
           RaceDetail: 'races/:raceSlug',
         },
       },
-      FeedTab: {
+      HomeTab: {
         path: 'feed',
         screens: {
-          FeedMain: '',
+          HomeMain: '',
           FeedEventDetail: ':feedEventId',
           PublicProfile: 'p/:username',
         },

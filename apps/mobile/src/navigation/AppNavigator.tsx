@@ -23,7 +23,7 @@ import { linking } from './linking';
 import { navigationRef } from './navigationRef';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import type {
-  FeedStackParamList,
+  HomeStackParamList,
   LeaderboardStackParamList,
   MoreStackParamList,
   PicksStackParamList,
@@ -32,7 +32,7 @@ import type {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const PicksStack = createNativeStackNavigator<PicksStackParamList>();
-const FeedStack = createNativeStackNavigator<FeedStackParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LeaderboardStack =
   createNativeStackNavigator<LeaderboardStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
@@ -50,9 +50,9 @@ const TAB_ICONS: Record<
   keyof RootTabParamList,
   React.ComponentProps<typeof Ionicons>['name']
 > = {
-  PicksTab: 'trophy',
-  FeedTab: 'pulse',
-  LeaderboardTab: 'podium',
+  HomeTab: 'home',
+  PicksTab: 'flag',
+  LeaderboardTab: 'trophy',
   MoreTab: 'ellipsis-horizontal',
 };
 
@@ -83,11 +83,7 @@ function PicksStackNavigator() {
           headerTitle: () => <BrandHeaderTitle />,
           headerRight: () => (
             <NotificationBell
-              onPress={() =>
-                navigation
-                  .getParent()
-                  ?.navigate('MoreTab', { screen: 'Notifications' })
-              }
+              onPress={() => navigation.navigate('Notifications')}
             />
           ),
         })}
@@ -97,45 +93,51 @@ function PicksStackNavigator() {
         name="RaceDetail"
         options={{ title: 'Race Details' }}
       />
+      <PicksStack.Screen
+        component={NotificationsScreen}
+        name="Notifications"
+        options={{ title: 'Notifications' }}
+      />
     </PicksStack.Navigator>
   );
 }
 
-function FeedStackNavigator() {
+function HomeStackNavigator() {
   return (
-    <FeedStack.Navigator screenOptions={SCREEN_OPTIONS}>
-      <FeedStack.Screen
+    <HomeStack.Navigator screenOptions={SCREEN_OPTIONS}>
+      <HomeStack.Screen
         component={FeedScreen}
-        name="FeedMain"
+        name="HomeMain"
         options={({ navigation }) => ({
           headerTitle: () => <BrandHeaderTitle />,
           headerRight: () => (
             <NotificationBell
-              onPress={() =>
-                navigation
-                  .getParent()
-                  ?.navigate('MoreTab', { screen: 'Notifications' })
-              }
+              onPress={() => navigation.navigate('Notifications')}
             />
           ),
         })}
       />
-      <FeedStack.Screen
+      <HomeStack.Screen
         component={FeedEventDetailScreen}
         name="FeedEventDetail"
         options={{ title: 'Prediction' }}
       />
-      <FeedStack.Screen
+      <HomeStack.Screen
         component={PublicProfileScreen}
         name="PublicProfile"
         options={({ route }) => ({ title: `@${route.params.username}` })}
       />
-      <FeedStack.Screen
+      <HomeStack.Screen
         component={RaceDetailScreen}
         name="RaceDetail"
         options={{ title: 'Race Details' }}
       />
-    </FeedStack.Navigator>
+      <HomeStack.Screen
+        component={NotificationsScreen}
+        name="Notifications"
+        options={{ title: 'Notifications' }}
+      />
+    </HomeStack.Navigator>
   );
 }
 
@@ -220,14 +222,14 @@ export function AppNavigator() {
           })}
         >
           <Tab.Screen
+            component={HomeStackNavigator}
+            name="HomeTab"
+            options={{ title: 'Home' }}
+          />
+          <Tab.Screen
             component={PicksStackNavigator}
             name="PicksTab"
             options={{ title: 'Picks' }}
-          />
-          <Tab.Screen
-            component={FeedStackNavigator}
-            name="FeedTab"
-            options={{ title: 'Feed' }}
           />
           <Tab.Screen
             component={LeaderboardStackNavigator}

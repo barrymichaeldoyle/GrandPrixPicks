@@ -8,7 +8,7 @@ import { useTypography } from '../../theme/typography';
 import { Image, Text, View } from '../../tw';
 import type { RaceWeekend } from '../../types';
 import type {
-  FeedStackParamList,
+  HomeStackParamList,
   RootTabParamList,
 } from '../../navigation/types';
 import { BigCountdown } from '../ui/BigCountdown';
@@ -72,7 +72,7 @@ function getFeatured(
 export function HomeHero() {
   const { titleFontFamily } = useTypography();
   const { races } = useRaceWeekends();
-  const navigation = useNavigation<NavigationProp<FeedStackParamList>>();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { width } = useWindowDimensions();
   const isNarrow = width < NARROW_WIDTH;
 

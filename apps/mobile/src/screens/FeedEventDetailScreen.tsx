@@ -8,11 +8,11 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
-import type { FeedStackParamList } from '../navigation/types';
+import type { HomeStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { FlatList, Text, View } from '../tw';
 
-type Props = NativeStackScreenProps<FeedStackParamList, 'FeedEventDetail'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'FeedEventDetail'>;
 
 type RevUser = {
   userId: ConvexId<'users'>;

@@ -18,7 +18,7 @@ import { getLockStatusViewModel } from '../lib/lockTime';
 import { useNow } from '../lib/useNow';
 import { useRaceWeekends } from '../lib/useRaceWeekends';
 import type {
-  FeedStackParamList,
+  HomeStackParamList,
   PicksStackParamList,
   RootTabParamList,
 } from '../navigation/types';
@@ -27,7 +27,7 @@ import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
 
 type PicksProps = NativeStackScreenProps<PicksStackParamList, 'RaceDetail'>;
-type FeedProps = NativeStackScreenProps<FeedStackParamList, 'RaceDetail'>;
+type FeedProps = NativeStackScreenProps<HomeStackParamList, 'RaceDetail'>;
 type Props = PicksProps | FeedProps;
 
 const SESSION_ORDER: SessionType[] = [

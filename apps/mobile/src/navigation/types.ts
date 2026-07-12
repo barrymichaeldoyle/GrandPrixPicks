@@ -3,13 +3,15 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type PicksStackParamList = {
   PicksMain: undefined;
   RaceDetail: { raceSlug: string };
+  Notifications: undefined;
 };
 
-export type FeedStackParamList = {
-  FeedMain: undefined;
+export type HomeStackParamList = {
+  HomeMain: undefined;
   FeedEventDetail: { feedEventId: string };
   PublicProfile: { username: string };
   RaceDetail: { raceSlug: string };
+  Notifications: undefined;
 };
 
 export type LeaderboardStackParamList = {
@@ -24,8 +26,8 @@ export type MoreStackParamList = {
 };
 
 export type RootTabParamList = {
+  HomeTab: NavigatorScreenParams<HomeStackParamList> | undefined;
   PicksTab: NavigatorScreenParams<PicksStackParamList> | undefined;
-  FeedTab: NavigatorScreenParams<FeedStackParamList> | undefined;
   LeaderboardTab: NavigatorScreenParams<LeaderboardStackParamList> | undefined;
   MoreTab: NavigatorScreenParams<MoreStackParamList> | undefined;
 };

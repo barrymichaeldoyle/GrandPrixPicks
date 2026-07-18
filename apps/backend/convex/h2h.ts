@@ -1,7 +1,7 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
@@ -482,10 +482,21 @@ export const getUserH2HPicksByRace = query({
     const now = Date.now();
     const byRace = new Map<Id<'races'>, Record<SessionType, boolean>>();
 
+    // Predictions share a small set of races — fetch each distinct race once,
+    // in parallel, instead of one sequential get per prediction row.
+    const raceById = new Map<Id<'races'>, Doc<'races'> | null>();
+    if (!isOwner) {
+      const distinctRaceIds = [...new Set(predictions.map((p) => p.raceId))];
+      const races = await Promise.all(
+        distinctRaceIds.map((id) => ctx.db.get(id)),
+      );
+      distinctRaceIds.forEach((id, i) => raceById.set(id, races[i]));
+    }
+
     for (const pred of predictions) {
       // Check lock time to determine visibility for non-owners
       if (!isOwner) {
-        const race = await ctx.db.get(pred.raceId);
+        const race = raceById.get(pred.raceId);
         if (race) {
           const lockTimes: Record<SessionType, number | undefined> = {
             quali: race.qualiLockAt,
@@ -581,10 +592,12 @@ export const getUserH2HDetailedPicks = query({
         nationality: string | null;
       }
     >();
-    for (const id of driverIds) {
-      const d = await ctx.db.get(id as Id<'drivers'>);
+    const drivers = await Promise.all(
+      [...driverIds].map((id) => ctx.db.get(id as Id<'drivers'>)),
+    );
+    for (const d of drivers) {
       if (d) {
-        driverCache.set(id, {
+        driverCache.set(d._id, {
           _id: d._id,
           code: d.code,
           displayName: d.displayName,

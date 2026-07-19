@@ -43,7 +43,7 @@ describe('sitemap.xml route', () => {
       },
     ]);
 
-    const { default: handler } = await import('./sitemap.xml');
+    const { default: handler } = await import('../routes/sitemap.xml');
     const response = await handler({
       req: new Request('https://grandprixpicks.com/sitemap.xml'),
     });

@@ -57,22 +57,29 @@ describe('SEO head metadata', () => {
   });
 
   it('marks gated pages as noindex with a single canonical', async () => {
-    const [{ Route: feedRoute }, { Route: supportRoute }, { Route: meRoute }] =
-      await Promise.all([
-        import('./feed/index'),
-        import('./support'),
-        import('./me'),
-      ]);
+    const [
+      { Route: feedRoute },
+      { Route: supportRoute },
+      { Route: meRoute },
+      { Route: settingsRoute },
+    ] = await Promise.all([
+      import('./feed/index'),
+      import('./support'),
+      import('./me'),
+      import('./settings'),
+    ]);
     const routes: StaticHeadRoute[] = [
       asStaticHeadRoute(feedRoute),
       asStaticHeadRoute(supportRoute),
       asStaticHeadRoute(meRoute),
+      asStaticHeadRoute(settingsRoute),
     ];
 
     for (const [path, route] of [
       ['/feed', routes[0]],
       ['/support', routes[1]],
       ['/me', routes[2]],
+      ['/settings', routes[3]],
     ] as const) {
       const head = route.head();
       expect(head.meta).toContainEqual({

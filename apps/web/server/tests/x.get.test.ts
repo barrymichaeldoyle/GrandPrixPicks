@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import handler from './x.get';
+import handler from '../routes/x.get';
 
 describe('/x route', () => {
   it('redirects to the X profile campaign landing URL', () => {

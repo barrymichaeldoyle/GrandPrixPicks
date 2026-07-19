@@ -38,6 +38,7 @@ export const Route = createFileRoute('/settings')({
       title: 'Settings | Grand Prix Picks',
       description: 'Manage your Grand Prix Picks account settings.',
       path: '/settings',
+      noIndex: true,
     }),
 });
 

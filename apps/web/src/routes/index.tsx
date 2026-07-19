@@ -162,13 +162,11 @@ function HomePage() {
         <section className="home-hero relative isolate overflow-hidden px-3 pt-6 pb-8 sm:pt-12 sm:pb-10">
           <HeroSpeedLines />
           <div className="relative mx-auto w-full max-w-5xl">
-            {/* Featured race becomes the visual hero (better SEO + identity) */}
-            {/* CSS reveal, not framer-motion: the hero holds the LCP element,
-                and a JS-driven entrance leaves it at opacity 0 until hydration
-                finishes (~1s of LCP on throttled mobile). reveal-up starts the
-                moment the browser paints. */}
+            {/* Featured race becomes the visual hero (better SEO + identity).
+                Keep this wrapper unanimated: its h1 is the page's LCP element,
+                so an opacity entrance delays LCP even when the HTML is ready. */}
             {featuredRace && (
-              <div className="reveal-up mx-auto flex max-w-4xl flex-col items-center text-center">
+              <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
                 {/* Brand eyebrow — instantly says what the site is */}
                 <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
                   <Flag

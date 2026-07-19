@@ -28,6 +28,7 @@ import {
 import { AppClerkProvider } from '@/integrations/clerk/provider';
 import { AppConvexProvider } from '@/integrations/convex/provider';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
+import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
 
@@ -309,16 +310,7 @@ function DeferredFeaturesBoundary({ children }: PropsWithChildren) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    if ('requestIdleCallback' in window) {
-      const idleCallbackId = window.requestIdleCallback(
-        () => setShouldLoad(true),
-        { timeout: 2_000 },
-      );
-      return () => window.cancelIdleCallback(idleCallbackId);
-    }
-
-    const timeoutId = globalThis.setTimeout(() => setShouldLoad(true), 1_000);
-    return () => globalThis.clearTimeout(timeoutId);
+    return deferUntilAfterLoad(() => setShouldLoad(true));
   }, []);
 
   if (!shouldLoad) {

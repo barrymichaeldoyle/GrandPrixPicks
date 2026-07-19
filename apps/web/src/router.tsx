@@ -4,6 +4,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
+import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
@@ -79,11 +80,7 @@ export function getRouter() {
       );
     }
 
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(loadAnalytics, { timeout: 2_000 });
-    } else {
-      globalThis.setTimeout(loadAnalytics, 1_000);
-    }
+    deferUntilAfterLoad(loadAnalytics);
   }
 
   return router;

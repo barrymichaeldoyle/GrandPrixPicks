@@ -4,11 +4,6 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
-import {
-  capturePageView,
-  initAnalytics,
-  isAnalyticsConfigured,
-} from './lib/analytics';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
@@ -65,15 +60,29 @@ export function getRouter() {
   }
 
   if (!router.isServer && import.meta.env.PROD) {
-    if (isAnalyticsConfigured()) {
-      initAnalytics();
-      router.subscribe('onResolved', () => {
-        capturePageView();
-      });
-    } else {
-      console.warn(
-        '[Analytics] VITE_POSTHOG_KEY is missing. PostHog and cookie consent are disabled in this build.',
+    function loadAnalytics() {
+      void import('./lib/analytics').then(
+        ({ capturePageView, initAnalytics, isAnalyticsConfigured }) => {
+          if (!isAnalyticsConfigured()) {
+            console.warn(
+              '[Analytics] VITE_POSTHOG_KEY is missing. PostHog and cookie consent are disabled in this build.',
+            );
+            return;
+          }
+
+          initAnalytics();
+          capturePageView();
+          router.subscribe('onResolved', () => {
+            capturePageView();
+          });
+        },
       );
+    }
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadAnalytics, { timeout: 2_000 });
+    } else {
+      globalThis.setTimeout(loadAnalytics, 1_000);
     }
   }
 

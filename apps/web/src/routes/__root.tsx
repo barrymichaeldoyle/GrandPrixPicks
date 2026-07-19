@@ -1,7 +1,6 @@
-import { useAuth, useUser } from '@clerk/react';
+import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { convexHttp } from '@/integrations/convex/client';
-import * as Sentry from '@sentry/tanstackstart-react';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -14,16 +13,13 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { useMutation } from 'convex/react';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
-import { AnnouncementBanner } from '@/components/AnnouncementBanner';
-import { CookieConsent } from '@/components/CookieConsent';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ScrollToTop } from '@/components/ScrollToTop';
-import { UpcomingPredictionBanner } from '@/components/UpcomingPredictionBanner/UpcomingPredictionBanner';
 import { useMobileMenu } from '@/hooks/useMobileMenu';
 import {
   fetchInitialAuth,
@@ -32,9 +28,19 @@ import {
 import { AppClerkProvider } from '@/integrations/clerk/provider';
 import { AppConvexProvider } from '@/integrations/convex/provider';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
-import { identifyAnalyticsUser, resetAnalyticsUser } from '@/lib/analytics';
 import { siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
+
+const DeferredShellFeatures = lazy(() =>
+  import('@/components/DeferredGlobalFeatures').then((module) => ({
+    default: module.DeferredShellFeatures,
+  })),
+);
+const DeferredPredictionBanner = lazy(() =>
+  import('@/components/DeferredGlobalFeatures').then((module) => ({
+    default: module.DeferredPredictionBanner,
+  })),
+);
 
 interface MyRouterContext {
   queryClient: QueryClient;
@@ -211,42 +217,6 @@ function ProfileSync() {
   return null;
 }
 
-/** Identifies signed-in Clerk users in observability tools and resets on sign-out. */
-function ObservabilityUserSync() {
-  const { user, isLoaded } = useUser();
-  const prevIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-    if (user) {
-      if (prevIdRef.current !== user.id) {
-        prevIdRef.current = user.id;
-        Sentry.setUser({
-          id: user.id,
-          email: user.primaryEmailAddress?.emailAddress,
-          username: user.username ?? undefined,
-          name: user.fullName ?? undefined,
-        });
-        identifyAnalyticsUser(user.id, {
-          email: user.primaryEmailAddress?.emailAddress,
-          name: user.fullName,
-          username: user.username,
-        });
-      }
-    } else {
-      if (prevIdRef.current !== null) {
-        prevIdRef.current = null;
-        Sentry.setUser(null);
-        resetAnalyticsUser();
-      }
-    }
-  }, [user, isLoaded]);
-
-  return null;
-}
-
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth, nextRace } = Route.useLoaderData();
   const mainRef = useRef<HTMLDivElement>(null);
@@ -281,7 +251,6 @@ function RootDocument({ children }: PropsWithChildren) {
           <AppConvexProvider>
             <InitialAuthProvider value={initialAuth}>
               <ProfileSync />
-              <ObservabilityUserSync />
               <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
                 <a
                   href="#main-content"
@@ -295,19 +264,18 @@ function RootDocument({ children }: PropsWithChildren) {
                   initialNextRace={nextRace}
                 />
                 <OfflineBanner />
-                <ErrorBoundary fallback={null}>
-                  <AnnouncementBanner />
-                </ErrorBoundary>
-                <CookieConsent />
+                <DeferredFeaturesBoundary>
+                  <DeferredShellFeatures />
+                </DeferredFeaturesBoundary>
                 <div
                   ref={mainRef}
                   className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
                 >
                   <ScrollToTop scrollContainerRef={mainRef} />
                   <div className="flex min-h-full flex-col">
-                    <ErrorBoundary fallback={null}>
-                      <UpcomingPredictionBanner />
-                    </ErrorBoundary>
+                    <DeferredFeaturesBoundary>
+                      <DeferredPredictionBanner />
+                    </DeferredFeaturesBoundary>
                     <main id="main-content" className="min-h-0 flex-1">
                       <ErrorBoundary>{children}</ErrorBoundary>
                     </main>
@@ -335,4 +303,27 @@ function RootDocument({ children }: PropsWithChildren) {
       </body>
     </html>
   );
+}
+
+function DeferredFeaturesBoundary({ children }: PropsWithChildren) {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    if ('requestIdleCallback' in window) {
+      const idleCallbackId = window.requestIdleCallback(
+        () => setShouldLoad(true),
+        { timeout: 2_000 },
+      );
+      return () => window.cancelIdleCallback(idleCallbackId);
+    }
+
+    const timeoutId = globalThis.setTimeout(() => setShouldLoad(true), 1_000);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, []);
+
+  if (!shouldLoad) {
+    return null;
+  }
+
+  return <Suspense fallback={null}>{children}</Suspense>;
 }

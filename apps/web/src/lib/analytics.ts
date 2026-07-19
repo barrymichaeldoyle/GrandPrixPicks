@@ -1,4 +1,4 @@
-import posthog from 'posthog-js';
+import type { PostHog } from 'posthog-js';
 
 type AnalyticsProperties = Record<
   string,
@@ -7,6 +7,8 @@ type AnalyticsProperties = Record<
 
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
 let initialized = false;
+let posthogClient: PostHog | null = null;
+let posthogPromise: Promise<PostHog | null> | null = null;
 
 function isEnabled() {
   return import.meta.env.PROD && Boolean(posthogKey);
@@ -17,16 +19,36 @@ export function initAnalytics() {
     return false;
   }
 
-  posthog.init(posthogKey, {
-    api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
-    capture_pageview: false,
-    capture_pageleave: true,
-    opt_out_capturing_by_default: true,
-    // We don't run PostHog surveys; skip the extra surveys.js download.
-    disable_surveys: true,
-  });
   initialized = true;
+  posthogPromise = import('posthog-js')
+    .then(({ default: posthog }) => {
+      posthog.init(posthogKey!, {
+        api_host:
+          import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
+        capture_pageview: false,
+        capture_pageleave: true,
+        opt_out_capturing_by_default: true,
+        // We don't run PostHog surveys; skip the extra surveys.js download.
+        disable_surveys: true,
+      });
+      posthogClient = posthog;
+      return posthog;
+    })
+    .catch((error: unknown) => {
+      console.warn('[Analytics] Failed to load PostHog.', error);
+      return null;
+    });
   return true;
+}
+
+function getPostHog() {
+  if (!isEnabled()) {
+    return Promise.resolve(null);
+  }
+  if (!initialized) {
+    initAnalytics();
+  }
+  return posthogPromise ?? Promise.resolve(posthogClient);
 }
 
 export function captureAnalyticsEvent(
@@ -37,7 +59,9 @@ export function captureAnalyticsEvent(
     return;
   }
 
-  posthog.capture(eventName, properties);
+  void getPostHog().then((posthog) => {
+    posthog?.capture(eventName, properties);
+  });
 }
 
 export function capturePageView(path?: string) {
@@ -69,7 +93,9 @@ export function identifyAnalyticsUser(
     return;
   }
 
-  posthog.identify(userId, properties);
+  void getPostHog().then((posthog) => {
+    posthog?.identify(userId, properties);
+  });
 }
 
 export function resetAnalyticsUser() {
@@ -77,11 +103,13 @@ export function resetAnalyticsUser() {
     return;
   }
 
-  posthog.reset();
+  void getPostHog().then((posthog) => {
+    posthog?.reset();
+  });
 }
 
 export function hasOptedInToAnalytics() {
-  return isEnabled() && posthog.has_opted_in_capturing();
+  return isEnabled() && (posthogClient?.has_opted_in_capturing() ?? false);
 }
 
 export function optInToAnalytics() {
@@ -89,7 +117,9 @@ export function optInToAnalytics() {
     return;
   }
 
-  posthog.opt_in_capturing();
+  void getPostHog().then((posthog) => {
+    posthog?.opt_in_capturing();
+  });
 }
 
 export function optOutOfAnalytics() {
@@ -97,7 +127,9 @@ export function optOutOfAnalytics() {
     return;
   }
 
-  posthog.opt_out_capturing();
+  void getPostHog().then((posthog) => {
+    posthog?.opt_out_capturing();
+  });
 }
 
 export function isAnalyticsConfigured() {

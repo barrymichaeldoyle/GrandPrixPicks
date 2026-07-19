@@ -22,6 +22,8 @@ export function initAnalytics() {
     capture_pageview: false,
     capture_pageleave: true,
     opt_out_capturing_by_default: true,
+    // We don't run PostHog surveys; skip the extra surveys.js download.
+    disable_surveys: true,
   });
   initialized = true;
   return true;

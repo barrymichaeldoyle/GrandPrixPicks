@@ -129,7 +129,7 @@ export function SeasonStrip({
                     isCurrent
                       ? 'text-accent'
                       : isPast
-                        ? 'text-text-muted/55'
+                        ? 'text-text-muted/80'
                         : 'text-text-muted'
                   }`}
                 >

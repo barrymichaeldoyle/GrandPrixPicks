@@ -27,6 +27,7 @@ import type * as emails_urls from "../emails/urls.js";
 import type * as feed from "../feed.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
+import type * as home from "../home.js";
 import type * as inAppNotifications from "../inAppNotifications.js";
 import type * as leaderboards from "../leaderboards.js";
 import type * as leagues from "../leagues.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   feed: typeof feed;
   follows: typeof follows;
   h2h: typeof h2h;
+  home: typeof home;
   inAppNotifications: typeof inAppNotifications;
   leaderboards: typeof leaderboards;
   leagues: typeof leagues;

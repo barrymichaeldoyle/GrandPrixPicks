@@ -119,7 +119,7 @@ export function SessionRow({
       <span
         className={`shrink-0 text-sm tabular-nums ${
           status === 'finished'
-            ? 'text-text-muted/45'
+            ? 'text-text-muted/80'
             : status === 'in_progress' || isNext
               ? 'font-semibold text-accent'
               : 'text-text-muted'

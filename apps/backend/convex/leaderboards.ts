@@ -85,7 +85,7 @@ async function getFollowedUserIds(
   return followedUserIds;
 }
 
-async function getDefaultLeaderboardSeason(ctx: QueryCtx) {
+export async function getDefaultLeaderboardSeason(ctx: QueryCtx) {
   const now = Date.now();
   const nextUpcomingRace = await ctx.db
     .query('races')
@@ -105,7 +105,7 @@ async function getDefaultLeaderboardSeason(ctx: QueryCtx) {
   return latestRace?.season ?? 2026;
 }
 
-async function loadCombinedSeasonRows(
+export async function loadCombinedSeasonRows(
   ctx: QueryCtx,
   params: {
     season: number;

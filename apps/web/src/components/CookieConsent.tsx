@@ -18,33 +18,39 @@ interface CookieConsentProps {
   forceVisible?: boolean;
 }
 
+function readStoredDecision(): boolean {
+  if (!isAnalyticsConfigured()) {
+    return true;
+  }
+  try {
+    const stored = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (stored === 'accepted' || stored === 'declined') {
+      return true;
+    }
+  } catch {
+    // Continue and fall back to PostHog opt-in state.
+  }
+  if (hasOptedInToAnalytics()) {
+    try {
+      window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    } catch {
+      // Ignore storage errors and continue.
+    }
+    return true;
+  }
+  return false;
+}
+
 export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
   const bannerRef = useRef<HTMLDivElement>(null);
-  const [decided, setDecided] = useState(() => {
-    if (typeof window === 'undefined') {
-      return true;
-    }
-    if (!isAnalyticsConfigured()) {
-      return true;
-    }
-    try {
-      const stored = window.localStorage.getItem(COOKIE_CONSENT_KEY);
-      if (stored === 'accepted' || stored === 'declined') {
-        return true;
-      }
-    } catch {
-      // Continue and fall back to PostHog opt-in state.
-    }
-    if (hasOptedInToAnalytics()) {
-      try {
-        window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
-      } catch {
-        // Ignore storage errors and continue.
-      }
-      return true;
-    }
-    return false;
-  });
+  // Start hidden and only read localStorage after mount: the server renders no
+  // banner, so rendering it during hydration is a mismatch that makes React
+  // throw away and re-render the whole tree (minified error #418).
+  const [decided, setDecided] = useState(true);
+
+  useEffect(() => {
+    setDecided(readStoredDecision());
+  }, []);
 
   useEffect(() => {
     if (!forceVisible && decided) {

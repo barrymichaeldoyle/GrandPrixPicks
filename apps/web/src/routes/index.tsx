@@ -13,7 +13,6 @@ import {
   Users,
 } from 'lucide-react';
 
-import type { SessionType } from '@/lib/sessions';
 import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { FaqItem, FaqSection } from '@/components/Faq';
@@ -22,6 +21,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
+import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
 import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
@@ -47,61 +47,23 @@ const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
 export const Route = createFileRoute('/')({
   component: HomePage,
   loader: async () => {
-    const now = Date.now();
+    await setHomeCacheHeaders();
+
     // A flaky mobile connection (or a request dropped by a fast navigation)
-    // makes a single Convex query reject with a transient network error; left
+    // makes a Convex query reject with a transient network error; left
     // unhandled it would swap the whole home page for the error boundary. Retry
-    // each query so a momentary blip self-heals — genuine outages still throw.
-    const [nextRace, races, topPlayers] = await Promise.all([
-      withRetry(() => convex.query(api.races.getNextRace)),
-      withRetry(() => convex.query(api.races.listRaces, {})),
-      withRetry(() =>
-        convex.query(api.leaderboards.getCombinedSeasonLeaderboard, {
-          limit: 10,
-        }),
-      ),
-    ]);
-
-    const startedRaces = races
-      .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')
-      .sort((a, b) => b.raceStartAt - a.raceStartAt);
-    const mostRecentStartedRace = startedRaces[0] ?? null;
-
-    // Social proof reflects the most recent race that actually has scored
-    // players — not just the most recent started race, which may not be scored
-    // yet (mid-weekend) or may be a dev-only scenario race with no entries.
-    const scoredCandidates = startedRaces.slice(0, 6);
-
-    const [nextRaceResults, recentRaceResults, candidateLeaderboards] =
-      await Promise.all([
-        nextRace
-          ? withRetry(() =>
-              convex.query(api.results.getAllResultsForRace, {
-                raceId: nextRace._id,
-              }),
-            )
-          : Promise.resolve([] as SessionType[]),
-        mostRecentStartedRace
-          ? withRetry(() =>
-              convex.query(api.results.getAllResultsForRace, {
-                raceId: mostRecentStartedRace._id,
-              }),
-            )
-          : Promise.resolve([] as SessionType[]),
-        Promise.all(
-          scoredCandidates.map((race) =>
-            withRetry(() =>
-              convex.query(api.leaderboards.getCombinedRaceLeaderboard, {
-                raceId: race._id,
-              }),
-            ),
-          ),
-        ),
-      ]);
-
-    const recentRacePlayerCount =
-      candidateLeaderboards.find((lb) => lb.entries.length > 0)?.entries
-        .length ?? 0;
+    // so a momentary blip self-heals — genuine outages still throw. Everything
+    // the page needs comes back in one round trip; issuing the underlying
+    // queries individually from the SSR worker dominated time to first byte.
+    const {
+      nextRace,
+      races,
+      mostRecentStartedRace,
+      nextRaceResults,
+      recentRaceResults,
+      recentRacePlayerCount,
+      topPlayers,
+    } = await withRetry(() => convex.query(api.home.getHomePageData));
 
     return {
       nextRace,
@@ -110,8 +72,8 @@ export const Route = createFileRoute('/')({
       recentRaceResults,
       recentRacePlayerCount,
       races,
-      topPlayers: topPlayers.entries,
-      now,
+      topPlayers,
+      now: Date.now(),
     };
   },
   head: () =>
@@ -461,7 +423,7 @@ function HomePage() {
                 </p>
                 <div className="flex items-center gap-3">
                   <span
-                    className="text-xs text-text-muted/55 tabular-nums"
+                    className="text-xs text-text-muted/80 tabular-nums"
                     suppressHydrationWarning
                   >
                     {
@@ -486,7 +448,7 @@ function HomePage() {
                   ({ dayKey, dayLabel, sessions: daySessions }) => (
                     <div key={dayKey}>
                       <p
-                        className="mb-1 text-xs font-semibold text-text-muted/60"
+                        className="mb-1 text-xs font-semibold text-text-muted/80"
                         suppressHydrationWarning
                       >
                         {dayLabel}

@@ -24,8 +24,8 @@ export const colors = {
   accent: '#14b8a6', // --accent (general use: icons, highlights)
   accentHover: '#2dd4bf', // --accent-hover
   accentMuted: '#134e4a', // --accent-muted (dark bg tint)
-  buttonAccent: '#0d9488', // --button-accent (buttons in dark mode — intentionally darker)
-  buttonAccentHover: '#0f766e', // --button-accent-hover
+  buttonAccent: '#0f766e', // --button-accent (buttons in dark mode — dark enough for 4.5:1 white text)
+  buttonAccentHover: '#115e59', // --button-accent-hover
 
   // Semantic
   error: '#f87171',

@@ -59,11 +59,15 @@ export function Flag({ code, size = 'sm', className = '' }: FlagProps) {
   // Render the img directly (no wrapper span) so flex stretching cascades and
   // Tailwind's preflight `max-width: 100%` doesn't conflict with an
   // inline-block parent whose width depends on the img itself.
+  // width/height are a nominal 4:3 pre-load hint (flag ratios vary); the
+  // loaded SVG's own aspect ratio wins via h-full w-auto.
   if (size === 'full') {
     return (
       <img
         src={src}
         alt=""
+        width={40}
+        height={30}
         className={`block h-full w-auto max-w-none object-contain ${className}`}
         loading="eager"
         decoding="sync"

@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { Crown } from 'lucide-react';
 
+import { sizedAvatarUrl } from '@/lib/avatar';
+
 type TopPlayer = {
   rank: number;
   userId: string;
@@ -63,8 +65,10 @@ export function LeaderboardTeaser({
               )}
               {p.avatarUrl ? (
                 <img
-                  src={p.avatarUrl}
+                  src={sizedAvatarUrl(p.avatarUrl, 32)}
                   alt=""
+                  width={32}
+                  height={32}
                   className="h-8 w-8 shrink-0 rounded-full object-cover"
                   loading="lazy"
                   decoding="async"

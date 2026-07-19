@@ -1,5 +1,7 @@
 import { ArrowUpRight, Crown, UserCheck, UserPlus } from 'lucide-react';
 
+import { sizedAvatarUrl } from '@/lib/avatar';
+
 import { Tooltip } from './Tooltip';
 
 export type LeagueMembersListItem = {
@@ -141,8 +143,12 @@ export function LeagueMembersList({
             className: 'shrink-0',
             children: member.avatarUrl ? (
               <img
-                src={member.avatarUrl}
+                src={sizedAvatarUrl(member.avatarUrl, 32)}
                 alt={member.displayName}
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
                 className={`h-8 w-8 rounded-full object-cover ${
                   member.isViewer
                     ? 'ring-2 ring-accent/30 ring-offset-2 ring-offset-surface'

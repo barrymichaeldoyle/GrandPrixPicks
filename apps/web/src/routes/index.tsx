@@ -1,6 +1,5 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { motion } from 'framer-motion';
 import {
   ArrowRight,
   CheckCircle2,
@@ -27,7 +26,6 @@ import { pageMeta } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 import { convexHttp as convex } from '@/integrations/convex/client';
 
-import { fadeUp } from './-home/animations';
 import { BigCountdown } from './-home/HeroCountdown';
 import { HeroSpeedLines } from './-home/HeroSpeedLines';
 import { HowItWorksStrip } from './-home/HowItWorksStrip';
@@ -165,13 +163,12 @@ function HomePage() {
           <HeroSpeedLines />
           <div className="relative mx-auto w-full max-w-5xl">
             {/* Featured race becomes the visual hero (better SEO + identity) */}
+            {/* CSS reveal, not framer-motion: the hero holds the LCP element,
+                and a JS-driven entrance leaves it at opacity 0 until hydration
+                finishes (~1s of LCP on throttled mobile). reveal-up starts the
+                moment the browser paints. */}
             {featuredRace && (
-              <motion.div
-                className="mx-auto flex max-w-4xl flex-col items-center text-center"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              >
+              <div className="reveal-up mx-auto flex max-w-4xl flex-col items-center text-center">
                 {/* Brand eyebrow — instantly says what the site is */}
                 <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
                   <Flag
@@ -361,12 +358,12 @@ function HomePage() {
                     </Button>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
             {/* No race at all — fall back to brand-led hero */}
             {!featuredRace && (
-              <motion.div {...fadeUp} className="mx-auto max-w-3xl text-center">
+              <div className="reveal-up mx-auto max-w-3xl text-center">
                 <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
                   <Flag
                     className="h-3.5 w-3.5 shrink-0"
@@ -401,7 +398,7 @@ function HomePage() {
                     <Link to="/leagues/create">Create a League</Link>
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
         </section>

@@ -325,7 +325,9 @@ export function Header({
               aria-controls="mobile-nav"
               whileTap={{ scale: 0.9 }}
             >
-              <AnimatePresence mode="wait">
+              {/* initial={false}: animate the Menu↔X swap only — the initial
+                  rotate/fade would leave the icon invisible until hydration */}
+              <AnimatePresence mode="wait" initial={false}>
                 {mobileMenuOpen ? (
                   <motion.div
                     key="close"

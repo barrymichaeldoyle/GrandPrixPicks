@@ -576,7 +576,7 @@ export const getUserH2HDetailedPicks = query({
       .take(MAX_H2H_MATCHUPS);
 
     // Build driver cache
-    const driverIds = new Set<string>();
+    const driverIds = new Set<Id<'drivers'>>();
     for (const m of matchups) {
       driverIds.add(m.driver1Id);
       driverIds.add(m.driver2Id);
@@ -593,7 +593,7 @@ export const getUserH2HDetailedPicks = query({
       }
     >();
     const drivers = await Promise.all(
-      [...driverIds].map((id) => ctx.db.get(id as Id<'drivers'>)),
+      [...driverIds].map((id) => ctx.db.get(id)),
     );
     for (const d of drivers) {
       if (d) {

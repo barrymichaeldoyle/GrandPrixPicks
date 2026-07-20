@@ -818,17 +818,56 @@ export const getProfileByUsername = query({
   },
 });
 
+/**
+ * Count how many of a user's predicted weekends are visible to a given viewer.
+ *
+ * Only weekends whose race has already left `upcoming` (locked or finished) are
+ * publicly countable — counting a still-`upcoming` (unlocked) weekend would leak
+ * that the user has submitted picks before the session locks, i.e. pre-lock
+ * competitive intelligence. Owners viewing their own stats see every weekend.
+ */
+export function countVisibleWeekends(
+  raceStatuses: string[],
+  isOwner: boolean,
+): number {
+  if (isOwner) {
+    return raceStatuses.length;
+  }
+  return raceStatuses.filter((status) => status !== 'upcoming').length;
+}
+
+/** Load the statuses of every race a user has predicted, then apply visibility. */
+async function countPredictedWeekends(
+  ctx: QueryCtx,
+  userId: Id<'users'>,
+  isOwner: boolean,
+): Promise<number> {
+  const weekendRaceIds = new Set<Id<'races'>>();
+  for await (const prediction of ctx.db
+    .query('predictions')
+    .withIndex('by_user', (q) => q.eq('userId', userId))) {
+    weekendRaceIds.add(prediction.raceId);
+  }
+
+  const raceStatuses: string[] = [];
+  for (const raceId of weekendRaceIds) {
+    const race = await ctx.db.get(raceId);
+    if (race) {
+      raceStatuses.push(race.status);
+    }
+  }
+  return countVisibleWeekends(raceStatuses, isOwner);
+}
+
 export const getUserStats = query({
   args: { userId: v.id('users') },
   handler: async (ctx, args) => {
-    // Count unique race weekends with predictions
-    const weekendRaceIds = new Set<Id<'races'>>();
-    for await (const prediction of ctx.db
-      .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', args.userId))) {
-      weekendRaceIds.add(prediction.raceId);
-    }
-    const weekendCount = weekendRaceIds.size;
+    const viewer = await getViewer(ctx);
+    const isOwner = viewer?._id === args.userId;
+
+    // Count unique race weekends with predictions. Non-owners only see
+    // locked/finished weekends to avoid leaking pre-lock participation.
+    const weekendCount = await countPredictedWeekends(ctx, args.userId, isOwner);
 
     // Read from materialized standings instead of full table scans
     const season = await getCurrentSeason(ctx);
@@ -963,14 +1002,9 @@ export const getProfileOgData = query({
 
     const season = await getCurrentSeason(ctx);
 
-    // Count unique race weekends with predictions
-    const weekendRaceIds = new Set<Id<'races'>>();
-    for await (const prediction of ctx.db
-      .query('predictions')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))) {
-      weekendRaceIds.add(prediction.raceId);
-    }
-    const weekendCount = weekendRaceIds.size;
+    // OG cards are fully public, so only count locked/finished weekends to
+    // avoid leaking pre-lock participation for the open weekend.
+    const weekendCount = await countPredictedWeekends(ctx, user._id, false);
 
     // Get season standing
     const userStanding = await ctx.db

@@ -22,17 +22,19 @@ async function loadFollowedActorIds(
 ) {
   const followedIds = new Set<Id<'users'>>();
 
-  for (const actorId of actorIds) {
-    const existing = await ctx.db
-      .query('follows')
-      .withIndex('by_follower_followee', (q) =>
-        q.eq('followerId', viewerId).eq('followeeId', actorId),
-      )
-      .unique();
-    if (existing) {
-      followedIds.add(actorId);
-    }
-  }
+  await Promise.all(
+    [...actorIds].map(async (actorId) => {
+      const existing = await ctx.db
+        .query('follows')
+        .withIndex('by_follower_followee', (q) =>
+          q.eq('followerId', viewerId).eq('followeeId', actorId),
+        )
+        .unique();
+      if (existing) {
+        followedIds.add(actorId);
+      }
+    }),
+  );
 
   return followedIds;
 }

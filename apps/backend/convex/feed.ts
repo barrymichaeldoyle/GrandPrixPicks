@@ -632,13 +632,18 @@ async function buildSessionHeaders(
   const top5ByKey = new Map<string, Array<Id<'drivers'>>>();
   const driverIdsNeeded = new Set<Id<'drivers'>>();
 
-  for (const [key, { raceId, sessionType }] of combos) {
-    const result = await ctx.db
-      .query('results')
-      .withIndex('by_race_session', (q) =>
-        q.eq('raceId', raceId).eq('sessionType', sessionType),
-      )
-      .unique();
+  const comboResults = await Promise.all(
+    [...combos].map(async ([key, { raceId, sessionType }]) => {
+      const result = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', raceId).eq('sessionType', sessionType),
+        )
+        .unique();
+      return [key, result] as const;
+    }),
+  );
+  for (const [key, result] of comboResults) {
     if (result) {
       const top5 = result.classification.slice(0, 5);
       top5ByKey.set(key, top5);
@@ -658,10 +663,12 @@ async function buildSessionHeaders(
       nationality?: string;
     }
   >();
-  for (const driverId of driverIdsNeeded) {
-    const driver = await ctx.db.get(driverId);
+  const drivers = await Promise.all(
+    [...driverIdsNeeded].map((driverId) => ctx.db.get(driverId)),
+  );
+  for (const driver of drivers) {
     if (driver) {
-      driverMap.set(String(driverId), {
+      driverMap.set(String(driver._id), {
         code: driver.code,
         displayName: driver.displayName,
         team: driver.team,
@@ -766,10 +773,12 @@ async function enrichScoreEvent(
         nationality?: string;
       }
     >();
-    for (const driverId of driverIds) {
-      const driver = await ctx.db.get(driverId);
+    const drivers = await Promise.all(
+      driverIds.map((driverId) => ctx.db.get(driverId)),
+    );
+    for (const driver of drivers) {
       if (driver) {
-        driverMap.set(String(driverId), {
+        driverMap.set(String(driver._id), {
           code: driver.code,
           team: driver.team,
           displayName: driver.displayName,
@@ -826,18 +835,20 @@ async function enrichScoreEvent(
         nationality?: string;
       }
     >();
-    for (const pick of score.breakdown) {
-      const id = String(pick.driverId);
-      if (!driverMap.has(id)) {
-        const driver = await ctx.db.get(pick.driverId);
-        if (driver) {
-          driverMap.set(id, {
-            code: driver.code,
-            team: driver.team,
-            displayName: driver.displayName,
-            nationality: driver.nationality,
-          });
-        }
+    const breakdownDriverIds = [
+      ...new Set(score.breakdown.map((pick) => pick.driverId)),
+    ];
+    const breakdownDrivers = await Promise.all(
+      breakdownDriverIds.map((driverId) => ctx.db.get(driverId)),
+    );
+    for (const driver of breakdownDrivers) {
+      if (driver) {
+        driverMap.set(String(driver._id), {
+          code: driver.code,
+          team: driver.team,
+          displayName: driver.displayName,
+          nationality: driver.nationality,
+        });
       }
     }
     picks = score.breakdown.map((pick) => {

@@ -1,6 +1,4 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
-import { convexHttp } from '@/integrations/convex/client';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -8,9 +6,10 @@ import {
   HeadContent,
   Link,
   Scripts,
+  useLocation,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { useMutation } from 'convex/react';
+import { ConvexProvider } from 'convex/react';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -25,8 +24,12 @@ import {
   fetchInitialAuth,
   InitialAuthProvider,
 } from '@/integrations/clerk/initial-auth';
-import { AppClerkProvider } from '@/integrations/clerk/provider';
-import { AppConvexProvider } from '@/integrations/convex/provider';
+import {
+  ClerkRuntimeControlProvider,
+  useClerkRuntimeControl,
+} from '@/integrations/clerk/runtime-control';
+import { ViewerSessionProvider } from '@/integrations/clerk/viewer-session-context';
+import { convex, convexHttp } from '@/integrations/convex/client';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { siteConfig } from '@/lib/site';
@@ -37,9 +40,19 @@ const DeferredShellFeatures = lazy(() =>
     default: module.DeferredShellFeatures,
   })),
 );
+const DeferredObservabilityUserSync = lazy(() =>
+  import('@/integrations/clerk/runtime-bundle').then((module) => ({
+    default: module.DeferredObservabilityUserSync,
+  })),
+);
 const DeferredPredictionBanner = lazy(() =>
-  import('@/components/DeferredGlobalFeatures').then((module) => ({
+  import('@/integrations/clerk/runtime-bundle').then((module) => ({
     default: module.DeferredPredictionBanner,
+  })),
+);
+const AuthenticatedAppRuntime = lazy(() =>
+  import('@/integrations/clerk/runtime-bundle').then((module) => ({
+    default: module.AuthenticatedAppRuntime,
   })),
 );
 
@@ -199,27 +212,9 @@ export function NotFoundPage() {
   );
 }
 
-/** Syncs the user's Clerk profile to Convex once per app load. */
-function ProfileSync() {
-  const { isSignedIn } = useAuth();
-  const syncProfile = useMutation(api.users.syncProfile);
-  const hasSynced = useRef(false);
-
-  useEffect(() => {
-    if (isSignedIn && !hasSynced.current) {
-      hasSynced.current = true;
-      void syncProfile({
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        locale: navigator.language,
-      });
-    }
-  }, [isSignedIn, syncProfile]);
-
-  return null;
-}
-
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth, nextRace } = Route.useLoaderData();
+  const pathname = useLocation({ select: (location) => location.pathname });
   const mainRef = useRef<HTMLDivElement>(null);
   const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
@@ -248,62 +243,182 @@ function RootDocument({ children }: PropsWithChildren) {
           <div className="app-atmosphere-field absolute inset-0" />
           <div className="app-atmosphere-grain absolute inset-0" />
         </div>
-        <AppClerkProvider darkMode={true}>
-          <AppConvexProvider>
-            <InitialAuthProvider value={initialAuth}>
-              <ProfileSync />
-              <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
-                <a
-                  href="#main-content"
-                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
-                >
-                  Skip to main content
-                </a>
-                <Header
-                  mobileMenuOpen={mobileMenuOpen}
-                  onMobileMenuOpenChange={onMobileMenuOpenChange}
-                  initialNextRace={nextRace}
-                />
-                <OfflineBanner />
-                <DeferredFeaturesBoundary>
-                  <DeferredShellFeatures />
-                </DeferredFeaturesBoundary>
-                <div
-                  ref={mainRef}
-                  className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
-                >
-                  <ScrollToTop scrollContainerRef={mainRef} />
-                  <div className="flex min-h-full flex-col">
-                    <DeferredFeaturesBoundary>
-                      <DeferredPredictionBanner />
-                    </DeferredFeaturesBoundary>
-                    <main id="main-content" className="min-h-0 flex-1">
-                      <ErrorBoundary>{children}</ErrorBoundary>
-                    </main>
-                    <Footer />
-                  </div>
-                  <TanStackDevtools
-                    config={{
-                      position: 'bottom-right',
-                      openHotkey: ['CtrlOrMeta', 'A'],
-                    }}
-                    plugins={[
-                      {
-                        name: 'Tanstack Router',
-                        render: <TanStackRouterDevtoolsPanel />,
-                      },
-                      TanStackQueryDevtools,
-                    ]}
-                  />
+        <InitialAuthProvider value={initialAuth}>
+          <AppRuntimeBoundary
+            initialSignedIn={initialAuth.isSignedIn}
+            pathname={pathname}
+          >
+            <AuthenticatedDeferredFeature>
+              <DeferredObservabilityUserSync />
+            </AuthenticatedDeferredFeature>
+            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
+              >
+                Skip to main content
+              </a>
+              <Header
+                mobileMenuOpen={mobileMenuOpen}
+                onMobileMenuOpenChange={onMobileMenuOpenChange}
+                initialNextRace={nextRace}
+              />
+              <OfflineBanner />
+              <DeferredFeaturesBoundary>
+                <DeferredShellFeatures />
+              </DeferredFeaturesBoundary>
+              <div
+                ref={mainRef}
+                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+              >
+                <ScrollToTop scrollContainerRef={mainRef} />
+                <div className="flex min-h-full flex-col">
+                  <AuthenticatedDeferredFeature>
+                    <DeferredPredictionBanner />
+                  </AuthenticatedDeferredFeature>
+                  <main id="main-content" className="min-h-0 flex-1">
+                    <ErrorBoundary>{children}</ErrorBoundary>
+                  </main>
+                  <Footer />
                 </div>
+                <TanStackDevtools
+                  config={{
+                    position: 'bottom-right',
+                    openHotkey: ['CtrlOrMeta', 'A'],
+                  }}
+                  plugins={[
+                    {
+                      name: 'Tanstack Router',
+                      render: <TanStackRouterDevtoolsPanel />,
+                    },
+                    TanStackQueryDevtools,
+                  ]}
+                />
               </div>
-            </InitialAuthProvider>
-          </AppConvexProvider>
-        </AppClerkProvider>
+            </div>
+          </AppRuntimeBoundary>
+        </InitialAuthProvider>
         <Scripts />
       </body>
     </html>
   );
+}
+
+function AppRuntimeBoundary({
+  children,
+  initialSignedIn,
+  pathname,
+}: PropsWithChildren<{
+  initialSignedIn: boolean;
+  pathname: string;
+}>) {
+  const [runtimeRequested, setRuntimeRequested] = useState(false);
+  const [openSignInOnMount, setOpenSignInOnMount] = useState(false);
+  const runtimeActive = initialSignedIn || pathname !== '/' || runtimeRequested;
+
+  useEffect(() => {
+    const fromClerk =
+      document.referrer.length > 0 &&
+      (() => {
+        try {
+          return new URL(document.referrer).hostname.endsWith('accounts.dev');
+        } catch {
+          return false;
+        }
+      })();
+    const hasClerkCallback = Array.from(
+      new URLSearchParams(window.location.search).keys(),
+    ).some((key) => key.startsWith('__clerk'));
+
+    if (fromClerk || hasClerkCallback) {
+      setRuntimeRequested(true);
+    }
+  }, []);
+
+  function requestSignIn() {
+    setOpenSignInOnMount(true);
+    setRuntimeRequested(true);
+  }
+  function signInOpened() {
+    setOpenSignInOnMount(false);
+  }
+  const runtimeControl = {
+    active: runtimeActive,
+    openSignInOnMount,
+    requestSignIn,
+    signInOpened,
+  };
+
+  if (!runtimeActive) {
+    return (
+      <AnonymousAppRuntime
+        requestSignIn={requestSignIn}
+        signInOpened={signInOpened}
+      >
+        {children}
+      </AnonymousAppRuntime>
+    );
+  }
+
+  return (
+    <ClerkRuntimeControlProvider value={runtimeControl}>
+      <Suspense
+        fallback={
+          pathname === '/' ? (
+            <AnonymousAppRuntime
+              disabled
+              requestSignIn={requestSignIn}
+              signInOpened={signInOpened}
+            >
+              {children}
+            </AnonymousAppRuntime>
+          ) : null
+        }
+      >
+        <AuthenticatedAppRuntime>{children}</AuthenticatedAppRuntime>
+      </Suspense>
+    </ClerkRuntimeControlProvider>
+  );
+}
+
+function AnonymousAppRuntime({
+  children,
+  disabled = false,
+  requestSignIn,
+  signInOpened,
+}: PropsWithChildren<{
+  disabled?: boolean;
+  requestSignIn: () => void;
+  signInOpened: () => void;
+}>) {
+  const runtimeControl = {
+    active: false,
+    openSignInOnMount: false,
+    requestSignIn: disabled ? () => undefined : requestSignIn,
+    signInOpened,
+  };
+
+  return (
+    <ClerkRuntimeControlProvider value={runtimeControl}>
+      <ViewerSessionProvider
+        value={{
+          isSignedIn: false,
+          confirmedSignedIn: false,
+          isLoaded: true,
+        }}
+      >
+        <ConvexProvider client={convex}>{children}</ConvexProvider>
+      </ViewerSessionProvider>
+    </ClerkRuntimeControlProvider>
+  );
+}
+
+function AuthenticatedDeferredFeature({ children }: PropsWithChildren) {
+  const { active } = useClerkRuntimeControl();
+  if (!active) {
+    return null;
+  }
+  return <DeferredFeaturesBoundary>{children}</DeferredFeaturesBoundary>;
 }
 
 function DeferredFeaturesBoundary({ children }: PropsWithChildren) {

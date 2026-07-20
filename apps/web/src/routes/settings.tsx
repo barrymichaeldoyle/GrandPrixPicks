@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
@@ -7,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { PageHero } from '@/components/PageHero';
 import { PageLoader } from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { NotificationsSection } from './settings/-components/NotificationsSection';
@@ -46,7 +46,7 @@ const SEASON_PASS_SEASON = 2026;
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 
 function SettingsPage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
   const navigate = useNavigate();
   const search = Route.useSearch();
 

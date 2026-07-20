@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -6,6 +5,8 @@ import { Crown, Globe, LogIn, Plus, Search, Shield, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHero } from '@/components/PageHero';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
@@ -22,7 +23,7 @@ export const Route = createFileRoute('/leagues/')({
 });
 
 function LeaguesPage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
 
   if (!isLoaded) {
     return <PageLoader />;
@@ -169,11 +170,11 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               Sign in to create leagues and track your standings with other
               players.
             </p>
-            <SignInButton mode="modal">
+            <AppSignInButton mode="modal">
               <Button className="mt-4" leftIcon={LogIn} size="sm">
                 Sign In
               </Button>
-            </SignInButton>
+            </AppSignInButton>
           </div>
         ) : null}
 

@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -311,7 +310,7 @@ export function FeedContent() {
 }
 
 function FeedPage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
 
   return (
     <div className="min-h-full bg-page">
@@ -355,3 +354,4 @@ function FeedPage() {
     </div>
   );
 }
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';

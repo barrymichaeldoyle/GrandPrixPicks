@@ -76,7 +76,9 @@ const config = defineConfig(({ mode }) => {
               return 'framer';
             }
             if (id.includes('@clerk')) {
-              return 'clerk';
+              // Keep Clerk with its lazy runtime entry. Assigning it to a
+              // manual shared chunk makes the root route preload that chunk.
+              return;
             }
             if (id.includes('convex')) {
               return 'convex';
@@ -84,7 +86,11 @@ const config = defineConfig(({ mode }) => {
             if (id.includes('@tanstack')) {
               return 'tanstack';
             }
-            if (id.includes('react-dom') || id.includes('react/')) {
+            if (
+              id.includes('/node_modules/react/') ||
+              id.includes('/node_modules/react-dom/') ||
+              id.includes('/node_modules/scheduler/')
+            ) {
               return 'react';
             }
             if (id.includes('@sentry')) {

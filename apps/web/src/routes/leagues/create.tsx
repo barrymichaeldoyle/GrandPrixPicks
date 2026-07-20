@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
@@ -9,6 +8,8 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHero } from '@/components/PageHero';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/leagues/create')({
 });
 
 function CreateLeaguePage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
 
   if (!isLoaded) {
     return <PageLoader />;
@@ -41,9 +42,9 @@ function CreateLeaguePage() {
               Sign In Required
             </h1>
             <p className="mb-4 text-text-muted">Sign in to create a league.</p>
-            <SignInButton mode="modal">
+            <AppSignInButton mode="modal">
               <Button size="sm">Sign In</Button>
-            </SignInButton>
+            </AppSignInButton>
           </div>
         </div>
       </div>

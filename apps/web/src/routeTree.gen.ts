@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -42,6 +43,11 @@ const TermsRoute = TermsRouteImport.update({
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/sign-in'
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/sign-in'
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/settings'
+    | '/sign-in'
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
@@ -323,6 +335,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   SettingsRoute: typeof SettingsRoute
+  SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   LeaguesSlugRoute: typeof LeaguesSlugRouteWithChildren
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -556,6 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   SettingsRoute: SettingsRoute,
+  SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   LeaguesSlugRoute: LeaguesSlugRouteWithChildren,

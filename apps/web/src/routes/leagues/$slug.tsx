@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import {
   createFileRoute,
@@ -11,6 +10,8 @@ import { useQuery } from 'convex/react';
 import { ArrowLeft, LogIn, Shield } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
@@ -90,7 +91,7 @@ function LeagueDetailPage() {
   }
 
   const { slug } = Route.useParams();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
   const league = useQuery(api.leagues.getLeagueBySlug, { slug });
   const currentLeagueUrl =
     typeof window === 'undefined'
@@ -140,13 +141,13 @@ function LeagueDetailPage() {
               </p>
             )}
             <p className="mb-4 text-text-muted">Sign in to join this league.</p>
-            <SignInButton
+            <AppSignInButton
               mode="modal"
               fallbackRedirectUrl={currentLeagueUrl}
               signUpFallbackRedirectUrl={currentLeagueUrl}
             >
               <Button size="sm">Sign In</Button>
-            </SignInButton>
+            </AppSignInButton>
           </div>
         </div>
       </div>

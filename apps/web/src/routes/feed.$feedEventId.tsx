@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -121,7 +120,7 @@ function FeedEventSkeleton() {
 
 function FeedEventPage() {
   const { feedEventId } = Route.useParams();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useViewerSession();
   const me = useQuery(api.users.me, {});
 
   const feedEvent = useQuery(
@@ -184,3 +183,4 @@ function FeedEventPage() {
     </div>
   );
 }
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';

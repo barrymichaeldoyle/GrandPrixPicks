@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -22,7 +21,7 @@ export const Route = createFileRoute('/p/$username/following')({
 
 function FollowingPage() {
   const { username } = Route.useParams();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
 
   const me = useQuery(api.users.me);
   const profile = useQuery(api.users.getProfileByUsername, { username });
@@ -56,3 +55,4 @@ function FollowingPage() {
     />
   );
 }
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';

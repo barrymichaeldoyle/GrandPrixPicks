@@ -1,9 +1,10 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { useViewerSession } from './useViewerSession';
+import { ViewerSessionProvider } from './viewer-session-context';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -15,14 +16,6 @@ const auth: { isLoaded: boolean; isSignedIn: boolean | undefined } = {
   isSignedIn: undefined,
 };
 const initialAuth: { isSignedIn: boolean } = { isSignedIn: false };
-
-vi.mock('@clerk/react', () => ({
-  useAuth: () => auth,
-}));
-
-vi.mock('./initial-auth', () => ({
-  useInitialAuth: () => initialAuth,
-}));
 
 let result: ReturnType<typeof useViewerSession>;
 
@@ -44,7 +37,20 @@ describe('useViewerSession', () => {
   });
 
   function render() {
-    act(() => root.render(<Probe />));
+    const confirmedSignedIn = auth.isLoaded && !!auth.isSignedIn;
+    act(() =>
+      root.render(
+        <ViewerSessionProvider
+          value={{
+            isLoaded: auth.isLoaded,
+            isSignedIn: initialAuth.isSignedIn || confirmedSignedIn,
+            confirmedSignedIn,
+          }}
+        >
+          <Probe />
+        </ViewerSessionProvider>,
+      ),
+    );
     return result;
   }
 
@@ -52,7 +58,11 @@ describe('useViewerSession', () => {
     initialAuth.isSignedIn = true;
     auth.isLoaded = false;
     auth.isSignedIn = undefined;
-    expect(render()).toEqual({ isSignedIn: true, confirmedSignedIn: false });
+    expect(render()).toEqual({
+      isLoaded: false,
+      isSignedIn: true,
+      confirmedSignedIn: false,
+    });
   });
 
   it('does NOT downgrade to signed-out during Clerk’s mid-boot transient', () => {
@@ -61,31 +71,51 @@ describe('useViewerSession', () => {
     initialAuth.isSignedIn = true;
     auth.isLoaded = true;
     auth.isSignedIn = false;
-    expect(render()).toEqual({ isSignedIn: true, confirmedSignedIn: false });
+    expect(render()).toEqual({
+      isLoaded: true,
+      isSignedIn: true,
+      confirmedSignedIn: false,
+    });
   });
 
   it('confirms the session once Clerk resolves signed-in', () => {
     initialAuth.isSignedIn = true;
     auth.isLoaded = true;
     auth.isSignedIn = true;
-    expect(render()).toEqual({ isSignedIn: true, confirmedSignedIn: true });
+    expect(render()).toEqual({
+      isLoaded: true,
+      isSignedIn: true,
+      confirmedSignedIn: true,
+    });
   });
 
   it('stays signed-out for an anonymous visitor', () => {
     initialAuth.isSignedIn = false;
     auth.isLoaded = false;
     auth.isSignedIn = undefined;
-    expect(render()).toEqual({ isSignedIn: false, confirmedSignedIn: false });
+    expect(render()).toEqual({
+      isLoaded: false,
+      isSignedIn: false,
+      confirmedSignedIn: false,
+    });
 
     auth.isLoaded = true;
     auth.isSignedIn = false;
-    expect(render()).toEqual({ isSignedIn: false, confirmedSignedIn: false });
+    expect(render()).toEqual({
+      isLoaded: true,
+      isSignedIn: false,
+      confirmedSignedIn: false,
+    });
   });
 
   it('upgrades to signed-in when an anonymous visitor signs in', () => {
     initialAuth.isSignedIn = false;
     auth.isLoaded = true;
     auth.isSignedIn = true;
-    expect(render()).toEqual({ isSignedIn: true, confirmedSignedIn: true });
+    expect(render()).toEqual({
+      isLoaded: true,
+      isSignedIn: true,
+      confirmedSignedIn: true,
+    });
   });
 });

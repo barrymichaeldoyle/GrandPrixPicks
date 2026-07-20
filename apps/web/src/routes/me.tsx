@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
@@ -6,6 +5,8 @@ import { LogIn } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
 
@@ -22,7 +23,7 @@ export const Route = createFileRoute('/me')({
 });
 
 function MyPredictionsPage() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const navigate = useNavigate();
 
@@ -53,9 +54,9 @@ function MyPredictionsPage() {
             <p className="mb-4 text-text-muted">
               Sign in to view your prediction history.
             </p>
-            <SignInButton mode="modal">
+            <AppSignInButton mode="modal">
               <Button size="sm">Sign In</Button>
-            </SignInButton>
+            </AppSignInButton>
           </div>
         </div>
       </div>

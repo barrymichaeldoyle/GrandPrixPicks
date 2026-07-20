@@ -1,6 +1,7 @@
-import { useAuth } from '@clerk/react';
-
-import { useInitialAuth } from './initial-auth';
+import {
+  type ViewerSession,
+  useViewerSessionContext,
+} from './viewer-session-context';
 
 /**
  * First-paint-stable auth state for the header / nav chrome.
@@ -22,15 +23,6 @@ import { useInitialAuth } from './initial-auth';
  *   mount components that need a live authenticated client (UserButton, the
  *   notification bell).
  */
-export function useViewerSession(): {
-  isSignedIn: boolean;
-  confirmedSignedIn: boolean;
-} {
-  const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
-  const initialAuth = useInitialAuth();
-  const confirmedSignedIn = isLoaded && !!clientSignedIn;
-  return {
-    isSignedIn: initialAuth.isSignedIn || confirmedSignedIn,
-    confirmedSignedIn,
-  };
+export function useViewerSession(): ViewerSession {
+  return useViewerSessionContext();
 }

@@ -1,6 +1,10 @@
+import { useAuth } from '@clerk/react';
 import { ClerkProvider } from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
+
+import { useInitialAuth } from './initial-auth';
+import { ViewerSessionProvider } from './viewer-session-context';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!PUBLISHABLE_KEY) {
@@ -87,7 +91,25 @@ export function AppClerkProvider({
         },
       }}
     >
-      {children}
+      <ClerkViewerSessionBridge>{children}</ClerkViewerSessionBridge>
     </ClerkProvider>
+  );
+}
+
+function ClerkViewerSessionBridge({ children }: PropsWithChildren) {
+  const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
+  const initialAuth = useInitialAuth();
+  const confirmedSignedIn = isLoaded && !!clientSignedIn;
+
+  return (
+    <ViewerSessionProvider
+      value={{
+        isLoaded,
+        isSignedIn: initialAuth.isSignedIn || confirmedSignedIn,
+        confirmedSignedIn,
+      }}
+    >
+      {children}
+    </ViewerSessionProvider>
   );
 }

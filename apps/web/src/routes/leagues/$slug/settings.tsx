@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
@@ -22,6 +21,8 @@ import { useState } from 'react';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
@@ -59,7 +60,7 @@ type League = NonNullable<
 
 function LeagueSettingsPage() {
   const { slug } = Route.useParams();
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded } = useViewerSession();
   const league = useQuery(api.leagues.getLeagueBySlug, { slug });
 
   if (!isLoaded || league === undefined) {
@@ -99,9 +100,9 @@ function LeagueSettingsPage() {
             <p className="mb-4 text-text-muted">
               Sign in to manage league settings.
             </p>
-            <SignInButton mode="modal">
+            <AppSignInButton mode="modal">
               <Button size="sm">Sign In</Button>
-            </SignInButton>
+            </AppSignInButton>
           </div>
         </div>
       </div>

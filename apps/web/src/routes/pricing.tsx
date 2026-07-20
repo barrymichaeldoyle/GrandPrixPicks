@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
 import {
@@ -16,6 +15,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 
 import { Button } from '@/components/Button/Button';
+import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { pageMeta } from '@/lib/site';
 
@@ -278,7 +278,7 @@ function PricingPage() {
                 : 'Get 2026 Season Pass'}
             </Button>
           ) : (
-            <SignInButton
+            <AppSignInButton
               mode="modal"
               fallbackRedirectUrl={currentUrl}
               signUpFallbackRedirectUrl={currentUrl}
@@ -286,7 +286,7 @@ function PricingPage() {
               <Button type="button" size="sm" rightIcon={ArrowRight}>
                 Sign In to Continue
               </Button>
-            </SignInButton>
+            </AppSignInButton>
           )}
 
           <p className="mt-3 text-sm text-text-muted">

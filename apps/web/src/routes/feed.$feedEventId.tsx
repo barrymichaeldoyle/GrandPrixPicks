@@ -100,7 +100,7 @@ function FeedEventSkeleton() {
   return (
     <div className="space-y-3">
       <FeedItemSkeleton />
-      <section className="rounded-xl border border-border bg-surface">
+      <section className="rounded-sm border border-border bg-surface">
         <div className="border-b border-border px-4 py-3">
           <div className="h-3 w-12 animate-pulse rounded bg-surface-muted" />
         </div>
@@ -142,7 +142,7 @@ function FeedEventPage() {
         {!isLoaded ? (
           <FeedEventSkeleton />
         ) : !isSignedIn ? (
-          <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+          <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
             <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
             <p className="mb-4 text-sm text-text-muted">
               Sign in to view this prediction and its revs.
@@ -154,7 +154,7 @@ function FeedEventPage() {
         ) : feedEvent === undefined ? (
           <FeedEventSkeleton />
         ) : !feedEvent ? (
-          <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+          <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
             <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
             <h1 className="mb-2 text-xl font-semibold text-text">
               Prediction not found
@@ -174,7 +174,7 @@ function FeedEventPage() {
             ) : (
               <FeedItem event={feedEvent.event} />
             )}
-            <section className="rounded-xl border border-border bg-surface p-4">
+            <section className="rounded-sm border border-border bg-surface p-4">
               <RevsSection feedEventId={feedEventId as Id<'feedEvents'>} />
             </section>
           </div>

@@ -1,58 +1,37 @@
-import { Sparkles } from 'lucide-react';
+import { Check, Target } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 
 import type { RecapTier, WeekendRecapData } from './recap';
 
-const TIER_CONFIG: Record<
-  RecapTier,
-  { emoji: string; headline: string; blurb: string }
-> = {
-  stellar: {
-    emoji: '🏆',
-    headline: 'Stellar weekend',
-    blurb: 'You read the grid almost perfectly.',
-  },
-  strong: {
-    emoji: '🔥',
-    headline: 'Strong points',
-    blurb: 'A solid haul to climb the table.',
-  },
-  onboard: {
-    emoji: '✅',
-    headline: 'On the board',
-    blurb: 'Points banked. Onto the next one.',
-  },
-  tough: {
-    emoji: '🏁',
-    headline: 'Tough weekend',
-    blurb: 'It happens. Reset for the next round.',
-  },
+const TIER_LABELS: Record<RecapTier, string> = {
+  stellar: 'Front-running weekend',
+  strong: 'Strong weekend',
+  onboard: 'Points scored',
+  tough: 'Weekend complete',
 };
 
 function RecapStat({
   label,
   value,
-  sub,
+  detail,
 }: {
   label: string;
   value: ReactNode;
-  sub?: ReactNode;
+  detail?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface/70 px-3 py-2.5">
-      <p className="text-[11px] font-semibold tracking-[0.12em] text-text-muted uppercase">
+    <div className="min-w-0 py-2 sm:py-0">
+      <dt className="text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase">
         {label}
-      </p>
-      <p className="mt-0.5 text-lg font-bold text-text">
+      </dt>
+      <dd className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-lg font-bold text-text">
         {value}
-        {sub != null && (
-          <span className="ml-1 text-xs font-medium text-text-muted">
-            {sub}
-          </span>
+        {detail != null && (
+          <span className="text-xs font-medium text-text-muted">{detail}</span>
         )}
-      </p>
+      </dd>
     </div>
   );
 }
@@ -60,108 +39,118 @@ function RecapStat({
 type WeekendRecapProps = {
   recap: WeekendRecapData;
   raceName: string;
-  /** Prominent share affordance (e.g. a ShareOnXButton). */
   shareSlot?: ReactNode;
 };
 
-/**
- * Post-race "moment": a celebratory weekend summary shown at the top of a
- * fully-scored race page. Surfaces the headline number, weekend rank, accuracy
- * stats, the viewer's best call, and a prominent share affordance.
- */
+/** A factual post-race classification summary for the signed-in viewer. */
 export function WeekendRecap({
   recap,
   raceName,
   shareSlot,
 }: WeekendRecapProps) {
-  const tier = TIER_CONFIG[recap.tier];
+  const hitRate =
+    recap.totalPicks > 0
+      ? Math.round((recap.closeHits / recap.totalPicks) * 100)
+      : 0;
 
   return (
     <section
       data-testid="weekend-recap"
-      className="mt-5 overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent-muted/40 via-surface to-surface"
+      className="mt-5 rounded-sm border border-border bg-surface-elevated"
     >
-      <div className="p-4 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.16em] text-accent uppercase">
-              <Sparkles className="h-3.5 w-3.5" />
-              Weekend recap
-            </p>
-            <h2 className="mt-1 text-2xl font-bold text-text sm:text-3xl">
-              {tier.emoji} {tier.headline}
-            </h2>
-            <p className="mt-1 text-sm text-text-muted">
-              Your {raceName} weekend is in the books. {tier.blurb}
-            </p>
-          </div>
-          <div className="shrink-0 text-right">
-            <div className="font-title text-4xl leading-none font-bold text-accent sm:text-5xl">
-              {recap.totalPoints}
+      <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-accent uppercase">
+            {raceName} · Weekend result
+          </p>
+
+          <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
+            {recap.rank ? (
+              <div className="flex items-end gap-2">
+                <span className="font-title text-5xl leading-[0.85] font-bold text-text sm:text-6xl">
+                  P{recap.rank.position}
+                </span>
+                <span className="pb-0.5 text-sm text-text-muted">
+                  of {recap.rank.totalPlayers}
+                </span>
+              </div>
+            ) : (
+              <h2 className="font-title text-3xl leading-none font-bold text-text">
+                Result recorded
+              </h2>
+            )}
+
+            <div className="pb-0.5">
+              <p className="font-title text-2xl leading-none font-bold text-accent">
+                +{recap.totalPoints} pts
+              </p>
+              <p className="mt-1 text-xs text-text-muted">
+                {recap.maxPoints} available
+              </p>
             </div>
-            <div className="mt-1 text-xs font-medium text-text-muted">
-              of {recap.maxPoints} pts
-            </div>
           </div>
+
+          <p className="mt-4 max-w-2xl text-sm text-text-muted">
+            <span className="font-semibold text-text">
+              {TIER_LABELS[recap.tier]}.
+            </span>{' '}
+            Your qualifying and race predictions are now reflected in the
+            standings.
+          </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {recap.rank && (
-            <RecapStat
-              label="Weekend rank"
-              value={`P${recap.rank.position}`}
-              sub={`of ${recap.rank.totalPlayers}`}
-            />
-          )}
+        {shareSlot != null && <div className="shrink-0">{shareSlot}</div>}
+      </div>
+
+      <div className="border-t border-border px-4 py-3 sm:px-6">
+        <dl className="grid grid-cols-2 gap-x-6 sm:grid-cols-3 lg:grid-cols-4">
           <RecapStat
-            label="Bullseyes"
+            label="Exact calls"
             value={recap.exactHits}
-            sub={recap.exactHits === 1 ? 'exact call' : 'exact calls'}
+            detail={recap.exactHits === 1 ? 'bullseye' : 'bullseyes'}
           />
           <RecapStat
-            label="In the top 5"
-            value={`${recap.closeHits}/${recap.totalPicks}`}
+            label="Top 5 accuracy"
+            value={`${hitRate}%`}
+            detail={`${recap.closeHits}/${recap.totalPicks}`}
           />
           {recap.h2hTotal > 0 && (
             <RecapStat
               label="Head-to-head"
               value={`${recap.h2hCorrect}/${recap.h2hTotal}`}
+              detail="correct"
             />
           )}
-        </div>
-
-        {recap.bestCall && (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-surface/70 px-3 py-2.5">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="text-[11px] font-semibold tracking-[0.12em] text-text-muted uppercase">
+          {recap.bestCall && (
+            <div className="col-span-2 min-w-0 py-2 sm:col-span-1 sm:py-0">
+              <dt className="text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase">
                 Best call
-              </span>
-              <DriverBadge
-                code={recap.bestCall.code}
-                team={recap.bestCall.team}
-                displayName={recap.bestCall.displayName}
-                number={recap.bestCall.number}
-                nationality={recap.bestCall.nationality}
-              />
-              <span className="min-w-0 truncate text-sm text-text-muted">
-                called P{recap.bestCall.predictedPosition}
-                {recap.bestCall.actualPosition != null &&
-                  `, finished P${recap.bestCall.actualPosition}`}
-              </span>
+              </dt>
+              <dd className="mt-1 flex min-w-0 items-center gap-2">
+                <DriverBadge
+                  code={recap.bestCall.code}
+                  team={recap.bestCall.team}
+                  displayName={recap.bestCall.displayName}
+                  number={recap.bestCall.number}
+                  nationality={recap.bestCall.nationality}
+                  size="sm"
+                />
+                <span className="truncate text-xs text-text-muted">
+                  P{recap.bestCall.predictedPosition} · +{recap.bestCall.points}{' '}
+                  pts
+                </span>
+              </dd>
             </div>
-            <span className="shrink-0 text-sm font-semibold text-accent">
-              +{recap.bestCall.points}
-            </span>
-          </div>
-        )}
+          )}
+        </dl>
 
         {recap.perfectSessions.length > 0 && (
-          <p className="mt-3 text-sm font-semibold text-accent">
-            🎯 Perfect Top 5 in {recap.perfectSessions.join(' & ')}!
+          <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-accent">
+            <Target className="h-3.5 w-3.5" />
+            Perfect Top 5 · {recap.perfectSessions.join(' & ')}
+            <Check className="h-3.5 w-3.5" />
           </p>
         )}
-
-        {shareSlot != null && <div className="mt-4">{shareSlot}</div>}
       </div>
     </section>
   );

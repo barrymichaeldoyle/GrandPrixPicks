@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import { getRaceLeaderboardForViewer } from './leaderboards';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -120,6 +121,14 @@ export const myPredictionHistory = query({
           0,
         );
 
+        const weekendLeaderboard =
+          scores.length > 0
+            ? await getRaceLeaderboardForViewer(ctx, { raceId })
+            : null;
+        const weekendEntry = weekendLeaderboard?.entries.find(
+          (entry) => entry.userId === viewer._id,
+        );
+
         // Get latest submission time
         const latestSubmission = Math.max(
           ...weekendPredictions.map((p) => p.submittedAt),
@@ -136,6 +145,8 @@ export const myPredictionHistory = query({
           sessions,
           totalPoints,
           hasScores: scores.length > 0,
+          top5Rank: weekendEntry?.rank ?? null,
+          top5FieldSize: weekendLeaderboard?.entries.length ?? 0,
           submittedAt: latestSubmission,
         };
       }),
@@ -248,6 +259,14 @@ export const getUserPredictionHistory = query({
           0,
         );
 
+        const weekendLeaderboard =
+          scores.length > 0
+            ? await getRaceLeaderboardForViewer(ctx, { raceId })
+            : null;
+        const weekendEntry = weekendLeaderboard?.entries.find(
+          (entry) => entry.userId === args.userId,
+        );
+
         // Only surface submission times for sessions the viewer is allowed to
         // see (own picks, or locked). Hidden sessions carry submittedAt: 0.
         const visibleSubmissions = Object.values(sessions)
@@ -267,6 +286,8 @@ export const getUserPredictionHistory = query({
           sessions,
           totalPoints,
           hasScores: scores.length > 0,
+          top5Rank: weekendEntry?.rank ?? null,
+          top5FieldSize: weekendLeaderboard?.entries.length ?? 0,
           submittedAt: latestSubmission,
         };
       }),

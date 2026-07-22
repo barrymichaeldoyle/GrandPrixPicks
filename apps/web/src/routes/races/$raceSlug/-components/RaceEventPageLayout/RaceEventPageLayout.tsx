@@ -112,7 +112,7 @@ export function RaceEventPageLayout({
           race={race}
           isNextRace={isNextRace}
           resultsSummary={
-            hasPublishedResults
+            hasPublishedResults && !recapContent
               ? {
                   label: allEventsScored ? 'Weekend Total' : 'Points So Far',
                   points: pointsSoFar,
@@ -146,7 +146,7 @@ export function RaceEventPageLayout({
         ) : (
           <div className="mt-5">
             {showSessionTabs && (
-              <div className="rounded-lg bg-surface-muted/50 p-1">
+              <div className="rounded-sm border border-border bg-surface-elevated p-1">
                 <TabSwitch
                   value={selectedSession}
                   onChange={onSelectedSessionChange}

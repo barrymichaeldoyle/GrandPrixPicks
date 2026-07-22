@@ -8,34 +8,19 @@ import {
   Outlet,
   useMatches,
 } from '@tanstack/react-router';
-import {
-  ArrowLeft,
-  Hash,
-  History,
-  Info,
-  Settings,
-  Star,
-  Trophy,
-  User,
-} from 'lucide-react';
-
-import { displayTeamName } from '@/lib/display';
+import { ArrowLeft, Hash, History, Settings, User } from 'lucide-react';
 
 import { Avatar } from '@/components/Avatar';
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
-import { TEAM_COLORS } from '@/components/DriverBadge';
 import {
   FeedEmptyState,
   FeedItem,
   FeedItemSkeleton,
 } from '@/components/FeedItem';
-import { Flag } from '@/components/Flag';
 import { FollowButton } from '@/components/FollowButton';
 import { PageLoader } from '@/components/PageLoader';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from '@/components/RaceFlag';
-import { Tooltip } from '@/components/Tooltip';
-import { computeFavoriteTop5Pick } from '@/lib/favorites';
 import { pageMeta } from '@/lib/site';
 
 /**
@@ -93,7 +78,6 @@ export const Route = createFileRoute('/p/$username')({
           userId: profile._id,
         }),
       ),
-      context.queryClient.ensureQueryData(convexQuery(api.drivers.listDrivers)),
       context.queryClient.ensureQueryData(
         convexQuery(api.feed.getUserFeed, { userId: profile._id }),
       ),
@@ -151,8 +135,6 @@ function ProfilePage() {
     ),
   );
 
-  const { data: drivers } = useQuery(convexQuery(api.drivers.listDrivers));
-
   const { data: userFeed } = useQuery(
     convexQuery(
       api.feed.getUserFeed,
@@ -205,23 +187,9 @@ function ProfilePage() {
   const displayName =
     currentProfile.displayName ?? currentProfile.username ?? 'Anonymous';
 
-  const favoritePick = weekends ? computeFavoriteTop5Pick(weekends) : null;
-  const favoriteDriver = favoritePick
-    ? drivers?.find((d) => d._id === favoritePick.driverId)
-    : null;
-
-  /** Best scoring weekend (max totalPoints; tiebreak: most recent race). */
-  const bestRace =
-    weekends && weekends.length > 0
-      ? ([...weekends]
-          .filter((w) => w.hasScores && w.totalPoints > 0)
-          .sort((a, b) => {
-            if (a.totalPoints !== b.totalPoints) {
-              return b.totalPoints - a.totalPoints;
-            }
-            return b.raceDate - a.raceDate;
-          })[0] ?? null)
-      : null;
+  const scoredWeekends = (weekends ?? [])
+    .filter((weekend) => weekend.hasScores)
+    .slice(0, 6);
 
   return (
     <div className="bg-page">
@@ -238,7 +206,7 @@ function ProfilePage() {
           </Button>
         )}
         {/* Profile header */}
-        <div className="mb-4">
+        <div className="mb-6">
           <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <Avatar
@@ -247,8 +215,11 @@ function ProfilePage() {
                 size="lg"
               />
               <div className="min-w-0">
+                <p className="mb-0.5 text-[10px] font-semibold tracking-[0.18em] text-accent uppercase">
+                  {isOwner ? 'My results' : 'Player profile'}
+                </p>
                 <div className="flex items-center gap-2">
-                  <h1 className="truncate text-xl font-bold text-text sm:text-2xl lg:text-3xl">
+                  <h1 className="font-title truncate text-xl font-semibold text-text sm:text-2xl lg:text-3xl">
                     {displayName}
                   </h1>
                   {isOwner && (
@@ -318,43 +289,47 @@ function ProfilePage() {
                 ? 'sm:grid-cols-4'
                 : 'sm:grid-cols-3';
           return (
-            <div className={`mb-4 grid grid-cols-2 gap-3 ${gridCols}`}>
-              <div className="rounded-xl border border-border bg-surface p-3 text-center">
-                <div className="text-2xl font-bold text-accent">
+            <div
+              className={`mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-sm border border-border bg-border ${gridCols}`}
+            >
+              <div className="bg-surface px-3 py-4 text-center">
+                <div className="font-title text-2xl font-semibold text-accent">
                   {stats?.totalPoints ?? '—'}
                 </div>
-                <div className="text-xs text-text-muted">Total Points</div>
+                <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                  Total points
+                </div>
               </div>
-              <div className="rounded-xl border border-border bg-surface p-3 text-center">
-                <div className="text-2xl font-bold text-text">
+              <div className="bg-surface px-3 py-4 text-center">
+                <div className="font-title text-2xl font-semibold text-text">
                   {stats?.weekendCount ?? '—'}
                 </div>
-                <div className="text-xs text-text-muted">
-                  Weekends predicted
+                <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                  Weekends
                 </div>
               </div>
               {showTop5 && (
-                <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                <div className="bg-surface px-3 py-4 text-center">
                   <div className="flex items-center justify-center gap-1">
                     <Hash className="h-4 w-4 text-accent" />
-                    <span className="text-2xl font-bold text-accent">
+                    <span className="font-title text-2xl font-semibold text-accent">
                       {stats.seasonRank}
                     </span>
                   </div>
-                  <div className="text-xs text-text-muted">
+                  <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
                     Top 5 rank of {stats.totalPlayers}
                   </div>
                 </div>
               )}
               {showH2H && (
-                <div className="rounded-xl border border-border bg-surface p-3 text-center">
+                <div className="bg-surface px-3 py-4 text-center">
                   <div className="flex items-center justify-center gap-1">
                     <Hash className="h-4 w-4 text-accent" />
-                    <span className="text-2xl font-bold text-accent">
+                    <span className="font-title text-2xl font-semibold text-accent">
                       {stats.h2hSeasonRank}
                     </span>
                   </div>
-                  <div className="text-xs text-text-muted">
+                  <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
                     H2H rank of {stats.h2hTotalPlayers}
                   </div>
                 </div>
@@ -363,127 +338,89 @@ function ProfilePage() {
           );
         })()}
 
-        {/* Favorite Pick + Best Race: side by side on desktop */}
-        {((favoritePick && favoriteDriver) || bestRace) && (
-          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            {favoritePick && favoriteDriver && (
-              <div
-                className={`overflow-hidden rounded-xl border border-border bg-surface shadow-sm ${!bestRace ? 'md:col-span-2' : ''}`}
-              >
-                <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
-                  <Star className="h-5 w-5 shrink-0 text-accent" />
-                  <h2 className="text-sm font-semibold text-text">
-                    {isOwner
-                      ? 'Your Favorite Top 5 Pick'
-                      : 'Favorite Top 5 Pick'}
-                  </h2>
-                  <Tooltip
-                    placement="top"
-                    content={
-                      isOwner
-                        ? 'Your most-picked driver in top positions.'
-                        : `The driver that ${displayName} picked most in top positions.`
-                    }
+        {scoredWeekends.length > 0 ? (
+          <section className="mb-7">
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <h2 className="font-title text-sm font-semibold tracking-wide text-text uppercase">
+                Weekend finishes
+              </h2>
+              <span className="text-xs text-text-muted">Top 5 scoring</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {scoredWeekends.map((weekend) => {
+                const countryCode = getCountryCodeForRace({
+                  slug: weekend.raceSlug,
+                });
+                const scoredSessionCount = Object.values(
+                  weekend.sessions,
+                ).filter((session) => session?.points != null).length;
+
+                return (
+                  <Link
+                    key={weekend.raceId}
+                    to="/races/$raceSlug"
+                    params={{ raceSlug: weekend.raceSlug }}
+                    className="group overflow-hidden rounded-sm border border-border bg-surface transition-colors hover:border-border-strong"
                   >
-                    <Info className="h-4 w-4 shrink-0 text-text-muted" />
-                  </Tooltip>
-                </div>
-                <div className="flex items-stretch">
-                  <div
-                    className="flex w-16 shrink-0 items-center justify-center py-4 text-white"
-                    style={{
-                      backgroundColor:
-                        favoriteDriver.team &&
-                        (TEAM_COLORS[favoriteDriver.team] ?? '#666'),
-                    }}
-                  >
-                    <span className="inline-flex flex-col items-center gap-1 rounded-lg bg-black/30 px-2 py-1.5 leading-none">
-                      {favoriteDriver.number != null && (
-                        <span className="font-mono text-2xl font-bold">
-                          {favoriteDriver.number}
-                        </span>
-                      )}
-                      <span className="font-mono text-xs font-bold tracking-wider">
-                        {favoriteDriver.code}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {favoriteDriver.nationality && (
-                        <Flag
-                          code={favoriteDriver.nationality}
-                          size="md"
-                          className="shrink-0"
-                        />
-                      )}
-                      {favoriteDriver.displayName && (
-                        <span className="text-lg font-semibold text-text">
-                          {favoriteDriver.displayName}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-3 px-3 py-3">
+                      {countryCode ? (
+                        <RaceFlag countryCode={countryCode} size="md" />
+                      ) : null}
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                          Round {weekend.raceRound}
+                        </p>
+                        <p className="truncate font-semibold text-text group-hover:text-accent">
+                          {weekend.raceName}
+                        </p>
+                      </div>
                     </div>
-                    {favoriteDriver.team && (
-                      <span className="text-sm text-text-muted">
-                        {displayTeamName(favoriteDriver.team)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {bestRace && (
-              <div
-                className={`overflow-hidden rounded-xl border border-border bg-surface shadow-sm ${!(favoritePick && favoriteDriver) ? 'md:col-span-2' : ''}`}
-              >
-                <div className="flex items-center gap-2 border-b border-border/60 bg-surface-muted/40 px-4 py-2.5">
-                  <Trophy className="h-5 w-5 shrink-0 text-accent" />
-                  <h2 className="text-sm font-semibold text-text">
-                    {isOwner
-                      ? 'Your Best Top 5 Weekend Result'
-                      : 'Best Top 5 Weekend Result'}
-                  </h2>
-                  <Tooltip
-                    placement="top"
-                    content={
-                      isOwner
-                        ? 'The race weekend where you scored the most points. Ties broken by most recent race.'
-                        : `The race weekend where ${displayName} scored the most points. Ties broken by most recent race.`
-                    }
-                  >
-                    <Info className="h-4 w-4 shrink-0 text-text-muted" />
-                  </Tooltip>
-                </div>
-                <Link
-                  to="/races/$raceSlug"
-                  params={{ raceSlug: bestRace.raceSlug }}
-                  className="group flex h-21 items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-hover/60"
-                  aria-label={`Open ${bestRace.raceName} race page`}
-                >
-                  {(() => {
-                    const countryCode = getCountryCodeForRace({
-                      slug: bestRace.raceSlug,
-                    });
-                    return countryCode ? (
-                      <RaceFlag countryCode={countryCode} size="lg" />
-                    ) : null;
-                  })()}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text-muted">
-                      Round {bestRace.raceRound}
-                    </p>
-                    <p className="truncate text-base font-semibold text-text">
-                      {bestRace.raceName}
-                    </p>
-                  </div>
-                  <span className="inline-flex shrink-0 rounded-lg bg-accent/15 px-3 py-1.5 text-xl font-bold text-accent">
-                    {bestRace.totalPoints} pts
-                  </span>
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
+                    <div className="grid grid-cols-3 gap-px bg-border text-center">
+                      <div className="bg-surface-elevated px-2 py-2.5">
+                        <p className="font-title text-lg font-semibold text-accent">
+                          {weekend.top5Rank != null
+                            ? `P${weekend.top5Rank}`
+                            : '—'}
+                        </p>
+                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                          of {weekend.top5FieldSize}
+                        </p>
+                      </div>
+                      <div className="bg-surface-elevated px-2 py-2.5">
+                        <p className="font-title text-lg font-semibold text-text">
+                          {weekend.totalPoints}
+                        </p>
+                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                          points
+                        </p>
+                      </div>
+                      <div className="bg-surface-elevated px-2 py-2.5">
+                        <p className="font-title text-lg font-semibold text-text">
+                          {scoredSessionCount}
+                        </p>
+                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                          sessions
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        <div className="mt-7 mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-title text-sm font-semibold tracking-wide text-text uppercase">
+            {isOwner ? 'My recent results' : 'Recent results'}
+          </h2>
+          {weekends && weekends.length > 0 ? (
+            <span className="text-xs text-text-muted">
+              {weekends.length} race{' '}
+              {weekends.length === 1 ? 'weekend' : 'weekends'}
+            </span>
+          ) : null}
+        </div>
 
         {/* Result feed */}
         {userFeed === undefined ? (
@@ -494,7 +431,7 @@ function ProfilePage() {
           </div>
         ) : userFeed.events.length === 0 ? (
           weekends?.length === 0 ? (
-            <div className="rounded-xl border border-border bg-surface p-8 text-center">
+            <div className="rounded-sm border border-border bg-surface p-8 text-center">
               <History className="mx-auto mb-4 h-16 w-16 text-text-muted" />
               <h2 className="mb-2 text-xl font-semibold text-text">
                 No predictions yet
@@ -520,7 +457,7 @@ function ProfilePage() {
             />
           )
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {userFeed.events.map((event) => (
               <FeedItem key={event._id} event={event} />
             ))}

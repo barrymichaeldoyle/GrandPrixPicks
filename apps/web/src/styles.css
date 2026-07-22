@@ -42,8 +42,25 @@ html {
 /* Web-only colour aliases that aren't part of the shared token set. */
 .dark,
 [data-theme='dark'] {
+  /* Web brand palette: a near-black night-race canvas, cool navigation accents,
+     and a warm action colour. Mobile continues to use the shared tokens. */
+  --page: #0a0e17;
+  --surface: #131a27;
+  --surface-elevated: #192231;
+  --surface-muted: #222d3e;
+  --border: #2b3749;
+  --border-strong: #46546a;
+  --text-muted: #a4adbb;
+  --accent: #31b8ab;
+  --accent-hover: #50c9bd;
+  --accent-muted: #143f3d;
+  --button-accent: #c0263a;
+  --button-accent-hover: #d72d42;
+  --racing-red: #f04455;
+  --racing-red-muted: #5f1726;
+  --racing-amber: #ffb020;
   --surface-raised: var(--surface-elevated);
-  --surface-hover: #334155;
+  --surface-hover: #273349;
   --error-muted: #7f1d1d;
   --overlay: rgba(0, 0, 0, 0.5);
   --scrollbar-track: #334155;
@@ -74,6 +91,9 @@ html {
   --color-warning-muted: var(--warning-muted);
   --color-error: var(--error);
   --color-error-muted: var(--error-muted);
+  --color-racing-red: var(--racing-red);
+  --color-racing-red-muted: var(--racing-red-muted);
+  --color-racing-amber: var(--racing-amber);
 }
 
 /* ==========================================================================
@@ -125,18 +145,39 @@ body {
   overscroll-behavior: none;
 }
 
+/* A restrained technical grid gives large empty fields texture without
+   introducing another colour or glow. */
+.bg-page {
+  background-color: var(--page);
+  background-image:
+    linear-gradient(rgba(164, 173, 187, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164, 173, 187, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Structural geometry is deliberately tighter than identity elements such as
+   avatars and status dots, which continue to use rounded-full. */
+.rounded-2xl {
+  border-radius: 0.5rem;
+}
+.rounded-xl {
+  border-radius: 0.375rem;
+}
+.rounded-lg {
+  border-radius: 0.25rem;
+}
+.rounded-md {
+  border-radius: 0.1875rem;
+}
+
 .home-hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Single cohesive horizon glow (matches the global atmosphere field) — no
-     discrete blobs. */
-  background: radial-gradient(
-    120% 92% at 50% -12%,
-    rgba(34, 211, 238, 0.15) 0%,
-    rgba(34, 211, 238, 0.045) 38%,
-    transparent 66%
-  );
+  background:
+    linear-gradient(90deg, rgba(49, 184, 171, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(49, 184, 171, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
   pointer-events: none;
   z-index: 0;
 }
@@ -148,6 +189,25 @@ body {
     0 10px 26px rgba(2, 6, 23, 0.28);
 }
 
+.home-hero-race-title {
+  text-wrap: balance;
+}
+
+.home-hero-race-flag {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 34px -16px rgba(240, 68, 85, 0.65);
+}
+
+.home-primary-action {
+  box-shadow: 0 5px 0 #761827;
+}
+
+.home-primary-action:hover {
+  box-shadow: 0 3px 0 #761827;
+  transform: translateY(2px);
+}
+
 @media (max-width: 640px) {
   .home-hero-title {
     letter-spacing: -0.018em;
@@ -157,11 +217,7 @@ body {
   }
 
   .home-hero::before {
-    background: radial-gradient(
-      135% 80% at 50% -8%,
-      rgba(34, 211, 238, 0.11) 0%,
-      transparent 62%
-    );
+    background-size: 36px 36px;
   }
 }
 
@@ -174,22 +230,39 @@ body {
 
 /* Countdown digit "tiles" — flip-clock inspired */
 .home-countdown-digit {
-  background: linear-gradient(
-    180deg,
-    rgba(30, 41, 59, 0.85) 0%,
-    rgba(15, 23, 42, 0.92) 100%
-  );
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-    0 8px 20px -12px rgba(0, 0, 0, 0.55);
+  background: var(--surface-elevated);
+  border: 1px solid rgba(240, 68, 85, 0.22);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35);
   color: var(--text);
 }
 
 /* Season strip — current step gets glow */
 .home-season-step-current {
-  background: rgba(20, 184, 166, 0.08);
+  background: rgba(240, 68, 85, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(240, 68, 85, 0.5);
+}
+
+.home-section-panel {
+  position: relative;
+  border: 1px solid rgba(64, 80, 107, 0.52);
+  background: var(--surface);
+}
+
+.home-section-open {
+  position: relative;
+}
+
+.home-section-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.home-section-kicker::before {
+  content: '';
+  width: 1.5rem;
+  height: 2px;
+  background: var(--racing-red);
 }
 
 /* Past rounds: desaturate + dim the flag so chronological direction reads at a glance. */
@@ -225,9 +298,7 @@ body {
 }
 
 h1,
-h2,
-h3,
-h4 {
+h2 {
   font-family: var(--font-title);
 }
 
@@ -249,30 +320,20 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* Nav link active state: thick accent border (wins over merged Tailwind classes) */
-.nav-link-active {
-  border-color: var(--accent) !important;
-}
-
 /* Header: subtle motorsport texture + accent rail to avoid a flat/generic bar */
 .header-grid-sheen {
-  background: linear-gradient(
-    180deg,
-    rgba(20, 184, 166, 0.2) 0%,
-    rgba(20, 184, 166, 0.05) 45%,
-    transparent 100%
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 15px,
+    rgba(49, 184, 171, 0.025) 15px,
+    rgba(49, 184, 171, 0.025) 16px
   );
 }
 
 .header-accent-rail {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--accent) 18%,
-    var(--accent-hover) 50%,
-    var(--accent) 82%,
-    transparent 100%
-  );
+  background: var(--accent);
+  opacity: 0.65;
 }
 
 /* Sprint badge: force colors so Tailwind class-order doesn't override them. */
@@ -291,16 +352,16 @@ button:disabled,
   background:
     radial-gradient(
       140% 60% at 50% -20%,
-      rgba(34, 211, 238, 0.18) 0%,
-      rgba(34, 211, 238, 0.06) 32%,
+      rgba(240, 68, 85, 0.14) 0%,
+      rgba(240, 68, 85, 0.035) 32%,
       transparent 60%
     ),
     linear-gradient(
       157deg,
-      rgba(20, 184, 166, 0.11) 0%,
+      rgba(240, 68, 85, 0.07) 0%,
       transparent 42%,
       transparent 62%,
-      rgba(59, 130, 246, 0.1) 100%
+      rgba(20, 184, 166, 0.1) 100%
     );
   mix-blend-mode: screen;
 }

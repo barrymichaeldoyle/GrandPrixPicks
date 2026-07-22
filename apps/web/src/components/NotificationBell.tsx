@@ -512,7 +512,7 @@ export function NotificationBell() {
       <button
         type="button"
         aria-label="Notifications"
-        className="relative rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="relative rounded-sm border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
       >
         <Bell className="h-5 w-5" />
       </button>
@@ -531,7 +531,7 @@ export function NotificationBell() {
           />
           <div
             ref={panelRef}
-            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-xl border border-white/10 bg-surface/95 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
+            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-sm border border-border bg-surface shadow-xl sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
               <span className="text-sm font-semibold text-text">
@@ -592,7 +592,7 @@ export function NotificationBell() {
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         aria-expanded={open}
         onClick={handleButtonClick}
-        className="relative rounded-full border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="relative rounded-sm border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 hover:text-accent-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (

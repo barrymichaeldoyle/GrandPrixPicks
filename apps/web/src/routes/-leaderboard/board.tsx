@@ -6,7 +6,6 @@ import {
   CombinedTableRow,
   H2HTableRow,
   LeaderboardRow,
-  PodiumCard,
   SmallLeaderboard,
 } from './rows';
 import type {
@@ -32,28 +31,9 @@ export function LeaderboardBoard({
   showSmallBoard?: boolean;
   footer?: ReactNode;
 }) {
-  const podiumEntries = entries.slice(0, 3);
-  const tableEntries = entries.slice(3);
-
   return (
     <div className="space-y-3">
-      {podiumEntries.length >= 3 && (
-        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end sm:gap-2">
-          <PodiumCard
-            entry={podiumEntries[0]}
-            place={1}
-            className="order-1 sm:order-2"
-          />
-          <PodiumCard
-            entry={podiumEntries[1]}
-            place={2}
-            className="order-2 sm:order-1"
-          />
-          <PodiumCard entry={podiumEntries[2]} place={3} className="order-3" />
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
@@ -84,7 +64,7 @@ export function LeaderboardBoard({
             </tr>
           </thead>
           <tbody>
-            {tableEntries.map((entry) =>
+            {entries.map((entry) =>
               gameMode === 'combined' ? (
                 <CombinedTableRow
                   key={entry.userId}

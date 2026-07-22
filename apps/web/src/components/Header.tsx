@@ -21,9 +21,9 @@ const FOCUSABLE_SELECTOR =
 export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
 
 const NAV_LINK_CLASS =
-  'rounded-full border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-accent transition-colors duration-200 hover:bg-accent-muted/45 hover:text-accent-hover';
+  'rounded-sm border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-text-muted transition-colors duration-200 hover:bg-surface-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/55';
 const NAV_LINK_ACTIVE_CLASS =
-  'px-3 py-1.5 rounded-full text-accent-hover border nav-link-active bg-accent/15 transition-colors text-sm font-semibold whitespace-nowrap';
+  'px-3 py-1.5 rounded-sm text-accent border border-transparent bg-accent-muted/55 transition-colors text-sm font-semibold whitespace-nowrap';
 
 function DesktopNavLink({
   to,
@@ -88,9 +88,9 @@ function NextRaceQuickLink({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: nextRace.slug }}
-      className="flex shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
-      aria-label={`${nextRace.name}: your picks`}
-      title={`${nextRace.name}: your picks`}
+      className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
+      aria-label={`Make picks for ${nextRace.name}`}
+      title={`Make picks for ${nextRace.name}`}
       data-testid="header-next-race-link"
     >
       {countryCode ? (
@@ -101,7 +101,11 @@ function NextRaceQuickLink({
         <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       )}
       <span className="hidden min-[500px]:inline min-[844px]:hidden min-[960px]:inline">
-        {abbreviateGrandPrix(nextRace.name)}
+        Make picks
+        <span className="hidden min-[1100px]:inline">
+          {' · '}
+          {abbreviateGrandPrix(nextRace.name)}
+        </span>
       </span>
     </Link>
   );
@@ -121,7 +125,7 @@ export function Header({
   // client SDK boots. See {@link useViewerSession}.
   const { isSignedIn } = useViewerSession();
   const showSignedInLinks = isSignedIn;
-  // "My Picks" falls back to /me until we know the username (the /me route
+  // "My Results" falls back to /me until we know the username (the /me route
   // redirects to /p/$username).
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
@@ -259,7 +263,7 @@ export function Header({
   return (
     <header
       ref={headerRef}
-      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface/95 text-text shadow-sm backdrop-blur supports-[backdrop-filter]:bg-surface/80"
+      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text"
     >
       <div
         aria-hidden
@@ -272,7 +276,7 @@ export function Header({
       <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link to="/" className="group flex shrink-0 items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/30 bg-accent/10 ring-1 ring-accent/15 transition-colors group-hover:bg-accent/15">
+            <span className="flex h-9 w-9 items-center justify-center rounded-sm border border-border-strong bg-surface-elevated transition-colors group-hover:border-accent/50 group-hover:bg-accent-muted/30">
               <Flag
                 className="relative left-0.25 h-5 w-5 text-accent"
                 aria-hidden="true"
@@ -296,7 +300,7 @@ export function Header({
               flash of the signed-out nav swapping to the signed-in one. */}
           <nav
             aria-label="Main navigation"
-            className="font-title hidden items-center gap-1 rounded-full p-1.5 min-[844px]:flex"
+            className="hidden items-center gap-1 p-1.5 min-[844px]:flex"
           >
             {showSignedInLinks && <DesktopNavLink to="/feed" label="Feed" />}
             {primaryNavLinks.map((link) => (
@@ -308,7 +312,7 @@ export function Header({
               />
             ))}
             {showSignedInLinks && (
-              <DesktopNavLink to={myPicksHref} label="My Picks" />
+              <DesktopNavLink to={myPicksHref} label="My Results" />
             )}
           </nav>
         </div>
@@ -319,7 +323,7 @@ export function Header({
             <motion.button
               ref={menuButtonRef}
               onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-              className="rounded-lg border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden"
+              className="rounded-sm border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-nav"
@@ -390,7 +394,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="font-title absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
+              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {primaryNavLinks.map((link, index) => (
@@ -403,10 +407,10 @@ export function Header({
                     <Link
                       to={link.to}
                       onClick={closeMenu}
-                      className="block rounded-full border-2 border-transparent px-3 py-2 font-semibold text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover"
+                      className="block rounded-sm border border-transparent px-3 py-2 font-semibold text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
                       activeProps={{
                         className:
-                          'block px-3 py-2 rounded-full text-accent border-2 nav-link-active font-semibold transition-colors',
+                          'block px-3 py-2 rounded-sm bg-accent-muted/55 text-accent border border-transparent font-semibold transition-colors',
                         'aria-current': 'page' as const,
                       }}
                       activeOptions={

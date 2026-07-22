@@ -3,11 +3,43 @@ import { Medal, Trophy } from 'lucide-react';
 
 import { InlineLoader } from '@/components/InlineLoader';
 
+import { formatAccuracy } from './constants';
 import type {
   CombinedLeaderboardEntry,
   H2HLeaderboardEntry,
   LeaderboardEntry,
 } from './types';
+
+function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
+  const podiumClass =
+    rank === 1
+      ? 'border-amber-400/40 bg-amber-400/15 text-amber-300'
+      : rank === 2
+        ? 'border-slate-300/35 bg-slate-300/10 text-slate-200'
+        : rank === 3
+          ? 'border-orange-400/35 bg-orange-400/10 text-orange-300'
+          : '';
+
+  if (podiumClass) {
+    return (
+      <span
+        className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full border px-1.5 text-xs font-bold tabular-nums ${podiumClass}`}
+      >
+        {rank}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={
+        isViewer ? 'font-medium text-accent' : 'font-medium text-text-muted'
+      }
+    >
+      {rank}
+    </span>
+  );
+}
 
 export function CombinedTableRow({
   entry,
@@ -23,11 +55,7 @@ export function CombinedTableRow({
       }`}
     >
       <td className="px-4 py-3">
-        <span
-          className={`font-medium ${entry.isViewer ? 'text-accent' : 'text-text-muted'}`}
-        >
-          {entry.rank}
-        </span>
+        <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3">
         <Link
@@ -69,11 +97,7 @@ export function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
       }`}
     >
       <td className="px-4 py-3">
-        <span
-          className={`font-medium ${entry.isViewer ? 'text-accent' : 'text-text-muted'}`}
-        >
-          {entry.rank}
-        </span>
+        <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3">
         <Link
@@ -94,7 +118,7 @@ export function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
       </td>
       <td className="hidden px-4 py-3 text-right sm:table-cell">
         <span className="text-sm text-text-muted">
-          {entry.correctPicks}/{entry.totalPicks}
+          {formatAccuracy(entry.correctPicks, entry.totalPicks)}
         </span>
       </td>
       <td className="px-4 py-3 text-right">
@@ -115,11 +139,7 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
       data-testid="leaderboard-entry"
     >
       <td className="px-4 py-3" data-testid="position">
-        <span
-          className={`font-medium ${entry.isViewer ? 'text-accent' : 'text-text-muted'}`}
-        >
-          {entry.rank}
-        </span>
+        <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3" data-testid="username">
         <Link

@@ -7,8 +7,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { PageHero } from '@/components/PageHero';
-import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/leagues/')({
@@ -26,7 +24,7 @@ function LeaguesPage() {
   const { isSignedIn, isLoaded } = useViewerSession();
 
   if (!isLoaded) {
-    return <PageLoader />;
+    return <LeaguesPageSkeleton />;
   }
 
   return <LeaguesContent isSignedIn={isSignedIn} />;
@@ -84,61 +82,68 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   }, [hasPublicLeagues, isSignedIn]);
 
   if (leagues === undefined) {
-    return <PageLoader />;
+    return <LeaguesPageSkeleton />;
   }
 
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <PageHero
-          eyebrow="Social Play"
-          title="Leagues"
-          subtitle="Create, join, and discover leagues"
-          icon={<Users className="h-8 w-8 text-accent" aria-hidden />}
-          rightSlot={
-            isSignedIn ? (
-              privateCreateLimitReached ? (
-                <Button
-                  size="sm"
-                  leftIcon={Plus}
-                  disabled
-                  tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
-                >
-                  Create
-                </Button>
-              ) : (
-                <Button asChild size="sm" leftIcon={Plus}>
-                  <Link to="/leagues/create">Create</Link>
-                </Button>
-              )
-            ) : null
-          }
-          bottomSlot={
-            isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-                  Private creates: {privateCreatedCount}/
-                  {leagueUsage.limits.maxPrivateLeaguesCreated}
+        <div className="mb-7">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+                Social play
+              </p>
+              <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+                Leagues
+              </h1>
+              <p className="mt-1.5 text-sm text-text-muted">
+                Create, join, and compete with friends.
+              </p>
+            </div>
+            <div>
+              {isSignedIn ? (
+                privateCreateLimitReached ? (
+                  <Button
+                    size="sm"
+                    leftIcon={Plus}
+                    disabled
+                    tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
+                  >
+                    Create
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" leftIcon={Plus}>
+                    <Link to="/leagues/create">Create</Link>
+                  </Button>
+                )
+              ) : null}
+            </div>
+          </div>
+          {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
+              <span>
+                Private creates {privateCreatedCount}/
+                {leagueUsage.limits.maxPrivateLeaguesCreated}
+              </span>
+              {hasPublicLeagues ? (
+                <span>
+                  Public joins {publicJoinedCount}/
+                  {leagueUsage.limits.maxPublicLeaguesJoined}
                 </span>
-                {hasPublicLeagues ? (
-                  <span className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-1 text-text-muted">
-                    Public joins: {publicJoinedCount}/
-                    {leagueUsage.limits.maxPublicLeaguesJoined}
-                  </span>
-                ) : null}
-                <Link
-                  to="/pricing"
-                  className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/45 px-2.5 py-1 font-semibold text-accent transition-colors hover:border-accent/50 hover:bg-accent-muted/70"
-                >
-                  Upgrade to Season Pass for unlimited
-                </Link>
-              </div>
-            ) : null
-          }
-        />
+              ) : null}
+              <Link
+                to="/pricing"
+                className="font-semibold text-accent hover:text-accent-hover"
+              >
+                Upgrade for unlimited
+              </Link>
+            </div>
+          ) : null}
+        </div>
 
         {shouldShowDiscoverTab ? (
-          <div className="reveal-up reveal-delay-1 mb-6 flex gap-1 rounded-lg border border-border bg-surface p-1">
+          <div className="reveal-up reveal-delay-1 mb-6 flex max-w-md gap-1 rounded-sm bg-surface-muted/55 p-1">
             <Button
               type="button"
               variant="tab"
@@ -192,7 +197,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-3">
+              <div className="divide-y divide-border/50">
                 {leagues
                   .filter(
                     (league): league is NonNullable<typeof league> =>
@@ -210,7 +215,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                       key={league._id}
                       to="/leagues/$slug"
                       params={{ slug: league.slug }}
-                      className="flex items-center justify-between rounded-xl border border-border bg-surface p-4 transition-colors hover:bg-surface-muted"
+                      className="flex items-center justify-between px-1 py-4 transition-colors hover:bg-surface-muted/35 sm:px-3"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -218,13 +223,13 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                             {league.name}
                           </h3>
                           {league.viewerRole === 'admin' && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
+                            <span className="inline-flex items-center gap-1 rounded-sm bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
                               <Crown className="h-3 w-3" aria-hidden />
                               Admin
                             </span>
                           )}
                           {league.visibility === 'public' && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
+                            <span className="inline-flex items-center gap-1 rounded-sm bg-accent/15 px-2 py-0.5 text-xs font-medium text-accent">
                               <Globe className="h-3 w-3" />
                               Public
                             </span>
@@ -330,11 +335,11 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                   : 'No public leagues available yet.'}
               </div>
             ) : (
-              <div className="grid gap-3">
+              <div className="divide-y divide-border/50">
                 {filteredPublicLeagues.map((league) => (
                   <div
                     key={league._id}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface p-4"
+                    className="flex items-center justify-between px-1 py-4 sm:px-3"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -391,6 +396,29 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
             )}
           </section>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function LeaguesPageSkeleton() {
+  return (
+    <div className="min-h-full bg-page" aria-label="Loading leagues">
+      <div className="mx-auto max-w-4xl animate-pulse px-4 py-6">
+        <div className="page-hero mb-6 rounded-2xl border border-border/70 bg-surface/70 p-5 sm:p-6">
+          <div className="mb-4 h-6 w-24 rounded-full bg-surface-muted" />
+          <div className="h-9 w-48 rounded-lg bg-surface-muted" />
+          <div className="mt-3 h-5 w-72 max-w-full rounded bg-surface-muted/70" />
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-6">
+          <div className="mx-auto h-10 w-10 rounded-full bg-surface-muted" />
+          <div className="mx-auto mt-5 h-6 w-64 max-w-full rounded bg-surface-muted" />
+          <div className="mx-auto mt-3 h-4 w-96 max-w-full rounded bg-surface-muted/70" />
+          <div className="mx-auto mt-5 h-9 w-24 rounded-lg bg-surface-muted" />
+        </div>
+        <div className="mt-8 h-7 w-64 rounded bg-surface-muted" />
+        <div className="mt-3 h-12 rounded-xl border border-border bg-surface" />
+        <div className="mt-3 h-20 rounded-xl border border-border bg-surface" />
       </div>
     </div>
   );

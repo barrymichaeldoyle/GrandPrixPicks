@@ -24,6 +24,7 @@ type Race = Doc<'races'>;
 interface RaceCardProps {
   race: Race;
   isNext?: boolean;
+  compact?: boolean;
   /** When predictions open (previous race start). Shown for "not yet open" races. */
   predictionOpenAt?: number | null;
 }
@@ -43,7 +44,12 @@ function Countdown({
   );
 }
 
-export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
+export function RaceCard({
+  race,
+  isNext,
+  compact = false,
+  predictionOpenAt,
+}: RaceCardProps) {
   // Only the next upcoming race is open for predictions
   const isPredictable = race.status === 'upcoming' && isNext;
   const isNotYetOpen = race.status === 'upcoming' && !isNext;
@@ -70,11 +76,65 @@ export function RaceCard({ race, isNext, predictionOpenAt }: RaceCardProps) {
     msRemaining: msUntilLock,
   });
 
+  if (compact) {
+    return (
+      <Link
+        to="/races/$raceSlug"
+        params={{ raceSlug: race.slug }}
+        className={`group grid min-h-18 grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3 transition-colors hover:bg-surface/55 sm:grid-cols-[3rem_2.25rem_minmax(0,1fr)_auto_auto_auto] sm:px-3 ${
+          isMutedPastRace ? 'opacity-60 hover:opacity-85' : ''
+        }`}
+      >
+        <span className="hidden text-xs font-semibold text-text-muted tabular-nums sm:block">
+          {String(race.round).padStart(2, '0')}
+        </span>
+        {countryCode ? (
+          <RaceFlag
+            countryCode={countryCode}
+            size="md"
+            className="shrink-0 rounded-sm"
+          />
+        ) : (
+          <span className="h-6 w-9" />
+        )}
+        <span className="min-w-0">
+          <span className="block truncate font-semibold text-text">
+            {race.name}
+          </span>
+          <span className="mt-0.5 flex items-center gap-2 text-xs text-text-muted sm:hidden">
+            <span>Round {race.round}</span>
+            {race.hasSprint ? (
+              <span className="text-violet-300">Sprint</span>
+            ) : null}
+          </span>
+        </span>
+        {race.hasSprint ? (
+          <span className="hidden text-xs font-medium text-violet-300 sm:block">
+            Sprint
+          </span>
+        ) : (
+          <span className="hidden sm:block" />
+        )}
+        <span
+          className="text-right text-sm text-text-muted tabular-nums"
+          suppressHydrationWarning
+        >
+          {formatDate(race.raceStartAt)}
+        </span>
+        <ArrowRight
+          size={15}
+          className="text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent"
+          aria-hidden
+        />
+      </Link>
+    );
+  }
+
   return (
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-surface transition-[border-color,box-shadow] duration-200 hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)] focus-visible:outline-none ${
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface transition-colors duration-200 hover:border-accent/70 focus-visible:border-accent focus-visible:outline-none ${
         hasCancelledBorder
           ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
           : isMutedPastRace

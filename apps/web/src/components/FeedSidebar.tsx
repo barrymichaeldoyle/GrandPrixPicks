@@ -37,7 +37,7 @@ function NextRaceCard() {
 
   if (nextRace === undefined) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-3">
+      <div className="rounded-sm border border-border bg-surface p-3">
         <div className="h-3 w-20 animate-pulse rounded bg-surface-muted" />
         <div className="mt-3 h-5 w-40 animate-pulse rounded bg-surface-muted" />
         <div className="mt-3 h-9 w-full animate-pulse rounded bg-surface-muted" />
@@ -56,7 +56,7 @@ function NextRaceCard() {
     Object.values(myPredictions.predictions).some((picks) => picks != null);
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-3">
+    <div className="rounded-sm border border-border bg-surface p-3">
       <p className="text-[10px] font-semibold tracking-wide text-accent uppercase">
         {isOpen ? 'Picks open' : 'Up next'}
       </p>
@@ -102,7 +102,7 @@ function MyLeaguesCard() {
 
   if (leaguesRaw === undefined) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-3">
+      <div className="rounded-sm border border-border bg-surface p-3">
         <div className="h-3 w-24 animate-pulse rounded bg-surface-muted" />
         <div className="mt-3 space-y-2">
           <div className="h-9 w-full animate-pulse rounded bg-surface-muted" />
@@ -118,7 +118,7 @@ function MyLeaguesCard() {
 
   if (leagues.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-3">
+      <div className="rounded-sm border border-border bg-surface p-3">
         <div className="mb-2 flex items-center gap-1.5">
           <Users className="h-3.5 w-3.5 text-text-muted" />
           <h2 className="text-xs font-semibold tracking-wide text-text-muted uppercase">
@@ -142,7 +142,7 @@ function MyLeaguesCard() {
   const visible = leagues.slice(0, 3);
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-3">
+    <div className="rounded-sm border border-border bg-surface p-3">
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Users className="h-3.5 w-3.5 text-text-muted" />
@@ -165,7 +165,7 @@ function MyLeaguesCard() {
             <Link
               to="/leagues/$slug"
               params={{ slug: league.slug }}
-              className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-surface-muted/60"
+              className="flex items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-surface-muted/60"
             >
               <span className="truncate font-medium text-text">
                 {league.name}
@@ -195,7 +195,7 @@ function SuggestedFollowsCard() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-3">
+    <div className="rounded-sm border border-border bg-surface p-3">
       <div className="mb-2 flex items-center gap-1.5">
         <Trophy className="h-3.5 w-3.5 text-text-muted" />
         <h2 className="text-xs font-semibold tracking-wide text-text-muted uppercase">

@@ -1,10 +1,10 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { Calendar } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
 
+import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
-import { PageHero } from '@/components/PageHero';
 import { RaceCard } from '@/components/RaceCard';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
@@ -33,9 +33,30 @@ export const Route = createFileRoute('/races/')({
 function RacesPage() {
   const { races, nextRace } = Route.useLoaderData();
   const now = useNow(0);
-  const nextRaceRef = useRef<HTMLDivElement | null>(null);
-  const hasScrolledToNextRaceRef = useRef(false);
+  const [view, setView] = useState<'upcoming' | 'completed' | 'all'>(
+    'upcoming',
+  );
   const orderedRaces = [...races].sort((a, b) => a.round - b.round);
+  const displayedRaces = orderedRaces.filter((race) => {
+    if (view === 'all') {
+      return true;
+    }
+    const isCompleted =
+      race.status === 'finished' || race.status === 'cancelled';
+    if (view === 'completed') {
+      return isCompleted;
+    }
+    return !isCompleted && (nextRace == null || race.round >= nextRace.round);
+  });
+  const completedCount = orderedRaces.filter(
+    (race) => race.status === 'finished' || race.status === 'cancelled',
+  ).length;
+  const upcomingCount = orderedRaces.filter(
+    (race) =>
+      race.status !== 'finished' &&
+      race.status !== 'cancelled' &&
+      (nextRace == null || race.round >= nextRace.round),
+  ).length;
 
   // When predictions open for a race = previous non-cancelled race's start
   function getPredictionOpenAt(race: (typeof races)[0]) {
@@ -54,29 +75,21 @@ function RacesPage() {
     return prev !== undefined ? prev.raceStartAt : null;
   }
 
-  useEffect(() => {
-    if (hasScrolledToNextRaceRef.current || nextRaceRef.current == null) {
-      return;
-    }
-    nextRaceRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    hasScrolledToNextRaceRef.current = true;
-  }, []);
-
   const featuredRace =
     nextRace ??
     orderedRaces.find((race) => race.status !== 'cancelled') ??
     null;
+  const displayedFeaturedRace = displayedRaces.find(
+    (race) => race._id === nextRace?._id,
+  );
+  const compactRaces = displayedFeaturedRace
+    ? displayedRaces.filter((race) => race._id !== displayedFeaturedRace._id)
+    : displayedRaces;
 
   return (
     <>
       <div className="min-h-screen bg-page">
         <div className="mx-auto max-w-7xl px-4 py-6">
-          <PageHero
-            eyebrow="Race Calendar"
-            title="2026 Season"
-            subtitle="Predict the top 5 finishers for each Grand Prix"
-          />
-
           {races.length === 0 ? (
             <div className="py-16 text-center">
               <Calendar className="mx-auto mb-4 h-16 w-16 text-text-muted" />
@@ -89,25 +102,84 @@ function RacesPage() {
             </div>
           ) : (
             <div className="reveal-up reveal-delay-2">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {orderedRaces.map((race) => (
-                  <div
-                    key={race._id}
-                    ref={
-                      nextRace != null && nextRace._id === race._id
-                        ? nextRaceRef
-                        : null
-                    }
-                    className="scroll-mt-24"
+              <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+                    2026 season
+                  </p>
+                  <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+                    Race calendar
+                  </h1>
+                  <p className="mt-1.5 text-sm text-text-muted">
+                    Pick the top five before each session locks.
+                  </p>
+                </div>
+
+                <div
+                  className="grid grid-cols-3 gap-1 rounded-lg bg-surface-muted/55 p-1 sm:w-auto sm:min-w-md"
+                  aria-label="Filter races"
+                >
+                  <Button
+                    type="button"
+                    variant="tab"
+                    size="tab"
+                    active={view === 'upcoming'}
+                    onClick={() => setView('upcoming')}
                   >
+                    Upcoming{' '}
+                    <span className="hidden sm:inline">{upcomingCount}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="tab"
+                    size="tab"
+                    active={view === 'completed'}
+                    onClick={() => setView('completed')}
+                  >
+                    Completed{' '}
+                    <span className="hidden sm:inline">{completedCount}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="tab"
+                    size="tab"
+                    active={view === 'all'}
+                    onClick={() => setView('all')}
+                  >
+                    All{' '}
+                    <span className="hidden sm:inline">
+                      {orderedRaces.length}
+                    </span>
+                  </Button>
+                </div>
+              </div>
+              {displayedFeaturedRace ? (
+                <div className="mb-6 max-w-3xl">
+                  <p className="mb-2 text-xs font-semibold tracking-widest text-text-muted uppercase">
+                    Next event
+                  </p>
+                  <RaceCard
+                    race={displayedFeaturedRace}
+                    isNext
+                    predictionOpenAt={getPredictionOpenAt(
+                      displayedFeaturedRace,
+                    )}
+                  />
+                </div>
+              ) : null}
+
+              {compactRaces.length > 0 ? (
+                <div className="divide-y divide-border/35">
+                  {compactRaces.map((race) => (
                     <RaceCard
+                      key={race._id}
                       race={race}
-                      isNext={nextRace != null && nextRace._id === race._id}
+                      compact
                       predictionOpenAt={getPredictionOpenAt(race)}
                     />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           )}
         </div>

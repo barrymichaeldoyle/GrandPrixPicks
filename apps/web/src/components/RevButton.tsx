@@ -1,13 +1,9 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
-
-import { Avatar } from './Avatar';
-
-const RECENT_REV_PREVIEW_LIMIT = 5;
 
 interface RevButtonProps {
   feedEventId: Id<'feedEvents'>;
@@ -25,42 +21,15 @@ export function RevButton({
   feedEventId,
   revCount,
   viewerHasReved,
-  recentRevUsers,
   onCountClick,
 }: RevButtonProps) {
   const giveRev = useMutation(api.feed.giveRev);
   const removeRev = useMutation(api.feed.removeRev);
-  const me = useQuery(api.users.me);
   const [optimisticReved, setOptimisticReved] = useState<boolean | null>(null);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
 
   const reved = optimisticReved ?? viewerHasReved;
   const count = optimisticCount ?? revCount;
-  const displayedRecentRevUsers = (() => {
-    const baseUsers = recentRevUsers ?? [];
-
-    if (!me) {
-      return baseUsers;
-    }
-
-    if (optimisticReved === true) {
-      return [
-        {
-          userId: me._id,
-          username: me.username,
-          avatarUrl: me.avatarUrl ?? undefined,
-        },
-        ...baseUsers.filter((user) => user.userId !== me._id),
-      ].slice(0, RECENT_REV_PREVIEW_LIMIT);
-    }
-
-    if (optimisticReved === false) {
-      return baseUsers.filter((user) => user.userId !== me._id);
-    }
-
-    return baseUsers;
-  })();
-
   async function handleRevClick() {
     const willRev = !reved;
     setOptimisticReved(willRev);
@@ -83,8 +52,6 @@ export function RevButton({
     }
   }
 
-  const showCount = count > 0 || displayedRecentRevUsers.length > 0;
-
   const revIcon = (
     <svg
       className="h-3.5 w-3.5 shrink-0"
@@ -104,7 +71,7 @@ export function RevButton({
 
   return (
     <div
-      className={`inline-flex min-h-8 items-center rounded-full border transition-colors ${
+      className={`inline-flex h-8 w-[5.25rem] items-center rounded-sm border transition-colors ${
         reved
           ? 'border-accent/40 bg-accent/10'
           : 'border-border/70 bg-surface-muted/30 hover:border-border'
@@ -114,9 +81,7 @@ export function RevButton({
         type="button"
         onClick={handleRevClick}
         title={reved ? 'Remove Rev' : 'Give a Rev'}
-        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${
-          showCount ? 'rounded-l-full' : 'rounded-full'
-        } ${
+        className={`inline-flex h-full flex-1 items-center justify-center gap-1 rounded-l-sm pl-2.5 text-xs font-semibold transition-colors ${
           reved
             ? 'text-accent hover:bg-accent/10'
             : 'text-text-muted hover:bg-surface-muted hover:text-text'
@@ -126,52 +91,25 @@ export function RevButton({
         <span>Rev</span>
       </button>
 
-      {showCount && (
-        <>
-          <div
-            className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`}
-          />
+      <div
+        className={`h-4 w-px shrink-0 ${reved ? 'bg-accent/30' : 'bg-border/70'}`}
+      />
 
-          <button
-            type="button"
-            onClick={onCountClick}
-            title="See who Rev'd"
-            disabled={count === 0}
-            className={`inline-flex min-h-8 items-center justify-center gap-1 rounded-r-full px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors ${
-              reved
-                ? 'text-accent hover:bg-accent/10'
-                : count > 0
-                  ? 'text-text-muted hover:bg-surface-muted hover:text-text'
-                  : 'text-text-muted/30'
-            }`}
-          >
-            {displayedRecentRevUsers.length > 0 ? (
-              <>
-                <span className="flex items-center">
-                  {displayedRecentRevUsers.map((u, i) => (
-                    <span
-                      key={u.userId}
-                      className="rounded-full ring-1 ring-surface"
-                      style={{ marginLeft: i > 0 ? '-5px' : undefined }}
-                    >
-                      <Avatar
-                        avatarUrl={u.avatarUrl}
-                        username={u.username}
-                        size="xs"
-                      />
-                    </span>
-                  ))}
-                </span>
-                {count > displayedRecentRevUsers.length && (
-                  <span>+{count - displayedRecentRevUsers.length}</span>
-                )}
-              </>
-            ) : (
-              <span className="min-w-5 text-center">{count}</span>
-            )}
-          </button>
-        </>
-      )}
+      <button
+        type="button"
+        onClick={onCountClick}
+        title={count > 0 ? "See who Rev'd" : 'No revs yet'}
+        disabled={count === 0}
+        className={`inline-flex h-full w-7 shrink-0 items-center justify-center rounded-r-sm text-xs font-bold tabular-nums transition-colors ${
+          reved
+            ? 'text-accent hover:bg-accent/10'
+            : count > 0
+              ? 'text-text-muted hover:bg-surface-muted hover:text-text'
+              : 'cursor-default text-text-muted/35'
+        }`}
+      >
+        {count}
+      </button>
     </div>
   );
 }

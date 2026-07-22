@@ -2,7 +2,7 @@ import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
 import {
   Flag,
   Gauge,
-  ListChecks,
+  History,
   SlidersHorizontal,
   Trophy,
   Users,
@@ -10,7 +10,7 @@ import {
 import { useEffect } from 'react';
 
 const signInButtonClasses =
-  'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full bg-button-accent text-white hover:bg-button-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-sm border border-border-strong bg-surface-elevated text-text hover:border-accent/55 hover:bg-accent-muted/35 hover:text-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
 export function ClerkHeaderUser({
   isMobile,
@@ -49,8 +49,8 @@ export function ClerkHeaderUser({
       <UserButton.MenuItems>
         {isMobile ? (
           <UserButton.Link
-            label="My Picks"
-            labelIcon={<ListChecks className="h-4 w-4" />}
+            label="My Results"
+            labelIcon={<History className="h-4 w-4" />}
             href={myPicksHref}
           />
         ) : null}

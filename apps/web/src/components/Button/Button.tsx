@@ -6,7 +6,7 @@ import { Children, cloneElement, isValidElement } from 'react';
 import { Tooltip } from '@/components/Tooltip';
 
 const base =
-  'inline-flex items-center justify-center gap-1 font-semibold leading-none rounded-lg transition-colors [&_svg]:shrink-0 [&_svg]:block';
+  'inline-flex items-center justify-center gap-1 font-semibold leading-none rounded transition-colors [&_svg]:shrink-0 [&_svg]:block';
 
 const variants = {
   primary:
@@ -26,7 +26,7 @@ const sizes = {
   inline: 'gap-1 rounded px-1.5 py-0.5 text-xs',
   sm: 'h-9 px-3 text-sm',
   md: 'h-11 gap-1.5 px-4 text-base',
-  tab: 'h-9 rounded-md px-3 text-sm',
+  tab: 'h-9 rounded-sm px-3 text-sm',
 } as const;
 
 /** Icon size (px) per button size for consistent alignment. */
@@ -81,7 +81,7 @@ function Button({
 
   const activeStyles =
     effectiveVariant === 'tab' && active
-      ? 'bg-button-accent text-white hover:!bg-button-accent hover:!text-white cursor-default pointer-events-none'
+      ? 'border border-accent/35 bg-accent-muted/55 !text-accent hover:!bg-accent-muted/70 hover:!text-accent-hover cursor-default pointer-events-none'
       : '';
 
   const resolvedClassName = [

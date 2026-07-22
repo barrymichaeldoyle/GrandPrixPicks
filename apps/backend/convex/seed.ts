@@ -6485,7 +6485,6 @@ export const seedFeedEvents = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
-    const HOUR = 60 * 60 * 1000;
     let created = 0;
 
     // score_published — one per existing score row
@@ -6508,8 +6507,12 @@ export const seedFeedEvents = internalMutation({
       if (!user || !race) {
         continue;
       }
-      // Spread events ~2h apart so the feed looks like a real timeline
-      const offset = created * 2 * HOUR;
+      const result = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', score.raceId).eq('sessionType', score.sessionType),
+        )
+        .unique();
       await ctx.db.insert('feedEvents', {
         type: 'score_published',
         userId: score.userId,
@@ -6523,7 +6526,9 @@ export const seedFeedEvents = internalMutation({
         raceSlug: race.slug,
         season: race.season,
         revCount: 0,
-        createdAt: now - offset,
+        // A score becomes feed activity when its result is published. Falling
+        // back to the score timestamp keeps older fixtures deterministic.
+        createdAt: result?.publishedAt ?? score.createdAt ?? now,
       });
       created++;
     }

@@ -46,7 +46,7 @@ export function SeasonStrip({
   season,
   now,
 }: {
-  races: ReadonlyArray<SeasonRace>;
+  races: readonly SeasonRace[];
   currentRaceId: SeasonRace['_id'] | null;
   season: number | null;
   now: number;
@@ -66,7 +66,7 @@ export function SeasonStrip({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="text-xs font-semibold tracking-widest text-text-muted uppercase">
+        <p className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
           2026 Season
         </p>
         <Link
@@ -100,7 +100,7 @@ export function SeasonStrip({
                   title={label}
                   className={`group home-season-step relative flex h-10 w-10 items-center justify-center rounded-full border transition sm:h-11 sm:w-11 ${
                     isCurrent
-                      ? 'home-season-step-current border-accent shadow-[0_0_0_3px_rgba(34,211,238,0.18)]'
+                      ? 'home-season-step-current border-racing-red'
                       : isPast
                         ? 'home-season-step-past border-border/60 hover:opacity-90'
                         : 'border-border/60 hover:border-border-strong'
@@ -119,7 +119,7 @@ export function SeasonStrip({
                   )}
                   {isCurrent && (
                     <span
-                      className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-accent shadow-[0_0_0_2px_var(--page)]"
+                      className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-racing-red shadow-[0_0_0_2px_var(--surface)]"
                       aria-hidden="true"
                     />
                   )}
@@ -127,7 +127,7 @@ export function SeasonStrip({
                 <span
                   className={`mt-1 text-[10px] font-semibold tracking-wide ${
                     isCurrent
-                      ? 'text-accent'
+                      ? 'text-racing-red'
                       : isPast
                         ? 'text-text-muted/80'
                         : 'text-text-muted'

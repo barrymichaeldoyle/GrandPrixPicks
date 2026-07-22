@@ -10,11 +10,11 @@ export function PlayWithFriends() {
   return (
     <motion.div
       {...fadeUp}
-      className="flex flex-col gap-4 rounded-2xl border border-accent/25 bg-accent-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+      className="relative flex flex-col gap-4 overflow-hidden rounded-md border border-racing-red/35 bg-racing-red-muted/35 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
     >
       <div className="flex items-start gap-3">
-        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/15 sm:flex">
-          <Users className="h-5 w-5 text-accent" aria-hidden="true" />
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border border-racing-red/25 bg-racing-red-muted/50 sm:flex">
+          <Users className="h-5 w-5 text-racing-red" aria-hidden="true" />
         </span>
         <div>
           <h2 className="text-lg font-semibold text-text">Play with friends</h2>

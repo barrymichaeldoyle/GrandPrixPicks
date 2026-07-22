@@ -103,8 +103,13 @@ export function FeedContent() {
     );
   }
 
-  // Merge events and sessions from all loaded pages
-  const allEvents = loadedPages.flatMap((p) => p.events);
+  // Keep the merged feed chronological even while reactive pages refresh, and
+  // avoid briefly rendering the boundary event twice across adjacent pages.
+  const allEvents = Array.from(
+    new Map(
+      loadedPages.flatMap((p) => p.events).map((event) => [event._id, event]),
+    ).values(),
+  ).sort((a, b) => b.createdAt - a.createdAt);
   const allSessions = Object.assign({}, ...loadedPages.map((p) => p.sessions));
 
   if (allEvents.length === 0) {
@@ -277,7 +282,7 @@ export function FeedContent() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {groups.map((group) => {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
@@ -331,7 +336,7 @@ function FeedPage() {
               <FeedItemSkeleton />
             </div>
           ) : !isSignedIn ? (
-            <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+            <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
               <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
               <p className="mb-4 text-sm text-text-muted">
                 Sign in to see scores from your friends and leagues.

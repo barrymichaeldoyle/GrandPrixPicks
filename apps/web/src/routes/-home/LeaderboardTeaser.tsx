@@ -22,8 +22,10 @@ const PODIUM_RANK_CLASSES: Record<1 | 2 | 3, string> = {
 export function LeaderboardTeaser({
   players,
 }: {
-  players: ReadonlyArray<TopPlayer>;
+  players: readonly TopPlayer[];
 }) {
+  const previewPlayers = players.slice(0, 5);
+
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
@@ -43,7 +45,7 @@ export function LeaderboardTeaser({
         </Link>
       </div>
       <ol className="divide-y divide-border/60">
-        {players.map((p) => {
+        {previewPlayers.map((p) => {
           const name = p.displayName || p.username;
           const initial = (name || '?').slice(0, 1).toUpperCase();
           const podiumRank =

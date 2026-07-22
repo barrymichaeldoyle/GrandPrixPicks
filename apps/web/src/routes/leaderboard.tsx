@@ -8,12 +8,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { PageHero } from '@/components/PageHero';
 import { TabSwitch } from '@/components/TabSwitch';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
 import { pageMeta } from '@/lib/site';
 
-import { PAGE_SIZE, playerCountFormatter } from './-leaderboard/constants';
+import {
+  formatAccuracy,
+  PAGE_SIZE,
+  playerCountFormatter,
+} from './-leaderboard/constants';
 import {
   GAME_MODE_OPTIONS,
   SCOPE_OPTIONS,
@@ -102,6 +105,9 @@ function LeaderboardPage() {
   const queryClient = useQueryClient();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { data: viewer } = useQuery(
+    convexQuery(api.users.me, isSignedIn ? {} : 'skip'),
+  );
   // Bare /leaderboard defaults to the current race weekend only when that
   // board has something to show — mid-weekend before any results are
   // published, season standings beat an empty "No scores yet" state. An
@@ -348,16 +354,17 @@ function LeaderboardPage() {
       }
       return (
         (activeWeekendData.entries as LeaderboardEntry[]).find(
-          (e) => e.isViewer,
+          (e) => e.isViewer || e.userId === viewer?._id,
         ) ?? null
       );
     }
     return activeSeasonData?.viewerEntry ?? null;
   })();
 
-  // No count for weekend boards.
   const activeTotalCount =
-    timeScope === 'weekend' ? null : (activeSeasonData?.totalCount ?? 0);
+    timeScope === 'weekend'
+      ? (activeWeekendData?.entries.length ?? 0)
+      : (activeSeasonData?.totalCount ?? 0);
 
   const gameModeLabel =
     gameMode === 'combined'
@@ -366,10 +373,22 @@ function LeaderboardPage() {
         ? 'Top 5'
         : 'H2H';
   const activeViewKey = `${timeScope}:${scope}:${gameMode}`;
+  const showStandingCard =
+    headerViewerEntry != null || (timeScope === 'weekend' && isSignedIn);
+  const standingName =
+    (headerViewerEntry as LeaderboardEntry | null)?.displayName ??
+    headerViewerEntry?.username ??
+    viewer?.displayName ??
+    viewer?.username ??
+    'Your standing';
 
   const heroSubtitle =
     timeScope === 'weekend' && selectedRace
-      ? `${selectedRace.season} ${selectedRace.name} Weekend · ${gameModeLabel}`
+      ? `${selectedRace.season} ${selectedRace.name} · ${gameModeLabel}${
+          activeTotalCount > 0
+            ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
+            : ''
+        }`
       : `2026 Season Standings · ${gameModeLabel}${
           activeTotalCount && activeTotalCount > 0
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
@@ -379,59 +398,70 @@ function LeaderboardPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <PageHero
-          eyebrow={timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
-          title="Leaderboard"
-          subtitle={heroSubtitle}
-          className="page-hero--high-contrast"
-          rightSlot={
+        <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+              {timeScope === 'weekend' ? 'Race weekend' : 'Season rankings'}
+            </p>
+            <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+              Leaderboard
+            </h1>
+            <p className="mt-1.5 text-sm text-text-muted">{heroSubtitle}</p>
+          </div>
+
+          <div className="min-h-14">
             <AnimatePresence mode="wait">
-              {headerViewerEntry ? (
+              {showStandingCard ? (
                 <motion.div
                   key={timeScope}
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.2 }}
-                  className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-accent bg-accent-muted px-3 py-2"
+                  className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
-                    {headerViewerEntry.rank}
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white tabular-nums">
+                    {headerViewerEntry?.rank ?? '—'}
                   </span>
                   <div className="min-w-0">
+                    <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                      Your standing
+                    </div>
                     <div className="truncate text-sm font-semibold text-text">
-                      {(headerViewerEntry as LeaderboardEntry).displayName ??
-                        headerViewerEntry.username}
+                      {standingName}
                     </div>
-                    <div className="text-base font-bold text-accent">
-                      {headerViewerEntry.points} points
-                      {gameMode === 'h2h' &&
-                        'correctPicks' in headerViewerEntry && (
-                          <span className="ml-2 text-sm font-normal text-text-muted">
-                            (
-                            {
-                              (headerViewerEntry as H2HLeaderboardEntry)
-                                .correctPicks
-                            }
-                            /
-                            {
-                              (headerViewerEntry as H2HLeaderboardEntry)
-                                .totalPicks
-                            }{' '}
-                            correct)
-                          </span>
-                        )}
-                    </div>
+                    {headerViewerEntry ? (
+                      <div className="text-sm font-bold text-accent">
+                        {headerViewerEntry.points} pts
+                        {gameMode === 'h2h' &&
+                          'correctPicks' in headerViewerEntry && (
+                            <span className="ml-2 text-sm font-normal text-text-muted">
+                              (
+                              {formatAccuracy(
+                                (headerViewerEntry as H2HLeaderboardEntry)
+                                  .correctPicks,
+                                (headerViewerEntry as H2HLeaderboardEntry)
+                                  .totalPicks,
+                              )}{' '}
+                              accuracy)
+                            </span>
+                          )}
+                      </div>
+                    ) : (
+                      <div className="text-sm font-medium text-text-muted">
+                        Not ranked this weekend
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ) : null}
             </AnimatePresence>
-          }
-        />
+          </div>
+        </div>
 
-        {/* Tab bar */}
+        {/* Filters */}
         <div
-          className="reveal-up reveal-delay-1 mb-6 flex flex-col gap-3 rounded-xl border border-border bg-surface-muted/50 p-1.5"
+          className="reveal-up reveal-delay-1 mb-6 flex flex-col gap-2.5"
           aria-label="Leaderboard filters"
         >
           {/* Row 1: Time scope */}
@@ -444,7 +474,7 @@ function LeaderboardPage() {
               })
             }
             options={[...TIME_SCOPE_OPTIONS]}
-            className="flex gap-1"
+            className="flex gap-1 rounded-lg bg-surface-muted/55 p-1"
             buttonClassName="flex-1"
             ariaLabel="Leaderboard time scope"
           />
@@ -474,9 +504,9 @@ function LeaderboardPage() {
           )}
 
           {/* Row 2: Scope + game mode */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             {isSignedIn && (
-              <div className="sm:border-r sm:border-border sm:pr-4">
+              <div className="sm:w-56">
                 <TabSwitch
                   value={scope}
                   onChange={(v) =>
@@ -486,7 +516,7 @@ function LeaderboardPage() {
                     })
                   }
                   options={[...SCOPE_OPTIONS]}
-                  className="flex gap-1"
+                  className="flex gap-1 rounded-lg bg-surface-muted/40 p-1"
                   buttonClassName="flex-1 sm:flex-initial"
                   ariaLabel="Leaderboard scope"
                 />
@@ -501,7 +531,7 @@ function LeaderboardPage() {
                 })
               }
               options={[...GAME_MODE_OPTIONS]}
-              className="flex flex-1 gap-1"
+              className="flex flex-1 gap-1 rounded-lg bg-surface-muted/40 p-1"
               buttonClassName="flex-1"
               ariaLabel="Leaderboard game mode"
             />

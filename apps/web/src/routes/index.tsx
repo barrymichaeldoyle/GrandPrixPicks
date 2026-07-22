@@ -259,6 +259,7 @@ function HomePage() {
                       variant="primary"
                       size="md"
                       rightIcon={ArrowRight}
+                      className="home-primary-action"
                     >
                       <Link
                         to="/races/$raceSlug"
@@ -384,6 +385,7 @@ function HomePage() {
                     variant="primary"
                     size="md"
                     rightIcon={ArrowRight}
+                    className="home-primary-action"
                   >
                     <Link to="/races">Make Your Picks</Link>
                   </Button>
@@ -411,9 +413,9 @@ function HomePage() {
         {/* Session timetable — grouped by day */}
         {sessions.length > 0 && featuredRace && (
           <section className="px-3 pt-1 pb-10 sm:pt-2">
-            <div className="mx-auto w-full max-w-3xl">
+            <div className="home-section-open mx-auto w-full max-w-3xl py-5 sm:py-6">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold tracking-widest text-text-muted uppercase">
+                <p className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
                   Weekend Schedule
                 </p>
                 <div className="flex items-center gap-3">
@@ -479,7 +481,7 @@ function HomePage() {
         {/* Season progress + leaderboard teaser */}
         {races.length > 0 && (
           <section className="px-3 pt-2 pb-8 sm:pb-10">
-            <div className="mx-auto w-full max-w-5xl">
+            <div className="home-section-open mx-auto w-full max-w-5xl py-5">
               <SeasonStrip
                 races={races}
                 currentRaceId={featuredRace?._id ?? null}
@@ -499,7 +501,7 @@ function HomePage() {
 
         {topPlayers.length > 0 && (
           <section className="px-3 pt-2 pb-10">
-            <div className="mx-auto w-full max-w-3xl">
+            <div className="home-section-panel mx-auto w-full max-w-3xl rounded-2xl p-4 sm:p-6">
               {recentRacePlayerCount > 0 && (
                 <SocialProof
                   playerCount={recentRacePlayerCount}
@@ -512,7 +514,7 @@ function HomePage() {
         )}
 
         <FaqSection title="Frequently Asked Questions">
-          <FaqItem icon={Target} question="How does scoring work?">
+          <FaqItem icon={Target} question="How does scoring work?" defaultOpen>
             <p className="mb-3 text-text-muted">
               The same points system applies to qualifying, sprint qualifying
               (on sprint weekends), the sprint, and the race. You pick the top 5

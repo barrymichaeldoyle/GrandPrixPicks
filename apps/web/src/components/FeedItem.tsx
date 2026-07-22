@@ -2,8 +2,8 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Check, Flag, Flame, Gauge, Trophy, Users, X } from 'lucide-react';
-import type { ComponentType, ReactNode } from 'react';
+import { Check, Flag, Flame, Gauge, Trophy, X } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -216,7 +216,7 @@ function H2HPicksDialog({
         }
       }}
     >
-      <div className="mx-4 w-full max-w-xs rounded-xl border border-border bg-surface shadow-xl">
+      <div className="mx-4 w-full max-w-xs rounded-sm border border-border bg-surface shadow-xl">
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-4 pb-2">
           <div>
@@ -314,30 +314,6 @@ function H2HPicksDialog({
   );
 }
 
-function ItemHeader({ event, icon }: { event: FeedEvent; icon: ReactNode }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Link
-        to="/p/$username"
-        params={{ username: event.username ?? '' }}
-        search={{ from: undefined, fromLabel: undefined }}
-        className="shrink-0"
-        tabIndex={event.username ? 0 : -1}
-      >
-        <Avatar
-          avatarUrl={event.avatarUrl}
-          username={event.username}
-          size="sm"
-        />
-      </Link>
-      <div className="min-w-0 flex-1">
-        <UserLink username={event.username} displayName={event.displayName} />
-      </div>
-      <span className="shrink-0 text-text-muted/50">{icon}</span>
-    </div>
-  );
-}
-
 function FollowButton({
   userId,
   isFollowing,
@@ -381,7 +357,7 @@ function FollowButton({
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+      className={`shrink-0 rounded-sm px-3 py-1 text-xs font-semibold transition-colors ${
         following
           ? hovered
             ? 'border border-error/40 bg-error/10 text-error'
@@ -412,7 +388,7 @@ function RevsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-2xl border border-border bg-surface shadow-xl"
+        className="w-full max-w-sm rounded-sm border border-border bg-surface shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -420,7 +396,7 @@ function RevsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-text-muted hover:bg-surface-muted hover:text-text"
+            className="rounded-sm p-1 text-text-muted hover:bg-surface-muted hover:text-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -478,41 +454,6 @@ function RevsModal({
       </div>
     </div>,
     document.body,
-  );
-}
-
-function ItemFooter({
-  event,
-  grouped,
-}: {
-  event: FeedEvent;
-  grouped?: boolean;
-}) {
-  const [revsOpen, setRevsOpen] = useState(false);
-
-  return (
-    <>
-      <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
-        <RevButton
-          feedEventId={event._id}
-          revCount={event.revCount}
-          viewerHasReved={event.viewerHasReved}
-          recentRevUsers={event.recentRevUsers}
-          onCountClick={() => setRevsOpen(true)}
-        />
-        {!grouped && (
-          <span
-            className="shrink-0 text-xs text-text-muted"
-            suppressHydrationWarning
-          >
-            {formatRelativeTime(event.createdAt)}
-          </span>
-        )}
-      </div>
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
-      )}
-    </>
   );
 }
 
@@ -637,7 +578,7 @@ function ScorePublishedItem({
                 <button
                   type="button"
                   onClick={() => setH2hOpen(true)}
-                  className="mb-0.5 inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+                  className="mb-0.5 inline-flex items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
                 >
                   H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
                   <svg
@@ -717,42 +658,81 @@ function ScorePublishedItem({
 }
 
 function JoinedLeagueItem({ event }: { event: FeedEvent }) {
+  const [revsOpen, setRevsOpen] = useState(false);
   return (
-    <div className="space-y-2.5">
-      <ItemHeader event={event} icon={<Users className="h-4 w-4" />} />
-      <p className="text-sm text-text-muted">
-        joined{' '}
-        {event.leagueSlug ? (
-          <Link
-            to="/leagues/$slug"
-            params={{ slug: event.leagueSlug }}
-            className="font-medium text-text hover:text-accent"
-          >
-            {event.leagueName}
-          </Link>
-        ) : (
-          <span className="font-medium text-text">{event.leagueName}</span>
-        )}
-      </p>
-      <ItemFooter event={event} />
-    </div>
+    <>
+      <div className="flex items-center gap-3">
+        <Avatar
+          avatarUrl={event.avatarUrl}
+          username={event.username}
+          size="sm"
+        />
+        <p className="min-w-0 flex-1 text-sm text-text-muted">
+          <UserLink username={event.username} displayName={event.displayName} />{' '}
+          joined{' '}
+          {event.leagueSlug ? (
+            <Link
+              to="/leagues/$slug"
+              params={{ slug: event.leagueSlug }}
+              className="font-medium text-text hover:text-accent"
+            >
+              {event.leagueName}
+            </Link>
+          ) : (
+            <span className="font-medium text-text">{event.leagueName}</span>
+          )}
+          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted/60">
+            · {formatRelativeTime(event.createdAt)}
+          </span>
+        </p>
+        <RevButton
+          feedEventId={event._id}
+          revCount={event.revCount}
+          viewerHasReved={event.viewerHasReved}
+          recentRevUsers={event.recentRevUsers}
+          onCountClick={() => setRevsOpen(true)}
+        />
+      </div>
+      {revsOpen && (
+        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      )}
+    </>
   );
 }
 
 function StreakMilestoneItem({ event }: { event: FeedEvent }) {
+  const [revsOpen, setRevsOpen] = useState(false);
   return (
-    <div className="space-y-2.5">
-      <ItemHeader
-        event={event}
-        icon={<Flame className="h-4 w-4 text-accent" />}
-      />
-      <p className="text-sm text-text-muted">
-        on a{' '}
-        <span className="font-bold text-accent">{event.streakCount}-race</span>{' '}
-        scoring streak
-      </p>
-      <ItemFooter event={event} />
-    </div>
+    <>
+      <div className="flex items-center gap-3">
+        <Avatar
+          avatarUrl={event.avatarUrl}
+          username={event.username}
+          size="sm"
+        />
+        <p className="min-w-0 flex-1 text-sm text-text-muted">
+          <UserLink username={event.username} displayName={event.displayName} />{' '}
+          reached a{' '}
+          <span className="font-semibold text-accent">
+            {event.streakCount}-race streak
+          </span>
+          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted/60">
+            · {formatRelativeTime(event.createdAt)}
+          </span>
+        </p>
+        <Flame className="hidden h-4 w-4 shrink-0 text-accent/70 sm:block" />
+        <RevButton
+          feedEventId={event._id}
+          revCount={event.revCount}
+          viewerHasReved={event.viewerHasReved}
+          recentRevUsers={event.recentRevUsers}
+          onCountClick={() => setRevsOpen(true)}
+        />
+      </div>
+      {revsOpen && (
+        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      )}
+    </>
   );
 }
 
@@ -765,14 +745,16 @@ export function FeedItem({
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
 }) {
+  const isSocialActivity =
+    event.type === 'joined_league' || event.type === 'streak_milestone';
   const radiusClass =
     position === 'first'
       ? 'rounded-t-none'
       : position === 'middle'
         ? 'rounded-none'
         : position === 'last'
-          ? 'rounded-b-xl rounded-t-none'
-          : 'rounded-xl';
+          ? 'rounded-b-sm rounded-t-none'
+          : 'rounded-sm';
 
   const borderClass =
     position === 'first' || position === 'middle' || position === 'last'
@@ -781,7 +763,11 @@ export function FeedItem({
 
   return (
     <div
-      className={`border border-border bg-surface p-2.5 ${radiusClass} ${borderClass}`}
+      className={
+        isSocialActivity
+          ? 'px-1 py-2.5'
+          : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
+      }
     >
       {event.type === 'score_published' || event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
@@ -815,7 +801,7 @@ function RankMedal({ rank }: { rank: number | null }) {
   if (medal) {
     return (
       <span
-        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ${medal}`}
+        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-xs font-bold tabular-nums ${medal}`}
       >
         {rank}
       </span>
@@ -879,7 +865,7 @@ function SessionLeaderboardRow({
     <>
       <div
         className={`flex items-start gap-2.5 border border-t-0 border-border px-2.5 py-2 ${
-          isLast ? 'rounded-b-xl' : ''
+          isLast ? 'rounded-b-sm' : ''
         } ${isViewer ? 'bg-accent/8 ring-1 ring-accent/40 ring-inset' : 'bg-surface'}`}
       >
         <RankMedal rank={rank} />
@@ -905,7 +891,7 @@ function SessionLeaderboardRow({
                 displayName={event.displayName}
               />
               {isViewer && (
-                <span className="rounded-full bg-accent/15 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent uppercase">
+                <span className="rounded-sm bg-accent/15 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent uppercase">
                   You
                 </span>
               )}
@@ -939,7 +925,7 @@ function SessionLeaderboardRow({
               <button
                 type="button"
                 onClick={() => setH2hOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+                className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
               >
                 H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
               </button>
@@ -988,7 +974,9 @@ export function SessionGroup({
 }) {
   const sessionWithTime = {
     ...session,
-    createdAt: events[events.length - 1]?.createdAt,
+    // Feed events arrive newest-first, so the group should inherit its newest
+    // activity rather than the oldest row at the bottom of the group.
+    createdAt: events[0]?.createdAt,
   };
 
   const isScored =
@@ -1048,7 +1036,7 @@ export function SessionGroup({
 
 export function FeedItemSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-surface px-4 py-3">
+    <div className="rounded-sm border border-border bg-surface px-4 py-3">
       <div className="flex items-start gap-3">
         <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-surface-muted" />
         <div className="flex-1 space-y-2">
@@ -1072,7 +1060,7 @@ export function FeedEmptyState({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+    <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
       <Icon className="mx-auto mb-3 h-8 w-8 text-text-muted/50" />
       {title ? (
         <h2 className="text-lg font-semibold text-text">{title}</h2>
@@ -1133,13 +1121,13 @@ function SessionSeparator({
   const roundedClass = grouped
     ? isStuck
       ? 'rounded-none'
-      : 'rounded-t-xl'
-    : 'rounded-xl';
+      : 'rounded-t-sm'
+    : 'rounded-sm';
 
   const content = (
     <div className="overflow-hidden">
       {/* Top row: flag + race name/session/time */}
-      <div className="flex items-stretch border-b border-border">
+      <div className="flex items-stretch border-b border-border bg-surface-elevated">
         {countryCode ? (
           <div className="h-10 shrink-0 self-stretch overflow-hidden border-r border-border">
             <RaceFlag countryCode={countryCode} size="full" />

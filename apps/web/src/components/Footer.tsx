@@ -21,15 +21,19 @@ function LinkedInIcon({ className }: { className?: string }) {
 export function Footer() {
   const year = new Date().getFullYear();
   const footerLinkClass =
-    'font-semibold text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-sm';
+    'text-text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-sm';
 
   return (
-    <footer className="mt-auto border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1.5rem)]">
-      <div className="mx-auto max-w-5xl px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-3">
+    <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
+      <div
+        aria-hidden
+        className="header-grid-sheen pointer-events-none absolute inset-0"
+      />
+      <div className="relative mx-auto max-w-6xl px-4 py-7">
+        <div className="grid grid-cols-1 gap-7 text-sm text-text-muted sm:grid-cols-[1.5fr_1fr_1fr] sm:gap-10">
           <div className="space-y-3">
             <p className="flex items-center gap-2 text-base font-semibold text-text">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10">
+              <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-border-strong bg-surface-elevated">
                 <Flag
                   className="relative left-0.25 h-4 w-4 text-accent"
                   aria-hidden="true"
@@ -43,48 +47,15 @@ export function Footer() {
               Fan-made prediction game for Formula 1 race weekends. No gambling
               or real-money betting.
             </p>
-            <a
-              href={siteConfig.social.x.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
-            >
-              <XLogoIcon className="h-3.5 w-3.5" />
-              <span>Follow {siteConfig.social.x.handle}</span>
-            </a>
-            <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
-              <span>Made by</span>
-              <a
-                href="https://barrymichaeldoyle.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${footerLinkClass} font-title text-xs tracking-tight`}
-              >
-                Barry Michael Doyle
-              </a>
-              <span
-                aria-hidden
-                className="ml-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-border"
-              />
-              <a
-                href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md p-2 text-accent transition-colors hover:bg-accent-muted/50 hover:text-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
-                aria-label="LinkedIn"
-              >
-                <LinkedInIcon className="h-4 w-4" />
-              </a>
-            </div>
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xs font-semibold tracking-wide text-text uppercase">
+            <h2 className="font-title text-[10px] font-semibold tracking-[0.16em] text-text uppercase">
               Explore
             </h2>
             <nav
               aria-label="Footer site navigation"
-              className="flex flex-col gap-2 text-sm"
+              className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-1"
             >
               {footerExploreLinks.map((link) => (
                 <Link key={link.to} to={link.to} className={footerLinkClass}>
@@ -95,8 +66,8 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xs font-semibold tracking-wide text-text uppercase">
-              Legal & Support
+            <h2 className="font-title text-[10px] font-semibold tracking-[0.16em] text-text uppercase">
+              Support & legal
             </h2>
             <nav
               aria-label="Footer legal navigation"
@@ -121,8 +92,37 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-border pt-4 text-xs text-text-muted">
-          {year} Barry Michael Doyle Software Solutions (Pty) Ltd
+        <div className="mt-7 flex flex-col gap-3 border-t border-border pt-4 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>{year} Barry Michael Doyle Software Solutions (Pty) Ltd</p>
+          <div className="flex items-center gap-3">
+            <span>Made by</span>
+            <a
+              href="https://barrymichaeldoyle.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={footerLinkClass}
+            >
+              Barry Michael Doyle
+            </a>
+            <a
+              href={siteConfig.social.x.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm p-1 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              aria-label={`Follow ${siteConfig.social.x.handle} on X`}
+            >
+              <XLogoIcon className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-sm p-1 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              aria-label="LinkedIn"
+            >
+              <LinkedInIcon className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

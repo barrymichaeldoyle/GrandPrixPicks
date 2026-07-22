@@ -21,7 +21,7 @@ export function PageHero({
 }: PageHeroProps) {
   return (
     <header
-      className={`page-hero reveal-up mb-6 rounded-2xl border border-border/70 bg-surface/70 p-5 backdrop-blur-[1px] sm:p-6 ${className ?? ''}`}
+      className={`page-hero reveal-up mb-6 rounded-md border border-border bg-surface p-5 sm:p-6 ${className ?? ''}`}
     >
       <div
         className={
@@ -32,7 +32,7 @@ export function PageHero({
       >
         <div className="min-w-0">
           {eyebrow ? (
-            <p className="page-hero-eyebrow mb-3 inline-flex items-center rounded-full border border-border bg-surface-muted/70 px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-text-muted uppercase">
+            <p className="page-hero-eyebrow mb-3 inline-flex items-center rounded-sm border border-border bg-surface-muted/70 px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-text-muted uppercase">
               {eyebrow}
             </p>
           ) : null}

@@ -10,12 +10,12 @@ export function HeroSpeedLines() {
       <defs>
         <linearGradient id="hero-line-fade" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="rgba(34,211,238,0)" />
-          <stop offset="45%" stopColor="rgba(34,211,238,0.55)" />
+          <stop offset="45%" stopColor="rgba(240,68,85,0.64)" />
           <stop offset="100%" stopColor="rgba(34,211,238,0)" />
         </linearGradient>
         <linearGradient id="hero-line-fade-2" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="rgba(20,184,166,0)" />
-          <stop offset="50%" stopColor="rgba(20,184,166,0.42)" />
+          <stop offset="50%" stopColor="rgba(255,176,32,0.38)" />
           <stop offset="100%" stopColor="rgba(20,184,166,0)" />
         </linearGradient>
       </defs>

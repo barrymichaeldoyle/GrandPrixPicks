@@ -39,7 +39,7 @@ type H2HDraft = {
 };
 
 /** Grace period after the last matchup is picked before auto-saving. */
-const AUTO_SAVE_DELAY_MS = 1200;
+const AUTO_SAVE_DELAY_MS = 10_000;
 
 export function H2HPredictionForm({
   raceId,
@@ -62,6 +62,9 @@ export function H2HPredictionForm({
   const [errorMessage, setErrorMessage] = useState('');
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
+  const [persistedSignature, setPersistedSignature] = useState(() =>
+    JSON.stringify(existingPicks ?? {}),
+  );
 
   useEffect(() => {
     const draft = loadPredictionDraft<H2HDraft>(draftKey);
@@ -72,12 +75,14 @@ export function H2HPredictionForm({
       setSelections(existingPicks ?? {});
       setRestoredDraftAt(null);
     }
+    setPersistedSignature(JSON.stringify(existingPicks ?? {}));
     setHasHydratedDraft(true);
   }, [draftKey, existingPicks]);
 
   const totalMatchups = matchups.length;
   const selectedCount = Object.keys(selections).length;
   const allSelected = selectedCount === totalMatchups;
+  const selectionsSignature = JSON.stringify(selections);
   const isFirstEntry =
     !existingPicks || Object.keys(existingPicks).length === 0;
 
@@ -91,7 +96,7 @@ export function H2HPredictionForm({
       !isSubmitting &&
       submitStatus !== 'error',
     complete: allSelected,
-    picksSignature: JSON.stringify(selections),
+    picksSignature: selectionsSignature,
     delayMs: AUTO_SAVE_DELAY_MS,
     save: () => void handleSubmit({ autoSaved: true }),
   });
@@ -113,9 +118,12 @@ export function H2HPredictionForm({
       return;
     }
 
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    setErrorMessage('');
+    const isSilentBackup = Boolean(options?.autoSaved);
+    if (!isSilentBackup) {
+      setIsSubmitting(true);
+      setSubmitStatus('idle');
+      setErrorMessage('');
+    }
 
     try {
       const picks = Object.entries(selections).map(
@@ -135,15 +143,19 @@ export function H2HPredictionForm({
         matchup_count: totalMatchups,
         auto_saved: Boolean(options?.autoSaved),
       });
-      setSubmitStatus('success');
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.7 },
-      });
+      setPersistedSignature(selectionsSignature);
       clearPredictionDraft(draftKey);
       setRestoredDraftAt(null);
-      onSuccess?.();
+
+      if (!isSilentBackup) {
+        setSubmitStatus('success');
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.7 },
+        });
+        onSuccess?.();
+      }
     } catch (error) {
       captureAnalyticsEvent('h2h_prediction_submit_failed', {
         race_id: raceId,
@@ -154,20 +166,22 @@ export function H2HPredictionForm({
         restored_draft: Boolean(restoredDraftAt),
         matchup_count: totalMatchups,
       });
-      setSubmitStatus('error');
-      setErrorMessage(
-        error instanceof Error
-          ? toUserFacingMessage(error)
-          : 'Failed to submit H2H predictions',
-      );
+      if (!isSilentBackup) {
+        setSubmitStatus('error');
+        setErrorMessage(
+          error instanceof Error
+            ? toUserFacingMessage(error)
+            : 'Failed to submit H2H predictions',
+        );
+      }
     } finally {
-      setIsSubmitting(false);
+      if (!isSilentBackup) {
+        setIsSubmitting(false);
+      }
     }
   }
 
-  const hasChanges = existingPicks
-    ? JSON.stringify(selections) !== JSON.stringify(existingPicks)
-    : selectedCount > 0;
+  const hasChanges = selectionsSignature !== persistedSignature;
 
   useEffect(() => {
     onDirtyChange?.(hasChanges);
@@ -262,12 +276,13 @@ export function H2HPredictionForm({
           mobile) so the bar spans full width and pins flush at the bottom. */}
       <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0">
         <div className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-3">
-          {!allSelected && (
-            <span className="text-center text-sm text-text-muted sm:w-auto">
-              {totalMatchups - selectedCount} matchup
-              {totalMatchups - selectedCount !== 1 ? 's' : ''} remaining
-            </span>
-          )}
+          <span className="min-h-5 text-center text-sm text-text-muted sm:w-auto">
+            {allSelected
+              ? 'All matchups selected'
+              : `${totalMatchups - selectedCount} matchup${
+                  totalMatchups - selectedCount !== 1 ? 's' : ''
+                } remaining`}
+          </span>
 
           <div className="sm:hidden">{mobileSubmitButton}</div>
 

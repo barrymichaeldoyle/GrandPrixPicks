@@ -156,6 +156,39 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_race_session', ['raceId', 'sessionType']),
 
+  // Audit trail for the delayed, free-tier OpenF1 results fallback.
+  openF1ResultPolls: defineTable({
+    raceId: v.id('races'),
+    sessionType: sessionType,
+    status: v.union(
+      v.literal('polling'),
+      v.literal('retrying'),
+      v.literal('published'),
+      v.literal('already_published'),
+      v.literal('timed_out'),
+    ),
+    attemptCount: v.number(),
+    firstAttemptAt: v.number(),
+    deadlineAt: v.number(),
+    lastAttemptAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    openF1SessionKey: v.optional(v.number()),
+    publishedAt: v.optional(v.number()),
+    updatedAt: v.number(),
+  }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
+
+  // Admin opt-in for warning players that a session's results will rely on
+  // the delayed OpenF1 fallback instead of immediate manual publication.
+  unattendedResultSessions: defineTable({
+    raceId: v.id('races'),
+    sessionType: sessionType,
+    enabled: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_raceId_and_sessionType', ['raceId', 'sessionType'])
+    .index('by_enabled', ['enabled']),
+
   // Top 5 scores per session
   scores: defineTable({
     userId: v.id('users'),

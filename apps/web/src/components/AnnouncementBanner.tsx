@@ -7,14 +7,12 @@ import { useNow } from '@/lib/testing/now';
 
 const DISMISSED_STORAGE_KEY = 'gpp-dismissed-announcement';
 
-/**
- * Admin-managed site-wide banner (e.g. "results will be published late").
- * Dismissal is per-message: editing or reposting the announcement bumps
- * updatedAt, which invalidates earlier dismissals on every device.
- * The show window is enforced here, not in the query — see getActive.
- */
+/** Site-wide manual announcements and scheduled unattended-results notices. */
 export function AnnouncementBanner() {
-  const announcement = useQuery(api.announcements.getActive);
+  const manualAnnouncement = useQuery(api.announcements.getActive);
+  const unattendedNotices = useQuery(
+    api.openF1Results.getUnattendedDelayBanners,
+  );
   // Coarse tick: appearing/disappearing within ~30s of the boundary is fine.
   const now = useNow(30_000);
   // Read after mount — localStorage isn't available during SSR.
@@ -26,15 +24,19 @@ export function AnnouncementBanner() {
     setHydrated(true);
   }, []);
 
-  if (!announcement || !hydrated) {
-    return null;
-  }
+  const manualIsActive =
+    manualAnnouncement != null &&
+    (manualAnnouncement.startsAt == null ||
+      now >= manualAnnouncement.startsAt) &&
+    (manualAnnouncement.expiresAt == null ||
+      now < manualAnnouncement.expiresAt);
+  const unattendedNotice = unattendedNotices?.find(
+    (notice) => now >= notice.startsAt && now < notice.expiresAt,
+  );
+  // A deliberate site-wide admin announcement takes priority if both overlap.
+  const announcement = manualIsActive ? manualAnnouncement : unattendedNotice;
 
-  const beforeWindow =
-    announcement.startsAt != null && now < announcement.startsAt;
-  const afterWindow =
-    announcement.expiresAt != null && now >= announcement.expiresAt;
-  if (beforeWindow || afterWindow) {
+  if (!announcement || !hydrated) {
     return null;
   }
 

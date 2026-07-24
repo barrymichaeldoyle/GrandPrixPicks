@@ -75,6 +75,10 @@ function AdminRaceDetailPage() {
     raceId: typedRaceId,
     sessionType: selectedSession,
   });
+  const openF1Fallback = useQuery(api.openF1Results.getAdminPollStatus, {
+    raceId: typedRaceId,
+    sessionType: selectedSession,
+  });
   const h2hResults = useQuery(api.h2h.getH2HResultsForRace, {
     raceId: typedRaceId,
     sessionType: selectedSession,
@@ -86,9 +90,11 @@ function AdminRaceDetailPage() {
   >([]);
   const [dnfDriverIds, setDnfDriverIds] = useState<Id<'drivers'>[]>([]);
   const publishResults = useMutation(api.results.adminPublishResults);
+  const setUnattended = useMutation(api.openF1Results.adminSetUnattended);
   const cancelRace = useMutation(api.races.adminCancelRace);
   const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isUpdatingUnattended, setIsUpdatingUnattended] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [h2hCopyStatus, setH2hCopyStatus] = useState<
     'idle' | 'copied' | 'error'
@@ -527,6 +533,21 @@ function AdminRaceDetailPage() {
     }
   }
 
+  async function handleUnattendedChange(enabled: boolean) {
+    setIsUpdatingUnattended(true);
+    try {
+      await setUnattended({
+        raceId: typedRaceId,
+        sessionType: selectedSession,
+        enabled,
+      });
+    } catch (error) {
+      console.error('Failed to update unattended result setting:', error);
+    } finally {
+      setIsUpdatingUnattended(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <div className="mx-auto max-w-4xl px-4 py-6">
@@ -583,6 +604,63 @@ function AdminRaceDetailPage() {
                   .join(' and ')}{' '}
                 results before {SESSION_LABELS[selectedSession]}.
               </p>
+            </div>
+          )}
+
+          {openF1Fallback && !existingResult && (
+            <div className="mb-4 rounded-lg border border-sky-500/30 bg-sky-500/10 p-4">
+              <div className="flex items-start gap-3">
+                {openF1Fallback.poll?.status === 'polling' ? (
+                  <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin text-sky-400" />
+                ) : (
+                  <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-sky-200">
+                    OpenF1 fallback:{' '}
+                    {openF1Fallback.poll?.status.replaceAll('_', ' ') ??
+                      'scheduled'}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Automatic polling starts{' '}
+                    {new Date(openF1Fallback.firstAttemptAt).toLocaleString()}{' '}
+                    and stops at{' '}
+                    {new Date(openF1Fallback.deadlineAt).toLocaleString()}.
+                    Manual publication always takes priority.
+                  </p>
+                  <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={openF1Fallback.unattended}
+                      disabled={isUpdatingUnattended}
+                      onChange={(event) =>
+                        void handleUnattendedChange(event.target.checked)
+                      }
+                      className="mt-0.5 h-4 w-4 rounded border-slate-500 bg-slate-800 text-yellow-400 disabled:cursor-wait"
+                    />
+                    <span>
+                      I won&apos;t be watching this session live
+                      <span className="mt-0.5 block text-xs text-slate-400">
+                        From the estimated finish until results publish, show a
+                        banner saying they&apos;ll arrive around 45 minutes
+                        later.
+                      </span>
+                    </span>
+                  </label>
+                  {openF1Fallback.poll &&
+                    openF1Fallback.poll.attemptCount > 0 && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        {openF1Fallback.poll.attemptCount}{' '}
+                        {openF1Fallback.poll.attemptCount === 1
+                          ? 'attempt'
+                          : 'attempts'}
+                        {openF1Fallback.poll.lastError
+                          ? ` · ${openF1Fallback.poll.lastError}`
+                          : ''}
+                      </p>
+                    )}
+                </div>
+              </div>
             </div>
           )}
 

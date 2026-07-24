@@ -752,6 +752,37 @@ export const emergencyPublishResults = internalMutation({
   handler: async (ctx, args) => publishResultsCore(ctx, args),
 });
 
+/**
+ * OpenF1 fallback only. Manual publication always wins: the existing-result
+ * check and insert happen in this same transaction.
+ */
+export const autoPublishResults = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    classification: v.array(v.id('drivers')),
+    sessionType: sessionTypeValidator,
+    dnfDriverIds: v.array(v.id('drivers')),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+
+    if (existing) {
+      return { status: 'already_published' as const };
+    }
+
+    await publishResultsCore(ctx, {
+      ...args,
+      enforceSessionOrder: true,
+    });
+    return { status: 'published' as const };
+  },
+});
+
 export const adminRollbackResults = mutation({
   args: {
     raceId: v.id('races'),

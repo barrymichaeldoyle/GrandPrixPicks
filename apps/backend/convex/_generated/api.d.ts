@@ -10,6 +10,7 @@
 
 import type * as announcements from "../announcements.js";
 import type * as billing from "../billing.js";
+import type * as crons from "../crons.js";
 import type * as drivers from "../drivers.js";
 import type * as emails_H2HReminderEmail from "../emails/H2HReminderEmail.js";
 import type * as emails_PredictionReminderEmail from "../emails/PredictionReminderEmail.js";
@@ -43,6 +44,7 @@ import type * as lib_standings from "../lib/standings.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as notifications from "../notifications.js";
+import type * as openF1Results from "../openF1Results.js";
 import type * as predictions from "../predictions.js";
 import type * as push from "../push.js";
 import type * as pushNotifications from "../pushNotifications.js";
@@ -63,6 +65,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   announcements: typeof announcements;
   billing: typeof billing;
+  crons: typeof crons;
   drivers: typeof drivers;
   "emails/H2HReminderEmail": typeof emails_H2HReminderEmail;
   "emails/PredictionReminderEmail": typeof emails_PredictionReminderEmail;
@@ -96,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
   notifications: typeof notifications;
+  openF1Results: typeof openF1Results;
   predictions: typeof predictions;
   push: typeof push;
   pushNotifications: typeof pushNotifications;

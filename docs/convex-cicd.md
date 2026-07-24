@@ -19,6 +19,13 @@ build (the same way our Vercel projects deploy Convex during their build).
      build against the just-deployed backend, then publishes. If the Convex
      deploy fails, the whole build fails and nothing is published.
 
+Immediately after the backend deploy, the build runs a read-only OpenF1 smoke
+test inside the production Convex environment. It verifies outbound access,
+session discovery, result parsing, DNF handling, and driver-number mappings.
+It does not publish results or write database records. A failure stops the web
+build. Override its historical fixture when necessary with
+`OPENF1_SMOKE_SESSION_KEY`.
+
 There is no GitHub Action that deploys Convex — production Convex deploys happen
 only via the Cloudflare Pages build. To deploy Convex by hand (e.g. Cloudflare is
 down), run `pnpm deploy:backend` locally.
@@ -83,4 +90,16 @@ Run specific migrations:
 
 ```bash
 pnpm convex:migrations --only seed:migrateSessionTypes
+```
+
+Run the OpenF1 smoke test against the configured development deployment:
+
+```bash
+pnpm --filter @grandprixpicks/backend smoke:openf1
+```
+
+Run it against production:
+
+```bash
+pnpm --filter @grandprixpicks/backend smoke:openf1:prod
 ```

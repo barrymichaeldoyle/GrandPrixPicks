@@ -3,7 +3,7 @@ import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -407,6 +407,15 @@ function LeaderboardPage() {
               Leaderboard
             </h1>
             <p className="mt-1.5 text-sm text-text-muted">{heroSubtitle}</p>
+            <p className="mt-1 text-sm text-text-muted">
+              Looking for the real-world points?{' '}
+              <Link
+                to="/f1-standings"
+                className="font-medium text-accent underline-offset-2 hover:underline"
+              >
+                F1 championship standings
+              </Link>
+            </p>
           </div>
 
           <div className="min-h-14">

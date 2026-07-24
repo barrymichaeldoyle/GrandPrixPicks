@@ -25,6 +25,7 @@ import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js
 import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as emails_sendSupportEmail from "../emails/sendSupportEmail.js";
 import type * as emails_urls from "../emails/urls.js";
+import type * as f1Standings from "../f1Standings.js";
 import type * as feed from "../feed.js";
 import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
@@ -80,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   "emails/sendResultEmails": typeof emails_sendResultEmails;
   "emails/sendSupportEmail": typeof emails_sendSupportEmail;
   "emails/urls": typeof emails_urls;
+  f1Standings: typeof f1Standings;
   feed: typeof feed;
   follows: typeof follows;
   h2h: typeof h2h;

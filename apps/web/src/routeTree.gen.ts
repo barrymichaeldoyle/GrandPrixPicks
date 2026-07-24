@@ -20,6 +20,7 @@ import { Route as PayRouteImport } from './routes/pay'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RacesIndexRouteImport } from './routes/races/index'
 import { Route as LeaguesIndexRouteImport } from './routes/leagues/index'
@@ -88,6 +89,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
 const FeedRoute = FeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const F1StandingsRoute = F1StandingsRouteImport.update({
+  id: '/f1-standings',
+  path: '/f1-standings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -163,6 +169,7 @@ const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/f1-standings': typeof F1StandingsRoute
   '/feed': typeof FeedRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/f1-standings': typeof F1StandingsRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
   '/pay': typeof PayRoute
@@ -217,6 +225,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/f1-standings': typeof F1StandingsRoute
   '/feed': typeof FeedRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/f1-standings'
     | '/feed'
     | '/leaderboard'
     | '/me'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/f1-standings'
     | '/leaderboard'
     | '/me'
     | '/pay'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/f1-standings'
     | '/feed'
     | '/leaderboard'
     | '/me'
@@ -327,6 +339,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  F1StandingsRoute: typeof F1StandingsRoute
   FeedRoute: typeof FeedRouteWithChildren
   LeaderboardRoute: typeof LeaderboardRoute
   MeRoute: typeof MeRoute
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-standings': {
+      id: '/f1-standings'
+      path: '/f1-standings'
+      fullPath: '/f1-standings'
+      preLoaderRoute: typeof F1StandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -568,6 +588,7 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  F1StandingsRoute: F1StandingsRoute,
   FeedRoute: FeedRouteWithChildren,
   LeaderboardRoute: LeaderboardRoute,
   MeRoute: MeRoute,

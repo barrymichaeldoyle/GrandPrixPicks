@@ -1,5 +1,6 @@
 import { SignInButton } from '@clerk/react';
 import type { Doc } from '@convex-generated/dataModel';
+import { Link } from '@tanstack/react-router';
 import { ArrowRight, Trophy } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
@@ -93,6 +94,17 @@ export function SignedOutRacePreview({
           </div>
         </section>
       )}
+
+      <p className="text-sm text-text-muted">
+        Following the season?{' '}
+        <Link
+          to="/f1-standings"
+          className="font-medium text-accent underline-offset-2 hover:underline"
+        >
+          See the {race.season} F1 championship standings
+        </Link>
+        .
+      </p>
     </div>
   );
 }

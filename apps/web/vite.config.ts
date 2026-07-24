@@ -64,6 +64,9 @@ const config = defineConfig(({ mode }) => {
           : {}),
       },
     },
+    optimizeDeps: {
+      include: ['@clerk/tanstack-react-start'],
+    },
     build: {
       sourcemap: 'hidden',
       rollupOptions: {

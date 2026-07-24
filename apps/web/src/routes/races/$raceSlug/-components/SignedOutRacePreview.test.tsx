@@ -19,6 +19,23 @@ vi.mock('@clerk/react', () => ({
   ),
 }));
 
+// The standings link only needs its rendered label in these component tests.
+// Routing behavior is covered by the router-level suite.
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    to,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+  }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 function makeRace(): Doc<'races'> {
   return {
     _id: 'race_1' as Doc<'races'>['_id'],

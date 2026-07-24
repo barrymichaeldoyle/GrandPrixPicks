@@ -203,12 +203,12 @@ predicted finishing order.
 
 Scoring:
 
-| Outcome | Points |
-| --- | ---: |
-| Exact predicted position in the top five | 5 |
-| Actual finish is one place from the predicted position | 3 |
-| Driver finishes in the actual top five but is two or more places away | 1 |
-| Otherwise | 0 |
+| Outcome                                                               | Points |
+| --------------------------------------------------------------------- | -----: |
+| Exact predicted position in the top five                              |      5 |
+| Actual finish is one place from the predicted position                |      3 |
+| Driver finishes in the actual top five but is two or more places away |      1 |
+| Otherwise                                                             |      0 |
 
 Maximum Top 5 score: 25 points per session.
 
@@ -958,19 +958,19 @@ Before public submission:
 
 ## 21. Risks and mitigations
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| External race-data domain is not approved | Blocks automatic sync | Ship a no-fetch prototype and controlled data bundle first |
-| Redis is isolated per subreddit | No simple global leaderboard | Make subreddit competition the MVP value proposition |
-| Scheduler runs late or fails | Incorrect apparent lock state | Enforce lock on every server write; make jobs idempotent |
-| Account linking is non-compliant or too expensive | Cannot merge users/scores | Keep MVP standalone and make separation explicit |
-| Moderator installation friction | Weak distribution | Excellent listing, demo post, simple settings, direct mod outreach |
-| App feels promotional | Review/community rejection | Complete on-Reddit value; conversion only after success moments |
-| Result entry error | Incorrect scores and trust loss | Revisioned results, amendment workflow, deterministic rescoring |
-| Pre-lock pick leak | Competitive integrity failure | Server-side visibility checks and dedicated adversarial tests |
-| F1 trademark/data concerns | Removal or legal risk | Fan-made disclosure and reviewed brand/data usage |
-| App update review delay | Slow fixes | Feature flags, tested releases, operational fallbacks |
-| Post webview limitations | Poor usability | Prototype on real Reddit clients before full build |
+| Risk                                              | Impact                          | Mitigation                                                         |
+| ------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------ |
+| External race-data domain is not approved         | Blocks automatic sync           | Ship a no-fetch prototype and controlled data bundle first         |
+| Redis is isolated per subreddit                   | No simple global leaderboard    | Make subreddit competition the MVP value proposition               |
+| Scheduler runs late or fails                      | Incorrect apparent lock state   | Enforce lock on every server write; make jobs idempotent           |
+| Account linking is non-compliant or too expensive | Cannot merge users/scores       | Keep MVP standalone and make separation explicit                   |
+| Moderator installation friction                   | Weak distribution               | Excellent listing, demo post, simple settings, direct mod outreach |
+| App feels promotional                             | Review/community rejection      | Complete on-Reddit value; conversion only after success moments    |
+| Result entry error                                | Incorrect scores and trust loss | Revisioned results, amendment workflow, deterministic rescoring    |
+| Pre-lock pick leak                                | Competitive integrity failure   | Server-side visibility checks and dedicated adversarial tests      |
+| F1 trademark/data concerns                        | Removal or legal risk           | Fan-made disclosure and reviewed brand/data usage                  |
+| App update review delay                           | Slow fixes                      | Feature flags, tested releases, operational fallbacks              |
+| Post webview limitations                          | Poor usability                  | Prototype on real Reddit clients before full build                 |
 
 ## 22. Acceptance criteria
 

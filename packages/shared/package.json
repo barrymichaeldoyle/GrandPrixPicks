@@ -14,6 +14,7 @@
     "./dates": "./src/dates.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
+    "./scoring": "./src/scoring.ts",
     "./sessions": "./src/sessions.ts",
     "./share": "./src/share.ts",
     "./teams": "./src/teams.ts",

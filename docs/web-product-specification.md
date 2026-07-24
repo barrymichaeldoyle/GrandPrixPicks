@@ -236,12 +236,12 @@ authenticated player.
 
 Each of the five predicted drivers scores independently:
 
-| Outcome | Points |
-| --- | ---: |
-| Driver finishes in the exact predicted position within the top five | 5 |
-| Driver finishes one position away from the predicted position | 3 |
-| Driver is in the actual top five but is two or more positions away | 1 |
-| Driver is outside the actual top five, absent, or otherwise unmatched | 0 |
+| Outcome                                                               | Points |
+| --------------------------------------------------------------------- | -----: |
+| Driver finishes in the exact predicted position within the top five   |      5 |
+| Driver finishes one position away from the predicted position         |      3 |
+| Driver is in the actual top five but is two or more positions away    |      1 |
+| Driver is outside the actual top five, absent, or otherwise unmatched |      0 |
 
 The maximum Top 5 score is 25 points per session.
 
@@ -290,11 +290,11 @@ therefore offer a higher possible weekend total.
 
 The leaderboard supports three independent dimensions:
 
-| Dimension | Options |
-| --- | --- |
-| Time scope | Race Weekend, Season |
-| Game mode | Combined, Top 5, H2H |
-| Player scope | Global, Following |
+| Dimension    | Options              |
+| ------------ | -------------------- |
+| Time scope   | Race Weekend, Season |
+| Game mode    | Combined, Top 5, H2H |
+| Player scope | Global, Following    |
 
 ### 7.1 Global leaderboard
 
@@ -511,12 +511,12 @@ Passwords must be stored as secure hashes, not plaintext.
 
 ### 12.3 Plan limits per season
 
-| Capability | Free | Season Pass |
-| --- | ---: | ---: |
-| Private leagues created | 5 | 50 |
-| Private leagues joined | 5 | Unlimited |
-| Public leagues created | 0 | 5 |
-| Public leagues joined | 5 | Unlimited |
+| Capability              | Free | Season Pass |
+| ----------------------- | ---: | ----------: |
+| Private leagues created |    5 |          50 |
+| Private leagues joined  |    5 |   Unlimited |
+| Public leagues created  |    0 |           5 |
+| Public leagues joined   |    5 |   Unlimited |
 
 Creation and membership counters are separated by visibility and season. A
 player who reaches a limit is shown their usage and directed to pricing where
@@ -878,32 +878,32 @@ keyboard-accessible interaction.
 
 ## 25. Route-level product inventory
 
-| Route | Audience | Primary purpose |
-| --- | --- | --- |
-| `/` | Public | Marketing, next/current weekend, game explanation, FAQ |
-| `/races` | Public | Season calendar and race-state navigation |
-| `/races/:raceSlug` | Public/player | Picks, H2H, results, scores, recap, sharing |
-| `/leaderboard` | Public/player | Weekend/season, Combined/Top 5/H2H rankings |
-| `/feed` | Player | Personalized friends-and-leagues activity |
-| `/feed/:feedEventId` | Player | Feed item detail and rev participants |
-| `/leagues` | Public/player | My leagues, usage, public discovery |
-| `/leagues/create` | Player | Create private/public league within entitlement |
-| `/leagues/:slug` | Public/player | League summary, join flow, member experience |
-| `/leagues/:slug/settings` | Member/admin | League settings and administration |
-| `/p/:username` | Public | Player identity, stats, eligible history/activity |
-| `/p/:username/followers` | Player | Followers list |
-| `/p/:username/following` | Player | Following list |
-| `/me` | Player | Signed-in player's prediction history |
-| `/settings` | Player | Profile, pass, regional, notification preferences |
-| `/pricing` | Public/player | Season Pass offer and checkout entry |
-| `/pay` | Player | Purchase completion/checkout handoff support |
-| `/sign-in` | Public | Authentication entry/redirect |
-| `/support` | Player | Authenticated support request |
-| `/terms` | Public | Terms of service |
-| `/privacy` | Public | Privacy policy |
-| `/refund-policy` | Public | Refund policy |
-| `/admin` | Site admin | Race, announcement, user, and scenario operations |
-| `/admin/races/:raceId` | Site admin | Race/session result operations |
+| Route                     | Audience      | Primary purpose                                        |
+| ------------------------- | ------------- | ------------------------------------------------------ |
+| `/`                       | Public        | Marketing, next/current weekend, game explanation, FAQ |
+| `/races`                  | Public        | Season calendar and race-state navigation              |
+| `/races/:raceSlug`        | Public/player | Picks, H2H, results, scores, recap, sharing            |
+| `/leaderboard`            | Public/player | Weekend/season, Combined/Top 5/H2H rankings            |
+| `/feed`                   | Player        | Personalized friends-and-leagues activity              |
+| `/feed/:feedEventId`      | Player        | Feed item detail and rev participants                  |
+| `/leagues`                | Public/player | My leagues, usage, public discovery                    |
+| `/leagues/create`         | Player        | Create private/public league within entitlement        |
+| `/leagues/:slug`          | Public/player | League summary, join flow, member experience           |
+| `/leagues/:slug/settings` | Member/admin  | League settings and administration                     |
+| `/p/:username`            | Public        | Player identity, stats, eligible history/activity      |
+| `/p/:username/followers`  | Player        | Followers list                                         |
+| `/p/:username/following`  | Player        | Following list                                         |
+| `/me`                     | Player        | Signed-in player's prediction history                  |
+| `/settings`               | Player        | Profile, pass, regional, notification preferences      |
+| `/pricing`                | Public/player | Season Pass offer and checkout entry                   |
+| `/pay`                    | Player        | Purchase completion/checkout handoff support           |
+| `/sign-in`                | Public        | Authentication entry/redirect                          |
+| `/support`                | Player        | Authenticated support request                          |
+| `/terms`                  | Public        | Terms of service                                       |
+| `/privacy`                | Public        | Privacy policy                                         |
+| `/refund-policy`          | Public        | Refund policy                                          |
+| `/admin`                  | Site admin    | Race, announcement, user, and scenario operations      |
+| `/admin/races/:raceId`    | Site admin    | Race/session result operations                         |
 
 Server-only routes additionally handle Clerk and Paddle webhooks, Paddle
 checkout creation, sitemap generation, X/social routing, and Open Graph image

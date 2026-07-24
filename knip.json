@@ -28,6 +28,16 @@
       "ignoreDependencies": ["expo-updates", "tailwind-merge", "clsx"],
       "ignore": ["src/tw/index.tsx", "plugins/*.cjs"]
     },
+    "apps/reddit": {
+      "entry": [
+        "src/client/game.tsx",
+        "src/client/splash.tsx",
+        "src/server/index.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreFiles": ["src/client/global.ts"],
+      "ignoreDependencies": ["@grandprixpicks/shared", "tailwindcss"]
+    },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"],
       "ignoreDependencies": ["vitest"]

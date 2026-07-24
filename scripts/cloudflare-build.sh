@@ -25,10 +25,12 @@ fi
 echo "CONVEX_DEPLOY_KEY present — production build."
 echo "Deploying Convex, running migrations, then building web against it."
 
-# convex deploy runs from the backend package dir and only runs --cmd once the
-# functions are live. `pnpm -w run cf:postdeploy` runs migrations + web build
-# from the workspace root with VITE_CONVEX_URL injected for the whole subtree.
+# Convex runs --cmd before activating the functions in that deploy. Do an
+# initial deploy so post-deployment smoke tests can call newly added functions.
+# The second deploy is intentionally identical: it supplies VITE_CONVEX_URL to
+# the migrations/web-build command, then confirms the same backend revision.
 cd apps/backend
+npx convex deploy --yes --typecheck disable
 npx convex deploy --yes --typecheck disable \
   --cmd-url-env-var-name VITE_CONVEX_URL \
   --cmd 'pnpm -w run cf:postdeploy'

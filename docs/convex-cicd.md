@@ -15,9 +15,10 @@ build (the same way our Vercel projects deploy Convex during their build).
 2. `main` push:
    - `CI` runs again.
    - Cloudflare Pages builds **production** via `scripts/cloudflare-build.sh`,
-     which runs `convex deploy` (functions live first) → prod migrations → web
-     build against the just-deployed backend, then publishes. If the Convex
-     deploy fails, the whole build fails and nothing is published.
+     which activates the Convex functions → runs the OpenF1 smoke test → runs
+     prod migrations → builds the web app against that backend → confirms the
+     same Convex revision, then publishes. If a deployment check fails, the
+     web build is not published.
 
 Immediately after the backend deploy, the build runs a read-only OpenF1 smoke
 test inside the production Convex environment. It verifies outbound access,

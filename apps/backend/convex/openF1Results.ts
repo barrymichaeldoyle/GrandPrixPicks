@@ -216,6 +216,25 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+export function buildSessionDiscoveryUrl(
+  year: number,
+  sessionStartAt: number,
+): URL {
+  const url = new URL('https://api.openf1.org/v1/sessions');
+  url.searchParams.set('year', String(year));
+  // In OpenF1's `date_start>=value` syntax, `>` is part of the parameter
+  // name and `=` is the standard query delimiter.
+  url.searchParams.set(
+    'date_start>',
+    new Date(sessionStartAt - 10 * MINUTE).toISOString(),
+  );
+  url.searchParams.set(
+    'date_start<',
+    new Date(sessionStartAt + 10 * MINUTE).toISOString(),
+  );
+  return url;
+}
+
 async function fetchJson(url: URL): Promise<unknown> {
   const response = await fetch(url, {
     headers: { Accept: 'application/json' },
@@ -413,12 +432,10 @@ export const pollDueResults = internalAction({
 
       let openF1SessionKey: number | undefined;
       try {
-        const lower = new Date(task.sessionStartAt - 10 * MINUTE).toISOString();
-        const upper = new Date(task.sessionStartAt + 10 * MINUTE).toISOString();
-        const sessionsUrl = new URL('https://api.openf1.org/v1/sessions');
-        sessionsUrl.searchParams.set('year', String(task.season));
-        sessionsUrl.searchParams.set('date_start>=', lower);
-        sessionsUrl.searchParams.set('date_start<=', upper);
+        const sessionsUrl = buildSessionDiscoveryUrl(
+          task.season,
+          task.sessionStartAt,
+        );
         const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
         const allowedNames = OPEN_F1_SESSION_NAMES[task.sessionType];
         const session = sessions.find((candidate) =>
@@ -500,18 +517,9 @@ export const smokeTest = internalAction({
     if (!Number.isFinite(sessionStartAt)) {
       throw new Error('OpenF1 returned an invalid session start time');
     }
-    const discoveryUrl = new URL('https://api.openf1.org/v1/sessions');
-    discoveryUrl.searchParams.set(
-      'year',
-      String(new Date(sessionStartAt).getUTCFullYear()),
-    );
-    discoveryUrl.searchParams.set(
-      'date_start>=',
-      new Date(sessionStartAt - 10 * MINUTE).toISOString(),
-    );
-    discoveryUrl.searchParams.set(
-      'date_start<=',
-      new Date(sessionStartAt + 10 * MINUTE).toISOString(),
+    const discoveryUrl = buildSessionDiscoveryUrl(
+      new Date(sessionStartAt).getUTCFullYear(),
+      sessionStartAt,
     );
     const discoveredSessions = parseOpenF1Sessions(
       await fetchJson(discoveryUrl),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildSessionDiscoveryUrl,
   getFallbackWindow,
   parseOpenF1Results,
   parseOpenF1Sessions,
@@ -14,6 +15,20 @@ describe('OpenF1 fallback timing', () => {
       firstAttemptAt: start + 95 * 60_000,
       deadlineAt: start + 180 * 60_000,
     });
+  });
+
+  it('builds OpenF1 comparison filters without an extra equals sign', () => {
+    const start = Date.UTC(2026, 6, 19, 13);
+    const url = buildSessionDiscoveryUrl(2026, start);
+
+    expect(url.searchParams.get('date_start>')).toBe(
+      '2026-07-19T12:50:00.000Z',
+    );
+    expect(url.searchParams.get('date_start<')).toBe(
+      '2026-07-19T13:10:00.000Z',
+    );
+    expect(url.searchParams.has('date_start>=')).toBe(false);
+    expect(url.searchParams.has('date_start<=')).toBe(false);
   });
 });
 

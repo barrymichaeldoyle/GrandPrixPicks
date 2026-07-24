@@ -21,14 +21,14 @@ following/followers, a paid season pass, and push + in-app notifications.
 
 ## Tech Stack
 
-| Area        | Stack                                                                 |
-| ----------- | --------------------------------------------------------------------- |
-| Web         | React 19, TanStack Router + Start, Vite + Nitro (SSR), Tailwind CSS 4 |
-| Mobile      | Expo (iOS + Android), React Native, React Navigation                  |
-| Backend     | Convex (real-time DB, queries/mutations, scoring, emails)             |
-| Auth        | Clerk (web + mobile), synced to Convex users                          |
-| Billing     | Paddle (season pass)                                                  |
-| Hosting     | Cloudflare Pages (web) · Expo / EAS (mobile)                          |
+| Area    | Stack                                                                 |
+| ------- | --------------------------------------------------------------------- |
+| Web     | React 19, TanStack Router + Start, Vite + Nitro (SSR), Tailwind CSS 4 |
+| Mobile  | Expo (iOS + Android), React Native, React Navigation                  |
+| Backend | Convex (real-time DB, queries/mutations, scoring, emails)             |
+| Auth    | Clerk (web + mobile), synced to Convex users                          |
+| Billing | Paddle (season pass)                                                  |
+| Hosting | Cloudflare Pages (web) · Expo / EAS (mobile)                          |
 
 ## Monorepo Layout
 

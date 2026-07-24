@@ -867,7 +867,11 @@ export const getUserStats = query({
 
     // Count unique race weekends with predictions. Non-owners only see
     // locked/finished weekends to avoid leaking pre-lock participation.
-    const weekendCount = await countPredictedWeekends(ctx, args.userId, isOwner);
+    const weekendCount = await countPredictedWeekends(
+      ctx,
+      args.userId,
+      isOwner,
+    );
 
     // Read from materialized standings instead of full table scans
     const season = await getCurrentSeason(ctx);

@@ -108,10 +108,6 @@ export function resetAnalyticsUser() {
   });
 }
 
-export function hasOptedInToAnalytics() {
-  return isEnabled() && (posthogClient?.has_opted_in_capturing() ?? false);
-}
-
 export function optInToAnalytics() {
   if (!isEnabled()) {
     return;

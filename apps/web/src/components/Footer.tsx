@@ -3,6 +3,7 @@ import { Flag } from 'lucide-react';
 
 import { footerExploreLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
+import { PrivacyChoicesButton } from './PrivacyChoicesButton';
 import { XLogoIcon } from './ShareOnXButton';
 
 function LinkedInIcon({ className }: { className?: string }) {
@@ -88,6 +89,9 @@ export function Footer() {
               <Link to="/privacy" className={footerLinkClass}>
                 Privacy Policy
               </Link>
+              <PrivacyChoicesButton
+                className={`${footerLinkClass} text-left`}
+              />
             </nav>
           </div>
         </div>

@@ -62,8 +62,14 @@ export function getRouter() {
 
   if (!router.isServer && import.meta.env.PROD) {
     function loadAnalytics() {
-      void import('./lib/analytics').then(
-        ({ capturePageView, initAnalytics, isAnalyticsConfigured }) => {
+      void Promise.all([
+        import('./lib/analytics'),
+        import('./lib/consent'),
+      ]).then(
+        ([
+          { capturePageView, initAnalytics, isAnalyticsConfigured },
+          { initConsentGatedAnalytics },
+        ]) => {
           if (!isAnalyticsConfigured()) {
             console.warn(
               '[Analytics] VITE_POSTHOG_KEY is missing. PostHog and cookie consent are disabled in this build.',
@@ -72,7 +78,10 @@ export function getRouter() {
           }
 
           initAnalytics();
-          capturePageView();
+          // Consent gates capture: PostHog starts opted out, and the consent
+          // bridge opts in (and fires the initial pageview) once Google's CMP
+          // resolves for EEA users or by default for everyone else.
+          initConsentGatedAnalytics();
           router.subscribe('onResolved', () => {
             capturePageView();
           });

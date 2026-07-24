@@ -24,7 +24,7 @@ function PrivacyPage() {
         <PageHero
           eyebrow="Legal"
           title="Privacy Policy"
-          subtitle="Last updated: February 2026"
+          subtitle="Last updated: July 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
@@ -80,8 +80,10 @@ function PrivacyPage() {
             <p>
               Account and authentication data are handled by Clerk. Prediction
               and leaderboard data are stored in Convex. We rely on these
-              providers’ security and compliance practices. We do not store
-              payment information; the app is free to use.
+              providers’ security and compliance practices. The core game is
+              free to play; an optional paid season pass unlocks premium
+              features. Payments are processed by our payment provider (Paddle),
+              and we do not store your card or payment details.
             </p>
           </section>
 
@@ -99,7 +101,36 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">
-              6. Changes to This Policy
+              6. Advertising and Cookies
+            </h2>
+            <p>
+              We use Google AdSense to display advertising in the app. Google
+              and its advertising partners may use cookies and similar
+              technologies to serve and measure ads, including ads based on your
+              prior visits to this and other websites. For visitors in the
+              European Economic Area, the United Kingdom, and Switzerland, we
+              present a Google-certified consent message before personalized ads
+              or non-essential cookies are used, and you can review or change
+              your choices at any time using the &quot;Privacy choices&quot;
+              link in the footer. Where consent is refused or not available, we
+              serve only non-personalized ads. You can learn more about how
+              Google uses information from sites that use its services, and
+              manage your ad preferences, at{' '}
+              <a
+                href="https://policies.google.com/technologies/partner-sites"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-text"
+              >
+                Google&apos;s partner sites policy
+              </a>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-xl font-semibold text-text">
+              7. Changes to This Policy
             </h2>
             <p>
               We may update this privacy policy from time to time. The
@@ -110,7 +141,7 @@ function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-xl font-semibold text-text">7. Contact</h2>
+            <h2 className="mb-2 text-xl font-semibold text-text">8. Contact</h2>
             <p>
               For privacy-related questions or requests, you can reach the
               operator of this app via the social media details provided on the

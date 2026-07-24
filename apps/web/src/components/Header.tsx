@@ -277,7 +277,7 @@ export function Header({
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className="group flex shrink-0 items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="group flex shrink-0 items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
           >
             <span className="flex h-9 w-7 items-center justify-center">
               <Flag

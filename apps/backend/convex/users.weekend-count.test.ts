@@ -6,9 +6,9 @@ describe('countVisibleWeekends', () => {
   it('counts every predicted weekend for the owner, including the open one', () => {
     // 'upcoming' = the next race, still unlocked. The owner sees their own
     // participation regardless of lock state.
-    expect(
-      countVisibleWeekends(['finished', 'locked', 'upcoming'], true),
-    ).toBe(3);
+    expect(countVisibleWeekends(['finished', 'locked', 'upcoming'], true)).toBe(
+      3,
+    );
   });
 
   it('hides the still-upcoming weekend from non-owners to avoid leaking pre-lock picks', () => {

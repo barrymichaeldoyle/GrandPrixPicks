@@ -1,5 +1,4 @@
 import { AnnouncementBanner } from './AnnouncementBanner';
-import { CookieConsent } from './CookieConsent';
 import { ErrorBoundary } from './error/ErrorBoundary';
 
 /**
@@ -8,11 +7,8 @@ import { ErrorBoundary } from './error/ErrorBoundary';
  */
 export function DeferredShellFeatures() {
   return (
-    <>
-      <ErrorBoundary fallback={null}>
-        <AnnouncementBanner />
-      </ErrorBoundary>
-      <CookieConsent />
-    </>
+    <ErrorBoundary fallback={null}>
+      <AnnouncementBanner />
+    </ErrorBoundary>
   );
 }

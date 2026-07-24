@@ -1,5 +1,7 @@
-import { useAuth } from '@clerk/react';
-import { ClerkProvider } from '@clerk/tanstack-react-start';
+import {
+  ClerkProvider,
+  useAuth,
+} from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
 

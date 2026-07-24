@@ -40,7 +40,7 @@ export function SignedOutRacePreview({
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-text-muted">
           Rank who you think finishes ahead and score points every session. It's
-          free — pick now, no account needed to start.
+          free. Make your picks now, with no account needed to start.
         </p>
         <div className="mt-4 flex flex-col items-center gap-2">
           <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>

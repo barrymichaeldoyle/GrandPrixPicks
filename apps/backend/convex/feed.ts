@@ -500,6 +500,12 @@ export async function buildFilteredFeedPage(
 
     lastScannedEvent = event;
 
+    // Streaks remain available as internal engagement data, but are not feed
+    // content. Skip them during the scan so they do not consume page capacity.
+    if (event.type === 'streak_milestone') {
+      continue;
+    }
+
     if (!allowedUserIds.has(event.userId)) {
       continue;
     }
@@ -1082,7 +1088,7 @@ export const getFeedEvent = query({
     }
 
     const event = await ctx.db.get(args.feedEventId);
-    if (!event) {
+    if (!event || event.type === 'streak_milestone') {
       return null;
     }
 

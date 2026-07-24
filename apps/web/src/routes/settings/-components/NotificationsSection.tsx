@@ -72,14 +72,14 @@ export function NotificationsSection({
     <SettingsSection
       id="notifications"
       title="Notifications"
-      icon={<Bell className="h-5 w-5 text-text-muted" />}
+      icon={<Bell className="h-5 w-5 text-accent" />}
     >
-      <div className="space-y-6 p-4">
+      <div className="space-y-6">
         <NotificationGroup title="In-App">
           <p className="text-xs text-text-muted">
             Always shown in the notification bell.
           </p>
-          <div className="divide-y divide-border rounded-lg border border-border px-3">
+          <div className="divide-y divide-border bg-page px-3">
             {IN_APP_NOTIFICATIONS.map((label) => (
               <div key={label} className="py-3 text-sm text-text">
                 {label}
@@ -96,7 +96,7 @@ export function NotificationsSection({
                 settings.
               </p>
             ) : !isPushSubscribed ? (
-              <div className="flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-3">
+              <div className="flex items-center justify-between gap-4 bg-page px-3 py-3">
                 <p className="text-sm text-text-muted">
                   Get alerts on this device, even when the app isn&apos;t open.
                 </p>
@@ -110,7 +110,7 @@ export function NotificationsSection({
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-border rounded-lg border border-border px-3">
+              <div className="divide-y divide-border bg-page px-3">
                 {PUSH_NOTIFICATION_ROWS.map(({ key, label }) => (
                   <NotificationRow
                     key={key}
@@ -139,7 +139,7 @@ export function NotificationsSection({
         )}
 
         <NotificationGroup title="Email">
-          <div className="divide-y divide-border rounded-lg border border-border px-3">
+          <div className="divide-y divide-border bg-page px-3">
             {EMAIL_NOTIFICATION_ROWS.map(({ key, label, description }) => (
               <NotificationRow
                 key={key}

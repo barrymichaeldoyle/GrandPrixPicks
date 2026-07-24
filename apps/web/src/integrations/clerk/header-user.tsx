@@ -2,6 +2,9 @@ import { api } from '@convex-generated/api';
 import { useQuery } from 'convex/react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 
+import { abbreviateGrandPrix } from '@/lib/display';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
+
 import { useClerkRuntimeControl } from './runtime-control';
 import { useViewerSession } from './useViewerSession';
 
@@ -28,8 +31,17 @@ export function HeaderUser() {
   const { isSignedIn, confirmedSignedIn } = useViewerSession();
   const runtime = useClerkRuntimeControl();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
+  const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
   const [isMobile, setIsMobile] = useState(false);
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
+  const nextRaceLink =
+    nextRace && nextRace.status === 'upcoming'
+      ? {
+          href: `/races/${nextRace.slug}`,
+          label: abbreviateGrandPrix(nextRace.name),
+          countryCode: getCountryCodeForRace(nextRace) ?? undefined,
+        }
+      : undefined;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_MENU_BREAKPOINT);
@@ -57,6 +69,7 @@ export function HeaderUser() {
             isMobile={isMobile}
             isSignedIn={false}
             myPicksHref={myPicksHref}
+            nextRaceLink={nextRaceLink}
             openSignInOnMount={runtime.openSignInOnMount}
             signInOpened={runtime.signInOpened}
           />
@@ -100,6 +113,7 @@ export function HeaderUser() {
           isMobile={isMobile}
           isSignedIn={true}
           myPicksHref={myPicksHref}
+          nextRaceLink={nextRaceLink}
           openSignInOnMount={false}
           signInOpened={runtime.signInOpened}
         />

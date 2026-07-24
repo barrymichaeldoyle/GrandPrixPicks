@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProvider } from 'convex/react';
+import { MotionConfig } from 'framer-motion';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -59,28 +60,6 @@ const AuthenticatedAppRuntime = lazy(() =>
 interface MyRouterContext {
   queryClient: QueryClient;
 }
-
-// Structured data for SEO (JSON-LD)
-const structuredData = {
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: siteConfig.title,
-  description: siteConfig.description,
-  url: siteConfig.url,
-  applicationCategory: 'GameApplication',
-  operatingSystem: 'Any',
-  sameAs: [siteConfig.social.x.url],
-  author: {
-    '@type': 'Person',
-    name: siteConfig.author.name,
-    url: siteConfig.author.url,
-  },
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
@@ -145,12 +124,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20260224' },
       { rel: 'manifest', href: '/manifest.json?v=20260224' },
       // canonical link is set per-route — do NOT add a global one here
-    ],
-    scripts: [
-      {
-        type: 'application/ld+json',
-        children: JSON.stringify(structuredData),
-      },
     ],
   }),
 
@@ -233,6 +206,11 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598"
+          crossOrigin="anonymous"
+        />
         <HeadContent />
       </head>
       <body>
@@ -243,61 +221,63 @@ function RootDocument({ children }: PropsWithChildren) {
           <div className="app-atmosphere-field absolute inset-0" />
           <div className="app-atmosphere-grain absolute inset-0" />
         </div>
-        <InitialAuthProvider value={initialAuth}>
-          <AppRuntimeBoundary
-            initialSignedIn={initialAuth.isSignedIn}
-            pathname={pathname}
-          >
-            <AuthenticatedDeferredFeature>
-              <DeferredObservabilityUserSync />
-            </AuthenticatedDeferredFeature>
-            <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
-              >
-                Skip to main content
-              </a>
-              <Header
-                mobileMenuOpen={mobileMenuOpen}
-                onMobileMenuOpenChange={onMobileMenuOpenChange}
-                initialNextRace={nextRace}
-              />
-              <OfflineBanner />
-              <DeferredFeaturesBoundary>
-                <DeferredShellFeatures />
-              </DeferredFeaturesBoundary>
-              <div
-                ref={mainRef}
-                className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
-              >
-                <ScrollToTop scrollContainerRef={mainRef} />
-                <div className="flex min-h-full flex-col">
-                  <AuthenticatedDeferredFeature>
-                    <DeferredPredictionBanner />
-                  </AuthenticatedDeferredFeature>
-                  <main id="main-content" className="min-h-0 flex-1">
-                    <ErrorBoundary>{children}</ErrorBoundary>
-                  </main>
-                  <Footer />
-                </div>
-                <TanStackDevtools
-                  config={{
-                    position: 'bottom-right',
-                    openHotkey: ['CtrlOrMeta', 'A'],
-                  }}
-                  plugins={[
-                    {
-                      name: 'Tanstack Router',
-                      render: <TanStackRouterDevtoolsPanel />,
-                    },
-                    TanStackQueryDevtools,
-                  ]}
+        <MotionConfig reducedMotion="user">
+          <InitialAuthProvider value={initialAuth}>
+            <AppRuntimeBoundary
+              initialSignedIn={initialAuth.isSignedIn}
+              pathname={pathname}
+            >
+              <AuthenticatedDeferredFeature>
+                <DeferredObservabilityUserSync />
+              </AuthenticatedDeferredFeature>
+              <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
+                >
+                  Skip to main content
+                </a>
+                <Header
+                  mobileMenuOpen={mobileMenuOpen}
+                  onMobileMenuOpenChange={onMobileMenuOpenChange}
+                  initialNextRace={nextRace}
                 />
+                <OfflineBanner />
+                <DeferredFeaturesBoundary>
+                  <DeferredShellFeatures />
+                </DeferredFeaturesBoundary>
+                <div
+                  ref={mainRef}
+                  className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
+                >
+                  <ScrollToTop scrollContainerRef={mainRef} />
+                  <div className="flex min-h-full flex-col">
+                    <AuthenticatedDeferredFeature>
+                      <DeferredPredictionBanner />
+                    </AuthenticatedDeferredFeature>
+                    <main id="main-content" className="min-h-0 flex-1">
+                      <ErrorBoundary>{children}</ErrorBoundary>
+                    </main>
+                    <Footer />
+                  </div>
+                  <TanStackDevtools
+                    config={{
+                      position: 'bottom-right',
+                      openHotkey: ['CtrlOrMeta', 'A'],
+                    }}
+                    plugins={[
+                      {
+                        name: 'Tanstack Router',
+                        render: <TanStackRouterDevtoolsPanel />,
+                      },
+                      TanStackQueryDevtools,
+                    ]}
+                  />
+                </div>
               </div>
-            </div>
-          </AppRuntimeBoundary>
-        </InitialAuthProvider>
+            </AppRuntimeBoundary>
+          </InitialAuthProvider>
+        </MotionConfig>
         <Scripts />
       </body>
     </html>

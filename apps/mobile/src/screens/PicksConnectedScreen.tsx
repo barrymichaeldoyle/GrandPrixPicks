@@ -508,7 +508,7 @@ function PageHeader({
       return `${SESSION_LABELS[selectedSession]} locked`;
     }
     if (lockStatus.urgency === 'closing_soon') {
-      return `Closing soon — ${SESSION_LABELS[selectedSession]} locks in ${formatCountdown(remaining)}`;
+      return `Closing soon: ${SESSION_LABELS[selectedSession]} locks in ${formatCountdown(remaining)}`;
     }
     return `${SESSION_LABELS[selectedSession]} locks in ${formatCountdown(remaining)}`;
   })();

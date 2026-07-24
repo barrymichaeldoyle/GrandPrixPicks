@@ -72,7 +72,7 @@ export function TimeFormatSelect({
         Time format
       </label>
       <div
-        className="flex gap-1 rounded-lg border border-border bg-surface p-1"
+        className="flex gap-1 rounded-sm border border-border bg-page p-1"
         role="tablist"
         aria-label="Time format"
       >

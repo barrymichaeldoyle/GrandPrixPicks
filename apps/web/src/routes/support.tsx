@@ -155,6 +155,7 @@ function SupportContent() {
                 <button
                   key={option.id}
                   type="button"
+                  aria-pressed={category === option.id}
                   onClick={() =>
                     setCategory(
                       category === option.id

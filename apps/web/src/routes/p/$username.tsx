@@ -8,7 +8,14 @@ import {
   Outlet,
   useMatches,
 } from '@tanstack/react-router';
-import { ArrowLeft, Hash, History, Settings, User } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Hash,
+  History,
+  Settings,
+  User,
+} from 'lucide-react';
 
 import { Avatar } from '@/components/Avatar';
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
@@ -84,6 +91,9 @@ export const Route = createFileRoute('/p/$username')({
       context.queryClient.ensureQueryData(
         convexQuery(api.follows.getFollowCounts, { userId: profile._id }),
       ),
+      context.queryClient.ensureQueryData(
+        convexQuery(api.races.getNextRace, {}),
+      ),
     ]);
 
     return { initialProfile: profile };
@@ -148,6 +158,8 @@ function ProfilePage() {
       currentProfile ? { userId: currentProfile._id } : 'skip',
     ),
   );
+
+  const { data: nextRace } = useQuery(convexQuery(api.races.getNextRace, {}));
 
   const isChildRoute = matches.some(
     (m) =>
@@ -270,11 +282,38 @@ function ProfilePage() {
                 )}
               </div>
             </div>
-            {!isOwner && (
+            {isOwner && nextRace?.status === 'upcoming' ? (
+              <Link
+                className="group flex w-full items-center gap-3 rounded-sm border border-border bg-surface-elevated px-3 py-2.5 transition-colors hover:border-accent/45 hover:bg-accent-muted/25 sm:w-auto"
+                to="/races/$raceSlug"
+                params={{ raceSlug: nextRace.slug }}
+                title={`My picks for ${nextRace.name}`}
+              >
+                {getCountryCodeForRace(nextRace) ? (
+                  <RaceFlag
+                    countryCode={getCountryCodeForRace(nextRace)!}
+                    size="md"
+                    className="rounded-sm"
+                  />
+                ) : null}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[10px] font-semibold tracking-[0.14em] text-accent uppercase">
+                    My Picks
+                  </span>
+                  <span className="block truncate text-sm font-semibold text-text">
+                    {nextRace.name}
+                  </span>
+                  <span className="block text-xs text-text-muted">
+                    Round {nextRace.round} · Picks open
+                  </span>
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+              </Link>
+            ) : !isOwner ? (
               <div className="shrink-0">
                 <FollowButton followeeId={currentProfile._id} />
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 

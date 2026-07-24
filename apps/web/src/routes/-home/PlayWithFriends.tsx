@@ -6,7 +6,7 @@ import { Button } from '@/components/Button/Button';
 
 import { fadeUp } from './animations';
 
-export function PlayWithFriends() {
+export function PlayWithFriends({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <motion.div
       {...fadeUp}
@@ -26,7 +26,11 @@ export function PlayWithFriends() {
       </div>
       <div className="shrink-0">
         <Button asChild variant="primary" size="md" leftIcon={Users}>
-          <Link to="/leagues/create">Create a League</Link>
+          {isSignedIn ? (
+            <Link to="/leagues/create">Create a League</Link>
+          ) : (
+            <Link to="/leagues">Explore Leagues</Link>
+          )}
         </Button>
       </div>
     </motion.div>

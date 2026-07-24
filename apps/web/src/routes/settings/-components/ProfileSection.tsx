@@ -46,7 +46,7 @@ export function ProfileSection({
     <SettingsSection
       id="profile"
       title="Profile"
-      icon={<User className="h-5 w-5 text-text-muted" />}
+      icon={<User className="h-5 w-5 text-accent" />}
     >
       {isEditing ? (
         <div className="space-y-4">
@@ -71,7 +71,7 @@ export function ProfileSection({
                   onChange={(event) => onDisplayNameChange(event.target.value)}
                   placeholder="Display name"
                   maxLength={50}
-                  className="w-full rounded-lg border border-border bg-page px-3 py-2 text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                  className="w-full rounded-sm border border-border bg-page px-3 py-2 text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
                 />
               </div>
               <div>
@@ -83,7 +83,7 @@ export function ProfileSection({
                 </label>
                 <div className="flex items-center">
                   <span
-                    className="rounded-l-lg border border-r-0 border-border bg-surface-muted px-3 py-2 text-text-muted"
+                    className="rounded-l-sm border border-r-0 border-border bg-surface-muted px-3 py-2 text-text-muted"
                     aria-hidden="true"
                   >
                     @
@@ -96,7 +96,7 @@ export function ProfileSection({
                     placeholder="username"
                     maxLength={30}
                     disabled={isUsernameLocked}
-                    className="w-full rounded-r-lg border border-border bg-page px-3 py-2 text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-r-sm border border-border bg-page px-3 py-2 text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
                 {isUsernameLocked && usernameCooldownUntil && (
@@ -118,7 +118,7 @@ export function ProfileSection({
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+            <div className="rounded-sm border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
               {error}
             </div>
           )}
@@ -165,7 +165,7 @@ export function ProfileSection({
 
 function UsernameWarning({ confirm = false }: { confirm?: boolean }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+    <div className="flex items-start gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
       <p className="text-sm font-normal text-amber-400">
         {confirm

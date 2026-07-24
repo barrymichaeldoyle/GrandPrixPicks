@@ -38,8 +38,8 @@ type H2HDraft = {
   updatedAt: string;
 };
 
-/** Grace period after the last matchup is picked before auto-saving. */
-const AUTO_SAVE_DELAY_MS = 10_000;
+/** Yield one tick so the final selection renders before its silent backup. */
+const AUTO_SAVE_DELAY_MS = 0;
 
 export function H2HPredictionForm({
   raceId,

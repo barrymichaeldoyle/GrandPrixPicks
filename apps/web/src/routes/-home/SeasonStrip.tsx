@@ -66,9 +66,9 @@ export function SeasonStrip({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
+        <h2 className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
           2026 Season
-        </p>
+        </h2>
         <Link
           to="/races"
           className="text-xs font-medium text-accent hover:text-accent-hover"
@@ -125,7 +125,7 @@ export function SeasonStrip({
                   )}
                 </Link>
                 <span
-                  className={`mt-1 text-[10px] font-semibold tracking-wide ${
+                  className={`mt-1 text-[11px] font-semibold tracking-wide ${
                     isCurrent
                       ? 'text-racing-red'
                       : isPast
@@ -145,8 +145,11 @@ export function SeasonStrip({
           })}
         </ol>
       </div>
+      <p className="mt-1 text-[11px] text-text-muted sm:hidden">
+        Swipe to explore the full season
+      </p>
       {currentIndex >= 0 && (
-        <p className="mt-1 text-center text-[11px] text-text-muted sm:text-left">
+        <p className="mt-1 text-center text-xs text-text-muted sm:text-left">
           Round {sorted[currentIndex]!.round} of {sorted.length} ·{' '}
           {sorted.length -
             currentIndex -

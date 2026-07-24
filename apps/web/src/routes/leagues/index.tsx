@@ -13,7 +13,7 @@ export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
   head: () =>
     pageMeta({
-      title: 'F1 Prediction Leagues - Compete with Friends | Grand Prix Picks',
+      title: 'F1 Prediction Leagues | Compete with Friends | Grand Prix Picks',
       description:
         'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.',
       path: '/leagues',
@@ -403,22 +403,35 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
 
 function LeaguesPageSkeleton() {
   return (
-    <div className="min-h-full bg-page" aria-label="Loading leagues">
-      <div className="mx-auto max-w-4xl animate-pulse px-4 py-6">
-        <div className="page-hero mb-6 rounded-2xl border border-border/70 bg-surface/70 p-5 sm:p-6">
-          <div className="mb-4 h-6 w-24 rounded-full bg-surface-muted" />
-          <div className="h-9 w-48 rounded-lg bg-surface-muted" />
-          <div className="mt-3 h-5 w-72 max-w-full rounded bg-surface-muted/70" />
+    <div className="min-h-full bg-page">
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <div className="mb-7">
+          <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+            Social play
+          </p>
+          <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+            Leagues
+          </h1>
+          <p className="mt-1.5 text-sm text-text-muted">
+            Create, join, and compete with friends.
+          </p>
         </div>
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <div className="mx-auto h-10 w-10 rounded-full bg-surface-muted" />
-          <div className="mx-auto mt-5 h-6 w-64 max-w-full rounded bg-surface-muted" />
-          <div className="mx-auto mt-3 h-4 w-96 max-w-full rounded bg-surface-muted/70" />
-          <div className="mx-auto mt-5 h-9 w-24 rounded-lg bg-surface-muted" />
+        <div
+          className="animate-pulse"
+          role="status"
+          aria-label="Loading leagues"
+        >
+          <span className="sr-only">Loading leagues</span>
+          <div className="rounded-xl border border-border bg-surface p-6">
+            <div className="mx-auto h-10 w-10 rounded-full bg-surface-muted" />
+            <div className="mx-auto mt-5 h-6 w-64 max-w-full rounded bg-surface-muted" />
+            <div className="mx-auto mt-3 h-4 w-96 max-w-full rounded bg-surface-muted/70" />
+            <div className="mx-auto mt-5 h-9 w-24 rounded-lg bg-surface-muted" />
+          </div>
+          <div className="mt-8 h-7 w-64 rounded bg-surface-muted" />
+          <div className="mt-3 h-12 rounded-xl border border-border bg-surface" />
+          <div className="mt-3 h-20 rounded-xl border border-border bg-surface" />
         </div>
-        <div className="mt-8 h-7 w-64 rounded bg-surface-muted" />
-        <div className="mt-3 h-12 rounded-xl border border-border bg-surface" />
-        <div className="mt-3 h-20 rounded-xl border border-border bg-surface" />
       </div>
     </div>
   );

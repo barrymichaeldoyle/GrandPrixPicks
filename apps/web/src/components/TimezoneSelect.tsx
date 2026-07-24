@@ -149,7 +149,7 @@ export function TimezoneSelect({
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-page px-3 py-2 text-left text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+          className="flex w-full items-center justify-between gap-2 rounded-sm border border-border bg-page px-3 py-2 text-left text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
         >
           <span>{displayParts.name}</span>
           {displayParts.offset && (
@@ -159,7 +159,7 @@ export function TimezoneSelect({
           )}
         </button>
         {open && (
-          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-surface shadow-lg">
+          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-sm border border-border bg-surface shadow-lg">
             <div className="sticky top-0 border-b border-border bg-surface p-2">
               <input
                 type="text"

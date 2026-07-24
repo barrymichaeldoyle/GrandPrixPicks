@@ -15,8 +15,9 @@ const MAX_FEED_SCAN_BATCHES = 5;
 
 type FeedEvent = {
   _id: Id<'feedEvents'>;
-  type: 'joined_league';
+  type: 'joined_league' | 'streak_milestone';
   userId: Id<'users'>;
+  streakCount?: number;
   revCount: number;
   createdAt: number;
 };
@@ -29,11 +30,17 @@ function feedEventId(id: string): Id<'feedEvents'> {
   return id as Id<'feedEvents'>;
 }
 
-function makeEvent(id: string, owner: string, createdAt: number): FeedEvent {
+function makeEvent(
+  id: string,
+  owner: string,
+  createdAt: number,
+  type: FeedEvent['type'] = 'joined_league',
+): FeedEvent {
   return {
     _id: feedEventId(id),
-    type: 'joined_league',
+    type,
     userId: userId(owner),
+    streakCount: type === 'streak_milestone' ? 5 : undefined,
     revCount: 0,
     createdAt,
   };
@@ -316,6 +323,30 @@ describe('buildFilteredFeedPage', () => {
       }),
     );
     expect(take).toHaveBeenCalledTimes(1);
+  });
+
+  it('excludes streak milestones without letting them consume page capacity', async () => {
+    const visibleEvents = Array.from({ length: MAX_FEED_SIZE }, (_, index) =>
+      makeEvent(`visible-${index}`, 'u1', 10_000 - index),
+    );
+    const pagesByCreatedAt = {
+      __start__: [
+        makeEvent('streak', 'u1', 20_000, 'streak_milestone'),
+        ...visibleEvents,
+      ],
+    };
+
+    const { ctx } = makeCtx(pagesByCreatedAt);
+    const result = await buildFilteredFeedPage(
+      ctx as never,
+      new Set([userId('u1')]),
+      null,
+    );
+
+    expect(result.page).toHaveLength(MAX_FEED_SIZE);
+    expect(result.page.map((event) => event._id)).not.toContain(
+      feedEventId('streak'),
+    );
   });
 
   it('treats an invalid cursor as a fresh feed request', async () => {

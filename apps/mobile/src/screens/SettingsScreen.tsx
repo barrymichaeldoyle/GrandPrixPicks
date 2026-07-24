@@ -223,7 +223,7 @@ export function SettingsScreen() {
   function handleDeleteAccount() {
     Alert.alert(
       'Delete account?',
-      'This permanently deletes your account — every pick, score, league membership, and follower. This cannot be undone.',
+      'This permanently deletes your account, including every pick, score, league membership, and follower. This cannot be undone.',
       [
         { style: 'cancel', text: 'Cancel' },
         {

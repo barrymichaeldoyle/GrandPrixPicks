@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Check, Flag, Flame, Gauge, Trophy, X } from 'lucide-react';
+import { Check, Flag, Gauge, Trophy, X } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -470,7 +470,7 @@ function ScorePublishedItem({
 
   return (
     <>
-      <div className="space-y-2.5">
+      <div className={isLocked ? 'space-y-2' : 'space-y-2.5'}>
         {/* Header: avatar + name */}
         <div className="flex items-center gap-2">
           <Link
@@ -598,12 +598,8 @@ function ScorePublishedItem({
           </div>
         )}
 
-        {/* Total points + comment (scored) or pending indicator (locked) */}
-        {isLocked ? (
-          <p className="text-xs text-text-muted/60 italic">
-            Waiting for results...
-          </p>
-        ) : (
+        {/* Total points + comment once results are available. */}
+        {!isLocked &&
           event.points !== undefined &&
           (() => {
             const total = event.points + (event.h2hScore?.points ?? 0);
@@ -617,8 +613,7 @@ function ScorePublishedItem({
                 </p>
               </div>
             );
-          })()
-        )}
+          })()}
 
         <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
           <RevButton
@@ -629,12 +624,16 @@ function ScorePublishedItem({
             onCountClick={() => setRevsOpen(true)}
           />
           {!grouped && (
-            <span
-              className="shrink-0 text-xs text-text-muted"
-              suppressHydrationWarning
-            >
-              {formatRelativeTime(event.createdAt)}
-            </span>
+            <div className="flex shrink-0 items-center gap-2 text-xs text-text-muted">
+              {isLocked ? (
+                <span className="text-[10px] font-semibold tracking-wide text-accent uppercase">
+                  Awaiting results
+                </span>
+              ) : null}
+              <span suppressHydrationWarning>
+                {formatRelativeTime(event.createdAt)}
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -700,42 +699,6 @@ function JoinedLeagueItem({ event }: { event: FeedEvent }) {
   );
 }
 
-function StreakMilestoneItem({ event }: { event: FeedEvent }) {
-  const [revsOpen, setRevsOpen] = useState(false);
-  return (
-    <>
-      <div className="flex items-center gap-3">
-        <Avatar
-          avatarUrl={event.avatarUrl}
-          username={event.username}
-          size="sm"
-        />
-        <p className="min-w-0 flex-1 text-sm text-text-muted">
-          <UserLink username={event.username} displayName={event.displayName} />{' '}
-          reached a{' '}
-          <span className="font-semibold text-accent">
-            {event.streakCount}-race streak
-          </span>
-          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted/60">
-            · {formatRelativeTime(event.createdAt)}
-          </span>
-        </p>
-        <Flame className="hidden h-4 w-4 shrink-0 text-accent/70 sm:block" />
-        <RevButton
-          feedEventId={event._id}
-          revCount={event.revCount}
-          viewerHasReved={event.viewerHasReved}
-          recentRevUsers={event.recentRevUsers}
-          onCountClick={() => setRevsOpen(true)}
-        />
-      </div>
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
-      )}
-    </>
-  );
-}
-
 export function FeedItem({
   event,
   grouped,
@@ -745,8 +708,13 @@ export function FeedItem({
   grouped?: boolean;
   position?: 'first' | 'middle' | 'last';
 }) {
-  const isSocialActivity =
-    event.type === 'joined_league' || event.type === 'streak_milestone';
+  // Defensive fallback for stale cached responses from before streak events
+  // were removed at the query boundary.
+  if (event.type === 'streak_milestone') {
+    return null;
+  }
+
+  const isSocialActivity = event.type === 'joined_league';
   const radiusClass =
     position === 'first'
       ? 'rounded-t-none'
@@ -771,8 +739,6 @@ export function FeedItem({
     >
       {event.type === 'score_published' || event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
-      ) : event.type === 'streak_milestone' ? (
-        <StreakMilestoneItem event={event} />
       ) : (
         <JoinedLeagueItem event={event} />
       )}
@@ -986,7 +952,7 @@ export function SessionGroup({
   if (!isScored) {
     return (
       <div>
-        <SessionSeparator session={sessionWithTime} grouped />
+        <SessionSeparator session={sessionWithTime} grouped pending />
         {events.map((event, i) => (
           <FeedItem
             key={event._id}
@@ -1089,10 +1055,12 @@ type SessionHeader = {
 function SessionSeparator({
   session,
   grouped,
+  pending = false,
   showResult = true,
 }: {
   session: SessionHeader;
   grouped?: boolean;
+  pending?: boolean;
   showResult?: boolean;
 }) {
   const label = SESSION_LABELS[session.sessionType] ?? session.sessionType;
@@ -1144,14 +1112,21 @@ function SessionSeparator({
             </p>
             <p className="text-xs text-text-muted">{label}</p>
           </div>
-          {session.createdAt && (
-            <span
-              className="shrink-0 text-xs text-text-muted"
-              suppressHydrationWarning
-            >
-              {formatRelativeTime(session.createdAt)}
-            </span>
-          )}
+          <div className="shrink-0 text-right">
+            {session.createdAt && (
+              <span
+                className="block text-xs text-text-muted"
+                suppressHydrationWarning
+              >
+                {formatRelativeTime(session.createdAt)}
+              </span>
+            )}
+            {pending ? (
+              <span className="block text-[9px] font-semibold tracking-wide text-accent uppercase">
+                Awaiting results
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
 

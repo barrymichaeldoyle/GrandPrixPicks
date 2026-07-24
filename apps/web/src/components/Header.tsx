@@ -89,8 +89,8 @@ function NextRaceQuickLink({
       to="/races/$raceSlug"
       params={{ raceSlug: nextRace.slug }}
       className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
-      aria-label={`Make picks for ${nextRace.name}`}
-      title={`Make picks for ${nextRace.name}`}
+      aria-label={`My picks for ${nextRace.name}`}
+      title={`My picks for ${nextRace.name}`}
       data-testid="header-next-race-link"
     >
       {countryCode ? (
@@ -101,7 +101,7 @@ function NextRaceQuickLink({
         <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       )}
       <span className="hidden min-[500px]:inline min-[844px]:hidden min-[960px]:inline">
-        Make picks
+        My Picks
         <span className="hidden min-[1100px]:inline">
           {' · '}
           {abbreviateGrandPrix(nextRace.name)}
@@ -275,10 +275,13 @@ export function Header({
       />
       <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-sm border border-border-strong bg-surface-elevated transition-colors group-hover:border-accent/50 group-hover:bg-accent-muted/30">
+          <Link
+            to="/"
+            className="group flex shrink-0 items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          >
+            <span className="flex h-9 w-7 items-center justify-center">
               <Flag
-                className="relative left-0.25 h-5 w-5 text-accent"
+                className="relative left-0.25 h-6 w-6 text-accent"
                 aria-hidden="true"
               />
             </span>

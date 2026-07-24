@@ -29,14 +29,14 @@ export function LeaderboardTeaser({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
+        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
           <Crown
             className="h-3.5 w-3.5 text-accent"
             aria-hidden="true"
             strokeWidth={2.25}
           />
           Top Players
-        </p>
+        </h2>
         <Link
           to="/leaderboard"
           className="text-xs font-medium text-accent hover:text-accent-hover"

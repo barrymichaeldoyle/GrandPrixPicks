@@ -65,7 +65,7 @@ export function AnnouncementBanner() {
         type="button"
         onClick={handleDismiss}
         aria-label="Dismiss announcement"
-        className="shrink-0 rounded-md p-0.5 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
       >
         <X size={16} aria-hidden="true" />
       </button>

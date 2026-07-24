@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { ArrowRight, Check, Timer, Trophy, Users } from 'lucide-react';
+import { ArrowRight, Timer, Trophy, Users } from 'lucide-react';
 
 import { Avatar } from './Avatar';
 import { Button } from './Button/Button';
@@ -85,12 +85,11 @@ function NextRaceCard() {
         asChild
         variant={hasAnyPick ? 'secondary' : 'primary'}
         size="sm"
-        leftIcon={hasAnyPick ? Check : undefined}
-        rightIcon={hasAnyPick ? undefined : ArrowRight}
+        rightIcon={ArrowRight}
         className="mt-3 w-full"
       >
         <Link to="/races/$raceSlug" params={{ raceSlug: nextRace.slug }}>
-          {hasAnyPick ? 'Edit picks' : 'Make picks'}
+          My Picks
         </Link>
       </Button>
     </div>
@@ -170,7 +169,8 @@ function MyLeaguesCard() {
               <span className="truncate font-medium text-text">
                 {league.name}
               </span>
-              <span className="shrink-0 text-[11px] text-text-muted tabular-nums">
+              <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-text-muted tabular-nums">
+                <Users className="h-3 w-3" aria-hidden="true" />
                 {league.memberCount}
               </span>
             </Link>

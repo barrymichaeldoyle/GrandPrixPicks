@@ -117,9 +117,9 @@ export function CookieConsent({ forceVisible = false }: CookieConsentProps) {
   return (
     <div
       ref={bannerRef}
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-raised p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:p-4 sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
     >
-      <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-4xl flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <p className="text-sm text-text-muted">
           We use cookies for anonymous analytics to improve the app.{' '}
           <Link to="/privacy" className="underline hover:text-text">

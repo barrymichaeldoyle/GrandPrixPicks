@@ -8,14 +8,26 @@ export function SocialProof({
   playerCount: number;
   raceSlug: string | null;
 }) {
+  const showPlayerCount = playerCount >= 25;
+
   return (
     <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <p className="text-sm text-text-muted">
-        <span className="font-semibold text-text">
-          {playerCount.toLocaleString()}{' '}
-          {playerCount === 1 ? 'player' : 'players'}
-        </span>{' '}
-        made picks last race. Think you can beat them?
+        {showPlayerCount ? (
+          <>
+            <span className="font-semibold text-text">
+              {playerCount.toLocaleString()} players
+            </span>{' '}
+            made picks last race. Think you can beat them?
+          </>
+        ) : (
+          <>
+            <span className="font-semibold text-text">
+              The leaderboard is live.
+            </span>{' '}
+            Put your picks on the grid and set the score to beat.
+          </>
+        )}
       </p>
       {raceSlug && (
         <Link

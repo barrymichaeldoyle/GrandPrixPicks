@@ -89,7 +89,7 @@ export const Route = createFileRoute('/leaderboard')({
   head: () =>
     pageMeta({
       title:
-        '2026 Season Leaderboard - F1 Prediction Rankings | Grand Prix Picks',
+        '2026 Season Leaderboard | F1 Prediction Rankings | Grand Prix Picks',
       description:
         'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.',
       path: '/leaderboard',

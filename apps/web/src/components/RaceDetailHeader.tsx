@@ -5,10 +5,6 @@ import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
 
-function abbreviateGrandPrix(name: string) {
-  return name.replace(/\bGrand Prix\b/g, 'GP');
-}
-
 interface RaceDetailHeaderProps {
   race: Doc<'races'>;
   isNextRace: boolean;
@@ -50,8 +46,7 @@ export function RaceDetailHeader({
             {isNextRace ? ' · Next Race' : ''}
           </span>
           <h1 className="truncate text-lg leading-tight font-semibold text-text sm:text-xl">
-            <span className="sm:hidden">{abbreviateGrandPrix(race.name)}</span>
-            <span className="hidden sm:inline">{race.name}</span>
+            {race.name}
           </h1>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-muted">
             <span

@@ -3,7 +3,6 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
 
-import { PageHero } from '@/components/PageHero';
 import { PageLoader } from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
@@ -44,6 +43,12 @@ export const Route = createFileRoute('/settings')({
 
 const SEASON_PASS_SEASON = 2026;
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
+const SETTINGS_NAV = [
+  { href: '#profile', label: 'Profile' },
+  { href: '#season-pass', label: 'Season pass' },
+  { href: '#regional', label: 'Regional' },
+  { href: '#notifications', label: 'Notifications' },
+] as const;
 
 function SettingsPage() {
   const { isSignedIn, isLoaded } = useViewerSession();
@@ -179,12 +184,18 @@ function SettingsPage() {
 
   return (
     <div className="bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-6">
-        <PageHero
-          eyebrow="Account"
-          title="Settings"
-          subtitle="Manage your profile, privacy, and notification preferences."
-        />
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+        <header className="mb-6 max-w-2xl">
+          <p className="text-[11px] font-semibold tracking-[0.2em] text-accent uppercase">
+            Account
+          </p>
+          <h1 className="font-title mt-1 text-3xl leading-tight font-semibold text-text sm:text-4xl">
+            Settings
+          </h1>
+          <p className="mt-2 text-sm text-text-muted sm:text-base">
+            Manage your identity, regional preferences, access, and alerts.
+          </p>
+        </header>
 
         {showPurchaseSuccess ? (
           <PurchaseSuccessBanner
@@ -196,31 +207,51 @@ function SettingsPage() {
           />
         ) : null}
 
-        <div className="space-y-6">
-          <ProfileSection user={me} {...profileForm} />
+        <div className="grid items-start gap-6 md:grid-cols-[10rem_minmax(0,1fr)] lg:gap-10">
+          <nav
+            aria-label="Settings sections"
+            className="sticky top-20 z-10 -mx-1 flex gap-1 overflow-x-auto bg-page/95 px-1 py-1 md:top-24 md:mx-0 md:flex-col md:overflow-visible md:bg-transparent md:p-0"
+          >
+            <p className="mb-2 hidden text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase md:block">
+              Sections
+            </p>
+            {SETTINGS_NAV.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="shrink-0 rounded-sm px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/55 focus-visible:outline-none md:px-2"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
 
-          <SeasonPassSection
-            season={SEASON_PASS_SEASON}
-            hasSeasonPass={hasSeasonPassFor2026}
-          />
+          <div className="min-w-0 space-y-4">
+            <ProfileSection user={me} {...profileForm} />
 
-          <RegionalSection
-            timezone={displayTimezone}
-            locale={displayLocale}
-            loading={false}
-            onUpdate={updateRegionalSettings}
-          />
+            <SeasonPassSection
+              season={SEASON_PASS_SEASON}
+              hasSeasonPass={hasSeasonPassFor2026}
+            />
 
-          <NotificationsSection
-            settings={notificationSettings}
-            isPushSupported={pushNotifications.isSupported}
-            pushPermission={pushNotifications.permission}
-            isPushSubscribed={pushNotifications.isSubscribed}
-            isPushLoading={pushNotifications.isLoading}
-            onSubscribePush={() => void pushNotifications.subscribe()}
-            onUnsubscribePush={() => void pushNotifications.unsubscribe()}
-            onUpdateSetting={updateNotificationSetting}
-          />
+            <RegionalSection
+              timezone={displayTimezone}
+              locale={displayLocale}
+              loading={false}
+              onUpdate={updateRegionalSettings}
+            />
+
+            <NotificationsSection
+              settings={notificationSettings}
+              isPushSupported={pushNotifications.isSupported}
+              pushPermission={pushNotifications.permission}
+              isPushSubscribed={pushNotifications.isSubscribed}
+              isPushLoading={pushNotifications.isLoading}
+              onSubscribePush={() => void pushNotifications.subscribe()}
+              onUnsubscribePush={() => void pushNotifications.unsubscribe()}
+              onUpdateSetting={updateNotificationSetting}
+            />
+          </div>
         </div>
       </div>
     </div>

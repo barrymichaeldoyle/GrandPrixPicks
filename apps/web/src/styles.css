@@ -155,19 +155,12 @@ body {
   background-size: 40px 40px;
 }
 
-/* Structural geometry is deliberately tighter than identity elements such as
-   avatars and status dots, which continue to use rounded-full. */
-.rounded-2xl {
-  border-radius: 0.5rem;
-}
-.rounded-xl {
-  border-radius: 0.375rem;
-}
-.rounded-lg {
-  border-radius: 0.25rem;
-}
-.rounded-md {
-  border-radius: 0.1875rem;
+/* Sharp structural geometry is part of the racing/technical visual language.
+   Preserve circles and pills used for identity/status, but square off every
+   other Tailwind radius utility, including responsive/directional variants and
+   arbitrary values such as rounded-[2px]. */
+:where(.rounded, [class*='rounded-']):not(.rounded-full) {
+  border-radius: 0;
 }
 
 .home-hero::before {
@@ -479,6 +472,15 @@ button:disabled,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
   .reveal-up,
   .reveal-delay-1,
   .reveal-delay-2,

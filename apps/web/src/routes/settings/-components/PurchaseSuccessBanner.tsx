@@ -11,7 +11,7 @@ export function PurchaseSuccessBanner({
   onDismiss: () => void;
 }) {
   return (
-    <div className="reveal-up reveal-delay-1 mb-6 rounded-xl border border-border bg-surface p-4">
+    <div className="reveal-up reveal-delay-1 mb-6 rounded-sm border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {hasSeasonPass === true ? (

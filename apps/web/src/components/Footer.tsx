@@ -33,9 +33,9 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-7 text-sm text-text-muted sm:grid-cols-[1.5fr_1fr_1fr] sm:gap-10">
           <div className="space-y-3">
             <p className="flex items-center gap-2 text-base font-semibold text-text">
-              <span className="flex h-7 w-7 items-center justify-center rounded-sm border border-border-strong bg-surface-elevated">
+              <span className="flex h-7 w-5 items-center justify-center">
                 <Flag
-                  className="relative left-0.25 h-4 w-4 text-accent"
+                  className="relative left-0.25 h-4.5 w-4.5 text-accent"
                   aria-hidden="true"
                 />
               </span>
@@ -108,7 +108,7 @@ export function Footer() {
               href={siteConfig.social.x.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-sm p-1 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              className="flex h-7 w-7 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
               aria-label={`Follow ${siteConfig.social.x.handle} on X`}
             >
               <XLogoIcon className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function Footer() {
               href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-sm p-1 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              className="flex h-7 w-7 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
               aria-label="LinkedIn"
             >
               <LinkedInIcon className="h-3.5 w-3.5" />

@@ -99,7 +99,7 @@ async function main() {
         height: `${HEIGHT}px`,
         display: 'flex',
         position: 'relative',
-        backgroundColor: '#0f172a',
+        backgroundColor: '#0a0e17',
         color: '#f8fafc',
         fontFamily: 'Sans',
       },
@@ -109,7 +109,8 @@ async function main() {
         position: 'absolute',
         inset: 0,
         background:
-          'radial-gradient(ellipse 520px 300px at 50% -20px, rgba(20,184,166,0.2), transparent 70%), radial-gradient(ellipse 260px 240px at 88% 36%, rgba(20,184,166,0.12), transparent 75%), radial-gradient(ellipse 220px 180px at 13% 42%, rgba(251,191,36,0.09), transparent 80%)',
+          'linear-gradient(rgba(164,173,187,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(164,173,187,0.035) 1px, transparent 1px), radial-gradient(ellipse 520px 300px at 50% -20px, rgba(49,184,171,0.16), transparent 70%), radial-gradient(ellipse 300px 260px at 88% 42%, rgba(192,38,58,0.14), transparent 75%)',
+        backgroundSize: '48px 48px, 48px 48px, auto, auto',
       },
     }),
     h('div', {
@@ -120,7 +121,8 @@ async function main() {
         width: '960px',
         height: '6px',
         borderRadius: '3px',
-        background: 'linear-gradient(90deg, #0d9488 0%, #2dd4bf 100%)',
+        background:
+          'linear-gradient(90deg, #f04455 0%, #c0263a 45%, #31b8ab 100%)',
       },
     }),
     h(
@@ -189,8 +191,8 @@ async function main() {
             marginBottom: '34px',
           },
         },
-        h('div', {}, 'Top-5 picks. Teammate H2H battles.'),
-        h('div', {}, 'Every race weekend.'),
+        h('div', {}, 'The F1 prediction game for'),
+        h('div', {}, 'every race weekend.'),
       ),
       h(
         'div',
@@ -202,7 +204,7 @@ async function main() {
             width: '260px',
             height: '64px',
             borderRadius: '14px',
-            backgroundColor: '#0d9488',
+            backgroundColor: '#c0263a',
             color: '#ffffff',
             fontSize: '30px',
             fontWeight: 900,
@@ -210,7 +212,7 @@ async function main() {
             marginBottom: '24px',
           },
         },
-        'Play free',
+        'Make free picks',
       ),
       h(
         'div',

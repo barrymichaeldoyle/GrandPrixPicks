@@ -36,7 +36,7 @@ export function RegionalSection({
     <SettingsSection
       id="regional"
       title="Regional"
-      icon={<Globe className="h-5 w-5 text-text-muted" />}
+      icon={<Globe className="h-5 w-5 text-accent" />}
     >
       <div className="space-y-4">
         <p className="text-sm text-text-muted">
@@ -55,13 +55,13 @@ export function RegionalSection({
                   </label>
                   <div className="h-3.5 w-24 animate-pulse rounded bg-surface-muted" />
                 </div>
-                <div className="h-10 animate-pulse rounded-lg border border-border bg-surface-muted" />
+                <div className="h-10 animate-pulse rounded-sm border border-border bg-surface-muted" />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-sm font-medium text-text">
                   Time format
                 </label>
-                <div className="h-10 animate-pulse rounded-lg border border-border bg-surface-muted" />
+                <div className="h-10 animate-pulse rounded-sm border border-border bg-surface-muted" />
               </div>
             </>
           ) : (

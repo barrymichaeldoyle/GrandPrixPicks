@@ -288,26 +288,6 @@ export const JoinedLeague: Story = {
   },
 };
 
-export const StreakMilestone: Story = {
-  args: {
-    event: makeFeedEvent({
-      _id: fakeId<'feedEvents'>('feed-streak'),
-      type: 'streak_milestone',
-      raceId: undefined,
-      sessionType: undefined,
-      points: undefined,
-      raceName: undefined,
-      raceSlug: undefined,
-      picks: undefined,
-      h2hScore: null,
-      streakCount: 5,
-      revCount: 7,
-      viewerHasReved: true,
-      createdAt: NOW - 26 * HOUR,
-    }),
-  },
-};
-
 export const GroupedSession: Story = {
   render: () => {
     const session = {

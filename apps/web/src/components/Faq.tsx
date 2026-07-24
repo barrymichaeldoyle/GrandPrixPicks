@@ -7,11 +7,16 @@ import { useId, useState } from 'react';
 interface FaqSectionProps {
   title: string;
   children: ReactNode;
+  className?: string;
 }
 
-export function FaqSection({ title, children }: FaqSectionProps) {
+export function FaqSection({
+  title,
+  children,
+  className = '',
+}: FaqSectionProps) {
   return (
-    <section className="mx-auto max-w-4xl px-6 py-12">
+    <section className={`mx-auto max-w-4xl px-6 py-12 ${className}`}>
       <div className="mb-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
         <HelpCircle
           className="h-7 w-7 text-accent sm:h-6 sm:w-6"
@@ -39,6 +44,7 @@ export function FaqItem({
 }: FaqItemProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();
+  const questionId = useId();
 
   return (
     <motion.div
@@ -50,6 +56,7 @@ export function FaqItem({
     >
       <h3>
         <button
+          id={questionId}
           type="button"
           className="flex w-full items-center gap-2 rounded-lg px-1 py-4 text-left text-base font-semibold text-text transition-colors hover:bg-surface/45 hover:text-accent sm:gap-3 sm:px-3 sm:py-5 sm:text-lg"
           aria-expanded={isOpen}
@@ -66,7 +73,15 @@ export function FaqItem({
       </h3>
       <div
         id={contentId}
-        className={`grid transition-[grid-template-rows] duration-250 ease-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+        role="region"
+        aria-labelledby={questionId}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isOpen
+            ? 'grid-rows-[1fr] opacity-100'
+            : 'pointer-events-none grid-rows-[0fr] opacity-0'
+        }`}
       >
         <div className="overflow-hidden">
           <div className="px-1 pb-5 sm:px-3 sm:pl-11">{children}</div>

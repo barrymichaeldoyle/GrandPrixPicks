@@ -18,7 +18,7 @@ export function SeasonPassSection({
     <SettingsSection
       id="season-pass"
       title="Season Pass"
-      icon={<Ticket className="h-5 w-5 text-text-muted" />}
+      icon={<Ticket className="h-5 w-5 text-accent" />}
       headerRight={
         isActive ? (
           <Link
@@ -46,7 +46,7 @@ export function SeasonPassSection({
       ) : isLoading ? (
         <div className="space-y-3">
           <div className="h-4 w-2/3 animate-pulse rounded bg-surface-muted" />
-          <div className="h-9 w-52 animate-pulse rounded-lg bg-surface-muted" />
+          <div className="h-9 w-52 animate-pulse rounded-sm bg-surface-muted" />
         </div>
       ) : (
         <div className="space-y-3">

@@ -13,9 +13,9 @@ const HOW_IT_WORKS_STEPS: readonly { title: string; copy: string }[] = [
 export function HowItWorksStrip() {
   return (
     <div className="home-section-open py-5">
-      <p className="home-section-kicker mb-4 text-xs font-semibold tracking-widest text-text-muted uppercase">
+      <h2 className="home-section-kicker mb-4 text-xs font-semibold tracking-widest text-text-muted uppercase">
         How it works
-      </p>
+      </h2>
       {/* CSS reveal, not framer-motion: this strip is inside the first mobile
           viewport, and a JS-gated fade leaves it invisible until hydration. */}
       <ol className="reveal-up reveal-delay-1 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-3">
@@ -28,7 +28,9 @@ export function HowItWorksStrip() {
               <span className="text-sm font-semibold text-text">
                 {step.title}
               </span>
-              <span className="text-xs text-text-muted">{step.copy}</span>
+              <span className="text-[13px] leading-5 text-text-muted">
+                {step.copy}
+              </span>
             </span>
           </li>
         ))}

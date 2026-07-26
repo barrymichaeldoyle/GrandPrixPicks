@@ -14,6 +14,33 @@ allowBuilds:
   utf-8-validate: false
   workerd: true
 
+auditConfig:
+  ignoreGhsas:
+    # brace-expansion DoS (unbounded expansion length -> OOM). The fix is an
+    # EXPANSION_MAX_LENGTH accumulator cap that upstream shipped only in 5.0.8;
+    # the advisory therefore marks every version <=5.0.7 vulnerable, including
+    # the 1.x and 2.x lines that are still maintained.
+    #
+    # Two of those lines survive in the tree and cannot be overridden away:
+    #   brace-expansion@1.1.16 <- minimatch@3.1.5 <- glob@7 <- dot-object
+    #                             <- twirp-ts <- @devvit/protos
+    #   brace-expansion@2.1.2  <- minimatch@5.1.9 <- filelist <- jake <- ejs
+    #                             <- @oclif/core <- @devvit/cli
+    # brace-expansion@5's CJS entry exports an object ({ expand, EXPANSION_MAX,
+    # EXPANSION_MAX_LENGTH }) rather than a callable, but minimatch 3/5 do
+    # `var expand = require('brace-expansion'); expand(pattern)`. Forcing 5.0.8
+    # there fails with "expand is not a function" and breaks `devvit upload`
+    # plus the protos codegen.
+    #
+    # Scope: all 105 paths are under apps/reddit (the Devvit prototype), and
+    # they are reached only by build/CLI-time globbing over our own repo paths.
+    # No attacker-controlled brace patterns, and nothing here ships to users or
+    # reaches apps/web, apps/mobile, or apps/backend.
+    #
+    # Revisit when devvit drops the glob@7 / ejs chain, or when 1.x / 2.x pick
+    # up a backport of the length cap.
+    - GHSA-mh99-v99m-4gvg
+
 catalog:
   convex: 1.42.1
   typescript: 7.0.2
@@ -84,6 +111,8 @@ overrides:
   '@clerk/clerk-react@>=5.9.0 <=5.61.5': 5.61.6
   '@clerk/shared@>=3.0.0 <=3.47.4': 3.47.5
   '@xmldom/xmldom@<0.8.13': 0.8.13
+  # These lift what can be lifted; the residual 1.1.16 / 2.1.2 copies under
+  # apps/reddit stay flagged on purpose — see auditConfig.ignoreGhsas above.
   'brace-expansion@>=1.0.0 <1.1.16': 1.1.16
   'brace-expansion@>=3.0.0 <5.0.8': 5.0.8
   'dompurify@<3.4.12': 3.4.12

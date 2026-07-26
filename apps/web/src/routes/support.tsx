@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
-import { AlertCircle, Loader2, Mail } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import type { SubmitEvent } from 'react';
 import { useState } from 'react';
 
@@ -10,7 +10,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { PageHero } from '@/components/PageHero';
+import { PageHeader } from '@/components/PageHeader';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
 
@@ -101,15 +101,10 @@ function SupportContent() {
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <PageHero
+        <PageHeader
           eyebrow="Need Help?"
           title="Contact Support"
           subtitle="Found a bug, need help, or have feedback? Send a message directly to Barry."
-          icon={
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
-              <Mail className="h-5 w-5" />
-            </span>
-          }
         />
 
         <form

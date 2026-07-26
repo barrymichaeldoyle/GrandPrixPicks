@@ -10,7 +10,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { PageHero } from '@/components/PageHero';
+import { PageHeader } from '@/components/PageHeader';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
 
@@ -175,7 +175,7 @@ function CreateLeagueContent() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <PageHero
+        <PageHeader
           eyebrow="League Setup"
           title="Create League"
           subtitle="Set up a league for the 2026 season and invite friends."

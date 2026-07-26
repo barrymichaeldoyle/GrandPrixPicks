@@ -12,7 +12,7 @@ import { HomeHero } from '../../components/home/HomeHero';
 import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
-import { PageHero } from '../../components/ui/PageHero';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { ScreenGlow } from '../../components/ui/ScreenGlow';
 import type { ConvexId } from '../../integrations/convex/api';
 import { api } from '../../integrations/convex/api';
@@ -128,7 +128,7 @@ export function FeedScreen() {
   if (!convexEnabled) {
     return (
       <View className="flex-1 bg-page px-4 pt-3">
-        <PageHero
+        <PageHeader
           subtitle="Live updates from you and the people you follow."
           title="Feed"
         />

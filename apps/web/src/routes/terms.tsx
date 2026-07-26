@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 
-import { PageHero } from '@/components/PageHero';
+import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/terms')({
@@ -21,7 +21,7 @@ function TermsPage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <PageHero
+        <PageHeader
           eyebrow="Legal"
           title="Terms of Service"
           subtitle="Last updated: February 2026"

@@ -11,7 +11,7 @@ import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { CountdownText } from '../components/ui/CountdownText';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { LockBadge } from '../components/ui/LockBadge';
-import { PageHero } from '../components/ui/PageHero';
+import { PageHeader } from '../components/ui/PageHeader';
 import { api } from '../integrations/convex/api';
 import { useUserDateFormat } from '../lib/dates';
 import { getLockStatusViewModel } from '../lib/lockTime';
@@ -69,7 +69,7 @@ export function RaceDetailScreen({ route }: Props) {
   if (!race) {
     return (
       <View className="flex-1 bg-page px-4 pt-3">
-        <PageHero title="Race not found" />
+        <PageHeader title="Race not found" />
       </View>
     );
   }

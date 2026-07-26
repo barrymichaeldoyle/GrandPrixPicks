@@ -11,7 +11,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
-import { PageHero } from '../components/ui/PageHero';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
@@ -520,7 +520,7 @@ function Header({
 }) {
   return (
     <View className="px-4 pt-3 pb-3">
-      <PageHero
+      <PageHeader
         eyebrow={timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
         subtitle={subtitle}
         title="Leaderboard"

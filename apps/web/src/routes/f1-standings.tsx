@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Flag, Trophy } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
+import { PageHeader } from '@/components/PageHeader';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName } from '@/lib/display';
@@ -134,34 +135,34 @@ function F1StandingsPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <header className="mb-10">
-          <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-            Formula 1
-          </p>
-          <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-            {season} F1 Championship Standings
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-text-muted">
-            The {season} Formula 1 World Championship standings for drivers and
-            constructors, scored from official race and sprint results and
-            updated after every Grand Prix.{' '}
-            {hasResults && leader ? (
-              <>
-                {leader.displayName} leads the drivers' championship on{' '}
-                {leader.points} points after {roundsScored}{' '}
-                {roundsScored === 1 ? 'round' : 'rounds'}.
-              </>
-            ) : null}
-          </p>
-          {hasResults && lastUpdated ? (
-            <p className="mt-4 text-xs text-text-muted">
-              Last updated{' '}
-              <time dateTime={new Date(lastUpdated).toISOString()}>
-                {formatDateLong(lastUpdated, LAST_UPDATED_FORMAT)}
-              </time>
-            </p>
-          ) : null}
-        </header>
+        <PageHeader
+          eyebrow="Formula 1"
+          title={`${season} F1 Championship Standings`}
+          subtitle={
+            <>
+              The {season} Formula 1 World Championship standings for drivers
+              and constructors, scored from official race and sprint results and
+              updated after every Grand Prix.{' '}
+              {hasResults && leader ? (
+                <>
+                  {leader.displayName} leads the drivers' championship on{' '}
+                  {leader.points} points after {roundsScored}{' '}
+                  {roundsScored === 1 ? 'round' : 'rounds'}.
+                </>
+              ) : null}
+            </>
+          }
+          actions={
+            hasResults && lastUpdated ? (
+              <p className="text-xs text-text-muted">
+                Last updated{' '}
+                <time dateTime={new Date(lastUpdated).toISOString()}>
+                  {formatDateLong(lastUpdated, LAST_UPDATED_FORMAT)}
+                </time>
+              </p>
+            ) : null
+          }
+        />
 
         {hasResults ? (
           <div className="space-y-10">

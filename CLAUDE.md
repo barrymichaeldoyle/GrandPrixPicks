@@ -67,6 +67,15 @@ Workspace package names:
 - `pnpm storybook` — Storybook on port 6006
 - `pnpm deploy` / `pnpm deploy:backend` — Cloudflare Pages / Convex prod
 
+## Git Workflow
+
+- **Work directly on `main`.** Do not create a feature branch, switch branches,
+  or open a PR unless explicitly asked to. This overrides the default "branch
+  before committing on the default branch" behaviour.
+- If the repo is already on a non-`main` branch, stay on it — don't switch to
+  `main` on your own either. Just don't create new branches unprompted.
+- Committing and pushing still only happen when explicitly asked.
+
 ## Project Structure
 
 ### `apps/web/src/`

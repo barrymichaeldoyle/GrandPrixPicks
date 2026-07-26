@@ -1,6 +1,5 @@
 import { v } from 'convex/values';
 
-import type { Doc, Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 
 /**
@@ -30,6 +29,8 @@ export type ChampionshipSessionResult = {
   sessionType: 'race' | 'sprint';
   /** Ordered driver ids, index 0 = P1. */
   classification: string[];
+  /** Drivers who did not classify (DNF/DSQ). They score nothing. */
+  dnfDriverIds?: string[];
 };
 
 export type DriverTally = {
@@ -38,7 +39,38 @@ export type DriverTally = {
   wins: number;
   /** Podium finishes in a main race (P1–P3). */
   podiums: number;
+  /**
+   * How many times this driver finished in each main-race position, index 0 =
+   * P1. Drives the official championship tie-break (see `compareCountback`).
+   */
+  racePositionCounts: number[];
 };
+
+export function emptyDriverTally(): DriverTally {
+  return { points: 0, wins: 0, podiums: 0, racePositionCounts: [] };
+}
+
+/**
+ * F1's tie-break ("countback"): between drivers level on points, the one with
+ * more wins is ahead; still level, more second places; then thirds, and so on
+ * down the field. Returns a comparator result (negative = `a` ranks higher).
+ *
+ * Only main-race finishes count, matching how `wins` and `podiums` are tallied.
+ */
+export function compareCountback(a: DriverTally, b: DriverTally): number {
+  const depth = Math.max(
+    a.racePositionCounts.length,
+    b.racePositionCounts.length,
+  );
+  for (let index = 0; index < depth; index++) {
+    const diff =
+      (b.racePositionCounts[index] ?? 0) - (a.racePositionCounts[index] ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
 
 /**
  * Accumulate championship points per driver across every scoring session.
@@ -53,20 +85,31 @@ export function tallyDriverPoints(
     if (existing) {
       return existing;
     }
-    const created: DriverTally = { points: 0, wins: 0, podiums: 0 };
+    const created = emptyDriverTally();
     tally.set(id, created);
     return created;
   }
 
   for (const session of sessions) {
     const table = session.sessionType === 'race' ? RACE_POINTS : SPRINT_POINTS;
-    session.classification.forEach((driverId, index) => {
-      const position = index + 1;
+    const retired = new Set(session.dnfDriverIds ?? []);
+    // Classifying position is counted independently of the array index:
+    // retirements score nothing *and* must not consume a scoring position, so
+    // a DNF listed mid-classification cannot demote everyone below it.
+    let position = 0;
+
+    for (const driverId of session.classification) {
       const driver = ensure(driverId);
+      if (retired.has(driverId)) {
+        continue;
+      }
+      position += 1;
       driver.points += pointsForPosition(position, table);
       // Wins and podiums are counted from main races only, matching how F1
       // reports them (sprint wins are tracked separately in the real world).
       if (session.sessionType === 'race') {
+        driver.racePositionCounts[position - 1] =
+          (driver.racePositionCounts[position - 1] ?? 0) + 1;
         if (position === 1) {
           driver.wins += 1;
         }
@@ -74,7 +117,7 @@ export function tallyDriverPoints(
           driver.podiums += 1;
         }
       }
-    });
+    }
   }
 
   return tally;
@@ -112,6 +155,7 @@ export const getF1Championship = query({
         sessions.push({
           sessionType: result.sessionType,
           classification: result.classification as string[],
+          dnfDriverIds: result.dnfDriverIds as string[] | undefined,
         });
         lastUpdated = Math.max(lastUpdated, result.publishedAt);
         if (result.sessionType === 'race') {
@@ -123,60 +167,73 @@ export const getF1Championship = query({
       }
     }
 
-    // Load the roster once and index it, rather than a per-driver db.get.
+    // Load the roster once, rather than a per-driver db.get.
     const drivers = await ctx.db
       .query('drivers')
       .withIndex('by_displayName')
       .take(60);
-    const driverById = new Map<string, Doc<'drivers'>>(
-      drivers.map((driver) => [driver._id as string, driver]),
-    );
 
     const tally = tallyDriverPoints(sessions);
 
-    const driverStandings = [...tally.entries()]
-      .map(([driverId, stats]) => {
-        const driver = driverById.get(driverId);
-        return {
-          driverId: driverId as Id<'drivers'>,
-          code: driver?.code ?? '???',
-          displayName: driver?.displayName ?? 'Unknown driver',
-          team: driver?.team ?? null,
-          nationality: driver?.nationality ?? null,
-          number: driver?.number ?? null,
-          points: stats.points,
-          wins: stats.wins,
-          podiums: stats.podiums,
-        };
-      })
+    // List the whole grid, the way the official table does: a driver who has
+    // not scored (or who debuts mid-season) still belongs in the standings on
+    // zero, rather than vanishing until their first points finish.
+    const rankedDrivers = drivers
+      .map((driver) => ({
+        driver,
+        stats: tally.get(driver._id as string) ?? emptyDriverTally(),
+      }))
       .sort(
         (a, b) =>
-          b.points - a.points ||
-          b.wins - a.wins ||
-          b.podiums - a.podiums ||
-          a.displayName.localeCompare(b.displayName),
-      )
-      .map((entry, index) => ({ ...entry, position: index + 1 }));
+          b.stats.points - a.stats.points ||
+          compareCountback(a.stats, b.stats) ||
+          a.driver.displayName.localeCompare(b.driver.displayName),
+      );
 
-    const teamTally = new Map<string, { points: number; wins: number }>();
-    for (const entry of driverStandings) {
-      if (!entry.team) {
+    const driverStandings = rankedDrivers.map(({ driver, stats }, index) => ({
+      driverId: driver._id,
+      code: driver.code,
+      displayName: driver.displayName,
+      team: driver.team ?? null,
+      nationality: driver.nationality ?? null,
+      number: driver.number ?? null,
+      points: stats.points,
+      wins: stats.wins,
+      podiums: stats.podiums,
+      position: index + 1,
+    }));
+
+    const teamTally = new Map<string, DriverTally>();
+    for (const { driver, stats } of rankedDrivers) {
+      if (!driver.team) {
         continue;
       }
-      const current = teamTally.get(entry.team) ?? { points: 0, wins: 0 };
-      current.points += entry.points;
-      current.wins += entry.wins;
-      teamTally.set(entry.team, current);
+      const current = teamTally.get(driver.team) ?? emptyDriverTally();
+      current.points += stats.points;
+      current.wins += stats.wins;
+      current.podiums += stats.podiums;
+      // A team's countback is its drivers' finishes pooled together, so the
+      // constructors' tie-break follows the same "most P1s, then P2s…" rule.
+      stats.racePositionCounts.forEach((count, index) => {
+        current.racePositionCounts[index] =
+          (current.racePositionCounts[index] ?? 0) + count;
+      });
+      teamTally.set(driver.team, current);
     }
 
     const constructorStandings = [...teamTally.entries()]
-      .map(([team, stats]) => ({
+      .sort(
+        ([teamA, statsA], [teamB, statsB]) =>
+          statsB.points - statsA.points ||
+          compareCountback(statsA, statsB) ||
+          teamA.localeCompare(teamB),
+      )
+      .map(([team, stats], index) => ({
         team,
         points: stats.points,
         wins: stats.wins,
-      }))
-      .sort((a, b) => b.points - a.points || a.team.localeCompare(b.team))
-      .map((entry, index) => ({ ...entry, position: index + 1 }));
+        position: index + 1,
+      }));
 
     return {
       season,

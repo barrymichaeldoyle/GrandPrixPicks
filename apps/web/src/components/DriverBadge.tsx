@@ -26,6 +26,13 @@ interface DriverBadgeProps {
   size?: 'sm' | 'md';
   /** Show driver number before code */
   showNumber?: boolean;
+  /**
+   * Mount the tooltip immediately so its flag image is preloaded. Defaults to
+   * on whenever a nationality is given, which is right for the handful of
+   * badges on a picks or results card. Long lists (a full championship table)
+   * should turn it off — otherwise every row preloads a flag nobody hovers.
+   */
+  prerenderTooltip?: boolean;
 }
 
 /**
@@ -41,6 +48,7 @@ export function DriverBadge({
   nationality,
   size = 'md',
   showNumber = false,
+  prerenderTooltip,
 }: DriverBadgeProps) {
   const color = team ? (TEAM_COLORS[team] ?? '#666') : '#666';
   const hasTooltip = displayName || number != null || team || nationality;
@@ -115,7 +123,10 @@ export function DriverBadge({
 
   if (hasTooltip && tooltipContent) {
     return (
-      <Tooltip content={tooltipContent} prerender={!!nationality}>
+      <Tooltip
+        content={tooltipContent}
+        prerender={prerenderTooltip ?? !!nationality}
+      >
         {badge}
       </Tooltip>
     );

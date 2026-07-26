@@ -5,7 +5,7 @@ type SiteNavLink = {
 };
 
 /**
- * Public nav links — auth-independent, so the header renders them immediately
+ * Public nav links: auth-independent, so the header renders them immediately
  * (SSR + first paint). The signed-in extras (Feed, My Results) are rendered
  * directly in the header once Clerk resolves.
  */
@@ -17,9 +17,11 @@ export const primaryNavLinks: SiteNavLink[] = [
 
 export const footerExploreLinks: SiteNavLink[] = [
   { to: '/', label: 'Home', exact: true },
-  { to: '/feed', label: 'Feed' },
+  { to: '/how-to-play', label: 'How to Play' },
   { to: '/races', label: 'Races', exact: true },
+  { to: '/f1-standings', label: 'F1 Standings' },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
+  { to: '/feed', label: 'Feed' },
   { to: '/me', label: 'My Results' },
 ];

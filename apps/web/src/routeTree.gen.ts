@@ -19,6 +19,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PayRouteImport } from './routes/pay'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as FeedRouteImport } from './routes/feed'
 import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as IndexRouteImport } from './routes/index'
@@ -84,6 +85,11 @@ const MeRoute = MeRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowToPlayRoute = HowToPlayRouteImport.update({
+  id: '/how-to-play',
+  path: '/how-to-play',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedRoute = FeedRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
   '/feed': typeof FeedRouteWithChildren
+  '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
   '/pay': typeof PayRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
   '/pay': typeof PayRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
   '/feed': typeof FeedRouteWithChildren
+  '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
   '/pay': typeof PayRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/'
     | '/f1-standings'
     | '/feed'
+    | '/how-to-play'
     | '/leaderboard'
     | '/me'
     | '/pay'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/f1-standings'
+    | '/how-to-play'
     | '/leaderboard'
     | '/me'
     | '/pay'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/'
     | '/f1-standings'
     | '/feed'
+    | '/how-to-play'
     | '/leaderboard'
     | '/me'
     | '/pay'
@@ -341,6 +353,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   F1StandingsRoute: typeof F1StandingsRoute
   FeedRoute: typeof FeedRouteWithChildren
+  HowToPlayRoute: typeof HowToPlayRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MeRoute: typeof MeRoute
   PayRoute: typeof PayRoute
@@ -431,6 +444,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-play': {
+      id: '/how-to-play'
+      path: '/how-to-play'
+      fullPath: '/how-to-play'
+      preLoaderRoute: typeof HowToPlayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed': {
@@ -590,6 +610,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   F1StandingsRoute: F1StandingsRoute,
   FeedRoute: FeedRouteWithChildren,
+  HowToPlayRoute: HowToPlayRoute,
   LeaderboardRoute: LeaderboardRoute,
   MeRoute: MeRoute,
   PayRoute: PayRoute,

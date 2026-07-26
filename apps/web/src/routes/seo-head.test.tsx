@@ -92,6 +92,22 @@ describe('SEO head metadata', () => {
     }
   });
 
+  it('makes the how-to-play guide indexable with its own canonical', async () => {
+    const { Route: howToPlayRoute } = await import('./how-to-play');
+    const head = asStaticHeadRoute(howToPlayRoute).head();
+
+    expect(head.meta).not.toContainEqual({
+      name: 'robots',
+      content: 'noindex, follow',
+    });
+    expect(head.links).toEqual([
+      {
+        rel: 'canonical',
+        href: 'https://grandprixpicks.com/how-to-play',
+      },
+    ]);
+  });
+
   it('emits child canonical + noindex for follow list pages', async () => {
     const [{ Route: followersRoute }, { Route: followingRoute }] =
       await Promise.all([

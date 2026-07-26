@@ -321,7 +321,22 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-2 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end">
-          {/* Mobile menu button — signed-out only (auth state known from SSR) */}
+          {/* Quick link to the next race's picks — signed-in only */}
+          <NextRaceQuickLink
+            isSignedIn={!!isSignedIn}
+            initialNextRace={initialNextRace}
+          />
+
+          {/* Notification bell — mounted from the SSR-resolved signed-in state
+              so its slot is reserved on the first paint (no layout shift). The
+              bell renders empty until its query resolves. */}
+          {isSignedIn && <NotificationBell />}
+          <HeaderUser />
+
+          {/* Mobile menu button — signed-out only (auth state known from SSR).
+              Rendered last so the toggle is the outermost control on the row
+              and Sign in sits inboard of it, rather than the menu being
+              sandwiched between the wordmark and the sign-in action. */}
           {!isSignedIn && (
             <motion.button
               ref={menuButtonRef}
@@ -359,18 +374,6 @@ export function Header({
               </AnimatePresence>
             </motion.button>
           )}
-
-          {/* Quick link to the next race's picks — signed-in only */}
-          <NextRaceQuickLink
-            isSignedIn={!!isSignedIn}
-            initialNextRace={initialNextRace}
-          />
-
-          {/* Notification bell — mounted from the SSR-resolved signed-in state
-              so its slot is reserved on the first paint (no layout shift). The
-              bell renders empty until its query resolves. */}
-          {isSignedIn && <NotificationBell />}
-          <HeaderUser />
         </div>
       </div>
 

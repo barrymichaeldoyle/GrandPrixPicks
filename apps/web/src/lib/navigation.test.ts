@@ -7,6 +7,9 @@ describe('footerExploreLinks', () => {
     expect(footerExploreLinks).toEqual([
       { to: '/', label: 'Home', exact: true },
       { to: '/how-to-play', label: 'How to Play' },
+      // The footer is the results policy's only site-wide inbound link, so
+      // crawlers can reach it from every page rather than one FAQ answer.
+      { to: '/results-policy', label: 'Results Policy' },
       { to: '/races', label: 'Races', exact: true },
       { to: '/f1-standings', label: 'F1 Standings' },
       { to: '/leaderboard', label: 'Leaderboard' },

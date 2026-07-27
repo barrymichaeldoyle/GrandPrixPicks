@@ -108,6 +108,47 @@ describe('SEO head metadata', () => {
     ]);
   });
 
+  it('keeps the results policy title and description inside SERP limits', async () => {
+    const { Route: policyRoute } = await import('./results-policy');
+    const head = asStaticHeadRoute(policyRoute).head();
+
+    const title = head.meta?.find((tag) => 'title' in tag) as
+      | { title: string }
+      | undefined;
+    const description = head.meta?.find((tag) => tag.name === 'description');
+
+    // Google truncates around 60 characters of title and 155 of description.
+    // Past those, the part that answers the searcher's question is cut off.
+    expect(title?.title.length).toBeLessThanOrEqual(60);
+    expect(description?.content.length).toBeLessThanOrEqual(160);
+
+    expect(head.meta).not.toContainEqual({
+      name: 'robots',
+      content: 'noindex, follow',
+    });
+    expect(head.links).toEqual([
+      { rel: 'canonical', href: 'https://grandprixpicks.com/results-policy' },
+    ]);
+  });
+
+  it('describes the results policy page and its breadcrumb trail', async () => {
+    const { Route: policyRoute } = await import('./results-policy');
+    const head = asStaticHeadRoute(policyRoute).head() as HeadResult & {
+      scripts?: Array<{ children: string; type: string }>;
+    };
+
+    const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
+      | Array<{ '@type': string }>
+      | undefined;
+    const types = graph?.map((node) => node['@type']);
+
+    expect(types).toContain('WebPage');
+    expect(types).toContain('BreadcrumbList');
+    // FAQ rich results were retired in May 2026; the markup stays valid and is
+    // still read by non-Google crawlers, so it must not be dropped silently.
+    expect(types).toContain('FAQPage');
+  });
+
   it('emits child canonical + noindex for follow list pages', async () => {
     const [{ Route: followersRoute }, { Route: followingRoute }] =
       await Promise.all([

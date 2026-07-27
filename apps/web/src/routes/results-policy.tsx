@@ -43,10 +43,57 @@ const faqs = [
   },
 ] as const;
 
+/** Bumped whenever the policy itself changes, not on copy tweaks. */
+const POLICY_LAST_UPDATED = '2026-07-27';
+
+const POLICY_LAST_UPDATED_LABEL = new Date(
+  POLICY_LAST_UPDATED,
+).toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
 const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
     {
+      '@type': 'WebPage',
+      '@id': `${siteConfig.url}/results-policy#page`,
+      url: `${siteConfig.url}/results-policy`,
+      name: 'How F1 penalties affect results',
+      description:
+        'How Grand Prix Picks scores F1 sessions when penalties, disqualifications and retirements change the official classification.',
+      inLanguage: 'en',
+      dateModified: POLICY_LAST_UPDATED,
+      isPartOf: { '@id': `${siteConfig.url}/#app` },
+      about: {
+        '@type': 'Thing',
+        name: 'Formula 1 penalties and race classification',
+      },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${siteConfig.url}/results-policy#breadcrumb`,
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: siteConfig.url,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Results policy',
+          item: `${siteConfig.url}/results-policy`,
+        },
+      ],
+    },
+    {
+      // Google retired FAQ rich results in May 2026. Kept because it stays
+      // valid Schema.org and is still read by Bing and the AI crawlers; do not
+      // expect SERP real estate from it.
       '@type': 'FAQPage',
       '@id': `${siteConfig.url}/results-policy#faq`,
       mainEntity: faqs.map((faq) => ({
@@ -65,10 +112,9 @@ export const Route = createFileRoute('/results-policy')({
   component: ResultsPolicyPage,
   head: () => {
     const meta = pageMeta({
-      title:
-        'How We Handle F1 Penalties and Amended Results | Grand Prix Picks',
+      title: 'How F1 Penalties Affect Results | Grand Prix Picks',
       description:
-        'Our results policy: qualifying is scored on the qualifying classification (grid penalties do not count), and post-race penalties that change the official F1 classification are rescored.',
+        'Grid penalties change the starting grid, not the qualifying result. Post-race penalties do change the official F1 classification. Here is how we score both.',
       path: '/results-policy',
     });
     return {
@@ -143,6 +189,13 @@ function ResultsPolicyPage() {
             </div>
           }
         />
+
+        <p className="-mt-6 mb-8 text-xs text-text-muted">
+          Last updated{' '}
+          <time dateTime={POLICY_LAST_UPDATED}>
+            {POLICY_LAST_UPDATED_LABEL}
+          </time>
+        </p>
 
         <section
           aria-labelledby="principle-heading"

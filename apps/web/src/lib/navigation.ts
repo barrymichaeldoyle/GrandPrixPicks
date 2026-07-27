@@ -18,6 +18,7 @@ export const primaryNavLinks: SiteNavLink[] = [
 export const footerExploreLinks: SiteNavLink[] = [
   { to: '/', label: 'Home', exact: true },
   { to: '/how-to-play', label: 'How to Play' },
+  { to: '/results-policy', label: 'Results Policy' },
   { to: '/races', label: 'Races', exact: true },
   { to: '/f1-standings', label: 'F1 Standings' },
   { to: '/leaderboard', label: 'Leaderboard' },

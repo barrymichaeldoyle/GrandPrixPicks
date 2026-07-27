@@ -15,21 +15,32 @@ function isEnabled() {
 }
 
 export function initAnalytics() {
-  if (!isEnabled() || initialized) {
+  if (!isEnabled() || initialized || typeof window === 'undefined') {
     return false;
   }
 
   initialized = true;
+  const origin = window.location.origin;
   posthogPromise = import('posthog-js')
     .then(({ default: posthog }) => {
       posthog.init(posthogKey!, {
-        api_host:
-          import.meta.env.VITE_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
+        // Ingest through our own origin by default so ad blockers and
+        // corporate DNS do not silently drop a share of real traffic. See
+        // server/routes/ingest. Set VITE_POSTHOG_HOST to talk to PostHog
+        // directly instead.
+        api_host: import.meta.env.VITE_POSTHOG_HOST ?? `${origin}/ingest`,
+        // Keep "view in PostHog" links pointing at the real dashboard rather
+        // than at our proxy path.
+        ui_host: 'https://eu.posthog.com',
         capture_pageview: false,
         capture_pageleave: true,
         opt_out_capturing_by_default: true,
         // We don't run PostHog surveys; skip the extra surveys.js download.
         disable_surveys: true,
+        // Core Web Vitals (LCP, INP, CLS) from real visitors. These are the
+        // same signals Google ranks on, so measuring them here tells us what
+        // field data Search Console will eventually reflect.
+        capture_performance: { web_vitals: true },
       });
       posthogClient = posthog;
       return posthog;

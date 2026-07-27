@@ -36,7 +36,7 @@ test.describe('[auth] smoke', () => {
     await expect(page.getByText('Head-to-Head Predictions')).toBeVisible();
   });
 
-  test('shows the signed-in points summary on a finished scored race', async ({
+  test('shows the signed-in weekend recap on a finished scored race', async ({
     page,
   }) => {
     test.setTimeout(60_000);
@@ -46,12 +46,23 @@ test.describe('[auth] smoke', () => {
       namespace: 'scenario__race_finished_scored_h2h_standard__pwauth',
     });
 
-    // The counterpart to the public assertions in public-smoke: signed in,
-    // the viewer's own points are the point of the page and must be shown.
+    // The counterpart to the public assertions in public-smoke. The two
+    // surfaces split cleanly on a fully scored weekend:
+    //
+    // The header keeps reporting public scoring progress, so the block does not
+    // vanish once the weekend finishes scoring...
     const resultsSummary = page.getByTestId('race-results-summary');
     await expect(resultsSummary).toBeVisible();
-    await expect(resultsSummary).toContainText('Weekend Total');
-    await expect(resultsSummary).toContainText('pts');
+    await expect(resultsSummary).toContainText('All sessions scored');
+    // ...and it defers the viewer's own total to the recap rather than printing
+    // the same number twice.
+    await expect(resultsSummary).not.toContainText('Weekend Total');
+    await expect(resultsSummary).not.toContainText('pts');
+
+    // The recap owns the personal result.
+    const recap = page.getByTestId('weekend-recap');
+    await expect(recap).toBeVisible();
+    await expect(recap).toContainText('pts');
 
     await expect(page.getByText('Session Points Breakdown')).toBeVisible();
   });

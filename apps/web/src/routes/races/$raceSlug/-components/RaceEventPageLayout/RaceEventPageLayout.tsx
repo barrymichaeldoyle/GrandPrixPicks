@@ -114,12 +114,19 @@ export function RaceEventPageLayout({
           race={race}
           isNextRace={isNextRace}
           resultsSummary={
-            // Scoring progress is public; the points total is the viewer's own
-            // and is always zero when signed out, which made a public results
-            // page open with "Weekend Total +0 pts".
-            hasPublishedResults && !recapContent
+            // Two different things share this slot, so they are gated
+            // separately:
+            //
+            // - Scoring *progress* is a public fact. It renders for everyone
+            //   once results exist, and must not disappear when the weekend
+            //   finishes scoring, or the header block would vanish mid-flow.
+            // - The points total is the viewer's own. It is always zero when
+            //   signed out (which made a public page read "Weekend Total
+            //   +0 pts"), and once the recap is up the recap owns it — showing
+            //   it here too would duplicate the recap's hero number.
+            hasPublishedResults
               ? {
-                  showViewerPoints: isSignedIn,
+                  showViewerPoints: isSignedIn && !recapContent,
                   label: allEventsScored ? 'Weekend Total' : 'Points So Far',
                   points: pointsSoFar,
                   showResultsPendingBadge,

@@ -334,23 +334,33 @@ export function H2HResultsSection({
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5 text-accent" />
           <h2 className="text-lg font-semibold text-text sm:text-xl">
-            Session Points Breakdown
+            {isSignedIn ? 'Session Points Breakdown' : 'Session Results'}
           </h2>
         </div>
 
-        <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[repeat(3,max-content)]">
-          <SessionBreakdownStatPill label="Top 5" points={selectedTop5Points} />
-          {myH2HScore ? (
-            <SessionBreakdownH2HStatPill
-              points={selectedH2HPoints}
-              correctPicks={myH2HScore.correctPicks}
-              totalPicks={myH2HScore.totalPicks}
+        {/* Every pill here is the viewer's own score, so for a signed-out
+            reader the whole row is zeros. */}
+        {isSignedIn && (
+          <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[repeat(3,max-content)]">
+            <SessionBreakdownStatPill
+              label="Top 5"
+              points={selectedTop5Points}
             />
-          ) : (
-            <SessionBreakdownStatPill label="H2H" points={selectedH2HPoints} />
-          )}
-          <SessionBreakdownSessionGainPill points={sessionPointsGain} />
-        </div>
+            {myH2HScore ? (
+              <SessionBreakdownH2HStatPill
+                points={selectedH2HPoints}
+                correctPicks={myH2HScore.correctPicks}
+                totalPicks={myH2HScore.totalPicks}
+              />
+            ) : (
+              <SessionBreakdownStatPill
+                label="H2H"
+                points={selectedH2HPoints}
+              />
+            )}
+            <SessionBreakdownSessionGainPill points={sessionPointsGain} />
+          </div>
+        )}
       </div>
 
       {!isSelectedSessionScored ? (
@@ -604,9 +614,11 @@ export function H2HResultsSection({
               <Swords className="h-4 w-4 text-accent" />
               <h3 className="text-sm font-semibold text-text">Head-to-Head</h3>
             </div>
-            <span className="text-sm font-semibold text-accent">
-              +{selectedH2HPoints} pts
-            </span>
+            {isSignedIn && (
+              <span className="text-sm font-semibold text-accent">
+                +{selectedH2HPoints} pts
+              </span>
+            )}
           </div>
           <H2HMatchupGrid
             matchups={h2hResultMatchups}
@@ -633,21 +645,23 @@ export function H2HResultsSection({
             </div>
           )}
 
-          <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-text">Session Total</span>
-              <span className="font-semibold">
-                <span className="text-text">Top 5 </span>
-                <span className="text-accent">+{selectedTop5Points}</span>
-                <span className="text-text-muted"> | </span>
-                <span className="text-text">H2H </span>
-                <span className="text-accent">+{selectedH2HPoints}</span>
-                <span className="text-text-muted"> | </span>
-                <span className="text-text">Total </span>
-                <span className="text-accent">+{sessionPointsGain}</span>
-              </span>
+          {isSignedIn && (
+            <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-text">Session Total</span>
+                <span className="font-semibold">
+                  <span className="text-text">Top 5 </span>
+                  <span className="text-accent">+{selectedTop5Points}</span>
+                  <span className="text-text-muted"> | </span>
+                  <span className="text-text">H2H </span>
+                  <span className="text-accent">+{selectedH2HPoints}</span>
+                  <span className="text-text-muted"> | </span>
+                  <span className="text-text">Total </span>
+                  <span className="text-accent">+{sessionPointsGain}</span>
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

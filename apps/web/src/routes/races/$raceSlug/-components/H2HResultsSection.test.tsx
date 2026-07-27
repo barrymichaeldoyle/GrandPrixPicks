@@ -194,7 +194,10 @@ describe('H2HResultsSection SSR fallback', () => {
 
     const text = container.textContent ?? '';
     // The actual results table renders (not the "no results yet" placeholder).
-    expect(text).toContain('Session Points Breakdown');
+    // Signed-out, so the heading is the neutral one and the viewer's own
+    // score pills are absent.
+    expect(text).toContain('Session Results');
+    expect(text).not.toContain('Session Points Breakdown');
     expect(text).toContain('Actual');
     expect(text).not.toContain('No results published yet');
     // Both classified drivers appear.

@@ -383,8 +383,12 @@ function RaceDetailPage() {
       (scores?.[session]?.points ?? 0) + h2hPointsBySession[session];
     const sessionPicksComplete =
       isTop5SavedForSession(session) && isH2HSavedForSession(session);
+    // `+N` is the viewer's own score for the session. Signed out it is always
+    // `+0`, so show the session's state instead of a meaningless zero.
     const secondaryLabel = hasResults
-      ? `+${sessionPoints}`
+      ? isSignedIn
+        ? `+${sessionPoints}`
+        : 'Results in'
       : isLocked
         ? 'Locked'
         : sessionPicksComplete

@@ -112,7 +112,10 @@ export function RaceEventPageLayout({
           race={race}
           isNextRace={isNextRace}
           resultsSummary={
-            hasPublishedResults && !recapContent
+            // The weekend total is the viewer's own score. For a signed-out
+            // reader it is always zero, which made a public results page open
+            // with "Weekend Total +0 pts".
+            hasPublishedResults && !recapContent && isSignedIn
               ? {
                   label: allEventsScored ? 'Weekend Total' : 'Points So Far',
                   points: pointsSoFar,

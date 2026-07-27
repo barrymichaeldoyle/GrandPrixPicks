@@ -36,6 +36,26 @@ test.describe('[auth] smoke', () => {
     await expect(page.getByText('Head-to-Head Predictions')).toBeVisible();
   });
 
+  test('shows the signed-in points summary on a finished scored race', async ({
+    page,
+  }) => {
+    test.setTimeout(60_000);
+
+    await seedScenarioForAuthenticatedUser(page, {
+      scenario: 'race_finished_scored_h2h_standard',
+      namespace: 'scenario__race_finished_scored_h2h_standard__pwauth',
+    });
+
+    // The counterpart to the public assertions in public-smoke: signed in,
+    // the viewer's own points are the point of the page and must be shown.
+    const resultsSummary = page.getByTestId('race-results-summary');
+    await expect(resultsSummary).toBeVisible();
+    await expect(resultsSummary).toContainText('Weekend Total');
+    await expect(resultsSummary).toContainText('pts');
+
+    await expect(page.getByText('Session Points Breakdown')).toBeVisible();
+  });
+
   test('shows my leagues, discover leagues, and an owned league detail page', async ({
     page,
   }) => {

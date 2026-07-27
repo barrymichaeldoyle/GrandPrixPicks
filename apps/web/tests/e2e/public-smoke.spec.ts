@@ -33,11 +33,19 @@ test.describe('[public] smoke', () => {
     await expect(
       page.getByRole('heading', { name: summary.race!.name }),
     ).toBeVisible();
-    await expect(page.getByTestId('race-results-summary')).toBeVisible();
-    await expect(page.getByTestId('race-results-summary')).toContainText(
-      'Weekend Total',
-    );
+    // Scoring progress is public, so the summary renders for a signed-out
+    // reader. The points inside it are the viewer's own and would always be
+    // "+0 pts" here, so they are withheld rather than shown as a zero.
+    const resultsSummary = page.getByTestId('race-results-summary');
+    await expect(resultsSummary).toBeVisible();
+    await expect(resultsSummary).toContainText('All sessions scored');
+    await expect(resultsSummary).not.toContainText('pts');
+    await expect(resultsSummary).not.toContainText('Weekend Total');
+
+    // Same split for the breakdown: the classification is public, the
+    // viewer's per-session points are not.
     await expect(page.getByTestId('session-points-breakdown')).toBeVisible();
-    await expect(page.getByText('Session Points Breakdown')).toBeVisible();
+    await expect(page.getByText('Session Results')).toBeVisible();
+    await expect(page.getByText('Session Points Breakdown')).toHaveCount(0);
   });
 });

@@ -15,6 +15,12 @@ interface RaceDetailHeaderProps {
     scoredEventCount: number;
     totalEvents: number;
     allEventsScored: boolean;
+    /**
+     * Whether to show the viewer's own points. False when signed out, where
+     * the total is always zero. The scoring progress either side of it is
+     * public, so the summary itself still renders.
+     */
+    showViewerPoints: boolean;
   };
 }
 
@@ -73,7 +79,11 @@ export function RaceDetailHeader({
         >
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <span className="text-xs text-text-muted">
-              {resultsSummary.label}
+              {resultsSummary.showViewerPoints
+                ? resultsSummary.label
+                : resultsSummary.allEventsScored
+                  ? 'All sessions scored'
+                  : 'Results in progress'}
             </span>
             {resultsSummary.showResultsPendingBadge ? (
               <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
@@ -82,9 +92,11 @@ export function RaceDetailHeader({
             ) : null}
           </div>
           <div className="mt-0.5 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 sm:justify-end">
-            <div className="leading-none font-bold text-accent">
-              +{resultsSummary.points} pts
-            </div>
+            {resultsSummary.showViewerPoints ? (
+              <div className="leading-none font-bold text-accent">
+                +{resultsSummary.points} pts
+              </div>
+            ) : null}
             {!resultsSummary.allEventsScored ? (
               <p className="text-xs text-text-muted">
                 {resultsSummary.scoredEventCount}/{resultsSummary.totalEvents}{' '}

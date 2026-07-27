@@ -9,6 +9,14 @@ const e = createElement;
 
 /** Shared outer wrapper: dark bg, accent stripe at top, branding at bottom. */
 function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
+  return layoutWithBackground(size, undefined, ...children);
+}
+
+function layoutWithBackground(
+  size: OgImageSize,
+  backgroundSrc: string | undefined,
+  ...children: ReactNode[]
+): ReactNode {
   const { width, height } = getOgDimensions(size);
   return e(
     'div',
@@ -25,6 +33,31 @@ function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
         overflow: 'hidden' as const,
       },
     },
+    backgroundSrc
+      ? [
+          e('img', {
+            key: 'background',
+            src: backgroundSrc,
+            width,
+            height,
+            style: {
+              position: 'absolute' as const,
+              inset: 0,
+              width,
+              height,
+            },
+          }),
+          e('div', {
+            key: 'background-veil',
+            style: {
+              position: 'absolute' as const,
+              inset: 0,
+              backgroundColor: colors.bg,
+              opacity: 0.42,
+            },
+          }),
+        ]
+      : null,
     // Accent stripe at top
     e('div', {
       style: {
@@ -1110,6 +1143,734 @@ export function leaderboardTemplate(
               `${entry.points} pts`,
             ),
           ),
+        ),
+      ),
+    ),
+  );
+}
+
+// ────────── Practice Results Card (social broadcast) ──────────
+
+export type PracticeCardEntry = {
+  position: number;
+  code: string;
+  color: string;
+  bestLapSeconds: number | null;
+  gapToLeaderSeconds: number | null;
+  lapCount: number | null;
+  isReserve: boolean;
+};
+
+/** 78.412 → "1:18.412" */
+function formatLapTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds - minutes * 60;
+  return `${minutes}:${rest.toFixed(3).padStart(6, '0')}`;
+}
+
+const PODIUM_COLORS = [colors.gold, colors.silver, colors.bronze];
+
+function practiceRow(entry: PracticeCardEntry): ReactNode {
+  const time =
+    entry.position === 1 && entry.bestLapSeconds !== null
+      ? formatLapTime(entry.bestLapSeconds)
+      : entry.gapToLeaderSeconds !== null
+        ? `+${entry.gapToLeaderSeconds.toFixed(3)}`
+        : 'NO TIME';
+  return e(
+    'div',
+    {
+      key: entry.code,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        height: 40,
+        paddingLeft: 8,
+        paddingRight: 12,
+        borderRadius: 6,
+        backgroundColor: entry.position <= 3 ? colors.surface : 'transparent',
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          width: 38,
+          fontSize: 22,
+          fontWeight: 700,
+          color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
+        },
+      },
+      String(entry.position),
+    ),
+    e('div', {
+      style: {
+        width: 4,
+        height: 24,
+        borderRadius: 2,
+        marginRight: 14,
+        backgroundColor: entry.color,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          width: 86,
+          fontSize: 23,
+          fontWeight: 700,
+          fontFamily: 'Orbitron',
+          color: entry.isReserve ? colors.textMuted : colors.text,
+        },
+      },
+      entry.code,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          flex: 1,
+          fontSize: 21,
+          textAlign: 'right' as const,
+          color: entry.position === 1 ? colors.accent : colors.text,
+        },
+      },
+      time,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          width: 54,
+          fontSize: 17,
+          textAlign: 'right' as const,
+          color: colors.textMuted,
+        },
+      },
+      entry.lapCount === null ? '' : `${entry.lapCount}L`,
+    ),
+  );
+}
+
+/**
+ * Full-field practice classification card for posting to X as the brand
+ * account. Unlike the share/* templates this is broadcast content, not a
+ * per-user card, so it shows the entire field rather than a top-N summary.
+ */
+export function practiceResultsTemplate({
+  raceName,
+  round,
+  season,
+  sessionLabel,
+  flagSrc,
+  entries,
+}: {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  flagSrc?: string;
+  entries: PracticeCardEntry[];
+}): ReactNode {
+  const half = Math.ceil(entries.length / 2);
+  const columns = [entries.slice(0, half), entries.slice(half)];
+
+  return layout(
+    '16:9',
+    // Header
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 22,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: 2,
+              color: colors.accent,
+            },
+          },
+          `${season} · ROUND ${round}`,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 40,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              marginTop: 4,
+            },
+          },
+          raceName,
+        ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', gap: 18 } },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: 26,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              color: colors.bg,
+              backgroundColor: colors.accent,
+              borderRadius: 8,
+              padding: '8px 18px',
+            },
+          },
+          sessionLabel,
+        ),
+        flagSrc
+          ? e('img', {
+              src: flagSrc,
+              width: 72,
+              height: 48,
+              style: { borderRadius: 6 },
+            })
+          : null,
+      ),
+    ),
+    // Two-column classification
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40 } },
+      ...columns.map((column, index) =>
+        e(
+          'div',
+          {
+            key: `col-${index}`,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              flex: 1,
+              gap: 2,
+            },
+          },
+          ...column.map(practiceRow),
+        ),
+      ),
+    ),
+  );
+}
+
+// ────────── Teammate H2H Results Card (social broadcast) ──────────
+
+export type H2HCardRow = {
+  team: string;
+  color: string;
+  winnerCode: string;
+  loserCode: string;
+};
+
+function relativeLuminance(color: string): number {
+  const channels = [0, 2, 4].map((offset) => {
+    const value = Number.parseInt(color.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return (
+    (channels[0] ?? 0) * 0.2126 +
+    (channels[1] ?? 0) * 0.7152 +
+    (channels[2] ?? 0) * 0.0722
+  );
+}
+
+function h2hBadgeInk(background: string): string {
+  const hex = background.replace('#', '');
+  if (!/^[0-9a-f]{6}$/i.test(hex)) {
+    return colors.text;
+  }
+  const backgroundLuminance = relativeLuminance(hex);
+  const darkLuminance = relativeLuminance('020617');
+  const lightLuminance = relativeLuminance('f8fafc');
+  const darkContrast = (backgroundLuminance + 0.05) / (darkLuminance + 0.05);
+  const lightContrast = (lightLuminance + 0.05) / (backgroundLuminance + 0.05);
+  return darkContrast >= lightContrast ? '#020617' : colors.text;
+}
+
+function h2hMatchup(row: H2HCardRow): ReactNode {
+  const badgeInk = h2hBadgeInk(row.color);
+
+  return e(
+    'div',
+    {
+      key: row.team,
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        width: 300,
+        height: 56,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 4,
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: 1.2,
+          textTransform: 'uppercase' as const,
+          color: '#cbd5e1',
+        },
+      },
+      e('div', {
+        style: {
+          width: 28,
+          height: 4,
+          marginRight: 9,
+          borderRadius: 999,
+          backgroundColor: row.color,
+        },
+      }),
+      row.team,
+      e('div', {
+        style: {
+          width: 28,
+          height: 4,
+          marginLeft: 9,
+          borderRadius: 999,
+          backgroundColor: row.color,
+        },
+      }),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 86,
+            height: 34,
+            borderRadius: 4,
+            backgroundColor: row.color,
+            fontSize: 27,
+            fontWeight: 700,
+            fontFamily: 'Orbitron',
+            color: badgeInk,
+          },
+        },
+        row.winnerCode,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 64,
+            height: 24,
+            marginLeft: 16,
+            marginRight: 16,
+            paddingTop: 1,
+            borderRadius: 999,
+            border: '1px solid #475569',
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            fontSize: 11,
+            fontWeight: 700,
+            lineHeight: 1,
+            color: colors.text,
+          },
+        },
+        'BEAT',
+      ),
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 27,
+            fontWeight: 700,
+            fontFamily: 'Orbitron',
+            color: '#cbd5e1',
+          },
+        },
+        row.loserCode,
+      ),
+    ),
+  );
+}
+
+/**
+ * Teammate head-to-head results card for posting as the brand account. Shows
+ * every matchup for one session, winner first.
+ */
+export function h2hResultsTemplate({
+  raceName,
+  round,
+  season,
+  sessionLabel,
+  flagSrc,
+  backgroundSrc,
+  rows,
+}: {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  flagSrc?: string;
+  backgroundSrc?: string;
+  rows: H2HCardRow[];
+}): ReactNode {
+  const matchupPositions = [
+    { left: 426, top: 12 },
+    { left: 280, top: 344 },
+    { left: 572, top: 344 },
+    { left: 215, top: 258 },
+    { left: 637, top: 258 },
+    { left: 150, top: 172 },
+    { left: 702, top: 172 },
+    { left: 85, top: 86 },
+    { left: 767, top: 86 },
+    { left: 20, top: 0 },
+    { left: 832, top: 0 },
+  ] as const;
+  const shortRaceName = raceName.replace(/\s+Grand Prix$/i, ' GP');
+
+  return layoutWithBackground(
+    '16:9',
+    backgroundSrc,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative' as const,
+          top: -10,
+          marginBottom: 18,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'center',
+            textAlign: 'center' as const,
+            maxWidth: 960,
+          },
+        },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 52,
+              fontWeight: 800,
+              fontFamily: 'Orbitron',
+              lineHeight: 1,
+            },
+          },
+          shortRaceName,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 27,
+              fontWeight: 700,
+              letterSpacing: 2.2,
+              color: colors.textMuted,
+              marginTop: 5,
+            },
+          },
+          `HEAD 2 HEAD / ${sessionLabel.toUpperCase()} RESULTS`,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              marginTop: 12,
+            },
+          },
+          flagSrc
+            ? e(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    width: 112,
+                    height: 38,
+                    overflow: 'hidden' as const,
+                  },
+                },
+                e('img', {
+                  src: flagSrc,
+                  width: 112,
+                  height: 75,
+                  style: { transform: 'translateY(-18px)' },
+                }),
+              )
+            : null,
+          e(
+            'div',
+            {
+              style: {
+                fontSize: 14,
+                fontWeight: 700,
+                letterSpacing: 2.2,
+                color: colors.accent,
+              },
+            },
+            `${season}  /  ROUND ${round}`,
+          ),
+        ),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'relative' as const,
+          top: -2,
+          height: 400,
+        },
+      },
+      ...rows.map((row, index) =>
+        e(
+          'div',
+          {
+            key: row.team,
+            style: {
+              display: 'flex',
+              position: 'absolute' as const,
+              left: matchupPositions[index]?.left ?? 0,
+              top: matchupPositions[index]?.top ?? 0,
+              width: 285,
+            },
+          },
+          h2hMatchup(row),
+        ),
+      ),
+    ),
+  );
+}
+
+// ────────── Session Classification Card (social broadcast) ──────────
+
+export type SessionResultEntry = {
+  position: number;
+  code: string;
+  name: string;
+  color: string;
+  /** DNF / DSQ / DNS / NC label, or null for ranked finishers. */
+  status: string | null;
+};
+
+const STATUS_COLOR = '#f87171';
+
+function sessionResultRow(entry: SessionResultEntry): ReactNode {
+  return e(
+    'div',
+    {
+      key: entry.code,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        height: 40,
+        paddingLeft: 8,
+        paddingRight: 12,
+        borderRadius: 6,
+        backgroundColor: entry.position <= 3 ? colors.surface : 'transparent',
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          width: 38,
+          fontSize: 22,
+          fontWeight: 700,
+          color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
+        },
+      },
+      String(entry.position),
+    ),
+    e('div', {
+      style: {
+        width: 4,
+        height: 24,
+        borderRadius: 2,
+        marginRight: 14,
+        backgroundColor: entry.color,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          width: 84,
+          fontSize: 22,
+          fontWeight: 700,
+          fontFamily: 'Orbitron',
+          color: colors.text,
+        },
+      },
+      entry.code,
+    ),
+    e(
+      'div',
+      { style: { flex: 1, fontSize: 19, color: colors.textMuted } },
+      entry.name,
+    ),
+    entry.status
+      ? e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: 15,
+              fontWeight: 700,
+              color: STATUS_COLOR,
+            },
+          },
+          entry.status,
+        )
+      : null,
+  );
+}
+
+/**
+ * Full classification for a scored session (qualifying, sprint, or race) as a
+ * card for posting as the brand account.
+ */
+export function sessionResultsTemplate({
+  raceName,
+  round,
+  season,
+  sessionLabel,
+  flagSrc,
+  entries,
+}: {
+  raceName: string;
+  round: number;
+  season: number;
+  sessionLabel: string;
+  flagSrc?: string;
+  entries: SessionResultEntry[];
+}): ReactNode {
+  const half = Math.ceil(entries.length / 2);
+  const columns = [entries.slice(0, half), entries.slice(half)];
+
+  return layout(
+    '16:9',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 22,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: 2,
+              color: colors.accent,
+            },
+          },
+          `${season} · ROUND ${round}`,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 40,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              marginTop: 4,
+            },
+          },
+          raceName,
+        ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'center', gap: 18 } },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: 24,
+              fontWeight: 700,
+              fontFamily: 'Orbitron',
+              color: colors.bg,
+              backgroundColor: colors.accent,
+              borderRadius: 8,
+              padding: '8px 18px',
+            },
+          },
+          sessionLabel.toUpperCase(),
+        ),
+        flagSrc
+          ? e('img', {
+              src: flagSrc,
+              width: 72,
+              height: 48,
+              style: { borderRadius: 6 },
+            })
+          : null,
+      ),
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40 } },
+      ...columns.map((column, index) =>
+        e(
+          'div',
+          {
+            key: `col-${index}`,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              flex: 1,
+              gap: 2,
+            },
+          },
+          ...column.map(sessionResultRow),
         ),
       ),
     ),

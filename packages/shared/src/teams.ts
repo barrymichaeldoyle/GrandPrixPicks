@@ -4,16 +4,16 @@
  * Shared between web and mobile.
  */
 const CONSTRUCTOR_STANDINGS_ORDER: string[] = [
-  'McLaren',
-  'Ferrari',
-  'Red Bull Racing',
   'Mercedes',
-  'Aston Martin',
-  'Alpine',
-  'Williams',
+  'Ferrari',
+  'McLaren',
+  'Red Bull Racing',
   'Racing Bulls',
-  'Audi',
+  'Alpine',
   'Haas',
+  'Audi',
+  'Williams',
+  'Aston Martin',
   'Cadillac',
 ];
 

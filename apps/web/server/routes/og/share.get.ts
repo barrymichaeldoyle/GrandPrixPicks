@@ -11,9 +11,9 @@ import {
   shareResultsTemplate,
   shareScoreTemplate,
 } from '../../../src/lib/og/templates';
-import { getCountryCodeForRace } from '../../../src/lib/raceCountries';
 import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
+import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
 
 type RouteEvent = {
@@ -140,38 +140,6 @@ export default async function handler(event: RouteEvent) {
       message: error instanceof Error ? error.message : 'unknown_error',
     });
     return DEFAULT_IMAGE_REDIRECT.clone();
-  }
-}
-
-/**
- * Loads the race's country flag (same-origin static SVG, the assets the Flag
- * component uses) as a data URI for satori. Returns undefined on any failure
- * so the card still renders, just without a flag.
- */
-async function loadFlagDataUri(
-  origin: string,
-  race: { slug: string },
-): Promise<string | undefined> {
-  const countryCode = getCountryCodeForRace(race);
-  if (!countryCode) {
-    return undefined;
-  }
-  try {
-    const res = await fetch(`${origin}/flags/${countryCode}.svg`);
-    if (!res.ok) {
-      return undefined;
-    }
-    const svg = new Uint8Array(await res.arrayBuffer());
-    // Chunked conversion — some flag SVGs are >100KB, far beyond the safe
-    // argument count for a single String.fromCharCode(...spread) call.
-    let binary = '';
-    const chunkSize = 0x8000;
-    for (let i = 0; i < svg.length; i += chunkSize) {
-      binary += String.fromCharCode(...svg.subarray(i, i + chunkSize));
-    }
-    return `data:image/svg+xml;base64,${btoa(binary)}`;
-  } catch {
-    return undefined;
   }
 }
 

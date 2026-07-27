@@ -48,6 +48,7 @@ import {
 } from './$raceId/-components/laneUtils';
 import { PositionLane } from './$raceId/-components/PositionLane';
 import { PracticeSocialPanel } from './$raceId/-components/PracticeSocialPanel';
+import { SocialCardsPanel } from './$raceId/-components/SocialCardsPanel';
 import { RaceStatusHeader } from './$raceId/-components/RaceStatusHeader';
 import { UpdateModeSelector } from './$raceId/-components/UpdateModeSelector';
 
@@ -868,6 +869,13 @@ function AdminRaceDetailPage() {
         <PracticeSocialPanel
           operations={practiceOperations}
           summary={practiceSummary}
+        />
+        <SocialCardsPanel
+          practiceSessions={(practiceSummary?.sessions ?? []).map(
+            (session) => session.sessionType,
+          )}
+          raceSlug={race?.slug}
+          resultSessions={submittedSessions ?? []}
         />
       </div>
     </div>

@@ -45,22 +45,31 @@ export async function loadFonts(): Promise<SatoriFont[]> {
     return fontsCache;
   }
 
-  const [regularUrl, boldUrl, orbitronBoldUrl] = await Promise.all([
-    resolveFontUrl(400),
-    resolveFontUrl(700),
-    resolveFontUrlForFamily('Orbitron', 700),
-  ]);
+  const [regularUrl, boldUrl, orbitronBoldUrl, orbitronExtraBoldUrl] =
+    await Promise.all([
+      resolveFontUrl(400),
+      resolveFontUrl(700),
+      resolveFontUrlForFamily('Orbitron', 700),
+      resolveFontUrlForFamily('Orbitron', 800),
+    ]);
 
-  const [regular, bold, orbitronBold] = await Promise.all([
+  const [regular, bold, orbitronBold, orbitronExtraBold] = await Promise.all([
     fetch(regularUrl).then((r) => r.arrayBuffer()),
     fetch(boldUrl).then((r) => r.arrayBuffer()),
     fetch(orbitronBoldUrl).then((r) => r.arrayBuffer()),
+    fetch(orbitronExtraBoldUrl).then((r) => r.arrayBuffer()),
   ]);
 
   fontsCache = [
     { name: 'Inter', data: regular, weight: 400, style: 'normal' },
     { name: 'Inter', data: bold, weight: 700, style: 'normal' },
     { name: 'Orbitron', data: orbitronBold, weight: 700, style: 'normal' },
+    {
+      name: 'Orbitron',
+      data: orbitronExtraBold,
+      weight: 800,
+      style: 'normal',
+    },
   ];
 
   return fontsCache;

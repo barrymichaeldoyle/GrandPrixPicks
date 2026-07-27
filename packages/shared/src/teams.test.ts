@@ -4,7 +4,7 @@ import { teamStandingsIndex } from './teams';
 
 describe('teamStandingsIndex', () => {
   it('returns the constructor standings order index for known teams', () => {
-    expect(teamStandingsIndex('McLaren')).toBe(0);
+    expect(teamStandingsIndex('Mercedes')).toBe(0);
     expect(teamStandingsIndex('Ferrari')).toBe(1);
     expect(teamStandingsIndex('Cadillac')).toBe(10);
   });

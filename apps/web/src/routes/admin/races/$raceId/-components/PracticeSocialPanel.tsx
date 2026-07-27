@@ -55,7 +55,6 @@ export function PracticeSocialPanel({
     return null;
   }
   const url = `${siteConfig.url}${summary.race.canonicalPath}?utm_source=social&utm_medium=organic&utm_campaign=practice_results`;
-
   async function copyPost() {
     await navigator.clipboard.writeText(`${copy}\n\n${url}`);
     setCopied(true);

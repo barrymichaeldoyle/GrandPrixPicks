@@ -257,7 +257,7 @@ export function sleep(ms: number): Promise<void> {
  * Back off and retry on 429 rather than reporting the whole session as
  * unverifiable.
  */
-async function fetchJson(url: URL): Promise<unknown> {
+export async function fetchJson(url: URL): Promise<unknown> {
   for (let attempt = 0; ; attempt += 1) {
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },

@@ -34,6 +34,7 @@ type RaceEventPageLayoutProps = {
   leaderboardLink?: ReactNode;
   /** Weekend recap "moment", shown under the header once fully scored. */
   recapContent?: ReactNode;
+  practiceResultsContent?: ReactNode;
   initialTop5Content: ReactNode;
   top5HeaderAside?: ReactNode;
   top5MainContent: ReactNode;
@@ -59,6 +60,7 @@ export function RaceEventPageLayout({
   backLink,
   leaderboardLink,
   recapContent,
+  practiceResultsContent,
   initialTop5Content,
   top5HeaderAside,
   top5MainContent,
@@ -130,6 +132,7 @@ export function RaceEventPageLayout({
         />
 
         {recapContent}
+        {practiceResultsContent}
 
         {!isAuthLoaded || isPredictionsLoading ? (
           <div className="py-8">

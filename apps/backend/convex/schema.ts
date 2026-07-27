@@ -87,6 +87,9 @@ export default defineSchema({
     timeZone: v.optional(v.string()), // IANA timezone, e.g. "Europe/London"
 
     // Qualifying session (all races have this)
+    fp1StartAt: v.optional(v.number()), // ms epoch; used for practice result polling
+    fp2StartAt: v.optional(v.number()),
+    fp3StartAt: v.optional(v.number()),
     qualiStartAt: v.optional(v.number()), // ms epoch
     qualiLockAt: v.optional(v.number()), // ms epoch
 
@@ -182,6 +185,28 @@ export default defineSchema({
   })
     .index('by_race_session', ['raceId', 'sessionType'])
     .index('by_nextRecheckAt', ['nextRecheckAt']),
+
+  // Informational FP1 classification. Kept separate from scored `results` so
+  // practice never enters prediction, scoring, or notification workflows.
+  practiceResults: defineTable({
+    raceId: v.id('races'),
+    sessionType: v.union(v.literal('fp1'), v.literal('fp2'), v.literal('fp3')),
+    openF1SessionKey: v.number(),
+    entries: v.array(
+      v.object({
+        driverNumber: v.number(),
+        code: v.string(),
+        displayName: v.string(),
+        team: v.optional(v.string()),
+        position: v.number(),
+        bestLapSeconds: v.optional(v.number()),
+        gapToLeaderSeconds: v.optional(v.number()),
+        lapCount: v.optional(v.number()),
+      }),
+    ),
+    publishedAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
 
   // Audit trail for the delayed, free-tier OpenF1 results fallback.
   openF1ResultPolls: defineTable({

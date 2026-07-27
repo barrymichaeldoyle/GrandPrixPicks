@@ -11,6 +11,13 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  'poll OpenF1 practice results',
+  { minutes: 5 },
+  internal.practiceResults.pollDuePracticeResults,
+  {},
+);
+
 // Reconcile published results against the official classification so
 // post-session stewards' decisions flow through to scores automatically.
 crons.interval(

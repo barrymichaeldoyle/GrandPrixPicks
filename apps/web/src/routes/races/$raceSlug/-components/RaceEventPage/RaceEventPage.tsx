@@ -15,6 +15,11 @@ import {
 } from '@/components/FollowXPrompt';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PredictionForm } from '@/components/PredictionForm';
+import { PracticeResultsCard } from '@/components/PracticeResultsCard';
+import {
+  PracticeResultsButton,
+  PracticeResultsModal,
+} from '@/components/PracticeResultsModal';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { StartPicksCta } from '@/components/StartPicksCta';
 import { RaceScoreCard } from '@/components/RaceScoreCard/RaceScoreCard';
@@ -183,6 +188,7 @@ export function RaceEventPage({
   const [h2hInitialPicksOpen, setH2hInitialPicksOpen] = useState(false);
   const [showTop5CloseConfirm, setShowTop5CloseConfirm] = useState(false);
   const [showFollowPrompt, setShowFollowPrompt] = useState(false);
+  const [showPracticeResults, setShowPracticeResults] = useState(false);
 
   function closeTop5Overlay() {
     setShowTop5CloseConfirm(false);
@@ -396,6 +402,9 @@ export function RaceEventPage({
         backLink={backLink}
         leaderboardLink={leaderboardLink}
         recapContent={recapContent}
+        practiceResultsContent={
+          <PracticeResultsCard raceId={race._id} raceSlug={race.slug} />
+        }
         initialTop5Content={renderInitialCtas()}
         top5HeaderAside={
           canManagePredictions && selectedSessionData ? (
@@ -522,7 +531,7 @@ export function RaceEventPage({
       <PicksFocusOverlay
         open={top5OverlayOpen}
         onClose={requestCloseTop5Overlay}
-        suspended={showTop5CloseConfirm}
+        suspended={showTop5CloseConfirm || showPracticeResults}
         title={
           top5OverlaySession
             ? `${SESSION_LABELS[top5OverlaySession]}: Top 5`
@@ -537,6 +546,12 @@ export function RaceEventPage({
         {/* The overlay body has no mobile bottom padding (see PicksFocusOverlay);
             this form has no sticky bar of its own, so pad the bottom here. */}
         <div className="pb-4 sm:pb-0">
+          <div className="mb-4 flex justify-end">
+            <PracticeResultsButton
+              onClick={() => setShowPracticeResults(true)}
+              raceId={race._id}
+            />
+          </div>
           <PredictionFormComponent
             raceId={race._id}
             sessionType={top5OverlaySession ?? undefined}
@@ -551,6 +566,14 @@ export function RaceEventPage({
           />
         </div>
       </PicksFocusOverlay>
+      <PracticeResultsModal
+        open={showPracticeResults}
+        onClose={() => setShowPracticeResults(false)}
+        raceId={race._id}
+        raceSlug={race.slug}
+        predictionSession={top5OverlaySession ?? selectedSession}
+        hasSprint={Boolean(race.hasSprint)}
+      />
       <ConfirmDialog
         open={showTop5CloseConfirm}
         onClose={() => setShowTop5CloseConfirm(false)}

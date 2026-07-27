@@ -6,7 +6,7 @@ import { Children, cloneElement, isValidElement } from 'react';
 import { Tooltip } from '@/components/Tooltip';
 
 const base =
-  'inline-flex items-center justify-center gap-1 font-semibold leading-none rounded transition-colors [&_svg]:shrink-0 [&_svg]:block';
+  'inline-flex items-center justify-center gap-1 rounded-md font-semibold leading-none transition-[color,background-color,border-color,box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-accent/55 focus-visible:ring-offset-2 focus-visible:ring-offset-page focus-visible:outline-none active:translate-y-px [&_svg]:block [&_svg]:shrink-0';
 
 const variants = {
   primary:
@@ -17,13 +17,13 @@ const variants = {
     'border border-success/30 bg-success-muted text-success cursor-default',
   loading: 'cursor-wait opacity-70',
   secondary:
-    'border border-border bg-surface hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
+    'border border-border bg-surface hover:border-border-strong hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
   text: 'border border-transparent bg-transparent text-accent hover:bg-accent-muted/50 disabled:text-text-muted disabled:hover:bg-transparent disabled:cursor-not-allowed',
   tab: 'font-medium text-text-muted hover:bg-surface-muted hover:text-text disabled:bg-transparent disabled:text-text-muted/50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted/50',
 } as const;
 
 const sizes = {
-  inline: 'gap-1 rounded px-1.5 py-0.5 text-xs',
+  inline: 'gap-1 rounded-sm px-1.5 py-0.5 text-xs',
   sm: 'h-9 px-3 text-sm',
   md: 'h-11 gap-1.5 px-4 text-base',
   tab: 'h-9 rounded-sm px-3 text-sm',

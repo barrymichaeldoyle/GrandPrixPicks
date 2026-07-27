@@ -134,7 +134,7 @@ export function RaceCard({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface transition-colors duration-200 hover:border-accent/70 focus-visible:border-accent focus-visible:outline-none ${
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface shadow-sm shadow-black/10 transition-[border-color,box-shadow,opacity,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/70 hover:shadow-lg hover:shadow-black/20 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:outline-none ${
         hasCancelledBorder
           ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
           : isMutedPastRace

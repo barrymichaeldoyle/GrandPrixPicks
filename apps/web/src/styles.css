@@ -155,12 +155,20 @@ body {
   background-size: 40px 40px;
 }
 
-/* Sharp structural geometry is part of the racing/technical visual language.
-   Preserve circles and pills used for identity/status, but square off every
-   other Tailwind radius utility, including responsive/directional variants and
-   arbitrary values such as rounded-[2px]. */
-:where(.rounded, [class*='rounded-']):not(.rounded-full) {
-  border-radius: 0;
+/* Keep the racing/technical geometry crisp without making every control feel
+   cut from the same sheet of metal. Identity and status elements retain their
+   full pill/circle shapes; structural surfaces use a restrained radius scale. */
+.rounded-2xl {
+  border-radius: 0.625rem;
+}
+.rounded-xl {
+  border-radius: 0.5rem;
+}
+.rounded-lg {
+  border-radius: 0.375rem;
+}
+.rounded-md {
+  border-radius: 0.25rem;
 }
 
 .home-hero::before {

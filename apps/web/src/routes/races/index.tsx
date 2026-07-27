@@ -168,8 +168,10 @@ function RacesPage() {
                     active={view === 'upcoming'}
                     onClick={() => setView('upcoming')}
                   >
-                    Upcoming{' '}
-                    <span className="hidden sm:inline">{upcomingCount}</span>
+                    Upcoming
+                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
+                      {upcomingCount}
+                    </span>
                   </Button>
                   <Button
                     type="button"
@@ -178,8 +180,10 @@ function RacesPage() {
                     active={view === 'completed'}
                     onClick={() => setView('completed')}
                   >
-                    Completed{' '}
-                    <span className="hidden sm:inline">{completedCount}</span>
+                    Completed
+                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
+                      {completedCount}
+                    </span>
                   </Button>
                   <Button
                     type="button"
@@ -188,8 +192,8 @@ function RacesPage() {
                     active={view === 'all'}
                     onClick={() => setView('all')}
                   >
-                    All{' '}
-                    <span className="hidden sm:inline">
+                    All
+                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
                       {orderedRaces.length}
                     </span>
                   </Button>

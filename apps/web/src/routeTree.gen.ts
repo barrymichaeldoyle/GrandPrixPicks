@@ -22,6 +22,7 @@ import { Route as MeRouteImport } from './routes/me'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as F1TeammateBattlesRouteImport } from './routes/f1-teammate-battles'
 import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RacesIndexRouteImport } from './routes/races/index'
@@ -103,6 +104,11 @@ const FeedRoute = FeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const F1TeammateBattlesRoute = F1TeammateBattlesRouteImport.update({
+  id: '/f1-teammate-battles',
+  path: '/f1-teammate-battles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const F1StandingsRoute = F1StandingsRouteImport.update({
   id: '/f1-standings',
   path: '/f1-standings',
@@ -182,6 +188,7 @@ const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/feed': typeof FeedRouteWithChildren
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/feed': typeof FeedRouteWithChildren
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/f1-standings'
+    | '/f1-teammate-battles'
     | '/feed'
     | '/how-to-play'
     | '/leaderboard'
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/f1-standings'
+    | '/f1-teammate-battles'
     | '/how-to-play'
     | '/leaderboard'
     | '/me'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/f1-standings'
+    | '/f1-teammate-battles'
     | '/feed'
     | '/how-to-play'
     | '/leaderboard'
@@ -364,6 +376,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   F1StandingsRoute: typeof F1StandingsRoute
+  F1TeammateBattlesRoute: typeof F1TeammateBattlesRoute
   FeedRoute: typeof FeedRouteWithChildren
   HowToPlayRoute: typeof HowToPlayRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -478,6 +491,13 @@ declare module '@tanstack/react-router' {
       path: '/feed'
       fullPath: '/feed'
       preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-teammate-battles': {
+      id: '/f1-teammate-battles'
+      path: '/f1-teammate-battles'
+      fullPath: '/f1-teammate-battles'
+      preLoaderRoute: typeof F1TeammateBattlesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-standings': {
@@ -629,6 +649,7 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   F1StandingsRoute: F1StandingsRoute,
+  F1TeammateBattlesRoute: F1TeammateBattlesRoute,
   FeedRoute: FeedRouteWithChildren,
   HowToPlayRoute: HowToPlayRoute,
   LeaderboardRoute: LeaderboardRoute,

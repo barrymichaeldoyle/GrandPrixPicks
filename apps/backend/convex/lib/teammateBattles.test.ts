@@ -1,0 +1,61 @@
+import { describe, expect, it } from 'vitest';
+
+import type { Id } from '../_generated/dataModel';
+import type { TeammateSessionOutcome } from './teammateBattles';
+import { tallyTeammateBattles } from './teammateBattles';
+
+function matchup(id: string): Id<'h2hMatchups'> {
+  return id as Id<'h2hMatchups'>;
+}
+
+function driver(code: string): Id<'drivers'> {
+  return code as unknown as Id<'drivers'>;
+}
+
+const FERRARI = matchup('ferrari');
+const LEC = driver('LEC');
+const HAM = driver('HAM');
+
+function outcome(
+  sessionType: TeammateSessionOutcome['sessionType'],
+  winnerId: Id<'drivers'>,
+  matchupId = FERRARI,
+): TeammateSessionOutcome {
+  return { matchupId, sessionType, winnerId };
+}
+
+describe('tallyTeammateBattles', () => {
+  it('splits one-lap sessions from full-distance ones', () => {
+    const tallies = tallyTeammateBattles([
+      outcome('quali', LEC),
+      outcome('sprint_quali', LEC),
+      outcome('race', HAM),
+      outcome('sprint', HAM),
+      outcome('race', LEC),
+    ]);
+
+    const ferrari = tallies.get(FERRARI)!;
+    expect(ferrari.get(LEC)).toEqual({ qualifying: 2, race: 1, total: 3 });
+    expect(ferrari.get(HAM)).toEqual({ qualifying: 0, race: 2, total: 2 });
+  });
+
+  it('keeps teams separate', () => {
+    const mclaren = matchup('mclaren');
+    const NOR = driver('NOR');
+
+    const tallies = tallyTeammateBattles([
+      outcome('race', LEC),
+      outcome('race', NOR, mclaren),
+    ]);
+
+    expect(tallies.get(FERRARI)!.get(LEC)!.total).toBe(1);
+    expect(tallies.get(mclaren)!.get(NOR)!.total).toBe(1);
+    expect(tallies.get(FERRARI)!.get(NOR)).toBeUndefined();
+  });
+
+  it('counts nothing for a pair with no settled sessions', () => {
+    // Both drivers failing to start voids the matchup, so no outcome is
+    // recorded and the pair simply has no record yet.
+    expect(tallyTeammateBattles([]).get(FERRARI)).toBeUndefined();
+  });
+});

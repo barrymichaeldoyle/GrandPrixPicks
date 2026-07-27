@@ -21,6 +21,7 @@ export const footerExploreLinks: SiteNavLink[] = [
   { to: '/results-policy', label: 'Results Policy' },
   { to: '/races', label: 'Races', exact: true },
   { to: '/f1-standings', label: 'F1 Standings' },
+  { to: '/f1-teammate-battles', label: 'Teammate H2H' },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
   { to: '/feed', label: 'Feed' },

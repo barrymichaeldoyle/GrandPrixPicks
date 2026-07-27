@@ -5,6 +5,8 @@ import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
+import type { TeammateSessionOutcome } from './lib/teammateBattles';
+import { emptyTally, tallyTeammateBattles } from './lib/teammateBattles';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -925,5 +927,121 @@ export const submitH2HPredictions = mutation({
     }
 
     return { ok: true, updatedCount };
+  },
+});
+
+/**
+ * Season-long teammate head-to-head records, from the official classification.
+ *
+ * This is real Formula 1 data, not game data: for every session we already
+ * store which of each teammate pair finished ahead, so the same rows that
+ * settle a player's H2H picks also answer "who is beating who at Ferrari this
+ * year". Public and viewer-independent.
+ */
+export const getTeammateBattles = query({
+  args: { season: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const season = args.season ?? 2026;
+
+    const matchups = await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', season))
+      .take(20);
+    if (matchups.length === 0) {
+      return { season, teams: [], sessionsCounted: 0, lastUpdated: null };
+    }
+
+    const matchupIds = new Set(matchups.map((matchup) => matchup._id));
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', season))
+      .take(40);
+
+    const outcomes: TeammateSessionOutcome[] = [];
+    let sessionsCounted = 0;
+    let lastUpdated = 0;
+
+    for (const race of races) {
+      if (race.status === 'cancelled') {
+        continue;
+      }
+      const seenSessions = new Set<string>();
+      for await (const result of ctx.db
+        .query('h2hResults')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))) {
+        if (!matchupIds.has(result.matchupId)) {
+          continue;
+        }
+        outcomes.push({
+          matchupId: result.matchupId,
+          sessionType: result.sessionType,
+          winnerId: result.winnerId,
+        });
+        seenSessions.add(result.sessionType);
+        lastUpdated = Math.max(lastUpdated, result.publishedAt);
+      }
+      sessionsCounted += seenSessions.size;
+    }
+
+    const tallies = tallyTeammateBattles(outcomes);
+
+    const driverIds = new Set<Id<'drivers'>>();
+    for (const matchup of matchups) {
+      driverIds.add(matchup.driver1Id);
+      driverIds.add(matchup.driver2Id);
+    }
+    const driverDocs = await Promise.all(
+      [...driverIds].map((driverId) => ctx.db.get(driverId)),
+    );
+    const driverById = new Map(
+      driverDocs.flatMap((driver) => (driver ? [[driver._id, driver]] : [])),
+    );
+
+    function describe(
+      driverId: Id<'drivers'>,
+      tally: ReturnType<typeof emptyTally>,
+    ) {
+      const driver = driverById.get(driverId);
+      return {
+        driverId,
+        code: driver?.code ?? '???',
+        displayName: driver?.displayName ?? 'Unknown driver',
+        number: driver?.number ?? null,
+        nationality: driver?.nationality ?? null,
+        ...tally,
+      };
+    }
+
+    const teams = matchups
+      .map((matchup) => {
+        const tally = tallies.get(matchup._id) ?? new Map();
+        const driver1 = describe(
+          matchup.driver1Id,
+          tally.get(matchup.driver1Id) ?? emptyTally(),
+        );
+        const driver2 = describe(
+          matchup.driver2Id,
+          tally.get(matchup.driver2Id) ?? emptyTally(),
+        );
+        return {
+          matchupId: matchup._id,
+          team: matchup.team,
+          // Show whoever is ahead on the left, the way a battle is usually
+          // written up. Ties keep the roster order.
+          drivers:
+            driver2.total > driver1.total
+              ? [driver2, driver1]
+              : [driver1, driver2],
+          sessionsSettled: driver1.total + driver2.total,
+        };
+      })
+      .sort((a, b) => a.team.localeCompare(b.team));
+
+    return {
+      season,
+      teams,
+      sessionsCounted,
+      lastUpdated: lastUpdated || null,
+    };
   },
 });

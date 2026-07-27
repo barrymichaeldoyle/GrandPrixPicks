@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/Button/Button';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import type { SessionType } from '@/lib/sessions';
 
 const FOCUSABLE_SELECTOR =
@@ -87,11 +88,17 @@ export function PracticeResultsModal({
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
+    captureAnalyticsEvent('session_results_modal_opened', {
+      race_id: raceId,
+      race_slug: raceSlug,
+      prediction_session: predictionSession,
+      has_sprint: hasSprint,
+    });
     closeButtonRef.current?.focus();
     return () => {
       returnFocusRef.current?.focus();
     };
-  }, [open]);
+  }, [hasSprint, open, predictionSession, raceId, raceSlug]);
 
   useEffect(() => {
     if (!open) {
@@ -222,6 +229,11 @@ export function PracticeResultsButton({
       size="sm"
       leftIcon={BarChart3}
       onClick={onClick}
+      onPointerUp={() =>
+        captureAnalyticsEvent('session_results_button_pressed', {
+          race_id: raceId,
+        })
+      }
       disabled={!hasResults}
     >
       {results === undefined

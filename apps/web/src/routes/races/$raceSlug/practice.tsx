@@ -1,9 +1,11 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
 import { convexHttp as convex } from '@/integrations/convex/client';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { pageMeta } from '@/lib/site';
 import { withRetry } from '@/lib/retry';
 
@@ -37,6 +39,13 @@ export const Route = createFileRoute('/races/$raceSlug/practice')({
 
 function PracticeResultsPage() {
   const { race, results } = Route.useLoaderData();
+  useEffect(() => {
+    captureAnalyticsEvent('practice_results_page_viewed', {
+      race_id: race._id,
+      race_slug: race.slug,
+      session_count: results.length,
+    });
+  }, [race._id, race.slug, results.length]);
 
   return (
     <main className="min-h-full bg-page">

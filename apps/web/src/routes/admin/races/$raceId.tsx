@@ -47,6 +47,7 @@ import {
   parseLaneId,
 } from './$raceId/-components/laneUtils';
 import { PositionLane } from './$raceId/-components/PositionLane';
+import { PracticeSocialPanel } from './$raceId/-components/PracticeSocialPanel';
 import { RaceStatusHeader } from './$raceId/-components/RaceStatusHeader';
 import { UpdateModeSelector } from './$raceId/-components/UpdateModeSelector';
 
@@ -92,6 +93,14 @@ function AdminRaceDetailPage() {
   const submittedSessions = useQuery(api.results.getAllResultsForRace, {
     raceId: typedRaceId,
   });
+  const practiceSummary = useQuery(
+    api.practiceResults.getPracticeSessionSummariesForRace,
+    { raceId: typedRaceId },
+  );
+  const practiceOperations = useQuery(
+    api.practiceResults.getAdminPracticeOperations,
+    { raceId: typedRaceId },
+  );
 
   const [selectedSession, setSelectedSession] = useState<SessionType>('race');
 
@@ -856,6 +865,10 @@ function AdminRaceDetailPage() {
             )}
           </div>
         </div>
+        <PracticeSocialPanel
+          operations={practiceOperations}
+          summary={practiceSummary}
+        />
       </div>
     </div>
   );

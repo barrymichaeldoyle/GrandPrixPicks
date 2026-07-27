@@ -140,12 +140,23 @@ async function loadRaceEntries() {
       return races
         .filter((race) => race.status !== 'cancelled')
         .sort((a, b) => a.round - b.round)
-        .map((race) => ({
-          loc: `${siteConfig.url}/races/${race.slug}`,
-          changefreq: 'daily' as const,
-          lastmod: toIsoDate(race.updatedAt ?? race._creationTime),
-          priority: '0.8',
-        }));
+        .flatMap((race) => {
+          const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
+          return [
+            {
+              loc: `${siteConfig.url}/races/${race.slug}`,
+              changefreq: 'daily' as const,
+              lastmod,
+              priority: '0.8',
+            },
+            {
+              loc: `${siteConfig.url}/races/${race.slug}/practice`,
+              changefreq: 'daily' as const,
+              lastmod,
+              priority: '0.7',
+            },
+          ];
+        });
     } catch (error) {
       lastError = error;
       if (attempt < SITEMAP_FETCH_RETRY_COUNT) {

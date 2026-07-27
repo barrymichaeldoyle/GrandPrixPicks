@@ -14,11 +14,13 @@ import {
   fetchJson,
   parseOpenF1Sessions,
 } from './openF1Results';
+import { getViewer } from './lib/auth';
 
 const MINUTE = 60_000;
 const PRACTICE_DURATION = 60 * MINUTE;
 const FIRST_ATTEMPT_DELAY = 2 * MINUTE;
 const MAX_PER_RUN = 3;
+const RECHECK_OFFSETS = [30 * MINUTE, 60 * MINUTE] as const;
 
 const practiceSessionValidator = v.union(
   v.literal('fp1'),
@@ -40,6 +42,8 @@ type PracticeTask = {
   season: number;
   sessionType: PracticeSessionType;
   sessionStartAt: number;
+  mode: 'populate' | 'reconcile';
+  lastAttemptAt?: number;
 };
 
 type OpenF1PracticeRow = {
@@ -342,19 +346,39 @@ export const getDuePracticeSessions = internalQuery({
             q.eq('raceId', race._id).eq('sessionType', sessionType),
           )
           .unique();
-        if (!existing) {
+        const poll = await ctx.db
+          .query('practiceResultPolls')
+          .withIndex('by_raceId_and_sessionType', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', sessionType),
+          )
+          .unique();
+        if (
+          !existing ||
+          existing.recheckStage === undefined ||
+          (existing.nextRecheckAt ?? Infinity) <= args.now
+        ) {
           due.push({
             raceId: race._id,
             raceName: race.name,
             season: race.season,
             sessionType,
             sessionStartAt,
+            mode: existing ? 'reconcile' : 'populate',
+            lastAttemptAt: poll?.lastAttemptAt,
           });
         }
       }
     }
 
-    return due.slice(0, MAX_PER_RUN);
+    // Oldest attempt first gives every unavailable session a turn instead of
+    // allowing the first persistent error to block all newer classifications.
+    return due
+      .sort(
+        (a, b) =>
+          (a.lastAttemptAt ?? 0) - (b.lastAttemptAt ?? 0) ||
+          a.sessionStartAt - b.sessionStartAt,
+      )
+      .slice(0, MAX_PER_RUN);
   },
 });
 
@@ -375,6 +399,7 @@ export const upsertPracticeResult = internalMutation({
         lapCount: v.optional(v.number()),
       }),
     ),
+    mode: v.union(v.literal('populate'), v.literal('reconcile')),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -385,10 +410,16 @@ export const upsertPracticeResult = internalMutation({
       .unique();
     const now = Date.now();
     if (existing) {
+      const recheckStage = existing.recheckStage ?? 0;
+      const nextOffset = RECHECK_OFFSETS[recheckStage + 1];
       await ctx.db.patch(existing._id, {
         openF1SessionKey: args.openF1SessionKey,
         entries: args.entries,
         updatedAt: now,
+        recheckStage: recheckStage + 1,
+        lastRecheckedAt: now,
+        lastRecheckError: undefined,
+        nextRecheckAt: nextOffset === undefined ? undefined : now + nextOffset,
       });
       return 'updated' as const;
     }
@@ -399,8 +430,69 @@ export const upsertPracticeResult = internalMutation({
       entries: args.entries,
       publishedAt: now,
       updatedAt: now,
+      recheckStage: 0,
+      nextRecheckAt: now + RECHECK_OFFSETS[0],
     });
     return 'created' as const;
+  },
+});
+
+export const recordPracticePollAttempt = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: practiceSessionValidator,
+    mode: v.union(v.literal('populate'), v.literal('reconcile')),
+    error: v.optional(v.string()),
+    openF1SessionKey: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query('practiceResultPolls')
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+    const now = Date.now();
+    const status = args.error
+      ? ('retrying' as const)
+      : args.mode === 'reconcile'
+        ? ('reconciled' as const)
+        : ('published' as const);
+    const value = {
+      status,
+      attemptCount: (existing?.attemptCount ?? 0) + 1,
+      firstAttemptAt: existing?.firstAttemptAt ?? now,
+      lastAttemptAt: now,
+      lastSuccessAt: args.error ? existing?.lastSuccessAt : now,
+      lastError: args.error,
+      openF1SessionKey: args.openF1SessionKey ?? existing?.openF1SessionKey,
+      updatedAt: now,
+    };
+    if (existing) {
+      await ctx.db.patch(existing._id, value);
+    } else {
+      await ctx.db.insert('practiceResultPolls', {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        ...value,
+      });
+    }
+    if (args.error && args.mode === 'reconcile') {
+      const result = await ctx.db
+        .query('practiceResults')
+        .withIndex('by_raceId_and_sessionType', (q) =>
+          q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+        )
+        .unique();
+      if (result) {
+        await ctx.db.patch(result._id, {
+          lastRecheckedAt: now,
+          lastRecheckError: args.error,
+          nextRecheckAt: now + 30 * MINUTE,
+        });
+      }
+    }
+    return null;
   },
 });
 
@@ -421,14 +513,34 @@ async function populateDuePractice(ctx: ActionCtx) {
       await ctx.runMutation(internal.practiceResults.upsertPracticeResult, {
         raceId: task.raceId,
         sessionType: task.sessionType,
+        mode: task.mode,
         ...result,
       });
+      await ctx.runMutation(
+        internal.practiceResults.recordPracticePollAttempt,
+        {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          mode: task.mode,
+          openF1SessionKey: result.openF1SessionKey,
+        },
+      );
       published += 1;
     } catch (error) {
       failed += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      await ctx.runMutation(
+        internal.practiceResults.recordPracticePollAttempt,
+        {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          mode: task.mode,
+          error: message,
+        },
+      );
       console.error(
         `Could not populate ${task.raceName} ${task.sessionType.toUpperCase()}:`,
-        error instanceof Error ? error.message : String(error),
+        message,
       );
     }
   }
@@ -450,18 +562,27 @@ export const backfillPracticeResults = internalAction({
 export const getPracticeResultsForRace = query({
   args: { raceId: v.id('races') },
   handler: async (ctx, args) => {
-    const results = await ctx.db
-      .query('practiceResults')
-      .withIndex('by_raceId_and_sessionType', (q) =>
-        q.eq('raceId', args.raceId),
-      )
-      .take(3);
+    const [results, drivers] = await Promise.all([
+      ctx.db
+        .query('practiceResults')
+        .withIndex('by_raceId_and_sessionType', (q) =>
+          q.eq('raceId', args.raceId),
+        )
+        .take(3),
+      ctx.db.query('drivers').take(40),
+    ]);
+    const canonicalNumbers = new Set(
+      drivers.flatMap((driver) =>
+        driver.number === undefined ? [] : [driver.number],
+      ),
+    );
     return results.map((result) => ({
       sessionType: result.sessionType,
       publishedAt: result.publishedAt,
       entries: result.entries.map((entry) => ({
         ...entry,
         team: entry.team ?? null,
+        isReserve: !canonicalNumbers.has(entry.driverNumber),
       })),
     }));
   },
@@ -506,6 +627,55 @@ export const getPracticeSessionSummariesForRace = query({
       },
       sessions: buildPracticeSessionSummaries(results, canonicalDriverNumbers),
     };
+  },
+});
+
+export const getAdminPracticeOperations = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer?.isAdmin) {
+      return null;
+    }
+    const [results, polls] = await Promise.all([
+      ctx.db
+        .query('practiceResults')
+        .withIndex('by_raceId_and_sessionType', (q) =>
+          q.eq('raceId', args.raceId),
+        )
+        .take(3),
+      ctx.db
+        .query('practiceResultPolls')
+        .withIndex('by_raceId_and_sessionType', (q) =>
+          q.eq('raceId', args.raceId),
+        )
+        .take(3),
+    ]);
+    return (['fp1', 'fp2', 'fp3'] as const).map((sessionType) => {
+      const result = results.find((item) => item.sessionType === sessionType);
+      const poll = polls.find((item) => item.sessionType === sessionType);
+      return {
+        sessionType,
+        result: result
+          ? {
+              publishedAt: result.publishedAt,
+              updatedAt: result.updatedAt,
+              nextRecheckAt: result.nextRecheckAt ?? null,
+              lastRecheckedAt: result.lastRecheckedAt ?? null,
+              lastRecheckError: result.lastRecheckError ?? null,
+            }
+          : null,
+        poll: poll
+          ? {
+              status: poll.status,
+              attemptCount: poll.attemptCount,
+              lastAttemptAt: poll.lastAttemptAt,
+              lastSuccessAt: poll.lastSuccessAt ?? null,
+              lastError: poll.lastError ?? null,
+            }
+          : null,
+      };
+    });
   },
 });
 

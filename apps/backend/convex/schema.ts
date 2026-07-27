@@ -206,6 +206,35 @@ export default defineSchema({
     ),
     publishedAt: v.number(),
     updatedAt: v.number(),
+    // Practice classifications can change after the first OpenF1 response
+    // (deleted laps and late timing corrections). Reconcile twice, then stop.
+    nextRecheckAt: v.optional(v.number()),
+    recheckStage: v.optional(v.number()),
+    lastRecheckedAt: v.optional(v.number()),
+    lastRecheckError: v.optional(v.string()),
+  })
+    .index('by_raceId_and_sessionType', ['raceId', 'sessionType'])
+    .index('by_nextRecheckAt', ['nextRecheckAt']),
+
+  // Bounded operational state for practice ingestion. Keeping failures out of
+  // the result document means an unavailable old session cannot monopolise
+  // every polling batch, and gives admins a concise audit trail.
+  practiceResultPolls: defineTable({
+    raceId: v.id('races'),
+    sessionType: v.union(v.literal('fp1'), v.literal('fp2'), v.literal('fp3')),
+    status: v.union(
+      v.literal('polling'),
+      v.literal('retrying'),
+      v.literal('published'),
+      v.literal('reconciled'),
+    ),
+    attemptCount: v.number(),
+    firstAttemptAt: v.number(),
+    lastAttemptAt: v.number(),
+    lastSuccessAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    openF1SessionKey: v.optional(v.number()),
+    updatedAt: v.number(),
   }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
 
   // Audit trail for the delayed, free-tier OpenF1 results fallback.

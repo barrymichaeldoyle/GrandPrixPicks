@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { TabSwitch } from '@/components/TabSwitch';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 
 type PracticeSessionType = 'fp1' | 'fp2' | 'fp3';
 type CompetitiveSessionType = 'sprint_quali' | 'sprint' | 'quali';
@@ -46,7 +47,7 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
       {result.entries.map((entry) => (
         <div
           key={entry.driverNumber}
-          className="grid grid-cols-[2.5rem_minmax(0,1fr)_4.5rem_3.5rem] items-center gap-2 px-4 py-2.5"
+          className="grid grid-cols-[2.5rem_minmax(0,1fr)_4rem_4.5rem_3.5rem] items-center gap-2 px-4 py-2.5"
         >
           <span className="text-sm font-bold text-text-muted">
             P{entry.position}
@@ -57,6 +58,15 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
             team={entry.team ?? undefined}
             size="sm"
           />
+          <span className="min-w-0 text-[10px] text-text-muted">
+            {entry.isReserve ? (
+              <span className="rounded-full border border-accent/40 px-1.5 py-0.5 font-semibold text-accent">
+                Reserve
+              </span>
+            ) : entry.lapCount === undefined ? null : (
+              `${entry.lapCount} laps`
+            )}
+          </span>
           <span className="text-right font-mono text-xs font-semibold text-text">
             {formatLap(entry.bestLapSeconds)}
           </span>
@@ -125,7 +135,12 @@ export function PracticeResultsPanel({
         <div className="border-b border-border p-2">
           <TabSwitch
             value={selectedSession}
-            onChange={setSelectedSession}
+            onChange={(session) => {
+              setSelectedSession(session);
+              captureAnalyticsEvent('session_results_tab_selected', {
+                session_type: session,
+              });
+            }}
             options={availableSessions.map((sessionType) => ({
               value: sessionType,
               label: RESULTS_TAB_LABELS[sessionType],

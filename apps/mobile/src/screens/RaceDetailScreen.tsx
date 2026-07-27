@@ -61,8 +61,8 @@ export function RaceDetailScreen({ route }: Props) {
     api.results.getMyScoresForRace,
     convexEnabled && raceDoc ? { raceId: raceDoc._id } : 'skip',
   );
-  const fp1Result = useQuery(
-    api.practiceResults.getFp1ResultForRace,
+  const practiceResults = useQuery(
+    api.practiceResults.getPracticeResultsForRace,
     convexEnabled && raceDoc ? { raceId: raceDoc._id } : 'skip',
   );
 
@@ -96,44 +96,54 @@ export function RaceDetailScreen({ route }: Props) {
     >
       <RaceDetailHero race={race} round={raceIndex + 1} />
 
-      {fp1Result ? (
+      {(practiceResults?.length ?? 0) > 0 ? (
         <View className="gap-2">
           <Text className="text-muted pb-0.5 text-[10px] font-extrabold uppercase">
-            Free Practice 1
+            Free Practice
           </Text>
           <View className="overflow-hidden rounded-lg border border-border">
-            {fp1Result.entries.map((entry, index) => (
-              <View key={entry.driverNumber}>
-                {index > 0 ? <View className="h-px bg-border" /> : null}
-                <View className="flex-row items-center gap-3 px-3 py-2.5">
-                  <Text className="text-muted w-7 text-xs font-extrabold">
-                    P{entry.position}
-                  </Text>
-                  <View className="flex-1">
-                    <Text className="text-foreground text-xs font-extrabold">
-                      {entry.code}
-                    </Text>
-                    <Text className="text-muted text-[10px]" numberOfLines={1}>
-                      {entry.displayName}
-                    </Text>
+            {practiceResults?.map((result) => (
+              <View key={result.sessionType}>
+                <Text className="bg-surface px-3 py-2 text-xs font-extrabold text-accent uppercase">
+                  {result.sessionType}
+                </Text>
+                {result.entries.map((entry, index) => (
+                  <View key={entry.driverNumber}>
+                    {index > 0 ? <View className="h-px bg-border" /> : null}
+                    <View className="flex-row items-center gap-3 px-3 py-2.5">
+                      <Text className="text-muted w-7 text-xs font-extrabold">
+                        P{entry.position}
+                      </Text>
+                      <View className="flex-1">
+                        <Text className="text-foreground text-xs font-extrabold">
+                          {entry.code}
+                        </Text>
+                        <Text
+                          className="text-muted text-[10px]"
+                          numberOfLines={1}
+                        >
+                          {entry.displayName}
+                        </Text>
+                      </View>
+                      <Text className="text-foreground text-xs font-bold">
+                        {entry.bestLapSeconds === undefined
+                          ? '—'
+                          : `${Math.floor(entry.bestLapSeconds / 60)}:${(
+                              entry.bestLapSeconds % 60
+                            )
+                              .toFixed(3)
+                              .padStart(6, '0')}`}
+                      </Text>
+                      <Text className="text-muted w-14 text-right text-[10px]">
+                        {entry.position === 1
+                          ? 'Leader'
+                          : entry.gapToLeaderSeconds === undefined
+                            ? '—'
+                            : `+${entry.gapToLeaderSeconds.toFixed(3)}`}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-foreground text-xs font-bold">
-                    {entry.bestLapSeconds === undefined
-                      ? '—'
-                      : `${Math.floor(entry.bestLapSeconds / 60)}:${(
-                          entry.bestLapSeconds % 60
-                        )
-                          .toFixed(3)
-                          .padStart(6, '0')}`}
-                  </Text>
-                  <Text className="text-muted w-14 text-right text-[10px]">
-                    {entry.position === 1
-                      ? 'Leader'
-                      : entry.gapToLeaderSeconds === undefined
-                        ? '—'
-                        : `+${entry.gapToLeaderSeconds.toFixed(3)}`}
-                  </Text>
-                </View>
+                ))}
               </View>
             ))}
           </View>

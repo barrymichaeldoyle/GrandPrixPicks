@@ -58,6 +58,9 @@ describe('sitemap.xml route', () => {
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/races/miami-2026</loc>',
     );
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/races/miami-2026/practice</loc>',
+    );
     expect(xml).toContain('<lastmod>2023-11-14T22:15:00.000Z</lastmod>');
     expect(xml).not.toContain('cancelled-race');
   });

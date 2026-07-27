@@ -14,6 +14,7 @@ import { Share } from 'react-native';
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
+import { PracticeResultsSheet } from '../components/races/practice-results-sheet';
 import { EmptyState } from '../components/ui/EmptyState';
 import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
@@ -121,6 +122,12 @@ function PredictForRace({
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
+  const practiceResults = useQuery(
+    api.practiceResults.getPracticeResultsForRace,
+    { raceId: race._id },
+  );
+  const [resultsSheetVisible, setResultsSheetVisible] = useState(false);
+  const [viewedFormGuide, setViewedFormGuide] = useState(false);
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
@@ -219,6 +226,26 @@ function PredictForRace({
       >
         <PageHeader race={race} selectedSession={selectedSession} now={now} />
 
+        {(practiceResults?.length ?? 0) > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            className="flex-row items-center justify-center gap-2 rounded-lg border border-border bg-surface py-3 active:bg-surface-elevated"
+            onPress={() => {
+              captureAnalyticsEvent('session_results_button_pressed', {
+                race_slug: race.slug,
+                platform: 'mobile',
+              });
+              setResultsSheetVisible(true);
+              setViewedFormGuide(true);
+            }}
+          >
+            <Ionicons color={colors.accent} name="stats-chart" size={15} />
+            <Text className="text-foreground text-sm font-bold">
+              View Session Results
+            </Text>
+          </Pressable>
+        ) : null}
+
         {anyResult ? (
           <WeekendPointsStrip
             h2hTotal={myH2HWeekend?.totalPoints ?? 0}
@@ -283,6 +310,7 @@ function PredictForRace({
                 }
                 captureAnalyticsEvent('top5_saved', {
                   scope,
+                  viewed_form_guide: viewedFormGuide,
                   open_sessions: sessionLockState.filter((s) => !s.isLocked)
                     .length,
                   locked_sessions: sessionLockState.filter((s) => s.isLocked)
@@ -325,6 +353,7 @@ function PredictForRace({
                     }
                     captureAnalyticsEvent('h2h_saved', {
                       scope,
+                      viewed_form_guide: viewedFormGuide,
                       open_sessions: sessionLockState.filter((s) => !s.isLocked)
                         .length,
                       locked_sessions: sessionLockState.filter(
@@ -342,6 +371,15 @@ function PredictForRace({
           </>
         )}
       </ScrollView>
+      <PracticeResultsSheet
+        competitive={actualTop5BySession ?? {}}
+        hasSprint={Boolean(race.hasSprint)}
+        onClose={() => setResultsSheetVisible(false)}
+        practice={practiceResults ?? []}
+        predictionSession={selectedSession}
+        raceSlug={race.slug}
+        visible={resultsSheetVisible}
+      />
     </View>
   );
 }

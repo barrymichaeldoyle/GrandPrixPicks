@@ -7,6 +7,8 @@ export function UpdateModeSelector({
   onAmendmentNoteChange,
   amendedAt,
   previousAmendmentNote,
+  pauseRecheck,
+  onPauseRecheckChange,
 }: {
   updateMode: UpdateMode;
   onUpdateModeChange: (mode: UpdateMode) => void;
@@ -14,6 +16,8 @@ export function UpdateModeSelector({
   onAmendmentNoteChange: (note: string) => void;
   amendedAt?: number | null;
   previousAmendmentNote?: string | null;
+  pauseRecheck: boolean;
+  onPauseRecheckChange: (pause: boolean) => void;
 }) {
   return (
     <div className="mb-6 rounded-lg border border-slate-700 bg-slate-900/50 p-4">
@@ -74,6 +78,24 @@ export function UpdateModeSelector({
           </p>
         </div>
       )}
+      <label className="mt-3 flex cursor-pointer items-start gap-3 border-t border-slate-700 pt-3">
+        <input
+          type="checkbox"
+          checked={pauseRecheck}
+          onChange={(e) => onPauseRecheckChange(e.target.checked)}
+          className="mt-0.5 accent-yellow-500"
+        />
+        <span>
+          <span className="block text-sm font-medium text-white">
+            Stop auto-reconciling this session
+          </span>
+          <span className="block text-sm text-slate-400">
+            Normally we re-check this session against the official results feed
+            for three days and amend it if the classification changed. Tick this
+            only when the feed is wrong and your order should stand.
+          </span>
+        </span>
+      </label>
       {amendedAt != null && previousAmendmentNote && (
         <p className="mt-3 text-xs text-slate-500">
           Previously amended {new Date(amendedAt).toLocaleString()}: &ldquo;

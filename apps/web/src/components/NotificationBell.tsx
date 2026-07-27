@@ -3,7 +3,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { Bell, CheckCheck, Gavel, Lock, Trophy } from 'lucide-react';
+import { Bell, CheckCheck, Gavel, Lock, Megaphone, Trophy } from 'lucide-react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -28,7 +28,8 @@ type Notification = {
     | 'rev_received'
     | 'results_published'
     | 'results_amended'
-    | 'session_locked';
+    | 'session_locked'
+    | 'announcement';
   readAt?: number;
   createdAt: number;
   raceId?: Id<'races'>;
@@ -37,6 +38,10 @@ type Notification = {
   raceSlug?: string;
   points?: number;
   amendmentNote?: string;
+  // announcement
+  title?: string;
+  body?: string;
+  linkPath?: string;
   actorUserId?: Id<'users'>;
   actorUsername?: string;
   actorDisplayName?: string;
@@ -386,6 +391,45 @@ function NotificationItem({
           {rightMeta}
         </div>
       </Link>
+    );
+  }
+
+  if (notification.type === 'announcement') {
+    const content = (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <LeftCol>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <Megaphone className="h-4 w-4" />
+          </div>
+        </LeftCol>
+        <div className="min-w-0 flex-1 pt-0.5">
+          <p className="text-sm leading-snug font-medium text-text">
+            {notification.title}
+          </p>
+          {notification.body && (
+            <p className="mt-1 text-xs leading-snug text-text-muted">
+              {notification.body}
+            </p>
+          )}
+          {notification.linkPath && (
+            <p className="mt-1.5 text-xs font-medium text-accent">Read more</p>
+          )}
+        </div>
+        {rightMeta}
+      </div>
+    );
+
+    // linkPath is set by an admin broadcast, so it is always an internal path.
+    return notification.linkPath ? (
+      <Link
+        to={notification.linkPath}
+        onClick={handleClick}
+        className={itemClass}
+      >
+        {content}
+      </Link>
+    ) : (
+      <div className={itemClass}>{content}</div>
     );
   }
 

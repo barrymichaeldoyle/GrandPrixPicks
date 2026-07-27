@@ -19,7 +19,8 @@ type Notification = {
     | 'rev_received'
     | 'results_published'
     | 'results_amended'
-    | 'session_locked';
+    | 'session_locked'
+    | 'announcement';
   readAt?: number;
   createdAt: number;
   raceName?: string;
@@ -27,6 +28,9 @@ type Notification = {
   sessionType?: string;
   points?: number;
   amendmentNote?: string;
+  title?: string;
+  body?: string;
+  linkPath?: string;
   actorUsername?: string;
   actorDisplayName?: string;
   actorAvatarUrl?: string;
@@ -251,6 +255,13 @@ function NotificationIcon({ notification }: { notification: Notification }) {
       </View>
     );
   }
+  if (notification.type === 'announcement') {
+    return (
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/20">
+        <Ionicons color={colors.accent} name="megaphone" size={18} />
+      </View>
+    );
+  }
   return (
     <View className="h-9 w-9 items-center justify-center rounded-full bg-warning/20">
       <Ionicons color={colors.warning} name="lock-closed" size={18} />
@@ -283,6 +294,9 @@ function getNotificationTitle(notification: Notification): string {
       ? `Results amended: now ${points} pt${points === 1 ? '' : 's'}`
       : 'Results amended';
   }
+  if (notification.type === 'announcement') {
+    return notification.title ?? 'Announcement';
+  }
   return 'Session locked';
 }
 
@@ -300,6 +314,9 @@ function getNotificationSubtitle(notification: Notification): string {
   }
   if (notification.type === 'results_amended' && notification.amendmentNote) {
     return notification.amendmentNote;
+  }
+  if (notification.type === 'announcement') {
+    return notification.body ?? '';
   }
   return [session, notification.raceName].filter(Boolean).join(' · ');
 }

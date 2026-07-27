@@ -1,4 +1,9 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
+import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
+import {
+  DRIVER_STATUS_DESCRIPTIONS,
+  DRIVER_STATUSES,
+} from '@grandprixpicks/shared/driverStatus';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 
@@ -10,8 +15,11 @@ type DraggableDriverCardProps = {
   excludedIds: Id<'drivers'>[];
   drivers: Doc<'drivers'>[];
   setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
-  toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Id<'drivers'>[];
+  driverStatuses: Record<string, DriverStatus>;
+  setDriverStatus: (
+    driverId: Id<'drivers'>,
+    status: DriverStatus | null,
+  ) => void;
   registerInput: (el: HTMLInputElement | null) => void;
 };
 
@@ -21,8 +29,8 @@ export function DraggableDriverCard({
   excludedIds,
   drivers,
   setPosition,
-  toggleClassified,
-  dnfDriverIds,
+  driverStatuses,
+  setDriverStatus,
   registerInput,
 }: DraggableDriverCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -66,13 +74,24 @@ export function DraggableDriverCard({
         />
       </div>
       <label className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
-        <input
-          type="checkbox"
-          checked={!dnfDriverIds.includes(driverId)}
-          onChange={() => toggleClassified(driverId)}
-          className="h-3 w-3 rounded border-slate-500 bg-slate-800 text-yellow-400"
-        />
-        Classified
+        <span className="sr-only">Result status</span>
+        <select
+          value={driverStatuses[driverId] ?? ''}
+          onChange={(e) =>
+            setDriverStatus(
+              driverId,
+              e.target.value === '' ? null : (e.target.value as DriverStatus),
+            )
+          }
+          className="rounded border border-slate-600 bg-slate-800 px-1.5 py-1 text-xs text-slate-200 focus:border-yellow-500 focus:outline-none"
+        >
+          <option value="">Classified</option>
+          {DRIVER_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {DRIVER_STATUS_DESCRIPTIONS[status]}
+            </option>
+          ))}
+        </select>
       </label>
     </div>
   );

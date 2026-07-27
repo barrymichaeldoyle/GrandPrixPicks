@@ -1,4 +1,5 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
+import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import { useDroppable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 
@@ -13,8 +14,11 @@ type PositionLaneProps = {
   excludedIds: Id<'drivers'>[];
   drivers: Doc<'drivers'>[];
   setPosition: (index: number, driverId: Id<'drivers'> | null) => void;
-  toggleClassified: (driverId: Id<'drivers'>) => void;
-  dnfDriverIds: Id<'drivers'>[];
+  driverStatuses: Record<string, DriverStatus>;
+  setDriverStatus: (
+    driverId: Id<'drivers'>,
+    status: DriverStatus | null,
+  ) => void;
   activeDriverId: string | null;
   registerInput: (el: HTMLInputElement | null) => void;
 };
@@ -25,8 +29,8 @@ export function PositionLane({
   excludedIds,
   drivers,
   setPosition,
-  toggleClassified,
-  dnfDriverIds,
+  driverStatuses,
+  setDriverStatus,
   activeDriverId,
   registerInput,
 }: PositionLaneProps) {
@@ -61,8 +65,8 @@ export function PositionLane({
               excludedIds={excludedIds}
               drivers={drivers}
               setPosition={setPosition}
-              toggleClassified={toggleClassified}
-              dnfDriverIds={dnfDriverIds}
+              driverStatuses={driverStatuses}
+              setDriverStatus={setDriverStatus}
               registerInput={registerInput}
             />
           </div>

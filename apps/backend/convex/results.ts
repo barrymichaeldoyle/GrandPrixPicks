@@ -1,3 +1,5 @@
+import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
+import { didParticipate } from '@grandprixpicks/shared/driverStatus';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import {
   getMissingEarlierSessions,
@@ -16,6 +18,7 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
+import { nextRecheckAt } from './lib/recheckSchedule';
 import { scoreTopFive } from './lib/scoring';
 
 type ScoreBreakdownItem = NonNullable<Doc<'scores'>['breakdown']>[number];
@@ -55,6 +58,30 @@ export function pushUniqueBatchItem<T extends string>(
   return completed;
 }
 
+/**
+ * Score a user's H2H picks for one session.
+ *
+ * A matchup with no published result is void — both drivers failed to start,
+ * so there is no order to read — and drops out of the total rather than
+ * counting against the player. That is what turns an 11-matchup weekend into
+ * "9/10" instead of an unwinnable "9/11".
+ */
+/**
+ * Whether a publish should fire the "your results are in" email and push.
+ *
+ * Only a session's first publication announces it. Every republish (silent
+ * correction, reconciliation against the official classification, or a
+ * stewards' amendment, which notifies through its own path) must stay quiet.
+ * Exported so the rule is pinned by a test: getting this wrong emails the
+ * entire user base.
+ */
+export function shouldSuppressResultNotifications(args: {
+  requested?: boolean;
+  isRepublish: boolean;
+}): boolean {
+  return (args.requested ?? false) || args.isRepublish;
+}
+
 export function summarizeH2HScore(
   predictions: Array<
     Pick<Doc<'h2hPredictions'>, 'matchupId' | 'predictedWinnerId'>
@@ -62,17 +89,22 @@ export function summarizeH2HScore(
   h2hResultMap: Map<string, Id<'drivers'>>,
 ) {
   let correctPicks = 0;
+  let totalPicks = 0;
 
   for (const prediction of predictions) {
     const actualWinner = h2hResultMap.get(prediction.matchupId.toString());
-    if (actualWinner && prediction.predictedWinnerId === actualWinner) {
+    if (!actualWinner) {
+      continue;
+    }
+    totalPicks++;
+    if (prediction.predictedWinnerId === actualWinner) {
       correctPicks++;
     }
   }
 
   return {
     correctPicks,
-    totalPicks: predictions.length,
+    totalPicks,
     points: correctPicks,
   };
 }
@@ -168,14 +200,31 @@ async function rollbackResultsCore(
   };
 }
 
-async function publishResultsCore(
+/** Keep a driver's known status (DNS/DSQ) when an admin re-ticks them as DNF. */
+function existingStatusFor(
+  existing: Doc<'results'> | null,
+  driverId: Id<'drivers'>,
+): DriverStatus | undefined {
+  return existing?.driverStatuses?.find((entry) => entry.driverId === driverId)
+    ?.status;
+}
+
+export async function publishResultsCore(
   ctx: MutationCtx,
   args: {
     raceId: Id<'races'>;
     classification: Array<Id<'drivers'>>;
     sessionType?: SessionType;
     dnfDriverIds?: Array<Id<'drivers'>>;
+    driverStatuses?: Array<{ driverId: Id<'drivers'>; status: DriverStatus }>;
     suppressNotifications?: boolean;
+    // Controls the automatic reconciliation passes against the official
+    // classification (see lib/recheckSchedule):
+    //   restart — begin the pass schedule from now (default)
+    //   keep    — leave the stored schedule alone; used by the re-check itself
+    //   pause   — stop reconciling, for an admin who has entered results by
+    //             hand and does not want the feed overwriting them
+    recheckSchedule?: 'restart' | 'keep' | 'pause';
     // When set, this republish is an official amendment (stewards' decision
     // etc.): the result is stamped with the note and, once rescoring
     // completes, everyone who predicted the session gets a results_amended
@@ -243,11 +292,42 @@ async function publishResultsCore(
     }
   }
 
+  // Manual admin entry only knows "did not classify" (one checkbox), so derive
+  // plain DNFs from it rather than dropping the richer statuses the official
+  // feed gave us. Never write undefined here: that would wipe them.
+  const driverStatuses =
+    args.driverStatuses ??
+    (args.dnfDriverIds
+      ? args.dnfDriverIds.map((driverId) => ({
+          driverId,
+          status: existingStatusFor(existing, driverId) ?? ('dnf' as const),
+        }))
+      : undefined);
+
+  // "Your results are in" emails and pushes announce a session for the first
+  // time. A republish is a correction, a reconciliation or an amendment, and
+  // must never re-send them: an amendment has its own separate notification.
+  // Relying on the stored notificationsSent flag was not enough, because a
+  // result published before that flag existed re-armed the whole send.
+  const suppressNotifications = shouldSuppressResultNotifications({
+    requested: args.suppressNotifications,
+    isRepublish: existing !== null,
+  });
+
+  const recheckMode = args.recheckSchedule ?? 'restart';
+  const recheckFields =
+    recheckMode === 'keep'
+      ? {}
+      : recheckMode === 'pause'
+        ? { nextRecheckAt: undefined, recheckStage: undefined }
+        : { nextRecheckAt: nextRecheckAt(0, now), recheckStage: 0 };
+
   let resultId: Id<'results'>;
   if (existing) {
     await ctx.db.patch(existing._id, {
       classification: args.classification,
       dnfDriverIds: args.dnfDriverIds,
+      ...(driverStatuses ? { driverStatuses } : {}),
       scoringStatus: 'scoring',
       ...(amendmentNote
         ? {
@@ -256,6 +336,7 @@ async function publishResultsCore(
             amendmentNotificationPending: true,
           }
         : {}),
+      ...recheckFields,
       updatedAt: now,
     });
     resultId = existing._id;
@@ -265,7 +346,9 @@ async function publishResultsCore(
       sessionType,
       classification: args.classification,
       dnfDriverIds: args.dnfDriverIds,
+      ...(driverStatuses ? { driverStatuses } : {}),
       scoringStatus: 'scoring',
+      ...recheckFields,
       publishedAt: now,
       updatedAt: now,
     });
@@ -285,7 +368,7 @@ async function publishResultsCore(
     classification: args.classification,
     season,
     resultId,
-    suppressNotifications: args.suppressNotifications ?? false,
+    suppressNotifications,
   });
 
   await ctx.scheduler.runAfter(0, internal.results.scoreH2HForSession, {
@@ -464,7 +547,15 @@ export const getResultForRace = query({
       return null;
     }
 
-    // Enrich classification with driver details
+    // Enrich classification with driver details. `status` is set only for
+    // drivers who are not ranked finishers, so the UI can show DNF/DNS/DSQ
+    // instead of implying they finished at their tail position.
+    const statusByDriver = new Map(
+      (result.driverStatuses ?? []).map((entry) => [
+        entry.driverId,
+        entry.status,
+      ]),
+    );
     const enrichedClassification = await Promise.all(
       result.classification.map(
         async (driverId: Id<'drivers'>, index: number) => {
@@ -477,6 +568,7 @@ export const getResultForRace = query({
             number: driver?.number ?? null,
             team: driver?.team ?? null,
             nationality: driver?.nationality ?? null,
+            status: statusByDriver.get(driverId) ?? null,
           };
         },
       ),
@@ -724,15 +816,36 @@ export const adminPublishResults = mutation({
     sessionType: v.optional(sessionTypeValidator),
     // Optional list of drivers who did not classify (DNF/DSQ, etc.)
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
+    driverStatuses: v.optional(
+      v.array(
+        v.object({
+          driverId: v.id('drivers'),
+          status: v.union(
+            v.literal('dnf'),
+            v.literal('dns'),
+            v.literal('dsq'),
+            v.literal('nc'),
+          ),
+        }),
+      ),
+    ),
     suppressNotifications: v.optional(v.boolean()),
     // Marks a republish as an official amendment and notifies players.
     // Omit for silent corrections of data-entry mistakes.
     amendmentNote: v.optional(v.string()),
+    // Stop reconciling this session against the official feed. For the rare
+    // case where the feed is wrong and the hand-entered order should stand.
+    pauseRecheck: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const viewer = requireViewer(await getOrCreateViewer(ctx));
     requireAdmin(viewer);
-    return publishResultsCore(ctx, { ...args, enforceSessionOrder: true });
+    const { pauseRecheck, ...rest } = args;
+    return publishResultsCore(ctx, {
+      ...rest,
+      enforceSessionOrder: true,
+      recheckSchedule: pauseRecheck ? 'pause' : 'restart',
+    });
   },
 });
 
@@ -762,6 +875,19 @@ export const autoPublishResults = internalMutation({
     classification: v.array(v.id('drivers')),
     sessionType: sessionTypeValidator,
     dnfDriverIds: v.array(v.id('drivers')),
+    driverStatuses: v.optional(
+      v.array(
+        v.object({
+          driverId: v.id('drivers'),
+          status: v.union(
+            v.literal('dnf'),
+            v.literal('dns'),
+            v.literal('dsq'),
+            v.literal('nc'),
+          ),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -1072,6 +1198,17 @@ export const scoreH2HForSession = internalMutation({
       classificationPosition.set(args.classification[i], i + 1);
     }
 
+    // A driver who retired still classifies in a definite order, so a DNF
+    // matchup is scored normally. A driver who never started has no result at
+    // all, so a matchup where neither started is void.
+    const resultDoc = await ctx.db.get(args.resultId);
+    const statusByDriver = new Map(
+      (resultDoc?.driverStatuses ?? []).map((entry) => [
+        entry.driverId,
+        entry.status,
+      ]),
+    );
+
     // Determine H2H winner for each matchup and upsert h2hResults
     // (bounded by team count ~10, fine in one transaction)
     for await (const matchup of ctx.db
@@ -1079,9 +1216,14 @@ export const scoreH2HForSession = internalMutation({
       .withIndex('by_season', (q) => q.eq('season', args.season))) {
       const pos1 = classificationPosition.get(matchup.driver1Id);
       const pos2 = classificationPosition.get(matchup.driver2Id);
+      const bothMissedTheStart =
+        !didParticipate(statusByDriver.get(matchup.driver1Id)) &&
+        !didParticipate(statusByDriver.get(matchup.driver2Id));
 
       let winnerId: Id<'drivers'> | null = null;
-      if (pos1 !== undefined && pos2 !== undefined) {
+      if (bothMissedTheStart) {
+        winnerId = null;
+      } else if (pos1 !== undefined && pos2 !== undefined) {
         winnerId = pos1 < pos2 ? matchup.driver1Id : matchup.driver2Id;
       } else if (pos1 !== undefined) {
         winnerId = matchup.driver1Id;
@@ -1089,31 +1231,39 @@ export const scoreH2HForSession = internalMutation({
         winnerId = matchup.driver2Id;
       }
 
-      if (winnerId) {
-        const existingH2HResult = await ctx.db
-          .query('h2hResults')
-          .withIndex('by_race_session_matchup', (q) =>
-            q
-              .eq('raceId', args.raceId)
-              .eq('sessionType', args.sessionType)
-              .eq('matchupId', matchup._id),
-          )
-          .unique();
+      const existingH2HResult = await ctx.db
+        .query('h2hResults')
+        .withIndex('by_race_session_matchup', (q) =>
+          q
+            .eq('raceId', args.raceId)
+            .eq('sessionType', args.sessionType)
+            .eq('matchupId', matchup._id),
+        )
+        .unique();
 
+      if (!winnerId) {
+        // A rescore can void a matchup that previously had a winner (e.g. an
+        // amendment reclassifies a driver as a non-starter). Drop the stale
+        // result so it stops counting towards anyone's total.
         if (existingH2HResult) {
-          await ctx.db.patch(existingH2HResult._id, {
-            winnerId,
-            publishedAt: now,
-          });
-        } else {
-          await ctx.db.insert('h2hResults', {
-            raceId: args.raceId,
-            sessionType: args.sessionType,
-            matchupId: matchup._id,
-            winnerId,
-            publishedAt: now,
-          });
+          await ctx.db.delete(existingH2HResult._id);
         }
+        continue;
+      }
+
+      if (existingH2HResult) {
+        await ctx.db.patch(existingH2HResult._id, {
+          winnerId,
+          publishedAt: now,
+        });
+      } else {
+        await ctx.db.insert('h2hResults', {
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          matchupId: matchup._id,
+          winnerId,
+          publishedAt: now,
+        });
       }
     }
 
@@ -1299,11 +1449,26 @@ export const checkScoringComplete = internalMutation({
         updatedAt: Date.now(),
       });
 
-      // Write activity feed events for this session's scores
+      // Write activity feed events for this session's scores. On an official
+      // amendment the note travels with it so players whose points moved get a
+      // "results amended" event rather than a silent points change.
+      const pendingAmendmentNote = result.amendmentNotificationPending
+        ? result.amendmentNote
+        : undefined;
       await ctx.scheduler.runAfter(0, internal.feed.writeFeedEventsForSession, {
         raceId: args.raceId,
         sessionType: args.sessionType,
+        amendmentNote: pendingAmendmentNote,
+        suppressNotifications: args.suppressNotifications,
       });
+
+      // The "picks are locked" notice is superseded by the result. Clearing is
+      // delete-only, so it runs even on a silent rescore.
+      await ctx.scheduler.runAfter(
+        0,
+        internal.inAppNotifications.clearSessionLockedNotifications,
+        { raceId: args.raceId, sessionType: args.sessionType },
+      );
 
       // Check for streak milestones (race sessions only)
       if (args.sessionType === 'race') {

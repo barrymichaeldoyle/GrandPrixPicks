@@ -37,6 +37,56 @@ async function getPublishedSessionTypes(
   );
 }
 
+const AMENDMENT_WINDOW = 7 * 24 * 60 * 60 * 1000;
+
+export type RecentAmendment = {
+  raceName: string;
+  raceSlug: string;
+  sessionType: SessionType;
+  amendmentNote: string;
+  amendedAt: number;
+};
+
+/**
+ * The latest stewards' amendment across the most recent race weekends, used to
+ * point players at the results policy when their score has moved under them.
+ */
+async function findRecentAmendment(
+  ctx: QueryCtx,
+  races: Array<Doc<'races'>>,
+  now: number,
+): Promise<RecentAmendment | null> {
+  let latest: RecentAmendment | null = null;
+
+  for (const race of races) {
+    const results = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+      .take(8);
+
+    for (const result of results) {
+      if (
+        result.amendedAt === undefined ||
+        result.amendmentNote === undefined ||
+        now - result.amendedAt > AMENDMENT_WINDOW
+      ) {
+        continue;
+      }
+      if (latest === null || result.amendedAt > latest.amendedAt) {
+        latest = {
+          raceName: race.name,
+          raceSlug: race.slug,
+          sessionType: result.sessionType,
+          amendmentNote: result.amendmentNote,
+          amendedAt: result.amendedAt,
+        };
+      }
+    }
+  }
+
+  return latest;
+}
+
 /** Distinct users with any Top 5 or H2H score for a race. */
 async function countRacePlayers(
   ctx: QueryCtx,
@@ -125,6 +175,12 @@ export const getHomePageData = query({
       isViewer: viewer ? row.userId === viewer._id : false,
     }));
 
+    const recentAmendment = await findRecentAmendment(
+      ctx,
+      startedRaces.slice(0, 3),
+      now,
+    );
+
     return {
       nextRace,
       races,
@@ -133,6 +189,7 @@ export const getHomePageData = query({
       recentRaceResults,
       recentRacePlayerCount,
       topPlayers,
+      recentAmendment,
     };
   },
 });

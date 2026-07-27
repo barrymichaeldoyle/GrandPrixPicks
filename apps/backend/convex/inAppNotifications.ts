@@ -471,3 +471,172 @@ export const deleteNotificationsForSession = internalMutation({
     }
   },
 });
+
+const BROADCAST_BATCH_SIZE = 100;
+
+/**
+ * Send a one-off announcement to every player, in batches so each transaction
+ * stays small. Used for site-wide news that isn't tied to one race — e.g.
+ * explaining a bulk rescore after a policy change.
+ *
+ * Run via:
+ *   npx convex run --prod inAppNotifications:broadcastAnnouncement \
+ *     '{"title":"...","body":"...","linkPath":"/results-policy"}'
+ */
+export const broadcastAnnouncement = internalMutation({
+  args: {
+    title: v.string(),
+    body: v.string(),
+    linkPath: v.optional(v.string()),
+    cursor: v.optional(v.union(v.string(), v.null())),
+    sent: v.optional(v.number()),
+  },
+  handler: async (ctx, args): Promise<{ sent: number; done: boolean }> => {
+    const page = await ctx.db.query('users').paginate({
+      numItems: BROADCAST_BATCH_SIZE,
+      cursor: args.cursor ?? null,
+    });
+
+    const now = Date.now();
+    let sent = args.sent ?? 0;
+
+    for (const user of page.page) {
+      // Skip accounts already queued for deletion.
+      if (user.deletingAt !== undefined) {
+        continue;
+      }
+      await ctx.db.insert('inAppNotifications', {
+        userId: user._id,
+        type: 'announcement',
+        title: args.title,
+        body: args.body,
+        linkPath: args.linkPath,
+        createdAt: now,
+      });
+      sent += 1;
+    }
+
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.inAppNotifications.broadcastAnnouncement,
+        {
+          title: args.title,
+          body: args.body,
+          linkPath: args.linkPath,
+          cursor: page.continueCursor,
+          sent,
+        },
+      );
+    }
+
+    return { sent, done: page.isDone };
+  },
+});
+
+const LOCK_CLEANUP_BATCH_SIZE = 100;
+
+/**
+ * Drop the "picks are locked" notifications for a session once its results are
+ * published. The lock notice exists to point players at their friends' picks
+ * while they wait; once the result is in, the results notification supersedes
+ * it and leaving both just clutters the bell.
+ *
+ * Delete-only and idempotent, so it is safe to run on a rescore too.
+ */
+export const clearSessionLockedNotifications = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args): Promise<{ deleted: number }> => {
+    const stale: Array<Id<'inAppNotifications'>> = [];
+
+    for await (const notification of ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )) {
+      if (notification.type !== 'session_locked') {
+        continue;
+      }
+      stale.push(notification._id);
+      if (stale.length >= LOCK_CLEANUP_BATCH_SIZE) {
+        break;
+      }
+    }
+
+    for (const id of stale) {
+      await ctx.db.delete(id);
+    }
+
+    // More than one batch's worth: continue in a fresh transaction.
+    if (stale.length === LOCK_CLEANUP_BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.inAppNotifications.clearSessionLockedNotifications,
+        args,
+      );
+    }
+
+    return { deleted: stale.length };
+  },
+});
+
+/**
+ * One-off: clear lock notices for sessions whose results were published before
+ * `clearSessionLockedNotifications` started running at publish time.
+ * Dry run by default; pass `"apply": true` to delete.
+ */
+export const backfillClearSessionLockedNotifications = internalMutation({
+  args: { season: v.number(), apply: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', args.season))
+      .take(30);
+
+    let matched = 0;
+    let deleted = 0;
+    const perSession: Array<{
+      race: string;
+      sessionType: string;
+      count: number;
+    }> = [];
+
+    for (const race of races) {
+      const results = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+        .take(8);
+
+      for (const result of results) {
+        let count = 0;
+        for await (const notification of ctx.db
+          .query('inAppNotifications')
+          .withIndex('by_raceId_and_sessionType', (q) =>
+            q.eq('raceId', race._id).eq('sessionType', result.sessionType),
+          )) {
+          if (notification.type !== 'session_locked') {
+            continue;
+          }
+          count += 1;
+          matched += 1;
+          if (args.apply) {
+            await ctx.db.delete(notification._id);
+            deleted += 1;
+          }
+        }
+        if (count > 0) {
+          perSession.push({
+            race: race.name,
+            sessionType: result.sessionType,
+            count,
+          });
+        }
+      }
+    }
+
+    return { dryRun: !args.apply, matched, deleted, perSession };
+  },
+});

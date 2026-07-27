@@ -26,6 +26,7 @@ export type FeedEvent = {
   _id: ConvexId<'feedEvents'>;
   type:
     | 'score_published'
+    | 'results_amended'
     | 'session_locked'
     | 'joined_league'
     | 'streak_milestone';
@@ -39,6 +40,9 @@ export type FeedEvent = {
   points?: number;
   raceName?: string;
   raceSlug?: string;
+  // results_amended
+  previousPoints?: number;
+  amendmentNote?: string;
   // enriched picks
   picks?: ScoredPick[];
   h2hScore?: H2HScore | null;
@@ -114,6 +118,22 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
   return (
     <Card>
       <EventHeader event={event} />
+
+      {event.type === 'results_amended' ? (
+        <View className="gap-0.5 rounded-md border border-warning/40 bg-warning/10 px-2.5 py-2">
+          <Text className="text-[10px] font-bold text-warning uppercase">
+            Results amended
+            {event.previousPoints !== undefined && event.points !== undefined
+              ? ` · ${event.previousPoints} → ${event.points} pts`
+              : ''}
+          </Text>
+          {event.amendmentNote ? (
+            <Text className="text-muted text-[11px]">
+              {event.amendmentNote}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
 
       <View className="flex-row items-center gap-2">
         {event.raceSlug ? <FlagImage raceSlug={event.raceSlug} /> : null}
@@ -224,7 +244,7 @@ export function FeedEventCard({
   onPress?: () => void;
 }) {
   const inner = (() => {
-    if (event.type === 'score_published') {
+    if (event.type === 'score_published' || event.type === 'results_amended') {
       return <ScorePublishedCard event={event} />;
     }
     if (event.type === 'session_locked') {

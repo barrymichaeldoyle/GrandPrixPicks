@@ -11,4 +11,13 @@ crons.interval(
   {},
 );
 
+// Reconcile published results against the official classification so
+// post-session stewards' decisions flow through to scores automatically.
+crons.interval(
+  'recheck published results',
+  { minutes: 30 },
+  internal.resultsRecheck.runDueRechecks,
+  {},
+);
+
 export default crons;

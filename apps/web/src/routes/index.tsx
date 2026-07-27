@@ -18,6 +18,7 @@ import { FaqItem, FaqSection } from '@/components/Faq';
 import { Flag as CountryFlag } from '@/components/Flag';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { SESSION_LABELS_FULL } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
 import { withRetry } from '@/lib/retry';
@@ -113,6 +114,14 @@ const homeStructuredData = {
             text: 'Each session locks at its scheduled start time. Qualifying, sprint qualifying, the sprint, and the race each have their own deadline.',
           },
         },
+        {
+          '@type': 'Question',
+          name: 'How are F1 penalties handled in scoring?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Every session is scored on the official FIA classification. Grid penalties do not change the qualifying classification, so qualifying picks are unaffected by them. Post-race penalties and disqualifications do change the official race classification, so those sessions are republished and everyone is rescored.',
+          },
+        },
       ],
     },
   ],
@@ -137,6 +146,7 @@ export const Route = createFileRoute('/')({
       recentRaceResults,
       recentRacePlayerCount,
       topPlayers,
+      recentAmendment,
     } = await withRetry(() => convex.query(api.home.getHomePageData));
 
     return {
@@ -147,6 +157,7 @@ export const Route = createFileRoute('/')({
       recentRacePlayerCount,
       races,
       topPlayers,
+      recentAmendment,
       now: Date.now(),
     };
   },
@@ -190,6 +201,7 @@ function HomePage() {
     recentRacePlayerCount,
     races,
     topPlayers,
+    recentAmendment,
     now: serverNow,
   } = Route.useLoaderData();
   const now = useNow(1_000, serverNow);
@@ -512,6 +524,40 @@ function HomePage() {
             )}
           </div>
         </section>
+
+        {recentAmendment && (
+          <section className="px-3 pt-1 pb-6">
+            <div className="mx-auto w-full max-w-3xl">
+              <div className="flex flex-col gap-2 rounded-sm border border-warning/30 bg-warning/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text">
+                    {SESSION_LABELS_FULL[recentAmendment.sessionType]} results
+                    for the {recentAmendment.raceName} were amended
+                  </p>
+                  <p className="mt-0.5 text-xs leading-5 text-text-muted">
+                    {recentAmendment.amendmentNote} Scores have been
+                    recalculated for everyone.
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-3 text-xs font-medium">
+                  <Link
+                    to="/races/$raceSlug"
+                    params={{ raceSlug: recentAmendment.raceSlug }}
+                    className="text-accent hover:underline"
+                  >
+                    See the result
+                  </Link>
+                  <Link
+                    to="/results-policy"
+                    className="text-accent hover:underline"
+                  >
+                    Why results change
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {!isSignedIn && (
           <GameplayPreview

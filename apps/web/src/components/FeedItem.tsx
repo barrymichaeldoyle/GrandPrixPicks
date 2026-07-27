@@ -36,6 +36,7 @@ type FeedEvent = {
   _id: Id<'feedEvents'>;
   type:
     | 'score_published'
+    | 'results_amended'
     | 'session_locked'
     | 'joined_league'
     | 'streak_milestone';
@@ -50,6 +51,9 @@ type FeedEvent = {
   raceName?: string;
   raceSlug?: string;
   season?: number;
+  // results_amended
+  previousPoints?: number;
+  amendmentNote?: string;
   // enriched picks + H2H
   picks?: ScoredPick[];
   h2hScore?: H2HScore | null;
@@ -467,6 +471,7 @@ function ScorePublishedItem({
   const [h2hOpen, setH2hOpen] = useState(false);
   const [revsOpen, setRevsOpen] = useState(false);
   const isLocked = event.type === 'session_locked';
+  const isAmended = event.type === 'results_amended';
 
   return (
     <>
@@ -595,6 +600,31 @@ function ScorePublishedItem({
                   </svg>
                 </button>
               )}
+          </div>
+        )}
+
+        {isAmended && (
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-sm border border-warning/30 bg-warning/5 px-2 py-1.5">
+            <span className="text-[10px] font-semibold tracking-wide text-warning uppercase">
+              Results amended
+            </span>
+            {event.previousPoints !== undefined &&
+              event.points !== undefined && (
+                <span className="text-[11px] font-semibold text-text tabular-nums">
+                  {event.previousPoints} → {event.points} pts
+                </span>
+              )}
+            {event.amendmentNote && (
+              <span className="text-[11px] text-text-muted">
+                {event.amendmentNote}
+              </span>
+            )}
+            <Link
+              to="/results-policy"
+              className="text-[11px] font-medium text-accent hover:underline"
+            >
+              Why results change
+            </Link>
           </div>
         )}
 
@@ -737,7 +767,9 @@ export function FeedItem({
           : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
-      {event.type === 'score_published' || event.type === 'session_locked' ? (
+      {event.type === 'score_published' ||
+      event.type === 'results_amended' ||
+      event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
       ) : (
         <JoinedLeagueItem event={event} />

@@ -133,7 +133,24 @@ export default defineSchema({
     sessionType: sessionType,
     classification: v.array(v.id('drivers')), // ordered full grid for session
     // Optional list of drivers who did not classify (DNF/DSQ, etc.)
+    // Superseded by driverStatuses; still written so older readers keep working.
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
+    // Why each non-finisher is not a ranked finisher. Drivers absent from this
+    // list are ranked finishers. Optional so results published before the
+    // distinction existed stay valid.
+    driverStatuses: v.optional(
+      v.array(
+        v.object({
+          driverId: v.id('drivers'),
+          status: v.union(
+            v.literal('dnf'),
+            v.literal('dns'),
+            v.literal('dsq'),
+            v.literal('nc'),
+          ),
+        }),
+      ),
+    ),
     // Tracks async scoring progress after result publication
     scoringStatus: v.optional(
       v.union(
@@ -152,9 +169,19 @@ export default defineSchema({
     // Set on amendment publish; cleared by checkScoringComplete once rescoring
     // finishes and the results_amended notifications have been scheduled.
     amendmentNotificationPending: v.optional(v.boolean()),
+    // Scheduled reconciliation against the official FIA classification. We
+    // publish the provisional classification promptly, then re-check a few
+    // times (see RECHECK_OFFSETS) to catch post-session stewards' decisions.
+    // Unset nextRecheckAt = no further re-checks due.
+    nextRecheckAt: v.optional(v.number()),
+    recheckStage: v.optional(v.number()), // index into RECHECK_OFFSETS
+    lastRecheckedAt: v.optional(v.number()),
+    lastRecheckError: v.optional(v.string()),
     publishedAt: v.number(),
     updatedAt: v.number(),
-  }).index('by_race_session', ['raceId', 'sessionType']),
+  })
+    .index('by_race_session', ['raceId', 'sessionType'])
+    .index('by_nextRecheckAt', ['nextRecheckAt']),
 
   // Audit trail for the delayed, free-tier OpenF1 results fallback.
   openF1ResultPolls: defineTable({
@@ -424,6 +451,7 @@ export default defineSchema({
   feedEvents: defineTable({
     type: v.union(
       v.literal('score_published'),
+      v.literal('results_amended'),
       v.literal('session_locked'),
       v.literal('joined_league'),
       v.literal('streak_milestone'),
@@ -440,6 +468,10 @@ export default defineSchema({
     raceName: v.optional(v.string()),
     raceSlug: v.optional(v.string()),
     season: v.optional(v.number()),
+    // results_amended — a score_published event is converted in place when a
+    // stewards' decision changes the classification and the user's points move.
+    previousPoints: v.optional(v.number()),
+    amendmentNote: v.optional(v.string()),
     // joined_league fields
     leagueId: v.optional(v.id('leagues')),
     leagueName: v.optional(v.string()),
@@ -475,6 +507,10 @@ export default defineSchema({
   announcements: defineTable({
     message: v.string(),
     active: v.boolean(),
+    // Optional call to action, e.g. point at /results-policy when explaining
+    // why scores moved.
+    linkPath: v.optional(v.string()),
+    linkLabel: v.optional(v.string()),
     // Optional show window (ms epoch). Unset = no bound on that side.
     startsAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
@@ -491,6 +527,7 @@ export default defineSchema({
       v.literal('results_published'),
       v.literal('results_amended'),
       v.literal('session_locked'),
+      v.literal('announcement'),
     ),
     readAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -503,6 +540,10 @@ export default defineSchema({
     points: v.optional(v.number()),
     // results_amended — admin's user-facing explanation of the change
     amendmentNote: v.optional(v.string()),
+    // announcement — one-off broadcast to every player
+    title: v.optional(v.string()),
+    body: v.optional(v.string()),
+    linkPath: v.optional(v.string()),
     // rev_received
     actorUserId: v.optional(v.id('users')),
     actorUsername: v.optional(v.string()),

@@ -5,7 +5,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
-import { internalMutation, mutation } from './_generated/server';
+import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getViewer, requireAdmin } from './lib/auth';
 import { getExpoTokensForUser } from './push';
@@ -1050,5 +1050,81 @@ export const rescheduleUpcomingRaceReminders = internalMutation({
       scheduledCount: scheduledRaceNames.length,
       scheduledRaceNames,
     };
+  },
+});
+
+/** Read-only forensic summary of what the notification pipeline actually ran. */
+export const inspectRecentNotificationJobs = internalQuery({
+  args: { sinceMs: v.number() },
+  handler: async (ctx, args) => {
+    const cutoff = Date.now() - args.sinceMs;
+    const byName: Record<string, Record<string, number>> = {};
+
+    for await (const job of ctx.db.system.query('_scheduled_functions')) {
+      if (job._creationTime < cutoff) {
+        continue;
+      }
+      byName[job.name] ??= {};
+      byName[job.name][job.state.kind] =
+        (byName[job.name][job.state.kind] ?? 0) + 1;
+    }
+
+    return byName;
+  },
+});
+
+/**
+ * Emergency stop: cancel every queued result email / push send.
+ *
+ * A bulk rescore re-runs `checkScoringComplete` for each session, which
+ * schedules result notifications for any result whose `notificationsSent` flag
+ * was never set. Run this the moment an unintended send starts, then use
+ * `markResultNotificationsSent` so a retry cannot re-arm them.
+ */
+export const cancelQueuedResultNotifications = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cancelled: Record<string, number> = {};
+    let scanned = 0;
+
+    for await (const job of ctx.db.system.query('_scheduled_functions')) {
+      scanned += 1;
+      if (job.state.kind !== 'pending' && job.state.kind !== 'inProgress') {
+        continue;
+      }
+      const name = job.name;
+      if (
+        !name.includes('sendResultEmailsForSession') &&
+        !name.includes('sendPushResultsForSession') &&
+        !name.includes('sendResultEmail') &&
+        !name.includes('notifyResultsAmended')
+      ) {
+        continue;
+      }
+      if (job.state.kind === 'pending') {
+        await ctx.scheduler.cancel(job._id);
+        cancelled[name] = (cancelled[name] ?? 0) + 1;
+      }
+    }
+
+    return { scanned, cancelled };
+  },
+});
+
+/**
+ * Set `notificationsSent` on every published result so a rescore can never
+ * re-arm result emails or pushes for sessions players were already told about.
+ */
+export const markResultNotificationsSent = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    let patched = 0;
+    for await (const result of ctx.db.query('results')) {
+      if (!result.notificationsSent) {
+        await ctx.db.patch(result._id, { notificationsSent: true });
+        patched += 1;
+      }
+    }
+    return { patched };
   },
 });

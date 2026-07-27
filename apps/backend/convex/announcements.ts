@@ -24,6 +24,8 @@ export const getActive = query({
     return {
       _id: announcement._id,
       message: announcement.message,
+      linkPath: announcement.linkPath ?? null,
+      linkLabel: announcement.linkLabel ?? null,
       startsAt: announcement.startsAt ?? null,
       expiresAt: announcement.expiresAt ?? null,
       updatedAt: announcement.updatedAt,
@@ -48,6 +50,9 @@ export const adminGetAnnouncement = query({
 export const adminSetAnnouncement = mutation({
   args: {
     message: v.string(),
+    // Optional call to action. Must be an internal path, e.g. /results-policy.
+    linkPath: v.optional(v.string()),
+    linkLabel: v.optional(v.string()),
     startsAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
   },
@@ -63,6 +68,12 @@ export const adminSetAnnouncement = mutation({
         `Announcement message must be at most ${MAX_ANNOUNCEMENT_LENGTH} characters`,
       );
     }
+    const linkPath = args.linkPath?.trim() || undefined;
+    if (linkPath !== undefined && !linkPath.startsWith('/')) {
+      throw new Error('Announcement link must be an internal path');
+    }
+    const linkLabel = args.linkLabel?.trim() || undefined;
+
     const now = Date.now();
     if (args.expiresAt !== undefined && args.expiresAt <= now) {
       throw new Error('Auto-hide time must be in the future');
@@ -81,6 +92,8 @@ export const adminSetAnnouncement = mutation({
       await ctx.db.replace(existing._id, {
         message,
         active: true,
+        linkPath,
+        linkLabel,
         startsAt: args.startsAt,
         expiresAt: args.expiresAt,
         createdAt: existing.createdAt,
@@ -91,6 +104,8 @@ export const adminSetAnnouncement = mutation({
     return await ctx.db.insert('announcements', {
       message,
       active: true,
+      linkPath,
+      linkLabel,
       startsAt: args.startsAt,
       expiresAt: args.expiresAt,
       createdAt: now,

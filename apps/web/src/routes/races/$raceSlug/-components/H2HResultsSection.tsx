@@ -1,5 +1,10 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
+import {
+  DRIVER_STATUS_DESCRIPTIONS,
+  DRIVER_STATUS_LABELS,
+} from '@grandprixpicks/shared/driverStatus';
+import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Gavel, Swords } from 'lucide-react';
@@ -277,6 +282,24 @@ export function H2HResultsSection({
       }).toString()}`
     : '';
 
+  /**
+   * Non-finishers keep a tail position so H2H has an order to read, but showing
+   * that number would imply they finished there. Show the official status.
+   */
+  function renderPositionCell(entry: (typeof classificationRows)[number]) {
+    if (entry.status) {
+      return (
+        <span
+          className="text-text-muted"
+          title={DRIVER_STATUS_DESCRIPTIONS[entry.status]}
+        >
+          {DRIVER_STATUS_LABELS[entry.status]}
+        </span>
+      );
+    }
+    return <>P{entry.position}</>;
+  }
+
   function renderActualDriverRow(
     entry: (typeof classificationRows)[number],
     compact = false,
@@ -354,6 +377,12 @@ export function H2HResultsSection({
                   <p className="text-text-muted">
                     {selectedTop5Result.amendmentNote}
                   </p>
+                  <Link
+                    to="/results-policy"
+                    className="mt-1 inline-block font-medium text-accent hover:underline"
+                  >
+                    Why results change
+                  </Link>
                 </div>
               </div>
             )}
@@ -400,7 +429,7 @@ export function H2HResultsSection({
                         className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
                       >
                         <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
-                          P{entry.position}
+                          {renderPositionCell(entry)}
                         </td>
                         <td className="px-2 py-2 sm:px-4">
                           {renderActualDriverRow(entry)}
@@ -521,7 +550,7 @@ export function H2HResultsSection({
                                 className="border-b border-border last:border-0"
                               >
                                 <td className="px-3 py-2 text-xs font-semibold text-text-muted">
-                                  P{entry.position}
+                                  {renderPositionCell(entry)}
                                 </td>
                                 <td className="px-3 py-2">
                                   {renderActualDriverRow(entry, true)}

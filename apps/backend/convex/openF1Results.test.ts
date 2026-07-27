@@ -8,11 +8,11 @@ import {
 } from './openF1Results';
 
 describe('OpenF1 fallback timing', () => {
-  it('starts 35 minutes after expected end and stops two hours after it', () => {
+  it('starts two minutes after expected end and stops two hours after it', () => {
     const start = Date.UTC(2026, 6, 24, 12);
     expect(getFallbackWindow('quali', start)).toEqual({
       expectedEndAt: start + 60 * 60_000,
-      firstAttemptAt: start + 95 * 60_000,
+      firstAttemptAt: start + 62 * 60_000,
       deadlineAt: start + 180 * 60_000,
     });
   });

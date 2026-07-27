@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import type { Id } from '@convex-generated/dataModel';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
@@ -59,6 +60,29 @@ export const Route = createFileRoute('/admin/races/$raceId')({
   }),
 });
 
+/**
+ * Existing results may predate per-driver statuses, in which case the old
+ * "did not classify" list means a plain DNF.
+ */
+function toStatusMap(
+  result: {
+    dnfDriverIds?: Id<'drivers'>[];
+    driverStatuses?: { driverId: Id<'drivers'>; status: DriverStatus }[];
+  } | null,
+): Record<string, DriverStatus> {
+  if (!result) {
+    return {};
+  }
+  if (result.driverStatuses && result.driverStatuses.length > 0) {
+    return Object.fromEntries(
+      result.driverStatuses.map((entry) => [entry.driverId, entry.status]),
+    );
+  }
+  return Object.fromEntries(
+    (result.dnfDriverIds ?? []).map((driverId) => [driverId, 'dnf' as const]),
+  );
+}
+
 function AdminRaceDetailPage() {
   const { raceId } = Route.useParams();
   const typedRaceId = raceId as Id<'races'>;
@@ -88,7 +112,10 @@ function AdminRaceDetailPage() {
   const [selectedDrivers, setSelectedDrivers] = useState<
     (Id<'drivers'> | null)[]
   >([]);
-  const [dnfDriverIds, setDnfDriverIds] = useState<Id<'drivers'>[]>([]);
+  /** Only non-classified drivers appear here; absent = a ranked finisher. */
+  const [driverStatuses, setDriverStatuses] = useState<
+    Record<string, DriverStatus>
+  >({});
   const publishResults = useMutation(api.results.adminPublishResults);
   const setUnattended = useMutation(api.openF1Results.adminSetUnattended);
   const cancelRace = useMutation(api.races.adminCancelRace);
@@ -108,6 +135,10 @@ function AdminRaceDetailPage() {
     'correction',
   );
   const [amendmentNote, setAmendmentNote] = useState('');
+  // Auto-reconciliation re-checks this session against the official feed for
+  // three days after publication. Opt out when the feed is wrong and the
+  // hand-entered order should stand.
+  const [pauseRecheck, setPauseRecheck] = useState(false);
 
   const driverCount = drivers?.length ?? 0;
   const availableSessions = getSessionsForWeekend(race?.hasSprint ?? false);
@@ -160,10 +191,10 @@ function AdminRaceDetailPage() {
         (_, i) => classification[i] ?? null,
       );
       setSelectedDrivers(grid);
-      setDnfDriverIds(existingResult.dnfDriverIds ?? []);
+      setDriverStatuses(toStatusMap(existingResult));
     } else {
       setSelectedDrivers(Array.from({ length: driverCount }, () => null));
-      setDnfDriverIds([]);
+      setDriverStatuses({});
     }
     setUpdateMode('correction');
     setAmendmentNote('');
@@ -212,12 +243,19 @@ function AdminRaceDetailPage() {
     }
   }
 
-  function toggleClassified(driverId: Id<'drivers'>) {
-    setDnfDriverIds((current) =>
-      current.includes(driverId)
-        ? current.filter((id) => id !== driverId)
-        : [...current, driverId],
-    );
+  function setDriverStatus(
+    driverId: Id<'drivers'>,
+    status: DriverStatus | null,
+  ) {
+    setDriverStatuses((current) => {
+      const next = { ...current };
+      if (status === null) {
+        delete next[driverId];
+      } else {
+        next[driverId] = status;
+      }
+      return next;
+    });
   }
 
   const [activeDriverId, setActiveDriverId] = useState<string | null>(null);
@@ -265,20 +303,21 @@ function AdminRaceDetailPage() {
         return true;
       }
     }
-    // Compare DNF lists (order-independent)
-    const savedDnf = [...(existingResult.dnfDriverIds ?? [])].sort();
-    const currentDnf = [...dnfDriverIds].sort();
-    if (savedDnf.length !== currentDnf.length) {
+    // Compare per-driver statuses (order-independent)
+    const saved = toStatusMap(existingResult);
+    const savedIds = Object.keys(saved);
+    const currentIds = Object.keys(driverStatuses);
+    if (savedIds.length !== currentIds.length) {
       return true;
     }
-    for (let i = 0; i < savedDnf.length; i++) {
-      if (savedDnf[i] !== currentDnf[i]) {
-        return true;
-      }
-    }
-    return false;
+    return savedIds.some((id) => saved[id] !== driverStatuses[id]);
   }
   const hasChanges = computeHasChanges();
+  // The stored shape is a list; the editor works with a map for lookups.
+  const driverStatusEntries = Object.entries(driverStatuses).map(
+    ([driverId, status]) => ({ driverId: driverId as Id<'drivers'>, status }),
+  );
+  const dnfDriverIds = driverStatusEntries.map((entry) => entry.driverId);
 
   // Warn before navigating away with unsaved changes
   const blocker = useBlocker({
@@ -317,7 +356,7 @@ function AdminRaceDetailPage() {
       if (isDnf) {
         lastDnfIndex = i;
       } else if (lastDnfIndex !== -1) {
-        classificationOrderError = `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DSQ) drivers must be at the bottom of the grid.`;
+        classificationOrderError = `A classified driver (P${i + 1}) is placed below an unclassified driver (P${lastDnfIndex + 1}). All unclassified (DNF/DNS/DSQ) drivers must be at the bottom of the grid.`;
         break;
       }
     }
@@ -506,7 +545,9 @@ function AdminRaceDetailPage() {
         classification,
         sessionType: selectedSession,
         dnfDriverIds,
+        driverStatuses: driverStatusEntries,
         amendmentNote: isAmendment ? trimmedAmendmentNote : undefined,
+        pauseRecheck,
       });
       captureAnalyticsEvent('admin_results_published', {
         race_id: typedRaceId,
@@ -691,8 +732,8 @@ function AdminRaceDetailPage() {
                     excludedIds={excludedIds}
                     drivers={drivers}
                     setPosition={setPosition}
-                    toggleClassified={toggleClassified}
-                    dnfDriverIds={dnfDriverIds}
+                    driverStatuses={driverStatuses}
+                    setDriverStatus={setDriverStatus}
                     activeDriverId={activeDriverId}
                     registerInput={(el) => {
                       laneInputRefs.current[index] = el;
@@ -718,6 +759,8 @@ function AdminRaceDetailPage() {
               onAmendmentNoteChange={setAmendmentNote}
               amendedAt={existingResult.amendedAt}
               previousAmendmentNote={existingResult.amendmentNote}
+              pauseRecheck={pauseRecheck}
+              onPauseRecheckChange={setPauseRecheck}
             />
           )}
 

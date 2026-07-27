@@ -12,6 +12,7 @@
   },
   "exports": {
     "./dates": "./src/dates.ts",
+    "./driverStatus": "./src/driverStatus.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./scoring": "./src/scoring.ts",

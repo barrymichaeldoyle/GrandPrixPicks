@@ -208,6 +208,14 @@ export const writeFeedEventsForSession = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
+    // Set when this rescore came from an official amendment. Users whose points
+    // actually moved get their event converted to `results_amended` and lifted
+    // back to the top of the feed; everyone else keeps their existing event so
+    // an amendment doesn't replay the whole session's scores.
+    amendmentNote: v.optional(v.string()),
+    // A rescore must not raise a fresh "results are in" bell for a session
+    // players were told about long ago. Feed points are still kept current.
+    suppressNotifications: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const race = await ctx.db.get(args.raceId);
@@ -239,12 +247,21 @@ export const writeFeedEventsForSession = internalMutation({
         .first();
 
       if (existing) {
+        const pointsMoved =
+          args.amendmentNote !== undefined && existing.points !== score.points;
         await ctx.db.patch(existing._id, {
-          type: 'score_published',
+          type: pointsMoved ? 'results_amended' : 'score_published',
           points: score.points,
           username: user.username,
           displayName: user.displayName,
           avatarUrl: user.avatarUrl,
+          ...(pointsMoved
+            ? {
+                previousPoints: existing.points,
+                amendmentNote: args.amendmentNote,
+                createdAt: now,
+              }
+            : {}),
         });
       } else {
         await ctx.db.insert('feedEvents', {
@@ -262,6 +279,10 @@ export const writeFeedEventsForSession = internalMutation({
           revCount: 0,
           createdAt: now,
         });
+      }
+
+      if (args.suppressNotifications) {
+        continue;
       }
 
       // In-app notification: results are ready
@@ -425,6 +446,7 @@ type RawEvent = {
   _id: Id<'feedEvents'>;
   type:
     | 'score_published'
+    | 'results_amended'
     | 'session_locked'
     | 'joined_league'
     | 'streak_milestone';
@@ -435,6 +457,8 @@ type RawEvent = {
   raceId?: Id<'races'>;
   sessionType?: string;
   points?: number;
+  previousPoints?: number;
+  amendmentNote?: string;
   raceName?: string;
   raceSlug?: string;
   season?: number;
@@ -614,7 +638,9 @@ async function buildSessionHeaders(
   >();
   for (const event of events) {
     if (
-      (event.type === 'score_published' || event.type === 'session_locked') &&
+      (event.type === 'score_published' ||
+        event.type === 'results_amended' ||
+        event.type === 'session_locked') &&
       event.raceId &&
       event.sessionType
     ) {
@@ -729,7 +755,7 @@ type PickEnrichment = {
   points: number;
 };
 
-/** Load picks breakdown + H2H summary for a score_published or session_locked event. */
+/** Load picks breakdown + H2H summary for a scored, amended, or locked session event. */
 async function enrichScoreEvent(
   ctx: DbCtx,
   event: RawEvent,
@@ -738,7 +764,9 @@ async function enrichScoreEvent(
   h2hScore: { correctPicks: number; totalPicks: number; points: number } | null;
 }> {
   if (
-    (event.type !== 'score_published' && event.type !== 'session_locked') ||
+    (event.type !== 'score_published' &&
+      event.type !== 'results_amended' &&
+      event.type !== 'session_locked') ||
     !event.raceId ||
     !event.sessionType
   ) {
@@ -927,7 +955,9 @@ export const getUserFeed = query({
       .take(100);
 
     const events = rawEvents
-      .filter((e) => e.type === 'score_published')
+      .filter(
+        (e) => e.type === 'score_published' || e.type === 'results_amended',
+      )
       .slice(0, 50);
 
     const [enrichedEvents, sessions] = await Promise.all([

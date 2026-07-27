@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { Megaphone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -55,14 +56,27 @@ export function AnnouncementBanner() {
       role="status"
       aria-live="polite"
       data-testid="announcement-banner"
-      className="flex items-start justify-center gap-2.5 border-b border-accent/25 bg-accent-muted/40 px-4 py-2.5 text-sm text-text"
+      className="flex items-center justify-center gap-2.5 border-b border-accent/25 bg-accent-muted/40 px-4 py-2.5 text-sm text-text"
     >
       <Megaphone
         size={16}
         aria-hidden="true"
-        className="mt-0.5 shrink-0 text-accent"
+        className="shrink-0 text-accent"
       />
-      <p className="min-w-0 whitespace-pre-line">{announcement.message}</p>
+      <p className="min-w-0 whitespace-pre-line">
+        {announcement.message}
+        {'linkPath' in announcement && announcement.linkPath ? (
+          <>
+            {' '}
+            <Link
+              to={announcement.linkPath}
+              className="font-medium text-accent underline underline-offset-2"
+            >
+              {announcement.linkLabel ?? 'Read more'}
+            </Link>
+          </>
+        ) : null}
+      </p>
       <button
         type="button"
         onClick={handleDismiss}

@@ -1,3 +1,4 @@
+import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import {
   getSessionsForWeekend,
@@ -7,6 +8,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import type { ActionCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -17,7 +19,11 @@ import {
 import { getViewer, requireAdmin, requireViewer } from './lib/auth';
 
 const MINUTE = 60_000;
-const FIRST_ATTEMPT_DELAY = 35 * MINUTE;
+// OpenF1 exposes a session result far sooner than the original 35-minute
+// estimate, and an early attempt costs nothing: a miss just retries on the next
+// 5-minute poll, and whatever we do publish is reconciled against the official
+// classification afterwards (see resultsRecheck).
+const FIRST_ATTEMPT_DELAY = 2 * MINUTE;
 const DEADLINE_AFTER_EXPECTED_END = 2 * 60 * MINUTE;
 const RACE_LOOKBACK = 4 * 24 * 60 * MINUTE;
 
@@ -65,6 +71,8 @@ type OpenF1Result = {
   dnf: boolean;
   dns: boolean;
   dsq: boolean;
+  /** False for drivers the official result leaves unranked (given a tail position by us). */
+  ranked: boolean;
 };
 
 export function getFallbackWindow(
@@ -79,7 +87,7 @@ export function getFallbackWindow(
   };
 }
 
-function getSessionStarts(
+export function getSessionStarts(
   race: Pick<
     Doc<'races'>,
     | 'hasSprint'
@@ -195,19 +203,21 @@ export function parseOpenF1Results(value: unknown): OpenF1Result[] {
   if (classified.some((row, index) => row.position !== index + 1)) {
     throw new Error('OpenF1 returned a non-contiguous classification');
   }
+  // A null position with no flag set means OpenF1 knows the driver did not
+  // classify but not why. That is still usable: they go in the unranked tail
+  // as 'nc', and the reconciler refuses to apply anything that would move a
+  // driver out of the middle of the order.
   const unclassified = rawRows.filter((row) => row.position === null);
-  if (unclassified.some((row) => !row.dnf && !row.dns && !row.dsq)) {
-    throw new Error('OpenF1 returned a null position without a result status');
-  }
 
   // OpenF1 leaves DNF/DNS/DSQ positions null and returns those rows after the
   // classified finishers in official order. Assign trailing positions so the
   // app can retain its full-grid classification and derive H2H winners.
   return [
-    ...classified,
+    ...classified.map((row) => ({ ...row, ranked: true })),
     ...unclassified.map((row, index) => ({
       ...row,
       position: classified.length + index + 1,
+      ranked: false,
     })),
   ];
 }
@@ -235,14 +245,135 @@ export function buildSessionDiscoveryUrl(
   return url;
 }
 
+const RATE_LIMIT_RETRIES = 4;
+const RATE_LIMIT_BACKOFF_MS = 2_000;
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * OpenF1's free tier rate-limits bursts, which a season-wide sweep hits easily.
+ * Back off and retry on 429 rather than reporting the whole session as
+ * unverifiable.
+ */
 async function fetchJson(url: URL): Promise<unknown> {
-  const response = await fetch(url, {
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(`OpenF1 request failed with HTTP ${response.status}`);
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+    });
+    if (response.ok) {
+      return (await response.json()) as unknown;
+    }
+    if (response.status !== 429 || attempt >= RATE_LIMIT_RETRIES) {
+      throw new Error(`OpenF1 request failed with HTTP ${response.status}`);
+    }
+    const retryAfter = Number(response.headers.get('retry-after'));
+    await sleep(
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1_000
+        : RATE_LIMIT_BACKOFF_MS * 2 ** attempt,
+    );
   }
-  return (await response.json()) as unknown;
+}
+
+export type DriverStatusEntry = {
+  driverId: Id<'drivers'>;
+  status: DriverStatus;
+};
+
+export type OfficialClassification = {
+  openF1SessionKey: number;
+  classification: Array<Id<'drivers'>>;
+  dnfDriverIds: Array<Id<'drivers'>>;
+  driverStatuses: Array<DriverStatusEntry>;
+};
+
+/** DSQ outranks DNF outranks DNS when OpenF1 sets more than one flag. */
+export function toDriverStatus(row: {
+  dnf: boolean;
+  dns: boolean;
+  dsq: boolean;
+}): DriverStatus | undefined {
+  if (row.dsq) {
+    return 'dsq';
+  }
+  if (row.dns) {
+    return 'dns';
+  }
+  if (row.dnf) {
+    return 'dnf';
+  }
+  return undefined;
+}
+
+/**
+ * Resolve a session's official classification from OpenF1 and map it onto our
+ * driver ids. Shared by the publish fallback (`pollDueResults`) and the
+ * post-publish reconciliation in `resultsRecheck`, so both read the same
+ * source of truth and apply the same validation.
+ */
+export async function fetchOfficialClassification(args: {
+  season: number;
+  sessionType: SessionType;
+  sessionStartAt: number;
+  raceName: string;
+  driverByNumber: Map<number, Id<'drivers'>>;
+}): Promise<OfficialClassification> {
+  const sessionsUrl = buildSessionDiscoveryUrl(
+    args.season,
+    args.sessionStartAt,
+  );
+  const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
+  const allowedNames = OPEN_F1_SESSION_NAMES[args.sessionType];
+  const session = sessions.find((candidate) =>
+    allowedNames.includes(candidate.session_name),
+  );
+  if (!session) {
+    throw new Error(`OpenF1 has not exposed the ${args.raceName} session yet`);
+  }
+
+  const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
+  resultsUrl.searchParams.set('session_key', String(session.session_key));
+  const rows = parseOpenF1Results(await fetchJson(resultsUrl));
+  const unmapped = rows
+    .map((row) => row.driver_number)
+    .filter((number) => !args.driverByNumber.has(number));
+  if (unmapped.length > 0) {
+    throw new Error(`Unmapped OpenF1 driver number(s): ${unmapped.join(', ')}`);
+  }
+
+  return {
+    openF1SessionKey: session.session_key,
+    classification: rows.map(
+      (row) => args.driverByNumber.get(row.driver_number)!,
+    ),
+    dnfDriverIds: rows
+      .filter((row) => row.dnf || row.dns || row.dsq)
+      .map((row) => args.driverByNumber.get(row.driver_number)!),
+    // Trust an explicit flag when OpenF1 sets one; fall back to 'nc' when it
+    // only tells us the driver has no position.
+    driverStatuses: rows.flatMap((row) => {
+      const status = toDriverStatus(row);
+      if (status === undefined && row.ranked) {
+        return [];
+      }
+      return [
+        {
+          driverId: args.driverByNumber.get(row.driver_number)!,
+          status: status ?? 'nc',
+        },
+      ];
+    }),
+  };
+}
+
+export async function loadDriverNumberMap(ctx: {
+  runQuery: ActionCtx['runQuery'];
+}): Promise<Map<number, Id<'drivers'>>> {
+  const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
+    await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
+  return new Map(mappings.map(({ number, driverId }) => [number, driverId]));
 }
 
 export const getDuePolls = internalQuery({
@@ -406,11 +537,7 @@ export const pollDueResults = internalAction({
       return { processed: 0 };
     }
 
-    const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
-      await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
-    const driverByNumber = new Map(
-      mappings.map(({ number, driverId }) => [number, driverId]),
-    );
+    const driverByNumber = await loadDriverNumberMap(ctx);
 
     for (const task of tasks) {
       await ctx.runMutation(internal.openF1Results.recordAttempt, {
@@ -432,46 +559,22 @@ export const pollDueResults = internalAction({
 
       let openF1SessionKey: number | undefined;
       try {
-        const sessionsUrl = buildSessionDiscoveryUrl(
-          task.season,
-          task.sessionStartAt,
-        );
-        const sessions = parseOpenF1Sessions(await fetchJson(sessionsUrl));
-        const allowedNames = OPEN_F1_SESSION_NAMES[task.sessionType];
-        const session = sessions.find((candidate) =>
-          allowedNames.includes(candidate.session_name),
-        );
-        if (!session) {
-          throw new Error(
-            `OpenF1 has not exposed the ${task.raceName} session yet`,
-          );
-        }
-        openF1SessionKey = session.session_key;
-
-        const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
-        resultsUrl.searchParams.set('session_key', String(session.session_key));
-        const rows = parseOpenF1Results(await fetchJson(resultsUrl));
-        const unmapped = rows
-          .map((row) => row.driver_number)
-          .filter((number) => !driverByNumber.has(number));
-        if (unmapped.length > 0) {
-          throw new Error(
-            `Unmapped OpenF1 driver number(s): ${unmapped.join(', ')}`,
-          );
-        }
-
-        const classification = rows.map(
-          (row) => driverByNumber.get(row.driver_number)!,
-        );
-        const dnfDriverIds = rows
-          .filter((row) => row.dnf || row.dns || row.dsq)
-          .map((row) => driverByNumber.get(row.driver_number)!);
+        const official = await fetchOfficialClassification({
+          season: task.season,
+          sessionType: task.sessionType,
+          sessionStartAt: task.sessionStartAt,
+          raceName: task.raceName,
+          driverByNumber,
+        });
+        openF1SessionKey = official.openF1SessionKey;
+        const { classification, dnfDriverIds, driverStatuses } = official;
         const outcome: { status: 'published' | 'already_published' } =
           await ctx.runMutation(internal.results.autoPublishResults, {
             raceId: task.raceId,
             sessionType: task.sessionType,
             classification,
             dnfDriverIds,
+            driverStatuses,
           });
         await ctx.runMutation(internal.openF1Results.recordOutcome, {
           raceId: task.raceId,

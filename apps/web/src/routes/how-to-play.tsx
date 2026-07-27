@@ -383,6 +383,24 @@ function HowToPlayPage() {
                   amended.
                 </dd>
               </div>
+              <div className="grid gap-1 border-b border-border py-5 sm:grid-cols-[13rem_1fr] sm:gap-8">
+                <dt className="font-semibold text-text">
+                  What about penalties?
+                </dt>
+                <dd className="text-sm leading-6 text-text-muted">
+                  We score the official FIA classification. Grid penalties do
+                  not change the qualifying classification, so your qualifying
+                  picks are unaffected; post-race penalties do change the race
+                  classification, so those sessions are rescored.{' '}
+                  <Link
+                    to="/results-policy"
+                    className="font-medium text-accent hover:underline"
+                  >
+                    Read the results policy
+                  </Link>
+                  .
+                </dd>
+              </div>
             </dl>
           </section>
 

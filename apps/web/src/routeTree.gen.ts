@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResultsPolicyRouteImport } from './routes/results-policy'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -55,6 +56,11 @@ const SignInRoute = SignInRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultsPolicyRoute = ResultsPolicyRouteImport.update({
+  id: '/results-policy',
+  path: '/results-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RefundPolicyRoute = RefundPolicyRouteImport.update({
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/results-policy': typeof ResultsPolicyRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/results-policy': typeof ResultsPolicyRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/results-policy': typeof ResultsPolicyRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/refund-policy'
+    | '/results-policy'
     | '/settings'
     | '/sign-in'
     | '/support'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/refund-policy'
+    | '/results-policy'
     | '/settings'
     | '/sign-in'
     | '/support'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/refund-policy'
+    | '/results-policy'
     | '/settings'
     | '/sign-in'
     | '/support'
@@ -360,6 +372,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
+  ResultsPolicyRoute: typeof ResultsPolicyRoute
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
@@ -402,6 +415,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/results-policy': {
+      id: '/results-policy'
+      path: '/results-policy'
+      fullPath: '/results-policy'
+      preLoaderRoute: typeof ResultsPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/refund-policy': {
@@ -617,6 +637,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
+  ResultsPolicyRoute: ResultsPolicyRoute,
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,

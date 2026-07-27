@@ -10,17 +10,44 @@ import {
 
 import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
-import { pageMeta } from '@/lib/site';
+import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/how-to-play')({
   component: HowToPlayPage,
-  head: () =>
-    pageMeta({
+  head: () => {
+    const meta = pageMeta({
       title: 'How to Play | F1 Prediction Game Rules | Grand Prix Picks',
       description:
         'Learn how to play Grand Prix Picks. See the Top 5 and teammate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
       path: '/how-to-play',
-    }),
+    });
+    return {
+      ...meta,
+      scripts: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebPage',
+                '@id': `${siteConfig.url}/how-to-play#page`,
+                url: `${siteConfig.url}/how-to-play`,
+                name: 'How to play Grand Prix Picks',
+                description:
+                  'The rules of the Grand Prix Picks F1 prediction game: Top 5 scoring, Head-to-Head matchups, and session deadlines.',
+                inLanguage: 'en',
+                isPartOf: { '@id': `${siteConfig.url}/#app` },
+              },
+              breadcrumbSchema('/how-to-play', [
+                { name: 'How to Play', path: '/how-to-play' },
+              ]),
+            ],
+          }),
+        },
+      ],
+    };
+  },
 });
 
 const scoringRows = [

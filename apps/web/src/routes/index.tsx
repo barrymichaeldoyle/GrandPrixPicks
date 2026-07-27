@@ -163,7 +163,7 @@ export const Route = createFileRoute('/')({
   },
   head: () => {
     const meta = pageMeta({
-      title: 'Grand Prix Picks | Free F1 Prediction Game for the 2026 Season',
+      title: 'Free F1 Prediction Game 2026 | Grand Prix Picks',
       description:
         'Pick the top 5 finishers each Grand Prix weekend and compete with friends. Free F1 prediction game with qualifying, sprint, race, and head-to-head picks.',
       path: '/',

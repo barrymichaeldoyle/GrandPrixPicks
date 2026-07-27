@@ -17,10 +17,13 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { FaqItem, FaqSection } from '@/components/Faq';
-import { pageMeta } from '@/lib/site';
+import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
 const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
+/** Single source of truth for the price shown on the page and in Offer markup. */
+const SEASON_PASS_PRICE_USD = '19.99';
+const EARLY_BIRD_PRICE_USD = '9.99';
 const fadeUp = {
   initial: { opacity: 0, y: 8 },
   whileInView: { opacity: 1, y: 0 },
@@ -40,13 +43,55 @@ export const Route = createFileRoute('/pricing')({
     return { checkout };
   },
   component: PricingPage,
-  head: () =>
-    pageMeta({
-      title: 'Pricing | Grand Prix Picks',
+  head: () => {
+    const meta = pageMeta({
+      title: 'F1 Season Pass Pricing | Grand Prix Picks',
       description:
         'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and public leagues.',
       path: '/pricing',
-    }),
+    });
+
+    const earlyBird = isEarlyBirdActive();
+
+    return {
+      ...meta,
+      scripts: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'Product',
+                '@id': `${siteConfig.url}/pricing#season-pass`,
+                name: 'Grand Prix Picks Season Pass',
+                description:
+                  'One purchase for the full F1 season. Unlocks unlimited private leagues and public leagues.',
+                brand: { '@type': 'Brand', name: siteConfig.title },
+                offers: {
+                  '@type': 'Offer',
+                  url: `${siteConfig.url}/pricing`,
+                  priceCurrency: 'USD',
+                  price: earlyBird
+                    ? EARLY_BIRD_PRICE_USD
+                    : SEASON_PASS_PRICE_USD,
+                  availability: 'https://schema.org/InStock',
+                  ...(earlyBird
+                    ? {
+                        priceValidUntil: EARLY_BIRD_EXPIRES_AT_UTC.slice(0, 10),
+                      }
+                    : {}),
+                },
+              },
+              breadcrumbSchema('/pricing', [
+                { name: 'Pricing', path: '/pricing' },
+              ]),
+            ],
+          }),
+        },
+      ],
+    };
+  },
 });
 
 function PricingPage() {
@@ -205,17 +250,17 @@ function PricingPage() {
           {isEarlyBirdActive() ? (
             <div className="mb-6 flex items-baseline gap-3">
               <span className="text-2xl font-semibold tracking-tight text-text-muted line-through">
-                $19.99
+                ${SEASON_PASS_PRICE_USD}
               </span>
               <span className="text-4xl font-bold tracking-tight text-success">
-                $9.99
+                ${EARLY_BIRD_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>
             </div>
           ) : (
             <div className="mb-6 flex items-baseline gap-2">
               <span className="text-4xl font-bold tracking-tight text-text">
-                $19.99
+                ${SEASON_PASS_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>
             </div>

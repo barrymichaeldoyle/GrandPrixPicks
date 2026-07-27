@@ -120,6 +120,50 @@ function makeInitialResultsBySession() {
   >[0]['initialResultsBySession'];
 }
 
+const FULL_GRID_CODES = [
+  'VER',
+  'NOR',
+  'PIA',
+  'LEC',
+  'HAM',
+  'RUS',
+  'ANT',
+  'SAI',
+  'ALB',
+  'GAS',
+  'COL',
+  'OCO',
+  'BEA',
+  'HUL',
+  'BOR',
+  'LAW',
+  'HAD',
+  'ALO',
+  'STR',
+  'PER',
+  'BOT',
+  'LIN',
+];
+
+/** A full 22-car classification, as a real finished session would produce. */
+function makeFullGridResults() {
+  const enrichedClassification = FULL_GRID_CODES.map((code, index) => ({
+    position: index + 1,
+    driverId: `driver_${index}` as Doc<'drivers'>['_id'],
+    code,
+    displayName: code,
+    number: index + 1,
+    team: `Team ${Math.floor(index / 2)}`,
+    nationality: 'GB',
+    status: null,
+  }));
+  return {
+    race: { enrichedClassification },
+  } as unknown as Parameters<
+    typeof H2HResultsSection
+  >[0]['initialResultsBySession'];
+}
+
 describe('H2HResultsSection SSR fallback', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -156,5 +200,49 @@ describe('H2HResultsSection SSR fallback', () => {
     // Both classified drivers appear.
     expect(text).toContain('VER');
     expect(text).toContain('NOR');
+  });
+
+  it('renders the whole classification while the full results table is collapsed', () => {
+    act(() => {
+      root.render(
+        <H2HResultsSection
+          race={makeRace()}
+          selectedSession={'race' as SessionType}
+          initialDrivers={makeDrivers()}
+          initialAvailableSessions={['race'] as SessionType[]}
+          initialResultsBySession={makeFullGridResults()}
+        />,
+      );
+    });
+
+    const text = container.textContent ?? '';
+
+    // Collapsed by default, so the expand affordance is present...
+    expect(text).toContain('Show full results');
+    // ...but every driver is still in the DOM. Mounting P7 and back only on
+    // expand would leave crawlers indexing a 22-car result as a 6-car one.
+    for (const code of FULL_GRID_CODES) {
+      expect(text).toContain(code);
+    }
+  });
+
+  it('marks the collapsed full results table as inert for assistive tech', () => {
+    act(() => {
+      root.render(
+        <H2HResultsSection
+          race={makeRace()}
+          selectedSession={'race' as SessionType}
+          initialDrivers={makeDrivers()}
+          initialAvailableSessions={['race'] as SessionType[]}
+          initialResultsBySession={makeFullGridResults()}
+        />,
+      );
+    });
+
+    // Present in the DOM for crawlers, but hidden from screen readers and
+    // keyboard focus until the reader expands it.
+    const collapsed = container.querySelector('[aria-hidden="true"][inert]');
+    expect(collapsed).not.toBeNull();
+    expect(collapsed?.textContent).toContain('LIN');
   });
 });

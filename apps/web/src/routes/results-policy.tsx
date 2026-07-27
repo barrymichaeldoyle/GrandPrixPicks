@@ -3,7 +3,7 @@ import { ArrowRight, Flag, TimerReset } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
-import { pageMeta, siteConfig } from '@/lib/site';
+import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 const faqs = [
   {
@@ -72,24 +72,9 @@ const structuredData = {
         name: 'Formula 1 penalties and race classification',
       },
     },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': `${siteConfig.url}/results-policy#breadcrumb`,
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: siteConfig.url,
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Results policy',
-          item: `${siteConfig.url}/results-policy`,
-        },
-      ],
-    },
+    breadcrumbSchema('/results-policy', [
+      { name: 'Results policy', path: '/results-policy' },
+    ]),
     {
       // Google retired FAQ rich results in May 2026. Kept because it stays
       // valid Schema.org and is still read by Bing and the AI crawlers; do not

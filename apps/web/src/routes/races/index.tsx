@@ -9,7 +9,7 @@ import { RaceCard } from '@/components/RaceCard';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { withRetry } from '@/lib/retry';
-import { pageMeta } from '@/lib/site';
+import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 
 export const Route = createFileRoute('/races/')({
@@ -21,13 +21,55 @@ export const Route = createFileRoute('/races/')({
     ]);
     return { races, nextRace };
   },
-  head: () =>
-    pageMeta({
+  head: ({ loaderData }) => {
+    const meta = pageMeta({
       title: '2026 F1 Race Calendar & Predictions | Grand Prix Picks',
       description:
         'Browse the full 2026 Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.',
       path: '/races',
-    }),
+    });
+
+    // Only the selected tab's races are in the markup, so the ItemList is the
+    // one place a crawler sees the whole calendar from this page.
+    const races = [...(loaderData?.races ?? [])].sort(
+      (a, b) => a.round - b.round,
+    );
+
+    return {
+      ...meta,
+      scripts: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'CollectionPage',
+                '@id': `${siteConfig.url}/races#page`,
+                url: `${siteConfig.url}/races`,
+                name: '2026 F1 race calendar',
+                inLanguage: 'en',
+                isPartOf: { '@id': `${siteConfig.url}/#app` },
+              },
+              breadcrumbSchema('/races', [{ name: 'Races', path: '/races' }]),
+              {
+                '@type': 'ItemList',
+                '@id': `${siteConfig.url}/races#calendar`,
+                name: '2026 Formula 1 race calendar',
+                numberOfItems: races.length,
+                itemListElement: races.map((race, index) => ({
+                  '@type': 'ListItem',
+                  position: index + 1,
+                  name: race.name,
+                  url: `${siteConfig.url}/races/${race.slug}`,
+                })),
+              },
+            ],
+          }),
+        },
+      ],
+    };
+  },
 });
 
 function RacesPage() {

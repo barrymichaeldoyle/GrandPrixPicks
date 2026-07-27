@@ -13,7 +13,7 @@ export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
   head: () =>
     pageMeta({
-      title: 'F1 Prediction Leagues | Compete with Friends | Grand Prix Picks',
+      title: 'F1 Prediction Leagues | Grand Prix Picks',
       description:
         'Create or join private leagues to compete with friends in F1 predictions. Track standings and see who has the best picks all season.',
       path: '/leagues',
@@ -23,11 +23,74 @@ export const Route = createFileRoute('/leagues/')({
 function LeaguesPage() {
   const { isSignedIn, isLoaded } = useViewerSession();
 
-  if (!isLoaded) {
+  // `isSignedIn` is resolved during SSR, so a signed-out visitor (and every
+  // crawler) gets the real page immediately. Gating the whole route on Clerk's
+  // `isLoaded` used to serve them a "Loading leagues" skeleton, which is all
+  // search engines ever saw of this page.
+  if (!isLoaded && isSignedIn) {
     return <LeaguesPageSkeleton />;
   }
 
   return <LeaguesContent isSignedIn={isSignedIn} />;
+}
+
+/**
+ * Static explainer for signed-out visitors. The rest of this page is personal
+ * data that cannot render until Clerk and Convex resolve, so without this the
+ * page has nothing durable for a first-time visitor or a crawler to read.
+ */
+function LeaguesExplainer() {
+  const points = [
+    {
+      icon: Shield,
+      title: 'Private leagues',
+      body: 'Create a league, share the link, and only people with it can join. Ideal for a group of friends, a workplace, or a Discord server.',
+    },
+    {
+      icon: Globe,
+      title: 'Public leagues',
+      body: 'Browse open leagues and join any of them to play against people outside your circle for the rest of the season.',
+    },
+    {
+      icon: Users,
+      title: 'League standings',
+      body: 'Every league has its own leaderboard and activity feed, scored from the same Top 5 and Head-to-Head picks you already make.',
+    },
+    {
+      icon: Crown,
+      title: 'Season-long',
+      body: 'Leagues run across the whole season, so a bad weekend costs you places rather than the title. Join at any point in the year.',
+    },
+  ] as const;
+
+  return (
+    <section aria-labelledby="leagues-explainer" className="mb-8">
+      <h2
+        id="leagues-explainer"
+        className="font-title text-xl font-semibold text-text"
+      >
+        How F1 prediction leagues work
+      </h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
+        A league is a private scoreboard for the same picks you already make
+        each race weekend. Your Top 5 and Head-to-Head predictions are scored
+        once, then counted towards every league you belong to.
+      </p>
+      <dl className="mt-6 grid gap-5 sm:grid-cols-2">
+        {points.map((point) => (
+          <div key={point.title}>
+            <dt className="flex items-center gap-2 font-semibold text-text">
+              <point.icon className="h-4 w-4 text-accent" aria-hidden />
+              {point.title}
+            </dt>
+            <dd className="mt-1 text-sm leading-6 text-text-muted">
+              {point.body}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
 }
 
 function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
@@ -81,9 +144,13 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
     setActiveTab(isSignedIn ? 'my' : hasPublicLeagues ? 'discover' : 'my');
   }, [hasPublicLeagues, isSignedIn]);
 
-  if (leagues === undefined) {
+  // Only the signed-in view needs this query. Waiting on it for everyone meant
+  // signed-out visitors and crawlers only ever got the skeleton, since the
+  // query never resolves for them.
+  if (isSignedIn && leagues === undefined) {
     return <LeaguesPageSkeleton />;
   }
+  const myLeagues = leagues ?? [];
 
   return (
     <div className="min-h-full bg-page">
@@ -166,26 +233,29 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
             </Button>
           </div>
         ) : !isSignedIn ? (
-          <div className="reveal-up reveal-delay-1 mb-8 rounded-xl border border-border bg-surface p-6 text-center">
-            <Shield className="mx-auto mb-3 h-10 w-10 text-text-muted" />
-            <h2 className="mb-1 text-lg font-semibold text-text">
-              Sign in to manage your leagues
-            </h2>
-            <p className="text-sm text-text-muted">
-              Sign in to create leagues and track your standings with other
-              players.
-            </p>
-            <AppSignInButton mode="modal">
-              <Button className="mt-4" leftIcon={LogIn} size="sm">
-                Sign In
-              </Button>
-            </AppSignInButton>
-          </div>
+          <>
+            <LeaguesExplainer />
+            <div className="reveal-up reveal-delay-1 mb-8 rounded-xl border border-border bg-surface p-6 text-center">
+              <Shield className="mx-auto mb-3 h-10 w-10 text-text-muted" />
+              <h2 className="mb-1 text-lg font-semibold text-text">
+                Sign in to manage your leagues
+              </h2>
+              <p className="text-sm text-text-muted">
+                Sign in to create leagues and track your standings with other
+                players.
+              </p>
+              <AppSignInButton mode="modal">
+                <Button className="mt-4" leftIcon={LogIn} size="sm">
+                  Sign In
+                </Button>
+              </AppSignInButton>
+            </div>
+          </>
         ) : null}
 
         {isSignedIn && activeTab === 'my' ? (
           <section>
-            {leagues.length === 0 ? (
+            {myLeagues.length === 0 ? (
               <div className="rounded-xl border border-border bg-surface p-8 text-center">
                 <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
                 <h3 className="mb-2 text-xl font-semibold text-text">
@@ -198,7 +268,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               </div>
             ) : (
               <div className="divide-y divide-border/50">
-                {leagues
+                {myLeagues
                   .filter(
                     (league): league is NonNullable<typeof league> =>
                       league != null,

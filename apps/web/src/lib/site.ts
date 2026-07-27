@@ -107,3 +107,29 @@ export function pageMeta({
     links: [...canonical.links],
   };
 }
+
+/**
+ * BreadcrumbList JSON-LD for a page's trail. Unlike FAQPage, breadcrumbs still
+ * render as rich results, so they earn their place in the markup.
+ *
+ * @param path — the page's route path, used for the node id
+ * @param trail — crumbs after Home, in order, e.g. [{ name, path }]
+ */
+export function breadcrumbSchema(
+  path: string,
+  trail: ReadonlyArray<{ name: string; path: string }>,
+) {
+  return {
+    '@type': 'BreadcrumbList',
+    '@id': `${siteConfig.url}${path}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteConfig.url },
+      ...trail.map((crumb, index) => ({
+        '@type': 'ListItem',
+        position: index + 2,
+        name: crumb.name,
+        item: `${siteConfig.url}${crumb.path}`,
+      })),
+    ],
+  };
+}

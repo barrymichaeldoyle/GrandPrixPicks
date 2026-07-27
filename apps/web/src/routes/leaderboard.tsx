@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 import { TabSwitch } from '@/components/TabSwitch';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
-import { pageMeta } from '@/lib/site';
+import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 import {
   formatAccuracy,
@@ -86,14 +86,40 @@ export const Route = createFileRoute('/leaderboard')({
     ]);
     return { defaultRace, allRaces, initialSeason, initialWeekend };
   },
-  head: () =>
-    pageMeta({
-      title:
-        '2026 Season Leaderboard | F1 Prediction Rankings | Grand Prix Picks',
+  head: () => {
+    const meta = pageMeta({
+      title: '2026 F1 Prediction Leaderboard | Grand Prix Picks',
       description:
         'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.',
       path: '/leaderboard',
-    }),
+    });
+    return {
+      ...meta,
+      scripts: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebPage',
+                '@id': `${siteConfig.url}/leaderboard#page`,
+                url: `${siteConfig.url}/leaderboard`,
+                name: '2026 F1 prediction leaderboard',
+                description:
+                  'Season standings for the Grand Prix Picks F1 prediction game, across Top 5 and Head-to-Head scoring.',
+                inLanguage: 'en',
+                isPartOf: { '@id': `${siteConfig.url}/#app` },
+              },
+              breadcrumbSchema('/leaderboard', [
+                { name: 'Leaderboard', path: '/leaderboard' },
+              ]),
+            ],
+          }),
+        },
+      ],
+    };
+  },
 });
 
 function LeaderboardPage() {

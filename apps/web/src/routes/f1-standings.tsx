@@ -88,7 +88,7 @@ export const Route = createFileRoute('/f1-standings')({
 
     return {
       ...pageMeta({
-        title: `${SEASON} F1 Championship Standings — Drivers & Constructors | Grand Prix Picks`,
+        title: `${SEASON} F1 Championship Standings | Grand Prix Picks`,
         description,
         path: '/f1-standings',
       }),

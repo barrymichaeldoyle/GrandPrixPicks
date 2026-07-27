@@ -6,12 +6,13 @@ import {
 } from '@grandprixpicks/shared/driverStatus';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp, Gavel, Swords } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { H2HMatchupGrid } from '@/components/H2HMatchupGrid';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import {
@@ -136,6 +137,8 @@ export function H2HResultsSection({
   initialResultsBySession,
 }: H2HResultsSectionProps) {
   const raceId = race._id;
+  // SSR-resolved, so the signed-out table shape is right on first paint.
+  const { isSignedIn } = useViewerSession();
   const { formatDate } = useUserDateFormat();
   const me = useQuery(api.users.me, {});
   const drivers = useQuery(api.drivers.listDrivers) ?? initialDrivers;
@@ -397,12 +400,22 @@ export function H2HResultsSection({
                     <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
                       Actual
                     </th>
-                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
-                      Top 5
-                    </th>
-                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
-                      Pts
-                    </th>
+                    {/*
+                      Pick and points are per-viewer. For a signed-out reader
+                      there is nothing to show, and rendering the columns filled
+                      a public results page with "No pick" and "+0" for every
+                      row, which is all a crawler saw of the classification.
+                    */}
+                    {isSignedIn && (
+                      <>
+                        <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                          Top 5
+                        </th>
+                        <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
+                          Pts
+                        </th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -434,45 +447,49 @@ export function H2HResultsSection({
                         <td className="px-2 py-2 sm:px-4">
                           {renderActualDriverRow(entry)}
                         </td>
-                        <td className="px-2 py-2 sm:px-4">
-                          {predictedPos !== null ? (
-                            <div className="flex items-center gap-2">
-                              {pickDriver ? (
-                                <DriverBadge
-                                  code={pickDriver.code}
-                                  team={pickDriver.team}
-                                  displayName={pickDriver.displayName}
-                                  number={pickDriver.number}
-                                  nationality={pickDriver.nationality}
-                                />
+                        {isSignedIn && (
+                          <>
+                            <td className="px-2 py-2 sm:px-4">
+                              {predictedPos !== null ? (
+                                <div className="flex items-center gap-2">
+                                  {pickDriver ? (
+                                    <DriverBadge
+                                      code={pickDriver.code}
+                                      team={pickDriver.team}
+                                      displayName={pickDriver.displayName}
+                                      number={pickDriver.number}
+                                      nationality={pickDriver.nationality}
+                                    />
+                                  ) : (
+                                    <span className="text-xs text-text-muted">
+                                      No pick
+                                    </span>
+                                  )}
+                                  <span
+                                    className={`text-xs font-semibold ${
+                                      top5Pts > 0
+                                        ? 'text-success'
+                                        : 'text-text-muted'
+                                    }`}
+                                  >
+                                    +{top5Pts}
+                                  </span>
+                                </div>
                               ) : (
-                                <span className="text-xs text-text-muted">
-                                  No pick
+                                <span className="text-xs text-text-muted/60">
+                                  —
                                 </span>
                               )}
-                              <span
-                                className={`text-xs font-semibold ${
-                                  top5Pts > 0
-                                    ? 'text-success'
-                                    : 'text-text-muted'
-                                }`}
-                              >
-                                +{top5Pts}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-text-muted/60">
-                              —
-                            </span>
-                          )}
-                        </td>
-                        <td
-                          className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
-                            rowTotal > 0 ? 'text-accent' : 'text-text-muted'
-                          }`}
-                        >
-                          +{rowTotal}
-                        </td>
+                            </td>
+                            <td
+                              className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
+                                rowTotal > 0 ? 'text-accent' : 'text-text-muted'
+                              }`}
+                            >
+                              +{rowTotal}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })}
@@ -508,71 +525,79 @@ export function H2HResultsSection({
                 )}
               </table>
             </div>
-            <AnimatePresence initial={false}>
-              {fullResultsExpanded && remainingRows.length > 0 && (
-                <motion.div
-                  key="full-results"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeInOut' }}
-                  className="overflow-hidden"
-                >
-                  <div className="grid gap-x-1 md:grid-cols-2">
-                    {remainingColumns.map((column, index) => (
-                      <div
-                        key={index}
-                        className={`overflow-hidden border border-border bg-surface ${
-                          index === 0
-                            ? 'rounded-t-lg md:rounded-lg'
-                            : 'rounded-b-lg border-t-0 md:rounded-lg md:border-t'
-                        }`}
-                      >
-                        <table className="w-full">
-                          <thead
-                            className={
-                              index === 1 ? 'hidden md:table-header-group' : ''
-                            }
-                          >
-                            <tr className="border-b border-border text-xs uppercase">
-                              <th className="px-3 py-2 text-left text-text-muted">
-                                Pos
-                              </th>
-                              <th className="px-3 py-2 text-left text-text-muted">
-                                Driver
-                              </th>
+            {/*
+              Kept mounted rather than conditionally rendered: this table is
+              P7 to the back of the grid, which is most of a results page. If it
+              only exists once expanded, crawlers index a 22-driver result as a
+              6-driver one. Collapsed state is height 0 plus inert.
+            */}
+            {remainingRows.length > 0 && (
+              <motion.div
+                key="full-results"
+                initial={false}
+                animate={{
+                  height: fullResultsExpanded ? 'auto' : 0,
+                  opacity: fullResultsExpanded ? 1 : 0,
+                }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                aria-hidden={!fullResultsExpanded}
+                inert={!fullResultsExpanded}
+                className="overflow-hidden"
+              >
+                <div className="grid gap-x-1 md:grid-cols-2">
+                  {remainingColumns.map((column, index) => (
+                    <div
+                      key={index}
+                      className={`overflow-hidden border border-border bg-surface ${
+                        index === 0
+                          ? 'rounded-t-lg md:rounded-lg'
+                          : 'rounded-b-lg border-t-0 md:rounded-lg md:border-t'
+                      }`}
+                    >
+                      <table className="w-full">
+                        <thead
+                          className={
+                            index === 1 ? 'hidden md:table-header-group' : ''
+                          }
+                        >
+                          <tr className="border-b border-border text-xs uppercase">
+                            <th className="px-3 py-2 text-left text-text-muted">
+                              Pos
+                            </th>
+                            <th className="px-3 py-2 text-left text-text-muted">
+                              Driver
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {column.map((entry) => (
+                            <tr
+                              key={entry.driverId}
+                              className="border-b border-border last:border-0"
+                            >
+                              <td className="px-3 py-2 text-xs font-semibold text-text-muted">
+                                {renderPositionCell(entry)}
+                              </td>
+                              <td className="px-3 py-2">
+                                {renderActualDriverRow(entry, true)}
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {column.map((entry) => (
-                              <tr
-                                key={entry.driverId}
-                                className="border-b border-border last:border-0"
-                              >
-                                <td className="px-3 py-2 text-xs font-semibold text-text-muted">
-                                  {renderPositionCell(entry)}
-                                </td>
-                                <td className="px-3 py-2">
-                                  {renderActualDriverRow(entry, true)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFullResultsExpanded(false)}
-                    className="mt-1 flex w-full items-center justify-center gap-1.5 py-2 text-sm text-text-muted transition-colors hover:text-text"
-                  >
-                    <ChevronUp size={14} />
-                    Hide full results
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFullResultsExpanded(false)}
+                  className="mt-1 flex w-full items-center justify-center gap-1.5 py-2 text-sm text-text-muted transition-colors hover:text-text"
+                >
+                  <ChevronUp size={14} />
+                  Hide full results
+                </button>
+              </motion.div>
+            )}
           </div>
           <div className="flex items-center justify-between gap-2 pt-2">
             <div className="flex items-center gap-1.5">

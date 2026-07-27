@@ -4,7 +4,10 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { useViewerSession } from './useViewerSession';
-import { ViewerSessionProvider } from './viewer-session-context';
+import {
+  deriveViewerSession,
+  ViewerSessionProvider,
+} from './viewer-session-context';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -16,6 +19,8 @@ const auth: { isLoaded: boolean; isSignedIn: boolean | undefined } = {
   isSignedIn: undefined,
 };
 const initialAuth: { isSignedIn: boolean } = { isSignedIn: false };
+/** Sticky flag the provider keeps once Clerk has confirmed a session. */
+let hasConfirmedSession = false;
 
 let result: ReturnType<typeof useViewerSession>;
 
@@ -31,22 +36,27 @@ describe('useViewerSession', () => {
   beforeEach(() => {
     container = document.createElement('div');
     root = createRoot(container);
+    hasConfirmedSession = false;
   });
   afterEach(() => {
     act(() => root.unmount());
   });
 
   function render() {
-    const confirmedSignedIn = auth.isLoaded && !!auth.isSignedIn;
+    // Goes through the same helper the provider uses, so these tests cannot
+    // drift from the real derivation.
+    const session = deriveViewerSession({
+      isLoaded: auth.isLoaded,
+      clientSignedIn: auth.isSignedIn,
+      initialSignedIn: initialAuth.isSignedIn,
+      hasConfirmedSession,
+    });
+    if (session.confirmedSignedIn) {
+      hasConfirmedSession = true;
+    }
     act(() =>
       root.render(
-        <ViewerSessionProvider
-          value={{
-            isLoaded: auth.isLoaded,
-            isSignedIn: initialAuth.isSignedIn || confirmedSignedIn,
-            confirmedSignedIn,
-          }}
-        >
+        <ViewerSessionProvider value={session}>
           <Probe />
         </ViewerSessionProvider>,
       ),
@@ -100,6 +110,23 @@ describe('useViewerSession', () => {
     });
 
     auth.isLoaded = true;
+    auth.isSignedIn = false;
+    expect(render()).toEqual({
+      isLoaded: true,
+      isSignedIn: false,
+      confirmedSignedIn: false,
+    });
+  });
+
+  it('goes signed-out after a real sign-out (no stuck avatar placeholder)', () => {
+    // Regression: initialAuth is captured at SSR and never changes, so the old
+    // `initialAuth.isSignedIn || confirmedSignedIn` kept isSignedIn true after
+    // sign-out and HeaderUser rendered its loading pulse forever.
+    initialAuth.isSignedIn = true;
+    auth.isLoaded = true;
+    auth.isSignedIn = true;
+    expect(render().confirmedSignedIn).toBe(true);
+
     auth.isSignedIn = false;
     expect(render()).toEqual({
       isLoaded: true,

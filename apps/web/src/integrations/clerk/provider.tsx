@@ -1,9 +1,13 @@
 import { ClerkProvider, useAuth } from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useInitialAuth } from './initial-auth';
-import { ViewerSessionProvider } from './viewer-session-context';
+import {
+  deriveViewerSession,
+  ViewerSessionProvider,
+} from './viewer-session-context';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 if (!PUBLISHABLE_KEY) {
@@ -98,15 +102,25 @@ export function AppClerkProvider({
 function ClerkViewerSessionBridge({ children }: PropsWithChildren) {
   const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
   const initialAuth = useInitialAuth();
+  // Sticky: once Clerk confirms a session on this page load, a later
+  // signed-out report is a real sign-out rather than its boot transient.
+  const [hasConfirmedSession, setHasConfirmedSession] = useState(false);
   const confirmedSignedIn = isLoaded && !!clientSignedIn;
+
+  useEffect(() => {
+    if (confirmedSignedIn) {
+      setHasConfirmedSession(true);
+    }
+  }, [confirmedSignedIn]);
 
   return (
     <ViewerSessionProvider
-      value={{
+      value={deriveViewerSession({
         isLoaded,
-        isSignedIn: initialAuth.isSignedIn || confirmedSignedIn,
-        confirmedSignedIn,
-      }}
+        clientSignedIn,
+        initialSignedIn: initialAuth.isSignedIn,
+        hasConfirmedSession,
+      })}
     >
       {children}
     </ViewerSessionProvider>

@@ -12,10 +12,14 @@ import {
  * for a returning user, even though SSR already rendered them signed in.
  *
  * So we treat the SSR-resolved session (`initialAuth`, derived from Clerk's
- * durable `__client_uat` cookie) as authoritative for this page load: Clerk can
- * only *upgrade* us to a confirmed session — swapping the neutral avatar
- * placeholder for the real `UserButton` — never *downgrade* to signed-out. A
- * genuine sign-out reloads the app, which resets `initialAuth`.
+ * durable `__client_uat` cookie) as authoritative *until Clerk first confirms a
+ * session*. After that confirmation Clerk becomes authoritative in both
+ * directions, so a genuine sign-out downgrades to signed-out chrome.
+ *
+ * The earlier version of this assumed sign-out reloaded the app and reset
+ * `initialAuth`. It does not: `afterSignOutUrl` is a client navigation, SSR
+ * never re-runs, and the stale signed-in `initialAuth` left the header stuck on
+ * its avatar placeholder forever. See `deriveViewerSession`.
  *
  * - `isSignedIn`: render signed-in chrome (nav links, avatar). True as soon as
  *   SSR says so, and stays true through Clerk's boot.

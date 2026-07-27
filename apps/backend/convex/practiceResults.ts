@@ -202,7 +202,10 @@ export function buildPracticeSessionSummaries(
             code: trailing.code,
             displayName: trailing.displayName,
           },
-          gapSeconds: trailing.bestLapSeconds - leading.bestLapSeconds,
+          gapSeconds:
+            Math.round(
+              (trailing.bestLapSeconds - leading.bestLapSeconds) * 1_000,
+            ) / 1_000,
         }));
       })
       .sort((a, b) => b.gapSeconds - a.gapSeconds);

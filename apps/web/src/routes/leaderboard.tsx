@@ -34,6 +34,7 @@ import type {
 } from './-leaderboard/types';
 import { useStickyValue } from '@/hooks/useStickyValue';
 import { WeekendContent } from './-leaderboard/WeekendContent';
+import { PageHeader } from '@/components/PageHeader';
 
 export const Route = createFileRoute('/leaderboard')({
   component: LeaderboardPage,
@@ -424,75 +425,75 @@ function LeaderboardPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-              {timeScope === 'weekend' ? 'Race weekend' : 'Season rankings'}
-            </p>
-            <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-              Leaderboard
-            </h1>
-            <p className="mt-1.5 text-sm text-text-muted">{heroSubtitle}</p>
-            <p className="mt-1 text-sm text-text-muted">
-              Looking for the real-world points?{' '}
-              <Link
-                to="/f1-standings"
-                className="font-medium text-accent underline-offset-2 hover:underline"
-              >
-                F1 championship standings
-              </Link>
-            </p>
-          </div>
-
-          <div className="min-h-14">
-            <AnimatePresence mode="wait">
-              {showStandingCard ? (
-                <motion.div
-                  key={timeScope}
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
+        <PageHeader
+          eyebrow={timeScope === 'weekend' ? 'Race weekend' : 'Season rankings'}
+          title="Leaderboard"
+          subtitle={
+            <>
+              <p>{heroSubtitle}</p>
+              <p className="mt-1">
+                Looking for the real-world points?{' '}
+                <Link
+                  to="/f1-standings"
+                  className="font-medium text-accent underline-offset-2 hover:underline"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white tabular-nums">
-                    {headerViewerEntry?.rank ?? '—'}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
-                      Your standing
-                    </div>
-                    <div className="truncate text-sm font-semibold text-text">
-                      {standingName}
-                    </div>
-                    {headerViewerEntry ? (
-                      <div className="text-sm font-bold text-accent">
-                        {headerViewerEntry.points} pts
-                        {gameMode === 'h2h' &&
-                          'correctPicks' in headerViewerEntry && (
-                            <span className="ml-2 text-sm font-normal text-text-muted">
-                              (
-                              {formatAccuracy(
-                                (headerViewerEntry as H2HLeaderboardEntry)
-                                  .correctPicks,
-                                (headerViewerEntry as H2HLeaderboardEntry)
-                                  .totalPicks,
-                              )}{' '}
-                              accuracy)
-                            </span>
-                          )}
+                  F1 championship standings
+                </Link>
+              </p>
+            </>
+          }
+          actionsPlacement="trailing"
+          actions={
+            <div className="min-h-14">
+              <AnimatePresence mode="wait">
+                {showStandingCard ? (
+                  <motion.div
+                    key={timeScope}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white tabular-nums">
+                      {headerViewerEntry?.rank ?? '—'}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                        Your standing
                       </div>
-                    ) : (
-                      <div className="text-sm font-medium text-text-muted">
-                        Not ranked this weekend
+                      <div className="truncate text-sm font-semibold text-text">
+                        {standingName}
                       </div>
-                    )}
-                  </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-        </div>
+                      {headerViewerEntry ? (
+                        <div className="text-sm font-bold text-accent">
+                          {headerViewerEntry.points} pts
+                          {gameMode === 'h2h' &&
+                            'correctPicks' in headerViewerEntry && (
+                              <span className="ml-2 text-sm font-normal text-text-muted">
+                                (
+                                {formatAccuracy(
+                                  (headerViewerEntry as H2HLeaderboardEntry)
+                                    .correctPicks,
+                                  (headerViewerEntry as H2HLeaderboardEntry)
+                                    .totalPicks,
+                                )}{' '}
+                                accuracy)
+                              </span>
+                            )}
+                        </div>
+                      ) : (
+                        <div className="text-sm font-medium text-text-muted">
+                          Not ranked this weekend
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          }
+        />
 
         {/* Filters */}
         <div

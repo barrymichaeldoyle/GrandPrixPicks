@@ -18,7 +18,6 @@ import {
   StorybookMockProviders,
   buildStorybookConvexMocks,
 } from '@/storybook/mockAppRuntime';
-import { StorybookRouter } from '@/stories/router-decorator';
 
 type FeedEvent = ComponentProps<typeof FeedItem>['event'];
 
@@ -222,9 +221,7 @@ function StoryShell({ children }: PropsWithChildren) {
       auth={{ isLoaded: true, isSignedIn: true }}
       convex={convexMocks}
     >
-      <StorybookRouter>
-        <div className="w-[min(100%,40rem)] space-y-3">{children}</div>
-      </StorybookRouter>
+      <div className="w-[min(100%,40rem)] space-y-3">{children}</div>
     </StorybookMockProviders>
   );
 }

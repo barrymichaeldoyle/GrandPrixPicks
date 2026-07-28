@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import '../src/styles.css';
 
 import { StorybookMockProviders } from '../src/storybook/mockAppRuntime';
+import { StorybookRouter } from '../src/stories/router-decorator';
 
 /**
  * Viewport presets that match the ones used in real review screenshots.
@@ -79,7 +80,13 @@ const preview: Preview = {
               backgroundColor: 'var(--page)',
             }}
           >
-            <Story />
+            {/* Router context is global: any component rendering a <Link>
+                would otherwise crash with "Cannot read properties of null
+                (reading 'stores')", which reads like a Storybook config fault
+                rather than a missing provider. */}
+            <StorybookRouter>
+              <Story />
+            </StorybookRouter>
           </div>
         </StorybookMockProviders>
       );

@@ -13,10 +13,12 @@ type TopPlayer = {
   raceCount: number;
 };
 
+/** Colour and bevel come from `.home-podium-rank-*` in styles.css, which
+ *  derives its ramp from the podium tokens. */
 const PODIUM_RANK_CLASSES: Record<1 | 2 | 3, string> = {
-  1: 'home-podium-rank-1 bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950',
-  2: 'home-podium-rank-2 bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900',
-  3: 'home-podium-rank-3 bg-gradient-to-br from-orange-300 to-orange-600 text-orange-950',
+  1: 'home-podium-rank-1 text-page',
+  2: 'home-podium-rank-2 text-page',
+  3: 'home-podium-rank-3 text-page',
 };
 
 export function LeaderboardTeaser({

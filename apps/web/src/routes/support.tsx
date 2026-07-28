@@ -13,6 +13,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHeader } from '@/components/PageHeader';
 import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/support')({
   component: SupportPage,
@@ -37,19 +38,17 @@ function SupportPage() {
     return (
       <div className="bg-page">
         <div className="mx-auto max-w-3xl px-4 py-8">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-accent" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              Sign in to contact support
-            </h1>
-            <p className="mx-auto mb-4 max-w-sm text-text-muted">
-              You need to be signed in to submit a support request so we can
-              associate it with your account.
-            </p>
-            <AppSignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
-            </AppSignInButton>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={AlertCircle}
+            title="Sign in to contact support"
+            description="You need to be signed in to submit a support request so we can associate it with your account."
+            action={
+              <AppSignInButton mode="modal">
+                <Button size="sm">Sign In</Button>
+              </AppSignInButton>
+            }
+          />
         </div>
       </div>
     );

@@ -6,6 +6,7 @@ import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/sign-in')({
   component: SignInPage,
@@ -40,20 +41,22 @@ function SignInPage() {
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-8 text-center">
-        <h1 className="mb-2 text-2xl font-bold text-text">Sign in</h1>
-        <p className="mb-6 text-text-muted">
-          Sign in to make picks, join leagues, and track your results.
-        </p>
-        <div className="flex flex-col items-center gap-3">
-          <AppSignInButton mode="modal">
-            <Button size="sm">Continue to sign in</Button>
-          </AppSignInButton>
-          <Link to="/" className="text-sm text-text-muted hover:text-text">
-            Back to home
-          </Link>
-        </div>
-      </div>
+      <NoticeCard
+        level="page"
+        className="w-full max-w-md"
+        title="Sign in"
+        description="Sign in to make picks, join leagues, and track your results."
+        action={
+          <div className="flex flex-col items-center gap-3">
+            <AppSignInButton mode="modal">
+              <Button size="sm">Continue to sign in</Button>
+            </AppSignInButton>
+            <Link to="/" className="text-sm text-text-muted hover:text-text">
+              Back to home
+            </Link>
+          </div>
+        }
+      />
     </div>
   );
 }

@@ -4,16 +4,18 @@ import type { ReactNode } from 'react';
 type NoticeCardProps = {
   /** Lucide icon shown above the title. Omit for a text-only notice. */
   icon?: LucideIcon;
-  title: ReactNode;
+  /** Omit for a card that is only a line of copy, e.g. "no results yet". */
+  title?: ReactNode;
   description?: ReactNode;
   /** Button or link shown beneath the copy. */
   action?: ReactNode;
   /**
    * `page` owns the route and renders an h1 (sign-in gates, "not found").
    * `section` sits inside a page that already has a heading, so it renders an
-   * h2 at a smaller size (empty states like "No scores yet").
+   * h2 at a smaller size (empty states like "No scores yet"). `subsection` is
+   * the same size as `section` but an h3, for cards nested under one.
    */
-  level?: 'page' | 'section';
+  level?: 'page' | 'section' | 'subsection';
   /** Extra classes on the card itself, e.g. a width constraint. */
   className?: string;
   'data-testid'?: string;
@@ -34,7 +36,8 @@ export function NoticeCard({
   className = '',
   'data-testid': testId,
 }: NoticeCardProps) {
-  const Heading = level === 'page' ? 'h1' : 'h2';
+  const Heading =
+    level === 'page' ? 'h1' : level === 'subsection' ? 'h3' : 'h2';
   const headingClass =
     level === 'page'
       ? 'mb-2 text-2xl font-bold text-text'
@@ -48,7 +51,7 @@ export function NoticeCard({
       {Icon ? (
         <Icon className="mx-auto mb-4 h-16 w-16 text-text-muted" aria-hidden />
       ) : null}
-      <Heading className={headingClass}>{title}</Heading>
+      {title ? <Heading className={headingClass}>{title}</Heading> : null}
       {description ? (
         <p className={`text-text-muted ${action ? 'mb-4' : ''}`}>
           {description}

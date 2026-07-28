@@ -2,8 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Check, Plus, Search, Settings } from 'lucide-react';
 
-import { StorybookRouter } from '@/stories/router-decorator';
-
 import { Button } from './Button';
 
 const meta = {
@@ -125,13 +123,7 @@ export const Showcase: Story = {
 };
 
 export const AsChildWithRouterLink: Story = {
-  decorators: [
-    (Story) => (
-      <StorybookRouter>
-        <Story />
-      </StorybookRouter>
-    ),
-  ],
+  decorators: [(Story) => <Story />],
   render: () => (
     <div className="flex items-center gap-3 pb-10">
       <Button asChild size="sm" rightIcon={ArrowRight}>

@@ -18,6 +18,7 @@ import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import { Pill } from '@/components/Pill';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
 const EARLY_BIRD_EXPIRES_AT_UTC = '2026-04-01T23:59:00Z';
@@ -236,9 +237,9 @@ function PricingPage() {
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
           {isEarlyBirdActive() ? (
-            <div className="mb-4 inline-flex items-center rounded-full border border-success/35 bg-success/10 px-3 py-1 text-xs font-semibold tracking-[0.1em] text-success">
+            <Pill tone="success" size="lg" className="mb-4">
               EARLY BIRD 50% OFF
-            </div>
+            </Pill>
           ) : null}
           <h2 className="mb-1 text-xl font-semibold text-text">
             Season Pass 2026

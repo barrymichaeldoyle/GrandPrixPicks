@@ -12,9 +12,11 @@ import process from 'node:process';
  * class name that matched no token sat unnoticed on the cancelled-race badge,
  * silently rendering nothing.
  *
- * This is a ratchet, not a ban: the files below still carry known violations
- * and are allowed to keep exactly that many. Add one and the check fails;
- * remove some and lower the number. New files must start clean.
+ * The baseline is currently EMPTY: no player-facing file uses a stock-palette
+ * colour. Keep it that way. It is a ratchet rather than a flat ban so that if a
+ * violation is ever knowingly accepted it can be recorded here with a reason
+ * and a count, and the number can only ever be edited downwards - cleaning a
+ * file up also fails the check, telling you to lower it.
  *
  * Admin is deliberately out of scope. It is internal tooling with its own
  * visual language and roughly half the remaining violations; holding it to the
@@ -29,12 +31,8 @@ const TAILWIND_PALETTE_UTILITY =
 
 const EXEMPT = [/^src\/components\/admin\//, /^src\/routes\/admin\//];
 
-/** Known violations, by file. Only ever edit these downwards. */
-const BASELINE = new Map([
-  // Deliberate: metallic gradient medals. Converting them either flattens the
-  // gradient or needs six light/dark podium tokens for one component.
-  ['src/routes/-home/LeaderboardTeaser.tsx', 9],
-]);
+/** Knowingly-accepted violations, by file. Only ever edit downwards. */
+const BASELINE = new Map([]);
 
 async function findTsxFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

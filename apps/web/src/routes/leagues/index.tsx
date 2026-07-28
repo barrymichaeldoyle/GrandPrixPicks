@@ -10,6 +10,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
 import { PageHeader } from '@/components/PageHeader';
 import { Pill } from '@/components/Pill';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
@@ -254,16 +255,12 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
         {isSignedIn && activeTab === 'my' ? (
           <section>
             {myLeagues.length === 0 ? (
-              <div className="rounded-xl border border-border bg-surface p-8 text-center">
-                <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-                <h3 className="mb-2 text-xl font-semibold text-text">
-                  No leagues yet
-                </h3>
-                <p className="text-text-muted">
-                  Create a league to get started, or ask a friend for their
-                  league link to join.
-                </p>
-              </div>
+              <NoticeCard
+                level="subsection"
+                icon={Shield}
+                title="No leagues yet"
+                description="Create a league to get started, or ask a friend for their league link to join."
+              />
             ) : (
               <div className="divide-y divide-border/50">
                 {myLeagues

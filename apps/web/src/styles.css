@@ -228,7 +228,10 @@ body {
   filter: grayscale(0.3);
 }
 
-/* Rank badge: slight bevel for the metallic look */
+/* Podium medals: a bevel plus a light-to-dark ramp so they read as metal.
+   The ramp lives here rather than as Tailwind gradient utilities because it is
+   derived from the podium tokens: the darker stop is the same colour let
+   through to the surface behind it. */
 .home-podium-rank-1,
 .home-podium-rank-2,
 .home-podium-rank-3 {
@@ -236,6 +239,30 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 -1px 0 rgba(0, 0, 0, 0.18),
     0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.home-podium-rank-1 {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(var(--podium-gold-rgb)),
+    rgb(var(--podium-gold-rgb) / 0.72)
+  );
+}
+
+.home-podium-rank-2 {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(var(--podium-silver-rgb)),
+    rgb(var(--podium-silver-rgb) / 0.72)
+  );
+}
+
+.home-podium-rank-3 {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(var(--podium-bronze-rgb)),
+    rgb(var(--podium-bronze-rgb) / 0.72)
+  );
 }
 
 h1,

@@ -44,10 +44,17 @@ export function PageHeader({
       <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
         {title}
       </h1>
-      {subtitle ? (
+      {/* A string is the common case and gets a paragraph. Anything richer
+          (the leaderboard runs a second line with a link in it) is rendered
+          as-is, because nesting block content inside that <p> is invalid. */}
+      {typeof subtitle === 'string' ? (
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-text-muted">
           {subtitle}
         </p>
+      ) : subtitle ? (
+        <div className="mt-4 max-w-2xl text-sm leading-relaxed text-text-muted">
+          {subtitle}
+        </div>
       ) : null}
     </div>
   );

@@ -1,5 +1,5 @@
-import type { SessionType } from '@grandprixpicks/shared/sessions';
-import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS_FULL } from '@/lib/sessions';
 import { Download, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 

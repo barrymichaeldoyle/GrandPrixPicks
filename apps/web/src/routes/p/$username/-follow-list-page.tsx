@@ -122,15 +122,17 @@ export function FollowListPage({
   if (!profileExists) {
     return (
       <FollowListStateShell>
-        <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <p className="text-text-muted">User not found.</p>
-          <Link
-            to="/leaderboard"
-            className="mt-4 inline-block text-accent hover:underline"
-          >
-            View Leaderboard
-          </Link>
-        </div>
+        <NoticeCard
+          description="User not found."
+          action={
+            <Link
+              to="/leaderboard"
+              className="mt-4 inline-block text-accent hover:underline"
+            >
+              View Leaderboard
+            </Link>
+          }
+        />
       </FollowListStateShell>
     );
   }
@@ -162,10 +164,7 @@ export function FollowListPage({
           You must be signed in to view this list.
         </div>
       ) : users.length === 0 ? (
-        <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <Icon className="mx-auto mb-3 h-12 w-12 text-text-muted" />
-          <p className="text-text-muted">{emptyMessage}</p>
-        </div>
+        <NoticeCard icon={Icon} description={emptyMessage} />
       ) : (
         <ul className="space-y-2">
           {users.map((user) => (

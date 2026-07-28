@@ -20,19 +20,33 @@ const TONE_CLASSES: Record<PillTone, string> = {
   warning: 'border-warning/35 bg-warning-muted/50 text-warning',
 };
 
+/**
+ * `sm` is for pills that sit inside a dense line of text (the "Live" marker in
+ * the weekend schedule); `lg` is for standalone marketing labels.
+ */
+export type PillSize = 'sm' | 'md' | 'lg';
+
+const SIZE_CLASSES: Record<PillSize, string> = {
+  sm: 'px-1.5 py-0.5 text-[10px] tracking-wide uppercase',
+  md: 'px-2 py-0.5 text-xs',
+  lg: 'px-3 py-1 text-xs tracking-[0.1em]',
+};
+
 export function Pill({
   tone = 'neutral',
+  size = 'md',
   className = '',
   children,
 }: {
   tone?: PillTone;
+  size?: PillSize;
   /** Layout-only extras (animation, tabular-nums, max-width). Not colour. */
   className?: string;
   children: ReactNode;
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${TONE_CLASSES[tone]} ${className}`}
+      className={`inline-flex items-center rounded-full border font-semibold ${SIZE_CLASSES[size]} ${TONE_CLASSES[tone]} ${className}`}
     >
       {children}
     </span>

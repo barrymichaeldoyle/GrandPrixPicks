@@ -1,7 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import { StorybookRouter } from '@/stories/router-decorator';
-
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const meta = {
@@ -10,13 +8,7 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
   },
-  decorators: [
-    (Story) => (
-      <StorybookRouter>
-        <Story />
-      </StorybookRouter>
-    ),
-  ],
+  decorators: [(Story) => <Story />],
   args: {
     raceName: 'Miami Grand Prix',
     raceSlug: 'miami-2026',

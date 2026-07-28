@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
 import { Link } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
 import { Bell, CheckCheck, Gavel, Lock, Megaphone, Trophy } from 'lucide-react';

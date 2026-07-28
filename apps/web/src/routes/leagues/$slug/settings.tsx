@@ -115,20 +115,18 @@ function LeagueSettingsPage() {
     return (
       <div className="min-h-full bg-page">
         <div className="mx-auto max-w-3xl px-4 py-6">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <Settings className="mx-auto mb-3 h-10 w-10 text-text-muted" />
-            <h1 className="mb-2 text-xl font-semibold text-text">
-              Join this league to access settings
-            </h1>
-            <p className="mb-4 text-text-muted">
-              Settings are only available to league members.
-            </p>
-            <Button asChild size="sm" leftIcon={ArrowLeft}>
-              <Link to="/leagues/$slug" params={{ slug: league.slug }}>
-                Back to League
-              </Link>
-            </Button>
-          </div>
+          <NoticeCard
+            icon={Settings}
+            title="Join this league to access settings"
+            description="Settings are only available to league members."
+            action={
+              <Button asChild size="sm" leftIcon={ArrowLeft}>
+                <Link to="/leagues/$slug" params={{ slug: league.slug }}>
+                  Back to League
+                </Link>
+              </Button>
+            }
+          />
         </div>
       </div>
     );

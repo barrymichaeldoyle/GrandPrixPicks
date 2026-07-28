@@ -11,6 +11,7 @@ import { setF1StandingsCacheHeaders } from '@/lib/f1StandingsCacheHeaders';
 import { withRetry } from '@/lib/retry';
 import { pageMeta, siteConfig } from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
+import { NoticeCard } from '@/components/NoticeCard';
 
 const SEASON = 2026;
 
@@ -371,12 +372,9 @@ function F1StandingsPage() {
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <p className="text-sm text-text-muted">
-              No {season} results have been published yet. Championship
-              standings will appear here after the first Grand Prix.
-            </p>
-          </div>
+          <NoticeCard
+            description={`No ${season} results have been published yet. Championship standings will appear here after the first Grand Prix.`}
+          />
         )}
 
         <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-sm">

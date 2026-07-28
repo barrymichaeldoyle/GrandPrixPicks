@@ -230,7 +230,7 @@ function RootDocument({ children }: PropsWithChildren) {
               <AuthenticatedDeferredFeature>
                 <DeferredObservabilityUserSync />
               </AuthenticatedDeferredFeature>
-              <div className="relative z-10 flex h-[var(--app-viewport-height,100dvh)] flex-col overflow-hidden pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+              <div className="relative z-10 flex min-h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-clip pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
@@ -246,20 +246,15 @@ function RootDocument({ children }: PropsWithChildren) {
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
                 </DeferredFeaturesBoundary>
-                <div
-                  ref={mainRef}
-                  className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
-                >
-                  <ScrollToTop scrollContainerRef={mainRef} />
-                  <div className="flex min-h-full flex-col">
-                    <AuthenticatedDeferredFeature>
-                      <DeferredPredictionBanner />
-                    </AuthenticatedDeferredFeature>
-                    <main id="main-content" className="min-h-0 flex-1">
-                      <ErrorBoundary>{children}</ErrorBoundary>
-                    </main>
-                    <Footer />
-                  </div>
+                <div ref={mainRef} className="flex min-h-0 flex-1 flex-col">
+                  <ScrollToTop />
+                  <AuthenticatedDeferredFeature>
+                    <DeferredPredictionBanner />
+                  </AuthenticatedDeferredFeature>
+                  <main id="main-content" className="min-h-0 flex-1">
+                    <ErrorBoundary>{children}</ErrorBoundary>
+                  </main>
+                  <Footer />
                   <TanStackDevtools
                     config={{
                       position: 'bottom-right',

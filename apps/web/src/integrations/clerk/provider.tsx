@@ -44,8 +44,8 @@ const clerkElements = {
   userPreviewSecondaryIdentifier: 'text-text-muted',
   badge:
     '!rounded-sm !border !border-border-strong !bg-surface-muted !px-2 !py-0.5 !text-[11px] !font-semibold !text-text',
-  badge__primary: '!border-accent !bg-accent !text-slate-950',
-  badge__actionRequired: '!border-warning !bg-warning !text-slate-950',
+  badge__primary: '!border-accent !bg-accent !text-page',
+  badge__actionRequired: '!border-warning !bg-warning !text-page',
   activeDevice:
     '!rounded-none !border-0 !bg-transparent !text-text !shadow-none',
   activeDeviceListItem:

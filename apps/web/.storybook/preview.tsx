@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/react';
+import { useEffect } from 'react';
 import '../src/styles.css';
 
 import { StorybookMockProviders } from '../src/storybook/mockAppRuntime';
@@ -53,23 +54,36 @@ const preview: Preview = {
     viewport: { value: 'desktopWide', isRotated: false },
   },
   decorators: [
-    (Story) => (
-      <StorybookMockProviders>
-        <div
-          className="dark"
-          data-theme="dark"
-          style={{
-            height: '100vh',
-            overflowY: 'auto',
-            boxSizing: 'border-box',
-            padding: '1rem',
-            backgroundColor: 'var(--page)',
-          }}
-        >
-          <Story />
-        </div>
-      </StorybookMockProviders>
-    ),
+    (Story) => {
+      // The app hard-codes `.dark` on <html>. Storybook has to do the same,
+      // not just wrap the story: components that render through a portal
+      // (Tooltip, ConfirmDialog) mount on document.body, outside any wrapper
+      // div, so token custom properties would not reach them and every colour
+      // would silently fall back to the browser default.
+      useEffect(() => {
+        const root = document.documentElement;
+        root.classList.add('dark');
+        root.dataset.theme = 'dark';
+      }, []);
+
+      return (
+        <StorybookMockProviders>
+          <div
+            className="dark"
+            data-theme="dark"
+            style={{
+              height: '100vh',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
+              padding: '1rem',
+              backgroundColor: 'var(--page)',
+            }}
+          >
+            <Story />
+          </div>
+        </StorybookMockProviders>
+      );
+    },
   ],
 };
 

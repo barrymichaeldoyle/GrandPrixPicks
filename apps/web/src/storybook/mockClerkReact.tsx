@@ -6,6 +6,19 @@ export function useAuth() {
   return useStorybookMockState().auth;
 }
 
+/**
+ * Stable singleton: consumers put the clerk object in useEffect dep arrays, so
+ * returning a fresh object per render would re-fire those effects every render.
+ */
+const MOCK_CLERK = {
+  openSignIn: async () => {},
+  signOut: async () => {},
+};
+
+export function useClerk() {
+  return MOCK_CLERK;
+}
+
 export function useUser() {
   const { auth, user } = useStorybookMockState();
   return {

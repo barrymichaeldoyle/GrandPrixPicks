@@ -1,9 +1,19 @@
 import { access, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 
+import { colors } from '@grandprixpicks/shared/tokens';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { createElement as h } from 'react';
 import satori from 'satori';
+
+/**
+ * This is TypeScript rather than plain .mjs purely so it can import the design
+ * tokens. It used to hand-copy hex values and three of them went stale.
+ */
+function rgba(hex: string, alpha: number): string {
+  const int = Number.parseInt(hex.slice(1), 16);
+  return `rgba(${(int >> 16) & 255},${(int >> 8) & 255},${int & 255},${alpha})`;
+}
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -86,7 +96,7 @@ async function main() {
     );
   }
 
-  const flagGlyphSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const flagGlyphSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" fill="none" stroke="${colors.accentHover}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const flagGlyphDataUri = `data:image/svg+xml;base64,${Buffer.from(
     flagGlyphSvg,
   ).toString('base64')}`;
@@ -99,8 +109,8 @@ async function main() {
         height: `${HEIGHT}px`,
         display: 'flex',
         position: 'relative',
-        backgroundColor: '#0a0e17',
-        color: '#f8fafc',
+        backgroundColor: colors.page,
+        color: colors.text,
         fontFamily: 'Sans',
       },
     },
@@ -108,8 +118,7 @@ async function main() {
       style: {
         position: 'absolute',
         inset: 0,
-        background:
-          'linear-gradient(rgba(164,173,187,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(164,173,187,0.035) 1px, transparent 1px), radial-gradient(ellipse 520px 300px at 50% -20px, rgba(49,184,171,0.16), transparent 70%), radial-gradient(ellipse 300px 260px at 88% 42%, rgba(192,38,58,0.14), transparent 75%)',
+        background: `linear-gradient(${rgba(colors.textMuted, 0.035)} 1px, transparent 1px), linear-gradient(90deg, ${rgba(colors.textMuted, 0.035)} 1px, transparent 1px), radial-gradient(ellipse 520px 300px at 50% -20px, ${rgba(colors.accent, 0.16)}, transparent 70%), radial-gradient(ellipse 300px 260px at 88% 42%, ${rgba(colors.buttonAccent, 0.14)}, transparent 75%)`,
         backgroundSize: '48px 48px, 48px 48px, auto, auto',
       },
     }),
@@ -121,8 +130,7 @@ async function main() {
         width: '960px',
         height: '6px',
         borderRadius: '3px',
-        background:
-          'linear-gradient(90deg, #f04455 0%, #c0263a 45%, #31b8ab 100%)',
+        background: `linear-gradient(90deg, ${colors.racingRed} 0%, ${colors.buttonAccent} 45%, ${colors.accent} 100%)`,
       },
     }),
     h(
@@ -153,7 +161,7 @@ async function main() {
               width: '76px',
               height: '76px',
               borderRadius: '38px',
-              backgroundColor: 'rgba(20,184,166,0.14)',
+              backgroundColor: rgba(colors.accent, 0.14),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -171,7 +179,7 @@ async function main() {
               fontWeight: 900,
               letterSpacing: '-1.8px',
               lineHeight: 1,
-              color: '#f8fafc',
+              color: colors.text,
             },
           },
           'Grand Prix Picks',
@@ -184,7 +192,7 @@ async function main() {
             display: 'flex',
             flexDirection: 'column',
             maxWidth: '760px',
-            color: '#9fb0c8',
+            color: colors.textMuted,
             fontSize: '36px',
             lineHeight: 1.18,
             fontWeight: 500,
@@ -204,7 +212,7 @@ async function main() {
             width: '260px',
             height: '64px',
             borderRadius: '14px',
-            backgroundColor: '#c0263a',
+            backgroundColor: colors.buttonAccent,
             color: '#ffffff',
             fontSize: '30px',
             fontWeight: 900,
@@ -218,7 +226,7 @@ async function main() {
         'div',
         {
           style: {
-            color: '#2dd4bf',
+            color: colors.accentHover,
             fontSize: '40px',
             fontWeight: 800,
             letterSpacing: '-0.4px',

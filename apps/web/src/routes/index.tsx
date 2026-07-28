@@ -271,7 +271,7 @@ function HomePage() {
             {featuredRace && (
               <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
                 <div className="max-w-xl text-center lg:text-left">
-                  <p className="home-hero-eyebrow mb-4 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-cyan-300 uppercase">
+                  <p className="home-hero-eyebrow mb-4 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-accent uppercase">
                     <Flag
                       className="h-3.5 w-3.5 shrink-0"
                       aria-hidden="true"
@@ -282,7 +282,7 @@ function HomePage() {
                   <h1 className="home-hero-title text-4xl leading-[1.08] font-bold tracking-tight text-white sm:text-5xl lg:text-[3.5rem]">
                     The F1 prediction game for every race weekend
                   </h1>
-                  <p className="home-hero-copy mx-auto mt-5 max-w-[620px] text-base leading-7 text-slate-300 lg:mx-0 lg:max-w-[540px]">
+                  <p className="home-hero-copy mx-auto mt-5 max-w-[620px] text-base leading-7 text-text-muted lg:mx-0 lg:max-w-[540px]">
                     Pick the top five, call the teammate battles, and compete
                     with friends across qualifying, sprints, and races.
                   </p>
@@ -475,7 +475,7 @@ function HomePage() {
             {/* No race at all — fall back to brand-led hero */}
             {!featuredRace && (
               <div className="reveal-up mx-auto max-w-3xl text-center">
-                <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-cyan-300 uppercase sm:mb-4 sm:text-xs">
+                <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-accent uppercase sm:mb-4 sm:text-xs">
                   <Flag
                     className="h-3.5 w-3.5 shrink-0"
                     aria-hidden="true"
@@ -486,7 +486,7 @@ function HomePage() {
                 <h1 className="home-hero-title text-3xl font-bold tracking-tight text-white sm:text-5xl">
                   Pick the top 5 every Grand Prix weekend
                 </h1>
-                <p className="home-hero-copy mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance text-slate-300 sm:mt-5 sm:text-base">
+                <p className="home-hero-copy mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance text-text-muted sm:mt-5 sm:text-base">
                   Predict qualifying, sprint, and race finishes, call the
                   teammate head-to-heads, and compete with friends across the
                   season.
@@ -612,7 +612,9 @@ function HomePage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {/* Capped width so the eye doesn't have to track a session name
+                  across the full column to reach its time on desktop. */}
+              <div className="space-y-4 sm:max-w-lg">
                 {groupSessionsByDay(sessions).map(
                   ({ dayKey, dayLabel, sessions: daySessions }) => (
                     <div key={dayKey}>
@@ -785,7 +787,7 @@ function HomePage() {
         </FaqSection>
 
         <section className="px-3 pt-2 pb-14 sm:pb-16">
-          <div className="mx-auto max-w-4xl overflow-hidden rounded-md border border-racing-red/35 bg-racing-red-muted/25 px-5 py-8 text-center sm:px-8 sm:py-10">
+          <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-md border border-racing-red/35 bg-racing-red-muted/25 px-5 py-8 text-center sm:px-8 sm:py-10">
             <p className="text-xs font-semibold tracking-[0.18em] text-racing-red uppercase">
               Your next prediction starts here
             </p>

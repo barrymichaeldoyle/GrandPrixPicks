@@ -75,7 +75,7 @@ function RevsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
                   />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-text">
-                      {user.displayName ?? user.username ?? 'Unknown'}
+                      {resolveDisplayName(user)}
                     </p>
                     {user.username && (
                       <p className="truncate text-xs text-text-muted">
@@ -184,3 +184,4 @@ function FeedEventPage() {
   );
 }
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
+import { resolveDisplayName } from '@grandprixpicks/shared/displayName';

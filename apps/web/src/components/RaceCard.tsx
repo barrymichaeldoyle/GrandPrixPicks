@@ -104,12 +104,12 @@ export function RaceCard({
           <span className="mt-0.5 flex items-center gap-2 text-xs text-text-muted sm:hidden">
             <span>Round {race.round}</span>
             {race.hasSprint ? (
-              <span className="text-violet-300">Sprint</span>
+              <span className="text-sprint-text">Sprint</span>
             ) : null}
           </span>
         </span>
         {race.hasSprint ? (
-          <span className="hidden text-xs font-medium text-violet-300 sm:block">
+          <span className="hidden text-xs font-medium text-sprint-text sm:block">
             Sprint
           </span>
         ) : (
@@ -136,7 +136,7 @@ export function RaceCard({
       params={{ raceSlug: race.slug }}
       className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface shadow-sm shadow-black/10 transition-[border-color,box-shadow,opacity,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/70 hover:shadow-lg hover:shadow-black/20 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:outline-none ${
         hasCancelledBorder
-          ? 'border-destructive/30 hover:border-destructive/50 opacity-60'
+          ? 'border-error/30 opacity-60 hover:border-error/50'
           : isMutedPastRace
             ? 'border-border opacity-60 hover:border-border-strong focus-visible:border-border-strong'
             : isNext

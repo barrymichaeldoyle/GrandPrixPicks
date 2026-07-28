@@ -373,10 +373,10 @@ export function H2HResultsSection({
           {selectedTop5Result?.amendedAt != null &&
             selectedTop5Result.amendmentNote && (
               <div
-                className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5"
+                className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2.5"
                 data-testid="results-amended-banner"
               >
-                <Gavel className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                <Gavel className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                 <div className="min-w-0 text-sm">
                   <p className="font-semibold text-text">
                     Results amended{' '}

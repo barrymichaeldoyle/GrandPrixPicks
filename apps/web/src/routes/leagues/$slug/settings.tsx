@@ -27,6 +27,7 @@ import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/leagues/$slug/settings')({
   component: LeagueSettingsPage,
@@ -71,18 +72,17 @@ function LeagueSettingsPage() {
     return (
       <div className="min-h-full bg-page">
         <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              League Not Found
-            </h1>
-            <p className="mb-4 text-text-muted">
-              This league doesn't exist or may have been deleted.
-            </p>
-            <Button asChild size="sm" leftIcon={ArrowLeft}>
-              <Link to="/leagues">Back to Leagues</Link>
-            </Button>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={Shield}
+            title="League Not Found"
+            description="This league doesn't exist or may have been deleted."
+            action={
+              <Button asChild size="sm" leftIcon={ArrowLeft}>
+                <Link to="/leagues">Back to Leagues</Link>
+              </Button>
+            }
+          />
         </div>
       </div>
     );
@@ -92,18 +92,17 @@ function LeagueSettingsPage() {
     return (
       <div className="min-h-full bg-page">
         <div className="mx-auto max-w-lg px-4 py-16">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              Sign In Required
-            </h1>
-            <p className="mb-4 text-text-muted">
-              Sign in to manage league settings.
-            </p>
-            <AppSignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
-            </AppSignInButton>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={LogIn}
+            title="Sign In Required"
+            description="Sign in to manage league settings."
+            action={
+              <AppSignInButton mode="modal">
+                <Button size="sm">Sign In</Button>
+              </AppSignInButton>
+            }
+          />
         </div>
       </div>
     );

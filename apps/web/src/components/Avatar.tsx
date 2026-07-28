@@ -42,13 +42,16 @@ export function Avatar({
   size?: 'xs' | 'sm' | 'md' | 'lg';
 }) {
   const { className: sizeClass, px } = SIZES[size];
-  const initial = (username ?? '?')[0].toUpperCase();
+  // `||` not `??`: an empty username is as absent as a null one, and indexing
+  // into '' would blow up on .toUpperCase().
+  const name = username || '?';
+  const initial = name[0].toUpperCase();
 
   if (avatarUrl) {
     return (
       <img
         src={sizedAvatarUrl(avatarUrl, px)}
-        alt={username ?? 'User avatar'}
+        alt={username || 'User avatar'}
         width={px}
         height={px}
         loading="lazy"
@@ -61,7 +64,7 @@ export function Avatar({
   return (
     <span
       className={`${sizeClass} inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white`}
-      style={{ backgroundColor: hashColor(username ?? '?') }}
+      style={{ backgroundColor: hashColor(name) }}
     >
       {initial}
     </span>

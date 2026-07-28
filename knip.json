@@ -13,7 +13,6 @@
         "server/routes/**/*.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
-      "ignoreFiles": ["src/components/RaceCardSkeleton.tsx"],
       "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss"],
       "ignoreBinaries": ["cloudflared"]
     },

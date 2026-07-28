@@ -11,6 +11,7 @@ import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { withRetry } from '@/lib/retry';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
+import { PageHeader } from '@/components/PageHeader';
 
 export const Route = createFileRoute('/races/')({
   component: RacesPage,
@@ -144,61 +145,55 @@ function RacesPage() {
             </div>
           ) : (
             <div className="reveal-up reveal-delay-2">
-              <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-                    2026 season
-                  </p>
-                  <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-                    Race calendar
-                  </h1>
-                  <p className="mt-1.5 text-sm text-text-muted">
-                    Pick the top five before each session locks.
-                  </p>
-                </div>
-
-                <div
-                  className="grid grid-cols-3 gap-1 rounded-lg bg-surface-muted/55 p-1 sm:w-auto sm:min-w-md"
-                  aria-label="Filter races"
-                >
-                  <Button
-                    type="button"
-                    variant="tab"
-                    size="tab"
-                    active={view === 'upcoming'}
-                    onClick={() => setView('upcoming')}
+              <PageHeader
+                eyebrow="2026 season"
+                title="Race calendar"
+                subtitle="Pick the top five before each session locks."
+                actionsPlacement="trailing"
+                actions={
+                  <div
+                    className="grid grid-cols-3 gap-1 rounded-lg bg-surface-muted/55 p-1 sm:w-auto sm:min-w-md"
+                    aria-label="Filter races"
                   >
-                    Upcoming
-                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
-                      {upcomingCount}
-                    </span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="tab"
-                    size="tab"
-                    active={view === 'completed'}
-                    onClick={() => setView('completed')}
-                  >
-                    Completed
-                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
-                      {completedCount}
-                    </span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="tab"
-                    size="tab"
-                    active={view === 'all'}
-                    onClick={() => setView('all')}
-                  >
-                    All
-                    <span className="ml-1 hidden text-xs opacity-75 sm:inline">
-                      {orderedRaces.length}
-                    </span>
-                  </Button>
-                </div>
-              </div>
+                    <Button
+                      type="button"
+                      variant="tab"
+                      size="tab"
+                      active={view === 'upcoming'}
+                      onClick={() => setView('upcoming')}
+                    >
+                      Upcoming
+                      <span className="ml-1 hidden text-xs opacity-75 sm:inline">
+                        {upcomingCount}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="tab"
+                      size="tab"
+                      active={view === 'completed'}
+                      onClick={() => setView('completed')}
+                    >
+                      Completed
+                      <span className="ml-1 hidden text-xs opacity-75 sm:inline">
+                        {completedCount}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="tab"
+                      size="tab"
+                      active={view === 'all'}
+                      onClick={() => setView('all')}
+                    >
+                      All
+                      <span className="ml-1 hidden text-xs opacity-75 sm:inline">
+                        {orderedRaces.length}
+                      </span>
+                    </Button>
+                  </div>
+                }
+              />
               {displayedFeaturedRace ? (
                 <div className="mb-6 max-w-3xl">
                   <p className="mb-2 text-xs font-semibold tracking-widest text-text-muted uppercase">

@@ -23,6 +23,7 @@ import type {
   LeagueView,
   TimeScope,
 } from './$slug/-components/types';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/leagues/$slug')({
   component: LeagueDetailPage,
@@ -106,18 +107,17 @@ function LeagueDetailPage() {
     return (
       <div className="min-h-full bg-page">
         <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <Shield className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              League Not Found
-            </h1>
-            <p className="mb-4 text-text-muted">
-              This league doesn't exist or may have been deleted.
-            </p>
-            <Button asChild size="sm" leftIcon={ArrowLeft}>
-              <Link to="/leagues">Back to Leagues</Link>
-            </Button>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={Shield}
+            title="League Not Found"
+            description="This league doesn't exist or may have been deleted."
+            action={
+              <Button asChild size="sm" leftIcon={ArrowLeft}>
+                <Link to="/leagues">Back to Leagues</Link>
+              </Button>
+            }
+          />
         </div>
       </div>
     );

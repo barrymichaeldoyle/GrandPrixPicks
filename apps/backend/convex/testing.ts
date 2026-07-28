@@ -75,7 +75,14 @@ export const createTestRace = internalMutation({
     slug: v.string(),
     round: v.number(),
     startsInMs: v.number(), // positive = future, negative = past
-    status: v.optional(v.string()),
+    status: v.optional(
+      v.union(
+        v.literal('upcoming'),
+        v.literal('locked'),
+        v.literal('finished'),
+        v.literal('cancelled'),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const now = Date.now();

@@ -1,9 +1,14 @@
+import type { Doc } from '@convex-generated/dataModel';
 import { CalendarDays, Layers, Swords, Trophy, Users } from 'lucide-react';
+
+/** Only the fields this view reads, but typed off the schema so `status` stays a union. */
+type WeekendRace = Pick<Doc<'races'>, '_id' | 'name' | 'status'>;
 
 import { LeaderboardBoard } from './board';
 import { FollowingGuard } from './FollowingContent';
 import { LeaderboardContentLoader } from './rows';
 import type { GameMode, RaceLeaderboardResult, Scope } from './types';
+import { NoticeCard } from '@/components/NoticeCard';
 
 export function WeekendContent({
   defaultRace,
@@ -12,7 +17,7 @@ export function WeekendContent({
   isSignedIn,
   activeData,
 }: {
-  defaultRace: { _id: string; name: string; status: string } | null;
+  defaultRace: WeekendRace | null;
   scope: Scope;
   gameMode: GameMode;
   isSignedIn: boolean | undefined;
@@ -20,13 +25,11 @@ export function WeekendContent({
 }) {
   if (!defaultRace) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-8 text-center">
-        <CalendarDays className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        <h2 className="mb-2 text-xl font-semibold text-text">No races yet</h2>
-        <p className="text-text-muted">
-          Weekend leaderboards will appear once the season begins.
-        </p>
-      </div>
+      <NoticeCard
+        icon={CalendarDays}
+        title="No races yet"
+        description="Weekend leaderboards will appear once the season begins."
+      />
     );
   }
 
@@ -49,13 +52,11 @@ export function WeekendContent({
 
   if (activeData === null) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-8 text-center">
-        <Layers className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        <h2 className="mb-2 text-xl font-semibold text-text">No scores yet</h2>
-        <p className="text-text-muted">
-          Scores will appear once race results are published.
-        </p>
-      </div>
+      <NoticeCard
+        icon={Layers}
+        title="No scores yet"
+        description="Scores will appear once race results are published."
+      />
     );
   }
 
@@ -63,19 +64,15 @@ export function WeekendContent({
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-8 text-center">
-        {gameMode === 'h2h' ? (
-          <Swords className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        ) : (
-          <Trophy className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        )}
-        <h2 className="mb-2 text-xl font-semibold text-text">No scores yet</h2>
-        <p className="text-text-muted">
-          {defaultRace.status === 'finished'
+      <NoticeCard
+        icon={gameMode === 'h2h' ? Swords : Trophy}
+        title="No scores yet"
+        description={
+          defaultRace.status === 'finished'
             ? 'No predictions were submitted for this weekend.'
-            : 'Scores will appear once race results are published.'}
-        </p>
-      </div>
+            : 'Scores will appear once race results are published.'
+        }
+      />
     );
   }
 
@@ -88,7 +85,7 @@ function WeekendFollowingContent({
   isSignedIn,
   activeData,
 }: {
-  defaultRace: { _id: string; name: string; status: string };
+  defaultRace: WeekendRace;
   gameMode: GameMode;
   isSignedIn: boolean | undefined;
   activeData: RaceLeaderboardResult;
@@ -112,20 +109,20 @@ function WeekendFollowingContent({
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-8 text-center">
-        <Users className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        <h2 className="mb-2 text-xl font-semibold text-text">
-          No one here yet
-        </h2>
-        <p className="mb-4 text-text-muted">
-          {defaultRace.status === 'finished'
+      <NoticeCard
+        icon={Users}
+        title="No one here yet"
+        description={
+          defaultRace.status === 'finished'
             ? 'None of the people you follow submitted predictions for this weekend.'
-            : 'Follow other players from their profile to see them here.'}
-        </p>
-        <p className="text-sm text-text-muted">
-          Browse the global leaderboard to find players to follow.
-        </p>
-      </div>
+            : 'Follow other players from their profile to see them here.'
+        }
+        action={
+          <p className="text-sm text-text-muted">
+            Browse the global leaderboard to find players to follow.
+          </p>
+        }
+      />
     );
   }
 

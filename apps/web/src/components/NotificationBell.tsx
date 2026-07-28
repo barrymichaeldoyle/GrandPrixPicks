@@ -307,7 +307,7 @@ function NotificationItem({
       >
         <div className="flex items-start gap-3 px-4 py-3">
           <LeftCol>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-green-500">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success/15 text-success">
               <Trophy className="h-4 w-4" />
             </div>
           </LeftCol>
@@ -317,7 +317,7 @@ function NotificationItem({
                 {resultTitle}
               </p>
               {hasPoints && (
-                <span className="shrink-0 rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-500">
+                <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
                   +{notification.points} pts
                 </span>
               )}
@@ -358,7 +358,7 @@ function NotificationItem({
       >
         <div className="flex items-start gap-3 px-4 py-3">
           <LeftCol>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
               <Gavel className="h-4 w-4" />
             </div>
           </LeftCol>
@@ -368,7 +368,7 @@ function NotificationItem({
                 {amendedTitle}
               </p>
               {hasPoints && (
-                <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-500">
+                <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
                   now +{notification.points} pts
                 </span>
               )}
@@ -438,7 +438,7 @@ function NotificationItem({
     <Link to="/feed" onClick={handleClick} className={itemClass}>
       <div className="flex items-start gap-3 px-4 py-3">
         <LeftCol>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
             <Lock className="h-4 w-4" />
           </div>
         </LeftCol>
@@ -642,7 +642,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] leading-none font-bold text-white"
+            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-[10px] leading-none font-bold text-white"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>

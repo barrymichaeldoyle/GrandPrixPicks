@@ -182,7 +182,7 @@ export function fromRaceDetail({
     raceSlug: race.slug,
     raceName: race.name,
     raceRound: race.round,
-    raceStatus: race.status as 'upcoming' | 'locked' | 'finished' | 'cancelled',
+    raceStatus: race.status,
     raceDate: race.raceStartAt,
     hasSprint: race.hasSprint ?? false,
     sessions,

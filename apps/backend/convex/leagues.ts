@@ -10,6 +10,7 @@ import {
   isHashedLeaguePassword,
   verifyLeaguePassword,
 } from './lib/leaguePassword';
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 const RESERVED_LEAGUE_SLUGS = new Set(['create']);
@@ -377,8 +378,8 @@ export const getLeagueMembers = query({
           userId: m.userId,
           role: m.role,
           joinedAt: m.joinedAt,
-          displayName: user?.displayName ?? user?.username ?? 'Anonymous',
-          username: user?.username ?? 'Anonymous',
+          displayName: user?.displayName ?? user?.username ?? ANONYMOUS_NAME,
+          username: user?.username ?? ANONYMOUS_NAME,
           avatarUrl: user?.avatarUrl,
           top5Picked:
             args.raceId !== undefined

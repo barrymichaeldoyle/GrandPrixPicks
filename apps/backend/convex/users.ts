@@ -30,6 +30,7 @@ import {
   type StandingsSyncFields,
   type StandingsSyncStep,
 } from './lib/standings';
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 type AccountDeletionSummary = {
   follows: number;
@@ -1031,7 +1032,7 @@ export const getProfileOgData = query({
     const seasonRank = ranked.viewerRank;
 
     return {
-      displayName: user.displayName ?? user.username ?? 'Anonymous',
+      displayName: user.displayName ?? user.username ?? ANONYMOUS_NAME,
       username: user.username ?? 'anonymous',
       avatarUrl: user.avatarUrl,
       totalPoints,

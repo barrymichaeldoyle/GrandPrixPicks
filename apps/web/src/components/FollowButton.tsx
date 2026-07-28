@@ -10,13 +10,24 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 interface FollowButtonProps {
   followeeId: Id<'users'>;
   source?: string;
+  /**
+   * Pass this when the caller already knows the follow state (feed rows carry
+   * it on the event) to skip a per-row query. Omit it and the button fetches
+   * its own state.
+   */
+  isFollowing?: boolean;
 }
 
 export function FollowButton({
   followeeId,
   source = 'follow_button',
+  isFollowing: isFollowingProp,
 }: FollowButtonProps) {
-  const isFollowing = useQuery(api.follows.isFollowing, { followeeId });
+  const queriedIsFollowing = useQuery(
+    api.follows.isFollowing,
+    isFollowingProp === undefined ? { followeeId } : 'skip',
+  );
+  const isFollowing = isFollowingProp ?? queriedIsFollowing;
   const followMutation = useMutation(api.follows.follow);
   const unfollowMutation = useMutation(api.follows.unfollow);
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
@@ -64,7 +75,7 @@ export function FollowButton({
         onMouseLeave={() => setIsHovered(false)}
         className={`${buttonClass} ${
           isHovered
-            ? 'border border-red-500/30 bg-red-500/10 text-red-400'
+            ? 'border border-error/30 bg-error/10 text-error'
             : 'border border-border bg-surface-muted text-text-muted'
         }`}
       >

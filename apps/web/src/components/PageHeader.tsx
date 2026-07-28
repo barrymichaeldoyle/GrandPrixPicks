@@ -7,6 +7,12 @@ type PageHeaderProps = {
   subtitle?: ReactNode;
   /** Buttons or links rendered beneath the supporting copy. */
   actions?: ReactNode;
+  /**
+   * Where `actions` sit. Content pages want them below the copy; index pages
+   * (leaderboard, leagues, races) want the primary action beside the title on
+   * wide screens, dropping under it on mobile.
+   */
+  actionsPlacement?: 'below' | 'trailing';
   className?: string;
 };
 
@@ -25,10 +31,11 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  actionsPlacement = 'below',
   className,
 }: PageHeaderProps) {
-  return (
-    <header className={`mb-10 ${className ?? ''}`}>
+  const heading = (
+    <div>
       {eyebrow ? (
         <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
           {eyebrow}
@@ -42,6 +49,23 @@ export function PageHeader({
           {subtitle}
         </p>
       ) : null}
+    </div>
+  );
+
+  if (actions && actionsPlacement === 'trailing') {
+    return (
+      <header className={`mb-10 ${className ?? ''}`}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          {heading}
+          {actions}
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header className={`mb-10 ${className ?? ''}`}>
+      {heading}
       {actions ? <div className="mt-6">{actions}</div> : null}
     </header>
   );

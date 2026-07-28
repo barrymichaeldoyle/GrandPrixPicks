@@ -1,3 +1,5 @@
+import { colors as tokens } from '@grandprixpicks/shared/tokens';
+
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
@@ -16,21 +18,30 @@ export function getOgDimensions(size: OgImageSize): {
     : { width: OG_WIDTH, height: OG_HEIGHT };
 }
 
-// Dark-mode palette — matches .dark / [data-theme='dark'] in styles.css
+/**
+ * OG card palette, derived from the design tokens.
+ *
+ * Satori cannot resolve CSS custom properties, so these have to be literal hex
+ * strings. That is the only reason this object exists: it is a renaming layer
+ * over `@grandprixpicks/shared/tokens`, never a place to author a colour. An
+ * earlier hand-copied version of this map drifted until 8 of its 9 colours no
+ * longer matched the app, so share cards shipped in a palette the product had
+ * abandoned. Add colours to tokens.ts and alias them here.
+ */
 export const colors = {
-  bg: '#0f172a',
-  surface: '#1e293b',
-  accent: '#14b8a6',
-  accentHover: '#2dd4bf',
-  buttonAccent: '#0d9488',
-  accentMuted: '#134e4a',
-  text: '#f8fafc',
-  textMuted: '#94a3b8',
-  border: '#334155',
-  gold: '#fbbf24',
-  silver: '#9ca3af',
-  bronze: '#d97706',
-  // Race status (semantic, matches app)
-  statusUpcoming: '#22c55e',
-  statusLocked: '#eab308',
+  bg: tokens.page,
+  surface: tokens.surface,
+  accent: tokens.accent,
+  accentHover: tokens.accentHover,
+  buttonAccent: tokens.buttonAccent,
+  accentMuted: tokens.accentMuted,
+  text: tokens.text,
+  textMuted: tokens.textMuted,
+  border: tokens.border,
+  gold: tokens.podiumGold,
+  silver: tokens.podiumSilver,
+  bronze: tokens.podiumBronze,
+  // Race status, using the same semantic tokens the app's status badges use.
+  statusUpcoming: tokens.success,
+  statusLocked: tokens.warning,
 };

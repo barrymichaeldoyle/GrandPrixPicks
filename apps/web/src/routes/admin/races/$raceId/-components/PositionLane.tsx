@@ -3,7 +3,7 @@ import type { DriverStatus } from '@grandprixpicks/shared/driverStatus';
 import { useDroppable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 
-import { DriverSearchSelect } from '@/components/DriverSearchSelect';
+import { DriverSearchSelect } from '@/components/admin/DriverSearchSelect';
 
 import { DraggableDriverCard } from './DraggableDriverCard';
 import { LANE_ID_PREFIX } from './laneUtils';

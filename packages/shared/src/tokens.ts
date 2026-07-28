@@ -1,44 +1,80 @@
 /**
- * Shared design tokens — dark mode palette.
- * Consumed by mobile (React Native) directly, and by web via generated CSS.
+ * Design tokens — the single source of truth for the Grand Prix Picks palette.
  *
- * To update web colors: edit this file, then run `pnpm generate-tokens`.
- * This is done automatically before `dev` and `build`.
+ * The web app is the reference implementation: these values are what
+ * apps/web renders, and this file is the only place they are authored.
+ * Mobile consumes the same values via `@grandprixpicks/shared/tokens`.
+ *
+ * Web never redefines a token locally. Editing a colour here changes both
+ * apps. Run `pnpm generate-tokens` to regenerate apps/web/src/tokens.generated.css
+ * (done automatically before web dev/build).
+ *
+ * Dark mode is currently the only theme; `.dark` is hard-coded on <html>.
  */
 export const colors = {
-  // Base
-  page: '#0f172a',
-  surface: '#1e293b',
-  surfaceElevated: '#243246',
-  surfaceMuted: '#334155',
+  // Base — a near-black night-race canvas.
+  page: '#0a0e17',
+  surface: '#131a27',
+  surfaceElevated: '#192231',
+  surfaceMuted: '#222d3e',
+  surfaceHover: '#273349',
 
   // Borders
-  border: '#334155',
-  borderStrong: '#475569',
+  border: '#2b3749',
+  borderStrong: '#46546a',
 
   // Text
   text: '#f8fafc',
-  textMuted: '#94a3b8',
+  textMuted: '#a4adbb',
 
-  // Accent (teal)
-  accent: '#14b8a6', // --accent (general use: icons, highlights)
-  accentHover: '#2dd4bf', // --accent-hover
-  accentMuted: '#134e4a', // --accent-muted (dark bg tint)
-  buttonAccent: '#0f766e', // --button-accent (buttons in dark mode — dark enough for 4.5:1 white text)
-  buttonAccentHover: '#115e59', // --button-accent-hover
+  // Accent (teal) — navigation, icons, highlights.
+  accent: '#31b8ab',
+  accentHover: '#50c9bd',
+  accentMuted: '#143f3d', // dark background tint
+
+  // Action (warm red) — primary buttons. Dark enough for 4.5:1 white text.
+  buttonAccent: '#c0263a',
+  buttonAccentHover: '#d72d42',
+  buttonAccentShadow: '#761827', // the pressed/bottom edge on raised buttons
+
+  // Brand — motorsport livery accents used for emphasis and atmosphere.
+  racingRed: '#f04455',
+  racingRedMuted: '#5f1726',
+  racingAmber: '#ffb020',
+
+  // Sprint weekends — the one domain concept with its own colour.
+  sprint: '#7e22ce', // badge background, used as a low-alpha wash
+  sprintBorder: '#a78bfa',
+  sprintText: '#c4b5fd',
+
+  // Podium — leaderboard ranks 1/2/3 and the OG share cards.
+  podiumGold: '#fbbf24',
+  podiumSilver: '#9ca3af',
+  podiumBronze: '#d97706',
 
   // Semantic
   error: '#f87171',
+  errorMuted: '#7f1d1d',
   success: '#34d399',
   successMuted: '#064e3b',
   warning: '#fbbf24',
   warningMuted: '#78350f',
 } as const;
 
+/**
+ * Corner radii in px. Deliberately tighter than the framework defaults: the
+ * racing/technical geometry stays crisp without every control looking cut from
+ * the same sheet of metal. Identity and status elements (avatars, rank badges)
+ * use `pill` and keep their full circle shape.
+ *
+ * Names match the Tailwind radius scale so `rounded-lg` on web and `radii.lg`
+ * on mobile mean the same thing.
+ */
 export const radii = {
-  md: 10,
-  lg: 12,
-  xl: 16,
+  md: 4,
+  lg: 6,
+  xl: 8,
+  '2xl': 10,
   pill: 999,
 } as const;
 

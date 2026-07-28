@@ -6,6 +6,10 @@ import { SettingsSection } from '@/components/SettingsSection';
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 
 import type { SettingsUser } from './settingsTypes';
+import {
+  ANONYMOUS_NAME,
+  resolveDisplayName,
+} from '@grandprixpicks/shared/displayName';
 
 export function ProfileSection({
   user,
@@ -118,7 +122,7 @@ export function ProfileSection({
           )}
 
           {error && (
-            <div className="rounded-sm border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-400">
+            <div className="rounded-sm border border-error/30 bg-error/10 px-3 py-2.5 text-sm text-error">
               {error}
             </div>
           )}
@@ -147,7 +151,7 @@ export function ProfileSection({
             />
             <div className="min-w-0">
               <p className="font-medium text-text">
-                {user?.displayName ?? user?.username ?? 'Anonymous'}
+                {user ? resolveDisplayName(user) : ANONYMOUS_NAME}
               </p>
               {user?.username && (
                 <p className="text-sm text-text-muted">@{user?.username}</p>
@@ -165,9 +169,9 @@ export function ProfileSection({
 
 function UsernameWarning({ confirm = false }: { confirm?: boolean }) {
   return (
-    <div className="flex items-start gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-      <p className="text-sm font-normal text-amber-400">
+    <div className="flex items-start gap-2 rounded-sm border border-warning/30 bg-warning/10 px-3 py-2.5">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+      <p className="text-sm font-normal text-warning">
         {confirm
           ? "Changing your username will break any existing links to your profile. You won't be able to change it again for 90 days."
           : 'You can only change your username once every 90 days. Your old profile link will stop working.'}

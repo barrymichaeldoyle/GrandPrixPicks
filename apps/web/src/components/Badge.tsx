@@ -1,5 +1,9 @@
+import type { Doc } from '@convex-generated/dataModel';
 import { Clock, Lock, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
+
+/** The race lifecycle union, straight from the Convex schema. */
+type RaceStatus = Doc<'races'>['status'];
 
 type BadgeVariant =
   | 'sprint'
@@ -16,13 +20,13 @@ const mutedBadgeStyles =
   'bg-surface-muted text-text-muted border border-border';
 
 const variantStyles: Record<BadgeVariant, string> = {
-  sprint: 'sprint-badge bg-purple-950/35 border border-purple-500/40',
+  sprint: 'bg-sprint/30 text-sprint-text border border-sprint-border/45',
   upcoming: successBadgeStyles,
   not_yet_open: mutedBadgeStyles,
   locked: 'border border-warning/50 bg-warning/18 text-warning',
   submitted: successBadgeStyles,
   finished: mutedBadgeStyles,
-  cancelled: 'border border-destructive/50 bg-destructive/15 text-destructive',
+  cancelled: 'border border-error/50 bg-error/15 text-error',
 };
 
 const statusIcons: Record<
@@ -80,8 +84,8 @@ export function Badge({ variant, icon, children }: BadgeProps) {
 }
 
 interface StatusBadgeProps {
-  /** Race status from Convex: "upcoming" | "locked" | "finished" | "cancelled". */
-  status: string;
+  /** Race status, carried through from the Convex schema's union. */
+  status: RaceStatus;
   /** When true and status is upcoming, shows "Open for predictions". When false and status is upcoming, shows "Not yet open". */
   isNext?: boolean;
 }
@@ -90,10 +94,9 @@ export function StatusBadge({ status, isNext }: StatusBadgeProps) {
   if (status === 'cancelled') {
     return <Badge variant="cancelled">Called Off</Badge>;
   }
+
   const effectiveStatus: BadgeVariant =
-    status === 'upcoming' && !isNext
-      ? 'not_yet_open'
-      : (status as BadgeVariant);
+    status === 'upcoming' && !isNext ? 'not_yet_open' : status;
 
   return <Badge variant={effectiveStatus} />;
 }

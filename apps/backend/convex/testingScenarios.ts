@@ -1383,7 +1383,7 @@ async function deleteStandingsByUser(
 function buildTimings(phase: RacePhase, now: number) {
   if (phase === 'upcoming_open') {
     return {
-      status: 'upcoming',
+      status: 'upcoming' as const,
       sprintQualiStartAt: now + 15 * MINUTE,
       sprintQualiLockAt: now + 15 * MINUTE,
       sprintStartAt: now + 30 * MINUTE,
@@ -1397,7 +1397,7 @@ function buildTimings(phase: RacePhase, now: number) {
 
   if (phase === 'locked_pending_results' || phase === 'partial_results') {
     return {
-      status: 'locked',
+      status: 'locked' as const,
       sprintQualiStartAt: now - 50 * HOUR,
       sprintQualiLockAt: now - 50 * HOUR,
       sprintStartAt: now - 30 * HOUR,
@@ -1410,7 +1410,7 @@ function buildTimings(phase: RacePhase, now: number) {
   }
 
   return {
-    status: 'finished',
+    status: 'finished' as const,
     sprintQualiStartAt: now - 54 * HOUR,
     sprintQualiLockAt: now - 54 * HOUR,
     sprintStartAt: now - 30 * HOUR,

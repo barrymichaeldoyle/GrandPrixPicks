@@ -1,17 +1,18 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { useMutation, useQuery } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { Check, Flag, Gauge, Trophy, X } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { captureAnalyticsEvent } from '@/lib/analytics';
-
 import { Avatar } from './Avatar';
+import { FollowButton } from './FollowButton';
 import { DriverBadge, ScoredDriverBadge } from './DriverBadge';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
+import { podiumClasses } from '@/lib/podium';
 import { SESSION_LABELS_FULL } from '@/lib/sessions';
 import { RaceFlag } from './RaceFlag';
 import { RevButton } from './RevButton';
@@ -107,7 +108,7 @@ function UserLink({
   username?: string;
   displayName?: string;
 }) {
-  const name = displayName ?? username ?? 'Unknown';
+  const name = resolveDisplayName({ displayName, username });
   if (!username) {
     return <span className="font-semibold text-text">{name}</span>;
   }
@@ -318,62 +319,6 @@ function H2HPicksDialog({
   );
 }
 
-function FollowButton({
-  userId,
-  isFollowing,
-}: {
-  userId: Id<'users'>;
-  isFollowing: boolean;
-}) {
-  const follow = useMutation(api.follows.follow);
-  const unfollow = useMutation(api.follows.unfollow);
-  const [optimistic, setOptimistic] = useState<boolean | null>(null);
-  const [hovered, setHovered] = useState(false);
-
-  const following = optimistic ?? isFollowing;
-
-  async function handleClick(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    setOptimistic(!following);
-    try {
-      if (following) {
-        await unfollow({ followeeId: userId });
-        captureAnalyticsEvent('user_unfollowed', {
-          followee_id: userId,
-          source: 'feed_item',
-        });
-      } else {
-        await follow({ followeeId: userId });
-        captureAnalyticsEvent('user_followed', {
-          followee_id: userId,
-          source: 'feed_item',
-        });
-      }
-    } catch {
-      setOptimistic(null);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`shrink-0 rounded-sm px-3 py-1 text-xs font-semibold transition-colors ${
-        following
-          ? hovered
-            ? 'border border-error/40 bg-error/10 text-error'
-            : 'border border-border bg-surface-muted text-text-muted'
-          : 'border border-accent/40 bg-accent/10 text-accent hover:bg-accent/20'
-      }`}
-    >
-      {following ? (hovered ? 'Unfollow' : 'Following') : 'Follow'}
-    </button>
-  );
-}
-
 function RevsModal({
   feedEventId,
   onClose,
@@ -441,13 +386,14 @@ function RevsModal({
                       size="sm"
                     />
                     <span className="truncate text-sm font-medium text-text">
-                      {user.displayName ?? user.username ?? 'Unknown'}
+                      {resolveDisplayName(user)}
                     </span>
                   </Link>
                   {me && user.userId !== me._id && (
                     <FollowButton
-                      userId={user.userId}
+                      followeeId={user.userId}
                       isFollowing={followedSet.has(user.userId)}
+                      source="feed_item"
                     />
                   )}
                 </div>
@@ -787,19 +733,12 @@ function RankMedal({ rank }: { rank: number | null }) {
     return <span className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />;
   }
 
-  const medal =
-    rank === 1
-      ? 'bg-warning/15 text-warning ring-1 ring-warning/30'
-      : rank === 2
-        ? 'bg-text-muted/15 text-text-muted ring-1 ring-text-muted/25'
-        : rank === 3
-          ? 'bg-orange-400/15 text-orange-400 ring-1 ring-orange-400/30'
-          : null;
+  const medal = podiumClasses(rank);
 
   if (medal) {
     return (
       <span
-        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-xs font-bold tabular-nums ${medal}`}
+        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border text-xs font-bold tabular-nums ${medal}`}
       >
         {rank}
       </span>

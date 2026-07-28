@@ -29,6 +29,8 @@ import { PageLoader } from '@/components/PageLoader';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from '@/components/RaceFlag';
 import { pageMeta } from '@/lib/site';
+import { NoticeCard } from '@/components/NoticeCard';
+import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
 
 /**
  * Only accept same-origin relative paths for the "back" link. Without this an
@@ -178,26 +180,26 @@ function ProfilePage() {
     return (
       <div className="bg-page">
         <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <User className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              User not found
-            </h1>
-            <p className="mb-4 text-text-muted">
-              No user with the username &quot;{username}&quot; exists.
-            </p>
-            <Link to="/leaderboard" className={primaryButtonStyles('sm')}>
-              View Leaderboard
-            </Link>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={User}
+            title="User not found"
+            description={
+              <>No user with the username &quot;{username}&quot; exists.</>
+            }
+            action={
+              <Link to="/leaderboard" className={primaryButtonStyles('sm')}>
+                View Leaderboard
+              </Link>
+            }
+          />
         </div>
       </div>
     );
   }
 
   const isOwner = currentProfile.isOwner;
-  const displayName =
-    currentProfile.displayName ?? currentProfile.username ?? 'Anonymous';
+  const displayName = resolveDisplayName(currentProfile);
 
   const scoredWeekends = (weekends ?? [])
     .filter((weekend) => weekend.hasScores)

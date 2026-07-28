@@ -11,6 +11,7 @@ import {
   mapRowsToLeaderboardEntries,
   streamRankedLeaderboardRows,
 } from './lib/leaderboard';
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 type CombinedRow = {
   userId: Id<'users'>;
@@ -49,7 +50,7 @@ function buildCombinedViewerEntry(
   return {
     rank: row.rank,
     userId: viewer._id,
-    username: viewer.username ?? 'Anonymous',
+    username: viewer.username ?? ANONYMOUS_NAME,
     displayName: viewer.displayName,
     points: row.top5Points + row.h2hPoints,
     top5Points: row.top5Points,
@@ -196,7 +197,7 @@ export const getSeasonLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -255,7 +256,7 @@ export const getFriendsLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -309,7 +310,7 @@ export const getFriendsH2HLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -324,7 +325,7 @@ export const getFriendsH2HLeaderboard = query({
       return {
         rank: row.rank,
         userId: row.userId,
-        username: row.username ?? 'Anonymous',
+        username: row.username ?? ANONYMOUS_NAME,
         displayName: row.displayName,
         avatarUrl: row.avatarUrl,
         points: row.totalPoints,
@@ -387,7 +388,7 @@ export const getLeagueLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -427,7 +428,7 @@ export const getCombinedSeasonLeaderboard = query({
     const entries = paginatedRows.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
@@ -472,7 +473,7 @@ export const getFriendsCombinedLeaderboard = query({
     const entries = paginatedRows.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
@@ -594,7 +595,7 @@ export const getCombinedRaceLeaderboard = query({
     const entries = ranked.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
@@ -677,7 +678,7 @@ export const getH2HRaceLeaderboard = query({
       return {
         rank: row.rank,
         userId: row.userId,
-        username: user?.username ?? 'Anonymous',
+        username: user?.username ?? ANONYMOUS_NAME,
         displayName: user?.displayName,
         avatarUrl: user?.avatarUrl,
         points: row.points,
@@ -758,7 +759,7 @@ export const getLeagueCombinedSeasonLeaderboard = query({
     const entries = paginatedRows.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
@@ -810,7 +811,7 @@ export const getLeagueH2HSeasonLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -823,7 +824,7 @@ export const getLeagueH2HSeasonLeaderboard = query({
     const enrichedRows = ranked.pageRows.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.totalPoints,
@@ -1014,7 +1015,7 @@ export const getLeagueCombinedRaceLeaderboard = query({
     const entries = ranked.map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
@@ -1096,7 +1097,7 @@ export const getLeagueH2HRaceLeaderboard = query({
       return {
         rank: row.rank,
         userId: row.userId,
-        username: user?.username ?? 'Anonymous',
+        username: user?.username ?? ANONYMOUS_NAME,
         displayName: user?.displayName,
         avatarUrl: user?.avatarUrl,
         points: row.points,

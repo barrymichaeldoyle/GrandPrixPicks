@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Check, GripVertical, Swords, Trophy } from 'lucide-react';
+import { ArrowRight, Check, Swords, Trophy } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 
@@ -90,10 +90,6 @@ export function GameplayPreview({ raceSlug }: { raceSlug: string | null }) {
                 key={pick.code}
                 className="flex items-center gap-3 rounded-sm border border-border/75 bg-page/65 px-3 py-2.5"
               >
-                <GripVertical
-                  className="h-4 w-4 shrink-0 text-text-muted/55"
-                  aria-hidden="true"
-                />
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-muted text-xs font-bold text-text tabular-nums">
                   {index + 1}
                 </span>
@@ -120,7 +116,8 @@ export function GameplayPreview({ raceSlug }: { raceSlug: string | null }) {
               </p>
             </div>
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <span className="font-title rounded-sm border border-accent/45 bg-accent/10 px-3 py-2 text-center text-sm font-bold text-accent">
+              <span className="font-title flex items-center justify-center gap-1.5 rounded-sm border border-accent/45 bg-accent/10 px-3 py-2 text-center text-sm font-bold text-accent">
+                <Check className="h-3.5 w-3.5" aria-hidden="true" />
                 HAM
               </span>
               <span className="text-[10px] font-bold text-text-muted">VS</span>

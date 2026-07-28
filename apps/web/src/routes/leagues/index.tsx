@@ -8,6 +8,7 @@ import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
+import { PageHeader } from '@/components/PageHeader';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
@@ -156,37 +157,33 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <div className="mb-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-                Social play
-              </p>
-              <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-                Leagues
-              </h1>
-              <p className="mt-1.5 text-sm text-text-muted">
-                Create, join, and compete with friends.
-              </p>
-            </div>
-            <div>
-              {isSignedIn ? (
-                privateCreateLimitReached ? (
-                  <Button
-                    size="sm"
-                    leftIcon={Plus}
-                    disabled
-                    tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
-                  >
-                    Create
-                  </Button>
-                ) : (
-                  <Button asChild size="sm" leftIcon={Plus}>
-                    <Link to="/leagues/create">Create</Link>
-                  </Button>
-                )
-              ) : null}
-            </div>
-          </div>
+          <PageHeader
+            eyebrow="Social play"
+            title="Leagues"
+            subtitle="Create, join, and compete with friends."
+            actionsPlacement="trailing"
+            className="mb-0"
+            actions={
+              <div>
+                {isSignedIn ? (
+                  privateCreateLimitReached ? (
+                    <Button
+                      size="sm"
+                      leftIcon={Plus}
+                      disabled
+                      tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
+                    >
+                      Create
+                    </Button>
+                  ) : (
+                    <Button asChild size="sm" leftIcon={Plus}>
+                      <Link to="/leagues/create">Create</Link>
+                    </Button>
+                  )
+                ) : null}
+              </div>
+            }
+          />
           {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
               <span>
@@ -475,17 +472,11 @@ function LeaguesPageSkeleton() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
-        <div className="mb-7">
-          <p className="mb-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-            Social play
-          </p>
-          <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-            Leagues
-          </h1>
-          <p className="mt-1.5 text-sm text-text-muted">
-            Create, join, and compete with friends.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Social play"
+          title="Leagues"
+          subtitle="Create, join, and compete with friends."
+        />
         <div
           className="animate-pulse"
           role="status"

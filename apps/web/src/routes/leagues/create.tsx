@@ -8,6 +8,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
+import { NoticeCard } from '@/components/NoticeCard';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHeader } from '@/components/PageHeader';
@@ -36,16 +37,17 @@ function CreateLeaguePage() {
     return (
       <div className="min-h-full bg-page">
         <div className="mx-auto max-w-4xl px-4 py-6">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">
-              Sign In Required
-            </h1>
-            <p className="mb-4 text-text-muted">Sign in to create a league.</p>
-            <AppSignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
-            </AppSignInButton>
-          </div>
+          <NoticeCard
+            level="page"
+            icon={LogIn}
+            title="Sign In Required"
+            description="Sign in to create a league."
+            action={
+              <AppSignInButton mode="modal">
+                <Button size="sm">Sign In</Button>
+              </AppSignInButton>
+            }
+          />
         </div>
       </div>
     );

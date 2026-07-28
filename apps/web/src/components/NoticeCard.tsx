@@ -1,0 +1,60 @@
+import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+type NoticeCardProps = {
+  /** Lucide icon shown above the title. Omit for a text-only notice. */
+  icon?: LucideIcon;
+  title: ReactNode;
+  description?: ReactNode;
+  /** Button or link shown beneath the copy. */
+  action?: ReactNode;
+  /**
+   * `page` owns the route and renders an h1 (sign-in gates, "not found").
+   * `section` sits inside a page that already has a heading, so it renders an
+   * h2 at a smaller size (empty states like "No scores yet").
+   */
+  level?: 'page' | 'section';
+  /** Extra classes on the card itself, e.g. a width constraint. */
+  className?: string;
+  'data-testid'?: string;
+};
+
+/**
+ * The centred card the app uses for sign-in gates, "not found" states and empty
+ * lists. This markup was duplicated 25 times across 14 route files before it was
+ * extracted, which is why the icon and spacing are fixed rather than props:
+ * the variance was drift, not intent.
+ */
+export function NoticeCard({
+  icon: Icon,
+  title,
+  description,
+  action,
+  level = 'section',
+  className = '',
+  'data-testid': testId,
+}: NoticeCardProps) {
+  const Heading = level === 'page' ? 'h1' : 'h2';
+  const headingClass =
+    level === 'page'
+      ? 'mb-2 text-2xl font-bold text-text'
+      : 'mb-2 text-xl font-semibold text-text';
+
+  return (
+    <div
+      className={`rounded-xl border border-border bg-surface p-8 text-center ${className}`}
+      data-testid={testId}
+    >
+      {Icon ? (
+        <Icon className="mx-auto mb-4 h-16 w-16 text-text-muted" aria-hidden />
+      ) : null}
+      <Heading className={headingClass}>{title}</Heading>
+      {description ? (
+        <p className={`text-text-muted ${action ? 'mb-4' : ''}`}>
+          {description}
+        </p>
+      ) : null}
+      {action}
+    </div>
+  );
+}

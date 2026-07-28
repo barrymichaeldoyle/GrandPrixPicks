@@ -16,7 +16,9 @@ export function FaqSection({
   className = '',
 }: FaqSectionProps) {
   return (
-    <section className={`mx-auto max-w-4xl px-6 py-12 ${className}`}>
+    // max-w-3xl + px-3 keeps the FAQ on the same content column as the rest of
+    // the marketing pages so section edges line up down the page.
+    <section className={`mx-auto max-w-3xl px-3 py-12 ${className}`}>
       <div className="mb-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
         <HelpCircle
           className="h-7 w-7 text-accent sm:h-6 sm:w-6"

@@ -7,7 +7,7 @@ import {
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
 
-import { DriverSearchSelect } from '@/components/DriverSearchSelect';
+import { DriverSearchSelect } from '@/components/admin/DriverSearchSelect';
 
 type DraggableDriverCardProps = {
   driverId: Id<'drivers'>;

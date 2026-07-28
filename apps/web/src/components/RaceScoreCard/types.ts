@@ -1,4 +1,4 @@
-import type { Id } from '@convex-generated/dataModel';
+import type { Doc, Id } from '@convex-generated/dataModel';
 
 import type { SessionType } from '@/lib/sessions';
 
@@ -49,7 +49,7 @@ export type WeekendCardData = {
   raceSlug: string;
   raceName: string;
   raceRound: number;
-  raceStatus: 'upcoming' | 'locked' | 'finished' | 'cancelled';
+  raceStatus: Doc<'races'>['status'];
   raceDate: number;
   hasSprint: boolean;
   sessions: Record<SessionType, SessionCardData | null>;

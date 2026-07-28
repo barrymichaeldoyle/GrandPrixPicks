@@ -1,22 +1,18 @@
 import { useLocation } from '@tanstack/react-router';
-import type { RefObject } from 'react';
 import { useEffect } from 'react';
 
 /**
- * Scrolls the main content area to the top when the route location changes.
- * Uses the given scroll container ref so the scrollbar stays below the sticky header.
+ * Scrolls the document back to the top when the route location changes.
+ * `behavior: 'instant'` overrides the global `scroll-behavior: smooth` so a
+ * navigation lands at the top immediately instead of animating the whole page.
  * Renders nothing.
  */
-export function ScrollToTop({
-  scrollContainerRef,
-}: {
-  scrollContainerRef: RefObject<HTMLElement | null>;
-}) {
+export function ScrollToTop() {
   const location = useLocation();
 
   useEffect(() => {
-    scrollContainerRef.current?.scrollTo(0, 0);
-  }, [location.pathname, scrollContainerRef]);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
 
   return null;
 }

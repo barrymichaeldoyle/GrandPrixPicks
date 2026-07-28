@@ -8,6 +8,8 @@ import type { ReactNode } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { FollowButton } from '@/components/FollowButton';
+import { NoticeCard } from '@/components/NoticeCard';
+import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
 
 type FollowListUser = {
   _id: Id<'users'>;
@@ -61,7 +63,7 @@ function FollowListUserRow({
           />
           <div className="min-w-0">
             <p className="truncate font-medium text-text">
-              {user.displayName ?? user.username ?? 'Anonymous'}
+              {resolveDisplayName(user)}
             </p>
             {user.username && (
               <p className="truncate text-sm text-text-muted">
@@ -102,14 +104,17 @@ export function FollowListPage({
   if (!isSignedIn) {
     return (
       <FollowListStateShell>
-        <div className="rounded-xl border border-border bg-surface p-8 text-center">
-          <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-          <h1 className="mb-2 text-2xl font-bold text-text">{signInTitle}</h1>
-          <p className="mb-4 text-text-muted">{signInDescription}</p>
-          <SignInButton mode="modal">
-            <Button size="sm">Sign In</Button>
-          </SignInButton>
-        </div>
+        <NoticeCard
+          level="page"
+          icon={LogIn}
+          title={signInTitle}
+          description={signInDescription}
+          action={
+            <SignInButton mode="modal">
+              <Button size="sm">Sign In</Button>
+            </SignInButton>
+          }
+        />
       </FollowListStateShell>
     );
   }

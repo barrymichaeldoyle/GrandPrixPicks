@@ -8,6 +8,7 @@ import {
   loadCombinedSeasonRows,
 } from './leaderboards';
 import { getViewer } from './lib/auth';
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const SESSION_ORDER: Array<SessionType> = [
   'quali',
@@ -165,7 +166,7 @@ export const getHomePageData = query({
     const topPlayers = allRows.slice(0, 10).map((row) => ({
       rank: row.rank,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,

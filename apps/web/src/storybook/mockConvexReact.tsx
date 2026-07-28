@@ -22,6 +22,14 @@ export function ConvexProvider({
   return <>{children}</>;
 }
 
+export function useConvexAuth() {
+  const { auth } = useStorybookMockState();
+  return {
+    isLoading: !auth.isLoaded,
+    isAuthenticated: auth.isAuthenticated,
+  };
+}
+
 export function useQuery<Query extends AnyFunctionReference>(
   reference: Query,
   args?: unknown,

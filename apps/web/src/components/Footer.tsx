@@ -31,7 +31,7 @@ export function Footer() {
         className="header-grid-sheen pointer-events-none absolute inset-0"
       />
       <div className="relative mx-auto max-w-6xl px-4 py-7">
-        <div className="grid grid-cols-1 gap-7 text-sm text-text-muted sm:grid-cols-[1.5fr_1fr_1fr] sm:gap-10">
+        <div className="grid grid-cols-1 gap-7 text-sm text-text-muted sm:grid-cols-[1.4fr_1.3fr_1fr] sm:gap-10">
           <div className="space-y-3">
             <p className="flex items-center gap-2 text-base font-semibold text-text">
               <span className="flex h-7 w-5 items-center justify-center">
@@ -56,7 +56,7 @@ export function Footer() {
             </h2>
             <nav
               aria-label="Footer site navigation"
-              className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-1"
+              className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm"
             >
               {footerExploreLinks.map((link) => (
                 <Link key={link.to} to={link.to} className={footerLinkClass}>

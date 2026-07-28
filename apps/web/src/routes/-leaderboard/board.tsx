@@ -14,6 +14,7 @@ import type {
   H2HLeaderboardEntry,
   LeaderboardEntry,
 } from './types';
+import { NoticeCard } from '@/components/NoticeCard';
 
 /**
  * Podium + ranked table shared by every leaderboard view. The season board
@@ -109,16 +110,12 @@ export function SeasonLeaderboardLayout({
 }) {
   if (entries.length === 0) {
     return (
-      <div
-        className="rounded-xl border border-border bg-surface p-8 text-center"
+      <NoticeCard
         data-testid="leaderboard-empty"
-      >
-        <Trophy className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-        <h2 className="mb-2 text-xl font-semibold text-text">No scores yet</h2>
-        <p className="text-text-muted">
-          The leaderboard will populate once race results are published.
-        </p>
-      </div>
+        icon={Trophy}
+        title="No scores yet"
+        description="The leaderboard will populate once race results are published."
+      />
     );
   }
 

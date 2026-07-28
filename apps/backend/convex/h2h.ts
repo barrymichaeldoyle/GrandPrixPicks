@@ -7,6 +7,7 @@ import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
 import { emptyTally, tallyTeammateBattles } from './lib/teammateBattles';
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -268,7 +269,7 @@ export const getH2HSeasonLeaderboard = query({
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
-            username: viewer.username ?? 'Anonymous',
+            username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -281,7 +282,7 @@ export const getH2HSeasonLeaderboard = query({
     const enrichedRows = ranked.pageRows.map((row, index) => ({
       rank: offset + index + 1,
       userId: row.userId,
-      username: row.username ?? 'Anonymous',
+      username: row.username ?? ANONYMOUS_NAME,
       displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.totalPoints,

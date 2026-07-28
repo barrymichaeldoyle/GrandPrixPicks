@@ -7,16 +7,10 @@ import type {
   H2HLeaderboardEntry,
   LeaderboardEntry,
 } from './types';
+import { podiumClasses } from '@/lib/podium';
 
 function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
-  const podiumClass =
-    rank === 1
-      ? 'border-amber-400/40 bg-amber-400/15 text-amber-300'
-      : rank === 2
-        ? 'border-slate-300/35 bg-slate-300/10 text-slate-200'
-        : rank === 3
-          ? 'border-orange-400/35 bg-orange-400/10 text-orange-300'
-          : '';
+  const podiumClass = podiumClasses(rank);
 
   if (podiumClass) {
     return (

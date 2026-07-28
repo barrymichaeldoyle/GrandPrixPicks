@@ -8,6 +8,19 @@ const sessionType = v.union(
   v.literal('race'),
 );
 
+/**
+ * Race lifecycle. This was `v.string()` with the union written as a comment,
+ * which had already drifted: `cancelled` was in use in 33 places but missing
+ * from the comment. Keep it a real union so `Doc<'races'>['status']` carries
+ * the type through to both apps.
+ */
+const raceStatus = v.union(
+  v.literal('upcoming'),
+  v.literal('locked'),
+  v.literal('finished'),
+  v.literal('cancelled'),
+);
+
 export default defineSchema({
   users: defineTable({
     clerkUserId: v.string(),
@@ -104,7 +117,7 @@ export default defineSchema({
     raceStartAt: v.number(), // ms epoch
     predictionLockAt: v.number(), // ms epoch (locks race predictions)
 
-    status: v.string(), // "upcoming" | "locked" | "finished"
+    status: raceStatus,
     reminderScheduledId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),

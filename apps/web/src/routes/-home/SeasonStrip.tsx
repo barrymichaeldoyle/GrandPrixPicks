@@ -1,5 +1,6 @@
 import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
+import { useEffect, useRef } from 'react';
 
 import { Flag as CountryFlag } from '@/components/Flag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
@@ -62,6 +63,22 @@ export function SeasonStrip({
   const currentIndex = currentRaceId
     ? sorted.findIndex((r) => r._id === currentRaceId)
     : -1;
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const currentStepRef = useRef<HTMLLIElement>(null);
+
+  // The strip overflows well past the viewport on phones, so the live round
+  // would otherwise start off-screen. Centre it in the scroller directly rather
+  // than via scrollIntoView, which would also scroll the page.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    const step = currentStepRef.current;
+    if (!scroller || !step) {
+      return;
+    }
+    const target =
+      step.offsetLeft - scroller.clientWidth / 2 + step.offsetWidth / 2;
+    scroller.scrollLeft = Math.max(0, target);
+  }, [currentRaceId]);
 
   return (
     <div>
@@ -76,7 +93,10 @@ export function SeasonStrip({
           All races →
         </Link>
       </div>
-      <div className="-mx-3 [scrollbar-width:none] overflow-x-auto px-3 pb-2 [&::-webkit-scrollbar]:hidden">
+      <div
+        ref={scrollerRef}
+        className="-mx-3 [scrollbar-width:none] overflow-x-auto px-3 pb-2 [&::-webkit-scrollbar]:hidden"
+      >
         <ol className="flex min-w-max items-center gap-1.5 sm:gap-2">
           {sorted.map((race, i) => {
             const isCurrent = race._id === currentRaceId;
@@ -89,6 +109,7 @@ export function SeasonStrip({
             return (
               <li
                 key={race._id}
+                ref={isCurrent ? currentStepRef : undefined}
                 className="flex flex-col items-center"
                 aria-current={isCurrent ? 'step' : undefined}
               >

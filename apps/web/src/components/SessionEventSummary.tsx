@@ -1,11 +1,9 @@
 import { CheckCircle2, Lock } from 'lucide-react';
 
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
-import {
-  getLockStatusViewModel,
-  getLockUrgencyBadgeClassName,
-} from '@/lib/lock';
+import { getLockStatusViewModel } from '@/lib/lock';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
+import { Pill } from './Pill';
 
 const sessionDateOptions: Intl.DateTimeFormatOptions = {
   weekday: 'short',
@@ -46,12 +44,12 @@ export function SessionEventSummary({
     ? {
         label: 'Published',
         icon: CheckCircle2,
-        className: 'text-accent bg-accent-muted border-accent/30',
+        tone: 'accent' as const,
       }
     : {
         label: lockStatus.label,
         icon: Lock,
-        className: getLockUrgencyBadgeClassName(lockStatus.badgeTone),
+        tone: lockStatus.badgeTone,
       };
 
   const StatusIcon = statusUi.icon;
@@ -124,14 +122,13 @@ export function SessionEventSummary({
             className="text-xs"
           />
         ) : (
-          <span
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${statusUi.className} ${
-              shouldPulseLockStatusBadge ? 'animate-pulse' : ''
-            }`}
+          <Pill
+            tone={statusUi.tone}
+            className={`gap-1 ${shouldPulseLockStatusBadge ? 'animate-pulse' : ''}`}
           >
             <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {statusUi.label}
-          </span>
+          </Pill>
         )}
       </div>
     </div>

@@ -3,10 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight, Calendar } from 'lucide-react';
 
 import { useCountdown } from '@/lib/date';
-import {
-  getLockStatusViewModel,
-  getLockUrgencyBadgeClassName,
-} from '@/lib/lock';
+import { getLockStatusViewModel } from '@/lib/lock';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import {
   getNextSessionLockAt,
@@ -18,6 +15,7 @@ import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { Badge } from './Badge';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 import { RaceFlag } from './RaceFlag';
+import { Pill } from './Pill';
 
 type Race = Doc<'races'>;
 
@@ -185,24 +183,22 @@ export function RaceCard({
               <Badge variant="finished">COMPLETED</Badge>
             )}
             {race.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
-            {/* The "Open" state is already conveyed by the cyan countdown badge —
+            {/* The "Open" state is already conveyed by the countdown badge —
                 only surface this status pill when it adds new info (Closing Soon, Locked). */}
             {isPredictable && lockStatus.urgency !== 'open' && (
-              <span
-                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${getLockUrgencyBadgeClassName(lockStatus.badgeTone)} ${
-                  lockStatus.shouldPulse ? 'animate-pulse' : ''
-                }`}
+              <Pill
+                tone={lockStatus.badgeTone}
+                className={lockStatus.shouldPulse ? 'animate-pulse' : ''}
               >
                 {lockStatus.label}
-              </span>
+              </Pill>
             )}
             {isNotYetOpen && predictionOpenAt != null && (
-              <span
-                className="inline-flex items-center rounded-full border border-border-strong/70 bg-surface-elevated px-2 py-0.5 text-xs font-medium text-text"
-                suppressHydrationWarning
-              >
-                Opens {formatDateLong(predictionOpenAt)}
-              </span>
+              <Pill>
+                <span suppressHydrationWarning>
+                  Opens {formatDateLong(predictionOpenAt)}
+                </span>
+              </Pill>
             )}
             {isPredictable && (
               <PredictionCountdownBadge
@@ -211,13 +207,13 @@ export function RaceCard({
               />
             )}
             {race.status === 'locked' && (
-              <span className="inline-flex items-center rounded-full bg-warning-muted px-2 py-0.5 text-xs font-medium text-warning tabular-nums">
+              <Pill tone="warning" className="tabular-nums">
                 {race.raceStartAt > now ? (
                   <Countdown timestamp={race.raceStartAt} suffix="until race" />
                 ) : (
                   'Results pending'
                 )}
-              </span>
+              </Pill>
             )}
           </div>
 

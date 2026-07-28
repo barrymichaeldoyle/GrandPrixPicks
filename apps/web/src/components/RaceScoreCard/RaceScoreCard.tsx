@@ -16,6 +16,7 @@ import type { CardDisplayState } from './state';
 import { BORDER_LEFT_COLORS, deriveCardState } from './state';
 import type { WeekendCardData } from './types';
 import { WeekendSummaryLine } from './WeekendSummaryLine';
+import { Pill } from '@/components/Pill';
 
 interface RaceScoreCardProps {
   data: WeekendCardData;
@@ -273,7 +274,7 @@ function CompactSummaryCard({
     cardState === 'missed_with_results';
   const body = (
     <div
-      className={`group relative overflow-hidden rounded-l-sm rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgba(45,212,191,0.68),0_0_12px_4px_rgba(20,184,166,0.18),0_18px_36px_rgba(15,118,110,0.24)] focus-visible:shadow-[0_0_0_1px_rgba(45,212,191,0.82),0_0_14px_5px_rgba(20,184,166,0.22),0_20px_40px_rgba(15,118,110,0.28)]'} ${
+      className={`group relative overflow-hidden rounded-l-sm rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgb(var(--accent-hover-rgb)/0.68),0_0_12px_4px_rgb(var(--accent-rgb)/0.18),0_18px_36px_rgb(var(--accent-muted-rgb)/0.24)] focus-visible:shadow-[0_0_0_1px_rgb(var(--accent-hover-rgb)/0.82),0_0_14px_5px_rgb(var(--accent-rgb)/0.22),0_20px_40px_rgb(var(--accent-muted-rgb)/0.28)]'} ${
         isNextRace
           ? 'border-accent/70 border-l-accent/70 hover:border-accent'
           : 'border-border border-l-border hover:border-accent/70'
@@ -321,18 +322,13 @@ function CompactSummaryCard({
           {showStatusBadge && (
             <StatusBadge status={data.raceStatus} isNext={isNextRace} />
           )}
-          {hasSubmitted && (
-            <span className="inline-flex items-center rounded-full border border-success/35 bg-success-muted/40 px-2 py-0.5 text-xs font-medium text-success">
-              Picks submitted
-            </span>
-          )}
+          {hasSubmitted && <Pill tone="success">Picks submitted</Pill>}
           {data.hasSprint && <Badge variant="sprint">SPRINT</Badge>}
-          <span
-            className="inline-flex items-center rounded-full border border-border bg-surface-muted/45 px-2 py-0.5 text-xs text-text-muted"
-            suppressHydrationWarning
-          >
-            {formatMonthDay(data.raceDate)}
-          </span>
+          <Pill>
+            <span suppressHydrationWarning>
+              {formatMonthDay(data.raceDate)}
+            </span>
+          </Pill>
         </div>
 
         <div className="rounded-lg border border-border/70 bg-surface-muted/35 p-2">

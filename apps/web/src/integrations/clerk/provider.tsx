@@ -52,7 +52,7 @@ const clerkElements = {
     '!rounded-none !border-0 !bg-transparent !text-text !shadow-none',
   activeDeviceIcon: '!text-text-muted',
   notificationBadge:
-    'border border-error/45 bg-error/15 text-error shadow-[0_0_0_1px_rgba(248,113,113,0.1)]',
+    'border border-error/45 bg-error/15 text-error shadow-[0_0_0_1px_rgb(var(--error-rgb)/0.1)]',
 };
 
 export function AppClerkProvider({

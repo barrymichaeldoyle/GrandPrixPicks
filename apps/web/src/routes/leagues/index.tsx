@@ -9,6 +9,7 @@ import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
 import { PageHeader } from '@/components/PageHeader';
+import { Pill } from '@/components/Pill';
 
 export const Route = createFileRoute('/leagues/')({
   component: LeaguesPage,
@@ -428,9 +429,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                           </span>
                         ) : null}
                         {league.viewerRole ? (
-                          <span className="inline-flex items-center rounded-full border border-border bg-surface-muted px-2 py-0.5 text-xs font-medium text-text-muted">
-                            In your leagues
-                          </span>
+                          <Pill>In your leagues</Pill>
                         ) : null}
                       </div>
                       {league.description ? (

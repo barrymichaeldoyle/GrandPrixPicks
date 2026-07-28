@@ -47,9 +47,12 @@ html {
 .dark,
 [data-theme='dark'] {
   --overlay: rgba(0, 0, 0, 0.5);
-  --scrollbar-track: #334155;
-  --scrollbar-thumb: #64748b;
-  --scrollbar-thumb-hover: #94a3b8;
+  /* Web-only concepts, but their values still come from the palette. These
+     were literal slate hex codes left over from the old token set, so the
+     scrollbar was visibly a different grey to the rest of the app. */
+  --scrollbar-track: var(--surface-muted);
+  --scrollbar-thumb: var(--border-strong);
+  --scrollbar-thumb-hover: var(--text-muted);
 }
 
 /* ==========================================================================

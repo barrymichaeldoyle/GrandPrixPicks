@@ -109,7 +109,7 @@ export function SessionRow({
         <span className="flex items-center gap-2">
           <span>{session.label}</span>
           {status === 'in_progress' && (
-            <span className="inline-flex items-center rounded-full border border-accent/45 bg-accent/18 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-accent uppercase shadow-[0_0_0_1px_rgba(34,211,238,0.08)]">
+            <span className="inline-flex items-center rounded-full border border-accent/45 bg-accent/18 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-accent uppercase shadow-[0_0_0_1px_rgb(var(--accent-rgb)/0.08)]">
               Live
             </span>
           )}

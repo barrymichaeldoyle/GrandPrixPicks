@@ -4,6 +4,7 @@ import { Calendar, Clock } from 'lucide-react';
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
+import { Pill } from './Pill';
 
 interface RaceDetailHeaderProps {
   race: Doc<'races'>;
@@ -86,9 +87,7 @@ export function RaceDetailHeader({
                   : 'Results in progress'}
             </span>
             {resultsSummary.showResultsPendingBadge ? (
-              <span className="inline-flex items-center rounded-full border border-accent/35 bg-accent-muted/35 px-2 py-0.5 text-xs font-semibold text-accent">
-                Results pending
-              </span>
+              <Pill tone="accent">Results pending</Pill>
             ) : null}
           </div>
           <div className="mt-0.5 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 sm:justify-end">

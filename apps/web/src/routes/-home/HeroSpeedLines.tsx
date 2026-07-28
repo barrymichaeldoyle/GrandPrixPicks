@@ -8,15 +8,26 @@ export function HeroSpeedLines() {
       preserveAspectRatio="none"
     >
       <defs>
+        {/* stopColor has to go through `style` rather than the attribute:
+            var() is only resolved in a CSS declaration, not in stop-color="".
+            The end stops fade to transparent; they previously named a hue at
+            zero alpha, which was invisible but happened to be a colour the
+            palette had dropped. */}
         <linearGradient id="hero-line-fade" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="rgba(34,211,238,0)" />
-          <stop offset="45%" stopColor="rgba(240,68,85,0.64)" />
-          <stop offset="100%" stopColor="rgba(34,211,238,0)" />
+          <stop offset="0%" stopColor="transparent" />
+          <stop
+            offset="45%"
+            style={{ stopColor: 'rgb(var(--racing-red-rgb) / 0.64)' }}
+          />
+          <stop offset="100%" stopColor="transparent" />
         </linearGradient>
         <linearGradient id="hero-line-fade-2" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor="rgba(20,184,166,0)" />
-          <stop offset="50%" stopColor="rgba(255,176,32,0.38)" />
-          <stop offset="100%" stopColor="rgba(20,184,166,0)" />
+          <stop offset="0%" stopColor="transparent" />
+          <stop
+            offset="50%"
+            style={{ stopColor: 'rgb(var(--racing-amber-rgb) / 0.38)' }}
+          />
+          <stop offset="100%" stopColor="transparent" />
         </linearGradient>
       </defs>
       <g transform="rotate(-8 600 300)">

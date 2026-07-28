@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import { colors, radii } from '@grandprixpicks/shared/tokens';
+import {
+  colors,
+  elevation,
+  radii,
+  spacingBase,
+  typeScale,
+} from '@grandprixpicks/shared/tokens';
 
 import { contrastRatio } from '@/lib/color';
 
@@ -288,6 +294,85 @@ export const Typography: Story = {
       <Section label="Foreground tones">
         <p className="text-text">text-text: primary copy</p>
         <p className="text-text-muted">text-text-muted: secondary copy</p>
+      </Section>
+    </div>
+  ),
+};
+
+/**
+ * The levers a redesign pulls hardest. Tailwind compiles `p-4` to
+ * `calc(var(--spacing) * 4)` and `text-sm` to `var(--text-sm)`, so these
+ * numbers retune roughly 3,200 utilities already written across the app
+ * without touching a component.
+ */
+export const SpacingAndType: Story = {
+  render: () => (
+    <div className="p-6">
+      <Section
+        label="Spacing"
+        note={`Every numeric spacing utility is a multiple of one base unit, currently ${spacingBase}px. This is the density dial for the whole app.`}
+      >
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 6, 8, 12, 16].map((step) => (
+            <div key={step} className="flex items-center gap-4">
+              <code className="w-16 shrink-0 text-xs text-text-muted">
+                {step}
+              </code>
+              <div
+                className="h-4 rounded-sm bg-accent-muted"
+                style={{ width: `calc(var(--spacing) * ${step})` }}
+              />
+              <span className="text-xs text-text-muted tabular-nums">
+                {spacingBase * step}px
+              </span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        label="Type scale"
+        note="Names match the Tailwind scale, so text-sm in a component and sm here are the same thing."
+      >
+        <div className="space-y-3">
+          {(Object.keys(typeScale) as (keyof typeof typeScale)[]).map((key) => {
+            const { size, lineHeight } = typeScale[key];
+            return (
+              <div key={key} className="flex items-baseline gap-4">
+                <code className="w-16 shrink-0 text-xs text-text-muted">
+                  {key}
+                </code>
+                <span
+                  className="min-w-0 truncate text-text"
+                  style={{ fontSize: `${size / 16}rem` }}
+                >
+                  Grand Prix Picks
+                </span>
+                <span className="ml-auto shrink-0 text-xs text-text-muted tabular-nums">
+                  {size}
+                  {lineHeight === null ? ' / 1' : ` / ${lineHeight}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section
+        label="Elevation"
+        note="Neutral black, never tinted: on a near-black canvas a coloured shadow reads as a glow, and glows are done explicitly instead."
+      >
+        <div className="flex flex-wrap gap-6">
+          {(Object.keys(elevation) as (keyof typeof elevation)[]).map((key) => (
+            <div key={key} className="text-center">
+              <div
+                className="mb-2 h-20 w-20 rounded-lg border border-border bg-surface-elevated"
+                style={{ boxShadow: elevation[key] }}
+              />
+              <code className="text-xs text-text-muted">shadow-{key}</code>
+            </div>
+          ))}
+        </div>
       </Section>
     </div>
   ),

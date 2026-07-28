@@ -78,5 +78,50 @@ export const radii = {
   pill: 999,
 } as const;
 
+/**
+ * The base unit every numeric spacing utility multiplies: `p-4` is
+ * `spacing * 4`, `gap-3` is `spacing * 3`, and so on across ~2,400 usages.
+ *
+ * This is the app's density dial. Changing it retunes every margin, padding and
+ * gap at once without touching a component. It is here rather than left to the
+ * framework default precisely so a redesign has that lever.
+ */
+export const spacingBase = 4; // px
+
+/**
+ * Type scale, in px. `lineHeight: null` means 1 (used by display sizes, where a
+ * ratio reads better than a fixed leading).
+ *
+ * Names match the Tailwind scale, so `text-sm` in a component and `sm` here are
+ * the same thing and the ~850 existing usages need no edit when this changes.
+ */
+export const typeScale = {
+  xs: { size: 12, lineHeight: 16 },
+  sm: { size: 14, lineHeight: 20 },
+  base: { size: 16, lineHeight: 24 },
+  lg: { size: 18, lineHeight: 28 },
+  xl: { size: 20, lineHeight: 28 },
+  '2xl': { size: 24, lineHeight: 32 },
+  '3xl': { size: 30, lineHeight: 36 },
+  '4xl': { size: 36, lineHeight: 40 },
+  '5xl': { size: 48, lineHeight: null },
+  '6xl': { size: 60, lineHeight: null },
+} as const;
+
+/**
+ * Elevation. Deliberately neutral black rather than a tinted shadow: the app
+ * sits on a near-black canvas where a coloured shadow reads as a glow. Glows are
+ * done explicitly (see the accent ring on RaceScoreCard), not via this scale.
+ */
+export const elevation = {
+  sm: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+  md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+  lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+  xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+  '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+} as const;
+
 export type Colors = typeof colors;
 export type Radii = typeof radii;
+export type TypeScale = typeof typeScale;
+export type Elevation = typeof elevation;

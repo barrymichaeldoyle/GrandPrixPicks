@@ -6,7 +6,13 @@
  * Emits three blocks:
  *   1. the raw custom properties, for hand-written CSS using var(--page)
  *   2. an `@theme inline` mapping so Tailwind exposes bg-page, text-muted, etc.
- *   3. an `@theme` radius scale, overriding Tailwind's defaults
+ *   3. an `@theme` block for radius, spacing, type and elevation
+ *
+ * Blocks 1 and 2 are the palette. Block 3 is the part a redesign leans on
+ * hardest: Tailwind compiles `p-4` to `calc(var(--spacing) * 4)` and `text-sm`
+ * to `var(--text-sm)`, so owning those variables turns ~3,200 utilities already
+ * written across the app into consumers of this file. Retuning density or the
+ * type scale is an edit here, not a pass over 147 components.
  *
  * Because the Tailwind mapping is generated too, adding a token to tokens.ts is
  * all that is needed — there is no second list to keep in sync.
@@ -14,7 +20,13 @@
 import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { colors, radii } from '../src/tokens.ts';
+import {
+  colors,
+  elevation,
+  radii,
+  spacingBase,
+  typeScale,
+} from '../src/tokens.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -75,6 +87,27 @@ lines.push('@theme {');
 for (const [key, value] of Object.entries(radii)) {
   lines.push(`  --radius-${key}: ${toCssLength(value)};`);
 }
+
+lines.push('');
+lines.push(`  --spacing: ${spacingBase / 16}rem;`);
+
+lines.push('');
+for (const [key, { size, lineHeight }] of Object.entries(typeScale)) {
+  const sizeRem = size / 16;
+  lines.push(`  --text-${key}: ${sizeRem}rem;`);
+  // Tailwind expects a unitless ratio here so the leading tracks the font size.
+  lines.push(
+    `  --text-${key}--line-height: ${
+      lineHeight === null ? '1' : `calc(${lineHeight / 16} / ${sizeRem})`
+    };`,
+  );
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(elevation)) {
+  lines.push(`  --shadow-${key}: ${value};`);
+}
+
 lines.push('}', '');
 
 const outPath = resolve(

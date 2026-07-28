@@ -71,13 +71,13 @@ vi.mock('@/lib/userFacingError', () => ({
   toUserFacingMessage: (error: unknown) => String(error),
 }));
 
-vi.mock('@/components/FeedItem', async () => {
-  const actual = await vi.importActual('../../components/FeedItem');
-  return {
-    ...actual,
-    FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
-    FeedItemSkeleton: () => <div>loading</div>,
-  };
+vi.mock('@/components/FeedItem/FeedItem', () => ({
+  FeedItem: ({ event }: { event: { _id: string } }) => <div>{event._id}</div>,
+}));
+
+vi.mock('@/components/FeedItem/states', async () => {
+  const actual = await vi.importActual('../../components/FeedItem/states');
+  return { ...actual, FeedItemSkeleton: () => <div>loading</div> };
 });
 
 vi.mock('@/components/LeagueMembersList', () => ({

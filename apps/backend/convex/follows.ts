@@ -4,6 +4,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
 import { applyFollowEdgeDelta } from './lib/followCounts';
+import { toUserIdentity } from './lib/userIdentity';
 
 // The app currently treats follow relationships as a capped social graph rather than
 // an infinite feed substrate. Keep the hard limit aligned with read-side bounds.
@@ -152,9 +153,7 @@ export const listFollowers = query({
 
     return users.map((u) => ({
       _id: u._id,
-      username: u.username,
-      displayName: u.displayName,
-      avatarUrl: u.avatarUrl,
+      ...toUserIdentity(u),
     }));
   },
 });
@@ -181,9 +180,7 @@ export const listFollowing = query({
       .filter((u): u is NonNullable<typeof u> => u != null)
       .map((u) => ({
         _id: u._id,
-        username: u.username,
-        displayName: u.displayName,
-        avatarUrl: u.avatarUrl,
+        ...toUserIdentity(u),
       }));
   },
 });
@@ -271,6 +268,10 @@ export const getSuggestedLeagueMembersToFollow = query({
 
         return {
           _id: user._id,
+          // Deliberately inline, not toUserIdentity(): the guard above narrows
+          // these two to `string` and callers depend on that. TypeScript
+          // narrows the property expression, not the object, so passing `user`
+          // into a helper would widen them back to `string | undefined`.
           username: user.username,
           displayName: user.displayName,
           avatarUrl: user.avatarUrl,

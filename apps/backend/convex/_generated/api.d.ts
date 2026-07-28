@@ -46,6 +46,7 @@ import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
 import type * as lib_teammateBattles from "../lib/teammateBattles.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
+import type * as lib_userIdentity from "../lib/userIdentity.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as notifications from "../notifications.js";
 import type * as openF1Results from "../openF1Results.js";
@@ -107,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   "lib/standings": typeof lib_standings;
   "lib/teammateBattles": typeof lib_teammateBattles;
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
+  "lib/userIdentity": typeof lib_userIdentity;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
   notifications: typeof notifications;
   openF1Results: typeof openF1Results;

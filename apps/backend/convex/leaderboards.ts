@@ -12,6 +12,7 @@ import {
   streamRankedLeaderboardRows,
 } from './lib/leaderboard';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
+import { toUserIdentity } from './lib/userIdentity';
 
 type CombinedRow = {
   userId: Id<'users'>;
@@ -52,6 +53,7 @@ function buildCombinedViewerEntry(
     userId: viewer._id,
     username: viewer.username ?? ANONYMOUS_NAME,
     displayName: viewer.displayName,
+    avatarUrl: viewer.avatarUrl,
     points: row.top5Points + row.h2hPoints,
     top5Points: row.top5Points,
     h2hPoints: row.h2hPoints,
@@ -125,9 +127,7 @@ export async function loadCombinedSeasonRows(
     }
     userMap.set(row.userId, {
       userId: row.userId,
-      username: row.username,
-      displayName: row.displayName,
-      avatarUrl: row.avatarUrl,
+      ...toUserIdentity(row),
       top5Points: row.totalPoints,
       h2hPoints: 0,
       raceCount: row.raceCount,
@@ -149,9 +149,7 @@ export async function loadCombinedSeasonRows(
     }
     userMap.set(row.userId, {
       userId: row.userId,
-      username: row.username,
-      displayName: row.displayName,
-      avatarUrl: row.avatarUrl,
+      ...toUserIdentity(row),
       top5Points: 0,
       h2hPoints: row.totalPoints,
       raceCount: row.raceCount,
@@ -199,6 +197,7 @@ export const getSeasonLeaderboard = query({
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
+            avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
             isViewer: true,
@@ -258,6 +257,7 @@ export const getFriendsLeaderboard = query({
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
+            avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
             isViewer: true,
@@ -312,6 +312,7 @@ export const getFriendsH2HLeaderboard = query({
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
+            avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
             correctPicks: ranked.viewerRow.correctPicks,
@@ -390,6 +391,7 @@ export const getLeagueLeaderboard = query({
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
+            avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
             isViewer: true,
@@ -530,9 +532,7 @@ export const getCombinedRaceLeaderboard = query({
       } else {
         userMap.set(score.userId, {
           userId: score.userId,
-          username: score.username,
-          displayName: score.displayName,
-          avatarUrl: score.avatarUrl,
+          ...toUserIdentity(score),
           top5Points: score.points,
           h2hPoints: 0,
         });
@@ -813,6 +813,7 @@ export const getLeagueH2HSeasonLeaderboard = query({
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
             displayName: viewer.displayName,
+            avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
             correctPicks: ranked.viewerRow.correctPicks,
@@ -891,9 +892,7 @@ export const getLeagueRaceLeaderboard = query({
       } else {
         userMap.set(score.userId, {
           userId: score.userId,
-          username: score.username,
-          displayName: score.displayName,
-          avatarUrl: score.avatarUrl,
+          ...toUserIdentity(score),
           points: score.points,
         });
       }
@@ -952,9 +951,7 @@ export const getLeagueCombinedRaceLeaderboard = query({
       } else {
         userMap.set(score.userId, {
           userId: score.userId,
-          username: score.username,
-          displayName: score.displayName,
-          avatarUrl: score.avatarUrl,
+          ...toUserIdentity(score),
           top5Points: score.points,
           h2hPoints: 0,
         });
@@ -1147,9 +1144,7 @@ export async function getRaceLeaderboardForViewer(
 
     userMap.set(score.userId, {
       userId: score.userId,
-      username: score.username,
-      displayName: score.displayName,
-      avatarUrl: score.avatarUrl,
+      ...toUserIdentity(score),
       points: score.points,
       breakdown: score.breakdown,
     });

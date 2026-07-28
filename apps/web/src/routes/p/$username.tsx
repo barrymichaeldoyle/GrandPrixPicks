@@ -19,11 +19,8 @@ import {
 
 import { Avatar } from '@/components/Avatar';
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
-import {
-  FeedEmptyState,
-  FeedItem,
-  FeedItemSkeleton,
-} from '@/components/FeedItem';
+import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
 import { PageLoader } from '@/components/PageLoader';
 import { getCountryCodeForRace } from '@/lib/raceCountries';

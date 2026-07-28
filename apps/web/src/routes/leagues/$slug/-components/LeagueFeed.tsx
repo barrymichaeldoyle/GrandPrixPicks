@@ -5,12 +5,9 @@ import { Gauge } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
-import {
-  FeedEmptyState,
-  FeedItem,
-  FeedItemSkeleton,
-  SessionGroup,
-} from '@/components/FeedItem';
+import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { SessionGroup } from '@/components/FeedItem/SessionGroup';
+import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
 
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 

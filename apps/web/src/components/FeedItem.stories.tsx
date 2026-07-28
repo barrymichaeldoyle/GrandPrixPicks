@@ -3,12 +3,9 @@ import type { Id } from '@convex-generated/dataModel';
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ComponentProps, PropsWithChildren } from 'react';
 
-import {
-  FeedEmptyState,
-  FeedItem,
-  FeedItemSkeleton,
-  SessionGroup,
-} from './FeedItem';
+import { FeedItem } from './FeedItem/FeedItem';
+import { SessionGroup } from './FeedItem/SessionGroup';
+import { FeedEmptyState, FeedItemSkeleton } from './FeedItem/states';
 import {
   fakeId,
   HOUR,

@@ -31,6 +31,7 @@ import {
   type StandingsSyncStep,
 } from './lib/standings';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
+import { toUserIdentity } from './lib/userIdentity';
 
 type AccountDeletionSummary = {
   follows: number;
@@ -811,9 +812,7 @@ export const getProfileByUsername = query({
 
     return {
       _id: user._id,
-      username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
+      ...toUserIdentity(user),
       isOwner: viewer ? user._id === viewer._id : false,
     };
   },

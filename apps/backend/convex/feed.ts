@@ -5,6 +5,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { DatabaseReader, MutationCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import { toUserIdentity } from './lib/userIdentity';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -111,18 +112,14 @@ async function backfillScorePublishedFeedEventsForRace(
       if (existing) {
         await ctx.db.patch(existing._id, {
           points: score.points,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
+          ...toUserIdentity(user),
         });
         updated++;
       } else {
         await ctx.db.insert('feedEvents', {
           type: 'score_published',
           userId: score.userId,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
+          ...toUserIdentity(user),
           raceId: race._id,
           sessionType: result.sessionType,
           points: score.points,
@@ -188,9 +185,7 @@ export const writeFeedEventsForSessionLock = internalMutation({
       await ctx.db.insert('feedEvents', {
         type: 'session_locked',
         userId: prediction.userId,
-        username: user.username,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
+        ...toUserIdentity(user),
         raceId: args.raceId,
         sessionType: args.sessionType,
         raceName: race.name,
@@ -252,9 +247,7 @@ export const writeFeedEventsForSession = internalMutation({
         await ctx.db.patch(existing._id, {
           type: pointsMoved ? 'results_amended' : 'score_published',
           points: score.points,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
+          ...toUserIdentity(user),
           ...(pointsMoved
             ? {
                 previousPoints: existing.points,
@@ -267,9 +260,7 @@ export const writeFeedEventsForSession = internalMutation({
         await ctx.db.insert('feedEvents', {
           type: 'score_published',
           userId: score.userId,
-          username: user.username,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
+          ...toUserIdentity(user),
           raceId: args.raceId,
           sessionType: args.sessionType,
           points: score.points,
@@ -334,9 +325,7 @@ export const writeJoinedLeagueFeedEvent = internalMutation({
     await ctx.db.insert('feedEvents', {
       type: 'joined_league',
       userId: args.userId,
-      username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
+      ...toUserIdentity(user),
       leagueId: args.leagueId,
       leagueName: league.name,
       leagueSlug: league.slug,
@@ -424,9 +413,7 @@ export const writeStreakEventsForRaceSession = internalMutation({
       await ctx.db.insert('feedEvents', {
         type: 'streak_milestone',
         userId: score.userId,
-        username: user.username,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
+        ...toUserIdentity(user),
         streakCount: streak,
         season: args.season,
         revCount: 0,
@@ -1240,9 +1227,7 @@ export const getRevUsers = query({
         return user
           ? {
               userId: user._id,
-              username: user.username,
-              displayName: user.displayName,
-              avatarUrl: user.avatarUrl,
+              ...toUserIdentity(user),
             }
           : null;
       }),
@@ -1310,9 +1295,7 @@ export const backfillSessionLockFeedEvents = internalMutation({
       await ctx.db.insert('feedEvents', {
         type: 'session_locked',
         userId: prediction.userId,
-        username: user.username,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
+        ...toUserIdentity(user),
         raceId: args.raceId,
         sessionType: args.sessionType,
         raceName: race.name,

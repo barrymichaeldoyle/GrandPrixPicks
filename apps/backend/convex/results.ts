@@ -20,6 +20,7 @@ import {
 } from './lib/auth';
 import { nextRecheckAt } from './lib/recheckSchedule';
 import { scoreTopFive } from './lib/scoring';
+import { toUserIdentity } from './lib/userIdentity';
 
 type ScoreBreakdownItem = NonNullable<Doc<'scores'>['breakdown']>[number];
 
@@ -732,9 +733,7 @@ async function upsertStandings(
     await ctx.db.patch(existing._id, {
       totalPoints,
       raceCount: raceIds.size,
-      username: user?.username,
-      displayName: user?.displayName,
-      avatarUrl: user?.avatarUrl,
+      ...toUserIdentity(user),
       updatedAt: now,
     });
   } else {
@@ -743,9 +742,7 @@ async function upsertStandings(
       season,
       totalPoints,
       raceCount: raceIds.size,
-      username: user?.username,
-      displayName: user?.displayName,
-      avatarUrl: user?.avatarUrl,
+      ...toUserIdentity(user),
       updatedAt: now,
     });
   }
@@ -786,9 +783,7 @@ async function upsertH2HStandings(
       raceCount: raceIds.size,
       correctPicks,
       totalPicks,
-      username: user?.username,
-      displayName: user?.displayName,
-      avatarUrl: user?.avatarUrl,
+      ...toUserIdentity(user),
       updatedAt: now,
     });
   } else {
@@ -799,9 +794,7 @@ async function upsertH2HStandings(
       raceCount: raceIds.size,
       correctPicks,
       totalPicks,
-      username: user?.username,
-      displayName: user?.displayName,
-      avatarUrl: user?.avatarUrl,
+      ...toUserIdentity(user),
       updatedAt: now,
     });
   }
@@ -1128,9 +1121,7 @@ export const scoreTopFiveBatch = internalMutation({
         await ctx.db.patch(existingScore._id, {
           points: total,
           breakdown,
-          username: predUser?.username,
-          displayName: predUser?.displayName,
-          avatarUrl: predUser?.avatarUrl,
+          ...toUserIdentity(predUser),
           updatedAt: now,
         });
       } else {
@@ -1140,9 +1131,7 @@ export const scoreTopFiveBatch = internalMutation({
           sessionType: args.sessionType,
           points: total,
           breakdown,
-          username: predUser?.username,
-          displayName: predUser?.displayName,
-          avatarUrl: predUser?.avatarUrl,
+          ...toUserIdentity(predUser),
           createdAt: now,
           updatedAt: now,
         });

@@ -6,11 +6,9 @@ import { ArrowLeft, Gauge } from 'lucide-react';
 
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
-import {
-  FeedItem,
-  FeedItemSkeleton,
-  SessionGroup,
-} from '@/components/FeedItem';
+import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { SessionGroup } from '@/components/FeedItem/SessionGroup';
+import { FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
 import { canonicalMeta } from '@/lib/site';
 

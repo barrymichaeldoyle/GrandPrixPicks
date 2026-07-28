@@ -6,12 +6,9 @@ import { useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { Avatar } from '@/components/Avatar';
-import {
-  FeedEmptyState,
-  FeedItem,
-  FeedItemSkeleton,
-  SessionGroup,
-} from '@/components/FeedItem';
+import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { SessionGroup } from '@/components/FeedItem/SessionGroup';
+import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FeedSidebar } from '@/components/FeedSidebar';
 import { FollowButton } from '@/components/FollowButton';
 import { pageMeta } from '@/lib/site';

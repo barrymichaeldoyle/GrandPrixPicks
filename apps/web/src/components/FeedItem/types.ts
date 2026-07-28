@@ -1,0 +1,73 @@
+import type { Id } from '@convex-generated/dataModel';
+
+export type ScoredPick = {
+  code: string;
+  team?: string;
+  displayName?: string;
+  nationality?: string;
+  predictedPosition: number;
+  actualPosition?: number;
+  points: number;
+};
+
+type H2HScore = {
+  correctPicks: number;
+  totalPicks: number;
+  points: number;
+};
+
+export type FeedEvent = {
+  _id: Id<'feedEvents'>;
+  type:
+    | 'score_published'
+    | 'results_amended'
+    | 'session_locked'
+    | 'joined_league'
+    | 'streak_milestone';
+  userId: Id<'users'>;
+  username?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  // score_published
+  raceId?: Id<'races'>;
+  sessionType?: string;
+  points?: number;
+  raceName?: string;
+  raceSlug?: string;
+  season?: number;
+  // results_amended
+  previousPoints?: number;
+  amendmentNote?: string;
+  // enriched picks + H2H
+  picks?: ScoredPick[];
+  h2hScore?: H2HScore | null;
+  // joined_league
+  leagueId?: Id<'leagues'>;
+  leagueName?: string;
+  leagueSlug?: string;
+  // streak_milestone
+  streakCount?: number;
+  revCount: number;
+  recentRevUsers?: {
+    userId: Id<'users'>;
+    username?: string;
+    avatarUrl?: string;
+  }[];
+  createdAt: number;
+  viewerHasReved: boolean;
+};
+
+// Feed events carry sessionType as a plain string, so widen the shared map.
+
+export type SessionHeader = {
+  raceName: string;
+  sessionType: string;
+  raceSlug?: string;
+  createdAt?: number;
+  top5: {
+    code: string;
+    displayName: string;
+    team?: string;
+    nationality?: string;
+  }[];
+};

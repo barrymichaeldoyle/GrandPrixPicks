@@ -76,33 +76,31 @@ describe('tallyTeammateBattles', () => {
 });
 
 describe('sortByConstructorStanding', () => {
-  it('uses championship position instead of alphabetical team name', () => {
+  it('uses the shared championship order instead of team name', () => {
     const teams = [
-      { team: 'alpine' },
-      { team: 'ferrari' },
-      { team: 'mercedes' },
+      { team: 'Alpine' },
+      { team: 'Ferrari' },
+      { team: 'Mercedes' },
     ];
 
-    expect(
-      sortByConstructorStanding(teams, [
-        { team: 'mercedes', position: 1 },
-        { team: 'ferrari', position: 2 },
-        { team: 'alpine', position: 3 },
-      ]).map((team) => team.team),
-    ).toEqual(['mercedes', 'ferrari', 'alpine']);
+    expect(sortByConstructorStanding(teams).map((team) => team.team)).toEqual([
+      'Mercedes',
+      'Ferrari',
+      'Alpine',
+    ]);
   });
 
-  it('falls back to team name for missing standings entries', () => {
+  it('falls back to team name for unknown entries', () => {
     const teams = [
-      { team: 'cadillac' },
-      { team: 'mercedes' },
-      { team: 'alpine' },
+      { team: 'Zulu Racing' },
+      { team: 'Mercedes' },
+      { team: 'Alpha Racing' },
     ];
 
-    expect(
-      sortByConstructorStanding(teams, [{ team: 'mercedes', position: 1 }]).map(
-        (team) => team.team,
-      ),
-    ).toEqual(['mercedes', 'alpine', 'cadillac']);
+    expect(sortByConstructorStanding(teams).map((team) => team.team)).toEqual([
+      'Mercedes',
+      'Alpha Racing',
+      'Zulu Racing',
+    ]);
   });
 });

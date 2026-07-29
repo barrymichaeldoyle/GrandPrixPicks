@@ -5,12 +5,6 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
-import type { ChampionshipSessionResult } from './f1Standings';
-import {
-  emptyDriverTally,
-  rankConstructorStandings,
-  tallyDriverPoints,
-} from './f1Standings';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
 import {
@@ -980,7 +974,6 @@ export const getTeammateBattles = query({
       .take(40);
 
     const outcomes: TeammateSessionOutcome[] = [];
-    const championshipSessions: ChampionshipSessionResult[] = [];
     let sessionsCounted = 0;
     const sessionCounts = {
       qualifying: 0,
@@ -1008,21 +1001,6 @@ export const getTeammateBattles = query({
         });
         seenSessions.add(result.sessionType);
         lastUpdated = Math.max(lastUpdated, result.publishedAt);
-      }
-
-      const raceResults = await ctx.db
-        .query('results')
-        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-        .take(8);
-      for (const result of raceResults) {
-        if (result.sessionType !== 'race' && result.sessionType !== 'sprint') {
-          continue;
-        }
-        championshipSessions.push({
-          sessionType: result.sessionType,
-          classification: result.classification as string[],
-          dnfDriverIds: result.dnfDriverIds as string[] | undefined,
-        });
       }
 
       sessionsCounted += seenSessions.size;
@@ -1073,24 +1051,6 @@ export const getTeammateBattles = query({
       };
     }
 
-    const driverChampionshipTallies = tallyDriverPoints(championshipSessions);
-    const constructorStandings = rankConstructorStandings(
-      matchups.flatMap((matchup) => [
-        {
-          team: matchup.team,
-          stats:
-            driverChampionshipTallies.get(matchup.driver1Id as string) ??
-            emptyDriverTally(),
-        },
-        {
-          team: matchup.team,
-          stats:
-            driverChampionshipTallies.get(matchup.driver2Id as string) ??
-            emptyDriverTally(),
-        },
-      ]),
-    );
-
     const teams = sortByConstructorStanding(
       matchups.map((matchup) => {
         const tally = tallies.get(matchup._id) ?? new Map();
@@ -1114,7 +1074,6 @@ export const getTeammateBattles = query({
           sessionsSettled: driver1.total + driver2.total,
         };
       }),
-      constructorStandings,
     );
 
     return {

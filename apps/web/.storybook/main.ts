@@ -29,7 +29,7 @@ const config: StorybookConfig = {
             }))
           : []),
       {
-        find: '@clerk/react',
+        find: /^@clerk\/react$/,
         replacement: fileURLToPath(
           new URL('../src/storybook/mockClerkReact.tsx', import.meta.url),
         ),

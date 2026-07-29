@@ -1,4 +1,5 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 
 import type { Id } from '../_generated/dataModel';
 
@@ -84,21 +85,15 @@ export function tallyTeammateBattles(
 }
 
 /**
- * Order teammate rows by the official Constructors' Championship, with team
- * name as a stable fallback when standings are unavailable or incomplete.
+ * Order teammate rows by the shared Constructors' Championship order used
+ * across the prediction pool and H2H views.
  */
 export function sortByConstructorStanding<T extends { team: string }>(
   teams: ReadonlyArray<T>,
-  standings: ReadonlyArray<{ team: string; position: number }>,
 ): T[] {
-  const positionByTeam = new Map(
-    standings.map((standing) => [standing.team, standing.position]),
-  );
-
   return [...teams].sort(
     (a, b) =>
-      (positionByTeam.get(a.team) ?? Number.MAX_SAFE_INTEGER) -
-        (positionByTeam.get(b.team) ?? Number.MAX_SAFE_INTEGER) ||
+      teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
       a.team.localeCompare(b.team),
   );
 }

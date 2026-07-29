@@ -2,12 +2,10 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   ArrowRight,
-  CheckCircle2,
   Clock,
   Flag,
   Gauge,
   Lock,
-  Radio,
   Target,
   Users,
 } from 'lucide-react';
@@ -15,9 +13,8 @@ import {
 import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { FaqItem, FaqSection } from '@/components/Faq';
-import { Flag as CountryFlag } from '@/components/Flag';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import { SESSION_LABELS_FULL } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
@@ -26,11 +23,10 @@ import { pageMeta, siteConfig } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 import { convexHttp as convex } from '@/integrations/convex/client';
 
-import { BigCountdown } from './-home/HeroCountdown';
-import { GameplayPreview } from './-home/GameplayPreview';
-import { HowItWorksStrip } from './-home/HowItWorksStrip';
+import { ExamplePicksCard } from './-home/ExamplePicksCard';
 import { LeaderboardTeaser } from './-home/LeaderboardTeaser';
 import { PlayWithFriends } from './-home/PlayWithFriends';
+import { ScoringExplainer } from './-home/ScoringExplainer';
 import { SeasonStrip } from './-home/SeasonStrip';
 import { SocialProof } from './-home/SocialProof';
 import {
@@ -189,6 +185,17 @@ function raceShortName(name: string) {
   return short || name;
 }
 
+/**
+ * Free-tier league limits, from FREE_LIMITS in apps/backend/convex/leagues.ts.
+ * Landing copy is a public promise, so these are the real numbers rather than
+ * round ones: 5 private leagues created, 5 joined, 5000 members a league.
+ */
+const LEAGUE_FACTS = [
+  { label: 'Leagues you can create', value: '5' },
+  { label: 'Leagues you can join', value: '5' },
+  { label: 'Cost', value: 'Free' },
+] as const;
+
 // --- Main component ---
 
 function HomePage() {
@@ -228,7 +235,6 @@ function HomePage() {
         ) ?? null)
       : null;
 
-  const countryCode = featuredRace ? getCountryCodeForRace(featuredRace) : null;
   const featuredShortName = featuredRace
     ? raceShortName(featuredRace.name)
     : '';
@@ -239,26 +245,14 @@ function HomePage() {
       (s) => getSessionStatus(s, publishedSessions, now) === 'finished',
     );
 
-  const anyInProgress = sessions.some(
-    (s) => getSessionStatus(s, publishedSessions, now) === 'in_progress',
-  );
-
-  const totalRounds = featuredRace
-    ? races.filter(
-        (r) =>
-          r.season === featuredRace.season &&
-          r.round > 0 &&
-          r.status !== 'cancelled',
-      ).length
-    : 0;
   const featuredRaceCta =
     showCurrentWeekend && !nextSession
       ? allFinished
         ? 'View results'
         : 'Follow live weekend'
       : isSignedIn
-        ? `My ${featuredShortName} Picks`
-        : `Make ${featuredShortName} Picks`;
+        ? 'Open my picks'
+        : 'Start picking';
 
   return (
     <>
@@ -310,7 +304,17 @@ function HomePage() {
                       Private leagues
                     </li>
                   </ul>
-                  <div className="mt-7 flex flex-wrap justify-center gap-3 lg:justify-start">
+                  {/* The reassurance that makes the CTA safe to click sits
+                      ABOVE it now, at readable size. As 10px fine print below
+                      the button it answered the objection after the ask, in
+                      the quietest voice on the page. */}
+                  {!isSignedIn && (
+                    <p className="mt-6 text-sm leading-6 text-text-muted">
+                      Free to play · No account needed to start · Fan-made, no
+                      real-money betting
+                    </p>
+                  )}
+                  <div className="mt-5 flex flex-wrap justify-center gap-3 lg:justify-start">
                     <Button
                       asChild
                       variant="primary"
@@ -343,129 +347,29 @@ function HomePage() {
                       </Button>
                     )}
                   </div>
-                  {!isSignedIn && (
-                    <p className="mt-4 text-xs text-text-muted">
-                      No account needed to start · Fan-made · No real-money
-                      betting
+                  {/* The countdown moves here from the old next-up card: still
+                      present, but no longer a 40px mono block competing with
+                      the thing that explains the game. */}
+                  {nextSession && (
+                    <p className="mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-text-muted lg:justify-start">
+                      <span className="gpp-label">
+                        {featuredShortName} GP · {nextSession.label} locks in
+                      </span>
+                      <span
+                        className="gpp-mono text-text"
+                        suppressHydrationWarning
+                      >
+                        {formatLockCountdown(nextSession.startAt - now)}
+                      </span>
                     </p>
                   )}
                 </div>
 
-                {/* The red-to-accent gradient rail that used to sit on this
-                    edge is now the signature stripe on the container itself. */}
-                <div className="gpp-stripe relative overflow-hidden rounded-lg border border-border bg-surface p-4 pl-6 sm:p-6 sm:pl-8">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="gpp-label text-xs">
-                        {showCurrentWeekend ? 'This weekend' : 'Next up'}
-                      </p>
-                      <div className="mt-2 flex min-w-0 items-center gap-3">
-                        {countryCode && (
-                          <CountryFlag
-                            code={countryCode}
-                            size="full"
-                            className="h-8 shrink-0 sm:h-10"
-                          />
-                        )}
-                        <h2 className="min-w-0 text-xl leading-tight font-semibold text-text sm:text-2xl">
-                          {featuredRace.name}
-                        </h2>
-                      </div>
-                    </div>
-                    {showCurrentWeekend && anyInProgress && !allFinished && (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-xs font-semibold tracking-label text-accent uppercase">
-                        <span
-                          className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
-                          aria-hidden="true"
-                        />
-                        Live
-                      </span>
-                    )}
-                    {showCurrentWeekend && allFinished && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success uppercase">
-                        <CheckCircle2
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                        Complete
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-label text-text-muted uppercase">
-                    <span>
-                      Round {featuredRace.round}
-                      {totalRounds > 0 ? ` / ${totalRounds}` : ''}
-                    </span>
-                    {featuredRace.hasSprint && (
-                      <>
-                        <span aria-hidden="true" className="text-border-strong">
-                          ·
-                        </span>
-                        <span className="text-accent">Sprint weekend</span>
-                      </>
-                    )}
-                  </p>
-
-                  {nextSession && (
-                    <div className="mt-6 border-t border-border/70 pt-5">
-                      <p className="mb-3 text-center text-xs font-semibold tracking-label text-text-muted uppercase">
-                        {nextSession.label} starts in
-                      </p>
-                      <BigCountdown
-                        targetAt={nextSession.startAt}
-                        now={now}
-                        compact
-                      />
-                    </div>
-                  )}
-
-                  {!nextSession && showCurrentWeekend && (
-                    <div className="mt-6 flex items-center gap-3 border-t border-border/70 pt-5">
-                      {allFinished ? (
-                        <CheckCircle2
-                          className="h-8 w-8 shrink-0 text-success"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <Radio
-                          className="h-8 w-8 shrink-0 animate-pulse text-accent"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <div>
-                        <p className="font-semibold text-text">
-                          {allFinished
-                            ? 'Race weekend complete'
-                            : 'Race weekend in progress'}
-                        </p>
-                        <p className="mt-0.5 text-sm text-text-muted">
-                          {allFinished
-                            ? 'Results are published and the standings are updated.'
-                            : 'Sessions are underway. Results are coming soon.'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/70 pt-4">
-                    <Link
-                      to="/races/$raceSlug"
-                      params={{ raceSlug: featuredRace.slug }}
-                      search={{ from: 'home' }}
-                      className="inline-flex min-h-7 items-center gap-1 text-sm font-semibold text-accent hover:text-accent-hover focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
-                    >
-                      {allFinished ? 'View results' : 'Open race'}
-                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Link>
-                    <Link
-                      to="/races"
-                      className="inline-flex min-h-7 items-center text-sm font-medium text-text-muted hover:text-text focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
-                    >
-                      Full calendar
-                    </Link>
-                  </div>
-                </div>
+                {/* The worked example, promoted out of section two.
+                    Previously the eye landed on a scheduling widget with two
+                    links leading away from the picker, and the only thing that
+                    explains the game sat two screens below the primary CTA. */}
+                <ExamplePicksCard />
               </div>
             )}
 
@@ -495,7 +399,7 @@ function HomePage() {
                     size="md"
                     rightIcon={ArrowRight}
                   >
-                    <Link to="/races">Make Your Picks</Link>
+                    <Link to="/races">Start picking</Link>
                   </Button>
                   <Button
                     asChild
@@ -555,27 +459,12 @@ function HomePage() {
           </section>
         )}
 
+        {/* What the points actually are. Replaces both the worked example
+            (now in the hero) and the three-step strip that restated it. */}
         {!isSignedIn && (
-          <GameplayPreview
+          <ScoringExplainer
             raceSlug={nextRace?.slug ?? featuredRace?.slug ?? null}
           />
-        )}
-
-        {/* Compact "how it works" — quick orientation near the top */}
-        {!isSignedIn && (
-          <section className="px-3 pt-1 pb-8 sm:pt-2">
-            <div className="mx-auto w-full max-w-3xl">
-              <HowItWorksStrip />
-            </div>
-          </section>
-        )}
-
-        {!isSignedIn && (
-          <section className="px-3 pt-2 pb-8 sm:pb-10">
-            <div className="mx-auto w-full max-w-3xl">
-              <PlayWithFriends isSignedIn={false} />
-            </div>
-          </section>
         )}
 
         {/* Session timetable — grouped by day */}
@@ -670,14 +559,64 @@ function HomePage() {
 
         {topPlayers.length > 0 && (
           <section className="px-3 pt-2 pb-10">
-            <div className="mx-auto w-full max-w-3xl rounded-lg border border-border bg-surface p-4 sm:p-6">
-              {recentRacePlayerCount > 0 && (
-                <SocialProof
-                  playerCount={recentRacePlayerCount}
-                  raceSlug={nextRace?.slug ?? featuredRace?.slug ?? null}
-                />
+            <div className="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-2 lg:items-start">
+              {!isSignedIn && (
+                <div className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+                  <p className="gpp-label flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                    Private leagues
+                  </p>
+                  <h2 className="mt-3 text-xl leading-snug font-normal tracking-tight text-text">
+                    Run the season against your group
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-text-muted">
+                    Create a league, share one link, and compare picks after
+                    every session.
+                  </p>
+                  <dl className="mt-5 border-t border-border">
+                    {LEAGUE_FACTS.map((fact) => (
+                      <div
+                        key={fact.label}
+                        className="flex items-baseline justify-between gap-4 border-b border-border py-2.5"
+                      >
+                        <dt className="text-sm text-text-muted">
+                          {fact.label}
+                        </dt>
+                        <dd className="gpp-mono text-sm text-text">
+                          {fact.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="sm"
+                    className="mt-5"
+                    leftIcon={Users}
+                  >
+                    <Link to="/leagues">Explore leagues</Link>
+                  </Button>
+                </div>
               )}
-              <LeaderboardTeaser players={topPlayers} />
+              <div className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+                {recentRacePlayerCount > 0 && (
+                  <SocialProof
+                    playerCount={recentRacePlayerCount}
+                    raceSlug={nextRace?.slug ?? featuredRace?.slug ?? null}
+                  />
+                )}
+                <LeaderboardTeaser players={topPlayers} />
+                {!isSignedIn && (
+                  // Without this, a table of strangers on 300+ points reads as
+                  // "you are 300 behind" to someone arriving at round 12.
+                  <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-text-muted">
+                    Join at any round. Your total starts from your first
+                    session, and every weekend from here is worth the same to
+                    you as it is to them.
+                  </p>
+                )}
+              </div>
             </div>
           </section>
         )}
@@ -801,7 +740,7 @@ function HomePage() {
                     params={{ raceSlug: featuredRace.slug }}
                     search={{ from: 'home' }}
                   >
-                    {isSignedIn ? 'Open my picks' : 'Make your free picks'}
+                    {isSignedIn ? 'Open my picks' : 'Start picking'}
                   </Link>
                 ) : (
                   <Link to="/races">Explore races</Link>

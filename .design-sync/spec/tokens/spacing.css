@@ -42,7 +42,7 @@
      Qatar drew 3.6x wider and every row containing a flag changed width from
      round to round. 4:3 because the fixed size ramp (16x12, 24x18, 40x30)
      was already built on it. */
-  --flag-aspect: 4 / 3;
+  --flag-aspect: 4 / 3; /* @kind other */
 
   /* Layout */
   --page-max: 1200px;

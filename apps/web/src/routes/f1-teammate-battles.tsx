@@ -134,7 +134,7 @@ function Driver({
   align: 'left' | 'right';
 }) {
   const name = (
-    <span className="hidden truncate text-sm text-text-muted sm:inline">
+    <span className="hidden truncate text-base text-text-muted sm:inline">
       {driver.displayName}
     </span>
   );
@@ -211,10 +211,15 @@ function TeammateBattlesPage() {
         <PageHeader
           eyebrow="Formula 1"
           title={`${SEASON} F1 teammate head-to-head`}
-          subtitle="The season-long record for every teammate pairing, based on official qualifying, sprint and race classifications."
+          subtitle={
+            <p className="text-base">
+              The season-long record for every teammate pairing, based on
+              official qualifying, sprint and race classifications.
+            </p>
+          }
           actions={
             battles.lastUpdated ? (
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-muted">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
                 <span>
                   Updated{' '}
                   <time dateTime={new Date(battles.lastUpdated).toISOString()}>
@@ -248,7 +253,7 @@ function TeammateBattlesPage() {
         />
 
         {!hasData ? (
-          <p className="rounded-sm border border-border bg-surface px-4 py-6 text-sm text-text-muted">
+          <p className="rounded-sm border border-border bg-surface px-4 py-6 text-base text-text-muted">
             No sessions have been classified yet this season. Records appear
             here once the first qualifying session is published.
           </p>
@@ -280,7 +285,7 @@ function TeammateBattlesPage() {
                     />
                     <h2
                       id={headingId}
-                      className="text-sm font-semibold text-text"
+                      className="text-base font-semibold text-text"
                     >
                       {displayTeamName(team.team)}
                     </h2>
@@ -300,7 +305,7 @@ function TeammateBattlesPage() {
                           <span className="mx-1 text-text-muted">-</span>
                           {trail.total}
                         </p>
-                        <p className="text-xs text-text-muted">
+                        <p className="text-sm text-text-muted">
                           {drawn ? 'All square' : 'Sessions won'}
                         </p>
                       </div>
@@ -311,7 +316,7 @@ function TeammateBattlesPage() {
                     <div className="mt-3">
                       <TallyBar lead={lead.total} trail={trail.total} />
                       <dl
-                        className={`mt-2 grid gap-x-4 gap-y-1 text-xs text-text-muted ${
+                        className={`mt-2 grid gap-x-4 gap-y-1 text-base text-text-muted ${
                           includeSprints
                             ? 'grid-cols-2'
                             : 'grid-cols-2 sm:flex sm:justify-center sm:gap-6'
@@ -352,11 +357,11 @@ function TeammateBattlesPage() {
           </div>
         )}
 
-        <section className="mt-10 border-t border-border pt-8">
+        <section className="mt-10 pt-8">
           <h2 className="font-title text-xl font-semibold text-text">
             How these records are counted
           </h2>
-          <div className="mt-3 max-w-3xl space-y-3 text-sm leading-6 text-text-muted">
+          <div className="mt-3 max-w-4xl space-y-3 text-lg leading-7 text-text-muted">
             <p>
               A driver wins a session when they are classified ahead of their
               teammate in the official result. Qualifying, sprint qualifying,
@@ -398,13 +403,13 @@ function TeammateBattlesPage() {
           <h2 className="font-title text-xl font-semibold text-text">
             Think you can call the next one?
           </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-text-muted">
+          <p className="mx-auto mt-2 max-w-xl text-base leading-6 text-text-muted">
             Pick a winner from every teammate pairing before the next session
             locks and see how your record compares.
           </p>
           <Link
             to="/races"
-            className="mt-5 inline-flex items-center rounded-sm bg-accent px-4 py-2 text-sm font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
+            className="mt-5 inline-flex items-center rounded-sm bg-accent px-4 py-2 text-base font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
           >
             Make your picks
           </Link>

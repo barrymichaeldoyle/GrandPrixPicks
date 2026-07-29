@@ -1,11 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <rect width="24" height="24" rx="5" fill="#1e293b"/>
-  <path
-    d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"
-    fill="none"
-    stroke="#2dd4bf"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Grand Prix Picks">
+  <rect width="32" height="32" rx="6" fill="#101113"/>
+  <g fill="#D4FF3F" transform="translate(16 16) skewX(-12) translate(-16 -16)">
+    <rect x="5" y="13" width="6" height="12"/>
+    <rect x="14" y="7" width="6" height="18"/>
+    <rect x="23" y="16" width="6" height="9"/>
+  </g>
 </svg>

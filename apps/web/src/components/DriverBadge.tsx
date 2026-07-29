@@ -1,12 +1,12 @@
 import type { CSSProperties } from 'react';
 
 import { displayTeamName } from '@/lib/display';
-import { TEAM_COLORS } from '@/lib/teamColors';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
-export { TEAM_COLORS };
+export { FALLBACK_TEAM_COLOR, TEAM_COLORS };
 
 // Left padding leaves room for the 3px team bar.
 const BADGE_SIZES = {
@@ -53,7 +53,7 @@ export function DriverBadge({
   showNumber = false,
   prerenderTooltip,
 }: DriverBadgeProps) {
-  const color = team ? (TEAM_COLORS[team] ?? '#666') : '#666';
+  const color = (team && TEAM_COLORS[team]) || FALLBACK_TEAM_COLOR;
   const hasTooltip = displayName || number != null || team || nationality;
 
   const tooltipContent = hasTooltip ? (
@@ -168,9 +168,10 @@ export function ScoredDriverBadge({
   ...driverProps
 }: DriverBadgeProps & { pickPoints?: number; hideDot?: boolean }) {
   /*
-   * The four result semantics, straight from the scoring bands. These are
-   * fixed meanings across the whole app: violet is an exact position, green
-   * beat the prediction, amber is within one, grey is a miss.
+   * The four result semantics, straight from the scoring bands in
+   * lib/scoring.ts. Fixed meanings across the whole app: violet is an exact
+   * position, green is off by exactly one, amber is in the actual top five but
+   * off by two or more, grey is no points.
    *
    * A miss is grey, never red — the only red in this system is a downward
    * position delta. The previous red ring made every wrong pick read as an
@@ -181,11 +182,11 @@ export function ScoredDriverBadge({
 
   if (pickPoints !== undefined) {
     if (pickPoints === 5) {
-      ringClass = 'ring-1 ring-result-perfect';
+      ringClass = 'ring-1 ring-result-exact';
     } else if (pickPoints === 3) {
-      ringClass = 'ring-1 ring-result-beat';
+      ringClass = 'ring-1 ring-result-near';
     } else if (pickPoints === 1) {
-      ringClass = 'ring-1 ring-result-close';
+      ringClass = 'ring-1 ring-result-top5';
     } else {
       ringClass = 'ring-1 ring-result-miss';
       opacityClass = 'opacity-60';
@@ -202,7 +203,7 @@ export function ScoredDriverBadge({
       {!hideDot && pickPoints !== undefined && pickPoints >= 3 && (
         <span
           className={`absolute -top-1 -right-1 h-2 w-2 rounded-full border border-page ${
-            pickPoints === 5 ? 'bg-result-perfect' : 'bg-result-beat'
+            pickPoints === 5 ? 'bg-result-exact' : 'bg-result-near'
           }`}
         />
       )}

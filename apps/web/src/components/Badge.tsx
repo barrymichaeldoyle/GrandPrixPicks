@@ -22,7 +22,7 @@ const mutedBadgeStyles =
 const variantStyles: Record<BadgeVariant, string> = {
   // Sprint reuses the violet result semantic rather than adding a sixth hue.
   sprint:
-    'bg-result-perfect-quiet text-sprint-text border border-sprint-border/45',
+    'bg-result-exact-quiet text-sprint-text border border-sprint-border/45',
   upcoming: successBadgeStyles,
   not_yet_open: mutedBadgeStyles,
   locked: 'border border-warning/50 bg-warning-muted text-warning',

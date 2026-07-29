@@ -55,10 +55,15 @@ export const colors = {
 
   // Prediction result semantics, F1 sector-colour inspired. Fixed meanings:
   // a miss is grey, never red. The only red in the system is `deltaDown`.
-  resultPerfect: '#c084fc', // exact position
-  resultBeat: '#4ade80', // beat the prediction
-  resultClose: '#facc15', // within one position
-  resultMiss: '#71717a', // miss
+  //
+  // Named for the scoring bands in lib/scoring.ts, richest to quietest. The
+  // previous names (perfect / beat / close) described a game that does not
+  // exist: nothing in the engine "beats" a prediction, and "close" read as
+  // off-by-one when it actually means in-the-top-five-but-off-by-two-or-more.
+  resultExact: '#c084fc', // exact position, driver finished <= P5 — 5 pts
+  resultNear: '#4ade80', // off by exactly one, incl. P5 -> P6 — 3 pts (also H2H correct — 1 pt)
+  resultTop5: '#facc15', // in the actual top five but off by 2+ — 1 pt
+  resultMiss: '#71717a', // no points
 
   // Position delta, for batch leaderboard updates. Movement is *labelled*
   // (▲2 / ▼1 / –), never animated.
@@ -122,8 +127,14 @@ export const teams = {
   Cadillac: '#909090',
 } as const;
 
-/** Shown for a driver whose team is unknown or not on the current grid. */
-export const fallbackTeamColor = '#666666';
+/**
+ * Shown for a driver whose team is unknown or not on the current grid.
+ *
+ * Deliberately darker than every real livery: Haas `#9c9fa2` and Cadillac
+ * `#909090` are both silver, so a mid grey here reads as a team rather than as
+ * missing data.
+ */
+export const fallbackTeamColor = '#3f4147';
 
 /**
  * Corner radii in px. Sharp and precise: 2px on anything you interact with,

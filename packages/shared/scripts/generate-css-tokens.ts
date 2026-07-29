@@ -79,9 +79,9 @@ const ALPHA_TINTS: ReadonlyArray<
   ['accent-quiet', 'accent', 0.12],
   ['accent-hairline', 'accent', 0.35],
   ['focus-ring', 'accent', 0.55],
-  ['result-perfect-quiet', 'result-perfect', 0.14],
-  ['result-beat-quiet', 'result-beat', 0.14],
-  ['result-close-quiet', 'result-close', 0.14],
+  ['result-exact-quiet', 'result-exact', 0.14],
+  ['result-near-quiet', 'result-near', 0.14],
+  ['result-top5-quiet', 'result-top5', 0.14],
   ['result-miss-quiet', 'result-miss', 0.16],
   // Status tints. Aliases of the result semantics rather than new hues — the
   // amber is the same amber, so an error surface cannot drift toward red.

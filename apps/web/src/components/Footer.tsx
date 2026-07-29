@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { Flag } from 'lucide-react';
 
 import { footerExploreLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from './PrivacyChoicesButton';
+import { BrandMark } from './BrandMark.tsx';
 import { XLogoIcon } from './ShareOnXButton';
 
 function LinkedInIcon({ className }: { className?: string }) {
@@ -26,21 +26,12 @@ export function Footer() {
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
-      <div
-        aria-hidden
-        className="header-grid-sheen pointer-events-none absolute inset-0"
-      />
       <div className="relative mx-auto max-w-6xl px-4 py-7">
         <div className="grid grid-cols-1 gap-7 text-sm text-text-muted sm:grid-cols-[1.4fr_1.3fr_1fr] sm:gap-10">
           <div className="space-y-3">
-            <p className="flex items-center gap-2 text-base font-semibold text-text">
-              <span className="flex h-7 w-5 items-center justify-center">
-                <Flag
-                  className="relative left-0.25 h-4.5 w-4.5 text-accent"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="font-title tracking-tight">
+            <p className="flex items-center gap-2.5 text-base text-text">
+              <BrandMark className="h-4 w-6 shrink-0 text-accent" />
+              <span className="font-semibold tracking-[0.06em] uppercase">
                 Grand Prix Picks
               </span>
             </p>

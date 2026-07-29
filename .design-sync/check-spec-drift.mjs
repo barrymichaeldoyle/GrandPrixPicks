@@ -110,6 +110,11 @@ const NOT_PART_OF_CONTRACT = [
   /^space-\d+$/,
   // Used inline as a literal `1px`; never referenced as a variable.
   /^border-width$/,
+  // Deprecated aliases the spec keeps so its own older component files keep
+  // resolving (--result-perfect -> --result-exact, and so on). The app migrated
+  // to the new names outright rather than carrying dead tokens forever, so
+  // these are intentionally absent here.
+  /^result-(?:perfect|beat|close)(?:-quiet)?$/,
 ];
 
 function hexToChannels(hex) {

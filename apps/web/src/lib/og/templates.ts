@@ -8,6 +8,32 @@ import { colors, getOgDimensions } from './styles';
 // Shorthand for React.createElement — satori accepts ReactNode trees.
 const e = createElement;
 
+/**
+ * The brand mark: three bars descending like a timing tower, sheared -12deg to
+ * echo the signature stripe. Mirrors `components/Wordmark.tsx` and
+ * `public/favicon.svg`.
+ *
+ * Satori renders a real SVG subtree, so this is the same artwork the app uses
+ * rather than a lookalike — the cards previously drew a Lucide flag, which was
+ * never the brand.
+ */
+function brandMark(size: number): ReactNode {
+  return e(
+    'svg',
+    { width: size, height: size * (40 / 60), viewBox: '0 0 60 40' },
+    e(
+      'g',
+      {
+        fill: colors.accent,
+        transform: 'translate(28 20) skewX(-12) translate(-28 -20)',
+      },
+      e('rect', { x: 7, y: 14, width: 12, height: 24 }),
+      e('rect', { x: 24, y: 2, width: 12, height: 36 }),
+      e('rect', { x: 41, y: 20, width: 12, height: 18 }),
+    ),
+  );
+}
+
 /** Shared outer wrapper: dark bg, accent stripe at top, branding at bottom. */
 function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
   return layoutWithBackground(size, undefined, ...children);
@@ -115,30 +141,14 @@ function layoutWithBackground(
             style: {
               width: 32,
               height: 32,
-              borderRadius: 9999,
+              borderRadius: 4,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: colors.accentMuted,
             },
           },
-          e(
-            'svg',
-            {
-              width: 20,
-              height: 20,
-              viewBox: '0 0 24 24',
-              fill: 'none',
-              stroke: colors.accent,
-              'stroke-width': '2',
-              'stroke-linecap': 'round',
-              'stroke-linejoin': 'round',
-              style: { transform: 'translateX(1px)' },
-            },
-            e('path', {
-              d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
-            }),
-          ),
+          brandMark(20),
         ),
         'Grand Prix Picks',
       ),
@@ -185,30 +195,14 @@ export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
             style: {
               width: 96,
               height: 96,
-              borderRadius: 9999,
+              borderRadius: 4,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: colors.accentMuted,
             },
           },
-          e(
-            'svg',
-            {
-              width: 72,
-              height: 72,
-              viewBox: '0 0 24 24',
-              fill: 'none',
-              stroke: colors.accent,
-              'stroke-width': '2',
-              'stroke-linecap': 'round',
-              'stroke-linejoin': 'round',
-              style: { transform: 'translateX(1px)' },
-            },
-            e('path', {
-              d: 'M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528',
-            }),
-          ),
+          brandMark(72),
         ),
         e(
           'div',

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
-import { DriverBadge, TEAM_COLORS } from './DriverBadge';
+import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
@@ -61,7 +61,7 @@ export function H2HMatchupGrid({
     <div className={gridClassName}>
       {matchups.map((matchup) => {
         const selected = selections[matchup._id];
-        const teamColor = TEAM_COLORS[matchup.team] ?? '#666';
+        const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
 
         return (
           <div

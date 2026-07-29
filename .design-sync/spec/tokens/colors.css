@@ -26,15 +26,25 @@
   --accent-quiet: rgba(212, 255, 63, 0.12);
   --accent-hairline: rgba(212, 255, 63, 0.35);
 
-  /* Prediction result semantics (F1 sector-colour inspired) */
-  --result-perfect: #c084fc; /* exact pick */
-  --result-beat: #4ade80; /* beat prediction */
-  --result-close: #facc15; /* within one position */
-  --result-miss: #71717a; /* miss — muted grey, never harsh red */
-  --result-perfect-quiet: rgba(192, 132, 252, 0.14);
-  --result-beat-quiet: rgba(74, 222, 128, 0.14);
-  --result-close-quiet: rgba(250, 204, 21, 0.14);
+  /* Prediction result semantics (F1 sector-colour inspired).
+     A value ramp, richest to quietest: 5 pts, 3 pts, 1 pt, 0. */
+  --result-exact: #c084fc; /* Top 5: exact position, driver finished <= P5 — 5 pts */
+  --result-near: #4ade80; /* Top 5: off by exactly one, incl. P5 -> P6 — 3 pts. Also H2H correct — 1 pt */
+  --result-top5: #facc15; /* Top 5: in the actual top five but off by 2+ — 1 pt */
+  --result-miss: #71717a; /* No points — muted grey, never harsh red */
+  --result-exact-quiet: rgba(192, 132, 252, 0.14);
+  --result-near-quiet: rgba(74, 222, 128, 0.14);
+  --result-top5-quiet: rgba(250, 204, 21, 0.14);
   --result-miss-quiet: rgba(113, 113, 122, 0.16);
+
+  /* Deprecated aliases — the old perfect/beat/close names. 'beat' never existed in
+     the real scoring engine; prefer exact/near/top5. */
+  --result-perfect: var(--result-exact);
+  --result-beat: var(--result-near);
+  --result-close: var(--result-top5);
+  --result-perfect-quiet: var(--result-exact-quiet);
+  --result-beat-quiet: var(--result-near-quiet);
+  --result-close-quiet: var(--result-top5-quiet);
 
   /* Position delta (batch updates only — never animate live movement) */
   --delta-up: #4ade80;

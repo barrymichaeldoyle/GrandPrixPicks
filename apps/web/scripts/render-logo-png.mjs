@@ -1,5 +1,5 @@
 /**
- * Renders public/favicon.svg (Lucide-style icon) to public/logo-storefront.png
+ * Renders public/favicon.svg (the three-bar brand mark) to public/logo-storefront.png
  * at 512x512 so it stays pixel-perfect and consistent with the favicon.
  *
  * Run from apps/web: node scripts/render-logo-png.mjs
@@ -25,15 +25,34 @@ async function main() {
 
   const svgPath = join(ROOT, 'public', 'favicon.svg');
   let svg = await readFile(svgPath, 'utf-8');
-  // Storefront: scale and center the flag so it fits inside a circular crop (app store, Lemon Squeezy)
-  const scale = 0.82; // fits inside circle radius ~10.5 in 24x24 viewBox
+
+  /*
+   * Storefront targets (app stores, Lemon Squeezy) crop to a circle, so the
+   * mark is scaled down about its centre to sit inside the inscribed circle.
+   *
+   * This used to regex out the Lucide `<path>` and wrap that. The mark is now
+   * three `<rect>`s in a `<g>`, so that pattern matches nothing — it would
+   * have silently emitted an uncropped, unscaled logo rather than failing.
+   * Scaling the whole 32x32 viewBox is also simply more robust: it does not
+   * care what the artwork is made of.
+   */
+  const VIEWBOX = 32;
+  const mid = VIEWBOX / 2;
+  const scale = 0.78; // keeps the bars clear of a circular crop
   svg = svg.replace(
-    /<path[\s\S]*?\/>/,
-    (path) =>
-      `<g transform="translate(12,12) scale(${scale}) translate(-12,-12)">${path}</g>`,
+    /(<svg[^>]*>)([\s\S]*)(<\/svg>)/,
+    (_match, open, body, close) =>
+      `${open}<g transform="translate(${mid},${mid}) scale(${scale}) translate(-${mid},-${mid})">${body}</g>${close}`,
   );
-  // Force output size: same Lucide-style graphic at 512x512
-  svg = svg.replace(/<svg\s/, `<svg width="${SIZE}" height="${SIZE}" `);
+
+  // Force output size: same graphic at 512x512. Strip any width/height the
+  // source already declares first — resvg rejects a duplicated attribute, and
+  // the mark carries its own intrinsic size where the old Lucide icon did not.
+  svg = svg.replace(
+    /<svg([^>]*)>/,
+    (_match, attrs) =>
+      `<svg${attrs.replace(/\s(?:width|height)="[^"]*"/g, '')} width="${SIZE}" height="${SIZE}">`,
+  );
 
   const resvg = new Resvg(svg);
   const pngData = resvg.render();

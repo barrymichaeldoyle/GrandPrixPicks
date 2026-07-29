@@ -18,6 +18,8 @@
   --team-astonmartin: #229971;
   --team-cadillac: #909090;
 
-  /* Shown for a driver whose team is unknown or off the current grid. */
-  --team-fallback: #666666;
+  /* Shown for a driver whose team is unknown or off the current grid.
+     Deliberately darker than every real livery — Haas #9c9fa2 and Cadillac #909090
+     are both silver, so a mid grey here reads as a team rather than as missing data. */
+  --team-fallback: #3f4147;
 }

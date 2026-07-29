@@ -47,7 +47,7 @@ import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
-import { TEAM_COLORS } from './DriverBadge';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { InlineLoader } from './InlineLoader';
 import { Tooltip } from './Tooltip';
@@ -82,7 +82,8 @@ function DriverPickBadge({ driver }: { driver: Driver }) {
       className="gpp-team-bar flex h-full w-12 shrink-0 items-center justify-center border-r border-border py-1 pl-1 sm:w-14"
       style={
         {
-          '--team-colour': driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+          '--team-colour':
+            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
         } as React.CSSProperties
       }
     >
@@ -269,7 +270,7 @@ function DraggableDriverCard({
         style={
           {
             '--team-colour':
-              driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+              (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
           } as React.CSSProperties
         }
       >

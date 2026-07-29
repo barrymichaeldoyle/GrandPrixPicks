@@ -46,9 +46,9 @@ export const colors = {
   silver: tokens.podiumSilver,
   bronze: tokens.podiumBronze,
   // The four scoring semantics, so a results card reads the same as the app.
-  resultPerfect: tokens.resultPerfect,
-  resultBeat: tokens.resultBeat,
-  resultClose: tokens.resultClose,
+  resultExact: tokens.resultExact,
+  resultNear: tokens.resultNear,
+  resultTop5: tokens.resultTop5,
   resultMiss: tokens.resultMiss,
   // Race status, using the same semantic tokens the app's status badges use.
   statusUpcoming: tokens.success,

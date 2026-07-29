@@ -96,9 +96,11 @@ async function main() {
     );
   }
 
-  const flagGlyphSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528" fill="none" stroke="${colors.accentHover}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const flagGlyphDataUri = `data:image/svg+xml;base64,${Buffer.from(
-    flagGlyphSvg,
+  // The brand mark: three bars descending like a timing tower, sheared to echo
+  // the signature stripe. Was a Lucide flag, which was never the brand.
+  const markSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" width="60" height="40"><g fill="${colors.accent}" transform="translate(28 20) skewX(-12) translate(-28 -20)"><rect x="7" y="14" width="12" height="24"/><rect x="24" y="2" width="12" height="36"/><rect x="41" y="20" width="12" height="18"/></g></svg>`;
+  const markDataUri = `data:image/svg+xml;base64,${Buffer.from(
+    markSvg,
   ).toString('base64')}`;
 
   const element = h(
@@ -165,7 +167,7 @@ async function main() {
               justifyContent: 'center',
             },
           },
-          h('img', { src: flagGlyphDataUri, width: 50, height: 50 }),
+          h('img', { src: markDataUri, width: 46, height: 31 }),
         ),
         h(
           'div',

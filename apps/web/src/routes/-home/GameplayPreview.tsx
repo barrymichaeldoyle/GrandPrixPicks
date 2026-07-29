@@ -89,10 +89,10 @@ export function GameplayPreview({ raceSlug }: { raceSlug: string | null }) {
               const points = index < 2 ? 5 : index < 4 ? 3 : 1;
               const pointsClass =
                 points === 5
-                  ? 'text-result-perfect'
+                  ? 'text-result-exact'
                   : points === 3
-                    ? 'text-result-beat'
-                    : 'text-result-close';
+                    ? 'text-result-near'
+                    : 'text-result-top5';
 
               return (
                 <li

@@ -11,6 +11,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { primaryNavLinks } from '@/lib/navigation';
 import { Flag as CountryFlag } from './Flag.tsx';
+import { BrandMark } from './BrandMark.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
@@ -279,23 +280,18 @@ export function Header({
             to="/"
             className="group flex shrink-0 items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
           >
-            <span className="flex h-9 w-7 items-center justify-center">
-              <Flag
-                className="relative left-0.25 h-6 w-6 text-accent"
-                aria-hidden="true"
-              />
-            </span>
+            {/* The brand mark, replacing the generic Lucide flag. Three bars
+                descending like a timing tower, sheared to echo the stripe. */}
+            <BrandMark className="h-5 w-[1.875rem] shrink-0 text-accent" />
             {/* Below 390px (iPhone SE / 12 mini) the wordmark shortens to
                 "GP Picks" — with the next-race pill there isn't room for the
                 full name, and the UserButton must stay visible (it's the only
                 mobile nav when signed in). iPhone 14 Pro (393px) and wider
                 fit the full wordmark alongside the flag-only pill. */}
-            {/* Light, not bold: the wordmark gets its presence from tracking
-                and the accent mark beside it, not from weight. */}
-            <span className="pr-1 text-xl font-light tracking-display whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:hidden">
+            <span className="pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent min-[390px]:hidden">
               GP Picks
             </span>
-            <span className="hidden pr-1 text-xl font-light tracking-display whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:inline">
+            <span className="hidden pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent min-[390px]:inline">
               Grand Prix Picks
             </span>
           </Link>

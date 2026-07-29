@@ -59,7 +59,10 @@ Workspace package names:
 - `pnpm dev` — Web dev (Vite on port 3000); also: `pnpm dev:web`, `pnpm dev:mobile` (Expo), `pnpm dev:backend` (Convex)
 - `pnpm ios` / `pnpm android` — Launch Expo on simulator
 - `pnpm build` — Web production build
-- `pnpm test` / `pnpm test:e2e` — Vitest / Playwright (web only)
+- `pnpm test` — Vitest across shared, backend and web. Narrow it with
+  `pnpm test:shared` / `test:backend` / `test:web`. Mobile is separate
+  (`pnpm test:mobile`) because it needs its own environment.
+- `pnpm test:e2e` — Playwright (web only)
 - `pnpm lint` / `pnpm lint:fix` — oxlint across web + backend + mobile
 - `pnpm format` / `pnpm check` — oxfmt (format / check both)
 - `pnpm typecheck` — TS across shared, web, backend (mobile has its own `pnpm --filter @grandprixpicks/mobile typecheck`)

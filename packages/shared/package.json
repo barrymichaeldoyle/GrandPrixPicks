@@ -4,11 +4,14 @@
   "type": "module",
   "scripts": {
     "generate-tokens": "tsx scripts/generate-css-tokens.ts",
-    "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly"
+    "typecheck": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=dot"
   },
   "devDependencies": {
     "tsx": "4.23.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "4.1.10"
   },
   "exports": {
     "./dates": "./src/dates.ts",

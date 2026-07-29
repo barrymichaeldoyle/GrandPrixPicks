@@ -18,8 +18,8 @@
     "deploy:backend": "pnpm --filter @grandprixpicks/backend deploy",
     "deploy:convex": "pnpm --filter @grandprixpicks/backend deploy",
     "email:dev": "pnpm --filter @grandprixpicks/backend email:dev",
-    "test": "pnpm --filter @grandprixpicks/web test",
-    "test:ci": "pnpm --filter @grandprixpicks/web test:ci",
+    "test": "pnpm --filter @grandprixpicks/shared test && pnpm --filter @grandprixpicks/backend test && pnpm --filter @grandprixpicks/web test",
+    "test:ci": "pnpm --filter @grandprixpicks/shared test:ci && pnpm --filter @grandprixpicks/backend test:ci && pnpm --filter @grandprixpicks/web test:ci",
     "test:mobile": "pnpm --filter @grandprixpicks/mobile test:ci",
     "typecheck:reddit": "pnpm --filter @grandprixpicks/reddit typecheck",
     "test:e2e": "pnpm --filter @grandprixpicks/web test:e2e",
@@ -44,7 +44,10 @@
     "scenario": "pnpm --filter @grandprixpicks/backend scenario",
     "start": "pnpm --filter @grandprixpicks/web start",
     "pp": "pnpm patch-pulse",
-    "pp:i": "pnpm patch-pulse -i"
+    "pp:i": "pnpm patch-pulse -i",
+    "test:shared": "pnpm --filter @grandprixpicks/shared test",
+    "test:backend": "pnpm --filter @grandprixpicks/backend test",
+    "test:web": "pnpm --filter @grandprixpicks/web test"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1",

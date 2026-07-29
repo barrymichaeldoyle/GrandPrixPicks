@@ -77,7 +77,7 @@ describe('useCountdown', () => {
       const target =
         1_000 + (2 * 24 * 60 * 60 + 3 * 60 * 60 + 4 * 60 + 5) * 1_000;
       const { getLatest, unmount } = renderUseCountdown(target);
-      expect(getLatest()).toBe('2d 3h 4m 5s');
+      expect(getLatest()).toBe('02d 03h 04m');
       unmount();
     });
   });
@@ -86,7 +86,7 @@ describe('useCountdown', () => {
     withMockedNow(10_000, () => {
       const target = 10_000 + (5 * 60 * 60 + 6 * 60 + 7) * 1_000;
       const { getLatest, unmount } = renderUseCountdown(target);
-      expect(getLatest()).toBe('5h 6m 7s');
+      expect(getLatest()).toBe('05h 06m 07s');
       unmount();
     });
   });

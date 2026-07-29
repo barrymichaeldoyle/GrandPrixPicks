@@ -16,6 +16,10 @@ vi.mock('convex/browser', () => ({
   },
 }));
 
+vi.mock('@/integrations/convex/client', () => ({
+  convexHttp: { query: vi.fn() },
+}));
+
 type HeadResult = {
   links?: Array<{ href: string; rel: string }>;
   meta?: Array<{ content: string; name?: string; property?: string }>;
@@ -39,6 +43,25 @@ type ProfileHeadRoute = {
   }) => HeadResult | Record<string, never>;
 };
 
+type TeammateHeadRoute = {
+  head: (args: {
+    loaderData: {
+      battles: {
+        lastUpdated: number;
+        teams: Array<{
+          team: string;
+          drivers: [
+            { displayName: string; total: number },
+            { displayName: string; total: number },
+          ];
+        }>;
+      };
+    };
+  }) => HeadResult & {
+    scripts?: Array<{ children: string; type: string }>;
+  };
+};
+
 function asStaticHeadRoute(route: unknown): StaticHeadRoute {
   return route as StaticHeadRoute;
 }
@@ -49,6 +72,10 @@ function asUsernameHeadRoute(route: unknown): UsernameHeadRoute {
 
 function asProfileHeadRoute(route: unknown): ProfileHeadRoute {
   return route as ProfileHeadRoute;
+}
+
+function asTeammateHeadRoute(route: unknown): TeammateHeadRoute {
+  return route as TeammateHeadRoute;
 }
 
 describe('SEO head metadata', () => {
@@ -147,6 +174,52 @@ describe('SEO head metadata', () => {
     // FAQ rich results were retired in May 2026; the markup stays valid and is
     // still read by non-Google crawlers, so it must not be dropped silently.
     expect(types).toContain('FAQPage');
+  });
+
+  it('publishes indexable teammate records with an ItemList', async () => {
+    const { Route: teammateRoute } = await import('./f1-teammate-battles');
+    const head = asTeammateHeadRoute(teammateRoute).head({
+      loaderData: {
+        battles: {
+          lastUpdated: 1_753_574_400_000,
+          teams: [
+            {
+              team: 'ferrari',
+              drivers: [
+                { displayName: 'Charles Leclerc', total: 16 },
+                { displayName: 'Lewis Hamilton', total: 4 },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    const title = head.meta?.find((tag) => 'title' in tag) as
+      | { title: string }
+      | undefined;
+    const description = head.meta?.find((tag) => tag.name === 'description');
+    const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
+      | Array<{ '@type': string; numberOfItems?: number }>
+      | undefined;
+
+    expect(title?.title.length).toBeLessThanOrEqual(60);
+    expect(description?.content.length).toBeLessThanOrEqual(160);
+    expect(description?.content).toContain('Qualifying, sprint and race');
+    expect(head.links).toEqual([
+      {
+        rel: 'canonical',
+        href: 'https://grandprixpicks.com/f1-teammate-battles',
+      },
+    ]);
+    expect(graph?.map((node) => node['@type'])).toEqual([
+      'WebPage',
+      'BreadcrumbList',
+      'ItemList',
+    ]);
+    expect(
+      graph?.find((node) => node['@type'] === 'ItemList')?.numberOfItems,
+    ).toBe(1);
   });
 
   it('emits child canonical + noindex for follow list pages', async () => {

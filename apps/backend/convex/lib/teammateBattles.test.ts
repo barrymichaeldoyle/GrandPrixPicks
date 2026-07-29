@@ -25,7 +25,7 @@ function outcome(
 }
 
 describe('tallyTeammateBattles', () => {
-  it('splits one-lap sessions from full-distance ones', () => {
+  it('keeps Grand Prix and sprint sessions separate', () => {
     const tallies = tallyTeammateBattles([
       outcome('quali', LEC),
       outcome('sprint_quali', LEC),
@@ -35,8 +35,20 @@ describe('tallyTeammateBattles', () => {
     ]);
 
     const ferrari = tallies.get(FERRARI)!;
-    expect(ferrari.get(LEC)).toEqual({ qualifying: 2, race: 1, total: 3 });
-    expect(ferrari.get(HAM)).toEqual({ qualifying: 0, race: 2, total: 2 });
+    expect(ferrari.get(LEC)).toEqual({
+      qualifying: 1,
+      race: 1,
+      sprintQualifying: 1,
+      sprint: 0,
+      total: 3,
+    });
+    expect(ferrari.get(HAM)).toEqual({
+      qualifying: 0,
+      race: 1,
+      sprintQualifying: 0,
+      sprint: 1,
+      total: 2,
+    });
   });
 
   it('keeps teams separate', () => {

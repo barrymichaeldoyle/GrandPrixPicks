@@ -22,7 +22,7 @@ describe('formatLockCountdown', () => {
 
   it('formats day-hour-minute countdown for multi-day windows', () => {
     const ms = (2 * 24 * 60 * 60 + 5 * 60 * 60 + 7 * 60) * 1000;
-    expect(formatLockCountdown(ms)).toBe('2d 05h 07m');
+    expect(formatLockCountdown(ms)).toBe('02d 05h 07m');
   });
 });
 

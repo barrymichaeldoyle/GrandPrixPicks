@@ -14,19 +14,25 @@ export type TeammateSessionOutcome = {
 };
 
 export type TeammateTally = {
-  /** Qualifying and sprint qualifying, where the battle is over one lap. */
+  /** Grand Prix qualifying sessions. */
   qualifying: number;
-  /** Races and sprints, where it is over a full distance. */
+  /** Grand Prix races. */
   race: number;
+  /** Sprint qualifying sessions. */
+  sprintQualifying: number;
+  /** Sprint races. */
+  sprint: number;
   total: number;
 };
 
 export function emptyTally(): TeammateTally {
-  return { qualifying: 0, race: 0, total: 0 };
-}
-
-function isQualifying(sessionType: SessionType): boolean {
-  return sessionType === 'quali' || sessionType === 'sprint_quali';
+  return {
+    qualifying: 0,
+    race: 0,
+    sprintQualifying: 0,
+    sprint: 0,
+    total: 0,
+  };
 }
 
 /**
@@ -57,10 +63,19 @@ export function tallyTeammateBattles(
       drivers.set(outcome.winnerId, tally);
     }
 
-    if (isQualifying(outcome.sessionType)) {
-      tally.qualifying += 1;
-    } else {
-      tally.race += 1;
+    switch (outcome.sessionType) {
+      case 'quali':
+        tally.qualifying += 1;
+        break;
+      case 'race':
+        tally.race += 1;
+        break;
+      case 'sprint_quali':
+        tally.sprintQualifying += 1;
+        break;
+      case 'sprint':
+        tally.sprint += 1;
+        break;
     }
     tally.total += 1;
   }

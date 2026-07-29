@@ -91,8 +91,12 @@ export function BigCountdown({
       <TimeUnit value={hours} label="hrs" compact={compact} />
       <CountdownSeparator compact={compact} />
       <TimeUnit value={minutes} label="min" compact={compact} />
-      <CountdownSeparator compact={compact} />
-      <TimeUnit value={seconds} label="sec" compact={compact} />
+      {days === 0 && (
+        <>
+          <CountdownSeparator compact={compact} />
+          <TimeUnit value={seconds} label="sec" compact={compact} />
+        </>
+      )}
     </div>
   );
 }

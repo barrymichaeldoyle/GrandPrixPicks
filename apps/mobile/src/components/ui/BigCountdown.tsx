@@ -31,7 +31,7 @@ export function BigCountdown({ targetAt }: BigCountdownProps) {
   }
 
   const showDays = parts.days > 0;
-  const unitCount = showDays ? 4 : 3;
+  const unitCount = 3;
   const available = Math.max(0, width - HERO_HORIZONTAL_INSET);
   const tileWidth = Math.max(
     MIN_TILE_WIDTH,
@@ -45,7 +45,9 @@ export function BigCountdown({ targetAt }: BigCountdownProps) {
       ) : null}
       <TimeUnit label="hrs" tileWidth={tileWidth} value={parts.hours} />
       <TimeUnit label="min" tileWidth={tileWidth} value={parts.minutes} />
-      <TimeUnit label="sec" tileWidth={tileWidth} value={parts.seconds} />
+      {!showDays ? (
+        <TimeUnit label="sec" tileWidth={tileWidth} value={parts.seconds} />
+      ) : null}
     </View>
   );
 }
@@ -74,7 +76,7 @@ function TimeUnit({
           allowFontScaling={false}
           className="text-foreground font-black"
           style={[
-            { fontSize, lineHeight: tileHeight },
+            { fontSize, fontVariant: ['tabular-nums'], lineHeight: tileHeight },
             displayFontFamily ? { fontFamily: displayFontFamily } : null,
           ]}
         >

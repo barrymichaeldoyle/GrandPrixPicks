@@ -949,7 +949,18 @@ export const getTeammateBattles = query({
       .withIndex('by_season', (q) => q.eq('season', season))
       .take(20);
     if (matchups.length === 0) {
-      return { season, teams: [], sessionsCounted: 0, lastUpdated: null };
+      return {
+        season,
+        teams: [],
+        sessionsCounted: 0,
+        sessionCounts: {
+          qualifying: 0,
+          race: 0,
+          sprintQualifying: 0,
+          sprint: 0,
+        },
+        lastUpdated: null,
+      };
     }
 
     const matchupIds = new Set(matchups.map((matchup) => matchup._id));
@@ -960,13 +971,19 @@ export const getTeammateBattles = query({
 
     const outcomes: TeammateSessionOutcome[] = [];
     let sessionsCounted = 0;
+    const sessionCounts = {
+      qualifying: 0,
+      race: 0,
+      sprintQualifying: 0,
+      sprint: 0,
+    };
     let lastUpdated = 0;
 
     for (const race of races) {
       if (race.status === 'cancelled') {
         continue;
       }
-      const seenSessions = new Set<string>();
+      const seenSessions = new Set<SessionType>();
       for await (const result of ctx.db
         .query('h2hResults')
         .withIndex('by_race_session', (q) => q.eq('raceId', race._id))) {
@@ -982,6 +999,22 @@ export const getTeammateBattles = query({
         lastUpdated = Math.max(lastUpdated, result.publishedAt);
       }
       sessionsCounted += seenSessions.size;
+      for (const sessionType of seenSessions) {
+        switch (sessionType) {
+          case 'quali':
+            sessionCounts.qualifying += 1;
+            break;
+          case 'race':
+            sessionCounts.race += 1;
+            break;
+          case 'sprint_quali':
+            sessionCounts.sprintQualifying += 1;
+            break;
+          case 'sprint':
+            sessionCounts.sprint += 1;
+            break;
+        }
+      }
     }
 
     const tallies = tallyTeammateBattles(outcomes);
@@ -1042,6 +1075,7 @@ export const getTeammateBattles = query({
       season,
       teams,
       sessionsCounted,
+      sessionCounts,
       lastUpdated: lastUpdated || null,
     };
   },

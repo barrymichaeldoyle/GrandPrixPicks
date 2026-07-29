@@ -1,13 +1,23 @@
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import type { ChampionshipSessionResult } from './f1Standings';
+import {
+  emptyDriverTally,
+  rankConstructorStandings,
+  tallyDriverPoints,
+} from './f1Standings';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
-import { emptyTally, tallyTeammateBattles } from './lib/teammateBattles';
-import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
+import {
+  emptyTally,
+  sortByConstructorStanding,
+  tallyTeammateBattles,
+} from './lib/teammateBattles';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -970,6 +980,7 @@ export const getTeammateBattles = query({
       .take(40);
 
     const outcomes: TeammateSessionOutcome[] = [];
+    const championshipSessions: ChampionshipSessionResult[] = [];
     let sessionsCounted = 0;
     const sessionCounts = {
       qualifying: 0,
@@ -998,6 +1009,22 @@ export const getTeammateBattles = query({
         seenSessions.add(result.sessionType);
         lastUpdated = Math.max(lastUpdated, result.publishedAt);
       }
+
+      const raceResults = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+        .take(8);
+      for (const result of raceResults) {
+        if (result.sessionType !== 'race' && result.sessionType !== 'sprint') {
+          continue;
+        }
+        championshipSessions.push({
+          sessionType: result.sessionType,
+          classification: result.classification as string[],
+          dnfDriverIds: result.dnfDriverIds as string[] | undefined,
+        });
+      }
+
       sessionsCounted += seenSessions.size;
       for (const sessionType of seenSessions) {
         switch (sessionType) {
@@ -1046,8 +1073,26 @@ export const getTeammateBattles = query({
       };
     }
 
-    const teams = matchups
-      .map((matchup) => {
+    const driverChampionshipTallies = tallyDriverPoints(championshipSessions);
+    const constructorStandings = rankConstructorStandings(
+      matchups.flatMap((matchup) => [
+        {
+          team: matchup.team,
+          stats:
+            driverChampionshipTallies.get(matchup.driver1Id as string) ??
+            emptyDriverTally(),
+        },
+        {
+          team: matchup.team,
+          stats:
+            driverChampionshipTallies.get(matchup.driver2Id as string) ??
+            emptyDriverTally(),
+        },
+      ]),
+    );
+
+    const teams = sortByConstructorStanding(
+      matchups.map((matchup) => {
         const tally = tallies.get(matchup._id) ?? new Map();
         const driver1 = describe(
           matchup.driver1Id,
@@ -1068,8 +1113,9 @@ export const getTeammateBattles = query({
               : [driver1, driver2],
           sessionsSettled: driver1.total + driver2.total,
         };
-      })
-      .sort((a, b) => a.team.localeCompare(b.team));
+      }),
+      constructorStandings,
+    );
 
     return {
       season,

@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import type { Id } from '../_generated/dataModel';
 import type { TeammateSessionOutcome } from './teammateBattles';
-import { tallyTeammateBattles } from './teammateBattles';
+import {
+  sortByConstructorStanding,
+  tallyTeammateBattles,
+} from './teammateBattles';
 
 function matchup(id: string): Id<'h2hMatchups'> {
   return id as Id<'h2hMatchups'>;
@@ -69,5 +72,37 @@ describe('tallyTeammateBattles', () => {
     // Both drivers failing to start voids the matchup, so no outcome is
     // recorded and the pair simply has no record yet.
     expect(tallyTeammateBattles([]).get(FERRARI)).toBeUndefined();
+  });
+});
+
+describe('sortByConstructorStanding', () => {
+  it('uses championship position instead of alphabetical team name', () => {
+    const teams = [
+      { team: 'alpine' },
+      { team: 'ferrari' },
+      { team: 'mercedes' },
+    ];
+
+    expect(
+      sortByConstructorStanding(teams, [
+        { team: 'mercedes', position: 1 },
+        { team: 'ferrari', position: 2 },
+        { team: 'alpine', position: 3 },
+      ]).map((team) => team.team),
+    ).toEqual(['mercedes', 'ferrari', 'alpine']);
+  });
+
+  it('falls back to team name for missing standings entries', () => {
+    const teams = [
+      { team: 'cadillac' },
+      { team: 'mercedes' },
+      { team: 'alpine' },
+    ];
+
+    expect(
+      sortByConstructorStanding(teams, [{ team: 'mercedes', position: 1 }]).map(
+        (team) => team.team,
+      ),
+    ).toEqual(['mercedes', 'alpine', 'cadillac']);
   });
 });

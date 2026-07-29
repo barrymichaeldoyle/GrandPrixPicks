@@ -5,6 +5,7 @@ import {
   type DriverTally,
   pointsForPosition,
   RACE_POINTS,
+  rankConstructorStandings,
   SPRINT_POINTS,
   tallyDriverPoints,
 } from './f1Standings';
@@ -146,5 +147,51 @@ describe('compareCountback', () => {
     expect(
       compareCountback(tallyWithFinishes(18), tallyWithFinishes()),
     ).toBeLessThan(0);
+  });
+});
+
+describe('rankConstructorStandings', () => {
+  test('ranks teams by combined driver points', () => {
+    const standings = rankConstructorStandings([
+      {
+        team: 'mercedes',
+        stats: { ...tallyWithFinishes(1), points: 80 },
+      },
+      {
+        team: 'mercedes',
+        stats: { ...tallyWithFinishes(2), points: 60 },
+      },
+      {
+        team: 'ferrari',
+        stats: { ...tallyWithFinishes(1), points: 70 },
+      },
+      {
+        team: 'ferrari',
+        stats: { ...tallyWithFinishes(3), points: 50 },
+      },
+    ]);
+
+    expect(standings.map(({ team, points }) => ({ team, points }))).toEqual([
+      { team: 'mercedes', points: 140 },
+      { team: 'ferrari', points: 120 },
+    ]);
+  });
+
+  test('uses pooled race countback when teams are tied on points', () => {
+    const standings = rankConstructorStandings([
+      {
+        team: 'mercedes',
+        stats: { ...tallyWithFinishes(1, 4), points: 100 },
+      },
+      {
+        team: 'ferrari',
+        stats: { ...tallyWithFinishes(2, 2), points: 100 },
+      },
+    ]);
+
+    expect(standings.map((standing) => standing.team)).toEqual([
+      'mercedes',
+      'ferrari',
+    ]);
   });
 });

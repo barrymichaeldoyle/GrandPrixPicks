@@ -82,3 +82,23 @@ export function tallyTeammateBattles(
 
   return byMatchup;
 }
+
+/**
+ * Order teammate rows by the official Constructors' Championship, with team
+ * name as a stable fallback when standings are unavailable or incomplete.
+ */
+export function sortByConstructorStanding<T extends { team: string }>(
+  teams: ReadonlyArray<T>,
+  standings: ReadonlyArray<{ team: string; position: number }>,
+): T[] {
+  const positionByTeam = new Map(
+    standings.map((standing) => [standing.team, standing.position]),
+  );
+
+  return [...teams].sort(
+    (a, b) =>
+      (positionByTeam.get(a.team) ?? Number.MAX_SAFE_INTEGER) -
+        (positionByTeam.get(b.team) ?? Number.MAX_SAFE_INTEGER) ||
+      a.team.localeCompare(b.team),
+  );
+}

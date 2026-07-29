@@ -76,21 +76,23 @@ type Driver = Doc<'drivers'>;
 /** Left-side badge (number + code) – reused so it can be wrapped as drag handle on mobile. */
 function DriverPickBadge({ driver }: { driver: Driver }) {
   return (
+    // The team colour is the 3px edge bar on this block, not its fill. The
+    // number and code are data, so they are mono and tabular.
     <div
-      className="flex h-full w-12 shrink-0 items-center justify-center py-1 text-white sm:w-14"
-      style={{
-        backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
-      }}
+      className="gpp-team-bar flex h-full w-12 shrink-0 items-center justify-center border-r border-border py-1 pl-1 sm:w-14"
+      style={
+        {
+          '--team-colour': driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+        } as React.CSSProperties
+      }
     >
-      <span className="inline-flex flex-col items-center gap-0.5 rounded-md bg-black/30 px-1.5 py-1 leading-none">
+      <span className="inline-flex flex-col items-center gap-0.5 leading-none">
         {driver.number != null && (
-          <span className="font-mono text-sm font-bold sm:text-base">
+          <span className="gpp-mono text-sm text-text sm:text-base">
             {driver.number}
           </span>
         )}
-        <span className="font-mono text-[10px] font-bold tracking-wider sm:text-xs">
-          {driver.code}
-        </span>
+        <span className="gpp-mono text-xs text-text-muted">{driver.code}</span>
       </span>
     </div>
   );
@@ -136,7 +138,7 @@ function SortablePickRow({
         layout: { type: 'spring', stiffness: 350, damping: 30 },
       }}
       data-testid={`picked-driver-${position}`}
-      className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 shadow-lg' : ''}`}
+      className={`relative flex h-14 shrink-0 items-stretch gap-0 border-b border-transparent bg-surface-muted sm:h-16 ${isDragging ? 'z-10 opacity-60' : ''}`}
     >
       <div
         {...attributes}
@@ -254,15 +256,25 @@ function DraggableDriverCard({
         }}
         disabled={disabled}
         aria-label={`${driver.displayName}${disabled ? ' (already selected)' : ''}`}
-        className="flex h-full w-full items-center justify-center rounded-lg border border-transparent py-2 font-mono text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:py-3"
-        style={{
-          backgroundColor: driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
-        }}
+        /*
+         * Team colour is the 3px left bar, not the fill. Twenty-two saturated
+         * tiles in a grid was the loudest surface in the app; confined to a bar
+         * the same twenty-two are still instantly sortable by team, and the
+         * code can sit at full contrast on a neutral surface.
+         *
+         * Hover is a surface step rather than an opacity change — opacity is
+         * never used to signal hover in this system.
+         */
+        className="gpp-team-bar flex h-full w-full items-center justify-center rounded-sm border border-border bg-surface-elevated py-2 pr-2 pl-3 transition-colors duration-150 ease-out hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated sm:py-3"
+        style={
+          {
+            '--team-colour':
+              driver.team && (TEAM_COLORS[driver.team] ?? '#666'),
+          } as React.CSSProperties
+        }
       >
-        <span className="inline-flex items-center rounded-md bg-black/30 px-2 py-1 leading-none">
-          <span className="text-xs font-bold tracking-wider sm:text-sm">
-            {driver.code}
-          </span>
+        <span className="gpp-mono text-xs leading-none text-text sm:text-sm">
+          {driver.code}
         </span>
       </button>
     </div>
@@ -730,7 +742,7 @@ export function PredictionForm({
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className="flex h-14 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-bold text-accent last:border-b-0 sm:h-16 sm:w-11"
+                    className="flex h-14 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-11"
                     aria-hidden
                   >
                     {n}

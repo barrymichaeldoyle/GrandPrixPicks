@@ -31,16 +31,25 @@ export function getOgDimensions(size: OgImageSize): {
 export const colors = {
   bg: tokens.page,
   surface: tokens.surface,
+  surfaceElevated: tokens.surfaceElevated,
   accent: tokens.accent,
   accentHover: tokens.accentHover,
   buttonAccent: tokens.buttonAccent,
   accentMuted: tokens.accentMuted,
+  /** Text sitting ON the accent. Never white — the accent is a light colour. */
+  textOnAccent: tokens.textOnAccent,
   text: tokens.text,
   textMuted: tokens.textMuted,
   border: tokens.border,
+  borderStrong: tokens.borderStrong,
   gold: tokens.podiumGold,
   silver: tokens.podiumSilver,
   bronze: tokens.podiumBronze,
+  // The four scoring semantics, so a results card reads the same as the app.
+  resultPerfect: tokens.resultPerfect,
+  resultBeat: tokens.resultBeat,
+  resultClose: tokens.resultClose,
+  resultMiss: tokens.resultMiss,
   // Race status, using the same semantic tokens the app's status badges use.
   statusUpcoming: tokens.success,
   statusLocked: tokens.warning,

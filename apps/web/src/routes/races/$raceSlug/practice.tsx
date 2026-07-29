@@ -60,10 +60,10 @@ function PracticeResultsPage() {
         </Link>
 
         <header className="mt-5">
-          <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
             Round {race.round} · {race.season}
           </p>
-          <h1 className="mt-1 text-3xl font-bold text-text">
+          <h1 className="mt-1 text-3xl font-semibold text-text">
             {race.name} Practice Results
           </h1>
           <p className="mt-2 text-sm text-text-muted">

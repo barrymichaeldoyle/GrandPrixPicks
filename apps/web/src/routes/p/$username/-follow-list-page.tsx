@@ -156,7 +156,7 @@ export function FollowListPage({
       </Button>
       <div className="mb-6 flex items-center gap-3">
         <Icon className="h-8 w-8 text-accent" aria-hidden />
-        <h1 className="text-2xl font-bold text-text">{heading}</h1>
+        <h1 className="text-2xl font-semibold text-text">{heading}</h1>
       </div>
 
       {users === null ? (

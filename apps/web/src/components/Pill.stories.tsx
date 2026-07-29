@@ -76,7 +76,7 @@ export const InARow: Story = {
   render: () => (
     <div className="flex max-w-md flex-wrap items-center gap-1 rounded-xl border border-border bg-surface p-3">
       <Badge variant="sprint">SPRINT</Badge>
-      <Pill tone="warning" className="tabular-nums">
+      <Pill tone="warning" className="gpp-mono">
         02h 14m until lock
       </Pill>
       <Pill>Opens 12 August</Pill>

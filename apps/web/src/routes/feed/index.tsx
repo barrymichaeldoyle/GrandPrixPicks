@@ -196,7 +196,7 @@ export function FeedContent() {
         >
           {topToFollow.length > 0 && (
             <div className="space-y-2 text-left">
-              <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">
+              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                 Top players this season
               </p>
               {topToFollow.map((p) => (
@@ -321,7 +321,7 @@ function FeedPage() {
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Gauge className="h-5 w-5 text-accent" />
-              <h1 className="text-xl font-bold text-text">Your Feed</h1>
+              <h1 className="text-xl font-semibold text-text">Your Feed</h1>
             </div>
           </div>
 

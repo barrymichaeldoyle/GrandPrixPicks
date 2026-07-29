@@ -110,11 +110,7 @@ export function SessionRow({
         <span className="flex items-center gap-2">
           <span>{session.label}</span>
           {status === 'in_progress' && (
-            <Pill
-              tone="accent"
-              size="sm"
-              className="shadow-[0_0_0_1px_rgb(var(--accent-rgb)/0.08)]"
-            >
+            <Pill tone="accent" size="sm">
               Live
             </Pill>
           )}
@@ -122,7 +118,7 @@ export function SessionRow({
       </span>
 
       <span
-        className={`shrink-0 text-sm tabular-nums ${
+        className={`gpp-mono shrink-0 text-sm ${
           status === 'finished'
             ? 'text-text-muted/80'
             : status === 'in_progress' || isNext

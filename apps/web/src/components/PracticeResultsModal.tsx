@@ -150,11 +150,11 @@ export function PracticeResultsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="practice-results-title"
-        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+        className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-border bg-surface"
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
-            <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+            <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
               Form guide
             </p>
             <h2

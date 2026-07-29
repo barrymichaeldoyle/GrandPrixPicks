@@ -39,10 +39,9 @@ export const Playground: Story = {
 
 export const Showcase: Story = {
   render: () => {
-    const section =
-      'rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5';
+    const section = 'rounded-xl border border-border bg-surface p-4 sm:p-5';
     const title =
-      'mb-3 text-sm font-semibold uppercase tracking-wide text-text';
+      'mb-3 text-sm font-semibold uppercase tracking-label text-text';
     const row = 'flex flex-wrap items-center gap-3';
 
     return (

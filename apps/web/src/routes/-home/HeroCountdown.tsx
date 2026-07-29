@@ -13,9 +13,18 @@ function TimeUnit({
     string,
     string,
   ];
+  /*
+   * The countdown is the largest number on the site, so it is mono and
+   * tabular like every other figure — digits must not jitter as they tick.
+   *
+   * The flip-clock "tiles" are gone: each digit was a raised surface with an
+   * inset shadow and a red-tinted border, which is three of this system's
+   * rules broken on one element. The digits now sit directly on the page and
+   * get their presence from size alone.
+   */
   const digitClass = compact
-    ? 'home-countdown-digit font-title flex h-[clamp(2.35rem,10.5vw,3rem)] w-[clamp(1.55rem,7.5vw,2.1rem)] items-center justify-center rounded-md text-[clamp(1.45rem,7vw,2rem)] leading-none font-bold text-text sm:h-14 sm:w-10 sm:text-[2.5rem]'
-    : 'home-countdown-digit font-title flex h-[clamp(2.6rem,12.5vw,3.5rem)] w-[clamp(1.7rem,9vw,2.5rem)] items-center justify-center rounded-md text-[clamp(1.7rem,8.5vw,2.5rem)] leading-none font-bold text-text sm:h-[5.25rem] sm:w-[3.75rem] sm:rounded-lg sm:text-[4rem]';
+    ? 'gpp-mono flex h-[clamp(2.35rem,10.5vw,3rem)] w-[clamp(1.55rem,7.5vw,2.1rem)] items-center justify-center text-[clamp(1.45rem,7vw,2rem)] leading-none font-normal text-text sm:h-14 sm:w-10 sm:text-[2.5rem]'
+    : 'gpp-mono flex h-[clamp(2.6rem,12.5vw,3.5rem)] w-[clamp(1.7rem,9vw,2.5rem)] items-center justify-center text-[clamp(1.7rem,8.5vw,2.5rem)] leading-none font-normal text-text sm:h-[5.25rem] sm:w-[3.75rem] sm:text-[var(--data-xl)]';
 
   return (
     <div
@@ -27,9 +36,7 @@ function TimeUnit({
         <span className={digitClass}>{tens}</span>
         <span className={digitClass}>{ones}</span>
       </div>
-      <span className="text-[10px] font-semibold tracking-[0.18em] text-text-muted uppercase sm:text-[11px]">
-        {label}
-      </span>
+      <span className="gpp-label">{label}</span>
     </div>
   );
 }

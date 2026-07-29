@@ -24,7 +24,9 @@ export function FaqSection({
           className="h-7 w-7 text-accent sm:h-6 sm:w-6"
           aria-hidden="true"
         />
-        <h2 className="text-center text-2xl font-bold text-text">{title}</h2>
+        <h2 className="text-center text-2xl font-semibold text-text">
+          {title}
+        </h2>
       </div>
       <div>{children}</div>
     </section>

@@ -455,18 +455,18 @@ function LeaderboardPage() {
                     transition={{ duration: 0.2 }}
                     className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white tabular-nums">
+                    <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
                       {headerViewerEntry?.rank ?? '—'}
                     </span>
                     <div className="min-w-0">
-                      <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
                         Your standing
                       </div>
                       <div className="truncate text-sm font-semibold text-text">
                         {standingName}
                       </div>
                       {headerViewerEntry ? (
-                        <div className="text-sm font-bold text-accent">
+                        <div className="text-sm font-semibold text-accent">
                           {headerViewerEntry.points} pts
                           {gameMode === 'h2h' &&
                             'correctPicks' in headerViewerEntry && (

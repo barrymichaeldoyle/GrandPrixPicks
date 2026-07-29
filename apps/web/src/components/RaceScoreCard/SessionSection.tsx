@@ -67,7 +67,7 @@ export function SessionSection({
             )}
           </div>
           {totalSessionPoints != null && (
-            <span className="text-sm font-bold text-accent">
+            <span className="text-sm font-semibold text-accent">
               {totalSessionPoints} pts
             </span>
           )}
@@ -81,7 +81,7 @@ export function SessionSection({
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-warning" />
-                <span className="font-title text-xs font-semibold tracking-wide text-text-muted uppercase">
+                <span className="font-title text-xs font-semibold tracking-label text-text-muted uppercase">
                   Top 5
                 </span>
               </div>

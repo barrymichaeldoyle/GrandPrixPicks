@@ -128,11 +128,11 @@ export function LeagueMembersList({
           key={member._id}
           className={`flex items-center gap-2 py-2 pr-2 pl-3 sm:gap-3 sm:py-3 sm:pr-3 sm:pl-4 ${
             index < members.length - 1 ? 'border-b border-border' : ''
-          } ${member.isViewer ? 'bg-accent/[0.08]' : ''}`}
+          } ${member.isViewer ? 'gpp-stripe bg-surface-elevated pl-4 sm:pl-5' : ''}`}
         >
           {/* Rank — desktop only, left column */}
           <div className="hidden w-8 shrink-0 text-right sm:block">
-            <span className="text-sm font-semibold text-text-muted tabular-nums">
+            <span className="gpp-mono text-sm text-text-muted">
               {member.rank != null ? `#${member.rank}` : '—'}
             </span>
           </div>
@@ -178,7 +178,7 @@ export function LeagueMembersList({
                 children: member.displayName,
               })}
               {member.isViewer && (
-                <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.04em] text-accent">
+                <span className="rounded-full border border-accent/20 bg-accent/10 px-1.5 py-0.5 text-xs font-semibold tracking-[0.04em] text-accent">
                   YOU
                 </span>
               )}
@@ -246,7 +246,7 @@ export function LeagueMembersList({
           {/* Points — desktop only, right column */}
           <div className="hidden shrink-0 text-right sm:block">
             <span
-              className={`text-sm font-semibold tabular-nums ${
+              className={`gpp-mono text-sm font-semibold ${
                 member.points != null ? 'text-accent' : 'text-text-muted/40'
               }`}
             >

@@ -58,7 +58,7 @@ export function LeagueDetailContent({ league }: { league: League }) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-bold text-text">{league.name}</h1>
+            <h1 className="text-3xl font-semibold text-text">{league.name}</h1>
             {isAdmin && <Crown className="h-5 w-5 text-warning" />}
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${

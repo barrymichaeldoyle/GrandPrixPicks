@@ -64,7 +64,7 @@ export function SignedOutRacePreview({
 
       {drivers.length > 0 && (
         <section aria-label="Driver grid" className="space-y-3">
-          <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
             {race.season} Driver Grid
           </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

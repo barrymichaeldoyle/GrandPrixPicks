@@ -45,7 +45,7 @@ export function RaceDetailHeader({
         )}
         <div className="min-w-0">
           <span
-            className={`text-xs font-semibold tracking-wide uppercase ${
+            className={`text-xs font-semibold tracking-label uppercase ${
               isNextRace ? 'text-accent' : 'text-text-muted'
             }`}
           >
@@ -92,7 +92,7 @@ export function RaceDetailHeader({
           </div>
           <div className="mt-0.5 flex flex-wrap items-baseline gap-x-4 gap-y-0.5 sm:justify-end">
             {resultsSummary.showViewerPoints ? (
-              <div className="leading-none font-bold text-accent">
+              <div className="leading-none font-semibold text-accent">
                 +{resultsSummary.points} pts
               </div>
             ) : null}

@@ -20,10 +20,15 @@ const FOCUSABLE_SELECTOR =
 /** Mobile menu: viewport width <= 843px is "mobile". Keep min-[844px] classes below in sync. */
 export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
 
+/**
+ * Nav items are one of the two places uppercase is allowed (the other is a
+ * micro label). Active state is the signature stripe rather than a filled
+ * chip — one stripe per container, pinned to the thing that matters.
+ */
 const NAV_LINK_CLASS =
-  'rounded-sm border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-text-muted transition-colors duration-200 hover:bg-surface-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/55';
+  'rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text-muted transition-colors duration-150 ease-out hover:bg-surface hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
 const NAV_LINK_ACTIVE_CLASS =
-  'px-3 py-1.5 rounded-sm text-accent border border-transparent bg-accent-muted/55 transition-colors text-sm font-semibold whitespace-nowrap';
+  'gpp-stripe rounded-sm border border-transparent py-1.5 pr-3 pl-2.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text transition-colors';
 
 function DesktopNavLink({
   to,
@@ -88,7 +93,7 @@ function NextRaceQuickLink({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: nextRace.slug }}
-      className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
+      className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent-hairline bg-accent-quiet py-1.5 pr-2.5 pl-2 text-xs font-medium tracking-label whitespace-nowrap text-accent uppercase transition-colors hover:border-accent hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
       aria-label={`My picks for ${nextRace.name}`}
       title={`My picks for ${nextRace.name}`}
       data-testid="header-next-race-link"
@@ -263,17 +268,12 @@ export function Header({
   return (
     <header
       ref={headerRef}
-      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text"
+      // Full-bleed, on the page background, with a hairline bottom border and
+      // nothing else — the previous diagonal sheen texture and 2px accent rail
+      // were decoration in empty space, which this direction does not do.
+      className="sticky top-0 z-50 h-[--nav-height] border-b border-border bg-page text-text"
     >
-      <div
-        aria-hidden
-        className="header-grid-sheen pointer-events-none absolute inset-0"
-      />
-      <div
-        aria-hidden
-        className="header-accent-rail pointer-events-none absolute inset-x-0 top-0 h-[2px]"
-      />
-      <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
+      <div className="mx-auto flex h-full w-full max-w-[--page-max] items-center justify-between px-4 min-[844px]:px-8">
         <div className="flex items-center gap-2">
           <Link
             to="/"
@@ -290,10 +290,12 @@ export function Header({
                 full name, and the UserButton must stay visible (it's the only
                 mobile nav when signed in). iPhone 14 Pro (393px) and wider
                 fit the full wordmark alongside the flag-only pill. */}
-            <span className="font-title pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:hidden">
+            {/* Light, not bold: the wordmark gets its presence from tracking
+                and the accent mark beside it, not from weight. */}
+            <span className="pr-1 text-xl font-light tracking-display whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:hidden">
               GP Picks
             </span>
-            <span className="font-title hidden pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:inline">
+            <span className="hidden pr-1 text-xl font-light tracking-display whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:inline">
               Grand Prix Picks
             </span>
           </Link>
@@ -387,7 +389,7 @@ export function Header({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[844px]:hidden"
+              className="fixed inset-0 top-[--nav-height] z-40 min-[844px]:hidden"
               style={{ backgroundColor: 'var(--overlay)' }}
               onClick={closeMenu}
             />
@@ -400,7 +402,7 @@ export function Header({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
+              className="absolute top-full right-0 left-0 z-50 border-b border-border bg-surface min-[844px]:hidden"
             >
               <div className="flex flex-col gap-1 px-4 py-3">
                 {primaryNavLinks.map((link, index) => (
@@ -413,10 +415,10 @@ export function Header({
                     <Link
                       to={link.to}
                       onClick={closeMenu}
-                      className="block rounded-sm border border-transparent px-3 py-2 font-semibold text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+                      className="block rounded-sm border border-transparent px-3 py-2 text-xs font-medium tracking-label text-text-muted uppercase transition-colors hover:bg-surface-elevated hover:text-text"
                       activeProps={{
                         className:
-                          'block px-3 py-2 rounded-sm bg-accent-muted/55 text-accent border border-transparent font-semibold transition-colors',
+                          'gpp-stripe block px-3 py-2 pl-4 rounded-sm text-text border border-transparent text-xs font-medium tracking-label uppercase transition-colors',
                         'aria-current': 'page' as const,
                       }}
                       activeOptions={

@@ -14,10 +14,6 @@ let fontsCache: SatoriFont[] | null = null;
 const WOFF_USER_AGENT =
   'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
 
-async function resolveFontUrl(weight: number): Promise<string> {
-  return resolveFontUrlForFamily('Inter', weight);
-}
-
 async function resolveFontUrlForFamily(
   family: string,
   weight: number,
@@ -40,34 +36,45 @@ async function resolveFontUrlForFamily(
   return urlMatch[1];
 }
 
+/**
+ * Archivo for text, IBM Plex Mono for figures — the same pairing the site
+ * uses, so a card posted to X reads as the same product as the page it links
+ * to. Inter and Orbitron are gone along with the rest of the old identity.
+ *
+ * Weights stop at 600: Archivo's UI range in this system is 300–600, and
+ * nothing on a card should be heavier than a primary button.
+ */
 export async function loadFonts(): Promise<SatoriFont[]> {
   if (fontsCache) {
     return fontsCache;
   }
 
-  const [regularUrl, boldUrl, orbitronBoldUrl, orbitronExtraBoldUrl] =
+  const [lightUrl, regularUrl, semiboldUrl, monoUrl, monoSemiboldUrl] =
     await Promise.all([
-      resolveFontUrl(400),
-      resolveFontUrl(700),
-      resolveFontUrlForFamily('Orbitron', 700),
-      resolveFontUrlForFamily('Orbitron', 800),
+      resolveFontUrlForFamily('Archivo', 300),
+      resolveFontUrlForFamily('Archivo', 400),
+      resolveFontUrlForFamily('Archivo', 600),
+      resolveFontUrlForFamily('IBM Plex Mono', 400),
+      resolveFontUrlForFamily('IBM Plex Mono', 600),
     ]);
 
-  const [regular, bold, orbitronBold, orbitronExtraBold] = await Promise.all([
+  const [light, regular, semibold, mono, monoSemibold] = await Promise.all([
+    fetch(lightUrl).then((r) => r.arrayBuffer()),
     fetch(regularUrl).then((r) => r.arrayBuffer()),
-    fetch(boldUrl).then((r) => r.arrayBuffer()),
-    fetch(orbitronBoldUrl).then((r) => r.arrayBuffer()),
-    fetch(orbitronExtraBoldUrl).then((r) => r.arrayBuffer()),
+    fetch(semiboldUrl).then((r) => r.arrayBuffer()),
+    fetch(monoUrl).then((r) => r.arrayBuffer()),
+    fetch(monoSemiboldUrl).then((r) => r.arrayBuffer()),
   ]);
 
   fontsCache = [
-    { name: 'Inter', data: regular, weight: 400, style: 'normal' },
-    { name: 'Inter', data: bold, weight: 700, style: 'normal' },
-    { name: 'Orbitron', data: orbitronBold, weight: 700, style: 'normal' },
+    { name: 'Archivo', data: light, weight: 300, style: 'normal' },
+    { name: 'Archivo', data: regular, weight: 400, style: 'normal' },
+    { name: 'Archivo', data: semibold, weight: 600, style: 'normal' },
+    { name: 'IBM Plex Mono', data: mono, weight: 400, style: 'normal' },
     {
-      name: 'Orbitron',
-      data: orbitronExtraBold,
-      weight: 800,
+      name: 'IBM Plex Mono',
+      data: monoSemibold,
+      weight: 600,
       style: 'normal',
     },
   ];

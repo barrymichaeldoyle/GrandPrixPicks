@@ -51,7 +51,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-title text-[10px] font-semibold tracking-[0.16em] text-text uppercase">
+            <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
               Explore
             </h2>
             <nav
@@ -67,7 +67,7 @@ export function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="font-title text-[10px] font-semibold tracking-[0.16em] text-text uppercase">
+            <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
               Support & legal
             </h2>
             <nav

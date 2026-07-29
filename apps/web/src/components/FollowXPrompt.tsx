@@ -50,7 +50,7 @@ export function FollowXPrompt({ onDismiss }: { onDismiss: () => void }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => complete('followed')}
-          className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
+          className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-text-on-accent transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none"
         >
           <XLogoIcon className="h-3.5 w-3.5" />
           <span>Follow {siteConfig.social.x.handle}</span>

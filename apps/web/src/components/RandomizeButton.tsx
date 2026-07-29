@@ -111,7 +111,12 @@ export function RandomizeButton({
 
   const buttonLabel = isNarrow ? 'Randomize' : label;
   const button = (
+    // Secondary, not primary. Randomising is a shortcut, not the action the
+    // page is asking for — with both in accent it out-shouted "Pick your top
+    // 5" on the same screen, and the accent only carries meaning while it
+    // stays rare.
     <Button
+      variant="secondary"
       size="sm"
       disabled={dataLoading}
       onClick={() => {

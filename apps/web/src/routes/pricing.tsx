@@ -173,7 +173,7 @@ function PricingPage() {
           <CalendarDays className="h-3.5 w-3.5 text-accent" aria-hidden />
           2026 Season Pricing
         </p>
-        <h1 className="mb-2 text-3xl font-bold text-text sm:text-4xl">
+        <h1 className="mb-2 text-3xl font-semibold text-text sm:text-4xl">
           Pricing
         </h1>
         <p className="mx-auto max-w-2xl text-text-muted">
@@ -217,10 +217,10 @@ function PricingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-xs font-semibold tracking-[0.12em] text-accent">
+            <p className="text-xs font-semibold tracking-label text-accent">
               LIMITED-TIME PROMO
             </p>
-            <h2 className="mt-1 text-2xl font-bold text-text">
+            <h2 className="mt-1 text-2xl font-semibold text-text">
               Use code {EARLY_BIRD_CODE} at checkout
             </h2>
             <p className="mt-2 text-sm text-text-muted">
@@ -253,14 +253,14 @@ function PricingPage() {
               <span className="text-2xl font-semibold tracking-tight text-text-muted line-through">
                 ${SEASON_PASS_PRICE_USD}
               </span>
-              <span className="text-4xl font-bold tracking-tight text-success">
+              <span className="text-4xl font-semibold tracking-tight text-success">
                 ${EARLY_BIRD_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>
             </div>
           ) : (
             <div className="mb-6 flex items-baseline gap-2">
-              <span className="text-4xl font-bold tracking-tight text-text">
+              <span className="text-4xl font-semibold tracking-tight text-text">
                 ${SEASON_PASS_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>

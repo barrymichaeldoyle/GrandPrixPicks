@@ -46,7 +46,7 @@ export const InitialFallback: Story = {
       ].map((username) => (
         <div key={username} className="text-center">
           <Avatar username={username} />
-          <div className="mt-1 text-[10px] text-text-muted">{username}</div>
+          <div className="mt-1 text-xs text-text-muted">{username}</div>
         </div>
       ))}
     </div>

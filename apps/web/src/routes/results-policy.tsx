@@ -186,7 +186,7 @@ function ResultsPolicyPage() {
           aria-labelledby="principle-heading"
           className="border-y border-border py-10 sm:py-14"
         >
-          <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+          <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
             The one rule
           </p>
           <h2
@@ -213,7 +213,7 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="mb-8 max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
               What that means per session
             </p>
             <h2
@@ -298,7 +298,7 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
               Retirements and non-starters
             </p>
             <h2
@@ -342,7 +342,7 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="mb-8 max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
               How a change reaches you
             </p>
             <h2
@@ -361,7 +361,7 @@ function ResultsPolicyPage() {
             {timeline.map((step, index) => (
               <li key={step.title} className="border-t-2 border-accent/50 pt-4">
                 <h3 className="flex items-baseline gap-3 font-semibold text-text">
-                  <span className="font-title text-xs font-semibold text-accent tabular-nums">
+                  <span className="font-title gpp-mono text-xs font-semibold text-accent">
                     0{index + 1}
                   </span>
                   {step.title}
@@ -379,7 +379,7 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
               Fairness
             </p>
             <h2
@@ -419,7 +419,7 @@ function ResultsPolicyPage() {
         </section>
 
         <section aria-labelledby="faq-heading" className="py-10 sm:py-14">
-          <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+          <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
             Questions
           </p>
           <h2

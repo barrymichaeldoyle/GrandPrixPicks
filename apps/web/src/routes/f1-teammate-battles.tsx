@@ -166,12 +166,12 @@ function TeammateBattlesPage() {
                     </div>
 
                     <div className="shrink-0 text-center">
-                      <p className="font-title text-xl font-semibold text-text tabular-nums">
+                      <p className="font-title gpp-mono text-xl font-semibold text-text">
                         {lead.total}
                         <span className="mx-1 text-text-muted">-</span>
                         {trail.total}
                       </p>
-                      <p className="text-[11px] text-text-muted">
+                      <p className="text-xs text-text-muted">
                         {drawn ? 'All square' : 'Sessions won'}
                       </p>
                     </div>
@@ -195,13 +195,13 @@ function TeammateBattlesPage() {
                     <dl className="mt-2 flex justify-center gap-6 text-xs text-text-muted">
                       <div className="flex gap-1.5">
                         <dt>Qualifying</dt>
-                        <dd className="font-semibold text-text tabular-nums">
+                        <dd className="gpp-mono font-semibold text-text">
                           {lead.qualifying}-{trail.qualifying}
                         </dd>
                       </div>
                       <div className="flex gap-1.5">
                         <dt>Race</dt>
-                        <dd className="font-semibold text-text tabular-nums">
+                        <dd className="gpp-mono font-semibold text-text">
                           {lead.race}-{trail.race}
                         </dd>
                       </div>
@@ -265,7 +265,7 @@ function TeammateBattlesPage() {
           </p>
           <Link
             to="/races"
-            className="mt-5 inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+            className="mt-5 inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
           >
             Make your picks
           </Link>

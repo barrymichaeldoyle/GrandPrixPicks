@@ -26,7 +26,7 @@ export function RevsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-sm border border-border bg-surface shadow-xl"
+        className="w-full max-w-sm rounded-sm border border-border bg-surface"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">

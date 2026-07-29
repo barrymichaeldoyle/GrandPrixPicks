@@ -165,7 +165,7 @@ function NotificationGroup({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
         {title}
       </p>
       {children}

@@ -114,7 +114,7 @@ function HowToPlayPage() {
         <div className="relative pb-8 sm:pl-8">
           <div
             aria-hidden
-            className="absolute top-12 bottom-32 left-0 hidden w-px bg-gradient-to-b from-accent/70 via-accent/20 to-transparent sm:block"
+            className="absolute top-12 bottom-32 left-0 hidden w-px bg-border sm:block"
           />
 
           <section
@@ -146,7 +146,7 @@ function HowToPlayPage() {
                   key={step.title}
                   className="relative sm:border-l sm:border-border sm:px-6 sm:first:border-l-0 sm:first:pl-0 sm:last:pr-0"
                 >
-                  <span className="font-title text-4xl leading-none font-semibold text-accent/45 tabular-nums">
+                  <span className="font-title gpp-mono text-4xl leading-none font-semibold text-accent/45">
                     0{index + 1}
                   </span>
                   <h3 className="mt-3 font-semibold text-text">{step.title}</h3>
@@ -163,7 +163,7 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="max-w-3xl">
-              <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                 Sessions
               </p>
               <h2
@@ -215,7 +215,7 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="mb-4">
-              <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                 Main game
               </p>
               <h2
@@ -231,7 +231,7 @@ function HowToPlayPage() {
             </div>
 
             <div className="mt-7 border-y border-border">
-              <div className="grid grid-cols-[4.5rem_1fr] px-1 py-3 text-xs font-semibold tracking-wide text-text-muted uppercase sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4">
+              <div className="grid grid-cols-[4.5rem_1fr] px-1 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4">
                 <span>Points</span>
                 <span>Result</span>
                 <span className="hidden sm:block">Example</span>
@@ -242,7 +242,7 @@ function HowToPlayPage() {
                   className="grid grid-cols-[4.5rem_1fr] border-t border-border px-1 py-5 sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4"
                 >
                   <span
-                    className={`text-lg font-bold tabular-nums ${
+                    className={`gpp-mono text-lg font-semibold ${
                       row.points > 0 ? 'text-accent' : 'text-text-muted'
                     }`}
                   >
@@ -279,7 +279,7 @@ function HowToPlayPage() {
           >
             <div className="grid gap-8 sm:grid-cols-[1fr_13rem] sm:items-center">
               <div>
-                <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+                <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                   Bonus game
                 </p>
                 <h2
@@ -295,10 +295,10 @@ function HowToPlayPage() {
                 </p>
               </div>
               <div className="border-t border-border pt-6 sm:border-t-0 sm:border-l sm:py-2 sm:pl-10">
-                <p className="font-title text-6xl leading-none font-semibold text-accent tabular-nums">
+                <p className="font-title gpp-mono text-6xl leading-none font-semibold text-accent">
                   1
                 </p>
-                <p className="mt-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
+                <p className="mt-2 text-xs font-semibold tracking-label text-text-muted uppercase">
                   point per correct pick
                 </p>
               </div>

@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 import { displayTeamName } from '@/lib/display';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
@@ -6,9 +8,10 @@ import { Tooltip } from './Tooltip';
 
 export { TEAM_COLORS };
 
+// Left padding leaves room for the 3px team bar.
 const BADGE_SIZES = {
-  sm: 'h-6 min-w-9 px-1.5 text-[10px]',
-  md: 'h-8 min-w-11 px-2.5 text-xs',
+  sm: 'h-6 min-w-9 pr-1.5 pl-2 text-xs',
+  md: 'h-8 min-w-11 pr-2.5 pl-3 text-xs',
 } as const;
 
 interface DriverBadgeProps {
@@ -54,24 +57,23 @@ export function DriverBadge({
   const hasTooltip = displayName || number != null || team || nationality;
 
   const tooltipContent = hasTooltip ? (
-    <div className="relative w-max max-w-[min(100vw-2rem,28rem)] rounded-xl border border-border bg-surface shadow-lg">
-      {/* Driver Profile Card */}
+    <div
+      className="gpp-team-bar relative w-max max-w-[min(100vw-2rem,28rem)] rounded-lg border border-border bg-surface"
+      style={{ '--team-colour': color } as CSSProperties}
+    >
+      {/* Driver profile card. The team colour is the 3px bar on the left edge
+          of this container — the number block it used to fill is now plain
+          surface, with the number in mono like every other figure. */}
       <div className="flex items-stretch">
-        {/* Number block with team color */}
-        <div
-          className="flex w-16 shrink-0 flex-col items-center justify-center rounded-l-xl py-3"
-          style={{ backgroundColor: color }}
-        >
-          <div className="flex flex-col items-center justify-center rounded-full bg-black/25 px-2 py-1.5 shadow-inner">
-            {number != null && (
-              <span className="font-title text-lg leading-none font-bold tracking-tight text-white">
-                {number}
-              </span>
-            )}
-            <span className="font-title text-xs leading-none font-bold tracking-[0.16em] text-white uppercase">
-              {code}
+        <div className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border py-3 pl-1">
+          {number != null && (
+            <span className="gpp-mono text-lg leading-none font-medium text-text">
+              {number}
             </span>
-          </div>
+          )}
+          <span className="gpp-mono text-xs leading-none tracking-label text-text-muted uppercase">
+            {code}
+          </span>
         </div>
 
         {/* Driver info */}
@@ -79,13 +81,15 @@ export function DriverBadge({
           <div className="flex items-center gap-2">
             {nationality && <Flag code={nationality} size="sm" />}
             {displayName && (
-              <span className="font-semibold whitespace-nowrap text-text">
+              <span className="font-medium whitespace-nowrap text-text">
                 {displayName}
               </span>
             )}
           </div>
           {team && (
-            <span className="text-xs text-text-muted">
+            // 5px dot, the team colour's only other permitted form.
+            <span className="flex items-center gap-1.5 text-xs text-text-muted">
+              <span className="gpp-team-dot" aria-hidden />
               {displayTeamName(team)}
             </span>
           )}
@@ -98,21 +102,30 @@ export function DriverBadge({
     </div>
   ) : null;
 
+  /*
+   * Team colour is confined to a 3px left bar. It used to be the badge's
+   * background with a black scrim over it, which is what made a grid of 22
+   * drivers read as loud: eleven saturated fills competing at full area.
+   * Confined to 3px, the same eleven colours stay legible and the page stays
+   * calm — and the code itself can sit in `--text` at a proper contrast
+   * ratio instead of white-on-whatever-the-team-is.
+   */
   const classes = [
-    'inline-grid place-items-center rounded-md font-mono font-bold tracking-wider text-white uppercase shadow-sm',
+    'gpp-team-bar inline-grid place-items-center rounded-sm border border-border bg-surface-elevated font-medium tracking-data text-text uppercase',
     BADGE_SIZES[size],
-    showNumber && number != null ? 'gap-1' : '',
-    team === 'Cadillac' ? 'ring-1 ring-white/20' : '',
     hasTooltip ? 'cursor-help' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   const badge = (
-    <span className={classes} style={{ backgroundColor: color }}>
-      <span className="inline-flex min-h-[18px] items-center justify-center gap-1 rounded-lg bg-black/30 px-1 py-0.5 leading-none">
+    <span
+      className={classes}
+      style={{ '--team-colour': color } as CSSProperties}
+    >
+      <span className="gpp-mono inline-flex items-center justify-center gap-1 leading-none">
         {showNumber && number != null && (
-          <span className="leading-none font-normal tabular-nums opacity-70">
+          <span className="leading-none font-normal text-text-muted">
             {number}
           </span>
         )}
@@ -154,33 +167,42 @@ export function ScoredDriverBadge({
   hideDot = false,
   ...driverProps
 }: DriverBadgeProps & { pickPoints?: number; hideDot?: boolean }) {
+  /*
+   * The four result semantics, straight from the scoring bands. These are
+   * fixed meanings across the whole app: violet is an exact position, green
+   * beat the prediction, amber is within one, grey is a miss.
+   *
+   * A miss is grey, never red — the only red in this system is a downward
+   * position delta. The previous red ring made every wrong pick read as an
+   * error state rather than as a result.
+   */
   let ringClass = '';
   let opacityClass = '';
 
   if (pickPoints !== undefined) {
     if (pickPoints === 5) {
-      ringClass = 'ring-2 ring-success';
+      ringClass = 'ring-1 ring-result-perfect';
     } else if (pickPoints === 3) {
-      ringClass = 'ring-2 ring-warning';
+      ringClass = 'ring-1 ring-result-beat';
     } else if (pickPoints === 1) {
-      ringClass = 'ring-2 ring-text-muted/40';
+      ringClass = 'ring-1 ring-result-close';
     } else {
-      ringClass = 'ring-2 ring-error/40';
-      opacityClass = 'opacity-50';
+      ringClass = 'ring-1 ring-result-miss';
+      opacityClass = 'opacity-60';
     }
   }
 
   return (
     <span
-      className={['relative inline-flex rounded-md', ringClass, opacityClass]
+      className={['relative inline-flex rounded-sm', ringClass, opacityClass]
         .filter(Boolean)
         .join(' ')}
     >
       <DriverBadge {...driverProps} />
       {!hideDot && pickPoints !== undefined && pickPoints >= 3 && (
         <span
-          className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-surface ${
-            pickPoints === 5 ? 'bg-success' : 'bg-warning'
+          className={`absolute -top-1 -right-1 h-2 w-2 rounded-full border border-page ${
+            pickPoints === 5 ? 'bg-result-perfect' : 'bg-result-beat'
           }`}
         />
       )}

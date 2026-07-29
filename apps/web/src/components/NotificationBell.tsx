@@ -210,7 +210,7 @@ function NotificationItem({
       <span
         className={`mt-1 h-2 w-2 rounded-full bg-accent ${isUnread ? 'opacity-100' : 'opacity-0'}`}
       />
-      <span className="text-[10px] whitespace-nowrap text-text-muted">
+      <span className="text-xs whitespace-nowrap text-text-muted">
         {timeAgo(notification.createdAt)}
       </span>
     </div>
@@ -255,7 +255,7 @@ function NotificationItem({
                 username={primary.username}
                 size="sm"
               />
-              <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-white">
+              <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-text-on-accent">
                 <RevIcon className="h-2.5 w-2.5" />
               </span>
             </div>
@@ -575,7 +575,7 @@ export function NotificationBell() {
           />
           <div
             ref={panelRef}
-            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-sm border border-border bg-surface shadow-xl sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
+            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-sm border border-border bg-surface sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
               <span className="text-sm font-semibold text-text">
@@ -642,7 +642,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-[10px] leading-none font-bold text-white"
+            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-xs leading-none font-semibold text-text-on-accent"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>

@@ -23,7 +23,7 @@ export function PredictionCountdownBadge({
   return (
     <span
       suppressHydrationWarning
-      className={`inline-flex max-w-full min-w-0 items-center rounded-full border border-accent/45 bg-accent-muted/30 px-2.5 py-1 text-sm leading-tight font-semibold whitespace-normal text-accent-hover tabular-nums shadow-sm ${className}`}
+      className={`gpp-mono inline-flex max-w-full min-w-0 items-center rounded-sm border border-accent-hairline bg-accent-quiet px-2.5 py-1 text-sm leading-tight whitespace-normal text-accent ${className}`}
     >
       {label} {suffix}
     </span>

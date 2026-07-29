@@ -28,7 +28,7 @@ function layoutWithBackground(
         width,
         height,
         backgroundColor: colors.bg,
-        fontFamily: 'Inter',
+        fontFamily: 'Archivo',
         color: colors.text,
         position: 'relative' as const,
         overflow: 'hidden' as const,
@@ -103,8 +103,8 @@ function layoutWithBackground(
             alignItems: 'center',
             gap: 12,
             fontSize: 20,
-            fontWeight: 700,
-            fontFamily: 'Orbitron',
+            fontWeight: 600,
+            fontFamily: 'Archivo',
             color: colors.text,
           },
         },
@@ -144,7 +144,7 @@ function layoutWithBackground(
       ),
       e(
         'div',
-        { style: { fontSize: 18, fontWeight: 700, color: colors.accent } },
+        { style: { fontSize: 18, fontWeight: 600, color: colors.accent } },
         'grandprixpicks.com',
       ),
     ),
@@ -215,8 +215,8 @@ export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
           {
             style: {
               fontSize: 82,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               lineHeight: 1.1,
               color: colors.text,
             },
@@ -248,7 +248,7 @@ export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
             backgroundColor: colors.buttonAccent,
             borderRadius: 14,
             fontSize: 30,
-            fontWeight: 700,
+            fontWeight: 600,
             color: 'white',
           },
         },
@@ -310,7 +310,7 @@ export function raceTemplate(
               alignItems: 'center',
               gap: 8,
               fontSize: 18,
-              fontWeight: 700,
+              fontWeight: 600,
               textTransform: 'uppercase' as const,
               letterSpacing: 2,
               color: statusColor,
@@ -332,7 +332,7 @@ export function raceTemplate(
               {
                 style: {
                   fontSize: 14,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: colors.accent,
                   backgroundColor: colors.accentMuted,
                   padding: '4px 12px',
@@ -351,8 +351,8 @@ export function raceTemplate(
         {
           style: {
             fontSize: 56,
-            fontWeight: 700,
-            fontFamily: 'Orbitron',
+            fontWeight: 600,
+            fontFamily: 'Archivo',
             lineHeight: 1.1,
             color: colors.text,
           },
@@ -369,7 +369,7 @@ export function raceTemplate(
             style: {
               fontSize: 24,
               color: colors.textMuted,
-              fontWeight: 700,
+              fontWeight: 600,
             },
           },
           `Round ${race.round} \u00b7 ${race.season} Season`,
@@ -421,8 +421,8 @@ function raceNameRow(
       {
         style: {
           fontSize,
-          fontWeight: 700,
-          fontFamily: 'Orbitron',
+          fontWeight: 600,
+          fontFamily: 'Archivo',
           lineHeight: 1.1,
           color: colors.text,
         },
@@ -509,7 +509,7 @@ function shareH2HWinnersTemplate(
         {
           style: {
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: 'uppercase' as const,
             letterSpacing: 3,
             color: colors.accent,
@@ -520,7 +520,7 @@ function shareH2HWinnersTemplate(
       raceNameRow(data.raceName, data.flagSrc, 46),
       e(
         'div',
-        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
       ),
       e(
@@ -557,7 +557,7 @@ function shareH2HWinnersTemplate(
                   borderRadius: 8,
                   backgroundColor: 'rgba(0, 0, 0, 0.3)',
                   fontSize: 28,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: 'white',
                   letterSpacing: 2,
                 },
@@ -626,7 +626,7 @@ export function shareH2HScoreTemplate(
         {
           style: {
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: 'uppercase' as const,
             letterSpacing: 3,
             color: colors.accent,
@@ -642,8 +642,8 @@ export function shareH2HScoreTemplate(
           {
             style: {
               fontSize: hasPicks ? 96 : 132,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               lineHeight: 1,
               color: colors.accent,
             },
@@ -652,7 +652,7 @@ export function shareH2HScoreTemplate(
         ),
         e(
           'div',
-          { style: { fontSize: 36, fontWeight: 700, color: colors.text } },
+          { style: { fontSize: 36, fontWeight: 600, color: colors.text } },
           'correct',
         ),
         e(
@@ -660,7 +660,7 @@ export function shareH2HScoreTemplate(
           {
             style: {
               fontSize: 26,
-              fontWeight: 700,
+              fontWeight: 600,
               color: colors.textMuted,
               marginLeft: 12,
             },
@@ -704,7 +704,7 @@ export function shareH2HScoreTemplate(
                       borderRadius: 8,
                       backgroundColor: 'rgba(0, 0, 0, 0.35)',
                       fontSize: 24,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       color: 'white',
                       letterSpacing: 2,
                     },
@@ -719,7 +719,7 @@ export function shareH2HScoreTemplate(
       raceNameRow(data.raceName, data.flagSrc, 42),
       e(
         'div',
-        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
       ),
     ),
@@ -747,7 +747,7 @@ function shareTopFiveTemplate(
         {
           style: {
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: 'uppercase' as const,
             letterSpacing: 3,
             color: colors.accent,
@@ -758,7 +758,7 @@ function shareTopFiveTemplate(
       raceNameRow(data.raceName, data.flagSrc, 52),
       e(
         'div',
-        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
       ),
       // Picks row: position + driver code chips in team colors
@@ -782,7 +782,7 @@ function shareTopFiveTemplate(
               {
                 style: {
                   fontSize: 22,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: colors.textMuted,
                 },
               },
@@ -810,7 +810,7 @@ function shareTopFiveTemplate(
                     borderRadius: 10,
                     backgroundColor: 'rgba(0, 0, 0, 0.3)',
                     fontSize: 34,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: 'white',
                     letterSpacing: 2,
                   },
@@ -859,7 +859,7 @@ export function shareScoreTemplate(
         {
           style: {
             fontSize: 22,
-            fontWeight: 700,
+            fontWeight: 600,
             textTransform: 'uppercase' as const,
             letterSpacing: 3,
             color: colors.accent,
@@ -875,8 +875,8 @@ export function shareScoreTemplate(
           {
             style: {
               fontSize: 150,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               lineHeight: 1,
               color: colors.accent,
             },
@@ -885,14 +885,14 @@ export function shareScoreTemplate(
         ),
         e(
           'div',
-          { style: { fontSize: 44, fontWeight: 700, color: colors.text } },
+          { style: { fontSize: 44, fontWeight: 600, color: colors.text } },
           'pts',
         ),
       ),
       raceNameRow(data.raceName, data.flagSrc, 44),
       e(
         'div',
-        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 700 } },
+        { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
       ),
     ),
@@ -947,7 +947,7 @@ export function profileTemplate(
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 48,
-                fontWeight: 700,
+                fontWeight: 600,
                 color: 'white',
               },
             },
@@ -968,7 +968,7 @@ export function profileTemplate(
           {
             style: {
               fontSize: 48,
-              fontWeight: 700,
+              fontWeight: 600,
               lineHeight: 1.1,
               color: colors.text,
             },
@@ -1020,7 +1020,7 @@ function statBox(value: string, label: string): ReactNode {
     },
     e(
       'div',
-      { style: { fontSize: 36, fontWeight: 700, color: colors.accent } },
+      { style: { fontSize: 36, fontWeight: 600, color: colors.accent } },
       value,
     ),
     e('div', { style: { fontSize: 16, color: colors.textMuted } }, label),
@@ -1059,8 +1059,8 @@ export function leaderboardTemplate(
         {
           style: {
             fontSize: 48,
-            fontWeight: 700,
-            fontFamily: 'Orbitron',
+            fontWeight: 600,
+            fontFamily: 'Archivo',
             color: colors.text,
             textAlign: 'center' as const,
           },
@@ -1106,7 +1106,7 @@ export function leaderboardTemplate(
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: 22,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: colors.bg,
                   flexShrink: 0,
                 },
@@ -1135,7 +1135,7 @@ export function leaderboardTemplate(
               {
                 style: {
                   fontSize: 26,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: colors.accent,
                   flexShrink: 0,
                   textAlign: 'right' as const,
@@ -1198,7 +1198,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
         style: {
           width: 38,
           fontSize: 22,
-          fontWeight: 700,
+          fontWeight: 600,
           color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
         },
       },
@@ -1219,8 +1219,8 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
         style: {
           width: 86,
           fontSize: 23,
-          fontWeight: 700,
-          fontFamily: 'Orbitron',
+          fontWeight: 600,
+          fontFamily: 'Archivo',
           color: entry.isReserve ? colors.textMuted : colors.text,
         },
       },
@@ -1297,7 +1297,7 @@ export function practiceResultsTemplate({
           {
             style: {
               fontSize: 20,
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: 2,
               color: colors.accent,
             },
@@ -1309,8 +1309,8 @@ export function practiceResultsTemplate({
           {
             style: {
               fontSize: 40,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               marginTop: 4,
             },
           },
@@ -1326,8 +1326,8 @@ export function practiceResultsTemplate({
             style: {
               display: 'flex',
               fontSize: 26,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               color: colors.bg,
               backgroundColor: colors.accent,
               borderRadius: 8,
@@ -1414,7 +1414,7 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
           justifyContent: 'center',
           marginBottom: 4,
           fontSize: 12,
-          fontWeight: 700,
+          fontWeight: 600,
           letterSpacing: 1.2,
           textTransform: 'uppercase' as const,
           color: '#cbd5e1',
@@ -1461,8 +1461,8 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
             borderRadius: 4,
             backgroundColor: row.color,
             fontSize: 27,
-            fontWeight: 700,
-            fontFamily: 'Orbitron',
+            fontWeight: 600,
+            fontFamily: 'Archivo',
             color: badgeInk,
           },
         },
@@ -1484,7 +1484,7 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
             border: '1px solid #475569',
             backgroundColor: 'rgba(15, 23, 42, 0.9)',
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 600,
             lineHeight: 1,
             color: colors.text,
           },
@@ -1496,8 +1496,8 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
         {
           style: {
             fontSize: 27,
-            fontWeight: 700,
-            fontFamily: 'Orbitron',
+            fontWeight: 600,
+            fontFamily: 'Archivo',
             color: '#cbd5e1',
           },
         },
@@ -1575,8 +1575,8 @@ export function h2hResultsTemplate({
           {
             style: {
               fontSize: 52,
-              fontWeight: 800,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               lineHeight: 1,
             },
           },
@@ -1587,7 +1587,7 @@ export function h2hResultsTemplate({
           {
             style: {
               fontSize: 27,
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: 2.2,
               color: colors.textMuted,
               marginTop: 5,
@@ -1629,7 +1629,7 @@ export function h2hResultsTemplate({
             {
               style: {
                 fontSize: 14,
-                fontWeight: 700,
+                fontWeight: 600,
                 letterSpacing: 2.2,
                 color: colors.accent,
               },
@@ -1703,7 +1703,7 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
         style: {
           width: 38,
           fontSize: 22,
-          fontWeight: 700,
+          fontWeight: 600,
           color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
         },
       },
@@ -1724,8 +1724,8 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
         style: {
           width: 84,
           fontSize: 22,
-          fontWeight: 700,
-          fontFamily: 'Orbitron',
+          fontWeight: 600,
+          fontFamily: 'Archivo',
           color: colors.text,
         },
       },
@@ -1743,7 +1743,7 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
             style: {
               display: 'flex',
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 600,
               color: STATUS_COLOR,
             },
           },
@@ -1795,7 +1795,7 @@ export function sessionResultsTemplate({
           {
             style: {
               fontSize: 20,
-              fontWeight: 700,
+              fontWeight: 600,
               letterSpacing: 2,
               color: colors.accent,
             },
@@ -1807,8 +1807,8 @@ export function sessionResultsTemplate({
           {
             style: {
               fontSize: 40,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               marginTop: 4,
             },
           },
@@ -1824,8 +1824,8 @@ export function sessionResultsTemplate({
             style: {
               display: 'flex',
               fontSize: 24,
-              fontWeight: 700,
-              fontFamily: 'Orbitron',
+              fontWeight: 600,
+              fontFamily: 'Archivo',
               color: colors.bg,
               backgroundColor: colors.accent,
               borderRadius: 8,

@@ -226,7 +226,7 @@ function ProfilePage() {
                 size="lg"
               />
               <div className="min-w-0">
-                <p className="mb-0.5 text-[10px] font-semibold tracking-[0.18em] text-accent uppercase">
+                <p className="mb-0.5 text-xs font-semibold tracking-label text-accent uppercase">
                   {isOwner ? 'My results' : 'Player profile'}
                 </p>
                 <div className="flex items-center gap-2">
@@ -250,28 +250,28 @@ function ProfilePage() {
                   <div className="mt-1 min-h-5">
                     {followCounts !== undefined && (
                       <p className="reveal-up text-sm text-text-muted">
-                        <span className="font-bold text-text">
+                        <span className="font-semibold text-text">
                           {followCounts.followerCount}
                         </span>{' '}
                         <Link
                           to="/p/$username/followers"
                           params={{ username: currentProfile.username }}
                           search={{ from: undefined, fromLabel: undefined }}
-                          className="font-bold text-accent hover:text-accent/90"
+                          className="font-semibold text-accent hover:text-accent/90"
                         >
                           {followCounts.followerCount === 1
                             ? 'follower'
                             : 'followers'}
                         </Link>
                         {' · '}
-                        <span className="font-bold text-text">
+                        <span className="font-semibold text-text">
                           {followCounts.followingCount}
                         </span>{' '}
                         <Link
                           to="/p/$username/following"
                           params={{ username: currentProfile.username }}
                           search={{ from: undefined, fromLabel: undefined }}
-                          className="font-bold text-accent hover:text-accent/90"
+                          className="font-semibold text-accent hover:text-accent/90"
                         >
                           following
                         </Link>
@@ -296,7 +296,7 @@ function ProfilePage() {
                   />
                 ) : null}
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[10px] font-semibold tracking-[0.14em] text-accent uppercase">
+                  <span className="block text-xs font-semibold tracking-label text-accent uppercase">
                     My Picks
                   </span>
                   <span className="block truncate text-sm font-semibold text-text">
@@ -334,7 +334,7 @@ function ProfilePage() {
                 <div className="font-title text-2xl font-semibold text-accent">
                   {stats?.totalPoints ?? '—'}
                 </div>
-                <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
                   Total points
                 </div>
               </div>
@@ -342,7 +342,7 @@ function ProfilePage() {
                 <div className="font-title text-2xl font-semibold text-text">
                   {stats?.weekendCount ?? '—'}
                 </div>
-                <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
                   Weekends
                 </div>
               </div>
@@ -354,7 +354,7 @@ function ProfilePage() {
                       {stats.seasonRank}
                     </span>
                   </div>
-                  <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                  <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
                     Top 5 rank of {stats.totalPlayers}
                   </div>
                 </div>
@@ -367,7 +367,7 @@ function ProfilePage() {
                       {stats.h2hSeasonRank}
                     </span>
                   </div>
-                  <div className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                  <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
                     H2H rank of {stats.h2hTotalPlayers}
                   </div>
                 </div>
@@ -379,7 +379,7 @@ function ProfilePage() {
         {scoredWeekends.length > 0 ? (
           <section className="mb-7">
             <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h2 className="font-title text-sm font-semibold tracking-wide text-text uppercase">
+              <h2 className="font-title text-sm font-semibold tracking-label text-text uppercase">
                 Weekend finishes
               </h2>
               <span className="text-xs text-text-muted">Top 5 scoring</span>
@@ -405,7 +405,7 @@ function ProfilePage() {
                         <RaceFlag countryCode={countryCode} size="md" />
                       ) : null}
                       <div className="min-w-0">
-                        <p className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">
+                        <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                           Round {weekend.raceRound}
                         </p>
                         <p className="truncate font-semibold text-text group-hover:text-accent">
@@ -420,7 +420,7 @@ function ProfilePage() {
                             ? `P${weekend.top5Rank}`
                             : '—'}
                         </p>
-                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                        <p className="text-[9px] tracking-label text-text-muted uppercase">
                           of {weekend.top5FieldSize}
                         </p>
                       </div>
@@ -428,7 +428,7 @@ function ProfilePage() {
                         <p className="font-title text-lg font-semibold text-text">
                           {weekend.totalPoints}
                         </p>
-                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                        <p className="text-[9px] tracking-label text-text-muted uppercase">
                           points
                         </p>
                       </div>
@@ -436,7 +436,7 @@ function ProfilePage() {
                         <p className="font-title text-lg font-semibold text-text">
                           {scoredSessionCount}
                         </p>
-                        <p className="text-[9px] tracking-wide text-text-muted uppercase">
+                        <p className="text-[9px] tracking-label text-text-muted uppercase">
                           sessions
                         </p>
                       </div>
@@ -449,7 +449,7 @@ function ProfilePage() {
         ) : null}
 
         <div className="mt-7 mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="font-title text-sm font-semibold tracking-wide text-text uppercase">
+          <h2 className="font-title text-sm font-semibold tracking-label text-text uppercase">
             {isOwner ? 'My recent results' : 'Recent results'}
           </h2>
           {weekends && weekends.length > 0 ? (

@@ -3,16 +3,20 @@
  * Run via: pnpm --filter @grandprixpicks/shared generate-tokens
  * Called automatically before web dev/build.
  *
- * Emits three blocks:
+ * Emits, in order:
  *   1. the raw custom properties, for hand-written CSS using var(--page)
- *   2. an `@theme inline` mapping so Tailwind exposes bg-page, text-muted, etc.
- *   3. an `@theme` block for radius, spacing, type and elevation
+ *   2. `-rgb` channel triples, so any token can be tinted at any alpha
+ *   3. the named alpha tints the design system calls for by name
+ *   4. an `@theme inline` mapping so Tailwind exposes bg-page, text-muted, etc.
+ *   5. an `@theme` block for radius, spacing, type, font, elevation
+ *   6. a plain `:root` block for the families Tailwind has no slot for —
+ *      data type scale, weights, tracking, density, layout, motion, motif
  *
- * Blocks 1 and 2 are the palette. Block 3 is the part a redesign leans on
- * hardest: Tailwind compiles `p-4` to `calc(var(--spacing) * 4)` and `text-sm`
- * to `var(--text-sm)`, so owning those variables turns ~3,200 utilities already
- * written across the app into consumers of this file. Retuning density or the
- * type scale is an edit here, not a pass over 147 components.
+ * Blocks 4 and 5 are the part a redesign leans on hardest: Tailwind compiles
+ * `p-4` to `calc(var(--spacing) * 4)` and `text-sm` to `var(--text-sm)`, so
+ * owning those variables turns ~3,200 utilities already written across the app
+ * into consumers of this file. Retuning density or the type scale is an edit in
+ * tokens.ts, not a pass over 147 components.
  *
  * Because the Tailwind mapping is generated too, adding a token to tokens.ts is
  * all that is needed — there is no second list to keep in sync.
@@ -22,10 +26,19 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   colors,
+  dataScale,
+  density,
   elevation,
+  fonts,
+  layout,
+  lineHeights,
+  motif,
+  motion,
   radii,
   spacingBase,
+  tracking,
   typeScale,
+  weights,
 } from '../src/tokens.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,7 +55,7 @@ function toCssLength(px: number): string {
 }
 
 /**
- * `#31b8ab` → `49 184 171`, so stylesheets can tint any token at any alpha with
+ * `#d4ff3f` → `212 255 63`, so stylesheets can tint any token at any alpha with
  * `rgb(var(--accent-rgb) / 0.12)` without hardcoding the channels. Deliberately
  * not color-mix(): lightningcss emits an alpha-stripped fallback rule for that,
  * which would paint the tint fully opaque on browsers that miss the feature.
@@ -51,6 +64,24 @@ function toRgbChannels(hex: string): string {
   const int = Number.parseInt(hex.slice(1), 16);
   return `${(int >> 16) & 255} ${(int >> 8) & 255} ${int & 255}`;
 }
+
+/**
+ * The tints the design direction names explicitly, so components reference a
+ * token rather than re-deriving an alpha. Alpha is used ONLY for these: the
+ * four result tints, the accent tint and hairline, and the focus ring. There is
+ * no other transparency in the system and no backdrop-filter anywhere.
+ */
+const ALPHA_TINTS: ReadonlyArray<
+  [name: string, source: string, alpha: number]
+> = [
+  ['accent-quiet', 'accent', 0.12],
+  ['accent-hairline', 'accent', 0.35],
+  ['focus-ring', 'accent', 0.55],
+  ['result-perfect-quiet', 'result-perfect', 0.14],
+  ['result-beat-quiet', 'result-beat', 0.14],
+  ['result-close-quiet', 'result-close', 0.14],
+  ['result-miss-quiet', 'result-miss', 0.16],
+];
 
 const colorVars = Object.keys(colors).map(toKebab);
 
@@ -74,11 +105,19 @@ for (const [key, value] of Object.entries(colors)) {
   lines.push(`  --${toKebab(key)}-rgb: ${toRgbChannels(value)};`);
 }
 
+lines.push('');
+for (const [name, source, alpha] of ALPHA_TINTS) {
+  lines.push(`  --${name}: rgb(var(--${source}-rgb) / ${alpha});`);
+}
+
 lines.push('}', '');
 
 // Expose the tokens to Tailwind so we get bg-page, text-muted, border-accent…
 lines.push('@theme inline {');
 for (const name of colorVars) {
+  lines.push(`  --color-${name}: var(--${name});`);
+}
+for (const [name] of ALPHA_TINTS) {
   lines.push(`  --color-${name}: var(--${name});`);
 }
 lines.push('}', '');
@@ -103,11 +142,103 @@ for (const [key, { size, lineHeight }] of Object.entries(typeScale)) {
   );
 }
 
+// font-ui / font-data, so `font-data` is a Tailwind utility like any other.
+lines.push('');
+for (const [key, value] of Object.entries(fonts)) {
+  lines.push(`  --font-${key}: ${value};`);
+}
+
+// Mapped to `none`: this system has no shadows. Kept so existing shadow-*
+// utilities compile to nothing rather than falling back to Tailwind's stock
+// scale. See the note on `elevation` in tokens.ts.
 lines.push('');
 for (const [key, value] of Object.entries(elevation)) {
   lines.push(`  --shadow-${key}: ${value};`);
 }
 
+/*
+ * These must live in `@theme`, not in a plain rule, because `--tracking-*`,
+ * `--leading-*` and `--ease-*` are Tailwind namespaces: registering them here
+ * is what makes `tracking-label`, `leading-snug` and `ease-out` exist as
+ * utilities at all. Emitted into a plain `:root` they would resolve for
+ * hand-written `var()` calls but silently produce no class, which is exactly
+ * how `tracking-label` came out as `letter-spacing: normal` first time round.
+ */
+lines.push('');
+for (const [key, value] of Object.entries(tracking)) {
+  lines.push(`  --tracking-${key}: ${value};`);
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(lineHeights)) {
+  lines.push(`  --leading-${key}: ${value};`);
+}
+
+lines.push('');
+lines.push(`  --ease-out: ${motion.easeOut};`);
+
+lines.push('}', '');
+
+/**
+ * Families Tailwind has no first-class slot for. Hand-written CSS and inline
+ * styles read these directly: var(--data-md), var(--fw-light), var(--nav-height).
+ */
+lines.push('.dark,', "[data-theme='dark'] {");
+
+for (const [key, value] of Object.entries(dataScale)) {
+  lines.push(`  --data-${key}: ${value / 16}rem;`);
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(weights)) {
+  lines.push(`  --fw-${key}: ${value};`);
+}
+
+// `--lh-*` is an alias of the `--leading-*` set emitted into `@theme` above:
+// hand-written CSS in styles.css reads `var(--lh-body)`, while Tailwind needs
+// the `--leading-*` spelling to generate `leading-body`. Tracking is NOT
+// repeated here — `@theme` already puts `--tracking-*` on :root.
+lines.push('');
+for (const [key, value] of Object.entries(lineHeights)) {
+  lines.push(`  --lh-${key}: ${value};`);
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(density)) {
+  lines.push(`  --${toKebab(key)}: ${value}px;`);
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(layout)) {
+  lines.push(`  --${toKebab(key)}: ${value}px;`);
+}
+
+lines.push('');
+for (const [key, value] of Object.entries(motion)) {
+  lines.push(`  --${toKebab(key)}: ${value};`);
+}
+lines.push('  --transition: all var(--dur) var(--ease-out);');
+
+lines.push('');
+for (const [key, value] of Object.entries(motif)) {
+  const cssValue = typeof value === 'number' ? `${value}px` : value;
+  lines.push(`  --${toKebab(key)}: ${cssValue};`);
+}
+lines.push('  --hairline: 1px solid var(--border);');
+lines.push('  --hairline-strong: 1px solid var(--border-strong);');
+
+lines.push('}', '');
+
+// prefers-reduced-motion collapses every duration to 1ms. Authored here rather
+// than in styles.css so the durations and their override stay in one place.
+lines.push('@media (prefers-reduced-motion: reduce) {');
+lines.push('  .dark,');
+lines.push("  [data-theme='dark'] {");
+lines.push('    --dur-fast: 1ms;');
+lines.push('    --dur: 1ms;');
+lines.push('    --dur-slow: 1ms;');
+lines.push('    --stagger-step: 0ms;');
+lines.push('  }');
 lines.push('}', '');
 
 const outPath = resolve(

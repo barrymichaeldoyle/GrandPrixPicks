@@ -159,7 +159,7 @@ function SupportContent() {
                   }
                   className={`rounded-full px-3 py-1 font-medium transition-colors ${
                     category === option.id
-                      ? 'bg-accent text-white'
+                      ? 'bg-accent text-text-on-accent'
                       : 'bg-surface-muted text-text-muted hover:bg-surface'
                   }`}
                 >

@@ -30,7 +30,7 @@ export function SessionPicksGrid({
 
         return (
           <div key={position} className="flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-semibold text-text-muted/60">
+            <span className="text-xs font-semibold text-text-muted/60">
               P{position + 1}
             </span>
             {pick.code !== '???' ? (
@@ -47,7 +47,7 @@ export function SessionPicksGrid({
                       pickPoints={breakdownItem.points}
                     />
                     <span
-                      className={`shrink-0 text-[10px] font-bold ${
+                      className={`shrink-0 text-xs font-semibold ${
                         breakdownItem.points ? 'text-success' : 'text-error/60'
                       }`}
                     >

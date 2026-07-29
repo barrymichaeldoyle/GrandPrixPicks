@@ -1,80 +1,115 @@
 /**
- * Design tokens — the single source of truth for the Grand Prix Picks palette.
+ * Design tokens — the single source of truth for the Grand Prix Picks look.
+ *
+ * Creative direction: **Timing Sheet Minimal**. Clean, premium, calm. The
+ * racing personality comes from data typography, semantic colour and one
+ * signature stripe motif, never from decoration. Dark theme only.
  *
  * The web app is the reference implementation: these values are what
  * apps/web renders, and this file is the only place they are authored.
  * Mobile consumes the same values via `@grandprixpicks/shared/tokens`.
  *
- * Web never redefines a token locally. Editing a colour here changes both
+ * Web never redefines a token locally. Editing a value here changes both
  * apps. Run `pnpm generate-tokens` to regenerate apps/web/src/tokens.generated.css
  * (done automatically before web dev/build).
  *
- * Dark mode is currently the only theme; `.dark` is hard-coded on <html>.
+ * Three rules this file exists to enforce:
+ *   1. There are no shadows. Elevation is a lighter surface + a 1px hairline.
+ *   2. Backgrounds are flat colour. No gradients, textures, noise or glow.
+ *   3. Accent is for CTAs, active states and the stripe. Never body text.
  */
 export const colors = {
-  // Base — a near-black night-race canvas.
-  page: '#0a0e17',
-  surface: '#131a27',
-  surfaceElevated: '#192231',
-  surfaceMuted: '#222d3e',
-  surfaceHover: '#273349',
+  // Base — a warm near-black, never pure black. Four surface layers.
+  page: '#101113',
+  surface: '#191a1d',
+  surfaceElevated: '#212226',
+  surfaceMuted: '#212226',
+  surfaceHover: '#212226',
+  surfaceSunken: '#0c0d0f',
 
-  // Borders
-  border: '#2b3749',
-  borderStrong: '#46546a',
+  // Borders — the only elevation mechanism the system has.
+  border: '#2c2d31',
+  borderStrong: '#3a3b41',
 
-  // Text
-  text: '#f8fafc',
-  textMuted: '#a4adbb',
+  // Text. `textMuted` holds 4.6:1 on `page`; nothing below 4.5:1 ships.
+  text: '#f2f2f0',
+  textMuted: '#9a9ba1',
+  textDisabled: '#5c5d63',
+  textOnAccent: '#101113',
 
-  // Accent (teal) — navigation, icons, highlights.
-  accent: '#31b8ab',
-  accentHover: '#50c9bd',
-  accentMuted: '#143f3d', // dark background tint
+  // Accent (chartreuse) — CTAs, active states, the current user, the stripe.
+  // Never body text, never a large fill except a primary button.
+  accent: '#d4ff3f',
+  accentHover: '#e2ff6e',
+  accentPress: '#b8e035',
+  // Kept under the old names so existing `bg-accent-muted` utilities land on
+  // the quiet tint rather than breaking.
+  accentMuted: '#2a3316',
 
-  // Action (warm red) — primary buttons. Dark enough for 4.5:1 white text.
-  buttonAccent: '#c0263a',
-  buttonAccentHover: '#d72d42',
-  buttonAccentShadow: '#761827', // the pressed/bottom edge on raised buttons
+  // Primary action. In this system the CTA *is* the accent — there is no
+  // separate red button colour, and nothing is raised, so there is no
+  // pressed bottom edge either.
+  buttonAccent: '#d4ff3f',
+  buttonAccentHover: '#e2ff6e',
+  buttonAccentShadow: '#b8e035',
 
-  // Brand — motorsport livery accents used for emphasis and atmosphere.
-  racingRed: '#f04455',
-  racingRedMuted: '#5f1726',
-  racingAmber: '#ffb020',
+  // Prediction result semantics, F1 sector-colour inspired. Fixed meanings:
+  // a miss is grey, never red. The only red in the system is `deltaDown`.
+  resultPerfect: '#c084fc', // exact position
+  resultBeat: '#4ade80', // beat the prediction
+  resultClose: '#facc15', // within one position
+  resultMiss: '#71717a', // miss
 
-  // Sprint weekends — the one domain concept with its own colour.
-  sprint: '#7e22ce', // badge background, used as a low-alpha wash
-  sprintBorder: '#a78bfa',
-  sprintText: '#c4b5fd',
+  // Position delta, for batch leaderboard updates. Movement is *labelled*
+  // (▲2 / ▼1 / –), never animated.
+  deltaUp: '#4ade80',
+  deltaDown: '#f87171',
+  deltaFlat: '#5c5d63',
 
-  // Podium — leaderboard ranks 1/2/3 and the OG share cards.
-  podiumGold: '#fbbf24',
-  podiumSilver: '#9ca3af',
-  podiumBronze: '#d97706',
+  // Brand — retained names, retuned to the new palette. `racingRed` is now
+  // only the delta-down red; nothing uses it as atmosphere any more.
+  racingRed: '#f87171',
+  racingRedMuted: '#3a1f22',
+  racingAmber: '#facc15',
 
-  // Semantic
-  error: '#f87171',
-  errorMuted: '#7f1d1d',
-  success: '#34d399',
-  successMuted: '#064e3b',
-  warning: '#fbbf24',
-  warningMuted: '#78350f',
+  // Sprint weekends — the one domain concept with its own colour. Reuses the
+  // violet result semantic so the palette stays at one accent plus four
+  // meanings rather than growing a sixth hue.
+  sprint: '#c084fc',
+  sprintBorder: '#c084fc',
+  sprintText: '#d8b4fe',
+
+  // Podium — leaderboard ranks 1/2/3 and the OG share cards. Flat data
+  // colours in the manner of team colours: no gradient, no bevel, no metal.
+  podiumGold: '#e0b64a',
+  podiumSilver: '#a1a1aa',
+  podiumBronze: '#b07a44',
+
+  // Semantic. Errors are amber and instructive, not red and alarming.
+  error: '#facc15',
+  errorMuted: '#3a3416',
+  success: '#4ade80',
+  successMuted: '#16321f',
+  warning: '#facc15',
+  warningMuted: '#3a3416',
 } as const;
 
 /**
- * Corner radii in px. Deliberately tighter than the framework defaults: the
- * racing/technical geometry stays crisp without every control looking cut from
- * the same sheet of metal. Identity and status elements (avatars, rank badges)
- * use `pill` and keep their full circle shape.
+ * Corner radii in px. Sharp and precise: 2px on anything you interact with,
+ * 4px on anything that contains something, pill only for the small team dot
+ * and for avatars, which stay circular.
  *
  * Names match the Tailwind radius scale so `rounded-lg` on web and `radii.lg`
- * on mobile mean the same thing.
+ * on mobile mean the same thing. The scale is deliberately flat — `md`
+ * through `2xl` collapse onto the two real values, so the ~300 existing
+ * `rounded-*` utilities land on-system without a rename pass.
  */
 export const radii = {
-  md: 4,
-  lg: 6,
-  xl: 8,
-  '2xl': 10,
+  sm: 2, // inputs, buttons, chips
+  md: 2,
+  lg: 4, // cards, panels, tables
+  xl: 4,
+  '2xl': 4,
   pill: 999,
 } as const;
 
@@ -89,39 +124,158 @@ export const radii = {
 export const spacingBase = 4; // px
 
 /**
- * Type scale, in px. `lineHeight: null` means 1 (used by display sizes, where a
- * ratio reads better than a fixed leading).
- *
- * Names match the Tailwind scale, so `text-sm` in a component and `sm` here are
- * the same thing and the ~850 existing usages need no edit when this changes.
+ * Deliberate two-speed density. Page chrome is generous while data is
+ * compact — that contrast *is* the timing-sheet feel, and it is the one
+ * thing to preserve when tuning anything else here.
  */
-export const typeScale = {
-  xs: { size: 12, lineHeight: 16 },
-  sm: { size: 14, lineHeight: 20 },
-  base: { size: 16, lineHeight: 24 },
-  lg: { size: 18, lineHeight: 28 },
-  xl: { size: 20, lineHeight: 28 },
-  '2xl': { size: 24, lineHeight: 32 },
-  '3xl': { size: 30, lineHeight: 36 },
-  '4xl': { size: 36, lineHeight: 40 },
-  '5xl': { size: 48, lineHeight: null },
-  '6xl': { size: 60, lineHeight: null },
+export const density = {
+  rowHeightCompact: 36, // timing sheet rows
+  rowHeight: 44, // touch target minimum
+  controlHeight: 36,
+  controlHeightLg: 44,
+} as const;
+
+/** Page frame. Full-bleed nav, 1200px content, 32px gutters. */
+export const layout = {
+  pageMax: 1200,
+  pageGutter: 32,
+  navHeight: 64,
+  mobileNavHeight: 60,
 } as const;
 
 /**
- * Elevation. Deliberately neutral black rather than a tinted shadow: the app
- * sits on a near-black canvas where a coloured shadow reads as a glow. Glows are
- * done explicitly (see the accent ring on RaceScoreCard), not via this scale.
+ * Type scale, in px.
+ *
+ * Weights run one step lighter than usual because light type on dark reads
+ * bolder: display and h1 at 300, h2 at 400, h3 and labels at 500, primary
+ * buttons at 600. See `weights` below.
+ *
+ * Names match the Tailwind scale, so `text-sm` in a component and `sm` here
+ * are the same thing and the ~850 existing usages need no edit.
+ * `lineHeight: null` means 1.
+ */
+export const typeScale = {
+  xs: { size: 11, lineHeight: 16 }, // micro / eyebrow — always uppercase + tracked
+  sm: { size: 13, lineHeight: 18 },
+  base: { size: 15, lineHeight: 22 },
+  lg: { size: 17, lineHeight: 24 },
+  xl: { size: 22, lineHeight: 28 },
+  '2xl': { size: 26, lineHeight: 32 },
+  '3xl': { size: 30, lineHeight: 36 },
+  '4xl': { size: 36, lineHeight: 40 },
+  '5xl': { size: 44, lineHeight: null }, // page hero, race name
+  '6xl': { size: 56, lineHeight: null },
+} as const;
+
+/**
+ * Monospace data scale. Everything a person *compares* is mono with
+ * tabular-nums: lap times, points, positions, deltas, race numbers.
+ * Numbers are always numerals, never spelled out.
+ */
+export const dataScale = {
+  xs: 12, // race numbers, deltas
+  sm: 14, // lap times, row points
+  md: 18, // points totals
+  lg: 26, // slot position numbers
+  xl: 40, // countdown digits
+} as const;
+
+/** Light-on-dark reads bolder, so every role sits one step down. */
+export const weights = {
+  light: 300, // display, h1
+  regular: 400, // body, h2
+  medium: 500, // h3, labels, secondary buttons
+  semibold: 600, // primary buttons only
+} as const;
+
+/** Letter spacing. Display goes negative; micro labels go wide. */
+export const tracking = {
+  display: '-0.02em',
+  tight: '-0.01em',
+  normal: '0',
+  label: '0.12em', // uppercase micro labels
+  data: '0.02em',
+} as const;
+
+export const lineHeights = {
+  tight: 1.05,
+  snug: 1.25,
+  body: 1.5,
+} as const;
+
+/**
+ * Font stacks. Archivo for everything a person reads, IBM Plex Mono for
+ * everything a person compares. Both are self-hosted from
+ * apps/web/public/fonts — see the @font-face rules in styles.css.
+ */
+export const fonts = {
+  ui: "'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  data: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace",
+} as const;
+
+/**
+ * Motion. Applied only to hover, selection and drag. Rows fade in once on
+ * load with a small stagger; the countdown ticks. Nothing else moves —
+ * in particular, leaderboard positions never animate, because movement is
+ * labelled with a delta instead.
+ */
+export const motion = {
+  easeOut: 'cubic-bezier(0.2, 0.8, 0.3, 1)',
+  durFast: '150ms',
+  dur: '180ms',
+  durSlow: '200ms',
+  staggerStep: '28ms',
+} as const;
+
+/**
+ * The signature motif: a 3px vertical bar in the accent, skewed -12deg,
+ * pinned to the left edge of the thing that matters — the active card, the
+ * selected slot, the current user's row, the active nav item.
+ *
+ * One stripe per container. Never two, never on all sides, never as a
+ * flourish in empty space.
+ */
+export const motif = {
+  stripeWidth: 3,
+  /**
+   * How far the bottom of the stripe sits left of its top, in px. A fixed
+   * offset rather than an angle: see the note on `.gpp-stripe` in styles.css
+   * for why a proportional skew cannot work on a container of arbitrary height.
+   */
+  stripeLean: 5,
+  /** Team colour appears only as this bar, or as a 5px dot. Never a fill. */
+  teamBarWidth: 3,
+  teamDotSize: 5,
+} as const;
+
+/**
+ * Elevation is intentionally empty of shadows.
+ *
+ * This system has none: depth is a lighter surface plus a 1px hairline, and
+ * an empty or awaiting-input container uses a dashed hairline instead of a
+ * solid one. The scale is kept — mapped to `none` — so that the ~40 existing
+ * `shadow-*` utilities compile to nothing rather than to Tailwind's stock
+ * shadows, which would quietly reintroduce the look this direction removes.
+ *
+ * `apps/web/scripts/check-design-tokens.mjs` stops new ones being added.
  */
 export const elevation = {
-  sm: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-  md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-  lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-  xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-  '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+  sm: 'none',
+  md: 'none',
+  lg: 'none',
+  xl: 'none',
+  '2xl': 'none',
 } as const;
 
 export type Colors = typeof colors;
 export type Radii = typeof radii;
 export type TypeScale = typeof typeScale;
+export type DataScale = typeof dataScale;
 export type Elevation = typeof elevation;
+export type Density = typeof density;
+export type Layout = typeof layout;
+export type Weights = typeof weights;
+export type Tracking = typeof tracking;
+export type Fonts = typeof fonts;
+export type Motion = typeof motion;
+export type Motif = typeof motif;

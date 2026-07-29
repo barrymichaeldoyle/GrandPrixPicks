@@ -37,7 +37,7 @@ export function PageHeader({
   const heading = (
     <div>
       {eyebrow ? (
-        <p className="mb-2 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+        <p className="mb-2 text-xs font-semibold tracking-label text-accent uppercase">
           {eyebrow}
         </p>
       ) : null}

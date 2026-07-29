@@ -23,10 +23,10 @@ function RecapStat({
 }) {
   return (
     <div className="min-w-0 py-2 sm:py-0">
-      <dt className="text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase">
+      <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
         {label}
       </dt>
-      <dd className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-lg font-bold text-text">
+      <dd className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-lg font-semibold text-text">
         {value}
         {detail != null && (
           <span className="text-xs font-medium text-text-muted">{detail}</span>
@@ -60,14 +60,14 @@ export function WeekendRecap({
     >
       <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold tracking-[0.18em] text-accent uppercase">
+          <p className="text-xs font-semibold tracking-label text-accent uppercase">
             {raceName} · Weekend result
           </p>
 
           <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
             {recap.rank ? (
               <div className="flex items-end gap-2">
-                <span className="font-title text-5xl leading-[0.85] font-bold text-text sm:text-6xl">
+                <span className="font-title text-5xl leading-[0.85] font-semibold text-text sm:text-6xl">
                   P{recap.rank.position}
                 </span>
                 <span className="pb-0.5 text-sm text-text-muted">
@@ -75,13 +75,13 @@ export function WeekendRecap({
                 </span>
               </div>
             ) : (
-              <h2 className="font-title text-3xl leading-none font-bold text-text">
+              <h2 className="font-title text-3xl leading-none font-semibold text-text">
                 Result recorded
               </h2>
             )}
 
             <div className="pb-0.5">
-              <p className="font-title text-2xl leading-none font-bold text-accent">
+              <p className="font-title text-2xl leading-none font-semibold text-accent">
                 +{recap.totalPoints} pts
               </p>
               <p className="mt-1 text-xs text-text-muted">
@@ -123,7 +123,7 @@ export function WeekendRecap({
           )}
           {recap.bestCall && (
             <div className="col-span-2 min-w-0 py-2 sm:col-span-1 sm:py-0">
-              <dt className="text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase">
+              <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
                 Best call
               </dt>
               <dd className="mt-1 flex min-w-0 items-center gap-2">

@@ -11,26 +11,16 @@ const SIZES = {
   },
 } as const;
 
-const COLORS = [
-  '#E67300',
-  '#DC0028',
-  '#2B5AA8',
-  '#00A383',
-  '#1A7A5A',
-  '#E0569A',
-  '#1E90D0',
-  '#4A72CC',
-  '#6B6B6B',
-  '#6E7275',
-];
-
-function hashColor(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return COLORS[Math.abs(hash) % COLORS.length];
-}
+/*
+ * The initials fallback used to hash the username onto one of ten saturated
+ * hues (#E67300, #DC0028, #2B5AA8...). None of them were tokens, and ten
+ * loud circles down a leaderboard or members list is the same problem the
+ * team-colour rule exists to prevent — colour that carries no meaning
+ * competing with colour that does.
+ *
+ * Identity now comes from the initial itself on a neutral chip. The uploaded
+ * avatar, when there is one, still carries all the personality it did before.
+ */
 
 export function Avatar({
   avatarUrl,
@@ -62,9 +52,10 @@ export function Avatar({
   }
 
   return (
+    // Avatars keep their circle: `rounded-full` is reserved for these and the
+    // 5px team dot.
     <span
-      className={`${sizeClass} inline-flex shrink-0 items-center justify-center rounded-full font-bold text-white`}
-      style={{ backgroundColor: hashColor(name) }}
+      className={`${sizeClass} inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-surface-elevated font-medium text-text-muted`}
     >
       {initial}
     </span>

@@ -38,18 +38,26 @@ export function NoticeCard({
 }: NoticeCardProps) {
   const Heading =
     level === 'page' ? 'h1' : level === 'subsection' ? 'h3' : 'h2';
+  // Light on dark reads bolder, so every heading role sits one weight step
+  // below where it would normally land.
   const headingClass =
     level === 'page'
-      ? 'mb-2 text-2xl font-bold text-text'
-      : 'mb-2 text-xl font-semibold text-text';
+      ? 'mb-2 text-2xl font-light tracking-display text-text'
+      : 'mb-2 text-xl font-normal tracking-tight text-text';
 
   return (
     <div
-      className={`rounded-xl border border-border bg-surface p-8 text-center ${className}`}
+      className={`rounded-lg border border-border bg-surface p-8 text-center ${className}`}
       data-testid={testId}
     >
       {Icon ? (
-        <Icon className="mx-auto mb-4 h-16 w-16 text-text-muted" aria-hidden />
+        // Was 64px. The old card leaned on a large icon for presence; here the
+        // type and the hairline carry it, so the icon steps back to a marker.
+        <Icon
+          className="mx-auto mb-4 h-8 w-8 text-text-muted"
+          strokeWidth={1.5}
+          aria-hidden
+        />
       ) : null}
       {title ? <Heading className={headingClass}>{title}</Heading> : null}
       {description ? (

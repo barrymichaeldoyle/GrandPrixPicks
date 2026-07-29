@@ -12,16 +12,14 @@ const HOW_IT_WORKS_STEPS: readonly { title: string; copy: string }[] = [
 
 export function HowItWorksStrip() {
   return (
-    <div className="home-section-open py-5">
-      <h2 className="home-section-kicker mb-4 text-xs font-semibold tracking-widest text-text-muted uppercase">
-        How it works
-      </h2>
+    <div className="py-5">
+      <h2 className="gpp-label mb-4">How it works</h2>
       {/* CSS reveal, not framer-motion: this strip is inside the first mobile
           viewport, and a JS-gated fade leaves it invisible until hydration. */}
       <ol className="reveal-up reveal-delay-1 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-3">
         {HOW_IT_WORKS_STEPS.map((step, i) => (
           <li key={step.title} className="flex items-start gap-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-racing-red/25 bg-racing-red-muted/45 text-sm font-bold text-racing-red tabular-nums">
+            <span className="gpp-mono flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface-elevated text-sm font-semibold text-text-muted">
               {i + 1}
             </span>
             <span className="flex flex-col">

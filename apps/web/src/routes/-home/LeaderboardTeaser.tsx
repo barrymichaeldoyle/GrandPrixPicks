@@ -13,12 +13,16 @@ type TopPlayer = {
   raceCount: number;
 };
 
-/** Colour and bevel come from `.home-podium-rank-*` in styles.css, which
- *  derives its ramp from the podium tokens. */
+/**
+ * Podium colours are flat data colours, in the manner of team colours: the
+ * metal ramp and inset bevel these used to carry were box-shadows, which this
+ * system does not have. Rank still reads instantly; it just stops pretending
+ * to be a physical medal.
+ */
 const PODIUM_RANK_CLASSES: Record<1 | 2 | 3, string> = {
-  1: 'home-podium-rank-1 text-page',
-  2: 'home-podium-rank-2 text-page',
-  3: 'home-podium-rank-3 text-page',
+  1: 'bg-podium-gold text-page',
+  2: 'bg-podium-silver text-page',
+  3: 'bg-podium-bronze text-page',
 };
 
 export function LeaderboardTeaser({
@@ -31,7 +35,7 @@ export function LeaderboardTeaser({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-text-muted uppercase">
+        <h2 className="gpp-label flex items-center gap-1.5">
           <Crown
             className="h-3.5 w-3.5 text-accent"
             aria-hidden="true"
@@ -58,12 +62,12 @@ export function LeaderboardTeaser({
             <li key={p.userId} className="flex items-center gap-3 py-2.5">
               {podiumRank ? (
                 <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ${podiumRank}`}
+                  className={`gpp-mono flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${podiumRank}`}
                 >
                   {p.rank}
                 </span>
               ) : (
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center text-xs font-semibold text-text-muted tabular-nums">
+                <span className="gpp-mono flex h-7 w-7 shrink-0 items-center justify-center text-xs font-semibold text-text-muted">
                   {p.rank}
                 </span>
               )}
@@ -87,14 +91,14 @@ export function LeaderboardTeaser({
                   {name}
                 </span>
                 {p.raceCount > 0 && (
-                  <span className="text-[11px] text-text-muted">
+                  <span className="text-xs text-text-muted">
                     {p.raceCount} {p.raceCount === 1 ? 'race' : 'races'}
                   </span>
                 )}
               </span>
-              <span className="shrink-0 text-sm font-bold text-accent tabular-nums">
+              <span className="gpp-mono shrink-0 text-sm font-semibold text-accent">
                 {p.points.toLocaleString()}
-                <span className="ml-1 text-[10px] font-medium tracking-wider text-text-muted uppercase">
+                <span className="ml-1 text-xs font-medium tracking-label text-text-muted uppercase">
                   pts
                 </span>
               </span>

@@ -159,7 +159,7 @@ export function TimezoneSelect({
           )}
         </button>
         {open && (
-          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-sm border border-border bg-surface shadow-lg">
+          <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-sm border border-border bg-surface">
             <div className="sticky top-0 border-b border-border bg-surface p-2">
               <input
                 type="text"

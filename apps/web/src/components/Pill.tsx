@@ -14,10 +14,10 @@ import type { ReactNode } from 'react';
 export type PillTone = 'accent' | 'neutral' | 'success' | 'warning';
 
 const TONE_CLASSES: Record<PillTone, string> = {
-  accent: 'border-accent/40 bg-accent-muted/40 text-accent',
-  neutral: 'border-border bg-surface-muted/50 text-text-muted',
-  success: 'border-success/35 bg-success-muted/40 text-success',
-  warning: 'border-warning/35 bg-warning-muted/50 text-warning',
+  accent: 'border-accent-hairline bg-accent-quiet text-accent',
+  neutral: 'border-border bg-surface-elevated text-text-muted',
+  success: 'border-success/35 bg-success-muted text-success',
+  warning: 'border-warning/35 bg-warning-muted text-warning',
 };
 
 /**
@@ -27,9 +27,9 @@ const TONE_CLASSES: Record<PillTone, string> = {
 export type PillSize = 'sm' | 'md' | 'lg';
 
 const SIZE_CLASSES: Record<PillSize, string> = {
-  sm: 'px-1.5 py-0.5 text-[10px] tracking-wide uppercase',
-  md: 'px-2 py-0.5 text-xs',
-  lg: 'px-3 py-1 text-xs tracking-[0.1em]',
+  sm: 'px-1.5 py-0.5 text-xs tracking-label uppercase',
+  md: 'px-2 py-0.5 text-xs tracking-label uppercase',
+  lg: 'px-3 py-1 text-xs tracking-label uppercase',
 };
 
 export function Pill({
@@ -40,13 +40,15 @@ export function Pill({
 }: {
   tone?: PillTone;
   size?: PillSize;
-  /** Layout-only extras (animation, tabular-nums, max-width). Not colour. */
+  /** Layout-only extras (animation, gpp-mono, max-width). Not colour. */
   className?: string;
   children: ReactNode;
 }) {
   return (
+    // 2px radius, not a pill: `rounded-full` is reserved for the 5px team dot
+    // and for avatars, which stay circular.
     <span
-      className={`inline-flex items-center rounded-full border font-semibold ${SIZE_CLASSES[size]} ${TONE_CLASSES[tone]} ${className}`}
+      className={`inline-flex items-center rounded-sm border font-medium ${SIZE_CLASSES[size]} ${TONE_CLASSES[tone]} ${className}`}
     >
       {children}
     </span>

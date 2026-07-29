@@ -27,7 +27,6 @@ import { useNow } from '@/lib/testing/now';
 import { convexHttp as convex } from '@/integrations/convex/client';
 
 import { BigCountdown } from './-home/HeroCountdown';
-import { HeroSpeedLines } from './-home/HeroSpeedLines';
 import { GameplayPreview } from './-home/GameplayPreview';
 import { HowItWorksStrip } from './-home/HowItWorksStrip';
 import { LeaderboardTeaser } from './-home/LeaderboardTeaser';
@@ -265,13 +264,12 @@ function HomePage() {
     <>
       <div className="bg-page">
         {/* Hero — open layout, no card container */}
-        <section className="home-hero relative isolate overflow-hidden px-3 pt-6 pb-8 sm:pt-12 sm:pb-10">
-          <HeroSpeedLines />
+        <section className="relative isolate px-3 pt-6 pb-8 sm:pt-12 sm:pb-10">
           <div className="relative mx-auto w-full max-w-5xl">
             {featuredRace && (
               <div className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
                 <div className="max-w-xl text-center lg:text-left">
-                  <p className="home-hero-eyebrow mb-4 inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-accent uppercase">
+                  <p className="gpp-label mb-4 inline-flex items-center gap-1.5 text-accent">
                     <Flag
                       className="h-3.5 w-3.5 shrink-0"
                       aria-hidden="true"
@@ -279,10 +277,10 @@ function HomePage() {
                     />
                     Free to play · 2026 season
                   </p>
-                  <h1 className="home-hero-title text-4xl leading-[1.08] font-bold tracking-tight text-white sm:text-5xl lg:text-[3.5rem]">
+                  <h1 className="text-4xl leading-tight font-light tracking-display text-text sm:text-5xl lg:text-[3.5rem]">
                     The F1 prediction game for every race weekend
                   </h1>
-                  <p className="home-hero-copy mx-auto mt-5 max-w-[620px] text-base leading-7 text-text-muted lg:mx-0 lg:max-w-[540px]">
+                  <p className="mx-auto mt-5 max-w-[620px] text-base leading-7 text-text-muted lg:mx-0 lg:max-w-[540px]">
                     Pick the top five, call the teammate battles, and compete
                     with friends across qualifying, sprints, and races.
                   </p>
@@ -318,7 +316,6 @@ function HomePage() {
                       variant="primary"
                       size="md"
                       rightIcon={ArrowRight}
-                      className="home-primary-action"
                     >
                       <Link
                         to="/races/$raceSlug"
@@ -354,29 +351,27 @@ function HomePage() {
                   )}
                 </div>
 
-                <div className="home-race-module relative overflow-hidden rounded-md border border-border/90 bg-surface/80 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-racing-red via-racing-red to-accent"
-                  />
+                {/* The red-to-accent gradient rail that used to sit on this
+                    edge is now the signature stripe on the container itself. */}
+                <div className="gpp-stripe relative overflow-hidden rounded-lg border border-border bg-surface p-4 pl-6 sm:p-6 sm:pl-8">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[11px] font-semibold tracking-[0.18em] text-racing-red uppercase">
+                      <p className="gpp-label text-xs">
                         {showCurrentWeekend ? 'This weekend' : 'Next up'}
                       </p>
                       <div className="mt-2 flex min-w-0 items-center gap-3">
                         {countryCode && (
-                          <span className="home-hero-race-flag inline-flex h-8 shrink-0 overflow-hidden rounded-sm border border-white/20 sm:h-10">
+                          <span className="inline-flex h-8 shrink-0 overflow-hidden rounded-sm border border-border sm:h-10">
                             <CountryFlag code={countryCode} size="full" />
                           </span>
                         )}
-                        <h2 className="min-w-0 text-xl leading-tight font-bold text-white sm:text-2xl">
+                        <h2 className="min-w-0 text-xl leading-tight font-semibold text-text sm:text-2xl">
                           {featuredRace.name}
                         </h2>
                       </div>
                     </div>
                     {showCurrentWeekend && anyInProgress && !allFinished && (
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-accent uppercase">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-xs font-semibold tracking-label text-accent uppercase">
                         <span
                           className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"
                           aria-hidden="true"
@@ -385,7 +380,7 @@ function HomePage() {
                       </span>
                     )}
                     {showCurrentWeekend && allFinished && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success uppercase">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success uppercase">
                         <CheckCircle2
                           className="h-3.5 w-3.5"
                           aria-hidden="true"
@@ -395,7 +390,7 @@ function HomePage() {
                     )}
                   </div>
 
-                  <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">
+                  <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-label text-text-muted uppercase">
                     <span>
                       Round {featuredRace.round}
                       {totalRounds > 0 ? ` / ${totalRounds}` : ''}
@@ -412,7 +407,7 @@ function HomePage() {
 
                   {nextSession && (
                     <div className="mt-6 border-t border-border/70 pt-5">
-                      <p className="mb-3 text-center text-xs font-semibold tracking-[0.15em] text-text-muted uppercase">
+                      <p className="mb-3 text-center text-xs font-semibold tracking-label text-text-muted uppercase">
                         {nextSession.label} starts in
                       </p>
                       <BigCountdown
@@ -437,7 +432,7 @@ function HomePage() {
                         />
                       )}
                       <div>
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-text">
                           {allFinished
                             ? 'Race weekend complete'
                             : 'Race weekend in progress'}
@@ -475,7 +470,7 @@ function HomePage() {
             {/* No race at all — fall back to brand-led hero */}
             {!featuredRace && (
               <div className="reveal-up mx-auto max-w-3xl text-center">
-                <p className="home-hero-eyebrow mb-3 inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.22em] text-accent uppercase sm:mb-4 sm:text-xs">
+                <p className="gpp-label mb-3 inline-flex items-center gap-1.5 text-accent sm:mb-4">
                   <Flag
                     className="h-3.5 w-3.5 shrink-0"
                     aria-hidden="true"
@@ -483,10 +478,10 @@ function HomePage() {
                   />
                   Free F1 Prediction Game
                 </p>
-                <h1 className="home-hero-title text-3xl font-bold tracking-tight text-white sm:text-5xl">
+                <h1 className="text-3xl font-light tracking-display text-text sm:text-5xl">
                   Pick the top 5 every Grand Prix weekend
                 </h1>
-                <p className="home-hero-copy mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance text-text-muted sm:mt-5 sm:text-base">
+                <p className="mx-auto mt-4 max-w-[600px] text-sm leading-6 text-balance text-text-muted sm:mt-5 sm:text-base">
                   Predict qualifying, sprint, and race finishes, call the
                   teammate head-to-heads, and compete with friends across the
                   season.
@@ -497,7 +492,6 @@ function HomePage() {
                     variant="primary"
                     size="md"
                     rightIcon={ArrowRight}
-                    className="home-primary-action"
                   >
                     <Link to="/races">Make Your Picks</Link>
                   </Button>
@@ -585,14 +579,12 @@ function HomePage() {
         {/* Session timetable — grouped by day */}
         {sessions.length > 0 && featuredRace && (
           <section className="px-3 pt-1 pb-10 sm:pt-2">
-            <div className="home-section-open mx-auto w-full max-w-3xl py-5 sm:py-6">
+            <div className="mx-auto w-full max-w-3xl py-5 sm:py-6">
               <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
-                  Weekend Schedule
-                </h2>
+                <h2 className="gpp-label">Weekend Schedule</h2>
                 <div className="flex items-center gap-3">
                   <span
-                    className="text-xs text-text-muted/80 tabular-nums"
+                    className="gpp-mono text-xs text-text-muted/80"
                     suppressHydrationWarning
                   >
                     {
@@ -655,7 +647,7 @@ function HomePage() {
         {/* Season progress + leaderboard teaser */}
         {races.length > 0 && (
           <section className="px-3 pt-2 pb-8 sm:pb-10">
-            <div className="home-section-open mx-auto w-full max-w-5xl py-5">
+            <div className="mx-auto w-full max-w-5xl py-5">
               <SeasonStrip
                 races={races}
                 currentRaceId={featuredRace?._id ?? null}
@@ -676,7 +668,7 @@ function HomePage() {
 
         {topPlayers.length > 0 && (
           <section className="px-3 pt-2 pb-10">
-            <div className="home-section-panel mx-auto w-full max-w-3xl rounded-2xl p-4 sm:p-6">
+            <div className="mx-auto w-full max-w-3xl rounded-lg border border-border bg-surface p-4 sm:p-6">
               {recentRacePlayerCount > 0 && (
                 <SocialProof
                   playerCount={recentRacePlayerCount}
@@ -714,13 +706,13 @@ function HomePage() {
             </p>
             <ul className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
               <li className="contents">
-                <span className="font-bold whitespace-nowrap text-accent">
+                <span className="font-semibold whitespace-nowrap text-accent">
                   5 pts
                 </span>
                 <span className="text-text-muted">Exact position match</span>
               </li>
               <li className="contents">
-                <span className="font-bold whitespace-nowrap text-accent">
+                <span className="font-semibold whitespace-nowrap text-accent">
                   3 pts
                 </span>
                 <span className="text-text-muted">
@@ -728,7 +720,7 @@ function HomePage() {
                 </span>
               </li>
               <li className="contents">
-                <span className="font-bold whitespace-nowrap text-accent">
+                <span className="font-semibold whitespace-nowrap text-accent">
                   1 pt
                 </span>
                 <span className="text-text-muted">
@@ -737,7 +729,7 @@ function HomePage() {
                 </span>
               </li>
               <li className="contents">
-                <span className="font-bold whitespace-nowrap text-text-muted">
+                <span className="font-semibold whitespace-nowrap text-text-muted">
                   0 pts
                 </span>
                 <span className="text-text-muted">
@@ -787,11 +779,11 @@ function HomePage() {
         </FaqSection>
 
         <section className="px-3 pt-2 pb-14 sm:pb-16">
-          <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-md border border-racing-red/35 bg-racing-red-muted/25 px-5 py-8 text-center sm:px-8 sm:py-10">
-            <p className="text-xs font-semibold tracking-[0.18em] text-racing-red uppercase">
+          <div className="mx-auto w-full max-w-3xl overflow-hidden rounded-md border border-border bg-surface px-5 py-8 text-center sm:px-8 sm:py-10">
+            <p className="gpp-label text-xs">
               Your next prediction starts here
             </p>
-            <h2 className="font-title mx-auto mt-3 max-w-2xl text-2xl font-bold text-text sm:text-3xl">
+            <h2 className="font-title mx-auto mt-3 max-w-2xl text-2xl font-semibold text-text sm:text-3xl">
               Ready to put your race-weekend knowledge on the grid?
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-text-muted sm:text-base">

@@ -67,7 +67,7 @@ export function ScoreRing({
         y={CENTER}
         textAnchor="middle"
         dominantBaseline="central"
-        className={`text-[10px] font-bold ${hasScores ? 'fill-accent' : 'fill-text-muted'}`}
+        className={`text-xs font-semibold ${hasScores ? 'fill-accent' : 'fill-text-muted'}`}
       >
         {hasScores ? earned : emptyLabel}
       </text>

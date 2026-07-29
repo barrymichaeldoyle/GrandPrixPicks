@@ -82,7 +82,7 @@ export function SessionEventSummary({
       <dl className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 text-sm">
         <dt className="text-text-muted">On track</dt>
         <dd
-          className="min-w-0 font-medium text-text tabular-nums"
+          className="gpp-mono min-w-0 font-medium text-text"
           suppressHydrationWarning
         >
           <span className="inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
@@ -98,7 +98,7 @@ export function SessionEventSummary({
         </dd>
         <dt className="text-text-muted">Your time</dt>
         <dd
-          className="min-w-0 font-medium text-text tabular-nums"
+          className="gpp-mono min-w-0 font-medium text-text"
           suppressHydrationWarning
         >
           <span className="inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">

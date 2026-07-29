@@ -157,7 +157,9 @@ function LeagueSettingsContent({
           </Link>
         </Button>
 
-        <h1 className="mb-1 text-3xl font-bold text-text">League Settings</h1>
+        <h1 className="mb-1 text-3xl font-semibold text-text">
+          League Settings
+        </h1>
         <p className="mb-6 text-text-muted">{league.name}</p>
 
         <div className="space-y-4">
@@ -207,7 +209,7 @@ function AdminGeneralSettings({ league }: { league: League }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
-      <h3 className="mb-3 text-sm font-semibold tracking-wide text-text-muted uppercase">
+      <h3 className="mb-3 text-sm font-semibold tracking-label text-text-muted uppercase">
         General
       </h3>
       <div className="space-y-3">
@@ -342,7 +344,7 @@ function DangerZone({
   return (
     <div className="overflow-hidden rounded-xl border-2 border-error/40 bg-error/5">
       <div className="border-b border-error/20 bg-error/10 px-4 py-3">
-        <h3 className="text-sm font-semibold tracking-wide text-error uppercase">
+        <h3 className="text-sm font-semibold tracking-label text-error uppercase">
           Danger zone
         </h3>
         <p className="mt-0.5 text-xs text-text-muted">
@@ -379,7 +381,7 @@ function DangerZone({
               <div className="space-y-3">
                 <p className="text-sm text-text">
                   Type the league slug{' '}
-                  <code className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs">
+                  <code className="gpp-mono rounded bg-surface-muted px-1.5 py-0.5 text-xs">
                     {league.slug}
                   </code>{' '}
                   to confirm:
@@ -389,7 +391,7 @@ function DangerZone({
                   value={deleteConfirmSlug}
                   onChange={(e) => setDeleteConfirmSlug(e.target.value)}
                   placeholder={league.slug}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm text-text placeholder:text-text-muted focus:border-error focus:ring-1 focus:ring-error focus:outline-none"
+                  className="gpp-mono w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-error focus:ring-1 focus:ring-error focus:outline-none"
                   disabled={isDeleting}
                   aria-label="Type league slug to confirm deletion"
                 />

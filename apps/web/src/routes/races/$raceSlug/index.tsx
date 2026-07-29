@@ -265,7 +265,9 @@ function RaceNotFound() {
       <div className="mx-auto max-w-4xl p-4">
         <BackToRacesLink />
         <div className="py-16 text-center">
-          <h1 className="mb-2 text-2xl font-bold text-text">Race not found</h1>
+          <h1 className="mb-2 text-2xl font-semibold text-text">
+            Race not found
+          </h1>
           <p className="text-text-muted">
             This race doesn't exist or has been removed.
           </p>
@@ -418,7 +420,7 @@ function RaceDetailPage() {
               are unreadable against the accent background — fall back to the
               tab's own white text there. */}
           <span
-            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName} [[aria-selected=true]_&]:text-white/85`}
+            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName} [[aria-selected=true]_&]:text-text-on-accent/85`}
           >
             {secondaryLabel}
           </span>

@@ -235,7 +235,7 @@ function PayPage() {
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-xl items-center justify-center p-4">
       <div className="w-full rounded-xl border border-border bg-surface p-6 text-center">
-        <h1 className="mb-2 text-2xl font-bold text-text">
+        <h1 className="mb-2 text-2xl font-semibold text-text">
           Season Pass Checkout
         </h1>
         <p className="text-sm text-text-muted">{statusMessage}</p>

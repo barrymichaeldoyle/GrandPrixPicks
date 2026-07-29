@@ -77,7 +77,7 @@ export function SessionResultsTable({
             <div className="flex items-center gap-1.5 text-xs text-text-muted">
               {entry.nationality && <Flag code={entry.nationality} size="xs" />}
               {entry.number != null && (
-                <span className="font-mono font-medium">#{entry.number}</span>
+                <span className="gpp-mono font-medium">#{entry.number}</span>
               )}
               {entry.team && (
                 <span className="text-text-muted">
@@ -146,7 +146,7 @@ export function SessionResultsTable({
                           }
                         />
                         <span
-                          className={`shrink-0 font-bold ${
+                          className={`shrink-0 font-semibold ${
                             myPick.points ? 'text-success' : 'text-text-muted'
                           }`}
                         >
@@ -223,7 +223,7 @@ export function SessionResultsTable({
                         index === 1 ? 'hidden md:table-header-group' : ''
                       }
                     >
-                      <tr className="border-b border-border text-xs tracking-[0.14em] text-text-muted uppercase">
+                      <tr className="border-b border-border text-xs tracking-label text-text-muted uppercase">
                         <th className="px-3 py-2 text-left">Pos</th>
                         <th className="px-3 py-2 text-left">Driver</th>
                       </tr>

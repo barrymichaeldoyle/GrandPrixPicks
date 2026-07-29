@@ -46,13 +46,13 @@ export function ScorePublishedItem({
                 displayName={event.displayName}
               />
               {event.username && (
-                <span className="text-[11px] text-text-muted">
+                <span className="text-xs text-text-muted">
                   @{event.username}
                 </span>
               )}
             </p>
             {!grouped && event.raceName && (
-              <p className="text-[11px] text-text-muted">
+              <p className="text-xs text-text-muted">
                 in{' '}
                 {event.raceSlug ? (
                   <Link
@@ -84,7 +84,7 @@ export function ScorePublishedItem({
                   className="flex flex-col items-center gap-0.5"
                 >
                   {!grouped && (
-                    <span className="text-[10px] font-medium text-text-muted">
+                    <span className="text-xs font-medium text-text-muted">
                       P{pick.predictedPosition}
                     </span>
                   )}
@@ -108,7 +108,7 @@ export function ScorePublishedItem({
                   )}
                   {!isLocked && (
                     <span
-                      className={`relative right-0.5 pt-1 text-[10px] leading-none font-semibold tabular-nums ${
+                      className={`gpp-mono relative right-0.5 pt-1 text-xs leading-none font-semibold ${
                         pick.points === 5
                           ? 'text-success'
                           : pick.points === 3
@@ -131,7 +131,7 @@ export function ScorePublishedItem({
                 <button
                   type="button"
                   onClick={() => setH2hOpen(true)}
-                  className="mb-0.5 inline-flex items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+                  className="mb-0.5 inline-flex items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
                 >
                   H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
                   <svg
@@ -153,23 +153,23 @@ export function ScorePublishedItem({
 
         {isAmended && (
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-sm border border-warning/30 bg-warning/5 px-2 py-1.5">
-            <span className="text-[10px] font-semibold tracking-wide text-warning uppercase">
+            <span className="text-xs font-semibold tracking-label text-warning uppercase">
               Results amended
             </span>
             {event.previousPoints !== undefined &&
               event.points !== undefined && (
-                <span className="text-[11px] font-semibold text-text tabular-nums">
+                <span className="gpp-mono text-xs font-semibold text-text">
                   {event.previousPoints} → {event.points} pts
                 </span>
               )}
             {event.amendmentNote && (
-              <span className="text-[11px] text-text-muted">
+              <span className="text-xs text-text-muted">
                 {event.amendmentNote}
               </span>
             )}
             <Link
               to="/results-policy"
-              className="text-[11px] font-medium text-accent hover:underline"
+              className="text-xs font-medium text-accent hover:underline"
             >
               Why results change
             </Link>
@@ -183,7 +183,7 @@ export function ScorePublishedItem({
             const total = event.points + (event.h2hScore?.points ?? 0);
             return (
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-sm font-bold text-accent tabular-nums">
+                <span className="gpp-mono text-sm font-semibold text-accent">
                   +{total} {total === 1 ? 'point' : 'points'}
                 </span>
                 <p className="text-xs text-text-muted italic">
@@ -204,7 +204,7 @@ export function ScorePublishedItem({
           {!grouped && (
             <div className="flex shrink-0 items-center gap-2 text-xs text-text-muted">
               {isLocked ? (
-                <span className="text-[10px] font-semibold tracking-wide text-accent uppercase">
+                <span className="text-xs font-semibold tracking-label text-accent uppercase">
                   Awaiting results
                 </span>
               ) : null}

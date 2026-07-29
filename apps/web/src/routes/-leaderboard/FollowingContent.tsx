@@ -24,7 +24,7 @@ export function FollowingGuard({ children }: PropsWithChildren) {
           <SignInButton mode="modal">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-text-on-accent transition-colors hover:bg-accent/90"
             >
               Sign In
             </button>

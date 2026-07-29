@@ -96,9 +96,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],
     links: [
+      // Only the two faces that paint above the fold get preloaded: Archivo
+      // for all UI text and Plex Mono 500 for the countdown and points. The
+      // other Plex weights load on demand.
       {
         rel: 'preload',
-        href: '/fonts/orbitron-v35-latin.woff2',
+        href: '/fonts/archivo-latin-var.woff2',
+        as: 'font',
+        type: 'font/woff2',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'preload',
+        href: '/fonts/ibm-plex-mono-500-latin.woff2',
         as: 'font',
         type: 'font/woff2',
         crossOrigin: 'anonymous',
@@ -164,7 +174,9 @@ export function NotFoundPage() {
           <Flag className="h-8 w-8 text-warning" aria-hidden="true" />
         </div>
 
-        <h1 className="mb-2 text-2xl font-bold text-text">Page not found</h1>
+        <h1 className="mb-2 text-2xl font-semibold text-text">
+          Page not found
+        </h1>
 
         <p className="mb-8 text-text-muted">
           Looks like you've taken a wrong turn. This page doesn't exist or has
@@ -174,7 +186,7 @@ export function NotFoundPage() {
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-lg bg-button-accent px-6 py-2.5 font-semibold text-white transition-colors hover:bg-button-accent-hover"
+            className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-2.5 font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
           >
             <Home className="h-4 w-4" aria-hidden="true" />
             Go home
@@ -214,13 +226,10 @@ function RootDocument({ children }: PropsWithChildren) {
         <HeadContent />
       </head>
       <body>
-        <div
-          aria-hidden="true"
-          className="app-atmosphere pointer-events-none fixed inset-0 z-[11] overflow-hidden"
-        >
-          <div className="app-atmosphere-field absolute inset-0" />
-          <div className="app-atmosphere-grain absolute inset-0" />
-        </div>
+        {/* The screen-blended atmosphere field and grain overlay that used to
+            sit here are gone: backgrounds are flat colour in this system, and
+            a full-viewport gradient is the single biggest thing standing
+            between the app and "calm". */}
         <MotionConfig reducedMotion="user">
           <InitialAuthProvider value={initialAuth}>
             <AppRuntimeBoundary
@@ -233,7 +242,7 @@ function RootDocument({ children }: PropsWithChildren) {
               <div className="relative z-10 flex min-h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-clip pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
                 <a
                   href="#main-content"
-                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:text-text focus:shadow-lg"
+                  className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-sm focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-text"
                 >
                   Skip to main content
                 </a>

@@ -64,7 +64,7 @@ export function ErrorFallback({
           <AlertTriangle className="h-8 w-8 text-error" />
         </div>
 
-        <h1 className="mb-2 text-2xl font-bold text-text">
+        <h1 className="mb-2 text-2xl font-semibold text-text">
           Oops! Something went wrong
         </h1>
 

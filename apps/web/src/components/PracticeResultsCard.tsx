@@ -49,7 +49,7 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
           key={entry.driverNumber}
           className="grid grid-cols-[2.5rem_minmax(0,1fr)_4rem_4.5rem_3.5rem] items-center gap-2 px-4 py-2.5"
         >
-          <span className="text-sm font-bold text-text-muted">
+          <span className="text-sm font-semibold text-text-muted">
             P{entry.position}
           </span>
           <DriverBadge
@@ -58,7 +58,7 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
             team={entry.team ?? undefined}
             size="sm"
           />
-          <span className="min-w-0 text-[10px] text-text-muted">
+          <span className="min-w-0 text-xs text-text-muted">
             {entry.isReserve ? (
               <span className="rounded-full border border-accent/40 px-1.5 py-0.5 font-semibold text-accent">
                 Reserve
@@ -67,7 +67,7 @@ function PracticeResultsTable({ result }: { result: PracticeResult }) {
               `${entry.lapCount} laps`
             )}
           </span>
-          <span className="text-right font-mono text-xs font-semibold text-text">
+          <span className="gpp-mono text-right text-xs font-semibold text-text">
             {formatLap(entry.bestLapSeconds)}
           </span>
           <span className="text-right text-xs text-text-muted">
@@ -158,7 +158,7 @@ export function PracticeResultsPanel({
               key={entry.driverId}
               className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-2 px-4 py-2.5"
             >
-              <span className="text-sm font-bold text-text-muted">
+              <span className="text-sm font-semibold text-text-muted">
                 P{entry.position}
               </span>
               <DriverBadge
@@ -198,7 +198,7 @@ export function PracticeResultsCard({
     >
       <div className="flex items-end justify-between gap-3 border-b border-border px-4 py-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
             Practice
           </p>
           <h2 className="mt-0.5 text-xl font-semibold text-text">

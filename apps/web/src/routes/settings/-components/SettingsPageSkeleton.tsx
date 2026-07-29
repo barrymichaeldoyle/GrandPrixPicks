@@ -68,7 +68,7 @@ export function SettingsPageSkeleton() {
             >
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                     In-App
                   </p>
                   <div className="divide-y divide-border bg-page px-3">
@@ -82,7 +82,7 @@ export function SettingsPageSkeleton() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+                  <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                     Email
                   </p>
                   <div className="divide-y divide-border bg-page px-3">

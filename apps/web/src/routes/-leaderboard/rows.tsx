@@ -15,7 +15,7 @@ function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
   if (podiumClass) {
     return (
       <span
-        className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full border px-1.5 text-xs font-bold tabular-nums ${podiumClass}`}
+        className={`gpp-mono inline-flex h-6 min-w-6 items-center justify-center rounded-sm border px-1.5 text-xs ${podiumClass}`}
       >
         {rank}
       </span>
@@ -24,9 +24,7 @@ function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
 
   return (
     <span
-      className={
-        isViewer ? 'font-medium text-accent' : 'font-medium text-text-muted'
-      }
+      className={`gpp-mono text-sm ${isViewer ? 'text-accent' : 'text-text-muted'}`}
     >
       {rank}
     </span>
@@ -41,12 +39,10 @@ export function CombinedTableRow({
   return (
     <tr
       className={`border-b border-border transition-colors last:border-0 ${
-        entry.isViewer
-          ? 'bg-accent-muted hover:bg-accent-muted'
-          : 'hover:bg-surface-muted'
+        entry.isViewer ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'
       }`}
     >
-      <td className="px-4 py-3">
+      <td className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}>
         <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3">
@@ -56,24 +52,28 @@ export function CombinedTableRow({
           search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
-          <span className="font-semibold text-accent">
+          <span className="font-medium text-text">
             {entry.displayName ?? entry.username}
           </span>
           {entry.isViewer && (
-            <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
               YOU
             </span>
           )}
         </Link>
       </td>
       <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="text-sm text-text-muted">{entry.top5Points}</span>
+        <span className="gpp-mono text-sm text-text-muted">
+          {entry.top5Points}
+        </span>
       </td>
       <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="text-sm text-text-muted">{entry.h2hPoints}</span>
+        <span className="gpp-mono text-sm text-text-muted">
+          {entry.h2hPoints}
+        </span>
       </td>
       <td className="px-4 py-3 text-right">
-        <span className="font-bold text-text">{entry.points}</span>
+        <span className="gpp-mono font-medium text-text">{entry.points}</span>
       </td>
     </tr>
   );
@@ -83,12 +83,10 @@ export function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
   return (
     <tr
       className={`border-b border-border transition-colors last:border-0 ${
-        entry.isViewer
-          ? 'bg-accent-muted hover:bg-accent-muted'
-          : 'hover:bg-surface-muted'
+        entry.isViewer ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'
       }`}
     >
-      <td className="px-4 py-3">
+      <td className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}>
         <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3">
@@ -98,23 +96,23 @@ export function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
           search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
-          <span className="font-semibold text-accent">
+          <span className="font-medium text-text">
             {entry.displayName ?? entry.username}
           </span>
           {entry.isViewer && (
-            <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
               YOU
             </span>
           )}
         </Link>
       </td>
       <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="text-sm text-text-muted">
+        <span className="gpp-mono text-sm text-text-muted">
           {formatAccuracy(entry.correctPicks, entry.totalPicks)}
         </span>
       </td>
       <td className="px-4 py-3 text-right">
-        <span className="font-bold text-text">{entry.points}</span>
+        <span className="gpp-mono font-medium text-text">{entry.points}</span>
       </td>
     </tr>
   );
@@ -124,13 +122,14 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
   return (
     <tr
       className={`border-b border-border transition-colors last:border-0 ${
-        entry.isViewer
-          ? 'bg-accent-muted hover:bg-accent-muted'
-          : 'hover:bg-surface-muted'
+        entry.isViewer ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'
       }`}
       data-testid="leaderboard-entry"
     >
-      <td className="px-4 py-3" data-testid="position">
+      <td
+        className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}
+        data-testid="position"
+      >
         <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
       </td>
       <td className="px-4 py-3" data-testid="username">
@@ -140,18 +139,18 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
-          <span className="font-semibold text-accent">
+          <span className="font-medium text-text">
             {entry.displayName ?? entry.username}
           </span>
           {entry.isViewer && (
-            <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
               YOU
             </span>
           )}
         </Link>
       </td>
       <td className="px-4 py-3 text-right" data-testid="points">
-        <span className="font-bold text-text">{entry.points}</span>
+        <span className="gpp-mono font-medium text-text">{entry.points}</span>
       </td>
     </tr>
   );
@@ -174,33 +173,38 @@ export function SmallLeaderboard({ entries }: { entries: LeaderboardEntry[] }) {
           to="/p/$username"
           params={{ username: entry.username }}
           search={{ from: undefined, fromLabel: undefined }}
-          className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors last:border-0 hover:opacity-90 ${
-            entry.isViewer ? 'rounded-lg bg-accent-muted px-2' : ''
+          // Opacity is never used to signal hover; a surface step is.
+          className={`flex cursor-pointer items-center justify-between border-b border-border py-2 transition-colors last:border-0 hover:bg-surface-elevated ${
+            entry.isViewer
+              ? 'gpp-stripe rounded-sm bg-surface-elevated px-2 pl-3'
+              : ''
           }`}
         >
           <div className="flex items-center gap-3">
             <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+              className={`gpp-mono flex h-7 w-7 items-center justify-center rounded-sm text-sm ${
                 entry.isViewer
-                  ? 'bg-accent text-white'
-                  : 'bg-surface-muted text-text-muted'
+                  ? 'bg-accent text-text-on-accent'
+                  : 'bg-surface-elevated text-text-muted'
               }`}
             >
               {entry.rank}
             </span>
             <span className="flex items-center gap-2 font-medium text-text">
-              <span className="font-semibold text-accent">
+              <span className="font-medium text-text">
                 {entry.displayName ?? entry.username}
               </span>
               {entry.isViewer && (
-                <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
                   YOU
                 </span>
               )}
             </span>
           </div>
           <div className="text-right">
-            <div className="font-bold text-accent">{entry.points} pts</div>
+            <div className="gpp-mono font-medium text-text">
+              {entry.points} pts
+            </div>
             {entry.raceCount !== undefined && (
               <div className="text-xs text-text-muted">
                 {entry.raceCount} race{entry.raceCount !== 1 ? 's' : ''}

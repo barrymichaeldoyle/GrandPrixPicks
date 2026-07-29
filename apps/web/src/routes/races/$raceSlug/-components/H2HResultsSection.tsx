@@ -123,7 +123,9 @@ function SessionBreakdownSessionGainPill({ points }: { points: number }) {
       label="Session Gain"
       variant="emphasis"
       value={
-        <div className="leading-tight font-bold text-accent">+{points} pts</div>
+        <div className="leading-tight font-semibold text-accent">
+          +{points} pts
+        </div>
       }
     />
   );

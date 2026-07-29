@@ -100,7 +100,7 @@ export function RevButton({
         onClick={onCountClick}
         title={count > 0 ? "See who Rev'd" : 'No revs yet'}
         disabled={count === 0}
-        className={`inline-flex h-full w-7 shrink-0 items-center justify-center rounded-r-sm text-xs font-bold tabular-nums transition-colors ${
+        className={`gpp-mono inline-flex h-full w-7 shrink-0 items-center justify-center rounded-r-sm text-xs font-semibold transition-colors ${
           reved
             ? 'text-accent hover:bg-accent/10'
             : count > 0

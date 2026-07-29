@@ -83,9 +83,7 @@ export function SeasonStrip({
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="home-section-kicker text-xs font-semibold tracking-widest text-text-muted uppercase">
-          2026 Season
-        </h2>
+        <h2 className="gpp-label">2026 Season</h2>
         <Link
           to="/races"
           className="text-xs font-medium text-accent hover:text-accent-hover"
@@ -119,11 +117,11 @@ export function SeasonStrip({
                   search={{ from: 'home' }}
                   aria-label={label}
                   title={label}
-                  className={`group home-season-step relative flex h-10 w-10 items-center justify-center rounded-full border transition sm:h-11 sm:w-11 ${
+                  className={`group relative flex h-10 w-10 items-center justify-center rounded-sm border transition-colors duration-150 ease-out sm:h-11 sm:w-11 ${
                     isCurrent
-                      ? 'home-season-step-current border-racing-red'
+                      ? 'gpp-stripe border-accent-hairline bg-surface-elevated'
                       : isPast
-                        ? 'home-season-step-past border-border/60 hover:opacity-90'
+                        ? 'border-border/60 opacity-50 hover:opacity-90'
                         : 'border-border/60 hover:border-border-strong'
                   }`}
                 >
@@ -134,21 +132,21 @@ export function SeasonStrip({
                       className="overflow-hidden rounded-sm"
                     />
                   ) : (
-                    <span className="text-[10px] font-semibold text-text-muted">
+                    <span className="text-xs font-semibold text-text-muted">
                       {race.round}
                     </span>
                   )}
                   {isCurrent && (
                     <span
-                      className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full bg-racing-red shadow-[0_0_0_2px_var(--surface)]"
+                      className="absolute -top-1 -right-1 h-2.5 w-2.5 animate-pulse rounded-full border-2 border-page bg-accent"
                       aria-hidden="true"
                     />
                   )}
                 </Link>
                 <span
-                  className={`mt-1 text-[11px] font-semibold tracking-wide ${
+                  className={`mt-1 text-xs font-semibold tracking-label ${
                     isCurrent
-                      ? 'text-racing-red'
+                      ? 'text-text-muted'
                       : isPast
                         ? 'text-text-muted/80'
                         : 'text-text-muted'
@@ -166,7 +164,7 @@ export function SeasonStrip({
           })}
         </ol>
       </div>
-      <p className="mt-1 text-[11px] text-text-muted sm:hidden">
+      <p className="mt-1 text-xs text-text-muted sm:hidden">
         Swipe to explore the full season
       </p>
       {currentIndex >= 0 && (

@@ -190,7 +190,7 @@ export function RaceEventPageLayout({
                 )}
                 {showReadonlyPredictions && (
                   <div className="mt-7 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+                    <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                       Your {SESSION_LABELS[selectedSession]} Picks
                     </p>
                     <span className="text-xs font-medium text-text-muted">

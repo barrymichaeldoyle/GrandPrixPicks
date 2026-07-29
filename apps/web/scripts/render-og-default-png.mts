@@ -54,12 +54,12 @@ async function loadGoogleFont(family, weight) {
   return Buffer.from(await fontRes.arrayBuffer());
 }
 
-async function loadOrbitronBold() {
+async function loadArchivo(weight: number) {
   try {
-    return await loadGoogleFont('Orbitron', 700);
+    return await loadGoogleFont('Archivo', weight);
   } catch (err) {
     console.warn(
-      'Orbitron could not be loaded for OG generation, falling back to base sans font.',
+      'Archivo could not be loaded for OG generation, falling back to base sans font.',
       err instanceof Error ? err.message : err,
     );
     return null;
@@ -88,11 +88,11 @@ async function main() {
     );
   }
   const sans = await readFile(sansPath);
-  const orbitronBold = await loadOrbitronBold();
-  const titleFontFamily = orbitronBold ? 'Orbitron' : 'Sans';
-  if (!orbitronBold) {
+  const archivoLight = await loadArchivo(300);
+  const titleFontFamily = archivoLight ? 'Archivo' : 'Sans';
+  if (!archivoLight) {
     console.warn(
-      'Using base sans font for title because Orbitron download was unavailable.',
+      'Using base sans font for title because Archivo download was unavailable.',
     );
   }
 
@@ -118,19 +118,17 @@ async function main() {
       style: {
         position: 'absolute',
         inset: 0,
-        background: `linear-gradient(${rgba(colors.textMuted, 0.035)} 1px, transparent 1px), linear-gradient(90deg, ${rgba(colors.textMuted, 0.035)} 1px, transparent 1px), radial-gradient(ellipse 520px 300px at 50% -20px, ${rgba(colors.accent, 0.16)}, transparent 70%), radial-gradient(ellipse 300px 260px at 88% 42%, ${rgba(colors.buttonAccent, 0.14)}, transparent 75%)`,
-        backgroundSize: '48px 48px, 48px 48px, auto, auto',
+        backgroundColor: colors.page,
       },
     }),
     h('div', {
       style: {
         position: 'absolute',
-        top: '48px',
-        left: '120px',
-        width: '960px',
-        height: '6px',
-        borderRadius: '3px',
-        background: `linear-gradient(90deg, ${colors.racingRed} 0%, ${colors.buttonAccent} 45%, ${colors.accent} 100%)`,
+        top: '132px',
+        left: '96px',
+        width: '3px',
+        height: '300px',
+        backgroundColor: colors.accent,
       },
     }),
     h(
@@ -160,8 +158,8 @@ async function main() {
             style: {
               width: '76px',
               height: '76px',
-              borderRadius: '38px',
-              backgroundColor: rgba(colors.accent, 0.14),
+              borderRadius: '4px',
+              backgroundColor: rgba(colors.accent, 0.12),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -195,7 +193,7 @@ async function main() {
             color: colors.textMuted,
             fontSize: '36px',
             lineHeight: 1.18,
-            fontWeight: 500,
+            fontWeight: 400,
             marginBottom: '34px',
           },
         },
@@ -211,11 +209,11 @@ async function main() {
             justifyContent: 'center',
             width: '260px',
             height: '64px',
-            borderRadius: '14px',
-            backgroundColor: colors.buttonAccent,
-            color: '#ffffff',
+            borderRadius: '2px',
+            backgroundColor: colors.accent,
+            color: colors.textOnAccent,
             fontSize: '30px',
-            fontWeight: 900,
+            fontWeight: 600,
             letterSpacing: '0.2px',
             marginBottom: '24px',
           },
@@ -226,9 +224,9 @@ async function main() {
         'div',
         {
           style: {
-            color: colors.accentHover,
+            color: colors.accent,
             fontSize: '40px',
-            fontWeight: 800,
+            fontWeight: 600,
             letterSpacing: '-0.4px',
           },
         },
@@ -244,12 +242,12 @@ async function main() {
       { name: 'Sans', data: sans, weight: 400, style: 'normal' },
       { name: 'Sans', data: sans, weight: 700, style: 'normal' },
       { name: 'Sans', data: sans, weight: 900, style: 'normal' },
-      ...(orbitronBold
+      ...(archivoLight
         ? [
             {
-              name: 'Orbitron',
-              data: orbitronBold,
-              weight: 700,
+              name: 'Archivo',
+              data: archivoLight,
+              weight: 300,
               style: 'normal',
             },
           ]

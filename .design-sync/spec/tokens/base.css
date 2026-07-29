@@ -1,13 +1,127 @@
-html{color-scheme:dark}
-body{margin:0;background:var(--background);color:var(--text);font-family:var(--font-ui);font-size:var(--text-body);font-weight:var(--fw-regular);line-height:var(--lh-body);-webkit-font-smoothing:antialiased;text-wrap:pretty}
-*{box-sizing:border-box}
-a{color:var(--accent);text-decoration:none;transition:color var(--dur-fast) var(--ease-out)}
-a:hover{color:var(--accent-hover)}
-::selection{background:var(--accent);color:var(--text-on-accent)}
-:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
-.gpp-mono{font-family:var(--font-data);font-variant-numeric:tabular-nums;letter-spacing:var(--tracking-data)}
-.gpp-label{font-size:var(--text-micro);text-transform:uppercase;letter-spacing:var(--tracking-label);color:var(--text-muted);font-weight:var(--fw-medium)}
-/* Signature motif: 3px angled racing stripe. */
-.gpp-stripe{position:relative;overflow:hidden}
-.gpp-stripe::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--stripe-width);background:var(--accent);transform:skewX(-12deg);transform-origin:top left}
-@keyframes gpp-row-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+html {
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+* {
+  box-sizing: border-box;
+}
+
+/* Anchors INHERIT their colour; they do not default to the accent.
+   The accent marks CTAs, active states and the current user. A global
+   `a{color:var(--accent)}` puts it on every link — on a leaderboard that means
+   all 29 player names glow and the one row that should stand out, yours, looks
+   like all the others. Links that want the accent ask for it. */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.link-accent {
+  color: var(--accent);
+}
+.link-accent:hover {
+  color: var(--accent-hover);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.gpp-mono {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-data);
+}
+.gpp-label {
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+}
+
+/* Signature motif: a 3px accent bar leaning off vertical, pinned to the left
+   edge of the thing that matters.
+
+   Drawn with clip-path and a FIXED --stripe-lean, not `transform:skewX(-12deg)`.
+   A skew displaces the bar in proportion to its container's height, so on a
+   360px card the bottom travels ~76px to the left and the `overflow:hidden`
+   this class needs clips it away entirely — it renders as a nub in the top-left
+   corner and nothing else. The lean is therefore absolute: the bar stays
+   visible at every container height. */
+.gpp-stripe {
+  position: relative;
+  overflow: hidden;
+}
+.gpp-stripe::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--stripe-width) + var(--stripe-lean));
+  background: var(--accent);
+  clip-path: polygon(
+    var(--stripe-lean) 0,
+    100% 0,
+    calc(100% - var(--stripe-lean)) 100%,
+    0 100%
+  );
+  pointer-events: none;
+}
+/* NB: cannot go on a <tr> — `position:relative` on a table row does not
+   reliably establish a containing block. Put it on the first <td>. */
+
+/* Team colour, in its only two permitted forms. */
+.gpp-team-bar {
+  position: relative;
+}
+.gpp-team-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--team-bar-width);
+  background: var(--team-colour, var(--border-strong));
+  pointer-events: none;
+}
+.gpp-team-dot {
+  display: inline-block;
+  width: var(--team-dot-size);
+  height: var(--team-dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--team-colour, var(--border-strong));
+  flex: none;
+}
+
+/* Awaiting input reads as a dashed hairline; filled reads as solid. */
+.gpp-empty {
+  border: 1px dashed var(--border);
+  background: transparent;
+}
+
+@keyframes gpp-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,17 +1,11 @@
-// F1 2026 team colors (matched to live time page). Plain module so server
-// code (OG image rendering) can use it without pulling in React components.
-export const TEAM_COLORS: Record<string, string> = {
-  Mercedes: '#00D7B6',
-  McLaren: '#F47600',
-  Ferrari: '#ED1131',
-  'Red Bull Racing': '#4781D7',
-  Williams: '#1868DB',
-  Alpine: '#00A1E8',
-  Audi: '#F50537',
-  'Racing Bulls': '#6C98FF',
-  Haas: '#9C9FA2',
-  'Aston Martin': '#229971',
-  Cadillac: '#909090',
-};
+// F1 2026 team colours. Authored in packages/shared/src/tokens.ts alongside the
+// rest of the design tokens and re-exported here, so the ~10 existing import
+// sites (components, routes and the server-side OG renderers) keep working and
+// mobile stops carrying a second hand-maintained copy.
+//
+// Still a plain module with no React in it, so server code can use it.
+import { fallbackTeamColor, teams } from '@grandprixpicks/shared/tokens';
 
-export const FALLBACK_TEAM_COLOR = '#666';
+export const TEAM_COLORS: Record<string, string> = teams;
+
+export const FALLBACK_TEAM_COLOR = fallbackTeamColor;

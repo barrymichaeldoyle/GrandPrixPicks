@@ -29,6 +29,7 @@ import {
   dataScale,
   density,
   elevation,
+  fallbackTeamColor,
   fonts,
   layout,
   lineHeights,
@@ -36,6 +37,7 @@ import {
   motion,
   radii,
   spacingBase,
+  teams,
   tracking,
   typeScale,
   weights,
@@ -81,6 +83,11 @@ const ALPHA_TINTS: ReadonlyArray<
   ['result-beat-quiet', 'result-beat', 0.14],
   ['result-close-quiet', 'result-close', 0.14],
   ['result-miss-quiet', 'result-miss', 0.16],
+  // Status tints. Aliases of the result semantics rather than new hues — the
+  // amber is the same amber, so an error surface cannot drift toward red.
+  ['error-quiet', 'error', 0.14],
+  ['warning-quiet', 'warning', 0.14],
+  ['success-quiet', 'success', 0.14],
 ];
 
 const colorVars = Object.keys(colors).map(toKebab);
@@ -218,6 +225,18 @@ for (const [key, value] of Object.entries(motion)) {
   lines.push(`  --${toKebab(key)}: ${value};`);
 }
 lines.push('  --transition: all var(--dur) var(--ease-out);');
+
+/*
+ * Team colours as `--team-<slug>`, matching the Claude Design spec's
+ * `tokens/teams.css`. Components read them through the inline `--team-colour`
+ * custom property rather than by name, but emitting them keeps the spec and
+ * the app directly comparable — `check-spec-drift.mjs` diffs these.
+ */
+lines.push('');
+for (const [name, value] of Object.entries(teams)) {
+  lines.push(`  --team-${name.toLowerCase().replace(/\s+/g, '')}: ${value};`);
+}
+lines.push(`  --team-fallback: ${fallbackTeamColor};`);
 
 lines.push('');
 for (const [key, value] of Object.entries(motif)) {

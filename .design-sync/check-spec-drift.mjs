@@ -43,11 +43,23 @@ const generated = path.join(root, 'apps/web/src/tokens.generated.css');
 const ALIASES = new Map([
   ['background', 'page'],
   ['surface-raised', 'surface-elevated'],
-  ['text-disabled', 'text-disabled'],
   ['radius-input', 'radius-sm'],
   ['radius-card', 'radius-lg'],
-  ['row-height-compact', 'row-height-compact'],
-  ['control-height-lg', 'control-height-lg'],
+
+  /*
+   * The type scale, spec role-name -> Tailwind name. The px values are
+   * identical; only the spelling differs, because ~850 existing utilities
+   * depend on the Tailwind names. Aliased rather than excused as a divergence
+   * so the equivalence is actually *verified* on every run — if someone
+   * retunes text-base to 16px, this catches it.
+   */
+  ['text-micro', 'text-xs'],
+  ['text-small', 'text-sm'],
+  ['text-body', 'text-base'],
+  ['text-h3', 'text-lg'],
+  ['text-h2', 'text-xl'],
+  ['text-h1', 'text-3xl'],
+  ['text-display', 'text-5xl'],
 ]);
 
 /**
@@ -57,38 +69,23 @@ const ALIASES = new Map([
  * re-litigates the same decisions. If you change your mind on one, delete the
  * entry and port the spec value.
  */
-const DIVERGENCES = [
-  {
-    token: 'team-*',
-    reason:
-      'Spec ships 2025-era teams (sauber, rb) as sample data and says so. The repo keeps its real 2026 grid in lib/teamColors.ts — 11 teams incl. Audi and Cadillac.',
-  },
-  {
-    token: 'stripe-skew',
-    reason:
-      'Spec uses transform: skewX(-12deg). That clips the stripe away entirely on tall containers, so the repo uses a clip-path with a fixed --stripe-lean. See reference_stripe_motif_clip_path.',
-  },
-  {
-    token: 'podium-gold / podium-silver / podium-bronze',
-    reason:
-      'Spec has no podium colours. The repo keeps them as flat data colours (metal gradient + bevel removed) so leaderboard top-3 still reads at a glance.',
-  },
-  {
-    token: 'sprint / sprint-border / sprint-text',
-    reason:
-      'Spec has no sprint concept. Mapped onto the violet result semantic rather than introducing a sixth hue.',
-  },
-  {
-    token: 'error / warning',
-    reason:
-      'Mapped to the spec\'s --result-close amber, per "errors are neutral and instructive, in amber not red".',
-  },
-  {
-    token: 'text-* scale',
-    reason:
-      'Spec names sizes by role (--text-display/h1/h2/body/micro). The repo keeps Tailwind-shaped names (xs..6xl) so existing utilities resolve, with the same px values at the roles that matter: micro 11, small 13, body 15, h3 17, h2 22, display 44.',
-  },
-];
+const DIVERGENCES = [];
+
+/*
+ * Resolved 2026-07-29 by feeding the app's reality back into the spec, rather
+ * than carrying them as permanent exceptions:
+ *
+ *   team-*     the spec shipped 2025 sample teams; it now carries the real
+ *              2026 grid, and the app emits --team-* from the shared tokens
+ *              so the two are directly comparable.
+ *   stripe     the spec's transform: skewX(-12deg) is genuinely broken on tall
+ *              containers; it now specifies the clip-path and --stripe-lean.
+ *   podium-*   the spec had no podium colours; it now defines them as flat
+ *              data colours with the "never a medal" rule.
+ *   sprint     the spec had no sprint concept; it now aliases the violet.
+ *   error/warning/success  the spec stated "errors are amber" in prose only;
+ *              they are tokens now, so a status surface cannot reach for red.
+ */
 
 function parseVars(css) {
   const out = new Map();
@@ -132,14 +129,19 @@ function normalise(value, app) {
   let v = value.trim().toLowerCase();
 
   // rgb(var(--accent-rgb) / 0.12)  ->  212 255 63 / 0.12
-  const viaVar = /^rgba?\(\s*var\(--([a-z0-9-]+)-rgb\)\s*\/\s*([\d.]+)\s*\)$/.exec(v);
+  const viaVar =
+    /^rgba?\(\s*var\(--([a-z0-9-]+)-rgb\)\s*\/\s*([\d.]+)\s*\)$/.exec(v);
   if (viaVar) {
     const source = app.get(`${viaVar[1]}-rgb`);
-    if (source) return `${source.replace(/\s+/g, ' ')} / ${Number.parseFloat(viaVar[2])}`;
+    if (source)
+      return `${source.replace(/\s+/g, ' ')} / ${Number.parseFloat(viaVar[2])}`;
   }
 
   // rgba(212,255,63,0.12)  ->  212 255 63 / 0.12
-  const rgba = /^rgba?\(\s*([\d]+)\s*,\s*([\d]+)\s*,\s*([\d]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(v);
+  const rgba =
+    /^rgba?\(\s*([\d]+)\s*,\s*([\d]+)\s*,\s*([\d]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(
+      v,
+    );
   if (rgba) {
     const alpha = rgba[4] === undefined ? 1 : Number.parseFloat(rgba[4]);
     return `${rgba[1]} ${rgba[2]} ${rgba[3]} / ${alpha}`;
@@ -166,7 +168,9 @@ function normalise(value, app) {
 const specFiles = (await readdir(specDir)).filter((f) => f.endsWith('.css'));
 const spec = new Map();
 for (const file of specFiles) {
-  for (const [k, v] of parseVars(await readFile(path.join(specDir, file), 'utf8'))) {
+  for (const [k, v] of parseVars(
+    await readFile(path.join(specDir, file), 'utf8'),
+  )) {
     spec.set(k, v);
   }
 }
@@ -207,7 +211,10 @@ for (const [name, specValue] of spec) {
   }
 }
 
-const pct = ((matched.length / (matched.length + differs.length + missing.length)) * 100).toFixed(0);
+const pct = (
+  (matched.length / (matched.length + differs.length + missing.length)) *
+  100
+).toFixed(0);
 
 console.log('Claude Design spec  ->  apps/web');
 console.log('  project: "Grand Prix Picks Design System"');
@@ -221,7 +228,9 @@ if (differs.length > 0) {
   console.log('DIFFERS — spec value vs what the app renders:');
   for (const { name, appName, specValue, appValue } of differs) {
     const via = appName === name ? '' : ` (as --${appName})`;
-    console.log(`  --${name}${via}\n      spec: ${specValue}\n      app:  ${appValue}`);
+    console.log(
+      `  --${name}${via}\n      spec: ${specValue}\n      app:  ${appValue}`,
+    );
   }
   console.log('');
 }
@@ -234,9 +243,13 @@ if (missing.length > 0) {
   console.log('');
 }
 
-console.log('DOCUMENTED DIVERGENCES — deliberate, with reasons:');
-for (const { token, reason } of DIVERGENCES) {
-  console.log(`  ${token}\n      ${reason}`);
+if (DIVERGENCES.length > 0) {
+  console.log('DOCUMENTED DIVERGENCES — deliberate, with reasons:');
+  for (const { token, reason } of DIVERGENCES) {
+    console.log(`  ${token}\n      ${reason}`);
+  }
+} else if (differs.length === 0 && missing.length === 0) {
+  console.log('In sync. No divergences to carry.');
 }
 
 process.exit(0);

@@ -3,10 +3,10 @@
 There are **two** Claude Design projects for this app. They do different jobs
 and must not be pointed at each other.
 
-| Project | ID | Role | Direction |
-|---|---|---|---|
-| **Grand Prix Picks Design System** | `207819bf-d2c7-45dc-945c-24ccdb151049` | Hand-authored *Timing Sheet Minimal* spec. The creative source. | Design → repo |
-| **Grand Prix Picks** | `b776086f-79e9-4e29-8780-625e42d689dc` | Storybook mirror of what the repo actually ships. | repo → Design |
+| Project                            | ID                                     | Role                                                            | Direction     |
+| ---------------------------------- | -------------------------------------- | --------------------------------------------------------------- | ------------- |
+| **Grand Prix Picks Design System** | `207819bf-d2c7-45dc-945c-24ccdb151049` | Hand-authored _Timing Sheet Minimal_ spec. The creative source. | Design → repo |
+| **Grand Prix Picks**               | `b776086f-79e9-4e29-8780-625e42d689dc` | Storybook mirror of what the repo actually ships.               | repo → Design |
 
 `../config.json` targets the **mirror**, and only the mirror.
 
@@ -29,8 +29,27 @@ node .design-sync/check-spec-drift.mjs
 ```
 
 Reports which token values match, which drifted, and which departures are
-deliberate. As of the last sync: **63/63 contract tokens match**, with 6
-documented divergences listed in the script.
+deliberate. As of the last sync: **99/99 contract tokens match, with zero
+divergences carried.**
+
+Getting to zero meant editing the _spec_, not excusing the app. The spec was
+missing things the product genuinely needs, so those were written back into the
+Design project rather than logged as permanent exceptions:
+
+| Was a divergence                | How it was closed                                                                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `team-*`                        | Spec shipped 2025 sample teams. It now carries the real 2026 grid, and the app emits `--team-*` from the shared tokens so the two are directly comparable. |
+| Stripe geometry                 | The spec's `transform: skewX(-12deg)` is genuinely broken on tall containers. It now specifies the `clip-path` and `--stripe-lean`.                        |
+| `podium-*`                      | Spec had no podium colours. It now defines them as flat data colours, with the "a rank marker is a chip, not a medal" rule.                                |
+| `sprint`                        | Spec had no sprint concept. It now aliases the violet result semantic rather than adding a sixth hue.                                                      |
+| `error` / `warning` / `success` | The spec said "errors are amber, never red" in prose only. They are tokens now, so a status surface cannot reach for red.                                  |
+| Type scale naming               | Not resolved by changing either side — instead **aliased** in the drift script, so the px equivalence is verified on every run rather than taken on trust. |
+
+Two more things were fed back that are not tokens: the spec's global
+`a { color: var(--accent) }` (which makes every leaderboard name glow and
+drowns out the viewer's own row) is now `color: inherit` with an opt-in
+`.link-accent`, and `.gpp-team-bar` / `.gpp-team-dot` / `.gpp-empty` are
+defined in `base.css` instead of left for each consumer to reinvent.
 
 ## When you change the Design side
 
@@ -56,10 +75,23 @@ repo's Storybook. That project is currently stale: it still holds Orbitron and
 the pre-redesign teal/red palette, so the first run after this redesign will be
 a large diff. That is expected and correct.
 
-## Divergences are decisions, not drift
+## Prefer fixing the spec over recording a divergence
 
-The `DIVERGENCES` list in `check-spec-drift.mjs` records where the repo
-deliberately departs from the spec **and why** — the 2026 grid vs the spec's
-2025 sample teams, the stripe's clip-path, podium colours, sprint mapping.
-Without it every re-sync re-argues the same points. If you change your mind on
-one, delete the entry and port the spec value.
+`check-spec-drift.mjs` has a `DIVERGENCES` list for departures that are genuine
+decisions. **It is currently empty, and that is the goal state.**
+
+When the app and the spec disagree, work through the options in this order:
+
+1. **The spec is right** — port the value into
+   `packages/shared/src/tokens.ts`.
+2. **The app is right and the spec is incomplete or wrong** — write it back to
+   the Design project. Most of the original six divergences were this: the spec
+   was authored from a brief with no codebase attached, so it had 2025 sample
+   teams, no podium, no sprint, and a stripe implementation that does not
+   survive a tall container.
+3. **Both are right, they just use different names** — add an entry to
+   `ALIASES`, which keeps the values compared rather than skipped.
+4. **Only then**, record a `DIVERGENCES` entry with the reason.
+
+A divergence is skipped from comparison entirely, so every one is a small
+permanent blind spot. Options 1–3 all keep the check honest.

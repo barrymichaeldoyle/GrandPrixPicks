@@ -1,18 +1,11 @@
-// F1 2026 team colors — mirrors apps/web/src/components/DriverBadge.tsx
-const TEAM_COLORS: Record<string, string> = {
-  Mercedes: '#00D7B6',
-  McLaren: '#F47600',
-  Ferrari: '#ED1131',
-  'Red Bull Racing': '#4781D7',
-  Williams: '#1868DB',
-  Alpine: '#00A1E8',
-  Audi: '#F50537',
-  'Racing Bulls': '#6C98FF',
-  Haas: '#9C9FA2',
-  'Aston Martin': '#229971',
-  Cadillac: '#909090',
-};
+// F1 2026 team colours, re-exported from the shared design tokens.
+//
+// This used to be a hand-maintained copy of the web list with a comment saying
+// it mirrored DriverBadge.tsx. The two still agreed, but nothing was keeping
+// them that way — the same setup that let the OG share cards drift into a
+// palette the product had abandoned.
+import { fallbackTeamColor, teams } from '@grandprixpicks/shared/tokens';
 
 export function getTeamColor(team?: string | null): string {
-  return (team && TEAM_COLORS[team]) ?? '#555';
+  return (team && teams[team as keyof typeof teams]) || fallbackTeamColor;
 }

@@ -95,6 +95,37 @@ export const colors = {
 } as const;
 
 /**
+ * Team colours are DATA, not theme — they change every season, which is why
+ * they sit apart from the palette above rather than inside it.
+ *
+ * They appear in exactly two forms: a 3px full-height bar on the left edge of
+ * a driver row or chip (`.gpp-team-bar`), and a 5px dot before a team name
+ * (`.gpp-team-dot`). Never a background, never text colour, never a card
+ * border. Eleven teams in one list stays calm only because the colour is
+ * confined to 3px.
+ *
+ * This lived in two hand-maintained copies (`apps/web/src/lib/teamColors.ts`
+ * and `apps/mobile/src/lib/teamColors.ts`) that happened to still agree. Both
+ * now re-export from here, so the 2027 grid is one edit.
+ */
+export const teams = {
+  Mercedes: '#00d7b6',
+  McLaren: '#f47600',
+  Ferrari: '#ed1131',
+  'Red Bull Racing': '#4781d7',
+  Williams: '#1868db',
+  Alpine: '#00a1e8',
+  Audi: '#f50537',
+  'Racing Bulls': '#6c98ff',
+  Haas: '#9c9fa2',
+  'Aston Martin': '#229971',
+  Cadillac: '#909090',
+} as const;
+
+/** Shown for a driver whose team is unknown or not on the current grid. */
+export const fallbackTeamColor = '#666666';
+
+/**
  * Corner radii in px. Sharp and precise: 2px on anything you interact with,
  * 4px on anything that contains something, pill only for the small team dot
  * and for avatars, which stay circular.
@@ -268,6 +299,7 @@ export const elevation = {
 } as const;
 
 export type Colors = typeof colors;
+export type Teams = typeof teams;
 export type Radii = typeof radii;
 export type TypeScale = typeof typeScale;
 export type DataScale = typeof dataScale;

@@ -1,40 +1,44 @@
-:root{
+:root {
   /* 4px base. Generous in nav + page layout, compact in tables + lists. */
-  --space-0:0px;
-  --space-1:2px;
-  --space-2:4px;
-  --space-3:8px;
-  --space-4:12px;
-  --space-5:16px;
-  --space-6:20px;
-  --space-7:24px;
-  --space-8:32px;
-  --space-9:40px;
-  --space-10:48px;
-  --space-11:64px;
-  --space-12:80px;
+  --space-0: 0px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 24px;
+  --space-8: 32px;
+  --space-9: 40px;
+  --space-10: 48px;
+  --space-11: 64px;
+  --space-12: 80px;
 
   /* Density presets */
-  --row-height-compact:36px;   /* timing sheet rows */
-  --row-height:44px;           /* touch target minimum */
-  --control-height:36px;
-  --control-height-lg:44px;
+  --row-height-compact: 36px; /* timing sheet rows */
+  --row-height: 44px; /* touch target minimum */
+  --control-height: 36px;
+  --control-height-lg: 44px;
 
   /* Radius — sharp and precise */
-  --radius-input:2px;
-  --radius-card:4px;
-  --radius-pill:999px;
+  --radius-input: 2px;
+  --radius-card: 4px;
+  --radius-pill: 999px;
 
   /* Borders */
-  --border-width:1px;
-  --hairline:1px solid var(--border);
-  --hairline-strong:1px solid var(--border-strong);
-  --stripe-width:3px;          /* signature accent stripe */
-  --team-bar-width:3px;
+  --border-width: 1px;
+  --hairline: 1px solid var(--border);
+  --hairline-strong: 1px solid var(--border-strong);
+  --stripe-width: 3px; /* signature accent stripe */
+  /* How far the bottom of the stripe sits left of its top. A FIXED offset, not
+     an angle — see the note on .gpp-stripe in base.css. */
+  --stripe-lean: 5px;
+  --team-bar-width: 3px;
+  --team-dot-size: 5px;
 
   /* Layout */
-  --page-max:1200px;
-  --page-gutter:32px;
-  --nav-height:64px;
-  --mobile-nav-height:60px;
+  --page-max: 1200px;
+  --page-gutter: 32px;
+  --nav-height: 64px;
+  --mobile-nav-height: 60px;
 }

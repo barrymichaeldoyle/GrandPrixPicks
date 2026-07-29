@@ -44,8 +44,7 @@
       "ignoreDependencies": ["@grandprixpicks/shared", "tailwindcss"]
     },
     "packages/shared": {
-      "project": ["src/**/*.{ts,tsx}"],
-      "ignoreDependencies": ["vitest"]
+      "project": ["src/**/*.{ts,tsx}"]
     }
   }
 }

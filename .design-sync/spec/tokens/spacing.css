@@ -36,6 +36,14 @@
   --team-bar-width: 3px;
   --team-dot-size: 5px;
 
+  /* Every country flag renders in this ratio, cropped to fill, whatever the
+     asset's own proportions are. Real flags vary enormously — in the 2026
+     calendar Belgium is 1.15:1 and Qatar is 4.17:1, so at a shared height
+     Qatar drew 3.6x wider and every row containing a flag changed width from
+     round to round. 4:3 because the fixed size ramp (16x12, 24x18, 40x30)
+     was already built on it. */
+  --flag-aspect: 4 / 3;
+
   /* Layout */
   --page-max: 1200px;
   --page-gutter: 32px;

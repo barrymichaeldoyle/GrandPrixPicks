@@ -288,6 +288,19 @@ export const motif = {
   /** Team colour appears only as this bar, or as a 5px dot. Never a fill. */
   teamBarWidth: 3,
   teamDotSize: 5,
+  /**
+   * Every country flag renders in this ratio, cropped to fill, regardless of
+   * the asset's own proportions.
+   *
+   * Real flags vary enormously — in this set Belgium is 1.15:1 and Qatar is
+   * 4.17:1, so at a shared height Qatar rendered 3.6x wider than Belgium.
+   * Anywhere a flag sat beside text, that difference pushed the layout around
+   * by round. A fixed ratio is the only way a flag can be a predictable box.
+   *
+   * 4:3 because the fixed size ramp was already built on it (16x12, 24x18,
+   * 40x30...), so adopting it changed nothing that was already consistent.
+   */
+  flagAspect: '4 / 3',
 } as const;
 
 /**

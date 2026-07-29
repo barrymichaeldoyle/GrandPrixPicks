@@ -361,9 +361,11 @@ function HomePage() {
                       </p>
                       <div className="mt-2 flex min-w-0 items-center gap-3">
                         {countryCode && (
-                          <span className="inline-flex h-8 shrink-0 overflow-hidden rounded-sm border border-border sm:h-10">
-                            <CountryFlag code={countryCode} size="full" />
-                          </span>
+                          <CountryFlag
+                            code={countryCode}
+                            size="full"
+                            className="h-8 shrink-0 sm:h-10"
+                          />
                         )}
                         <h2 className="min-w-0 text-xl leading-tight font-semibold text-text sm:text-2xl">
                           {featuredRace.name}

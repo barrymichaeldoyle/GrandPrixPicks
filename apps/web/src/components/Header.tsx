@@ -26,10 +26,14 @@ export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
  * micro label). Active state is the signature stripe rather than a filled
  * chip — one stripe per container, pinned to the thing that matters.
  */
-const NAV_LINK_CLASS =
+export const NAV_LINK_CLASS =
   'rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text-muted transition-colors duration-150 ease-out hover:bg-surface hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
-const NAV_LINK_ACTIVE_CLASS =
-  'gpp-stripe rounded-sm border border-transparent py-1.5 pr-3 pl-2.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text transition-colors';
+export const NAV_LINK_ACTIVE_CLASS =
+  'gpp-stripe rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text transition-colors';
+export const MOBILE_NAV_LINK_CLASS =
+  'block rounded-sm border border-transparent px-3 py-2 text-xs font-medium tracking-label text-text-muted uppercase transition-colors hover:bg-surface-elevated hover:text-text';
+export const MOBILE_NAV_LINK_ACTIVE_CLASS =
+  'gpp-stripe block rounded-sm border border-transparent px-3 py-2 text-xs font-medium tracking-label text-text uppercase transition-colors';
 
 function DesktopNavLink({
   to,
@@ -100,9 +104,7 @@ function NextRaceQuickLink({
       data-testid="header-next-race-link"
     >
       {countryCode ? (
-        <span className="inline-flex h-3.5 shrink-0 overflow-hidden rounded-[2px]">
-          <CountryFlag code={countryCode} size="full" />
-        </span>
+        <CountryFlag code={countryCode} size="xs" />
       ) : (
         <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       )}
@@ -411,10 +413,9 @@ export function Header({
                     <Link
                       to={link.to}
                       onClick={closeMenu}
-                      className="block rounded-sm border border-transparent px-3 py-2 text-xs font-medium tracking-label text-text-muted uppercase transition-colors hover:bg-surface-elevated hover:text-text"
+                      className={MOBILE_NAV_LINK_CLASS}
                       activeProps={{
-                        className:
-                          'gpp-stripe block px-3 py-2 pl-4 rounded-sm text-text border border-transparent text-xs font-medium tracking-label uppercase transition-colors',
+                        className: MOBILE_NAV_LINK_ACTIVE_CLASS,
                         'aria-current': 'page' as const,
                       }}
                       activeOptions={

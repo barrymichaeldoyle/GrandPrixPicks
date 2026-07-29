@@ -60,9 +60,7 @@ export function ClerkHeaderUser({
             label={`My Picks · ${nextRaceLink.label}`}
             labelIcon={
               nextRaceLink.countryCode ? (
-                <span className="inline-flex h-3.5 w-5 overflow-hidden rounded-[2px]">
-                  <CountryFlag code={nextRaceLink.countryCode} size="full" />
-                </span>
+                <CountryFlag code={nextRaceLink.countryCode} size="xs" />
               ) : (
                 <Flag className="h-4 w-4" />
               )

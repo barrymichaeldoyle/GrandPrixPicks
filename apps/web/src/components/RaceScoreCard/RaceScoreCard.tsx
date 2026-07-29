@@ -299,7 +299,7 @@ function CompactSummaryCard({
               <RaceFlag
                 countryCode={countryCode}
                 size="full"
-                className="rounded-none shadow-none ring-0"
+                className="rounded-none outline-none"
               />
             </span>
           )}

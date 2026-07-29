@@ -79,7 +79,7 @@ export function RaceCard({
       <Link
         to="/races/$raceSlug"
         params={{ raceSlug: race.slug }}
-        className={`group grid min-h-18 grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3 transition-colors hover:bg-surface/55 sm:grid-cols-[3rem_2.25rem_minmax(0,1fr)_auto_auto_auto] sm:px-3 ${
+        className={`group grid min-h-18 grid-cols-[2.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3 transition-colors hover:bg-surface/55 sm:grid-cols-[3rem_2.5rem_minmax(0,1fr)_auto_auto_auto] sm:px-3 ${
           isMutedPastRace ? 'opacity-60 hover:opacity-85' : ''
         }`}
       >

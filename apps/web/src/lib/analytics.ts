@@ -41,6 +41,7 @@ export function initAnalytics() {
         // same signals Google ranks on, so measuring them here tells us what
         // field data Search Console will eventually reflect.
         capture_performance: { web_vitals: true },
+        defaults: '2026-05-30',
       });
       posthogClient = posthog;
       return posthog;

@@ -1,3 +1,44 @@
 /* Archivo = all UI text. IBM Plex Mono = all data (times, points, positions, deltas).
-   Served from Google Fonts; no local binaries were provided. */
-@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+   SELF-HOSTED. These are the exact binaries the app ships from
+   apps/web/public/fonts, so this project renders what production renders --
+   no Google Fonts request, and no silent substitution when the network is
+   unavailable. Both families are SIL Open Font License 1.1.
+
+   Archivo is a VARIABLE font: one file covers the whole 300-600 range this
+   system uses. IBM Plex Mono ships as three static weights.
+
+   There is deliberately no 700. --fw-semibold (600) is the heaviest weight in
+   the system; a font-weight:700 will be synthesised and look wrong. */
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('../fonts/archivo-latin-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/ibm-plex-mono-400-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/ibm-plex-mono-500-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/ibm-plex-mono-600-latin.woff2') format('woff2');
+}

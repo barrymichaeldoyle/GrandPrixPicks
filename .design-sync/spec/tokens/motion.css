@@ -1,0 +1,12 @@
+:root{
+  /* Fast and snappy. Hover, selection and drag only — no decorative animation. */
+  --ease-out:cubic-bezier(0.2,0.8,0.3,1);
+  --dur-fast:150ms;
+  --dur:180ms;
+  --dur-slow:200ms;
+  --transition:all var(--dur) var(--ease-out);
+  --stagger-step:28ms;
+}
+@media (prefers-reduced-motion:reduce){
+  :root{--dur-fast:1ms; --dur:1ms; --dur-slow:1ms; --stagger-step:0ms}
+}

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": "../apps/web",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@convex-generated/*": ["../backend/convex/_generated/*"],
+      "@clerk/react": ["./src/storybook/mockClerkReact.tsx"],
+      "convex/react": ["./src/storybook/mockConvexReact.tsx"]
+    }
+  }
+}

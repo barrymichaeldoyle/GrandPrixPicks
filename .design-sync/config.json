@@ -1,0 +1,41 @@
+{
+  "projectId": "b776086f-79e9-4e29-8780-625e42d689dc",
+  "shape": "storybook",
+  "pkg": "@grandprixpicks/web",
+  "globalName": "GrandPrixPicks",
+
+  "storybookConfigDir": "apps/web/.storybook",
+  "storybookStatic": ".design-sync/sb-reference",
+  "entry": ".design-sync/ds-package/entry.tsx",
+
+  "tsconfig": "../tsconfig.ds.json",
+  "srcDir": "../../apps/web/src",
+  "extraFonts": ["../../apps/web/public/fonts/orbitron-v35-latin.woff2"],
+
+  "extraEntries": ["@tanstack/react-router"],
+
+  "storyImports": {
+    "shim": ["src/storybook/mockAppRuntime"]
+  },
+
+  "readmeHeader": ".design-sync/conventions.md",
+
+  "buildCmd": "ln -sfn ../apps/web/node_modules .design-sync/node_modules && pnpm --filter @grandprixpicks/shared generate-tokens && npx tsc -p .design-sync/tsconfig.dts.json; test -f .design-sync/ds-package/types/.design-sync/ds-package/entry.d.ts",
+
+  "provider": { "component": "PreviewRoot" },
+
+  "titleMap": {
+    "Loadingstates": "LoadingStates"
+  },
+
+  "overrides": {
+    "Badge": { "cardMode": "column" },
+    "ConfirmDialog": { "cardMode": "single", "primaryStory": "Interactive" },
+    "Pill": { "cardMode": "column" },
+    "ScoreRing": { "cardMode": "column" },
+    "StepBadge": { "cardMode": "column" },
+    "TabSwitch": { "cardMode": "column" },
+    "FeedItem": { "cardMode": "column" },
+    "RaceEventPage": { "cardMode": "column" }
+  }
+}

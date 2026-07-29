@@ -1,0 +1,46 @@
+:root{
+  /* Base palette — dark only, no pure black. */
+  --gpp-black:#0A0B0C;
+  --gpp-near-black:#101113;
+  --gpp-chartreuse:#D4FF3F;
+  --gpp-chartreuse-dim:#B8E035;
+
+  /* Semantic surfaces — elevation is a lighter layer + 1px hairline, never a shadow. */
+  --background:#101113;
+  --surface:#191A1D;
+  --surface-raised:#212226;
+  --surface-sunken:#0C0D0F;
+  --border:#2C2D31;
+  --border-strong:#3A3B41;
+
+  /* Text */
+  --text:#F2F2F0;
+  --text-muted:#9A9BA1;   /* 4.6:1 on --background */
+  --text-disabled:#5C5D63;
+  --text-on-accent:#101113;
+
+  /* Brand accent — CTAs, active states, the signature stripe. Never for body text. */
+  --accent:#D4FF3F;
+  --accent-hover:#E2FF6E;
+  --accent-press:#B8E035;
+  --accent-quiet:rgba(212,255,63,0.12);
+  --accent-hairline:rgba(212,255,63,0.35);
+
+  /* Prediction result semantics (F1 sector-colour inspired) */
+  --result-perfect:#C084FC;  /* exact pick */
+  --result-beat:#4ADE80;     /* beat prediction */
+  --result-close:#FACC15;    /* within one position */
+  --result-miss:#71717A;     /* miss — muted grey, never harsh red */
+  --result-perfect-quiet:rgba(192,132,252,0.14);
+  --result-beat-quiet:rgba(74,222,128,0.14);
+  --result-close-quiet:rgba(250,204,21,0.14);
+  --result-miss-quiet:rgba(113,113,122,0.16);
+
+  /* Position delta (batch updates only — never animate live movement) */
+  --delta-up:#4ADE80;
+  --delta-down:#F87171;
+  --delta-flat:#5C5D63;
+
+  /* Focus */
+  --focus-ring:rgba(212,255,63,0.55);
+}

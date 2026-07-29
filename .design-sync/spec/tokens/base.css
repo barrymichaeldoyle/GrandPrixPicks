@@ -1,0 +1,13 @@
+html{color-scheme:dark}
+body{margin:0;background:var(--background);color:var(--text);font-family:var(--font-ui);font-size:var(--text-body);font-weight:var(--fw-regular);line-height:var(--lh-body);-webkit-font-smoothing:antialiased;text-wrap:pretty}
+*{box-sizing:border-box}
+a{color:var(--accent);text-decoration:none;transition:color var(--dur-fast) var(--ease-out)}
+a:hover{color:var(--accent-hover)}
+::selection{background:var(--accent);color:var(--text-on-accent)}
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.gpp-mono{font-family:var(--font-data);font-variant-numeric:tabular-nums;letter-spacing:var(--tracking-data)}
+.gpp-label{font-size:var(--text-micro);text-transform:uppercase;letter-spacing:var(--tracking-label);color:var(--text-muted);font-weight:var(--fw-medium)}
+/* Signature motif: 3px angled racing stripe. */
+.gpp-stripe{position:relative;overflow:hidden}
+.gpp-stripe::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--stripe-width);background:var(--accent);transform:skewX(-12deg);transform-origin:top left}
+@keyframes gpp-row-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}

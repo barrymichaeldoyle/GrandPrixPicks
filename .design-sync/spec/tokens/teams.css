@@ -1,0 +1,15 @@
+/* Team colours are DATA, not theme. They change every season.
+   Use only as a 3–4px vertical edge bar on driver rows/chips and as a small dot
+   beside a team name. Never a background, text colour, or card border. */
+:root{
+  --team-mclaren:#FF8000;
+  --team-ferrari:#E8002D;
+  --team-redbull:#3671C6;
+  --team-mercedes:#27F4D2;
+  --team-astonmartin:#229971;
+  --team-alpine:#00A1E8;
+  --team-haas:#B6BABD;
+  --team-rb:#6692FF;
+  --team-williams:#64C4FF;
+  --team-sauber:#52E252;
+}

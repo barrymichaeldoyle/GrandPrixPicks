@@ -1,0 +1,6 @@
+{
+  "name": "@grandprixpicks/web",
+  "version": "1.0.0",
+  "private": true,
+  "types": "./types/.design-sync/ds-package/entry.d.ts"
+}

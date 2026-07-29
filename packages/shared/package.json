@@ -16,6 +16,7 @@
     "./driverStatus": "./src/driverStatus.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
+    "./reactions": "./src/reactions.ts",
     "./scoring": "./src/scoring.ts",
     "./sessions": "./src/sessions.ts",
     "./share": "./src/share.ts",

@@ -1,3 +1,4 @@
+import { REACTION_TYPES } from '@grandprixpicks/shared/reactions';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -6,6 +7,12 @@ import { internalAction, internalMutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { computeFollowCountsForUser } from './lib/followCounts';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
+import {
+  changeReactionCount,
+  DEFAULT_REACTION_TYPE,
+  emptyReactionCounts,
+  normalizeReactionCounts,
+} from './lib/reactions';
 import { scoreTopFive } from './lib/scoring';
 import { scheduleReminder } from './notifications';
 
@@ -6324,11 +6331,18 @@ export const seedRevNotificationForUser = internalMutation({
       await ctx.db.insert('revs', {
         feedEventId: feedEvent._id,
         userId: actor._id,
+        reactionType: DEFAULT_REACTION_TYPE,
         createdAt: Date.now(),
       });
 
       await ctx.db.patch(feedEvent._id, {
         revCount: feedEvent.revCount + 1,
+        reactionCounts: changeReactionCount(
+          feedEvent.reactionCounts,
+          feedEvent.revCount,
+          DEFAULT_REACTION_TYPE,
+          1,
+        ),
       });
     }
 
@@ -6336,6 +6350,7 @@ export const seedRevNotificationForUser = internalMutation({
       recipientUserId: targetUser._id,
       actorUserId: actor._id,
       feedEventId: feedEvent._id,
+      reactionType: DEFAULT_REACTION_TYPE,
       raceId: feedEvent.raceId,
       sessionType: feedEvent.sessionType,
       raceName: feedEvent.raceName,
@@ -6464,6 +6479,8 @@ export const seedNotificationShowcaseForUser = internalMutation({
           actorDisplayName: actor.actorDisplayName,
           actorUsername: actor.actorUsername,
           feedEventId: event._id,
+          reactionType:
+            REACTION_TYPES[i % REACTION_TYPES.length] ?? DEFAULT_REACTION_TYPE,
           raceId: event.raceId,
           sessionType,
           raceName: event.raceName,
@@ -6596,6 +6613,7 @@ export const seedFeedEvents = internalMutation({
         raceSlug: race.slug,
         season: race.season,
         revCount: 0,
+        reactionCounts: emptyReactionCounts(),
         // A score becomes feed activity when its result is published. Falling
         // back to the score timestamp keeps older fixtures deterministic.
         createdAt: result?.publishedAt ?? score.createdAt ?? now,
@@ -6621,6 +6639,7 @@ export const seedFeedEvents = internalMutation({
         leagueName: league.name,
         leagueSlug: league.slug,
         revCount: 0,
+        reactionCounts: emptyReactionCounts(),
         createdAt: membership.joinedAt,
       });
       created++;
@@ -6648,14 +6667,14 @@ export const seedRevs = internalMutation({
     let created = 0;
 
     for (const event of events) {
-      // Pick a random subset of users (1–4) to rev this event, excluding the event owner
+      // Pick a random subset of users (1–4) to react, excluding the event owner.
       const others = users.filter((u) => u._id !== event.userId);
       const shuffled = others.sort(() => Math.random() - 0.5);
       const revCount = Math.floor(Math.random() * 4) + 1;
-      const revers = shuffled.slice(0, Math.min(revCount, shuffled.length));
+      const reactors = shuffled.slice(0, Math.min(revCount, shuffled.length));
 
-      for (const user of revers) {
-        // Skip if already reved
+      for (const [index, user] of reactors.entries()) {
+        // Skip if already reacted.
         const existing = await ctx.db
           .query('revs')
           .withIndex('by_user_event', (q) =>
@@ -6668,17 +6687,27 @@ export const seedRevs = internalMutation({
         await ctx.db.insert('revs', {
           feedEventId: event._id,
           userId: user._id,
+          reactionType:
+            REACTION_TYPES[index % REACTION_TYPES.length] ??
+            DEFAULT_REACTION_TYPE,
           createdAt: Date.now(),
         });
         created++;
       }
 
-      // Update revCount on the event to match
-      const totalRevs = await ctx.db
+      // Update aggregate and per-reaction counts to match.
+      const reactions = await ctx.db
         .query('revs')
         .withIndex('by_event', (q) => q.eq('feedEventId', event._id))
-        .collect();
-      await ctx.db.patch(event._id, { revCount: totalRevs.length });
+        .take(100);
+      const reactionCounts = emptyReactionCounts();
+      for (const reaction of reactions) {
+        reactionCounts[reaction.reactionType ?? DEFAULT_REACTION_TYPE] += 1;
+      }
+      await ctx.db.patch(event._id, {
+        revCount: reactions.length,
+        reactionCounts: normalizeReactionCounts(reactionCounts),
+      });
     }
 
     return { created };

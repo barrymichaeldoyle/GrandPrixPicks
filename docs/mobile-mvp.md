@@ -37,7 +37,7 @@ This document defines product scope and behavior. `docs/mobile-api-contract.md` 
 - Create, view, and edit H2H picks.
 - Mid-weekend entry after one or more sessions have locked.
 - Draft preservation on the device.
-- Personalized feed, including locked picks, published scores, streaks, and Revs.
+- Personalized feed, including locked picks, published scores, streaks, and reactions.
 - Full global and Following leaderboards for weekend and season, split by Combined, Top 5, and H2H.
 - Lightweight player views needed by feed and leaderboard navigation.
 - In-app notifications and native push notifications.
@@ -173,8 +173,9 @@ Do not hide locked sessions. They establish continuity and explain why only late
 - Authenticated personalized feed contains the viewer and people they follow.
 - Support cursor-based load more/infinite loading and pull to refresh.
 - Group `session_locked` and `score_published` events by race and session.
-- Render locked Top 5 picks, scored Top 5 breakdown, H2H summary, streak milestones, and Revs.
-- Allow giving/removing a Rev and opening the users who Revved.
+- Render locked Top 5 picks, scored Top 5 breakdown, H2H summary, streak milestones, and reactions.
+- Allow adding, changing, and removing one reaction per post. The reaction set is 🔥 Great pick, 👏 Nice one, 🤯 Wow, 😂 Funny, and 🫣 Oof.
+- Open a grouped list of the users who chose each reaction.
 - Feed-event detail must support notification deep links.
 - Empty feed recommends players from the global leaderboard. League-based recommendations may appear if already returned by the backend, but league management stays on web.
 - `joined_league` events may be omitted from mobile MVP because their destination is not implemented.
@@ -199,12 +200,12 @@ Requirements:
 ### 7. Notifications
 
 - In-app inbox with unread badge, mark one read, and mark all read.
-- Support results, amended results, session locked, and grouped Rev notifications.
+- Support results, amended results, session locked, and grouped reaction notifications.
 - Push deep links:
   - reminder/lock soon -> relevant Picks session;
   - session locked -> read-only Picks session;
   - results/amendment -> scored session;
-  - Rev -> feed event.
+  - reaction -> feed event.
 - Register one Expo push token per installation after permission is granted and remove it when push is disabled or the user signs out.
 - iOS shows the system permission prompt only once. Do not request permission at launch: show an in-app pre-prompt explaining reminders and results notifications, triggered after the user's first successful pick save, and only then request the system permission. If the user declines the pre-prompt, leave the system prompt unspent and offer it again from settings.
 
@@ -213,7 +214,7 @@ Requirements:
 MVP settings:
 
 - Push permission and device registration state.
-- Toggles for prediction reminders, lock-soon reminders, results, session locked, and Revs.
+- Toggles for prediction reminders, lock-soon reminders, results, session locked, and reactions to posts.
 - Email toggles for prediction reminders and results may remain available because they already exist server-side.
 - Timezone: device default or explicit IANA timezone.
 - ~~App appearance: system/light/dark.~~ Decision (2026-07-11): the app is dark-only, matching web (which hardcodes the dark theme). No appearance setting ships in the MVP; revisit only if web gains a light theme.
@@ -236,7 +237,7 @@ MVP settings:
 - When offline, editing may continue as a draft, but Save must state that a connection is required.
 - On reconnect/foreground, refetch the race before enabling Save.
 - On mutation failure, retain the draft and map known errors: race unavailable, not the next race, session locked, invalid/duplicate picks, Top 5 required, and unauthenticated.
-- Optimistic Revs are acceptable with rollback. Picks should show a saving state and confirm from the mutation/subscription result.
+- Reactions update optimistically with rollback. Picks should show a saving state and confirm from the mutation/subscription result.
 
 ## Existing backend/API mapping
 
@@ -249,7 +250,7 @@ MVP settings:
 | Top 5 scores/results | `results.getMyScoresForRace`, `results.getEnrichedTop5BySession`, `results.getAllResultsForRace`, `results.getResultForRace` |
 | H2H read/write       | `h2h.getMatchupsForSeason`, `h2h.myH2HPredictionsForRace`, `h2h.submitH2HPredictions`                                        |
 | H2H results/scores   | `h2h.getH2HResultsForRace`, `h2h.getMyH2HScoreForRace`, `h2h.getMyH2HWeekendScore`                                           |
-| Feed                 | `feed.getPersonalizedFeed`, `feed.getFeedEvent`, `feed.giveRev`, `feed.removeRev`, `feed.getRevUsers`                        |
+| Feed                 | `feed.getPersonalizedFeed`, `feed.getFeedEvent`, `feed.setReaction`, `feed.removeReaction`, `feed.getReactionUsers`          |
 | Leaderboards         | Combined, Top 5, and H2H season/following/race queries in `leaderboards.ts` and `h2h.ts`                                     |
 | In-app inbox         | `inAppNotifications.getMyNotifications`, `markRead`, `markAllRead`                                                           |
 | Native push          | `push.saveExpoPushToken`, `push.deleteExpoPushToken`                                                                         |
@@ -270,7 +271,7 @@ MVP settings:
 
 Tooling: PostHog via `posthog-react-native` (same project and EU host as
 web's `posthog-js`). Events share web's snake_case naming (overlapping
-events like `feed_event_reved` reuse web's exact names), users are
+events like `feed_event_reaction_added` reuse web's exact names), users are
 identified by Clerk user id as on web, and capture is manual-only —
 no autocapture or lifecycle events. Enabled only in production builds
 with `EXPO_PUBLIC_POSTHOG_KEY` set (configure it in EAS). Note: web
@@ -284,7 +285,7 @@ At minimum capture:
 - H2H editor opened, completed, saved, and failed;
 - save scope (`cascade` or session) and number of open/locked sessions;
 - session lock encountered during save;
-- feed loaded, paginated, event opened, Rev added/removed;
+- feed loaded, paginated, event opened, reaction added/changed/removed;
 - leaderboard filter changed and player opened;
 - notification permission result, notification opened, and push setting changed;
 - leagues web handoff opened.
@@ -299,7 +300,7 @@ Never include driver picks or private user content in analytics payloads.
 - A session locking between editor open and Save cannot overwrite server data; the draft remains recoverable and the UI becomes read-only.
 - Owners can view their picks at all times; other users' picks are unavailable until the corresponding lock.
 - Published results update the race screen, feed, notification inbox, and weekend leaderboard without an app release.
-- Feed pagination, Revs, and empty-state discovery work for an account with no follows and an account with follows.
+- Feed pagination, reactions, and empty-state discovery work for an account with no follows and an account with follows.
 - Every global/following, weekend/season, Combined/Top 5/H2H leaderboard combination renders the correct empty, signed-out, loading, error, and populated state.
 - Push permission, token registration, preference toggles, receipt, and deep-link routing are tested on a physical iOS device. (Repeat on Android before the later Android release; not an iOS MVP gate.)
 - A user can delete their account from the app; the Clerk user and Convex data are removed and the app returns to the signed-out state.
@@ -327,7 +328,7 @@ Slices 1–5 are partially built in `apps/mobile` today; treat each slice as "fi
 1. Foundation: auth (including Sign in with Apple), Convex provider, navigation, theme, deep-link shell, current-weekend query.
 2. Picks: session state, Top 5, H2H, drafts, lock races, result display.
 3. Leaderboard: all non-league dimensions, pagination, lightweight player view.
-4. Feed: pagination, grouped session events, event detail, Revs.
+4. Feed: pagination, grouped session events, event detail, reactions.
 5. Notifications and settings: inbox, Expo push (with the pre-prompt flow), preferences, web handoffs, account deletion.
 6. Hardening and iOS release: offline reads, foreground refresh, analytics, accessibility, iOS device matrix, the iOS release-readiness checklist above, TestFlight.
 7. Android follow-up (post-MVP): FCM, Play readiness, Android device matrix.

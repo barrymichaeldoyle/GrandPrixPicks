@@ -1,3 +1,4 @@
+import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { SESSION_LABELS_FULL } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
@@ -6,6 +7,7 @@ import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import { DEFAULT_REACTION_TYPE, reactionTypeValidator } from './lib/reactions';
 import {
   wantsPushPredictionLockReminders,
   wantsPushPredictionReminders,
@@ -533,7 +535,7 @@ export const sendPushForSessionLocked = internalMutation({
 });
 
 /**
- * Internal mutation: send a push notification when someone revs a post.
+ * Internal mutation: send a push notification for a feed reaction.
  * Called from inAppNotifications.createRevNotification.
  */
 export const sendPushForRevReceived = internalMutation({
@@ -541,6 +543,7 @@ export const sendPushForRevReceived = internalMutation({
     recipientUserId: v.id('users'),
     actorDisplayName: v.optional(v.string()),
     feedEventId: v.id('feedEvents'),
+    reactionType: v.optional(reactionTypeValidator),
   },
   handler: async (ctx, args) => {
     const recipient = await ctx.db.get(args.recipientUserId);
@@ -556,10 +559,12 @@ export const sendPushForRevReceived = internalMutation({
     }
 
     const actorName = args.actorDisplayName ?? 'Someone';
+    const reaction =
+      REACTION_BY_TYPE[args.reactionType ?? DEFAULT_REACTION_TYPE];
     const message = {
-      title: '⭐ New rev',
-      body: `${actorName} reved your prediction`,
-      url: `/feed/${args.feedEventId}?utm_source=push&utm_medium=push&utm_campaign=rev_received`,
+      title: `${reaction.emoji} New reaction`,
+      body: `${actorName} reacted ${reaction.emoji} to your prediction`,
+      url: `/feed/${args.feedEventId}?utm_source=push&utm_medium=push&utm_campaign=reaction_received`,
     };
 
     if (subs.length > 0) {

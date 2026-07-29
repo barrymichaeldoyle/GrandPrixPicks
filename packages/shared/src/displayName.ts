@@ -8,8 +8,8 @@
  * fallback before the data reached the client.
  *
  * Sentence-embedded copy is deliberately NOT covered here. The notification
- * bell says "Someone revved your pick", which reads better than "Anonymous
- * revved your pick"; keep that local to the sentence that needs it.
+ * bell says "Someone reacted to your pick", which reads better than "Anonymous
+ * reacted to your pick"; keep that local to the sentence that needs it.
  */
 export const ANONYMOUS_NAME = 'Anonymous';
 

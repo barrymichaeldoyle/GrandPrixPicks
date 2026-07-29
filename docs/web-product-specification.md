@@ -109,7 +109,7 @@ An authenticated player has all anonymous capabilities and can:
 - maintain a public profile;
 - follow and unfollow players;
 - view personalized and league feeds;
-- give or remove a “rev” reaction on feed items;
+- add, change, or remove a reaction on feed items;
 - create, join, leave, and share leagues within plan limits;
 - configure profile, regional, email, and device push settings;
 - receive in-app notifications;
@@ -466,14 +466,21 @@ membership context.
 League members can view a feed scoped to their league. Non-members cannot query
 the private member feed.
 
-### 11.4 Revs
+### 11.4 Reactions
 
-A “rev” is the product's lightweight reaction to a feed event.
+Reactions are lightweight responses to a feed event. The supported set is:
 
-- Authenticated users can add or remove their rev.
-- The event detail page lists users who revved the item.
-- Receiving revs can generate grouped in-app notifications and, when enabled,
-  push notifications.
+- 🔥 Great pick;
+- 👏 Nice one;
+- 🤯 Wow;
+- 😂 Funny;
+- 🫣 Oof.
+
+- Authenticated users can add one reaction, change it, or remove it.
+- Feed items show an aggregate count and the most-used reaction emoji.
+- The event detail page groups participants by reaction.
+- Receiving reactions can generate grouped in-app notifications and, when
+  enabled, push notifications.
 - Feed events that no longer exist or are no longer available show a safe
   unavailable state.
 
@@ -564,7 +571,7 @@ authenticated players and include:
 - results and scores published;
 - results/scores amended;
 - session locked when the player has picks;
-- revs received, grouped where applicable.
+- reactions received, grouped where applicable.
 
 Players can mark individual notifications or all notifications as read.
 Notification links lead to the relevant race, session, or feed event.
@@ -578,7 +585,7 @@ and independently configure:
 - picks-lock-soon reminders;
 - results and scores;
 - session locked;
-- revs on predictions.
+- reactions to posts.
 
 Disabling push access removes the subscription for the current device only.
 Browser-denied permission must be explained without repeatedly prompting.
@@ -767,7 +774,7 @@ such as:
 - draft discard;
 - league creation, joining, and invitation sharing;
 - following and feed interaction;
-- rev interaction;
+- reaction added, changed, and removed;
 - notification opening/read state;
 - checkout start, redirect, success, cancellation, and failure.
 
@@ -885,7 +892,7 @@ keyboard-accessible interaction.
 | `/races/:raceSlug`        | Public/player | Picks, H2H, results, scores, recap, sharing            |
 | `/leaderboard`            | Public/player | Weekend/season, Combined/Top 5/H2H rankings            |
 | `/feed`                   | Player        | Personalized friends-and-leagues activity              |
-| `/feed/:feedEventId`      | Player        | Feed item detail and rev participants                  |
+| `/feed/:feedEventId`      | Player        | Feed item detail and reaction participants             |
 | `/leagues`                | Public/player | My leagues, usage, public discovery                    |
 | `/leagues/create`         | Player        | Create private/public league within entitlement        |
 | `/leagues/:slug`          | Public/player | League summary, join flow, member experience           |

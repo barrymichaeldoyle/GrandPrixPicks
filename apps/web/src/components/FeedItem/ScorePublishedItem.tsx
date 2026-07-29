@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { Avatar } from '../Avatar';
-import { RevButton } from '../RevButton';
+import { ReactionButton } from '../ReactionButton';
 import { useState } from 'react';
 import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
 import type { FeedEvent } from './types';
 import { H2HPicksDialog } from './H2HPicksDialog';
-import { RevsModal } from './RevsModal';
+import { ReactionsModal } from './ReactionsModal';
 import { UserLink } from './UserLink';
 import { SESSION_LABELS, formatRelativeTime, getScoreComment } from './helpers';
 
@@ -17,7 +17,7 @@ export function ScorePublishedItem({
   grouped?: boolean;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
-  const [revsOpen, setRevsOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   const isLocked = event.type === 'session_locked';
   const isAmended = event.type === 'results_amended';
 
@@ -194,12 +194,12 @@ export function ScorePublishedItem({
           })()}
 
         <div className="-mx-2.5 -mb-2.5 flex items-center justify-between gap-2 px-2.5 py-2">
-          <RevButton
+          <ReactionButton
             feedEventId={event._id}
-            revCount={event.revCount}
-            viewerHasReved={event.viewerHasReved}
-            recentRevUsers={event.recentRevUsers}
-            onCountClick={() => setRevsOpen(true)}
+            reactionCount={event.reactionCount}
+            reactionCounts={event.reactionCounts}
+            viewerReaction={event.viewerReaction}
+            onCountClick={() => setReactionsOpen(true)}
           />
           {!grouped && (
             <div className="flex shrink-0 items-center gap-2 text-xs text-text-muted">
@@ -227,15 +227,18 @@ export function ScorePublishedItem({
           onClose={() => setH2hOpen(false)}
         />
       )}
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      {reactionsOpen && (
+        <ReactionsModal
+          feedEventId={event._id}
+          onClose={() => setReactionsOpen(false)}
+        />
       )}
     </>
   );
 }
 
 export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
-  const [revsOpen, setRevsOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   return (
     <>
       <div className="flex items-center gap-3">
@@ -262,16 +265,19 @@ export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
             · {formatRelativeTime(event.createdAt)}
           </span>
         </p>
-        <RevButton
+        <ReactionButton
           feedEventId={event._id}
-          revCount={event.revCount}
-          viewerHasReved={event.viewerHasReved}
-          recentRevUsers={event.recentRevUsers}
-          onCountClick={() => setRevsOpen(true)}
+          reactionCount={event.reactionCount}
+          reactionCounts={event.reactionCounts}
+          viewerReaction={event.viewerReaction}
+          onCountClick={() => setReactionsOpen(true)}
         />
       </div>
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      {reactionsOpen && (
+        <ReactionsModal
+          feedEventId={event._id}
+          onClose={() => setReactionsOpen(false)}
+        />
       )}
     </>
   );

@@ -2,7 +2,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { Avatar } from '../Avatar';
 import { RaceFlag } from '../RaceFlag';
-import { RevButton } from '../RevButton';
+import { ReactionButton } from '../ReactionButton';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { podiumClasses } from '@/lib/podium';
 import { useEffect, useRef, useState } from 'react';
@@ -11,7 +11,7 @@ import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
 import type { FeedEvent, SessionHeader } from './types';
 import { FeedItem } from './FeedItem';
 import { H2HPicksDialog } from './H2HPicksDialog';
-import { RevsModal } from './RevsModal';
+import { ReactionsModal } from './ReactionsModal';
 import { UserLink } from './UserLink';
 import {
   SESSION_LABELS,
@@ -87,7 +87,7 @@ function SessionLeaderboardRow({
   isLast: boolean;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
-  const [revsOpen, setRevsOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   const total = eventTotalPoints(event);
 
   return (
@@ -135,7 +135,7 @@ function SessionLeaderboardRow({
             </span>
           </div>
 
-          {/* One wrap flow: badges fill first, Rev's ml-auto keeps it right and
+          {/* One wrap flow: badges fill first, reactions stay right and
               lets it drop to its own line on narrow screens. */}
           <div className="flex flex-wrap items-center gap-1.5">
             {(event.picks ?? []).map((pick) => (
@@ -160,12 +160,12 @@ function SessionLeaderboardRow({
               </button>
             )}
             <div className="ml-auto shrink-0">
-              <RevButton
+              <ReactionButton
                 feedEventId={event._id}
-                revCount={event.revCount}
-                viewerHasReved={event.viewerHasReved}
-                recentRevUsers={event.recentRevUsers}
-                onCountClick={() => setRevsOpen(true)}
+                reactionCount={event.reactionCount}
+                reactionCounts={event.reactionCounts}
+                viewerReaction={event.viewerReaction}
+                onCountClick={() => setReactionsOpen(true)}
               />
             </div>
           </div>
@@ -183,8 +183,11 @@ function SessionLeaderboardRow({
           onClose={() => setH2hOpen(false)}
         />
       )}
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      {reactionsOpen && (
+        <ReactionsModal
+          feedEventId={event._id}
+          onClose={() => setReactionsOpen(false)}
+        />
       )}
     </>
   );

@@ -58,8 +58,8 @@ const PUSH_TOGGLES: { key: NotificationKey; label: string; help: string }[] = [
   },
   {
     key: 'pushRevReceived',
-    label: 'Revs from others',
-    help: 'When someone revs one of your picks.',
+    label: 'Reactions to your posts',
+    help: 'When someone reacts to one of your picks.',
   },
 ];
 

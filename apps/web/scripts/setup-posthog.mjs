@@ -41,12 +41,15 @@ const funnels = [
     ],
   },
   {
-    name: 'Social engagement: follow to rev',
+    name: 'Social engagement: follow to reaction',
     description: 'Tracks whether social discovery leads to feed engagement.',
     steps: [
       { event: '$pageview', name: 'Pageview' },
       { event: 'user_followed', name: 'User followed' },
-      { event: 'feed_event_reved', name: 'Feed event reved' },
+      {
+        event: 'feed_event_reaction_added',
+        name: 'Feed reaction added',
+      },
     ],
   },
 ];

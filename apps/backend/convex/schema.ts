@@ -1,6 +1,11 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+import {
+  reactionCountsValidator,
+  reactionTypeValidator,
+} from './lib/reactions';
+
 const sessionType = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
@@ -547,6 +552,9 @@ export default defineSchema({
     streakCount: v.optional(v.number()),
     // Engagement
     revCount: v.number(),
+    // New reaction model. Optional during the rev -> reaction rollout; when
+    // absent, all legacy revs are interpreted as `fire`.
+    reactionCounts: v.optional(reactionCountsValidator),
     createdAt: v.number(),
   })
     .index('by_created', ['createdAt'])
@@ -559,6 +567,9 @@ export default defineSchema({
   revs: defineTable({
     feedEventId: v.id('feedEvents'),
     userId: v.id('users'),
+    // Optional so existing rev rows remain deployable. Readers treat an
+    // absent value as the default `fire` reaction.
+    reactionType: v.optional(reactionTypeValidator),
     createdAt: v.number(),
   })
     .index('by_event', ['feedEventId'])
@@ -617,6 +628,7 @@ export default defineSchema({
     actorDisplayName: v.optional(v.string()),
     actorAvatarUrl: v.optional(v.string()),
     feedEventId: v.optional(v.id('feedEvents')),
+    reactionType: v.optional(reactionTypeValidator),
   })
     .index('by_user_created', ['userId', 'createdAt'])
     .index('by_user_unread', ['userId', 'readAt'])

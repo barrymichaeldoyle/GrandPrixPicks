@@ -1,3 +1,7 @@
+import {
+  REACTION_BY_TYPE,
+  REACTION_OPTIONS,
+} from '@grandprixpicks/shared/reactions';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -21,7 +25,7 @@ export const Route = createFileRoute('/feed/$feedEventId')({
         { title: 'Prediction | Grand Prix Picks' },
         {
           name: 'description',
-          content: 'View a single prediction and the revs it received.',
+          content: 'View a single prediction and the reactions it received.',
         },
         ...canonical.meta,
       ],
@@ -30,17 +34,29 @@ export const Route = createFileRoute('/feed/$feedEventId')({
   },
 });
 
-function RevsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
-  const revUsers = useQuery(api.feed.getRevUsers, { feedEventId });
+function ReactionsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
+  const reactionUsers = useQuery(api.feed.getReactionUsers, { feedEventId });
   const me = useQuery(api.users.me, {});
+  const groups =
+    reactionUsers === undefined
+      ? []
+      : REACTION_OPTIONS.map((reaction) => ({
+          reaction,
+          users: reactionUsers.filter(
+            (user) => user?.reactionType === reaction.type,
+          ),
+        })).filter((group) => group.users.length > 0);
 
   return (
     <section>
       <div className="mb-3">
-        <h2 className="text-sm font-semibold text-text">Revs</h2>
+        <h2 className="text-sm font-semibold text-text">
+          Reactions
+          {reactionUsers?.length ? ` · ${reactionUsers.length}` : ''}
+        </h2>
       </div>
 
-      {revUsers === undefined ? (
+      {reactionUsers === undefined ? (
         <div className="space-y-1">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-center gap-3 py-2">
@@ -50,44 +66,70 @@ function RevsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
             </div>
           ))}
         </div>
-      ) : revUsers.length === 0 ? (
+      ) : reactionUsers.length === 0 ? (
         <div className="py-6 text-center text-sm text-text-muted">
-          No revs yet.
+          No reactions yet.
         </div>
       ) : (
-        <div className="divide-y divide-border/60">
-          {revUsers.map((user) =>
-            user ? (
-              <div key={user.userId} className="flex items-center gap-3 py-3">
-                <Link
-                  to="/p/$username"
-                  params={{ username: user.username ?? '' }}
-                  search={{ from: '/feed', fromLabel: 'feed' }}
-                  className="flex min-w-0 flex-1 items-center gap-3"
-                  tabIndex={user.username ? 0 : -1}
-                >
-                  <Avatar
-                    avatarUrl={user.avatarUrl}
-                    username={user.username}
-                    size="sm"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-text">
-                      {resolveDisplayName(user)}
-                    </p>
-                    {user.username && (
-                      <p className="truncate text-xs text-text-muted">
-                        @{user.username}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-                {me && user.userId !== me._id && (
-                  <FollowButton followeeId={user.userId} />
+        <div className="space-y-3">
+          {groups.map(({ reaction, users }) => (
+            <section
+              key={reaction.type}
+              className="overflow-hidden rounded-sm border border-border/70"
+            >
+              <div className="flex items-center gap-2 bg-surface-elevated px-3 py-2">
+                <span aria-hidden="true">{reaction.emoji}</span>
+                <h3 className="flex-1 text-xs font-semibold text-text">
+                  {reaction.label}
+                </h3>
+                <span className="gpp-mono text-xs text-text-muted">
+                  {users.length}
+                </span>
+              </div>
+              <div className="divide-y divide-border/60">
+                {users.map((user) =>
+                  user ? (
+                    <div
+                      key={user.userId}
+                      className="flex items-center gap-3 px-3 py-3"
+                    >
+                      <Link
+                        to="/p/$username"
+                        params={{ username: user.username ?? '' }}
+                        search={{ from: '/feed', fromLabel: 'feed' }}
+                        className="flex min-w-0 flex-1 items-center gap-3"
+                        tabIndex={user.username ? 0 : -1}
+                      >
+                        <Avatar
+                          avatarUrl={user.avatarUrl}
+                          username={user.username}
+                          size="sm"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-text">
+                            {resolveDisplayName(user)}
+                          </p>
+                          {user.username && (
+                            <p className="truncate text-xs text-text-muted">
+                              @{user.username}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                      <span
+                        aria-label={REACTION_BY_TYPE[user.reactionType].label}
+                      >
+                        {REACTION_BY_TYPE[user.reactionType].emoji}
+                      </span>
+                      {me && user.userId !== me._id && (
+                        <FollowButton followeeId={user.userId} />
+                      )}
+                    </div>
+                  ) : null,
                 )}
               </div>
-            ) : null,
-          )}
+            </section>
+          ))}
         </div>
       )}
     </section>
@@ -143,7 +185,7 @@ function FeedEventPage() {
           <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
             <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
             <p className="mb-4 text-sm text-text-muted">
-              Sign in to view this prediction and its revs.
+              Sign in to view this prediction and its reactions.
             </p>
             <Button asChild variant="primary" size="md">
               <Link to="/feed">Go to feed</Link>
@@ -173,7 +215,7 @@ function FeedEventPage() {
               <FeedItem event={feedEvent.event} />
             )}
             <section className="rounded-sm border border-border bg-surface p-4">
-              <RevsSection feedEventId={feedEventId as Id<'feedEvents'>} />
+              <ReactionsSection feedEventId={feedEventId as Id<'feedEvents'>} />
             </section>
           </div>
         )}

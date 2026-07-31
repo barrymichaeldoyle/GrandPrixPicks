@@ -211,6 +211,12 @@ function RootDocument({ children }: PropsWithChildren) {
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598"
           crossOrigin="anonymous"
         />
+        <script
+          async
+          src="https://startupbar.co/widget/loader.js"
+          data-startup-id="4a43c3ef-449e-4069-9e46-a534ff4f7130"
+          data-theme="dark"
+        />
         <HeadContent />
       </head>
       <body>

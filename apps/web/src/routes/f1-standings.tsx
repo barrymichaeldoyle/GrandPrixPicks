@@ -386,7 +386,7 @@ function F1StandingsPage() {
           </Link>
           <Link
             to="/leaderboard"
-            search={{ time: 'season', mode: 'combined' }}
+            search={{ time: 'season' }}
             className="font-medium text-accent underline-offset-2 hover:underline"
           >
             Prediction game leaderboard

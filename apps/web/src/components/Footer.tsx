@@ -65,7 +65,7 @@ const socialLinks = [
 ] as const;
 
 const socialLinkClass =
-  'inline-flex items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
+  'inline-flex min-h-8 items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
 
 function MadeByCredit({
   className,
@@ -91,7 +91,7 @@ function MadeByCredit({
         href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-7 w-7 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+        className="flex h-8 w-8 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
         aria-label="Barry Michael Doyle on LinkedIn"
       >
         <LinkedInIcon className="h-3.5 w-3.5" />
@@ -103,13 +103,13 @@ function MadeByCredit({
 export function Footer() {
   const year = new Date().getFullYear();
   const footerLinkClass =
-    'text-text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-sm';
+    'inline-flex min-h-6 items-center rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none';
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
       <div className="relative mx-auto max-w-6xl px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted sm:grid-cols-2 sm:gap-10 lg:grid-cols-[1.35fr_0.9fr_1fr_1.05fr]">
-          <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted min-[360px]:grid-cols-2 min-[360px]:gap-x-6 sm:gap-10 lg:grid-cols-[1.35fr_0.9fr_1fr_1.05fr]">
+          <div className="space-y-3 min-[360px]:col-span-2 lg:col-span-1">
             <Link
               to="/"
               className="group flex items-center gap-2.5 rounded-sm text-base text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"

@@ -144,8 +144,8 @@ type Story = StoryObj<typeof meta>;
 
 /**
  * The exact signed-out production journey. Pick five drivers in order; the
- * card hands off automatically to all 11 teammate duels and finishes on the
- * combined account/save wall.
+ * completed order unlocks an explicit continue action, followed by all 11
+ * teammate duels and the combined account/save wall.
  */
 export const CompleteJourney: Story = {
   render: () => <JourneyPreview storyId="complete-journey" seedState="empty" />,
@@ -161,7 +161,7 @@ export const CompleteJourneyMobile: Story = {
   ),
 };
 
-/** The brief review/continue state shown once a signed-out Top 5 is complete. */
+/** The review/continue state shown once the Top 5 is complete. */
 export const TopFiveHandoff: Story = {
   render: () => <JourneyPreview storyId="top-five-handoff" seedState="top5" />,
 };

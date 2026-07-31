@@ -13,7 +13,7 @@ import { ConvexProviderWithAuth } from 'convex/react';
 import { MotionConfig } from 'framer-motion';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
@@ -315,6 +315,11 @@ function AppRuntimeBoundary({
   const [afterSignInPath, setAfterSignInPath] = useState<
     '/leagues/create' | null
   >(null);
+  // Landing keeps Clerk out of the first paint. Booting it remounts the page
+  // under a new provider tree, which briefly collapses query-backed content and
+  // lets the browser clamp scroll to the top. Hold the pre-click offset until
+  // the modal is open (or a short settle window elapses).
+  const scrollRestoreY = useRef<number | null>(null);
   const runtimeActive = initialSignedIn || pathname !== '/' || runtimeRequested;
 
   useEffect(() => {
@@ -336,12 +341,47 @@ function AppRuntimeBoundary({
     }
   }, []);
 
+  useLayoutEffect(() => {
+    if (!runtimeRequested || scrollRestoreY.current === null) {
+      return;
+    }
+    const y = scrollRestoreY.current;
+    function restore() {
+      if (scrollRestoreY.current === null) {
+        return;
+      }
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    }
+    restore();
+    // The lazy Clerk runtime and the query remount settle over a few frames,
+    // not one. Keep pinning until OpenSignInOnMount clears the lock.
+    const timers = [0, 50, 150, 300, 500].map((ms) =>
+      window.setTimeout(restore, ms),
+    );
+    const release = window.setTimeout(() => {
+      scrollRestoreY.current = null;
+    }, 600);
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      window.clearTimeout(release);
+    };
+  }, [runtimeRequested]);
+
   function requestSignIn(nextPath?: '/leagues/create') {
+    scrollRestoreY.current = window.scrollY;
     setAfterSignInPath(nextPath ?? null);
     setOpenSignInOnMount(true);
     setRuntimeRequested(true);
   }
   function signInOpened() {
+    if (scrollRestoreY.current !== null) {
+      window.scrollTo({
+        top: scrollRestoreY.current,
+        left: 0,
+        behavior: 'instant',
+      });
+      scrollRestoreY.current = null;
+    }
     setOpenSignInOnMount(false);
   }
   const runtimeControl = {

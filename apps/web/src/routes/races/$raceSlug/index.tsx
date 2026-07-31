@@ -251,7 +251,7 @@ function LeaderboardLink({ raceId }: { raceId: string }) {
     <Button asChild variant="text" size="sm" leftIcon={Trophy}>
       <Link
         to="/leaderboard"
-        search={{ time: 'weekend', mode: 'combined', raceId }}
+        search={{ time: 'weekend', raceId }}
       >
         Leaderboard
       </Link>

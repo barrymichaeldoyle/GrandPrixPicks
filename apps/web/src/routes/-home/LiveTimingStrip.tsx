@@ -1,8 +1,6 @@
 import { Link } from '@tanstack/react-router';
 
-import { Flag } from '@/components/Flag';
 import { sizedAvatarUrl } from '@/lib/avatar';
-import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 import { PointsCell, PositionBox, RankDelta } from './TimingTower';
 
@@ -23,11 +21,9 @@ export type TopPlayer = {
  */
 export function LiveTimingStrip({
   players,
-  caption,
   season,
 }: {
   players: readonly TopPlayer[];
-  caption: CaptionProps | null;
   season: number;
 }) {
   const rows = players.slice(0, 5);
@@ -90,8 +86,7 @@ export function LiveTimingStrip({
           })}
         </ol>
 
-        <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          {caption ? <StripCaption {...caption} /> : <span />}
+        <div className="mt-3 flex justify-end">
           <Link
             to="/leaderboard"
             className="gpp-reading-meta shrink-0 font-medium text-accent hover:text-accent-hover"
@@ -101,52 +96,5 @@ export function LiveTimingStrip({
         </div>
       </div>
     </section>
-  );
-}
-
-type CaptionProps = {
-  pickCount: number;
-  raceShortName: string;
-  raceSlug: string;
-  /** "Saturday, 14:00 CEST", already in the circuit's timezone. */
-  lockTime: string | null;
-};
-
-/**
- * "12,431 picks in for Spa. Locks Saturday, 14:00 CEST."
- *
- * The pick count is only shown once it is a number worth quoting. A landing
- * page that says "3 picks in" is doing the opposite of social proof.
- */
-const MIN_QUOTABLE_PICK_COUNT = 25;
-
-function StripCaption({
-  pickCount,
-  raceShortName,
-  raceSlug,
-  lockTime,
-}: CaptionProps) {
-  const countryCode = getCountryCodeForRace({ slug: raceSlug });
-  const showCount = pickCount >= MIN_QUOTABLE_PICK_COUNT;
-
-  if (!showCount && !lockTime) {
-    return <span />;
-  }
-
-  return (
-    <p className="gpp-reading-meta flex items-center gap-2 text-text-muted">
-      {countryCode ? <Flag code={countryCode} size="xs" /> : null}
-      <span>
-        {showCount ? (
-          <>
-            <span className="gpp-mono text-text">
-              {pickCount.toLocaleString()}
-            </span>{' '}
-            picks in for {raceShortName}.{' '}
-          </>
-        ) : null}
-        {lockTime ? `Locks ${lockTime}.` : null}
-      </span>
-    </p>
   );
 }

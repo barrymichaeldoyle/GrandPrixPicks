@@ -6,12 +6,11 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/components/DriverBadge';
-import { TabSwitch } from '@/components/TabSwitch';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { setPendingSubmit } from '@/lib/predictionDrafts';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
-type PicksTab = 'top5' | 'h2h';
+type PicksStep = 'top5' | 'h2h';
 export type LandingPicksInitialStep =
   | 'top5'
   | 'teammate-handoff'
@@ -32,8 +31,9 @@ export const LANDING_PICKS_ANCHOR = 'make-picks';
 
 /**
  * The real picker, embedded in the landing page. Not a screenshot and not a
- * scripted animation: a signed-out visitor fills all five slots, the picks are
- * kept as a device draft, and the save-wall below converts that into an account.
+ * scripted animation: a signed-out visitor completes both prediction steps,
+ * the picks are kept as device drafts, and only the full card asks for an
+ * account.
  */
 export function LandingPicks({
   raceId,
@@ -58,9 +58,10 @@ export function LandingPicks({
    */
   initialStep?: LandingPicksInitialStep;
 }) {
-  const [activeTab, setActiveTab] = useState<PicksTab>(
+  const [activeStep, setActiveStep] = useState<PicksStep>(
     initialStep === 'top5' ? 'top5' : 'h2h',
   );
+  const [h2hVisited, setH2HVisited] = useState(initialStep !== 'top5');
   const [topFiveComplete, setTopFiveComplete] = useState(
     initialStep === 'teammate-handoff',
   );
@@ -68,13 +69,18 @@ export function LandingPicks({
     'manual' | 'top5_handoff'
   >(initialStep === 'teammate-handoff' ? 'top5_handoff' : 'manual');
   const [topFivePicks, setTopFivePicks] = useState<Array<Id<'drivers'>>>([]);
-  const [h2hProgress, setH2HProgress] = useState({ selected: 0, total: 0 });
+  const [draftNoticeTarget, setDraftNoticeTarget] =
+    useState<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const stepHeaderRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const viewedRef = useRef(false);
   const handoffCapturedRef = useRef(false);
   const handoffCompletedRef = useRef(false);
-  const matchups = useQuery(api.h2h.getMatchupsForSeason, { season });
+  const matchups = useQuery(
+    api.h2h.getMatchupsForSeason,
+    h2hVisited ? { season } : 'skip',
+  );
 
   // Slot number per driver, so a teammate battle can show the call already
   // made about that driver upstairs instead of asking twice.
@@ -82,21 +88,17 @@ export function LandingPicks({
     topFivePicks.map((driverId, index) => [driverId, index + 1]),
   );
 
-  const h2hTabLabel =
-    h2hProgress.total > 0 && h2hProgress.selected === h2hProgress.total
-      ? 'Teammate H2H ✓'
-      : h2hProgress.selected > 0
-        ? `Teammate H2H ${h2hProgress.selected}/${h2hProgress.total}`
-        : 'Teammate H2H';
-
-  // Returning the same object when nothing moved keeps this a no-op render,
-  // which is what stops the reporting effect downstream from looping.
-  function handleH2HProgress(selected: number, total: number) {
-    setH2HProgress((current) =>
-      current.selected === selected && current.total === total
-        ? current
-        : { selected, total },
-    );
+  function revealActiveStep() {
+    window.requestAnimationFrame(() => {
+      const reduceMotion =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      stepHeaderRef.current?.scrollIntoView?.({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      panelRef.current?.focus({ preventScroll: true });
+    });
   }
 
   useEffect(() => {
@@ -123,19 +125,14 @@ export function LandingPicks({
     return () => observer.disconnect();
   }, [raceId, raceSlug, sessionLabel]);
 
-  function changeTab(tab: PicksTab) {
-    // Entry method is how they first reached the battles, so a later tab click
-    // must not rewrite it. It used to, which also silently dropped the handoff
-    // confirmation for anyone who glanced back at their Top 5.
-    if (tab === 'h2h' && !handoffCapturedRef.current) {
-      setH2HEntryMethod('manual');
-    }
-    setActiveTab(tab);
-    captureAnalyticsEvent('landing_picker_tab_changed', {
+  function editTopFive() {
+    setActiveStep('top5');
+    captureAnalyticsEvent('landing_picker_step_changed', {
       race_id: raceId,
       race_slug: raceSlug,
-      prediction_type: tab,
+      prediction_type: 'top5',
     });
+    revealActiveStep();
   }
 
   function handleTopFiveComplete() {
@@ -151,7 +148,12 @@ export function LandingPicks({
   }
 
   function continueToH2H() {
-    setActiveTab('h2h');
+    if (!topFiveComplete) {
+      return;
+    }
+    setH2HEntryMethod('top5_handoff');
+    setH2HVisited(true);
+    setActiveStep('h2h');
     if (!handoffCompletedRef.current) {
       handoffCompletedRef.current = true;
       captureAnalyticsEvent('landing_top5_to_h2h_handoff_completed', {
@@ -160,7 +162,7 @@ export function LandingPicks({
         session_label: sessionLabel,
       });
     }
-    window.requestAnimationFrame(() => panelRef.current?.focus());
+    revealActiveStep();
   }
 
   function prepareCombinedSave() {
@@ -186,51 +188,44 @@ export function LandingPicks({
       className="scroll-mt-28 border-t border-border px-4 pt-8 pb-10 sm:pb-12"
     >
       <div className="mx-auto w-full max-w-6xl">
-        <div className="flex flex-col gap-5 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            {/*
-             * Flag, race and session are already the first three things the
-             * hero clock says, and on a phone that block ends 65px above this
-             * one — close enough that repeating them reads as the page
-             * stuttering rather than as a section header. The hero owns
-             * identity for everything above the fold; this section only has to
-             * say what to do. The heading stays in the tree as text so the
-             * document outline and the "which race is this" question still
-             * have an answer for anyone not reading the layout.
-             */}
-            <h2 className="sr-only">
+        <div
+          ref={stepHeaderRef}
+          className="scroll-mt-28 flex items-end justify-between gap-4 border-b border-border pb-4"
+        >
+          <div className="min-w-0 flex-1">
+            <span className="sr-only">
               {abbreviateGrandPrix(raceName)} · {sessionLabel}
+            </span>
+            <div className="flex min-h-5 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+              <p className="gpp-label text-accent">
+                Step {activeStep === 'top5' ? '1' : '2'} of 2
+              </p>
+              <div ref={setDraftNoticeTarget} />
+            </div>
+            <h2
+              id="landing-picks-step-heading"
+              className="mt-1 text-xl font-semibold text-text sm:text-2xl"
+            >
+              {activeStep === 'top5'
+                ? 'Choose your Top 5'
+                : 'Pick each teammate winner'}
             </h2>
-            <p className="gpp-reading-copy max-w-2xl text-text-muted">
-              Start with your top 5, then call every teammate battle.
-            </p>
           </div>
-          <TabSwitch
-            value={activeTab}
-            onChange={changeTab}
-            ariaLabel="Prediction type"
-            id="landing-prediction-type"
-            panelId="landing-prediction-panel"
-            options={[
-              {
-                value: 'top5',
-                label: topFiveComplete ? 'Top 5 ✓' : 'Top 5',
-              },
-              { value: 'h2h', label: h2hTabLabel },
-            ]}
-            className="flex shrink-0 gap-1"
-          />
+          {activeStep === 'h2h' && topFiveComplete ? (
+            <Button variant="text" size="inline" onClick={editTopFive}>
+              Edit Top 5
+            </Button>
+          ) : null}
         </div>
 
         <div
           ref={panelRef}
           id="landing-prediction-panel"
           className="pt-5"
-          role="tabpanel"
-          aria-labelledby={`landing-prediction-type-${activeTab}`}
-          tabIndex={0}
+          aria-labelledby="landing-picks-step-heading"
+          tabIndex={-1}
         >
-          <div hidden={activeTab !== 'top5'}>
+          <div hidden={activeStep !== 'top5'}>
             <Suspense fallback={<TopFivePickerSkeleton />}>
               <LandingTopFivePicker
                 raceId={raceId}
@@ -239,46 +234,41 @@ export function LandingPicks({
                 onContinue={continueToH2H}
                 onCompletionStateChange={setTopFiveComplete}
                 onPicksChange={setTopFivePicks}
+                draftNoticeTarget={
+                  activeStep === 'top5' ? draftNoticeTarget : null
+                }
               />
             </Suspense>
           </div>
-          <div hidden={activeTab !== 'h2h'}>
-            {topFiveComplete &&
-            h2hEntryMethod === 'top5_handoff' &&
-            h2hProgress.selected === 0 ? (
-              <p className="mb-5 flex items-center gap-2 text-sm text-accent">
-                <span
-                  className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-text-on-accent"
-                  aria-hidden="true"
-                >
-                  ✓
-                </span>
-                Top 5 drafted. Now call the teammate battles.
-              </p>
-            ) : null}
-            {matchups === undefined ? (
-              <H2HPickerSkeleton />
-            ) : (
-              <Suspense fallback={<H2HPickerSkeleton />}>
-                <H2HPredictionForm
-                  raceId={raceId}
-                  matchups={matchups}
-                  analyticsSource="landing"
-                  entryMethod={h2hEntryMethod}
-                  onSaveIntent={prepareCombinedSave}
-                  onSelectionProgress={handleH2HProgress}
-                  topFivePositions={topFivePositions}
-                  renderSaveWall={({ lockIn }) => (
-                    <PredictionCardSaveWall
-                      topFivePicks={topFivePicks}
-                      drivers={initialDrivers}
-                      onLockIn={lockIn}
-                      onFinishTopFive={() => changeTab('top5')}
+          <div hidden={activeStep !== 'h2h'}>
+            {h2hVisited ? (
+              <>
+                {matchups === undefined ? (
+                  <H2HPickerSkeleton />
+                ) : (
+                  <Suspense fallback={<H2HPickerSkeleton />}>
+                    <H2HPredictionForm
+                      raceId={raceId}
+                      matchups={matchups}
+                      analyticsSource="landing"
+                      entryMethod={h2hEntryMethod}
+                      onSaveIntent={prepareCombinedSave}
+                      topFivePositions={topFivePositions}
+                      draftNoticeTarget={
+                        activeStep === 'h2h' ? draftNoticeTarget : null
+                      }
+                      renderSaveWall={({ lockIn }) => (
+                        <PredictionCardSaveWall
+                          topFivePicks={topFivePicks}
+                          drivers={initialDrivers}
+                          onLockIn={lockIn}
+                        />
+                      )}
                     />
-                  )}
-                />
-              </Suspense>
-            )}
+                  </Suspense>
+                )}
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -296,21 +286,15 @@ function PredictionCardSaveWall({
   topFivePicks,
   drivers,
   onLockIn,
-  onFinishTopFive,
 }: {
   topFivePicks: Array<Id<'drivers'>>;
   drivers: Array<Doc<'drivers'>>;
   onLockIn: () => void;
-  onFinishTopFive: () => void;
 }) {
   const pickedDrivers = topFivePicks
     .map((driverId) => drivers.find((driver) => driver._id === driverId))
     .filter((driver): driver is Doc<'drivers'> => driver !== undefined);
   const includesTopFive = pickedDrivers.length === 5;
-  // A part-filled Top 5 never submits: it stays a device draft while only the
-  // teammate picks save. Saying so beats letting them find out later.
-  const partialTopFive = pickedDrivers.length > 0 && !includesTopFive;
-
   return (
     <div
       className="mx-auto mt-6 max-w-3xl border-t border-border pt-5"
@@ -323,8 +307,8 @@ function PredictionCardSaveWall({
       </p>
       <p className="gpp-reading-copy mt-1 text-text-muted">
         {includesTopFive
-          ? 'Create a free account to save your Top 5 and teammate picks.'
-          : 'Create a free account to save your teammate picks.'}
+          ? 'Sign in to submit your Top 5 and teammate picks.'
+          : 'Sign in to submit your teammate picks.'}
       </p>
 
       {includesTopFive ? (
@@ -355,24 +339,14 @@ function PredictionCardSaveWall({
         </ol>
       ) : null}
 
-      {partialTopFive ? (
-        <p className="mt-4 text-sm text-warning">
-          Your Top 5 is only {pickedDrivers.length} of 5, so it won’t be saved
-          with this card.{' '}
-          <Button variant="text" size="inline" onClick={onFinishTopFive}>
-            Finish your Top 5
-          </Button>
-        </p>
-      ) : null}
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button variant="primary" size="md" onClick={onLockIn}>
-          Save my picks
-        </Button>
-        <Button variant="text" size="md" onClick={onLockIn}>
-          I have an account
-        </Button>
-      </div>
+      <Button
+        variant="primary"
+        size="md"
+        className="mt-4 w-full sm:w-auto"
+        onClick={onLockIn}
+      >
+        Sign in to submit my picks
+      </Button>
     </div>
   );
 }
@@ -409,13 +383,13 @@ function TopFivePickerSkeleton() {
           <p className="text-lg font-semibold text-text">Select Drivers</p>
           <span className="text-sm text-text-muted">Loading the grid…</span>
         </div>
-        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 md:grid-cols-4">
           {Array.from({ length: 22 }).map((_, index) => (
             <span
               // This skeleton intentionally mirrors the timing-sheet driver
               // cells so the picker never collapses into a generic spinner.
               key={index}
-              className="h-9 rounded-sm border border-border bg-surface-muted"
+              className="h-11 rounded-sm border border-border bg-surface-muted"
             />
           ))}
         </div>

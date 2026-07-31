@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { SeasonLeaderboardLayout } from './board';
 import { LeaderboardContentLoader } from './rows';
-import type { GameMode, LeaderboardEntry } from './types';
+import type { LeaderboardEntry } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
 
 export function FollowingGuard({ children }: PropsWithChildren) {
@@ -39,7 +39,6 @@ export function FollowingGuard({ children }: PropsWithChildren) {
 
 export function FollowingSeasonContent({
   data,
-  gameMode,
 }: {
   data:
     | {
@@ -48,7 +47,6 @@ export function FollowingSeasonContent({
         hasMore: boolean;
       }
     | undefined;
-  gameMode: GameMode;
 }) {
   if (data === undefined) {
     return <LeaderboardContentLoader />;
@@ -74,7 +72,6 @@ export function FollowingSeasonContent({
       entries={data.entries}
       hasMore={data.hasMore}
       totalCount={data.totalCount}
-      gameMode={gameMode}
       isLoadingMore={false}
       onLoadMore={() => {}}
     />

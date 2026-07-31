@@ -21,6 +21,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import type { SessionType } from '@/lib/sessions';
 import { Button } from './Button/Button';
+import { DraftRestoredNotice } from './DraftRestoredNotice';
 import { H2HDuelPicker } from './H2HDuelPicker';
 import { H2HMatchupGrid } from './H2HMatchupGrid';
 
@@ -42,6 +43,8 @@ interface H2HPredictionFormProps {
   onSaveIntent?: () => void;
   /** Replaces the signed-out submit button after every duel is selected. */
   renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
+  /** Moves restored-draft status into parent chrome such as a step header. */
+  draftNoticeTarget?: HTMLElement | null;
   /** Emits duel progress so a parent funnel can label its own tab/step. */
   onSelectionProgress?: (selected: number, total: number) => void;
   /** Top 5 slot (1-5) per driver, surfaced on the matching duel card. */
@@ -67,6 +70,7 @@ export function H2HPredictionForm({
   entryMethod,
   onSaveIntent,
   renderSaveWall,
+  draftNoticeTarget,
   onSelectionProgress,
   topFivePositions,
 }: H2HPredictionFormProps) {
@@ -451,17 +455,10 @@ export function H2HPredictionForm({
   return (
     <>
       {restoredDraftAt ? (
-        // Reassurance, not an alert: picks that survived a reload are good
-        // news, so this sits on the neutral surface rather than wearing the
-        // accent an actual warning would.
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2">
-          <span className="text-xs text-text-muted">
-            Unsaved draft restored
-          </span>
-          <Button variant="text" size="inline" onClick={handleDiscardDraft}>
-            Discard draft
-          </Button>
-        </div>
+        <DraftRestoredNotice
+          target={draftNoticeTarget}
+          onDiscard={handleDiscardDraft}
+        />
       ) : null}
       {/* One duel at a time is the right way to *make* eleven calls and the
           wrong way to *check* them. The moment the last one lands, the whole

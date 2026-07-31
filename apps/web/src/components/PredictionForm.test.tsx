@@ -40,7 +40,7 @@ vi.mock('@dnd-kit/core', () => ({
   KeyboardSensor: {},
   PointerSensor: {},
   useDraggable: () => ({
-    attributes: {},
+    attributes: { role: 'button', tabIndex: 0 },
     listeners: {},
     setNodeRef: () => {},
     transform: null,
@@ -126,6 +126,7 @@ function submitButton(container: HTMLElement) {
 
 describe('PredictionForm try-before-signup', () => {
   let container: HTMLDivElement;
+  let draftNoticeTarget: HTMLDivElement;
   let root: Root;
   const draftKey = getWebTop5DraftStorageKey(RACE_ID);
 
@@ -153,13 +154,16 @@ describe('PredictionForm try-before-signup', () => {
       updatedAt: new Date().toISOString(),
     });
     container = document.createElement('div');
+    draftNoticeTarget = document.createElement('div');
     document.body.appendChild(container);
+    document.body.appendChild(draftNoticeTarget);
     root = createRoot(container);
   });
 
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    draftNoticeTarget.remove();
     clearPendingSubmit(draftKey);
   });
 
@@ -218,5 +222,132 @@ describe('PredictionForm try-before-signup', () => {
 
     expect(requestSignInSpy).not.toHaveBeenCalled();
     expect(submitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes one interactive element for each draggable driver', async () => {
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const driverButtons = container.querySelectorAll<HTMLElement>(
+      'button[data-testid^="driver-"]',
+    );
+    expect(driverButtons).toHaveLength(DRIVER_IDS.length);
+    expect(
+      Array.from(driverButtons).every((driver) => driver.tagName === 'BUTTON'),
+    ).toBe(true);
+    expect(container.querySelector('[role="button"] button')).toBeNull();
+  });
+
+  it('keeps completed-pick guidance compact and beside the heading', async () => {
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const heading = Array.from(container.querySelectorAll('h3')).find(
+      (element) => element.textContent === 'Your Picks',
+    );
+
+    expect(heading?.parentElement?.textContent).toContain(
+      'Reorder: drag or use',
+    );
+    expect(container.textContent).not.toContain(
+      'Tap drivers to fill your Top 5.',
+    );
+  });
+
+  it('lets a guided flow replace the save area with its next action', async () => {
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          renderActionArea={({ complete }) => (
+            <button type="button">
+              {complete ? 'Continue journey' : 'Not ready'}
+            </button>
+          )}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain('Continue journey');
+    expect(submitButton(container)).toBeNull();
+    expect(container.textContent).not.toContain(
+      'You can edit your picks any time before this session starts.',
+    );
+  });
+
+  it('moves restored-draft status into parent chrome when given a target', async () => {
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          draftNoticeTarget={draftNoticeTarget}
+        />,
+      );
+    });
+
+    expect(draftNoticeTarget.textContent).toContain('Draft restored');
+    expect(draftNoticeTarget.textContent).toContain('Discard');
+    expect(container.textContent).not.toContain('Unsaved draft restored');
+
+    act(() => {
+      draftNoticeTarget.querySelector<HTMLButtonElement>('button')?.click();
+    });
+    expect(draftNoticeTarget.textContent).toBe('');
+  });
+
+  it('scrolls to the completed mobile list every time a removed pick is refilled', async () => {
+    const onComplete = vi.fn();
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(max-width: 1023px)',
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+    const requestAnimationFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callback(0);
+        return 1;
+      });
+
+    try {
+      await act(async () => {
+        root.render(
+          <PredictionForm
+            raceId={RACE_ID}
+            mobileActionFirst
+            onComplete={onComplete}
+          />,
+        );
+      });
+
+      for (let refill = 0; refill < 2; refill += 1) {
+        act(() => {
+          container
+            .querySelector<HTMLButtonElement>('[data-testid="remove-pick-5"]')
+            ?.click();
+        });
+        act(() => {
+          container
+            .querySelector<HTMLButtonElement>('[data-testid="driver-D4"]')
+            ?.click();
+        });
+      }
+
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      expect(onComplete).toHaveBeenCalledTimes(1);
+    } finally {
+      HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+      requestAnimationFrame.mockRestore();
+    }
   });
 });

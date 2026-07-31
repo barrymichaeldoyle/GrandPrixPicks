@@ -10,6 +10,7 @@ export function LandingTopFivePicker({
   onContinue,
   onCompletionStateChange,
   onPicksChange,
+  draftNoticeTarget,
 }: {
   raceId: Id<'races'>;
   initialDrivers: Array<Doc<'drivers'>>;
@@ -19,6 +20,7 @@ export function LandingTopFivePicker({
   onContinue: () => void;
   onCompletionStateChange: (complete: boolean) => void;
   onPicksChange: (picks: Array<Doc<'drivers'>['_id']>) => void;
+  draftNoticeTarget?: HTMLElement | null;
 }) {
   return (
     <PredictionForm
@@ -30,32 +32,35 @@ export function LandingTopFivePicker({
       onCompletionStateChange={onCompletionStateChange}
       onPicksChange={onPicksChange}
       enableNavigationBlocker={false}
-      renderSaveWall={() => <TopFiveHandoff onContinue={onContinue} />}
+      draftNoticeTarget={draftNoticeTarget}
+      renderActionArea={({ complete }) => (
+        <TopFiveHandoff complete={complete} onContinue={onContinue} />
+      )}
     />
   );
 }
 
-/**
- * The end of step one. This used to be unreachable: filling the fifth slot
- * swapped the whole panel to the teammate battles 360ms later, which arrived
- * as something being taken away rather than something being finished. The
- * player now gets their completed order to look at and moves on when ready.
- * Saving still happens once, at the end of the combined card.
- */
-function TopFiveHandoff({ onContinue }: { onContinue: () => void }) {
+function TopFiveHandoff({
+  complete,
+  onContinue,
+}: {
+  complete: boolean;
+  onContinue: () => void;
+}) {
+  if (!complete) {
+    return null;
+  }
+
   return (
-    <div className="mt-4 border-t border-border pt-4" data-testid="save-wall">
-      <p className="text-lg font-medium text-text">
-        Top 5 drafted. Reorder it while you can.
-      </p>
-      <p className="gpp-reading-copy mt-1 text-text-muted">
-        Call the teammate battles to finish your prediction card.
-      </p>
-      <div className="mt-4">
-        <Button variant="primary" size="md" onClick={onContinue}>
-          Continue to teammate picks
-        </Button>
-      </div>
+    <div className="mt-4 border-t border-border pt-4" data-testid="top5-handoff">
+      <Button
+        variant="primary"
+        size="md"
+        className="w-full sm:w-auto"
+        onClick={onContinue}
+      >
+        Continue to teammate battles
+      </Button>
     </div>
   );
 }

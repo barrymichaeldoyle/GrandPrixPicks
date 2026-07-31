@@ -123,16 +123,19 @@ export function HeaderUser() {
 }
 
 function AnonymousSignInButton({ disabled = false }: { disabled?: boolean }) {
+  const { requestSignIn } = useClerkRuntimeControl();
+
   return (
     <div data-testid="header-user-anonymous">
-      <a
-        href={disabled ? undefined : '/sign-in'}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => requestSignIn()}
         className={signInButtonClasses}
         data-testid="header-sign-in-button"
-        aria-disabled={disabled}
       >
         Sign in
-      </a>
+      </button>
     </div>
   );
 }

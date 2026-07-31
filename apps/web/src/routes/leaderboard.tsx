@@ -12,23 +12,11 @@ import { TabSwitch } from '@/components/TabSwitch';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
-import {
-  formatAccuracy,
-  PAGE_SIZE,
-  playerCountFormatter,
-} from './-leaderboard/constants';
-import {
-  GAME_MODE_OPTIONS,
-  SCOPE_OPTIONS,
-  TIME_SCOPE_OPTIONS,
-} from './-leaderboard/options';
+import { PAGE_SIZE, playerCountFormatter } from './-leaderboard/constants';
+import { SCOPE_OPTIONS, TIME_SCOPE_OPTIONS } from './-leaderboard/options';
 import { SeasonContent } from './-leaderboard/SeasonContent';
 import type {
-  CombinedLeaderboardEntry,
-  GameMode,
-  H2HLeaderboardEntry,
   LeaderboardEntry,
-  RaceLeaderboardResult,
   Scope,
   TimeScope,
 } from './-leaderboard/types';
@@ -40,16 +28,10 @@ export const Route = createFileRoute('/leaderboard')({
   component: LeaderboardPage,
   validateSearch: (
     search: Record<string, unknown>,
-  ): { time?: TimeScope; mode?: GameMode; scope?: Scope; raceId?: string } => {
+  ): { time?: TimeScope; scope?: Scope; raceId?: string } => {
     const time =
       search.time === 'weekend' || search.time === 'season'
         ? search.time
-        : undefined;
-    const mode =
-      search.mode === 'combined' ||
-      search.mode === 'top5' ||
-      search.mode === 'h2h'
-        ? search.mode
         : undefined;
     const scope =
       search.scope === 'global' || search.scope === 'following'
@@ -57,7 +39,7 @@ export const Route = createFileRoute('/leaderboard')({
         : undefined;
     const raceId =
       typeof search.raceId === 'string' ? search.raceId : undefined;
-    return { time, mode, scope, raceId };
+    return { time, scope, raceId };
   },
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
@@ -108,7 +90,7 @@ export const Route = createFileRoute('/leaderboard')({
                 url: `${siteConfig.url}/leaderboard`,
                 name: '2026 F1 prediction leaderboard',
                 description:
-                  'Season standings for the Grand Prix Picks F1 prediction game, across Top 5 and Head-to-Head scoring.',
+                  'Season standings for the Grand Prix Picks F1 prediction game, with Top 5 and Head-to-Head points combined into one total.',
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
               },
@@ -146,7 +128,6 @@ function LeaderboardPage() {
   const timeScope: TimeScope =
     search.time ??
     (search.raceId != null || weekendHasScores ? 'weekend' : 'season');
-  const gameMode: GameMode = search.mode ?? 'combined';
   const scope: Scope = search.scope ?? 'global';
 
   const selectableRaces = allRaces
@@ -163,9 +144,9 @@ function LeaderboardPage() {
   const selectedRaceId = selectedRace?._id as Id<'races'> | undefined;
 
   // Season combined (global) – with SSR + pagination
-  const [seasonEntries, setSeasonEntries] = useState<
-    CombinedLeaderboardEntry[]
-  >(initialSeason.entries as CombinedLeaderboardEntry[]);
+  const [seasonEntries, setSeasonEntries] = useState<LeaderboardEntry[]>(
+    initialSeason.entries as LeaderboardEntry[],
+  );
   const [seasonOffset, setSeasonOffset] = useState(PAGE_SIZE);
   const [seasonHasMore, setSeasonHasMore] = useState(initialSeason.hasMore);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -173,23 +154,7 @@ function LeaderboardPage() {
   const { data: clientSeasonCombined } = useQuery(
     convexQuery(
       api.leaderboards.getCombinedSeasonLeaderboard,
-      timeScope === 'season' && gameMode === 'combined' && scope === 'global'
-        ? { limit: PAGE_SIZE }
-        : 'skip',
-    ),
-  );
-  const { data: seasonTop5Global } = useQuery(
-    convexQuery(
-      api.leaderboards.getSeasonLeaderboard,
-      timeScope === 'season' && gameMode === 'top5' && scope === 'global'
-        ? { limit: PAGE_SIZE }
-        : 'skip',
-    ),
-  );
-  const { data: seasonH2HGlobal } = useQuery(
-    convexQuery(
-      api.h2h.getH2HSeasonLeaderboard,
-      timeScope === 'season' && gameMode === 'h2h' && scope === 'global'
+      timeScope === 'season' && scope === 'global'
         ? { limit: PAGE_SIZE }
         : 'skip',
     ),
@@ -197,89 +162,26 @@ function LeaderboardPage() {
   const { data: seasonCombinedFollowing } = useQuery(
     convexQuery(
       api.leaderboards.getFriendsCombinedLeaderboard,
-      timeScope === 'season' && gameMode === 'combined' && scope === 'following'
-        ? { limit: PAGE_SIZE }
-        : 'skip',
-    ),
-  );
-  const { data: seasonTop5Following } = useQuery(
-    convexQuery(
-      api.leaderboards.getFriendsLeaderboard,
-      timeScope === 'season' && gameMode === 'top5' && scope === 'following'
-        ? { limit: PAGE_SIZE }
-        : 'skip',
-    ),
-  );
-  const { data: seasonH2HFollowing } = useQuery(
-    convexQuery(
-      api.leaderboards.getFriendsH2HLeaderboard,
-      timeScope === 'season' && gameMode === 'h2h' && scope === 'following'
+      timeScope === 'season' && scope === 'following'
         ? { limit: PAGE_SIZE }
         : 'skip',
     ),
   );
 
-  // Weekend queries
-  const { data: weekendCombined } = useQuery(
+  const { data: weekendGlobal } = useQuery(
     convexQuery(
       api.leaderboards.getCombinedRaceLeaderboard,
       timeScope === 'weekend' &&
-        gameMode === 'combined' &&
         scope === 'global' &&
         selectedRaceId
         ? { raceId: selectedRaceId }
         : 'skip',
     ),
   );
-  const { data: weekendTop5 } = useQuery(
-    convexQuery(
-      api.leaderboards.getRaceLeaderboard,
-      timeScope === 'weekend' &&
-        gameMode === 'top5' &&
-        scope === 'global' &&
-        selectedRaceId
-        ? { raceId: selectedRaceId }
-        : 'skip',
-    ),
-  );
-  const { data: weekendH2H } = useQuery(
-    convexQuery(
-      api.leaderboards.getH2HRaceLeaderboard,
-      timeScope === 'weekend' &&
-        gameMode === 'h2h' &&
-        scope === 'global' &&
-        selectedRaceId
-        ? { raceId: selectedRaceId }
-        : 'skip',
-    ),
-  );
-  const { data: weekendCombinedFollowing } = useQuery(
+  const { data: weekendFollowing } = useQuery(
     convexQuery(
       api.leaderboards.getCombinedRaceLeaderboard,
       timeScope === 'weekend' &&
-        gameMode === 'combined' &&
-        scope === 'following' &&
-        selectedRaceId
-        ? { raceId: selectedRaceId, friendsOnly: true }
-        : 'skip',
-    ),
-  );
-  const { data: weekendTop5Following } = useQuery(
-    convexQuery(
-      api.leaderboards.getRaceLeaderboard,
-      timeScope === 'weekend' &&
-        gameMode === 'top5' &&
-        scope === 'following' &&
-        selectedRaceId
-        ? { raceId: selectedRaceId, friendsOnly: true }
-        : 'skip',
-    ),
-  );
-  const { data: weekendH2HFollowing } = useQuery(
-    convexQuery(
-      api.leaderboards.getH2HRaceLeaderboard,
-      timeScope === 'weekend' &&
-        gameMode === 'h2h' &&
         scope === 'following' &&
         selectedRaceId
         ? { raceId: selectedRaceId, friendsOnly: true }
@@ -287,20 +189,9 @@ function LeaderboardPage() {
     ),
   );
 
-  // Sticky values — retain last result so switching back to a tab is instant
-  const stickySeasonTop5Global = useStickyValue(seasonTop5Global);
-  const stickySeasonH2HGlobal = useStickyValue(seasonH2HGlobal);
   const stickySeasonCombinedFollowing = useStickyValue(seasonCombinedFollowing);
-  const stickySeasonTop5Following = useStickyValue(seasonTop5Following);
-  const stickySeasonH2HFollowing = useStickyValue(seasonH2HFollowing);
-  const stickyWeekendCombined = useStickyValue(weekendCombined);
-  const stickyWeekendTop5 = useStickyValue(weekendTop5);
-  const stickyWeekendH2H = useStickyValue(weekendH2H);
-  const stickyWeekendCombinedFollowing = useStickyValue(
-    weekendCombinedFollowing,
-  );
-  const stickyWeekendTop5Following = useStickyValue(weekendTop5Following);
-  const stickyWeekendH2HFollowing = useStickyValue(weekendH2HFollowing);
+  const stickyWeekendGlobal = useStickyValue(weekendGlobal);
+  const stickyWeekendFollowing = useStickyValue(weekendFollowing);
 
   const seasonCombinedData = clientSeasonCombined ?? initialSeason;
 
@@ -308,7 +199,7 @@ function LeaderboardPage() {
   useEffect(() => {
     if (clientSeasonCombined && seasonOffset === PAGE_SIZE) {
       setSeasonEntries(
-        clientSeasonCombined.entries as CombinedLeaderboardEntry[],
+        clientSeasonCombined.entries as LeaderboardEntry[],
       );
       setSeasonHasMore(clientSeasonCombined.hasMore);
     }
@@ -328,7 +219,7 @@ function LeaderboardPage() {
       );
       setSeasonEntries((prev) => [
         ...prev,
-        ...(more.entries as CombinedLeaderboardEntry[]),
+        ...(more.entries as LeaderboardEntry[]),
       ]);
       setSeasonOffset((prev) => prev + PAGE_SIZE);
       setSeasonHasMore(more.hasMore);
@@ -337,38 +228,14 @@ function LeaderboardPage() {
     }
   }
 
-  // The active dataset for each (scope, gameMode) pair — the single source
-  // the header card, total count, and content components all read from.
-  // `undefined` means the query is still loading; weekend `null` means no
-  // data is available for the selected race.
-  const weekendDataByView = {
-    global: {
-      combined:
-        stickyWeekendCombined ??
-        (selectedRaceId === selectedRace?._id ? initialWeekend : null),
-      top5: stickyWeekendTop5,
-      h2h: stickyWeekendH2H,
-    },
-    following: {
-      combined: stickyWeekendCombinedFollowing,
-      top5: stickyWeekendTop5Following,
-      h2h: stickyWeekendH2HFollowing,
-    },
-  } satisfies Record<Scope, Record<GameMode, RaceLeaderboardResult | null>>;
-  const seasonDataByView = {
-    global: {
-      combined: seasonCombinedData,
-      top5: stickySeasonTop5Global,
-      h2h: stickySeasonH2HGlobal,
-    },
-    following: {
-      combined: stickySeasonCombinedFollowing,
-      top5: stickySeasonTop5Following,
-      h2h: stickySeasonH2HFollowing,
-    },
-  };
-  const activeWeekendData = weekendDataByView[scope][gameMode];
-  const activeSeasonData = seasonDataByView[scope][gameMode];
+  // One canonical total-points board. Scope only changes whose totals appear.
+  const activeWeekendData =
+    scope === 'global'
+      ? (stickyWeekendGlobal ??
+        (selectedRaceId === selectedRace?._id ? initialWeekend : null))
+      : stickyWeekendFollowing;
+  const activeSeasonData =
+    scope === 'global' ? seasonCombinedData : stickySeasonCombinedFollowing;
 
   const headerViewerEntry = (() => {
     if (timeScope === 'weekend') {
@@ -393,13 +260,7 @@ function LeaderboardPage() {
       ? (activeWeekendData?.entries.length ?? 0)
       : (activeSeasonData?.totalCount ?? 0);
 
-  const gameModeLabel =
-    gameMode === 'combined'
-      ? 'Combined'
-      : gameMode === 'top5'
-        ? 'Top 5'
-        : 'H2H';
-  const activeViewKey = `${timeScope}:${scope}:${gameMode}`;
+  const activeViewKey = `${timeScope}:${scope}`;
   const showStandingCard =
     headerViewerEntry != null || (timeScope === 'weekend' && isSignedIn);
   const standingName =
@@ -411,12 +272,12 @@ function LeaderboardPage() {
 
   const heroSubtitle =
     timeScope === 'weekend' && selectedRace
-      ? `${selectedRace.season} ${selectedRace.name} · ${gameModeLabel}${
+      ? `${selectedRace.season} ${selectedRace.name}${
           activeTotalCount > 0
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
             : ''
         }`
-      : `2026 Season Standings · ${gameModeLabel}${
+      : `2026 Season Standings${
           activeTotalCount && activeTotalCount > 0
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
             : ''
@@ -444,54 +305,43 @@ function LeaderboardPage() {
           }
           actionsPlacement="trailing"
           actions={
-            <div className="min-h-14">
-              <AnimatePresence mode="wait">
-                {showStandingCard ? (
-                  <motion.div
-                    key={timeScope}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
-                  >
-                    <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
-                      {headerViewerEntry?.rank ?? '—'}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                        Your standing
-                      </div>
-                      <div className="truncate text-sm font-semibold text-text">
-                        {standingName}
-                      </div>
-                      {headerViewerEntry ? (
-                        <div className="text-sm font-semibold text-accent">
-                          {headerViewerEntry.points} pts
-                          {gameMode === 'h2h' &&
-                            'correctPicks' in headerViewerEntry && (
-                              <span className="ml-2 text-sm font-normal text-text-muted">
-                                (
-                                {formatAccuracy(
-                                  (headerViewerEntry as H2HLeaderboardEntry)
-                                    .correctPicks,
-                                  (headerViewerEntry as H2HLeaderboardEntry)
-                                    .totalPicks,
-                                )}{' '}
-                                accuracy)
-                              </span>
-                            )}
+            isSignedIn ? (
+              <div className="min-h-14">
+                <AnimatePresence mode="wait">
+                  {showStandingCard ? (
+                    <motion.div
+                      key={timeScope}
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
+                    >
+                      <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
+                        {headerViewerEntry?.rank ?? '—'}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                          Your standing
                         </div>
-                      ) : (
-                        <div className="text-sm font-medium text-text-muted">
-                          Not ranked this weekend
+                        <div className="truncate text-sm font-semibold text-text">
+                          {standingName}
                         </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
-            </div>
+                        {headerViewerEntry ? (
+                          <div className="text-sm font-semibold text-accent">
+                            {headerViewerEntry.points} pts
+                          </div>
+                        ) : (
+                          <div className="text-sm font-medium text-text-muted">
+                            Not ranked this weekend
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            ) : undefined
           }
         />
 
@@ -539,39 +389,23 @@ function LeaderboardPage() {
             </div>
           )}
 
-          {/* Row 2: Scope + game mode */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            {isSignedIn && (
-              <div className="sm:w-56">
-                <TabSwitch
-                  value={scope}
-                  onChange={(v) =>
-                    navigate({
-                      search: (prev) => ({ ...prev, scope: v }),
-                      replace: true,
-                    })
-                  }
-                  options={[...SCOPE_OPTIONS]}
-                  className="flex gap-1 rounded-lg bg-surface-muted/40 p-1"
-                  buttonClassName="flex-1 sm:flex-initial"
-                  ariaLabel="Leaderboard scope"
-                />
-              </div>
-            )}
-            <TabSwitch
-              value={gameMode}
-              onChange={(v) =>
-                navigate({
-                  search: (prev) => ({ ...prev, mode: v }),
-                  replace: true,
-                })
-              }
-              options={[...GAME_MODE_OPTIONS]}
-              className="flex flex-1 gap-1 rounded-lg bg-surface-muted/40 p-1"
-              buttonClassName="flex-1"
-              ariaLabel="Leaderboard game mode"
-            />
-          </div>
+          {isSignedIn && (
+            <div className="sm:w-56">
+              <TabSwitch
+                value={scope}
+                onChange={(v) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, scope: v }),
+                    replace: true,
+                  })
+                }
+                options={[...SCOPE_OPTIONS]}
+                className="flex gap-1 rounded-lg bg-surface-muted/40 p-1"
+                buttonClassName="flex-1"
+                ariaLabel="Leaderboard scope"
+              />
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -580,7 +414,6 @@ function LeaderboardPage() {
             key={activeViewKey}
             defaultRace={selectedRace}
             scope={scope}
-            gameMode={gameMode}
             isSignedIn={isSignedIn}
             activeData={activeWeekendData}
           />
@@ -588,17 +421,12 @@ function LeaderboardPage() {
           <SeasonContent
             key={activeViewKey}
             scope={scope}
-            gameMode={gameMode}
             seasonEntries={seasonEntries}
             seasonHasMore={seasonHasMore}
             isLoadingMore={isLoadingMore}
             activeTotalCount={activeTotalCount ?? 0}
             loadMoreSeason={() => void loadMoreSeason()}
-            seasonTop5Global={stickySeasonTop5Global}
-            seasonH2HGlobal={stickySeasonH2HGlobal}
             seasonCombinedFollowing={stickySeasonCombinedFollowing}
-            seasonTop5Following={stickySeasonTop5Following}
-            seasonH2HFollowing={stickySeasonH2HFollowing}
           />
         )}
       </div>

@@ -8,7 +8,6 @@ import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
-import { formatRaceLocalLockTime } from '@/lib/raceLockTime';
 import { withRetry } from '@/lib/retry';
 import {
   CURRENT_SEASON,
@@ -80,7 +79,10 @@ export const Route = createFileRoute('/')({
   loader: async () => {
     await setHomeCacheHeaders();
 
-    const data = await withRetry(() => convex.query(api.home.getHomePageData));
+    const now = Date.now();
+    const data = await withRetry(() =>
+      convex.query(api.home.getHomePageData, { now }),
+    );
 
     // Keep the public landing payload focused on the data it actually renders.
     // The backend query is shared with other home states and intentionally
@@ -90,10 +92,9 @@ export const Route = createFileRoute('/')({
       mostRecentStartedRace: data.mostRecentStartedRace,
       nextRaceResults: data.nextRaceResults,
       recentRaceResults: data.recentRaceResults,
-      nextRacePickCount: data.nextRacePickCount,
       topPlayers: data.topPlayers,
       drivers: data.drivers,
-      now: Date.now(),
+      now,
     };
   },
   head: ({ loaderData }) => {
@@ -119,15 +120,6 @@ export const Route = createFileRoute('/')({
     };
   },
 });
-
-function raceShortName(name: string) {
-  const short = name
-    .replace(/\bGrand Prix\b/gi, '')
-    .replace(/\bGP\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return short || name;
-}
 
 function HomePage() {
   const { isSignedIn } = useViewerSession();
@@ -166,7 +158,6 @@ function PublicLandingPage() {
     mostRecentStartedRace,
     nextRaceResults,
     recentRaceResults,
-    nextRacePickCount,
     topPlayers,
     drivers,
     now: serverNow,
@@ -220,11 +211,6 @@ function PublicLandingPage() {
       />
     ) : null;
 
-  const lockTime =
-    featuredRace && nextSession
-      ? formatRaceLocalLockTime(nextSession.startAt, featuredRace.slug)
-      : null;
-
   return (
     <>
       <div className="bg-page">
@@ -262,16 +248,6 @@ function PublicLandingPage() {
         <LiveTimingStrip
           players={topPlayers}
           season={featuredRace?.season ?? CURRENT_SEASON}
-          caption={
-            nextRace
-              ? {
-                  pickCount: nextRacePickCount,
-                  raceShortName: raceShortName(nextRace.name),
-                  raceSlug: nextRace.slug,
-                  lockTime,
-                }
-              : null
-          }
         />
 
         <LeaguesSection />

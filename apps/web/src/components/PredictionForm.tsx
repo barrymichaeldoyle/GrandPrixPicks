@@ -25,7 +25,7 @@ import { useBlocker } from '@tanstack/react-router';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
@@ -47,6 +47,7 @@ import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
 import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
+import { DraftRestoredNotice } from './DraftRestoredNotice';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { InlineLoader } from './InlineLoader';
@@ -177,8 +178,17 @@ function SortablePickRow({
             </span>
           </div>
           {driver.team && (
-            <span className="truncate text-xs text-text-muted">
-              {displayTeamName(driver.team)}
+            <span
+              className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted"
+              style={
+                {
+                  '--team-colour':
+                    TEAM_COLORS[driver.team] || FALLBACK_TEAM_COLOR,
+                } as CSSProperties
+              }
+            >
+              <span className="gpp-team-dot" aria-hidden />
+              <span className="truncate">{displayTeamName(driver.team)}</span>
             </span>
           )}
         </div>
@@ -275,22 +285,24 @@ function DraggableDriverCard({
   const picked = pickedPosition !== null;
   const surname = driverSurname(driver);
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes}>
-      <button
-        type="button"
-        data-testid={`driver-${driver.code}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onTap();
-        }}
-        disabled={disabled}
-        aria-label={`${driver.displayName}${
-          picked
-            ? ` (picked P${pickedPosition})`
-            : disabled
-              ? ' (five drivers already picked)'
-              : ''
-        }`}
+    <button
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      type="button"
+      data-testid={`driver-${driver.code}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onTap();
+      }}
+      disabled={disabled}
+      aria-label={`${driver.displayName}${
+        picked
+          ? ` (picked P${pickedPosition})`
+          : disabled
+            ? ' (five drivers already picked)'
+            : ''
+      }`}
         /*
          * Team colour is the 3px left bar, not the fill. Twenty-two saturated
          * tiles in a grid was the loudest surface in the app; confined to a bar
@@ -306,40 +318,39 @@ function DraggableDriverCard({
          * both identically made a picked driver read as "unavailable for some
          * reason" against twenty-one lookalikes.
          */
-        className={`gpp-team-bar flex h-full w-full items-center justify-center gap-1.5 rounded-sm border py-2 pr-2 pl-3 transition-colors duration-150 ease-out sm:py-3 ${
-          picked
-            ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
-            : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
+      className={`gpp-team-bar flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
+        picked
+          ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
+          : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
+      }`}
+      style={
+        {
+          '--team-colour':
+            (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
+        } as React.CSSProperties
+      }
+    >
+      <span
+        className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
+          picked ? 'text-text-muted' : 'text-text'
         }`}
-        style={
-          {
-            '--team-colour':
-              (driver.team && TEAM_COLORS[driver.team]) || FALLBACK_TEAM_COLOR,
-          } as React.CSSProperties
-        }
       >
-        <span
-          className={`gpp-mono text-xs leading-none sm:text-sm ${
-            picked ? 'text-text-muted' : 'text-text'
-          }`}
-        >
-          {driver.code}
+        {driver.code}
+      </span>
+      {/* Three-letter codes are the broadcast language, but a landing-page
+          visitor may not know all twenty-two. Two columns on phones leave
+          enough room to keep the surname visible at every width. */}
+      {surname ? (
+        <span className="min-w-0 flex-1 truncate text-xs leading-none text-text-muted">
+          {surname}
         </span>
-        {/* Three-letter codes are the broadcast language, but someone who
-            arrived from a mate's league link does not know all twenty-two. The
-            surname appears wherever the cell is wide enough to hold it. */}
-        {surname ? (
-          <span className="hidden min-w-0 truncate text-xs leading-none text-text-muted xl:inline">
-            {surname}
-          </span>
-        ) : null}
-        {picked ? (
-          <span className="gpp-mono text-xs leading-none font-semibold text-accent">
-            P{pickedPosition}
-          </span>
-        ) : null}
-      </button>
-    </div>
+      ) : null}
+      {picked ? (
+        <span className="gpp-mono ml-auto shrink-0 text-xs leading-none font-semibold text-accent">
+          P{pickedPosition}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -351,7 +362,7 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={setNodeRef}
-      className={`grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 md:grid-cols-5 lg:grid-cols-4 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
+      className={`grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 md:grid-cols-4 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
       data-testid="driver-selection"
     >
       {children}
@@ -381,6 +392,14 @@ interface PredictionFormProps {
    * the moment auth lands.
    */
   renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
+  /**
+   * Replaces the entire submit area for a guided parent flow. Unlike the
+   * signed-out save wall, this renders regardless of auth state and lets the
+   * parent defer saving until a later step.
+   */
+  renderActionArea?: (state: { complete: boolean }) => ReactNode;
+  /** Moves restored-draft status into parent chrome such as a step header. */
+  draftNoticeTarget?: HTMLElement | null;
   /** Adds conversion-funnel properties/events without changing app forms. */
   analyticsSource?: 'landing';
   /** On narrow screens, put the actionable driver pool before the review list. */
@@ -414,6 +433,8 @@ export function PredictionForm({
   enableNavigationBlocker = true,
   loadingFallback,
   renderSaveWall,
+  renderActionArea,
+  draftNoticeTarget,
   analyticsSource,
   mobileActionFirst = false,
   onComplete,
@@ -466,7 +487,11 @@ export function PredictionForm({
       firstPickCapturedRef.current = true;
       captureAnalyticsEvent('landing_first_pick_added', analyticsProperties());
     }
-    if (nextCount === 5 && !topFiveCapturedRef.current) {
+    if (nextCount !== 5) {
+      return;
+    }
+
+    if (!topFiveCapturedRef.current) {
       topFiveCapturedRef.current = true;
       if (analyticsSource === 'landing') {
         captureAnalyticsEvent(
@@ -475,25 +500,24 @@ export function PredictionForm({
         );
       }
       onComplete?.();
+    }
 
-      // The pool sits above the list on narrow screens, so the fifth pick
-      // lands off-screen. Scrolling the finished list into view is the whole
-      // completion moment on mobile now that nothing swaps the panel out.
-      if (
-        mobileActionFirst &&
-        typeof window !== 'undefined' &&
-        window.matchMedia('(max-width: 1023px)').matches
-      ) {
-        window.requestAnimationFrame(() => {
-          yourPicksRef.current?.scrollIntoView({
-            behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
-              .matches
-              ? 'auto'
-              : 'smooth',
-            block: 'start',
-          });
+    // Completion analytics is one-shot, but this affordance is not. If the
+    // player removes a pick and fills P5 again, the pool is above the list and
+    // the completed order is off-screen again.
+    if (
+      mobileActionFirst &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 1023px)').matches
+    ) {
+      window.requestAnimationFrame(() => {
+        yourPicksRef.current?.scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
+          block: 'start',
         });
-      }
+      });
     }
   }
 
@@ -953,17 +977,10 @@ export function PredictionForm({
     >
       <div className="space-y-4 sm:space-y-6">
         {restoredDraftAt ? (
-          // Reassurance, not an alert: picks that survived a reload are good
-          // news, so this sits on the neutral surface rather than wearing the
-          // accent an actual warning would.
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2">
-            <span className="text-xs text-text-muted">
-              Unsaved draft restored
-            </span>
-            <Button variant="text" size="inline" onClick={handleDiscardDraft}>
-              Discard draft
-            </Button>
-          </div>
+          <DraftRestoredNotice
+            target={draftNoticeTarget}
+            onDiscard={handleDiscardDraft}
+          />
         ) : null}
         {/* Two-column layout on desktop: Your Picks | Select Drivers */}
         <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
@@ -973,12 +990,30 @@ export function PredictionForm({
             data-testid="your-picks"
             className={`${mobileActionFirst ? 'order-2 scroll-mt-28 lg:order-1' : ''} lg:min-w-0 lg:min-w-[400px] lg:flex-1`}
           >
-            <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
-              Your Picks
-            </h3>
-            <p className="mb-2 text-sm text-text-muted sm:hidden">
-              Tap drivers to add. Drag to reorder, or use ↑↓.
-            </p>
+            <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
+              <h3 className="text-lg font-semibold text-text">Your Picks</h3>
+              {picks.length >= 2 ? (
+                <p className="flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
+                  Reorder: drag or use
+                  <span
+                    className="inline-flex items-center"
+                    aria-label="up and down buttons"
+                  >
+                    <ChevronUp size={14} className="text-accent" aria-hidden />
+                    <ChevronDown
+                      size={14}
+                      className="-ml-0.5 text-accent"
+                      aria-hidden
+                    />
+                  </span>
+                </p>
+              ) : null}
+            </div>
+            {picks.length < 5 ? (
+              <p className="-mt-1 mb-2 text-sm text-text-muted sm:hidden">
+                Tap drivers to fill your Top 5.
+              </p>
+            ) : null}
             <div
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
               data-testid="picks-list"
@@ -1034,10 +1069,11 @@ export function PredictionForm({
               </SortableContext>
             </div>
 
-            {/* Submit row - directly under Your Picks. A signed-out visitor
-                with a complete set of picks gets the caller's save-wall
-                instead, when one is supplied. */}
-            {showSaveWall && renderSaveWall ? (
+            {/* Guided funnels can own this area completely so progressing to
+                the next step never competes with an early save action. */}
+            {renderActionArea ? (
+              renderActionArea({ complete: picks.length === 5 })
+            ) : showSaveWall && renderSaveWall ? (
               renderSaveWall({ lockIn: () => requestSubmit() })
             ) : (
               <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
@@ -1095,7 +1131,7 @@ export function PredictionForm({
                 {submissionBlockedMessage}
               </p>
             ) : null}
-            {showSaveWall ? null : (
+            {showSaveWall || renderActionArea ? null : (
               <p className="mt-2 text-center text-xs text-text-muted">
                 You can edit your picks any time before this session starts.
               </p>
@@ -1107,18 +1143,17 @@ export function PredictionForm({
             className={`${mobileActionFirst ? 'order-1 lg:order-2' : ''} lg:min-w-0 lg:flex-2`}
           >
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
-              Select Drivers
+              Select Drivers{' '}
               {picks.length >= 5 ? (
-                <span className="mt-1 block text-sm font-normal text-text-muted sm:mt-0 sm:ml-2 sm:inline">
+                <span className="ml-2 text-sm font-normal text-text-muted">
                   (remove a pick to change)
                 </span>
               ) : (
                 <span
-                  className="mt-1 block text-sm font-normal text-text-muted sm:mt-0 sm:ml-2 sm:inline"
+                  className="ml-2 text-sm font-normal text-text-muted"
                   data-testid="picks-remaining"
                 >
-                  Select {5 - picks.length} more driver
-                  {5 - picks.length !== 1 ? 's' : ''}
+                  ({5 - picks.length} left)
                 </span>
               )}
             </h3>

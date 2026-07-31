@@ -39,8 +39,10 @@ export function LandingStickyBar({
     const observer = new IntersectionObserver(
       ([entry]) =>
         setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 64),
-      // Fire against the bottom of the app header, not the viewport top, so the
-      // strip appears exactly as the hero clears it.
+      // Fire against the bottom of the app header, not the viewport top. The
+      // sentinel is one strip-height tall, which adds useful hysteresis: it is
+      // fully above the header before the strip appears, but starts hiding 48px
+      // before its sticky wrapper releases on the way back up.
       { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
     );
     observer.observe(sentinel);
@@ -52,36 +54,34 @@ export function LandingStickyBar({
 
   return (
     <>
-      <div ref={sentinelRef} aria-hidden="true" />
-      {/* The strip is fixed to the viewport while the header above it is
-          sticky in flow, so an elastic overscroll at either end of the page
-          moves the two by different amounts and page content flashes through
-          the seam. This wrapper starts at the very top of the viewport and pads
-          down past the header, which puts the strip's own background behind the
-          header: however far the bounce pulls them apart, the seam stays filled
-          and the two read as one block. It sits under the header (z-40 against
-          z-50), which paints over it. */}
+      <div ref={sentinelRef} className="-mb-12 h-12" aria-hidden="true" />
+      {/* Use the same sticky coordinate system as the app header. A fixed strip
+          stays pinned to the visual viewport during iOS rubber-band scrolling
+          while the sticky header moves with the document, which pulls the two
+          layers apart. The zero-height wrapper avoids reserving space: the bar
+          still overlays the page, but now bounces in lockstep with the header. */}
       <div
         data-landing-sticky-visible={visible ? 'true' : 'false'}
-        className={`fixed inset-x-0 top-0 z-40 overflow-hidden pt-(--nav-height) ${
-          visible ? 'bg-page' : 'pointer-events-none'
+        className={`sticky top-(--nav-height) z-40 h-0 ${
+          visible ? '' : 'pointer-events-none'
         }`}
         // Hidden from assistive tech while off-screen: the same CTA is in the
         // hero, and an always-present duplicate in the tab order is noise.
         inert={!visible}
       >
-        {/* Parked one full height up, the strip rests in that band behind the
-            header, so revealing it is a plain slide out from under the chrome:
-            opaque the whole way, never a translucent bar sliding over the
-            article text. Visibility is transitioned discretely (flipping only
-            once the slide finishes) so the parked strip can't peek out from
-            behind the header mid-bounce. */}
+        {/* Parked one full height up, the strip rests behind the higher-z-index
+            header. It slides in when the hero leaves, but disappears immediately
+            on the way back: animating the exit while this sticky wrapper returns
+            to normal flow compounds two movements and produces a visible jump
+            during a fast upward scroll. */}
         <div
           // `translate` and not `transform`: Tailwind 4's translate utilities
           // set the standalone `translate` property, so a transform transition
           // silently never runs and the strip lands in one frame.
-          className={`border-b border-border bg-page transition-[translate,visibility] transition-discrete duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none ${
-            visible ? 'visible translate-y-0' : 'invisible -translate-y-full'
+          className={`absolute inset-x-0 top-0 border-b border-border bg-page motion-reduce:transition-none ${
+            visible
+              ? 'visible translate-y-0 transition-[translate] duration-200 ease-[cubic-bezier(0.2,0,0,1)]'
+              : 'invisible -translate-y-full transition-none'
           }`}
         >
           {/* Same rail as the header above it: the strip reads as an extension

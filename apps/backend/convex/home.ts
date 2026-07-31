@@ -1,4 +1,5 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
@@ -7,7 +8,6 @@ import {
   getDefaultLeaderboardSeason,
   loadCombinedSeasonRows,
 } from './leaderboards';
-import { getViewer } from './lib/auth';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const SESSION_ORDER: Array<SessionType> = [
@@ -36,56 +36,6 @@ async function getPublishedSessionTypes(
   return sessionTypes.sort(
     (a, b) => SESSION_ORDER.indexOf(a) - SESSION_ORDER.indexOf(b),
   );
-}
-
-const AMENDMENT_WINDOW = 7 * 24 * 60 * 60 * 1000;
-
-export type RecentAmendment = {
-  raceName: string;
-  raceSlug: string;
-  sessionType: SessionType;
-  amendmentNote: string;
-  amendedAt: number;
-};
-
-/**
- * The latest stewards' amendment across the most recent race weekends, used to
- * point players at the results policy when their score has moved under them.
- */
-async function findRecentAmendment(
-  ctx: QueryCtx,
-  races: Array<Doc<'races'>>,
-  now: number,
-): Promise<RecentAmendment | null> {
-  let latest: RecentAmendment | null = null;
-
-  for (const race of races) {
-    const results = await ctx.db
-      .query('results')
-      .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-      .take(8);
-
-    for (const result of results) {
-      if (
-        result.amendedAt === undefined ||
-        result.amendmentNote === undefined ||
-        now - result.amendedAt > AMENDMENT_WINDOW
-      ) {
-        continue;
-      }
-      if (latest === null || result.amendedAt > latest.amendedAt) {
-        latest = {
-          raceName: race.name,
-          raceSlug: race.slug,
-          sessionType: result.sessionType,
-          amendmentNote: result.amendmentNote,
-          amendedAt: result.amendedAt,
-        };
-      }
-    }
-  }
-
-  return latest;
 }
 
 /**
@@ -117,30 +67,6 @@ async function loadRacePointsByUser(
     );
   }
   return pointsByUser;
-}
-
-/**
- * Distinct users who have made a Top 5 or H2H pick for a race, scored or not.
- *
- * This is the "picks are in" number on the landing page, so it counts intent
- * rather than results: it has to be live for a race that hasn't run yet.
- */
-async function countRacePickers(
-  ctx: QueryCtx,
-  raceId: Id<'races'>,
-): Promise<number> {
-  const pickerIds = new Set<string>();
-  for await (const prediction of ctx.db
-    .query('predictions')
-    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
-    pickerIds.add(prediction.userId);
-  }
-  for await (const prediction of ctx.db
-    .query('h2hPredictions')
-    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
-    pickerIds.add(prediction.userId);
-  }
-  return pickerIds.size;
 }
 
 /**
@@ -199,12 +125,9 @@ export function rankBeforeLastScoredRace(
  * Cloudflare worker to Convex, which dominated the page's time to first byte.
  */
 export const getHomePageData = query({
-  args: {},
-  handler: async (ctx) => {
-    const now = Date.now();
-
-    const [viewer, nextRace, races, drivers] = await Promise.all([
-      getViewer(ctx),
+  args: { now: v.number() },
+  handler: async (ctx, { now }) => {
+    const [nextRace, races, drivers] = await Promise.all([
       ctx.db
         .query('races')
         .withIndex('by_status_and_predictionLockAt', (q) =>
@@ -245,12 +168,6 @@ export const getHomePageData = query({
       }
     }
 
-    // Live pick count for the race the landing page is selling. Counts entries,
-    // not scores, so it moves during the week the picks are actually being made.
-    const nextRacePickCount = nextRace
-      ? await countRacePickers(ctx, nextRace._id)
-      : 0;
-
     const [nextRaceResults, recentRaceResults] = await Promise.all([
       nextRace
         ? getPublishedSessionTypes(ctx, nextRace._id)
@@ -278,7 +195,6 @@ export const getHomePageData = query({
         top5Points: row.top5Points,
         h2hPoints: row.h2hPoints,
         raceCount: row.raceCount,
-        isViewer: viewer ? row.userId === viewer._id : false,
         // Positive is a climb. Null means there is nothing to compare against:
         // the player had no points before this race, so they are new to the
         // table rather than having moved up the whole length of it.
@@ -286,21 +202,12 @@ export const getHomePageData = query({
       };
     });
 
-    const recentAmendment = await findRecentAmendment(
-      ctx,
-      startedRaces.slice(0, 3),
-      now,
-    );
-
     return {
       nextRace,
-      races,
       mostRecentStartedRace,
       nextRaceResults,
       recentRaceResults,
-      nextRacePickCount,
       topPlayers,
-      recentAmendment,
       drivers,
     };
   },

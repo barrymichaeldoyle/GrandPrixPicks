@@ -1,5 +1,5 @@
 import type { Doc } from '@convex-generated/dataModel';
-import { CalendarDays, Layers, Swords, Trophy, Users } from 'lucide-react';
+import { CalendarDays, Trophy, Users } from 'lucide-react';
 
 /** Only the fields this view reads, but typed off the schema so `status` stays a union. */
 type WeekendRace = Pick<Doc<'races'>, '_id' | 'name' | 'status'>;
@@ -7,19 +7,17 @@ type WeekendRace = Pick<Doc<'races'>, '_id' | 'name' | 'status'>;
 import { LeaderboardBoard } from './board';
 import { FollowingGuard } from './FollowingContent';
 import { LeaderboardContentLoader } from './rows';
-import type { GameMode, RaceLeaderboardResult, Scope } from './types';
+import type { RaceLeaderboardResult, Scope } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
 
 export function WeekendContent({
   defaultRace,
   scope,
-  gameMode,
   isSignedIn,
   activeData,
 }: {
   defaultRace: WeekendRace | null;
   scope: Scope;
-  gameMode: GameMode;
   isSignedIn: boolean | undefined;
   activeData: RaceLeaderboardResult | null;
 }) {
@@ -38,7 +36,6 @@ export function WeekendContent({
       <FollowingGuard>
         <WeekendFollowingContent
           defaultRace={defaultRace}
-          gameMode={gameMode}
           isSignedIn={isSignedIn}
           activeData={activeData ?? undefined}
         />
@@ -53,7 +50,7 @@ export function WeekendContent({
   if (activeData === null) {
     return (
       <NoticeCard
-        icon={Layers}
+        icon={Trophy}
         title="No scores yet"
         description="Scores will appear once race results are published."
       />
@@ -65,7 +62,7 @@ export function WeekendContent({
   if (entries.length === 0) {
     return (
       <NoticeCard
-        icon={gameMode === 'h2h' ? Swords : Trophy}
+        icon={Trophy}
         title="No scores yet"
         description={
           defaultRace.status === 'finished'
@@ -76,17 +73,15 @@ export function WeekendContent({
     );
   }
 
-  return <LeaderboardBoard entries={entries} gameMode={gameMode} />;
+  return <LeaderboardBoard entries={entries} />;
 }
 
 function WeekendFollowingContent({
   defaultRace,
-  gameMode,
   isSignedIn,
   activeData,
 }: {
   defaultRace: WeekendRace;
-  gameMode: GameMode;
   isSignedIn: boolean | undefined;
   activeData: RaceLeaderboardResult;
 }) {
@@ -126,5 +121,5 @@ function WeekendFollowingContent({
     );
   }
 
-  return <LeaderboardBoard entries={entries} gameMode={gameMode} />;
+  return <LeaderboardBoard entries={entries} />;
 }

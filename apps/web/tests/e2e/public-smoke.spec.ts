@@ -38,7 +38,7 @@ test.describe('[public] smoke', () => {
         .click();
       if (pick < 4) {
         await expect(page.getByTestId('picks-remaining')).toContainText(
-          `Select ${4 - pick} more`,
+          `(${4 - pick} left)`,
         );
       }
     }

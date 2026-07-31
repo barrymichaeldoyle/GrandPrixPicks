@@ -52,7 +52,7 @@ export function LeaguesSection() {
             id="landing-leagues-heading"
             className="text-2xl leading-snug font-light tracking-display text-text sm:text-3xl"
           >
-            <span className="block">Your group chat has opinions.</span>
+            <span className="block">Your group chat has opinions.</span>{' '}
             <span className="block whitespace-nowrap">Make them count.</span>
           </h2>
           <p className="gpp-reading-copy-lg mt-4 text-text-muted">

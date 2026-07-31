@@ -1,12 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { InlineLoader } from '@/components/InlineLoader';
 
-import { formatAccuracy } from './constants';
-import type {
-  CombinedLeaderboardEntry,
-  H2HLeaderboardEntry,
-  LeaderboardEntry,
-} from './types';
+import type { LeaderboardEntry } from './types';
 import { podiumClasses } from '@/lib/podium';
 
 function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
@@ -28,93 +23,6 @@ function RankMarker({ rank, isViewer }: { rank: number; isViewer?: boolean }) {
     >
       {rank}
     </span>
-  );
-}
-
-export function CombinedTableRow({
-  entry,
-}: {
-  entry: CombinedLeaderboardEntry;
-}) {
-  return (
-    <tr
-      className={`border-b border-border transition-colors last:border-0 ${
-        entry.isViewer ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'
-      }`}
-    >
-      <td className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}>
-        <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
-      </td>
-      <td className="px-4 py-3">
-        <Link
-          to="/p/$username"
-          params={{ username: entry.username }}
-          search={{ from: undefined, fromLabel: undefined }}
-          className="flex items-center gap-2 font-medium text-text"
-        >
-          <span className="font-medium text-text">
-            {entry.displayName ?? entry.username}
-          </span>
-          {entry.isViewer && (
-            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
-              YOU
-            </span>
-          )}
-        </Link>
-      </td>
-      <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="gpp-mono text-sm text-text-muted">
-          {entry.top5Points}
-        </span>
-      </td>
-      <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="gpp-mono text-sm text-text-muted">
-          {entry.h2hPoints}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-right">
-        <span className="gpp-mono font-medium text-text">{entry.points}</span>
-      </td>
-    </tr>
-  );
-}
-
-export function H2HTableRow({ entry }: { entry: H2HLeaderboardEntry }) {
-  return (
-    <tr
-      className={`border-b border-border transition-colors last:border-0 ${
-        entry.isViewer ? 'bg-surface-elevated' : 'hover:bg-surface-elevated'
-      }`}
-    >
-      <td className={`px-4 py-3 ${entry.isViewer ? 'gpp-stripe pl-5' : ''}`}>
-        <RankMarker rank={entry.rank} isViewer={entry.isViewer} />
-      </td>
-      <td className="px-4 py-3">
-        <Link
-          to="/p/$username"
-          params={{ username: entry.username }}
-          search={{ from: undefined, fromLabel: undefined }}
-          className="flex items-center gap-2 font-medium text-text"
-        >
-          <span className="font-medium text-text">
-            {entry.displayName ?? entry.username}
-          </span>
-          {entry.isViewer && (
-            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
-              YOU
-            </span>
-          )}
-        </Link>
-      </td>
-      <td className="hidden px-4 py-3 text-right sm:table-cell">
-        <span className="gpp-mono text-sm text-text-muted">
-          {formatAccuracy(entry.correctPicks, entry.totalPicks)}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-right">
-        <span className="gpp-mono font-medium text-text">{entry.points}</span>
-      </td>
-    </tr>
   );
 }
 

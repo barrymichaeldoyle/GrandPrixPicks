@@ -125,7 +125,7 @@ function SupportContent() {
               maxLength={200}
               required
               placeholder="Short summary of your issue or question"
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-base text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
           </div>
 
@@ -184,7 +184,7 @@ function SupportContent() {
               rows={6}
               maxLength={5000}
               placeholder="Describe what you were doing, what you expected to happen, and what actually happened. Include any relevant race, league, or user details."
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-base text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
             />
             <p className="mt-1 text-xs text-text-muted">
               Please avoid including sensitive personal information in your

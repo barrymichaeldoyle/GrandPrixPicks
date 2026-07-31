@@ -9,13 +9,24 @@
   --background: #101113;
   --surface: #191a1d;
   --surface-raised: #212226;
+  /* A fourth step, for hovering something that is ALREADY raised.
+     The ramp climbs evenly (+9 then +8 per channel), so "one surface step
+     lighter" means the same amount of change wherever you are on it:
+       #101113 canvas -> #191a1d card -> #212226 raised -> #292a2e hovered.
+     Without this, anything sitting on --surface-raised had nowhere to hover
+     to: in the app, 22 driver chips on the picks screen changed only their
+     border and the fill stayed put. */
+  --surface-hover: #292a2e;
   --surface-sunken: #0c0d0f;
   --border: #2c2d31;
   --border-strong: #3a3b41;
 
   /* Text */
   --text: #f2f2f0;
-  --text-muted: #9a9ba1; /* 4.6:1 on --background */
+  /* Clears 7:1 on both --background and --surface, so long-form public
+     content (FAQ answers, policy pages) is comfortable rather than merely
+     passing AA. Was #9a9ba1 at 4.6:1. */
+  --text-muted: #a7a8ad;
   --text-disabled: #5c5d63;
   --text-on-accent: #101113;
 

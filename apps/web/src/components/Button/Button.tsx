@@ -162,8 +162,6 @@ function Button({
       ref={ref}
       type={type}
       disabled={isDisabled}
-      aria-selected={effectiveVariant === 'tab' ? active : undefined}
-      role={effectiveVariant === 'tab' ? 'tab' : undefined}
       className={
         tooltip ? `${resolvedClassName} w-full`.trim() : resolvedClassName
       }

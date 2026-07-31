@@ -11,22 +11,29 @@
   --fw-semibold: 600;
 
   /* UI scale (Archivo).
-     The app implements this scale under Tailwind's names, because ~850 existing
+
+     Raised across the board so body copy starts at a 16px minimum reading
+     size rather than 15px. The original 44/30/17/15/13/11 ladder was
+     comfortable for dense timing-sheet data but too tight for the long-form
+     public pages (FAQ answers, policy, how-to-play), which is where most
+     first-time readers land.
+
+     The app implements this under Tailwind's names, because ~850 existing
      utilities depend on them. Same px values, two spellings:
-       --text-micro   11px  ->  text-xs
-       --text-small   13px  ->  text-sm
-       --text-body    15px  ->  text-base
-       --text-h3      17px  ->  text-lg
+       --text-micro   12px  ->  text-xs      eyebrow / column label
+       --text-small   14px  ->  text-sm      metadata, controls, dense data
+       --text-body    16px  ->  text-base    minimum default reading size
+       --text-h3      18px  ->  text-lg      marketing and intro copy
        --text-h2      22px  ->  text-xl
-       --text-h1      30px  ->  text-3xl
-       --text-display 44px  ->  text-5xl                                   */
-  --text-display: 44px; /* page hero, race name */
-  --text-h1: 30px;
+       --text-h1      32px  ->  text-3xl
+       --text-display 48px  ->  text-5xl     page hero, race name          */
+  --text-display: 48px; /* page hero, race name */
+  --text-h1: 32px;
   --text-h2: 22px;
-  --text-h3: 17px;
-  --text-body: 15px;
-  --text-small: 13px;
-  --text-micro: 11px; /* eyebrow / column label — always uppercase + tracked */
+  --text-h3: 18px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-micro: 12px; /* eyebrow / column label — always uppercase + tracked */
 
   /* Data scale (IBM Plex Mono) */
   --data-xl: 40px; /* countdown digits */

@@ -22,14 +22,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { useBlocker } from '@tanstack/react-router';
-import confetti from 'canvas-confetti';
-import { useClerk } from '@clerk/react';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
+import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
 import {
@@ -174,7 +174,7 @@ function SortablePickRow({
               moveUp(index);
             }}
             disabled={index === 0}
-            className="p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
             aria-label="Move up"
           >
             <ChevronUp size={14} className="text-accent" />
@@ -186,7 +186,7 @@ function SortablePickRow({
               moveDown(index);
             }}
             disabled={index >= picksLength - 1}
-            className="p-1 transition-colors hover:bg-accent-muted/40 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center transition-colors hover:bg-accent-muted/40 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none disabled:opacity-30"
             aria-label="Move down"
           >
             <ChevronDown size={14} className="text-accent" />
@@ -198,7 +198,7 @@ function SortablePickRow({
             e.stopPropagation();
             removeDriver(driver._id);
           }}
-          className="rounded p-1 transition-colors hover:bg-error-muted"
+          className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-error-muted focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
           aria-label="Remove"
           data-testid={`remove-pick-${position}`}
         >
@@ -222,7 +222,7 @@ function EmptySlotDroppable({
     <Tooltip content={driverSlotTooltip}>
       <div
         ref={setNodeRef}
-        className={`flex h-14 w-full shrink-0 cursor-pointer items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
+        className={`flex h-14 w-full shrink-0 cursor-default items-center border-b border-dashed border-border bg-surface text-left last:border-b-0 sm:h-16 sm:cursor-help ${isOver ? 'bg-accent-muted/30' : ''}`}
       >
         <span className="flex-1 px-2 py-1.5 text-sm text-text-muted sm:px-3 sm:py-2">
           Select a driver
@@ -300,6 +300,8 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
 
 interface PredictionFormProps {
   raceId: Id<'races'>;
+  /** Server-rendered driver seed used until the live Convex query resolves. */
+  initialDrivers?: Array<Doc<'drivers'>>;
   existingPicks?: Id<'drivers'>[];
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
@@ -309,6 +311,23 @@ interface PredictionFormProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** Disable route navigation blocking in environments like Storybook. */
   enableNavigationBlocker?: boolean;
+  /** Optional product-shaped placeholder while driver data loads. */
+  loadingFallback?: ReactNode;
+  /**
+   * Replaces the submit row for a signed-out visitor once all five slots are
+   * filled, so the landing page can put its own save-wall copy there. `lockIn`
+   * runs the normal submit path: it opens sign-in and the draft submits itself
+   * the moment auth lands.
+   */
+  renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
+  /** Adds conversion-funnel properties/events without changing app forms. */
+  analyticsSource?: 'landing';
+  /** On narrow screens, put the actionable driver pool before the review list. */
+  mobileActionFirst?: boolean;
+  /** Called once when this mounted form first reaches five picks. */
+  onComplete?: () => void;
+  /** Keeps a parent funnel aware of restored and subsequently edited drafts. */
+  onCompletionStateChange?: (complete: boolean) => void;
 }
 
 type Top5Draft = {
@@ -324,13 +343,21 @@ const AUTO_SAVE_DELAY_MS = 2500;
 
 export function PredictionForm({
   raceId,
+  initialDrivers,
   existingPicks,
   sessionType,
   onSuccess,
   onDirtyChange,
   enableNavigationBlocker = true,
+  loadingFallback,
+  renderSaveWall,
+  analyticsSource,
+  mobileActionFirst = false,
+  onComplete,
+  onCompletionStateChange,
 }: PredictionFormProps) {
-  const drivers = useQuery(api.drivers.listDrivers);
+  const liveDrivers = useQuery(api.drivers.listDrivers);
+  const drivers = liveDrivers ?? initialDrivers;
   const race = useQuery(api.races.getRace, { raceId });
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
@@ -339,8 +366,13 @@ export function PredictionForm({
   // build a full set of picks, and we only submit once Convex has the identity
   // — waiting on this avoids the token-propagation race right after sign-in.
   const { isAuthenticated } = useConvexAuth();
-  const { openSignIn } = useClerk();
+  const clerkRuntime = useClerkRuntimeControl();
   const autoSubmitFiredRef = useRef(false);
+  const authCompletedCapturedRef = useRef(false);
+  const saveWallCapturedRef = useRef(false);
+  const firstPickCapturedRef = useRef(false);
+  const topFiveCapturedRef = useRef(false);
+  const yourPicksRef = useRef<HTMLDivElement>(null);
 
   const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -351,6 +383,53 @@ export function PredictionForm({
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const now = useNow();
+
+  function analyticsProperties() {
+    return {
+      source: analyticsSource,
+      race_id: raceId,
+      race_slug: race?.slug,
+      session_type: sessionType ?? 'cascade',
+    };
+  }
+
+  function trackPickProgress(nextCount: number) {
+    if (
+      analyticsSource === 'landing' &&
+      nextCount >= 1 &&
+      !firstPickCapturedRef.current
+    ) {
+      firstPickCapturedRef.current = true;
+      captureAnalyticsEvent('landing_first_pick_added', analyticsProperties());
+    }
+    if (nextCount === 5 && !topFiveCapturedRef.current) {
+      topFiveCapturedRef.current = true;
+      if (analyticsSource === 'landing') {
+        captureAnalyticsEvent(
+          'landing_top_five_completed',
+          analyticsProperties(),
+        );
+      }
+      onComplete?.();
+
+      if (
+        mobileActionFirst &&
+        !onComplete &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(max-width: 1023px)').matches
+      ) {
+        window.requestAnimationFrame(() => {
+          yourPicksRef.current?.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+              .matches
+              ? 'auto'
+              : 'smooth',
+            block: 'start',
+          });
+        });
+      }
+    }
+  }
 
   useEffect(() => {
     const draft = loadPredictionDraft<Top5Draft>(draftKey);
@@ -363,6 +442,12 @@ export function PredictionForm({
     }
     setHasHydratedDraft(true);
   }, [draftKey, existingPicks]);
+
+  useEffect(() => {
+    if (hasHydratedDraft) {
+      onCompletionStateChange?.(picks.length === 5);
+    }
+  }, [hasHydratedDraft, onCompletionStateChange, picks.length]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -490,6 +575,8 @@ export function PredictionForm({
       // never want the auto-save timer to pop a modal on its own.
       isAuthenticated &&
       hasHydratedDraft &&
+      !autoSubmitFiredRef.current &&
+      !hasPendingSubmit(draftKey) &&
       !isSubmitting &&
       !isSubmissionBlocked &&
       submitStatus !== 'error',
@@ -499,15 +586,12 @@ export function PredictionForm({
     save: () => void handleSubmit({ autoSaved: true }),
   });
 
-  if (drivers === undefined) {
-    return <InlineLoader />;
-  }
-
+  const availableDrivers = drivers ?? [];
   const pickedDrivers = picks
-    .map((id) => drivers.find((d) => d._id === id))
+    .map((id) => availableDrivers.find((d) => d._id === id))
     .filter((d): d is Driver => d !== undefined);
 
-  const driversSortedByTeam = [...drivers].sort((a, b) => {
+  const driversSortedByTeam = [...availableDrivers].sort((a, b) => {
     const teamA = teamStandingsIndex(a.team);
     const teamB = teamStandingsIndex(b.team);
     if (teamA !== teamB) {
@@ -530,6 +614,7 @@ export function PredictionForm({
     }
     markInteraction();
     setPicks([...picks, driverId]);
+    trackPickProgress(picks.length + 1);
     setSubmitStatus('idle');
   }
 
@@ -545,7 +630,9 @@ export function PredictionForm({
     const without = picks.filter((id) => id !== driverId);
     const next = [...without];
     next.splice(slotIndex, 0, driverId);
-    setPicks(next.slice(0, 5));
+    const nextPicks = next.slice(0, 5);
+    setPicks(nextPicks);
+    trackPickProgress(nextPicks.length);
     setSubmitStatus('idle');
   }
 
@@ -599,13 +686,23 @@ export function PredictionForm({
         restored_draft: Boolean(restoredDraftAt),
         auto_saved: Boolean(options?.autoSaved),
         after_sign_in: Boolean(options?.afterSignIn),
+        source: analyticsSource,
       });
+      if (analyticsSource === 'landing') {
+        captureAnalyticsEvent('landing_prediction_saved', {
+          ...analyticsProperties(),
+          after_sign_in: Boolean(options?.afterSignIn),
+        });
+      }
       setSubmitStatus('success');
       if (existingPicks && existingPicks.length > 0) {
-        confetti({
-          particleCount: 80,
-          spread: 60,
-          origin: { y: 0.7 },
+        // Celebration is not part of the critical picker bundle.
+        void import('canvas-confetti').then(({ default: confetti }) => {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.7 },
+          });
         });
       }
       clearPredictionDraft(draftKey);
@@ -630,11 +727,6 @@ export function PredictionForm({
     }
   }
 
-  const currentUrl =
-    typeof window === 'undefined'
-      ? undefined
-      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
-
   // Try-before-signup: a signed-out visitor can build their picks (kept as a
   // device draft), then hit save. Instead of the auth-gated mutation, prompt
   // sign-in; the draft auto-submits once Convex auth lands (see the effect
@@ -649,15 +741,40 @@ export function PredictionForm({
         race_id: raceId,
         race_slug: race?.slug,
         session_type: sessionType ?? 'cascade',
+        source: analyticsSource,
       });
-      openSignIn({
-        fallbackRedirectUrl: currentUrl,
-        signUpFallbackRedirectUrl: currentUrl,
-      });
+      if (analyticsSource === 'landing') {
+        captureAnalyticsEvent('landing_auth_started', analyticsProperties());
+      }
+      clerkRuntime.requestSignIn();
       return;
     }
     void handleSubmit(options);
   }
+
+  useEffect(() => {
+    if (
+      analyticsSource === 'landing' &&
+      isAuthenticated &&
+      hasPendingSubmit(draftKey) &&
+      !authCompletedCapturedRef.current
+    ) {
+      authCompletedCapturedRef.current = true;
+      captureAnalyticsEvent('landing_auth_completed', {
+        source: analyticsSource,
+        race_id: raceId,
+        race_slug: race?.slug,
+        session_type: sessionType ?? 'cascade',
+      });
+    }
+  }, [
+    analyticsSource,
+    draftKey,
+    isAuthenticated,
+    race?.slug,
+    raceId,
+    sessionType,
+  ]);
 
   useEffect(() => {
     if (
@@ -685,6 +802,48 @@ export function PredictionForm({
     isSubmitting,
     isSubmissionBlocked,
   ]);
+
+  /**
+   * The save-wall only replaces the submit row for a signed-out visitor with a
+   * complete grid. Once they authenticate the pending draft submits itself, so
+   * the ordinary submit row has to be back by then to report the result.
+   */
+  const showSaveWall = Boolean(
+    renderSaveWall && !isAuthenticated && picks.length === 5,
+  );
+
+  useEffect(() => {
+    if (
+      analyticsSource !== 'landing' ||
+      !showSaveWall ||
+      saveWallCapturedRef.current
+    ) {
+      return;
+    }
+    saveWallCapturedRef.current = true;
+    captureAnalyticsEvent(
+      onComplete
+        ? 'landing_top_five_handoff_viewed'
+        : 'landing_save_wall_viewed',
+      {
+        source: analyticsSource,
+        race_id: raceId,
+        race_slug: race?.slug,
+        session_type: sessionType ?? 'cascade',
+      },
+    );
+  }, [
+    analyticsSource,
+    onComplete,
+    race?.slug,
+    raceId,
+    sessionType,
+    showSaveWall,
+  ]);
+
+  if (drivers === undefined) {
+    return loadingFallback ?? <InlineLoader />;
+  }
 
   /** When editing existing picks: current selection matches saved → show Saved, disable button */
   const isUnchangedFromSaved = Boolean(
@@ -726,8 +885,9 @@ export function PredictionForm({
         <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
           {/* Your Picks - sortable list via @dnd-kit */}
           <div
+            ref={yourPicksRef}
             data-testid="your-picks"
-            className="lg:min-w-0 lg:min-w-[400px] lg:flex-1"
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 lg:order-1' : ''} lg:min-w-0 lg:min-w-[400px] lg:flex-1`}
           >
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Your Picks
@@ -739,14 +899,16 @@ export function PredictionForm({
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
               data-testid="picks-list"
             >
+              {/* Timing-tower position labels: "P1" reads as a broadcast
+                  position, a bare "1" reads as a list bullet. */}
               <div className="flex shrink-0 flex-col border-r border-border bg-surface-muted/50">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div
                     key={n}
-                    className="flex h-14 w-9 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-11"
+                    className="gpp-mono flex h-14 w-10 shrink-0 items-center justify-center border-b border-border text-sm font-semibold text-accent last:border-b-0 sm:h-16 sm:w-12"
                     aria-hidden
                   >
-                    {n}
+                    P{n}
                   </div>
                 ))}
               </div>
@@ -788,68 +950,78 @@ export function PredictionForm({
               </SortableContext>
             </div>
 
-            {/* Submit row - directly under Your Picks */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
-              <Button
-                variant="primary"
-                size="md"
-                className="w-100 max-w-full"
-                loading={isSubmitting}
-                saved={isUnchangedFromSaved}
-                disabled={
-                  picks.length !== 5 ||
-                  isSubmitting ||
-                  isUnchangedFromSaved ||
-                  isSubmissionBlocked
-                }
-                onClick={() => requestSubmit()}
-                data-testid="submit-prediction"
-              >
-                {isUnchangedFromSaved ? (
-                  <>
-                    <Check size={20} className="shrink-0" />
-                    Saved
-                  </>
-                ) : isSubmitting ? (
-                  'Saving...'
-                ) : !isAuthenticated ? (
-                  'Sign in to save your picks'
-                ) : existingPicks && existingPicks.length > 0 ? (
-                  'Save Changes'
-                ) : (
-                  'Save Predictions'
-                )}
-              </Button>
-
-              {submitStatus === 'success' && (
-                <span className="text-sm text-success" aria-live="polite">
-                  Predictions saved. You can edit them until this session
-                  starts.
-                </span>
-              )}
-
-              {submitStatus === 'error' && (
-                <span
-                  className="text-sm text-error"
-                  data-testid="submit-error"
-                  aria-live="assertive"
+            {/* Submit row - directly under Your Picks. A signed-out visitor
+                with a complete set of picks gets the caller's save-wall
+                instead, when one is supplied. */}
+            {showSaveWall && renderSaveWall ? (
+              renderSaveWall({ lockIn: () => requestSubmit() })
+            ) : (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:mt-4 sm:gap-4">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-100 max-w-full"
+                  loading={isSubmitting}
+                  saved={isUnchangedFromSaved}
+                  disabled={
+                    picks.length !== 5 ||
+                    isSubmitting ||
+                    isUnchangedFromSaved ||
+                    isSubmissionBlocked
+                  }
+                  onClick={() => requestSubmit()}
+                  data-testid="submit-prediction"
                 >
-                  {errorMessage}
-                </span>
-              )}
-            </div>
+                  {isUnchangedFromSaved ? (
+                    <>
+                      <Check size={20} className="shrink-0" />
+                      Saved
+                    </>
+                  ) : isSubmitting ? (
+                    'Saving...'
+                  ) : !isAuthenticated ? (
+                    'Sign in to save your picks'
+                  ) : existingPicks && existingPicks.length > 0 ? (
+                    'Save Changes'
+                  ) : (
+                    'Save Predictions'
+                  )}
+                </Button>
+
+                {submitStatus === 'success' && (
+                  <span className="text-sm text-success" aria-live="polite">
+                    Predictions saved. You can edit them until this session
+                    starts.
+                  </span>
+                )}
+
+                {submitStatus === 'error' && (
+                  <span
+                    className="text-sm text-error"
+                    data-testid="submit-error"
+                    aria-live="assertive"
+                  >
+                    {errorMessage}
+                  </span>
+                )}
+              </div>
+            )}
             {submissionBlockedMessage ? (
               <p className="mt-2 text-center text-sm text-warning">
                 {submissionBlockedMessage}
               </p>
             ) : null}
-            <p className="mt-2 text-center text-xs text-text-muted">
-              You can edit your picks any time before this session starts.
-            </p>
+            {showSaveWall ? null : (
+              <p className="mt-2 text-center text-xs text-text-muted">
+                You can edit your picks any time before this session starts.
+              </p>
+            )}
           </div>
 
           {/* Available Drivers - selection pool (right column on desktop) */}
-          <div className="lg:min-w-0 lg:flex-2">
+          <div
+            className={`${mobileActionFirst ? 'order-1 lg:order-2' : ''} lg:min-w-0 lg:flex-2`}
+          >
             <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
               Select Drivers
               {picks.length >= 5 ? (
@@ -866,6 +1038,12 @@ export function PredictionForm({
                 </span>
               )}
             </h3>
+            {mobileActionFirst ? (
+              <p className="mb-3 text-sm text-text-muted lg:hidden">
+                Tap drivers in finishing order. You can review and reorder them
+                after your fifth pick.
+              </p>
+            ) : null}
             <DriverPoolDroppable>
               {driversSortedByTeam.map((driver) => {
                 const isPicked = picks.includes(driver._id);

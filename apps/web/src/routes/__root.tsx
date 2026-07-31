@@ -9,18 +9,17 @@ import {
   useLocation,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { ConvexProvider } from 'convex/react';
+import { ConvexProviderWithAuth } from 'convex/react';
 import { MotionConfig } from 'framer-motion';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ScrollToTop } from '@/components/ScrollToTop';
-import { useMobileMenu } from '@/hooks/useMobileMenu';
 import {
   fetchInitialAuth,
   InitialAuthProvider,
@@ -33,7 +32,7 @@ import { ViewerSessionProvider } from '@/integrations/clerk/viewer-session-conte
 import { convex, convexHttp } from '@/integrations/convex/client';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
-import { siteConfig } from '@/lib/site';
+import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
 
 const DeferredShellFeatures = lazy(() =>
@@ -84,14 +83,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { property: 'og:site_name', content: siteConfig.title },
       {
         property: 'og:image:alt',
-        content:
-          'Grand Prix Picks: make F1 predictions and climb the 2026 leaderboard.',
+        content: `Grand Prix Picks: make F1 predictions and climb the ${CURRENT_SEASON} leaderboard.`,
       },
       { name: 'twitter:card', content: 'summary_large_image' },
       {
         name: 'twitter:image:alt',
-        content:
-          'Grand Prix Picks: make F1 predictions and climb the 2026 leaderboard.',
+        content: `Grand Prix Picks: make F1 predictions and climb the ${CURRENT_SEASON} leaderboard.`,
       },
       { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],
@@ -118,21 +115,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         rel: 'icon',
         type: 'image/png',
         sizes: '32x32',
-        href: '/favicon-32x32.png?v=20260224',
+        href: '/favicon-32x32.png?v=20260729',
       },
       {
         rel: 'icon',
         type: 'image/png',
         sizes: '16x16',
-        href: '/favicon-16x16.png?v=20260224',
+        href: '/favicon-16x16.png?v=20260729',
       },
       {
         rel: 'apple-touch-icon',
         sizes: '180x180',
-        href: '/apple-touch-icon.png?v=20260224',
+        href: '/apple-touch-icon.png?v=20260729',
       },
-      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20260224' },
-      { rel: 'manifest', href: '/manifest.json?v=20260224' },
+      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20260729' },
+      { rel: 'manifest', href: '/manifest.json?v=20260729' },
       // canonical link is set per-route — do NOT add a global one here
     ],
   }),
@@ -200,14 +197,37 @@ export function NotFoundPage() {
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth, nextRace } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const mainRef = useRef<HTMLDivElement>(null);
-  const { mobileMenuOpen, onMobileMenuOpenChange } = useMobileMenu(mainRef);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     }
   }, []);
+
+  useEffect(() => {
+    // The conversion page does not render ads. Loading AdSense there added
+    // network/CPU work and could mutate <head> before React hydration. Other
+    // routes load it only after the document and an idle main-thread window.
+    if (
+      pathname === '/' ||
+      document.querySelector<HTMLScriptElement>('#gpp-adsense-script')
+    ) {
+      return;
+    }
+
+    return deferUntilAfterLoad(() => {
+      if (document.querySelector('#gpp-adsense-script')) {
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'gpp-adsense-script';
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.src =
+        'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598';
+      document.head.append(script);
+    });
+  }, [pathname]);
 
   return (
     <html lang="en" className="dark" data-theme="dark">
@@ -218,11 +238,6 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598"
-          crossOrigin="anonymous"
-        />
         <HeadContent />
       </head>
       <body>
@@ -232,6 +247,10 @@ function RootDocument({ children }: PropsWithChildren) {
             between the app and "calm". */}
         <MotionConfig reducedMotion="user">
           <InitialAuthProvider value={initialAuth}>
+            {/* Keep route scroll handling outside the swappable Clerk runtime.
+                Activating sign-in from the public picker remounts that runtime,
+                but it is not navigation and must not reset the landing page. */}
+            <ScrollToTop />
             <AppRuntimeBoundary
               initialSignedIn={initialAuth.isSignedIn}
               pathname={pathname}
@@ -246,17 +265,12 @@ function RootDocument({ children }: PropsWithChildren) {
                 >
                   Skip to main content
                 </a>
-                <Header
-                  mobileMenuOpen={mobileMenuOpen}
-                  onMobileMenuOpenChange={onMobileMenuOpenChange}
-                  initialNextRace={nextRace}
-                />
+                <Header initialNextRace={nextRace} />
                 <OfflineBanner />
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
                 </DeferredFeaturesBoundary>
-                <div ref={mainRef} className="flex min-h-0 flex-1 flex-col">
-                  <ScrollToTop />
+                <div className="flex min-h-0 flex-1 flex-col">
                   <AuthenticatedDeferredFeature>
                     <DeferredPredictionBanner />
                   </AuthenticatedDeferredFeature>
@@ -298,6 +312,9 @@ function AppRuntimeBoundary({
 }>) {
   const [runtimeRequested, setRuntimeRequested] = useState(false);
   const [openSignInOnMount, setOpenSignInOnMount] = useState(false);
+  const [afterSignInPath, setAfterSignInPath] = useState<
+    '/leagues/create' | null
+  >(null);
   const runtimeActive = initialSignedIn || pathname !== '/' || runtimeRequested;
 
   useEffect(() => {
@@ -319,7 +336,8 @@ function AppRuntimeBoundary({
     }
   }, []);
 
-  function requestSignIn() {
+  function requestSignIn(nextPath?: '/leagues/create') {
+    setAfterSignInPath(nextPath ?? null);
     setOpenSignInOnMount(true);
     setRuntimeRequested(true);
   }
@@ -329,8 +347,10 @@ function AppRuntimeBoundary({
   const runtimeControl = {
     active: runtimeActive,
     openSignInOnMount,
+    afterSignInPath,
     requestSignIn,
     signInOpened,
+    clearAfterSignInPath: () => setAfterSignInPath(null),
   };
 
   if (!runtimeActive) {
@@ -372,14 +392,16 @@ function AnonymousAppRuntime({
   signInOpened,
 }: PropsWithChildren<{
   disabled?: boolean;
-  requestSignIn: () => void;
+  requestSignIn: (afterSignInPath?: '/leagues/create') => void;
   signInOpened: () => void;
 }>) {
   const runtimeControl = {
     active: false,
     openSignInOnMount: false,
+    afterSignInPath: null,
     requestSignIn: disabled ? () => undefined : requestSignIn,
     signInOpened,
+    clearAfterSignInPath: () => undefined,
   };
 
   return (
@@ -391,10 +413,33 @@ function AnonymousAppRuntime({
           isLoaded: true,
         }}
       >
-        <ConvexProvider client={convex}>{children}</ConvexProvider>
+        <ConvexProviderWithAuth
+          client={convex}
+          useAuth={useAnonymousConvexAuth}
+        >
+          {children}
+        </ConvexProviderWithAuth>
       </ViewerSessionProvider>
     </ClerkRuntimeControlProvider>
   );
+}
+
+async function fetchAnonymousAccessToken() {
+  return null;
+}
+
+/**
+ * Public pages still need Convex's auth-state context so try-before-signup
+ * forms can distinguish "build a draft" from "submit an authenticated
+ * mutation." The client remains explicitly signed out until Clerk is loaded
+ * after an intentional save/sign-in action.
+ */
+function useAnonymousConvexAuth() {
+  return {
+    isLoading: false,
+    isAuthenticated: false,
+    fetchAccessToken: fetchAnonymousAccessToken,
+  };
 }
 
 function AuthenticatedDeferredFeature({ children }: PropsWithChildren) {

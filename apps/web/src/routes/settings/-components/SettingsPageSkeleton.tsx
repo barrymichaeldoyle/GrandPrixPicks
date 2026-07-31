@@ -2,8 +2,6 @@ import { Bell, Globe, User } from 'lucide-react';
 
 import { SettingsSection } from '@/components/SettingsSection';
 
-import { SeasonPassSection } from './SeasonPassSection';
-
 const IN_APP_SKELETON_WIDTHS = ['w-40', 'w-32', 'w-32'];
 
 export function SettingsPageSkeleton() {
@@ -15,7 +13,7 @@ export function SettingsPageSkeleton() {
         <div className="mb-6 h-4 w-96 max-w-full animate-pulse rounded-sm bg-surface-muted" />
         <div className="grid items-start gap-6 md:grid-cols-[10rem_minmax(0,1fr)] lg:gap-10">
           <div className="hidden space-y-2 md:block">
-            {[0, 1, 2, 3].map((item) => (
+            {[0, 1, 2].map((item) => (
               <div
                 key={item}
                 className="h-9 animate-pulse rounded-sm bg-surface-muted"
@@ -36,8 +34,6 @@ export function SettingsPageSkeleton() {
                 </div>
               </div>
             </SettingsSection>
-
-            <SeasonPassSection season={2026} hasSeasonPass={undefined} />
 
             <SettingsSection
               title="Regional"

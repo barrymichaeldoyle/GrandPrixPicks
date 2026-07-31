@@ -48,11 +48,11 @@ export function PageHeader({
           (the leaderboard runs a second line with a link in it) is rendered
           as-is, because nesting block content inside that <p> is invalid. */}
       {typeof subtitle === 'string' ? (
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-text-muted">
+        <p className="gpp-reading-copy mt-4 max-w-2xl text-text-muted">
           {subtitle}
         </p>
       ) : subtitle ? (
-        <div className="mt-4 max-w-2xl text-sm leading-relaxed text-text-muted">
+        <div className="gpp-reading-copy mt-4 max-w-2xl text-text-muted">
           {subtitle}
         </div>
       ) : null}

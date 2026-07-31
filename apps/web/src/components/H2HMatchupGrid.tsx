@@ -8,7 +8,7 @@ import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
-type Driver = {
+export type H2HDriver = {
   _id: Id<'drivers'>;
   code: string;
   displayName: string;
@@ -17,15 +17,15 @@ type Driver = {
   nationality?: string | null;
 };
 
-type Matchup = {
+export type H2HMatchup = {
   _id: Id<'h2hMatchups'>;
   team: string;
-  driver1: Driver;
-  driver2: Driver;
+  driver1: H2HDriver;
+  driver2: H2HDriver;
 };
 
 interface H2HMatchupGridProps {
-  matchups: Matchup[];
+  matchups: H2HMatchup[];
   selections: Record<string, Id<'drivers'> | undefined>;
   mode?: 'interactive' | 'readonly' | 'results';
   onSelect?: (matchupId: Id<'h2hMatchups'>, driverId: Id<'drivers'>) => void;
@@ -85,12 +85,12 @@ export function H2HMatchupGrid({
                 const isWinner = winners[matchup._id] === driver._id;
                 const matchupPoints = pointsByMatchup[matchup._id] ?? 0;
                 const wasCorrect = isSelected && matchupPoints > 0;
-                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-md border border-transparent px-3 pt-1 pb-2 ${
+                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-sm border px-3 pt-1 pb-2 ${
                   isSelected
-                    ? 'bg-accent-muted/60 ring-1 ring-accent/60 ring-inset'
+                    ? 'gpp-stripe border-border bg-surface-elevated pl-4'
                     : isInteractive
-                      ? 'transition-all hover:bg-surface-muted'
-                      : ''
+                      ? 'border-transparent transition-colors hover:bg-surface-elevated'
+                      : 'border-transparent'
                 }`;
 
                 const content = (

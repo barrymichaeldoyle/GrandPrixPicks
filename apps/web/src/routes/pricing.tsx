@@ -17,7 +17,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { FaqItem, FaqSection } from '@/components/Faq';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import { pageMeta } from '@/lib/site';
 import { Pill } from '@/components/Pill';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
@@ -44,55 +44,14 @@ export const Route = createFileRoute('/pricing')({
     return { checkout };
   },
   component: PricingPage,
-  head: () => {
-    const meta = pageMeta({
+  head: () =>
+    pageMeta({
       title: 'F1 Season Pass Pricing | Grand Prix Picks',
       description:
         'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and public leagues.',
       path: '/pricing',
-    });
-
-    const earlyBird = isEarlyBirdActive();
-
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'Product',
-                '@id': `${siteConfig.url}/pricing#season-pass`,
-                name: 'Grand Prix Picks Season Pass',
-                description:
-                  'One purchase for the full F1 season. Unlocks unlimited private leagues and public leagues.',
-                brand: { '@type': 'Brand', name: siteConfig.title },
-                offers: {
-                  '@type': 'Offer',
-                  url: `${siteConfig.url}/pricing`,
-                  priceCurrency: 'USD',
-                  price: earlyBird
-                    ? EARLY_BIRD_PRICE_USD
-                    : SEASON_PASS_PRICE_USD,
-                  availability: 'https://schema.org/InStock',
-                  ...(earlyBird
-                    ? {
-                        priceValidUntil: EARLY_BIRD_EXPIRES_AT_UTC.slice(0, 10),
-                      }
-                    : {}),
-                },
-              },
-              breadcrumbSchema('/pricing', [
-                { name: 'Pricing', path: '/pricing' },
-              ]),
-            ],
-          }),
-        },
-      ],
-    };
-  },
+      noIndex: true,
+    }),
 });
 
 function PricingPage() {

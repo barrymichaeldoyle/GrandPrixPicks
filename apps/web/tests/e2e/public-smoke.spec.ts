@@ -3,6 +3,66 @@ import { expect, test } from '@playwright/test';
 import { applyScenario } from './helpers/scenarios';
 
 test.describe('[public] smoke', () => {
+  test('uses the public landing experience at the home URL', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    await expect(
+      page.getByRole('heading', {
+        name: "Everyone's a strategist on Sunday. Prove it.",
+      }),
+    ).toBeVisible();
+    const header = page.getByRole('banner');
+    await expect(
+      header.getByRole('link', { name: 'How it works' }),
+    ).toBeVisible();
+    await expect(
+      header.getByRole('link', { name: 'Make your picks' }),
+    ).toBeVisible();
+    await expect(header.getByTestId('header-sign-in-button')).toBeVisible();
+    await expect(page.getByText('Dashboard', { exact: true })).toHaveCount(0);
+
+    // Driver buttons are server-rendered; wait for React to attach the draft
+    // handlers before exercising the conversion flow.
+    await page.waitForTimeout(500);
+    for (let pick = 0; pick < 5; pick += 1) {
+      await page
+        .locator('button[data-testid^="driver-"]:not([disabled])')
+        .first()
+        .click();
+      if (pick < 4) {
+        await expect(page.getByTestId('picks-remaining')).toContainText(
+          `Select ${4 - pick} more`,
+        );
+      }
+    }
+    await expect(
+      page.getByRole('tab', { name: 'Teammate H2H', selected: true }),
+    ).toBeVisible();
+    await expect(page.getByTestId('h2h-duel-progress')).toHaveText('0/11');
+    await page
+      .locator('[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]')
+      .first()
+      .click();
+    await expect(page.getByTestId('h2h-duel-progress')).toHaveText('1/11');
+
+    await page.goto('/how-to-play');
+    const guideHeader = page.getByRole('banner');
+    await expect(
+      guideHeader.getByRole('link', { name: 'How it works' }),
+    ).toBeVisible();
+    await expect(
+      guideHeader.getByRole('link', { name: 'Make your picks' }),
+    ).toHaveAttribute('href', '/#make-picks');
+    await expect(
+      guideHeader.getByTestId('header-sign-in-button'),
+    ).toBeVisible();
+    await expect(
+      guideHeader.getByRole('link', { name: 'Races', exact: true }),
+    ).toHaveCount(0);
+  });
+
   test('loads a seeded sprint weekend route', async ({ page }) => {
     const summary = applyScenario('race_partial_results_sprint', {
       namespace: 'scenario__race_partial_results_sprint__pw',
@@ -17,7 +77,7 @@ test.describe('[public] smoke', () => {
       page.getByRole('heading', { name: summary.race!.name }),
     ).toBeVisible();
     await expect(
-      page.getByRole('tab', { name: /Sprint Quali/i }),
+      page.getByRole('button', { name: /Sprint Quali/i }),
     ).toBeVisible();
   });
 

@@ -45,7 +45,7 @@ export const LongTitle: Story = {
   render: () => (
     <PageHeader
       eyebrow="Season pass"
-      title="Everything included with a Grand Prix Picks season pass"
+      title="Everything you need for race weekend"
       subtitle="One payment covers the whole season."
     />
   ),

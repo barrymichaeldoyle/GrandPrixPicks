@@ -88,23 +88,109 @@ async function findRecentAmendment(
   return latest;
 }
 
-/** Distinct users with any Top 5 or H2H score for a race. */
-async function countRacePlayers(
+/**
+ * Combined Top 5 + H2H points each user scored at a single race.
+ *
+ * The map's size doubles as the distinct-player count, so the social-proof
+ * number and the leaderboard's rank movement come out of one pass over the
+ * race's scores rather than two.
+ */
+async function loadRacePointsByUser(
   ctx: QueryCtx,
   raceId: Id<'races'>,
-): Promise<number> {
-  const playerIds = new Set<string>();
+): Promise<Map<string, number>> {
+  const pointsByUser = new Map<string, number>();
   for await (const score of ctx.db
     .query('scores')
     .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
-    playerIds.add(score.userId);
+    pointsByUser.set(
+      score.userId,
+      (pointsByUser.get(score.userId) ?? 0) + score.points,
+    );
   }
   for await (const score of ctx.db
     .query('h2hScores')
     .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
-    playerIds.add(score.userId);
+    pointsByUser.set(
+      score.userId,
+      (pointsByUser.get(score.userId) ?? 0) + score.points,
+    );
   }
-  return playerIds.size;
+  return pointsByUser;
+}
+
+/**
+ * Distinct users who have made a Top 5 or H2H pick for a race, scored or not.
+ *
+ * This is the "picks are in" number on the landing page, so it counts intent
+ * rather than results: it has to be live for a race that hasn't run yet.
+ */
+async function countRacePickers(
+  ctx: QueryCtx,
+  raceId: Id<'races'>,
+): Promise<number> {
+  const pickerIds = new Set<string>();
+  for await (const prediction of ctx.db
+    .query('predictions')
+    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
+    pickerIds.add(prediction.userId);
+  }
+  for await (const prediction of ctx.db
+    .query('h2hPredictions')
+    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
+    pickerIds.add(prediction.userId);
+  }
+  return pickerIds.size;
+}
+
+/**
+ * Where each player stood before the most recent scored race, so the landing
+ * page's timing tower can show a real position delta.
+ *
+ * There is no stored rank history, so the previous standing is reconstructed by
+ * subtracting that race's points from every season total and re-ranking. Ties
+ * break on userId exactly as `loadCombinedSeasonRows` does, otherwise two
+ * players level on points would swap places and each report a phantom ±1.
+ *
+ * Players whose previous total was zero are omitted: they entered the table at
+ * this race, and "climbed 400 places" is a lie dressed as a stat.
+ */
+export function rankBeforeLastScoredRace(
+  rows: ReadonlyArray<{
+    userId: Id<'users'>;
+    top5Points: number;
+    h2hPoints: number;
+  }>,
+  lastRacePoints: ReadonlyMap<string, number>,
+): Map<Id<'users'>, number> {
+  const previousTotals = rows.map((row) => ({
+    userId: row.userId,
+    points:
+      row.top5Points + row.h2hPoints - (lastRacePoints.get(row.userId) ?? 0),
+  }));
+
+  previousTotals.sort((a, b) =>
+    a.points !== b.points
+      ? b.points - a.points
+      : String(a.userId).localeCompare(String(b.userId)),
+  );
+
+  const ranks = new Map<Id<'users'>, number>();
+  let lastPoints: number | null = null;
+  let lastRank = 0;
+
+  for (let i = 0; i < previousTotals.length; i++) {
+    const entry = previousTotals[i];
+    const rank =
+      lastPoints !== null && entry.points === lastPoints ? lastRank : i + 1;
+    lastPoints = entry.points;
+    lastRank = rank;
+    if (entry.points > 0) {
+      ranks.set(entry.userId, rank);
+    }
+  }
+
+  return ranks;
 }
 
 /**
@@ -117,7 +203,7 @@ export const getHomePageData = query({
   handler: async (ctx) => {
     const now = Date.now();
 
-    const [viewer, nextRace, races] = await Promise.all([
+    const [viewer, nextRace, races, drivers] = await Promise.all([
       getViewer(ctx),
       ctx.db
         .query('races')
@@ -134,6 +220,11 @@ export const getHomePageData = query({
             a.season !== b.season ? a.season - b.season : a.round - b.round,
           ),
         ),
+      // Drivers are stable, bounded landing-page data. Returning them with the
+      // SSR payload means the try-before-signup picker is actionable on first
+      // paint and never depends on a second websocket round trip to escape its
+      // loading skeleton.
+      ctx.db.query('drivers').withIndex('by_displayName').take(30),
     ]);
 
     const startedRaces = races
@@ -141,16 +232,24 @@ export const getHomePageData = query({
       .sort((a, b) => b.raceStartAt - a.raceStartAt);
     const mostRecentStartedRace: Doc<'races'> | null = startedRaces[0] ?? null;
 
-    // Social proof reflects the most recent race that actually has scored
-    // players — not just the most recent started race, which may not be scored
-    // yet (mid-weekend) or may be a dev-only scenario race with no entries.
-    let recentRacePlayerCount = 0;
+    // Rank movement is measured against the most recent race that actually has
+    // scored players — not just the most recent started race, which may not be
+    // scored yet (mid-weekend) or may be a dev-only scenario race with no
+    // entries. Searching back six rounds covers a summer break.
+    let lastScoredRacePoints = new Map<string, number>();
     for (const race of startedRaces.slice(0, 6)) {
-      recentRacePlayerCount = await countRacePlayers(ctx, race._id);
-      if (recentRacePlayerCount > 0) {
+      const racePoints = await loadRacePointsByUser(ctx, race._id);
+      if (racePoints.size > 0) {
+        lastScoredRacePoints = racePoints;
         break;
       }
     }
+
+    // Live pick count for the race the landing page is selling. Counts entries,
+    // not scores, so it moves during the week the picks are actually being made.
+    const nextRacePickCount = nextRace
+      ? await countRacePickers(ctx, nextRace._id)
+      : 0;
 
     const [nextRaceResults, recentRaceResults] = await Promise.all([
       nextRace
@@ -163,18 +262,29 @@ export const getHomePageData = query({
 
     const season = await getDefaultLeaderboardSeason(ctx);
     const allRows = await loadCombinedSeasonRows(ctx, { season });
-    const topPlayers = allRows.slice(0, 10).map((row) => ({
-      rank: row.rank,
-      userId: row.userId,
-      username: row.username ?? ANONYMOUS_NAME,
-      displayName: row.displayName,
-      avatarUrl: row.avatarUrl,
-      points: row.top5Points + row.h2hPoints,
-      top5Points: row.top5Points,
-      h2hPoints: row.h2hPoints,
-      raceCount: row.raceCount,
-      isViewer: viewer ? row.userId === viewer._id : false,
-    }));
+    const previousRanks = rankBeforeLastScoredRace(
+      allRows,
+      lastScoredRacePoints,
+    );
+    const topPlayers = allRows.slice(0, 10).map((row) => {
+      const previousRank = previousRanks.get(row.userId);
+      return {
+        rank: row.rank,
+        userId: row.userId,
+        username: row.username ?? ANONYMOUS_NAME,
+        displayName: row.displayName,
+        avatarUrl: row.avatarUrl,
+        points: row.top5Points + row.h2hPoints,
+        top5Points: row.top5Points,
+        h2hPoints: row.h2hPoints,
+        raceCount: row.raceCount,
+        isViewer: viewer ? row.userId === viewer._id : false,
+        // Positive is a climb. Null means there is nothing to compare against:
+        // the player had no points before this race, so they are new to the
+        // table rather than having moved up the whole length of it.
+        rankDelta: previousRank === undefined ? null : previousRank - row.rank,
+      };
+    });
 
     const recentAmendment = await findRecentAmendment(
       ctx,
@@ -188,9 +298,10 @@ export const getHomePageData = query({
       mostRecentStartedRace,
       nextRaceResults,
       recentRaceResults,
-      recentRacePlayerCount,
+      nextRacePickCount,
       topPlayers,
       recentAmendment,
+      drivers,
     };
   },
 });

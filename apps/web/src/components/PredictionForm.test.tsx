@@ -25,7 +25,7 @@ const DRIVER_IDS = ['d0', 'd1', 'd2', 'd3', 'd4'] as Doc<'drivers'>['_id'][];
 // moment sign-in completes.
 const convexAuth = { isLoading: false, isAuthenticated: false };
 const submitSpy = vi.fn().mockResolvedValue(null);
-const openSignInSpy = vi.fn();
+const requestSignInSpy = vi.fn();
 
 vi.mock('canvas-confetti', () => ({ default: () => {} }));
 vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: () => {} }));
@@ -74,8 +74,13 @@ vi.mock('@tanstack/react-router', () => ({
   useBlocker: () => ({ status: 'idle', proceed: () => {}, reset: () => {} }),
 }));
 
-vi.mock('@clerk/react', () => ({
-  useClerk: () => ({ openSignIn: openSignInSpy }),
+vi.mock('@/integrations/clerk/runtime-control', () => ({
+  useClerkRuntimeControl: () => ({
+    active: false,
+    openSignInOnMount: false,
+    requestSignIn: requestSignInSpy,
+    signInOpened: () => {},
+  }),
 }));
 
 vi.mock('convex/react', () => ({
@@ -139,7 +144,7 @@ describe('PredictionForm try-before-signup', () => {
     convexAuth.isLoading = false;
     convexAuth.isAuthenticated = false;
     submitSpy.mockClear();
-    openSignInSpy.mockClear();
+    requestSignInSpy.mockClear();
     clearPendingSubmit(draftKey);
     // Seed a complete draft so the form hydrates to 5 picks without needing to
     // simulate drag-and-drop.
@@ -175,7 +180,7 @@ describe('PredictionForm try-before-signup', () => {
         new MouseEvent('click', { bubbles: true }),
       );
     });
-    expect(openSignInSpy).toHaveBeenCalledTimes(1);
+    expect(requestSignInSpy).toHaveBeenCalledTimes(1);
     expect(hasPendingSubmit(draftKey)).toBe(true);
     expect(submitSpy).not.toHaveBeenCalled();
 
@@ -204,13 +209,14 @@ describe('PredictionForm try-before-signup', () => {
     expect(submitSpy).not.toHaveBeenCalled();
     expect(submitButton(container)?.textContent).not.toContain('Sign in');
 
-    act(() => {
+    await act(async () => {
       submitButton(container)?.dispatchEvent(
         new MouseEvent('click', { bubbles: true }),
       );
+      await Promise.resolve();
     });
 
-    expect(openSignInSpy).not.toHaveBeenCalled();
+    expect(requestSignInSpy).not.toHaveBeenCalled();
     expect(submitSpy).toHaveBeenCalledTimes(1);
   });
 });

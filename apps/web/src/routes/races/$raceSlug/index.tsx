@@ -400,7 +400,9 @@ function RaceDetailPage() {
       ? 'text-accent'
       : isLocked
         ? 'text-warning'
-        : 'text-success';
+        : sessionPicksComplete
+          ? 'text-accent'
+          : 'text-text-muted';
 
     return {
       value: session,
@@ -416,11 +418,8 @@ function RaceDetailPage() {
           ) : (
             <span className="sm:hidden">{SESSION_LABELS[session]}</span>
           )}
-          {/* On the selected tab the status colors (success/warning/accent)
-              are unreadable against the accent background — fall back to the
-              tab's own white text there. */}
           <span
-            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName} [[aria-selected=true]_&]:text-text-on-accent/85`}
+            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName}`}
           >
             {secondaryLabel}
           </span>

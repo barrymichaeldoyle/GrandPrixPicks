@@ -57,11 +57,6 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.7',
   },
   {
-    loc: `${siteConfig.url}/pricing`,
-    changefreq: 'weekly',
-    priority: '0.7',
-  },
-  {
     loc: `${siteConfig.url}/refund-policy`,
     changefreq: 'monthly',
     priority: '0.6',

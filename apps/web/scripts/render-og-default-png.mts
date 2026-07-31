@@ -1,5 +1,6 @@
-import { access, readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 import { colors } from '@grandprixpicks/shared/tokens';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
@@ -17,84 +18,32 @@ function rgba(hex: string, alpha: number): string {
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const FONT_USER_AGENT =
-  'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0';
-const LOCAL_SANS_FONT_CANDIDATES = [
-  process.env.OG_FONT_PATH,
-  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-  '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
-  '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
-  '/System/Library/Fonts/Supplemental/Arial.ttf',
-  '/System/Library/Fonts/Supplemental/Helvetica.ttf',
-].filter(Boolean);
-
-async function resolveGoogleFontUrl(family, weight) {
-  const encodedFamily = encodeURIComponent(family);
-  const cssUrl = `https://fonts.googleapis.com/css2?family=${encodedFamily}:wght@${weight}`;
-  const res = await fetch(cssUrl, {
-    headers: { 'User-Agent': FONT_USER_AGENT },
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${family} CSS: ${res.status}`);
-  }
-  const css = await res.text();
-  const urlMatch = css.match(/url\(([^)]+)\)\s+format\('(woff2|woff)'\)/);
-  if (!urlMatch?.[1]) {
-    throw new Error(`Could not extract ${family} font URL`);
-  }
-  return urlMatch[1].replace(/^["']|["']$/g, '');
-}
-
-async function loadGoogleFont(family, weight) {
-  const fontUrl = await resolveGoogleFontUrl(family, weight);
-  const fontRes = await fetch(fontUrl);
-  if (!fontRes.ok) {
-    throw new Error(`Failed to fetch ${family} font: ${fontRes.status}`);
-  }
-  return Buffer.from(await fontRes.arrayBuffer());
-}
-
-async function loadArchivo(weight: number) {
-  try {
-    return await loadGoogleFont('Archivo', weight);
-  } catch (err) {
-    console.warn(
-      'Archivo could not be loaded for OG generation, falling back to base sans font.',
-      err instanceof Error ? err.message : err,
-    );
-    return null;
-  }
-}
-
-async function findLocalSansFontPath() {
-  for (const candidate of LOCAL_SANS_FONT_CANDIDATES) {
-    try {
-      await access(candidate);
-      return candidate;
-    } catch {}
-  }
-  return null;
-}
-
+const ARCHIVO_FONT_PATHS = {
+  300: fileURLToPath(
+    new URL('../public/fonts/archivo-300-latin.ttf', import.meta.url),
+  ),
+  400: fileURLToPath(
+    new URL('../public/fonts/archivo-400-latin.ttf', import.meta.url),
+  ),
+  600: fileURLToPath(
+    new URL('../public/fonts/archivo-600-latin.ttf', import.meta.url),
+  ),
+  900: fileURLToPath(
+    new URL('../public/fonts/archivo-900-latin.ttf', import.meta.url),
+  ),
+} as const;
 async function main() {
   const require = createRequire(import.meta.url);
   const wasmPath = require.resolve('@resvg/resvg-wasm/index_bg.wasm');
   await initWasm(await readFile(wasmPath));
 
-  const sansPath = await findLocalSansFontPath();
-  if (!sansPath) {
-    throw new Error(
-      'Could not find a local sans font. Set OG_FONT_PATH to a .ttf/.otf/.woff font file.',
-    );
-  }
-  const sans = await readFile(sansPath);
-  const archivoLight = await loadArchivo(300);
-  const titleFontFamily = archivoLight ? 'Archivo' : 'Sans';
-  if (!archivoLight) {
-    console.warn(
-      'Using base sans font for title because Archivo download was unavailable.',
-    );
-  }
+  const [archivoLight, archivoRegular, archivoSemibold, archivoBlack] =
+    await Promise.all([
+      readFile(ARCHIVO_FONT_PATHS[300]),
+      readFile(ARCHIVO_FONT_PATHS[400]),
+      readFile(ARCHIVO_FONT_PATHS[600]),
+      readFile(ARCHIVO_FONT_PATHS[900]),
+    ]);
 
   // The brand mark: three bars descending like a timing tower, sheared to echo
   // the signature stripe. Was a Lucide flag, which was never the brand.
@@ -113,7 +62,7 @@ async function main() {
         position: 'relative',
         backgroundColor: colors.page,
         color: colors.text,
-        fontFamily: 'Sans',
+        fontFamily: 'Archivo',
       },
     },
     h('div', {
@@ -174,7 +123,7 @@ async function main() {
           {
             style: {
               display: 'flex',
-              fontFamily: titleFontFamily,
+              fontFamily: 'Archivo',
               fontSize: '84px',
               fontWeight: 900,
               letterSpacing: '-1.8px',
@@ -220,7 +169,7 @@ async function main() {
             marginBottom: '24px',
           },
         },
-        'Make free picks',
+        'Make your picks',
       ),
       h(
         'div',
@@ -241,19 +190,30 @@ async function main() {
     width: WIDTH,
     height: HEIGHT,
     fonts: [
-      { name: 'Sans', data: sans, weight: 400, style: 'normal' },
-      { name: 'Sans', data: sans, weight: 700, style: 'normal' },
-      { name: 'Sans', data: sans, weight: 900, style: 'normal' },
-      ...(archivoLight
-        ? [
-            {
-              name: 'Archivo',
-              data: archivoLight,
-              weight: 300,
-              style: 'normal',
-            },
-          ]
-        : []),
+      {
+        name: 'Archivo',
+        data: archivoLight,
+        weight: 300,
+        style: 'normal',
+      },
+      {
+        name: 'Archivo',
+        data: archivoRegular,
+        weight: 400,
+        style: 'normal',
+      },
+      {
+        name: 'Archivo',
+        data: archivoSemibold,
+        weight: 600,
+        style: 'normal',
+      },
+      {
+        name: 'Archivo',
+        data: archivoBlack,
+        weight: 900,
+        style: 'normal',
+      },
     ],
   });
 

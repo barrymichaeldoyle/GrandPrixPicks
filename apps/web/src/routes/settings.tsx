@@ -45,7 +45,6 @@ const SEASON_PASS_SEASON = 2026;
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 const SETTINGS_NAV = [
   { href: '#profile', label: 'Profile' },
-  { href: '#season-pass', label: 'Season pass' },
   { href: '#regional', label: 'Regional' },
   { href: '#notifications', label: 'Notifications' },
 ] as const;
@@ -192,8 +191,8 @@ function SettingsPage() {
           <h1 className="font-title mt-1 text-3xl leading-tight font-semibold text-text sm:text-4xl">
             Settings
           </h1>
-          <p className="mt-2 text-sm text-text-muted sm:text-base">
-            Manage your identity, regional preferences, access, and alerts.
+          <p className="gpp-reading-copy mt-2 text-text-muted">
+            Manage your identity, regional preferences, and alerts.
           </p>
         </header>
 
@@ -229,10 +228,12 @@ function SettingsPage() {
           <div className="min-w-0 space-y-4">
             <ProfileSection user={me} {...profileForm} />
 
-            <SeasonPassSection
-              season={SEASON_PASS_SEASON}
-              hasSeasonPass={hasSeasonPassFor2026}
-            />
+            {hasSeasonPassFor2026 === true ? (
+              <SeasonPassSection
+                season={SEASON_PASS_SEASON}
+                hasSeasonPass={hasSeasonPassFor2026}
+              />
+            ) : null}
 
             <RegionalSection
               timezone={displayTimezone}

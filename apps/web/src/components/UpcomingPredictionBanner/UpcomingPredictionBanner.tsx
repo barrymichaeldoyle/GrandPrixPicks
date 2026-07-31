@@ -197,6 +197,12 @@ export function UpcomingPredictionBanner() {
     isSignedIn && profileUsername != null ? {} : 'skip',
   );
 
+  // The authenticated home owns the complete current-weekend state and CTA.
+  // A second global prompt above it would duplicate the page's primary action.
+  if (pathname === '/') {
+    return null;
+  }
+
   if (pathname.startsWith('/settings') || pathname.startsWith('/pricing')) {
     return null;
   }

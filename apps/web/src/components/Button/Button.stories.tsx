@@ -104,14 +104,14 @@ export const Showcase: Story = {
 
         <div className={section}>
           <h3 className={title}>Tabs</h3>
-          <div className={row} role="tablist" aria-label="Button tabs demo">
-            <Button variant="tab" size="tab" active>
+          <div className={row} role="group" aria-label="Button tabs demo">
+            <Button variant="tab" size="tab" active aria-pressed="true">
               Top 5
             </Button>
-            <Button variant="tab" size="tab">
+            <Button variant="tab" size="tab" aria-pressed="false">
               Head to Head
             </Button>
-            <Button variant="tab" size="tab" disabled>
+            <Button variant="tab" size="tab" disabled aria-pressed="false">
               Disabled Tab
             </Button>
           </div>

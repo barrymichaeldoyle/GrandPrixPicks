@@ -1,8 +1,8 @@
 import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
 import {
   Flag,
-  Gauge,
   History,
+  House,
   SlidersHorizontal,
   Trophy,
   Users,
@@ -77,9 +77,9 @@ export function ClerkHeaderUser({
         ) : null}
         {isMobile ? (
           <UserButton.Link
-            label="Feed"
-            labelIcon={<Gauge className="h-4 w-4" />}
-            href="/feed"
+            label="Home"
+            labelIcon={<House className="h-4 w-4" />}
+            href="/"
           />
         ) : null}
         {isMobile ? (

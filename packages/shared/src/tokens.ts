@@ -19,21 +19,39 @@
  *   3. Accent is for CTAs, active states and the stripe. Never body text.
  */
 export const colors = {
-  // Base — a warm near-black, never pure black. Four surface layers.
+  /*
+   * Base — a warm near-black, never pure black.
+   *
+   * The ramp climbs in even steps (+9, then +8 per channel) so "one surface
+   * step lighter" means the same amount of change wherever you are on it:
+   *
+   *   page      #101113   the canvas
+   *   surface   #191a1d   cards, panels
+   *   elevated  #212226   selected, or hovering a card
+   *   hover     #292a2e   hovering something already elevated
+   *
+   * `surfaceHover` is a real fourth step rather than an alias of `elevated`.
+   * When all three of elevated/muted/hover shared one value, anything already
+   * sitting on the raised surface had nowhere to hover to — the 22 driver
+   * chips on the picks screen changed only their border, and the fill stayed
+   * put. `surfaceMuted` stays level with `elevated` on purpose: it means "a
+   * quiet fill at the raised level", not another step.
+   */
   page: '#101113',
   surface: '#191a1d',
   surfaceElevated: '#212226',
   surfaceMuted: '#212226',
-  surfaceHover: '#212226',
+  surfaceHover: '#292a2e',
   surfaceSunken: '#0c0d0f',
 
   // Borders — the only elevation mechanism the system has.
   border: '#2c2d31',
   borderStrong: '#3a3b41',
 
-  // Text. `textMuted` holds 4.6:1 on `page`; nothing below 4.5:1 ships.
+  // Text. Muted copy clears 7:1 on both page and surface backgrounds so
+  // long-form public content remains comfortable rather than merely passing.
   text: '#f2f2f0',
-  textMuted: '#9a9ba1',
+  textMuted: '#a7a8ad',
   textDisabled: '#5c5d63',
   textOnAccent: '#101113',
 
@@ -197,16 +215,16 @@ export const layout = {
  * `lineHeight: null` means 1.
  */
 export const typeScale = {
-  xs: { size: 11, lineHeight: 16 }, // micro / eyebrow — always uppercase + tracked
-  sm: { size: 13, lineHeight: 18 },
-  base: { size: 15, lineHeight: 22 },
-  lg: { size: 17, lineHeight: 24 },
-  xl: { size: 22, lineHeight: 28 },
-  '2xl': { size: 26, lineHeight: 32 },
-  '3xl': { size: 30, lineHeight: 36 },
-  '4xl': { size: 36, lineHeight: 40 },
-  '5xl': { size: 44, lineHeight: null }, // page hero, race name
-  '6xl': { size: 56, lineHeight: null },
+  xs: { size: 12, lineHeight: 17 }, // micro / eyebrow — always uppercase + tracked
+  sm: { size: 14, lineHeight: 21 }, // metadata, controls and dense data
+  base: { size: 16, lineHeight: 24 }, // minimum default reading size
+  lg: { size: 18, lineHeight: 28 }, // marketing and introductory copy
+  xl: { size: 22, lineHeight: 29 },
+  '2xl': { size: 28, lineHeight: 35 },
+  '3xl': { size: 32, lineHeight: 40 },
+  '4xl': { size: 40, lineHeight: 45 },
+  '5xl': { size: 48, lineHeight: 53 }, // page hero, race name
+  '6xl': { size: 60, lineHeight: 64 },
 } as const;
 
 /**

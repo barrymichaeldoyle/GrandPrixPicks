@@ -252,10 +252,10 @@ function ResultsPolicyPage() {
                     </p>
                   </div>
                 </div>
-                <p className="mt-5 text-[15px] leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-5 text-text-muted">
                   {row.detail}
                 </p>
-                <p className="mt-4 border-l-2 border-warning/60 pl-3 text-[15px] leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-4 border-l-2 border-warning/60 pl-3 text-text-muted">
                   <span className="font-semibold text-text">
                     {row.noteLabel}:{' '}
                   </span>
@@ -270,19 +270,19 @@ function ResultsPolicyPage() {
               One penalty, two different results
             </h3>
             <div className="mt-3 sm:mt-0">
-              <p className="max-w-3xl text-[15px] leading-6 text-text-muted">
+              <p className="gpp-reading-copy max-w-3xl text-text-muted">
                 A driver qualifies P2 and picks up a five-place grid penalty for
                 a gearbox change. The next day, they finish P4 but receive a
                 ten-second penalty and are classified P6.
               </p>
               <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-                <li className="border-t border-border pt-3 text-[15px] leading-6 text-text-muted">
+                <li className="gpp-reading-copy border-t border-border pt-3 text-text-muted">
                   <span className="mb-1 block font-semibold text-accent">
                     Qualifying · P2
                   </span>
                   The grid drop does not change the qualifying classification.
                 </li>
-                <li className="border-t border-border pt-3 text-[15px] leading-6 text-text-muted">
+                <li className="gpp-reading-copy border-t border-border pt-3 text-text-muted">
                   <span className="mb-1 block font-semibold text-accent">
                     Race · P6
                   </span>
@@ -310,7 +310,7 @@ function ResultsPolicyPage() {
             <dl className="mt-5 divide-y divide-border border-y border-border">
               <div className="py-4 sm:grid sm:grid-cols-[7rem_1fr] sm:gap-5">
                 <dt className="font-semibold text-text">DNF, DSQ or NC</dt>
-                <dd className="mt-1 text-[15px] leading-6 text-text-muted sm:mt-0">
+                <dd className="gpp-reading-copy mt-1 text-text-muted sm:mt-0">
                   The driver is still ordered in the official classification. We
                   use that order for Top 5 and Head-to-Head scoring. NC means
                   not classified, usually too few laps completed to be ranked.
@@ -318,19 +318,19 @@ function ResultsPolicyPage() {
               </div>
               <div className="py-4 sm:grid sm:grid-cols-[7rem_1fr] sm:gap-5">
                 <dt className="font-semibold text-text">One DNS</dt>
-                <dd className="mt-1 text-[15px] leading-6 text-text-muted sm:mt-0">
+                <dd className="gpp-reading-copy mt-1 text-text-muted sm:mt-0">
                   In a teammate matchup, the driver who started wins.
                 </dd>
               </div>
               <div className="py-4 sm:grid sm:grid-cols-[7rem_1fr] sm:gap-5">
                 <dt className="font-semibold text-text">Both DNS</dt>
-                <dd className="mt-1 text-[15px] leading-6 text-text-muted sm:mt-0">
+                <dd className="gpp-reading-copy mt-1 text-text-muted sm:mt-0">
                   The matchup is void and removed from the available H2H points
                   for that session.
                 </dd>
               </div>
             </dl>
-            <p className="mt-4 text-sm leading-6 text-text-muted">
+            <p className="gpp-reading-copy mt-4 text-text-muted">
               These labels are shown on the result instead of a finishing
               position.
             </p>
@@ -366,7 +366,7 @@ function ResultsPolicyPage() {
                   </span>
                   {step.title}
                 </h3>
-                <p className="mt-1.5 text-[15px] leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-1.5 text-text-muted">
                   {step.detail}
                 </p>
               </li>
@@ -388,7 +388,7 @@ function ResultsPolicyPage() {
             >
               The same correction applies to everyone
             </h2>
-            <div className="mt-4 space-y-4 text-[15px] leading-6 text-text-muted">
+            <div className="gpp-reading-copy mt-4 space-y-4 text-text-muted">
               <p>
                 We rescore the full session for every player. Points may go up,
                 go down or stay the same. Leaderboards and season standings are
@@ -402,14 +402,14 @@ function ResultsPolicyPage() {
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="border border-border p-4">
                 <h3 className="font-semibold text-text">Official amendment</h3>
-                <p className="mt-1 text-sm leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-1 text-text-muted">
                   The real-world classification changed. We add a note to the
                   session and notify you if your points changed.
                 </p>
               </div>
               <div className="border border-border p-4">
                 <h3 className="font-semibold text-text">Data correction</h3>
-                <p className="mt-1 text-sm leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-1 text-text-muted">
                   Our entry did not match the classification already published.
                   We fix and rescore it without an amendment notification.
                 </p>
@@ -435,7 +435,7 @@ function ResultsPolicyPage() {
                 className="border-b border-border py-5 sm:grid sm:grid-cols-[1fr_1.4fr] sm:gap-8"
               >
                 <dt className="font-semibold text-text">{faq.question}</dt>
-                <dd className="mt-2 text-sm leading-6 text-text-muted sm:mt-0">
+                <dd className="gpp-reading-copy mt-2 text-text-muted sm:mt-0">
                   {faq.answer}
                 </dd>
               </div>
@@ -448,7 +448,7 @@ function ResultsPolicyPage() {
           <h2 className="font-title text-2xl font-semibold text-text">
             Spotted a result that looks wrong?
           </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-text-muted">
+          <p className="gpp-reading-copy mx-auto mt-2 max-w-xl text-text-muted">
             If a session does not match the official classification, tell us and
             we will check it against the FIA result and amend it if needed.
           </p>

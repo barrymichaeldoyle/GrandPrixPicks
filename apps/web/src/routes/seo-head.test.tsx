@@ -23,6 +23,7 @@ vi.mock('@/integrations/convex/client', () => ({
 type HeadResult = {
   links?: Array<{ href: string; rel: string }>;
   meta?: Array<{ content: string; name?: string; property?: string }>;
+  scripts?: Array<{ children: string; type: string }>;
 };
 
 type StaticHeadRoute = {
@@ -81,6 +82,47 @@ function asTeammateHeadRoute(route: unknown): TeammateHeadRoute {
 describe('SEO head metadata', () => {
   beforeEach(() => {
     vi.resetModules();
+  });
+
+  it('keeps the public home metadata, canonical and app schema aligned', async () => {
+    const [{ Route: homeRoute, PUBLIC_HOME_TITLE }, { CURRENT_SEASON }] =
+      await Promise.all([import('./index'), import('@/lib/site')]);
+    const head = asStaticHeadRoute(homeRoute).head() as unknown as {
+      links?: Array<{ href: string; rel: string }>;
+      scripts?: Array<{ children: string; type: string }>;
+      meta?: Array<{
+        content?: string;
+        name?: string;
+        property?: string;
+        title?: string;
+      }>;
+    };
+    const title = head.meta?.find((tag) => tag.title)?.title;
+    const description = head.meta?.find(
+      (tag) => tag.name === 'description',
+    )?.content;
+    const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
+      | Array<{
+          '@type': string;
+          name?: string;
+          offers?: { price?: string };
+        }>
+      | undefined;
+    const app = graph?.find((node) => node['@type'] === 'WebApplication');
+
+    expect(title).toBe(PUBLIC_HOME_TITLE);
+    expect(title).toContain(String(CURRENT_SEASON));
+    expect(title?.length).toBeLessThanOrEqual(60);
+    expect(description).toContain('Formula 1');
+    expect(description?.length).toBeLessThanOrEqual(160);
+    expect(head.links).toEqual([
+      { rel: 'canonical', href: 'https://grandprixpicks.com/' },
+    ]);
+    expect(app).toMatchObject({
+      '@type': 'WebApplication',
+      name: 'Grand Prix Picks',
+      offers: { price: '0' },
+    });
   });
 
   it('marks gated pages as noindex with a single canonical', async () => {

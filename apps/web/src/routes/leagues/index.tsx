@@ -173,7 +173,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                       size="sm"
                       leftIcon={Plus}
                       disabled
-                      tooltip={`Free limit reached (${privateCreatedCount}/${privateCreateLimit}). Upgrade on pricing to create more.`}
+                      tooltip={`League creation limit reached (${privateCreatedCount}/${privateCreateLimit}).`}
                     >
                       Create
                     </Button>
@@ -186,35 +186,20 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               </div>
             }
           />
-          {isSignedIn && leagueUsage && !leagueUsage.hasSeasonPass ? (
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
-              <span>
-                Private creates {privateCreatedCount}/
-                {leagueUsage.limits.maxPrivateLeaguesCreated}
-              </span>
-              {hasPublicLeagues ? (
-                <span>
-                  Public joins {publicJoinedCount}/
-                  {leagueUsage.limits.maxPublicLeaguesJoined}
-                </span>
-              ) : null}
-              <Link
-                to="/pricing"
-                className="font-semibold text-accent hover:text-accent-hover"
-              >
-                Upgrade for unlimited
-              </Link>
-            </div>
-          ) : null}
         </div>
 
         {shouldShowDiscoverTab ? (
-          <div className="reveal-up reveal-delay-1 mb-6 flex max-w-md gap-1 rounded-sm bg-surface-muted/55 p-1">
+          <div
+            className="reveal-up reveal-delay-1 mb-6 flex max-w-md gap-1 rounded-sm bg-surface-muted/55 p-1"
+            role="group"
+            aria-label="League view"
+          >
             <Button
               type="button"
               variant="tab"
               size="tab"
               active={activeTab === 'my'}
+              aria-pressed={activeTab === 'my'}
               onClick={() => setActiveTab('my')}
               className="h-8 max-h-8 min-h-8 flex-1"
             >
@@ -225,6 +210,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
               variant="tab"
               size="tab"
               active={activeTab === 'discover'}
+              aria-pressed={activeTab === 'discover'}
               onClick={() => setActiveTab('discover')}
               className="h-8 max-h-8 min-h-8 flex-1"
             >
@@ -334,44 +320,19 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 Sign in to join public leagues and track your joined-league
                 limit.
               </div>
-            ) : leagueUsage && !leagueUsage.hasSeasonPass ? (
-              <div
-                className={`mb-4 rounded-lg border p-3 text-sm ${
-                  publicJoinLimitReached
-                    ? 'border-warning/40 bg-warning/10'
-                    : 'border-border bg-surface'
-                }`}
-              >
-                <p className="text-text">
-                  Public leagues joined: {publicJoinedCount}/
-                  {leagueUsage.limits.maxPublicLeaguesJoined} on free plan.
-                </p>
-                <p className="mt-1 text-xs text-text-muted">
-                  {publicJoinLimitReached ? (
-                    <>
-                      You&apos;ve reached your free public-join limit for{' '}
-                      {season}.{' '}
-                      <Link
-                        to="/pricing"
-                        className="text-accent hover:underline"
-                      >
-                        Upgrade to Season Pass
-                      </Link>{' '}
-                      for unlimited public joins.
-                    </>
-                  ) : (
-                    <>
-                      Upgrade to{' '}
-                      <Link
-                        to="/pricing"
-                        className="text-accent hover:underline"
-                      >
-                        Season Pass
-                      </Link>{' '}
-                      for unlimited public joins.
-                    </>
-                  )}
-                </p>
+            ) : publicJoinLimitReached && leagueUsage ? (
+              <div className="mb-4 flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-text">
+                    You&apos;ve used all five public league spots
+                  </p>
+                  <p className="mt-1 text-sm text-text-muted">
+                    Unlock more spots to keep joining leagues this season.
+                  </p>
+                </div>
+                <Button asChild size="sm" className="shrink-0">
+                  <Link to="/pricing">Unlock more leagues</Link>
+                </Button>
               </div>
             ) : null}
 
@@ -385,7 +346,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 value={discoverQuery}
                 onChange={(e) => setDiscoverQuery(e.target.value)}
                 placeholder="Search public leagues..."
-                className="w-full rounded-lg border border-border bg-surface py-2 pr-3 pl-9 text-sm text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface py-2 pr-3 pl-9 text-base text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
               />
             </div>
 

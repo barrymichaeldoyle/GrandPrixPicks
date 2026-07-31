@@ -370,15 +370,19 @@ When sufficient results exist, the race page can summarize:
 Results may be amended. The UI and notifications must represent the latest
 published score, not preserve a superseded score as authoritative.
 
-## 9. Home page
+## 9. Home route
 
-The public home page:
+The `/` route has two separate experiences selected from the server-resolved
+authentication state. The page trees do not mix marketing and player content.
+
+### 9.1 Public landing page
+
+The signed-out landing page:
 
 - explains the Top 5 and H2H games;
 - identifies the next or currently relevant race weekend;
 - displays session schedule and countdown/status information;
-- directs signed-out visitors to begin picks and signed-in players to their
-  picks;
+- directs visitors to begin picks before creating an account;
 - previews scoring, season progression, social play, and leaderboards;
 - shows recent participation/social proof where data is available;
 - answers core questions about cost, accounts, scoring, H2H, deadlines, and
@@ -388,6 +392,25 @@ The public home page:
 
 Core home content must remain useful when no next race, current result, top
 player, or participation data is available.
+
+### 9.2 Authenticated dashboard
+
+The signed-in dashboard replaces the public landing page at the same `/` URL.
+It:
+
+- makes the current race weekend and its next required action the dominant
+  surface;
+- reports Top 5 and H2H completion for every applicable session;
+- uses backend-provided session capabilities for open, locked, editable, and
+  results-available states;
+- links directly to the most relevant race session;
+- summarizes the player's latest scored weekend and season standing;
+- provides shortcuts to the player's leagues;
+- includes the personalized activity feed below the time-sensitive content.
+
+The dashboard must not repeat the public product pitch, scoring explainer, or
+conversion FAQ. When no weekend or scored result exists, it shows useful
+player-specific empty states rather than marketing content.
 
 ## 10. Player profiles and prediction history
 
@@ -885,32 +908,32 @@ keyboard-accessible interaction.
 
 ## 25. Route-level product inventory
 
-| Route                     | Audience      | Primary purpose                                        |
-| ------------------------- | ------------- | ------------------------------------------------------ |
-| `/`                       | Public        | Marketing, next/current weekend, game explanation, FAQ |
-| `/races`                  | Public        | Season calendar and race-state navigation              |
-| `/races/:raceSlug`        | Public/player | Picks, H2H, results, scores, recap, sharing            |
-| `/leaderboard`            | Public/player | Weekend/season, Combined/Top 5/H2H rankings            |
-| `/feed`                   | Player        | Personalized friends-and-leagues activity              |
-| `/feed/:feedEventId`      | Player        | Feed item detail and reaction participants             |
-| `/leagues`                | Public/player | My leagues, usage, public discovery                    |
-| `/leagues/create`         | Player        | Create private/public league within entitlement        |
-| `/leagues/:slug`          | Public/player | League summary, join flow, member experience           |
-| `/leagues/:slug/settings` | Member/admin  | League settings and administration                     |
-| `/p/:username`            | Public        | Player identity, stats, eligible history/activity      |
-| `/p/:username/followers`  | Player        | Followers list                                         |
-| `/p/:username/following`  | Player        | Following list                                         |
-| `/me`                     | Player        | Signed-in player's prediction history                  |
-| `/settings`               | Player        | Profile, pass, regional, notification preferences      |
-| `/pricing`                | Public/player | Season Pass offer and checkout entry                   |
-| `/pay`                    | Player        | Purchase completion/checkout handoff support           |
-| `/sign-in`                | Public        | Authentication entry/redirect                          |
-| `/support`                | Player        | Authenticated support request                          |
-| `/terms`                  | Public        | Terms of service                                       |
-| `/privacy`                | Public        | Privacy policy                                         |
-| `/refund-policy`          | Public        | Refund policy                                          |
-| `/admin`                  | Site admin    | Race, announcement, user, and scenario operations      |
-| `/admin/races/:raceId`    | Site admin    | Race/session result operations                         |
+| Route                     | Audience      | Primary purpose                                       |
+| ------------------------- | ------------- | ----------------------------------------------------- |
+| `/`                       | Public/player | Signed-out landing or authenticated race-weekend home |
+| `/races`                  | Public        | Season calendar and race-state navigation             |
+| `/races/:raceSlug`        | Public/player | Picks, H2H, results, scores, recap, sharing           |
+| `/leaderboard`            | Public/player | Weekend/season, Combined/Top 5/H2H rankings           |
+| `/feed`                   | Player        | Personalized friends-and-leagues activity             |
+| `/feed/:feedEventId`      | Player        | Feed item detail and reaction participants            |
+| `/leagues`                | Public/player | My leagues, usage, public discovery                   |
+| `/leagues/create`         | Player        | Create private/public league within entitlement       |
+| `/leagues/:slug`          | Public/player | League summary, join flow, member experience          |
+| `/leagues/:slug/settings` | Member/admin  | League settings and administration                    |
+| `/p/:username`            | Public        | Player identity, stats, eligible history/activity     |
+| `/p/:username/followers`  | Player        | Followers list                                        |
+| `/p/:username/following`  | Player        | Following list                                        |
+| `/me`                     | Player        | Signed-in player's prediction history                 |
+| `/settings`               | Player        | Profile, pass, regional, notification preferences     |
+| `/pricing`                | Public/player | Season Pass offer and checkout entry                  |
+| `/pay`                    | Player        | Purchase completion/checkout handoff support          |
+| `/sign-in`                | Public        | Authentication entry/redirect                         |
+| `/support`                | Player        | Authenticated support request                         |
+| `/terms`                  | Public        | Terms of service                                      |
+| `/privacy`                | Public        | Privacy policy                                        |
+| `/refund-policy`          | Public        | Refund policy                                         |
+| `/admin`                  | Site admin    | Race, announcement, user, and scenario operations     |
+| `/admin/races/:raceId`    | Site admin    | Race/session result operations                        |
 
 Server-only routes additionally handle Clerk and Paddle webhooks, Paddle
 checkout creation, sitemap generation, X/social routing, and Open Graph image

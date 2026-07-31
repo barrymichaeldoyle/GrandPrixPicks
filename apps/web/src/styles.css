@@ -267,6 +267,38 @@
   line-height: var(--lh-snug);
 }
 
+/*
+ * Reading roles for public and marketing pages.
+ *
+ * Dense product UI can still use text-sm for metadata and timing-sheet rows,
+ * but prose should ask for one of these roles instead of inheriting that
+ * density. Keeping the roles here makes the distinction explicit and reusable
+ * across landing, rules, pricing and policy pages.
+ */
+.gpp-reading-copy {
+  font-size: var(--text-base);
+  line-height: 1.65;
+}
+
+.gpp-reading-copy-lg {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+
+.gpp-reading-meta {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/*
+ * The signed-out header owns the primary CTA. On the landing page, once the
+ * deadline strip appears, its contextual CTA takes over so two identical lime
+ * buttons are never stacked in the sticky chrome.
+ */
+html:has([data-landing-sticky-visible='true']) .gpp-public-header-cta {
+  display: none;
+}
+
 /* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge
    of the thing that matters — the active card, the selected slot, the current
    user's leaderboard row, the active nav item.

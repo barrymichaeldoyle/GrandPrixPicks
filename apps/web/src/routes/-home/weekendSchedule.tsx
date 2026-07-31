@@ -1,10 +1,16 @@
 import { getWeekendSessionStarts } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
-import { SESSION_LABELS } from '@/lib/sessions';
+import { SESSION_LABELS, SESSION_LABELS_FULL } from '@/lib/sessions';
 
 export type SessionEntry = {
   type: SessionType;
+  /** Compact label for dense UI — "Sprint Quali". */
   label: string;
+  /**
+   * Spelled-out label — "Sprint Qualifying". Used on the landing page, where
+   * the reader may not know the abbreviation yet.
+   */
+  labelFull: string;
   startAt: number;
 };
 
@@ -14,6 +20,7 @@ export function buildSessions(
   return getWeekendSessionStarts(race).map((entry) => ({
     ...entry,
     label: SESSION_LABELS[entry.type],
+    labelFull: SESSION_LABELS_FULL[entry.type],
   }));
 }
 

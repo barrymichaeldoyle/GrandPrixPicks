@@ -21,6 +21,7 @@ import type * as emails_SessionResultsPreRaceMadePredictionsEmail from "../email
 import type * as emails_SessionResultsPreRaceMissedPredictionsEmail from "../emails/SessionResultsPreRaceMissedPredictionsEmail.js";
 import type * as emails_SessionResultsPreRaceMissingH2HPredictionsEmail from "../emails/SessionResultsPreRaceMissingH2HPredictionsEmail.js";
 import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
+import type * as emails_fonts from "../emails/fonts.js";
 import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
 import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as emails_sendSupportEmail from "../emails/sendSupportEmail.js";
@@ -85,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   "emails/SessionResultsPreRaceMissedPredictionsEmail": typeof emails_SessionResultsPreRaceMissedPredictionsEmail;
   "emails/SessionResultsPreRaceMissingH2HPredictionsEmail": typeof emails_SessionResultsPreRaceMissingH2HPredictionsEmail;
   "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;
+  "emails/fonts": typeof emails_fonts;
   "emails/sendReminderEmails": typeof emails_sendReminderEmails;
   "emails/sendResultEmails": typeof emails_sendResultEmails;
   "emails/sendSupportEmail": typeof emails_sendSupportEmail;

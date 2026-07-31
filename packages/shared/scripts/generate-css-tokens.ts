@@ -266,3 +266,77 @@ const outPath = resolve(
 );
 writeFileSync(outPath, lines.join('\n'));
 console.log(`✓ Generated ${outPath}`);
+
+/* ────────── apps/mobile/src/global.css ──────────
+ *
+ * Mobile used to hand-author its whole palette in this file, which meant that
+ * when the web app was reskinned, mobile silently stayed on the old slate and
+ * teal: `theme/tokens.ts` re-exported the shared colours correctly, but every
+ * Tailwind utility resolved against the local `@theme` block instead, and the
+ * stylesheet won. The rule that tokens are authored in exactly one place now
+ * covers both apps.
+ *
+ * This emits a much smaller file than the web one on purpose. react-native-css
+ * supports a subset of the CSS the web build takes, so only the two families
+ * mobile actually consumed — colours and radii — are generated, and the
+ * platform font blocks below are carried through verbatim.
+ */
+const mobileLines: string[] = [
+  '/* AUTO-GENERATED — do not edit directly.',
+  ' * Source: packages/shared/src/tokens.ts',
+  ' * Regenerate: pnpm --filter @grandprixpicks/shared generate-tokens',
+  ' */',
+  "@import 'tailwindcss/theme.css' layer(theme);",
+  "@import 'tailwindcss/preflight.css' layer(base);",
+  "@import 'tailwindcss/utilities.css';",
+  '',
+  '@layer theme {',
+  '  @theme {',
+];
+
+for (const [key, value] of Object.entries(colors)) {
+  mobileLines.push(`    --color-${toKebab(key)}: ${value};`);
+}
+
+/*
+ * Two compatibility aliases. Mobile's ~200 `text-foreground` and `text-muted`
+ * usages predate the shared names (`text` / `textMuted`), and renaming them is
+ * a mechanical churn with real risk and no visual payoff. They resolve to the
+ * same values, so the palette is still single-sourced.
+ */
+mobileLines.push('');
+mobileLines.push(`    --color-foreground: ${colors.text};`);
+mobileLines.push(`    --color-muted: ${colors.textMuted};`);
+
+mobileLines.push('');
+for (const [key, value] of Object.entries(radii)) {
+  mobileLines.push(`    --radius-${key}: ${value}px;`);
+}
+
+mobileLines.push(
+  '  }',
+  '}',
+  '',
+  '@media android {',
+  '  :root {',
+  '    --font-mono: monospace;',
+  '    --font-rounded: normal;',
+  '    --font-serif: serif;',
+  '    --font-sans: normal;',
+  '  }',
+  '}',
+  '',
+  '@media ios {',
+  '  :root {',
+  '    --font-mono: ui-monospace;',
+  '    --font-rounded: ui-rounded;',
+  '    --font-serif: ui-serif;',
+  '    --font-sans: system-ui;',
+  '  }',
+  '}',
+  '',
+);
+
+const mobileOutPath = resolve(__dirname, '../../../apps/mobile/src/global.css');
+writeFileSync(mobileOutPath, mobileLines.join('\n'));
+console.log(`✓ Generated ${mobileOutPath}`);

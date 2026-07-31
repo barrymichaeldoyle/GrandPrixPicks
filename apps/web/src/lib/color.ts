@@ -1,9 +1,10 @@
 /**
- * WCAG colour maths, shared by the OG card templates (which pick readable ink
- * for team-coloured badges) and the design-system Foundations panel.
+ * WCAG colour maths for the design-system Foundations panel.
  *
- * Dependency-free on purpose: the OG templates render inside the Cloudflare
- * worker, so this must not pull in anything browser- or Node-specific.
+ * The OG card templates were the other consumer: they used `relativeLuminance`
+ * to pick black-or-white ink per livery for driver badges filled with team
+ * colour. Confining team colour to a 3px bar removed the need to compute
+ * anything, so only the Foundations contrast table is left.
  */
 
 /** Accepts `#rrggbb` or `rrggbb`. */
@@ -19,7 +20,7 @@ function channels(hex: string): [number, number, number] {
 }
 
 /** WCAG 2.1 relative luminance, 0 (black) to 1 (white). */
-export function relativeLuminance(hex: string): number {
+function relativeLuminance(hex: string): number {
   const [r, g, b] = channels(hex);
   return r * 0.2126 + g * 0.7152 + b * 0.0722;
 }

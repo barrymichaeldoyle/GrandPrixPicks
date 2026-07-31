@@ -53,4 +53,6 @@ export const colors = {
   // Race status, using the same semantic tokens the app's status badges use.
   statusUpcoming: tokens.success,
   statusLocked: tokens.warning,
+  /** Errors and non-finishes. Amber and instructive, never red. */
+  warning: tokens.warning,
 };

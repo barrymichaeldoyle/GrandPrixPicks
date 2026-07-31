@@ -232,13 +232,21 @@ function EmptySlotDroppable({
   );
 }
 
+/** "Verstappen" from "Max Verstappen", for the roster that stores no family name. */
+function driverSurname(driver: Driver) {
+  return driver.familyName || driver.displayName.split(' ').slice(1).join(' ');
+}
+
 /** Driver card in the pool – draggable so user can drag to picks list; tap still adds. */
 function DraggableDriverCard({
   driver,
+  pickedPosition,
   disabled,
   onTap,
 }: {
   driver: Driver;
+  /** 1-5 when this driver is already in the list, otherwise null. */
+  pickedPosition: number | null;
   disabled: boolean;
   onTap: () => void;
 }) {
@@ -246,6 +254,8 @@ function DraggableDriverCard({
     id: driver._id,
     disabled,
   });
+  const picked = pickedPosition !== null;
+  const surname = driverSurname(driver);
   return (
     <div ref={setNodeRef} {...listeners} {...attributes}>
       <button
@@ -256,7 +266,13 @@ function DraggableDriverCard({
           onTap();
         }}
         disabled={disabled}
-        aria-label={`${driver.displayName}${disabled ? ' (already selected)' : ''}`}
+        aria-label={`${driver.displayName}${
+          picked
+            ? ` (picked P${pickedPosition})`
+            : disabled
+              ? ' (five drivers already picked)'
+              : ''
+        }`}
         /*
          * Team colour is the 3px left bar, not the fill. Twenty-two saturated
          * tiles in a grid was the loudest surface in the app; confined to a bar
@@ -265,8 +281,18 @@ function DraggableDriverCard({
          *
          * Hover is a surface step rather than an opacity change — opacity is
          * never used to signal hover in this system.
+         *
+         * The two reasons a card is disabled have to look different: a driver
+         * already in the list carries the position that took him out of the
+         * pool, while the rest simply grey out once five slots are full. Dimming
+         * both identically made a picked driver read as "unavailable for some
+         * reason" against twenty-one lookalikes.
          */
-        className="gpp-team-bar flex h-full w-full items-center justify-center rounded-sm border border-border bg-surface-elevated py-2 pr-2 pl-3 transition-colors duration-150 ease-out hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated sm:py-3"
+        className={`gpp-team-bar flex h-full w-full items-center justify-center gap-1.5 rounded-sm border py-2 pr-2 pl-3 transition-colors duration-150 ease-out sm:py-3 ${
+          picked
+            ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
+            : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
+        }`}
         style={
           {
             '--team-colour':
@@ -274,9 +300,26 @@ function DraggableDriverCard({
           } as React.CSSProperties
         }
       >
-        <span className="gpp-mono text-xs leading-none text-text sm:text-sm">
+        <span
+          className={`gpp-mono text-xs leading-none sm:text-sm ${
+            picked ? 'text-text-muted' : 'text-text'
+          }`}
+        >
           {driver.code}
         </span>
+        {/* Three-letter codes are the broadcast language, but someone who
+            arrived from a mate's league link does not know all twenty-two. The
+            surname appears wherever the cell is wide enough to hold it. */}
+        {surname ? (
+          <span className="hidden min-w-0 truncate text-xs leading-none text-text-muted xl:inline">
+            {surname}
+          </span>
+        ) : null}
+        {picked ? (
+          <span className="gpp-mono text-xs leading-none font-semibold text-accent">
+            P{pickedPosition}
+          </span>
+        ) : null}
       </button>
     </div>
   );
@@ -328,6 +371,8 @@ interface PredictionFormProps {
   onComplete?: () => void;
   /** Keeps a parent funnel aware of restored and subsequently edited drafts. */
   onCompletionStateChange?: (complete: boolean) => void;
+  /** Emits the current picks in order, so a parent can cross-reference them. */
+  onPicksChange?: (picks: Id<'drivers'>[]) => void;
 }
 
 type Top5Draft = {
@@ -355,6 +400,7 @@ export function PredictionForm({
   mobileActionFirst = false,
   onComplete,
   onCompletionStateChange,
+  onPicksChange,
 }: PredictionFormProps) {
   const liveDrivers = useQuery(api.drivers.listDrivers);
   const drivers = liveDrivers ?? initialDrivers;
@@ -412,9 +458,11 @@ export function PredictionForm({
       }
       onComplete?.();
 
+      // The pool sits above the list on narrow screens, so the fifth pick
+      // lands off-screen. Scrolling the finished list into view is the whole
+      // completion moment on mobile now that nothing swaps the panel out.
       if (
         mobileActionFirst &&
-        !onComplete &&
         typeof window !== 'undefined' &&
         window.matchMedia('(max-width: 1023px)').matches
       ) {
@@ -448,6 +496,12 @@ export function PredictionForm({
       onCompletionStateChange?.(picks.length === 5);
     }
   }, [hasHydratedDraft, onCompletionStateChange, picks.length]);
+
+  useEffect(() => {
+    if (hasHydratedDraft) {
+      onPicksChange?.(picks);
+    }
+  }, [hasHydratedDraft, onPicksChange, picks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -874,10 +928,15 @@ export function PredictionForm({
     >
       <div className="space-y-4 sm:space-y-6">
         {restoredDraftAt ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
-            <span className="text-xs text-text">Unsaved draft restored</span>
+          // Reassurance, not an alert: picks that survived a reload are good
+          // news, so this sits on the neutral surface rather than wearing the
+          // accent an actual warning would.
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2">
+            <span className="text-xs text-text-muted">
+              Unsaved draft restored
+            </span>
             <Button variant="text" size="inline" onClick={handleDiscardDraft}>
-              Discard Draft
+              Discard draft
             </Button>
           </div>
         ) : null}
@@ -1046,7 +1105,8 @@ export function PredictionForm({
             ) : null}
             <DriverPoolDroppable>
               {driversSortedByTeam.map((driver) => {
-                const isPicked = picks.includes(driver._id);
+                const pickedIndex = picks.indexOf(driver._id);
+                const isPicked = pickedIndex !== -1;
                 return (
                   <motion.div
                     key={driver._id}
@@ -1067,6 +1127,7 @@ export function PredictionForm({
                   >
                     <DraggableDriverCard
                       driver={driver}
+                      pickedPosition={isPicked ? pickedIndex + 1 : null}
                       disabled={isPicked || picks.length >= 5}
                       onTap={() => addDriver(driver._id)}
                     />

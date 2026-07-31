@@ -87,7 +87,7 @@ describe('H2HDuelPicker', () => {
     ).toBe('1/2');
   });
 
-  it('moves to restored draft progress after selections hydrate', () => {
+  it('moves to restored draft progress once the draft hydrates', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -95,33 +95,95 @@ describe('H2HDuelPicker', () => {
       [matchups[0]._id]: matchups[0].driver1._id,
     };
 
+    // The parent mounts the picker before its device draft has loaded, so the
+    // catch-up has to wait for that signal rather than for selections to move.
     act(() =>
       root?.render(
         <H2HDuelPicker
           matchups={matchups}
           selections={{}}
           onSelect={() => undefined}
+          draftHydrated={false}
         />,
       ),
     );
+
+    expect(container.textContent).toContain('Teammate battle 1 of 2');
+
     act(() =>
       root?.render(
         <H2HDuelPicker
           matchups={matchups}
           selections={firstSelection}
           onSelect={() => undefined}
+          draftHydrated
         />,
       ),
     );
 
     expect(container.textContent).toContain('Teammate battle 2 of 2');
+    expect(container.textContent).toContain('Ferrari');
+  });
+
+  it('lets Previous return to a battle that was already called', () => {
+    vi.useFakeTimers();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    function Harness() {
+      const [selections, setSelections] = useState<
+        Record<string, Id<'drivers'>>
+      >({});
+      return (
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={selections}
+          onSelect={(matchupId, driverId) =>
+            setSelections((current) => ({
+              ...current,
+              [matchupId]: driverId,
+            }))
+          }
+        />
+      );
+    }
+
+    act(() => root?.render(<Harness />));
+    act(() => {
+      container
+        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
+        ?.click();
+      vi.runAllTimers();
+    });
+
+    expect(container.textContent).toContain('Teammate battle 2 of 2');
+
+    // The re-sync effect used to fire on every index change, so this bounced
+    // straight back to battle two and the button was decorative.
+    act(() => {
+      [...(container?.querySelectorAll('button') ?? [])]
+        .find((button) => button.textContent?.includes('Previous'))
+        ?.click();
+      vi.runAllTimers();
+    });
+
+    expect(container.textContent).toContain('Teammate battle 1 of 2');
+    expect(container.textContent).toContain('McLaren');
+  });
+
+  it('jumps to any battle from the progress strip', () => {
+    vi.useFakeTimers();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
 
     act(() =>
       root?.render(
         <H2HDuelPicker
           matchups={matchups}
           selections={{
-            ...firstSelection,
+            [matchups[0]._id]: matchups[0].driver1._id,
             [matchups[1]._id]: matchups[1].driver2._id,
           }}
           onSelect={() => undefined}
@@ -130,7 +192,66 @@ describe('H2HDuelPicker', () => {
     );
 
     expect(container.textContent).toContain('Teammate battle 2 of 2');
-    expect(container.textContent).toContain('All battles called');
+
+    const strip = container.querySelector('[data-testid="h2h-duel-strip"]');
+    expect(strip?.querySelectorAll('button')).toHaveLength(2);
+    // The strip doubles as the review surface: each cell names the driver you
+    // called, so the calls are readable without walking back through them.
+    expect(strip?.textContent).toContain('NOR');
+    expect(strip?.textContent).toContain('HAM');
+
+    act(() => {
+      strip?.querySelectorAll<HTMLButtonElement>('button')[0]?.click();
+      vi.runAllTimers();
+    });
+
+    expect(container.textContent).toContain('Teammate battle 1 of 2');
+  });
+
+  it('keeps a fast re-pick inside the advance window', () => {
+    vi.useFakeTimers();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const selected: Array<string> = [];
+
+    function Harness() {
+      const [selections, setSelections] = useState<
+        Record<string, Id<'drivers'>>
+      >({});
+      return (
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={selections}
+          onSelect={(matchupId, driverId) => {
+            selected.push(driverId);
+            setSelections((current) => ({ ...current, [matchupId]: driverId }));
+          }}
+        />
+      );
+    }
+
+    act(() => root?.render(<Harness />));
+
+    // Changing your mind before the card advances used to hit a disabled
+    // button and be dropped with no feedback at all.
+    act(() => {
+      container
+        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Lando Norris"]')
+        ?.click();
+    });
+    act(() => {
+      container
+        ?.querySelector<HTMLButtonElement>('[aria-label="Pick Oscar Piastri"]')
+        ?.click();
+      vi.runAllTimers();
+    });
+
+    expect(selected).toEqual([
+      matchups[0].driver1._id,
+      matchups[0].driver2._id,
+    ]);
+    expect(container.textContent).toContain('Teammate battle 2 of 2');
   });
 });
 

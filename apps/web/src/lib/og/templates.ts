@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 
-import { relativeLuminance } from '../color';
 import type { OgImageSize } from './styles';
 import { colors, getOgDimensions } from './styles';
 
@@ -34,16 +33,22 @@ function brandMark(size: number): ReactNode {
   );
 }
 
-/** Shared outer wrapper: dark bg, accent stripe at top, branding at bottom. */
+/**
+ * Shared outer wrapper for every card: flat page, content, hairline, footer.
+ *
+ * The pre-theme version of this opened with a 6px accent *gradient* bar and
+ * closed with the wordmark in an accent-tinted chip and the domain set in
+ * chartreuse. All three broke a rule of the current system at once (no
+ * gradients, accent is rare, nothing is tinted for decoration), and because
+ * every share card routes through here, all of them inherited it. The only
+ * elevation mechanism now is the 1px hairline above the footer.
+ *
+ * This also used to support an optional full-bleed background image behind a
+ * 42%-opacity veil, used by exactly one card. The asset was a navy-and-cyan
+ * "tech" texture from the old identity, and rule 2 of the current system is
+ * that backgrounds are flat colour. Both the veil and the asset are gone.
+ */
 function layout(size: OgImageSize, ...children: ReactNode[]): ReactNode {
-  return layoutWithBackground(size, undefined, ...children);
-}
-
-function layoutWithBackground(
-  size: OgImageSize,
-  backgroundSrc: string | undefined,
-  ...children: ReactNode[]
-): ReactNode {
   const { width, height } = getOgDimensions(size);
   return e(
     'div',
@@ -60,42 +65,6 @@ function layoutWithBackground(
         overflow: 'hidden' as const,
       },
     },
-    backgroundSrc
-      ? [
-          e('img', {
-            key: 'background',
-            src: backgroundSrc,
-            width,
-            height,
-            style: {
-              position: 'absolute' as const,
-              inset: 0,
-              width,
-              height,
-            },
-          }),
-          e('div', {
-            key: 'background-veil',
-            style: {
-              position: 'absolute' as const,
-              inset: 0,
-              backgroundColor: colors.bg,
-              opacity: 0.42,
-            },
-          }),
-        ]
-      : null,
-    // Accent stripe at top
-    e('div', {
-      style: {
-        position: 'absolute' as const,
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 6,
-        background: `linear-gradient(to right, ${colors.accent}, ${colors.accentHover})`,
-      },
-    }),
     // Content area
     e(
       'div',
@@ -104,272 +73,430 @@ function layoutWithBackground(
           display: 'flex',
           flexDirection: 'column' as const,
           flex: 1,
-          padding: '48px 64px 32px',
+          padding: '52px 72px 26px',
           justifyContent: 'center',
         },
       },
       ...children,
     ),
-    // Footer branding
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 64px 32px',
-        },
-      },
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            fontSize: 20,
-            fontWeight: 600,
-            fontFamily: 'Archivo',
-            color: colors.text,
-          },
-        },
-        // Flag inside subtle accent circle, matching app header/footer
-        e(
-          'div',
-          {
-            style: {
-              width: 32,
-              height: 32,
-              borderRadius: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.accentMuted,
-            },
-          },
-          brandMark(20),
-        ),
-        'Grand Prix Picks',
-      ),
-      e(
-        'div',
-        { style: { fontSize: 18, fontWeight: 600, color: colors.accent } },
-        'grandprixpicks.com',
-      ),
-    ),
-  );
-}
-
-// ────────── Home Template ──────────
-
-export function homeTemplate(size: OgImageSize = 'og'): ReactNode {
-  return layout(
-    size,
+    // Footer: wordmark and domain, split by the system's one hairline.
     e(
       'div',
       {
         style: {
           display: 'flex',
           flexDirection: 'column' as const,
+          padding: '0 72px 44px',
+        },
+      },
+      e('div', {
+        style: { height: 1, backgroundColor: colors.border, marginBottom: 22 },
+      }),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          },
+        },
+        e(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', gap: 13 } },
+          brandMark(26),
+          e(
+            'div',
+            {
+              style: {
+                fontSize: 19,
+                fontWeight: 600,
+                letterSpacing: 3.2,
+                color: colors.text,
+              },
+            },
+            'GRAND PRIX PICKS',
+          ),
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 18,
+              fontFamily: 'IBM Plex Mono',
+              color: colors.textMuted,
+            },
+          },
+          'grandprixpicks.com',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * A driver chip: team colour as a 3px left bar on a neutral surface.
+ *
+ * These used to be solid team-colour rectangles with the code in a translucent
+ * black box on top. Five saturated fills in a row is exactly what the 3px rule
+ * exists to prevent, and the eleven-team H2H cards were worse. Extra content
+ * (a verdict tick) goes in `prefix`.
+ */
+function driverChip(
+  code: string,
+  teamColor: string,
+  {
+    width,
+    height,
+    fontSize,
+    prefix,
+    dim = false,
+  }: {
+    width: number;
+    height: number;
+    fontSize: number;
+    prefix?: ReactNode;
+    dim?: boolean;
+  },
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        width,
+        height,
+        borderRadius: 2,
+        backgroundColor: colors.surface,
+        border: `1px solid ${colors.border}`,
+      },
+    },
+    e('div', { style: { width: 3, backgroundColor: teamColor } }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          textAlign: 'center' as const,
-          gap: 40,
+          gap: 9,
+          fontSize,
+          fontWeight: 600,
+          letterSpacing: 1.5,
+          color: dim ? colors.textMuted : colors.text,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 24,
-          },
-        },
-        // Flag icon inside accent circle (matches header/footer, nudged 1px right)
-        e(
-          'div',
-          {
-            style: {
-              width: 96,
-              height: 96,
-              borderRadius: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.accentMuted,
-            },
-          },
-          brandMark(72),
-        ),
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 82,
-              fontWeight: 600,
-              fontFamily: 'Archivo',
-              lineHeight: 1.1,
-              color: colors.text,
-            },
-          },
-          'Grand Prix Picks',
-        ),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 34,
-            color: colors.textMuted,
-            maxWidth: 900,
-            lineHeight: 1.4,
-          },
-        },
-        'Predict the top 5 finishers for every qualifying, sprint, and race. Compete with friends all season long.',
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: 8,
-            padding: '20px 56px',
-            backgroundColor: colors.buttonAccent,
-            borderRadius: 14,
-            fontSize: 30,
-            fontWeight: 600,
-            color: 'white',
-          },
-        },
-        'Start Predicting \u2192',
-      ),
+      prefix ?? null,
+      code,
     ),
   );
 }
 
-// ────────── Race Template ──────────
-
-interface RaceOgData {
-  name: string;
-  round: number;
-  season: number;
-  raceStartAt: number;
-  hasSprint?: boolean;
-  status: string;
+/**
+ * The small uppercase label above each card's headline figure.
+ *
+ * Muted, not accent. It used to be chartreuse on every share card, which put
+ * two accent elements on cards whose whole point is one big accent number, and
+ * "accent is rare" is the rule the palette rests on. A label is a label.
+ */
+function eyebrow(text: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        fontSize: 21,
+        fontWeight: 600,
+        textTransform: 'uppercase' as const,
+        letterSpacing: 3,
+        color: colors.textMuted,
+      },
+    },
+    text,
+  );
 }
 
-export function raceTemplate(
-  race: RaceOgData,
-  size: OgImageSize = 'og',
-): ReactNode {
-  const dateStr = new Date(race.raceStartAt).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+// ────────── Next Race Template (the site-wide brand card) ──────────
 
-  const statusColors: Record<string, string> = {
-    upcoming: colors.statusUpcoming,
-    locked: colors.statusLocked,
-    finished: colors.textMuted,
-  };
-  const statusColor = statusColors[race.status] ?? colors.textMuted;
+export interface NextRaceOgData {
+  raceName: string;
+  round: number;
+  season: number;
+  /** Track-local lock date, already uppercased, e.g. "SAT 23 AUG". */
+  lockDate: string;
+  /** Track-local lock time with zone, e.g. "14:00 CEST". */
+  lockTime: string;
+  flagSrc?: string;
+}
 
-  return layout(
-    size,
+/**
+ * A timing tower bleeding off the right edge: positions over gap bars, fading
+ * as they descend.
+ *
+ * There is no licensed circuit artwork in the repo, and a freehand silhouette
+ * reads as a blob to fans who know these shapes. The tower is the motif the
+ * rest of the system already uses, needs no asset, and fills the dead right
+ * half without competing with the headline.
+ */
+function timingTower(): ReactNode {
+  const ROWS = 8;
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        position: 'absolute' as const,
+        // Overhangs so the longest bars run off the frame — a slice of a
+        // timing screen, not a widget parked in the corner. The right offset
+        // keeps the container's left edge (x = 1200 − width − right) clear of
+        // the headline box, which ends at x = 784; at -120 the P-labels start
+        // at x = 800 and nothing collides.
+        right: -120,
+        top: 96,
+        width: 520,
+      },
+    },
+    ...Array.from({ length: ROWS }, (_, index) => {
+      const opacity = 1 - index / (ROWS + 1.2);
+      return e(
+        'div',
+        {
+          key: String(index),
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            height: 48,
+            opacity,
+          },
+        },
+        e('div', {
+          style: {
+            width: index === 0 ? 3 : 2,
+            height: 26,
+            marginRight: 18,
+            backgroundColor: index === 0 ? colors.accent : colors.borderStrong,
+          },
+        }),
+        e(
+          'div',
+          {
+            style: {
+              width: 48,
+              fontSize: 20,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              color: index === 0 ? colors.text : colors.textMuted,
+            },
+          },
+          `P${index + 1}`,
+        ),
+        e('div', {
+          style: {
+            width: 210 + ((index * 67) % 240),
+            height: 1,
+            backgroundColor: colors.borderStrong,
+          },
+        }),
+      );
+    }),
+  );
+}
+
+/** Lime separator dots — the one accent allowance on the brand card strip. */
+function stripSep(): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        margin: '0 16px',
+        fontSize: 22,
+        fontWeight: 600,
+        fontFamily: 'IBM Plex Mono',
+        color: colors.accent,
+      },
+    },
+    '·',
+  );
+}
+
+function brandWordmark(): ReactNode {
+  return e(
+    'div',
+    { style: { display: 'flex', alignItems: 'center', gap: 12 } },
+    brandMark(24),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 18,
+          fontWeight: 600,
+          letterSpacing: 3.2,
+          color: colors.textMuted,
+        },
+      },
+      'GRAND PRIX PICKS',
+    ),
+  );
+}
+
+function brandHeadline(): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        fontSize: 76,
+        fontWeight: 300,
+        letterSpacing: -1.6,
+        lineHeight: 1.12,
+        color: colors.text,
+        maxWidth: 720,
+      },
+    },
+    e('div', {}, "Everyone's a strategist"),
+    e('div', {}, 'on Sunday. Prove it.'),
+  );
+}
+
+/**
+ * Shared brand-card chrome: small wordmark, hook-first headline, timing tower
+ * on the right, mono strip along the bottom. Priority for a stranger scrolling
+ * a group chat is hook → urgency → brand — never the other way around.
+ *
+ * Laid out with absolute pins rather than flex space-between: Satori does not
+ * reliably stretch an absolutely-positioned column to the full frame height,
+ * which left the urgency strip floating under the headline and the bottom half
+ * empty. Pins keep the hierarchy stable at thumbnail size.
+ *
+ * No drawn CTA button (not clickable in an OG image) and no domain (the
+ * platform already shows it under the card). Accent is scarce: one lime on the
+ * tower's P1 tick, plus the strip separator dots.
+ */
+function brandCardFrame(bottomStrip: ReactNode): ReactNode {
+  const { width, height } = getOgDimensions('og');
+
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        position: 'relative' as const,
+        width,
+        height,
+        backgroundColor: colors.bg,
+        fontFamily: 'Archivo',
+        color: colors.text,
+        overflow: 'hidden' as const,
+      },
+    },
+    timingTower(),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          flexDirection: 'column' as const,
-          gap: 20,
+          position: 'absolute' as const,
+          left: 64,
+          top: 48,
         },
       },
-      // Status + sprint badge row
-      e(
-        'div',
-        { style: { display: 'flex', alignItems: 'center', gap: 16 } },
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 18,
-              fontWeight: 600,
-              textTransform: 'uppercase' as const,
-              letterSpacing: 2,
-              color: statusColor,
-            },
-          },
-          e('div', {
-            style: {
-              width: 12,
-              height: 12,
-              borderRadius: 6,
-              backgroundColor: statusColor,
-            },
-          }),
-          race.status,
-        ),
-        race.hasSprint
-          ? e(
-              'div',
-              {
-                style: {
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: colors.accent,
-                  backgroundColor: colors.accentMuted,
-                  padding: '4px 12px',
-                  borderRadius: 6,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: 1,
-                },
-              },
-              'Sprint Weekend',
-            )
-          : null,
-      ),
-      // Race name
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 56,
-            fontWeight: 600,
-            fontFamily: 'Archivo',
-            lineHeight: 1.1,
-            color: colors.text,
-          },
+      brandWordmark(),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute' as const,
+          left: 64,
+          top: 196,
         },
-        race.name,
-      ),
-      // Round + date
+      },
+      brandHeadline(),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          position: 'absolute' as const,
+          left: 64,
+          right: 64,
+          bottom: 48,
+          fontSize: 22,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          letterSpacing: 1.6,
+          color: colors.text,
+        },
+      },
+      bottomStrip,
+    ),
+  );
+}
+
+/**
+ * Evergreen fallback for off-season / render failures / non-race pages.
+ * Same hook-first layout as the live next-race card; the strip is the mechanic
+ * summary so it never names a round that will be stale next week.
+ */
+export function defaultBrandTemplate(): ReactNode {
+  return brandCardFrame(
+    e(
+      'div',
+      { style: { display: 'flex', alignItems: 'center' } },
+      e('div', {}, 'QUALI'),
+      stripSep(),
+      e('div', {}, 'SPRINT'),
+      stripSep(),
+      e('div', {}, 'RACE'),
+      stripSep(),
+      e('div', { style: { color: colors.textMuted } }, 'FREE TO PLAY'),
+    ),
+  );
+}
+
+/**
+ * The card that fronts the site itself: what lands in a WhatsApp group, a
+ * Discord channel or an X post when somebody drops the bare domain.
+ *
+ * Two jobs, in this order. It has to *hook* — so the headline is verbatim the
+ * one on the landing page — and it has to be *current* — the Grand Prix and the
+ * lock deadline are why a reader taps instead of scrolling. That is why this is
+ * rendered per race; `defaultBrandTemplate` / `public/og-default.png` stays as
+ * the off-season fallback.
+ */
+export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
+  const shortRaceName = data.raceName
+    .replace(/\s+Grand Prix$/i, ' GP')
+    .toUpperCase();
+
+  return brandCardFrame(
+    e(
+      'div',
+      { style: { display: 'flex', alignItems: 'center' } },
+      data.flagSrc
+        ? e('img', {
+            src: data.flagSrc,
+            width: 36,
+            height: 24,
+            style: {
+              marginRight: 14,
+              borderRadius: 1,
+              objectFit: 'cover' as const,
+            },
+          })
+        : null,
+      e('div', {}, shortRaceName),
+      stripSep(),
       e(
         'div',
-        { style: { display: 'flex', alignItems: 'center', gap: 24 } },
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 24,
-              color: colors.textMuted,
-              fontWeight: 600,
-            },
-          },
-          `Round ${race.round} \u00b7 ${race.season} Season`,
-        ),
+        { style: { color: colors.textMuted } },
+        `PICKS LOCK ${data.lockDate} ${data.lockTime}`,
       ),
-      e('div', { style: { fontSize: 22, color: colors.textMuted } }, dateStr),
     ),
   );
 }
@@ -402,10 +529,10 @@ function raceNameRow(
     flagSrc
       ? e('img', {
           src: flagSrc,
-          width: 84,
-          height: 56,
+          width: 78,
+          height: 52,
           style: {
-            borderRadius: 8,
+            borderRadius: 2,
             objectFit: 'cover' as const,
           },
         })
@@ -498,19 +625,7 @@ function shareH2HWinnersTemplate(
           gap: 24,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 22,
-            fontWeight: 600,
-            textTransform: 'uppercase' as const,
-            letterSpacing: 3,
-            color: colors.accent,
-          },
-        },
-        heading,
-      ),
+      eyebrow(heading),
       raceNameRow(data.raceName, data.flagSrc, 46),
       e(
         'div',
@@ -530,34 +645,12 @@ function shareH2HWinnersTemplate(
         ...data.winners.map((winner, index) =>
           e(
             'div',
-            {
-              key: `${winner.code}-${index}`,
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 126,
-                height: 62,
-                borderRadius: 12,
-                backgroundColor: winner.color,
-              },
-            },
-            e(
-              'div',
-              {
-                style: {
-                  display: 'flex',
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                  fontSize: 28,
-                  fontWeight: 600,
-                  color: 'white',
-                  letterSpacing: 2,
-                },
-              },
-              winner.code,
-            ),
+            { key: `${winner.code}-${index}`, style: { display: 'flex' } },
+            driverChip(winner.code, winner.color, {
+              width: 126,
+              height: 62,
+              fontSize: 28,
+            }),
           ),
         ),
       ),
@@ -579,7 +672,14 @@ export interface ShareH2HScoreOgData {
   picks?: { code: string; color: string; correct: boolean }[];
 }
 
-/** Small green check / red cross icon, drawn as SVG so no font glyph is needed. */
+/**
+ * Tick or cross, drawn as SVG so no font glyph is needed.
+ *
+ * A miss is grey, never red. Red was the pre-theme reading and it made a
+ * 6/11 card look like a system error rather than a middling weekend; the only
+ * red left in the system is a downward position delta. Green stays, because a
+ * correct call genuinely is the `resultNear` semantic (H2H scores 1 pt).
+ */
 function verdictIcon(correct: boolean): ReactNode {
   return e(
     'svg',
@@ -588,7 +688,7 @@ function verdictIcon(correct: boolean): ReactNode {
       height: 20,
       viewBox: '0 0 24 24',
       fill: 'none',
-      stroke: correct ? '#4ade80' : '#f87171',
+      stroke: correct ? colors.resultNear : colors.resultMiss,
       'stroke-width': '4',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'round',
@@ -615,17 +715,7 @@ export function shareH2HScoreTemplate(
           gap: hasPicks ? 18 : 22,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 22,
-            fontWeight: 600,
-            textTransform: 'uppercase' as const,
-            letterSpacing: 3,
-            color: colors.accent,
-          },
-        },
+      eyebrow(
         `${data.by ? `${data.by}'s` : 'My'} Head-to-Head \u00b7 ${data.sessionLabel}`,
       ),
       e(
@@ -637,7 +727,8 @@ export function shareH2HScoreTemplate(
             style: {
               fontSize: hasPicks ? 96 : 132,
               fontWeight: 600,
-              fontFamily: 'Archivo',
+              // Every figure in the system is mono. This one was Archivo.
+              fontFamily: 'IBM Plex Mono',
               lineHeight: 1,
               color: colors.accent,
             },
@@ -677,35 +768,17 @@ export function shareH2HScoreTemplate(
                 'div',
                 {
                   key: `${pick.code}-${index}`,
-                  style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 122,
-                    height: 52,
-                    borderRadius: 10,
-                    backgroundColor: pick.color,
-                  },
+                  style: { display: 'flex' },
                 },
-                e(
-                  'div',
-                  {
-                    style: {
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '5px 12px',
-                      borderRadius: 8,
-                      backgroundColor: 'rgba(0, 0, 0, 0.35)',
-                      fontSize: 24,
-                      fontWeight: 600,
-                      color: 'white',
-                      letterSpacing: 2,
-                    },
-                  },
-                  verdictIcon(pick.correct),
-                  pick.code,
-                ),
+                driverChip(pick.code, pick.color, {
+                  width: 122,
+                  height: 52,
+                  fontSize: 24,
+                  prefix: verdictIcon(pick.correct),
+                  // A miss recedes rather than shouting. The grey cross alone
+                  // left hits and misses at identical weight.
+                  dim: !pick.correct,
+                }),
               ),
             ),
           )
@@ -736,26 +809,15 @@ function shareTopFiveTemplate(
           gap: 28,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 22,
-            fontWeight: 600,
-            textTransform: 'uppercase' as const,
-            letterSpacing: 3,
-            color: colors.accent,
-          },
-        },
-        heading,
-      ),
+      eyebrow(heading),
       raceNameRow(data.raceName, data.flagSrc, 52),
       e(
         'div',
         { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
       ),
-      // Picks row: position + driver code chips in team colors
+      // Picks row: predicted slot above a chip carrying the team's 3px bar.
+      // The slot number is mono, like every other figure in the system.
       e(
         'div',
         { style: { display: 'flex', gap: 20, marginTop: 12 } },
@@ -775,43 +837,19 @@ function shareTopFiveTemplate(
               'div',
               {
                 style: {
-                  fontSize: 22,
+                  fontSize: 21,
                   fontWeight: 600,
+                  fontFamily: 'IBM Plex Mono',
                   color: colors.textMuted,
                 },
               },
               `P${i + 1}`,
             ),
-            e(
-              'div',
-              {
-                style: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 150,
-                  height: 84,
-                  borderRadius: 14,
-                  backgroundColor: pick.color,
-                },
-              },
-              e(
-                'div',
-                {
-                  style: {
-                    display: 'flex',
-                    padding: '8px 18px',
-                    borderRadius: 10,
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                    fontSize: 34,
-                    fontWeight: 600,
-                    color: 'white',
-                    letterSpacing: 2,
-                  },
-                },
-                pick.code,
-              ),
-            ),
+            driverChip(pick.code, pick.color, {
+              width: 150,
+              height: 84,
+              fontSize: 34,
+            }),
           ),
         ),
       ),
@@ -848,17 +886,7 @@ export function shareScoreTemplate(
           gap: 24,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 22,
-            fontWeight: 600,
-            textTransform: 'uppercase' as const,
-            letterSpacing: 3,
-            color: colors.accent,
-          },
-        },
+      eyebrow(
         `${data.by ? `${data.by}'s` : 'My'} ${data.final ? 'Weekend Total' : 'Points So Far'}`,
       ),
       e(
@@ -870,7 +898,8 @@ export function shareScoreTemplate(
             style: {
               fontSize: 150,
               fontWeight: 600,
-              fontFamily: 'Archivo',
+              // Every figure in the system is mono. This one was Archivo.
+              fontFamily: 'IBM Plex Mono',
               lineHeight: 1,
               color: colors.accent,
             },
@@ -888,257 +917,6 @@ export function shareScoreTemplate(
         'div',
         { style: { fontSize: 22, color: colors.textMuted, fontWeight: 600 } },
         `Round ${data.round} \u00b7 ${data.season} Season`,
-      ),
-    ),
-  );
-}
-
-// ────────── Profile Template ──────────
-
-interface ProfileOgData {
-  displayName: string;
-  username: string;
-  avatarUrl?: string;
-  totalPoints: number;
-  seasonRank: number | null;
-  totalPlayers: number;
-  weekendCount: number;
-}
-
-export function profileTemplate(
-  profile: ProfileOgData,
-  size: OgImageSize = 'og',
-): ReactNode {
-  const initials = (profile.displayName || profile.username)
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  return layout(
-    size,
-    e(
-      'div',
-      { style: { display: 'flex', alignItems: 'center', gap: 40 } },
-      // Avatar
-      profile.avatarUrl
-        ? e('img', {
-            src: profile.avatarUrl,
-            width: 140,
-            height: 140,
-            style: { borderRadius: 70, objectFit: 'cover' as const },
-          })
-        : e(
-            'div',
-            {
-              style: {
-                width: 140,
-                height: 140,
-                borderRadius: 70,
-                backgroundColor: colors.accent,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 48,
-                fontWeight: 600,
-                color: 'white',
-              },
-            },
-            initials,
-          ),
-      // Name + username
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: 8,
-          },
-        },
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 48,
-              fontWeight: 600,
-              lineHeight: 1.1,
-              color: colors.text,
-            },
-          },
-          profile.displayName || profile.username,
-        ),
-        e(
-          'div',
-          { style: { fontSize: 28, color: colors.textMuted } },
-          `@${profile.username}`,
-        ),
-      ),
-    ),
-    // Stats row
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          gap: 32,
-          marginTop: 40,
-        },
-      },
-      statBox(String(profile.totalPoints), 'Total Points'),
-      profile.seasonRank !== null
-        ? statBox(
-            `#${profile.seasonRank}`,
-            `of ${profile.totalPlayers} players`,
-          )
-        : null,
-      statBox(String(profile.weekendCount), 'Weekends'),
-    ),
-  );
-}
-
-function statBox(value: string, label: string): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        alignItems: 'center',
-        padding: '16px 32px',
-        backgroundColor: colors.surface,
-        borderRadius: 12,
-        border: `1px solid ${colors.border}`,
-      },
-    },
-    e(
-      'div',
-      { style: { fontSize: 36, fontWeight: 600, color: colors.accent } },
-      value,
-    ),
-    e('div', { style: { fontSize: 16, color: colors.textMuted } }, label),
-  );
-}
-
-// ────────── Leaderboard Template ──────────
-
-interface LeaderboardOgEntry {
-  rank: number;
-  username: string;
-  points: number;
-}
-
-export function leaderboardTemplate(
-  entries: LeaderboardOgEntry[],
-  size: OgImageSize = 'og',
-): ReactNode {
-  const podiumColors = [colors.gold, colors.silver, colors.bronze];
-
-  return layout(
-    size,
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column' as const,
-          alignItems: 'center',
-          gap: 32,
-          width: '100%',
-        },
-      },
-      e(
-        'div',
-        {
-          style: {
-            fontSize: 48,
-            fontWeight: 600,
-            fontFamily: 'Archivo',
-            color: colors.text,
-            textAlign: 'center' as const,
-          },
-        },
-        '2026 Season Leaderboard',
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            gap: 12,
-            width: '100%',
-            maxWidth: 800,
-          },
-        },
-        ...entries.slice(0, 3).map((entry, i) =>
-          e(
-            'div',
-            {
-              key: String(i),
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                gap: 20,
-                padding: '12px 24px',
-                backgroundColor: colors.surface,
-                borderRadius: 12,
-                border: `1px solid ${colors.border}`,
-              },
-            },
-            // Rank badge
-            e(
-              'div',
-              {
-                style: {
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: podiumColors[i],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 22,
-                  fontWeight: 600,
-                  color: colors.bg,
-                  flexShrink: 0,
-                },
-              },
-              String(entry.rank),
-            ),
-            // Username
-            e(
-              'div',
-              {
-                style: {
-                  flex: 1,
-                  fontSize: 26,
-                  fontWeight: 600,
-                  color: colors.text,
-                  overflow: 'hidden' as const,
-                  textOverflow: 'ellipsis' as const,
-                  whiteSpace: 'nowrap' as const,
-                },
-              },
-              entry.username,
-            ),
-            // Points
-            e(
-              'div',
-              {
-                style: {
-                  fontSize: 26,
-                  fontWeight: 600,
-                  color: colors.accent,
-                  flexShrink: 0,
-                  textAlign: 'right' as const,
-                },
-              },
-              `${entry.points} pts`,
-            ),
-          ),
-        ),
       ),
     ),
   );
@@ -1182,7 +960,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
         height: 40,
         paddingLeft: 8,
         paddingRight: 12,
-        borderRadius: 6,
+        borderRadius: 2,
         backgroundColor: entry.position <= 3 ? colors.surface : 'transparent',
       },
     },
@@ -1193,6 +971,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
           width: 38,
           fontSize: 22,
           fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
           color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
         },
       },
@@ -1200,10 +979,9 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
     ),
     e('div', {
       style: {
-        width: 4,
+        width: 3,
         height: 24,
-        borderRadius: 2,
-        marginRight: 14,
+        marginRight: 15,
         backgroundColor: entry.color,
       },
     }),
@@ -1226,6 +1004,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
         style: {
           flex: 1,
           fontSize: 21,
+          fontFamily: 'IBM Plex Mono',
           textAlign: 'right' as const,
           color: entry.position === 1 ? colors.accent : colors.text,
         },
@@ -1238,6 +1017,7 @@ function practiceRow(entry: PracticeCardEntry): ReactNode {
         style: {
           width: 54,
           fontSize: 17,
+          fontFamily: 'IBM Plex Mono',
           textAlign: 'right' as const,
           color: colors.textMuted,
         },
@@ -1292,8 +1072,9 @@ export function practiceResultsTemplate({
             style: {
               fontSize: 20,
               fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
               letterSpacing: 2,
-              color: colors.accent,
+              color: colors.textMuted,
             },
           },
           `${season} · ROUND ${round}`,
@@ -1322,10 +1103,11 @@ export function practiceResultsTemplate({
               fontSize: 26,
               fontWeight: 600,
               fontFamily: 'Archivo',
-              color: colors.bg,
-              backgroundColor: colors.accent,
-              borderRadius: 8,
-              padding: '8px 18px',
+              letterSpacing: 1,
+              color: colors.text,
+              border: `1px solid ${colors.borderStrong}`,
+              borderRadius: 2,
+              padding: '7px 18px',
             },
           },
           sessionLabel,
@@ -1335,7 +1117,7 @@ export function practiceResultsTemplate({
               src: flagSrc,
               width: 72,
               height: 48,
-              style: { borderRadius: 6 },
+              style: { borderRadius: 2 },
             })
           : null,
       ),
@@ -1372,22 +1154,17 @@ export type H2HCardRow = {
   loserCode: string;
 };
 
-function h2hBadgeInk(background: string): string {
-  const hex = background.replace('#', '');
-  if (!/^[0-9a-f]{6}$/i.test(hex)) {
-    return colors.text;
-  }
-  const backgroundLuminance = relativeLuminance(hex);
-  const darkLuminance = relativeLuminance('020617');
-  const lightLuminance = relativeLuminance('f8fafc');
-  const darkContrast = (backgroundLuminance + 0.05) / (darkLuminance + 0.05);
-  const lightContrast = (lightLuminance + 0.05) / (backgroundLuminance + 0.05);
-  return darkContrast >= lightContrast ? '#020617' : colors.text;
-}
-
+/**
+ * One teammate matchup: team name over "winner BEAT loser".
+ *
+ * The winner used to sit on a solid team-colour badge, which needed
+ * `h2hBadgeInk` to pick black-or-white text per livery just to stay legible.
+ * That whole contrast dance existed only because the fill broke the 3px rule;
+ * with the colour confined to a bar and a dot, the ink is always `text` and the
+ * helper is gone. The flanking colour dashes around the team name went the same
+ * way, replaced by the sanctioned 5px dot.
+ */
 function h2hMatchup(row: H2HCardRow): ReactNode {
-  const badgeInk = h2hBadgeInk(row.color);
-
   return e(
     'div',
     {
@@ -1395,6 +1172,7 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
+        alignItems: 'center',
         width: 300,
         height: 56,
       },
@@ -1406,33 +1184,24 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 4,
+          marginBottom: 5,
           fontSize: 12,
           fontWeight: 600,
           letterSpacing: 1.2,
           textTransform: 'uppercase' as const,
-          color: '#cbd5e1',
+          color: colors.textMuted,
         },
       },
       e('div', {
         style: {
-          width: 28,
-          height: 4,
-          marginRight: 9,
+          width: 5,
+          height: 5,
+          marginRight: 8,
           borderRadius: 999,
           backgroundColor: row.color,
         },
       }),
       row.team,
-      e('div', {
-        style: {
-          width: 28,
-          height: 4,
-          marginLeft: 9,
-          borderRadius: 999,
-          backgroundColor: row.color,
-        },
-      }),
     ),
     e(
       'div',
@@ -1443,6 +1212,11 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
           justifyContent: 'center',
         },
       },
+      driverChip(row.winnerCode, row.color, {
+        width: 96,
+        height: 34,
+        fontSize: 25,
+      }),
       e(
         'div',
         {
@@ -1450,37 +1224,18 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 86,
-            height: 34,
-            borderRadius: 4,
-            backgroundColor: row.color,
-            fontSize: 27,
-            fontWeight: 600,
-            fontFamily: 'Archivo',
-            color: badgeInk,
-          },
-        },
-        row.winnerCode,
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 64,
-            height: 24,
-            marginLeft: 16,
-            marginRight: 16,
+            width: 58,
+            height: 22,
+            marginLeft: 14,
+            marginRight: 14,
             paddingTop: 1,
-            borderRadius: 999,
-            border: '1px solid #475569',
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            borderRadius: 2,
+            border: `1px solid ${colors.border}`,
             fontSize: 11,
             fontWeight: 600,
+            letterSpacing: 1,
             lineHeight: 1,
-            color: colors.text,
+            color: colors.textMuted,
           },
         },
         'BEAT',
@@ -1489,10 +1244,10 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
         'div',
         {
           style: {
-            fontSize: 27,
+            fontSize: 25,
             fontWeight: 600,
-            fontFamily: 'Archivo',
-            color: '#cbd5e1',
+            letterSpacing: 1.5,
+            color: colors.textMuted,
           },
         },
         row.loserCode,
@@ -1511,7 +1266,6 @@ export function h2hResultsTemplate({
   season,
   sessionLabel,
   flagSrc,
-  backgroundSrc,
   rows,
 }: {
   raceName: string;
@@ -1519,27 +1273,19 @@ export function h2hResultsTemplate({
   season: number;
   sessionLabel: string;
   flagSrc?: string;
-  backgroundSrc?: string;
   rows: H2HCardRow[];
 }): ReactNode {
-  const matchupPositions = [
-    { left: 426, top: 12 },
-    { left: 280, top: 344 },
-    { left: 572, top: 344 },
-    { left: 215, top: 258 },
-    { left: 637, top: 258 },
-    { left: 150, top: 172 },
-    { left: 702, top: 172 },
-    { left: 85, top: 86 },
-    { left: 767, top: 86 },
-    { left: 20, top: 0 },
-    { left: 832, top: 0 },
-  ] as const;
   const shortRaceName = raceName.replace(/\s+Grand Prix$/i, ' GP');
+  // Two columns, matching the practice and classification cards. The eleven
+  // matchups used to be absolutely positioned into a chevron by a table of
+  // magic left/top pairs, because the chevron traced the light streaks in the
+  // background artwork. With that artwork gone the shape had nothing to trace,
+  // and a grid is what a timing sheet looks like anyway.
+  const half = Math.ceil(rows.length / 2);
+  const columns = [rows.slice(0, half), rows.slice(half)];
 
-  return layoutWithBackground(
+  return layout(
     '16:9',
-    backgroundSrc,
     e(
       'div',
       {
@@ -1547,116 +1293,83 @@ export function h2hResultsTemplate({
           display: 'flex',
           flexDirection: 'column' as const,
           alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative' as const,
-          top: -10,
-          marginBottom: 18,
+          textAlign: 'center' as const,
+          marginBottom: 30,
         },
       },
       e(
         'div',
         {
           style: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            textAlign: 'center' as const,
-            maxWidth: 960,
+            fontSize: 48,
+            fontWeight: 600,
+            fontFamily: 'Archivo',
+            lineHeight: 1,
           },
         },
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 52,
-              fontWeight: 600,
-              fontFamily: 'Archivo',
-              lineHeight: 1,
-            },
+        shortRaceName,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 24,
+            fontWeight: 600,
+            letterSpacing: 2.2,
+            color: colors.textMuted,
+            marginTop: 7,
           },
-          shortRaceName,
-        ),
+        },
+        `HEAD 2 HEAD / ${sessionLabel.toUpperCase()} RESULTS`,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            marginTop: 13,
+          },
+        },
+        flagSrc
+          ? e('img', {
+              src: flagSrc,
+              width: 54,
+              height: 36,
+              style: { borderRadius: 2, objectFit: 'cover' as const },
+            })
+          : null,
         e(
           'div',
           {
             style: {
-              fontSize: 27,
+              fontSize: 15,
               fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
               letterSpacing: 2.2,
               color: colors.textMuted,
-              marginTop: 5,
             },
           },
-          `HEAD 2 HEAD / ${sessionLabel.toUpperCase()} RESULTS`,
-        ),
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              marginTop: 12,
-            },
-          },
-          flagSrc
-            ? e(
-                'div',
-                {
-                  style: {
-                    display: 'flex',
-                    width: 112,
-                    height: 38,
-                    overflow: 'hidden' as const,
-                  },
-                },
-                e('img', {
-                  src: flagSrc,
-                  width: 112,
-                  height: 75,
-                  style: { transform: 'translateY(-18px)' },
-                }),
-              )
-            : null,
-          e(
-            'div',
-            {
-              style: {
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: 2.2,
-                color: colors.accent,
-              },
-            },
-            `${season}  /  ROUND ${round}`,
-          ),
+          `${season}  /  ROUND ${round}`,
         ),
       ),
     ),
     e(
       'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'relative' as const,
-          top: -2,
-          height: 400,
-        },
-      },
-      ...rows.map((row, index) =>
+      { style: { display: 'flex', justifyContent: 'center', gap: 56 } },
+      ...columns.map((column, index) =>
         e(
           'div',
           {
-            key: row.team,
+            key: `col-${index}`,
             style: {
               display: 'flex',
-              position: 'absolute' as const,
-              left: matchupPositions[index]?.left ?? 0,
-              top: matchupPositions[index]?.top ?? 0,
-              width: 285,
+              flexDirection: 'column' as const,
+              gap: 14,
             },
           },
-          h2hMatchup(row),
+          ...column.map(h2hMatchup),
         ),
       ),
     ),
@@ -1674,7 +1387,8 @@ export type SessionResultEntry = {
   status: string | null;
 };
 
-const STATUS_COLOR = '#f87171';
+// Amber, not red: in this system red means one thing, a downward delta.
+const STATUS_COLOR = colors.warning;
 
 function sessionResultRow(entry: SessionResultEntry): ReactNode {
   return e(
@@ -1687,7 +1401,7 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
         height: 40,
         paddingLeft: 8,
         paddingRight: 12,
-        borderRadius: 6,
+        borderRadius: 2,
         backgroundColor: entry.position <= 3 ? colors.surface : 'transparent',
       },
     },
@@ -1698,6 +1412,7 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
           width: 38,
           fontSize: 22,
           fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
           color: PODIUM_COLORS[entry.position - 1] ?? colors.textMuted,
         },
       },
@@ -1705,10 +1420,9 @@ function sessionResultRow(entry: SessionResultEntry): ReactNode {
     ),
     e('div', {
       style: {
-        width: 4,
+        width: 3,
         height: 24,
-        borderRadius: 2,
-        marginRight: 14,
+        marginRight: 15,
         backgroundColor: entry.color,
       },
     }),
@@ -1790,8 +1504,9 @@ export function sessionResultsTemplate({
             style: {
               fontSize: 20,
               fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
               letterSpacing: 2,
-              color: colors.accent,
+              color: colors.textMuted,
             },
           },
           `${season} · ROUND ${round}`,
@@ -1820,10 +1535,11 @@ export function sessionResultsTemplate({
               fontSize: 24,
               fontWeight: 600,
               fontFamily: 'Archivo',
-              color: colors.bg,
-              backgroundColor: colors.accent,
-              borderRadius: 8,
-              padding: '8px 18px',
+              letterSpacing: 1,
+              color: colors.text,
+              border: `1px solid ${colors.borderStrong}`,
+              borderRadius: 2,
+              padding: '7px 18px',
             },
           },
           sessionLabel.toUpperCase(),
@@ -1833,7 +1549,7 @@ export function sessionResultsTemplate({
               src: flagSrc,
               width: 72,
               height: 48,
-              style: { borderRadius: 6 },
+              style: { borderRadius: 2 },
             })
           : null,
       ),

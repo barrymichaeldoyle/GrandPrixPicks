@@ -85,11 +85,31 @@ export function H2HMatchupGrid({
                 const isWinner = winners[matchup._id] === driver._id;
                 const matchupPoints = pointsByMatchup[matchup._id] ?? 0;
                 const wasCorrect = isSelected && matchupPoints > 0;
-                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-sm border px-3 pt-1 pb-2 ${
+                /*
+                 * Selected is a surface step plus a hairline, which is what
+                 * depth is in this system, and it costs no accent.
+                 *
+                 * It used to be the accent stripe, then briefly a filled accent
+                 * slab. Both worked on a single row and neither survived a full
+                 * card: eleven of them stacked on a phone read as a pattern
+                 * rather than as eleven decisions, and the accent stopped
+                 * meaning "this matters" because it was on everything. That
+                 * colour is reserved for the CTA, the save button and the
+                 * current user's row; a routine binary state cannot have it.
+                 *
+                 * Padding is symmetric in both states on purpose. The stripe
+                 * needed a wider left inset to clear it, so picking a driver
+                 * nudged their name sideways.
+                 */
+                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-sm border px-3 pt-1 pb-2 transition-colors ${
                   isSelected
-                    ? 'gpp-stripe border-border bg-surface-elevated pl-4'
+                    ? 'border-border-strong bg-surface-elevated'
                     : isInteractive
-                      ? 'border-transparent transition-colors hover:bg-surface-elevated'
+                      ? // Hover raises the surface but never draws the outline.
+                        // Given the same hairline, a hovered cell was pixel
+                        // identical to a picked one, so pointing at a driver
+                        // looked like having chosen them.
+                        'border-transparent hover:bg-surface-elevated'
                       : 'border-transparent'
                 }`;
 
@@ -163,15 +183,20 @@ export function H2HMatchupGrid({
                         )
                       ) : isSelected ? (
                         <>
+                          {/* The check keeps the accent, the word does not.
+                              A 12px glyph confirms the choice without eleven
+                              coloured words competing down the card. */}
                           <Check
                             size={12}
                             className="shrink-0 text-accent"
                             strokeWidth={3}
                           />
-                          <span className="text-accent">Picked</span>
+                          <span className="text-text-muted">Picked</span>
                         </>
                       ) : isInteractive ? (
-                        <span className="w-none text-accent">Pick</span>
+                        // Never hover-gated: most of this grid's use is touch,
+                        // where there is no hover to reveal it.
+                        <span className="text-text-muted">Pick</span>
                       ) : (
                         <span className="invisible" aria-hidden="true">
                           Pick

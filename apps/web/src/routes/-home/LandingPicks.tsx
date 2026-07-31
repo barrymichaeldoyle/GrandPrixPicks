@@ -5,11 +5,10 @@ import { useQuery } from 'convex/react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
-import { Flag } from '@/components/Flag';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/components/DriverBadge';
 import { TabSwitch } from '@/components/TabSwitch';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { setPendingSubmit } from '@/lib/predictionDrafts';
-import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 type PicksTab = 'top5' | 'h2h';
@@ -68,14 +67,37 @@ export function LandingPicks({
   const [h2hEntryMethod, setH2HEntryMethod] = useState<
     'manual' | 'top5_handoff'
   >(initialStep === 'teammate-handoff' ? 'top5_handoff' : 'manual');
+  const [topFivePicks, setTopFivePicks] = useState<Array<Id<'drivers'>>>([]);
+  const [h2hProgress, setH2HProgress] = useState({ selected: 0, total: 0 });
   const sectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const viewedRef = useRef(false);
   const handoffCapturedRef = useRef(false);
   const handoffCompletedRef = useRef(false);
-  const transitionTimerRef = useRef<number | null>(null);
   const matchups = useQuery(api.h2h.getMatchupsForSeason, { season });
-  const countryCode = getCountryCodeForRace({ slug: raceSlug });
+
+  // Slot number per driver, so a teammate battle can show the call already
+  // made about that driver upstairs instead of asking twice.
+  const topFivePositions = Object.fromEntries(
+    topFivePicks.map((driverId, index) => [driverId, index + 1]),
+  );
+
+  const h2hTabLabel =
+    h2hProgress.total > 0 && h2hProgress.selected === h2hProgress.total
+      ? 'Teammate H2H ✓'
+      : h2hProgress.selected > 0
+        ? `Teammate H2H ${h2hProgress.selected}/${h2hProgress.total}`
+        : 'Teammate H2H';
+
+  // Returning the same object when nothing moved keeps this a no-op render,
+  // which is what stops the reporting effect downstream from looping.
+  function handleH2HProgress(selected: number, total: number) {
+    setH2HProgress((current) =>
+      current.selected === selected && current.total === total
+        ? current
+        : { selected, total },
+    );
+  }
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -102,7 +124,10 @@ export function LandingPicks({
   }, [raceId, raceSlug, sessionLabel]);
 
   function changeTab(tab: PicksTab) {
-    if (tab === 'h2h') {
+    // Entry method is how they first reached the battles, so a later tab click
+    // must not rewrite it. It used to, which also silently dropped the handoff
+    // confirmation for anyone who glanced back at their Top 5.
+    if (tab === 'h2h' && !handoffCapturedRef.current) {
       setH2HEntryMethod('manual');
     }
     setActiveTab(tab);
@@ -113,16 +138,7 @@ export function LandingPicks({
     });
   }
 
-  useEffect(
-    () => () => {
-      if (transitionTimerRef.current !== null) {
-        window.clearTimeout(transitionTimerRef.current);
-      }
-    },
-    [],
-  );
-
-  function moveFromTopFiveToH2H() {
+  function handleTopFiveComplete() {
     setH2HEntryMethod('top5_handoff');
     if (!handoffCapturedRef.current) {
       handoffCapturedRef.current = true;
@@ -132,21 +148,19 @@ export function LandingPicks({
         session_label: sessionLabel,
       });
     }
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
+  }
+
+  function continueToH2H() {
+    setActiveTab('h2h');
+    if (!handoffCompletedRef.current) {
+      handoffCompletedRef.current = true;
+      captureAnalyticsEvent('landing_top5_to_h2h_handoff_completed', {
+        race_id: raceId,
+        race_slug: raceSlug,
+        session_label: sessionLabel,
+      });
     }
-    transitionTimerRef.current = window.setTimeout(() => {
-      setActiveTab('h2h');
-      if (!handoffCompletedRef.current) {
-        handoffCompletedRef.current = true;
-        captureAnalyticsEvent('landing_top5_to_h2h_handoff_completed', {
-          race_id: raceId,
-          race_slug: raceSlug,
-          session_label: sessionLabel,
-        });
-      }
-      window.requestAnimationFrame(() => panelRef.current?.focus());
-    }, 360);
+    window.requestAnimationFrame(() => panelRef.current?.focus());
   }
 
   function prepareCombinedSave() {
@@ -166,20 +180,28 @@ export function LandingPicks({
     <section
       ref={sectionRef}
       id={LANDING_PICKS_ANCHOR}
-      className="scroll-mt-28 border-t border-border px-4 py-10 sm:py-12"
+      // Top padding stays deliberately short of the section rhythm used lower
+      // down the page: this section has to start above the fold on a laptop, so
+      // the first pick slots are visible rather than merely reachable.
+      className="scroll-mt-28 border-t border-border px-4 pt-8 pb-10 sm:pb-12"
     >
       <div className="mx-auto w-full max-w-6xl">
-        <div className="flex flex-col gap-5 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-5 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="flex flex-wrap items-center gap-2 text-lg font-medium text-text">
-              {countryCode ? <Flag code={countryCode} size="sm" /> : null}
-              <span>{abbreviateGrandPrix(raceName)}</span>
-              <span className="text-text-muted" aria-hidden="true">
-                ·
-              </span>
-              <span className="text-text-muted">{sessionLabel}</span>
+            {/*
+             * Flag, race and session are already the first three things the
+             * hero clock says, and on a phone that block ends 65px above this
+             * one — close enough that repeating them reads as the page
+             * stuttering rather than as a section header. The hero owns
+             * identity for everything above the fold; this section only has to
+             * say what to do. The heading stays in the tree as text so the
+             * document outline and the "which race is this" question still
+             * have an answer for anyone not reading the layout.
+             */}
+            <h2 className="sr-only">
+              {abbreviateGrandPrix(raceName)} · {sessionLabel}
             </h2>
-            <p className="gpp-reading-copy mt-2 max-w-2xl text-text-muted">
+            <p className="gpp-reading-copy max-w-2xl text-text-muted">
               Start with your top 5, then call every teammate battle. No account
               needed until you save.
             </p>
@@ -195,7 +217,7 @@ export function LandingPicks({
                 value: 'top5',
                 label: topFiveComplete ? 'Top 5 ✓' : 'Top 5',
               },
-              { value: 'h2h', label: 'Teammate H2H' },
+              { value: 'h2h', label: h2hTabLabel },
             ]}
             className="flex shrink-0 gap-1"
           />
@@ -204,7 +226,7 @@ export function LandingPicks({
         <div
           ref={panelRef}
           id="landing-prediction-panel"
-          className="pt-6"
+          className="pt-5"
           role="tabpanel"
           aria-labelledby={`landing-prediction-type-${activeTab}`}
           tabIndex={0}
@@ -214,13 +236,17 @@ export function LandingPicks({
               <LandingTopFivePicker
                 raceId={raceId}
                 initialDrivers={initialDrivers}
-                onComplete={moveFromTopFiveToH2H}
+                onComplete={handleTopFiveComplete}
+                onContinue={continueToH2H}
                 onCompletionStateChange={setTopFiveComplete}
+                onPicksChange={setTopFivePicks}
               />
             </Suspense>
           </div>
           <div hidden={activeTab !== 'h2h'}>
-            {topFiveComplete && h2hEntryMethod === 'top5_handoff' ? (
+            {topFiveComplete &&
+            h2hEntryMethod === 'top5_handoff' &&
+            h2hProgress.selected === 0 ? (
               <p className="mb-5 flex items-center gap-2 text-sm text-accent">
                 <span
                   className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-text-on-accent"
@@ -241,10 +267,14 @@ export function LandingPicks({
                   analyticsSource="landing"
                   entryMethod={h2hEntryMethod}
                   onSaveIntent={prepareCombinedSave}
+                  onSelectionProgress={handleH2HProgress}
+                  topFivePositions={topFivePositions}
                   renderSaveWall={({ lockIn }) => (
                     <PredictionCardSaveWall
-                      includesTopFive={topFiveComplete}
+                      topFivePicks={topFivePicks}
+                      drivers={initialDrivers}
                       onLockIn={lockIn}
+                      onFinishTopFive={() => changeTab('top5')}
                     />
                   )}
                 />
@@ -257,13 +287,31 @@ export function LandingPicks({
   );
 }
 
+/**
+ * The conversion moment. It used to ask for an account while showing a single
+ * teammate duel, so the thing being saved was mostly out of sight. The whole
+ * card is now on screen at the point of the ask: the Top 5 in order here, and
+ * the eleven calls in the grid the form swaps in once the sequence is done.
+ */
 function PredictionCardSaveWall({
-  includesTopFive,
+  topFivePicks,
+  drivers,
   onLockIn,
+  onFinishTopFive,
 }: {
-  includesTopFive: boolean;
+  topFivePicks: Array<Id<'drivers'>>;
+  drivers: Array<Doc<'drivers'>>;
   onLockIn: () => void;
+  onFinishTopFive: () => void;
 }) {
+  const pickedDrivers = topFivePicks
+    .map((driverId) => drivers.find((driver) => driver._id === driverId))
+    .filter((driver): driver is Doc<'drivers'> => driver !== undefined);
+  const includesTopFive = pickedDrivers.length === 5;
+  // A part-filled Top 5 never submits: it stays a device draft while only the
+  // teammate picks save. Saying so beats letting them find out later.
+  const partialTopFive = pickedDrivers.length > 0 && !includesTopFive;
+
   return (
     <div
       className="mx-auto mt-6 max-w-3xl border-t border-border pt-5"
@@ -279,6 +327,45 @@ function PredictionCardSaveWall({
           ? 'Create a free account to save your Top 5 and teammate picks.'
           : 'Create a free account to save your teammate picks.'}
       </p>
+
+      {includesTopFive ? (
+        <ol
+          className="mt-4 grid grid-cols-5 gap-1"
+          aria-label="Your Top 5, in order"
+        >
+          {pickedDrivers.map((driver, index) => (
+            <li
+              key={driver._id}
+              className="gpp-team-bar flex min-w-0 items-center justify-center gap-1.5 rounded-sm border border-border bg-surface-elevated py-1.5 pr-1 pl-2"
+              style={
+                {
+                  '--team-colour':
+                    (driver.team && TEAM_COLORS[driver.team]) ||
+                    FALLBACK_TEAM_COLOR,
+                } as React.CSSProperties
+              }
+            >
+              <span className="gpp-mono text-[10px] leading-none text-accent">
+                P{index + 1}
+              </span>
+              <span className="gpp-mono truncate text-xs leading-none text-text">
+                {driver.code}
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      {partialTopFive ? (
+        <p className="mt-4 text-sm text-warning">
+          Your Top 5 is only {pickedDrivers.length} of 5, so it won’t be saved
+          with this card.{' '}
+          <Button variant="text" size="inline" onClick={onFinishTopFive}>
+            Finish your Top 5
+          </Button>
+        </p>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button variant="primary" size="md" onClick={onLockIn}>
           Save my picks

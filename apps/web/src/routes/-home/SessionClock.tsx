@@ -1,5 +1,11 @@
+import { useEffect, useState } from 'react';
+
 import { Flag } from '@/components/Flag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import {
+  formatRaceLocalLockDate,
+  formatViewerLockDate,
+} from '@/lib/raceLockTime';
 
 /**
  * The lock deadline as a session clock, not a badge.
@@ -8,7 +14,16 @@ import { getCountryCodeForRace } from '@/lib/raceCountries';
  * flag, what is locking, then the digits. Days/hours/minutes only — a seconds
  * column on a deadline three days out is noise that redraws sixty times a
  * minute, and the picker below it is where the attention should end up.
+ *
+ * Outside race week the digits are replaced by the date. "21 : 03 : 04" is a
+ * countdown that argues against itself: three weeks of runway reads as "come
+ * back later", which is the opposite of what a deadline is for. A date is a
+ * fixture to plan around, and the clock starts ticking when the tick means
+ * something.
  */
+
+/** Inside this window the deadline is close enough that digits create urgency. */
+const COUNTDOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 type ClockSegment = { value: number; unit: string };
 
@@ -32,24 +47,79 @@ function segmentsFor(msRemaining: number): ClockSegment[] {
   ];
 }
 
+/**
+ * Whole days left. Only rendered outside the countdown window, so the value is
+ * always 8 or more and never has to read "in 0 days".
+ */
+function daysUntil(msRemaining: number) {
+  const days = Math.floor(msRemaining / 86_400_000);
+  return `${days} ${days === 1 ? 'day' : 'days'}`;
+}
+
+/**
+ * The lock instant in the visitor's own timezone, or null until mounted.
+ *
+ * The date branch has to render something during SSR, and only the circuit's
+ * zone is knowable there — the server runs in UTC, so formatting for "the
+ * viewer" on the server means formatting for the wrong person and mismatching
+ * every hydration. So the first paint is track-local and this swaps in the
+ * visitor's zone once there is a browser to ask. Both strings are the same
+ * instant at the same width, so the swap costs no layout.
+ */
+function useViewerLockDate(lockAt: number | undefined, enabled: boolean) {
+  const [viewerDate, setViewerDate] = useState<{
+    date: string;
+    time: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setViewerDate(
+      enabled && lockAt !== undefined ? formatViewerLockDate(lockAt) : null,
+    );
+  }, [lockAt, enabled]);
+
+  return viewerDate;
+}
+
 export function SessionClock({
   raceName,
   raceSlug,
   sessionLabel,
   msRemaining,
+  lockAt,
   size = 'lg',
 }: {
   raceName: string;
   raceSlug: string;
-  /** Session whose picks lock next, e.g. "Qualifying". */
+  /**
+   * Session whose picks lock next, spelled out — "Sprint Qualifying", not
+   * "Sprint Quali". This is the first F1 word a first-time visitor reads, so it
+   * takes the full label even though the compact one is fine in product UI.
+   */
   sessionLabel: string;
   msRemaining: number;
+  /**
+   * Instant the session locks. Supplied, a deadline further out than race week
+   * shows as a track-local date instead of a countdown.
+   */
+  lockAt?: number;
   size?: 'lg' | 'sm';
 }) {
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const locked = msRemaining <= 0;
   const segments = segmentsFor(msRemaining);
   const large = size === 'lg';
+  // Falls back to the countdown when the circuit's timezone is unknown: an
+  // undated "locks at 14:00" would be worse than digits.
+  const trackDate =
+    !locked && lockAt !== undefined && msRemaining > COUNTDOWN_WINDOW_MS
+      ? formatRaceLocalLockDate(lockAt, raceSlug)
+      : null;
+  // Whether we show a date at all stays keyed off the *track* zone, so the
+  // date-vs-digits choice is identical on server and client and nothing
+  // reflows after mount. Only the zone the date is expressed in changes.
+  const viewerDate = useViewerLockDate(lockAt, trackDate !== null);
+  const lockDate = viewerDate ?? trackDate;
 
   return (
     <div>
@@ -64,10 +134,17 @@ export function SessionClock({
         <span className="text-text">{raceName}</span>
       </p>
 
+      {/*
+       * "Sprint Quali picks lock" stacks three pieces of jargon before the
+       * reader gets to a verb they can act on. "Next deadline" is the frame
+       * anyone understands on sight; the session name then says which deadline,
+       * and the digits below say the rest. The word "picks" stays because it is
+       * the only thing here naming what the visitor actually does.
+       */}
       <p className="gpp-label mt-2">
         {locked
           ? `${sessionLabel} picks are locked`
-          : `${sessionLabel} picks lock in`}
+          : `Next deadline · ${sessionLabel} picks`}
       </p>
 
       {locked ? (
@@ -77,6 +154,26 @@ export function SessionClock({
         >
           Locked
         </p>
+      ) : lockDate ? (
+        <div className="mt-2" suppressHydrationWarning>
+          <p
+            className={`gpp-mono leading-none font-light text-text ${
+              large ? 'text-4xl sm:text-5xl' : 'text-xl'
+            }`}
+          >
+            {lockDate.date}
+          </p>
+          {/*
+           * A date on its own is inert — it is the same pixels on the day it is
+           * three weeks out and the day it is two. Hanging the distance off the
+           * time re-ties it to now without promoting a 21-day gap to ticking
+           * digits, which is the thing the window above exists to avoid. It
+           * moves with `msRemaining`, so it counts down with everything else.
+           */}
+          <p className={`gpp-label mt-2 ${large ? '' : 'text-[0.625rem]'}`}>
+            {lockDate.time} · locks in {daysUntil(msRemaining)}
+          </p>
+        </div>
       ) : (
         <div
           className="mt-2 flex items-start gap-3 sm:gap-4"

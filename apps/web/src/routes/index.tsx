@@ -10,7 +10,12 @@ import { abbreviateGrandPrix } from '@/lib/display';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
 import { formatRaceLocalLockTime } from '@/lib/raceLockTime';
 import { withRetry } from '@/lib/retry';
-import { CURRENT_SEASON, pageMeta, siteConfig } from '@/lib/site';
+import {
+  CURRENT_SEASON,
+  nextRaceOgImageUrl,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 
 import { FinalCtaBand } from './-home/FinalCtaBand';
@@ -93,12 +98,17 @@ export const Route = createFileRoute('/')({
       now: Date.now(),
     };
   },
-  head: () => {
+  head: ({ loaderData }) => {
     const meta = pageMeta({
       title: PUBLIC_HOME_TITLE,
       description:
         'Predict the top 5 in Formula 1 qualifying and races, call teammate battles, and compete on global or private leaderboards. Free to play.',
       path: '/',
+      // The bare domain is what gets pasted into group chats, so this card is
+      // the first thing most visitors ever see of the product. Naming the
+      // upcoming Grand Prix and its lock time turns it from an advert into an
+      // invitation with a deadline.
+      image: nextRaceOgImageUrl(loaderData?.nextRace?.slug),
     });
     return {
       ...meta,
@@ -182,18 +192,29 @@ function PublicLandingPage() {
     ) ?? null;
 
   // Everything on this page is driven off the calendar's next open session, so
-  // it re-labels itself each race week with no manual edit: the clock says
-  // "Qualifying picks lock in" or "Race picks lock in" depending on what is
-  // actually next, and the flag follows the round.
-  const clock =
-    featuredRace && nextSession ? (
-      <SessionClock
-        raceName={featuredRace.name}
-        raceSlug={featuredRace.slug}
-        sessionLabel={nextSession.label}
-        msRemaining={nextSession.startAt - now}
-      />
-    ) : null;
+  // it re-labels itself each race week with no manual edit: the clock reads
+  // "Next deadline · Qualifying picks" or "· Race picks" depending on what is
+  // actually next, and the flag follows the round. The clock takes the full
+  // session label because the landing page is where "Sprint Quali" is least
+  // likely to be understood; the picker below keeps the compact one.
+  //
+  // The hero shows one of two sizes depending on viewport, so the inputs are
+  // built once and spread into both rather than written out twice — the two
+  // clocks disagreeing about the deadline would be a hard bug to spot.
+  const clockProps =
+    featuredRace && nextSession
+      ? {
+          raceName: featuredRace.name,
+          raceSlug: featuredRace.slug,
+          sessionLabel: nextSession.labelFull,
+          msRemaining: nextSession.startAt - now,
+          lockAt: nextSession.startAt,
+        }
+      : null;
+  const clock = clockProps ? <SessionClock {...clockProps} /> : null;
+  const clockCompact = clockProps ? (
+    <SessionClock {...clockProps} size="sm" />
+  ) : null;
 
   const lockTime =
     featuredRace && nextSession
@@ -205,6 +226,7 @@ function PublicLandingPage() {
       <div className="bg-page">
         <LandingHero
           clock={clock}
+          clockCompact={clockCompact}
           cta={
             nextRace && nextSession ? (
               <ScrollToPicksCta targetId={LANDING_PICKS_ANCHOR} />
@@ -256,8 +278,9 @@ function PublicLandingPage() {
           <FinalCtaBand
             raceName={nextRace.name}
             raceSlug={nextRace.slug}
-            sessionLabel={nextSession.label}
+            sessionLabel={nextSession.labelFull}
             msRemaining={nextSession.startAt - now}
+            lockAt={nextSession.startAt}
             targetId={LANDING_PICKS_ANCHOR}
           />
         ) : null}

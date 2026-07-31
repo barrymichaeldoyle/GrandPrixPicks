@@ -291,12 +291,37 @@
 }
 
 /*
- * The signed-out header owns the primary CTA. On the landing page, once the
- * deadline strip appears, its contextual CTA takes over so two identical lime
- * buttons are never stacked in the sticky chrome.
+ * The signed-out header owns the primary CTA on every page except the one that
+ * has its own. On the landing page the hero button is the action while the hero
+ * is on screen, and the deadline strip takes it over the moment the hero
+ * scrolls away — so the header version would only ever be a second identical
+ * lime button pointing at the same anchor.
+ *
+ * Keyed off the hero CTA rather than the route so the between-seasons hero,
+ * which has no picker to scroll to and no deadline strip, keeps the header CTA.
  */
-html:has([data-landing-sticky-visible='true']) .gpp-public-header-cta {
+html:has([data-landing-hero-cta]) .gpp-public-header-cta {
   display: none;
+}
+
+/*
+ * Same condition, opposite effect: with the header CTA gone the bar is just the
+ * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
+ * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
+ * "GP Picks" covers the 320px-class screens below that.
+ */
+html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+  display: inline;
+}
+
+@media (width >= 360px) {
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+    display: none;
+  }
+
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
+    display: inline;
+  }
 }
 
 /* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge

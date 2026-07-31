@@ -15,12 +15,14 @@ export function FinalCtaBand({
   raceSlug,
   sessionLabel,
   msRemaining,
+  lockAt,
   targetId,
 }: {
   raceName: string;
   raceSlug: string;
   sessionLabel: string;
   msRemaining: number;
+  lockAt: number;
   targetId: string;
 }) {
   return (
@@ -31,6 +33,7 @@ export function FinalCtaBand({
           raceSlug={raceSlug}
           sessionLabel={sessionLabel}
           msRemaining={msRemaining}
+          lockAt={lockAt}
           size="sm"
         />
 

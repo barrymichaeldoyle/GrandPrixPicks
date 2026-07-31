@@ -17,8 +17,13 @@ test.describe('[public] smoke', () => {
     await expect(
       header.getByRole('link', { name: 'How it works' }),
     ).toBeVisible();
+    // The landing page owns its own CTA, so the header does not repeat it here
+    // — the hero button and then the deadline strip carry the action instead.
     await expect(
       header.getByRole('link', { name: 'Make your picks' }),
+    ).toBeHidden();
+    await expect(
+      page.getByRole('link', { name: 'Make your picks' }).first(),
     ).toBeVisible();
     await expect(header.getByTestId('header-sign-in-button')).toBeVisible();
     await expect(page.getByText('Dashboard', { exact: true })).toHaveCount(0);
@@ -37,6 +42,15 @@ test.describe('[public] smoke', () => {
         );
       }
     }
+    // Filling the fifth slot no longer swaps the panel on its own: the player
+    // gets their finished order to check and moves on when they choose to.
+    await expect(
+      page.getByRole('tab', { name: 'Top 5 ✓', selected: true }),
+    ).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Continue to teammate picks' })
+      .click();
+
     await expect(
       page.getByRole('tab', { name: 'Teammate H2H', selected: true }),
     ).toBeVisible();

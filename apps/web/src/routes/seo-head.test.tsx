@@ -30,6 +30,12 @@ type StaticHeadRoute = {
   head: () => HeadResult;
 };
 
+type HomeHeadRoute = {
+  head: (args: {
+    loaderData?: { nextRace: { slug: string } | null };
+  }) => HeadResult & { scripts?: Array<{ children: string; type: string }> };
+};
+
 type UsernameHeadRoute = {
   head: (args: { params: { username: string } }) => HeadResult;
 };
@@ -67,6 +73,10 @@ function asStaticHeadRoute(route: unknown): StaticHeadRoute {
   return route as StaticHeadRoute;
 }
 
+function asHomeHeadRoute(route: unknown): HomeHeadRoute {
+  return route as HomeHeadRoute;
+}
+
 function asUsernameHeadRoute(route: unknown): UsernameHeadRoute {
   return route as UsernameHeadRoute;
 }
@@ -87,7 +97,9 @@ describe('SEO head metadata', () => {
   it('keeps the public home metadata, canonical and app schema aligned', async () => {
     const [{ Route: homeRoute, PUBLIC_HOME_TITLE }, { CURRENT_SEASON }] =
       await Promise.all([import('./index'), import('@/lib/site')]);
-    const head = asStaticHeadRoute(homeRoute).head() as unknown as {
+    const head = asHomeHeadRoute(homeRoute).head({
+      loaderData: { nextRace: { slug: 'netherlands-2026' } },
+    }) as unknown as {
       links?: Array<{ href: string; rel: string }>;
       scripts?: Array<{ children: string; type: string }>;
       meta?: Array<{
@@ -123,6 +135,30 @@ describe('SEO head metadata', () => {
       name: 'Grand Prix Picks',
       offers: { price: '0' },
     });
+  });
+
+  // Scrapers cache an OG image by URL. If the home card lived at a stable
+  // /og/next, WhatsApp and X would keep serving the previous Grand Prix for
+  // weeks after it ran, so the slug has to stay in the URL.
+  it('points the home OG card at the next race, and falls back off-season', async () => {
+    const { Route: homeRoute } = await import('./index');
+    const homeHead = asHomeHeadRoute(homeRoute);
+
+    function ogImage(loaderData?: { nextRace: { slug: string } | null }) {
+      return homeHead
+        .head({ loaderData })
+        .meta?.find((tag) => tag.property === 'og:image')?.content;
+    }
+
+    expect(ogImage({ nextRace: { slug: 'netherlands-2026' } })).toBe(
+      'https://grandprixpicks.com/og/next?race=netherlands-2026',
+    );
+    expect(ogImage({ nextRace: { slug: 'italy-2026' } })).toContain(
+      'race=italy-2026',
+    );
+    // Off-season, and during the SSR pass before the loader resolves.
+    expect(ogImage({ nextRace: null })).toContain('/og-default.png');
+    expect(ogImage(undefined)).toContain('/og-default.png');
   });
 
   it('marks gated pages as noindex with a single canonical', async () => {

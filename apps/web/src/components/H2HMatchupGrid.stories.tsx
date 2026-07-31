@@ -64,6 +64,32 @@ export const Interactive: Story = {
   },
 };
 
+/**
+ * Every outcome at once: a correct call, a wrong one, and a matchup left
+ * uncalled. The selected state carries no accent, so the only colour here is
+ * the result semantic itself, which is the one thing worth colouring.
+ */
+export const Results: Story = {
+  render: () => (
+    <div className="mx-auto max-w-6xl pb-10">
+      <H2HMatchupGrid
+        matchups={[...matchups]}
+        mode="results"
+        selections={{
+          [matchups[0]._id]: mockDrivers.NOR._id,
+          [matchups[1]._id]: mockDrivers.LEC._id,
+        }}
+        winners={{
+          [matchups[0]._id]: mockDrivers.NOR._id,
+          [matchups[1]._id]: mockDrivers.HAM._id,
+          [matchups[2]._id]: mockDrivers.RUS._id,
+        }}
+        pointsByMatchup={{ [matchups[0]._id]: 1 }}
+      />
+    </div>
+  ),
+};
+
 export const ReadOnly: Story = {
   render: () => (
     <div className="mx-auto max-w-6xl pb-10">

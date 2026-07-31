@@ -24,22 +24,6 @@ export async function loadFlagDataUri(
   }
 }
 
-export async function loadStaticImageDataUri(
-  origin: string,
-  path: string,
-  mimeType: string,
-): Promise<string | undefined> {
-  try {
-    const res = await fetch(new URL(path, origin));
-    if (!res.ok) {
-      return undefined;
-    }
-    return toDataUri(mimeType, await res.arrayBuffer());
-  } catch {
-    return undefined;
-  }
-}
-
 function toDataUri(mimeType: string, buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   // Chunked conversion avoids exceeding the argument limit for large assets.

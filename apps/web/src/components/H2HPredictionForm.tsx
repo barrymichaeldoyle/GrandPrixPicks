@@ -42,6 +42,10 @@ interface H2HPredictionFormProps {
   onSaveIntent?: () => void;
   /** Replaces the signed-out submit button after every duel is selected. */
   renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
+  /** Emits duel progress so a parent funnel can label its own tab/step. */
+  onSelectionProgress?: (selected: number, total: number) => void;
+  /** Top 5 slot (1-5) per driver, surfaced on the matching duel card. */
+  topFivePositions?: Record<string, number | undefined>;
 }
 
 type H2HDraft = {
@@ -63,6 +67,8 @@ export function H2HPredictionForm({
   entryMethod,
   onSaveIntent,
   renderSaveWall,
+  onSelectionProgress,
+  topFivePositions,
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
@@ -372,6 +378,10 @@ export function H2HPredictionForm({
   }, [hasChanges, onDirtyChange]);
 
   useEffect(() => {
+    onSelectionProgress?.(selectedCount, totalMatchups);
+  }, [onSelectionProgress, selectedCount, totalMatchups]);
+
+  useEffect(() => {
     if (!hasHydratedDraft) {
       return;
     }
@@ -441,33 +451,56 @@ export function H2HPredictionForm({
   return (
     <>
       {restoredDraftAt ? (
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-accent/35 bg-accent-muted/20 px-3 py-2">
-          <span className="text-xs text-text">Unsaved draft restored</span>
+        // Reassurance, not an alert: picks that survived a reload are good
+        // news, so this sits on the neutral surface rather than wearing the
+        // accent an actual warning would.
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2">
+          <span className="text-xs text-text-muted">
+            Unsaved draft restored
+          </span>
           <Button variant="text" size="inline" onClick={handleDiscardDraft}>
-            Discard Draft
+            Discard draft
           </Button>
         </div>
       ) : null}
-      {isFirstEntry ? (
+      {/* One duel at a time is the right way to *make* eleven calls and the
+          wrong way to *check* them. The moment the last one lands, the whole
+          grid replaces the sequence so the card can be read and edited in one
+          go, which is also what the save wall underneath is asking about. */}
+      {isFirstEntry && !allSelected ? (
         <H2HDuelPicker
           matchups={matchups}
           selections={selections}
           onSelect={toggleSelection}
+          draftHydrated={hasHydratedDraft}
+          topFivePositions={topFivePositions}
         />
       ) : (
-        <H2HMatchupGrid
-          matchups={matchups}
-          selections={selections}
-          mode="interactive"
-          onSelect={toggleSelection}
-          actionCard={
-            <div className="hidden items-stretch sm:flex">
-              <div className="flex w-full items-center justify-center p-3">
-                {desktopSubmitButton}
-              </div>
-            </div>
-          }
-        />
+        <>
+          {isFirstEntry ? (
+            <p className="gpp-label mb-3 flex items-center gap-1.5 text-text-muted">
+              <Check size={14} className="text-accent" aria-hidden="true" />
+              All eleven called.
+              <br />
+              Tap any driver to change your mind.
+            </p>
+          ) : null}
+          <H2HMatchupGrid
+            matchups={matchups}
+            selections={selections}
+            mode="interactive"
+            onSelect={toggleSelection}
+            actionCard={
+              isFirstEntry ? undefined : (
+                <div className="hidden items-stretch sm:flex">
+                  <div className="flex w-full items-center justify-center p-3">
+                    {desktopSubmitButton}
+                  </div>
+                </div>
+              )
+            }
+          />
+        </>
       )}
 
       {showCustomSaveWall ? renderSaveWall?.({ lockIn: requestSubmit }) : null}

@@ -340,7 +340,47 @@ export const elevation = {
   '2xl': 'none',
 } as const;
 
+/**
+ * Transactional email palette — the one light surface in the system.
+ *
+ * Email is the exception to "dark theme only", and deliberately so: Gmail and
+ * Outlook both mangle dark backgrounds (Outlook desktop drops them outright,
+ * Gmail's dark mode force-inverts what it does keep), so a dark shell renders
+ * as a different email for a large share of readers. A light shell renders the
+ * same everywhere. It is authored here rather than inline in the templates
+ * because `apps/web/src/lib/og/styles.ts` proved what happens otherwise: a
+ * hand-copied palette drifted until eight of its nine colours no longer matched
+ * the product.
+ *
+ * The neutrals are the dark ramp inverted, keeping its slight warmth so the
+ * mail reads as the same brand rather than a generic slate template.
+ *
+ * **Accent is a background only, never ink.** Chartreuse on white is about
+ * 1.4:1. It works as a button fill under near-black text, which is exactly how
+ * the app uses it; a chartreuse link would be unreadable, so links are ink plus
+ * an underline.
+ */
+export const emailColors = {
+  page: '#f4f4f2',
+  surface: '#ffffff',
+  surfaceMuted: '#fafaf9',
+  border: '#e3e3e0',
+  borderStrong: '#c9c9c5',
+  text: colors.textOnAccent,
+  textMuted: '#62636a',
+  accent: colors.accent,
+  accentHover: colors.accentHover,
+  textOnAccent: colors.textOnAccent,
+  /**
+   * Sprint weekends, the one domain concept with its own colour. Darker than
+   * the app's `sprint` violet because that value is tuned for a near-black
+   * background and drops to ~2:1 on white.
+   */
+  sprint: '#6d28d9',
+} as const;
+
 export type Colors = typeof colors;
+export type EmailColors = typeof emailColors;
 export type Teams = typeof teams;
 export type Radii = typeof radii;
 export type TypeScale = typeof typeScale;

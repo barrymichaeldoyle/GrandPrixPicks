@@ -34,7 +34,22 @@ const ogBaseUrl =
   siteConfig.url;
 
 /** Temporary shared OG image until per-page variants are finalized. */
-export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260730`;
+export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260731`;
+
+/**
+ * Absolute URL for the site's own OG card, rendered against the next race.
+ *
+ * The slug is in the URL rather than resolved server-side because scrapers key
+ * their image cache on the URL: a stable `/og/next` would keep showing the
+ * previous Grand Prix in WhatsApp and X previews for weeks after it ran. A new
+ * round is a new URL, so it is fetched fresh. Falls back to the evergreen card
+ * off-season, when there is no next race to name.
+ *
+ * @param raceSlug — slug of the next race, or undefined off-season
+ */
+export function nextRaceOgImageUrl(raceSlug: string | undefined) {
+  return raceSlug ? `${ogBaseUrl}/og/next?race=${raceSlug}` : defaultOgImage;
+}
 
 /**
  * Absolute URL for a dynamically rendered share-card OG image.

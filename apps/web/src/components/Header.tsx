@@ -126,9 +126,9 @@ export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
       // Full-bleed, on the page background, with a hairline bottom border and
       // nothing else — the previous diagonal sheen texture and 2px accent rail
       // were decoration in empty space, which this direction does not do.
-      className="sticky top-0 z-50 h-[--nav-height] border-b border-border bg-page text-text"
+      className="sticky top-0 z-50 h-(--nav-height) border-b border-border bg-page text-text"
     >
-      <div className="mx-auto flex h-full w-full max-w-[--page-max] items-center justify-between px-4 min-[844px]:px-8">
+      <div className="mx-auto flex h-full w-full max-w-(--page-max) items-center justify-between px-4 min-[844px]:px-8">
         <div className="flex items-center gap-2">
           <Link
             to="/"
@@ -137,14 +137,18 @@ export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
             {/* The brand mark, replacing the generic Lucide flag. Three bars
                 descending like a timing tower, sheared to echo the stripe. */}
             <BrandMark className="h-5 w-[1.875rem] shrink-0 text-accent" />
-            {/* In the signed-out header the mark stands alone on mobile so
-                sign-in and the primary action remain single-line touch
-                targets. The signed-in header gains the compact name from
-                360px and the full wordmark from 390px. */}
+            {/* The signed-out header carries sign-in plus the primary CTA, and
+                at 360px those two leave only ~90px for the name — so the
+                compact wordmark waits for 440px. On the landing page the hero
+                owns the CTA, which leaves room for the full wordmark from
+                360px and the compact one below that (see
+                `.gpp-public-wordmark` in styles.css). The signed-in header
+                gains the compact name from 360px and the full wordmark from
+                390px. */}
             <span
               className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
                 showSignedOutNav
-                  ? 'hidden'
+                  ? 'gpp-public-wordmark hidden min-[440px]:inline min-[844px]:hidden'
                   : 'max-[359px]:hidden min-[390px]:hidden'
               }`}
             >
@@ -153,7 +157,7 @@ export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
             <span
               className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
                 showSignedOutNav
-                  ? 'hidden min-[844px]:inline'
+                  ? 'gpp-public-wordmark-full hidden min-[844px]:inline'
                   : 'hidden min-[390px]:inline'
               }`}
             >

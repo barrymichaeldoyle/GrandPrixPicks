@@ -256,13 +256,15 @@ export const Typography: Story = {
   render: () => (
     <div className="p-6">
       <p className="mb-8 max-w-2xl text-sm text-text-muted">
-        Orbitron carries headings and anything that should read as instrument
-        panel. Body copy stays on the system sans stack for legibility.
+        Archivo carries everything that is words, at weights 300 to 600. IBM
+        Plex Mono carries everything that is a figure: positions, times, scores,
+        gaps. Nothing is heavier than semibold, because nothing should outweigh
+        a primary button.
       </p>
 
       <Section
         label="Title face"
-        note="Orbitron, via --font-title. h1 and h2 pick this up automatically."
+        note="Archivo, via --font-title (an alias of --font-ui). h1 and h2 pick this up automatically."
       >
         <div className="space-y-3">
           <h1 className="text-4xl text-text">Grand Prix Picks</h1>
@@ -271,7 +273,7 @@ export const Typography: Story = {
         </div>
       </Section>
 
-      <Section label="Body scale" note="System sans stack">
+      <Section label="Body scale" note="Archivo, via --font-ui">
         {(
           [
             ['text-xs', 'Timestamps and metadata'],

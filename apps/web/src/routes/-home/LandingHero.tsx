@@ -6,14 +6,14 @@ import { Button, primaryButtonStyles } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 const SUBLINE =
-  'Pick the top 5 and call every teammate battle across the F1 weekend. Score points in qualifying, sprints and the race. Free to play.';
+  'Pick the top 5 and call every teammate battle across the F1 weekend. Score points in qualifying, sprints and the race. Free\u00a0to\u00a0play.';
 
 /**
  * Copy on the left, session clock on the right, picker immediately below.
  *
- * The clock is not a badge or a chip. It is the second-largest thing on the
- * page after the headline, because the deadline is the reason to act now rather
- * than bookmark the site.
+ * On phones the deadline is a compact chip between the subtext and the CTA —
+ * never above the headline. Stacking the full clock first made race data the
+ * lead before a visitor knew what the site was; the hook has to land first.
  */
 export function LandingHero({
   clock,
@@ -23,8 +23,8 @@ export function LandingHero({
   /** Full-size clock for the desktop second column. */
   clock: ReactNode;
   /**
-   * The same deadline at `sm`, used as an eyebrow above the headline on
-   * phones. Exactly one of the two is ever displayed, so only one reaches the
+   * Compact deadline chip at `sm`, between the subtext and the CTA on phones.
+   * Exactly one of the two clocks is ever displayed, so only one reaches the
    * accessibility tree.
    */
   clockCompact: ReactNode;
@@ -50,18 +50,6 @@ export function LandingHero({
        */}
       <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[auto_auto] lg:items-center lg:justify-start lg:gap-x-20 xl:gap-x-28">
         <div>
-          {/*
-           * On a phone the single column put the deadline between the CTA and
-           * the picker, so the last thing before the fold was a date rather
-           * than the button, and the clock landed directly on top of the
-           * picker's own header. Above the headline it works as an eyebrow —
-           * the deadline is the premise, the headline is the pitch, and
-           * "Make your picks" is what the visitor touches next with nothing
-           * in between.
-           */}
-          {clockCompact ? (
-            <div className="mb-5 lg:hidden">{clockCompact}</div>
-          ) : null}
           {/*
            * The break is authored, not left to the browser. Balanced wrapping
            * of the whole sentence strands "Everyone's a" on its own line,
@@ -91,6 +79,15 @@ export function LandingHero({
           <p className="gpp-reading-copy-lg mt-4 max-w-[46ch] text-text-muted">
             {SUBLINE}
           </p>
+          {/*
+           * Mobile order: headline → subtext → deadline chip → CTA. The chip
+           * is secondary context once the visitor knows what the site is; the
+           * CTA is what they touch next with nothing in between except the
+           * friction-killer under the button.
+           */}
+          {clockCompact ? (
+            <div className="mt-5 lg:hidden">{clockCompact}</div>
+          ) : null}
           <div className="mt-6">{cta}</div>
         </div>
 
@@ -110,22 +107,27 @@ export function LandingHero({
 /** Scrolls to the embedded picker. Present on desktop too, since the picker sits below the fold on short viewports. */
 export function ScrollToPicksCta({ targetId }: { targetId: string }) {
   return (
-    <a
-      href={`#${targetId}`}
-      className={primaryButtonStyles('md')}
-      // Suppresses the duplicate CTA in the app header while this page owns the
-      // action (see `.gpp-public-header-cta` in styles.css). The sticky strip
-      // takes the action over the moment this scrolls away.
-      data-landing-hero-cta="true"
-      onClick={() =>
-        captureAnalyticsEvent('landing_hero_cta_clicked', {
-          placement: 'hero',
-        })
-      }
-    >
-      Make your picks
-      <ArrowRight size={20} aria-hidden="true" />
-    </a>
+    <div>
+      <a
+        href={`#${targetId}`}
+        className={primaryButtonStyles('md')}
+        // Suppresses the duplicate CTA in the app header while this page owns the
+        // action (see `.gpp-public-header-cta` in styles.css). The sticky strip
+        // takes the action over the moment this scrolls away.
+        data-landing-hero-cta="true"
+        onClick={() =>
+          captureAnalyticsEvent('landing_hero_cta_clicked', {
+            placement: 'hero',
+          })
+        }
+      >
+        Make your picks
+        <ArrowRight size={20} aria-hidden="true" />
+      </a>
+      <p className="mt-2 text-sm text-text-muted">
+        No account needed until you save.
+      </p>
+    </div>
   );
 }
 

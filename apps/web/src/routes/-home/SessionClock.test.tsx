@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { formatViewerLockDate } from '@/lib/raceLockTime';
 
-import { SessionClock } from './SessionClock';
+import { SessionClock, SessionClockChip } from './SessionClock';
 
 describe('SessionClock', () => {
   let container: HTMLDivElement;
@@ -42,7 +42,7 @@ describe('SessionClock', () => {
     ).toBe('Qualifying picks lock in 2 days, 1 hour, 5 minutes');
   });
 
-  it('keeps the countdown inside race week', () => {
+  it('keeps the countdown inside the urgency window', () => {
     const lockAt = Date.parse('2026-08-22T13:00:00Z');
     act(() => {
       root.render(
@@ -50,7 +50,7 @@ describe('SessionClock', () => {
           raceName="Dutch Grand Prix"
           raceSlug="netherlands-2026"
           sessionLabel="Qualifying"
-          msRemaining={3 * 24 * 60 * 60 * 1000}
+          msRemaining={48 * 60 * 60 * 1000}
           lockAt={lockAt}
         />,
       );
@@ -60,7 +60,7 @@ describe('SessionClock', () => {
     expect(container.textContent).toContain('Next deadline · Qualifying picks');
   });
 
-  it('shows the date instead of digits while the deadline is weeks out', () => {
+  it('shows the date and picks-open framing while the deadline is weeks out', () => {
     const lockAt = Date.parse('2026-08-22T13:00:00Z');
     act(() => {
       root.render(
@@ -74,11 +74,11 @@ describe('SessionClock', () => {
       );
     });
 
-    // A three-week countdown reads as "no rush"; a date reads as a fixture.
+    // A three-week countdown reads as "no rush"; a date plus invitation does not.
     expect(container.querySelector('[role="timer"]')).toBeNull();
     expect(container.textContent).toContain('Next deadline · Qualifying picks');
-    // ...but a bare date never changes, so the distance keeps it tied to now.
-    expect(container.textContent).toContain('locks in 21 days');
+    expect(container.textContent).toContain('Picks open now');
+    expect(container.textContent).not.toContain('locks in');
   });
 
   it('swaps the date into the viewer timezone once mounted', () => {
@@ -120,6 +120,7 @@ describe('SessionClock', () => {
 
     expect(html).toContain('Sat 22 Aug');
     expect(html).toContain('15:00 CEST');
+    expect(html).toContain('Picks open now');
   });
 
   it('falls back to the countdown when the circuit timezone is unknown', () => {
@@ -136,5 +137,65 @@ describe('SessionClock', () => {
     });
 
     expect(container.querySelector('[role="timer"]')).not.toBeNull();
+  });
+});
+
+describe('SessionClockChip', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.append(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  it('compresses a far-out deadline into one line without a countdown', () => {
+    const lockAt = Date.parse('2026-08-22T13:00:00Z');
+    act(() => {
+      root.render(
+        <SessionClockChip
+          raceName="Dutch Grand Prix"
+          raceSlug="netherlands-2026"
+          sessionLabel="Sprint Quali"
+          msRemaining={21 * 24 * 60 * 60 * 1000}
+          lockAt={lockAt}
+        />,
+      );
+    });
+
+    const text = container.textContent ?? '';
+    expect(text).toContain('Dutch GP');
+    expect(text).toContain('Sprint Quali locks');
+    expect(text).not.toContain('locks in');
+    expect(text).not.toContain('Picks open now');
+    expect(text).not.toContain('Next deadline');
+
+    const viewer = formatViewerLockDate(lockAt);
+    expect(viewer).not.toBeNull();
+    expect(text).toContain(viewer!.date);
+    expect(text).toContain(viewer!.time);
+  });
+
+  it('switches to a countdown once the urgency window opens', () => {
+    act(() => {
+      root.render(
+        <SessionClockChip
+          raceName="Dutch Grand Prix"
+          raceSlug="netherlands-2026"
+          sessionLabel="Qualifying"
+          msRemaining={36 * 60 * 60 * 1000}
+          lockAt={Date.parse('2026-08-22T13:00:00Z')}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain('Qualifying locks in');
+    expect(container.textContent).toContain('01d');
   });
 });

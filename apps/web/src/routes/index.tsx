@@ -18,8 +18,6 @@ import {
 } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 
-import { FinalCtaBand } from './-home/FinalCtaBand';
-import { HowItWorks } from './-home/HowItWorks';
 import {
   BrowseRacesCta,
   LandingHero,
@@ -29,7 +27,7 @@ import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
 import { LandingStickyBar } from './-home/LandingStickyBar';
 import { LeaguesSection } from './-home/LeaguesSection';
 import { LiveTimingStrip } from './-home/LiveTimingStrip';
-import { SessionClock } from './-home/SessionClock';
+import { SessionClock, SessionClockChip } from './-home/SessionClock';
 import { buildSessions, getSessionStatus } from './-home/weekendSchedule';
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
@@ -194,27 +192,33 @@ function PublicLandingPage() {
   // Everything on this page is driven off the calendar's next open session, so
   // it re-labels itself each race week with no manual edit: the clock reads
   // "Next deadline · Qualifying picks" or "· Race picks" depending on what is
-  // actually next, and the flag follows the round. The clock takes the full
-  // session label because the landing page is where "Sprint Quali" is least
-  // likely to be understood; the picker below keeps the compact one.
+  // actually next, and the flag follows the round. The desktop clock takes the
+  // full session label because that column is where "Sprint Quali" is least
+  // likely to be understood; the mobile chip and the picker keep the compact
+  // one so a single line can hold race + session + lock fact.
   //
-  // The hero shows one of two sizes depending on viewport, so the inputs are
-  // built once and spread into both rather than written out twice — the two
-  // clocks disagreeing about the deadline would be a hard bug to spot.
-  const clockProps =
-    featuredRace && nextSession
-      ? {
-          raceName: featuredRace.name,
-          raceSlug: featuredRace.slug,
-          sessionLabel: nextSession.labelFull,
-          msRemaining: nextSession.startAt - now,
-          lockAt: nextSession.startAt,
-        }
-      : null;
-  const clock = clockProps ? <SessionClock {...clockProps} /> : null;
-  const clockCompact = clockProps ? (
-    <SessionClock {...clockProps} size="sm" />
-  ) : null;
+  // Desktop clock and mobile chip share the same deadline inputs — the two
+  // disagreeing about when picks lock would be a hard bug to spot.
+  const clock =
+    featuredRace && nextSession ? (
+      <SessionClock
+        raceName={featuredRace.name}
+        raceSlug={featuredRace.slug}
+        sessionLabel={nextSession.labelFull}
+        msRemaining={nextSession.startAt - now}
+        lockAt={nextSession.startAt}
+      />
+    ) : null;
+  const clockCompact =
+    featuredRace && nextSession ? (
+      <SessionClockChip
+        raceName={featuredRace.name}
+        raceSlug={featuredRace.slug}
+        sessionLabel={nextSession.label}
+        msRemaining={nextSession.startAt - now}
+        lockAt={nextSession.startAt}
+      />
+    ) : null;
 
   const lockTime =
     featuredRace && nextSession
@@ -255,8 +259,6 @@ function PublicLandingPage() {
           </>
         ) : null}
 
-        <HowItWorks />
-
         <LiveTimingStrip
           players={topPlayers}
           season={featuredRace?.season ?? CURRENT_SEASON}
@@ -273,17 +275,6 @@ function PublicLandingPage() {
         />
 
         <LeaguesSection />
-
-        {nextRace && nextSession ? (
-          <FinalCtaBand
-            raceName={nextRace.name}
-            raceSlug={nextRace.slug}
-            sessionLabel={nextSession.labelFull}
-            msRemaining={nextSession.startAt - now}
-            lockAt={nextSession.startAt}
-            targetId={LANDING_PICKS_ANCHOR}
-          />
-        ) : null}
       </div>
 
       {SHOW_DEV_TIME_CONTROLS ? (

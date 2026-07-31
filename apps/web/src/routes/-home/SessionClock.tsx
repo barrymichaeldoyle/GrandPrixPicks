@@ -1,6 +1,8 @@
+import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import { useEffect, useState } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import {
   formatRaceLocalLockDate,
@@ -15,15 +17,15 @@ import {
  * column on a deadline three days out is noise that redraws sixty times a
  * minute, and the picker below it is where the attention should end up.
  *
- * Outside race week the digits are replaced by the date. "21 : 03 : 04" is a
- * countdown that argues against itself: three weeks of runway reads as "come
- * back later", which is the opposite of what a deadline is for. A date is a
- * fixture to plan around, and the clock starts ticking when the tick means
- * something.
+ * Outside the urgency window the digits are replaced by the date. "21 : 03 :
+ * 04" is a countdown that argues against itself: three weeks of runway reads
+ * as "come back later", which is the opposite of what a deadline is for. A
+ * date is a fixture to plan around, and the clock starts ticking when the tick
+ * means something.
  */
 
 /** Inside this window the deadline is close enough that digits create urgency. */
-const COUNTDOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const COUNTDOWN_WINDOW_MS = 72 * 60 * 60 * 1000;
 
 type ClockSegment = { value: number; unit: string };
 
@@ -45,15 +47,6 @@ function segmentsFor(msRemaining: number): ClockSegment[] {
     { value: Math.floor((totalMinutes % 1440) / 60), unit: 'H' },
     { value: totalMinutes % 60, unit: 'M' },
   ];
-}
-
-/**
- * Whole days left. Only rendered outside the countdown window, so the value is
- * always 8 or more and never has to read "in 0 days".
- */
-function daysUntil(msRemaining: number) {
-  const days = Math.floor(msRemaining / 86_400_000);
-  return `${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
 /**
@@ -81,6 +74,30 @@ function useViewerLockDate(lockAt: number | undefined, enabled: boolean) {
   return viewerDate;
 }
 
+function useLockDateDisplay({
+  locked,
+  lockAt,
+  msRemaining,
+  raceSlug,
+}: {
+  locked: boolean;
+  lockAt: number | undefined;
+  msRemaining: number;
+  raceSlug: string;
+}) {
+  // Falls back to the countdown when the circuit's timezone is unknown: an
+  // undated "locks at 14:00" would be worse than digits.
+  const trackDate =
+    !locked && lockAt !== undefined && msRemaining > COUNTDOWN_WINDOW_MS
+      ? formatRaceLocalLockDate(lockAt, raceSlug)
+      : null;
+  // Whether we show a date at all stays keyed off the *track* zone, so the
+  // date-vs-digits choice is identical on server and client and nothing
+  // reflows after mount. Only the zone the date is expressed in changes.
+  const viewerDate = useViewerLockDate(lockAt, trackDate !== null);
+  return viewerDate ?? trackDate;
+}
+
 export function SessionClock({
   raceName,
   raceSlug,
@@ -99,8 +116,8 @@ export function SessionClock({
   sessionLabel: string;
   msRemaining: number;
   /**
-   * Instant the session locks. Supplied, a deadline further out than race week
-   * shows as a track-local date instead of a countdown.
+   * Instant the session locks. Supplied, a deadline further out than the
+   * urgency window shows as a track-local date instead of a countdown.
    */
   lockAt?: number;
   size?: 'lg' | 'sm';
@@ -109,17 +126,12 @@ export function SessionClock({
   const locked = msRemaining <= 0;
   const segments = segmentsFor(msRemaining);
   const large = size === 'lg';
-  // Falls back to the countdown when the circuit's timezone is unknown: an
-  // undated "locks at 14:00" would be worse than digits.
-  const trackDate =
-    !locked && lockAt !== undefined && msRemaining > COUNTDOWN_WINDOW_MS
-      ? formatRaceLocalLockDate(lockAt, raceSlug)
-      : null;
-  // Whether we show a date at all stays keyed off the *track* zone, so the
-  // date-vs-digits choice is identical on server and client and nothing
-  // reflows after mount. Only the zone the date is expressed in changes.
-  const viewerDate = useViewerLockDate(lockAt, trackDate !== null);
-  const lockDate = viewerDate ?? trackDate;
+  const lockDate = useLockDateDisplay({
+    locked,
+    lockAt,
+    msRemaining,
+    raceSlug,
+  });
 
   return (
     <div>
@@ -164,14 +176,12 @@ export function SessionClock({
             {lockDate.date}
           </p>
           {/*
-           * A date on its own is inert — it is the same pixels on the day it is
-           * three weeks out and the day it is two. Hanging the distance off the
-           * time re-ties it to now without promoting a 21-day gap to ticking
-           * digits, which is the thing the window above exists to avoid. It
-           * moves with `msRemaining`, so it counts down with everything else.
+           * Date + time is two renderings of the same instant — enough on its
+           * own. Hanging "locks in 20 days" off that would say "no rush", so
+           * far-out deadlines reframe as invitation instead of countdown.
            */}
           <p className={`gpp-label mt-2 ${large ? '' : 'text-[0.625rem]'}`}>
-            {lockDate.time} · locks in {daysUntil(msRemaining)}
+            {lockDate.time} · Picks open now
           </p>
         </div>
       ) : (
@@ -215,5 +225,60 @@ export function SessionClock({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Single-line deadline for the mobile hero fold.
+ *
+ * The full {@link SessionClock} is the right column on desktop. Stacked on a
+ * phone it stole the lead from the headline, so phones get this chip instead:
+ * flag, abbreviated GP, session, and one lock fact — date when far out,
+ * countdown only inside the urgency window.
+ */
+export function SessionClockChip({
+  raceName,
+  raceSlug,
+  sessionLabel,
+  msRemaining,
+  lockAt,
+}: {
+  raceName: string;
+  raceSlug: string;
+  /** Compact session label — "Sprint Quali", not "Sprint Qualifying". */
+  sessionLabel: string;
+  msRemaining: number;
+  lockAt?: number;
+}) {
+  const countryCode = getCountryCodeForRace({ slug: raceSlug });
+  const shortName = abbreviateGrandPrix(raceName);
+  const locked = msRemaining <= 0;
+  const lockDate = useLockDateDisplay({
+    locked,
+    lockAt,
+    msRemaining,
+    raceSlug,
+  });
+
+  let detail: string;
+  if (locked) {
+    detail = `${sessionLabel} picks are locked`;
+  } else if (lockDate) {
+    detail = `${sessionLabel} locks ${lockDate.date}, ${lockDate.time}`;
+  } else {
+    detail = `${sessionLabel} locks in ${formatLockCountdown(msRemaining)}`;
+  }
+
+  return (
+    // Primary text, not muted: the lock time is the urgency payload, so it
+    // has to clear contrast at `text-xs`. Weight alone separates the GP name.
+    <p className="flex min-w-0 items-center gap-1.5 text-xs text-text">
+      {countryCode ? <Flag code={countryCode} size="xs" /> : null}
+      <span className="min-w-0 truncate" suppressHydrationWarning>
+        <span className="font-medium">{shortName}</span>
+        {' · '}
+        {detail}
+      </span>
+    </p>
   );
 }

@@ -202,8 +202,7 @@ export function LandingPicks({
               {abbreviateGrandPrix(raceName)} · {sessionLabel}
             </h2>
             <p className="gpp-reading-copy max-w-2xl text-text-muted">
-              Start with your top 5, then call every teammate battle. No account
-              needed until you save.
+              Start with your top 5, then call every teammate battle.
             </p>
           </div>
           <TabSwitch

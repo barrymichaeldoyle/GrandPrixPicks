@@ -157,50 +157,59 @@ export function H2HDuelPicker({
         />
       </div>
 
-      {/* Deliberately no exit animation. `AnimatePresence mode="wait"` held the
-          outgoing duel until its exit finished, so the header counter and the
-          card on screen disagreed for the length of the transition, and if the
-          tab lost focus mid-swap (rAF stalls) they stayed that way. The
-          incoming card animating alone keeps state and pixels in step. */}
-      <motion.div
-        key={matchup._id}
-        initial={reduceMotion ? false : { opacity: 0, x: 28 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-        className="rounded-xl border border-border bg-surface p-3 sm:p-5"
-      >
-        <div className="mb-4 text-center">
-          <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: teamColor }}
-              aria-hidden="true"
-            />
-            {displayTeamName(matchup.team)}
-          </p>
-          <h3 className="mt-2 text-xl font-medium text-text">
-            Who finishes ahead?
-          </h3>
-        </div>
+      {/* Stable chrome, animated contents. Sliding the whole card made each
+          pick feel like a carousel page; the frame stays put and the next
+          duel pops in. No exit animation — `AnimatePresence mode="wait"`
+          used to hold the outgoing duel until its exit finished, so the
+          header counter and the card on screen disagreed for the length of
+          the transition. */}
+      <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
+        <motion.div
+          key={matchup._id}
+          initial={
+            reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }
+          }
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
+          }
+          style={{ transformOrigin: '50% 40%' }}
+        >
+          <div className="mb-4 text-center">
+            <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: teamColor }}
+                aria-hidden="true"
+              />
+              {displayTeamName(matchup.team)}
+            </p>
+            <h3 className="mt-2 text-xl font-medium text-text">
+              Who finishes ahead?
+            </h3>
+          </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3">
-          <DuelDriverButton
-            driver={matchup.driver1}
-            selected={selections[matchup._id] === matchup.driver1._id}
-            topFivePosition={topFivePositions?.[matchup.driver1._id]}
-            onClick={() => pick(matchup.driver1._id)}
-          />
-          <span className="gpp-mono flex items-center justify-center text-xs font-semibold text-text-muted">
-            VS
-          </span>
-          <DuelDriverButton
-            driver={matchup.driver2}
-            selected={selections[matchup._id] === matchup.driver2._id}
-            topFivePosition={topFivePositions?.[matchup.driver2._id]}
-            onClick={() => pick(matchup.driver2._id)}
-          />
-        </div>
-      </motion.div>
+          <div className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3">
+            <DuelDriverButton
+              driver={matchup.driver1}
+              selected={selections[matchup._id] === matchup.driver1._id}
+              topFivePosition={topFivePositions?.[matchup.driver1._id]}
+              onClick={() => pick(matchup.driver1._id)}
+            />
+            <span className="gpp-mono flex items-center justify-center text-xs font-semibold text-text-muted">
+              VS
+            </span>
+            <DuelDriverButton
+              driver={matchup.driver2}
+              selected={selections[matchup._id] === matchup.driver2._id}
+              topFivePosition={topFivePositions?.[matchup.driver2._id]}
+              onClick={() => pick(matchup.driver2._id)}
+            />
+          </div>
+        </motion.div>
+      </div>
 
       <div className="mt-3 flex min-h-9 items-center justify-between gap-3">
         <Button

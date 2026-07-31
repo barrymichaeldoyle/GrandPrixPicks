@@ -67,6 +67,39 @@ const socialLinks = [
 const socialLinkClass =
   'inline-flex items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
 
+function MadeByCredit({
+  className,
+  linkClassName,
+}: {
+  className?: string;
+  linkClassName: string;
+}) {
+  return (
+    <div
+      className={`items-center gap-2 text-text-muted ${className ?? 'flex'}`}
+    >
+      <span>Made by</span>
+      <a
+        href="https://barrymichaeldoyle.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={linkClassName}
+      >
+        Barry Michael Doyle
+      </a>
+      <a
+        href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex h-7 w-7 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+        aria-label="Barry Michael Doyle on LinkedIn"
+      >
+        <LinkedInIcon className="h-3.5 w-3.5" />
+      </a>
+    </div>
+  );
+}
+
 export function Footer() {
   const year = new Date().getFullYear();
   const footerLinkClass =
@@ -105,26 +138,13 @@ export function Footer() {
                   </a>
                 ))}
               </div>
-              <div className="flex items-center gap-2 text-text-muted">
-                <span>Made by</span>
-                <a
-                  href="https://barrymichaeldoyle.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={footerLinkClass}
-                >
-                  Barry Michael Doyle
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-7 w-7 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
-                  aria-label="Barry Michael Doyle on LinkedIn"
-                >
-                  <LinkedInIcon className="h-3.5 w-3.5" />
-                </a>
-              </div>
+              {/* Desktop: sits with the brand column. Mobile puts this at the
+                  foot of the stack — nav and legal matter more when space is
+                  tight (see the bottom bar below). */}
+              <MadeByCredit
+                linkClassName={footerLinkClass}
+                className="hidden sm:flex"
+              />
             </div>
           </div>
 
@@ -190,6 +210,10 @@ export function Footer() {
             ))}
             <PrivacyChoicesButton className={footerLinkClass} />
           </nav>
+          <MadeByCredit
+            linkClassName={footerLinkClass}
+            className="flex sm:hidden"
+          />
         </div>
 
         <p className="mt-4 text-[11px] leading-relaxed text-text-muted">

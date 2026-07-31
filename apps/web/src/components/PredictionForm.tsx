@@ -53,9 +53,27 @@ import { InlineLoader } from './InlineLoader';
 import { Tooltip } from './Tooltip';
 
 const DRIVER_SLOT_TOOLTIP = {
-  narrow: 'Select from the driver cards below',
+  /** Default stack: picks first, driver pool underneath. */
+  narrowBelow: 'Select from the driver cards below',
+  /** Landing `mobileActionFirst`: driver pool first, picks underneath. */
+  narrowAbove: 'Select from the driver cards above',
   lg: 'Select from the driver cards to the right',
 };
+
+function driverSlotTooltipCopy({
+  wide,
+  driversAbove,
+}: {
+  wide: boolean;
+  driversAbove: boolean;
+}) {
+  if (wide) {
+    return DRIVER_SLOT_TOOLTIP.lg;
+  }
+  return driversAbove
+    ? DRIVER_SLOT_TOOLTIP.narrowAbove
+    : DRIVER_SLOT_TOOLTIP.narrowBelow;
+}
 
 const DRIVER_POOL_DROPPABLE_ID = 'driver-pool';
 
@@ -550,23 +568,30 @@ export function PredictionForm({
     setSubmitStatus('idle');
   }
 
-  // Tooltip for empty slot: "cards below" on narrow, "cards to the right" on lg+ (matches layout)
+  // Tooltip for empty slot: direction matches the live layout — pool above on
+  // the landing mobile stack, below on the race page, right on lg+.
   const [driverSlotTooltip, setDriverSlotTooltip] = useState(() =>
-    typeof window !== 'undefined' &&
-    window.matchMedia('(min-width: 1024px)').matches
-      ? DRIVER_SLOT_TOOLTIP.lg
-      : DRIVER_SLOT_TOOLTIP.narrow,
+    driverSlotTooltipCopy({
+      wide:
+        typeof window !== 'undefined' &&
+        window.matchMedia('(min-width: 1024px)').matches,
+      driversAbove: mobileActionFirst,
+    }),
   );
   useEffect(() => {
     const mql = window.matchMedia('(min-width: 1024px)');
     function handler() {
       setDriverSlotTooltip(
-        mql.matches ? DRIVER_SLOT_TOOLTIP.lg : DRIVER_SLOT_TOOLTIP.narrow,
+        driverSlotTooltipCopy({
+          wide: mql.matches,
+          driversAbove: mobileActionFirst,
+        }),
       );
     }
+    handler();
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
-  }, []);
+  }, [mobileActionFirst]);
 
   const hasChanges = existingPicks
     ? JSON.stringify(picks) !== JSON.stringify(existingPicks)

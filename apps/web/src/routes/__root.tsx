@@ -238,6 +238,12 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
+        <script
+          async
+          src="https://startupbar.co/widget/loader.js"
+          data-startup-id="4a43c3ef-449e-4069-9e46-a534ff4f7130"
+          data-theme="dark"
+        />
         <HeadContent />
       </head>
       <body>

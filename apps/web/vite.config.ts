@@ -51,7 +51,10 @@ const config = defineConfig(({ mode }) => {
 
   return {
     server: {
-      host: '127.0.0.1',
+      // Dual-stack: binding IPv4-only leaves the IPv6 :3000 socket free for a
+      // stale server to squat, which silently steals `localhost` (macOS resolves
+      // it to ::1 first) and defeats --strictPort.
+      host: '::',
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {

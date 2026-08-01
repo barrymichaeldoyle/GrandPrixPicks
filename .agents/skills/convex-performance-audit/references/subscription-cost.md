@@ -159,7 +159,7 @@ const profile = useQuery(api.users.getProfile, { userId: selectedId! });
 // Good: skip when there is nothing to fetch
 const profile = useQuery(
   api.users.getProfile,
-  selectedId ? { userId: selectedId } : "skip",
+  selectedId ? { userId: selectedId } : 'skip',
 );
 ```
 
@@ -184,7 +184,7 @@ const users = defineTable({
 const users = defineTable({
   name: v.string(),
   email: v.string(),
-  heartbeatId: v.id("heartbeats"),
+  heartbeatId: v.id('heartbeats'),
 });
 
 const heartbeats = defineTable({
@@ -226,7 +226,7 @@ Queries that return less data and touch fewer documents invalidate less often.
 // Bad: returns all fields, invalidates on any field change
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db.query("projects").collect();
+    return await ctx.db.query('projects').collect();
   },
 });
 ```
@@ -235,7 +235,7 @@ export const list = query({
 // Good: use a digest table with only the fields the list needs
 export const listDigests = query({
   handler: async (ctx) => {
-    return await ctx.db.query("projectDigests").collect();
+    return await ctx.db.query('projectDigests').collect();
   },
 });
 ```
@@ -251,16 +251,16 @@ increases database work even when the underlying data has not changed.
 ```ts
 // Bad: Date.now() defeats query caching and causes frequent re-evaluation
 const releasedPosts = await ctx.db
-  .query("posts")
-  .withIndex("by_released_at", (q) => q.lte("releasedAt", Date.now()))
+  .query('posts')
+  .withIndex('by_released_at', (q) => q.lte('releasedAt', Date.now()))
   .take(100);
 ```
 
 ```ts
 // Good: use a boolean field updated by a scheduled function
 const releasedPosts = await ctx.db
-  .query("posts")
-  .withIndex("by_is_released", (q) => q.eq("isReleased", true))
+  .query('posts')
+  .withIndex('by_is_released', (q) => q.eq('isReleased', true))
   .take(100);
 ```
 

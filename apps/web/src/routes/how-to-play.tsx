@@ -352,8 +352,8 @@ function HowToPlayPage() {
                 Leaderboards
               </h2>
               <p className="gpp-reading-copy mt-3 text-text-muted">
-                Compare total scores for a race weekend or the full season,
-                then view everyone or only players you follow.
+                Compare total scores for a race weekend or the full season, then
+                view everyone or only players you follow.
               </p>
               <Link
                 to="/leaderboard"

@@ -249,10 +249,7 @@ function BackToHomeLink() {
 function LeaderboardLink({ raceId }: { raceId: string }) {
   return (
     <Button asChild variant="text" size="sm" leftIcon={Trophy}>
-      <Link
-        to="/leaderboard"
-        search={{ time: 'weekend', raceId }}
-      >
+      <Link to="/leaderboard" search={{ time: 'weekend', raceId }}>
         Leaderboard
       </Link>
     </Button>

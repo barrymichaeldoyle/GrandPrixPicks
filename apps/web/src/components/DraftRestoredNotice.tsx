@@ -12,17 +12,17 @@ export function DraftRestoredNotice({
   if (target) {
     return createPortal(
       <div
-        className="ml-auto flex items-center gap-3 text-xs text-text-muted"
+        className="flex flex-col items-end gap-1 text-xs text-text-muted"
         data-testid="draft-restored-notice"
       >
-        <span>Draft restored</span>
+        <span>We kept your last picks</span>
         <Button
           variant="danger"
-          size="sm"
-          aria-label="Discard restored draft"
+          size="inline"
+          aria-label="Start over with empty picks"
           onClick={onDiscard}
         >
-          Discard
+          Start over
         </Button>
       </div>,
       target,
@@ -34,9 +34,16 @@ export function DraftRestoredNotice({
       className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2"
       data-testid="draft-restored-notice"
     >
-      <span className="text-xs text-text-muted">Unsaved draft restored</span>
-      <Button variant="danger" size="sm" onClick={onDiscard}>
-        Discard draft
+      <span className="text-xs text-text-muted">
+        We kept the picks you hadn't saved yet
+      </span>
+      <Button
+        variant="danger"
+        size="sm"
+        aria-label="Start over with empty picks"
+        onClick={onDiscard}
+      >
+        Start over
       </Button>
     </div>
   );

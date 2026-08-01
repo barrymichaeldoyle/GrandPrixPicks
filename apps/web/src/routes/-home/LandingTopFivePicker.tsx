@@ -10,6 +10,7 @@ export function LandingTopFivePicker({
   onContinue,
   onCompletionStateChange,
   onPicksChange,
+  onStartOver,
   draftNoticeTarget,
 }: {
   raceId: Id<'races'>;
@@ -20,6 +21,8 @@ export function LandingTopFivePicker({
   onContinue: () => void;
   onCompletionStateChange: (complete: boolean) => void;
   onPicksChange: (picks: Array<Doc<'drivers'>['_id']>) => void;
+  /** Extends "Start over" to the whole card, not just this step's draft. */
+  onStartOver?: () => void;
   draftNoticeTarget?: HTMLElement | null;
 }) {
   return (
@@ -32,6 +35,7 @@ export function LandingTopFivePicker({
       onCompletionStateChange={onCompletionStateChange}
       onPicksChange={onPicksChange}
       enableNavigationBlocker={false}
+      onStartOver={onStartOver}
       draftNoticeTarget={draftNoticeTarget}
       renderActionArea={({ complete }) => (
         <TopFiveHandoff complete={complete} onContinue={onContinue} />
@@ -52,7 +56,7 @@ function TopFiveHandoff({
   }
 
   return (
-    <div className="mt-4 border-t border-border pt-4" data-testid="top5-handoff">
+    <div className="mt-3" data-testid="top5-handoff">
       <Button
         variant="primary"
         size="md"

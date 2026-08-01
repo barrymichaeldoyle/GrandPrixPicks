@@ -303,21 +303,21 @@ function DraggableDriverCard({
             ? ' (five drivers already picked)'
             : ''
       }`}
-        /*
-         * Team colour is the 3px left bar, not the fill. Twenty-two saturated
-         * tiles in a grid was the loudest surface in the app; confined to a bar
-         * the same twenty-two are still instantly sortable by team, and the
-         * code can sit at full contrast on a neutral surface.
-         *
-         * Hover is a surface step rather than an opacity change — opacity is
-         * never used to signal hover in this system.
-         *
-         * The two reasons a card is disabled have to look different: a driver
-         * already in the list carries the position that took him out of the
-         * pool, while the rest simply grey out once five slots are full. Dimming
-         * both identically made a picked driver read as "unavailable for some
-         * reason" against twenty-one lookalikes.
-         */
+      /*
+       * Team colour is the 3px left bar, not the fill. Twenty-two saturated
+       * tiles in a grid was the loudest surface in the app; confined to a bar
+       * the same twenty-two are still instantly sortable by team, and the
+       * code can sit at full contrast on a neutral surface.
+       *
+       * Hover is a surface step rather than an opacity change — opacity is
+       * never used to signal hover in this system.
+       *
+       * The two reasons a card is disabled have to look different: a driver
+       * already in the list carries the position that took him out of the
+       * pool, while the rest simply grey out once five slots are full. Dimming
+       * both identically made a picked driver read as "unavailable for some
+       * reason" against twenty-one lookalikes.
+       */
       className={`gpp-team-bar flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
         picked
           ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
@@ -373,7 +373,7 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
 interface PredictionFormProps {
   raceId: Id<'races'>;
   /** Server-rendered driver seed used until the live Convex query resolves. */
-  initialDrivers?: Array<Doc<'drivers'>>;
+  initialDrivers?: Doc<'drivers'>[];
   existingPicks?: Id<'drivers'>[];
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
@@ -410,6 +410,11 @@ interface PredictionFormProps {
   onCompletionStateChange?: (complete: boolean) => void;
   /** Emits the current picks in order, so a parent can cross-reference them. */
   onPicksChange?: (picks: Id<'drivers'>[]) => void;
+  /**
+   * Takes over "Start over" for a parent that owns more than this form's draft
+   * (the landing card resets both prediction steps, not just the Top 5).
+   */
+  onStartOver?: () => void;
 }
 
 type Top5Draft = {
@@ -440,6 +445,7 @@ export function PredictionForm({
   onComplete,
   onCompletionStateChange,
   onPicksChange,
+  onStartOver,
 }: PredictionFormProps) {
   const liveDrivers = useQuery(api.drivers.listDrivers);
   const drivers = liveDrivers ?? initialDrivers;
@@ -512,7 +518,8 @@ export function PredictionForm({
     ) {
       window.requestAnimationFrame(() => {
         yourPicksRef.current?.scrollIntoView({
-          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+            .matches
             ? 'auto'
             : 'smooth',
           block: 'start',
@@ -964,6 +971,9 @@ export function PredictionForm({
     setErrorMessage('');
     setRestoredDraftAt(null);
     clearPredictionDraft(draftKey);
+    // The parent may own a wider reset (and may remount this form to do it),
+    // so this runs after the local clear rather than instead of it.
+    onStartOver?.();
   }
 
   // Empty slots needed
@@ -990,10 +1000,15 @@ export function PredictionForm({
             data-testid="your-picks"
             className={`${mobileActionFirst ? 'order-2 scroll-mt-28 lg:order-1' : ''} lg:min-w-0 lg:min-w-[400px] lg:flex-1`}
           >
-            <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
+            <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
               <h3 className="text-lg font-semibold text-text">Your Picks</h3>
+              {picks.length < 5 ? (
+                <p className="text-sm text-text-muted sm:hidden">
+                  Tap drivers to fill your Top 5.
+                </p>
+              ) : null}
               {picks.length >= 2 ? (
-                <p className="flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
+                <p className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-muted sm:hidden">
                   Reorder: drag or use
                   <span
                     className="inline-flex items-center"
@@ -1009,11 +1024,6 @@ export function PredictionForm({
                 </p>
               ) : null}
             </div>
-            {picks.length < 5 ? (
-              <p className="-mt-1 mb-2 text-sm text-text-muted sm:hidden">
-                Tap drivers to fill your Top 5.
-              </p>
-            ) : null}
             <div
               className="flex overflow-hidden rounded-xl border border-border bg-surface"
               data-testid="picks-list"
@@ -1142,25 +1152,34 @@ export function PredictionForm({
           <div
             className={`${mobileActionFirst ? 'order-1 lg:order-2' : ''} lg:min-w-0 lg:flex-2`}
           >
-            <h3 className="mb-2 text-lg font-semibold text-text sm:mb-3">
-              Select Drivers{' '}
+            {/* The label only earns its line on desktop, where it names the
+                right-hand column against "Your Picks". Stacked on mobile it
+                just repeats the heading directly above it ("Choose your Top 5"
+                on the landing page, the session title in the race overlay), so
+                it stays for screen readers and the counter carries the line. */}
+            <h3 className="mb-2 flex flex-wrap items-baseline gap-x-2 text-lg font-semibold text-text sm:mb-3">
+              <span className="sr-only lg:not-sr-only">Select Drivers</span>
+              {/* No parentheses: on mobile the label above is hidden, so this
+                  stands alone as the line under the heading and reads as a
+                  fragment when bracketed. */}
               {picks.length >= 5 ? (
-                <span className="ml-2 text-sm font-normal text-text-muted">
-                  (remove a pick to change)
+                <span className="text-sm font-normal text-text-muted">
+                  Remove a pick to change
                 </span>
               ) : (
                 <span
-                  className="ml-2 text-sm font-normal text-text-muted"
+                  className="text-sm font-normal text-text-muted"
                   data-testid="picks-remaining"
                 >
-                  ({5 - picks.length} left)
+                  {5 - picks.length} left
                 </span>
               )}
             </h3>
             {mobileActionFirst ? (
               <p className="mb-3 text-sm text-text-muted lg:hidden">
-                Tap drivers in finishing order. You can review and reorder them
-                after your fifth pick.
+                Tap drivers in finishing order.
+                <br />
+                You can review and reorder them after your fifth pick.
               </p>
             ) : null}
             <DriverPoolDroppable>

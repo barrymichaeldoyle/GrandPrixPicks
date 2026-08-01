@@ -1,4 +1,8 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
+import {
+  getWebH2HDraftStorageKey,
+  getWebTop5DraftStorageKey,
+} from '@grandprixpicks/shared/picks';
 import { act } from 'react';
 import type { ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
@@ -41,12 +45,14 @@ vi.mock('./LandingTopFivePicker', () => ({
     onContinue,
     onCompletionStateChange,
     onPicksChange,
+    onStartOver,
     draftNoticeTarget,
   }: {
     onComplete: () => void;
     onContinue: () => void;
     onCompletionStateChange: (complete: boolean) => void;
     onPicksChange: (picks: Id<'drivers'>[]) => void;
+    onStartOver?: () => void;
     draftNoticeTarget?: HTMLElement | null;
   }) => (
     <div
@@ -69,6 +75,9 @@ vi.mock('./LandingTopFivePicker', () => ({
       <button type="button" onClick={onContinue}>
         Continue to teammate battles
       </button>
+      <button type="button" onClick={() => onStartOver?.()}>
+        Top 5 start over
+      </button>
     </div>
   ),
 }));
@@ -77,10 +86,12 @@ vi.mock('@/components/H2HPredictionForm', () => ({
   H2HPredictionForm: ({
     entryMethod,
     renderSaveWall,
+    onStartOver,
     draftNoticeTarget,
   }: {
     entryMethod: string;
     renderSaveWall: (actions: { lockIn: () => void }) => ReactNode;
+    onStartOver?: () => void;
     draftNoticeTarget?: HTMLElement | null;
   }) => (
     <div
@@ -88,6 +99,9 @@ vi.mock('@/components/H2HPredictionForm', () => ({
       data-entry-method={entryMethod}
       data-has-draft-target={String(Boolean(draftNoticeTarget))}
     >
+      <button type="button" onClick={() => onStartOver?.()}>
+        H2H start over
+      </button>
       {renderSaveWall({ lockIn: () => {} })}
     </div>
   ),
@@ -183,13 +197,44 @@ describe('LandingPicks linear journey', () => {
     expect(container.textContent).not.toContain('Save my picks');
     expect(container.textContent).not.toContain('I have an account');
 
-    act(() => button(container, 'Edit Top 5')?.click());
+    act(() =>
+      container
+        .querySelector<HTMLButtonElement>('[aria-label="Back to your Top 5"]')
+        ?.click(),
+    );
     expect(container.textContent).toContain('Step 1 of 2');
     expect(container.textContent).toContain('Choose your Top 5');
     expect(
-      container
-        .querySelector('[data-testid="h2h-step"]')
-        ?.closest('[hidden]'),
+      container.querySelector('[data-testid="h2h-step"]')?.closest('[hidden]'),
     ).not.toBeNull();
+  });
+
+  it('empties both steps when the player starts over from teammate battles', async () => {
+    const top5Key = getWebTop5DraftStorageKey(RACE_ID);
+    const h2hKey = getWebH2HDraftStorageKey(RACE_ID);
+    window.localStorage.setItem(top5Key, JSON.stringify({ picks: DRIVER_IDS }));
+    window.localStorage.setItem(h2hKey, JSON.stringify({ selections: {} }));
+    window.sessionStorage.setItem(`${top5Key}:pending-submit`, '1');
+
+    await renderJourney();
+    act(() => button(container, 'Complete Top 5')?.click());
+    await act(async () => {
+      button(container, 'Continue to teammate battles')?.click();
+    });
+    expect(container.textContent).toContain('Step 2 of 2');
+
+    act(() => button(container, 'H2H start over')?.click());
+
+    expect(window.localStorage.getItem(top5Key)).toBeNull();
+    expect(window.localStorage.getItem(h2hKey)).toBeNull();
+    expect(
+      window.sessionStorage.getItem(`${top5Key}:pending-submit`),
+    ).toBeNull();
+    // Back to an empty step 1, with the teammate step unvisited again.
+    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
+    expect(
+      container.querySelector('[aria-label="Back to your Top 5"]'),
+    ).toBeNull();
   });
 });

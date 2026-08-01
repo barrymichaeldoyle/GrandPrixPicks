@@ -29,25 +29,58 @@ export function LandingStickyBar({
   targetId: string;
 }) {
   const [visible, setVisible] = useState(false);
+  const [headerTopOffset, setHeaderTopOffset] = useState(0);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const header = document.querySelector<HTMLElement>('[data-app-header]');
+    if (!header) {
+      return;
+    }
+    const appHeader = header;
+
+    // StartupBar moves top-pinned chrome down by writing `top: 36px` directly
+    // onto it. Mirror the header's actual inset instead of coupling this strip
+    // to StartupBar: this also stays at zero in its iPhone Safari static mode.
+    function syncHeaderTopOffset() {
+      const next = Number.parseFloat(getComputedStyle(appHeader).top);
+      setHeaderTopOffset(Number.isFinite(next) ? next : 0);
+    }
+
+    syncHeaderTopOffset();
+    const observer = new MutationObserver(syncHeaderTopOffset);
+    observer.observe(appHeader, {
+      attributes: true,
+      attributeFilter: ['style'],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel || typeof IntersectionObserver === 'undefined') {
       return;
     }
+    const header = document.querySelector<HTMLElement>('[data-app-header]');
+    const headerHeight = header
+      ? Number.parseFloat(getComputedStyle(header).height)
+      : Number.NaN;
+    const stickyTop =
+      (Number.isFinite(headerHeight) ? headerHeight : 64) + headerTopOffset;
     const observer = new IntersectionObserver(
       ([entry]) =>
-        setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 64),
+        setVisible(
+          !entry.isIntersecting && entry.boundingClientRect.top < stickyTop,
+        ),
       // Fire against the bottom of the app header, not the viewport top. The
       // sentinel is one strip-height tall, which adds useful hysteresis: it is
       // fully above the header before the strip appears, but starts hiding 48px
       // before its sticky wrapper releases on the way back up.
-      { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
+      { rootMargin: `-${stickyTop}px 0px 0px 0px`, threshold: 0 },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []);
+  }, [headerTopOffset]);
 
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const locked = msRemaining <= 0;
@@ -65,6 +98,9 @@ export function LandingStickyBar({
         className={`sticky top-(--nav-height) z-40 h-0 ${
           visible ? '' : 'pointer-events-none'
         }`}
+        style={{
+          top: `calc(var(--nav-height) + ${headerTopOffset}px)`,
+        }}
         // Hidden from assistive tech while off-screen: the same CTA is in the
         // hero, and an always-present duplicate in the tab order is noise.
         inert={!visible}

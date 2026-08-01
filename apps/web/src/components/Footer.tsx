@@ -112,7 +112,7 @@ export function Footer() {
           <div className="space-y-3 min-[360px]:col-span-2 lg:col-span-1">
             <Link
               to="/"
-              className="group flex items-center gap-2.5 rounded-sm text-base text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+              className="group flex items-center gap-1.5 rounded-sm text-base text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
             >
               <BrandMark className="h-4 w-6 shrink-0 text-accent" />
               <span className="font-semibold tracking-[0.06em] uppercase transition-colors group-hover:text-accent">

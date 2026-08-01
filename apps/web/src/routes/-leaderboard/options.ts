@@ -1,9 +1,4 @@
-import {
-  CalendarDays,
-  Globe,
-  Trophy,
-  Users,
-} from 'lucide-react';
+import { CalendarDays, Globe, Trophy, Users } from 'lucide-react';
 
 export const TIME_SCOPE_OPTIONS = [
   { value: 'weekend', label: 'Race Weekend', leftIcon: CalendarDays },

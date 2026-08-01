@@ -123,6 +123,7 @@ export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
 
   return (
     <header
+      data-app-header
       // Full-bleed, on the page background, with a hairline bottom border and
       // nothing else — the previous diagonal sheen texture and 2px accent rail
       // were decoration in empty space, which this direction does not do.
@@ -132,7 +133,7 @@ export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className="group flex shrink-0 items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+            className="group flex shrink-0 items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
           >
             {/* The brand mark, replacing the generic Lucide flag. Three bars
                 descending like a timing tower, sheared to echo the stripe. */}

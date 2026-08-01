@@ -41,6 +41,11 @@ interface H2HPredictionFormProps {
   entryMethod?: 'manual' | 'top5_handoff';
   /** Called when the user explicitly asks to save this prediction card. */
   onSaveIntent?: () => void;
+  /**
+   * Takes over "Start over" for a parent that owns more than this form's draft
+   * (the landing card resets both prediction steps, not just the H2H grid).
+   */
+  onStartOver?: () => void;
   /** Replaces the signed-out submit button after every duel is selected. */
   renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
   /** Moves restored-draft status into parent chrome such as a step header. */
@@ -69,6 +74,7 @@ export function H2HPredictionForm({
   analyticsSource,
   entryMethod,
   onSaveIntent,
+  onStartOver,
   renderSaveWall,
   draftNoticeTarget,
   onSelectionProgress,
@@ -450,6 +456,9 @@ export function H2HPredictionForm({
     setRestoredDraftAt(null);
     clearPredictionDraft(draftKey);
     clearPendingSubmit(draftKey);
+    // The parent may own a wider reset (and may remount this form to do it),
+    // so this runs after the local clear rather than instead of it.
+    onStartOver?.();
   }
 
   return (

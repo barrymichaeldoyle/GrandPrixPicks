@@ -15,11 +15,7 @@ import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { PAGE_SIZE, playerCountFormatter } from './-leaderboard/constants';
 import { SCOPE_OPTIONS, TIME_SCOPE_OPTIONS } from './-leaderboard/options';
 import { SeasonContent } from './-leaderboard/SeasonContent';
-import type {
-  LeaderboardEntry,
-  Scope,
-  TimeScope,
-} from './-leaderboard/types';
+import type { LeaderboardEntry, Scope, TimeScope } from './-leaderboard/types';
 import { useStickyValue } from '@/hooks/useStickyValue';
 import { WeekendContent } from './-leaderboard/WeekendContent';
 import { PageHeader } from '@/components/PageHeader';
@@ -171,9 +167,7 @@ function LeaderboardPage() {
   const { data: weekendGlobal } = useQuery(
     convexQuery(
       api.leaderboards.getCombinedRaceLeaderboard,
-      timeScope === 'weekend' &&
-        scope === 'global' &&
-        selectedRaceId
+      timeScope === 'weekend' && scope === 'global' && selectedRaceId
         ? { raceId: selectedRaceId }
         : 'skip',
     ),
@@ -181,9 +175,7 @@ function LeaderboardPage() {
   const { data: weekendFollowing } = useQuery(
     convexQuery(
       api.leaderboards.getCombinedRaceLeaderboard,
-      timeScope === 'weekend' &&
-        scope === 'following' &&
-        selectedRaceId
+      timeScope === 'weekend' && scope === 'following' && selectedRaceId
         ? { raceId: selectedRaceId, friendsOnly: true }
         : 'skip',
     ),
@@ -198,9 +190,7 @@ function LeaderboardPage() {
   // Sync season combined entries on fresh client data
   useEffect(() => {
     if (clientSeasonCombined && seasonOffset === PAGE_SIZE) {
-      setSeasonEntries(
-        clientSeasonCombined.entries as LeaderboardEntry[],
-      );
+      setSeasonEntries(clientSeasonCombined.entries as LeaderboardEntry[]);
       setSeasonHasMore(clientSeasonCombined.hasMore);
     }
   }, [clientSeasonCombined, seasonOffset]);

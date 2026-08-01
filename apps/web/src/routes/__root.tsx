@@ -13,7 +13,14 @@ import { ConvexProviderWithAuth } from 'convex/react';
 import { MotionConfig } from 'framer-motion';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
@@ -238,13 +245,28 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
-        <script
-          async
-          src="https://startupbar.co/widget/loader.js"
-          data-startup-id="4a43c3ef-449e-4069-9e46-a534ff4f7130"
-          data-theme="dark"
-        />
         <HeadContent />
+        {import.meta.env.PROD ? (
+          <>
+            {/* Reserve the widget's 36px rail before first paint. StartupBar
+                uses a fixed iframe except on iPhone Safari, where it inserts a
+                static iframe instead; the CSS reservation handles both modes
+                without moving the page when the async loader runs. */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html:
+                  "(function(){var u=navigator.userAgent||'';var s=/(iPhone|iPod)/.test(u)&&/Safari/.test(u)&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA/.test(u);document.documentElement.setAttribute('data-startupbar-mode',s?'static':'fixed')})()",
+              }}
+            />
+            <script
+              async
+              fetchPriority="low"
+              src="https://startupbar.co/widget/loader.js"
+              data-startup-id="4a43c3ef-449e-4069-9e46-a534ff4f7130"
+              data-theme="dark"
+            />
+          </>
+        ) : null}
       </head>
       <body>
         {/* The screen-blended atmosphere field and grain overlay that used to

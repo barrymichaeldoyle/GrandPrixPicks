@@ -166,9 +166,7 @@ export function H2HDuelPicker({
       <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
         <motion.div
           key={matchup._id}
-          initial={
-            reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }
-          }
+          initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={
             reduceMotion

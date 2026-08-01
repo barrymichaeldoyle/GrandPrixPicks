@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Doc } from '@convex-generated/dataModel';
 import {
+  clearPredictionDraft,
   clearPendingSubmit,
   hasPendingSubmit,
   savePredictionDraft,
@@ -256,6 +257,24 @@ describe('PredictionForm try-before-signup', () => {
     );
   });
 
+  it('keeps empty-pick guidance beside the heading', async () => {
+    clearPredictionDraft(draftKey);
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const heading = Array.from(container.querySelectorAll('h3')).find(
+      (element) => element.textContent === 'Your Picks',
+    );
+
+    expect(heading?.parentElement?.textContent).toContain(
+      'Tap drivers to fill your Top 5.',
+    );
+    expect(
+      heading?.parentElement?.nextElementSibling?.textContent,
+    ).not.toContain('Tap drivers to fill your Top 5.');
+  });
+
   it('lets a guided flow replace the save area with its next action', async () => {
     await act(async () => {
       root.render(
@@ -287,9 +306,9 @@ describe('PredictionForm try-before-signup', () => {
       );
     });
 
-    expect(draftNoticeTarget.textContent).toContain('Draft restored');
-    expect(draftNoticeTarget.textContent).toContain('Discard');
-    expect(container.textContent).not.toContain('Unsaved draft restored');
+    expect(draftNoticeTarget.textContent).toContain('We kept your last picks');
+    expect(draftNoticeTarget.textContent).toContain('Start over');
+    expect(container.textContent).not.toContain("hadn't saved yet");
 
     act(() => {
       draftNoticeTarget.querySelector<HTMLButtonElement>('button')?.click();

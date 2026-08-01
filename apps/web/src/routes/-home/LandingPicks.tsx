@@ -1,13 +1,21 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
-import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
+import {
+  getWebH2HDraftStorageKey,
+  getWebTop5DraftStorageKey,
+} from '@grandprixpicks/shared/picks';
 import { useQuery } from 'convex/react';
+import { ChevronLeft } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/components/DriverBadge';
 import { abbreviateGrandPrix } from '@/lib/display';
-import { setPendingSubmit } from '@/lib/predictionDrafts';
+import {
+  clearPendingSubmit,
+  clearPredictionDraft,
+  setPendingSubmit,
+} from '@/lib/predictionDrafts';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 type PicksStep = 'top5' | 'h2h';
@@ -69,6 +77,8 @@ export function LandingPicks({
     'manual' | 'top5_handoff'
   >(initialStep === 'teammate-handoff' ? 'top5_handoff' : 'manual');
   const [topFivePicks, setTopFivePicks] = useState<Array<Id<'drivers'>>>([]);
+  /** Bumped by "Start over" to remount both pickers with empty state. */
+  const [pickerGeneration, setPickerGeneration] = useState(0);
   const [draftNoticeTarget, setDraftNoticeTarget] =
     useState<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -135,6 +145,31 @@ export function LandingPicks({
     revealActiveStep();
   }
 
+  /**
+   * Both steps are one prediction card, so "Start over" empties the card:
+   * either draft is cleared, the funnel returns to step 1 and both pickers
+   * remount on a bumped key so no stale in-memory selection survives the reset.
+   */
+  function startOver() {
+    const top5Key = getWebTop5DraftStorageKey(raceId);
+    const h2hKey = getWebH2HDraftStorageKey(raceId);
+    for (const key of [top5Key, h2hKey]) {
+      clearPredictionDraft(key);
+      clearPendingSubmit(key);
+    }
+    setTopFivePicks([]);
+    setTopFiveComplete(false);
+    setH2HVisited(false);
+    setH2HEntryMethod('manual');
+    setActiveStep('top5');
+    setPickerGeneration((generation) => generation + 1);
+    captureAnalyticsEvent('landing_picks_started_over', {
+      race_id: raceId,
+      race_slug: raceSlug,
+      from_step: activeStep,
+    });
+  }
+
   function handleTopFiveComplete() {
     setH2HEntryMethod('top5_handoff');
     if (!handoffCapturedRef.current) {
@@ -188,52 +223,62 @@ export function LandingPicks({
       className="scroll-mt-28 border-t border-border px-4 pt-8 pb-10 sm:pb-12"
     >
       <div className="mx-auto w-full max-w-6xl">
-        <div
-          ref={stepHeaderRef}
-          className="scroll-mt-28 flex items-end justify-between gap-4 border-b border-border pb-4"
-        >
-          <div className="min-w-0 flex-1">
-            <span className="sr-only">
-              {abbreviateGrandPrix(raceName)} · {sessionLabel}
-            </span>
-            <div className="flex min-h-5 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        {/* No rule under the step heading: the section already opens on a
+            hairline, and a second one here reads as a divider between the
+            heading and the picker it introduces, not as a heading underline. */}
+        <div ref={stepHeaderRef} className="scroll-mt-28">
+          <span className="sr-only">
+            {abbreviateGrandPrix(raceName)} · {sessionLabel}
+          </span>
+          <div className="flex min-h-5 flex-wrap items-start justify-between gap-x-3 gap-y-1">
+            <div className="flex items-center gap-1">
+              {/* Going back to the Top 5 is navigation, not an action on this
+                  step, so it reads as a back arrow on the step counter rather
+                  than a labelled button competing with the picks below. */}
+              {activeStep === 'h2h' && topFiveComplete ? (
+                <Button
+                  variant="text"
+                  size="inline"
+                  className="-ml-1.5"
+                  aria-label="Back to your Top 5"
+                  leftIcon={ChevronLeft}
+                  onClick={editTopFive}
+                />
+              ) : null}
               <p className="gpp-label text-accent">
                 Step {activeStep === 'top5' ? '1' : '2'} of 2
               </p>
-              <div ref={setDraftNoticeTarget} />
             </div>
-            <h2
-              id="landing-picks-step-heading"
-              className="mt-1 text-xl font-semibold text-text sm:text-2xl"
-            >
-              {activeStep === 'top5'
-                ? 'Choose your Top 5'
-                : 'Pick each teammate winner'}
-            </h2>
+            <div ref={setDraftNoticeTarget} />
           </div>
-          {activeStep === 'h2h' && topFiveComplete ? (
-            <Button variant="text" size="inline" onClick={editTopFive}>
-              Edit Top 5
-            </Button>
-          ) : null}
+          <h2
+            id="landing-picks-step-heading"
+            className="mt-1 text-xl font-semibold text-text sm:text-2xl"
+          >
+            {activeStep === 'top5'
+              ? 'Choose your Top 5'
+              : 'Pick each teammate winner'}
+          </h2>
         </div>
 
         <div
           ref={panelRef}
           id="landing-prediction-panel"
-          className="pt-5"
+          className="pt-4"
           aria-labelledby="landing-picks-step-heading"
           tabIndex={-1}
         >
           <div hidden={activeStep !== 'top5'}>
             <Suspense fallback={<TopFivePickerSkeleton />}>
               <LandingTopFivePicker
+                key={pickerGeneration}
                 raceId={raceId}
                 initialDrivers={initialDrivers}
                 onComplete={handleTopFiveComplete}
                 onContinue={continueToH2H}
                 onCompletionStateChange={setTopFiveComplete}
                 onPicksChange={setTopFivePicks}
+                onStartOver={startOver}
                 draftNoticeTarget={
                   activeStep === 'top5' ? draftNoticeTarget : null
                 }
@@ -248,11 +293,13 @@ export function LandingPicks({
                 ) : (
                   <Suspense fallback={<H2HPickerSkeleton />}>
                     <H2HPredictionForm
+                      key={pickerGeneration}
                       raceId={raceId}
                       matchups={matchups}
                       analyticsSource="landing"
                       entryMethod={h2hEntryMethod}
                       onSaveIntent={prepareCombinedSave}
+                      onStartOver={startOver}
                       topFivePositions={topFivePositions}
                       draftNoticeTarget={
                         activeStep === 'h2h' ? draftNoticeTarget : null
@@ -380,7 +427,11 @@ function TopFivePickerSkeleton() {
 
       <div className="order-1 lg:order-2 lg:min-w-0 lg:flex-2">
         <div className="mb-3 flex items-baseline gap-2">
-          <p className="text-lg font-semibold text-text">Select Drivers</p>
+          {/* Hidden below lg to match the live picker, so the heading does not
+              pop in and out as the skeleton swaps for the real form. */}
+          <p className="hidden text-lg font-semibold text-text lg:block">
+            Select Drivers
+          </p>
           <span className="text-sm text-text-muted">Loading the grid…</span>
         </div>
         <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 md:grid-cols-4">

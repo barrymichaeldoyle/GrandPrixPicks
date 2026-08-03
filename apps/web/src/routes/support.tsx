@@ -1,19 +1,17 @@
 import { api } from '@convex-generated/api';
+import { SUPPORT_EMAIL } from '@grandprixpicks/shared/contact';
 import { createFileRoute } from '@tanstack/react-router';
-import { useMutation } from 'convex/react';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useConvexAuth, useMutation } from 'convex/react';
+import { AlertCircle, Loader2, Mail } from 'lucide-react';
 import type { SubmitEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
-import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHeader } from '@/components/PageHeader';
-import { PageLoader } from '@/components/PageLoader';
 import { pageMeta } from '@/lib/site';
-import { NoticeCard } from '@/components/NoticeCard';
 
 export const Route = createFileRoute('/support')({
   component: SupportPage,
@@ -27,38 +25,20 @@ export const Route = createFileRoute('/support')({
     }),
 });
 
+/**
+ * The form is the page, for everyone.
+ *
+ * It used to be behind a "Sign in to contact support" wall, which asked for an
+ * account before the visitor had written anything — and, worse, made the one
+ * message that matters most impossible to send: someone who cannot sign in has
+ * no way to tell us they cannot sign in. Now the ask comes after the message is
+ * written, and it is a choice rather than a wall.
+ */
 function SupportPage() {
-  const { isSignedIn, isLoaded } = useViewerSession();
-
-  if (!isLoaded) {
-    return <PageLoader />;
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="bg-page">
-        <div className="mx-auto max-w-3xl px-4 py-8">
-          <NoticeCard
-            level="page"
-            icon={AlertCircle}
-            title="Sign in to contact support"
-            description="You need to be signed in to submit a support request so we can associate it with your account."
-            action={
-              <AppSignInButton mode="modal">
-                <Button size="sm">Sign In</Button>
-              </AppSignInButton>
-            }
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return <SupportContent />;
-}
-
-function SupportContent() {
   const submitRequest = useMutation(api.support.submitRequest);
+  // Convex-level auth, not just Clerk's: submitting the moment Clerk reports a
+  // session races the token reaching Convex. Same reasoning as PredictionForm.
+  const { isAuthenticated } = useConvexAuth();
   const [subject, setSubject] = useState('');
   const [category, setCategory] = useState<
     'bug' | 'question' | 'feedback' | ''
@@ -67,9 +47,11 @@ function SupportContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /** Set when a signed-out visitor presses send, revealing the two routes out. */
+  const [needsIdentity, setNeedsIdentity] = useState(false);
+  const autoSubmittedRef = useRef(false);
 
-  async function handleSubmit(e: SubmitEvent) {
-    e.preventDefault();
+  async function send() {
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
@@ -83,6 +65,7 @@ function SupportContent() {
       setSubject('');
       setCategory('');
       setMessage('');
+      setNeedsIdentity(false);
       setSuccess(
         'Thanks for reaching out! Your message has been sent and will be reviewed soon.',
       );
@@ -97,6 +80,45 @@ function SupportContent() {
     }
   }
 
+  function handleSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      setNeedsIdentity(true);
+      return;
+    }
+    void send();
+  }
+
+  /**
+   * They already pressed send, so finishing sign-in is consent to send — asking
+   * them to press it a second time would be asking twice for one decision.
+   *
+   * `/support` is not the landing page, so Clerk is already mounted here and the
+   * modal never remounts this route: the typed message is still in state when
+   * this fires.
+   */
+  useEffect(() => {
+    if (
+      !needsIdentity ||
+      !isAuthenticated ||
+      autoSubmittedRef.current ||
+      !subject ||
+      !message
+    ) {
+      return;
+    }
+    autoSubmittedRef.current = true;
+    void send();
+    // `send` closes over the current draft and is recreated each render; the ref
+    // guard is what keeps this to a single submission.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsIdentity, isAuthenticated, subject, message]);
+
+  /** Carries the typed message into a mail client, so nothing is retyped. */
+  const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+    category ? `[${category}] ${subject}` : subject,
+  )}&body=${encodeURIComponent(message)}`;
+
   return (
     <div className="bg-page">
       <div className="mx-auto max-w-3xl px-4 py-8">
@@ -107,7 +129,7 @@ function SupportContent() {
         />
 
         <form
-          onSubmit={(e) => void handleSubmit(e)}
+          onSubmit={handleSubmit}
           className="reveal-up reveal-delay-1 space-y-4 rounded-xl border border-border bg-surface p-4"
         >
           <div>
@@ -211,19 +233,44 @@ function SupportContent() {
             </p>
           )}
 
-          <div className="flex gap-2">
-            <Button
-              type="submit"
-              size="sm"
-              loading={isSubmitting}
-              disabled={!subject || !message}
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              )}
-              Send Message
-            </Button>
-          </div>
+          {needsIdentity && !isAuthenticated ? (
+            <div className="border-t border-border pt-4">
+              {/* Two ways out, not a wall. Signing in attaches the message to an
+                  account so the reply lands in the app; email works when the
+                  account is exactly what is broken — which is the case a
+                  sign-in wall silently made unreportable. */}
+              <p className="text-sm font-medium text-text">
+                Almost there. How should we reply?
+              </p>
+              <p className="mt-1 text-sm text-text-muted">
+                Signing in attaches this to your account so we can answer in
+                context. If signing in is the problem, email it instead. Your
+                message comes with you either way.
+              </p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <AppSignInButton mode="modal">
+                  <Button size="sm">Sign in and send</Button>
+                </AppSignInButton>
+                <Button asChild variant="secondary" size="sm" leftIcon={Mail}>
+                  <a href={mailtoHref}>Email {SUPPORT_EMAIL}</a>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                size="sm"
+                loading={isSubmitting}
+                disabled={!subject || !message}
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                )}
+                Send Message
+              </Button>
+            </div>
+          )}
         </form>
       </div>
     </div>

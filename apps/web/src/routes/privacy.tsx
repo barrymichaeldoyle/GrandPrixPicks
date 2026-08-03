@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@grandprixpicks/shared/contact';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 
@@ -141,10 +142,20 @@ function PrivacyPage() {
 
           <section>
             <h2 className="mb-2 text-xl font-semibold text-text">8. Contact</h2>
+            {/* A privacy policy has to name a way to exercise data rights.
+                Pointing at the footer's social links made the reader hunt for
+                one, and DM'ing a public account is a poor channel for it. */}
             <p>
-              For privacy-related questions or requests, you can reach the
-              operator of this app via the social media details provided on the
-              main site's footer.
+              For privacy-related questions or requests, including access and
+              deletion, email{' '}
+              <a href={SUPPORT_MAILTO} className="text-accent hover:underline">
+                {SUPPORT_EMAIL}
+              </a>{' '}
+              or use the{' '}
+              <Link to="/support" className="text-accent hover:underline">
+                support form
+              </Link>
+              .
             </p>
           </section>
         </div>

@@ -45,8 +45,11 @@ function RefundPolicyPage() {
             </h2>
             <p>
               If you want to request a refund, use Paddle&apos;s customer
-              support channels from your purchase receipt, or contact us and we
-              can help direct your request to Paddle.
+              support channels from your purchase receipt, or{' '}
+              <Link to="/support" className="text-accent hover:underline">
+                contact us
+              </Link>{' '}
+              and we can help direct your request to Paddle.
             </p>
           </section>
 

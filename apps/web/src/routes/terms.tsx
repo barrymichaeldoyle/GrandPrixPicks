@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@grandprixpicks/shared/contact';
 import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -143,11 +144,8 @@ function TermsPage() {
             <h2 className="mb-2 text-xl font-semibold text-text">9. Contact</h2>
             <p>
               For questions about these terms or the app, contact us at{' '}
-              <a
-                href="mailto:barry@barrymichaeldoyle.com"
-                className="text-accent hover:underline"
-              >
-                barry@barrymichaeldoyle.com
+              <a href={SUPPORT_MAILTO} className="text-accent hover:underline">
+                {SUPPORT_EMAIL}
               </a>{' '}
               or via the{' '}
               <Link to="/support" className="text-accent hover:underline">

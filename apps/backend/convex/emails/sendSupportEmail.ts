@@ -1,5 +1,6 @@
 'use node';
 
+import { SUPPORT_EMAIL } from '@grandprixpicks/shared/contact';
 import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
@@ -32,8 +33,7 @@ export const sendNewSupportRequest = internalAction({
     createdAt: v.number(),
   },
   handler: async (ctx, args) => {
-    const toAddress =
-      process.env.SUPPORT_EMAIL ?? 'barry@barrymichaeldoyle.com';
+    const toAddress = process.env.SUPPORT_EMAIL ?? SUPPORT_EMAIL;
     const fromAddress =
       process.env.EMAIL_FROM ?? 'Grand Prix Picks <noreply@grandprixpicks.com>';
 

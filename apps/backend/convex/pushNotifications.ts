@@ -1,5 +1,6 @@
 'use node';
 
+import { SUPPORT_MAILTO } from '@grandprixpicks/shared/contact';
 import { v } from 'convex/values';
 import webPush from 'web-push';
 
@@ -9,8 +10,7 @@ import { internalAction } from './_generated/server';
 function getVapidConfig() {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject =
-    process.env.VAPID_SUBJECT ?? 'mailto:hello@grandprixpicks.com';
+  const subject = process.env.VAPID_SUBJECT ?? SUPPORT_MAILTO;
 
   if (!publicKey || !privateKey) {
     throw new Error('VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set');

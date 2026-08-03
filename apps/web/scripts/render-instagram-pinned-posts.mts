@@ -1470,14 +1470,131 @@ function scoringLockSlide(): ReactNode {
   );
 }
 
-function competitionCoverSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'Two ways to compete',
-      'Global leaderboard. Private leagues.',
-      'One set of picks counts in both.',
-      { fontSize: 78, width: 900, top: 215 },
+interface CompetitionStanding {
+  position: number;
+  name: string;
+  points: number;
+  isYou?: boolean;
+}
+
+function competitionStandingRow(
+  row: CompetitionStanding,
+  compact = false,
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        height: compact ? 72 : 88,
+        padding: compact ? '0 18px' : '0 26px',
+        borderTop: `1px solid ${colors.border}`,
+        backgroundColor: row.isYou ? colors.accentMuted : colors.surface,
+      },
+    },
+    row.isYou
+      ? e('div', {
+          style: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 5,
+            backgroundColor: colors.accent,
+          },
+        })
+      : '',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          width: compact ? 54 : 72,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: compact ? 17 : 21,
+          fontWeight: 600,
+          color: row.isYou ? colors.accent : colors.textDisabled,
+        },
+      },
+      `P${row.position}`,
     ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flex: 1,
+          minWidth: 0,
+          fontSize: compact ? 18 : 23,
+          fontWeight: row.isYou ? 600 : 400,
+          color: row.isYou ? colors.text : colors.textMuted,
+        },
+      },
+      row.name,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: compact ? 17 : 21,
+          fontWeight: row.isYou ? 600 : 400,
+          color: row.isYou ? colors.accent : colors.textMuted,
+        },
+      },
+      row.points,
+    ),
+  );
+}
+
+function competitionStandingsPanel(
+  label: string,
+  scope: string,
+  rows: CompetitionStanding[],
+  compact = false,
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        border: `1px solid ${colors.borderStrong}`,
+        borderBottom: `9px solid ${colors.accent}`,
+        backgroundColor: colors.surface,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: compact ? 64 : 76,
+          padding: compact ? '0 18px' : '0 26px',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: compact ? 12 : 14,
+          fontWeight: 600,
+          letterSpacing: compact ? 1.5 : 2,
+          color: colors.textMuted,
+        },
+      },
+      e('div', { style: { display: 'flex' } }, label),
+      e('div', { style: { display: 'flex' } }, scope),
+    ),
+    ...rows.map((row) => competitionStandingRow(row, compact)),
+  );
+}
+
+function competitionCoverSlide(): ReactNode {
+  const score = 455;
+  return editorialFrame(
+    wordmark(),
     e(
       'div',
       {
@@ -1485,32 +1602,91 @@ function competitionCoverSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 700,
-          gap: 22,
+          left: 80,
+          top: 185,
+          width: 920,
         },
       },
-      standingsPanel('GLOBAL LEADERBOARD', [
-        ['1', 'Dave is P1 again', '486'],
-        ['2', 'You', '471', true],
-      ]),
-      standingsPanel('PRIVATE LEAGUE', [
-        ['1', 'You', '471', true],
-        ['2', 'Undercut Enjoyer', '455'],
-      ]),
+      eyebrow('Two ways to compete'),
+      headline('Global leaderboard. Private leagues.', 88, 920),
+      body('One set of picks counts in both.', 760),
     ),
-    footer(),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 760,
+          gap: 24,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', width: 448 } },
+        competitionStandingsPanel(
+          'GLOBAL',
+          'SEASON',
+          [
+            { position: 11, name: 'LateBraker', points: 462 },
+            { position: 12, name: 'You', points: score, isYou: true },
+          ],
+          true,
+        ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', width: 448 } },
+        competitionStandingsPanel(
+          'PRIVATE LEAGUE',
+          '8 PLAYERS',
+          [
+            { position: 1, name: 'You', points: score, isYou: true },
+            { position: 2, name: 'Box Box Sam', points: 443 },
+          ],
+          true,
+        ),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          bottom: 100,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          fontWeight: 600,
+          letterSpacing: 2,
+          color: colors.accent,
+        },
+      },
+      'SAME PICKS  /  SAME SCORE',
+    ),
   );
 }
 
 function globalLeaderboardSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'Global leaderboard',
-      'See how you rank against everyone',
-      'Compare scores for the race weekend or the full season.',
-      { fontSize: 76, width: 900, top: 205 },
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+          width: 920,
+        },
+      },
+      eyebrow('Global leaderboard'),
+      headline('See how you rank against everyone.', 86, 920),
+      body('Compare the race weekend or the full season.', 800),
     ),
     e(
       'div',
@@ -1518,30 +1694,39 @@ function globalLeaderboardSlide(): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 655,
+          left: 80,
+          right: 80,
+          top: 525,
         },
       },
-      standingsPanel('SEASON STANDINGS', [
-        ['1', 'Dave is P1 again', '486'],
-        ['2', 'Undercut Enjoyer', '471'],
-        ['3', 'You', '455', true],
-        ['4', 'Box Box Barbara', '443'],
-        ['5', 'Two Stopper Truther', '428'],
+      competitionStandingsPanel('GLOBAL LEADERBOARD', 'FULL SEASON', [
+        { position: 10, name: 'ApexHunter', points: 468 },
+        { position: 11, name: 'LateBraker', points: 462 },
+        { position: 12, name: 'You', points: 455, isYou: true },
+        { position: 13, name: 'Box Box Sam', points: 443 },
+        { position: 14, name: 'Sunday Strategy', points: 428 },
       ]),
     ),
-    footer(),
   );
 }
 
 function privateLeagueSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'Private leagues',
-      'Give your group chat a table',
-      'Create a league and invite your friends with one link.',
-      { fontSize: 78, width: 890, top: 205 },
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+          width: 920,
+        },
+      },
+      eyebrow('Private leagues'),
+      headline('Give your group chat a table.', 86, 920),
+      body('Create a league and invite your friends with one link.', 830),
     ),
     e(
       'div',
@@ -1550,10 +1735,11 @@ function privateLeagueSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 660,
+          left: 80,
+          right: 80,
+          top: 515,
           border: `1px solid ${colors.borderStrong}`,
+          borderBottom: `9px solid ${colors.accent}`,
           backgroundColor: colors.surface,
         },
       },
@@ -1564,14 +1750,14 @@ function privateLeagueSlide(): ReactNode {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: 88,
-            padding: '0 30px',
+            height: 86,
+            padding: '0 26px',
             borderBottom: `1px solid ${colors.border}`,
           },
         },
         e(
           'div',
-          { style: { display: 'flex', fontSize: 28, fontWeight: 600 } },
+          { style: { display: 'flex', fontSize: 27, fontWeight: 600 } },
           'Sunday Strategy Club',
         ),
         e(
@@ -1580,95 +1766,160 @@ function privateLeagueSlide(): ReactNode {
             style: {
               display: 'flex',
               fontFamily: 'IBM Plex Mono',
-              fontSize: 16,
+              fontSize: 14,
+              letterSpacing: 1.6,
               color: colors.textMuted,
             },
           },
-          '8 MEMBERS',
+          '8 PLAYERS',
         ),
       ),
+      competitionStandingRow({
+        position: 1,
+        name: 'You',
+        points: 455,
+        isYou: true,
+      }),
+      competitionStandingRow({
+        position: 2,
+        name: 'Box Box Sam',
+        points: 443,
+      }),
+      competitionStandingRow({
+        position: 3,
+        name: 'Late Braking Club',
+        points: 438,
+      }),
+      competitionStandingRow({
+        position: 4,
+        name: 'Undercut Enjoyer',
+        points: 421,
+      }),
       e(
         'div',
         {
           style: {
             display: 'flex',
-            flexDirection: 'column',
-            padding: '38px 30px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 118,
+            padding: '0 26px',
+            borderTop: `1px solid ${colors.border}`,
+            backgroundColor: colors.page,
           },
         },
-        eyebrow('Invite link'),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
+          panelLabel('INVITE YOUR FRIENDS'),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                marginTop: 8,
+                fontSize: 19,
+                color: colors.textMuted,
+              },
+            },
+            'One link. No league code to type.',
+          ),
+        ),
         e(
           'div',
           {
             style: {
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              height: 78,
-              marginTop: 18,
-              padding: '0 24px',
-              border: `1px solid ${colors.accent}`,
-              backgroundColor: colors.accentMuted,
+              justifyContent: 'center',
+              height: 58,
+              padding: '0 22px',
+              backgroundColor: colors.accent,
               fontFamily: 'IBM Plex Mono',
-              fontSize: 20,
-              color: colors.text,
+              fontSize: 15,
+              fontWeight: 600,
+              color: colors.textOnAccent,
             },
           },
-          e(
-            'div',
-            { style: { display: 'flex' } },
-            'grandprixpicks.com/leagues/...',
-          ),
-          e(
-            'div',
-            { style: { display: 'flex', color: colors.accent } },
-            'COPY',
-          ),
+          'COPY INVITE LINK',
         ),
       ),
     ),
-    footer(),
   );
 }
 
-function destinationCard(label: string, copy: string): ReactNode {
+function scoreDestinationCard(
+  label: string,
+  value: string,
+  detail: string,
+): ReactNode {
   return e(
     'div',
     {
       style: {
         display: 'flex',
         flexDirection: 'column',
-        width: 390,
-        minHeight: 170,
-        padding: '30px 28px',
+        flex: 1,
+        minHeight: 220,
+        padding: '30px 28px 26px',
         border: `1px solid ${colors.borderStrong}`,
+        borderBottom: `9px solid ${colors.accent}`,
         backgroundColor: colors.surface,
       },
     },
-    eyebrow(label),
+    panelLabel(label),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          marginTop: 20,
-          fontSize: 25,
-          lineHeight: 1.35,
-          color: colors.text,
+          marginTop: 24,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 58,
+          fontWeight: 600,
+          lineHeight: 1,
+          color: colors.accent,
         },
       },
-      copy,
+      value,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          marginTop: 18,
+          fontSize: 20,
+          color: colors.textMuted,
+        },
+      },
+      detail,
     ),
   );
 }
 
 function oneSetOfPicksSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'One prediction',
-      'Make one set of picks',
-      'Your results carry into the global standings and every private league you join.',
-      { fontSize: 82, width: 900, top: 195 },
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+          width: 920,
+        },
+      },
+      eyebrow('One set of picks'),
+      headline('Make your picks once.', 92, 920),
+      body('The same score lands in every table you compete in.', 820),
     ),
     e(
       'div',
@@ -1678,9 +1929,9 @@ function oneSetOfPicksSlide(): ReactNode {
           flexDirection: 'column',
           alignItems: 'center',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 650,
+          left: 80,
+          right: 80,
+          top: 500,
         },
       },
       e(
@@ -1688,140 +1939,81 @@ function oneSetOfPicksSlide(): ReactNode {
         {
           style: {
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: 430,
-            height: 90,
-            backgroundColor: colors.accent,
             fontFamily: 'IBM Plex Mono',
-            fontSize: 22,
-            fontWeight: 600,
-            color: colors.textOnAccent,
+            color: colors.accent,
           },
         },
-        'YOUR SAVED PICKS',
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: 138,
+              fontWeight: 600,
+              lineHeight: 1,
+            },
+          },
+          '455',
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              marginTop: 8,
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: 2.3,
+              color: colors.textMuted,
+            },
+          },
+          'YOUR SCORE',
+        ),
       ),
-      e('div', {
-        style: {
-          width: 2,
-          height: 72,
-          backgroundColor: colors.accent,
-        },
-      }),
-      e('div', {
-        style: {
-          width: 430,
-          height: 2,
-          backgroundColor: colors.accent,
-        },
-      }),
       e(
         'div',
         {
           style: {
             display: 'flex',
-            gap: 70,
-            marginTop: 0,
+            width: '100%',
+            marginTop: 82,
+            gap: 24,
           },
         },
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            },
-          },
-          e('div', {
-            style: { width: 2, height: 52, backgroundColor: colors.accent },
-          }),
-          destinationCard('Global', 'Everyone'),
-        ),
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            },
-          },
-          e('div', {
-            style: { width: 2, height: 52, backgroundColor: colors.accent },
-          }),
-          destinationCard('Private leagues', 'Every league you join'),
-        ),
+        scoreDestinationCard('GLOBAL LEADERBOARD', 'P12', 'Full season'),
+        scoreDestinationCard('SUNDAY STRATEGY CLUB', 'P1', 'Private league'),
       ),
-    ),
-    footer(),
-  );
-}
-
-function sessionsMoveOrderSlide(): ReactNode {
-  const sessionNames = ['Qualifying', 'Sprint', 'Sprint Qualifying', 'Race'];
-  return frame(
-    contentHeader(
-      'Across the calendar',
-      'Every session can move the order',
-      'Qualifying, sprints and races all count across the season.',
-      { fontSize: 77, width: 900, top: 205 },
     ),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          flexWrap: 'wrap',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 670,
-          gap: 20,
+          left: 80,
+          bottom: 86,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          fontWeight: 600,
+          letterSpacing: 2,
+          color: colors.accent,
         },
       },
-      ...sessionNames.map((session, index) =>
-        e(
-          'div',
-          {
-            key: session,
-            style: {
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              width: 442,
-              height: 170,
-              padding: '28px 30px',
-              border: `1px solid ${colors.borderStrong}`,
-              backgroundColor: colors.surface,
-            },
-          },
-          e(
-            'div',
-            { style: { display: 'flex', fontSize: 26, fontWeight: 500 } },
-            session,
-          ),
-          e(
-            'div',
-            {
-              style: {
-                display: 'flex',
-                fontFamily: 'IBM Plex Mono',
-                fontSize: 18,
-                color: index % 2 === 0 ? colors.resultNear : colors.accent,
-              },
-            },
-            index % 2 === 0 ? 'RANK  ▲ 2' : 'RANK  ▲ 1',
-          ),
-        ),
-      ),
+      'ONE SCORE  /  EVERY TABLE',
     ),
-    footer(),
   );
 }
 
-function competitionCtaSlide(): ReactNode {
-  return frame(
+function sessionsMoveOrderSlide(): ReactNode {
+  const sessionRows = [
+    ['SPRINT QUALIFYING', '+18', 'P8'],
+    ['SPRINT', '+14', 'P7'],
+    ['QUALIFYING', '+21', 'P6'],
+    ['RACE', '+25', 'P5'],
+  ] as const;
+  return editorialFrame(
     e(
       'div',
       {
@@ -1829,49 +2021,184 @@ function competitionCtaSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 245,
+          left: 80,
+          top: 105,
+          width: 920,
         },
       },
-      mark(1.35),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 80,
-            fontFamily: 'IBM Plex Mono',
-            fontSize: 20,
-            fontWeight: 500,
-            letterSpacing: 3.4,
-            color: colors.textMuted,
-          },
+      eyebrow('Across the calendar'),
+      headline('Every session can move the table.', 84, 920),
+      body('Qualifying, sprint sessions and races all add to your score.', 850),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 530,
+          border: `1px solid ${colors.borderStrong}`,
+          borderBottom: `9px solid ${colors.accent}`,
+          backgroundColor: colors.surface,
         },
-        'START YOUR SEASON',
-      ),
-      headline('Race the world. Challenge your friends.', 86, 880),
+      },
       e(
         'div',
         {
           style: {
             display: 'flex',
             alignItems: 'center',
-            alignSelf: 'flex-start',
-            height: 86,
-            marginTop: 64,
-            padding: '0 30px',
-            backgroundColor: colors.accent,
+            justifyContent: 'space-between',
+            height: 74,
+            padding: '0 26px',
             fontFamily: 'IBM Plex Mono',
-            fontSize: 26,
+            fontSize: 14,
             fontWeight: 600,
+            letterSpacing: 2,
+            color: colors.textMuted,
+          },
+        },
+        e('div', { style: { display: 'flex' } }, 'SPRINT WEEKEND'),
+        e('div', { style: { display: 'flex' } }, 'YOUR RANK'),
+      ),
+      ...sessionRows.map(([session, score, rank], index) =>
+        e(
+          'div',
+          {
+            key: session,
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              height: 132,
+              padding: '0 26px',
+              borderTop: `1px solid ${colors.border}`,
+              backgroundColor:
+                index === sessionRows.length - 1
+                  ? colors.accentMuted
+                  : colors.surface,
+            },
+          },
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                width: 330,
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 17,
+                fontWeight: 600,
+                letterSpacing: 1.5,
+                color:
+                  index === sessionRows.length - 1
+                    ? colors.text
+                    : colors.textMuted,
+              },
+            },
+            session,
+          ),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                width: 100,
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 22,
+                fontWeight: 600,
+                color: colors.accent,
+              },
+            },
+            score,
+          ),
+          e('div', {
+            style: {
+              flex: 1,
+              height: 1,
+              margin: '0 28px',
+              backgroundColor: colors.borderStrong,
+            },
+          }),
+          e(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                width: 90,
+                justifyContent: 'flex-end',
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 36,
+                fontWeight: 600,
+                color:
+                  index === sessionRows.length - 1
+                    ? colors.accent
+                    : colors.text,
+              },
+            },
+            rank,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+function competitionCtaSlide(): ReactNode {
+  return editorialFrame(
+    wordmark(),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 300,
+        },
+      },
+      eyebrow('Free F1 prediction game'),
+      headline('Race the world. Challenge your friends.', 94, 900),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: 118,
+            marginTop: 86,
+            padding: '0 38px',
+            backgroundColor: colors.accent,
             color: colors.textOnAccent,
+          },
+        },
+        e(
+          'div',
+          { style: { display: 'flex', fontSize: 31, fontWeight: 600 } },
+          'Play Grand Prix Picks',
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: 30,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 22,
+            fontWeight: 600,
+            color: colors.accent,
           },
         },
         'GrandPrixPicks.com/ig',
       ),
     ),
-    footer('LINK IN BIO'),
   );
 }
 

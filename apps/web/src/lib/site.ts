@@ -26,7 +26,10 @@ export const siteConfig = {
       url: 'https://www.reddit.com/r/GPPicks/',
     },
     instagram: {
-      handle: '@grandprixpicks',
+      // Display casing only, to match the X handle. Instagram usernames are
+      // case-insensitive, so the URL stays lowercase — that is the canonical
+      // form the profile resolves to and the one listed in `sameAs`.
+      handle: '@GrandPrixPicks',
       url: 'https://www.instagram.com/grandprixpicks/',
     },
   },

@@ -11,7 +11,7 @@
     "android": "pnpm generate-tokens && expo run:android",
     "ios": "pnpm generate-tokens && expo run:ios",
     "web": "pnpm generate-tokens && expo start --web",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit",
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
     "lint": "pnpm exec oxlint -c ../../.oxlintrc.json .",

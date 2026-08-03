@@ -24,13 +24,11 @@ Use the Instagram mobile app so you can pin the finished post immediately.
 
 1. Confirm that the profile website is `https://grandprixpicks.com/ig` and its title is **Play Grand Prix Picks**.
 2. Tap **Create**, choose **Post**, then tap the multiple-image carousel control.
-3. Select these six PNGs in filename order:
+3. Select these four PNGs in filename order:
    - `01-cover.png`
-   - `02-pick-the-top-5.png`
-   - `03-team-mate-battles.png`
-   - `04-competitive-sessions.png`
-   - `05-season-standings.png`
-   - `06-call-to-action.png`
+   - `02-two-calls.png`
+   - `03-two-tables.png`
+   - `04-call-to-action.png`
 4. Keep the first image as the cover and keep the portrait crop. Instagram applies one orientation to every image in a carousel.
 5. Do not add a filter, crop, text overlay or border. The files are already exported at 1080 x 1350.
 6. Keep the carousel silent. Music would not clarify this product introduction and may distract from the reading flow.
@@ -38,7 +36,7 @@ Use the Instagram mobile app so you can pin the finished post immediately.
 8. Open **Accessibility** or **Advanced settings**, depending on the app version, and add the matching alt text to each image.
 9. Leave location blank. Do not tag unrelated F1 accounts or add a collaborator unless there is a real partnership.
 10. Share the post, open it from the profile, tap the options menu and choose **Pin to your profile**.
-11. Check the live post once: swipe through all six slides, confirm the text is not cropped, test the bio link and answer any genuine comments.
+11. Check the live post once: swipe through all four slides, confirm the text is not cropped, test the bio link and answer any genuine comments.
 
 ### First-post upload folder
 
@@ -71,35 +69,27 @@ Turn an F1 fan who has never heard of the product into someone who understands t
 
 #### Slide 2
 
-**Headline:** Pick the Top 5
+**Small label:** How it works
 
-**Body:** Rank the five drivers you expect to finish at the front. Order matters.
+**Headline:** Two calls. Every session.
+
+**Visual:** A completed Top 5 and a McLaren team-mate Head-to-Head pick using real 2026 driver metadata.
 
 #### Slide 3
 
-**Headline:** Call every team-mate battle
+**Small label:** Across the season
 
-**Body:** Choose which driver will finish ahead in each pairing.
+**Headline:** One score. Two tables.
+
+**Body:** Qualifying, sprints and races all count.
 
 #### Slide 4
 
-**Headline:** Play every competitive session
+**Small label:** Free to play
 
-**Body:** Qualifying and the race. Plus sprint qualifying and the sprint on sprint weekends.
+**Headline:** Make your call before the next session starts.
 
-#### Slide 5
-
-**Headline:** Score across the season
-
-**Body:** Every session adds to your standings on the global leaderboard and in your private leagues.
-
-#### Slide 6
-
-**Small label:** Make your first picks
-
-**Headline:** Free to play. Built for F1 fans.
-
-**URL:** GrandPrixPicks.com/ig
+**CTA:** Play Grand Prix Picks at GrandPrixPicks.com/ig
 
 ### Caption
 
@@ -115,12 +105,10 @@ Which do you trust more, your Top 5 or your team-mate calls?
 
 ### Alt text
 
-1. Grand Prix Picks introduction reading “Everyone's a strategist on Sunday. Prove it.” and identifying the product as a free F1 prediction game.
-2. Instructions to rank the five drivers expected to finish at the front.
-3. Instructions to predict which driver will finish ahead in every F1 team-mate pairing.
-4. List of supported sessions: qualifying, race, sprint qualifying and sprint.
-5. Explanation that each session contributes to global and private league standings.
-6. Call to play Grand Prix Picks for free at GrandPrixPicks.com/ig.
+1. Grand Prix Picks introduction reading “Everyone's a strategist on Sunday. Prove it.” above an example Top 5 containing Lando Norris, Charles Leclerc, Kimi Antonelli, Oscar Piastri and Lewis Hamilton. Each driver row includes their 2026 number, nationality flag and team colour.
+2. Explanation that every session has two calls, showing the completed Top 5 alongside a McLaren team-mate Head-to-Head between Lando Norris and Oscar Piastri. Driver numbers, nationality flags and McLaren team colours are shown.
+3. Explanation that one score counts in two tables, with the same player and score highlighted on the global leaderboard and in a private league.
+4. Call to make picks before the next session starts and play Grand Prix Picks for free at GrandPrixPicks.com/ig.
 
 ## Pinned post 2: How scoring works
 

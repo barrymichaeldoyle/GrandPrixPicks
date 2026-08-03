@@ -1,8 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-import { colors } from '@grandprixpicks/shared/tokens';
+import { colors, teams } from '@grandprixpicks/shared/tokens';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import type { ReactNode } from 'react';
 import { createElement as e } from 'react';
@@ -19,6 +20,61 @@ const CAMPAIGN_OUTPUT_DIR = fileURLToPath(
     import.meta.url,
   ),
 );
+
+interface DriverVisual {
+  code: string;
+  displayName: string;
+  flag: 'au' | 'gb' | 'it' | 'mc';
+  number: number;
+  team: 'Ferrari' | 'McLaren' | 'Mercedes';
+}
+
+const exampleTopFive: DriverVisual[] = [
+  {
+    code: 'NOR',
+    displayName: 'Lando Norris',
+    flag: 'gb',
+    number: 1,
+    team: 'McLaren',
+  },
+  {
+    code: 'LEC',
+    displayName: 'Charles Leclerc',
+    flag: 'mc',
+    number: 16,
+    team: 'Ferrari',
+  },
+  {
+    code: 'ANT',
+    displayName: 'Kimi Antonelli',
+    flag: 'it',
+    number: 12,
+    team: 'Mercedes',
+  },
+  {
+    code: 'PIA',
+    displayName: 'Oscar Piastri',
+    flag: 'au',
+    number: 81,
+    team: 'McLaren',
+  },
+  {
+    code: 'HAM',
+    displayName: 'Lewis Hamilton',
+    flag: 'gb',
+    number: 44,
+    team: 'Ferrari',
+  },
+];
+
+const flagSources = Object.fromEntries(
+  ['au', 'gb', 'it', 'mc'].map((countryCode) => [
+    countryCode,
+    `data:image/svg+xml;base64,${readFileSync(
+      new URL(`../public/flags/${countryCode}.svg`, import.meta.url),
+    ).toString('base64')}`,
+  ]),
+) as Record<DriverVisual['flag'], string>;
 
 /**
  * Renders the launch carousel for the first pinned Instagram post.
@@ -1572,18 +1628,604 @@ function competitionCtaSlide(): ReactNode {
   );
 }
 
+function editorialFrame(...children: ReactNode[]): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        position: 'relative',
+        width: WIDTH,
+        height: HEIGHT,
+        overflow: 'hidden',
+        backgroundColor: colors.page,
+        color: colors.text,
+        fontFamily: 'Archivo',
+      },
+    },
+    ...children,
+  );
+}
+
+function wordmark(): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'absolute',
+        left: 80,
+        right: 80,
+        top: 62,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 18,
+          fontWeight: 600,
+          letterSpacing: 3.2,
+          color: colors.textMuted,
+        },
+      },
+      'GRAND PRIX PICKS',
+    ),
+    mark(0.62),
+  );
+}
+
+function driverFlag(driver: DriverVisual, width = 36): ReactNode {
+  return e('img', {
+    src: flagSources[driver.flag],
+    width,
+    height: Math.round(width * 0.67),
+    style: {
+      objectFit: 'cover',
+      border: `1px solid ${colors.borderStrong}`,
+    },
+  });
+}
+
+function driverRow(
+  driver: DriverVisual,
+  position: number,
+  compact = false,
+): ReactNode {
+  const teamColor = teams[driver.team];
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        height: compact ? 76 : 92,
+        padding: compact ? '0 20px 0 22px' : '0 28px 0 26px',
+        borderBottom: `1px solid ${colors.border}`,
+        backgroundColor: colors.surface,
+      },
+    },
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 5,
+        backgroundColor: teamColor,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          width: compact ? 52 : 62,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: compact ? 17 : 20,
+          fontWeight: 600,
+          color: position === 1 ? colors.accent : colors.textMuted,
+        },
+      },
+      `P${position}`,
+    ),
+    driverFlag(driver, compact ? 30 : 38),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minWidth: 0,
+          marginLeft: compact ? 14 : 18,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'baseline',
+            fontSize: compact ? 19 : 24,
+            fontWeight: 600,
+            color: colors.text,
+          },
+        },
+        driver.displayName,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            marginTop: 4,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: compact ? 11 : 13,
+            letterSpacing: 1.3,
+            color: colors.textMuted,
+          },
+        },
+        e('div', {
+          style: {
+            width: 6,
+            height: 6,
+            marginRight: 8,
+            borderRadius: 999,
+            backgroundColor: teamColor,
+          },
+        }),
+        driver.team,
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          marginLeft: 14,
+          fontFamily: 'IBM Plex Mono',
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontSize: compact ? 22 : 28,
+            fontWeight: 600,
+            color: colors.text,
+          },
+        },
+        `#${driver.number}`,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 2,
+            fontSize: compact ? 11 : 13,
+            letterSpacing: 1.4,
+            color: colors.textDisabled,
+          },
+        },
+        driver.code,
+      ),
+    ),
+  );
+}
+
+function completedTopFive(compact = false): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        border: `1px solid ${colors.borderStrong}`,
+        backgroundColor: colors.surface,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: compact ? 54 : 62,
+          padding: compact ? '0 20px' : '0 26px',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: compact ? 13 : 15,
+          fontWeight: 600,
+          letterSpacing: 2.1,
+          color: colors.textMuted,
+        },
+      },
+      e('div', { style: { display: 'flex' } }, 'EXAMPLE TOP 5'),
+      e('div', { style: { display: 'flex', color: colors.accent } }, 'SAVED'),
+    ),
+    ...exampleTopFive.map((driver, index) =>
+      driverRow(driver, index + 1, compact),
+    ),
+  );
+}
+
+function h2hDriverChoice(driver: DriverVisual, selected: boolean): ReactNode {
+  const teamColor = teams[driver.team];
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        height: 116,
+        padding: '0 24px 0 28px',
+        border: `1px solid ${selected ? colors.accent : colors.borderStrong}`,
+        backgroundColor: selected ? colors.accentMuted : colors.surface,
+      },
+    },
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 5,
+        backgroundColor: teamColor,
+      },
+    }),
+    driverFlag(driver, 36),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          marginLeft: 16,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', fontSize: 21, fontWeight: 600 } },
+        driver.displayName,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 6,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 13,
+            color: colors.textMuted,
+          },
+        },
+        `${driver.code}  #${driver.number}`,
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 30,
+          height: 30,
+          border: `2px solid ${selected ? colors.accent : colors.borderStrong}`,
+          borderRadius: 999,
+        },
+      },
+      selected
+        ? e('div', {
+            style: {
+              width: 12,
+              height: 12,
+              borderRadius: 999,
+              backgroundColor: colors.accent,
+            },
+          })
+        : '',
+    ),
+  );
+}
+
+function introCoverSlide(): ReactNode {
+  return editorialFrame(
+    wordmark(),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 185,
+          width: 900,
+        },
+      },
+      eyebrow('Free F1 prediction game'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            marginTop: 30,
+            fontSize: 96,
+            fontWeight: 300,
+            letterSpacing: -2.6,
+            lineHeight: 1.02,
+          },
+        },
+        e('div', { style: { display: 'flex' } }, "Everyone's a strategist"),
+        e('div', { style: { display: 'flex' } }, 'on Sunday.'),
+        e(
+          'div',
+          { style: { display: 'flex', color: colors.accent } },
+          'Prove it.',
+        ),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 118,
+          right: 40,
+          top: 730,
+        },
+      },
+      completedTopFive(false),
+    ),
+  );
+}
+
+function introGameSlide(): ReactNode {
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 72,
+          top: 82,
+        },
+      },
+      eyebrow('How it works'),
+      headline('Two calls. Every session.', 92, 900),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 72,
+          top: 400,
+          width: 570,
+        },
+      },
+      eyebrow('Rank the Top 5'),
+      e(
+        'div',
+        { style: { display: 'flex', width: '100%', marginTop: 18 } },
+        completedTopFive(true),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          right: 64,
+          top: 510,
+          width: 360,
+        },
+      },
+      eyebrow('Pick the team-mate winner'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            marginTop: 18,
+            gap: 14,
+          },
+        },
+        h2hDriverChoice(exampleTopFive[0]!, true),
+        h2hDriverChoice(exampleTopFive[3]!, false),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 18,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 14,
+            letterSpacing: 1.7,
+            color: colors.textMuted,
+          },
+        },
+        'McLAREN HEAD-TO-HEAD',
+      ),
+    ),
+  );
+}
+
+function introPayoffSlide(): ReactNode {
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+        },
+      },
+      eyebrow('Across the season'),
+      headline('One score. Two tables.', 94, 900),
+      body('Qualifying, sprints and races all count.', 760),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 520,
+          gap: 34,
+        },
+      },
+      standingsPanel('GLOBAL LEADERBOARD', [
+        ['1', 'Dave is P1 again', '486'],
+        ['2', 'Undercut Enjoyer', '471'],
+        ['3', 'You', '455', true],
+      ]),
+      standingsPanel('PRIVATE LEAGUE', [
+        ['1', 'You', '455', true],
+        ['2', 'Box Box Barbara', '443'],
+        ['3', 'Two Stopper Truther', '428'],
+      ]),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          right: 80,
+          bottom: 86,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 16,
+          letterSpacing: 2.1,
+          color: colors.accent,
+        },
+      },
+      'SAME PICKS  /  SAME SCORE',
+    ),
+  );
+}
+
+function introCtaSlide(): ReactNode {
+  return editorialFrame(
+    wordmark(),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 300,
+        },
+      },
+      eyebrow('Free to play'),
+      headline('Make your call before the next session starts.', 94, 900),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            height: 118,
+            marginTop: 86,
+            padding: '0 38px',
+            backgroundColor: colors.accent,
+            color: colors.textOnAccent,
+          },
+        },
+        e(
+          'div',
+          { style: { display: 'flex', fontSize: 31, fontWeight: 600 } },
+          'Play Grand Prix Picks',
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 24,
+              fontWeight: 600,
+            },
+          },
+          'GrandPrixPicks.com/ig',
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            marginTop: 44,
+            paddingTop: 30,
+            borderTop: `1px solid ${colors.borderStrong}`,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 17,
+            letterSpacing: 2.1,
+            color: colors.textMuted,
+          },
+        },
+        e('div', {
+          style: {
+            width: 10,
+            height: 10,
+            marginRight: 14,
+            borderRadius: 999,
+            backgroundColor: colors.accent,
+          },
+        }),
+        'PICKS LOCK AT SESSION START',
+      ),
+    ),
+  );
+}
+
 type Slide = [filename: string, artwork: ReactNode];
 
 const carousels: Array<[directory: string, slides: Slide[]]> = [
   [
     '01-what-is',
     [
-      ['01-cover.png', coverSlide()],
-      ['02-pick-the-top-5.png', topFiveSlide()],
-      ['03-team-mate-battles.png', h2hSlide()],
-      ['04-competitive-sessions.png', sessionsSlide()],
-      ['05-season-standings.png', competitionSlide()],
-      ['06-call-to-action.png', ctaSlide()],
+      ['01-cover.png', introCoverSlide()],
+      ['02-two-calls.png', introGameSlide()],
+      ['03-two-tables.png', introPayoffSlide()],
+      ['04-call-to-action.png', introCtaSlide()],
     ],
   ],
   [

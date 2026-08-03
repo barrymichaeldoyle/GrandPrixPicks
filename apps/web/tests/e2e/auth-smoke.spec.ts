@@ -82,7 +82,10 @@ test.describe('[auth] smoke', () => {
     await expect(recap).toBeVisible();
     await expect(recap).toContainText('pts');
 
-    await expect(page.getByText('Session Points Breakdown')).toBeVisible();
+    // By test id, not copy: the heading is now the neutral "Session Results"
+    // for every viewer (H2HResultsSection.test.tsx asserts the old wording is
+    // gone), and this assertion is about the block being there at all.
+    await expect(page.getByTestId('session-points-breakdown')).toBeVisible();
   });
 
   test('shows my leagues, discover leagues, and an owned league detail page', async ({

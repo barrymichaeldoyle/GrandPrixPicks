@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense, useEffect } from 'react';
 
 import { DevNowPanel } from '@/components/DevNowPanel';
+import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
@@ -143,6 +144,11 @@ function HomePage() {
 }
 
 function DashboardSkeleton() {
+  // Held for the same reason `DashboardPage` holds: during a sign-in handoff
+  // the curtain should lift onto the dashboard, not onto its skeleton. Outside
+  // a handoff there is no curtain and this is a no-op.
+  useAuthCurtainGate(false);
+
   return (
     <div
       className="mx-auto min-h-[70vh] w-full max-w-6xl px-4 py-9"

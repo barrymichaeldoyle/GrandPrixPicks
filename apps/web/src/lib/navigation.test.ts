@@ -10,15 +10,13 @@ import {
 } from './navigation';
 
 describe('site navigation', () => {
-  it('adds the game guide to public navigation without changing the authenticated app nav', () => {
+  it('keeps authenticated app nav focused on play destinations, with guides for public nav', () => {
     expect(primaryNavLinks).toEqual([
-      { to: '/races', label: 'Races', exact: true },
       { to: '/leaderboard', label: 'Leaderboard' },
       { to: '/leagues', label: 'Leagues' },
     ]);
     expect(publicNavLinks).toEqual([
       { to: '/how-to-play', label: 'How to Play' },
-      { to: '/races', label: 'Races', exact: true },
       { to: '/leaderboard', label: 'Leaderboard' },
       { to: '/leagues', label: 'Leagues' },
       { to: '/guides', label: 'Guides' },

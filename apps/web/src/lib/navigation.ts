@@ -4,9 +4,11 @@ type SiteNavLink = {
   exact?: boolean;
 };
 
-/** Core app navigation shared by signed-in and signed-out product pages. */
+/**
+ * Core signed-in app navigation. The race calendar stays reachable from Home,
+ * race detail back-links, empty states, and the footer — not as a top-level item.
+ */
 export const primaryNavLinks: SiteNavLink[] = [
-  { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
 ];

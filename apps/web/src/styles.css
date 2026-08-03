@@ -344,10 +344,8 @@ html:has([data-landing-hero-cta]) .gpp-public-wordmark {
  * the stripe showed as a small nub in the top-left corner and nothing else.
  *
  * The lean is therefore a fixed `--stripe-lean`, so the motif stays visible and
- * consistent at every container height. On a row it reads as roughly the
- * intended angle; on a tall card it reads as an upright bar with a slight
- * cant, which is the right trade — the bar being *there* matters more than the
- * exact degree.
+ * consistent at every container height. The outer (left) edge stays flush to
+ * the wall from top to bottom; the cant lives on the inner edge only.
  */
 .gpp-stripe::before {
   content: '';
@@ -358,7 +356,7 @@ html:has([data-landing-hero-cta]) .gpp-public-wordmark {
   width: calc(var(--stripe-width) + var(--stripe-lean));
   background: var(--accent);
   clip-path: polygon(
-    var(--stripe-lean) 0,
+    0 0,
     100% 0,
     calc(100% - var(--stripe-lean)) 100%,
     0 100%

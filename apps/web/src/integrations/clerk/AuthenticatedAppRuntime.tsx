@@ -11,9 +11,12 @@ import { AppClerkProvider } from './provider';
 import { useClerkRuntimeControl } from './runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
-export function AuthenticatedAppRuntime({ children }: PropsWithChildren) {
+export function AuthenticatedAppRuntime({
+  children,
+  assumeSignedIn = false,
+}: PropsWithChildren<{ assumeSignedIn?: boolean }>) {
   return (
-    <AppClerkProvider darkMode={true}>
+    <AppClerkProvider darkMode={true} assumeSignedIn={assumeSignedIn}>
       <AppConvexProvider>
         <ProfileSync />
         <AfterSignInIntentNavigator />

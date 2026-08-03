@@ -1,0 +1,227 @@
+{
+  "generatedAt": "2026-08-03T14:40:28.270Z",
+  "organization": {
+    "id": "64f9a17b902afdecc48c8d02",
+    "name": "My Organization"
+  },
+  "channel": {
+    "id": "6a7050c899afb44349f18cbd",
+    "name": "grandprixpicks",
+    "displayName": "grandprixpicks",
+    "service": "instagram",
+    "externalLink": "https://instagram.com/grandprixpicks",
+    "isDisconnected": false,
+    "isLocked": false,
+    "hasActiveMemberDevice": false
+  },
+  "assetBaseUrl": "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026",
+  "mobileNotificationReady": false,
+  "posts": [
+    {
+      "key": "every-team-mate-battle",
+      "kind": "feed",
+      "bufferPostId": "6a70a7a495fc25fa5541b6b0",
+      "dueAt": "2026-08-09T17:00:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/01-full-grid-scorecard/01-scorecard.png"
+      ],
+      "firstCommentVerified": true,
+      "altTextVerified": true,
+      "storyInstructionsVerified": null
+    },
+    {
+      "key": "score-needs-context",
+      "kind": "feed",
+      "bufferPostId": "6a70a7a5554f8838d0975f22",
+      "dueAt": "2026-08-12T16:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/01-cover.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/02-ferrari.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/03-audi.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/04-mclaren.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/05-mercedes.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/06-williams.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/07-cadillac.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/08-racing-bulls.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/02-score-needs-context/09-your-call.png"
+      ],
+      "firstCommentVerified": true,
+      "altTextVerified": true,
+      "storyInstructionsVerified": null
+    },
+    {
+      "key": "drivers-in-control",
+      "kind": "feed",
+      "bufferPostId": "6a70a7a6e9b8417b85e7b55e",
+      "dueAt": "2026-08-16T17:00:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/01-cover.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/02-red-bull-racing.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/03-haas.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/04-aston-martin.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/05-alpine.png",
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/03-drivers-in-control/06-your-call.png"
+      ],
+      "firstCommentVerified": true,
+      "altTextVerified": true,
+      "storyInstructionsVerified": null
+    },
+    {
+      "key": "story-ferrari",
+      "kind": "story",
+      "team": "Ferrari",
+      "bufferPostId": "6a70a7a77cf60490442d67b3",
+      "dueAt": "2026-08-11T10:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/01-ferrari.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-mclaren",
+      "kind": "story",
+      "team": "McLaren",
+      "bufferPostId": "6a70a7a77cf60490442d67d5",
+      "dueAt": "2026-08-11T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/02-mclaren.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-audi",
+      "kind": "story",
+      "team": "Audi",
+      "bufferPostId": "6a70a7a8554f8838d0975f56",
+      "dueAt": "2026-08-13T10:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/03-audi.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-williams",
+      "kind": "story",
+      "team": "Williams",
+      "bufferPostId": "6a70a7a9e61418f603facf6d",
+      "dueAt": "2026-08-13T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/04-williams.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-red-bull-racing",
+      "kind": "story",
+      "team": "Red Bull Racing",
+      "bufferPostId": "6a70a7a9c1d73a0338f13df3",
+      "dueAt": "2026-08-18T10:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/05-red-bull-racing.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-mercedes",
+      "kind": "story",
+      "team": "Mercedes",
+      "bufferPostId": "6a70a7aa7cf60490442d680a",
+      "dueAt": "2026-08-18T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/06-mercedes.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-cadillac",
+      "kind": "story",
+      "team": "Cadillac",
+      "bufferPostId": "6a70a7abe61418f603facf94",
+      "dueAt": "2026-08-20T10:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/07-cadillac.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-haas",
+      "kind": "story",
+      "team": "Haas",
+      "bufferPostId": "6a70a7ace9b8417b85e7b5ba",
+      "dueAt": "2026-08-20T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/08-haas.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-racing-bulls",
+      "kind": "story",
+      "team": "Racing Bulls",
+      "bufferPostId": "6a70a7ace61418f603facfb6",
+      "dueAt": "2026-08-22T10:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/09-racing-bulls.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-aston-martin",
+      "kind": "story",
+      "team": "Aston Martin",
+      "bufferPostId": "6a70a7adc1d73a0338f13e41",
+      "dueAt": "2026-08-22T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/10-aston-martin.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    },
+    {
+      "key": "story-alpine",
+      "kind": "story",
+      "team": "Alpine",
+      "bufferPostId": "6a70a7ae95fc25fa5541b726",
+      "dueAt": "2026-08-24T17:30:00.000Z",
+      "status": "scheduled",
+      "assetUrls": [
+        "https://gpp-social-assets-2026.pages.dev/social/instagram-h2h-2026/stories/11-alpine.png"
+      ],
+      "firstCommentVerified": null,
+      "altTextVerified": null,
+      "storyInstructionsVerified": true
+    }
+  ]
+}

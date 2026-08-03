@@ -62,7 +62,8 @@ a {
    360px card the bottom travels ~76px to the left and the `overflow:hidden`
    this class needs clips it away entirely — it renders as a nub in the top-left
    corner and nothing else. The lean is therefore absolute: the bar stays
-   visible at every container height. */
+   visible at every container height. Outer (left) edge is flush to the wall;
+   the cant lives on the inner edge only. */
 .gpp-stripe {
   position: relative;
   overflow: hidden;
@@ -76,7 +77,7 @@ a {
   width: calc(var(--stripe-width) + var(--stripe-lean));
   background: var(--accent);
   clip-path: polygon(
-    var(--stripe-lean) 0,
+    0 0,
     100% 0,
     calc(100% - var(--stripe-lean)) 100%,
     0 100%

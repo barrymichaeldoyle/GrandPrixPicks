@@ -84,13 +84,6 @@ export function ClerkHeaderUser({
         ) : null}
         {isMobile ? (
           <UserButton.Link
-            label="Races"
-            labelIcon={<Flag className="h-4 w-4" />}
-            href="/races"
-          />
-        ) : null}
-        {isMobile ? (
-          <UserButton.Link
             label="Leagues"
             labelIcon={<Users className="h-4 w-4" />}
             href="/leagues"

@@ -8,14 +8,18 @@ All times use Africa/Johannesburg.
 
 | Date           | Time  | Destination      | Post                                   |
 | -------------- | ----- | ---------------- | -------------------------------------- |
-| 4 August 2026  | 18:30 | r/GPPicks        | Start here                             |
-| 5 August 2026  | 12:00 | u/GrandPrixPicks | Repost Start here                      |
-| 6 August 2026  | 18:30 | r/GPPicks        | How scoring works                      |
-| 7 August 2026  | 12:00 | u/GrandPrixPicks | Repost scoring guide                   |
-| 8 August 2026  | 18:30 | r/GPPicks        | Global leaderboard and private leagues |
-| 9 August 2026  | 12:00 | u/GrandPrixPicks | Repost competition guide               |
-| 10 August 2026 | 18:30 | r/GPPicks        | Every 2026 team-mate battle            |
-| 11 August 2026 | 12:00 | u/GrandPrixPicks | Repost H2H scorecard                   |
+| 3 August 2026  | -     | r/GPPicks        | Start here (posted)                    |
+| 4 August 2026  | 12:00 | u/GrandPrixPicks | Repost Start here                      |
+| 5 August 2026  | 18:30 | r/GPPicks        | How scoring works                      |
+| 6 August 2026  | 12:00 | u/GrandPrixPicks | Repost scoring guide                   |
+| 7 August 2026  | 18:30 | r/GPPicks        | Global leaderboard and private leagues |
+| 8 August 2026  | 12:00 | u/GrandPrixPicks | Repost competition guide               |
+| 9 August 2026  | 18:30 | r/GPPicks        | Every 2026 team-mate battle            |
+| 10 August 2026 | 12:00 | u/GrandPrixPicks | Repost H2H scorecard                   |
+
+Start here went out on 3 August, a day ahead of the original plan, so everything
+after it moved one day earlier to preserve the cadence: community post at 18:30,
+profile repost at 12:00 the following day.
 
 The first three posts are evergreen. The H2H scorecard is timely summer-break content and can move by a day if another F1 story dominates the conversation.
 
@@ -73,7 +77,7 @@ Add to Community Highlights in position 1 with the label `Start here`.
 
 ### Profile repost
 
-On 5 August, use **Repost** on the original `r/GPPicks` post and choose `u/GrandPrixPicks` as the destination.
+On 4 August, use **Repost** on the original `r/GPPicks` post and choose `u/GrandPrixPicks` as the destination.
 
 **Repost title:** A quick guide to the free F1 prediction game I am building
 
@@ -128,7 +132,7 @@ Add to Community Highlights in position 2 with the label `Scoring`.
 
 ### Profile repost
 
-On 7 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
+On 6 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
 
 **Repost title:** Close still counts: the Grand Prix Picks scoring system
 
@@ -175,7 +179,7 @@ Add to Community Highlights in position 3 with the label `Private leagues`.
 
 ### Profile repost
 
-On 9 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
+On 8 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
 
 **Repost title:** One score for the global leaderboard and every private league
 
@@ -246,7 +250,7 @@ Add to Community Highlights in position 4 with the label `2026 H2H`. Remove it o
 
 ### Profile repost
 
-On 11 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
+On 10 August, repost the original `r/GPPicks` post to `u/GrandPrixPicks`.
 
 **Repost title:** The complete 2026 F1 team-mate scorecard at the summer break
 

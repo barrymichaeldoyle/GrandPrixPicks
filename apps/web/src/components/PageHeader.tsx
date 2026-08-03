@@ -4,6 +4,19 @@ type PageHeaderProps = {
   /** Small accent label above the title, e.g. "Legal" or "Game guide". */
   eyebrow?: string;
   title: string;
+  /**
+   * Show the title as a placeholder because the data behind it has not arrived.
+   *
+   * For a title that changes once a query lands ("Your race weekend" becoming
+   * "Welcome back, Barry"), the fallback wording is not a neutral default: it
+   * is a different sentence, and swapping it under the reader is the same
+   * wrong-then-right flash the page's cards already avoid with skeletons.
+   *
+   * `title` is still what assistive tech reads, so the page never carries an
+   * unlabelled `h1`, and the placeholder is sized to the rendered line so
+   * nothing moves when the real title replaces it.
+   */
+  titleLoading?: boolean;
   subtitle?: ReactNode;
   /** Buttons or links rendered beneath the supporting copy. */
   actions?: ReactNode;
@@ -29,6 +42,7 @@ type PageHeaderProps = {
 export function PageHeader({
   eyebrow,
   title,
+  titleLoading = false,
   subtitle,
   actions,
   actionsPlacement = 'below',
@@ -42,7 +56,19 @@ export function PageHeader({
         </p>
       ) : null}
       <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
-        {title}
+        {titleLoading ? (
+          <>
+            <span className="sr-only">{title}</span>
+            {/* h-9 / sm:h-10 are the line boxes of text-3xl / text-4xl, so the
+                real title lands in exactly this space. */}
+            <span
+              aria-hidden
+              className="block h-9 w-72 max-w-full animate-pulse rounded bg-surface-muted sm:h-10"
+            />
+          </>
+        ) : (
+          title
+        )}
       </h1>
       {/* A string is the common case and gets a paragraph. Anything richer
           (the leaderboard runs a second line with a link in it) is rendered

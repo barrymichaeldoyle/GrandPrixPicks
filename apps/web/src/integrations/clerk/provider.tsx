@@ -17,6 +17,12 @@ if (!PUBLISHABLE_KEY) {
 interface AppClerkProviderProps extends PropsWithChildren {
   /** When true, Clerk components use the dark theme. */
   darkMode?: boolean;
+  /**
+   * A sign-in has already happened on this page load, so treat the viewer as
+   * signed in until Clerk's own boot catches up. See
+   * {@link ClerkViewerSessionBridge}.
+   */
+  assumeSignedIn?: boolean;
 }
 
 const clerkElements = {
@@ -57,6 +63,7 @@ const clerkElements = {
 export function AppClerkProvider({
   children,
   darkMode = false,
+  assumeSignedIn = false,
 }: AppClerkProviderProps) {
   return (
     <ClerkProvider
@@ -93,12 +100,26 @@ export function AppClerkProvider({
         },
       }}
     >
-      <ClerkViewerSessionBridge>{children}</ClerkViewerSessionBridge>
+      <ClerkViewerSessionBridge assumeSignedIn={assumeSignedIn}>
+        {children}
+      </ClerkViewerSessionBridge>
     </ClerkProvider>
   );
 }
 
-function ClerkViewerSessionBridge({ children }: PropsWithChildren) {
+/**
+ * `assumeSignedIn` covers the one case the SSR signal cannot: signing in from a
+ * page that was server-rendered signed *out*. Activating the authenticated
+ * runtime swaps the provider tree, so this bridge mounts fresh with
+ * `hasConfirmedSession` back at false and `initialAuth.isSignedIn` still
+ * reporting the (now stale) signed-out SSR answer. Without the override the app
+ * renders its logged-out self for a beat before Clerk finishes booting, which is
+ * exactly the landing-page flash the curtain is there to hide.
+ */
+function ClerkViewerSessionBridge({
+  children,
+  assumeSignedIn,
+}: PropsWithChildren<{ assumeSignedIn: boolean }>) {
   const { isLoaded, isSignedIn: clientSignedIn } = useAuth();
   const initialAuth = useInitialAuth();
   // Sticky: once Clerk confirms a session on this page load, a later
@@ -117,7 +138,7 @@ function ClerkViewerSessionBridge({ children }: PropsWithChildren) {
       value={deriveViewerSession({
         isLoaded,
         clientSignedIn,
-        initialSignedIn: initialAuth.isSignedIn,
+        initialSignedIn: initialAuth.isSignedIn || assumeSignedIn,
         hasConfirmedSession,
       })}
     >

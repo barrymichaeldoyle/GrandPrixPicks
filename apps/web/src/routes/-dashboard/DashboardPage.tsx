@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Pill } from '@/components/Pill';
 import { RaceFlag } from '@/components/RaceFlag';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
+import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
@@ -51,12 +52,50 @@ export function DashboardPage() {
 
   const firstName = (me?.displayName ?? me?.username)?.trim().split(/\s+/)[0];
 
+  /**
+   * `LatestResultCard` prefers the race leaderboard's numbers and falls back to
+   * the weekend summary's. Those are *different numbers*, not a coarser version
+   * of the same ones: combined vs Top 5 points, combined vs Top 5 rank, and an
+   * H2H column that is a dash until the leaderboard lands. Rendering the
+   * fallbacks while the leaderboard is still in flight shows the reader a rank
+   * that then changes under them, so the card waits for the query it prefers.
+   *
+   * The `undefined` weekend arm matters: with no scored weekend the leaderboard
+   * query is skipped and never resolves, so waiting on it would hang.
+   */
+  const latestResultReady =
+    history !== undefined &&
+    (latestScoredWeekend === undefined || latestRaceLeaderboard !== undefined);
+
+  /**
+   * Holds the sign-in curtain until everything above the fold is final.
+   *
+   * These resolve in three waves, not one (`history` needs `me`,
+   * `latestRaceLeaderboard` needs `history`), so this is a couple of extra
+   * round trips behind the loader. Worth it here: the visitor has just spent
+   * seconds signing in, another beat is imperceptible, and the alternative is
+   * revealing a dashboard that reflows and rewrites its own numbers. The feed
+   * below is deliberately excluded, and `AuthCurtainHost` caps the wait.
+   */
+  useAuthCurtainGate(
+    me !== undefined &&
+      currentWeekend !== undefined &&
+      seasonLeaderboard !== undefined &&
+      leagues !== undefined &&
+      latestResultReady,
+  );
+
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto w-full max-w-6xl px-4 py-7 sm:py-9">
         <PageHeader
           eyebrow="Dashboard"
           title={firstName ? `Welcome back, ${firstName}` : 'Your race weekend'}
+          // A signed-in reload server-renders this header before Convex can say
+          // who the viewer is, and there is no curtain on that path to hide the
+          // gap. Without the placeholder the greeting rewrites itself a beat
+          // after paint.
+          titleLoading={me === undefined}
           subtitle="Make the next call, check your latest result, and see what your leagues are doing."
           className="mb-7"
         />
@@ -68,7 +107,7 @@ export function DashboardPage() {
             <LatestResultCard
               weekend={latestScoredWeekend}
               leaderboard={latestRaceLeaderboard}
-              loading={history === undefined}
+              loading={!latestResultReady}
             />
           </div>
 
@@ -414,19 +453,31 @@ function SeasonStandingCard({
     | FunctionReturnType<typeof api.leaderboards.getCombinedSeasonLeaderboard>
     | undefined;
 }) {
+  // The card's chrome and its link are known before its data is, so only the
+  // data waits. The body is sized to this card's *shortest* real state (the
+  // two-line "no rank yet" copy) rather than its tallest: the height depends on
+  // data nobody has yet, so some mismatch is unavoidable, and one that lets the
+  // card grow downward is far less jarring than one that yanks the section
+  // below it upward. On the sign-in path there is no mismatch at all, because
+  // the curtain waits for this query.
   if (leaderboard === undefined) {
     return (
-      <div className="h-32 animate-pulse rounded-lg border border-border bg-surface" />
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <SeasonStandingHeading />
+        <div
+          className="mt-3 h-10 animate-pulse rounded bg-surface-muted"
+          aria-busy="true"
+          aria-label="Loading your season standing"
+        />
+        <SeasonStandingLink />
+      </div>
     );
   }
 
   const entry = leaderboard.viewerEntry;
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-accent" aria-hidden />
-        <h2 className="gpp-label text-text-muted">Season standing</h2>
-      </div>
+      <SeasonStandingHeading />
       {entry ? (
         <>
           <div className="mt-4 flex items-end justify-between gap-3">
@@ -462,14 +513,30 @@ function SeasonStandingCard({
           Your rank appears after your first scored session.
         </p>
       )}
-      <Link
-        to="/leaderboard"
-        className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover"
-      >
-        View leaderboard
-        <ArrowRight className="h-3 w-3" aria-hidden />
-      </Link>
+      <SeasonStandingLink />
     </div>
+  );
+}
+
+/** Shared by the card and its skeleton so the two cannot drift apart. */
+function SeasonStandingHeading() {
+  return (
+    <div className="flex items-center gap-2">
+      <Trophy className="h-4 w-4 text-accent" aria-hidden />
+      <h2 className="gpp-label text-text-muted">Season standing</h2>
+    </div>
+  );
+}
+
+function SeasonStandingLink() {
+  return (
+    <Link
+      to="/leaderboard"
+      className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover"
+    >
+      View leaderboard
+      <ArrowRight className="h-3 w-3" aria-hidden />
+    </Link>
   );
 }
 
@@ -480,7 +547,15 @@ function DashboardLeaguesCard({
 }) {
   if (leagues === undefined) {
     return (
-      <div className="h-36 animate-pulse rounded-lg border border-border bg-surface" />
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <LeaguesHeading />
+        {/* Mirrors the shortest real state: the two-line "start a league" copy
+            and its button. See the note on the season standing skeleton. */}
+        <div aria-busy="true" aria-label="Loading your leagues">
+          <div className="mt-3 h-10 animate-pulse rounded bg-surface-muted" />
+          <div className="mt-4 h-9 animate-pulse rounded bg-surface-muted" />
+        </div>
+      </div>
     );
   }
 
@@ -490,18 +565,7 @@ function DashboardLeaguesCard({
 
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-accent" aria-hidden />
-          <h2 className="gpp-label text-text-muted">Your leagues</h2>
-        </div>
-        <Link
-          to="/leagues"
-          className="text-xs font-semibold text-accent hover:text-accent-hover"
-        >
-          See all
-        </Link>
-      </div>
+      <LeaguesHeading />
 
       {visibleLeagues.length > 0 ? (
         <ul className="mt-3 divide-y divide-border">
@@ -534,6 +598,24 @@ function DashboardLeaguesCard({
           <Link to="/leagues">Find or create a league</Link>
         </Button>
       ) : null}
+    </div>
+  );
+}
+
+/** Shared by the card and its skeleton so the two cannot drift apart. */
+function LeaguesHeading() {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-accent" aria-hidden />
+        <h2 className="gpp-label text-text-muted">Your leagues</h2>
+      </div>
+      <Link
+        to="/leagues"
+        className="text-xs font-semibold text-accent hover:text-accent-hover"
+      >
+        See all
+      </Link>
     </div>
   );
 }

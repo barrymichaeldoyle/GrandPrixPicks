@@ -10,7 +10,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProviderWithAuth } from 'convex/react';
-import { Flag, Home } from 'lucide-react';
+import { Flag, Home, Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
 
@@ -20,6 +20,10 @@ import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ScrollToTop } from '@/components/ScrollToTop';
+import {
+  AuthCurtainHost,
+  useAuthCurtain,
+} from '@/integrations/clerk/auth-curtain';
 import {
   fetchInitialAuth,
   InitialAuthProvider,
@@ -302,7 +306,7 @@ function RootDocument({ children }: PropsWithChildren) {
               <AuthenticatedDeferredFeature>
                 <DeferredObservabilityUserSync />
               </AuthenticatedDeferredFeature>
-              <div className="relative z-10 flex min-h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-clip pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]">
+              <AppShell>
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:rounded-sm focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-text"
@@ -336,13 +340,38 @@ function RootDocument({ children }: PropsWithChildren) {
                     ]}
                   />
                 </div>
-              </div>
+              </AppShell>
             </AppRuntimeBoundary>
           </InitialAuthProvider>
         </AppMotionProvider>
         <Scripts />
       </body>
     </html>
+  );
+}
+
+/**
+ * The visible app frame.
+ *
+ * Only reason it is a component: while the sign-in curtain is up this has to go
+ * `inert`, so nothing behind the loader is focusable or reachable by a screen
+ * reader. `visibility: hidden` rather than `display: none` because the page
+ * underneath must keep mounting and fetching (its curtain gates depend on it).
+ * Outside a handoff `active` is false and this renders the same DOM it always
+ * did, with no extra attributes.
+ */
+function AppShell({ children }: PropsWithChildren) {
+  const { active } = useAuthCurtain();
+
+  return (
+    <div
+      className={`relative z-10 flex min-h-[var(--app-viewport-height,100dvh)] flex-col overflow-x-clip pt-[var(--app-top-overlay-offset,0px)] pb-[var(--app-bottom-overlay-offset,0px)]${
+        active ? ' invisible' : ''
+      }`}
+      inert={active}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -356,6 +385,13 @@ function AppRuntimeBoundary({
 }>) {
   /** A Clerk redirect landed back on this page; the handshake needs the runtime. */
   const [returningFromClerk, setReturningFromClerk] = useState(false);
+  /**
+   * Narrower than `returningFromClerk`: a `__clerk*` callback parameter is only
+   * ever a sign-in handshake, whereas an accounts.dev referrer also covers a
+   * hosted sign-*out*. Only the unambiguous case may raise the curtain, or a
+   * signing-out visitor would stare at "Signing you in" until it timed out.
+   */
+  const [clerkHandshake, setClerkHandshake] = useState(false);
   /** The modal reported a session, so the page becomes the signed-in app. */
   const [signedInViaModal, setSignedInViaModal] = useState(false);
   /** Provider mounted but idle: pays the Clerk boot cost before the click. */
@@ -391,6 +427,9 @@ function AppRuntimeBoundary({
 
     if (fromClerk || hasClerkCallback) {
       setReturningFromClerk(true);
+    }
+    if (hasClerkCallback) {
+      setClerkHandshake(true);
     }
   }, []);
 
@@ -475,18 +514,64 @@ function AppRuntimeBoundary({
     );
   }
 
+  /**
+   * A sign-in has landed and the authenticated app is still assembling: the
+   * runtime chunk, Clerk's own boot, the route's lazy page and its first Convex
+   * reads all resolve after this point. Every one of those steps has a
+   * signed-out or placeholder rendering, so the curtain covers the lot.
+   *
+   * Both inputs are set client-side only, so SSR renders `false` for everyone
+   * and an anonymous visit is byte-identical to what it was before.
+   */
+  const authHandoff = signedInViaModal || clerkHandshake;
+
   return (
     <ClerkRuntimeControlProvider value={runtimeControl}>
       <Suspense
         fallback={
           pathname === '/' ? (
-            <AnonymousAppRuntime>{children}</AnonymousAppRuntime>
+            /* The home route renders its landing page whenever the viewer
+               session says signed out, and this fallback has no Clerk to say
+               otherwise. For a viewer we already know is signed in that would
+               paint the logged-out page for the length of a chunk fetch, so
+               they get the curtain instead; everyone else (crawlers included)
+               still gets the fully rendered landing page. */
+            initialSignedIn || authHandoff ? (
+              <RuntimeBootCurtain />
+            ) : (
+              <AnonymousAppRuntime>{children}</AnonymousAppRuntime>
+            )
           ) : null
         }
       >
-        <AuthenticatedAppRuntime>{children}</AuthenticatedAppRuntime>
+        <AuthenticatedAppRuntime assumeSignedIn={authHandoff}>
+          <AuthCurtainHost handoff={authHandoff}>{children}</AuthCurtainHost>
+        </AuthenticatedAppRuntime>
       </Suspense>
     </ClerkRuntimeControlProvider>
+  );
+}
+
+/**
+ * Stand-in for the whole app while the authenticated runtime chunk resolves for
+ * someone we already know is signed in. Deliberately not `AnonymousAppRuntime`:
+ * this window must not render the app's logged-out face.
+ */
+function RuntimeBootCurtain() {
+  return (
+    <div
+      className="flex min-h-[var(--app-viewport-height,100dvh)] flex-col items-center justify-center gap-4 bg-page"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        className="h-8 w-8 animate-spin text-accent motion-reduce:animate-none"
+        aria-hidden
+      />
+      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+        Loading your dashboard
+      </p>
+    </div>
   );
 }
 

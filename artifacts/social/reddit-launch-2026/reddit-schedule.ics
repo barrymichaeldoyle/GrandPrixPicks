@@ -1,0 +1,191 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Grand Prix Picks//Reddit launch 2026//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Grand Prix Picks - Reddit launch
+X-WR-TIMEZONE:Africa/Johannesburg
+BEGIN:VTIMEZONE
+TZID:Africa/Johannesburg
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0200
+TZNAME:SAST
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:gpp-reddit-2026-02-start-here-repost@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260804T120000
+DTEND;TZID=Africa/Johannesburg:20260804T121000
+SUMMARY:Repost to u/GrandPrixPicks: Start here
+LOCATION:u/GrandPrixPicks
+DESCRIPTION:Use Reddit's Repost action on the original r/GPPicks post.\n\n
+ Repost title: A quick guide to the free F1 prediction game I am building\n
+ \nDo NOT re-upload the gallery and do NOT add another promotional comment.
+ \n\nFull copy: artifacts/social/reddit-launch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: Start here (in 30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: Start here
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-03-scoring@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260805T183000
+DTEND;TZID=Africa/Johannesburg:20260805T185000
+SUMMARY:Post to r/GPPicks: How scoring works
+LOCATION:r/GPPicks
+DESCRIPTION:Post 2 of 4 - "How scoring works"\n\nTitle: How scoring works:
+  exact calls score 5\, one place away scores 3\n\nImages: artifacts/social
+ /reddit-launch-2026/images/02-how-scoring-works (5 images\, gallery\, file
+ name order)\n\nAfter publishing:\n- Add the moderator comment (the P5 to P
+ 6 edge case)\n- Add to Community Highlights\, position 2\, label "Scoring"
+ \n- Check the gallery on mobile\n\nFull copy: artifacts/social/reddit-laun
+ ch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: How scoring works (in 30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: How scoring works
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-04-scoring-repost@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260806T120000
+DTEND;TZID=Africa/Johannesburg:20260806T121000
+SUMMARY:Repost to u/GrandPrixPicks: How scoring works
+LOCATION:u/GrandPrixPicks
+DESCRIPTION:Use Reddit's Repost action on the original r/GPPicks post.\n\n
+ Repost title: Close still counts: the Grand Prix Picks scoring system\n\nD
+ o NOT re-upload the gallery.\n\nFull copy: artifacts/social/reddit-launch-
+ 2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: How scoring works (in 30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: How scoring works
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-05-leagues@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260807T183000
+DTEND;TZID=Africa/Johannesburg:20260807T185000
+SUMMARY:Post to r/GPPicks: Global leaderboard and private leagues
+LOCATION:r/GPPicks
+DESCRIPTION:Post 3 of 4 - "Global leaderboard and private leagues"\n\nTitl
+ e: One set of F1 predictions counts globally and in every private league\n
+ \nImages: artifacts/social/reddit-launch-2026/images/03-global-private (4
+ images\, gallery\, filename order)\n\nAfter publishing:\n- Add the moderat
+ or comment\n- Add to Community Highlights\, position 3\, label "Private le
+ agues"\n- Check the gallery on mobile\n\nFull copy: artifacts/social/reddi
+ t-launch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: Global leaderboard and private leagues (in
+  30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: Global leaderboard and private leagues
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-06-leagues-repost@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260808T120000
+DTEND;TZID=Africa/Johannesburg:20260808T121000
+SUMMARY:Repost to u/GrandPrixPicks: Global and private competition
+LOCATION:u/GrandPrixPicks
+DESCRIPTION:Use Reddit's Repost action on the original r/GPPicks post.\n\n
+ Repost title: One score for the global leaderboard and every private leagu
+ e\n\nDo NOT re-upload the gallery.\n\nFull copy: artifacts/social/reddit-l
+ aunch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: Global and private competition (in
+  30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: Global and private competition
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-07-h2h@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260809T183000
+DTEND;TZID=Africa/Johannesburg:20260809T190000
+SUMMARY:Post to r/GPPicks: Every 2026 team-mate battle
+LOCATION:r/GPPicks
+DESCRIPTION:Post 4 of 4 - "Every 2026 team-mate battle"\n\nTitle: Every 20
+ 26 F1 team-mate battle at the summer break\n\nImages: artifacts/social/red
+ dit-launch-2026/images/04-summer-break-h2h (12 images\, gallery\, filename
+  order - cover first\, then 11 team cards)\n\nAfter publishing:\n- Add the
+  moderator comment (methodology note)\n- Add to Community Highlights\, pos
+ ition 4\, label "2026 H2H"\n- Check the gallery on mobile\n\nTimely conten
+ t: this one can slip a day if another F1 story dominates.\n\nFull copy: ar
+ tifacts/social/reddit-launch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: Every 2026 team-mate battle (in 30 min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Post to r/GPPicks: Every 2026 team-mate battle
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:gpp-reddit-2026-08-h2h-repost@grandprixpicks.com
+DTSTAMP:20260803T160000Z
+SEQUENCE:1
+DTSTART;TZID=Africa/Johannesburg:20260810T120000
+DTEND;TZID=Africa/Johannesburg:20260810T121000
+SUMMARY:Repost to u/GrandPrixPicks: 2026 team-mate scorecard
+LOCATION:u/GrandPrixPicks
+DESCRIPTION:Use Reddit's Repost action on the original r/GPPicks post.\n\n
+ Repost title: The complete 2026 F1 team-mate scorecard at the summer break
+ \n\nDo NOT re-upload the gallery.\n\nFull copy: artifacts/social/reddit-la
+ unch-2026/reddit-posts.md
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: 2026 team-mate scorecard (in 30
+  min)
+END:VALARM
+BEGIN:VALARM
+TRIGGER:PT0M
+ACTION:DISPLAY
+DESCRIPTION:Repost to u/GrandPrixPicks: 2026 team-mate scorecard
+END:VALARM
+END:VEVENT
+END:VCALENDAR

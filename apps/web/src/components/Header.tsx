@@ -55,8 +55,8 @@ type NextRace = FunctionReturnType<typeof api.races.getNextRace>;
 
 /**
  * Always-available shortcut to the next race's picks for signed-in users —
- * returning users shouldn't have to go via Races → find the round. Shows the
- * race flag everywhere; the race name joins it when there's room.
+ * returning users shouldn't have to dig through the calendar. Shows the race
+ * flag everywhere; the race name joins it when there's room.
  */
 function NextRaceQuickLink({
   isSignedIn,

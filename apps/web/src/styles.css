@@ -155,22 +155,6 @@
     overscroll-behavior: none;
   }
 
-  /* StartupBar is asynchronous, but its loader normally adds 36px of body
-   padding only after DOMContentLoaded. Reserving that rail from the first paint
-   prevents a site-wide layout shift. Its iPhone Safari fallback is a static
-   iframe, so the reservation is removed in the same task that inserts it. */
-  html[data-startupbar-mode='fixed'] body {
-    padding-top: 36px !important;
-  }
-
-  html[data-startupbar-mode='fixed'] [data-app-header] {
-    top: 36px;
-  }
-
-  html[data-startupbar-mode='static']:not([data-startupbar-injected='1']) body {
-    padding-top: 36px;
-  }
-
   ::selection {
     background: var(--accent);
     color: var(--text-on-accent);

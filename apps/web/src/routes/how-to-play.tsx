@@ -263,7 +263,7 @@ function HowToPlayPage() {
               {scoringRows.slice(0, 3).map((row) => (
                 <article
                   key={row.points}
-                  className={`flex min-h-[22rem] flex-col border border-border border-b-8 bg-surface p-5 ${row.ruleClass}`}
+                  className={`flex min-h-[22rem] flex-col border border-b-8 border-border bg-surface p-5 ${row.ruleClass}`}
                 >
                   <div className={`flex items-end gap-2 ${row.toneClass}`}>
                     <span className="gpp-mono text-5xl leading-none font-semibold">
@@ -334,7 +334,7 @@ function HowToPlayPage() {
             </div>
 
             <article
-              className={`mt-4 grid gap-5 border border-border border-b-4 bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center ${scoringRows[3].ruleClass}`}
+              className={`mt-4 grid gap-5 border border-b-4 border-border bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center ${scoringRows[3].ruleClass}`}
             >
               <div className="flex gap-4 sm:items-center">
                 <span
@@ -356,14 +356,17 @@ function HowToPlayPage() {
                 <strong className={scoringRows[3].toneClass}>
                   {scoringRows[3].pick}
                 </strong>
-                <ArrowRight className="h-4 w-4 text-text-disabled" aria-hidden />
+                <ArrowRight
+                  className="h-4 w-4 text-text-disabled"
+                  aria-hidden
+                />
                 <strong className={scoringRows[3].toneClass}>
                   {scoringRows[3].result}
                 </strong>
               </div>
             </article>
 
-            <div className="mt-4 grid gap-4 border border-border border-b-4 border-b-result-near bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="mt-4 grid gap-4 border border-b-4 border-border border-b-result-near bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center">
               <p className="gpp-reading-copy text-text-muted">
                 <strong className="text-text">Still close:</strong> the 3-point
                 rule also applies just outside the Top 5. Predict P5 and finish
@@ -401,7 +404,7 @@ function HowToPlayPage() {
                   earns 1 point. An incorrect or unscorable matchup earns 0.
                 </p>
               </div>
-              <div className="border border-border border-b-4 border-b-result-near bg-surface p-6">
+              <div className="border border-b-4 border-border border-b-result-near bg-surface p-6">
                 <p className="font-title gpp-mono text-6xl leading-none font-semibold text-result-near">
                   1
                 </p>

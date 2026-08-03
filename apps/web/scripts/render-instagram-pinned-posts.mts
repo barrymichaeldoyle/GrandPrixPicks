@@ -1615,10 +1615,92 @@ function competitionCoverSlide(): ReactNode {
       {
         style: {
           display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 0,
+          width: WIDTH,
+          top: 575,
+          alignItems: 'center',
+          fontFamily: 'IBM Plex Mono',
+          color: colors.accent,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontSize: 112,
+            fontWeight: 600,
+            lineHeight: 1,
+          },
+        },
+        score,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 7,
+            fontSize: 14,
+            fontWeight: 600,
+            letterSpacing: 2.3,
+            color: colors.textMuted,
+          },
+        },
+        'YOUR SCORE',
+      ),
+    ),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 539,
+        top: 710,
+        width: 2,
+        height: 72,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 304,
+        top: 780,
+        width: 472,
+        height: 2,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 304,
+        top: 780,
+        width: 2,
+        height: 40,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 775,
+        top: 780,
+        width: 2,
+        height: 40,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
           position: 'absolute',
           left: 80,
           right: 80,
-          top: 760,
+          top: 820,
           gap: 24,
         },
       },
@@ -1675,19 +1757,73 @@ function globalLeaderboardSlide(): ReactNode {
       {
         style: {
           display: 'flex',
+          flexDirection: 'column',
           position: 'absolute',
           left: 80,
           right: 80,
-          top: 525,
+          top: 475,
         },
       },
-      competitionStandingsPanel('GLOBAL LEADERBOARD', 'FULL SEASON', [
-        { position: 10, name: 'ApexHunter', points: 468 },
-        { position: 11, name: 'LateBraker', points: 462 },
-        { position: 12, name: 'You', points: 455, isYou: true },
-        { position: 13, name: 'Box Box Sam', points: 443 },
-        { position: 14, name: 'Sunday Strategy', points: 428 },
-      ]),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            width: '100%',
+            height: 72,
+            border: `1px solid ${colors.borderStrong}`,
+            backgroundColor: colors.page,
+          },
+        },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              borderRight: `1px solid ${colors.borderStrong}`,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: 1.8,
+              color: colors.textMuted,
+            },
+          },
+          'RACE WEEKEND',
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              border: `1px solid ${colors.accent}`,
+              backgroundColor: colors.accentMuted,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: 1.8,
+              color: colors.accent,
+            },
+          },
+          'FULL SEASON',
+        ),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', width: '100%', marginTop: 16 } },
+        competitionStandingsPanel('GLOBAL LEADERBOARD', 'POINTS', [
+          { position: 10, name: 'ApexHunter', points: 468 },
+          { position: 11, name: 'LateBraker', points: 462 },
+          { position: 12, name: 'You', points: 455, isYou: true },
+          { position: 13, name: 'Box Box Sam', points: 443 },
+          { position: 14, name: 'Sunday Strategy', points: 428 },
+        ]),
+      ),
     ),
   );
 }
@@ -1834,11 +1970,7 @@ function privateLeagueSlide(): ReactNode {
   );
 }
 
-function scoreDestinationCard(
-  label: string,
-  value: string,
-  detail: string,
-): ReactNode {
+function pickDestinationCard(label: string, detail: string): ReactNode {
   return e(
     'div',
     {
@@ -1846,8 +1978,8 @@ function scoreDestinationCard(
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        minHeight: 220,
-        padding: '30px 28px 26px',
+        minHeight: 174,
+        padding: '27px 24px 24px',
         border: `1px solid ${colors.borderStrong}`,
         backgroundColor: colors.surface,
       },
@@ -1858,24 +1990,11 @@ function scoreDestinationCard(
       {
         style: {
           display: 'flex',
-          marginTop: 24,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 58,
+          marginTop: 22,
+          fontSize: 21,
           fontWeight: 600,
-          lineHeight: 1,
-          color: colors.accent,
-        },
-      },
-      value,
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          marginTop: 18,
-          fontSize: 20,
-          color: colors.textMuted,
+          lineHeight: 1.3,
+          color: colors.text,
         },
       },
       detail,
@@ -1899,72 +2018,89 @@ function oneSetOfPicksSlide(): ReactNode {
       },
       eyebrow('One set of picks'),
       headline('Make your picks once.', 92, 920),
-      body('The same score lands in every table you compete in.', 820),
+      body(
+        'Your saved predictions feed the global leaderboard and every private league you join.',
+        880,
+      ),
     ),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
           position: 'absolute',
           left: 80,
           right: 80,
-          top: 500,
+          top: 430,
         },
       },
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            fontFamily: 'IBM Plex Mono',
-            color: colors.accent,
-          },
+      completedTopFive(true),
+    ),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 539,
+        top: 798,
+        width: 2,
+        height: 66,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 226,
+        top: 862,
+        width: 627,
+        height: 2,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 226,
+        top: 862,
+        width: 2,
+        height: 42,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 539,
+        top: 862,
+        width: 2,
+        height: 42,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 852,
+        top: 862,
+        width: 2,
+        height: 42,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 904,
+          gap: 18,
         },
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              fontSize: 138,
-              fontWeight: 600,
-              lineHeight: 1,
-            },
-          },
-          '455',
-        ),
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              marginTop: 8,
-              fontSize: 15,
-              fontWeight: 600,
-              letterSpacing: 2.3,
-              color: colors.textMuted,
-            },
-          },
-          'YOUR SCORE',
-        ),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            width: '100%',
-            marginTop: 82,
-            gap: 24,
-          },
-        },
-        scoreDestinationCard('GLOBAL LEADERBOARD', '12th', 'Full season'),
-        scoreDestinationCard('SUNDAY STRATEGY CLUB', '1st', 'Private league'),
-      ),
+      },
+      pickDestinationCard('GLOBAL', 'Everyone'),
+      pickDestinationCard('SUNDAY STRATEGY', 'Private, 8 players'),
+      pickDestinationCard('PIT WALL CHAT', 'Private, 5 players'),
     ),
   );
 }

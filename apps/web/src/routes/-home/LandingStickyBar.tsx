@@ -42,9 +42,10 @@ export function LandingStickyBar({
     }
     const appHeader = header;
 
-    // StartupBar moves top-pinned chrome down by writing `top: 36px` directly
-    // onto it. Mirror the header's actual inset instead of coupling this strip
-    // to StartupBar: this also stays at zero in its iPhone Safari static mode.
+    // Mirror the header's actual inset rather than assuming it is pinned to
+    // zero, so any future top-of-page chrome pushes this strip down with it.
+    // Nothing shifts the header today — the StartupBar widget that used to is
+    // gone — but the coupling is to the header, not to whatever moved it.
     function syncHeaderTopOffset() {
       const next = Number.parseFloat(getComputedStyle(appHeader).top);
       setHeaderTopOffset(Number.isFinite(next) ? next : 0);

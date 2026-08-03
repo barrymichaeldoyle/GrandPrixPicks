@@ -3,8 +3,7 @@ import {
   socialRedirect,
 } from '../lib/socialRedirect';
 
-// Keep the Instagram profile URL short while preserving acquisition
-// attribution. `/instagram` is the long form of this same link.
+// The spelled-out form of `/ig`, so either works wherever the link is pasted.
 export default function handler() {
   return socialRedirect(INSTAGRAM_PROFILE_CAMPAIGN);
 }

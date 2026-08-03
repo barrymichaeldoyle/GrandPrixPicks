@@ -6,12 +6,16 @@
  * from organic search in analytics.
  *
  * The campaign strings live here rather than in the route files because more
- * than one path can point at the same campaign: `/r` and `/reddit` are two
- * spellings of one link, and if they drifted apart the traffic would land on
- * two different `utm_campaign` values and neither number would be true.
+ * than one path can point at the same campaign: `/r` and `/reddit`, `/ig` and
+ * `/instagram`, are each two spellings of one link. If they drifted apart the
+ * traffic would land on two different `utm_campaign` values and neither number
+ * would be true.
  */
 export const REDDIT_COMMUNITY_CAMPAIGN =
   '/?utm_source=reddit&utm_medium=social&utm_campaign=community';
+
+export const INSTAGRAM_PROFILE_CAMPAIGN =
+  '/?utm_source=instagram&utm_medium=social&utm_campaign=profile';
 
 /**
  * 302, not 301: these are marketing entry points, and a permanent redirect

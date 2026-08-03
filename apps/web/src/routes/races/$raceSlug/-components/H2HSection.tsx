@@ -222,7 +222,7 @@ export function H2HSection({
         ) : (
           <StartPicksCta
             icon={Swords}
-            description="Pick each teammate matchup once. We'll apply it across the weekend, and you can edit sessions before they start."
+            description="Pick each team-mate matchup once. We'll apply it across the weekend, and you can edit sessions before they start."
             actionLabel="Pick H2H Winners"
             onStart={() => setInitialPicksOpen(true)}
             data-testid="h2h-start-button"

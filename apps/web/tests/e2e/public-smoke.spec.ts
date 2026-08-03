@@ -31,6 +31,7 @@ test.describe('[public] smoke', () => {
     // Driver buttons are server-rendered; wait for React to attach the draft
     // handlers before exercising the conversion flow.
     await page.waitForTimeout(500);
+    await expect(page.getByText('Step 1 of 2')).toBeVisible();
     for (let pick = 0; pick < 5; pick += 1) {
       await page
         .locator('button[data-testid^="driver-"]:not([disabled])')
@@ -38,28 +39,30 @@ test.describe('[public] smoke', () => {
         .click();
       if (pick < 4) {
         await expect(page.getByTestId('picks-remaining')).toContainText(
-          `(${4 - pick} left)`,
+          `${4 - pick} left`,
         );
       }
     }
     // Filling the fifth slot no longer swaps the panel on its own: the player
     // gets their finished order to check and moves on when they choose to.
-    await expect(
-      page.getByRole('tab', { name: 'Top 5 ✓', selected: true }),
-    ).toBeVisible();
     await page
-      .getByRole('button', { name: 'Continue to teammate picks' })
+      .getByRole('button', { name: 'Continue to team-mate battles' })
       .click();
 
+    await expect(page.getByText('Step 2 of 2')).toBeVisible();
     await expect(
-      page.getByRole('tab', { name: 'Teammate H2H', selected: true }),
+      page.getByRole('heading', { name: 'Pick each team-mate winner' }),
     ).toBeVisible();
-    await expect(page.getByTestId('h2h-duel-progress')).toHaveText('0/11');
+    await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
+      'Team-mate battle 1 of 11',
+    );
     await page
       .locator('[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]')
       .first()
       .click();
-    await expect(page.getByTestId('h2h-duel-progress')).toHaveText('1/11');
+    await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
+      'Team-mate battle 2 of 11',
+    );
 
     await page.goto('/how-to-play');
     const guideHeader = page.getByRole('banner');

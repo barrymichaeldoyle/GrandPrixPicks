@@ -40,6 +40,8 @@ type RaceEventPageLayoutProps = {
   top5MainContent: ReactNode;
   h2hContent: ReactNode;
   h2hResultsContent: ReactNode;
+  /** Circuit briefing, rendered last so it never displaces the picks flow. */
+  circuitGuideContent?: ReactNode;
 };
 
 export function RaceEventPageLayout({
@@ -66,6 +68,7 @@ export function RaceEventPageLayout({
   top5MainContent,
   h2hContent,
   h2hResultsContent,
+  circuitGuideContent,
 }: RaceEventPageLayoutProps) {
   const { isAuthLoaded, isSignedIn } = viewer;
   const {
@@ -230,6 +233,8 @@ export function RaceEventPageLayout({
             {showResultsView && <div className="mt-5">{h2hResultsContent}</div>}
           </div>
         )}
+
+        {circuitGuideContent}
       </div>
     </div>
   );

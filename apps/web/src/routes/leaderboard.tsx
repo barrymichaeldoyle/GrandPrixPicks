@@ -4,7 +4,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -299,7 +299,7 @@ function LeaderboardPage() {
               <div className="min-h-14">
                 <AnimatePresence mode="wait">
                   {showStandingCard ? (
-                    <motion.div
+                    <m.div
                       key={timeScope}
                       initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -327,7 +327,7 @@ function LeaderboardPage() {
                           </div>
                         )}
                       </div>
-                    </motion.div>
+                    </m.div>
                   ) : null}
                 </AnimatePresence>
               </div>

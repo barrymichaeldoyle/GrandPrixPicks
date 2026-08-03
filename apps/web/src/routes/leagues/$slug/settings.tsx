@@ -51,6 +51,7 @@ export const Route = createFileRoute('/leagues/$slug/settings')({
       title,
       description,
       path: `/leagues/${params.slug}/settings`,
+      noIndex: true,
     });
   },
 });

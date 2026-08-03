@@ -23,12 +23,13 @@ import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
 import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { useBlocker } from '@tanstack/react-router';
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
+import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
@@ -45,6 +46,7 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { getRaceSessionLockAt } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
+import { useIsomorphicLayoutEffect } from '@/lib/useIsomorphicLayoutEffect';
 import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
 import { DraftRestoredNotice } from './DraftRestoredNotice';
@@ -150,7 +152,7 @@ function SortablePickRow({
     transition,
   };
   return (
-    <motion.div
+    <m.div
       ref={setNodeRef}
       style={style}
       layout={!isDragging}
@@ -233,7 +235,7 @@ function SortablePickRow({
           <X size={16} className="text-error" />
         </button>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -296,13 +298,13 @@ function DraggableDriverCard({
         onTap();
       }}
       disabled={disabled}
-      aria-label={`${driver.displayName}${
-        picked
-          ? ` (picked P${pickedPosition})`
-          : disabled
-            ? ' (five drivers already picked)'
-            : ''
-      }`}
+      /*
+       * No `aria-label` here on purpose. It used to read "Kimi Antonelli" while
+       * the card showed "ANT Antonelli", so the accessible name did not contain
+       * the visible one (WCAG 2.5.3, Label in Name) and a voice-control user
+       * saying "click ANT" hit nothing. The name now comes from the card's own
+       * text, with the state appended below as screen-reader-only.
+       */
       /*
        * Team colour is the 3px left bar, not the fill. Twenty-two saturated
        * tiles in a grid was the loudest surface in the app; confined to a bar
@@ -350,6 +352,15 @@ function DraggableDriverCard({
           P{pickedPosition}
         </span>
       ) : null}
+      {/* Appended after the visible text so the accessible name still starts
+          with what is on the card. */}
+      {picked ? (
+        <span className="sr-only">already picked</span>
+      ) : disabled ? (
+        <span className="sr-only">
+          unavailable, five drivers already picked
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -375,6 +386,10 @@ interface PredictionFormProps {
   /** Server-rendered driver seed used until the live Convex query resolves. */
   initialDrivers?: Doc<'drivers'>[];
   existingPicks?: Id<'drivers'>[];
+  /** Unsaved picks retained in memory across an auth-provider remount. */
+  initialDraftPicks?: Id<'drivers'>[];
+  /** Do not announce a same-page provider remount as a restored visit. */
+  suppressDraftRestoredNotice?: boolean;
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
   /** Called after a successful submit (e.g. to close an edit view). */
@@ -432,6 +447,8 @@ export function PredictionForm({
   raceId,
   initialDrivers,
   existingPicks,
+  initialDraftPicks,
+  suppressDraftRestoredNotice = false,
   sessionType,
   onSuccess,
   onDirtyChange,
@@ -465,7 +482,9 @@ export function PredictionForm({
   const topFiveCapturedRef = useRef(false);
   const yourPicksRef = useRef<HTMLDivElement>(null);
 
-  const [picks, setPicks] = useState<Id<'drivers'>[]>(existingPicks ?? []);
+  const [picks, setPicks] = useState<Id<'drivers'>[]>(
+    existingPicks ?? initialDraftPicks ?? [],
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
     'idle' | 'success' | 'error'
@@ -474,6 +493,9 @@ export function PredictionForm({
   const [restoredDraftAt, setRestoredDraftAt] = useState<string | null>(null);
   const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const now = useNow();
+  // Data-driven, not identity-driven. See useCallbackRef.
+  const reportCompletionState = useCallbackRef(onCompletionStateChange);
+  const reportPicksChange = useCallbackRef<[Id<'drivers'>[]]>(onPicksChange);
 
   function analyticsProperties() {
     return {
@@ -528,29 +550,35 @@ export function PredictionForm({
     }
   }
 
-  useEffect(() => {
+  // Layout, not passive: the draft is the difference between five empty slots
+  // and a filled grid, and a returning visitor should never watch the empty
+  // version paint first. React flushes this re-render before the browser
+  // paints, so the restore, the notice and every completion callback that
+  // cascades off it (up to and including the landing page jumping to step 2)
+  // resolve inside the same frame as hydration.
+  useIsomorphicLayoutEffect(() => {
     const draft = loadPredictionDraft<Top5Draft>(draftKey);
     if (draft && draft.picks.length > 0) {
       setPicks(draft.picks);
-      setRestoredDraftAt(draft.updatedAt);
+      setRestoredDraftAt(suppressDraftRestoredNotice ? null : draft.updatedAt);
     } else {
-      setPicks(existingPicks ?? []);
+      setPicks(existingPicks ?? initialDraftPicks ?? []);
       setRestoredDraftAt(null);
     }
     setHasHydratedDraft(true);
-  }, [draftKey, existingPicks]);
+  }, [draftKey, existingPicks, initialDraftPicks, suppressDraftRestoredNotice]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (hasHydratedDraft) {
-      onCompletionStateChange?.(picks.length === 5);
+      reportCompletionState(picks.length === 5);
     }
-  }, [hasHydratedDraft, onCompletionStateChange, picks.length]);
+  }, [hasHydratedDraft, reportCompletionState, picks.length]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (hasHydratedDraft) {
-      onPicksChange?.(picks);
+      reportPicksChange(picks);
     }
-  }, [hasHydratedDraft, onPicksChange, picks]);
+  }, [hasHydratedDraft, reportPicksChange, picks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -979,8 +1007,25 @@ export function PredictionForm({
   // Empty slots needed
   const emptySlots = 5 - pickedDrivers.length;
 
+  // One node, rendered either beside the driver-pool label or portalled into
+  // the parent's step heading. No parentheses: wherever it lands it is a line
+  // of its own, and bracketed text there reads as a fragment.
+  // order-last keeps it beside "Your Picks" while the row fits on one line,
+  // and makes it the first thing pushed off when the row runs out of space:
+  // it is commentary, so it yields to the heading and the how-to hints.
+  const pickStatusClassName = 'order-last text-sm font-normal text-text-muted';
+  const pickStatus =
+    picks.length >= 5 ? (
+      <span className={pickStatusClassName}>Remove a pick to change</span>
+    ) : (
+      <span className={pickStatusClassName} data-testid="picks-remaining">
+        {5 - picks.length} left
+      </span>
+    );
+
   return (
     <DndContext
+      id={`top-five-${raceId}`}
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
@@ -1002,6 +1047,10 @@ export function PredictionForm({
           >
             <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
               <h3 className="text-lg font-semibold text-text">Your Picks</h3>
+              {/* The status belongs to this list: it counts these slots and
+                  the change it asks for happens here. Wraps to its own line
+                  on narrow screens rather than squeezing the heading. */}
+              {pickStatus}
               {picks.length < 5 ? (
                 <p className="text-sm text-text-muted sm:hidden">
                   Tap drivers to fill your Top 5.
@@ -1156,30 +1205,18 @@ export function PredictionForm({
                 right-hand column against "Your Picks". Stacked on mobile it
                 just repeats the heading directly above it ("Choose your Top 5"
                 on the landing page, the session title in the race overlay), so
-                it stays for screen readers and the counter carries the line. */}
-            <h3 className="mb-2 flex flex-wrap items-baseline gap-x-2 text-lg font-semibold text-text sm:mb-3">
+                below lg it stays for screen readers only and costs no space. */}
+            <h3 className="mb-0 text-lg font-semibold text-text lg:mb-3">
               <span className="sr-only lg:not-sr-only">Select Drivers</span>
-              {/* No parentheses: on mobile the label above is hidden, so this
-                  stands alone as the line under the heading and reads as a
-                  fragment when bracketed. */}
-              {picks.length >= 5 ? (
-                <span className="text-sm font-normal text-text-muted">
-                  Remove a pick to change
-                </span>
-              ) : (
-                <span
-                  className="text-sm font-normal text-text-muted"
-                  data-testid="picks-remaining"
-                >
-                  {5 - picks.length} left
-                </span>
-              )}
             </h3>
             {mobileActionFirst ? (
+              /* Sentences are inline-block so the line breaks between them
+                 rather than mid-sentence, and stays on one line when it fits. */
               <p className="mb-3 text-sm text-text-muted lg:hidden">
-                Tap drivers in finishing order.
-                <br />
-                You can review and reorder them after your fifth pick.
+                <span className="inline-block">
+                  Tap drivers in finishing order.
+                </span>{' '}
+                <span className="inline-block">You can reorder later.</span>
               </p>
             ) : null}
             <DriverPoolDroppable>
@@ -1187,7 +1224,7 @@ export function PredictionForm({
                 const pickedIndex = picks.indexOf(driver._id);
                 const isPicked = pickedIndex !== -1;
                 return (
-                  <motion.div
+                  <m.div
                     key={driver._id}
                     layout
                     initial={false}
@@ -1210,7 +1247,7 @@ export function PredictionForm({
                       disabled={isPicked || picks.length >= 5}
                       onTap={() => addDriver(driver._id)}
                     />
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </DriverPoolDroppable>

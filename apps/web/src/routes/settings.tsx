@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { PageLoader } from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
+import { trackRegionalPreference } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { NotificationsSection } from './settings/-components/NotificationsSection';
@@ -158,6 +159,8 @@ function SettingsPage() {
     if (settings.locale !== undefined) {
       setOptimisticLocale(settings.locale);
     }
+
+    trackRegionalPreference(settings);
 
     updateRegional(settings).catch(() => {
       if (settings.timezone !== undefined) {

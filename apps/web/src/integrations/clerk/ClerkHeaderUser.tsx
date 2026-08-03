@@ -123,8 +123,33 @@ function OpenSignInOnMount({ signInOpened }: { signInOpened: () => void }) {
     if (!isLoaded) {
       return;
     }
-    void clerk.openSignIn();
-    signInOpened();
+
+    let finished = false;
+    function finish() {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      signInOpened();
+    }
+    function finishWhenModalExists() {
+      if (document.querySelector('.cl-modalBackdrop')) {
+        finish();
+      }
+    }
+
+    const observer = new MutationObserver(finishWhenModalExists);
+    observer.observe(document.body, { childList: true, subtree: true });
+    clerk.openSignIn();
+    finishWhenModalExists();
+    // Never leave the anonymous shell disabled if Clerk fails to create its
+    // modal. A normal second click can retry after this safety release.
+    const timeout = window.setTimeout(finish, 4_500);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timeout);
+    };
   }, [clerk, isLoaded, signInOpened]);
 
   return null;

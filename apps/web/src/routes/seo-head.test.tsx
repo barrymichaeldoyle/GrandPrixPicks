@@ -254,8 +254,8 @@ describe('SEO head metadata', () => {
     expect(types).toContain('FAQPage');
   });
 
-  it('publishes indexable teammate records with an ItemList', async () => {
-    const { Route: teammateRoute } = await import('./f1-teammate-battles');
+  it('publishes indexable team-mate records with an ItemList', async () => {
+    const { Route: teammateRoute } = await import('./f1-team-mate-battles');
     const head = asTeammateHeadRoute(teammateRoute).head({
       loaderData: {
         battles: {
@@ -287,7 +287,7 @@ describe('SEO head metadata', () => {
     expect(head.links).toEqual([
       {
         rel: 'canonical',
-        href: 'https://grandprixpicks.com/f1-teammate-battles',
+        href: 'https://grandprixpicks.com/f1-team-mate-battles',
       },
     ]);
     expect(graph?.map((node) => node['@type'])).toEqual([
@@ -298,6 +298,26 @@ describe('SEO head metadata', () => {
     expect(
       graph?.find((node) => node['@type'] === 'ItemList')?.numberOfItems,
     ).toBe(1);
+  });
+
+  it('sends the pre-rename spelling on to the page permanently', async () => {
+    // The closed-form spelling is the one most people type, so the old URL
+    // keeps working rather than 404ing anyone who linked or indexed it.
+    const [{ Route: legacyRoute }, { redirect }] = await Promise.all([
+      import('./f1-teammate-battles'),
+      import('@tanstack/react-router'),
+    ]);
+    const { beforeLoad } = legacyRoute as unknown as {
+      beforeLoad: () => void;
+    };
+
+    // `redirect` is mocked here, so the route throws whatever it returns
+    // rather than a real redirect object.
+    expect(beforeLoad).toThrow();
+    expect(redirect).toHaveBeenCalledWith({
+      to: '/f1-team-mate-battles',
+      statusCode: 301,
+    });
   });
 
   it('emits child canonical + noindex for follow list pages', async () => {

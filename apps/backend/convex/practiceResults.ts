@@ -701,3 +701,32 @@ export const getFp1ResultForRace = query({
       : null;
   },
 });
+
+/**
+ * Slugs of races that have at least one published practice session.
+ *
+ * The sitemap uses this to advertise only practice pages that actually have a
+ * classification on them. A practice page for a session that has not run is a
+ * one-line "not published yet" placeholder, and a sitemap full of those reads
+ * as thin content to crawlers.
+ */
+export const listRaceSlugsWithPracticeResults = query({
+  args: {},
+  handler: async (ctx) => {
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round')
+      .take(100);
+    const slugs: string[] = [];
+    for (const race of races) {
+      const published = await ctx.db
+        .query('practiceResults')
+        .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', race._id))
+        .first();
+      if (published) {
+        slugs.push(race.slug);
+      }
+    }
+    return slugs;
+  },
+});

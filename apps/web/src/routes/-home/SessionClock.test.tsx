@@ -57,10 +57,50 @@ describe('SessionClock', () => {
     });
 
     expect(container.querySelector('[role="timer"]')).not.toBeNull();
-    expect(container.textContent).toContain('Next deadline · Qualifying picks');
+    expect(container.textContent).toContain('Qualifying picks lock in');
   });
 
-  it('shows the date and picks-open framing while the deadline is weeks out', () => {
+  it('counts down inside the week, where a bare date urges nothing', () => {
+    const lockAt = Date.parse('2026-08-22T13:00:00Z');
+    act(() => {
+      root.render(
+        <SessionClock
+          raceName="Dutch Grand Prix"
+          raceSlug="netherlands-2026"
+          sessionLabel="Qualifying"
+          msRemaining={5 * 24 * 60 * 60 * 1000}
+          lockAt={lockAt}
+        />,
+      );
+    });
+
+    expect(container.querySelector('[role="timer"]')).not.toBeNull();
+    expect(container.textContent).not.toContain('Picks open now');
+  });
+
+  it('names the instant the digits are counting down to', () => {
+    const lockAt = Date.parse('2026-08-22T13:00:00Z');
+    act(() => {
+      root.render(
+        <SessionClock
+          raceName="Dutch Grand Prix"
+          raceSlug="netherlands-2026"
+          sessionLabel="Qualifying"
+          msRemaining={36 * 60 * 60 * 1000}
+          lockAt={lockAt}
+        />,
+      );
+    });
+
+    // "14 hours left" does not tell you whether you will be awake for it.
+    const viewer = formatViewerLockDate(lockAt);
+    expect(viewer).not.toBeNull();
+    expect(container.querySelector('[role="timer"]')).not.toBeNull();
+    expect(container.textContent).toContain(viewer?.date);
+    expect(container.textContent).toContain(viewer?.time);
+  });
+
+  it('drops to a day count once the deadline is weeks out', () => {
     const lockAt = Date.parse('2026-08-22T13:00:00Z');
     act(() => {
       root.render(
@@ -74,11 +114,18 @@ describe('SessionClock', () => {
       );
     });
 
-    // A three-week countdown reads as "no rush"; a date plus invitation does not.
-    expect(container.querySelector('[role="timer"]')).toBeNull();
-    expect(container.textContent).toContain('Next deadline · Qualifying picks');
+    // Still a countdown — a date alone makes the reader work out the distance
+    // from today — but the hours and minutes are not worth a hero at this range.
+    const timer = container.querySelector('[role="timer"]');
+    expect(timer?.getAttribute('aria-label')).toBe(
+      'Qualifying picks lock in 21 days',
+    );
+    // Spelled out, not "21 D". Lowercase in the DOM because `.gpp-label` is
+    // what uppercases it, so the word stays a word for anything reading text.
+    expect(timer?.textContent).toBe('21days');
+    expect(container.textContent).toContain('Qualifying picks lock in');
+    // The day count on its own could read as "come back later".
     expect(container.textContent).toContain('Picks open now');
-    expect(container.textContent).not.toContain('locks in');
   });
 
   it('swaps the date into the viewer timezone once mounted', () => {
@@ -123,7 +170,7 @@ describe('SessionClock', () => {
     expect(html).toContain('Picks open now');
   });
 
-  it('falls back to the countdown when the circuit timezone is unknown', () => {
+  it('keeps the countdown alone when the circuit timezone is unknown', () => {
     act(() => {
       root.render(
         <SessionClock
@@ -136,7 +183,11 @@ describe('SessionClock', () => {
       );
     });
 
+    // No zone means no instant to name, and an undated "locks at 14:00" would
+    // be worse than nothing. The countdown still stands on its own.
     expect(container.querySelector('[role="timer"]')).not.toBeNull();
+    expect(container.textContent).not.toContain('Picks open now');
+    expect(container.textContent).not.toContain('Aug');
   });
 });
 

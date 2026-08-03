@@ -145,7 +145,7 @@ type Story = StoryObj<typeof meta>;
 /**
  * The exact signed-out production journey. Pick five drivers in order; the
  * completed order unlocks an explicit continue action, followed by all 11
- * teammate duels and the combined account/save wall.
+ * team-mate duels and the combined account/save wall.
  */
 export const CompleteJourney: Story = {
   render: () => <JourneyPreview storyId="complete-journey" seedState="empty" />,

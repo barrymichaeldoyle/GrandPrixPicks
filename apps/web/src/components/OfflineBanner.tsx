@@ -1,5 +1,5 @@
 import { useConvexConnectionState } from 'convex/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -48,7 +48,7 @@ export function OfflineBanner() {
   return (
     <AnimatePresence>
       {isOffline && (
-        <motion.div
+        <m.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
@@ -63,7 +63,7 @@ export function OfflineBanner() {
             <WifiOff size={14} aria-hidden="true" />
             <span>No internet connection. Data may be outdated.</span>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

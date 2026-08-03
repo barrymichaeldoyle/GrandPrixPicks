@@ -18,7 +18,7 @@ export const Route = createFileRoute('/how-to-play')({
     const meta = pageMeta({
       title: 'How to Play | F1 Prediction Game Rules | Grand Prix Picks',
       description:
-        'Learn how to play Grand Prix Picks. See the Top 5 and teammate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
+        'Learn how to play Grand Prix Picks. See the Top 5 and team-mate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
       path: '/how-to-play',
     });
     return {
@@ -134,7 +134,7 @@ function HowToPlayPage() {
                   copy: 'Choose five unique drivers in the order you expect them to finish.',
                 },
                 {
-                  title: 'Call teammate battles',
+                  title: 'Call team-mate battles',
                   copy: 'Pick which driver will finish ahead in each Head-to-Head matchup.',
                 },
                 {
@@ -286,11 +286,11 @@ function HowToPlayPage() {
                   id="h2h-heading"
                   className="font-title text-xl font-semibold text-text"
                 >
-                  Teammate Head-to-Head
+                  Team-mate Head-to-Head
                 </h2>
                 <p className="gpp-reading-copy mt-2 max-w-2xl text-text-muted">
                   After saving your Top 5, choose which driver from each
-                  teammate pairing will finish ahead. Every correct matchup
+                  team-mate pairing will finish ahead. Every correct matchup
                   earns 1 point. An incorrect or unscorable matchup earns 0.
                 </p>
               </div>

@@ -1,4 +1,4 @@
-import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 
 import { colors } from '@grandprixpicks/shared/tokens';
@@ -17,7 +17,8 @@ import { loadFonts } from '../src/lib/og/fonts';
  * them every time would churn several large PNGs in git without changing
  * anything anybody sees. Run it when the copy or the palette changes:
  *
- *   pnpm --filter @grandprixpicks/web render-social
+ *   pnpm --filter @grandprixpicks/web render-x-banner
+ *   pnpm --filter @grandprixpicks/web render-reddit-banners
  *
  * Fonts come from `src/lib/og/fonts.ts`, the same loader the share cards use,
  * so the banners cannot drift onto a different typeface from the OG images.
@@ -34,82 +35,23 @@ import { loadFonts } from '../src/lib/og/fonts';
  *    a horizontal edge is not guaranteed to survive.
  * 3. The left and right edges crop on narrow mobile viewports.
  *
- * Reddit's trap is different and worse: the desktop banner is an extremely wide
- * strip and mobile crops hard to the centre. The old set handled that by
- * spreading artwork across the full width and shipping three crops of it, which
- * is how `banner-desktop.png` came to ship with its own URL sliced in half at
- * the bottom edge. Here the content block is identical and centred in every
- * Reddit variant, compact enough to survive the mobile crop; only the
- * expendable edge decoration differs between them.
+ * Reddit uses three different shapes here: a 1000x300 user-profile cover and
+ * separate 1072x128 desktop / 1080x128 mobile community strips. Each gets its
+ * own composition. The community assets render at 2x those minimum dimensions
+ * so small mono type stays crisp after Reddit resamples the upload.
  */
-const EDGE_SAFE = 90;
 const X_AVATAR_COLUMN = 340;
 
 /**
- * The tagline. "Accent is rare" is easiest to break on a strip like this, so
- * the words stay ink and only the two separators are chartreuse — enough to
- * make the rhythm read as deliberate rather than as three unrelated words.
- */
-function taglineStrip(fontSize: number, gap: number): ReactNode {
-  const words = ['PICK', 'PREDICT', 'PROVE'];
-  const children: ReactNode[] = [];
-  words.forEach((word, index) => {
-    if (index > 0) {
-      children.push(
-        e(
-          'div',
-          {
-            key: `sep-${index}`,
-            style: {
-              margin: `0 ${gap}px`,
-              fontSize,
-              fontWeight: 600,
-              fontFamily: 'IBM Plex Mono',
-              color: colors.accent,
-            },
-          },
-          '·',
-        ),
-      );
-    }
-    children.push(
-      e(
-        'div',
-        {
-          key: word,
-          style: {
-            fontSize,
-            fontWeight: 600,
-            fontFamily: 'IBM Plex Mono',
-            letterSpacing: fontSize / 4.5,
-            color: colors.textMuted,
-          },
-        },
-        word,
-      ),
-    );
-  });
-  return e(
-    'div',
-    { style: { display: 'flex', alignItems: 'center' } },
-    ...children,
-  );
-}
-
-/**
- * A timing tower bleeding off the right edge: positions over gap bars, fading
- * as they descend.
+ * The real product motif from the landing page: an empty Top 5 pick sheet.
  *
- * This is where the brief asked for a circuit outline. There is no circuit
- * artwork in this repo — the old banner's track was baked into a PNG with no
- * vector source — and a silhouette authored freehand was tried and rejected:
- * it rendered as a generic blob, and the audience is F1 fans who know these
- * shapes cold. A real licensed path dropped in here would replace this
- * wholesale. The timing tower is the motif the rest of the system already
- * uses, it needs no asset, and it says "live session" rather than "some track".
+ * It stays intentionally schematic. Driver names or race data would make the
+ * profile art stale; speed streaks, chequered flags and a mystery car would
+ * make it look like every other motorsport banner. Five quiet position slots
+ * say what the product does without pretending the banner is live telemetry.
  */
-function timingTower(): ReactNode {
-  const ROWS = 7;
+function topFiveSheet(): ReactNode {
+  const ROWS = 5;
   return e(
     'div',
     {
@@ -117,18 +59,31 @@ function timingTower(): ReactNode {
         display: 'flex',
         flexDirection: 'column' as const,
         position: 'absolute' as const,
-        // Overhangs the frame so the longest bars run off the edge: the tower
-        // should read as a slice of a screen, not a widget parked in a corner.
-        // Cropping here is intended, so it ignores the safe margin.
-        right: -44,
+        right: 68,
         top: 88,
-        width: 474,
+        width: 388,
+        paddingLeft: 30,
+        borderLeft: `2px solid ${colors.accent}`,
       },
     },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          height: 30,
+          marginBottom: 10,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          fontWeight: 500,
+          letterSpacing: 3.2,
+          color: colors.textMuted,
+        },
+      },
+      'TOP 5',
+    ),
     ...Array.from({ length: ROWS }, (_, index) => {
-      // Fades down the column so the tower reads as continuing past the frame
-      // rather than stopping, and so it never competes with the headline.
-      const opacity = 1 - index / (ROWS + 1);
       return e(
         'div',
         {
@@ -136,97 +91,119 @@ function timingTower(): ReactNode {
           style: {
             display: 'flex',
             alignItems: 'center',
-            height: 40,
-            opacity,
+            height: 54,
+            borderBottom: `1px solid ${colors.border}`,
           },
         },
-        e('div', {
-          style: {
-            width: index === 0 ? 3 : 2,
-            height: 22,
-            marginRight: 18,
-            backgroundColor: index === 0 ? colors.accent : colors.borderStrong,
-          },
-        }),
         e(
           'div',
           {
             style: {
-              width: 46,
-              fontSize: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 42,
+              height: 28,
+              marginRight: 18,
+              border: `1px solid ${
+                index === 0 ? colors.accent : colors.borderStrong
+              }`,
+              borderRadius: 2,
+              backgroundColor: index === 0 ? colors.accent : 'transparent',
+              fontSize: 14,
               fontWeight: 600,
               fontFamily: 'IBM Plex Mono',
-              color: index === 0 ? colors.text : colors.textMuted,
+              color: index === 0 ? colors.textOnAccent : colors.textMuted,
             },
           },
           `P${index + 1}`,
         ),
-        // Varying lengths read as gaps on a timing screen. Deliberately not
-        // real driver codes or lap times: a banner is not updated weekly, and
-        // stale figures would date it the moment the grid changes.
-        e('div', {
-          style: {
-            width: 190 + ((index * 61) % 230),
-            height: 1,
-            backgroundColor: colors.borderStrong,
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              flex: 1,
+              height: 1,
+              borderBottom: `1px solid ${colors.borderStrong}`,
+            },
           },
-        }),
+          '',
+        ),
       );
     }),
   );
 }
 
-/**
- * The short-strip counterpart of the timing tower: a run of vertical ticks at
- * varying heights, like a telemetry trace. A seven-row tower does not fit in
- * 256px, and this keeps the same instrument register in a shape that does.
- *
- * Purely decorative and positioned outside the content band, so it is free to
- * be cropped away entirely on mobile.
- */
-function edgeTicks(side: 'left' | 'right'): ReactNode {
-  const TICKS = 22;
+/** The landing hero's exact editorial hierarchy, adapted to X's safe area. */
+function xHeroBlock(): ReactNode {
   return e(
     'div',
     {
       style: {
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column' as const,
         position: 'absolute' as const,
-        [side]: 56,
-        top: 0,
-        bottom: 0,
-        gap: 9,
-        // Reversed on the right so both runs fade outward from the content.
-        flexDirection: (side === 'left' ? 'row' : 'row-reverse') as const,
+        left: X_AVATAR_COLUMN,
+        top: 82,
+        width: 650,
       },
     },
-    ...Array.from({ length: TICKS }, (_, index) => {
-      const t = index / (TICKS - 1);
-      return e('div', {
-        key: String(index),
+    e(
+      'div',
+      {
         style: {
-          width: 2,
-          height: 14 + Math.round(56 * Math.abs(Math.sin(index * 1.9))),
-          opacity: 0.2 + 0.55 * t,
-          backgroundColor:
-            index === TICKS - 1 ? colors.accent : colors.borderStrong,
+          display: 'flex',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          fontWeight: 500,
+          letterSpacing: 3.4,
+          color: colors.textMuted,
         },
-      });
-    }),
+      },
+      'FREE F1 PREDICTION GAME',
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          marginTop: 20,
+          fontSize: 58,
+          fontWeight: 300,
+          letterSpacing: -1.2,
+          lineHeight: 1.08,
+          color: colors.text,
+        },
+      },
+      e('div', {}, "Everyone's a strategist"),
+      e(
+        'div',
+        { style: { display: 'flex' } },
+        e('div', {}, 'on Sunday.\u00a0'),
+        e('div', { style: { color: colors.accent } }, 'Prove it.'),
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          width: 600,
+          marginTop: 24,
+          fontSize: 19,
+          lineHeight: 1.5,
+          color: colors.textMuted,
+        },
+      },
+      'Climb the global leaderboard. Compete with friends in private leagues.',
+    ),
   );
 }
 
-/** Headline over tagline: the block every banner is built around. */
-function contentBlock({
-  headlineSize,
-  taglineSize,
-  align,
-}: {
-  headlineSize: number;
-  taglineSize: number;
-  align: 'left' | 'center';
-}): ReactNode {
+/** The shared two-line lockup; only the final phrase gets the brand accent. */
+function brandHeadline(fontSize: number, align: 'left' | 'center'): ReactNode {
   const cross = align === 'center' ? 'center' : 'flex-start';
   return e(
     'div',
@@ -235,36 +212,41 @@ function contentBlock({
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: cross,
+        fontSize,
+        fontWeight: 300,
+        letterSpacing: -fontSize / 48,
+        lineHeight: 1.08,
+        color: colors.text,
       },
     },
-    // The same two-line break as the landing page and the OG card. A visitor
-    // who arrives from a shared link and then opens the profile should meet one
-    // sentence, not three variations on it.
+    e('div', {}, "Everyone's a strategist"),
     e(
       'div',
-      {
-        style: {
-          display: 'flex',
-          flexDirection: 'column' as const,
-          alignItems: cross,
-          fontSize: headlineSize,
-          fontWeight: 300,
-          letterSpacing: -headlineSize / 48,
-          lineHeight: 1.16,
-        },
-      },
-      e('div', {}, "Everyone's a strategist"),
-      e('div', {}, 'on Sunday. Prove it.'),
-    ),
-    e(
-      'div',
-      { style: { display: 'flex', marginTop: headlineSize * 0.5 } },
-      taglineStrip(taglineSize, taglineSize * 0.85),
+      { style: { display: 'flex' } },
+      e('div', {}, 'on Sunday.\u00a0'),
+      e('div', { style: { color: colors.accent } }, 'Prove it.'),
     ),
   );
 }
 
-/** `.com`, not the `.app` the brief quoted — see `siteConfig.url`. */
+function redditLabel(text: string, fontSize: number): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        fontFamily: 'IBM Plex Mono',
+        fontSize,
+        fontWeight: 500,
+        letterSpacing: fontSize * 0.08,
+        color: colors.textMuted,
+      },
+    },
+    text,
+  );
+}
+
+/** `.com`, not the `.app` the brief quoted. See `siteConfig.url`. */
 function domainLine(fontSize: number): ReactNode {
   return e(
     'div',
@@ -276,7 +258,7 @@ function domainLine(fontSize: number): ReactNode {
         color: colors.textMuted,
       },
     },
-    'grandprixpicks.com',
+    'GrandPrixPicks.com',
   );
 }
 
@@ -306,68 +288,120 @@ function frame(
   );
 }
 
-/** X header: headline pushed clear of the avatar, tower on the right. */
+/** X header: the landing hero, compacted into the avatar-safe band. */
 function xBanner(width: number, height: number): ReactNode {
   return frame(
     width,
     height,
-    timingTower(),
+    topFiveSheet(),
+    xHeroBlock(),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute' as const,
+          right: 68,
+          bottom: 52,
+        },
+      },
+      domainLine(18),
+    ),
+  );
+}
+
+/** One-line version for Reddit's very short community banner slot. */
+function compactBrandHeadline(fontSize: number): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        fontSize,
+        fontWeight: 300,
+        letterSpacing: -fontSize / 48,
+        lineHeight: 1.08,
+        color: colors.text,
+      },
+    },
+    e('div', {}, "Everyone's a strategist on Sunday.\u00a0"),
+    e('div', { style: { color: colors.accent } }, 'Prove it.'),
+  );
+}
+
+/**
+ * User-profile header. The left third stays expendable for Reddit's avatar;
+ * the headline occupies the vertical centre that survives mobile cropping.
+ */
+function redditProfileBanner(): ReactNode {
+  const width = 1000;
+  const height = 300;
+  return frame(
+    width,
+    height,
+    e('div', {
+      style: {
+        position: 'absolute' as const,
+        left: 226,
+        top: 52,
+        bottom: 52,
+        width: 2,
+        backgroundColor: colors.accent,
+      },
+    }),
     e(
       'div',
       {
         style: {
           display: 'flex',
           flexDirection: 'column' as const,
-          justifyContent: 'center',
           position: 'absolute' as const,
-          left: X_AVATAR_COLUMN,
-          top: 0,
-          bottom: 0,
+          left: 252,
+          top: 45,
+          width: 700,
         },
       },
-      contentBlock({ headlineSize: 58, taglineSize: 26, align: 'left' }),
-    ),
-    // Bottom right, inside the horizontal safe band. Banners are not clickable,
-    // but the domain still gets read and typed.
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute' as const,
-          right: EDGE_SAFE,
-          bottom: 78,
+      redditLabel('u/GrandPrixPicks', 12),
+      e(
+        'div',
+        { style: { display: 'flex', marginTop: 13 } },
+        brandHeadline(40, 'left'),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            marginTop: 13,
+            fontSize: 15,
+            lineHeight: 1.45,
+            color: colors.textMuted,
+          },
         },
-      },
-      domainLine(21),
+        e('div', {}, 'Free F1 prediction game.'),
+        e(
+          'div',
+          {},
+          'Climb the global leaderboard. Compete with friends in private leagues.',
+        ),
+      ),
+      e('div', { style: { display: 'flex', marginTop: 15 } }, domainLine(14)),
     ),
   );
 }
 
 /**
- * Reddit. Centred rather than offset, because Reddit overlays the subreddit
- * icon and name on the lower left of the banner on desktop and crops to the
- * centre on mobile — the two constraints only agree in the middle.
+ * Community desktop header. It is deliberately typographic: Reddit supplies
+ * the icon and community name directly below this strip, so duplicating a logo
+ * lockup inside the image would create two competing mastheads.
  */
-function redditBanner({
-  width,
-  height,
-  headlineSize,
-  taglineSize,
-  urlSize,
-  withEdgeTicks,
-}: {
-  width: number;
-  height: number;
-  headlineSize: number;
-  taglineSize: number;
-  urlSize: number;
-  withEdgeTicks: boolean;
-}): ReactNode {
+function redditCommunityDesktopBanner(): ReactNode {
+  const width = 2144;
+  const height = 256;
   return frame(
     width,
     height,
-    ...(withEdgeTicks ? [edgeTicks('left'), edgeTicks('right')] : []),
     e(
       'div',
       {
@@ -377,15 +411,78 @@ function redditBanner({
           alignItems: 'center',
           justifyContent: 'center',
           position: 'absolute' as const,
-          inset: 0,
+          left: 0,
+          top: 0,
+          width,
+          height,
         },
       },
-      contentBlock({ headlineSize, taglineSize, align: 'center' }),
+      redditLabel('r/GPPicks', 18),
       e(
         'div',
-        { style: { display: 'flex', marginTop: headlineSize * 0.42 } },
-        domainLine(urlSize),
+        { style: { display: 'flex', marginTop: 14 } },
+        compactBrandHeadline(48),
       ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 14,
+            fontSize: 18,
+            lineHeight: 1.4,
+            color: colors.textMuted,
+          },
+        },
+        'Free F1 prediction game. Climb the global leaderboard. Compete with friends in private leagues.',
+      ),
+      e('div', { style: { display: 'flex', marginTop: 11 } }, domainLine(16)),
+    ),
+  );
+}
+
+/** Mobile gets a quieter lockup with no body copy to become illegible. */
+function redditCommunityMobileBanner(): ReactNode {
+  const width = 2160;
+  const height = 256;
+  return frame(
+    width,
+    height,
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'absolute' as const,
+          left: 0,
+          top: 0,
+          width,
+          height,
+        },
+      },
+      redditLabel('r/GPPicks', 18),
+      e(
+        'div',
+        { style: { display: 'flex', marginTop: 18 } },
+        compactBrandHeadline(42),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 16,
+            fontSize: 17,
+            lineHeight: 1.4,
+            color: colors.textMuted,
+          },
+        },
+        'Free F1 prediction game. Climb the global leaderboard. Compete with friends in private leagues.',
+      ),
+      e('div', { style: { display: 'flex', marginTop: 12 } }, domainLine(16)),
     ),
   );
 }
@@ -408,87 +505,44 @@ async function renderPng(
   console.log('Wrote %s (%d x %d)', outPath, width, height);
 }
 
-const REDDIT_STRIP = {
-  headlineSize: 40,
-  taglineSize: 19,
-  urlSize: 16,
-} as const;
-
 async function main() {
   const require = createRequire(import.meta.url);
   await initWasm(
     await readFile(require.resolve('@resvg/resvg-wasm/index_bg.wasm')),
   );
 
-  await renderPng(xBanner(1500, 500), 1500, 500, 'public/social/x-banner.png');
+  const xOnly = process.argv.includes('--x-only');
+  const redditOnly = process.argv.includes('--reddit-only');
 
-  // Sizes match the files they replace, so nothing downstream has to change.
-  // `master` is the 3:1 hero; the three 256-tall strips are what Reddit
-  // actually displays.
-  await renderPng(
-    redditBanner({
-      width: 2172,
-      height: 724,
-      headlineSize: 76,
-      taglineSize: 32,
-      urlSize: 26,
-      withEdgeTicks: true,
-    }),
-    2172,
-    724,
-    'public/social/reddit/banner-master.png',
-  );
+  if (!redditOnly) {
+    await renderPng(
+      xBanner(1500, 500),
+      1500,
+      500,
+      'public/social/x-banner.png',
+    );
+  }
 
-  await renderPng(
-    redditBanner({
-      width: 2144,
-      height: 256,
-      ...REDDIT_STRIP,
-      withEdgeTicks: true,
-    }),
-    2144,
-    256,
-    'public/social/reddit/banner-desktop.png',
-  );
-
-  // The "safe" strips drop the edge decoration: if a crop can eat it, better
-  // that there was never anything there to notice missing.
-  await renderPng(
-    redditBanner({
-      width: 2144,
-      height: 256,
-      ...REDDIT_STRIP,
-      withEdgeTicks: false,
-    }),
-    2144,
-    256,
-    'public/social/reddit/banner-desktop-safe.png',
-  );
-
-  await renderPng(
-    redditBanner({
-      width: 2160,
-      height: 256,
-      ...REDDIT_STRIP,
-      withEdgeTicks: false,
-    }),
-    2160,
-    256,
-    'public/social/reddit/banner-mobile-safe.png',
-  );
-
-  /*
-   * The avatar. Not re-rendered here: `logo-storefront.png` is already the
-   * current mark inset for a circular crop, produced by render-logo-png.mjs
-   * from the same favicon.svg. Copying guarantees the two can never disagree,
-   * which the previous pair did — the profile picture was still a teal Lucide
-   * flag on navy, a mark the reskin had already deleted.
-   */
-  await copyFile(
-    'public/logo-storefront.png',
-    'public/social/reddit/profile-picture.png',
-  );
-  console.log('Copied public/social/reddit/profile-picture.png');
+  if (!xOnly) {
+    await renderPng(
+      redditProfileBanner(),
+      1000,
+      300,
+      'public/social/reddit/profile-banner.png',
+    );
+    await renderPng(
+      redditCommunityDesktopBanner(),
+      2144,
+      256,
+      'public/social/reddit/banner-desktop.png',
+    );
+    await renderPng(
+      redditCommunityMobileBanner(),
+      2160,
+      256,
+      'public/social/reddit/banner-mobile.png',
+    );
+  }
 }
 
 main().catch((error) => {

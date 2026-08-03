@@ -14,7 +14,7 @@ import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
-import { canonicalMeta } from '@/lib/site';
+import { canonicalMeta, noIndexMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/feed/$feedEventId')({
   component: FeedEventPage,
@@ -27,6 +27,9 @@ export const Route = createFileRoute('/feed/$feedEventId')({
           name: 'description',
           content: 'View a single prediction and the reactions it received.',
         },
+        // A single activity item is a couple of lines of user-generated text.
+        // The feed index is already excluded; keep its detail pages out too.
+        ...noIndexMeta(),
         ...canonical.meta,
       ],
       links: [...canonical.links],

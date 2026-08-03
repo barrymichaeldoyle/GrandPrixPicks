@@ -115,6 +115,10 @@ export const Route = createFileRoute('/p/$username')({
       title: `${name}'s F1 Predictions & Season Stats | Grand Prix Picks`,
       description: `Check out ${name}'s prediction history, scores, and season ranking on Grand Prix Picks. See how they stack up against other players.`,
       path: `/p/${params.username}`,
+      // One thin, near-identical stat page per player is exactly the crawl
+      // surface that reads as scaled low-value content. Followers/following
+      // are already excluded; keep the profile itself out too.
+      noIndex: true,
     });
   },
 });

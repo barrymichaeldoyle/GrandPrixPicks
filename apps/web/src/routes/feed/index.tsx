@@ -67,8 +67,10 @@ export function FeedContent() {
   const isLoadingMore =
     activePagesCount > 1 && activePages.some((p) => p === undefined);
 
+  // `undefined` is Convex still loading; `null` is "no viewer" — the feed is
+  // viewer-scoped, so a signed-out client gets null on every page.
   const loadedPages = activePages.filter(
-    (p): p is NonNullable<typeof p> => p !== undefined,
+    (p): p is NonNullable<typeof p> => p !== undefined && p !== null,
   );
   const lastLoadedPage = loadedPages.at(-1);
 

@@ -166,9 +166,12 @@ export function RaceCard({
               Round {race.round}
               {isNext ? ' · Next Race' : ''}
             </p>
-            <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
+            {/* h2, not h3: these cards sit directly under the page's h1 on the
+                calendar, and the level was skipping a rank. Heading level is
+                document structure, not type scale — the size is set in CSS. */}
+            <h2 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
               {race.name}
-            </h3>
+            </h2>
           </div>
           <ArrowRight
             size={14}

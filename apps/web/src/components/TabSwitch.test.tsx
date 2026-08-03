@@ -7,7 +7,7 @@ import { TabSwitch } from './TabSwitch';
 
 const options = [
   { value: 'top5', label: 'Top 5' },
-  { value: 'h2h', label: 'Teammate H2H' },
+  { value: 'h2h', label: 'Team-mate H2H' },
 ] as const;
 
 describe('TabSwitch', () => {

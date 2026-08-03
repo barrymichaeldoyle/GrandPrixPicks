@@ -1,0 +1,1639 @@
+{
+  "generatedAt": "2026-08-02T16:40:55.071Z",
+  "season": 2026,
+  "throughRace": {
+    "name": "Hungarian Grand Prix",
+    "round": 11,
+    "slug": "hungary-2026"
+  },
+  "lastUpdated": 1785134456047,
+  "roundsCounted": 11,
+  "sessionCounts": {
+    "quali": 11,
+    "sprint_quali": 4,
+    "race": 11,
+    "sprint": 4
+  },
+  "teams": [
+    {
+      "team": "Ferrari",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "LEC",
+        "averageSeconds": 0.04,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 79.327,
+            "driver2Code": "HAM",
+            "driver2Seconds": 79.478,
+            "signedDriver1MinusDriver2Seconds": -0.151
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 92.428,
+            "driver2Code": "HAM",
+            "driver2Seconds": 92.415,
+            "signedDriver1MinusDriver2Seconds": 0.013
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 89.405,
+            "driver2Code": "HAM",
+            "driver2Seconds": 89.567,
+            "signedDriver1MinusDriver2Seconds": -0.162
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 88.143,
+            "driver2Code": "HAM",
+            "driver2Seconds": 88.319,
+            "signedDriver1MinusDriver2Seconds": -0.176
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 72.976,
+            "driver2Code": "HAM",
+            "driver2Seconds": 72.868,
+            "signedDriver1MinusDriver2Seconds": 0.108
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 72.351,
+            "driver2Code": "HAM",
+            "driver2Seconds": 72.279,
+            "signedDriver1MinusDriver2Seconds": 0.072
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q2",
+            "driver1Code": "LEC",
+            "driver1Seconds": 75.281,
+            "driver2Code": "HAM",
+            "driver2Seconds": 75.418,
+            "signedDriver1MinusDriver2Seconds": -0.137
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 66.349,
+            "driver2Code": "HAM",
+            "driver2Seconds": 66.408,
+            "signedDriver1MinusDriver2Seconds": -0.059
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 88.286,
+            "driver2Code": "HAM",
+            "driver2Seconds": 88.458,
+            "signedDriver1MinusDriver2Seconds": -0.172
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 104.893,
+            "driver2Code": "HAM",
+            "driver2Seconds": 104.895,
+            "signedDriver1MinusDriver2Seconds": -0.002
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q3",
+            "driver1Code": "LEC",
+            "driver1Seconds": 77.445,
+            "driver2Code": "HAM",
+            "driver2Seconds": 77.219,
+            "signedDriver1MinusDriver2Seconds": 0.226
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "LEC",
+          "displayName": "Charles Leclerc",
+          "driverId": "j572yjj4s1dt8gjmxynxf9yc9x80f0wm",
+          "nationality": "MC",
+          "number": 16,
+          "qualifying": 6,
+          "race": 5,
+          "total": 15,
+          "points": 138,
+          "sprintQualifying": 1,
+          "sprint": 3
+        },
+        {
+          "code": "HAM",
+          "displayName": "Lewis Hamilton",
+          "driverId": "j57ey3ntcd2ymn5rq0fq8zv6zn80fe31",
+          "nationality": "GB",
+          "number": 44,
+          "qualifying": 5,
+          "race": 6,
+          "total": 15,
+          "points": 169,
+          "sprintQualifying": 3,
+          "sprint": 1
+        }
+      ]
+    },
+    {
+      "team": "Red Bull Racing",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "VER",
+        "averageSeconds": 0.159,
+        "sessions": 10,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 93.002,
+            "driver2Code": "HAD",
+            "driver2Seconds": 93.121,
+            "signedDriver1MinusDriver2Seconds": -0.119
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q2",
+            "driver1Code": "VER",
+            "driver1Seconds": 90.262,
+            "driver2Code": "HAD",
+            "driver2Seconds": 90.104,
+            "signedDriver1MinusDriver2Seconds": 0.158
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 87.964,
+            "driver2Code": "HAD",
+            "driver2Seconds": 88.789,
+            "signedDriver1MinusDriver2Seconds": -0.825
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 72.907,
+            "driver2Code": "HAD",
+            "driver2Seconds": 72.935,
+            "signedDriver1MinusDriver2Seconds": -0.028
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 72.094,
+            "driver2Code": "HAD",
+            "driver2Seconds": 72.434,
+            "signedDriver1MinusDriver2Seconds": -0.34
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 75.021,
+            "driver2Code": "HAD",
+            "driver2Seconds": 75.077,
+            "signedDriver1MinusDriver2Seconds": -0.056
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 66.475,
+            "driver2Code": "HAD",
+            "driver2Seconds": 66.632,
+            "signedDriver1MinusDriver2Seconds": -0.157
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 88.893,
+            "driver2Code": "HAD",
+            "driver2Seconds": 88.746,
+            "signedDriver1MinusDriver2Seconds": 0.147
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q2",
+            "driver1Code": "VER",
+            "driver1Seconds": 105.589,
+            "driver2Code": "HAD",
+            "driver2Seconds": 105.823,
+            "signedDriver1MinusDriver2Seconds": -0.234
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q3",
+            "driver1Code": "VER",
+            "driver1Seconds": 77.725,
+            "driver2Code": "HAD",
+            "driver2Seconds": 77.856,
+            "signedDriver1MinusDriver2Seconds": -0.131
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "VER",
+          "displayName": "Max Verstappen",
+          "driverId": "j570ps31wwhj4q0ph419wanw7d80fvmh",
+          "nationality": "NL",
+          "number": 3,
+          "qualifying": 8,
+          "race": 8,
+          "total": 24,
+          "points": 109,
+          "sprintQualifying": 4,
+          "sprint": 4
+        },
+        {
+          "code": "HAD",
+          "displayName": "Isack Hadjar",
+          "driverId": "j5757cwm8ct4rxwhf43jvqkh8h80fpwk",
+          "nationality": "FR",
+          "number": 6,
+          "qualifying": 3,
+          "race": 3,
+          "total": 6,
+          "points": 68,
+          "sprintQualifying": 0,
+          "sprint": 0
+        }
+      ]
+    },
+    {
+      "team": "Audi",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "HUL",
+        "averageSeconds": 0.395,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 80.221,
+            "driver2Code": "HUL",
+            "driver2Seconds": 80.303,
+            "signedDriver1MinusDriver2Seconds": -0.082
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 93.965,
+            "driver2Code": "HUL",
+            "driver2Seconds": 93.354,
+            "signedDriver1MinusDriver2Seconds": 0.611
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 89.99,
+            "driver2Code": "HUL",
+            "driver2Seconds": 90.387,
+            "signedDriver1MinusDriver2Seconds": -0.397
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q1",
+            "driver1Code": "BOR",
+            "driver1Seconds": 93.737,
+            "driver2Code": "HUL",
+            "driver2Seconds": 89.645,
+            "signedDriver1MinusDriver2Seconds": 4.092
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 74.071,
+            "driver2Code": "HUL",
+            "driver2Seconds": 73.886,
+            "signedDriver1MinusDriver2Seconds": 0.185
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q1",
+            "driver1Code": "BOR",
+            "driver1Seconds": 74.683,
+            "driver2Code": "HUL",
+            "driver2Seconds": 73.923,
+            "signedDriver1MinusDriver2Seconds": 0.76
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 76.001,
+            "driver2Code": "HUL",
+            "driver2Seconds": 75.768,
+            "signedDriver1MinusDriver2Seconds": 0.233
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 67.293,
+            "driver2Code": "HUL",
+            "driver2Seconds": 67.611,
+            "signedDriver1MinusDriver2Seconds": -0.318
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 89.461,
+            "driver2Code": "HUL",
+            "driver2Seconds": 90.076,
+            "signedDriver1MinusDriver2Seconds": -0.615
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 106.082,
+            "driver2Code": "HUL",
+            "driver2Seconds": 106.671,
+            "signedDriver1MinusDriver2Seconds": -0.589
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q2",
+            "driver1Code": "BOR",
+            "driver1Seconds": 79.105,
+            "driver2Code": "HUL",
+            "driver2Seconds": 78.639,
+            "signedDriver1MinusDriver2Seconds": 0.466
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "BOR",
+          "displayName": "Gabriel Bortoleto",
+          "driverId": "j5703b23mf9t8v2zva33814fdx80f8fa",
+          "nationality": "BR",
+          "number": 5,
+          "qualifying": 5,
+          "race": 7,
+          "total": 17,
+          "points": 10,
+          "sprintQualifying": 2,
+          "sprint": 3
+        },
+        {
+          "code": "HUL",
+          "displayName": "Nico Hülkenberg",
+          "driverId": "j57dhy0c48bam7a47480jnya4s80fvg8",
+          "nationality": "DE",
+          "number": 27,
+          "qualifying": 6,
+          "race": 4,
+          "total": 13,
+          "points": 2,
+          "sprintQualifying": 2,
+          "sprint": 1
+        }
+      ]
+    },
+    {
+      "team": "McLaren",
+      "sessionsSettled": 29,
+      "qualifyingGap": {
+        "leaderCode": "NOR",
+        "averageSeconds": 0.068,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 79.475,
+            "driver2Code": "PIA",
+            "driver2Seconds": 79.38,
+            "signedDriver1MinusDriver2Seconds": 0.095
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 92.608,
+            "driver2Code": "PIA",
+            "driver2Seconds": 92.55,
+            "signedDriver1MinusDriver2Seconds": 0.058
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 89.409,
+            "driver2Code": "PIA",
+            "driver2Seconds": 89.132,
+            "signedDriver1MinusDriver2Seconds": 0.277
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 88.183,
+            "driver2Code": "PIA",
+            "driver2Seconds": 88.5,
+            "signedDriver1MinusDriver2Seconds": -0.317
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 72.729,
+            "driver2Code": "PIA",
+            "driver2Seconds": 72.781,
+            "signedDriver1MinusDriver2Seconds": -0.052
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 72.765,
+            "driver2Code": "PIA",
+            "driver2Seconds": 72.624,
+            "signedDriver1MinusDriver2Seconds": 0.141
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 75.001,
+            "driver2Code": "PIA",
+            "driver2Seconds": 75.09,
+            "signedDriver1MinusDriver2Seconds": -0.089
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 66.502,
+            "driver2Code": "PIA",
+            "driver2Seconds": 66.511,
+            "signedDriver1MinusDriver2Seconds": -0.009
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 88.877,
+            "driver2Code": "PIA",
+            "driver2Seconds": 89.032,
+            "signedDriver1MinusDriver2Seconds": -0.155
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 104.801,
+            "driver2Code": "PIA",
+            "driver2Seconds": 105.016,
+            "signedDriver1MinusDriver2Seconds": -0.215
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q3",
+            "driver1Code": "NOR",
+            "driver1Seconds": 77.207,
+            "driver2Code": "PIA",
+            "driver2Seconds": 77.684,
+            "signedDriver1MinusDriver2Seconds": -0.477
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "NOR",
+          "displayName": "Lando Norris",
+          "driverId": "j57bdh9871fwapwdwyj5sya9d580fbw0",
+          "nationality": "GB",
+          "number": 1,
+          "qualifying": 7,
+          "race": 5,
+          "total": 20,
+          "points": 128,
+          "sprintQualifying": 4,
+          "sprint": 4
+        },
+        {
+          "code": "PIA",
+          "displayName": "Oscar Piastri",
+          "driverId": "j57b3drx1w96e1z9846kpdj8j980fk4e",
+          "nationality": "AU",
+          "number": 81,
+          "qualifying": 4,
+          "race": 5,
+          "total": 9,
+          "points": 92,
+          "sprintQualifying": 0,
+          "sprint": 0
+        }
+      ]
+    },
+    {
+      "team": "Mercedes",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "ANT",
+        "averageSeconds": 0.136,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 78.811,
+            "driver2Code": "RUS",
+            "driver2Seconds": 78.518,
+            "signedDriver1MinusDriver2Seconds": 0.293
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 92.064,
+            "driver2Code": "RUS",
+            "driver2Seconds": 92.286,
+            "signedDriver1MinusDriver2Seconds": -0.222
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 88.778,
+            "driver2Code": "RUS",
+            "driver2Seconds": 89.076,
+            "signedDriver1MinusDriver2Seconds": -0.298
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 87.798,
+            "driver2Code": "RUS",
+            "driver2Seconds": 88.197,
+            "signedDriver1MinusDriver2Seconds": -0.399
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 72.646,
+            "driver2Code": "RUS",
+            "driver2Seconds": 72.578,
+            "signedDriver1MinusDriver2Seconds": 0.068
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 72.051,
+            "driver2Code": "RUS",
+            "driver2Seconds": 72.445,
+            "signedDriver1MinusDriver2Seconds": -0.394
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 74.998,
+            "driver2Code": "RUS",
+            "driver2Seconds": 74.679,
+            "signedDriver1MinusDriver2Seconds": 0.319
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 66.414,
+            "driver2Code": "RUS",
+            "driver2Seconds": 66.113,
+            "signedDriver1MinusDriver2Seconds": 0.301
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 88.111,
+            "driver2Code": "RUS",
+            "driver2Seconds": 88.481,
+            "signedDriver1MinusDriver2Seconds": -0.37
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 104.361,
+            "driver2Code": "RUS",
+            "driver2Seconds": 104.869,
+            "signedDriver1MinusDriver2Seconds": -0.508
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q3",
+            "driver1Code": "ANT",
+            "driver1Seconds": 77.479,
+            "driver2Code": "RUS",
+            "driver2Seconds": 77.76,
+            "signedDriver1MinusDriver2Seconds": -0.281
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "ANT",
+          "displayName": "Kimi Antonelli",
+          "driverId": "j57czczkpmk0b1y8skqbyk6x1180f150",
+          "nationality": "IT",
+          "number": 12,
+          "qualifying": 7,
+          "race": 7,
+          "total": 17,
+          "points": 219,
+          "sprintQualifying": 2,
+          "sprint": 1
+        },
+        {
+          "code": "RUS",
+          "displayName": "George Russell",
+          "driverId": "j5779810r3y28ywhygscrs0yrx80f4fh",
+          "nationality": "GB",
+          "number": 63,
+          "qualifying": 4,
+          "race": 4,
+          "total": 13,
+          "points": 160,
+          "sprintQualifying": 2,
+          "sprint": 3
+        }
+      ]
+    },
+    {
+      "team": "Williams",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "SAI",
+        "averageSeconds": 0.314,
+        "sessions": 10,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 94.317,
+            "driver2Code": "ALB",
+            "driver2Seconds": 94.772,
+            "signedDriver1MinusDriver2Seconds": -0.455
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 90.927,
+            "driver2Code": "ALB",
+            "driver2Seconds": 91.088,
+            "signedDriver1MinusDriver2Seconds": -0.161
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q2",
+            "driver1Code": "SAI",
+            "driver1Seconds": 89.568,
+            "driver2Code": "ALB",
+            "driver2Seconds": 89.946,
+            "signedDriver1MinusDriver2Seconds": -0.378
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 74.276,
+            "driver2Code": "ALB",
+            "driver2Seconds": 74.851,
+            "signedDriver1MinusDriver2Seconds": -0.575
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q2",
+            "driver1Code": "SAI",
+            "driver1Seconds": 73.815,
+            "driver2Code": "ALB",
+            "driver2Seconds": 73.787,
+            "signedDriver1MinusDriver2Seconds": 0.028
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 76.881,
+            "driver2Code": "ALB",
+            "driver2Seconds": 77.424,
+            "signedDriver1MinusDriver2Seconds": -0.543
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 68.252,
+            "driver2Code": "ALB",
+            "driver2Seconds": 68.509,
+            "signedDriver1MinusDriver2Seconds": -0.257
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q2",
+            "driver1Code": "SAI",
+            "driver1Seconds": 90.623,
+            "driver2Code": "ALB",
+            "driver2Seconds": 91.341,
+            "signedDriver1MinusDriver2Seconds": -0.718
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 107.08,
+            "driver2Code": "ALB",
+            "driver2Seconds": 107.12,
+            "signedDriver1MinusDriver2Seconds": -0.04
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q1",
+            "driver1Code": "SAI",
+            "driver1Seconds": 80.621,
+            "driver2Code": "ALB",
+            "driver2Seconds": 80.658,
+            "signedDriver1MinusDriver2Seconds": -0.037
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "SAI",
+          "displayName": "Carlos Sainz",
+          "driverId": "j577vqa8jkycde6zfn21fs73hh80fw49",
+          "nationality": "ES",
+          "number": 55,
+          "qualifying": 9,
+          "race": 6,
+          "total": 23,
+          "points": 6,
+          "sprintQualifying": 4,
+          "sprint": 4
+        },
+        {
+          "code": "ALB",
+          "displayName": "Alex Albon",
+          "driverId": "j57fmar8q2jj92ypwmyyfztaqs80enea",
+          "nationality": "TH",
+          "number": 23,
+          "qualifying": 2,
+          "race": 5,
+          "total": 7,
+          "points": 5,
+          "sprintQualifying": 0,
+          "sprint": 0
+        }
+      ]
+    },
+    {
+      "team": "Cadillac",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "BOT",
+        "averageSeconds": 0.016,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 82.605,
+            "driver2Code": "BOT",
+            "driver2Seconds": 83.244,
+            "signedDriver1MinusDriver2Seconds": -0.639
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 96.906,
+            "driver2Code": "BOT",
+            "driver2Seconds": 95.436,
+            "signedDriver1MinusDriver2Seconds": 1.47
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 92.206,
+            "driver2Code": "BOT",
+            "driver2Seconds": 92.33,
+            "signedDriver1MinusDriver2Seconds": -0.124
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 91.967,
+            "driver2Code": "BOT",
+            "driver2Seconds": 91.629,
+            "signedDriver1MinusDriver2Seconds": 0.338
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 75.429,
+            "driver2Code": "BOT",
+            "driver2Seconds": 76.272,
+            "signedDriver1MinusDriver2Seconds": -0.843
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 74.747,
+            "driver2Code": "BOT",
+            "driver2Seconds": 75.283,
+            "signedDriver1MinusDriver2Seconds": -0.536
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 77.545,
+            "driver2Code": "BOT",
+            "driver2Seconds": 77.757,
+            "signedDriver1MinusDriver2Seconds": -0.212
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 68.945,
+            "driver2Code": "BOT",
+            "driver2Seconds": 69.03,
+            "signedDriver1MinusDriver2Seconds": -0.085
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 91.451,
+            "driver2Code": "BOT",
+            "driver2Seconds": 91.227,
+            "signedDriver1MinusDriver2Seconds": 0.224
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 107.971,
+            "driver2Code": "BOT",
+            "driver2Seconds": 107.823,
+            "signedDriver1MinusDriver2Seconds": 0.148
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q1",
+            "driver1Code": "PER",
+            "driver1Seconds": 81.322,
+            "driver2Code": "BOT",
+            "driver2Seconds": 80.886,
+            "signedDriver1MinusDriver2Seconds": 0.436
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "PER",
+          "displayName": "Sergio Pérez",
+          "driverId": "j577mm866qnnaex4z4dkxkd24980efgg",
+          "nationality": "MX",
+          "number": 11,
+          "qualifying": 6,
+          "race": 8,
+          "total": 20,
+          "points": 0,
+          "sprintQualifying": 3,
+          "sprint": 3
+        },
+        {
+          "code": "BOT",
+          "displayName": "Valtteri Bottas",
+          "driverId": "j576225e9tzfnrmbhqzv9cwf6n80exts",
+          "nationality": "FI",
+          "number": 77,
+          "qualifying": 5,
+          "race": 3,
+          "total": 10,
+          "points": 0,
+          "sprintQualifying": 1,
+          "sprint": 1
+        }
+      ]
+    },
+    {
+      "team": "Haas",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "BEA",
+        "averageSeconds": 0.202,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q2",
+            "driver1Code": "BEA",
+            "driver1Seconds": 80.311,
+            "driver2Code": "OCO",
+            "driver2Seconds": 80.491,
+            "signedDriver1MinusDriver2Seconds": -0.18
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q2",
+            "driver1Code": "BEA",
+            "driver1Seconds": 93.197,
+            "driver2Code": "OCO",
+            "driver2Seconds": 93.538,
+            "signedDriver1MinusDriver2Seconds": -0.341
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 91.09,
+            "driver2Code": "OCO",
+            "driver2Seconds": 90.915,
+            "signedDriver1MinusDriver2Seconds": 0.175
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q2",
+            "driver1Code": "BEA",
+            "driver1Seconds": 89.567,
+            "driver2Code": "OCO",
+            "driver2Seconds": 89.772,
+            "signedDriver1MinusDriver2Seconds": -0.205
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 74.449,
+            "driver2Code": "OCO",
+            "driver2Seconds": 74.845,
+            "signedDriver1MinusDriver2Seconds": -0.396
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 74.814,
+            "driver2Code": "OCO",
+            "driver2Seconds": 74.722,
+            "signedDriver1MinusDriver2Seconds": 0.092
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 76.571,
+            "driver2Code": "OCO",
+            "driver2Seconds": 77.073,
+            "signedDriver1MinusDriver2Seconds": -0.502
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q2",
+            "driver1Code": "BEA",
+            "driver1Seconds": 67.523,
+            "driver2Code": "OCO",
+            "driver2Seconds": 67.817,
+            "signedDriver1MinusDriver2Seconds": -0.294
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 90.57,
+            "driver2Code": "OCO",
+            "driver2Seconds": 90.68,
+            "signedDriver1MinusDriver2Seconds": -0.11
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 107.113,
+            "driver2Code": "OCO",
+            "driver2Seconds": 107.801,
+            "signedDriver1MinusDriver2Seconds": -0.688
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q1",
+            "driver1Code": "BEA",
+            "driver1Seconds": 80.233,
+            "driver2Code": "OCO",
+            "driver2Seconds": 80.01,
+            "signedDriver1MinusDriver2Seconds": 0.223
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "BEA",
+          "displayName": "Oliver Bearman",
+          "driverId": "j5764j6w9hrq07qk2tzjxqxsk980ebs0",
+          "nationality": "GB",
+          "number": 87,
+          "qualifying": 8,
+          "race": 7,
+          "total": 20,
+          "points": 18,
+          "sprintQualifying": 3,
+          "sprint": 2
+        },
+        {
+          "code": "OCO",
+          "displayName": "Esteban Ocon",
+          "driverId": "j573186zqhnywewaqfewhxnksx80f5s5",
+          "nationality": "FR",
+          "number": 31,
+          "qualifying": 3,
+          "race": 4,
+          "total": 10,
+          "points": 3,
+          "sprintQualifying": 1,
+          "sprint": 2
+        }
+      ]
+    },
+    {
+      "team": "Racing Bulls",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "LAW",
+        "averageSeconds": 0.077,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q3",
+            "driver1Code": "LAW",
+            "driver1Seconds": 79.994,
+            "driver2Code": "LIN",
+            "driver2Seconds": 81.247,
+            "signedDriver1MinusDriver2Seconds": -1.253
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 93.765,
+            "driver2Code": "LIN",
+            "driver2Seconds": 93.784,
+            "signedDriver1MinusDriver2Seconds": -0.019
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 90.495,
+            "driver2Code": "LIN",
+            "driver2Seconds": 90.109,
+            "signedDriver1MinusDriver2Seconds": 0.386
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q1",
+            "driver1Code": "LAW",
+            "driver1Seconds": 89.595,
+            "driver2Code": "LIN",
+            "driver2Seconds": 90.133,
+            "signedDriver1MinusDriver2Seconds": -0.538
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 73.897,
+            "driver2Code": "LIN",
+            "driver2Seconds": 73.548,
+            "signedDriver1MinusDriver2Seconds": 0.349
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 73.471,
+            "driver2Code": "LIN",
+            "driver2Seconds": 74.248,
+            "signedDriver1MinusDriver2Seconds": -0.777
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 75.585,
+            "driver2Code": "LIN",
+            "driver2Seconds": 75.84,
+            "signedDriver1MinusDriver2Seconds": -0.255
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q3",
+            "driver1Code": "LAW",
+            "driver1Seconds": 66.955,
+            "driver2Code": "LIN",
+            "driver2Seconds": 67.007,
+            "signedDriver1MinusDriver2Seconds": -0.052
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q3",
+            "driver1Code": "LAW",
+            "driver1Seconds": 89.716,
+            "driver2Code": "LIN",
+            "driver2Seconds": 89.305,
+            "signedDriver1MinusDriver2Seconds": 0.411
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 106.12,
+            "driver2Code": "LIN",
+            "driver2Seconds": 105.629,
+            "signedDriver1MinusDriver2Seconds": 0.491
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q2",
+            "driver1Code": "LAW",
+            "driver1Seconds": 78.765,
+            "driver2Code": "LIN",
+            "driver2Seconds": 78.36,
+            "signedDriver1MinusDriver2Seconds": 0.405
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "LAW",
+          "displayName": "Liam Lawson",
+          "driverId": "j57164fhwp3sb59n7f1mtjvtjs80ff4b",
+          "nationality": "NZ",
+          "number": 30,
+          "qualifying": 6,
+          "race": 8,
+          "total": 19,
+          "points": 43,
+          "sprintQualifying": 2,
+          "sprint": 3
+        },
+        {
+          "code": "LIN",
+          "displayName": "Arvid Lindblad",
+          "driverId": "j57270jya7expa4p1f6kyxpnkh80fzmm",
+          "nationality": "GB",
+          "number": 41,
+          "qualifying": 5,
+          "race": 3,
+          "total": 11,
+          "points": 23,
+          "sprintQualifying": 2,
+          "sprint": 1
+        }
+      ]
+    },
+    {
+      "team": "Aston Martin",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "ALO",
+        "averageSeconds": 0.375,
+        "sessions": 10,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 95.203,
+            "driver2Code": "STR",
+            "driver2Seconds": 95.995,
+            "signedDriver1MinusDriver2Seconds": -0.792
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 92.646,
+            "driver2Code": "STR",
+            "driver2Seconds": 92.92,
+            "signedDriver1MinusDriver2Seconds": -0.274
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 91.098,
+            "driver2Code": "STR",
+            "driver2Seconds": 91.164,
+            "signedDriver1MinusDriver2Seconds": -0.066
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 75.196,
+            "driver2Code": "STR",
+            "driver2Seconds": 76.195,
+            "signedDriver1MinusDriver2Seconds": -0.999
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 75.349,
+            "driver2Code": "STR",
+            "driver2Seconds": 76.061,
+            "signedDriver1MinusDriver2Seconds": -0.712
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 78.815,
+            "driver2Code": "STR",
+            "driver2Seconds": 78.758,
+            "signedDriver1MinusDriver2Seconds": 0.057
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 69.942,
+            "driver2Code": "STR",
+            "driver2Seconds": 70.363,
+            "signedDriver1MinusDriver2Seconds": -0.421
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 93.025,
+            "driver2Code": "STR",
+            "driver2Seconds": 92.863,
+            "signedDriver1MinusDriver2Seconds": 0.162
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 110.002,
+            "driver2Code": "STR",
+            "driver2Seconds": 110.177,
+            "signedDriver1MinusDriver2Seconds": -0.175
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q1",
+            "driver1Code": "ALO",
+            "driver1Seconds": 80.126,
+            "driver2Code": "STR",
+            "driver2Seconds": 80.659,
+            "signedDriver1MinusDriver2Seconds": -0.533
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "ALO",
+          "displayName": "Fernando Alonso",
+          "driverId": "j575xrwbxdvd4xemn9pgghxf0980f5fh",
+          "nationality": "ES",
+          "number": 14,
+          "qualifying": 9,
+          "race": 8,
+          "total": 24,
+          "points": 1,
+          "sprintQualifying": 4,
+          "sprint": 3
+        },
+        {
+          "code": "STR",
+          "displayName": "Lance Stroll",
+          "driverId": "j579cw4kyew92q54fj890f7ebh80ebdq",
+          "nationality": "CA",
+          "number": 18,
+          "qualifying": 2,
+          "race": 3,
+          "total": 6,
+          "points": 0,
+          "sprintQualifying": 0,
+          "sprint": 1
+        }
+      ]
+    },
+    {
+      "team": "Alpine",
+      "sessionsSettled": 30,
+      "qualifyingGap": {
+        "leaderCode": "GAS",
+        "averageSeconds": 0.348,
+        "sessions": 11,
+        "method": "deepest mutually completed qualifying phase",
+        "audit": [
+          {
+            "raceSlug": "australia-2026",
+            "sessionKey": 11230,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 80.501,
+            "driver2Code": "COL",
+            "driver2Seconds": 81.27,
+            "signedDriver1MinusDriver2Seconds": -0.769
+          },
+          {
+            "raceSlug": "china-2026",
+            "sessionKey": 11241,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 93.003,
+            "driver2Code": "COL",
+            "driver2Seconds": 93.357,
+            "signedDriver1MinusDriver2Seconds": -0.354
+          },
+          {
+            "raceSlug": "japan-2026",
+            "sessionKey": 11249,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 89.874,
+            "driver2Code": "COL",
+            "driver2Seconds": 90.627,
+            "signedDriver1MinusDriver2Seconds": -0.753
+          },
+          {
+            "raceSlug": "miami-2026",
+            "sessionKey": 11276,
+            "phase": "Q3",
+            "driver1Code": "GAS",
+            "driver1Seconds": 88.81,
+            "driver2Code": "COL",
+            "driver2Seconds": 88.762,
+            "signedDriver1MinusDriver2Seconds": 0.048
+          },
+          {
+            "raceSlug": "canada-2026",
+            "sessionKey": 11287,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 74.187,
+            "driver2Code": "COL",
+            "driver2Seconds": 73.857,
+            "signedDriver1MinusDriver2Seconds": 0.33
+          },
+          {
+            "raceSlug": "monaco-2026",
+            "sessionKey": 11295,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 73.762,
+            "driver2Code": "COL",
+            "driver2Seconds": 73.995,
+            "signedDriver1MinusDriver2Seconds": -0.233
+          },
+          {
+            "raceSlug": "spain-2026",
+            "sessionKey": 11303,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 76.261,
+            "driver2Code": "COL",
+            "driver2Seconds": 76.191,
+            "signedDriver1MinusDriver2Seconds": 0.07
+          },
+          {
+            "raceSlug": "austria-2026",
+            "sessionKey": 11311,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 67.223,
+            "driver2Code": "COL",
+            "driver2Seconds": 68.171,
+            "signedDriver1MinusDriver2Seconds": -0.948
+          },
+          {
+            "raceSlug": "britain-2026",
+            "sessionKey": 11322,
+            "phase": "Q1",
+            "driver1Code": "GAS",
+            "driver1Seconds": 90.345,
+            "driver2Code": "COL",
+            "driver2Seconds": 91.321,
+            "signedDriver1MinusDriver2Seconds": -0.976
+          },
+          {
+            "raceSlug": "belgium-2026",
+            "sessionKey": 11330,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 106.331,
+            "driver2Code": "COL",
+            "driver2Seconds": 106.392,
+            "signedDriver1MinusDriver2Seconds": -0.061
+          },
+          {
+            "raceSlug": "hungary-2026",
+            "sessionKey": 11338,
+            "phase": "Q2",
+            "driver1Code": "GAS",
+            "driver1Seconds": 78.844,
+            "driver2Code": "COL",
+            "driver2Seconds": 79.027,
+            "signedDriver1MinusDriver2Seconds": -0.183
+          }
+        ]
+      },
+      "drivers": [
+        {
+          "code": "GAS",
+          "displayName": "Pierre Gasly",
+          "driverId": "j574ckv7gr3ne83mxv4y3ds1b180ewhh",
+          "nationality": "FR",
+          "number": 10,
+          "qualifying": 8,
+          "race": 7,
+          "total": 20,
+          "points": 42,
+          "sprintQualifying": 2,
+          "sprint": 3
+        },
+        {
+          "code": "COL",
+          "displayName": "Franco Colapinto",
+          "driverId": "j57d8npdwb65ttvrmx57jhpmvs80ezaj",
+          "nationality": "AR",
+          "number": 43,
+          "qualifying": 3,
+          "race": 4,
+          "total": 10,
+          "points": 19,
+          "sprintQualifying": 2,
+          "sprint": 1
+        }
+      ]
+    }
+  ]
+}

@@ -45,25 +45,65 @@ function parseCookieHeader(header: string | null): Map<string, string> {
 }
 
 /**
+ * Clerk suffixes its cookies with the first 8 base64url chars of the SHA-1 of
+ * the publishable key (`__client_uat_<suffix>`), so one origin can host several
+ * instances at once. Mirrors `getCookieSuffix` in `@clerk/shared`, which is not
+ * re-exported from `@clerk/backend`.
+ *
+ * Web Crypto only, so this stays edge-safe on the Cloudflare worker.
+ */
+async function computeClerkCookieSuffix(publishableKey: string) {
+  const digest = await crypto.subtle.digest(
+    'SHA-1',
+    new TextEncoder().encode(publishableKey),
+  );
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .slice(0, 8);
+}
+
+let cookieSuffixPromise: Promise<string | null> | null = null;
+
+function getClerkCookieSuffix(): Promise<string | null> {
+  cookieSuffixPromise ??= (async () => {
+    const publishableKey = process.env.VITE_CLERK_PUBLISHABLE_KEY;
+    return publishableKey
+      ? await computeClerkCookieSuffix(publishableKey)
+      : null;
+  })();
+  return cookieSuffixPromise;
+}
+
+/**
  * Reads Clerk's `__client_uat` cookie — the durable, non-httpOnly "is there a
  * session" signal the client SDK keeps in sync (`0` = signed out, a positive
  * timestamp = signed in). Unlike {@link getAuthenticatedClerkIdentity}, this
  * needs no JWT validation or handshake, so it stays correct even when the
  * short-lived `__session` token is stale (e.g. a mobile tab resumed after the
  * token expired) — which is exactly when validating the token would wrongly
- * report signed-out and flash the signed-in UI. Some instances suffix the
- * cookie (`__client_uat_<hash>`), so match either form.
+ * report signed-out and flash the signed-in UI.
+ *
+ * Only *this* instance's cookie counts. A browser that has visited the app
+ * under another Clerk instance keeps that instance's `__client_uat_<suffix>`
+ * cookie forever, and it never returns to `0` because no SDK on the page owns
+ * it any more. Trusting any suffix made those stale cookies pin SSR to
+ * "signed in" for a genuinely signed-out visitor, who then got the signed-in
+ * dashboard against a Convex client with no identity.
+ *
+ * The unsuffixed cookie is the pre-suffix Clerk format, so it only counts when
+ * this instance has no suffixed cookie on the request.
  */
-export function isClerkSessionPresent(request: Request): boolean {
+export async function isClerkSessionPresent(
+  request: Request,
+): Promise<boolean> {
   const cookies = parseCookieHeader(request.headers.get('cookie'));
-  for (const [name, value] of cookies) {
-    if (name === '__client_uat' || name.startsWith('__client_uat_')) {
-      if (value && value !== '0') {
-        return true;
-      }
-    }
-  }
-  return false;
+  const suffix = await getClerkCookieSuffix();
+
+  const suffixed = suffix ? cookies.get(`__client_uat_${suffix}`) : undefined;
+  const value = suffixed ?? cookies.get('__client_uat');
+
+  return Boolean(value) && value !== '0';
 }
 
 export function buildConvexTokenIdentifier(params: {

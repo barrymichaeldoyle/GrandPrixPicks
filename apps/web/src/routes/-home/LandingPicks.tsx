@@ -5,15 +5,25 @@ import {
   getWebTop5DraftStorageKey,
 } from '@grandprixpicks/shared/picks';
 import { useQuery } from 'convex/react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Pencil } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
+import { LandingTopFivePicker } from './LandingTopFivePicker';
 import { Button } from '@/components/Button/Button';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/components/DriverBadge';
+import type { H2HMatchup } from '@/components/H2HMatchupGrid';
+import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import {
+  useClerkRuntimeControl,
+  useClerkWarmHandlers,
+} from '@/integrations/clerk/runtime-control';
+import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { abbreviateGrandPrix } from '@/lib/display';
+import { useIsomorphicLayoutEffect } from '@/lib/useIsomorphicLayoutEffect';
 import {
   clearPendingSubmit,
   clearPredictionDraft,
+  loadPredictionDraft,
   setPendingSubmit,
 } from '@/lib/predictionDrafts';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -24,18 +34,62 @@ export type LandingPicksInitialStep =
   | 'teammate-handoff'
   | 'teammate-manual';
 
-const LandingTopFivePicker = lazy(() =>
-  import('./LandingTopFivePicker').then((module) => ({
-    default: module.LandingTopFivePicker,
-  })),
-);
+/*
+ * The Top 5 picker is imported eagerly (see the import above) and the team-mate
+ * form is not, which looks inconsistent but is the difference between the two:
+ * that picker is server-rendered into the landing HTML and is the first thing
+ * on screen, this form is a step nobody reaches without a click.
+ *
+ * Lazily loading a component the server already rendered costs a visible
+ * shudder on every refresh. React hydrates, finds the chunk missing, throws the
+ * server's markup away for the Suspense fallback, and puts it back a frame
+ * later once the chunk lands: measured at ~70ms in a production build, and
+ * because the skeleton was a different height, everything below it dropped 56px
+ * and bounced back. Nothing was saved for it either, since the chunk is needed
+ * immediately on the same page.
+ */
+let h2hFormModule: Promise<
+  typeof import('@/components/H2HPredictionForm')
+> | null = null;
+
+/** Idempotent: the module cache dedupes, this just names the promise. */
+function loadH2HForm() {
+  h2hFormModule ??= import('@/components/H2HPredictionForm');
+  return h2hFormModule;
+}
+
 const H2HPredictionForm = lazy(() =>
-  import('@/components/H2HPredictionForm').then((module) => ({
+  loadH2HForm().then((module) => ({
     default: module.H2HPredictionForm,
   })),
 );
 
 export const LANDING_PICKS_ANCHOR = 'make-picks';
+
+type LandingPicksMemory = {
+  activeStep: PicksStep;
+  h2hVisited: boolean;
+  topFiveComplete: boolean;
+  h2hEntryMethod: 'manual' | 'top5_handoff';
+  topFivePicks: Id<'drivers'>[];
+  h2hComplete: boolean;
+};
+
+// Purely presentational funnel state, kept in module memory so that a remount
+// is never mistaken for a returning visit and does not move Step 1 to Step 2
+// underneath the user. A real reload clears this map and continues to use the
+// persisted draft-resume behaviour below.
+//
+// Opening sign-in used to be the remount that made this necessary — activating
+// Clerk swapped the auth providers above this component. It no longer does (see
+// ClerkSignInOverlay), so this now guards the invariant rather than a specific
+// caller, and the transition it protects is the one into the signed-in app.
+const landingPicksMemory = new Map<string, LandingPicksMemory>();
+
+/** Keeps remount-oriented tests isolated; production code never calls this. */
+export function resetLandingPicksMemoryForTests() {
+  landingPicksMemory.clear();
+}
 
 /**
  * The real picker, embedded in the landing page. Not a screenshot and not a
@@ -50,6 +104,7 @@ export function LandingPicks({
   season,
   sessionLabel,
   initialDrivers,
+  initialMatchups,
   initialStep = 'top5',
 }: {
   raceId: Id<'races'>;
@@ -59,24 +114,40 @@ export function LandingPicks({
   /** Session whose picks lock next, e.g. "Qualifying". */
   sessionLabel: string;
   /** SSR seed so the landing picker is usable before Convex subscriptions boot. */
-  initialDrivers: Array<Doc<'drivers'>>;
+  initialDrivers: Doc<'drivers'>[];
+  /** Same, for the team-mate step a returning visitor resumes straight onto. */
+  initialMatchups?: H2HMatchup[];
   /**
    * Initial funnel entry point. The default is the real signed-out journey;
    * focused previews can open directly on either teammate-pick state.
    */
   initialStep?: LandingPicksInitialStep;
 }) {
+  const rememberedState = useRef(
+    landingPicksMemory.get(String(raceId)),
+  ).current;
   const [activeStep, setActiveStep] = useState<PicksStep>(
-    initialStep === 'top5' ? 'top5' : 'h2h',
+    rememberedState?.activeStep ?? (initialStep === 'top5' ? 'top5' : 'h2h'),
   );
-  const [h2hVisited, setH2HVisited] = useState(initialStep !== 'top5');
+  const [h2hVisited, setH2HVisited] = useState(
+    rememberedState?.h2hVisited ?? initialStep !== 'top5',
+  );
   const [topFiveComplete, setTopFiveComplete] = useState(
-    initialStep === 'teammate-handoff',
+    rememberedState?.topFiveComplete ?? initialStep === 'teammate-handoff',
   );
   const [h2hEntryMethod, setH2HEntryMethod] = useState<
     'manual' | 'top5_handoff'
-  >(initialStep === 'teammate-handoff' ? 'top5_handoff' : 'manual');
-  const [topFivePicks, setTopFivePicks] = useState<Array<Id<'drivers'>>>([]);
+  >(
+    rememberedState?.h2hEntryMethod ??
+      (initialStep === 'teammate-handoff' ? 'top5_handoff' : 'manual'),
+  );
+  const [topFivePicks, setTopFivePicks] = useState<Id<'drivers'>[]>(
+    rememberedState?.topFivePicks ?? [],
+  );
+  const [h2hComplete, setH2HComplete] = useState(
+    rememberedState?.h2hComplete ?? false,
+  );
+  const [top5OverlayOpen, setTop5OverlayOpen] = useState(false);
   /** Bumped by "Start over" to remount both pickers with empty state. */
   const [pickerGeneration, setPickerGeneration] = useState(0);
   const [draftNoticeTarget, setDraftNoticeTarget] =
@@ -87,16 +158,24 @@ export function LandingPicks({
   const viewedRef = useRef(false);
   const handoffCapturedRef = useRef(false);
   const handoffCompletedRef = useRef(false);
-  const matchups = useQuery(
+  // The SSR seed is what this step paints from until the live subscription
+  // resolves. Team-mate pairings change at most a few times a season, so the
+  // seeded copy is never meaningfully stale, and preferring it means a resumed
+  // card opens on real duels rather than skeletons.
+  const liveMatchups = useQuery(
     api.h2h.getMatchupsForSeason,
     h2hVisited ? { season } : 'skip',
   );
+  const matchups = liveMatchups ?? initialMatchups;
 
-  // Slot number per driver, so a teammate battle can show the call already
+  // Slot number per driver, so a team-mate battle can show the call already
   // made about that driver upstairs instead of asking twice.
   const topFivePositions = Object.fromEntries(
     topFivePicks.map((driverId, index) => [driverId, index + 1]),
   );
+  function handleSelectionProgress(selected: number, total: number) {
+    setH2HComplete(total > 0 && selected === total);
+  }
 
   function revealActiveStep() {
     window.requestAnimationFrame(() => {
@@ -135,6 +214,78 @@ export function LandingPicks({
     return () => observer.disconnect();
   }, [raceId, raceSlug, sessionLabel]);
 
+  /**
+   * A returning visitor whose Top 5 draft is already filled in has answered
+   * step 1. Opening on it made them re-read a question they had finished and
+   * hunt for "Continue" to reach the card they came back for, so the funnel
+   * resumes at the team-mate step instead.
+   *
+   * Runs as an effect rather than in the initial state because drafts live in
+   * localStorage: reading it during render would desync the SSR markup. It is
+   * a layout effect so the step lands in the same frame as hydration — as a
+   * passive effect the visitor watched the Top 5 picker paint, fill itself in,
+   * grow a Continue button and only then be replaced by the team-mate card.
+   *
+   * `h2hEntryMethod` deliberately stays `manual` — a restored draft is not a
+   * fresh Top 5 handoff, and counting it as one would inflate that funnel.
+   */
+  useIsomorphicLayoutEffect(() => {
+    if (rememberedState || initialStep !== 'top5') {
+      return;
+    }
+    const draft = loadPredictionDraft<{ picks?: Id<'drivers'>[] }>(
+      getWebTop5DraftStorageKey(raceId),
+    );
+    if ((draft?.picks?.length ?? 0) < 5) {
+      return;
+    }
+    // These two are invisible on their own: they arm the matchups query and
+    // mount the team-mate block behind `hidden`, so its chunk and its data load
+    // out of sight while the Top 5 stays on screen.
+    setTopFiveComplete(true);
+    setH2HVisited(true);
+
+    // The step itself waits for the chunk. Flipping immediately swapped a real,
+    // filled-in Top 5 for eleven skeleton boxes and then swapped those for the
+    // card — three states to say one thing. Holding the visible step until the
+    // card can actually render makes it one.
+    let cancelled = false;
+    void loadH2HForm().then(() => {
+      if (!cancelled) {
+        setActiveStep('h2h');
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialStep, raceId, rememberedState]);
+
+  // Everyone who finishes step 1 needs this chunk, and "Continue to team-mate
+  // battles" is a click we can see coming from the moment the picker is on
+  // screen. Fetching it on idle keeps that handoff instant too.
+  useEffect(() => {
+    return deferUntilAfterLoad(() => void loadH2HForm());
+  }, []);
+
+  useEffect(() => {
+    landingPicksMemory.set(String(raceId), {
+      activeStep,
+      h2hVisited,
+      topFiveComplete,
+      h2hEntryMethod,
+      topFivePicks,
+      h2hComplete,
+    });
+  }, [
+    activeStep,
+    h2hComplete,
+    h2hEntryMethod,
+    h2hVisited,
+    raceId,
+    topFiveComplete,
+    topFivePicks,
+  ]);
+
   function editTopFive() {
     setActiveStep('top5');
     captureAnalyticsEvent('landing_picker_step_changed', {
@@ -143,6 +294,26 @@ export function LandingPicks({
       prediction_type: 'top5',
     });
     revealActiveStep();
+  }
+
+  /**
+   * Editing the Top 5 from a finished card is a detour, not a step backwards.
+   * Sending the visitor back to step 1 tore the card down around them and left
+   * them to find their way forward again; the focus overlay is the same
+   * takeover signed-in players get for an edit, so the card stays put
+   * underneath and closing returns them exactly where they were.
+   */
+  function openTop5Overlay() {
+    setTop5OverlayOpen(true);
+    captureAnalyticsEvent('landing_picker_step_changed', {
+      race_id: raceId,
+      race_slug: raceSlug,
+      prediction_type: 'top5',
+    });
+  }
+
+  function closeTop5Overlay() {
+    setTop5OverlayOpen(false);
   }
 
   /**
@@ -159,7 +330,9 @@ export function LandingPicks({
     }
     setTopFivePicks([]);
     setTopFiveComplete(false);
+    setH2HComplete(false);
     setH2HVisited(false);
+    setTop5OverlayOpen(false);
     setH2HEntryMethod('manual');
     setActiveStep('top5');
     setPickerGeneration((generation) => generation + 1);
@@ -213,6 +386,12 @@ export function LandingPicks({
     });
   }
 
+  /**
+   * Every pick is in and the save wall is showing. Drives the "less chrome once
+   * there is nothing left to decide" state in the step header.
+   */
+  const cardComplete = activeStep === 'h2h' && topFiveComplete && h2hComplete;
+
   return (
     <section
       ref={sectionRef}
@@ -222,7 +401,19 @@ export function LandingPicks({
       // the first pick slots are visible rather than merely reachable.
       className="scroll-mt-28 border-t border-border px-4 pt-8 pb-10 sm:pb-12"
     >
-      <div className="mx-auto w-full max-w-6xl">
+      {/* The Top 5 step needs the full width for its two-column driver grid;
+          the team-mate step is a single narrow column. Sizing the container to
+          the active step keeps the heading on the same left edge as the picker
+          under it, instead of the heading spanning 6xl while a centred 3xl
+          panel sat 192px inboard of it. */}
+      <div
+        className={`mx-auto w-full ${activeStep === 'top5' ? 'max-w-6xl' : 'max-w-3xl'}`}
+      >
+        <span
+          data-landing-picks-start="true"
+          className="block h-px"
+          aria-hidden="true"
+        />
         {/* No rule under the step heading: the section already opens on a
             hairline, and a second one here reads as a divider between the
             heading and the picker it introduces, not as a heading underline. */}
@@ -230,12 +421,15 @@ export function LandingPicks({
           <span className="sr-only">
             {abbreviateGrandPrix(raceName)} · {sessionLabel}
           </span>
+          {/* The draft notice keeps its slot on a finished card: "Start over"
+              is the only reset, and losing it with the stepper would strand a
+              returning visitor on picks they wanted to bin. */}
           <div className="flex min-h-5 flex-wrap items-start justify-between gap-x-3 gap-y-1">
             <div className="flex items-center gap-1">
               {/* Going back to the Top 5 is navigation, not an action on this
                   step, so it reads as a back arrow on the step counter rather
                   than a labelled button competing with the picks below. */}
-              {activeStep === 'h2h' && topFiveComplete ? (
+              {activeStep === 'h2h' && topFiveComplete && !cardComplete ? (
                 <Button
                   variant="text"
                   size="inline"
@@ -245,19 +439,31 @@ export function LandingPicks({
                   onClick={editTopFive}
                 />
               ) : null}
-              <p className="gpp-label text-accent">
-                Step {activeStep === 'top5' ? '1' : '2'} of 2
-              </p>
+              {cardComplete ? null : (
+                <p className="gpp-label text-accent">
+                  Step {activeStep === 'top5' ? '1' : '2'} of 2
+                </p>
+              )}
             </div>
             <div ref={setDraftNoticeTarget} />
           </div>
+          {/* Once every pick is in, the stepper and its instruction are spent:
+              nothing is left to step through, and "Pick each team-mate winner"
+              contradicts the finished card below it. The card's own heading
+              takes over, so the visible chrome drops to the card and the ask.
+              The heading stays in the accessibility tree to keep the panel's
+              `aria-labelledby` target and the section's name. */}
           <h2
             id="landing-picks-step-heading"
-            className="mt-1 text-xl font-semibold text-text sm:text-2xl"
+            className={
+              cardComplete
+                ? 'sr-only'
+                : 'mt-1 text-xl font-semibold text-text sm:text-2xl'
+            }
           >
             {activeStep === 'top5'
               ? 'Choose your Top 5'
-              : 'Pick each teammate winner'}
+              : 'Pick each team-mate winner'}
           </h2>
         </div>
 
@@ -268,12 +474,19 @@ export function LandingPicks({
           aria-labelledby="landing-picks-step-heading"
           tabIndex={-1}
         >
+          {/* Exactly one Top 5 picker is mounted at a time: this one and the
+              overlay's share a draft key, so two would race each other on
+              every reorder. Remounting between them is safe because the draft
+              is written synchronously on each change, and re-reading it is how
+              the overlay arrives pre-filled. */}
           <div hidden={activeStep !== 'top5'}>
-            <Suspense fallback={<TopFivePickerSkeleton />}>
+            {top5OverlayOpen ? null : (
               <LandingTopFivePicker
                 key={pickerGeneration}
                 raceId={raceId}
                 initialDrivers={initialDrivers}
+                initialDraftPicks={rememberedState?.topFivePicks}
+                suppressDraftRestoredNotice={Boolean(rememberedState)}
                 onComplete={handleTopFiveComplete}
                 onContinue={continueToH2H}
                 onCompletionStateChange={setTopFiveComplete}
@@ -283,7 +496,7 @@ export function LandingPicks({
                   activeStep === 'top5' ? draftNoticeTarget : null
                 }
               />
-            </Suspense>
+            )}
           </div>
           <div hidden={activeStep !== 'h2h'}>
             {h2hVisited ? (
@@ -300,16 +513,20 @@ export function LandingPicks({
                       entryMethod={h2hEntryMethod}
                       onSaveIntent={prepareCombinedSave}
                       onStartOver={startOver}
+                      onSelectionProgress={handleSelectionProgress}
                       topFivePositions={topFivePositions}
                       draftNoticeTarget={
                         activeStep === 'h2h' ? draftNoticeTarget : null
                       }
-                      renderSaveWall={({ lockIn }) => (
-                        <PredictionCardSaveWall
+                      renderCardIntro={() => (
+                        <PredictionCardIntro
                           topFivePicks={topFivePicks}
                           drivers={initialDrivers}
-                          onLockIn={lockIn}
+                          onEditTopFive={openTop5Overlay}
                         />
+                      )}
+                      renderSaveWall={({ lockIn }) => (
+                        <PredictionCardSaveWall onLockIn={lockIn} />
                       )}
                     />
                   </Suspense>
@@ -319,132 +536,163 @@ export function LandingPicks({
           </div>
         </div>
       </div>
+
+      <PicksFocusOverlay
+        open={top5OverlayOpen}
+        onClose={closeTop5Overlay}
+        title="Your Top 5"
+        subtitle="Applies to every session this weekend"
+      >
+        {/* The overlay body has no mobile bottom padding (see
+            PicksFocusOverlay); this form has no sticky bar of its own. */}
+        <div className="pb-4 sm:pb-0">
+          <LandingTopFivePicker
+            key={`overlay-${pickerGeneration}`}
+            raceId={raceId}
+            initialDrivers={initialDrivers}
+            initialDraftPicks={rememberedState?.topFivePicks}
+            suppressDraftRestoredNotice={Boolean(rememberedState)}
+            onComplete={handleTopFiveComplete}
+            onContinue={closeTop5Overlay}
+            continueLabel="Done"
+            onCompletionStateChange={setTopFiveComplete}
+            onPicksChange={setTopFivePicks}
+            onStartOver={startOver}
+            // Keeps the restored-draft notice in the card's header slot
+            // rather than banner-ing it inside the modal. Someone who just
+            // pressed Edit does not need telling their picks were kept.
+            draftNoticeTarget={draftNoticeTarget}
+          />
+        </div>
+      </PicksFocusOverlay>
     </section>
   );
 }
 
 /**
- * The conversion moment. It used to ask for an account while showing a single
- * teammate duel, so the thing being saved was mostly out of sight. The whole
- * card is now on screen at the point of the ask: the Top 5 in order here, and
- * the eleven calls in the grid the form swaps in once the sequence is done.
+ * Head of the conversion moment. It used to ask for an account while showing a
+ * single team-mate duel, so the thing being saved was mostly out of sight; the
+ * whole card is now on screen at the point of the ask.
+ *
+ * Order matters as much as presence. The team-mate calls are the secondary half
+ * of a prediction card and used to lead it simply because the H2H form owns
+ * the page at that point, which read as though eleven duels were the headline
+ * and the Top 5 an afterthought stapled underneath. This renders above the
+ * duels (see `renderCardIntro`), so the card goes Top 5 → team-mate battles →
+ * the ask, primary first.
  */
-function PredictionCardSaveWall({
+function PredictionCardIntro({
   topFivePicks,
   drivers,
-  onLockIn,
+  onEditTopFive,
 }: {
-  topFivePicks: Array<Id<'drivers'>>;
-  drivers: Array<Doc<'drivers'>>;
-  onLockIn: () => void;
+  topFivePicks: Id<'drivers'>[];
+  drivers: Doc<'drivers'>[];
+  /**
+   * The finished card hides the step header's back arrow, so the way back to
+   * the Top 5 lives here, next to the picks it edits. The team-mate calls
+   * already say "tap a battle to change your mind"; this is the same offer for
+   * the half of the card that isn't tappable.
+   */
+  onEditTopFive?: () => void;
 }) {
   const pickedDrivers = topFivePicks
     .map((driverId) => drivers.find((driver) => driver._id === driverId))
     .filter((driver): driver is Doc<'drivers'> => driver !== undefined);
   const includesTopFive = pickedDrivers.length === 5;
   return (
-    <div
-      className="mx-auto mt-6 max-w-3xl border-t border-border pt-5"
-      data-testid="h2h-save-wall"
-    >
+    <div className="mb-6" data-testid="prediction-card-intro">
+      {/* No supporting line under this heading: it used to read "Sign in to
+          submit your Top 5 and team-mate picks", which is the button's job.
+          Saying the ask twice, once as prose and once as the action, made the
+          moment feel like two requests instead of one. */}
       <p className="text-xl font-medium text-text">
         {includesTopFive
           ? 'That’s your prediction card.'
-          : 'Every teammate battle called.'}
-      </p>
-      <p className="gpp-reading-copy mt-1 text-text-muted">
-        {includesTopFive
-          ? 'Sign in to submit your Top 5 and teammate picks.'
-          : 'Sign in to submit your teammate picks.'}
+          : 'Every team-mate battle called.'}
       </p>
 
       {includesTopFive ? (
-        <ol
-          className="mt-4 grid grid-cols-5 gap-1"
-          aria-label="Your Top 5, in order"
-        >
-          {pickedDrivers.map((driver, index) => (
-            <li
-              key={driver._id}
-              className="gpp-team-bar flex min-w-0 items-center justify-center gap-1.5 rounded-sm border border-border bg-surface-elevated py-1.5 pr-1 pl-2"
-              style={
-                {
-                  '--team-colour':
-                    (driver.team && TEAM_COLORS[driver.team]) ||
-                    FALLBACK_TEAM_COLOR,
-                } as React.CSSProperties
-              }
-            >
-              <span className="gpp-mono text-[10px] leading-none text-accent">
-                P{index + 1}
-              </span>
-              <span className="gpp-mono truncate text-xs leading-none text-text">
-                {driver.code}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <p className="gpp-label text-text-muted">Your Top 5</p>
+            {onEditTopFive ? (
+              <Button
+                variant="text"
+                size="inline"
+                leftIcon={Pencil}
+                onClick={onEditTopFive}
+              >
+                Edit
+              </Button>
+            ) : null}
+          </div>
+          <ol
+            className="mt-2 grid grid-cols-5 gap-1"
+            aria-label="Your Top 5, in order"
+          >
+            {pickedDrivers.map((driver, index) => (
+              <li
+                key={driver._id}
+                // Same cell height and stripe as the team-mate strip below, and
+                // the code sits against its team colour rather than floating in
+                // the middle of a wide box: five slots and eleven battles read
+                // as one card, not two unrelated grids.
+                className="gpp-team-bar flex h-7 min-w-0 items-center gap-1.5 overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1 pl-2"
+                style={
+                  {
+                    '--team-colour':
+                      (driver.team && TEAM_COLORS[driver.team]) ||
+                      FALLBACK_TEAM_COLOR,
+                  } as React.CSSProperties
+                }
+              >
+                <span className="gpp-mono text-[10px] leading-none text-accent">
+                  P{index + 1}
+                </span>
+                <span className="gpp-mono truncate text-xs leading-none text-text">
+                  {driver.code}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
       ) : null}
-
-      <Button
-        variant="primary"
-        size="md"
-        className="mt-4 w-full sm:w-auto"
-        onClick={onLockIn}
-      >
-        Sign in to submit my picks
-      </Button>
     </div>
   );
 }
 
-function TopFivePickerSkeleton() {
+/**
+ * Tail of the same moment: the ask, under the card it is asking about. The
+ * button is the only place the sign-in is worded, so the note beside it answers
+ * the two things a signed-out visitor is actually weighing (cost, and whether
+ * the picks they just made survive the account) rather than repeating the ask.
+ */
+function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
+  const { signInPending } = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
+
   return (
     <div
-      className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8"
-      aria-busy="true"
-      aria-label="Loading driver grid"
+      className="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center"
+      data-testid="h2h-save-wall"
     >
-      <div className="order-2 lg:order-1 lg:min-w-[400px] lg:flex-1">
-        <p className="mb-3 text-lg font-semibold text-text">Your Picks</p>
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
-          {[1, 2, 3, 4, 5].map((position) => (
-            <div
-              key={position}
-              className="grid h-14 grid-cols-[3rem_1fr] border-b border-border last:border-b-0 sm:h-16"
-            >
-              <span className="gpp-mono flex items-center justify-center border-r border-border text-sm text-accent">
-                P{position}
-              </span>
-              <span className="flex items-center px-3 text-sm text-text-muted">
-                Select a driver
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 h-11 rounded-sm bg-surface-muted" />
-      </div>
-
-      <div className="order-1 lg:order-2 lg:min-w-0 lg:flex-2">
-        <div className="mb-3 flex items-baseline gap-2">
-          {/* Hidden below lg to match the live picker, so the heading does not
-              pop in and out as the skeleton swaps for the real form. */}
-          <p className="hidden text-lg font-semibold text-text lg:block">
-            Select Drivers
-          </p>
-          <span className="text-sm text-text-muted">Loading the grid…</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 md:grid-cols-4">
-          {Array.from({ length: 22 }).map((_, index) => (
-            <span
-              // This skeleton intentionally mirrors the timing-sheet driver
-              // cells so the picker never collapses into a generic spinner.
-              key={index}
-              className="h-11 rounded-sm border border-border bg-surface-muted"
-            />
-          ))}
-        </div>
-      </div>
+      {/* The conversion button on the page. Booting Clerk starts on the hover
+          or tap that precedes the click, and the click itself gets a spinner
+          in place of the label rather than a silent wait. */}
+      <Button
+        variant="primary"
+        size="md"
+        className="w-full sm:w-auto"
+        loading={signInPending}
+        onClick={onLockIn}
+        {...warmHandlers}
+      >
+        Sign in to submit
+      </Button>
+      <p className="text-sm text-text-muted">
+        Free to play. These picks come with you.
+      </p>
     </div>
   );
 }
@@ -454,7 +702,7 @@ function H2HPickerSkeleton() {
     <div
       className="grid grid-cols-1 gap-2 pb-2 lg:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
-      aria-label="Loading teammate matchups"
+      aria-label="Loading team-mate matchups"
     >
       {Array.from({ length: 11 }).map((_, index) => (
         <div

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -122,7 +122,7 @@ function PricingPage() {
 
   return (
     <div className="mx-auto max-w-5xl bg-page px-4 py-6 sm:py-8">
-      <motion.div
+      <m.div
         className="mb-8 text-center sm:mb-10"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -139,11 +139,11 @@ function PricingPage() {
           Grand Prix Picks is free to play. Upgrade for full-season league
           access.
         </p>
-      </motion.div>
+      </m.div>
 
       <div className="space-y-8 sm:space-y-10">
         {showCheckoutCancelled ? (
-          <motion.section
+          <m.section
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/35 bg-warning-muted/45 p-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -166,11 +166,11 @@ function PricingPage() {
             >
               Dismiss
             </Button>
-          </motion.section>
+          </m.section>
         ) : null}
 
         {isEarlyBirdActive() ? (
-          <motion.section
+          <m.section
             className="rounded-xl border border-accent/35 bg-accent-muted/50 p-5 sm:p-6"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -186,10 +186,10 @@ function PricingPage() {
               Active through April 1, 2026 at 11:59 PM UTC. We&apos;ll prefill
               the code for you when you launch checkout from this page.
             </p>
-          </motion.section>
+          </m.section>
         ) : null}
 
-        <motion.section
+        <m.section
           className="rounded-2xl border border-border bg-surface/95 p-6 sm:p-8"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -227,7 +227,7 @@ function PricingPage() {
           )}
 
           <ul className="mb-6 space-y-2 text-sm text-text">
-            <motion.li
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -240,8 +240,8 @@ function PricingPage() {
               <span>
                 Join unlimited leagues (free accounts are limited to 5)
               </span>
-            </motion.li>
-            <motion.li
+            </m.li>
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -252,8 +252,8 @@ function PricingPage() {
                 aria-hidden
               />
               <span>Create public leagues anyone can discover and join</span>
-            </motion.li>
-            <motion.li
+            </m.li>
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -264,7 +264,7 @@ function PricingPage() {
                 aria-hidden
               />
               <span>One-time payment for the entire 2026 season</span>
-            </motion.li>
+            </m.li>
           </ul>
 
           {isSignedIn ? (
@@ -324,10 +324,10 @@ function PricingPage() {
               for details.
             </p>
           </div>
-        </motion.section>
+        </m.section>
 
         <section className="grid gap-3 sm:grid-cols-3">
-          <motion.div
+          <m.div
             {...fadeUp}
             className="rounded-xl border border-border bg-surface p-4"
           >
@@ -340,9 +340,9 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               Create and join as many leagues as you want all season.
             </p>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.08 }}
             className="rounded-xl border border-border bg-surface p-4"
@@ -356,9 +356,9 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               Session locks and transparent scoring keep competition clean.
             </p>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.16 }}
             className="rounded-xl border border-border bg-surface p-4"
@@ -372,7 +372,7 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               One purchase covers the entire 2026 campaign. No monthly plan.
             </p>
-          </motion.div>
+          </m.div>
         </section>
 
         <FaqSection title="Pricing FAQ">

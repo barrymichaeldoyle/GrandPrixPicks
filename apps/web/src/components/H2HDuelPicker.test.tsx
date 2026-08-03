@@ -72,7 +72,7 @@ describe('H2HDuelPicker', () => {
     expect(container.textContent).not.toContain('Ferrari');
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
-    ).toBe('0/2');
+    ).toBe('Team-mate battle 1 of 2');
 
     act(() => {
       container
@@ -81,10 +81,10 @@ describe('H2HDuelPicker', () => {
       vi.runAllTimers();
     });
 
-    expect(container.textContent).toContain('Teammate battle 2 of 2');
+    expect(container.textContent).toContain('Team-mate battle 2 of 2');
     expect(
       container.querySelector('[data-testid="h2h-duel-progress"]')?.textContent,
-    ).toBe('1/2');
+    ).toBe('Team-mate battle 2 of 2');
   });
 
   it('moves to restored draft progress once the draft hydrates', () => {
@@ -108,7 +108,7 @@ describe('H2HDuelPicker', () => {
       ),
     );
 
-    expect(container.textContent).toContain('Teammate battle 1 of 2');
+    expect(container.textContent).toContain('Team-mate battle 1 of 2');
 
     act(() =>
       root?.render(
@@ -121,7 +121,7 @@ describe('H2HDuelPicker', () => {
       ),
     );
 
-    expect(container.textContent).toContain('Teammate battle 2 of 2');
+    expect(container.textContent).toContain('Team-mate battle 2 of 2');
     expect(container.textContent).toContain('Ferrari');
   });
 
@@ -157,7 +157,7 @@ describe('H2HDuelPicker', () => {
       vi.runAllTimers();
     });
 
-    expect(container.textContent).toContain('Teammate battle 2 of 2');
+    expect(container.textContent).toContain('Team-mate battle 2 of 2');
 
     // The re-sync effect used to fire on every index change, so this bounced
     // straight back to battle two and the button was decorative.
@@ -168,7 +168,7 @@ describe('H2HDuelPicker', () => {
       vi.runAllTimers();
     });
 
-    expect(container.textContent).toContain('Teammate battle 1 of 2');
+    expect(container.textContent).toContain('Team-mate battle 1 of 2');
     expect(container.textContent).toContain('McLaren');
   });
 
@@ -191,7 +191,10 @@ describe('H2HDuelPicker', () => {
       ),
     );
 
-    expect(container.textContent).toContain('Teammate battle 2 of 2');
+    // Nothing left to ask, so the duel card is folded away and the strip is
+    // the whole card until a cell asks for a battle back.
+    expect(container.textContent).toContain('All battles called');
+    expect(container.textContent).not.toContain('Who finishes ahead?');
 
     const strip = container.querySelector('[data-testid="h2h-duel-strip"]');
     expect(strip?.querySelectorAll('button')).toHaveLength(2);
@@ -205,7 +208,59 @@ describe('H2HDuelPicker', () => {
       vi.runAllTimers();
     });
 
-    expect(container.textContent).toContain('Teammate battle 1 of 2');
+    expect(container.textContent).toContain('Team-mate battle 1 of 2');
+    expect(container.textContent).toContain('Who finishes ahead?');
+  });
+
+  it('folds back to the strip once a re-opened battle is answered', () => {
+    vi.useFakeTimers();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    function Harness() {
+      const [selections, setSelections] = useState<
+        Record<string, Id<'drivers'>>
+      >({
+        [matchups[0]._id]: matchups[0].driver1._id,
+        [matchups[1]._id]: matchups[1].driver2._id,
+      });
+      return (
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={selections}
+          onSelect={(matchupId, driverId) =>
+            setSelections((current) => ({ ...current, [matchupId]: driverId }))
+          }
+        />
+      );
+    }
+
+    act(() => root?.render(<Harness />));
+
+    const strip = container.querySelector('[data-testid="h2h-duel-strip"]');
+    act(() => {
+      strip?.querySelectorAll<HTMLButtonElement>('button')[0]?.click();
+      vi.runAllTimers();
+    });
+    expect(container.textContent).toContain('Who finishes ahead?');
+
+    // Answering the last open question is what closes the card, whether that
+    // question was the eleventh or one the player came back to change.
+    act(() => {
+      const duelButtons = Array.from(
+        container?.querySelectorAll<HTMLButtonElement>(
+          '[data-testid="h2h-duel-picker"] button',
+        ) ?? [],
+      );
+      duelButtons
+        .find((button) => button.textContent?.includes('Piastri'))
+        ?.click();
+      vi.runAllTimers();
+    });
+
+    expect(container.textContent).not.toContain('Who finishes ahead?');
+    expect(container.textContent).toContain('All battles called');
   });
 
   it('keeps a fast re-pick inside the advance window', () => {
@@ -251,7 +306,7 @@ describe('H2HDuelPicker', () => {
       matchups[0].driver1._id,
       matchups[0].driver2._id,
     ]);
-    expect(container.textContent).toContain('Teammate battle 2 of 2');
+    expect(container.textContent).toContain('Team-mate battle 2 of 2');
   });
 });
 

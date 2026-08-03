@@ -9,7 +9,7 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { LandingPicks } from './LandingPicks';
+import { LandingPicks, resetLandingPicksMemoryForTests } from './LandingPicks';
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -47,6 +47,8 @@ vi.mock('./LandingTopFivePicker', () => ({
     onPicksChange,
     onStartOver,
     draftNoticeTarget,
+    initialDraftPicks,
+    suppressDraftRestoredNotice,
   }: {
     onComplete: () => void;
     onContinue: () => void;
@@ -54,10 +56,14 @@ vi.mock('./LandingTopFivePicker', () => ({
     onPicksChange: (picks: Id<'drivers'>[]) => void;
     onStartOver?: () => void;
     draftNoticeTarget?: HTMLElement | null;
+    initialDraftPicks?: Id<'drivers'>[];
+    suppressDraftRestoredNotice?: boolean;
   }) => (
     <div
       data-testid="top5-step"
       data-has-draft-target={String(Boolean(draftNoticeTarget))}
+      data-initial-draft={initialDraftPicks?.join(',') ?? ''}
+      data-suppress-draft-notice={String(suppressDraftRestoredNotice)}
     >
       <button type="button" onClick={onContinue}>
         Attempt early continue
@@ -73,7 +79,7 @@ vi.mock('./LandingTopFivePicker', () => ({
         Complete Top 5
       </button>
       <button type="button" onClick={onContinue}>
-        Continue to teammate battles
+        Continue to team-mate battles
       </button>
       <button type="button" onClick={() => onStartOver?.()}>
         Top 5 start over
@@ -85,11 +91,13 @@ vi.mock('./LandingTopFivePicker', () => ({
 vi.mock('@/components/H2HPredictionForm', () => ({
   H2HPredictionForm: ({
     entryMethod,
+    renderCardIntro,
     renderSaveWall,
     onStartOver,
     draftNoticeTarget,
   }: {
     entryMethod: string;
+    renderCardIntro: () => ReactNode;
     renderSaveWall: (actions: { lockIn: () => void }) => ReactNode;
     onStartOver?: () => void;
     draftNoticeTarget?: HTMLElement | null;
@@ -99,6 +107,9 @@ vi.mock('@/components/H2HPredictionForm', () => ({
       data-entry-method={entryMethod}
       data-has-draft-target={String(Boolean(draftNoticeTarget))}
     >
+      {/* The real form renders the intro above the duels and the wall below,
+          so the card reads Top 5 → team-mate battles → the ask. */}
+      {renderCardIntro()}
       <button type="button" onClick={() => onStartOver?.()}>
         H2H start over
       </button>
@@ -132,6 +143,7 @@ describe('LandingPicks linear journey', () => {
     act(() => root.unmount());
     container.remove();
     window.localStorage.clear();
+    resetLandingPicksMemoryForTests();
   });
 
   async function renderJourney() {
@@ -168,11 +180,11 @@ describe('LandingPicks linear journey', () => {
 
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to teammate battles')?.click();
+      button(container, 'Continue to team-mate battles')?.click();
     });
 
     expect(container.textContent).toContain('Step 2 of 2');
-    expect(container.textContent).toContain('Pick each teammate winner');
+    expect(container.textContent).toContain('Pick each team-mate winner');
     expect(
       container
         .querySelector('[data-testid="h2h-step"]')
@@ -185,15 +197,40 @@ describe('LandingPicks linear journey', () => {
     ).toBe('true');
   });
 
+  it('preserves the visible picks step across the auth-provider remount', async () => {
+    await renderJourney();
+    act(() => button(container, 'Complete Top 5')?.click());
+
+    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
+
+    act(() => root.unmount());
+    root = createRoot(container);
+    await renderJourney();
+
+    const topFiveStep = container.querySelector('[data-testid="top5-step"]');
+    expect(container.textContent).toContain('Step 1 of 2');
+    expect(container.textContent).toContain('Choose your Top 5');
+    expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
+    expect(topFiveStep?.getAttribute('data-initial-draft')).toBe(
+      DRIVER_IDS.join(','),
+    );
+    expect(topFiveStep?.getAttribute('data-suppress-draft-notice')).toBe(
+      'true',
+    );
+  });
+
   it('offers one final sign-in action and allows editing the completed Top 5', async () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to teammate battles')?.click();
+      button(container, 'Continue to team-mate battles')?.click();
     });
 
     expect(container.textContent).toContain('That’s your prediction card.');
-    expect(container.textContent).toContain('Sign in to submit my picks');
+    expect(container.textContent).toContain('Sign in to submit');
+    // The ask is worded once, on the button, not also as a line of prose.
+    expect(container.textContent).not.toContain('Sign in to submit your');
     expect(container.textContent).not.toContain('Save my picks');
     expect(container.textContent).not.toContain('I have an account');
 
@@ -209,7 +246,7 @@ describe('LandingPicks linear journey', () => {
     ).not.toBeNull();
   });
 
-  it('empties both steps when the player starts over from teammate battles', async () => {
+  it('empties both steps when the player starts over from team-mate battles', async () => {
     const top5Key = getWebTop5DraftStorageKey(RACE_ID);
     const h2hKey = getWebH2HDraftStorageKey(RACE_ID);
     window.localStorage.setItem(top5Key, JSON.stringify({ picks: DRIVER_IDS }));
@@ -219,7 +256,7 @@ describe('LandingPicks linear journey', () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to teammate battles')?.click();
+      button(container, 'Continue to team-mate battles')?.click();
     });
     expect(container.textContent).toContain('Step 2 of 2');
 
@@ -230,7 +267,7 @@ describe('LandingPicks linear journey', () => {
     expect(
       window.sessionStorage.getItem(`${top5Key}:pending-submit`),
     ).toBeNull();
-    // Back to an empty step 1, with the teammate step unvisited again.
+    // Back to an empty step 1, with the team-mate step unvisited again.
     expect(container.textContent).toContain('Step 1 of 2');
     expect(container.querySelector('[data-testid="h2h-step"]')).toBeNull();
     expect(

@@ -13,7 +13,7 @@ import { applySsrCacheControl } from './ssrCacheHeaders';
  */
 const applyF1StandingsCacheHeaders = createServerFn({ method: 'GET' }).handler(
   async (): Promise<void> => {
-    applySsrCacheControl(
+    await applySsrCacheControl(
       'public, max-age=0, s-maxage=600, stale-while-revalidate=86400',
     );
   },

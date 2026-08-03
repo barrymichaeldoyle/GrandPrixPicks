@@ -10,18 +10,11 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProviderWithAuth } from 'convex/react';
-import { MotionConfig } from 'framer-motion';
 import { Flag, Home } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
 
+import { AppMotionProvider } from '@/components/AppMotionProvider';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
@@ -31,6 +24,7 @@ import {
   fetchInitialAuth,
   InitialAuthProvider,
 } from '@/integrations/clerk/initial-auth';
+import { preloadClerkRuntime } from '@/integrations/clerk/preload';
 import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
@@ -38,6 +32,7 @@ import {
 import { ViewerSessionProvider } from '@/integrations/clerk/viewer-session-context';
 import { convex, convexHttp } from '@/integrations/convex/client';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
+import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
@@ -62,10 +57,25 @@ const AuthenticatedAppRuntime = lazy(() =>
     default: module.AuthenticatedAppRuntime,
   })),
 );
+const ClerkSignInOverlay = lazy(() =>
+  import('@/integrations/clerk/runtime-bundle').then((module) => ({
+    default: module.ClerkSignInOverlay,
+  })),
+);
 
 interface MyRouterContext {
   queryClient: QueryClient;
 }
+
+/**
+ * Warmed at document parse so the first Sign in click does not open with a DNS
+ * lookup and a TLS handshake. Clerk is deliberately absent from the landing
+ * page's first paint, which makes its origin completely cold at the exact
+ * moment the visitor is waiting on it.
+ */
+const CLERK_ORIGIN = clerkFrontendApiOrigin(
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
@@ -100,6 +110,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],
     links: [
+      ...(CLERK_ORIGIN
+        ? [
+            {
+              rel: 'preconnect',
+              href: CLERK_ORIGIN,
+              crossOrigin: 'anonymous' as const,
+            },
+            { rel: 'dns-prefetch', href: CLERK_ORIGIN },
+          ]
+        : []),
       // Only the two faces that paint above the fold get preloaded: Archivo
       // for all UI text and Plex Mono 500 for the countdown and points. The
       // other Plex weights load on demand.
@@ -273,7 +293,7 @@ function RootDocument({ children }: PropsWithChildren) {
             sit here are gone: backgrounds are flat colour in this system, and
             a full-viewport gradient is the single biggest thing standing
             between the app and "calm". */}
-        <MotionConfig reducedMotion="user">
+        <AppMotionProvider>
           <InitialAuthProvider value={initialAuth}>
             {/* Keep route scroll handling outside the swappable Clerk runtime.
                 Activating sign-in from the public picker remounts that runtime,
@@ -323,7 +343,7 @@ function RootDocument({ children }: PropsWithChildren) {
               </div>
             </AppRuntimeBoundary>
           </InitialAuthProvider>
-        </MotionConfig>
+        </AppMotionProvider>
         <Scripts />
       </body>
     </html>
@@ -338,17 +358,26 @@ function AppRuntimeBoundary({
   initialSignedIn: boolean;
   pathname: string;
 }>) {
-  const [runtimeRequested, setRuntimeRequested] = useState(false);
-  const [openSignInOnMount, setOpenSignInOnMount] = useState(false);
+  /** A Clerk redirect landed back on this page; the handshake needs the runtime. */
+  const [returningFromClerk, setReturningFromClerk] = useState(false);
+  /** The modal reported a session, so the page becomes the signed-in app. */
+  const [signedInViaModal, setSignedInViaModal] = useState(false);
+  /** Provider mounted but idle: pays the Clerk boot cost before the click. */
+  const [runtimeWarm, setRuntimeWarm] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  /** Clicked, modal not on screen yet. Drives the button's own pending state. */
+  const [signInPending, setSignInPending] = useState(false);
   const [afterSignInPath, setAfterSignInPath] = useState<
     '/leagues/create' | null
   >(null);
-  // Landing keeps Clerk out of the first paint. Booting it remounts the page
-  // under a new provider tree, which briefly collapses query-backed content and
-  // lets the browser clamp scroll to the top. Hold the pre-click offset until
-  // the modal is open (or a short settle window elapses).
-  const scrollRestoreY = useRef<number | null>(null);
-  const runtimeActive = initialSignedIn || pathname !== '/' || runtimeRequested;
+
+  // Every route except a signed-out landing page renders inside Clerk from the
+  // first paint, so for them this boundary is exactly what it always was.
+  const clerkRequired =
+    initialSignedIn ||
+    pathname !== '/' ||
+    returningFromClerk ||
+    signedInViaModal;
 
   useEffect(() => {
     const fromClerk =
@@ -365,70 +394,88 @@ function AppRuntimeBoundary({
     ).some((key) => key.startsWith('__clerk'));
 
     if (fromClerk || hasClerkCallback) {
-      setRuntimeRequested(true);
+      setReturningFromClerk(true);
     }
   }, []);
 
-  useLayoutEffect(() => {
-    if (!runtimeRequested || scrollRestoreY.current === null) {
-      return;
-    }
-    const y = scrollRestoreY.current;
-    function restore() {
-      if (scrollRestoreY.current === null) {
-        return;
-      }
-      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
-    }
-    restore();
-    // The lazy Clerk runtime and the query remount settle over a few frames,
-    // not one. Keep pinning until OpenSignInOnMount clears the lock.
-    const timers = [0, 50, 150, 300, 500].map((ms) =>
-      window.setTimeout(restore, ms),
-    );
-    const release = window.setTimeout(() => {
-      scrollRestoreY.current = null;
-    }, 600);
-    return () => {
-      timers.forEach((id) => window.clearTimeout(id));
-      window.clearTimeout(release);
-    };
-  }, [runtimeRequested]);
+  /**
+   * Mount the provider without opening anything. Fired by hover/focus/touch on
+   * a sign-in control, which lands a few hundred milliseconds before the click
+   * and covers the runtime chunk, `clerk.browser.js`, `ui.browser.js`,
+   * `/v1/environment` and `/v1/client` in that window.
+   *
+   * This is deliberately the *only* thing that pulls Clerk in. An idle preload
+   * after load looked free and was not: the runtime chunk drags @clerk/react
+   * behind it, so every landing visit downloaded and executed ~93 KB for a
+   * visitor who might never sign in. It also bought nothing, because no real
+   * click arrives without a pointerover, focus or touchstart in front of it.
+   */
+  function warmSignIn() {
+    void preloadClerkRuntime();
+    setRuntimeWarm(true);
+  }
 
   function requestSignIn(nextPath?: '/leagues/create') {
-    scrollRestoreY.current = window.scrollY;
+    void preloadClerkRuntime();
     setAfterSignInPath(nextPath ?? null);
-    setOpenSignInOnMount(true);
-    setRuntimeRequested(true);
+    setRuntimeWarm(true);
+    setSignInPending(true);
+    // Opening is a background handoff, not a navigation. A transition keeps the
+    // page interactive underneath instead of letting the lazy boundary swap in
+    // a fallback while the chunk resolves.
+    startTransition(() => {
+      setSignInOpen(true);
+    });
   }
+
   function signInOpened() {
-    if (scrollRestoreY.current !== null) {
-      window.scrollTo({
-        top: scrollRestoreY.current,
-        left: 0,
-        behavior: 'instant',
-      });
-      scrollRestoreY.current = null;
-    }
-    setOpenSignInOnMount(false);
+    setSignInPending(false);
   }
+
   const runtimeControl = {
-    active: runtimeActive,
-    openSignInOnMount,
+    active: clerkRequired,
+    openSignInOnMount: signInOpen,
+    signInPending,
     afterSignInPath,
     requestSignIn,
+    warmSignIn,
     signInOpened,
     clearAfterSignInPath: () => setAfterSignInPath(null),
   };
 
-  if (!runtimeActive) {
+  if (!clerkRequired) {
     return (
-      <AnonymousAppRuntime
-        requestSignIn={requestSignIn}
-        signInOpened={signInOpened}
-      >
-        {children}
-      </AnonymousAppRuntime>
+      <ClerkRuntimeControlProvider value={{ ...runtimeControl, active: false }}>
+        <ViewerSessionProvider
+          value={{
+            isSignedIn: false,
+            confirmedSignedIn: false,
+            isLoaded: true,
+          }}
+        >
+          <ConvexProviderWithAuth
+            client={convex}
+            useAuth={useAnonymousConvexAuth}
+          >
+            {children}
+            {/* Clerk's modal portals to document.body, so the provider does not
+                have to wrap the page for it to render. Mounting it as a leaf
+                sibling instead of a parent is the whole point: this slot can
+                appear, boot and disappear without React unmounting a single
+                node of the page behind it. The slot itself is always here so
+                the children keep their position in this array. */}
+            {runtimeWarm ? (
+              <Suspense fallback={null}>
+                <ClerkSignInOverlay
+                  open={signInOpen}
+                  onOpened={signInOpened}
+                  onSignedIn={() => setSignedInViaModal(true)}
+                />
+              </Suspense>
+            ) : null}
+          </ConvexProviderWithAuth>
+        </ViewerSessionProvider>
+      </ClerkRuntimeControlProvider>
     );
   }
 
@@ -437,13 +484,7 @@ function AppRuntimeBoundary({
       <Suspense
         fallback={
           pathname === '/' ? (
-            <AnonymousAppRuntime
-              disabled
-              requestSignIn={requestSignIn}
-              signInOpened={signInOpened}
-            >
-              {children}
-            </AnonymousAppRuntime>
+            <AnonymousAppRuntime>{children}</AnonymousAppRuntime>
           ) : null
         }
       >
@@ -453,42 +494,23 @@ function AppRuntimeBoundary({
   );
 }
 
-function AnonymousAppRuntime({
-  children,
-  disabled = false,
-  requestSignIn,
-  signInOpened,
-}: PropsWithChildren<{
-  disabled?: boolean;
-  requestSignIn: (afterSignInPath?: '/leagues/create') => void;
-  signInOpened: () => void;
-}>) {
-  const runtimeControl = {
-    active: false,
-    openSignInOnMount: false,
-    afterSignInPath: null,
-    requestSignIn: disabled ? () => undefined : requestSignIn,
-    signInOpened,
-    clearAfterSignInPath: () => undefined,
-  };
-
+/**
+ * Signed-out shell for the brief window while the authenticated runtime chunk
+ * resolves on a route that needs Clerk from the first paint.
+ */
+function AnonymousAppRuntime({ children }: PropsWithChildren) {
   return (
-    <ClerkRuntimeControlProvider value={runtimeControl}>
-      <ViewerSessionProvider
-        value={{
-          isSignedIn: false,
-          confirmedSignedIn: false,
-          isLoaded: true,
-        }}
-      >
-        <ConvexProviderWithAuth
-          client={convex}
-          useAuth={useAnonymousConvexAuth}
-        >
-          {children}
-        </ConvexProviderWithAuth>
-      </ViewerSessionProvider>
-    </ClerkRuntimeControlProvider>
+    <ViewerSessionProvider
+      value={{
+        isSignedIn: false,
+        confirmedSignedIn: false,
+        isLoaded: true,
+      }}
+    >
+      <ConvexProviderWithAuth client={convex} useAuth={useAnonymousConvexAuth}>
+        {children}
+      </ConvexProviderWithAuth>
+    </ViewerSessionProvider>
   );
 }
 

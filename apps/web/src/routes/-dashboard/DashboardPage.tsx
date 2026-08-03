@@ -156,7 +156,7 @@ function WeekendHero({ weekend }: { weekend: CurrentWeekend | undefined }) {
     action?.kind === 'make_top5'
       ? `Start with ${SESSION_LABELS[action.sessionType]} and your first save will fill every session that is still open.`
       : action?.kind === 'finish_h2h'
-        ? `Your Top 5 is saved. Finish the ${SESSION_LABELS[action.sessionType]} teammate battles.`
+        ? `Your Top 5 is saved. Finish the ${SESSION_LABELS[action.sessionType]} team-mate battles.`
         : action?.kind === 'review'
           ? `${completeCount} of ${weekend.sessions.length} sessions have complete Top 5 and H2H picks. You can still make changes.`
           : action?.kind === 'results'

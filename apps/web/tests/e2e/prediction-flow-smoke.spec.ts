@@ -28,8 +28,13 @@ test.describe('[flow] smoke', () => {
     await expect(page.getByTestId('submit-prediction')).toBeEnabled();
     await page.getByTestId('submit-prediction').click();
 
-    // Saving Top 5 chains straight into the H2H picks focus overlay.
-    await expect(page.getByTestId('h2h-submit-button').first()).toBeVisible();
+    // Saving Top 5 chains straight into the H2H picks focus overlay, which
+    // opens on the first duel: a first-time card is made one battle at a time,
+    // so there is nothing to submit until all eleven are called.
+    await expect(page.getByTestId('h2h-duel-picker')).toBeVisible();
+    await expect(page.getByTestId('h2h-duel-progress')).toContainText(
+      'Team-mate battle 1 of',
+    );
     await page.getByTestId('picks-focus-close').click();
 
     await expect(page.getByTestId('picks-focus-overlay')).toHaveCount(0);

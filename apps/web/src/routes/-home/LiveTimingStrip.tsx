@@ -34,7 +34,9 @@ export function LiveTimingStrip({
   return (
     <section
       aria-labelledby="global-leaderboard-heading"
-      className="border-t border-border px-4 py-10 sm:py-12"
+      // Social proof should read as a quick timing strip, not another full
+      // narrative section competing with the picker and leagues pitch.
+      className="border-t border-border px-4 py-8 sm:py-10"
     >
       <div className="mx-auto w-full max-w-5xl">
         <h2

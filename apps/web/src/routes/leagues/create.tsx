@@ -23,6 +23,8 @@ export const Route = createFileRoute('/leagues/create')({
       description:
         'Create a private or public league for the 2026 Grand Prix Picks season.',
       path: '/leagues/create',
+      // A signed-in form, nothing for a crawler to land on.
+      noIndex: true,
     }),
 });
 

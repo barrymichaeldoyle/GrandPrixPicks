@@ -78,6 +78,9 @@ export const Route = createFileRoute('/leagues/$slug')({
       title,
       description,
       path: `/leagues/${params.slug}`,
+      // Member-scoped scoreboards: private by intent, and near-identical to
+      // every other league page in the eyes of a crawler.
+      noIndex: true,
     });
   },
 });

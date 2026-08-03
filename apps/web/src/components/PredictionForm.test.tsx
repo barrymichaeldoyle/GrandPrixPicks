@@ -31,8 +31,10 @@ const requestSignInSpy = vi.fn();
 vi.mock('canvas-confetti', () => ({ default: () => {} }));
 vi.mock('@/lib/analytics', () => ({ captureAnalyticsEvent: () => {} }));
 
+// `m`, not `motion`: the app renders through LazyMotion so the animation
+// features load in their own chunk instead of on the critical path.
 vi.mock('framer-motion', () => ({
-  motion: { div: ({ children }: { children?: ReactNode }) => children },
+  m: { div: ({ children }: { children?: ReactNode }) => children },
 }));
 
 vi.mock('@dnd-kit/core', () => ({

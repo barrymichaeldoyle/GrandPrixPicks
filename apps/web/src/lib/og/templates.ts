@@ -604,7 +604,7 @@ export function shareH2HResultsTemplate(
 ): ReactNode {
   return shareH2HWinnersTemplate(
     data,
-    `${data.sessionLabel} H2H Results · Teammate Winners`,
+    `${data.sessionLabel} H2H Results · Team-mate Winners`,
     size,
   );
 }
@@ -1145,7 +1145,7 @@ export function practiceResultsTemplate({
   );
 }
 
-// ────────── Teammate H2H Results Card (social broadcast) ──────────
+// ────────── Team-mate H2H Results Card (social broadcast) ──────────
 
 export type H2HCardRow = {
   team: string;
@@ -1155,7 +1155,7 @@ export type H2HCardRow = {
 };
 
 /**
- * One teammate matchup: team name over "winner BEAT loser".
+ * One team-mate matchup: team name over "winner BEAT loser".
  *
  * The winner used to sit on a solid team-colour badge, which needed
  * `h2hBadgeInk` to pick black-or-white text per livery just to stay legible.
@@ -1257,7 +1257,7 @@ function h2hMatchup(row: H2HCardRow): ReactNode {
 }
 
 /**
- * Teammate head-to-head results card for posting as the brand account. Shows
+ * Team-mate head-to-head results card for posting as the brand account. Shows
  * every matchup for one session, winner first.
  */
 export function h2hResultsTemplate({

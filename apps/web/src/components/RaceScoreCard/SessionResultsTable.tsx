@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -199,7 +199,7 @@ export function SessionResultsTable({
 
       <AnimatePresence initial={false}>
         {expanded && remainingRows.length > 0 && (
-          <motion.div
+          <m.div
             key="full-results"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -255,7 +255,7 @@ export function SessionResultsTable({
                 Hide full results
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
+import { loadMatchupsForSeason } from './h2h';
 import {
   getDefaultLeaderboardSeason,
   loadCombinedSeasonRows,
@@ -177,6 +178,14 @@ export const getHomePageData = query({
         : ([] as Array<SessionType>),
     ]);
 
+    // Same reasoning as drivers: a returning visitor resumes the picker on the
+    // team-mate step, and without this the card's first paint is eleven
+    // skeleton boxes waiting on a websocket round trip for data the SSR render
+    // already had in hand.
+    const h2hMatchups = nextRace
+      ? await loadMatchupsForSeason(ctx, nextRace.season)
+      : [];
+
     const season = await getDefaultLeaderboardSeason(ctx);
     const allRows = await loadCombinedSeasonRows(ctx, { season });
     const previousRanks = rankBeforeLastScoredRace(
@@ -209,6 +218,7 @@ export const getHomePageData = query({
       recentRaceResults,
       topPlayers,
       drivers,
+      h2hMatchups,
     };
   },
 });

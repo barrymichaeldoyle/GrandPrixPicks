@@ -319,7 +319,7 @@ function ResultsPolicyPage() {
               <div className="py-4 sm:grid sm:grid-cols-[7rem_1fr] sm:gap-5">
                 <dt className="font-semibold text-text">One DNS</dt>
                 <dd className="gpp-reading-copy mt-1 text-text-muted sm:mt-0">
-                  In a teammate matchup, the driver who started wins.
+                  In a team-mate matchup, the driver who started wins.
                 </dd>
               </div>
               <div className="py-4 sm:grid sm:grid-cols-[7rem_1fr] sm:gap-5">

@@ -171,7 +171,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         : race &&
             (shareCard?.variant === 'h2h_result' ||
               shareCard?.variant === 'h2h_score')
-          ? `${SESSION_LABELS[shareCard.session]} teammate Head-to-Head results for the ${race.name}.`
+          ? `${SESSION_LABELS[shareCard.session]} team-mate Head-to-Head results for the ${race.name}.`
           : race
             ? race.status === 'finished'
               ? `Full results and top 5 finishers for the ${race.season} ${race.name}. See how F1 predictions scored on Grand Prix Picks.`

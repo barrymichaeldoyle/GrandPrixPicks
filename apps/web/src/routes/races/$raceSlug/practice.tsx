@@ -33,6 +33,10 @@ export const Route = createFileRoute('/races/$raceSlug/practice')({
         ? `FP1, FP2, and FP3 results for the ${loaderData.race.season} ${loaderData.race.name}, including best lap times and gaps.`
         : 'Formula 1 free practice results, best lap times, and gaps.',
       path: `/races/${params.raceSlug}/practice`,
+      // Before the sessions run this page is a single placeholder line. Keep it
+      // out of the index until it has a classification worth landing on; the
+      // flag clears itself as soon as FP1 is published.
+      noIndex: (loaderData?.results.length ?? 0) === 0,
     }),
   component: PracticeResultsPage,
 });

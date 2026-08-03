@@ -18,7 +18,7 @@ test('captures partially completed Top 5 gameplay', async ({ page }) => {
 
   await page.getByTestId('remove-pick-4').click();
   await page.getByTestId('remove-pick-3').click();
-  await expect(page.getByTestId('picks-remaining')).toContainText('(2 left)');
+  await expect(page.getByTestId('picks-remaining')).toContainText('2 left');
 
   await page
     .locator('h1')

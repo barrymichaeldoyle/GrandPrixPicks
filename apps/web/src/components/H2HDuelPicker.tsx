@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { m, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Check, Swords } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -36,6 +36,15 @@ export function H2HDuelPicker({
     return index === -1 ? Math.max(0, matchups.length - 1) : index;
   })();
   const [activeIndex, setActiveIndex] = useState(firstOpenIndex);
+  /**
+   * Whether a completed card is open on a single battle for editing.
+   *
+   * Once all eleven are called there is nothing left to ask, so the duel card
+   * folds away and the strip alone is the prediction card: eleven codes, one
+   * line, readable at a glance instead of a wall of twenty-two names. Tapping a
+   * cell brings that one battle back; answering it folds the card away again.
+   */
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const syncedToDraftRef = useRef(false);
 
@@ -86,7 +95,9 @@ export function H2HDuelPicker({
   /** Deliberate navigation always wins over a queued auto-advance. */
   function goTo(index: number) {
     cancelPendingAdvance();
-    setActiveIndex(Math.min(Math.max(index, 0), matchups.length - 1));
+    const next = Math.min(Math.max(index, 0), matchups.length - 1);
+    setActiveIndex(next);
+    setEditingIndex(next);
   }
 
   function goToNextOpenMatchup(selectedMatchupId: H2HMatchup['_id']) {
@@ -122,8 +133,16 @@ export function H2HDuelPicker({
     navigator.vibrate?.(12);
 
     cancelPendingAdvance();
+    // Changing a call on a finished card has nowhere to advance to, so the
+    // same beat that would move to the next battle folds this one away.
+    const answered = matchups.every(
+      (candidate) =>
+        candidate._id === matchup._id ||
+        selections[candidate._id] !== undefined,
+    );
     timerRef.current = window.setTimeout(
-      () => goToNextOpenMatchup(matchup._id),
+      () =>
+        answered ? setEditingIndex(null) : goToNextOpenMatchup(matchup._id),
       reduceMotion ? 0 : ADVANCE_DELAY_MS,
     );
   }
@@ -134,105 +153,126 @@ export function H2HDuelPicker({
 
   const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
 
+  const collapsed = complete && editingIndex === null;
+
   return (
     <div className="mx-auto w-full max-w-3xl" data-testid="h2h-duel-picker">
-      <div className="mb-4">
+      <div className={collapsed ? '' : 'mb-4'}>
+        {/* One progress mechanism, not three. This label and the strip under it
+            already say where you are; the "n/11" counter that used to sit
+            opposite restated both, and on a finished card "11/11" restated
+            "All battles called" a third time. */}
         <div className="flex items-center justify-between gap-3">
-          <p className="gpp-label text-text-muted">
-            Teammate battle {activeIndex + 1} of {matchups.length}
-          </p>
           <p
-            className="gpp-mono text-sm text-text"
+            className="gpp-label flex items-center gap-1.5 text-text-muted"
             aria-live="polite"
             data-testid="h2h-duel-progress"
           >
-            {selectedCount}/{matchups.length}
+            {collapsed ? (
+              <>
+                <Check size={14} className="text-accent" aria-hidden="true" />
+                All battles called
+              </>
+            ) : (
+              `Team-mate battle ${activeIndex + 1} of ${matchups.length}`
+            )}
           </p>
+          {/* The "tap a battle to change your mind" hint used to sit under the
+              strip in the same shouty label style as the status above it, so a
+              finished card spent three lines of chrome on eleven cells. It is a
+              hint, not a heading: quiet, and on the row it belongs to. */}
+          {collapsed ? (
+            <p className="text-xs text-text-muted">Tap one to change it</p>
+          ) : null}
         </div>
         <DuelProgressStrip
           matchups={matchups}
           selections={selections}
-          activeIndex={activeIndex}
+          activeIndex={collapsed ? -1 : activeIndex}
           onJump={goTo}
         />
       </div>
 
-      {/* Stable chrome, animated contents. Sliding the whole card made each
+      {collapsed ? null : (
+        <>
+          {/* Stable chrome, animated contents. Sliding the whole card made each
           pick feel like a carousel page; the frame stays put and the next
           duel pops in. No exit animation — `AnimatePresence mode="wait"`
           used to hold the outgoing duel until its exit finished, so the
           header counter and the card on screen disagreed for the length of
           the transition. */}
-      <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
-        <motion.div
-          key={matchup._id}
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={
-            reduceMotion
-              ? { duration: 0 }
-              : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
-          }
-          style={{ transformOrigin: '50% 40%' }}
-        >
-          <div className="mb-4 text-center">
-            <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: teamColor }}
-                aria-hidden="true"
-              />
-              {displayTeamName(matchup.team)}
-            </p>
-            <h3 className="mt-2 text-xl font-medium text-text">
-              Who finishes ahead?
-            </h3>
+          <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
+            <m.div
+              key={matchup._id}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
+              }
+              style={{ transformOrigin: '50% 40%' }}
+            >
+              <div className="mb-4 text-center">
+                <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: teamColor }}
+                    aria-hidden="true"
+                  />
+                  {displayTeamName(matchup.team)}
+                </p>
+                <h3 className="mt-2 text-xl font-medium text-text">
+                  Who finishes ahead?
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3">
+                <DuelDriverButton
+                  driver={matchup.driver1}
+                  selected={selections[matchup._id] === matchup.driver1._id}
+                  topFivePosition={topFivePositions?.[matchup.driver1._id]}
+                  onClick={() => pick(matchup.driver1._id)}
+                />
+                <span className="gpp-mono flex items-center justify-center text-xs font-semibold text-text-muted">
+                  VS
+                </span>
+                <DuelDriverButton
+                  driver={matchup.driver2}
+                  selected={selections[matchup._id] === matchup.driver2._id}
+                  topFivePosition={topFivePositions?.[matchup.driver2._id]}
+                  onClick={() => pick(matchup.driver2._id)}
+                />
+              </div>
+            </m.div>
           </div>
 
-          <div className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3">
-            <DuelDriverButton
-              driver={matchup.driver1}
-              selected={selections[matchup._id] === matchup.driver1._id}
-              topFivePosition={topFivePositions?.[matchup.driver1._id]}
-              onClick={() => pick(matchup.driver1._id)}
-            />
-            <span className="gpp-mono flex items-center justify-center text-xs font-semibold text-text-muted">
-              VS
+          <div className="mt-3 flex min-h-9 items-center justify-between gap-3">
+            <Button
+              variant="text"
+              size="sm"
+              leftIcon={ArrowLeft}
+              disabled={activeIndex === 0}
+              onClick={() => goTo(activeIndex - 1)}
+            >
+              Previous
+            </Button>
+            <span className="flex items-center gap-1.5 text-sm text-text-muted">
+              {complete ? (
+                <>
+                  <Check size={14} className="text-accent" aria-hidden="true" />
+                  All battles called
+                </>
+              ) : (
+                <>
+                  <Swords size={14} aria-hidden="true" />
+                  Pick one to continue
+                </>
+              )}
             </span>
-            <DuelDriverButton
-              driver={matchup.driver2}
-              selected={selections[matchup._id] === matchup.driver2._id}
-              topFivePosition={topFivePositions?.[matchup.driver2._id]}
-              onClick={() => pick(matchup.driver2._id)}
-            />
           </div>
-        </motion.div>
-      </div>
-
-      <div className="mt-3 flex min-h-9 items-center justify-between gap-3">
-        <Button
-          variant="text"
-          size="sm"
-          leftIcon={ArrowLeft}
-          disabled={activeIndex === 0}
-          onClick={() => goTo(activeIndex - 1)}
-        >
-          Previous
-        </Button>
-        <span className="flex items-center gap-1.5 text-sm text-text-muted">
-          {complete ? (
-            <>
-              <Check size={14} className="text-accent" aria-hidden="true" />
-              All battles called
-            </>
-          ) : (
-            <>
-              <Swords size={14} aria-hidden="true" />
-              Pick one to continue
-            </>
-          )}
-        </span>
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -241,6 +281,9 @@ export function H2HDuelPicker({
  * Progress and review in one control. It replaces the plain progress bar: the
  * bar could only say how many were done, this says which, by whom, and lets
  * you go back and look. Eleven cells fit a 320px viewport without scrolling.
+ *
+ * Once every battle is called it stops being progress and becomes the card
+ * itself, so `activeIndex` of -1 means "nothing is being asked right now".
  */
 function DuelProgressStrip({
   matchups,
@@ -260,7 +303,7 @@ function DuelProgressStrip({
         gridTemplateColumns: `repeat(${matchups.length}, minmax(0, 1fr))`,
       }}
       role="group"
-      aria-label="Teammate battles"
+      aria-label="Team-mate battles"
       data-testid="h2h-duel-strip"
     >
       {matchups.map((matchup, index) => {
@@ -291,7 +334,7 @@ function DuelProgressStrip({
           >
             {/* Re-keying on the code replays the settle, so a cell visibly
                 takes the driver's name the instant the call is made. */}
-            <motion.span
+            <m.span
               key={picked ? picked.code : 'open'}
               initial={{ opacity: 0, y: 3 }}
               animate={{ opacity: 1, y: 0 }}
@@ -301,7 +344,7 @@ function DuelProgressStrip({
               }`}
             >
               {picked ? picked.code : index + 1}
-            </motion.span>
+            </m.span>
           </button>
         );
       })}
@@ -359,7 +402,7 @@ function DuelDriverButton({
       style={{ '--team-colour': teamColor } as CSSProperties}
     >
       {sweepId > 0 && !reduceMotion ? (
-        <motion.span
+        <m.span
           key={sweepId}
           className="pointer-events-none absolute inset-y-0 w-0.5 bg-accent"
           initial={{ left: '0%', opacity: 1 }}
@@ -393,7 +436,7 @@ function DuelDriverButton({
           </span>
         ) : null}
       </span>
-      <motion.span
+      <m.span
         className={`absolute right-2 bottom-2 inline-flex h-5 w-5 items-center justify-center rounded-full border ${
           selected
             ? 'border-accent bg-accent text-text-on-accent'
@@ -404,7 +447,7 @@ function DuelDriverButton({
         aria-hidden="true"
       >
         <Check size={12} strokeWidth={3} />
-      </motion.span>
+      </m.span>
     </button>
   );
 }

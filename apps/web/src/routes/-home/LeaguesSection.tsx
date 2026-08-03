@@ -1,7 +1,10 @@
 import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
-import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
+import {
+  useClerkRuntimeControl,
+  useClerkWarmHandlers,
+} from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 import { PointsCell, PositionBox, RankDelta } from './TimingTower';
@@ -29,6 +32,7 @@ const MOCK_LEAGUE = {
 
 export function LeaguesSection() {
   const clerkRuntime = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
 
   function startLeague() {
     captureAnalyticsEvent('landing_league_cta_clicked', {
@@ -44,7 +48,9 @@ export function LeaguesSection() {
   return (
     <section
       aria-labelledby="landing-leagues-heading"
-      className="border-t border-border px-4 py-10 sm:py-12"
+      // Whitespace, rather than another full-width rule, marks the move from
+      // leaderboard proof into a new proposition: playing with friends.
+      className="px-4 pt-16 pb-12 sm:pt-20 sm:pb-16"
     >
       <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-2 lg:items-center lg:gap-14">
         <div>
@@ -64,7 +70,9 @@ export function LeaguesSection() {
               variant="secondary"
               size="md"
               rightIcon={ArrowRight}
+              loading={clerkRuntime.signInPending}
               onClick={startLeague}
+              {...warmHandlers}
             >
               Start a league
             </Button>

@@ -6,21 +6,33 @@ import { PredictionForm } from '@/components/PredictionForm';
 export function LandingTopFivePicker({
   raceId,
   initialDrivers,
+  initialDraftPicks,
+  suppressDraftRestoredNotice = false,
   onComplete,
   onContinue,
   onCompletionStateChange,
   onPicksChange,
   onStartOver,
   draftNoticeTarget,
+  continueLabel = 'Continue to team-mate battles',
 }: {
   raceId: Id<'races'>;
-  initialDrivers: Array<Doc<'drivers'>>;
+  initialDrivers: Doc<'drivers'>[];
+  /** In-memory picks retained across the landing page's auth-provider swap. */
+  initialDraftPicks?: Id<'drivers'>[];
+  /** A provider remount is not a returning visit, so it needs no restore notice. */
+  suppressDraftRestoredNotice?: boolean;
   /** Fires once the fifth slot is filled. Does not move the player. */
   onComplete: () => void;
-  /** The player asking to move on to the teammate battles. */
+  /** The player asking to move on to the team-mate battles. */
   onContinue: () => void;
+  /**
+   * Label for that hand-off. Editing a finished card in the focus overlay is
+   * not a hand-off to anything, so it closes back to the card instead.
+   */
+  continueLabel?: string;
   onCompletionStateChange: (complete: boolean) => void;
-  onPicksChange: (picks: Array<Doc<'drivers'>['_id']>) => void;
+  onPicksChange: (picks: Doc<'drivers'>['_id'][]) => void;
   /** Extends "Start over" to the whole card, not just this step's draft. */
   onStartOver?: () => void;
   draftNoticeTarget?: HTMLElement | null;
@@ -29,6 +41,8 @@ export function LandingTopFivePicker({
     <PredictionForm
       raceId={raceId}
       initialDrivers={initialDrivers}
+      initialDraftPicks={initialDraftPicks}
+      suppressDraftRestoredNotice={suppressDraftRestoredNotice}
       analyticsSource="landing"
       mobileActionFirst
       onComplete={onComplete}
@@ -38,7 +52,11 @@ export function LandingTopFivePicker({
       onStartOver={onStartOver}
       draftNoticeTarget={draftNoticeTarget}
       renderActionArea={({ complete }) => (
-        <TopFiveHandoff complete={complete} onContinue={onContinue} />
+        <TopFiveHandoff
+          complete={complete}
+          onContinue={onContinue}
+          label={continueLabel}
+        />
       )}
     />
   );
@@ -47,9 +65,11 @@ export function LandingTopFivePicker({
 function TopFiveHandoff({
   complete,
   onContinue,
+  label,
 }: {
   complete: boolean;
   onContinue: () => void;
+  label: string;
 }) {
   if (!complete) {
     return null;
@@ -63,7 +83,7 @@ function TopFiveHandoff({
         className="w-full sm:w-auto"
         onClick={onContinue}
       >
-        Continue to teammate battles
+        {label}
       </Button>
     </div>
   );

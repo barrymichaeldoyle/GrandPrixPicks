@@ -94,6 +94,7 @@ export const Route = createFileRoute('/')({
       recentRaceResults: data.recentRaceResults,
       topPlayers: data.topPlayers,
       drivers: data.drivers,
+      h2hMatchups: data.h2hMatchups,
       now,
     };
   },
@@ -101,7 +102,7 @@ export const Route = createFileRoute('/')({
     const meta = pageMeta({
       title: PUBLIC_HOME_TITLE,
       description:
-        'Predict the top 5 in Formula 1 qualifying and races, call teammate battles, and compete on global or private leaderboards. Free to play.',
+        'Predict the top 5 in Formula 1 qualifying and races, call team-mate battles, and compete on global or private leaderboards. Free to play.',
       path: '/',
       // The bare domain is what gets pasted into group chats, so this card is
       // the first thing most visitors ever see of the product. Naming the
@@ -160,6 +161,7 @@ function PublicLandingPage() {
     recentRaceResults,
     topPlayers,
     drivers,
+    h2hMatchups,
     now: serverNow,
   } = Route.useLoaderData();
   // The visible clocks only show whole minutes. Updating the entire landing
@@ -214,6 +216,15 @@ function PublicLandingPage() {
   return (
     <>
       <div className="bg-page">
+        {nextRace && nextSession ? (
+          <LandingStickyBar
+            raceName={abbreviateGrandPrix(nextRace.name)}
+            raceSlug={nextRace.slug}
+            msRemaining={nextSession.startAt - now}
+            targetId={LANDING_PICKS_ANCHOR}
+          />
+        ) : null}
+
         <LandingHero
           clock={clock}
           clockCompact={clockCompact}
@@ -227,30 +238,23 @@ function PublicLandingPage() {
         />
 
         {nextRace && nextSession ? (
-          <>
-            <LandingStickyBar
-              raceName={abbreviateGrandPrix(nextRace.name)}
-              raceSlug={nextRace.slug}
-              msRemaining={nextSession.startAt - now}
-              targetId={LANDING_PICKS_ANCHOR}
-            />
-            <LandingPicks
-              raceId={nextRace._id}
-              raceName={nextRace.name}
-              raceSlug={nextRace.slug}
-              season={nextRace.season}
-              sessionLabel={nextSession.label}
-              initialDrivers={drivers}
-            />
-          </>
+          <LandingPicks
+            raceId={nextRace._id}
+            raceName={nextRace.name}
+            raceSlug={nextRace.slug}
+            season={nextRace.season}
+            sessionLabel={nextSession.label}
+            initialDrivers={drivers}
+            initialMatchups={h2hMatchups}
+          />
         ) : null}
+
+        <LeaguesSection />
 
         <LiveTimingStrip
           players={topPlayers}
           season={featuredRace?.season ?? CURRENT_SEASON}
         />
-
-        <LeaguesSection />
       </div>
 
       {SHOW_DEV_TIME_CONTROLS ? (

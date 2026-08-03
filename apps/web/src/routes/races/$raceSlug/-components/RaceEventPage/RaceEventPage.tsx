@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button/Button';
+import { CircuitGuide } from '@/components/CircuitGuide';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import {
@@ -349,7 +350,7 @@ export function RaceEventPage({
           step={2}
           title="Head-to-Head Predictions"
           icon={Swords}
-          description="Pick a winner from each teammate matchup."
+          description="Pick a winner from each team-mate matchup."
           actionLabel="Pick H2H Winners"
           disabledNote="Save your Top 5 first to unlock Head-to-Head picks."
         />
@@ -526,6 +527,9 @@ export function RaceEventPage({
               </div>
             )}
           </>
+        }
+        circuitGuideContent={
+          <CircuitGuide raceSlug={race.slug} raceName={race.name} />
         }
       />
       <PicksFocusOverlay

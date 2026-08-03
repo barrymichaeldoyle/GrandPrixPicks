@@ -32,7 +32,7 @@ const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
 export const fetchInitialAuth = createServerFn({ method: 'GET' }).handler(
   async (): Promise<InitialAuth> => {
     try {
-      return { isSignedIn: isClerkSessionPresent(getRequest()) };
+      return { isSignedIn: await isClerkSessionPresent(getRequest()) };
     } catch {
       // SSR auth is a progressive enhancement: on any failure fall back to
       // anonymous and let Clerk's client SDK resolve auth, rather than failing

@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { buildConvexTokenIdentifier, isClerkSessionPresent } from './auth';
+
+// `pk_test_` + base64("rare-chimp-58.clerk.accounts.dev$"), whose SHA-1 gives
+// the cookie suffix Clerk's client SDK would use for this instance.
+const PUBLISHABLE_KEY = 'pk_test_cmFyZS1jaGltcC01OC5jbGVyay5hY2NvdW50cy5kZXYk';
+const COOKIE_SUFFIX = 'i2Gq7zuC';
+
+beforeAll(() => {
+  process.env.VITE_CLERK_PUBLISHABLE_KEY = PUBLISHABLE_KEY;
+});
 
 function requestWithCookie(cookie: string | null): Request {
   return new Request('https://grandprixpicks.com/', {
@@ -32,33 +41,66 @@ describe('buildConvexTokenIdentifier', () => {
 });
 
 describe('isClerkSessionPresent', () => {
-  it('is signed in when __client_uat is a positive timestamp', () => {
-    expect(
+  it('is signed in when the unsuffixed __client_uat is a positive timestamp', async () => {
+    await expect(
       isClerkSessionPresent(
         requestWithCookie('__client_uat=1720000000; other=x'),
       ),
-    ).toBe(true);
+    ).resolves.toBe(true);
   });
 
-  it('is signed out when __client_uat is 0', () => {
-    expect(isClerkSessionPresent(requestWithCookie('__client_uat=0'))).toBe(
+  it('is signed out when __client_uat is 0', async () => {
+    await expect(
+      isClerkSessionPresent(requestWithCookie('__client_uat=0')),
+    ).resolves.toBe(false);
+  });
+
+  it('is signed out when the cookie is absent', async () => {
+    await expect(isClerkSessionPresent(requestWithCookie(null))).resolves.toBe(
       false,
     );
+    await expect(
+      isClerkSessionPresent(requestWithCookie('foo=bar')),
+    ).resolves.toBe(false);
   });
 
-  it('is signed out when the cookie is absent', () => {
-    expect(isClerkSessionPresent(requestWithCookie(null))).toBe(false);
-    expect(isClerkSessionPresent(requestWithCookie('foo=bar'))).toBe(false);
-  });
-
-  it('matches the suffixed cookie form (__client_uat_<hash>)', () => {
-    expect(
+  it('matches this instance’s suffixed cookie (__client_uat_<suffix>)', async () => {
+    await expect(
       isClerkSessionPresent(
-        requestWithCookie('__client_uat_abc123=1720000000'),
+        requestWithCookie(`__client_uat_${COOKIE_SUFFIX}=1720000000`),
       ),
-    ).toBe(true);
-    expect(
-      isClerkSessionPresent(requestWithCookie('__client_uat_abc123=0')),
-    ).toBe(false);
+    ).resolves.toBe(true);
+    await expect(
+      isClerkSessionPresent(
+        requestWithCookie(`__client_uat_${COOKIE_SUFFIX}=0`),
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it('ignores another Clerk instance’s stale suffixed cookie', async () => {
+    // An origin that has hosted a different Clerk instance keeps its
+    // `__client_uat_<other>` cookie forever, stuck at its last signed-in value.
+    await expect(
+      isClerkSessionPresent(
+        requestWithCookie('__client_uat_cohOZbxI=1766583928'),
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it('prefers this instance’s cookie over a stale unsuffixed one', async () => {
+    await expect(
+      isClerkSessionPresent(
+        requestWithCookie(
+          `__client_uat=1720000000; __client_uat_${COOKIE_SUFFIX}=0`,
+        ),
+      ),
+    ).resolves.toBe(false);
+    await expect(
+      isClerkSessionPresent(
+        requestWithCookie(
+          `__client_uat=0; __client_uat_${COOKIE_SUFFIX}=1720000000`,
+        ),
+      ),
+    ).resolves.toBe(true);
   });
 });

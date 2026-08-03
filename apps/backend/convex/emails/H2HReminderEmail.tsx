@@ -72,7 +72,7 @@ export function H2HReminderEmail({
               <strong style={{ color: email.text }}>{raceName}</strong>.
             </Text>
             <Text style={text}>
-              You forgot to submit your teammate head-to-head picks. Complete
+              You forgot to submit your team-mate head-to-head picks. Complete
               them now to avoid missing points.
             </Text>
             <Button className="cta-button" style={button} href={raceUrl}>

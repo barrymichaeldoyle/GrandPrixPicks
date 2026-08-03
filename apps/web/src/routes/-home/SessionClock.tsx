@@ -13,39 +13,63 @@ import {
  * The lock deadline as a session clock, not a badge.
  *
  * This is the page's largest piece of data, so it is structural: GP name and
- * flag, what is locking, then the digits. Days/hours/minutes only — a seconds
- * column on a deadline three days out is noise that redraws sixty times a
- * minute, and the picker below it is where the attention should end up.
+ * flag, what is locking, then the digits. The digits are always a countdown —
+ * a date makes the reader work out the distance from today before they know
+ * anything, and "how long have I got" is the only question this block exists to
+ * answer. The instant itself rides underneath, where it answers the follow-up.
  *
- * Outside the urgency window the digits are replaced by the date. "21 : 03 :
- * 04" is a countdown that argues against itself: three weeks of runway reads
- * as "come back later", which is the opposite of what a deadline is for. A
- * date is a fixture to plan around, and the clock starts ticking when the tick
- * means something.
+ * Precision is what changes with distance, not the format. Days/hours/minutes
+ * inside the week (never seconds: a column redrawing sixty times a minute is
+ * noise, and the picker below is where attention should end up), and a lone day
+ * count outside it, because at nineteen days the hours and minutes are two
+ * thirds of a hero spent on digits nobody can act on.
  */
 
-/** Inside this window the deadline is close enough that digits create urgency. */
-const COUNTDOWN_WINDOW_MS = 72 * 60 * 60 * 1000;
+/**
+ * Inside this window the hours and minutes are worth their space.
+ *
+ * A week rather than three days: between those two marks "06 : 14 : 22" still
+ * reads as a deadline you are inside of, and it gets smaller every time the
+ * visitor comes back.
+ */
+const COUNTDOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
-type ClockSegment = { value: number; unit: string };
+type ClockUnit = 'day' | 'hour' | 'minute';
+type ClockSegment = { value: number; unit: ClockUnit };
 
-const ACCESSIBLE_UNITS = {
-  D: ['day', 'days'],
-  H: ['hour', 'hours'],
-  M: ['minute', 'minutes'],
-} as const;
+const PLURALS: Record<ClockUnit, string> = {
+  day: 'days',
+  hour: 'hours',
+  minute: 'minutes',
+};
 
-function accessibleSegment({ value, unit }: ClockSegment) {
-  const labels = ACCESSIBLE_UNITS[unit as keyof typeof ACCESSIBLE_UNITS];
-  return `${value} ${value === 1 ? labels[0] : labels[1]}`;
+/**
+ * "12 hours" — one wording for the label under the digits and the spoken
+ * countdown, so an abbreviation can never drift from what it stands for.
+ *
+ * Spelled out rather than D / H / M: the letters read as a code the visitor has
+ * to break, and a deadline is the last place to ask for that.
+ */
+function unitWord({ value, unit }: ClockSegment) {
+  return value === 1 ? unit : PLURALS[unit];
+}
+
+function accessibleSegment(segment: ClockSegment) {
+  return `${segment.value} ${unitWord(segment)}`;
 }
 
 function segmentsFor(msRemaining: number): ClockSegment[] {
   const totalMinutes = Math.max(0, Math.floor(msRemaining / 60_000));
+  const days = Math.floor(totalMinutes / 1440);
+
+  if (msRemaining > COUNTDOWN_WINDOW_MS) {
+    return [{ value: days, unit: 'day' }];
+  }
+
   return [
-    { value: Math.floor(totalMinutes / 1440), unit: 'D' },
-    { value: Math.floor((totalMinutes % 1440) / 60), unit: 'H' },
-    { value: totalMinutes % 60, unit: 'M' },
+    { value: days, unit: 'day' },
+    { value: Math.floor((totalMinutes % 1440) / 60), unit: 'hour' },
+    { value: totalMinutes % 60, unit: 'minute' },
   ];
 }
 
@@ -74,21 +98,23 @@ function useViewerLockDate(lockAt: number | undefined, enabled: boolean) {
   return viewerDate;
 }
 
+/**
+ * The lock instant as `{ date, time }`, or null when the circuit's timezone is
+ * unknown. Resolved whichever branch is on screen: far out it is the headline,
+ * inside the urgency window it is the line under the digits saying which
+ * instant they are counting down to.
+ */
 function useLockDateDisplay({
   locked,
   lockAt,
-  msRemaining,
   raceSlug,
 }: {
   locked: boolean;
   lockAt: number | undefined;
-  msRemaining: number;
   raceSlug: string;
 }) {
-  // Falls back to the countdown when the circuit's timezone is unknown: an
-  // undated "locks at 14:00" would be worse than digits.
   const trackDate =
-    !locked && lockAt !== undefined && msRemaining > COUNTDOWN_WINDOW_MS
+    !locked && lockAt !== undefined
       ? formatRaceLocalLockDate(lockAt, raceSlug)
       : null;
   // Whether we show a date at all stays keyed off the *track* zone, so the
@@ -116,8 +142,8 @@ export function SessionClock({
   sessionLabel: string;
   msRemaining: number;
   /**
-   * Instant the session locks. Supplied, a deadline further out than the
-   * urgency window shows as a track-local date instead of a countdown.
+   * Instant the session locks. Supplied, it is named under the countdown, in
+   * the circuit's timezone on the server and the viewer's own after mount.
    */
   lockAt?: number;
   size?: 'lg' | 'sm';
@@ -126,16 +152,14 @@ export function SessionClock({
   const locked = msRemaining <= 0;
   const segments = segmentsFor(msRemaining);
   const large = size === 'lg';
-  const lockDate = useLockDateDisplay({
-    locked,
-    lockAt,
-    msRemaining,
-    raceSlug,
-  });
+  const lockDate = useLockDateDisplay({ locked, lockAt, raceSlug });
+  const farOut = msRemaining > COUNTDOWN_WINDOW_MS;
+  const single = segments.length === 1;
 
   return (
     <div>
       <p
+        data-landing-sticky-anchor="true"
         className={`flex items-center gap-2 font-medium tracking-label uppercase ${
           large ? 'text-sm' : 'text-xs'
         }`}
@@ -146,17 +170,12 @@ export function SessionClock({
         <span className="text-text">{raceName}</span>
       </p>
 
-      {/*
-       * "Sprint Quali picks lock" stacks three pieces of jargon before the
-       * reader gets to a verb they can act on. "Next deadline" is the frame
-       * anyone understands on sight; the session name then says which deadline,
-       * and the digits below say the rest. The word "picks" stays because it is
-       * the only thing here naming what the visitor actually does.
-       */}
+      {/* The label and countdown read as one direct sentence:
+          "Sprint Qualifying picks lock in 19 days." */}
       <p className="gpp-label mt-2">
         {locked
           ? `${sessionLabel} picks are locked`
-          : `Next deadline · ${sessionLabel} picks`}
+          : `${sessionLabel} picks lock in`}
       </p>
 
       {locked ? (
@@ -166,62 +185,86 @@ export function SessionClock({
         >
           Locked
         </p>
-      ) : lockDate ? (
-        <div className="mt-2" suppressHydrationWarning>
-          <p
-            className={`gpp-mono leading-none font-light text-text ${
-              large ? 'text-4xl sm:text-5xl' : 'text-xl'
-            }`}
-          >
-            {lockDate.date}
-          </p>
-          {/*
-           * Date + time is two renderings of the same instant — enough on its
-           * own. Hanging "locks in 20 days" off that would say "no rush", so
-           * far-out deadlines reframe as invitation instead of countdown.
-           */}
-          <p className={`gpp-label mt-2 ${large ? '' : 'text-[0.625rem]'}`}>
-            {lockDate.time} · Picks open now
-          </p>
-        </div>
       ) : (
-        <div
-          className="mt-2 flex items-start gap-3 sm:gap-4"
-          suppressHydrationWarning
-          role="timer"
-          aria-label={`${sessionLabel} picks lock in ${segments
-            .map(accessibleSegment)
-            .join(', ')}`}
-        >
-          {segments.map((segment, index) => (
-            <div key={segment.unit} className="flex items-start gap-3 sm:gap-4">
-              {index > 0 ? (
-                <span
-                  className={`gpp-mono text-border-strong ${
-                    large ? 'text-4xl sm:text-5xl' : 'text-xl'
-                  }`}
-                  aria-hidden="true"
-                >
-                  :
-                </span>
-              ) : null}
-              <span className="flex flex-col items-center">
+        <div className="mt-2" suppressHydrationWarning>
+          <div
+            className={
+              // A stacked unit under a lone number hangs off the left rag every
+              // other line in this block sits on, and the column stack only
+              // earns itself when three of them share a row.
+              single
+                ? 'flex items-baseline gap-2'
+                : 'flex items-start gap-3 sm:gap-4'
+            }
+            role="timer"
+            aria-label={`${sessionLabel} picks lock in ${segments
+              .map(accessibleSegment)
+              .join(', ')}`}
+          >
+            {single ? (
+              // The whole clock is spoken once by the timer's own label, so the
+              // visuals stay out of the accessibility tree rather than being
+              // read a second time as bare digits.
+              <span className="flex items-baseline gap-2" aria-hidden="true">
                 <span
                   className={`gpp-mono leading-none font-light text-text ${
                     large ? 'text-4xl sm:text-5xl' : 'text-xl'
                   }`}
                 >
-                  {segment.value.toString().padStart(2, '0')}
+                  {segments[0].value}
                 </span>
-                <span
-                  className={`gpp-label mt-1.5 ${large ? '' : 'text-[0.625rem]'}`}
-                  aria-hidden="true"
-                >
-                  {segment.unit}
+                <span className={`gpp-label ${large ? '' : 'text-[0.625rem]'}`}>
+                  {unitWord(segments[0])}
                 </span>
               </span>
-            </div>
-          ))}
+            ) : (
+              segments.map((segment, index) => (
+                <div
+                  key={segment.unit}
+                  className="flex items-start gap-3 sm:gap-4"
+                  aria-hidden="true"
+                >
+                  {index > 0 ? (
+                    <span
+                      className={`gpp-mono text-border-strong ${
+                        large ? 'text-4xl sm:text-5xl' : 'text-xl'
+                      }`}
+                    >
+                      :
+                    </span>
+                  ) : null}
+                  <span className="flex flex-col items-center">
+                    <span
+                      className={`gpp-mono leading-none font-light text-text ${
+                        large ? 'text-4xl sm:text-5xl' : 'text-xl'
+                      }`}
+                    >
+                      {segment.value.toString().padStart(2, '0')}
+                    </span>
+                    <span
+                      className={`gpp-label mt-1.5 ${large ? '' : 'text-[0.625rem]'}`}
+                    >
+                      {unitWord(segment)}
+                    </span>
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+          {/*
+           * The digits say how long is left; they do not say when. Deciding
+           * whether you will be around for a deadline needs the instant itself,
+           * so it rides underneath in the viewer's own timezone.
+           *
+           * Far out it carries the invitation too: a day count on its own can
+           * be read as "come back later", and this is the line that answers.
+           */}
+          {lockDate ? (
+            <p className={`gpp-label mt-2 ${large ? '' : 'text-[0.625rem]'}`}>
+              {lockDate.date} · {lockDate.time}
+              {farOut ? ' · Picks open now' : ''}
+            </p>
+          ) : null}
         </div>
       )}
     </div>
@@ -253,26 +296,27 @@ export function SessionClockChip({
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const shortName = abbreviateGrandPrix(raceName);
   const locked = msRemaining <= 0;
-  const lockDate = useLockDateDisplay({
-    locked,
-    lockAt,
-    msRemaining,
-    raceSlug,
-  });
+  const lockDate = useLockDateDisplay({ locked, lockAt, raceSlug });
+  const showDate = lockDate !== null && msRemaining > COUNTDOWN_WINDOW_MS;
 
   let detail: string;
   if (locked) {
     detail = `${sessionLabel} picks are locked`;
-  } else if (lockDate) {
+  } else if (showDate && lockDate) {
     detail = `${sessionLabel} locks ${lockDate.date}, ${lockDate.time}`;
   } else {
+    // One line has room for the countdown or the instant, not both, and inside
+    // the window the countdown is the half that earns the space.
     detail = `${sessionLabel} locks in ${formatLockCountdown(msRemaining)}`;
   }
 
   return (
     // Primary text, not muted: the lock time is the urgency payload, so it
     // has to clear contrast at `text-xs`. Weight alone separates the GP name.
-    <p className="flex min-w-0 items-center gap-1.5 text-xs text-text">
+    <p
+      data-landing-sticky-anchor="true"
+      className="flex min-w-0 items-center gap-1.5 text-xs text-text"
+    >
       {countryCode ? <Flag code={countryCode} size="xs" /> : null}
       <span className="min-w-0 truncate" suppressHydrationWarning>
         <span className="font-medium">{shortName}</span>

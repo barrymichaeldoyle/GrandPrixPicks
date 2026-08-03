@@ -1,20 +1,23 @@
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Flag } from '@/components/Flag';
 import { primaryButtonStyles } from '@/components/Button/Button';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
+const STICKY_BAR_HEIGHT = 48;
+
 /**
- * Compact deadline plus CTA, revealed once the hero scrolls away so the primary
- * action is never off-screen.
+ * Compact deadline plus CTA, revealed once the hero's race context scrolls
+ * behind the app header and dismissed when the picker itself takes over.
  *
  * It carries no logo: the app header is sticky directly above this strip and
  * already has one, and two marks 8px apart is just a wider header.
  *
- * Visibility is driven by an IntersectionObserver on a sentinel rather than a
- * scroll listener, so nothing runs on the main thread between scroll stops.
+ * Visibility is driven by an IntersectionObserver on the race-name row rather
+ * than a scroll listener, so the strip takes over as that context disappears
+ * without running anything on the main thread between scroll stops.
  */
 export function LandingStickyBar({
   raceName,
@@ -28,9 +31,9 @@ export function LandingStickyBar({
   /** Element the CTA scrolls to, e.g. the picker. */
   targetId: string;
 }) {
-  const [visible, setVisible] = useState(false);
+  const [raceContextPassed, setRaceContextPassed] = useState(false);
+  const [pickerReached, setPickerReached] = useState(false);
   const [headerTopOffset, setHeaderTopOffset] = useState(0);
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const header = document.querySelector<HTMLElement>('[data-app-header]');
@@ -57,8 +60,10 @@ export function LandingStickyBar({
   }, []);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || typeof IntersectionObserver === 'undefined') {
+    const anchors = document.querySelectorAll<HTMLElement>(
+      '[data-landing-sticky-anchor]',
+    );
+    if (anchors.length === 0 || typeof IntersectionObserver === 'undefined') {
       return;
     }
     const header = document.querySelector<HTMLElement>('[data-app-header]');
@@ -68,26 +73,64 @@ export function LandingStickyBar({
     const stickyTop =
       (Number.isFinite(headerHeight) ? headerHeight : 64) + headerTopOffset;
     const observer = new IntersectionObserver(
-      ([entry]) =>
-        setVisible(
+      (entries) => {
+        // Both desktop and mobile clocks exist in the DOM, with CSS choosing
+        // one at the breakpoint. A hidden anchor has a zero-sized client rect;
+        // ignoring it prevents that off-screen variant from showing the strip.
+        const entry = entries.find(
+          ({ boundingClientRect }) =>
+            boundingClientRect.width > 0 && boundingClientRect.height > 0,
+        );
+        if (!entry) {
+          return;
+        }
+        setRaceContextPassed(
           !entry.isIntersecting && entry.boundingClientRect.top < stickyTop,
-        ),
-      // Fire against the bottom of the app header, not the viewport top. The
-      // sentinel is one strip-height tall, which adds useful hysteresis: it is
-      // fully above the header before the strip appears, but starts hiding 48px
-      // before its sticky wrapper releases on the way back up.
+        );
+      },
+      // Fire against the bottom of the app header, not the viewport top: the
+      // banner takes over as soon as the race-name row is fully behind it.
       { rootMargin: `-${stickyTop}px 0px 0px 0px`, threshold: 0 },
     );
-    observer.observe(sentinel);
+    anchors.forEach((anchor) => observer.observe(anchor));
     return () => observer.disconnect();
   }, [headerTopOffset]);
+
+  useEffect(() => {
+    const pickerStart = document
+      .getElementById(targetId)
+      ?.querySelector<HTMLElement>('[data-landing-picks-start]');
+    if (!pickerStart || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+    const header = document.querySelector<HTMLElement>('[data-app-header]');
+    const headerHeight = header
+      ? Number.parseFloat(getComputedStyle(header).height)
+      : Number.NaN;
+    const stickyBottom =
+      (Number.isFinite(headerHeight) ? headerHeight : 64) +
+      headerTopOffset +
+      STICKY_BAR_HEIGHT;
+    const observer = new IntersectionObserver(
+      ([entry]) =>
+        setPickerReached(
+          !entry.isIntersecting && entry.boundingClientRect.top < stickyBottom,
+        ),
+      // Once the picker heading reaches the bottom of the strip, its controls
+      // are the action; keeping a second CTA over them only costs working room.
+      { rootMargin: `-${stickyBottom}px 0px 0px 0px`, threshold: 0 },
+    );
+    observer.observe(pickerStart);
+    return () => observer.disconnect();
+  }, [headerTopOffset, targetId]);
+
+  const visible = raceContextPassed && !pickerReached;
 
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const locked = msRemaining <= 0;
 
   return (
     <>
-      <div ref={sentinelRef} className="-mb-12 h-12" aria-hidden="true" />
       {/* Use the same sticky coordinate system as the app header. A fixed strip
           stays pinned to the visual viewport during iOS rubber-band scrolling
           while the sticky header moves with the document, which pulls the two
@@ -106,10 +149,8 @@ export function LandingStickyBar({
         inert={!visible}
       >
         {/* Parked one full height up, the strip rests behind the higher-z-index
-            header. It slides in when the hero leaves, but disappears immediately
-            on the way back: animating the exit while this sticky wrapper returns
-            to normal flow compounds two movements and produces a visible jump
-            during a fast upward scroll. */}
+            header. It slides in when the race row leaves, but disappears
+            immediately on the way back so it never covers the returning row. */}
         <div
           // `translate` and not `transform`: Tailwind 4's translate utilities
           // set the standalone `translate` property, so a transform transition

@@ -52,9 +52,13 @@ export function RankDelta({ delta }: { delta: number | null }) {
     );
   }
 
+  // `role="img"` is what lets these carry an aria-label at all: a bare <span>
+  // has no role, and ARIA prohibits naming a roleless generic element — screen
+  // readers were free to drop the label and announce a triangle glyph instead.
   if (delta === 0) {
     return (
       <span
+        role="img"
         className="inline-flex items-center text-delta-flat"
         aria-label="No change in position"
       >
@@ -66,6 +70,7 @@ export function RankDelta({ delta }: { delta: number | null }) {
   const up = delta > 0;
   return (
     <span
+      role="img"
       className={`gpp-mono inline-flex items-center gap-0.5 text-xs font-medium ${
         up ? 'text-delta-up' : 'text-delta-down'
       }`}

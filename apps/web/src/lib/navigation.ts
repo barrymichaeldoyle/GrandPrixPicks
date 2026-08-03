@@ -18,10 +18,12 @@ export const primaryNavLinks: SiteNavLink[] = [
 export const publicNavLinks: SiteNavLink[] = [
   { to: '/how-to-play', label: 'How to Play' },
   ...primaryNavLinks,
+  { to: '/guides', label: 'Guides' },
 ];
 
 export const footerPlayLinks: SiteNavLink[] = [
   { to: '/how-to-play', label: 'How to Play' },
+  { to: '/guides', label: 'F1 Guides' },
   { to: '/races', label: 'Race Calendar', exact: true },
   { to: '/leaderboard', label: 'Global Leaderboard' },
   { to: '/leagues', label: 'Prediction Leagues' },
@@ -29,11 +31,12 @@ export const footerPlayLinks: SiteNavLink[] = [
 
 export const footerF1Links: SiteNavLink[] = [
   { to: '/f1-standings', label: 'F1 Standings' },
-  { to: '/f1-teammate-battles', label: 'Teammate Battles' },
+  { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
   { to: '/results-policy', label: 'Results & Penalties' },
 ];
 
 export const footerSupportLinks: SiteNavLink[] = [
+  { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
 ];

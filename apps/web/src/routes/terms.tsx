@@ -50,7 +50,7 @@ function TermsPage() {
               where users predict the top 5 finishers for each session of a
               Formula 1 race weekend (qualifying, sprint qualifying, sprint, and
               race) and earn points based on accuracy. Users can also make
-              head-to-head (H2H) predictions on teammate matchups. The app is
+              head-to-head (H2H) predictions on team-mate matchups. The app is
               provided for entertainment only and is not affiliated with Formula
               1, the FIA, or any related entities.
             </p>

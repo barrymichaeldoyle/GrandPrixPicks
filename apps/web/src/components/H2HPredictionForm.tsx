@@ -7,6 +7,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
+import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -18,6 +19,7 @@ import {
   setPendingSubmit,
 } from '@/lib/predictionDrafts';
 import { toUserFacingMessage } from '@/lib/userFacingError';
+import { useIsomorphicLayoutEffect } from '@/lib/useIsomorphicLayoutEffect';
 
 import type { SessionType } from '@/lib/sessions';
 import { Button } from './Button/Button';
@@ -48,6 +50,13 @@ interface H2HPredictionFormProps {
   onStartOver?: () => void;
   /** Replaces the signed-out submit button after every duel is selected. */
   renderSaveWall?: (actions: { lockIn: () => void }) => ReactNode;
+  /**
+   * Rendered above the duels whenever {@link renderSaveWall} is showing. The
+   * team-mate calls are the secondary half of a prediction card, so a parent
+   * that owns the primary half (the landing card's Top 5) puts it here rather
+   * than letting the duels lead.
+   */
+  renderCardIntro?: () => ReactNode;
   /** Moves restored-draft status into parent chrome such as a step header. */
   draftNoticeTarget?: HTMLElement | null;
   /** Emits duel progress so a parent funnel can label its own tab/step. */
@@ -76,6 +85,7 @@ export function H2HPredictionForm({
   onSaveIntent,
   onStartOver,
   renderSaveWall,
+  renderCardIntro,
   draftNoticeTarget,
   onSelectionProgress,
   topFivePositions,
@@ -103,8 +113,12 @@ export function H2HPredictionForm({
   const [persistedSignature, setPersistedSignature] = useState(() =>
     JSON.stringify(existingPicks ?? {}),
   );
+  const reportDirtyChange = useCallbackRef(onDirtyChange);
+  const reportSelectionProgress = useCallbackRef(onSelectionProgress);
 
-  useEffect(() => {
+  // Before the paint, not after: eleven duels flipping from blank to answered
+  // one frame late is the most visible version of that flash on the page.
+  useIsomorphicLayoutEffect(() => {
     const draft = loadPredictionDraft<H2HDraft>(draftKey);
     if (draft && Object.keys(draft.selections).length > 0) {
       setSelections(draft.selections);
@@ -383,13 +397,15 @@ export function H2HPredictionForm({
 
   const hasChanges = selectionsSignature !== persistedSignature;
 
+  // These fire on data changes, not on prop identity. See useCallbackRef: a
+  // caller passing an inline arrow used to re-run them on every parent render.
   useEffect(() => {
-    onDirtyChange?.(hasChanges);
-  }, [hasChanges, onDirtyChange]);
+    reportDirtyChange(hasChanges);
+  }, [hasChanges, reportDirtyChange]);
 
   useEffect(() => {
-    onSelectionProgress?.(selectedCount, totalMatchups);
-  }, [onSelectionProgress, selectedCount, totalMatchups]);
+    reportSelectionProgress(selectedCount, totalMatchups);
+  }, [reportSelectionProgress, selectedCount, totalMatchups]);
 
   useEffect(() => {
     if (!hasHydratedDraft) {
@@ -469,11 +485,13 @@ export function H2HPredictionForm({
           onDiscard={handleDiscardDraft}
         />
       ) : null}
-      {/* One duel at a time is the right way to *make* eleven calls and the
-          wrong way to *check* them. The moment the last one lands, the whole
-          grid replaces the sequence so the card can be read and edited in one
-          go, which is also what the save wall underneath is asking about. */}
-      {isFirstEntry && !allSelected ? (
+      {showCustomSaveWall ? renderCardIntro?.() : null}
+      {/* One duel at a time is the right way to *make* eleven calls, and the
+          picker keeps the card afterwards: completed, it folds down to its own
+          strip, which is eleven codes on one line instead of the twenty-two
+          names the full grid spreads over a screen. The grid is for someone
+          coming back to edit a saved card, where scanning beats stepping. */}
+      {isFirstEntry ? (
         <H2HDuelPicker
           matchups={matchups}
           selections={selections}
@@ -482,31 +500,19 @@ export function H2HPredictionForm({
           topFivePositions={topFivePositions}
         />
       ) : (
-        <>
-          {isFirstEntry ? (
-            <p className="gpp-label mb-3 flex items-center gap-1.5 text-text-muted">
-              <Check size={14} className="text-accent" aria-hidden="true" />
-              All eleven called.
-              <br />
-              Tap any driver to change your mind.
-            </p>
-          ) : null}
-          <H2HMatchupGrid
-            matchups={matchups}
-            selections={selections}
-            mode="interactive"
-            onSelect={toggleSelection}
-            actionCard={
-              isFirstEntry ? undefined : (
-                <div className="hidden items-stretch sm:flex">
-                  <div className="flex w-full items-center justify-center p-3">
-                    {desktopSubmitButton}
-                  </div>
-                </div>
-              )
-            }
-          />
-        </>
+        <H2HMatchupGrid
+          matchups={matchups}
+          selections={selections}
+          mode="interactive"
+          onSelect={toggleSelection}
+          actionCard={
+            <div className="hidden items-stretch sm:flex">
+              <div className="flex w-full items-center justify-center p-3">
+                {desktopSubmitButton}
+              </div>
+            </div>
+          }
+        />
       )}
 
       {showCustomSaveWall ? renderSaveWall?.({ lockIn: requestSubmit }) : null}

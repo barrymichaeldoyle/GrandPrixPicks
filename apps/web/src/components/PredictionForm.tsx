@@ -332,26 +332,32 @@ function DraggableDriverCard({
         } as React.CSSProperties
       }
     >
-      <span
-        className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
-          picked ? 'text-text-muted' : 'text-text'
-        }`}
-      >
-        {driver.code}
+      {/* `items-baseline`, not `items-center`: the code steps up to 14px at sm
+          while the surname and position stay at 12px, and centring line boxes
+          of different heights leaves their baselines 1px apart. Centring the
+          group as a whole is still the button's job, one level up. */}
+      <span className="flex w-full min-w-0 items-baseline gap-2">
+        <span
+          className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
+            picked ? 'text-text-muted' : 'text-text'
+          }`}
+        >
+          {driver.code}
+        </span>
+        {/* Three-letter codes are the broadcast language, but a landing-page
+            visitor may not know all twenty-two. Two columns on phones leave
+            enough room to keep the surname visible at every width. */}
+        {surname ? (
+          <span className="min-w-0 flex-1 truncate text-xs leading-none text-text-muted">
+            {surname}
+          </span>
+        ) : null}
+        {picked ? (
+          <span className="gpp-mono ml-auto shrink-0 text-xs leading-none font-semibold text-accent">
+            P{pickedPosition}
+          </span>
+        ) : null}
       </span>
-      {/* Three-letter codes are the broadcast language, but a landing-page
-          visitor may not know all twenty-two. Two columns on phones leave
-          enough room to keep the surname visible at every width. */}
-      {surname ? (
-        <span className="min-w-0 flex-1 truncate text-xs leading-none text-text-muted">
-          {surname}
-        </span>
-      ) : null}
-      {picked ? (
-        <span className="gpp-mono ml-auto shrink-0 text-xs leading-none font-semibold text-accent">
-          P{pickedPosition}
-        </span>
-      ) : null}
       {/* Appended after the visible text so the accessible name still starts
           with what is on the card. */}
       {picked ? (

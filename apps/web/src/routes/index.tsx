@@ -24,8 +24,8 @@ import {
 } from './-home/LandingHero';
 import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
 import { LandingStickyBar } from './-home/LandingStickyBar';
-import { LeaguesSection } from './-home/LeaguesSection';
-import { LiveTimingStrip } from './-home/LiveTimingStrip';
+import { CompetitionSection } from './-home/CompetitionSection';
+import { ScoringSection } from './-home/ScoringSection';
 import { SessionClock, SessionClockChip } from './-home/SessionClock';
 import { buildSessions, getSessionStatus } from './-home/weekendSchedule';
 
@@ -253,9 +253,9 @@ function PublicLandingPage() {
           />
         ) : null}
 
-        <LeaguesSection />
+        <ScoringSection />
 
-        <LiveTimingStrip
+        <CompetitionSection
           players={topPlayers}
           season={featuredRace?.season ?? CURRENT_SEASON}
         />

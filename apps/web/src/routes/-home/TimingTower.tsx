@@ -3,39 +3,10 @@ import { Minus, Triangle } from 'lucide-react';
 /**
  * The landing page's one visual motif: a broadcast timing tower.
  *
- * Two primitives make it work everywhere it appears (picker slots, the live
- * leaderboard strip, the league standings mock): a boxed position label, and a
- * signed delta. Everything else on the page is plain type on the page colour.
+ * What survives of it are the primitives the competition section still uses: a
+ * points cell and a signed rank delta. Everything else on the page is plain
+ * type on the page colour.
  */
-
-/**
- * Boxed position label, "P1" through "P5".
- *
- * The box is a hairline, not a fill. A filled box per row would put five
- * competing blocks of colour down the strip; the tower on a broadcast is legible
- * because only the leader's box is inverted, so that is the only case that is.
- */
-export function PositionBox({
-  position,
-  leader = false,
-  className = '',
-}: {
-  position: number;
-  leader?: boolean;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`gpp-mono inline-flex h-7 w-9 shrink-0 items-center justify-center rounded-sm border text-xs font-semibold ${
-        leader
-          ? 'border-accent bg-accent text-text-on-accent'
-          : 'border-border text-text-muted'
-      } ${className}`}
-    >
-      P{position}
-    </span>
-  );
-}
 
 /**
  * Position change since the last scored race.

@@ -240,12 +240,19 @@ function RootDocument({ children }: PropsWithChildren) {
     // used to carry was 232 KB plus the 163 KB of Google Tag Manager it pulled
     // in, and both are gone.
     //
-    // The app declares no `<ins class="adsbygoogle">` slots of its own, but Auto
-    // ads is on and injects one, so this does put an ad unit on the landing
-    // page once the account is approved — not merely the code. Excluding `/`
-    // from Auto ads is a dashboard setting if that is not wanted. It still
-    // waits for the document and an idle main thread, so it cannot touch first
-    // paint either way.
+    // This is the loader only. Placement is deliberate rather than automatic:
+    // Auto ads is turned off in the AdSense dashboard, so loading the script
+    // renders nothing on its own, and an ad appears only where the app puts an
+    // `<ins class="adsbygoogle">` slot. There are none yet.
+    //
+    // That split is the point. The script can sit on every route, including the
+    // conversion page, purely so the code is findable, without an ad ever
+    // showing somewhere it would get in the way. Auto ads being switched back
+    // on in the dashboard would silently undo that, since it injects its own
+    // slots wherever it likes.
+    //
+    // It still waits for the document and an idle main thread, so it cannot
+    // touch first paint either way.
     if (document.querySelector<HTMLScriptElement>('#gpp-adsense-script')) {
       return;
     }

@@ -1518,7 +1518,7 @@ function competitionStandingRow(
           color: row.isYou ? colors.accent : colors.textDisabled,
         },
       },
-      `P${row.position}`,
+      row.position,
     ),
     e(
       'div',
@@ -1564,7 +1564,6 @@ function competitionStandingsPanel(
         flexDirection: 'column',
         width: '100%',
         border: `1px solid ${colors.borderStrong}`,
-        borderBottom: `9px solid ${colors.accent}`,
         backgroundColor: colors.surface,
       },
     },
@@ -1607,7 +1606,7 @@ function competitionCoverSlide(): ReactNode {
           width: 920,
         },
       },
-      eyebrow('Two ways to compete'),
+      eyebrow('Free F1 prediction game'),
       headline('Global leaderboard. Private leagues.', 88, 920),
       body('One set of picks counts in both.', 760),
     ),
@@ -1649,23 +1648,6 @@ function competitionCoverSlide(): ReactNode {
           true,
         ),
       ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: 80,
-          bottom: 100,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          fontWeight: 600,
-          letterSpacing: 2,
-          color: colors.accent,
-        },
-      },
-      'SAME PICKS  /  SAME SCORE',
     ),
   );
 }
@@ -1739,7 +1721,6 @@ function privateLeagueSlide(): ReactNode {
           right: 80,
           top: 515,
           border: `1px solid ${colors.borderStrong}`,
-          borderBottom: `9px solid ${colors.accent}`,
           backgroundColor: colors.surface,
         },
       },
@@ -1868,7 +1849,6 @@ function scoreDestinationCard(
         minHeight: 220,
         padding: '30px 28px 26px',
         border: `1px solid ${colors.borderStrong}`,
-        borderBottom: `9px solid ${colors.accent}`,
         backgroundColor: colors.surface,
       },
     },
@@ -1982,36 +1962,19 @@ function oneSetOfPicksSlide(): ReactNode {
             gap: 24,
           },
         },
-        scoreDestinationCard('GLOBAL LEADERBOARD', 'P12', 'Full season'),
-        scoreDestinationCard('SUNDAY STRATEGY CLUB', 'P1', 'Private league'),
+        scoreDestinationCard('GLOBAL LEADERBOARD', '12th', 'Full season'),
+        scoreDestinationCard('SUNDAY STRATEGY CLUB', '1st', 'Private league'),
       ),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: 80,
-          bottom: 86,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 15,
-          fontWeight: 600,
-          letterSpacing: 2,
-          color: colors.accent,
-        },
-      },
-      'ONE SCORE  /  EVERY TABLE',
     ),
   );
 }
 
 function sessionsMoveOrderSlide(): ReactNode {
   const sessionRows = [
-    ['SPRINT QUALIFYING', '+18', 'P8'],
-    ['SPRINT', '+14', 'P7'],
-    ['QUALIFYING', '+21', 'P6'],
-    ['RACE', '+25', 'P5'],
+    ['SPRINT QUALIFYING', '+18', '8'],
+    ['SPRINT', '+14', '7'],
+    ['QUALIFYING', '+21', '6'],
+    ['RACE', '+25', '5'],
   ] as const;
   return editorialFrame(
     e(
@@ -2041,7 +2004,6 @@ function sessionsMoveOrderSlide(): ReactNode {
           right: 80,
           top: 530,
           border: `1px solid ${colors.borderStrong}`,
-          borderBottom: `9px solid ${colors.accent}`,
           backgroundColor: colors.surface,
         },
       },

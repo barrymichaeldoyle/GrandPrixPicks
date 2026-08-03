@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { waitForHydration } from './helpers/hydration';
 import { applyScenario } from './helpers/scenarios';
 
 test.describe('[public] smoke', () => {
@@ -28,15 +29,16 @@ test.describe('[public] smoke', () => {
     await expect(header.getByTestId('header-sign-in-button')).toBeVisible();
     await expect(page.getByText('Dashboard', { exact: true })).toHaveCount(0);
 
-    // Driver buttons are server-rendered; wait for React to attach the draft
-    // handlers before exercising the conversion flow.
-    await page.waitForTimeout(500);
+    // Driver buttons are server-rendered, so they are clickable well before
+    // React attaches the draft handlers. Wait for the real thing rather than a
+    // fixed sleep — see waitForHydration.
     await expect(page.getByText('Step 1 of 2')).toBeVisible();
+    const driverButtons = page.locator(
+      'button[data-testid^="driver-"]:not([disabled])',
+    );
+    await waitForHydration(driverButtons.first());
     for (let pick = 0; pick < 5; pick += 1) {
-      await page
-        .locator('button[data-testid^="driver-"]:not([disabled])')
-        .first()
-        .click();
+      await driverButtons.first().click();
       if (pick < 4) {
         await expect(page.getByTestId('picks-remaining')).toContainText(
           `${4 - pick} left`,

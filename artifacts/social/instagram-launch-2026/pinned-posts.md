@@ -217,7 +217,7 @@ Make both competitive modes explicit. A new visitor should not have to infer tha
 
 #### Slide 1
 
-**Small label:** Two ways to compete
+**Small label:** Free F1 prediction game
 
 **Headline:** Global leaderboard. Private leagues.
 
@@ -227,33 +227,39 @@ Make both competitive modes explicit. A new visitor should not have to infer tha
 
 **Small label:** Global leaderboard
 
-**Headline:** See how you rank against everyone
+**Headline:** See how you rank against everyone.
 
-**Body:** Compare scores for the race weekend or the full season.
+**Body:** Compare the race weekend or the full season.
 
 #### Slide 3
 
 **Small label:** Private leagues
 
-**Headline:** Give your group chat a table
+**Headline:** Give your group chat a table.
 
 **Body:** Create a league and invite your friends with one link.
 
+**Example:** Sunday Strategy Club standings with an invite-link action.
+
 #### Slide 4
 
-**Headline:** Make one set of picks
+**Small label:** One set of picks
 
-**Body:** Your results carry into the global standings and every private league you join.
+**Headline:** Make your picks once.
+
+**Body:** The same score lands in every table you compete in.
 
 #### Slide 5
 
-**Headline:** Every session can move the order
+**Small label:** Across the calendar
 
-**Body:** Qualifying, sprints and races all count across the season.
+**Headline:** Every session can move the table.
+
+**Body:** Qualifying, sprint sessions and races all add to your score.
 
 #### Slide 6
 
-**Small label:** Start your season
+**Small label:** Free F1 prediction game
 
 **Headline:** Race the world. Challenge your friends.
 
@@ -271,16 +277,18 @@ Who is finishing bottom of your league?
 
 ### Alt text
 
-1. Introduction to Grand Prix Picks global leaderboard and private leagues, explaining that one set of picks counts in both.
-2. Explanation that the global leaderboard compares race-weekend and full-season scores.
-3. Explanation that players can create a private league and invite friends with one link.
-4. Explanation that one set of predictions counts globally and in every private league joined.
-5. Explanation that qualifying, sprint and race sessions can all change the season standings.
-6. Call to compete globally and with friends at GrandPrixPicks.com/ig.
+1. Grand Prix Picks introduction reading “Global leaderboard. Private leagues.” Two compact standings tables show the same player score counting globally and in a private league.
+2. Full-season global leaderboard with the current player highlighted in 12th place on 455 points.
+3. Sunday Strategy Club private-league standings with the current player highlighted in first place and a button to copy an invite link.
+4. One score of 455 shown as 12th in the global leaderboard and first in the Sunday Strategy Club private league.
+5. Sprint-weekend example showing Sprint Qualifying, Sprint, Qualifying and Race scores moving the player from eighth to fifth in the standings.
+6. Call to race the world and challenge friends in the free F1 prediction game at GrandPrixPicks.com/ig.
 
 ### Upload folder
 
 `artifacts/social/instagram-launch-2026/images/03-global-private`
+
+This folder contains only the six final 1080 x 1350 slides. They use Instagram's supported 4:5 portrait aspect ratio. The contact sheet is stored separately under `images/previews` and must not be selected for upload.
 
 ## Suggested Instagram profile copy
 

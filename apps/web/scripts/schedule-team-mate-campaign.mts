@@ -74,6 +74,7 @@ if (!apiKey) {
 
 const apply = process.argv.includes('--apply');
 const activateDrafts = process.argv.includes('--activate-drafts');
+const inspectOnly = process.argv.includes('--inspect');
 const assetBaseUrl = (
   process.env.BUFFER_ASSET_BASE_URL ?? DEFAULT_ASSET_BASE_URL
 ).replace(/\/$/, '');
@@ -391,6 +392,25 @@ async function main(): Promise<void> {
     throw new Error(
       `Expected 11 campaign posts, found ${manifest.posts.length}.`,
     );
+  }
+  if (inspectOnly) {
+    const { organization, channel } = await resolveTarget();
+    const scheduled = await getScheduledPosts(organization.id, channel.id);
+    const drafts = await getDraftPosts(organization.id, channel.id);
+    console.log(
+      `Target: ${channel.displayName ?? channel.name} (${channel.externalLink ?? channel.id})`,
+    );
+    console.log(`Scheduled posts: ${scheduled.length}`);
+    for (const post of scheduled) {
+      console.log(
+        `${post.dueAt ?? 'NO DATE'}  ${post.id}  ${post.text.split('\n')[0]}`,
+      );
+    }
+    console.log(`Draft posts: ${drafts.length}`);
+    for (const post of drafts) {
+      console.log(`${post.id}  ${post.text.split('\n')[0]}`);
+    }
+    return;
   }
   if (
     !activateDrafts &&

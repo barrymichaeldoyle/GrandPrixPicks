@@ -247,7 +247,7 @@ Make both competitive modes explicit. A new visitor should not have to infer tha
 
 **Headline:** Make your picks once.
 
-**Body:** The same score lands in every table you compete in.
+**Body:** Your saved predictions feed the global leaderboard and every private league you join.
 
 #### Slide 5
 
@@ -269,18 +269,24 @@ Make both competitive modes explicit. A new visitor should not have to infer tha
 
 There is the global leaderboard. Then there is the league you actually care about winning.
 
-Create a private league, invite your friends with one link and use the same picks that count towards the global standings. Every qualifying session, sprint and race can move the table.
+On Grand Prix Picks, one set of F1 predictions counts in both. See how you rank across the season, create a private league, send one invite link, and give the group chat a table to fight over.
 
-Grand Prix Picks is free to play. Start through the link in our bio.
+Every qualifying session, sprint and race can move the order.
 
-Who is finishing bottom of your league?
+Free to play. Link in bio.
+
+Who are you inviting first?
+
+### First comment
+
+What would your private league be called? I need names better than Sunday Strategists.
 
 ### Alt text
 
-1. Grand Prix Picks introduction reading “Global leaderboard. Private leagues.” Two compact standings tables show the same player score counting globally and in a private league.
-2. Full-season global leaderboard with the current player highlighted in 12th place on 455 points.
+1. Grand Prix Picks introduction reading “Global leaderboard. Private leagues.” A score of 455 branches into compact global and private-league standings, with the current player highlighted in both.
+2. Global leaderboard with a race-weekend and full-season selector. Full season is selected, and the current player is highlighted in 12th place on 455 points.
 3. Sunday Strategy Club private-league standings with the current player highlighted in first place and a button to copy an invite link.
-4. One score of 455 shown as 12th in the global leaderboard and first in the Sunday Strategy Club private league.
+4. A completed Top 5 prediction with real drivers, flags and team colours branches into the global leaderboard and two private leagues, showing that the same saved picks feed every table.
 5. Sprint-weekend example showing Sprint Qualifying, Sprint, Qualifying and Race scores moving the player from eighth to fifth in the standings.
 6. Call to race the world and challenge friends in the free F1 prediction game at GrandPrixPicks.com/ig.
 

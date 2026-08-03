@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-08-03T11:58:34.135Z",
+  "organization": {
+    "id": "64f9a17b902afdecc48c8d02",
+    "name": "My Organization"
+  },
+  "channel": {
+    "id": "6a6f4b8a99afb44349e9c0f4",
+    "name": "GrandPrixPicks",
+    "displayName": "GrandPrixPicks",
+    "service": "twitter",
+    "externalLink": "https://twitter.com/GrandPrixPicks",
+    "isDisconnected": false,
+    "isLocked": false
+  },
+  "assetBaseUrl": "https://social-assets-2026.grand-prix-picks.pages.dev/social/x-launch-2026",
+  "posts": [
+    {
+      "key": "what-is-grand-prix-picks",
+      "bufferPostId": "6a70826875738fc8d03780d8",
+      "dueAt": "2026-08-05T16:30:00.000Z",
+      "imageUrl": "https://social-assets-2026.grand-prix-picks.pages.dev/social/x-launch-2026/01-what-is-grand-prix-picks.png"
+    },
+    {
+      "key": "how-scoring-works",
+      "bufferPostId": "6a708268d6593f67896575ad",
+      "dueAt": "2026-08-10T16:30:00.000Z",
+      "imageUrl": "https://social-assets-2026.grand-prix-picks.pages.dev/social/x-launch-2026/02-how-scoring-works.png"
+    },
+    {
+      "key": "global-private-leagues",
+      "bufferPostId": "6a708269c8af394d44922699",
+      "dueAt": "2026-08-15T16:30:00.000Z",
+      "imageUrl": "https://social-assets-2026.grand-prix-picks.pages.dev/social/x-launch-2026/03-global-private-leagues.png"
+    }
+  ]
+}

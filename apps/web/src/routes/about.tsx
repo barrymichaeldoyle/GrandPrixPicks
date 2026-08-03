@@ -40,7 +40,11 @@ export const Route = createFileRoute('/about')({
                   name: siteConfig.author.name,
                   url: siteConfig.author.url,
                 },
-                sameAs: [siteConfig.social.x.url, siteConfig.social.reddit.url],
+                sameAs: [
+                  siteConfig.social.x.url,
+                  siteConfig.social.reddit.url,
+                  siteConfig.social.instagram.url,
+                ],
               },
               breadcrumbSchema('/about', [{ name: 'About', path: '/about' }]),
             ],

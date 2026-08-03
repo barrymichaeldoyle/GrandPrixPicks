@@ -25,6 +25,10 @@ export const siteConfig = {
       name: 'r/GPPicks',
       url: 'https://www.reddit.com/r/GPPicks/',
     },
+    instagram: {
+      handle: '@grandprixpicks',
+      url: 'https://www.instagram.com/grandprixpicks/',
+    },
   },
 } as const;
 

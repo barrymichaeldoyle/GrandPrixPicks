@@ -58,7 +58,11 @@ const homeStructuredData = {
       operatingSystem: 'Any',
       browserRequirements: 'Requires a modern web browser',
       isAccessibleForFree: true,
-      sameAs: [siteConfig.social.x.url, siteConfig.social.reddit.url],
+      sameAs: [
+        siteConfig.social.x.url,
+        siteConfig.social.reddit.url,
+        siteConfig.social.instagram.url,
+      ],
       author: {
         '@type': 'Person',
         name: siteConfig.author.name,

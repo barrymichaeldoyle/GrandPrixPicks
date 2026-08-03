@@ -846,9 +846,10 @@ function scoreBand(points: string, label: string, color: string): ReactNode {
         display: 'flex',
         flexDirection: 'column',
         flex: 1,
-        height: 210,
-        padding: '30px 26px',
-        borderTop: `3px solid ${color}`,
+        height: 252,
+        padding: '32px 28px 28px',
+        border: `1px solid ${colors.borderStrong}`,
+        borderBottom: `9px solid ${color}`,
         backgroundColor: colors.surface,
       },
     },
@@ -858,7 +859,7 @@ function scoreBand(points: string, label: string, color: string): ReactNode {
         style: {
           display: 'flex',
           fontFamily: 'IBM Plex Mono',
-          fontSize: 64,
+          fontSize: 82,
           fontWeight: 600,
           color,
         },
@@ -870,8 +871,8 @@ function scoreBand(points: string, label: string, color: string): ReactNode {
       {
         style: {
           display: 'flex',
-          marginTop: 12,
-          fontSize: 20,
+          marginTop: 18,
+          fontSize: 23,
           lineHeight: 1.25,
           color: colors.textMuted,
         },
@@ -882,41 +883,8 @@ function scoreBand(points: string, label: string, color: string): ReactNode {
 }
 
 function scoringCoverSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'How scoring works',
-      'Close still counts.',
-      'Your prediction does not need to be perfect to score.',
-      { fontSize: 94, top: 235 },
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 730,
-          gap: 18,
-        },
-      },
-      scoreBand('5', 'Exact position', colors.resultExact),
-      scoreBand('3', 'One place away', colors.resultNear),
-      scoreBand('1', 'In the Top 5', colors.resultTop5),
-    ),
-    footer(),
-  );
-}
-
-function scoringRuleSlide(
-  points: string,
-  title: string,
-  example: string,
-  color: string,
-  note?: string,
-): ReactNode {
-  return frame(
+  return editorialFrame(
+    wordmark(),
     e(
       'div',
       {
@@ -924,9 +892,187 @@ function scoringRuleSlide(
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 225,
+          left: 80,
+          top: 185,
+          width: 900,
+        },
+      },
+      eyebrow('How scoring works'),
+      headline('Close still counts.', 100, 900),
+      body('Your prediction does not need to be perfect to score.', 780),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 665,
+          gap: 16,
+        },
+      },
+      scoreBand('5', 'Exact position', colors.resultExact),
+      scoreBand('3', 'One place away', colors.resultNear),
+      scoreBand('1', 'In the Top 5', colors.resultTop5),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          top: 995,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 17,
+          letterSpacing: 2.3,
+          color: colors.textMuted,
+        },
+      },
+      'EACH TOP 5 PICK SCORES ON ITS OWN',
+    ),
+  );
+}
+
+function scoringDriverCard(
+  driver: DriverVisual,
+  positions: number[],
+  color: string,
+  positionColumnWidth?: number,
+): ReactNode {
+  const teamColor = teams[driver.team];
+  const positionText = positions.map((position) => `P${position}`).join(' / ');
+  const resolvedPositionColumnWidth =
+    positionColumnWidth ?? (positions.length > 1 ? 176 : 138);
+
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        width: '100%',
+        height: 132,
+        marginTop: 14,
+        border: `1px solid ${colors.borderStrong}`,
+        backgroundColor: colors.page,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          alignSelf: 'stretch',
+          width: resolvedPositionColumnWidth,
+          borderRight: `1px solid ${colors.border}`,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: positions.length > 1 ? 28 : 38,
+          fontWeight: 600,
+          color,
+        },
+      },
+      positionText,
+    ),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: resolvedPositionColumnWidth,
+        top: 0,
+        bottom: 0,
+        width: 5,
+        backgroundColor: teamColor,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          flex: 1,
+          paddingLeft: 30,
+        },
+      },
+      driverFlag(driver, 38),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            marginLeft: 18,
+          },
+        },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: 27,
+              fontWeight: 600,
+              color: colors.text,
+            },
+          },
+          driver.displayName,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              marginTop: 8,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 14,
+              letterSpacing: 1.1,
+              color: colors.textMuted,
+            },
+          },
+          e('div', {
+            style: {
+              width: 7,
+              height: 7,
+              marginRight: 9,
+              borderRadius: 999,
+              backgroundColor: teamColor,
+            },
+          }),
+          `${driver.team}  ·  ${driver.code}  ·  #${driver.number}`,
+        ),
+      ),
+    ),
+  );
+}
+
+function scoringRuleSlide(
+  points: string,
+  title: string,
+  color: string,
+  driver: DriverVisual,
+  pickPosition: number,
+  resultPositions: number[],
+  note?: string,
+): ReactNode {
+  const comparisonPositionColumnWidth = resultPositions.length > 1 ? 176 : 138;
+
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 105,
+          height: 340,
         },
       },
       eyebrow('Top 5 scoring'),
@@ -936,7 +1082,7 @@ function scoringRuleSlide(
           style: {
             display: 'flex',
             alignItems: 'baseline',
-            marginTop: 38,
+            marginTop: 34,
             fontFamily: 'IBM Plex Mono',
             color,
           },
@@ -946,7 +1092,7 @@ function scoringRuleSlide(
           {
             style: {
               display: 'flex',
-              fontSize: 184,
+              fontSize: 154,
               fontWeight: 600,
               lineHeight: 0.9,
             },
@@ -958,8 +1104,8 @@ function scoringRuleSlide(
           {
             style: {
               display: 'flex',
-              marginLeft: 20,
-              fontSize: 24,
+              marginLeft: 18,
+              fontSize: 21,
               fontWeight: 600,
               letterSpacing: 3,
             },
@@ -967,64 +1113,103 @@ function scoringRuleSlide(
           points === '1' ? 'POINT' : 'POINTS',
         ),
       ),
-      headline(title, 84, 860),
+      headline(title, 86, 900),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 520,
+          padding: '32px 36px 36px',
+          border: `1px solid ${colors.borderStrong}`,
+          borderBottom: `9px solid ${color}`,
+          backgroundColor: colors.surface,
+        },
+      },
+      panelLabel('EXAMPLE'),
       e(
         'div',
         {
           style: {
             display: 'flex',
             flexDirection: 'column',
-            width: '100%',
-            marginTop: 62,
-            padding: '34px 38px',
-            border: `1px solid ${colors.borderStrong}`,
-            borderLeft: `5px solid ${color}`,
-            backgroundColor: colors.surface,
+            marginTop: 24,
           },
         },
-        eyebrow('Example'),
+        panelLabel('YOUR PICK'),
+        scoringDriverCard(
+          driver,
+          [pickPosition],
+          color,
+          comparisonPositionColumnWidth,
+        ),
         e(
           'div',
           {
             style: {
               display: 'flex',
-              marginTop: 18,
-              fontSize: 30,
-              lineHeight: 1.4,
-              color: colors.text,
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 50,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 28,
+              color: colors.textMuted,
             },
           },
-          example,
+          '↓',
+        ),
+        panelLabel('ACTUAL RESULT'),
+        scoringDriverCard(
+          driver,
+          resultPositions,
+          color,
+          comparisonPositionColumnWidth,
         ),
       ),
-      note
-        ? e(
-            'div',
-            {
-              style: {
-                display: 'flex',
-                width: 830,
-                marginTop: 26,
-                fontSize: 22,
-                lineHeight: 1.45,
-                color: colors.textMuted,
-              },
-            },
-            note,
-          )
-        : '',
     ),
-    footer(),
+    note
+      ? e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              position: 'absolute',
+              left: 80,
+              top: 1065,
+              width: 850,
+              fontSize: 21,
+              lineHeight: 1.45,
+              color: colors.textMuted,
+            },
+          },
+          note,
+        )
+      : '',
   );
 }
 
 function h2hScoringSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'Team-mate Head-to-Head',
-      'Correct call. +1 point.',
-      'Pick the driver who finishes ahead in a team-mate matchup.',
-      { fontSize: 82, width: 880, top: 220 },
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+          width: 900,
+        },
+      },
+      eyebrow('Team-mate Head-to-Head'),
+      headline('Correct call. +1 point.', 86, 900),
+      body('Pick the driver who finishes ahead in a team-mate matchup.', 820),
     ),
     e(
       'div',
@@ -1032,57 +1217,91 @@ function h2hScoringSlide(): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 690,
-          padding: '42px 38px',
+          flexDirection: 'column',
+          left: 80,
+          right: 80,
+          top: 535,
+          padding: '30px 32px 34px',
           border: `1px solid ${colors.borderStrong}`,
+          borderBottom: `9px solid ${colors.resultNear}`,
           backgroundColor: colors.surface,
+          gap: 12,
         },
       },
-      matchChoice('Driver A', true),
       e(
         'div',
         {
           style: {
             display: 'flex',
             alignItems: 'center',
-            padding: '0 22px',
+            justifyContent: 'space-between',
+            height: 40,
             fontFamily: 'IBM Plex Mono',
-            fontSize: 18,
-            color: colors.textDisabled,
+            fontSize: 13,
+            letterSpacing: 1.6,
+            color: colors.textMuted,
           },
         },
-        'OR',
+        e('div', { style: { display: 'flex' } }, 'McLaren'),
+        e('div', { style: { display: 'flex' } }, 'WHO FINISHES AHEAD?'),
       ),
-      matchChoice('Driver B', false),
-    ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          position: 'absolute',
-          left: GUTTER,
-          top: 940,
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 22,
-          color: colors.resultNear,
+      h2hDriverChoice(exampleTopFive[0]!, true),
+      h2hDriverChoice(exampleTopFive[3]!, false),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+            height: 34,
+            paddingTop: 9,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 14,
+            fontWeight: 600,
+            letterSpacing: 1.5,
+            color: colors.resultNear,
+          },
         },
-      },
-      'CORRECT  +1',
+        'CORRECT CALL  +1 POINT',
+      ),
     ),
-    footer(),
   );
 }
 
 function perfectTopFiveSlide(): ReactNode {
-  return frame(
-    contentHeader(
-      'Maximum Top 5 score',
-      'A perfect Top 5 earns 25 points',
-      'Correct team-mate calls add to your Combined score.',
-      { fontSize: 76, width: 900, top: 210 },
+  return editorialFrame(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          top: 105,
+          width: 900,
+        },
+      },
+      eyebrow('Maximum Top 5 score'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            width: 900,
+            marginTop: 24,
+            fontSize: 82,
+            fontWeight: 300,
+            letterSpacing: -2.1,
+            lineHeight: 1.03,
+            color: colors.text,
+          },
+        },
+        e('div', { style: { display: 'flex' } }, 'A perfect Top 5'),
+        e('div', { style: { display: 'flex' } }, 'earns 25 points.'),
+      ),
+      body('Correct team-mate calls add to your Combined score.', 820),
     ),
     e(
       'div',
@@ -1090,10 +1309,10 @@ function perfectTopFiveSlide(): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 675,
-          gap: 12,
+          left: 80,
+          right: 80,
+          top: 590,
+          gap: 14,
         },
       },
       ...Array.from({ length: 5 }, (_, index) =>
@@ -1107,8 +1326,9 @@ function perfectTopFiveSlide(): ReactNode {
               alignItems: 'center',
               justifyContent: 'center',
               flex: 1,
-              height: 180,
-              borderTop: `4px solid ${colors.resultExact}`,
+              height: 190,
+              border: `1px solid ${colors.borderStrong}`,
+              borderBottom: `9px solid ${colors.resultExact}`,
               backgroundColor: colors.surface,
             },
           },
@@ -1148,15 +1368,25 @@ function perfectTopFiveSlide(): ReactNode {
           display: 'flex',
           alignItems: 'baseline',
           position: 'absolute',
-          right: GUTTER,
-          top: 910,
+          left: 0,
+          width: WIDTH,
+          top: 850,
+          justifyContent: 'center',
           fontFamily: 'IBM Plex Mono',
           color: colors.text,
         },
       },
       e(
         'div',
-        { style: { display: 'flex', fontSize: 96, fontWeight: 600 } },
+        {
+          style: {
+            display: 'flex',
+            fontSize: 150,
+            fontWeight: 600,
+            lineHeight: 1,
+            color: colors.resultExact,
+          },
+        },
         '25',
       ),
       e(
@@ -1164,7 +1394,7 @@ function perfectTopFiveSlide(): ReactNode {
         {
           style: {
             display: 'flex',
-            marginLeft: 18,
+            marginLeft: 20,
             fontSize: 20,
             letterSpacing: 2.4,
             color: colors.textMuted,
@@ -1173,12 +1403,12 @@ function perfectTopFiveSlide(): ReactNode {
         'POINTS',
       ),
     ),
-    footer(),
   );
 }
 
 function scoringLockSlide(): ReactNode {
-  return frame(
+  return editorialFrame(
+    wordmark(),
     e(
       'div',
       {
@@ -1186,13 +1416,13 @@ function scoringLockSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: GUTTER,
-          right: GUTTER,
-          top: 250,
+          left: 80,
+          right: 80,
+          top: 275,
         },
       },
       eyebrow('Before lights out'),
-      headline('Picks lock when the session starts', 84, 890),
+      headline('Picks lock when the session starts.', 90, 900),
       body('Change them as often as you like before then.', 820),
       e(
         'div',
@@ -1201,10 +1431,7 @@ function scoringLockSlide(): ReactNode {
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
-            marginTop: 92,
-            padding: '34px 38px',
-            border: `1px solid ${colors.accent}`,
-            backgroundColor: colors.accentMuted,
+            marginTop: 78,
           },
         },
         e(
@@ -1212,22 +1439,26 @@ function scoringLockSlide(): ReactNode {
           {
             style: {
               display: 'flex',
-              fontFamily: 'IBM Plex Mono',
-              fontSize: 18,
-              letterSpacing: 2.6,
-              color: colors.textMuted,
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 120,
+              backgroundColor: colors.accent,
+              fontSize: 31,
+              fontWeight: 600,
+              color: colors.textOnAccent,
             },
           },
-          'READY TO SCORE?',
+          'Play Grand Prix Picks',
         ),
         e(
           'div',
           {
             style: {
               display: 'flex',
-              marginTop: 18,
+              justifyContent: 'center',
+              marginTop: 30,
               fontFamily: 'IBM Plex Mono',
-              fontSize: 29,
+              fontSize: 25,
               fontWeight: 600,
               color: colors.accent,
             },
@@ -1236,7 +1467,6 @@ function scoringLockSlide(): ReactNode {
         ),
       ),
     ),
-    footer('LINK IN BIO'),
   );
 }
 
@@ -2388,8 +2618,10 @@ const carousels: Array<[directory: string, slides: Slide[]]> = [
         scoringRuleSlide(
           '5',
           'Exact position',
-          'Pick NOR for P1. NOR finishes P1.',
           colors.resultExact,
+          exampleTopFive[0]!,
+          1,
+          [1],
         ),
       ],
       [
@@ -2397,8 +2629,10 @@ const carousels: Array<[directory: string, slides: Slide[]]> = [
         scoringRuleSlide(
           '3',
           'One position away',
-          'Pick LEC for P3. LEC finishes P2 or P4.',
           colors.resultNear,
+          exampleTopFive[1]!,
+          3,
+          [2, 4],
         ),
       ],
       [
@@ -2406,8 +2640,10 @@ const carousels: Array<[directory: string, slides: Slide[]]> = [
         scoringRuleSlide(
           '1',
           'In the actual Top 5',
-          'Pick PIA for P1. PIA finishes P4.',
           colors.resultTop5,
+          exampleTopFive[3]!,
+          1,
+          [4],
           'A P5 pick that finishes P6 still earns 3 points.',
         ),
       ],

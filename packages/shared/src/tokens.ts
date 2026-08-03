@@ -78,9 +78,9 @@ export const colors = {
   // previous names (perfect / beat / close) described a game that does not
   // exist: nothing in the engine "beats" a prediction, and "close" read as
   // off-by-one when it actually means in-the-top-five-but-off-by-two-or-more.
-  resultExact: '#c084fc', // exact position, driver finished <= P5 — 5 pts
-  resultNear: '#4ade80', // off by exactly one, incl. P5 -> P6 — 3 pts (also H2H correct — 1 pt)
-  resultTop5: '#facc15', // in the actual top five but off by 2+ — 1 pt
+  resultExact: '#d000ff', // exact position, driver finished <= P5, 5 pts
+  resultNear: '#00ed46', // off by exactly one, incl. P5 -> P6, 3 pts (also H2H correct, 1 pt)
+  resultTop5: '#ffe600', // in the actual top five but off by 2+, 1 pt
   resultMiss: '#71717a', // no points
 
   // Position delta, for batch leaderboard updates. Movement is *labelled*

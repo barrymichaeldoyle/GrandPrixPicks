@@ -55,28 +55,56 @@ const scoringRows = [
     points: 5,
     title: 'Exact position',
     description: 'Your driver finishes in the position you predicted.',
-    example: 'You pick NOR for P1 and NOR finishes P1.',
+    driver: 'Lando Norris',
+    code: 'NOR',
+    flag: 'gb',
+    pick: 'P1',
+    result: 'P1',
+    toneClass: 'text-result-exact',
+    ruleClass: 'border-b-result-exact',
+    teamColor: 'var(--team-mclaren)',
   },
   {
     points: 3,
     title: 'One position away',
     description:
       'Your driver finishes one place above or below your prediction.',
-    example: 'You pick LEC for P3 and LEC finishes P2 or P4.',
+    driver: 'Charles Leclerc',
+    code: 'LEC',
+    flag: 'mc',
+    pick: 'P3',
+    result: 'P2 / P4',
+    toneClass: 'text-result-near',
+    ruleClass: 'border-b-result-near',
+    teamColor: 'var(--team-ferrari)',
   },
   {
     points: 1,
     title: 'In the actual Top 5',
     description:
       'Your driver finishes in the Top 5 but is at least two places away.',
-    example: 'You pick PIA for P1 and PIA finishes P4.',
+    driver: 'Oscar Piastri',
+    code: 'PIA',
+    flag: 'au',
+    pick: 'P1',
+    result: 'P4',
+    toneClass: 'text-result-top5',
+    ruleClass: 'border-b-result-top5',
+    teamColor: 'var(--team-mclaren)',
   },
   {
     points: 0,
     title: 'No scoring match',
     description:
       'Your driver is outside the Top 5 and is not one position away.',
-    example: 'You pick RUS for P2 and RUS finishes P7.',
+    driver: 'George Russell',
+    code: 'RUS',
+    flag: 'gb',
+    pick: 'P2',
+    result: 'P7',
+    toneClass: 'text-result-miss',
+    ruleClass: 'border-b-result-miss',
+    teamColor: 'var(--team-mercedes)',
   },
 ] as const;
 
@@ -216,61 +244,140 @@ function HowToPlayPage() {
           >
             <div className="mb-4">
               <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-                Main game
+                Top 5 scoring
               </p>
               <h2
                 id="top-five-heading"
                 className="font-title text-2xl font-semibold text-text"
               >
-                Top 5 scoring
+                Close still counts.
               </h2>
               <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
-                Each of your five drivers scores independently. Order matters,
-                and a perfect Top 5 earns 25 points in a session.
+                Your prediction does not need to be perfect to score. Each of
+                your five picks is judged on its own, and a perfect Top 5 earns
+                25 points.
               </p>
             </div>
 
-            <div className="mt-7 border-y border-border">
-              <div className="grid grid-cols-[4.5rem_1fr] px-1 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4">
-                <span>Points</span>
-                <span>Result</span>
-                <span className="hidden sm:block">Example</span>
-              </div>
-              {scoringRows.map((row) => (
-                <div
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {scoringRows.slice(0, 3).map((row) => (
+                <article
                   key={row.points}
-                  className="grid grid-cols-[4.5rem_1fr] border-t border-border px-1 py-5 sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4"
+                  className={`flex min-h-[22rem] flex-col border border-border border-b-8 bg-surface p-5 ${row.ruleClass}`}
                 >
-                  <span
-                    className={`gpp-mono text-lg font-semibold ${
-                      row.points > 0 ? 'text-accent' : 'text-text-muted'
-                    }`}
-                  >
-                    {row.points}
-                  </span>
-                  <div>
-                    <h3 className="text-base font-semibold text-text">
-                      {row.title}
-                    </h3>
-                    <p className="mt-0.5 text-base leading-6 text-text-muted">
-                      {row.description}
-                    </p>
-                    <p className="mt-2 text-xs leading-5 text-text-muted sm:hidden">
-                      {row.example}
-                    </p>
+                  <div className={`flex items-end gap-2 ${row.toneClass}`}>
+                    <span className="gpp-mono text-5xl leading-none font-semibold">
+                      {row.points}
+                    </span>
+                    <span className="pb-1 text-xs font-semibold tracking-label uppercase">
+                      {row.points === 1 ? 'point' : 'points'}
+                    </span>
                   </div>
-                  <p className="hidden pl-4 text-base leading-6 text-text-muted sm:block">
-                    {row.example}
+                  <h3 className="mt-5 text-lg font-semibold text-text">
+                    {row.title}
+                  </h3>
+                  <p className="mt-1.5 text-base leading-6 text-text-muted">
+                    {row.description}
                   </p>
-                </div>
+
+                  <div className="mt-auto pt-6">
+                    <p className="gpp-mono text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                      Example
+                    </p>
+                    <div className="mt-2 border border-border bg-page">
+                      <div
+                        className="flex items-center gap-2 border-l-4 px-3 py-3"
+                        style={{ borderLeftColor: row.teamColor }}
+                      >
+                        <img
+                          src={`/flags/${row.flag}.svg`}
+                          alt=""
+                          className="h-4 w-6 object-cover"
+                        />
+                        <span className="min-w-0 truncate text-sm font-semibold text-text">
+                          {row.driver}
+                        </span>
+                        <span className="gpp-mono ml-auto text-xs text-text-muted">
+                          {row.code}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center border-t border-border px-3 py-3">
+                        <div>
+                          <span className="block text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                            Your pick
+                          </span>
+                          <span
+                            className={`gpp-mono mt-1 block text-xl font-semibold ${row.toneClass}`}
+                          >
+                            {row.pick}
+                          </span>
+                        </div>
+                        <ArrowRight
+                          className="mx-2 h-4 w-4 text-text-disabled"
+                          aria-hidden
+                        />
+                        <div className="text-right">
+                          <span className="block text-[0.65rem] font-semibold tracking-label text-text-muted uppercase">
+                            Actual result
+                          </span>
+                          <span
+                            className={`gpp-mono mt-1 block text-xl font-semibold ${row.toneClass}`}
+                          >
+                            {row.result}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
 
-            <p className="gpp-reading-copy mt-5 max-w-3xl border-l-2 border-accent pl-4 text-text-muted">
-              <strong className="text-text">One-position detail:</strong> the
-              3-point rule also applies just outside the Top 5. If you predict a
-              driver in P5 and they finish P6, that pick earns 3 points.
-            </p>
+            <article
+              className={`mt-4 grid gap-5 border border-border border-b-4 bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center ${scoringRows[3].ruleClass}`}
+            >
+              <div className="flex gap-4 sm:items-center">
+                <span
+                  className={`gpp-mono text-4xl leading-none font-semibold ${scoringRows[3].toneClass}`}
+                >
+                  0
+                </span>
+                <div>
+                  <h3 className="font-semibold text-text">
+                    {scoringRows[3].title}
+                  </h3>
+                  <p className="mt-1 text-base text-text-muted">
+                    {scoringRows[3].description}
+                  </p>
+                </div>
+              </div>
+              <div className="gpp-mono flex items-center gap-3 text-sm text-text-muted sm:justify-end">
+                <span>{scoringRows[3].code}</span>
+                <strong className={scoringRows[3].toneClass}>
+                  {scoringRows[3].pick}
+                </strong>
+                <ArrowRight className="h-4 w-4 text-text-disabled" aria-hidden />
+                <strong className={scoringRows[3].toneClass}>
+                  {scoringRows[3].result}
+                </strong>
+              </div>
+            </article>
+
+            <div className="mt-4 grid gap-4 border border-border border-b-4 border-b-result-near bg-surface p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+              <p className="gpp-reading-copy text-text-muted">
+                <strong className="text-text">Still close:</strong> the 3-point
+                rule also applies just outside the Top 5. Predict P5 and finish
+                P6, and the pick still scores.
+              </p>
+              <p className="gpp-mono flex items-center gap-3 text-lg font-semibold text-result-near">
+                P5
+                <ArrowRight className="h-4 w-4" aria-hidden />
+                P6
+                <span className="text-xs tracking-label uppercase">
+                  3 points
+                </span>
+              </p>
+            </div>
           </section>
 
           <section
@@ -294,8 +401,8 @@ function HowToPlayPage() {
                   earns 1 point. An incorrect or unscorable matchup earns 0.
                 </p>
               </div>
-              <div className="border-t border-border pt-6 sm:border-t-0 sm:border-l sm:py-2 sm:pl-10">
-                <p className="font-title gpp-mono text-6xl leading-none font-semibold text-accent">
+              <div className="border border-border border-b-4 border-b-result-near bg-surface p-6">
+                <p className="font-title gpp-mono text-6xl leading-none font-semibold text-result-near">
                   1
                 </p>
                 <p className="mt-2 text-xs font-semibold tracking-label text-text-muted uppercase">

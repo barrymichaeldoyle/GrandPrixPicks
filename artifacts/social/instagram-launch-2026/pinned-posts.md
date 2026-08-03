@@ -193,17 +193,19 @@ Try the picker through the link in our bio.
 
 ### Alt text
 
-1. Grand Prix Picks scoring introduction reading “Close still counts.”
-2. Five points are awarded when a driver finishes in the exact predicted position.
-3. Three points are awarded when a driver finishes one position from the predicted position.
-4. One point is awarded when a predicted driver finishes in the actual Top 5, with a note that a P5 pick finishing P6 earns three points.
-5. One point is awarded for each correct team-mate Head-to-Head prediction.
-6. A perfect Top 5 earns 25 points, with correct team-mate calls added to the Combined score.
+1. Grand Prix Picks scoring introduction reading “Close still counts.” Three cards show five points for an exact position in purple, three points for one place away in green and one point for finishing elsewhere in the Top 5 in yellow.
+2. Five-point exact-position example showing Lando Norris predicted in P1 and finishing in P1, with a thick purple timing line beneath the comparison.
+3. Three-point one-position-away example showing Charles Leclerc predicted in P3 and finishing in either P2 or P4, with a thick green timing line beneath the comparison.
+4. One-point Top 5 example showing Oscar Piastri predicted in P1 and finishing in P4, with a thick yellow timing line beneath the comparison. A note explains that a P5 pick finishing P6 earns three points.
+5. McLaren team-mate Head-to-Head example with Lando Norris selected ahead of Oscar Piastri. A correct call earns one point and is marked with a thick green timing line.
+6. Five exact-position cards worth five points each combine into a perfect Top 5 score of 25 points. Correct team-mate calls are added separately to the Combined score.
 7. Picks can be changed until the session starts, with a call to play at GrandPrixPicks.com/ig.
 
 ### Upload folder
 
 `artifacts/social/instagram-launch-2026/images/02-how-scoring-works`
+
+This folder contains only the seven final 1080 x 1350 slides. They use Instagram's supported 4:5 portrait aspect ratio. The contact sheet is stored separately under `images/previews` and must not be selected for upload.
 
 ## Pinned post 3: Global leaderboard and private leagues
 

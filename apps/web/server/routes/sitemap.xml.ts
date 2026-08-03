@@ -2,6 +2,7 @@ import { api } from '@convex-generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
+import { GUIDE_SLUGS } from '../../src/lib/guides';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -32,6 +33,21 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.8',
   },
   {
+    loc: `${siteConfig.url}/guides`,
+    changefreq: 'monthly',
+    priority: '0.8',
+  },
+  ...GUIDE_SLUGS.map((slug) => ({
+    loc: `${siteConfig.url}/guides/${slug}`,
+    changefreq: 'monthly' as const,
+    priority: '0.7',
+  })),
+  {
+    loc: `${siteConfig.url}/about`,
+    changefreq: 'monthly',
+    priority: '0.7',
+  },
+  {
     loc: `${siteConfig.url}/results-policy`,
     changefreq: 'monthly',
     priority: '0.8',
@@ -42,7 +58,7 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.8',
   },
   {
-    loc: `${siteConfig.url}/f1-teammate-battles`,
+    loc: `${siteConfig.url}/f1-team-mate-battles`,
     changefreq: 'weekly',
     priority: '0.8',
   },
@@ -53,11 +69,6 @@ const staticEntries: SitemapEntry[] = [
   },
   {
     loc: `${siteConfig.url}/leagues`,
-    changefreq: 'weekly',
-    priority: '0.7',
-  },
-  {
-    loc: `${siteConfig.url}/pricing`,
     changefreq: 'weekly',
     priority: '0.7',
   },
@@ -136,26 +147,35 @@ async function loadRaceEntries() {
   for (let attempt = 1; attempt <= SITEMAP_FETCH_RETRY_COUNT; attempt += 1) {
     try {
       const convex = new ConvexHttpClient(convexUrl);
-      const races = await convex.query(api.races.listRaces, {});
+      const [races, slugsWithPractice] = await Promise.all([
+        convex.query(api.races.listRaces, {}),
+        convex.query(api.practiceResults.listRaceSlugsWithPracticeResults, {}),
+      ]);
+      const hasPracticeResults = new Set(slugsWithPractice);
       return races
         .filter((race) => race.status !== 'cancelled')
         .sort((a, b) => a.round - b.round)
         .flatMap((race) => {
           const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
-          return [
+          const entries: SitemapEntry[] = [
             {
               loc: `${siteConfig.url}/races/${race.slug}`,
               changefreq: 'daily' as const,
               lastmod,
               priority: '0.8',
             },
-            {
+          ];
+          // A practice page with nothing published is a placeholder line of
+          // text. Advertise it only once it has a real classification.
+          if (hasPracticeResults.has(race.slug)) {
+            entries.push({
               loc: `${siteConfig.url}/races/${race.slug}/practice`,
               changefreq: 'daily' as const,
               lastmod,
               priority: '0.7',
-            },
-          ];
+            });
+          }
+          return entries;
         });
     } catch (error) {
       lastError = error;

@@ -58,7 +58,7 @@ export function LeagueDetailContent({ league }: { league: League }) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-bold text-text">{league.name}</h1>
+            <h1 className="text-3xl font-semibold text-text">{league.name}</h1>
             {isAdmin && <Crown className="h-5 w-5 text-warning" />}
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -90,7 +90,12 @@ export function LeagueDetailContent({ league }: { league: League }) {
 
         {/* Join flow for non-members */}
         {!isMember && (
-          <JoinSection leagueId={league._id} hasPassword={league.hasPassword} />
+          <JoinSection
+            leagueId={league._id}
+            hasPassword={league.hasPassword}
+            visibility={league.visibility}
+            season={league.season}
+          />
         )}
 
         {/* Share link — visible to all members */}
@@ -109,14 +114,32 @@ export function LeagueDetailContent({ league }: { league: League }) {
 function JoinSection({
   leagueId,
   hasPassword,
+  visibility,
+  season,
 }: {
   leagueId: Id<'leagues'>;
   hasPassword: boolean;
+  visibility: 'private' | 'public';
+  season: number;
 }) {
   const joinLeague = useMutation(api.leagues.joinLeague);
+  const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, { season });
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const joinedCount =
+    visibility === 'private'
+      ? (leagueUsage?.usage.joinedPrivate ?? 0)
+      : (leagueUsage?.usage.joinedPublic ?? 0);
+  const joinLimit =
+    visibility === 'private'
+      ? leagueUsage?.limits.maxPrivateLeaguesJoined
+      : leagueUsage?.limits.maxPublicLeaguesJoined;
+  const joinLimitReached =
+    leagueUsage?.hasSeasonPass === false &&
+    typeof joinLimit === 'number' &&
+    Number.isFinite(joinLimit) &&
+    joinedCount >= joinLimit;
 
   async function handleJoin() {
     setError(null);
@@ -148,29 +171,52 @@ function JoinSection({
   return (
     <div className="mb-6 rounded-xl border border-border bg-surface p-6 text-center">
       <Users className="mx-auto mb-4 h-12 w-12 text-accent" />
-      <h2 className="mb-2 text-lg font-semibold text-text">Join this league</h2>
-      {hasPassword && (
-        <div className="mx-auto mb-3 max-w-xs">
-          <div className="flex items-center gap-2">
-            <Lock
-              className="h-4 w-4 shrink-0 text-text-muted"
-              aria-hidden="true"
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              aria-label="League password"
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-center text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
-            />
-          </div>
-        </div>
+      {joinLimitReached ? (
+        <>
+          <h2 className="mb-2 text-lg font-semibold text-text">
+            You&apos;ve used all {joinLimit} league spots
+          </h2>
+          <p className="mx-auto mb-4 max-w-md text-base text-text-muted">
+            Unlock more spots to join this league and keep competing with other
+            groups.
+          </p>
+          <Button asChild size="sm">
+            <Link to="/pricing">Unlock more leagues</Link>
+          </Button>
+        </>
+      ) : (
+        <>
+          <h2 className="mb-2 text-lg font-semibold text-text">
+            Join this league
+          </h2>
+          {hasPassword && (
+            <div className="mx-auto mb-3 max-w-xs">
+              <div className="flex items-center gap-2">
+                <Lock
+                  className="h-4 w-4 shrink-0 text-text-muted"
+                  aria-hidden="true"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  aria-label="League password"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-center text-base text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+          {error && <p className="mb-3 text-sm text-error">{error}</p>}
+          <Button
+            size="sm"
+            loading={isJoining}
+            onClick={() => void handleJoin()}
+          >
+            Join League
+          </Button>
+        </>
       )}
-      {error && <p className="mb-3 text-sm text-error">{error}</p>}
-      <Button size="sm" loading={isJoining} onClick={() => void handleJoin()}>
-        Join League
-      </Button>
     </div>
   );
 }

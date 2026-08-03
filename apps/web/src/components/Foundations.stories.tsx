@@ -133,7 +133,7 @@ function ContrastTag({ token }: { token: ColorKey }) {
     ratio >= 4.5 ? 'text-success' : ratio >= 3 ? 'text-warning' : 'text-error';
 
   return (
-    <span className={`tabular-nums ${tone}`}>
+    <span className={`gpp-mono ${tone}`}>
       {ratio.toFixed(1)}:1 {grade}{' '}
       <span className="text-text-muted">({caption})</span>
     </span>
@@ -152,8 +152,8 @@ function Swatch({ token }: { token: ColorKey }) {
       />
       <div className="min-w-0 text-xs leading-relaxed">
         <div className="font-semibold text-text">{token}</div>
-        <div className="font-mono text-text-muted uppercase">{hex}</div>
-        <div className="font-mono text-text-muted">var({cssVar})</div>
+        <div className="gpp-mono text-text-muted uppercase">{hex}</div>
+        <div className="gpp-mono text-text-muted">var({cssVar})</div>
         <ContrastTag token={token} />
       </div>
     </div>
@@ -243,8 +243,8 @@ export const Radius: Story = {
               style={{ borderRadius: `${radii[key]}px` }}
             />
             <div className="font-semibold text-text">{key}</div>
-            <div className="font-mono text-text-muted">{radii[key]}px</div>
-            <div className="font-mono text-text-muted">rounded-{key}</div>
+            <div className="gpp-mono text-text-muted">{radii[key]}px</div>
+            <div className="gpp-mono text-text-muted">rounded-{key}</div>
           </div>
         ))}
       </div>
@@ -256,13 +256,15 @@ export const Typography: Story = {
   render: () => (
     <div className="p-6">
       <p className="mb-8 max-w-2xl text-sm text-text-muted">
-        Orbitron carries headings and anything that should read as instrument
-        panel. Body copy stays on the system sans stack for legibility.
+        Archivo carries everything that is words, at weights 300 to 600. IBM
+        Plex Mono carries everything that is a figure: positions, times, scores,
+        gaps. Nothing is heavier than semibold, because nothing should outweigh
+        a primary button.
       </p>
 
       <Section
         label="Title face"
-        note="Orbitron, via --font-title. h1 and h2 pick this up automatically."
+        note="Archivo, via --font-title (an alias of --font-ui). h1 and h2 pick this up automatically."
       >
         <div className="space-y-3">
           <h1 className="text-4xl text-text">Grand Prix Picks</h1>
@@ -271,7 +273,7 @@ export const Typography: Story = {
         </div>
       </Section>
 
-      <Section label="Body scale" note="System sans stack">
+      <Section label="Body scale" note="Archivo, via --font-ui">
         {(
           [
             ['text-xs', 'Timestamps and metadata'],
@@ -322,7 +324,7 @@ export const SpacingAndType: Story = {
                 className="h-4 rounded-sm bg-accent-muted"
                 style={{ width: `calc(var(--spacing) * ${step})` }}
               />
-              <span className="text-xs text-text-muted tabular-nums">
+              <span className="gpp-mono text-xs text-text-muted">
                 {spacingBase * step}px
               </span>
             </div>
@@ -348,7 +350,7 @@ export const SpacingAndType: Story = {
                 >
                   Grand Prix Picks
                 </span>
-                <span className="ml-auto shrink-0 text-xs text-text-muted tabular-nums">
+                <span className="gpp-mono ml-auto shrink-0 text-xs text-text-muted">
                   {size}
                   {lineHeight === null ? ' / 1' : ` / ${lineHeight}`}
                 </span>

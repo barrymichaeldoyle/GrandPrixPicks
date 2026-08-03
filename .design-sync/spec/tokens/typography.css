@@ -1,0 +1,54 @@
+:root {
+  --font-ui: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --font-data: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Weights are deliberately one step lighter than usual: light type on dark
+     reads bolder. NOTE: the UI face is loaded at 300-600 only. There is no 700
+     in this system — a `font-weight:700` will be synthesised or clamped. */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* UI scale (Archivo).
+
+     Raised across the board so body copy starts at a 16px minimum reading
+     size rather than 15px. The original 44/30/17/15/13/11 ladder was
+     comfortable for dense timing-sheet data but too tight for the long-form
+     public pages (FAQ answers, policy, how-to-play), which is where most
+     first-time readers land.
+
+     The app implements this under Tailwind's names, because ~850 existing
+     utilities depend on them. Same px values, two spellings:
+       --text-micro   12px  ->  text-xs      eyebrow / column label
+       --text-small   14px  ->  text-sm      metadata, controls, dense data
+       --text-body    16px  ->  text-base    minimum default reading size
+       --text-h3      18px  ->  text-lg      marketing and intro copy
+       --text-h2      22px  ->  text-xl
+       --text-h1      32px  ->  text-3xl
+       --text-display 48px  ->  text-5xl     page hero, race name          */
+  --text-display: 48px; /* page hero, race name */
+  --text-h1: 32px;
+  --text-h2: 22px;
+  --text-h3: 18px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-micro: 12px; /* eyebrow / column label — always uppercase + tracked */
+
+  /* Data scale (IBM Plex Mono) */
+  --data-xl: 40px; /* countdown digits */
+  --data-lg: 26px; /* slot position numbers */
+  --data-md: 18px; /* points totals */
+  --data-sm: 14px; /* lap times, row points */
+  --data-xs: 12px; /* race numbers, deltas */
+
+  --lh-tight: 1.05;
+  --lh-snug: 1.25;
+  --lh-body: 1.5;
+
+  --tracking-display: -0.02em;
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-label: 0.12em;
+  --tracking-data: 0.02em;
+}

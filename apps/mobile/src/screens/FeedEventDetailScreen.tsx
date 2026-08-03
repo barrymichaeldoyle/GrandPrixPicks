@@ -1,3 +1,8 @@
+import type { ReactionType } from '@grandprixpicks/shared/reactions';
+import {
+  REACTION_BY_TYPE,
+  REACTION_OPTIONS,
+} from '@grandprixpicks/shared/reactions';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from 'convex/react';
 
@@ -14,12 +19,21 @@ import { FlatList, Text, View } from '../tw';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'FeedEventDetail'>;
 
-type RevUser = {
+type ReactionUser = {
   userId: ConvexId<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
+  reactionType: ReactionType;
 };
+
+type ReactionListItem =
+  | {
+      kind: 'header';
+      reactionType: ReactionType;
+      count: number;
+    }
+  | { kind: 'user'; user: ReactionUser };
 
 export function FeedEventDetailScreen({ route }: Props) {
   const { convexEnabled } = useMobileConfig();
@@ -29,8 +43,8 @@ export function FeedEventDetailScreen({ route }: Props) {
     api.feed.getFeedEvent,
     convexEnabled ? { feedEventId } : 'skip',
   );
-  const revUsers = useQuery(
-    api.feed.getRevUsers,
+  const reactionUsers = useQuery(
+    api.feed.getReactionUsers,
     convexEnabled ? { feedEventId } : 'skip',
   );
 
@@ -63,18 +77,42 @@ export function FeedEventDetailScreen({ route }: Props) {
   }
 
   const event = detail.event as FeedEvent;
-  const users = (revUsers ?? []) as RevUser[];
+  const users = (reactionUsers ?? []) as ReactionUser[];
+  const listItems: ReactionListItem[] = REACTION_OPTIONS.flatMap((reaction) => {
+    const matchingUsers = users.filter(
+      (user) => user.reactionType === reaction.type,
+    );
+    if (matchingUsers.length === 0) {
+      return [];
+    }
+    return [
+      {
+        kind: 'header' as const,
+        reactionType: reaction.type,
+        count: matchingUsers.length,
+      },
+      ...matchingUsers.map((user) => ({
+        kind: 'user' as const,
+        user,
+      })),
+    ];
+  });
 
   return (
     <FlatList
       className="flex-1 bg-page"
       contentContainerClassName="px-4 pb-8 pt-3"
-      data={users}
-      keyExtractor={(item) => String(item.userId)}
+      contentInsetAdjustmentBehavior="automatic"
+      data={listItems}
+      keyExtractor={(item) =>
+        item.kind === 'header'
+          ? `header-${item.reactionType}`
+          : String(item.user.userId)
+      }
       ListEmptyComponent={
-        revUsers === undefined ? null : (
+        reactionUsers === undefined ? null : (
           <Text className="text-muted py-4 text-center text-[13px]">
-            No revs yet.
+            No reactions yet.
           </Text>
         )
       }
@@ -82,23 +120,53 @@ export function FeedEventDetailScreen({ route }: Props) {
         <View className="gap-[18px] pb-2">
           <FeedEventCard event={event} />
           <Text className="text-muted text-[10px] font-extrabold uppercase">
-            Revs{users.length > 0 ? ` · ${users.length}` : ''}
+            Reactions{users.length > 0 ? ` · ${users.length}` : ''}
           </Text>
         </View>
       }
-      ItemSeparatorComponent={() => (
-        <View className="ml-[52px] h-px bg-border" />
-      )}
-      renderItem={({ item }) => <RevUserRow user={item} />}
+      renderItem={({ item }) =>
+        item.kind === 'header' ? (
+          <ReactionSectionHeader
+            count={item.count}
+            reactionType={item.reactionType}
+          />
+        ) : (
+          <ReactionUserRow user={item.user} />
+        )
+      }
       showsVerticalScrollIndicator={false}
     />
   );
 }
 
-function RevUserRow({ user }: { user: RevUser }) {
+function ReactionSectionHeader({
+  reactionType,
+  count,
+}: {
+  reactionType: ReactionType;
+  count: number;
+}) {
+  const reaction = REACTION_BY_TYPE[reactionType];
+  return (
+    <View className="mt-2 flex-row items-center gap-2 rounded-md bg-surface px-3 py-2">
+      <Text className="text-lg">{reaction.emoji}</Text>
+      <Text className="text-foreground flex-1 text-xs font-bold">
+        {reaction.label}
+      </Text>
+      <Text
+        className="text-muted text-xs font-semibold"
+        style={{ fontVariant: ['tabular-nums'] }}
+      >
+        {count}
+      </Text>
+    </View>
+  );
+}
+
+function ReactionUserRow({ user }: { user: ReactionUser }) {
   const name = user.displayName ?? user.username ?? 'Unknown';
   return (
-    <View className="flex-row items-center gap-3 py-2.5">
+    <View className="ml-3 flex-row items-center gap-3 border-b border-border py-2.5">
       <Avatar imageUrl={user.avatarUrl} name={name} size="md" />
       <View className="flex-1 gap-0.5">
         <Text className="text-foreground text-sm font-bold">{name}</Text>
@@ -106,6 +174,9 @@ function RevUserRow({ user }: { user: RevUser }) {
           <Text className="text-muted text-xs">@{user.username}</Text>
         ) : null}
       </View>
+      <Text className="pr-2 text-base">
+        {REACTION_BY_TYPE[user.reactionType].emoji}
+      </Text>
     </View>
   );
 }

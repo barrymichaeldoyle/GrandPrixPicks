@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -8,23 +7,44 @@ interface FaqSectionProps {
   title: string;
   children: ReactNode;
   className?: string;
+  /** Removes marketing-page decoration for compact contexts like the home page. */
+  minimal?: boolean;
 }
 
 export function FaqSection({
   title,
   children,
   className = '',
+  minimal = false,
 }: FaqSectionProps) {
   return (
     // max-w-3xl + px-3 keeps the FAQ on the same content column as the rest of
     // the marketing pages so section edges line up down the page.
-    <section className={`mx-auto max-w-3xl px-3 py-12 ${className}`}>
-      <div className="mb-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-        <HelpCircle
-          className="h-7 w-7 text-accent sm:h-6 sm:w-6"
-          aria-hidden="true"
-        />
-        <h2 className="text-center text-2xl font-bold text-text">{title}</h2>
+    <section
+      className={`mx-auto max-w-3xl px-4 ${minimal ? 'py-9 sm:py-10' : 'py-12'} ${className}`}
+    >
+      <div
+        className={
+          minimal
+            ? 'mb-3'
+            : 'mb-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-center'
+        }
+      >
+        {!minimal && (
+          <HelpCircle
+            className="h-7 w-7 text-accent sm:h-6 sm:w-6"
+            aria-hidden="true"
+          />
+        )}
+        <h2
+          className={
+            minimal
+              ? 'text-xl font-medium text-text'
+              : 'text-center text-2xl font-semibold text-text'
+          }
+        >
+          {title}
+        </h2>
       </div>
       <div>{children}</div>
     </section>
@@ -32,7 +52,7 @@ export function FaqSection({
 }
 
 interface FaqItemProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   question: string;
   children: ReactNode;
   defaultOpen?: boolean;
@@ -49,13 +69,7 @@ export function FaqItem({
   const questionId = useId();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="overflow-hidden"
-    >
+    <div className="overflow-hidden border-b border-border/60 last:border-b-0">
       <h3>
         <button
           id={questionId}
@@ -65,7 +79,9 @@ export function FaqItem({
           aria-controls={contentId}
           onClick={() => setIsOpen((open) => !open)}
         >
-          <Icon className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+          {Icon && (
+            <Icon className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+          )}
           <span className="min-w-0 flex-1">{question}</span>
           <ChevronDown
             className={`h-5 w-5 shrink-0 text-text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -79,16 +95,22 @@ export function FaqItem({
         aria-labelledby={questionId}
         aria-hidden={!isOpen}
         inert={!isOpen}
-        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
           isOpen
             ? 'grid-rows-[1fr] opacity-100'
             : 'pointer-events-none grid-rows-[0fr] opacity-0'
         }`}
       >
         <div className="overflow-hidden">
-          <div className="px-1 pb-5 sm:px-3 sm:pl-11">{children}</div>
+          <div
+            className={
+              Icon ? 'px-1 pb-5 sm:px-3 sm:pl-11' : 'px-1 pb-5 sm:px-3'
+            }
+          >
+            {children}
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

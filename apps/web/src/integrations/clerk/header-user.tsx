@@ -1,11 +1,15 @@
 import { api } from '@convex-generated/api';
 import { useQuery } from 'convex/react';
+import { Loader2 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 
 import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
-import { useClerkRuntimeControl } from './runtime-control';
+import {
+  useClerkRuntimeControl,
+  useClerkWarmHandlers,
+} from './runtime-control';
 import { useViewerSession } from './useViewerSession';
 
 /** Keep in sync with the header's mobile breakpoint. */
@@ -16,6 +20,7 @@ const ClerkHeaderUser = lazy(() =>
     default: module.ClerkHeaderUser,
   })),
 );
+
 const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-sm border border-border-strong bg-surface-elevated text-text hover:border-accent/55 hover:bg-accent-muted/35 hover:text-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
@@ -64,7 +69,7 @@ export function HeaderUser() {
   if (!isSignedIn) {
     if (runtime.active) {
       return (
-        <Suspense fallback={<AnonymousSignInButton disabled />}>
+        <Suspense fallback={<AnonymousSignInButton />}>
           <ClerkHeaderUser
             isMobile={isMobile}
             isSignedIn={false}
@@ -122,17 +127,39 @@ export function HeaderUser() {
   );
 }
 
-function AnonymousSignInButton({ disabled = false }: { disabled?: boolean }) {
+/**
+ * The button used to go `disabled` (and so half-opacity) while Clerk booted,
+ * which reads as "this broke" rather than "this is opening". It stays enabled
+ * and swaps its label for a spinner in the same box instead, so the click is
+ * acknowledged immediately and nothing around it moves.
+ */
+function AnonymousSignInButton() {
+  const { requestSignIn, signInPending } = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
+
   return (
     <div data-testid="header-user-anonymous">
-      <a
-        href={disabled ? undefined : '/sign-in'}
+      <button
+        type="button"
+        {...warmHandlers}
+        onClick={() => requestSignIn()}
         className={signInButtonClasses}
         data-testid="header-sign-in-button"
-        aria-disabled={disabled}
+        aria-busy={signInPending || undefined}
       >
-        Sign in
-      </a>
+        <span className="relative inline-flex items-center justify-center">
+          <span className={signInPending ? 'invisible' : undefined}>
+            Sign in
+          </span>
+          {signInPending ? (
+            <Loader2
+              size={16}
+              className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
+              aria-hidden="true"
+            />
+          ) : null}
+        </span>
+      </button>
     </div>
   );
 }

@@ -10,5 +10,13 @@
   {
     "name": "users:backfillFollowCounts",
     "args": {}
+  },
+  {
+    "name": "reactionMigrations:backfillReactionTypes",
+    "args": {}
+  },
+  {
+    "name": "reactionMigrations:backfillFeedReactionCounts",
+    "args": {}
   }
 ]

@@ -73,7 +73,7 @@ export function TimeFormatSelect({
       </label>
       <div
         className="flex gap-1 rounded-sm border border-border bg-page p-1"
-        role="tablist"
+        role="group"
         aria-label="Time format"
       >
         {optionsWithPreview.map((opt) => (
@@ -82,6 +82,7 @@ export function TimeFormatSelect({
             variant="tab"
             size="tab"
             active={displayValue === opt.value}
+            aria-pressed={displayValue === opt.value}
             onClick={() => handleSelect(opt.value)}
             className="h-8 max-h-8 min-h-8 flex-1"
           >

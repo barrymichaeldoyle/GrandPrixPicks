@@ -4,12 +4,59 @@
 /* Dark mode is the only theme — the .dark class is hard-coded on <html>. */
 @custom-variant dark (&);
 
+/* ==========================================================================
+   Typefaces.
+
+   Archivo for everything a person reads, IBM Plex Mono for everything a
+   person compares. Both self-hosted from /public/fonts: no third-party
+   connection, and Cloudflare serves them from the same origin as the app.
+
+   Archivo is a variable font — one file covers 300–600, which is the whole
+   range this system uses.
+   ========================================================================== */
+
 @font-face {
-  font-family: 'Orbitron';
+  font-family: 'Archivo';
   font-style: normal;
-  font-weight: 500 900;
+  font-weight: 300 600;
   font-display: swap;
-  src: url('/fonts/orbitron-v35-latin.woff2') format('woff2');
+  src: url('/fonts/archivo-latin-var.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-500-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-600-latin.woff2') format('woff2');
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
     U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
@@ -19,13 +66,13 @@
 /* ==========================================================================
    Design tokens.
 
-   The colour palette and radius scale are AUTO-GENERATED from
-   packages/shared/src/tokens.ts via tokens.generated.css (imported above),
-   which also registers them with Tailwind. That file is the source of truth:
-   do NOT redefine a colour token here, or web and mobile drift apart.
+   The palette, radius, type, density, motion and motif scales are
+   AUTO-GENERATED from packages/shared/src/tokens.ts via tokens.generated.css
+   (imported above), which also registers them with Tailwind. That file is the
+   source of truth: do NOT redefine a token here, or web and mobile drift apart.
 
-   What belongs here: layout/font vars, and vars for things React Native has no
-   concept of (scrollbars, overlays).
+   What belongs here: vars for things React Native has no concept of
+   (scrollbars, overlays, viewport insets).
    ========================================================================== */
 
 :root {
@@ -33,333 +80,415 @@
   --app-top-overlay-offset: 0px;
   --app-bottom-overlay-offset: 0px;
   --bottom-overlay-offset: 0px;
-  --font-title:
-    'Orbitron', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, sans-serif;
-}
-
-html {
-  scroll-behavior: smooth;
+  /* Retained so the ~20 components still saying `font-title` keep compiling.
+     In this system the display face IS the UI face — personality comes from
+     weight and tracking, not a second typeface. */
+  --font-title: var(--font-ui);
 }
 
 /* Web-platform vars with no React Native equivalent, so they stay out of the
    shared token set. */
 .dark,
 [data-theme='dark'] {
-  --overlay: rgba(0, 0, 0, 0.5);
-  /* Web-only concepts, but their values still come from the palette. These
-     were literal slate hex codes left over from the old token set, so the
-     scrollbar was visibly a different grey to the rest of the app. */
-  --scrollbar-track: var(--surface-muted);
-  --scrollbar-thumb: var(--border-strong);
-  --scrollbar-thumb-hover: var(--text-muted);
+  --overlay: rgba(10, 11, 12, 0.72);
+  --scrollbar-track: var(--page);
+  --scrollbar-thumb: var(--border);
+  --scrollbar-thumb-hover: var(--border-strong);
 }
 
 /* ==========================================================================
    Base
+
+   Everything here is wrapped in `@layer base` deliberately. Unlayered CSS beats
+   ALL layered CSS in the cascade regardless of specificity, so a bare
+   `a { color: … }` here would silently override every Tailwind text-colour
+   utility — which is exactly what happened to the link-styled-as-button on the
+   home hero: it rendered accent-on-accent and the label vanished.
    ========================================================================== */
 
-html {
-  min-height: 100%;
-  background-color: var(--page);
-  /* Only block horizontal overscroll chaining. Vertical stays native so mobile
+@layer base {
+  html {
+    color-scheme: dark;
+    min-height: 100%;
+    background-color: var(--page);
+    scroll-behavior: smooth;
+    /* Only block horizontal overscroll chaining. Vertical stays native so mobile
      browsers keep pull-to-refresh and can collapse the URL bar on scroll. */
-  overscroll-behavior-x: none;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-width: thin;
-}
+    overscroll-behavior-x: none;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+  }
 
-/* WebKit scrollbar (Chrome, Safari, Edge) – uses design tokens so dark mode stays visible */
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 5px;
-  border: 2px solid var(--scrollbar-track);
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
+  /* WebKit scrollbar (Chrome, Safari, Edge) — hairline, like every other edge. */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 0;
+    border: 3px solid var(--scrollbar-track);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
 
-body {
-  min-height: 100%;
-  margin: 0;
-  /* The document is the scroll container. Do NOT move scrolling into an inner
+  body {
+    min-height: 100%;
+    margin: 0;
+    /* The document is the scroll container. Do NOT move scrolling into an inner
      element: nested scrollers stop mobile browsers from collapsing the URL bar
      and disable pull-to-refresh and native scroll restoration. The header uses
      `position: sticky` instead. */
-  background-color: var(--page);
-  color: var(--text);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior: none;
+    background-color: var(--page);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: var(--text-base);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-wrap: pretty;
+    overscroll-behavior: none;
+  }
+
+  /* StartupBar is asynchronous, but its loader normally adds 36px of body
+   padding only after DOMContentLoaded. Reserving that rail from the first paint
+   prevents a site-wide layout shift. Its iPhone Safari fallback is a static
+   iframe, so the reservation is removed in the same task that inserts it. */
+  html[data-startupbar-mode='fixed'] body {
+    padding-top: 36px !important;
+  }
+
+  html[data-startupbar-mode='fixed'] [data-app-header] {
+    top: 36px;
+  }
+
+  html[data-startupbar-mode='static']:not([data-startupbar-injected='1']) body {
+    padding-top: 36px;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Display and h1 sit light; h2 regular. Light type on dark reads bolder, so
+   every heading role is one weight step below where it would normally land. */
+  h1 {
+    font-weight: var(--fw-light);
+    letter-spacing: var(--tracking-display);
+    line-height: var(--lh-tight);
+  }
+
+  h2 {
+    font-weight: var(--fw-regular);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--lh-snug);
+  }
+
+  h3,
+  h4 {
+    font-weight: var(--fw-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--lh-snug);
+  }
+
+  /*
+   * Anchors inherit their colour; they do NOT default to the accent.
+   *
+   * The accent marks CTAs, active states and the current user. A global
+   * `a { color: var(--accent) }` puts it on every link, which on the
+   * leaderboard meant all 29 player names glowed chartreuse and the one row
+   * that should have stood out — yours — looked like all the others. Links
+   * that genuinely want the accent ask for it with `text-accent`.
+   */
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  code {
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Buttons and button-like elements get pointer cursor by default */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
 }
 
-/* A restrained technical grid gives large empty fields texture without
-   introducing another colour or glow. */
+/* ==========================================================================
+   System utilities
+
+   The primitives the whole app leans on. Everything else is Tailwind.
+
+   Deliberately unlayered so they beat the `base` layer above and sit alongside
+   Tailwind's own utilities.
+   ========================================================================== */
+
+/* Backgrounds are flat colour. No grid, no gradient, no grain, no imagery —
+   if photography is ever introduced it goes inside a 4px-radius container as
+   content, never behind the page. */
 .bg-page {
   background-color: var(--page);
-  background-image:
-    linear-gradient(rgb(var(--text-muted-rgb) / 0.025) 1px, transparent 1px),
-    linear-gradient(
-      90deg,
-      rgb(var(--text-muted-rgb) / 0.025) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
 }
 
-.home-hero::before {
+/* In this system the display face IS the UI face: personality comes from
+   weight and tracking, not a second typeface. Kept as a class because ~20
+   components still ask for it. */
+.font-title {
+  font-family: var(--font-ui);
+  font-weight: var(--fw-light);
+  letter-spacing: var(--tracking-display);
+}
+
+.font-data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Everything a person COMPARES: lap times, points, positions, deltas, race
+   numbers. Always mono, always tabular, so digits line up down a column. */
+.gpp-mono {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-data);
+}
+
+/* The micro label that opens a card or heads a column. Uppercase and tracked
+   is the ONLY place uppercase is allowed — headings and buttons are sentence
+   case. */
+.gpp-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+}
+
+/*
+ * Reading roles for public and marketing pages.
+ *
+ * Dense product UI can still use text-sm for metadata and timing-sheet rows,
+ * but prose should ask for one of these roles instead of inheriting that
+ * density. Keeping the roles here makes the distinction explicit and reusable
+ * across landing, rules, pricing and policy pages.
+ */
+.gpp-reading-copy {
+  font-size: var(--text-base);
+  line-height: 1.65;
+}
+
+.gpp-reading-copy-lg {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+
+.gpp-reading-meta {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/*
+ * The signed-out header owns the primary CTA on every page except the one that
+ * has its own. On the landing page the hero button is the action while the hero
+ * is on screen, and the deadline strip takes it over the moment the hero
+ * scrolls away — so the header version would only ever be a second identical
+ * lime button pointing at the same anchor.
+ *
+ * Keyed off the hero CTA rather than the route so the between-seasons hero,
+ * which has no picker to scroll to and no deadline strip, keeps the header CTA.
+ */
+html:has([data-landing-hero-cta]) .gpp-public-header-cta {
+  display: none;
+}
+
+/*
+ * Same condition, opposite effect: with the header CTA gone the bar is just the
+ * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
+ * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
+ * "GP Picks" covers the 320px-class screens below that.
+ */
+html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+  display: inline;
+}
+
+@media (width >= 360px) {
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+    display: none;
+  }
+
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
+    display: inline;
+  }
+}
+
+/* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge
+   of the thing that matters — the active card, the selected slot, the current
+   user's leaderboard row, the active nav item.
+
+   One stripe per container. Never two, never on all sides, never decorative. */
+.gpp-stripe {
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+ * Drawn with a clip-path rather than `transform: skewX()`.
+ *
+ * A skew leans the bar by an amount proportional to the container's height, so
+ * on a 44px row it is a crisp -12deg accent but on a 360px hero card the
+ * bottom of the bar travels ~76px to the left and is clipped away entirely by
+ * the `overflow: hidden` this class needs — which is exactly what happened:
+ * the stripe showed as a small nub in the top-left corner and nothing else.
+ *
+ * The lean is therefore a fixed `--stripe-lean`, so the motif stays visible and
+ * consistent at every container height. On a row it reads as roughly the
+ * intended angle; on a tall card it reads as an upright bar with a slight
+ * cant, which is the right trade — the bar being *there* matters more than the
+ * exact degree.
+ */
+.gpp-stripe::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgb(var(--accent-rgb) / 0.035) 1px, transparent 1px),
-    linear-gradient(rgb(var(--accent-rgb) / 0.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.home-hero-title,
-.home-hero-race-title {
-  text-shadow:
-    0 1px 0 rgba(15, 23, 42, 0.24),
-    0 10px 26px rgba(2, 6, 23, 0.28);
-}
-
-.home-hero-race-title {
-  text-wrap: balance;
-}
-
-.home-hero-race-flag {
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 12px 34px -16px rgb(var(--racing-red-rgb) / 0.65);
-}
-
-.home-primary-action {
-  box-shadow: 0 5px 0 var(--button-accent-shadow);
-}
-
-.home-primary-action:hover {
-  box-shadow: 0 3px 0 var(--button-accent-shadow);
-  transform: translateY(2px);
-}
-
-@media (max-width: 640px) {
-  .home-hero-title {
-    letter-spacing: -0.018em;
-    text-shadow:
-      0 1px 0 rgba(15, 23, 42, 0.3),
-      0 8px 18px rgba(2, 6, 23, 0.24);
-  }
-
-  .home-hero::before {
-    background-size: 36px 36px;
-  }
-}
-
-/* Hero speed-line overlay (decorative, behind content) */
-.home-hero-lines {
-  z-index: 0;
-  opacity: 0.55;
-  mix-blend-mode: screen;
-}
-
-/* Countdown digit "tiles" — flip-clock inspired */
-.home-countdown-digit {
-  background: var(--surface-elevated);
-  border: 1px solid rgb(var(--racing-red-rgb) / 0.22);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35);
-  color: var(--text);
-}
-
-/* Season strip — current step gets glow */
-.home-season-step-current {
-  background: rgb(var(--racing-red-rgb) / 0.12);
-  box-shadow: inset 0 0 0 1px rgb(var(--racing-red-rgb) / 0.5);
-}
-
-.home-section-panel {
-  position: relative;
-  border: 1px solid rgb(var(--border-strong-rgb) / 0.52);
-  background: var(--surface);
-}
-
-.home-section-open {
-  position: relative;
-}
-
-.home-section-kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.home-section-kicker::before {
-  content: '';
-  width: 1.5rem;
-  height: 2px;
-  background: var(--racing-red);
-}
-
-/* Past rounds: desaturate + dim the flag so chronological direction reads at a glance. */
-.home-season-step-past {
-  opacity: 0.5;
-}
-.home-season-step-past img {
-  filter: grayscale(0.85);
-}
-.home-season-step-past:hover img {
-  filter: grayscale(0.3);
-}
-
-/* Podium medals: a bevel plus a light-to-dark ramp so they read as metal.
-   The ramp lives here rather than as Tailwind gradient utilities because it is
-   derived from the podium tokens: the darker stop is the same colour let
-   through to the surface behind it. */
-.home-podium-rank-1,
-.home-podium-rank-2,
-.home-podium-rank-3 {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-    0 1px 2px rgba(0, 0, 0, 0.18);
-}
-
-.home-podium-rank-1 {
-  background-image: linear-gradient(
-    to bottom right,
-    rgb(var(--podium-gold-rgb)),
-    rgb(var(--podium-gold-rgb) / 0.72)
-  );
-}
-
-.home-podium-rank-2 {
-  background-image: linear-gradient(
-    to bottom right,
-    rgb(var(--podium-silver-rgb)),
-    rgb(var(--podium-silver-rgb) / 0.72)
-  );
-}
-
-.home-podium-rank-3 {
-  background-image: linear-gradient(
-    to bottom right,
-    rgb(var(--podium-bronze-rgb)),
-    rgb(var(--podium-bronze-rgb) / 0.72)
-  );
-}
-
-h1,
-h2 {
-  font-family: var(--font-title);
-}
-
-.font-title {
-  font-family: var(--font-title);
-}
-
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-/* Buttons and button-like elements get pointer cursor by default */
-button:not(:disabled),
-[role='button']:not([aria-disabled='true']) {
-  cursor: pointer;
-}
-button:disabled,
-[role='button'][aria-disabled='true'] {
-  cursor: not-allowed;
-}
-
-/* Header: subtle motorsport texture + accent rail to avoid a flat/generic bar */
-.header-grid-sheen {
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent 0,
-    transparent 15px,
-    rgb(var(--accent-rgb) / 0.025) 15px,
-    rgb(var(--accent-rgb) / 0.025) 16px
-  );
-}
-
-.header-accent-rail {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--stripe-width) + var(--stripe-lean));
   background: var(--accent);
-  opacity: 0.65;
+  clip-path: polygon(
+    var(--stripe-lean) 0,
+    100% 0,
+    calc(100% - var(--stripe-lean)) 100%,
+    0 100%
+  );
+  pointer-events: none;
 }
 
-/* App atmosphere — one continuous accent light field across the whole viewport
-   (sits above content as a subtle screen-blended overlay; route pages paint
-   opaque backgrounds, so a behind-layer wouldn't show). No discrete blobs, no
-   grid, no motion — a single horizon glow + diagonal wash give cohesive depth
-   that scales with the viewport, plus fine grain to keep gradients smooth. */
-.app-atmosphere-field {
-  background:
-    radial-gradient(
-      140% 60% at 50% -20%,
-      rgb(var(--racing-red-rgb) / 0.14) 0%,
-      rgb(var(--racing-red-rgb) / 0.035) 32%,
-      transparent 60%
-    ),
-    linear-gradient(
-      157deg,
-      rgb(var(--racing-red-rgb) / 0.07) 0%,
-      transparent 42%,
-      transparent 62%,
-      rgb(var(--accent-rgb) / 0.1) 100%
-    );
-  mix-blend-mode: screen;
+/* Team colour appears in exactly two forms: this 3px full-height edge bar on a
+   driver row or chip, and a 5px dot before a team name. Never a background,
+   never text colour, never a card border. Ten teams in one list stays calm
+   because the colour is confined to 3px. */
+.gpp-team-bar {
+  position: relative;
 }
 
-.app-atmosphere-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+.gpp-team-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--team-bar-width);
+  background: var(--team-colour, var(--border-strong));
+  pointer-events: none;
 }
 
-@keyframes reveal-up {
+.gpp-team-dot {
+  display: inline-block;
+  width: var(--team-dot-size);
+  height: var(--team-dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--team-colour, var(--border-strong));
+  flex: none;
+}
+
+/* Awaiting input reads as a dashed hairline; filled reads as solid. */
+.gpp-empty {
+  border: 1px dashed var(--border);
+  background: transparent;
+}
+
+/*
+ * Country flags are DATA, like team colours — and like team colours they only
+ * behave if their presentation is pinned down.
+ *
+ * Every flag renders in one ratio, cropped to fill, whatever the asset's own
+ * proportions are. The alternative (`width: auto`, letting each SVG's viewBox
+ * decide) meant Qatar at 4.17:1 drew 3.6x wider than Belgium at 1.15:1, so any
+ * row with a flag in it changed width from race to race.
+ *
+ * `object-fit: cover` rather than `contain`: letterboxing would keep every
+ * flag whole but leave uneven gaps on a dark surface, which just moves the
+ * inconsistency from the box to the artwork inside it.
+ */
+.gpp-flag {
+  display: block;
+  aspect-ratio: var(--flag-aspect);
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius-sm);
+  /* Flags are light artwork on a dark page, so white-heavy ones (Japan,
+     Canada) bleed into the surface without an edge. A real hairline, not an
+     inset shadow — this system has no shadows, and `outline` keeps the box
+     the same size so the aspect ratio above stays exact. */
+  outline: 1px solid rgb(var(--text-rgb) / 0.1);
+  outline-offset: -1px;
+}
+
+/* ==========================================================================
+   Motion
+
+   Hover, selection and drag only. Rows fade in once on load with a small
+   stagger. The countdown ticks. Nothing else moves — leaderboard positions
+   never animate, because movement is labelled with a delta instead.
+   ========================================================================== */
+
+@keyframes gpp-row-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
-.reveal-up {
-  animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+.gpp-row-in {
+  animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
 }
 
+/* `reveal-up` is the same fade, kept under its old name because ~13 routes
+   already use it. Retuned from the previous 550ms cubic-bezier(.22,1,.36,1)
+   ease-out-back to the system's 200ms — content should be there, not arrive. */
+.reveal-up {
+  animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
+}
+
+/* Stagger steps, one --stagger-step apart. */
 .reveal-delay-1 {
-  animation-delay: 0.08s;
+  animation-delay: calc(var(--stagger-step) * 1);
 }
 
 .reveal-delay-2 {
-  animation-delay: 0.14s;
+  animation-delay: calc(var(--stagger-step) * 2);
 }
 
 .reveal-delay-3 {
-  animation-delay: 0.2s;
+  animation-delay: calc(var(--stagger-step) * 3);
 }
 
+/* The announcement/nudge banner opening and closing. Height is animated via
+   grid-template-rows so the banner can size to its content. This is a
+   selection-adjacent state change, which is why it keeps motion at all. */
 @keyframes banner-expand {
   from {
     grid-template-rows: 0fr;
@@ -367,28 +496,6 @@ button:disabled,
   to {
     grid-template-rows: 1fr;
   }
-}
-
-@keyframes banner-expand-content {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.banner-drop-in {
-  display: grid;
-  animation: banner-expand 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.banner-drop-in > .banner-drop-inner {
-  min-height: 0;
-  overflow: hidden;
-  animation: banner-expand-content 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes banner-collapse {
@@ -400,43 +507,23 @@ button:disabled,
   }
 }
 
-@keyframes banner-collapse-content {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
+.banner-drop-in,
+.banner-drop-out {
+  display: grid;
+}
+
+.banner-drop-in {
+  animation: banner-expand var(--dur-slow) var(--ease-out) both;
 }
 
 .banner-drop-out {
-  display: grid;
-  animation: banner-collapse 0.32s cubic-bezier(0.55, 0, 0.78, 0.4) both;
+  animation: banner-collapse var(--dur) var(--ease-out) both;
 }
 
+.banner-drop-in > .banner-drop-inner,
 .banner-drop-out > .banner-drop-inner {
   min-height: 0;
   overflow: hidden;
-  animation: banner-collapse-content 0.32s cubic-bezier(0.55, 0, 0.78, 0.4) both;
-}
-
-@keyframes banner-rail-sweep {
-  from {
-    transform: scaleX(0);
-    transform-origin: left;
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    transform-origin: left;
-    opacity: 0.7;
-  }
-}
-
-.banner-rail-sweep {
-  animation: banner-rail-sweep 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -449,13 +536,13 @@ button:disabled,
     animation-iteration-count: 1 !important;
   }
 
+  .gpp-row-in,
   .reveal-up,
   .reveal-delay-1,
   .reveal-delay-2,
   .reveal-delay-3,
   .banner-drop-in,
-  .banner-drop-out,
-  .banner-rail-sweep {
+  .banner-drop-out {
     animation: none;
   }
 }

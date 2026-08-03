@@ -4,6 +4,24 @@ import { seedLeagueFixtureForAuthenticatedUser } from './helpers/leagues';
 import { seedScenarioForAuthenticatedUser } from './helpers/smoke';
 
 test.describe('[auth] smoke', () => {
+  test('uses the race-weekend dashboard at the home URL', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await seedScenarioForAuthenticatedUser(page, {
+      scenario: 'race_upcoming_signed_in_no_picks',
+      namespace: 'scenario__dashboard_signed_in_no_picks__pwauth',
+      targetPath: '/',
+    });
+
+    await expect(page.getByText('Dashboard', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('dashboard-weekend-hero')).toBeVisible();
+    await expect(
+      page.getByRole('heading', {
+        name: "Everyone's a strategist on Sunday. Prove it.",
+      }),
+    ).toHaveCount(0);
+  });
+
   test('shows signed-in header controls for the seeded primary actor', async ({
     page,
   }) => {
@@ -81,7 +99,7 @@ test.describe('[auth] smoke', () => {
     ).toBeVisible();
     await expect(page.getByText(fixture.ownedLeague.name)).toBeVisible();
 
-    await page.getByRole('tab', { name: 'Discover' }).click();
+    await page.getByRole('button', { name: 'Discover' }).click();
     await expect(page.getByText(fixture.publicLeague.name)).toBeVisible();
 
     await page.goto(fixture.ownedLeague.route);

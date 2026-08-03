@@ -1,6 +1,6 @@
 /**
- * Renders public/favicon.svg (Lucide-style icon) to public/logo-storefront.png
- * at 512x512 so it stays pixel-perfect and consistent with the favicon.
+ * Renders every raster logo from public/favicon.svg (the three-bar brand
+ * mark), so browser, install, email and storefront surfaces cannot drift.
  *
  * Run from apps/web: node scripts/render-logo-png.mjs
  */
@@ -13,8 +13,34 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
-const SIZE = 512;
 const ROOT = join(__dirname, '..');
+
+function atSize(svg, size) {
+  return svg.replace(
+    /<svg([^>]*)>/,
+    (_match, attrs) =>
+      `<svg${attrs.replace(/\s(?:width|height)="[^"]*"/g, '')} width="${size}" height="${size}">`,
+  );
+}
+
+function insetForCircularCrop(svg) {
+  const VIEWBOX = 32;
+  const mid = VIEWBOX / 2;
+  const scale = 0.78;
+
+  return svg.replace(
+    /(<svg[^>]*>)([\s\S]*)(<\/svg>)/,
+    (_match, open, body, close) =>
+      `${open}<g transform="translate(${mid},${mid}) scale(${scale}) translate(-${mid},-${mid})">${body}</g>${close}`,
+  );
+}
+
+async function renderTarget(Resvg, sourceSvg, filename, size) {
+  const png = new Resvg(atSize(sourceSvg, size)).render().asPng();
+  const outputPath = join(ROOT, 'public', filename);
+  await writeFile(outputPath, png);
+  console.log('Wrote %s (%d x %d)', outputPath, size, size);
+}
 
 async function main() {
   const { initWasm, Resvg } = await import('@resvg/resvg-wasm');
@@ -24,36 +50,30 @@ async function main() {
   await initWasm(wasmBuffer);
 
   const svgPath = join(ROOT, 'public', 'favicon.svg');
-  let svg = await readFile(svgPath, 'utf-8');
-  // Storefront: scale and center the flag so it fits inside a circular crop (app store, Lemon Squeezy)
-  const scale = 0.82; // fits inside circle radius ~10.5 in 24x24 viewBox
-  svg = svg.replace(
-    /<path[\s\S]*?\/>/,
-    (path) =>
-      `<g transform="translate(12,12) scale(${scale}) translate(-12,-12)">${path}</g>`,
-  );
-  // Force output size: same Lucide-style graphic at 512x512
-  svg = svg.replace(/<svg\s/, `<svg width="${SIZE}" height="${SIZE}" `);
+  const svg = await readFile(svgPath, 'utf-8');
 
-  const resvg = new Resvg(svg);
-  const pngData = resvg.render();
-  const png = pngData.asPng();
+  /*
+   * Storefront targets (app stores, Lemon Squeezy) crop to a circle, so the
+   * mark is scaled down about its centre to sit inside the inscribed circle.
+   *
+   * This used to regex out the Lucide `<path>` and wrap that. The mark is now
+   * three `<rect>`s in a `<g>`, so that pattern matches nothing — it would
+   * have silently emitted an uncropped, unscaled logo rather than failing.
+   * Scaling the whole 32x32 viewBox is also simply more robust: it does not
+   * care what the artwork is made of.
+   */
+  const cropSafeSvg = insetForCircularCrop(svg);
 
-  const outPath = join(ROOT, 'public', 'logo-storefront.png');
-  await writeFile(outPath, png);
-  console.log('Wrote %s (%d x %d)', outPath, SIZE, SIZE);
-
-  // Also output small PNG for email (SVG not supported in most clients)
-  const emailSize = 64;
-  const emailSvg = svg.replace(
-    /width="\d+" height="\d+"/,
-    `width="${emailSize}" height="${emailSize}"`,
-  );
-  const emailResvg = new Resvg(emailSvg);
-  const emailPng = emailResvg.render().asPng();
-  const emailPath = join(ROOT, 'public', 'logo-email.png');
-  await writeFile(emailPath, emailPng);
-  console.log('Wrote %s (%d x %d)', emailPath, emailSize, emailSize);
+  await Promise.all([
+    renderTarget(Resvg, svg, 'favicon-16x16.png', 16),
+    renderTarget(Resvg, svg, 'favicon-32x32.png', 32),
+    renderTarget(Resvg, svg, 'apple-touch-icon.png', 180),
+    renderTarget(Resvg, svg, 'android-chrome-192x192.png', 192),
+    renderTarget(Resvg, svg, 'android-chrome-512x512.png', 512),
+    renderTarget(Resvg, cropSafeSvg, 'logo-storefront.png', 512),
+    // SVG is not supported in most email clients.
+    renderTarget(Resvg, cropSafeSvg, 'logo-email.png', 64),
+  ]);
 }
 
 main().catch((err) => {

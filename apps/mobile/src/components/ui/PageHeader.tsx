@@ -14,7 +14,7 @@ type PageHeaderProps = {
 
 /**
  * The header for every top-level screen: flat on the screen background, with
- * an accent eyebrow, an Orbitron display title and optional supporting copy.
+ * an accent eyebrow, an Archivo display title and optional supporting copy.
  * Mirrors web's `PageHeader`.
  *
  * This replaced the old bordered `PageHero` panel and its teal glow. Keep it

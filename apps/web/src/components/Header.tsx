@@ -2,28 +2,28 @@ import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import type { FunctionReturnType } from 'convex/server';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Flag, Menu, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { ArrowRight, Flag } from 'lucide-react';
 
+import { primaryButtonStyles } from '@/components/Button/Button';
 import { HeaderUser } from '@/integrations/clerk/header-user.tsx';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
+import { captureAnalyticsEvent } from '@/lib/analytics';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { primaryNavLinks } from '@/lib/navigation';
 import { Flag as CountryFlag } from './Flag.tsx';
+import { BrandMark } from './BrandMark.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-/** Mobile menu: viewport width <= 843px is "mobile". Keep min-[844px] classes below in sync. */
-export const MEDIA_MATCH_BREAKPOINT = '(max-width: 843px)';
-
-const NAV_LINK_CLASS =
-  'rounded-sm border border-transparent px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-text-muted transition-colors duration-200 hover:bg-surface-muted hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/55';
-const NAV_LINK_ACTIVE_CLASS =
-  'px-3 py-1.5 rounded-sm text-accent border border-transparent bg-accent-muted/55 transition-colors text-sm font-semibold whitespace-nowrap';
+/**
+ * Nav items are one of the two places uppercase is allowed (the other is a
+ * micro label). Active state is the signature stripe rather than a filled
+ * chip — one stripe per container, pinned to the thing that matters.
+ */
+export const NAV_LINK_CLASS =
+  'rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text-muted transition-colors duration-150 ease-out hover:bg-surface hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
+export const NAV_LINK_ACTIVE_CLASS =
+  'gpp-stripe rounded-sm border border-transparent px-3 py-1.5 text-xs font-medium tracking-label uppercase whitespace-nowrap text-text transition-colors';
 
 function DesktopNavLink({
   to,
@@ -88,15 +88,13 @@ function NextRaceQuickLink({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: nextRace.slug }}
-      className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent/35 bg-accent/10 py-1.5 pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap text-accent transition-colors hover:bg-accent/20 hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
+      className="flex shrink-0 items-center gap-1.5 rounded-sm border border-accent-hairline bg-accent-quiet py-1.5 pr-2.5 pl-2 text-xs font-medium tracking-label whitespace-nowrap text-accent uppercase transition-colors hover:border-accent hover:text-accent-hover min-[844px]:hidden min-[900px]:flex"
       aria-label={`My picks for ${nextRace.name}`}
       title={`My picks for ${nextRace.name}`}
       data-testid="header-next-race-link"
     >
       {countryCode ? (
-        <span className="inline-flex h-3.5 shrink-0 overflow-hidden rounded-[2px]">
-          <CountryFlag code={countryCode} size="full" />
-        </span>
+        <CountryFlag code={countryCode} size="xs" />
       ) : (
         <Flag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       )}
@@ -111,213 +109,86 @@ function NextRaceQuickLink({
   );
 }
 
-export function Header({
-  mobileMenuOpen,
-  onMobileMenuOpenChange,
-  initialNextRace,
-}: {
-  mobileMenuOpen: boolean;
-  onMobileMenuOpenChange: (open: boolean) => void;
-  initialNextRace: NextRace;
-}) {
+export function Header({ initialNextRace }: { initialNextRace: NextRace }) {
   // Auth state is resolved on the server (initialAuth) so the header renders the
   // correct nav on the first paint and doesn't flash "Sign in" while Clerk's
   // client SDK boots. See {@link useViewerSession}.
   const { isSignedIn } = useViewerSession();
   const showSignedInLinks = isSignedIn;
+  const showSignedOutNav = !isSignedIn;
   // "My Results" falls back to /me until we know the username (the /me route
   // redirects to /p/$username).
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
 
-  const headerRef = useRef<HTMLElement>(null);
-  const menuRef = useRef<HTMLElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Keep mobile menu state in sync when crossing the mobile breakpoint
-  useEffect(() => {
-    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-
-    function handleChange(event: MediaQueryListEvent) {
-      if (!event.matches) {
-        onMobileMenuOpenChange(false);
-      }
-    }
-
-    mq.addEventListener('change', handleChange);
-    return () => mq.removeEventListener('change', handleChange);
-  }, [onMobileMenuOpenChange]);
-
-  // Lock body scroll when mobile menu is open (mobile only)
-  useEffect(() => {
-    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    if (mobileMenuOpen && mq.matches) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileMenuOpen]);
-
-  // Focus trap: cycle Tab only within header + menu when menu is open (mobile only)
-  useEffect(() => {
-    if (!mobileMenuOpen || !headerRef.current) {
-      return;
-    }
-
-    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    if (!mq.matches) {
-      return;
-    }
-
-    const headerEl = headerRef.current;
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        onMobileMenuOpenChange(false);
-        menuButtonRef.current?.focus();
-        return;
-      }
-
-      if (e.key !== 'Tab') {
-        return;
-      }
-
-      const allFocusable = Array.from(
-        headerEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter((el) => !el.hasAttribute('inert') && el.offsetParent !== null);
-
-      if (allFocusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = allFocusable.indexOf(
-        document.activeElement as HTMLElement,
-      );
-
-      const isLeavingTrap =
-        currentIndex === -1 ||
-        (e.shiftKey && currentIndex === 0) ||
-        (!e.shiftKey && currentIndex === allFocusable.length - 1);
-
-      if (isLeavingTrap) {
-        e.preventDefault();
-        const nextIndex = e.shiftKey ? allFocusable.length - 1 : 0;
-        allFocusable[nextIndex]?.focus();
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen, onMobileMenuOpenChange]);
-
-  // Close mobile menu on any pointer down outside menu + menu button.
-  useEffect(() => {
-    if (!mobileMenuOpen) {
-      return;
-    }
-
-    const mq = window.matchMedia(MEDIA_MATCH_BREAKPOINT);
-    if (!mq.matches) {
-      return;
-    }
-
-    function handleOutsidePointerDown(e: PointerEvent) {
-      const target = e.target as Node | null;
-      if (!target) {
-        return;
-      }
-      if (menuRef.current?.contains(target)) {
-        return;
-      }
-      if (menuButtonRef.current?.contains(target)) {
-        return;
-      }
-      onMobileMenuOpenChange(false);
-    }
-
-    document.addEventListener('pointerdown', handleOutsidePointerDown, true);
-    return () =>
-      document.removeEventListener(
-        'pointerdown',
-        handleOutsidePointerDown,
-        true,
-      );
-  }, [mobileMenuOpen, onMobileMenuOpenChange]);
-
-  // Focus first link when menu opens
-  useEffect(() => {
-    if (mobileMenuOpen && menuRef.current) {
-      const firstLink = menuRef.current.querySelector<HTMLElement>('a');
-      firstLink?.focus();
-    }
-  }, [mobileMenuOpen]);
-
-  function closeMenu() {
-    onMobileMenuOpenChange(false);
-    menuButtonRef.current?.focus();
-  }
-
   return (
     <header
-      ref={headerRef}
-      className="relative sticky top-0 z-50 h-[61px] border-b border-border bg-surface text-text"
+      data-app-header
+      // Full-bleed, on the page background, with a hairline bottom border and
+      // nothing else — the previous diagonal sheen texture and 2px accent rail
+      // were decoration in empty space, which this direction does not do.
+      className="sticky top-0 z-50 h-(--nav-height) border-b border-border bg-page text-text"
     >
-      <div
-        aria-hidden
-        className="header-grid-sheen pointer-events-none absolute inset-0"
-      />
-      <div
-        aria-hidden
-        className="header-accent-rail pointer-events-none absolute inset-x-0 top-0 h-[2px]"
-      />
-      <div className="mx-auto flex h-full min-h-[61px] w-full max-w-7xl items-center justify-between px-4">
+      <div className="mx-auto flex h-full w-full max-w-(--page-max) items-center justify-between px-4 min-[844px]:px-8">
         <div className="flex items-center gap-2">
           <Link
             to="/"
-            className="group flex shrink-0 items-center gap-2.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+            className="group flex shrink-0 items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
           >
-            <span className="flex h-9 w-7 items-center justify-center">
-              <Flag
-                className="relative left-0.25 h-6 w-6 text-accent"
-                aria-hidden="true"
-              />
-            </span>
-            {/* Below 390px (iPhone SE / 12 mini) the wordmark shortens to
-                "GP Picks" — with the next-race pill there isn't room for the
-                full name, and the UserButton must stay visible (it's the only
-                mobile nav when signed in). iPhone 14 Pro (393px) and wider
-                fit the full wordmark alongside the flag-only pill. */}
-            <span className="font-title pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:hidden">
+            {/* The brand mark, replacing the generic Lucide flag. Three bars
+                descending like a timing tower, sheared to echo the stripe. */}
+            <BrandMark className="h-5 w-[1.875rem] shrink-0 text-accent" />
+            {/* The signed-out header carries sign-in plus the primary CTA, and
+                at 360px those two leave only ~90px for the name — so the
+                compact wordmark waits for 440px. On the landing page the hero
+                owns the CTA, which leaves room for the full wordmark from
+                360px and the compact one below that (see
+                `.gpp-public-wordmark` in styles.css). The signed-in header
+                gains the compact name from 360px and the full wordmark from
+                390px. */}
+            <span
+              className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
+                showSignedOutNav
+                  ? 'gpp-public-wordmark hidden min-[440px]:inline min-[844px]:hidden'
+                  : 'max-[359px]:hidden min-[390px]:hidden'
+              }`}
+            >
               GP Picks
             </span>
-            <span className="font-title hidden pr-1 text-xl font-bold tracking-tight whitespace-nowrap transition-colors group-hover:text-accent min-[390px]:inline">
+            <span
+              className={`pr-1 text-lg font-semibold tracking-[0.06em] whitespace-nowrap uppercase transition-colors group-hover:text-accent ${
+                showSignedOutNav
+                  ? 'gpp-public-wordmark-full hidden min-[844px]:inline'
+                  : 'hidden min-[390px]:inline'
+              }`}
+            >
               Grand Prix Picks
             </span>
           </Link>
 
-          {/* Desktop nav — public links render immediately (auth-independent);
-              the signed-in extras reveal once Clerk resolves, so there's no
-              flash of the signed-out nav swapping to the signed-in one. */}
-          <nav
-            aria-label="Main navigation"
-            className="hidden items-center gap-1 p-1.5 min-[844px]:flex"
-          >
-            {showSignedInLinks && <DesktopNavLink to="/feed" label="Feed" />}
-            {primaryNavLinks.map((link) => (
-              <DesktopNavLink
-                key={link.to}
-                to={link.to}
-                label={link.label}
-                exact={link.exact}
-              />
-            ))}
-            {showSignedInLinks && (
-              <DesktopNavLink to={myPicksHref} label="My Results" />
-            )}
-          </nav>
+          {/* The product navigation belongs to the signed-in app. Signed-out
+              visitors get the focused conversion header on every route. */}
+          {!showSignedOutNav && (
+            <nav
+              aria-label="Main navigation"
+              className="hidden items-center gap-1 p-1.5 min-[844px]:flex"
+            >
+              {showSignedInLinks && (
+                <DesktopNavLink to="/" label="Home" exact />
+              )}
+              {primaryNavLinks.map((link) => (
+                <DesktopNavLink
+                  key={link.to}
+                  to={link.to}
+                  label={link.label}
+                  exact={link.exact}
+                />
+              ))}
+              {showSignedInLinks && (
+                <DesktopNavLink to={myPicksHref} label="My Results" />
+              )}
+            </nav>
+          )}
         </div>
 
         <div className="flex items-center gap-2 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end">
@@ -331,109 +202,37 @@ export function Header({
               so its slot is reserved on the first paint (no layout shift). The
               bell renders empty until its query resolves. */}
           {isSignedIn && <NotificationBell />}
-          <HeaderUser />
-
-          {/* Mobile menu button — signed-out only (auth state known from SSR).
-              Rendered last so the toggle is the outermost control on the row
-              and Sign in sits inboard of it, rather than the menu being
-              sandwiched between the wordmark and the sign-in action. */}
-          {!isSignedIn && (
-            <motion.button
-              ref={menuButtonRef}
-              onClick={() => onMobileMenuOpenChange(!mobileMenuOpen)}
-              className="rounded-sm border border-transparent p-2 text-accent transition-colors hover:border-border hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 min-[844px]:hidden"
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-nav"
-              whileTap={{ scale: 0.9 }}
+          {showSignedOutNav && (
+            <nav
+              aria-label="Signed-out navigation"
+              className="hidden min-[844px]:block"
             >
-              {/* initial={false}: animate the Menu↔X swap only — the initial
-                  rotate/fade would leave the icon invisible until hydration */}
-              <AnimatePresence mode="wait" initial={false}>
-                {mobileMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <X size={24} />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <Menu size={24} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
+              <DesktopNavLink to="/how-to-play" label="How it works" />
+            </nav>
           )}
+          <HeaderUser />
+          {showSignedOutNav ? (
+            <a
+              href="/#make-picks"
+              aria-label="Make your picks"
+              className={`${primaryButtonStyles('sm')} gpp-public-header-cta px-2.5 whitespace-nowrap min-[390px]:px-4`}
+              onClick={() => {
+                captureAnalyticsEvent('public_header_cta_clicked', {
+                  source_path: window.location.pathname,
+                });
+                if (window.location.pathname === '/') {
+                  captureAnalyticsEvent('landing_hero_cta_clicked', {
+                    placement: 'header',
+                  });
+                }
+              }}
+            >
+              <span aria-hidden="true">Make your picks</span>
+              <ArrowRight size={14} aria-hidden="true" />
+            </a>
+          ) : null}
         </div>
       </div>
-
-      {/* Mobile nav - positioned absolute to overlay content */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 top-[57px] z-40 min-[844px]:hidden"
-              style={{ backgroundColor: 'var(--overlay)' }}
-              onClick={closeMenu}
-            />
-            {/* Menu */}
-            <motion.nav
-              ref={menuRef}
-              id="mobile-nav"
-              aria-label="Mobile navigation"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute top-[calc(100%-7px)] right-0 left-0 z-50 border-b border-border bg-surface/98 shadow-xl min-[844px]:hidden"
-            >
-              <div className="flex flex-col gap-1 px-4 py-3">
-                {primaryNavLinks.map((link, index) => (
-                  <motion.div
-                    key={link.to}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: index * 0.05, duration: 0.2 }}
-                  >
-                    <Link
-                      to={link.to}
-                      onClick={closeMenu}
-                      className="block rounded-sm border border-transparent px-3 py-2 font-semibold text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
-                      activeProps={{
-                        className:
-                          'block px-3 py-2 rounded-sm bg-accent-muted/55 text-accent border border-transparent font-semibold transition-colors',
-                        'aria-current': 'page' as const,
-                      }}
-                      activeOptions={
-                        link.exact
-                          ? { exact: true, includeSearch: false }
-                          : { includeSearch: false }
-                      }
-                    >
-                      {link.label}
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.nav>
-          </>
-        )}
-      </AnimatePresence>
     </header>
   );
 }

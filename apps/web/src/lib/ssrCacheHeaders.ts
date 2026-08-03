@@ -18,9 +18,11 @@ import { isClerkSessionPresent } from '../../server/lib/auth';
  *
  * @param publicCacheControl — the header value to use for signed-out visitors.
  */
-export function applySsrCacheControl(publicCacheControl: string): void {
+export async function applySsrCacheControl(
+  publicCacheControl: string,
+): Promise<void> {
   try {
-    if (isClerkSessionPresent(getRequest())) {
+    if (await isClerkSessionPresent(getRequest())) {
       setResponseHeader('Cache-Control', 'private, no-store');
     } else {
       setResponseHeader('Cache-Control', publicCacheControl);

@@ -9,7 +9,7 @@ import type { NotificationSettings } from './settingsTypes';
 const IN_APP_NOTIFICATIONS = [
   'Results & scores',
   'Session locked (when you have picks)',
-  'Revs on your predictions (grouped)',
+  'Reactions to your posts (grouped)',
 ];
 
 const PUSH_NOTIFICATION_ROWS = [
@@ -31,7 +31,7 @@ const PUSH_NOTIFICATION_ROWS = [
   },
   {
     key: 'pushRevReceived',
-    label: 'Revs on your predictions',
+    label: 'Reactions to your posts',
   },
 ] as const;
 
@@ -165,7 +165,7 @@ function NotificationGroup({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wider text-text-muted uppercase">
+      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
         {title}
       </p>
       {children}

@@ -4,11 +4,11 @@ import type { ReactNode } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 
-import { DriverBadge, TEAM_COLORS } from './DriverBadge';
+import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { Flag } from './Flag';
 import { Tooltip } from './Tooltip';
 
-type Driver = {
+export type H2HDriver = {
   _id: Id<'drivers'>;
   code: string;
   displayName: string;
@@ -17,15 +17,15 @@ type Driver = {
   nationality?: string | null;
 };
 
-type Matchup = {
+export type H2HMatchup = {
   _id: Id<'h2hMatchups'>;
   team: string;
-  driver1: Driver;
-  driver2: Driver;
+  driver1: H2HDriver;
+  driver2: H2HDriver;
 };
 
 interface H2HMatchupGridProps {
-  matchups: Matchup[];
+  matchups: H2HMatchup[];
   selections: Record<string, Id<'drivers'> | undefined>;
   mode?: 'interactive' | 'readonly' | 'results';
   onSelect?: (matchupId: Id<'h2hMatchups'>, driverId: Id<'drivers'>) => void;
@@ -61,7 +61,7 @@ export function H2HMatchupGrid({
     <div className={gridClassName}>
       {matchups.map((matchup) => {
         const selected = selections[matchup._id];
-        const teamColor = TEAM_COLORS[matchup.team] ?? '#666';
+        const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
 
         return (
           <div
@@ -74,7 +74,7 @@ export function H2HMatchupGrid({
                 style={{ backgroundColor: teamColor }}
                 aria-hidden="true"
               />
-              <span className="text-[11px] font-semibold tracking-wider text-text-muted uppercase">
+              <span className="text-xs font-semibold tracking-label text-text-muted uppercase">
                 {displayTeamName(matchup.team)}
               </span>
             </div>
@@ -85,12 +85,32 @@ export function H2HMatchupGrid({
                 const isWinner = winners[matchup._id] === driver._id;
                 const matchupPoints = pointsByMatchup[matchup._id] ?? 0;
                 const wasCorrect = isSelected && matchupPoints > 0;
-                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-md border border-transparent px-3 pt-1 pb-2 ${
+                /*
+                 * Selected is a surface step plus a hairline, which is what
+                 * depth is in this system, and it costs no accent.
+                 *
+                 * It used to be the accent stripe, then briefly a filled accent
+                 * slab. Both worked on a single row and neither survived a full
+                 * card: eleven of them stacked on a phone read as a pattern
+                 * rather than as eleven decisions, and the accent stopped
+                 * meaning "this matters" because it was on everything. That
+                 * colour is reserved for the CTA, the save button and the
+                 * current user's row; a routine binary state cannot have it.
+                 *
+                 * Padding is symmetric in both states on purpose. The stripe
+                 * needed a wider left inset to clear it, so picking a driver
+                 * nudged their name sideways.
+                 */
+                const sharedClassName = `relative flex min-h-[48px] flex-1 flex-col items-stretch rounded-sm border px-3 pt-1 pb-2 transition-colors ${
                   isSelected
-                    ? 'bg-accent-muted/60 ring-1 ring-accent/60 ring-inset'
+                    ? 'border-border-strong bg-surface-elevated'
                     : isInteractive
-                      ? 'transition-all hover:bg-surface-muted'
-                      : ''
+                      ? // Hover raises the surface but never draws the outline.
+                        // Given the same hairline, a hovered cell was pixel
+                        // identical to a picked one, so pointing at a driver
+                        // looked like having chosen them.
+                        'border-transparent hover:bg-surface-elevated'
+                      : 'border-transparent'
                 }`;
 
                 const content = (
@@ -109,7 +129,7 @@ export function H2HMatchupGrid({
                           size="sm"
                         />
                         {driver.number != null && (
-                          <span className="mt-1 text-[10px] leading-none text-text-muted">
+                          <span className="mt-1 text-xs leading-none text-text-muted">
                             #{driver.number}
                           </span>
                         )}
@@ -163,15 +183,20 @@ export function H2HMatchupGrid({
                         )
                       ) : isSelected ? (
                         <>
+                          {/* The check keeps the accent, the word does not.
+                              A 12px glyph confirms the choice without eleven
+                              coloured words competing down the card. */}
                           <Check
                             size={12}
                             className="shrink-0 text-accent"
                             strokeWidth={3}
                           />
-                          <span className="text-accent">Picked</span>
+                          <span className="text-text-muted">Picked</span>
                         </>
                       ) : isInteractive ? (
-                        <span className="w-none text-accent">Pick</span>
+                        // Never hover-gated: most of this grid's use is touch,
+                        // where there is no hover to reveal it.
+                        <span className="text-text-muted">Pick</span>
                       ) : (
                         <span className="invisible" aria-hidden="true">
                           Pick

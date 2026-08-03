@@ -9,18 +9,7 @@ export type LeaderboardEntry = {
   isViewer?: boolean;
 };
 
-export type CombinedLeaderboardEntry = LeaderboardEntry & {
-  top5Points: number;
-  h2hPoints: number;
-};
-
-export type H2HLeaderboardEntry = LeaderboardEntry & {
-  correctPicks: number;
-  totalPicks: number;
-};
-
 export type TimeScope = 'weekend' | 'season';
-export type GameMode = 'combined' | 'top5' | 'h2h';
 export type Scope = 'global' | 'following';
 
 export type RaceLeaderboardResult =

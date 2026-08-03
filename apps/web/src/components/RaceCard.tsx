@@ -79,11 +79,11 @@ export function RaceCard({
       <Link
         to="/races/$raceSlug"
         params={{ raceSlug: race.slug }}
-        className={`group grid min-h-18 grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3 transition-colors hover:bg-surface/55 sm:grid-cols-[3rem_2.25rem_minmax(0,1fr)_auto_auto_auto] sm:px-3 ${
+        className={`group grid min-h-18 grid-cols-[2.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 px-1 py-3 transition-colors hover:bg-surface/55 sm:grid-cols-[3rem_2.5rem_minmax(0,1fr)_auto_auto_auto] sm:px-3 ${
           isMutedPastRace ? 'opacity-60 hover:opacity-85' : ''
         }`}
       >
-        <span className="hidden text-xs font-semibold text-text-muted tabular-nums sm:block">
+        <span className="gpp-mono hidden text-xs font-semibold text-text-muted sm:block">
           {String(race.round).padStart(2, '0')}
         </span>
         {countryCode ? (
@@ -114,7 +114,7 @@ export function RaceCard({
           <span className="hidden sm:block" />
         )}
         <span
-          className="text-right text-sm text-text-muted tabular-nums"
+          className="gpp-mono text-right text-sm text-text-muted"
           suppressHydrationWarning
         >
           {formatDate(race.raceStartAt)}
@@ -132,14 +132,19 @@ export function RaceCard({
     <Link
       to="/races/$raceSlug"
       params={{ raceSlug: race.slug }}
-      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface shadow-sm shadow-black/10 transition-[border-color,box-shadow,opacity,transform] duration-200 hover:-translate-y-0.5 hover:border-accent/70 hover:shadow-lg hover:shadow-black/20 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:outline-none ${
+      // Hover is one surface step lighter plus a firmer edge. The card no
+      // longer lifts or gains a shadow: nothing in this system moves on hover,
+      // and there are no elevation shadows to grow.
+      className={`group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border bg-surface transition-[border-color,background-color,opacity] duration-150 ease-out hover:bg-surface-elevated focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
         hasCancelledBorder
           ? 'border-error/30 opacity-60 hover:border-error/50'
           : isMutedPastRace
             ? 'border-border opacity-60 hover:border-border-strong focus-visible:border-border-strong'
             : isNext
-              ? 'border-accent/70 hover:border-accent'
-              : 'border-border hover:border-accent/70 focus-visible:border-accent/70'
+              ? // The next race is the thing that matters on this page, so it
+                // gets the stripe rather than a brighter border.
+                'gpp-stripe border-border hover:border-border-strong'
+              : 'border-border hover:border-border-strong focus-visible:border-border-strong'
       }`}
     >
       <div className="relative flex h-full flex-col">
@@ -154,16 +159,19 @@ export function RaceCard({
           )}
           <div className="min-w-0 flex-1">
             <p
-              className={`text-[11px] font-semibold tracking-wide uppercase ${
+              className={`text-xs font-semibold tracking-label uppercase ${
                 isNext ? 'text-accent' : 'text-text-muted'
               }`}
             >
               Round {race.round}
               {isNext ? ' · Next Race' : ''}
             </p>
-            <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
+            {/* h2, not h3: these cards sit directly under the page's h1 on the
+                calendar, and the level was skipping a rank. Heading level is
+                document structure, not type scale — the size is set in CSS. */}
+            <h2 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
               {race.name}
-            </h3>
+            </h2>
           </div>
           <ArrowRight
             size={14}
@@ -207,7 +215,7 @@ export function RaceCard({
               />
             )}
             {race.status === 'locked' && (
-              <Pill tone="warning" className="tabular-nums">
+              <Pill tone="warning" className="gpp-mono">
                 {race.raceStartAt > now ? (
                   <Countdown timestamp={race.raceStartAt} suffix="until race" />
                 ) : (
@@ -220,7 +228,7 @@ export function RaceCard({
           {/* Weekend sessions */}
           {scheduleEntries.length > 0 && (
             <div className="mt-0.5 flex flex-1 flex-col border-t border-border/60 pt-1.5">
-              <div className="mb-1 flex items-center justify-between text-[11px] font-medium tracking-wide text-text-muted uppercase">
+              <div className="mb-1 flex items-center justify-between text-xs font-medium tracking-label text-text-muted uppercase">
                 <span className="inline-flex items-center gap-1">
                   <Calendar size={12} aria-hidden />
                   Weekend Sessions
@@ -241,7 +249,7 @@ export function RaceCard({
                     </span>
                     <span
                       suppressHydrationWarning
-                      className={`text-right tabular-nums ${
+                      className={`gpp-mono text-right ${
                         entry.type === 'race' ? 'font-semibold text-text' : ''
                       }`}
                     >

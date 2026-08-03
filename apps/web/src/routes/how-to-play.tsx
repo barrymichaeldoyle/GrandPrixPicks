@@ -18,7 +18,7 @@ export const Route = createFileRoute('/how-to-play')({
     const meta = pageMeta({
       title: 'How to Play | F1 Prediction Game Rules | Grand Prix Picks',
       description:
-        'Learn how to play Grand Prix Picks. See the Top 5 and teammate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
+        'Learn how to play Grand Prix Picks. See the Top 5 and team-mate Head-to-Head scoring rules, session deadlines, and leaderboard formats.',
       path: '/how-to-play',
     });
     return {
@@ -114,7 +114,7 @@ function HowToPlayPage() {
         <div className="relative pb-8 sm:pl-8">
           <div
             aria-hidden
-            className="absolute top-12 bottom-32 left-0 hidden w-px bg-gradient-to-b from-accent/70 via-accent/20 to-transparent sm:block"
+            className="absolute top-12 bottom-32 left-0 hidden w-px bg-border sm:block"
           />
 
           <section
@@ -134,7 +134,7 @@ function HowToPlayPage() {
                   copy: 'Choose five unique drivers in the order you expect them to finish.',
                 },
                 {
-                  title: 'Call teammate battles',
+                  title: 'Call team-mate battles',
                   copy: 'Pick which driver will finish ahead in each Head-to-Head matchup.',
                 },
                 {
@@ -146,11 +146,11 @@ function HowToPlayPage() {
                   key={step.title}
                   className="relative sm:border-l sm:border-border sm:px-6 sm:first:border-l-0 sm:first:pl-0 sm:last:pr-0"
                 >
-                  <span className="font-title text-4xl leading-none font-semibold text-accent/45 tabular-nums">
+                  <span className="font-title gpp-mono text-4xl leading-none font-semibold text-accent/45">
                     0{index + 1}
                   </span>
                   <h3 className="mt-3 font-semibold text-text">{step.title}</h3>
-                  <p className="mt-1.5 text-sm leading-6 text-text-muted">
+                  <p className="gpp-reading-copy mt-1.5 text-text-muted">
                     {step.copy}
                   </p>
                 </li>
@@ -163,7 +163,7 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="max-w-3xl">
-              <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                 Sessions
               </p>
               <h2
@@ -172,7 +172,7 @@ function HowToPlayPage() {
               >
                 Every session is its own game
               </h2>
-              <p className="mt-2 text-sm leading-6 text-text-muted">
+              <p className="gpp-reading-copy mt-2 text-text-muted">
                 Make a separate Top 5 and Head-to-Head prediction for each
                 supported session. Practice sessions do not count.
               </p>
@@ -195,7 +195,7 @@ function HowToPlayPage() {
                     {row.sessions.map((session) => (
                       <li
                         key={session}
-                        className="flex items-center gap-2 text-sm text-text-muted"
+                        className="flex items-center gap-2 text-base text-text-muted"
                       >
                         <Check
                           className="h-4 w-4 shrink-0 text-success"
@@ -215,7 +215,7 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="mb-4">
-              <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                 Main game
               </p>
               <h2
@@ -224,14 +224,14 @@ function HowToPlayPage() {
               >
                 Top 5 scoring
               </h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-text-muted">
+              <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
                 Each of your five drivers scores independently. Order matters,
                 and a perfect Top 5 earns 25 points in a session.
               </p>
             </div>
 
             <div className="mt-7 border-y border-border">
-              <div className="grid grid-cols-[4.5rem_1fr] px-1 py-3 text-xs font-semibold tracking-wide text-text-muted uppercase sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4">
+              <div className="grid grid-cols-[4.5rem_1fr] px-1 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4">
                 <span>Points</span>
                 <span>Result</span>
                 <span className="hidden sm:block">Example</span>
@@ -242,31 +242,31 @@ function HowToPlayPage() {
                   className="grid grid-cols-[4.5rem_1fr] border-t border-border px-1 py-5 sm:grid-cols-[5rem_1.2fr_1fr] sm:px-4"
                 >
                   <span
-                    className={`text-lg font-bold tabular-nums ${
+                    className={`gpp-mono text-lg font-semibold ${
                       row.points > 0 ? 'text-accent' : 'text-text-muted'
                     }`}
                   >
                     {row.points}
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-text">
+                    <h3 className="text-base font-semibold text-text">
                       {row.title}
                     </h3>
-                    <p className="mt-0.5 text-sm leading-5 text-text-muted">
+                    <p className="mt-0.5 text-base leading-6 text-text-muted">
                       {row.description}
                     </p>
                     <p className="mt-2 text-xs leading-5 text-text-muted sm:hidden">
                       {row.example}
                     </p>
                   </div>
-                  <p className="hidden pl-4 text-sm leading-6 text-text-muted sm:block">
+                  <p className="hidden pl-4 text-base leading-6 text-text-muted sm:block">
                     {row.example}
                   </p>
                 </div>
               ))}
             </div>
 
-            <p className="mt-5 max-w-3xl border-l-2 border-accent pl-4 text-sm leading-6 text-text-muted">
+            <p className="gpp-reading-copy mt-5 max-w-3xl border-l-2 border-accent pl-4 text-text-muted">
               <strong className="text-text">One-position detail:</strong> the
               3-point rule also applies just outside the Top 5. If you predict a
               driver in P5 and they finish P6, that pick earns 3 points.
@@ -279,26 +279,26 @@ function HowToPlayPage() {
           >
             <div className="grid gap-8 sm:grid-cols-[1fr_13rem] sm:items-center">
               <div>
-                <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-accent uppercase">
+                <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
                   Bonus game
                 </p>
                 <h2
                   id="h2h-heading"
                   className="font-title text-xl font-semibold text-text"
                 >
-                  Teammate Head-to-Head
+                  Team-mate Head-to-Head
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
+                <p className="gpp-reading-copy mt-2 max-w-2xl text-text-muted">
                   After saving your Top 5, choose which driver from each
-                  teammate pairing will finish ahead. Every correct matchup
+                  team-mate pairing will finish ahead. Every correct matchup
                   earns 1 point. An incorrect or unscorable matchup earns 0.
                 </p>
               </div>
               <div className="border-t border-border pt-6 sm:border-t-0 sm:border-l sm:py-2 sm:pl-10">
-                <p className="font-title text-6xl leading-none font-semibold text-accent tabular-nums">
+                <p className="font-title gpp-mono text-6xl leading-none font-semibold text-accent">
                   1
                 </p>
-                <p className="mt-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
+                <p className="mt-2 text-xs font-semibold tracking-label text-text-muted uppercase">
                   point per correct pick
                 </p>
               </div>
@@ -317,7 +317,7 @@ function HowToPlayPage() {
               >
                 Deadlines
               </h2>
-              <p className="mt-3 text-sm leading-6 text-text-muted">
+              <p className="gpp-reading-copy mt-3 text-text-muted">
                 Each session locks at its scheduled start time. You can revise
                 saved picks until then.
               </p>
@@ -334,7 +334,7 @@ function HowToPlayPage() {
               >
                 Pick privacy
               </h2>
-              <p className="mt-3 text-sm leading-6 text-text-muted">
+              <p className="gpp-reading-copy mt-3 text-text-muted">
                 Your saved picks remain visible to you. Other players&apos;
                 picks stay hidden until the session locks.
               </p>
@@ -351,10 +351,9 @@ function HowToPlayPage() {
               >
                 Leaderboards
               </h2>
-              <p className="mt-3 text-sm leading-6 text-text-muted">
-                Compare scores for a race weekend or the full season. Switch
-                between Combined, Top 5, and H2H rankings, then view everyone or
-                only players you follow.
+              <p className="gpp-reading-copy mt-3 text-text-muted">
+                Compare total scores for a race weekend or the full season, then
+                view everyone or only players you follow.
               </p>
               <Link
                 to="/leaderboard"
@@ -379,23 +378,24 @@ function HowToPlayPage() {
             <dl className="mt-6 border-t border-border">
               <div className="grid gap-1 border-b border-border py-5 sm:grid-cols-[13rem_1fr] sm:gap-8">
                 <dt className="font-semibold text-text">Is it free?</dt>
-                <dd className="text-sm leading-6 text-text-muted">
-                  Yes. Core predictions and the season leaderboard are free. A
-                  Season Pass expands league access but does not change scoring.
+                <dd className="gpp-reading-copy text-text-muted">
+                  Yes. Making predictions, earning points, and competing on the
+                  season leaderboard or in private leagues is free.
                 </dd>
               </div>
               <div className="grid gap-1 border-b border-border py-5 sm:grid-cols-[13rem_1fr] sm:gap-8">
                 <dt className="font-semibold text-text">
                   Do I need an account?
                 </dt>
-                <dd className="text-sm leading-6 text-text-muted">
-                  You can build a draft without an account. Sign in before the
-                  deadline to save it and appear on the leaderboard.
+                <dd className="gpp-reading-copy text-text-muted">
+                  Yes. A free account is required to save your picks, earn
+                  points, and appear on the leaderboard. You can try the picker
+                  before signing up.
                 </dd>
               </div>
               <div className="grid gap-1 border-b border-border py-5 sm:grid-cols-[13rem_1fr] sm:gap-8">
                 <dt className="font-semibold text-text">Is H2H required?</dt>
-                <dd className="text-sm leading-6 text-text-muted">
+                <dd className="gpp-reading-copy text-text-muted">
                   No. Your Top 5 is still valid if you skip H2H, but correct H2H
                   picks add to your Combined score.
                 </dd>
@@ -404,7 +404,7 @@ function HowToPlayPage() {
                 <dt className="font-semibold text-text">
                   When are scores available?
                 </dt>
-                <dd className="text-sm leading-6 text-text-muted">
+                <dd className="gpp-reading-copy text-text-muted">
                   Scores appear after official results for the session are
                   published. Corrections are recalculated if results are later
                   amended.
@@ -414,7 +414,7 @@ function HowToPlayPage() {
                 <dt className="font-semibold text-text">
                   What about penalties?
                 </dt>
-                <dd className="text-sm leading-6 text-text-muted">
+                <dd className="gpp-reading-copy text-text-muted">
                   We score the official FIA classification. Grid penalties do
                   not change the qualifying classification, so your qualifying
                   picks are unaffected; post-race penalties do change the race
@@ -436,7 +436,7 @@ function HowToPlayPage() {
             <h2 className="font-title text-2xl font-semibold text-text">
               Ready to make your picks?
             </h2>
-            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-text-muted">
+            <p className="gpp-reading-copy mx-auto mt-2 max-w-xl text-text-muted">
               Choose the current race weekend, rank your Top 5, and save before
               the next session starts.
             </p>

@@ -9,7 +9,7 @@ export function StepBadge({ step, done }: { step: number; done: boolean }) {
     <span
       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
         done
-          ? 'bg-accent text-white'
+          ? 'bg-accent text-text-on-accent'
           : 'border border-border-strong bg-surface text-text-muted/60'
       }`}
       aria-label={done ? `Step ${step}, done` : `Step ${step}, not done`}

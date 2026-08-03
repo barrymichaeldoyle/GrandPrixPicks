@@ -5,6 +5,11 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import {
+  DEFAULT_REACTION_TYPE,
+  type ReactionType,
+  reactionTypeValidator,
+} from './lib/reactions';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -63,7 +68,9 @@ export const getMyNotifications = query({
     }
     const followedIds = await loadFollowedActorIds(ctx, viewer._id, actorIds);
 
-    // Group rev_received by feedEventId; pass everything else through unchanged
+    // Group reaction notifications by feedEventId; pass everything else
+    // through unchanged. The persisted type stays `rev_received` during the
+    // compatibility window for released clients.
     const revsByEventId = new Map<Id<'feedEvents'>, typeof notifications>();
     const result: Array<
       (typeof notifications)[number] & {
@@ -73,7 +80,9 @@ export const getMyNotifications = query({
           displayName?: string;
           avatarUrl?: string;
           isFollowed: boolean;
+          reactionType: ReactionType;
         }>;
+        totalReactionCount?: number;
         totalRevCount?: number;
       }
     > = [];
@@ -113,7 +122,9 @@ export const getMyNotifications = query({
           displayName: n.actorDisplayName,
           avatarUrl: n.actorAvatarUrl,
           isFollowed: n.actorUserId ? followedIds.has(n.actorUserId) : false,
+          reactionType: n.reactionType ?? DEFAULT_REACTION_TYPE,
         })),
+        totalReactionCount: revNotifs.length,
         totalRevCount: revNotifs.length,
       });
     }
@@ -186,19 +197,20 @@ export const markRead = mutation({
 
 // ============ Internal mutations (triggered by other Convex functions) ============
 
-/** Called from feed.giveRev after a rev is inserted. */
+/** Called after a user adds their first reaction to a feed event. */
 export const createRevNotification = internalMutation({
   args: {
     recipientUserId: v.id('users'),
     actorUserId: v.id('users'),
     feedEventId: v.id('feedEvents'),
+    reactionType: v.optional(reactionTypeValidator),
     raceId: v.optional(v.id('races')),
     sessionType: v.optional(sessionTypeValidator),
     raceName: v.optional(v.string()),
     raceSlug: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Don't notify when someone revs their own post
+    // Don't notify when someone reacts to their own post.
     if (args.recipientUserId === args.actorUserId) {
       return;
     }
@@ -216,6 +228,7 @@ export const createRevNotification = internalMutation({
       actorDisplayName: actor.displayName,
       actorAvatarUrl: actor.avatarUrl,
       feedEventId: args.feedEventId,
+      reactionType: args.reactionType ?? DEFAULT_REACTION_TYPE,
       raceId: args.raceId,
       sessionType: args.sessionType,
       raceName: args.raceName,
@@ -227,6 +240,7 @@ export const createRevNotification = internalMutation({
       recipientUserId: args.recipientUserId,
       actorDisplayName: actor.displayName,
       feedEventId: args.feedEventId,
+      reactionType: args.reactionType ?? DEFAULT_REACTION_TYPE,
     });
   },
 });

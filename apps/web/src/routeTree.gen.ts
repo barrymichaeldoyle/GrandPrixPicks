@@ -9,105 +9,49 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SupportRouteImport } from './routes/support'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ResultsPolicyRouteImport } from './routes/results-policy'
-import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as PayRouteImport } from './routes/pay'
-import { Route as MeRouteImport } from './routes/me'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as HowToPlayRouteImport } from './routes/how-to-play'
-import { Route as FeedRouteImport } from './routes/feed'
-import { Route as F1TeammateBattlesRouteImport } from './routes/f1-teammate-battles'
-import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RacesIndexRouteImport } from './routes/races/index'
-import { Route as LeaguesIndexRouteImport } from './routes/leagues/index'
-import { Route as FeedIndexRouteImport } from './routes/feed/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as F1StandingsRouteImport } from './routes/f1-standings'
+import { Route as F1TeamMateBattlesRouteImport } from './routes/f1-team-mate-battles'
+import { Route as F1TeammateBattlesRouteImport } from './routes/f1-teammate-battles'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as HowToPlayRouteImport } from './routes/how-to-play'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as MeRouteImport } from './routes/me'
+import { Route as PayRouteImport } from './routes/pay'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as ResultsPolicyRouteImport } from './routes/results-policy'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as PUsernameRouteImport } from './routes/p/$username'
-import { Route as LeaguesCreateRouteImport } from './routes/leagues/create'
-import { Route as LeaguesSlugRouteImport } from './routes/leagues/$slug'
+import { Route as FeedIndexRouteImport } from './routes/feed/index'
 import { Route as FeedFeedEventIdRouteImport } from './routes/feed.$feedEventId'
+import { Route as GuidesIndexRouteImport } from './routes/guides/index'
+import { Route as GuidesGuideSlugRouteImport } from './routes/guides/$guideSlug'
+import { Route as LeaguesIndexRouteImport } from './routes/leagues/index'
+import { Route as LeaguesSlugRouteImport } from './routes/leagues/$slug'
+import { Route as LeaguesCreateRouteImport } from './routes/leagues/create'
+import { Route as PUsernameRouteImport } from './routes/p/$username'
+import { Route as RacesIndexRouteImport } from './routes/races/index'
+import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$raceId'
+import { Route as LeaguesSlugSettingsRouteImport } from './routes/leagues/$slug/settings'
+import { Route as PUsernameFollowersRouteImport } from './routes/p/$username/followers'
+import { Route as PUsernameFollowingRouteImport } from './routes/p/$username/following'
 import { Route as RacesRaceSlugIndexRouteImport } from './routes/races/$raceSlug/index'
 import { Route as RacesRaceSlugPracticeRouteImport } from './routes/races/$raceSlug/practice'
-import { Route as PUsernameFollowingRouteImport } from './routes/p/$username/following'
-import { Route as PUsernameFollowersRouteImport } from './routes/p/$username/followers'
-import { Route as LeaguesSlugSettingsRouteImport } from './routes/leagues/$slug/settings'
-import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$raceId'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResultsPolicyRoute = ResultsPolicyRouteImport.update({
-  id: '/results-policy',
-  path: '/results-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RefundPolicyRoute = RefundPolicyRouteImport.update({
-  id: '/refund-policy',
-  path: '/refund-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PayRoute = PayRouteImport.update({
-  id: '/pay',
-  path: '/pay',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MeRoute = MeRouteImport.update({
-  id: '/me',
-  path: '/me',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HowToPlayRoute = HowToPlayRouteImport.update({
-  id: '/how-to-play',
-  path: '/how-to-play',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeedRoute = FeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const F1TeammateBattlesRoute = F1TeammateBattlesRouteImport.update({
-  id: '/f1-teammate-battles',
-  path: '/f1-teammate-battles',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const F1StandingsRoute = F1StandingsRouteImport.update({
@@ -115,19 +59,84 @@ const F1StandingsRoute = F1StandingsRouteImport.update({
   path: '/f1-standings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const F1TeamMateBattlesRoute = F1TeamMateBattlesRouteImport.update({
+  id: '/f1-team-mate-battles',
+  path: '/f1-team-mate-battles',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RacesIndexRoute = RacesIndexRouteImport.update({
-  id: '/races/',
-  path: '/races/',
+const F1TeammateBattlesRoute = F1TeammateBattlesRouteImport.update({
+  id: '/f1-teammate-battles',
+  path: '/f1-teammate-battles',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LeaguesIndexRoute = LeaguesIndexRouteImport.update({
-  id: '/leagues/',
-  path: '/leagues/',
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowToPlayRoute = HowToPlayRouteImport.update({
+  id: '/how-to-play',
+  path: '/how-to-play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayRoute = PayRouteImport.update({
+  id: '/pay',
+  path: '/pay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRoute = RefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultsPolicyRoute = ResultsPolicyRouteImport.update({
+  id: '/results-policy',
+  path: '/results-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedIndexRoute = FeedIndexRouteImport.update({
@@ -135,19 +144,24 @@ const FeedIndexRoute = FeedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => FeedRoute,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
+const FeedFeedEventIdRoute = FeedFeedEventIdRouteImport.update({
+  id: '/$feedEventId',
+  path: '/$feedEventId',
+  getParentRoute: () => FeedRoute,
+} as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PUsernameRoute = PUsernameRouteImport.update({
-  id: '/p/$username',
-  path: '/p/$username',
+const GuidesGuideSlugRoute = GuidesGuideSlugRouteImport.update({
+  id: '/guides/$guideSlug',
+  path: '/guides/$guideSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LeaguesCreateRoute = LeaguesCreateRouteImport.update({
-  id: '/leagues/create',
-  path: '/leagues/create',
+const LeaguesIndexRoute = LeaguesIndexRouteImport.update({
+  id: '/leagues/',
+  path: '/leagues/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaguesSlugRoute = LeaguesSlugRouteImport.update({
@@ -155,10 +169,40 @@ const LeaguesSlugRoute = LeaguesSlugRouteImport.update({
   path: '/leagues/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FeedFeedEventIdRoute = FeedFeedEventIdRouteImport.update({
-  id: '/$feedEventId',
-  path: '/$feedEventId',
-  getParentRoute: () => FeedRoute,
+const LeaguesCreateRoute = LeaguesCreateRouteImport.update({
+  id: '/leagues/create',
+  path: '/leagues/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PUsernameRoute = PUsernameRouteImport.update({
+  id: '/p/$username',
+  path: '/p/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RacesIndexRoute = RacesIndexRouteImport.update({
+  id: '/races/',
+  path: '/races/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
+  id: '/admin/races/$raceId',
+  path: '/admin/races/$raceId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaguesSlugSettingsRoute = LeaguesSlugSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => LeaguesSlugRoute,
+} as any)
+const PUsernameFollowersRoute = PUsernameFollowersRouteImport.update({
+  id: '/followers',
+  path: '/followers',
+  getParentRoute: () => PUsernameRoute,
+} as any)
+const PUsernameFollowingRoute = PUsernameFollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
+  getParentRoute: () => PUsernameRoute,
 } as any)
 const RacesRaceSlugIndexRoute = RacesRaceSlugIndexRouteImport.update({
   id: '/races/$raceSlug/',
@@ -170,30 +214,12 @@ const RacesRaceSlugPracticeRoute = RacesRaceSlugPracticeRouteImport.update({
   path: '/races/$raceSlug/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PUsernameFollowingRoute = PUsernameFollowingRouteImport.update({
-  id: '/following',
-  path: '/following',
-  getParentRoute: () => PUsernameRoute,
-} as any)
-const PUsernameFollowersRoute = PUsernameFollowersRouteImport.update({
-  id: '/followers',
-  path: '/followers',
-  getParentRoute: () => PUsernameRoute,
-} as any)
-const LeaguesSlugSettingsRoute = LeaguesSlugSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => LeaguesSlugRoute,
-} as any)
-const AdminRacesRaceIdRoute = AdminRacesRaceIdRouteImport.update({
-  id: '/admin/races/$raceId',
-  path: '/admin/races/$raceId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/feed': typeof FeedRouteWithChildren
   '/how-to-play': typeof HowToPlayRoute
@@ -209,11 +235,13 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
+  '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/feed/': typeof FeedIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/leagues/': typeof LeaguesIndexRoute
   '/races/': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
@@ -225,7 +253,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -240,11 +270,13 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
+  '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/feed': typeof FeedIndexRoute
+  '/guides': typeof GuidesIndexRoute
   '/leagues': typeof LeaguesIndexRoute
   '/races': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
@@ -257,7 +289,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/f1-standings': typeof F1StandingsRoute
+  '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
   '/feed': typeof FeedRouteWithChildren
   '/how-to-play': typeof HowToPlayRoute
@@ -273,11 +307,13 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
+  '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/feed/': typeof FeedIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/leagues/': typeof LeaguesIndexRoute
   '/races/': typeof RacesIndexRoute
   '/admin/races/$raceId': typeof AdminRacesRaceIdRoute
@@ -291,7 +327,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/f1-standings'
+    | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
     | '/feed'
     | '/how-to-play'
@@ -307,11 +345,13 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
+    | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin/'
     | '/feed/'
+    | '/guides/'
     | '/leagues/'
     | '/races/'
     | '/admin/races/$raceId'
@@ -323,7 +363,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/f1-standings'
+    | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
     | '/how-to-play'
     | '/leaderboard'
@@ -338,11 +380,13 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
+    | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin'
     | '/feed'
+    | '/guides'
     | '/leagues'
     | '/races'
     | '/admin/races/$raceId'
@@ -354,7 +398,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/f1-standings'
+    | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
     | '/feed'
     | '/how-to-play'
@@ -370,11 +416,13 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/feed/$feedEventId'
+    | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin/'
     | '/feed/'
+    | '/guides/'
     | '/leagues/'
     | '/races/'
     | '/admin/races/$raceId'
@@ -387,7 +435,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   F1StandingsRoute: typeof F1StandingsRoute
+  F1TeamMateBattlesRoute: typeof F1TeamMateBattlesRoute
   F1TeammateBattlesRoute: typeof F1TeammateBattlesRoute
   FeedRoute: typeof FeedRouteWithChildren
   HowToPlayRoute: typeof HowToPlayRoute
@@ -402,10 +452,12 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  GuidesGuideSlugRoute: typeof GuidesGuideSlugRoute
   LeaguesSlugRoute: typeof LeaguesSlugRouteWithChildren
   LeaguesCreateRoute: typeof LeaguesCreateRoute
   PUsernameRoute: typeof PUsernameRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
   LeaguesIndexRoute: typeof LeaguesIndexRoute
   RacesIndexRoute: typeof RacesIndexRoute
   AdminRacesRaceIdRoute: typeof AdminRacesRaceIdRoute
@@ -415,102 +467,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/results-policy': {
-      id: '/results-policy'
-      path: '/results-policy'
-      fullPath: '/results-policy'
-      preLoaderRoute: typeof ResultsPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/refund-policy': {
-      id: '/refund-policy'
-      path: '/refund-policy'
-      fullPath: '/refund-policy'
-      preLoaderRoute: typeof RefundPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pay': {
-      id: '/pay'
-      path: '/pay'
-      fullPath: '/pay'
-      preLoaderRoute: typeof PayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/me': {
-      id: '/me'
-      path: '/me'
-      fullPath: '/me'
-      preLoaderRoute: typeof MeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-to-play': {
-      id: '/how-to-play'
-      path: '/how-to-play'
-      fullPath: '/how-to-play'
-      preLoaderRoute: typeof HowToPlayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/feed': {
-      id: '/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof FeedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/f1-teammate-battles': {
-      id: '/f1-teammate-battles'
-      path: '/f1-teammate-battles'
-      fullPath: '/f1-teammate-battles'
-      preLoaderRoute: typeof F1TeammateBattlesRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-standings': {
@@ -520,25 +488,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof F1StandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/f1-team-mate-battles': {
+      id: '/f1-team-mate-battles'
+      path: '/f1-team-mate-battles'
+      fullPath: '/f1-team-mate-battles'
+      preLoaderRoute: typeof F1TeamMateBattlesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/races/': {
-      id: '/races/'
-      path: '/races'
-      fullPath: '/races/'
-      preLoaderRoute: typeof RacesIndexRouteImport
+    '/f1-teammate-battles': {
+      id: '/f1-teammate-battles'
+      path: '/f1-teammate-battles'
+      fullPath: '/f1-teammate-battles'
+      preLoaderRoute: typeof F1TeammateBattlesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leagues/': {
-      id: '/leagues/'
-      path: '/leagues'
-      fullPath: '/leagues/'
-      preLoaderRoute: typeof LeaguesIndexRouteImport
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-to-play': {
+      id: '/how-to-play'
+      path: '/how-to-play'
+      fullPath: '/how-to-play'
+      preLoaderRoute: typeof HowToPlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay': {
+      id: '/pay'
+      path: '/pay'
+      fullPath: '/pay'
+      preLoaderRoute: typeof PayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/results-policy': {
+      id: '/results-policy'
+      path: '/results-policy'
+      fullPath: '/results-policy'
+      preLoaderRoute: typeof ResultsPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed/': {
@@ -548,25 +607,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedIndexRouteImport
       parentRoute: typeof FeedRoute
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
+    '/feed/$feedEventId': {
+      id: '/feed/$feedEventId'
+      path: '/$feedEventId'
+      fullPath: '/feed/$feedEventId'
+      preLoaderRoute: typeof FeedFeedEventIdRouteImport
+      parentRoute: typeof FeedRoute
+    }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/p/$username': {
-      id: '/p/$username'
-      path: '/p/$username'
-      fullPath: '/p/$username'
-      preLoaderRoute: typeof PUsernameRouteImport
+    '/guides/$guideSlug': {
+      id: '/guides/$guideSlug'
+      path: '/guides/$guideSlug'
+      fullPath: '/guides/$guideSlug'
+      preLoaderRoute: typeof GuidesGuideSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leagues/create': {
-      id: '/leagues/create'
-      path: '/leagues/create'
-      fullPath: '/leagues/create'
-      preLoaderRoute: typeof LeaguesCreateRouteImport
+    '/leagues/': {
+      id: '/leagues/'
+      path: '/leagues'
+      fullPath: '/leagues/'
+      preLoaderRoute: typeof LeaguesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leagues/$slug': {
@@ -576,12 +642,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaguesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/feed/$feedEventId': {
-      id: '/feed/$feedEventId'
-      path: '/$feedEventId'
-      fullPath: '/feed/$feedEventId'
-      preLoaderRoute: typeof FeedFeedEventIdRouteImport
-      parentRoute: typeof FeedRoute
+    '/leagues/create': {
+      id: '/leagues/create'
+      path: '/leagues/create'
+      fullPath: '/leagues/create'
+      preLoaderRoute: typeof LeaguesCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$username': {
+      id: '/p/$username'
+      path: '/p/$username'
+      fullPath: '/p/$username'
+      preLoaderRoute: typeof PUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/races/': {
+      id: '/races/'
+      path: '/races'
+      fullPath: '/races/'
+      preLoaderRoute: typeof RacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/races/$raceId': {
+      id: '/admin/races/$raceId'
+      path: '/admin/races/$raceId'
+      fullPath: '/admin/races/$raceId'
+      preLoaderRoute: typeof AdminRacesRaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leagues/$slug/settings': {
+      id: '/leagues/$slug/settings'
+      path: '/settings'
+      fullPath: '/leagues/$slug/settings'
+      preLoaderRoute: typeof LeaguesSlugSettingsRouteImport
+      parentRoute: typeof LeaguesSlugRoute
+    }
+    '/p/$username/followers': {
+      id: '/p/$username/followers'
+      path: '/followers'
+      fullPath: '/p/$username/followers'
+      preLoaderRoute: typeof PUsernameFollowersRouteImport
+      parentRoute: typeof PUsernameRoute
+    }
+    '/p/$username/following': {
+      id: '/p/$username/following'
+      path: '/following'
+      fullPath: '/p/$username/following'
+      preLoaderRoute: typeof PUsernameFollowingRouteImport
+      parentRoute: typeof PUsernameRoute
     }
     '/races/$raceSlug/': {
       id: '/races/$raceSlug/'
@@ -595,34 +703,6 @@ declare module '@tanstack/react-router' {
       path: '/races/$raceSlug/practice'
       fullPath: '/races/$raceSlug/practice'
       preLoaderRoute: typeof RacesRaceSlugPracticeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$username/following': {
-      id: '/p/$username/following'
-      path: '/following'
-      fullPath: '/p/$username/following'
-      preLoaderRoute: typeof PUsernameFollowingRouteImport
-      parentRoute: typeof PUsernameRoute
-    }
-    '/p/$username/followers': {
-      id: '/p/$username/followers'
-      path: '/followers'
-      fullPath: '/p/$username/followers'
-      preLoaderRoute: typeof PUsernameFollowersRouteImport
-      parentRoute: typeof PUsernameRoute
-    }
-    '/leagues/$slug/settings': {
-      id: '/leagues/$slug/settings'
-      path: '/settings'
-      fullPath: '/leagues/$slug/settings'
-      preLoaderRoute: typeof LeaguesSlugSettingsRouteImport
-      parentRoute: typeof LeaguesSlugRoute
-    }
-    '/admin/races/$raceId': {
-      id: '/admin/races/$raceId'
-      path: '/admin/races/$raceId'
-      fullPath: '/admin/races/$raceId'
-      preLoaderRoute: typeof AdminRacesRaceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -668,7 +748,9 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   F1StandingsRoute: F1StandingsRoute,
+  F1TeamMateBattlesRoute: F1TeamMateBattlesRoute,
   F1TeammateBattlesRoute: F1TeammateBattlesRoute,
   FeedRoute: FeedRouteWithChildren,
   HowToPlayRoute: HowToPlayRoute,
@@ -683,10 +765,12 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  GuidesGuideSlugRoute: GuidesGuideSlugRoute,
   LeaguesSlugRoute: LeaguesSlugRouteWithChildren,
   LeaguesCreateRoute: LeaguesCreateRoute,
   PUsernameRoute: PUsernameRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
   LeaguesIndexRoute: LeaguesIndexRoute,
   RacesIndexRoute: RacesIndexRoute,
   AdminRacesRaceIdRoute: AdminRacesRaceIdRoute,

@@ -51,7 +51,10 @@ const config = defineConfig(({ mode }) => {
 
   return {
     server: {
-      host: '127.0.0.1',
+      // Dual-stack: binding IPv4-only leaves the IPv6 :3000 socket free for a
+      // stale server to squat, which silently steals `localhost` (macOS resolves
+      // it to ::1 first) and defeats --strictPort.
+      host: '::',
       allowedHosts: ['dev.grandprixpicks.com'],
     },
     resolve: {
@@ -76,7 +79,12 @@ const config = defineConfig(({ mode }) => {
               return;
             }
             if (id.includes('framer-motion')) {
-              return 'framer';
+              // Deliberately unassigned, same reasoning as Clerk below. The app
+              // renders through LazyMotion and pulls the animation features in
+              // with a dynamic import; forcing every framer-motion module into
+              // one manual chunk merges those features back into the eagerly
+              // preloaded half and the split buys nothing.
+              return;
             }
             if (id.includes('@clerk')) {
               // Keep Clerk with its lazy runtime entry. Assigning it to a

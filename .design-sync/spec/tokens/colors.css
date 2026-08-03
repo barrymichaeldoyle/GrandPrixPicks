@@ -1,0 +1,89 @@
+:root {
+  /* Base palette — dark only, no pure black. */
+  --gpp-black: #0a0b0c;
+  --gpp-near-black: #101113;
+  --gpp-chartreuse: #d4ff3f;
+  --gpp-chartreuse-dim: #b8e035;
+
+  /* Semantic surfaces — elevation is a lighter layer + 1px hairline, never a shadow. */
+  --background: #101113;
+  --surface: #191a1d;
+  --surface-raised: #212226;
+  /* A fourth step, for hovering something that is ALREADY raised.
+     The ramp climbs evenly (+9 then +8 per channel), so "one surface step
+     lighter" means the same amount of change wherever you are on it:
+       #101113 canvas -> #191a1d card -> #212226 raised -> #292a2e hovered.
+     Without this, anything sitting on --surface-raised had nowhere to hover
+     to: in the app, 22 driver chips on the picks screen changed only their
+     border and the fill stayed put. */
+  --surface-hover: #292a2e;
+  --surface-sunken: #0c0d0f;
+  --border: #2c2d31;
+  --border-strong: #3a3b41;
+
+  /* Text */
+  --text: #f2f2f0;
+  /* Clears 7:1 on both --background and --surface, so long-form public
+     content (FAQ answers, policy pages) is comfortable rather than merely
+     passing AA. Was #9a9ba1 at 4.6:1. */
+  --text-muted: #a7a8ad;
+  --text-disabled: #5c5d63;
+  --text-on-accent: #101113;
+
+  /* Brand accent — CTAs, active states, the signature stripe. Never for body text. */
+  --accent: #d4ff3f;
+  --accent-hover: #e2ff6e;
+  --accent-press: #b8e035;
+  --accent-quiet: rgba(212, 255, 63, 0.12);
+  --accent-hairline: rgba(212, 255, 63, 0.35);
+
+  /* Prediction result semantics (F1 sector-colour inspired).
+     A value ramp, richest to quietest: 5 pts, 3 pts, 1 pt, 0. */
+  --result-exact: #c084fc; /* Top 5: exact position, driver finished <= P5 — 5 pts */
+  --result-near: #4ade80; /* Top 5: off by exactly one, incl. P5 -> P6 — 3 pts. Also H2H correct — 1 pt */
+  --result-top5: #facc15; /* Top 5: in the actual top five but off by 2+ — 1 pt */
+  --result-miss: #71717a; /* No points — muted grey, never harsh red */
+  --result-exact-quiet: rgba(192, 132, 252, 0.14);
+  --result-near-quiet: rgba(74, 222, 128, 0.14);
+  --result-top5-quiet: rgba(250, 204, 21, 0.14);
+  --result-miss-quiet: rgba(113, 113, 122, 0.16);
+
+  /* Deprecated aliases — the old perfect/beat/close names. 'beat' never existed in
+     the real scoring engine; prefer exact/near/top5. */
+  --result-perfect: var(--result-exact);
+  --result-beat: var(--result-near);
+  --result-close: var(--result-top5);
+  --result-perfect-quiet: var(--result-exact-quiet);
+  --result-beat-quiet: var(--result-near-quiet);
+  --result-close-quiet: var(--result-top5-quiet);
+
+  /* Position delta (batch updates only — never animate live movement) */
+  --delta-up: #4ade80;
+  --delta-down: #f87171;
+  --delta-flat: #5c5d63;
+
+  /* Status — aliases of the result semantics, not new hues.
+     The voice guidance already says errors are amber and never red; these
+     make that a token so a status surface cannot quietly reach for red. */
+  --error: #facc15;
+  --error-quiet: rgba(250, 204, 21, 0.14);
+  --warning: #facc15;
+  --warning-quiet: rgba(250, 204, 21, 0.14);
+  --success: #4ade80;
+  --success-quiet: rgba(74, 222, 128, 0.14);
+
+  /* Sprint weekends — the one domain concept with its own colour. Deliberately
+     an alias of the violet result semantic rather than a sixth hue. */
+  --sprint: #c084fc;
+  --sprint-text: #d8b4fe;
+
+  /* Podium — leaderboard ranks 1/2/3 and the share cards. Flat DATA colours in
+     the manner of team colours: no gradient, no bevel, no metal, and never a
+     large fill. A rank marker is a 2px chip, not a medal. */
+  --podium-gold: #e0b64a;
+  --podium-silver: #a1a1aa;
+  --podium-bronze: #b07a44;
+
+  /* Focus */
+  --focus-ring: rgba(212, 255, 63, 0.55);
+}

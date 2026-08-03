@@ -274,18 +274,18 @@ function CompactSummaryCard({
     cardState === 'missed_with_results';
   const body = (
     <div
-      className={`group relative overflow-hidden rounded-l-sm rounded-r-xl border-2 border-l-8 bg-surface transition-[border-color,box-shadow] duration-200 ${!linkToRace ? '' : 'hover:shadow-[0_0_0_1px_rgb(var(--accent-hover-rgb)/0.68),0_0_12px_4px_rgb(var(--accent-rgb)/0.18),0_18px_36px_rgb(var(--accent-muted-rgb)/0.24)] focus-visible:shadow-[0_0_0_1px_rgb(var(--accent-hover-rgb)/0.82),0_0_14px_5px_rgb(var(--accent-rgb)/0.22),0_20px_40px_rgb(var(--accent-muted-rgb)/0.28)]'} ${
+      // Was a 2px border with an 8px accent left edge and a three-layer accent
+      // glow on hover. The 8px edge becomes the signature stripe and the glow
+      // becomes a surface step: this system has no shadows, and the accent
+      // earns its weight by being rare.
+      className={`group relative overflow-hidden rounded-lg border bg-surface transition-[border-color,background-color] duration-150 ease-out ${linkToRace ? 'hover:bg-surface-elevated' : ''} ${
         isNextRace
-          ? 'border-accent/70 border-l-accent/70 hover:border-accent'
-          : 'border-border border-l-border hover:border-accent/70'
+          ? 'gpp-stripe border-border hover:border-border-strong'
+          : 'border-border hover:border-border-strong'
       }`}
     >
       <div
-        className={`flex h-[58px] items-stretch overflow-hidden border-b-2 transition-colors ${
-          isNextRace
-            ? 'border-accent/70 group-hover:border-accent'
-            : 'border-border group-hover:border-accent/70'
-        }`}
+        className={`flex h-[58px] items-stretch overflow-hidden border-b border-border transition-colors`}
       >
         <div className="flex min-w-0 flex-1 items-stretch">
           {countryCode && (
@@ -299,12 +299,12 @@ function CompactSummaryCard({
               <RaceFlag
                 countryCode={countryCode}
                 size="full"
-                className="rounded-none shadow-none ring-0"
+                className="rounded-none outline-none"
               />
             </span>
           )}
           <div className="min-w-0 self-center px-2 py-1.5">
-            <p className="text-[11px] font-semibold tracking-wide text-text-muted uppercase">
+            <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
               Round {data.raceRound}
             </p>
             <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-text sm:text-base">
@@ -333,7 +333,7 @@ function CompactSummaryCard({
 
         <div className="rounded-lg border border-border/70 bg-surface-muted/35 p-2">
           <div className="mb-1 flex items-center justify-between">
-            <p className="text-[11px] font-medium tracking-wide text-text-muted uppercase">
+            <p className="text-xs font-medium tracking-label text-text-muted uppercase">
               Weekend Summary
             </p>
             <span className="rounded-md bg-accent/10 px-1.5 py-0.5 text-xs font-semibold text-accent">

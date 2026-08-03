@@ -41,8 +41,21 @@ export function initAnalytics() {
         // same signals Google ranks on, so measuring them here tells us what
         // field data Search Console will eventually reflect.
         capture_performance: { web_vitals: true },
+        defaults: '2026-05-30',
       });
       posthogClient = posthog;
+      // Every event carries the locale, so any existing funnel or trend can be
+      // broken down by it without instrumenting call sites one at a time.
+      posthog.register(localeProperties());
+      // Person properties, set before anyone signs in: most visitors never do,
+      // and flags and experiments can only target the person, so a flag that
+      // decides which language the landing page speaks would otherwise be
+      // untargetable for exactly the audience it is for. These survive
+      // identify, which is what ties the anonymous session to the account.
+      posthog.setPersonProperties(
+        localeProperties(),
+        initialLocaleProperties(),
+      );
       return posthog;
     })
     .catch((error: unknown) => {
@@ -96,6 +109,54 @@ export function capturePageView(path?: string) {
   });
 }
 
+/**
+ * The device's locale, in the property names shared with the mobile app.
+ *
+ * PostHog tags web events with `$browser_language` automatically, but React
+ * Native sends no equivalent, so a breakdown on the auto-captured property
+ * silently means "web only". These names are ours and mean the same thing on
+ * both platforms, which is the point: one breakdown, whole audience.
+ *
+ * `language` is the base tag ("en") and is the one to target. Matching on
+ * `locale` means enumerating en-GB / en-ZA / en-AU to reach the same readers.
+ */
+export function localeProperties(): AnalyticsProperties {
+  if (typeof navigator === 'undefined') {
+    return {};
+  }
+
+  const locale = navigator.language;
+  let timezone: string | undefined;
+  try {
+    timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    // Older engines can throw resolving the zone; the locale is still worth it.
+  }
+
+  return {
+    locale,
+    language: locale?.split('-')[0],
+    timezone,
+  };
+}
+
+/**
+ * The same facts stamped as first-touch, via `$set_once`.
+ *
+ * Current locale answers "who is here now"; this answers "who did we acquire".
+ * Without it a visitor who arrives on a French device and later switches their
+ * phone to English is indistinguishable from one who was always English, and
+ * the question a locale rollout actually asks is the first one.
+ */
+function initialLocaleProperties(): AnalyticsProperties {
+  const { locale, language, timezone } = localeProperties();
+  return {
+    initial_locale: locale,
+    initial_language: language,
+    initial_timezone: timezone,
+  };
+}
+
 export function identifyAnalyticsUser(
   userId: string,
   properties: AnalyticsProperties,
@@ -105,7 +166,45 @@ export function identifyAnalyticsUser(
   }
 
   void getPostHog().then((posthog) => {
-    posthog?.identify(userId, properties);
+    posthog?.identify(
+      userId,
+      { ...localeProperties(), ...properties },
+      initialLocaleProperties(),
+    );
+  });
+}
+
+/**
+ * A signed-in user overriding the regional defaults we guessed from the device.
+ *
+ * The strongest locale signal in the product: someone reaching into settings to
+ * change how dates read is telling us the default was wrong for them, which is
+ * the demand a translation would be serving. Kept as a person property too, so
+ * "device says X, user chose Y" is a cohort rather than an event scan.
+ */
+export function trackRegionalPreference(settings: {
+  timezone?: string | null;
+  locale?: string | null;
+}) {
+  if (!isEnabled()) {
+    return;
+  }
+
+  const device = localeProperties();
+  captureAnalyticsEvent('settings_regional_updated', {
+    chosen_locale: settings.locale,
+    chosen_timezone: settings.timezone,
+    device_locale: device.locale,
+    device_timezone: device.timezone,
+    overrides_device_locale:
+      settings.locale != null && settings.locale !== device.locale,
+  });
+
+  void getPostHog().then((posthog) => {
+    posthog?.setPersonProperties({
+      preferred_locale: settings.locale ?? null,
+      preferred_timezone: settings.timezone ?? null,
+    });
   });
 }
 

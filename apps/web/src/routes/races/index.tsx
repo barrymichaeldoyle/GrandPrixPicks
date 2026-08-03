@@ -153,6 +153,7 @@ function RacesPage() {
                 actions={
                   <div
                     className="grid grid-cols-3 gap-1 rounded-lg bg-surface-muted/55 p-1 sm:w-auto sm:min-w-md"
+                    role="group"
                     aria-label="Filter races"
                   >
                     <Button
@@ -160,6 +161,7 @@ function RacesPage() {
                       variant="tab"
                       size="tab"
                       active={view === 'upcoming'}
+                      aria-pressed={view === 'upcoming'}
                       onClick={() => setView('upcoming')}
                     >
                       Upcoming
@@ -172,6 +174,7 @@ function RacesPage() {
                       variant="tab"
                       size="tab"
                       active={view === 'completed'}
+                      aria-pressed={view === 'completed'}
                       onClick={() => setView('completed')}
                     >
                       Completed
@@ -184,6 +187,7 @@ function RacesPage() {
                       variant="tab"
                       size="tab"
                       active={view === 'all'}
+                      aria-pressed={view === 'all'}
                       onClick={() => setView('all')}
                     >
                       All
@@ -196,7 +200,7 @@ function RacesPage() {
               />
               {displayedFeaturedRace ? (
                 <div className="mb-6 max-w-3xl">
-                  <p className="mb-2 text-xs font-semibold tracking-widest text-text-muted uppercase">
+                  <p className="mb-2 text-xs font-semibold tracking-label text-text-muted uppercase">
                     Next event
                   </p>
                   <RaceCard

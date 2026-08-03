@@ -40,6 +40,8 @@ type RaceEventPageLayoutProps = {
   top5MainContent: ReactNode;
   h2hContent: ReactNode;
   h2hResultsContent: ReactNode;
+  /** Circuit briefing, rendered last so it never displaces the picks flow. */
+  circuitGuideContent?: ReactNode;
 };
 
 export function RaceEventPageLayout({
@@ -66,6 +68,7 @@ export function RaceEventPageLayout({
   top5MainContent,
   h2hContent,
   h2hResultsContent,
+  circuitGuideContent,
 }: RaceEventPageLayoutProps) {
   const { isAuthLoaded, isSignedIn } = viewer;
   const {
@@ -190,7 +193,7 @@ export function RaceEventPageLayout({
                 )}
                 {showReadonlyPredictions && (
                   <div className="mt-7 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+                    <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                       Your {SESSION_LABELS[selectedSession]} Picks
                     </p>
                     <span className="text-xs font-medium text-text-muted">
@@ -230,6 +233,8 @@ export function RaceEventPageLayout({
             {showResultsView && <div className="mt-5">{h2hResultsContent}</div>}
           </div>
         )}
+
+        {circuitGuideContent}
       </div>
     </div>
   );

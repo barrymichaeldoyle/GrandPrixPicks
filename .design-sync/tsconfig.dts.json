@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "outDir": "./ds-package/types",
+    "rootDir": "..",
+    "paths": {
+      "@/*": ["../apps/web/src/*"],
+      "@convex-generated/*": ["../apps/backend/convex/_generated/*"],
+      "@clerk/react": ["../apps/web/src/storybook/mockClerkReact.tsx"],
+      "convex/react": ["../apps/web/src/storybook/mockConvexReact.tsx"]
+    }
+  },
+  "include": ["./ds-package/entry.tsx", "./ds-package/env.d.ts"]
+}

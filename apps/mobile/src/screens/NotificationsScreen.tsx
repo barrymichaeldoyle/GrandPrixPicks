@@ -1,3 +1,5 @@
+import type { ReactionType } from '@grandprixpicks/shared/reactions';
+import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
@@ -34,12 +36,15 @@ type Notification = {
   actorUsername?: string;
   actorDisplayName?: string;
   actorAvatarUrl?: string;
+  reactionType?: ReactionType;
   actors?: Array<{
     username?: string;
     displayName?: string;
     avatarUrl?: string;
     isFollowed: boolean;
+    reactionType: ReactionType;
   }>;
+  totalReactionCount?: number;
   totalRevCount?: number;
 };
 
@@ -147,7 +152,7 @@ export function NotificationsScreen() {
         keyExtractor={(item) => String(item._id)}
         ListEmptyComponent={
           <EmptyState
-            body="When you get revs, results, or session locks, they'll appear here."
+            body="When you get reactions, results, or session locks, they'll appear here."
             icon="notifications-outline"
             title="No notifications yet"
           />
@@ -271,7 +276,8 @@ function NotificationIcon({ notification }: { notification: Notification }) {
 
 function getNotificationTitle(notification: Notification): string {
   if (notification.type === 'rev_received') {
-    const count = notification.totalRevCount ?? 1;
+    const count =
+      notification.totalReactionCount ?? notification.totalRevCount ?? 1;
     const actor = notification.actors?.[0];
     const name =
       actor?.displayName ??
@@ -280,9 +286,11 @@ function getNotificationTitle(notification: Notification): string {
       notification.actorUsername ??
       'Someone';
     if (count > 1) {
-      return `${name} and ${count - 1} other${count - 1 === 1 ? '' : 's'} revved your pick`;
+      return `${name} and ${count - 1} other${count - 1 === 1 ? '' : 's'} reacted to your pick`;
     }
-    return `${name} revved your pick`;
+    const reactionType =
+      actor?.reactionType ?? notification.reactionType ?? 'fire';
+    return `${name} reacted ${REACTION_BY_TYPE[reactionType].emoji} to your pick`;
   }
   if (notification.type === 'results_published') {
     const points = notification.points ?? 0;

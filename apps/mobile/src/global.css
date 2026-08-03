@@ -1,31 +1,64 @@
+/* AUTO-GENERATED — do not edit directly.
+ * Source: packages/shared/src/tokens.ts
+ * Regenerate: pnpm --filter @grandprixpicks/shared generate-tokens
+ */
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css';
 
 @layer theme {
   @theme {
-    --color-page: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-elevated: #243246;
-    --color-surface-muted: #334155;
-    --color-border: #334155;
-    --color-border-strong: #475569;
-    --color-foreground: #f8fafc;
-    --color-muted: #94a3b8;
-    --color-accent: #14b8a6;
-    --color-accent-hover: #2dd4bf;
-    --color-accent-muted: #134e4a;
-    --color-button-accent: #0d9488;
-    --color-button-accent-hover: #0f766e;
-    --color-error: #f87171;
-    --color-success: #34d399;
-    --color-success-muted: #064e3b;
-    --color-warning: #fbbf24;
-    --color-warning-muted: #78350f;
+    --color-page: #101113;
+    --color-surface: #191a1d;
+    --color-surface-elevated: #212226;
+    --color-surface-muted: #212226;
+    --color-surface-hover: #292a2e;
+    --color-surface-sunken: #0c0d0f;
+    --color-border: #2c2d31;
+    --color-border-strong: #3a3b41;
+    --color-text: #f2f2f0;
+    --color-text-muted: #a7a8ad;
+    --color-text-disabled: #5c5d63;
+    --color-text-on-accent: #101113;
+    --color-accent: #d4ff3f;
+    --color-accent-hover: #e2ff6e;
+    --color-accent-press: #b8e035;
+    --color-accent-muted: #2a3316;
+    --color-button-accent: #d4ff3f;
+    --color-button-accent-hover: #e2ff6e;
+    --color-button-accent-shadow: #b8e035;
+    --color-result-exact: #c084fc;
+    --color-result-near: #4ade80;
+    --color-result-top5: #facc15;
+    --color-result-miss: #71717a;
+    --color-delta-up: #4ade80;
+    --color-delta-down: #f87171;
+    --color-delta-flat: #5c5d63;
+    --color-racing-red: #f87171;
+    --color-racing-red-muted: #3a1f22;
+    --color-racing-amber: #facc15;
+    --color-sprint: #c084fc;
+    --color-sprint-border: #c084fc;
+    --color-sprint-text: #d8b4fe;
+    --color-podium-gold: #e0b64a;
+    --color-podium-silver: #a1a1aa;
+    --color-podium-bronze: #b07a44;
+    --color-error: #facc15;
+    --color-error-muted: #3a3416;
+    --color-success: #4ade80;
+    --color-success-muted: #16321f;
+    --color-warning: #facc15;
+    --color-warning-muted: #3a3416;
 
-    --radius-md: 10px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    --color-foreground: #f2f2f0;
+    --color-muted: #a7a8ad;
+
+    --radius-sm: 2px;
+    --radius-md: 2px;
+    --radius-lg: 4px;
+    --radius-xl: 4px;
+    --radius-2xl: 4px;
+    --radius-pill: 999px;
   }
 }
 

@@ -6,7 +6,7 @@ import { renderOgImage } from '../../../src/lib/og/renderer';
 import { h2hResultsTemplate } from '../../../src/lib/og/templates';
 import { SESSION_LABELS } from '../../../src/lib/sessions';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../../../src/lib/teamColors';
-import { loadFlagDataUri, loadStaticImageDataUri } from '../../lib/ogFlag';
+import { loadFlagDataUri } from '../../lib/ogFlag';
 import { captureServerException, startServerSpan } from '../../lib/sentry';
 
 type RouteEvent = {
@@ -72,14 +72,7 @@ export default async function handler(event: RouteEvent) {
       })
       .sort((a, b) => teamStandingsIndex(a.team) - teamStandingsIndex(b.team));
 
-    const [flagSrc, backgroundSrc] = await Promise.all([
-      loadFlagDataUri(url.origin, race),
-      loadStaticImageDataUri(
-        url.origin,
-        '/social/h2h-background-v1.png',
-        'image/png',
-      ),
-    ]);
+    const flagSrc = await loadFlagDataUri(url.origin, race);
 
     const png = await startServerSpan({ name: 'og.renderH2HCard' }, () =>
       renderOgImage(
@@ -89,7 +82,6 @@ export default async function handler(event: RouteEvent) {
           season: race.season,
           sessionLabel: SESSION_LABELS[session],
           flagSrc,
-          backgroundSrc,
           rows,
         }),
         '16:9',

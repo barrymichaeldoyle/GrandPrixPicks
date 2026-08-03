@@ -191,7 +191,7 @@ function F1StandingsPage() {
                     championship points.
                   </caption>
                   <thead>
-                    <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-wide text-text-muted uppercase">
+                    <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
                       {/* Widths are set by these uppercase, letter-spaced
                           labels rather than by the digits below them: "POS"
                           is wider than "22", and "POINTS" is wider than "153".
@@ -243,7 +243,7 @@ function F1StandingsPage() {
                         key={driver.driverId}
                         className="border-t border-border/70"
                       >
-                        <td className="px-2 py-2.5 font-semibold text-text-muted tabular-nums sm:px-3">
+                        <td className="gpp-mono px-2 py-2.5 font-semibold text-text-muted sm:px-3">
                           {driver.position}
                         </td>
                         <th
@@ -275,13 +275,13 @@ function F1StandingsPage() {
                         <td className="hidden px-3 py-2.5 text-text-muted sm:table-cell">
                           {driver.team ? displayTeamName(driver.team) : '—'}
                         </td>
-                        <td className="hidden px-3 py-2.5 text-right text-text-muted tabular-nums sm:table-cell">
+                        <td className="gpp-mono hidden px-3 py-2.5 text-right text-text-muted sm:table-cell">
                           {driver.wins}
                         </td>
-                        <td className="hidden px-3 py-2.5 text-right text-text-muted tabular-nums sm:table-cell">
+                        <td className="gpp-mono hidden px-3 py-2.5 text-right text-text-muted sm:table-cell">
                           {driver.podiums}
                         </td>
-                        <td className="px-2 py-2.5 text-right font-bold text-text tabular-nums sm:px-3">
+                        <td className="gpp-mono px-2 py-2.5 text-right font-semibold text-text sm:px-3">
                           {driver.points}
                         </td>
                       </tr>
@@ -308,7 +308,7 @@ function F1StandingsPage() {
                       points.
                     </caption>
                     <thead>
-                      <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-wide text-text-muted uppercase">
+                      <tr className="bg-surface-muted/50 text-left text-xs font-semibold tracking-label text-text-muted uppercase">
                         <th scope="col" className="px-2 py-2.5 sm:px-3">
                           Pos
                         </th>
@@ -335,7 +335,7 @@ function F1StandingsPage() {
                           key={team.team}
                           className="border-t border-border/70"
                         >
-                          <td className="px-2 py-2.5 font-semibold text-text-muted tabular-nums sm:px-3">
+                          <td className="gpp-mono px-2 py-2.5 font-semibold text-text-muted sm:px-3">
                             {team.position}
                           </td>
                           <th
@@ -357,10 +357,10 @@ function F1StandingsPage() {
                               </span>
                             </span>
                           </th>
-                          <td className="px-2 py-2.5 text-right text-text-muted tabular-nums sm:px-3">
+                          <td className="gpp-mono px-2 py-2.5 text-right text-text-muted sm:px-3">
                             {team.wins}
                           </td>
-                          <td className="px-2 py-2.5 text-right font-bold text-text tabular-nums sm:px-3">
+                          <td className="gpp-mono px-2 py-2.5 text-right font-semibold text-text sm:px-3">
                             {team.points}
                           </td>
                         </tr>
@@ -386,7 +386,7 @@ function F1StandingsPage() {
           </Link>
           <Link
             to="/leaderboard"
-            search={{ time: 'season', mode: 'combined' }}
+            search={{ time: 'season' }}
             className="font-medium text-accent underline-offset-2 hover:underline"
           >
             Prediction game leaderboard

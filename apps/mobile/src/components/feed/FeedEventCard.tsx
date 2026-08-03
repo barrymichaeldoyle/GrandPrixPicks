@@ -1,3 +1,7 @@
+import type {
+  ReactionCounts,
+  ReactionType,
+} from '@grandprixpicks/shared/reactions';
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 
 import type { ConvexId } from '../../integrations/convex/api';
@@ -6,7 +10,7 @@ import { Pressable, Text, View } from '../../tw';
 import { FlagImage } from '../ui/FlagImage';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
-import { RevButton } from './RevButton';
+import { ReactionButton } from './ReactionButton';
 
 type ScoredPick = {
   code: string;
@@ -51,9 +55,10 @@ export type FeedEvent = {
   leagueSlug?: string;
   // streak_milestone
   streakCount?: number;
-  revCount: number;
+  reactionCount: number;
+  reactionCounts: ReactionCounts;
   createdAt: number;
-  viewerHasReved: boolean;
+  viewerReaction: ReactionType | null;
 };
 
 function formatRelativeTime(timestamp: number): string {
@@ -204,10 +209,11 @@ function ScorePublishedCard({ event }: { event: FeedEvent }) {
       ) : null}
 
       <View className="flex-row items-center pt-0.5">
-        <RevButton
+        <ReactionButton
           feedEventId={event._id}
-          revCount={event.revCount}
-          viewerHasReved={event.viewerHasReved}
+          reactionCount={event.reactionCount}
+          reactionCounts={event.reactionCounts}
+          viewerReaction={event.viewerReaction}
         />
       </View>
     </Card>
@@ -226,10 +232,11 @@ function SimpleEventCard({
       <EventHeader event={event} />
       <Text className="text-muted text-sm leading-5">{description}</Text>
       <View className="flex-row items-center pt-0.5">
-        <RevButton
+        <ReactionButton
           feedEventId={event._id}
-          revCount={event.revCount}
-          viewerHasReved={event.viewerHasReved}
+          reactionCount={event.reactionCount}
+          reactionCounts={event.reactionCounts}
+          viewerReaction={event.viewerReaction}
         />
       </View>
     </Card>

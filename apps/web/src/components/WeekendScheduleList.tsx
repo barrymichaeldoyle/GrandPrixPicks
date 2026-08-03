@@ -30,14 +30,14 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
   return (
     <section aria-label="Weekend schedule">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-text-muted uppercase">
           <Calendar size={13} aria-hidden />
           Weekend Schedule
         </p>
         {timezoneLabel ? (
           <span
             suppressHydrationWarning
-            className="text-[11px] font-medium text-text-muted"
+            className="text-xs font-medium text-text-muted"
           >
             {timezoneLabel}
           </span>
@@ -64,13 +64,13 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
               </span>
               <span className="flex items-baseline gap-2">
                 {isLocked && (
-                  <span className="text-[11px] font-medium tracking-wide text-text-muted/60 uppercase">
+                  <span className="text-xs font-medium tracking-label text-text-muted/60 uppercase">
                     Locked
                   </span>
                 )}
                 <span
                   suppressHydrationWarning
-                  className={`tabular-nums ${
+                  className={`gpp-mono ${
                     isLocked ? 'text-text-muted/60' : 'text-text-muted'
                   }`}
                 >

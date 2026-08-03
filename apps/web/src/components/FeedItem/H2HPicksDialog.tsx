@@ -34,7 +34,7 @@ export function H2HPicksDialog({
         }
       }}
     >
-      <div className="mx-4 w-full max-w-xs rounded-sm border border-border bg-surface shadow-xl">
+      <div className="mx-4 w-full max-w-xs rounded-sm border border-border bg-surface">
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-4 pb-2">
           <div>
@@ -80,7 +80,7 @@ export function H2HPicksDialog({
                   key={pick.matchupId}
                   className="flex h-9 items-center gap-2 px-4"
                 >
-                  <span className="w-20 shrink-0 truncate text-[10px] leading-none text-text-muted">
+                  <span className="w-20 shrink-0 truncate text-xs leading-none text-text-muted">
                     {pick.team}
                   </span>
 
@@ -96,7 +96,7 @@ export function H2HPicksDialog({
                     />
                   </span>
 
-                  <span className="shrink-0 text-[10px] leading-none text-text-muted/40">
+                  <span className="shrink-0 text-xs leading-none text-text-muted/40">
                     vs
                   </span>
 

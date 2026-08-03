@@ -1,0 +1,107 @@
+{
+  "generatedAt": "2026-08-02T19:40:27.886Z",
+  "organization": {
+    "id": "64f9a17b902afdecc48c8d02",
+    "name": "My Organization"
+  },
+  "channel": {
+    "id": "6a6f4b8a99afb44349e9c0f4",
+    "name": "GrandPrixPicks",
+    "displayName": "GrandPrixPicks",
+    "service": "twitter",
+    "externalLink": "https://twitter.com/GrandPrixPicks",
+    "isDisconnected": false,
+    "isLocked": false
+  },
+  "assetBaseUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026",
+  "posts": [
+    {
+      "sequence": 1,
+      "team": "Ferrari",
+      "bufferPostId": "6a6f9b0561a1f4fc1881dc33",
+      "status": "scheduled",
+      "dueAt": "2026-08-03T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/01-ferrari.png"
+    },
+    {
+      "sequence": 2,
+      "team": "Red Bull Racing",
+      "bufferPostId": "6a6f9b062bbc9e0587486b82",
+      "status": "scheduled",
+      "dueAt": "2026-08-04T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/02-red-bull-racing.png"
+    },
+    {
+      "sequence": 3,
+      "team": "Audi",
+      "bufferPostId": "6a6f9b0761a1f4fc1881dc86",
+      "status": "scheduled",
+      "dueAt": "2026-08-05T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/03-audi.png"
+    },
+    {
+      "sequence": 4,
+      "team": "McLaren",
+      "bufferPostId": "6a6f9b085dc5613cefe2e535",
+      "status": "scheduled",
+      "dueAt": "2026-08-06T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/04-mclaren.png"
+    },
+    {
+      "sequence": 5,
+      "team": "Mercedes",
+      "bufferPostId": "6a6f9b0961a1f4fc1881dcf4",
+      "status": "scheduled",
+      "dueAt": "2026-08-07T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/05-mercedes.png"
+    },
+    {
+      "sequence": 6,
+      "team": "Williams",
+      "bufferPostId": "6a6f9b0aaacd241cfdafe836",
+      "status": "scheduled",
+      "dueAt": "2026-08-08T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/06-williams.png"
+    },
+    {
+      "sequence": 7,
+      "team": "Cadillac",
+      "bufferPostId": "6a6f9b0baacd241cfdafe85a",
+      "status": "scheduled",
+      "dueAt": "2026-08-09T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/07-cadillac.png"
+    },
+    {
+      "sequence": 8,
+      "team": "Haas",
+      "bufferPostId": "6a6f9b0c61a1f4fc1881dd67",
+      "status": "scheduled",
+      "dueAt": "2026-08-10T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/08-haas.png"
+    },
+    {
+      "sequence": 9,
+      "team": "Racing Bulls",
+      "bufferPostId": "6a6f9b0d2bbc9e0587486bed",
+      "status": "scheduled",
+      "dueAt": "2026-08-11T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/09-racing-bulls.png"
+    },
+    {
+      "sequence": 10,
+      "team": "Aston Martin",
+      "bufferPostId": "6a6f9b0d2bbc9e0587486c4c",
+      "status": "scheduled",
+      "dueAt": "2026-08-12T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/10-aston-martin.png"
+    },
+    {
+      "sequence": 11,
+      "team": "Alpine",
+      "bufferPostId": "6a6f9c6661a1f4fc1881ebaf",
+      "status": "scheduled",
+      "dueAt": "2026-08-13T08:00:00.000Z",
+      "imageUrl": "https://582c3ffe.grand-prix-picks.pages.dev/social/summer-break-team-mate-h2h-2026/11-alpine.png"
+    }
+  ]
+}

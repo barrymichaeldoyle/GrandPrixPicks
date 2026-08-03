@@ -8,7 +8,7 @@
  *
  * Convex IDs are branded strings; use `fakeId<'tableName'>(value)` to cast.
  */
-import type { Id, TableNames } from '@convex-generated/dataModel';
+import type { Doc, Id, TableNames } from '@convex-generated/dataModel';
 
 /** Brand a string as a Convex Id of the given table. Stories only. */
 export function fakeId<T extends TableNames>(value: string) {
@@ -24,14 +24,7 @@ export const DAY = 24 * HOUR;
 
 // ── Drivers (2026 grid) ────────────────────────────────────────────────────
 
-export type MockDriver = {
-  _id: Id<'drivers'>;
-  code: string;
-  displayName: string;
-  team: string;
-  number: number;
-  nationality: string;
-};
+export type MockDriver = Doc<'drivers'>;
 
 function buildDriver(
   id: string,
@@ -43,11 +36,14 @@ function buildDriver(
 ): MockDriver {
   return {
     _id: fakeId<'drivers'>(id),
+    _creationTime: NOW,
     code,
     displayName,
     team,
     number,
     nationality,
+    createdAt: NOW,
+    updatedAt: NOW,
   };
 }
 
@@ -77,22 +73,8 @@ export const mockDrivers = {
   STR: buildDriver('drv-str', 'STR', 'Lance Stroll', 'Aston Martin', 18, 'CA'),
   GAS: buildDriver('drv-gas', 'GAS', 'Pierre Gasly', 'Alpine', 10, 'FR'),
   DOO: buildDriver('drv-doo', 'DOO', 'Jack Doohan', 'Alpine', 7, 'AU'),
-  HUL: buildDriver(
-    'drv-hul',
-    'HUL',
-    'Nico Hulkenberg',
-    'Kick Sauber',
-    27,
-    'DE',
-  ),
-  BOR: buildDriver(
-    'drv-bor',
-    'BOR',
-    'Gabriel Bortoleto',
-    'Kick Sauber',
-    5,
-    'BR',
-  ),
+  HUL: buildDriver('drv-hul', 'HUL', 'Nico Hulkenberg', 'Audi', 27, 'DE'),
+  BOR: buildDriver('drv-bor', 'BOR', 'Gabriel Bortoleto', 'Audi', 5, 'BR'),
   TSU: buildDriver(
     'drv-tsu',
     'TSU',
@@ -107,6 +89,8 @@ export const mockDrivers = {
   BEA: buildDriver('drv-bea', 'BEA', 'Oliver Bearman', 'Haas', 87, 'GB'),
   ALB: buildDriver('drv-alb', 'ALB', 'Alex Albon', 'Williams', 23, 'TH'),
   SAI: buildDriver('drv-sai', 'SAI', 'Carlos Sainz', 'Williams', 55, 'ES'),
+  PER: buildDriver('drv-per', 'PER', 'Sergio Perez', 'Cadillac', 11, 'MX'),
+  BOT: buildDriver('drv-bot', 'BOT', 'Valtteri Bottas', 'Cadillac', 77, 'FI'),
 } as const;
 
 // ── Users ──────────────────────────────────────────────────────────────────

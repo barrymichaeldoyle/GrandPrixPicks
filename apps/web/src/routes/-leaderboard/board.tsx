@@ -2,18 +2,8 @@ import { Loader2, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { PAGE_SIZE, playerCountFormatter } from './constants';
-import {
-  CombinedTableRow,
-  H2HTableRow,
-  LeaderboardRow,
-  SmallLeaderboard,
-} from './rows';
-import type {
-  CombinedLeaderboardEntry,
-  GameMode,
-  H2HLeaderboardEntry,
-  LeaderboardEntry,
-} from './types';
+import { LeaderboardRow, SmallLeaderboard } from './rows';
+import type { LeaderboardEntry } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
 
 /**
@@ -23,12 +13,10 @@ import { NoticeCard } from '@/components/NoticeCard';
  */
 export function LeaderboardBoard({
   entries,
-  gameMode,
   showSmallBoard = true,
   footer,
 }: {
   entries: LeaderboardEntry[];
-  gameMode: GameMode;
   showSmallBoard?: boolean;
   footer?: ReactNode;
 }) {
@@ -44,42 +32,15 @@ export function LeaderboardBoard({
               <th className="px-4 py-3 text-left text-sm font-semibold text-text-muted">
                 Player
               </th>
-              {gameMode === 'combined' && (
-                <>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    Top 5
-                  </th>
-                  <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                    H2H
-                  </th>
-                </>
-              )}
-              {gameMode === 'h2h' && (
-                <th className="hidden px-4 py-3 text-right text-sm font-semibold text-text-muted sm:table-cell">
-                  Accuracy
-                </th>
-              )}
               <th className="px-4 py-3 text-right text-sm font-semibold text-text-muted">
                 Points
               </th>
             </tr>
           </thead>
           <tbody>
-            {entries.map((entry) =>
-              gameMode === 'combined' ? (
-                <CombinedTableRow
-                  key={entry.userId}
-                  entry={entry as CombinedLeaderboardEntry}
-                />
-              ) : gameMode === 'h2h' ? (
-                <H2HTableRow
-                  key={entry.userId}
-                  entry={entry as H2HLeaderboardEntry}
-                />
-              ) : (
-                <LeaderboardRow key={entry.userId} entry={entry} />
-              ),
-            )}
+            {entries.map((entry) => (
+              <LeaderboardRow key={entry.userId} entry={entry} />
+            ))}
           </tbody>
         </table>
 
@@ -97,14 +58,12 @@ export function SeasonLeaderboardLayout({
   entries,
   hasMore,
   totalCount,
-  gameMode,
   isLoadingMore,
   onLoadMore,
 }: {
   entries: LeaderboardEntry[];
   hasMore: boolean;
   totalCount: number;
-  gameMode: GameMode;
   isLoadingMore: boolean;
   onLoadMore?: () => void;
 }) {
@@ -122,7 +81,6 @@ export function SeasonLeaderboardLayout({
   return (
     <LeaderboardBoard
       entries={entries}
-      gameMode={gameMode}
       showSmallBoard={!hasMore}
       footer={
         <div className="flex min-h-[3rem] flex-col items-center justify-center py-4">

@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import type { Id } from '../_generated/dataModel';
 import type { TeammateSessionOutcome } from './teammateBattles';
-import { tallyTeammateBattles } from './teammateBattles';
+import {
+  sortByConstructorStanding,
+  tallyTeammateBattles,
+} from './teammateBattles';
 
 function matchup(id: string): Id<'h2hMatchups'> {
   return id as Id<'h2hMatchups'>;
@@ -25,7 +28,7 @@ function outcome(
 }
 
 describe('tallyTeammateBattles', () => {
-  it('splits one-lap sessions from full-distance ones', () => {
+  it('keeps Grand Prix and sprint sessions separate', () => {
     const tallies = tallyTeammateBattles([
       outcome('quali', LEC),
       outcome('sprint_quali', LEC),
@@ -35,8 +38,20 @@ describe('tallyTeammateBattles', () => {
     ]);
 
     const ferrari = tallies.get(FERRARI)!;
-    expect(ferrari.get(LEC)).toEqual({ qualifying: 2, race: 1, total: 3 });
-    expect(ferrari.get(HAM)).toEqual({ qualifying: 0, race: 2, total: 2 });
+    expect(ferrari.get(LEC)).toEqual({
+      qualifying: 1,
+      race: 1,
+      sprintQualifying: 1,
+      sprint: 0,
+      total: 3,
+    });
+    expect(ferrari.get(HAM)).toEqual({
+      qualifying: 0,
+      race: 1,
+      sprintQualifying: 0,
+      sprint: 1,
+      total: 2,
+    });
   });
 
   it('keeps teams separate', () => {
@@ -57,5 +72,35 @@ describe('tallyTeammateBattles', () => {
     // Both drivers failing to start voids the matchup, so no outcome is
     // recorded and the pair simply has no record yet.
     expect(tallyTeammateBattles([]).get(FERRARI)).toBeUndefined();
+  });
+});
+
+describe('sortByConstructorStanding', () => {
+  it('uses the shared championship order instead of team name', () => {
+    const teams = [
+      { team: 'Alpine' },
+      { team: 'Ferrari' },
+      { team: 'Mercedes' },
+    ];
+
+    expect(sortByConstructorStanding(teams).map((team) => team.team)).toEqual([
+      'Mercedes',
+      'Ferrari',
+      'Alpine',
+    ]);
+  });
+
+  it('falls back to team name for unknown entries', () => {
+    const teams = [
+      { team: 'Zulu Racing' },
+      { team: 'Mercedes' },
+      { team: 'Alpha Racing' },
+    ];
+
+    expect(sortByConstructorStanding(teams).map((team) => team.team)).toEqual([
+      'Mercedes',
+      'Alpha Racing',
+      'Zulu Racing',
+    ]);
   });
 });

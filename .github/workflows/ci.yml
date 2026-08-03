@@ -62,6 +62,9 @@ jobs:
       - name: Typecheck backend
         run: pnpm --filter @grandprixpicks/shared typecheck && pnpm --filter @grandprixpicks/backend typecheck
 
+      - name: Test backend
+        run: pnpm --filter @grandprixpicks/backend test:ci
+
   shared:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -84,6 +87,38 @@ jobs:
 
       - name: Typecheck shared
         run: pnpm --filter @grandprixpicks/shared typecheck
+
+      - name: Test shared
+        run: pnpm --filter @grandprixpicks/shared test:ci
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Lint mobile
+        run: pnpm --filter @grandprixpicks/mobile lint
+
+      - name: Typecheck mobile
+        run: pnpm --filter @grandprixpicks/mobile typecheck
+
+      - name: Test mobile
+        run: pnpm --filter @grandprixpicks/mobile test:ci
 
   knip:
     runs-on: ubuntu-latest

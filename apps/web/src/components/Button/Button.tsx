@@ -5,27 +5,39 @@ import { Children, cloneElement, isValidElement } from 'react';
 
 import { Tooltip } from '@/components/Tooltip';
 
+/**
+ * Nothing scales and nothing shifts position on press — the previous
+ * `active:translate-y-px` was part of the raised-button look this direction
+ * removes. Press is a colour change only, and there is no elevation left to
+ * transition.
+ */
 const base =
-  'inline-flex items-center justify-center gap-1 rounded-md font-semibold leading-none transition-[color,background-color,border-color,box-shadow,transform] duration-150 focus-visible:ring-2 focus-visible:ring-accent/55 focus-visible:ring-offset-2 focus-visible:ring-offset-page focus-visible:outline-none active:translate-y-px [&_svg]:block [&_svg]:shrink-0';
+  'inline-flex items-center justify-center gap-1 rounded-sm font-medium leading-none tracking-tight transition-[color,background-color,border-color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-page focus-visible:outline-none [&_svg]:block [&_svg]:shrink-0';
 
 const variants = {
+  // The accent IS the primary action. Text on accent is near-black, and a
+  // primary button is the one place the accent is allowed to be a large fill.
   primary:
-    'border border-transparent bg-button-accent hover:bg-button-accent-hover text-white disabled:bg-surface-muted disabled:text-text-muted disabled:cursor-not-allowed',
+    'border border-transparent bg-accent hover:bg-accent-hover active:bg-accent-press text-text-on-accent font-semibold disabled:bg-surface-elevated disabled:text-text-disabled disabled:cursor-not-allowed',
+  // Destructive actions are amber, not red: the only red in this system is a
+  // downward position delta. Outlined at rest so a delete never out-weighs the
+  // primary action beside it, solid once the pointer has committed to it.
   danger:
-    'border border-transparent bg-error hover:bg-error/90 text-white disabled:opacity-50 disabled:cursor-not-allowed',
+    'border border-error/40 bg-transparent text-error hover:bg-error hover:text-text-on-accent disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-error',
   saved:
     'border border-success/30 bg-success-muted text-success cursor-default',
   loading: 'cursor-wait opacity-70',
   secondary:
-    'border border-border bg-surface hover:border-border-strong hover:bg-surface-muted text-text disabled:opacity-50 disabled:cursor-not-allowed',
-  text: 'border border-transparent bg-transparent text-accent hover:bg-accent-muted/50 disabled:text-text-muted disabled:hover:bg-transparent disabled:cursor-not-allowed',
-  tab: 'font-medium text-text-muted hover:bg-surface-muted hover:text-text disabled:bg-transparent disabled:text-text-muted/50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted/50',
+    'border border-border bg-transparent hover:border-border-strong hover:bg-surface-elevated text-text disabled:opacity-40 disabled:cursor-not-allowed',
+  text: 'border border-transparent bg-transparent text-text-muted hover:bg-surface hover:text-text disabled:text-text-disabled disabled:hover:bg-transparent disabled:cursor-not-allowed',
+  tab: 'border border-transparent text-text-muted hover:bg-surface hover:text-text disabled:bg-transparent disabled:text-text-disabled disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-disabled',
 } as const;
 
+/** Heights come from the density tokens: 36px compact, 44px touch target. */
 const sizes = {
   inline: 'gap-1 rounded-sm px-1.5 py-0.5 text-xs',
-  sm: 'h-9 px-3 text-sm',
-  md: 'h-11 gap-1.5 px-4 text-base',
+  sm: 'h-9 px-4 text-sm',
+  md: 'h-11 gap-1.5 px-5 text-base',
   tab: 'h-9 rounded-sm px-3 text-sm',
 } as const;
 
@@ -79,9 +91,11 @@ function Button({
   const effectiveVariant = saved ? 'saved' : variant;
   const isDisabled = disabled || loading || saved;
 
+  // Selected = raised surface + accent hairline, the system's one selection
+  // treatment. Applied to rows and slots as the stripe instead.
   const activeStyles =
     effectiveVariant === 'tab' && active
-      ? 'border border-accent/35 bg-accent-muted/55 !text-accent hover:!bg-accent-muted/70 hover:!text-accent-hover cursor-default pointer-events-none'
+      ? 'border border-accent-hairline bg-surface-elevated !text-accent hover:!bg-surface-elevated hover:!text-accent cursor-default pointer-events-none'
       : '';
 
   const resolvedClassName = [
@@ -148,8 +162,6 @@ function Button({
       ref={ref}
       type={type}
       disabled={isDisabled}
-      aria-selected={effectiveVariant === 'tab' ? active : undefined}
-      role={effectiveVariant === 'tab' ? 'tab' : undefined}
       className={
         tooltip ? `${resolvedClassName} w-full`.trim() : resolvedClassName
       }
@@ -174,9 +186,5 @@ export { Button };
 
 /** Class names for styling a link as a primary button (e.g. Link from react-router). */
 export function primaryButtonStyles(size: ButtonSize = 'md'): string {
-  return [
-    base,
-    sizes[size],
-    'bg-button-accent hover:bg-button-accent-hover text-white',
-  ].join(' ');
+  return [base, sizes[size], variants.primary].join(' ');
 }

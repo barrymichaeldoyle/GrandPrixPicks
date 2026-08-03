@@ -1,3 +1,5 @@
+import type { ReactionType } from '@grandprixpicks/shared/reactions';
+import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -14,12 +16,13 @@ import { Avatar } from './Avatar';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
 
-type RevActor = {
+type ReactionActor = {
   userId?: Id<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
   isFollowed: boolean;
+  reactionType: ReactionType;
 };
 
 type Notification = {
@@ -46,9 +49,11 @@ type Notification = {
   actorUsername?: string;
   actorDisplayName?: string;
   actorAvatarUrl?: string;
+  reactionType?: ReactionType;
   feedEventId?: Id<'feedEvents'>;
-  // Grouped rev fields (set by backend when multiple actors rev the same post)
-  actors?: RevActor[];
+  // Grouped reaction fields.
+  actors?: ReactionActor[];
+  totalReactionCount?: number;
   totalRevCount?: number;
 };
 
@@ -67,25 +72,6 @@ function timeAgo(ts: number): string {
   }
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
-}
-
-function RevIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2.5 11.5 A6 6 0 1 1 13.5 11.5" />
-      <path d="M8 8 L5.5 5.5" />
-      <circle cx="8" cy="8" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  );
 }
 
 function NotificationRaceChip({
@@ -120,12 +106,12 @@ function NotificationRaceChip({
   );
 }
 
-function firstName(actor: RevActor): string {
+function firstName(actor: ReactionActor): string {
   const name = actor.displayName ?? actor.username ?? 'Someone';
   return name.split(' ')[0];
 }
 
-function RevActorNames({ actors }: { actors: RevActor[] }) {
+function ReactionActorNames({ actors }: { actors: ReactionActor[] }) {
   if (actors.length === 0) {
     return <span className="font-semibold text-text">Someone</span>;
   }
@@ -210,7 +196,7 @@ function NotificationItem({
       <span
         className={`mt-1 h-2 w-2 rounded-full bg-accent ${isUnread ? 'opacity-100' : 'opacity-0'}`}
       />
-      <span className="text-[10px] whitespace-nowrap text-text-muted">
+      <span className="text-xs whitespace-nowrap text-text-muted">
         {timeAgo(notification.createdAt)}
       </span>
     </div>
@@ -224,9 +210,19 @@ function NotificationItem({
         displayName: notification.actorDisplayName,
         avatarUrl: notification.actorAvatarUrl,
         isFollowed: false,
+        reactionType: notification.reactionType ?? 'fire',
       },
     ];
     const primary = actors[0];
+    const reactionEmojis = [
+      ...new Set(
+        actors.map(
+          (actor) => REACTION_BY_TYPE[actor.reactionType ?? 'fire'].emoji,
+        ),
+      ),
+    ]
+      .slice(0, 3)
+      .join('');
 
     return (
       <Link
@@ -255,20 +251,17 @@ function NotificationItem({
                 username={primary.username}
                 size="sm"
               />
-              <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[9px] text-white">
-                <RevIcon className="h-2.5 w-2.5" />
+              <span className="absolute -right-1.5 -bottom-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-surface px-0.5 text-[10px] ring-1 ring-border">
+                {REACTION_BY_TYPE[primary.reactionType ?? 'fire'].emoji}
               </span>
             </div>
           </LeftCol>
           <div className="min-w-0 flex-1 pt-0.5">
             <p className="text-sm text-text">
-              <RevActorNames actors={actors} />{' '}
-              <span className="inline-flex items-center gap-0.75">
-                <span className="text-text-muted">gave you a</span>{' '}
-                <span className="inline-flex items-center gap-0.75 font-semibold text-accent">
-                  <RevIcon className="relative top-0.25 h-3.5 w-3.5" />
-                  Rev
-                </span>
+              <ReactionActorNames actors={actors} />{' '}
+              <span className="inline-flex items-center gap-1">
+                <span className="text-text-muted">reacted to your pick</span>
+                <span aria-label="Reactions">{reactionEmojis}</span>
               </span>
             </p>
             {notification.raceName && (
@@ -575,7 +568,7 @@ export function NotificationBell() {
           />
           <div
             ref={panelRef}
-            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-sm border border-border bg-surface shadow-xl sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
+            className="fixed inset-x-2 top-[65px] z-[100] overflow-hidden rounded-sm border border-border bg-surface sm:inset-x-auto sm:top-[calc(61px+0.5rem)] sm:right-2 sm:w-96 md:right-4 md:w-[28rem]"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
               <span className="text-sm font-semibold text-text">
@@ -642,7 +635,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-[10px] leading-none font-bold text-white"
+            className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-0.5 text-xs leading-none font-semibold text-text-on-accent"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>

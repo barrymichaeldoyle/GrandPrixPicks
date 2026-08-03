@@ -123,6 +123,58 @@ export function tallyDriverPoints(
   return tally;
 }
 
+export type ConstructorDriverEntry = {
+  team: string | null;
+  stats: DriverTally;
+};
+
+export type ConstructorStanding = {
+  team: string;
+  points: number;
+  wins: number;
+  position: number;
+};
+
+/**
+ * Pool driver tallies by team and apply the Constructors' Championship
+ * countback. Kept pure so other official-data views can use the same ordering.
+ */
+export function rankConstructorStandings(
+  drivers: ReadonlyArray<ConstructorDriverEntry>,
+): ConstructorStanding[] {
+  const teamTally = new Map<string, DriverTally>();
+  for (const { team, stats } of drivers) {
+    if (!team) {
+      continue;
+    }
+    const current = teamTally.get(team) ?? emptyDriverTally();
+    current.points += stats.points;
+    current.wins += stats.wins;
+    current.podiums += stats.podiums;
+    // A team's countback is its drivers' finishes pooled together, so the
+    // constructors' tie-break follows the same "most P1s, then P2s…" rule.
+    stats.racePositionCounts.forEach((count, index) => {
+      current.racePositionCounts[index] =
+        (current.racePositionCounts[index] ?? 0) + count;
+    });
+    teamTally.set(team, current);
+  }
+
+  return [...teamTally.entries()]
+    .sort(
+      ([teamA, statsA], [teamB, statsB]) =>
+        statsB.points - statsA.points ||
+        compareCountback(statsA, statsB) ||
+        teamA.localeCompare(teamB),
+    )
+    .map(([team, stats], index) => ({
+      team,
+      points: stats.points,
+      wins: stats.wins,
+      position: index + 1,
+    }));
+}
+
 export const getF1Championship = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -203,37 +255,12 @@ export const getF1Championship = query({
       position: index + 1,
     }));
 
-    const teamTally = new Map<string, DriverTally>();
-    for (const { driver, stats } of rankedDrivers) {
-      if (!driver.team) {
-        continue;
-      }
-      const current = teamTally.get(driver.team) ?? emptyDriverTally();
-      current.points += stats.points;
-      current.wins += stats.wins;
-      current.podiums += stats.podiums;
-      // A team's countback is its drivers' finishes pooled together, so the
-      // constructors' tie-break follows the same "most P1s, then P2s…" rule.
-      stats.racePositionCounts.forEach((count, index) => {
-        current.racePositionCounts[index] =
-          (current.racePositionCounts[index] ?? 0) + count;
-      });
-      teamTally.set(driver.team, current);
-    }
-
-    const constructorStandings = [...teamTally.entries()]
-      .sort(
-        ([teamA, statsA], [teamB, statsB]) =>
-          statsB.points - statsA.points ||
-          compareCountback(statsA, statsB) ||
-          teamA.localeCompare(teamB),
-      )
-      .map(([team, stats], index) => ({
-        team,
-        points: stats.points,
-        wins: stats.wins,
-        position: index + 1,
-      }));
+    const constructorStandings = rankConstructorStandings(
+      rankedDrivers.map(({ driver, stats }) => ({
+        team: driver.team ?? null,
+        stats,
+      })),
+    );
 
     return {
       season,

@@ -39,7 +39,7 @@ export function UpcomingPredictionNudge({
       <div className="banner-drop-inner relative border-b border-border bg-surface/60">
         <div
           aria-hidden="true"
-          className="banner-rail-sweep pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-border"
         />
         <Link
           to="/races/$raceSlug"

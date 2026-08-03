@@ -1,8 +1,8 @@
 import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
 import {
   Flag,
-  Gauge,
   History,
+  House,
   SlidersHorizontal,
   Trophy,
   Users,
@@ -60,9 +60,7 @@ export function ClerkHeaderUser({
             label={`My Picks · ${nextRaceLink.label}`}
             labelIcon={
               nextRaceLink.countryCode ? (
-                <span className="inline-flex h-3.5 w-5 overflow-hidden rounded-[2px]">
-                  <CountryFlag code={nextRaceLink.countryCode} size="full" />
-                </span>
+                <CountryFlag code={nextRaceLink.countryCode} size="xs" />
               ) : (
                 <Flag className="h-4 w-4" />
               )
@@ -79,9 +77,9 @@ export function ClerkHeaderUser({
         ) : null}
         {isMobile ? (
           <UserButton.Link
-            label="Feed"
-            labelIcon={<Gauge className="h-4 w-4" />}
-            href="/feed"
+            label="Home"
+            labelIcon={<House className="h-4 w-4" />}
+            href="/"
           />
         ) : null}
         {isMobile ? (
@@ -125,8 +123,33 @@ function OpenSignInOnMount({ signInOpened }: { signInOpened: () => void }) {
     if (!isLoaded) {
       return;
     }
-    void clerk.openSignIn();
-    signInOpened();
+
+    let finished = false;
+    function finish() {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      signInOpened();
+    }
+    function finishWhenModalExists() {
+      if (document.querySelector('.cl-modalBackdrop')) {
+        finish();
+      }
+    }
+
+    const observer = new MutationObserver(finishWhenModalExists);
+    observer.observe(document.body, { childList: true, subtree: true });
+    clerk.openSignIn();
+    finishWhenModalExists();
+    // Never leave the anonymous shell disabled if Clerk fails to create its
+    // modal. A normal second click can retry after this safety release.
+    const timeout = window.setTimeout(finish, 4_500);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timeout);
+    };
   }, [clerk, isLoaded, signInOpened]);
 
   return null;

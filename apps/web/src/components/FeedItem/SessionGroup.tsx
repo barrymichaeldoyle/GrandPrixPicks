@@ -2,7 +2,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { Avatar } from '../Avatar';
 import { RaceFlag } from '../RaceFlag';
-import { RevButton } from '../RevButton';
+import { ReactionButton } from '../ReactionButton';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { podiumClasses } from '@/lib/podium';
 import { useEffect, useRef, useState } from 'react';
@@ -11,7 +11,7 @@ import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
 import type { FeedEvent, SessionHeader } from './types';
 import { FeedItem } from './FeedItem';
 import { H2HPicksDialog } from './H2HPicksDialog';
-import { RevsModal } from './RevsModal';
+import { ReactionsModal } from './ReactionsModal';
 import { UserLink } from './UserLink';
 import {
   SESSION_LABELS,
@@ -29,7 +29,7 @@ function RankMedal({ rank }: { rank: number | null }) {
   if (medal) {
     return (
       <span
-        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border text-xs font-bold tabular-nums ${medal}`}
+        className={`gpp-mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border text-xs font-semibold ${medal}`}
       >
         {rank}
       </span>
@@ -37,7 +37,7 @@ function RankMedal({ rank }: { rank: number | null }) {
   }
 
   return (
-    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-xs font-semibold text-text-muted/70 tabular-nums">
+    <span className="gpp-mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-xs font-semibold text-text-muted/70">
       {rank}
     </span>
   );
@@ -51,14 +51,14 @@ function AnswerKeyRow({ top5 }: { top5: SessionHeader['top5'] }) {
     <div className="flex items-end gap-2.5 border border-t-0 border-border bg-surface-muted/40 px-2.5 py-2">
       <div className="flex h-8 w-[66px] shrink-0 items-center gap-1.5 text-text-muted">
         <Trophy className="h-4 w-4 shrink-0 text-accent" />
-        <span className="text-[10px] font-semibold tracking-wide uppercase">
+        <span className="text-xs font-semibold tracking-label uppercase">
           Result
         </span>
       </div>
       <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
         {top5.map((driver, i) => (
           <div key={driver.code} className="flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-medium text-text-muted">
+            <span className="text-xs font-medium text-text-muted">
               P{i + 1}
             </span>
             <DriverBadge
@@ -87,7 +87,7 @@ function SessionLeaderboardRow({
   isLast: boolean;
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
-  const [revsOpen, setRevsOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   const total = eventTotalPoints(event);
 
   return (
@@ -120,22 +120,22 @@ function SessionLeaderboardRow({
                 displayName={event.displayName}
               />
               {isViewer && (
-                <span className="rounded-sm bg-accent/15 px-1.5 py-px text-[10px] font-semibold tracking-wide text-accent uppercase">
+                <span className="rounded-sm bg-accent/15 px-1.5 py-px text-xs font-semibold tracking-label text-accent uppercase">
                   You
                 </span>
               )}
               {event.username && (
-                <span className="truncate text-[11px] text-text-muted">
+                <span className="truncate text-xs text-text-muted">
                   @{event.username}
                 </span>
               )}
             </p>
-            <span className="shrink-0 text-sm font-bold text-accent tabular-nums">
+            <span className="gpp-mono shrink-0 text-sm font-semibold text-accent">
               +{total}
             </span>
           </div>
 
-          {/* One wrap flow: badges fill first, Rev's ml-auto keeps it right and
+          {/* One wrap flow: badges fill first, reactions stay right and
               lets it drop to its own line on narrow screens. */}
           <div className="flex flex-wrap items-center gap-1.5">
             {(event.picks ?? []).map((pick) => (
@@ -154,18 +154,18 @@ function SessionLeaderboardRow({
               <button
                 type="button"
                 onClick={() => setH2hOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
+                className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
               >
                 H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
               </button>
             )}
             <div className="ml-auto shrink-0">
-              <RevButton
+              <ReactionButton
                 feedEventId={event._id}
-                revCount={event.revCount}
-                viewerHasReved={event.viewerHasReved}
-                recentRevUsers={event.recentRevUsers}
-                onCountClick={() => setRevsOpen(true)}
+                reactionCount={event.reactionCount}
+                reactionCounts={event.reactionCounts}
+                viewerReaction={event.viewerReaction}
+                onCountClick={() => setReactionsOpen(true)}
               />
             </div>
           </div>
@@ -183,8 +183,11 @@ function SessionLeaderboardRow({
           onClose={() => setH2hOpen(false)}
         />
       )}
-      {revsOpen && (
-        <RevsModal feedEventId={event._id} onClose={() => setRevsOpen(false)} />
+      {reactionsOpen && (
+        <ReactionsModal
+          feedEventId={event._id}
+          onClose={() => setReactionsOpen(false)}
+        />
       )}
     </>
   );
@@ -334,7 +337,7 @@ function SessionSeparator({
               </span>
             )}
             {pending ? (
-              <span className="block text-[9px] font-semibold tracking-wide text-accent uppercase">
+              <span className="block text-[9px] font-semibold tracking-label text-accent uppercase">
                 Awaiting results
               </span>
             ) : null}
@@ -347,7 +350,7 @@ function SessionSeparator({
         <div className="flex gap-2 px-3 pt-2 pb-2.5">
           {session.top5.map((driver, i) => (
             <div key={driver.code} className="flex flex-col items-center gap-1">
-              <span className="text-[10px] font-medium text-text-muted">
+              <span className="text-xs font-medium text-text-muted">
                 P{i + 1}
               </span>
               <DriverBadge

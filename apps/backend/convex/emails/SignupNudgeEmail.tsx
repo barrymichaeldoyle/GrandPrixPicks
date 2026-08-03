@@ -1,3 +1,4 @@
+import { emailColors as email } from '@grandprixpicks/shared/tokens';
 import {
   Body,
   Button,
@@ -11,6 +12,8 @@ import {
   Section,
   Text,
 } from 'react-email';
+
+import { SANS } from './fonts';
 
 export type SignupNudgeEmailProps = {
   raceName: string | null;
@@ -30,7 +33,7 @@ export function SignupNudgeEmail({
       <Head>
         <style>{`
           .cta-button:hover {
-            background-color: #0f766e !important;
+            background-color: ${email.accentHover} !important;
           }
         `}</style>
       </Head>
@@ -51,15 +54,13 @@ export function SignupNudgeEmail({
             >
               <tr>
                 <td align="center">
-                  <div style={logoCircle}>
-                    <Img
-                      src={logoUrl}
-                      width="20"
-                      height="20"
-                      alt=""
-                      style={logoIcon}
-                    />
-                  </div>
+                  <Img
+                    src={logoUrl}
+                    width="32"
+                    height="32"
+                    alt=""
+                    style={logoIcon}
+                  />
                 </td>
               </tr>
               <tr>
@@ -76,7 +77,7 @@ export function SignupNudgeEmail({
               {raceName ? (
                 <>
                   Pick your top 5 for the{' '}
-                  <strong style={{ color: '#0f172a' }}>{raceName}</strong> and
+                  <strong style={{ color: email.text }}>{raceName}</strong> and
                   start scoring this weekend.
                 </>
               ) : (
@@ -104,17 +105,16 @@ export function SignupNudgeEmail({
 /* ── Styles ─────────────────────────────────────────── */
 
 const body = {
-  backgroundColor: '#f1f5f9',
-  fontFamily:
-    'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  backgroundColor: email.page,
+  fontFamily: SANS,
   margin: '0',
   padding: '0 8px',
 };
 
 const container = {
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  border: '1px solid #e2e8f0',
+  backgroundColor: email.surface,
+  borderRadius: '4px',
+  border: `1px solid ${email.border}`,
   margin: '40px auto',
   padding: '32px',
   maxWidth: '480px',
@@ -125,35 +125,24 @@ const logoRow = {
   margin: '0 0 16px',
 };
 
-const logoCircle = {
-  display: 'inline-block' as const,
-  width: '32px',
-  height: '32px',
-  lineHeight: '32px',
-  backgroundColor: '#ccfbf1',
-  borderRadius: '9999px',
-  textAlign: 'center' as const,
-};
-
 const logoIcon = {
   display: 'inline-block',
   verticalAlign: 'middle',
-  position: 'relative' as const,
-  top: '-1px',
-  left: '1px',
+  borderRadius: '4px',
 };
 
 const brandText = {
-  color: '#0f172a',
-  fontSize: '24px',
-  fontWeight: '700' as const,
+  color: email.text,
+  fontSize: '22px',
+  fontWeight: '600' as const,
+  fontFamily: SANS,
   textAlign: 'center' as const,
   paddingTop: '8px',
-  letterSpacing: '-0.01em',
+  letterSpacing: '0.12em',
 };
 
 const hr = {
-  borderColor: '#e2e8f0',
+  borderColor: email.border,
   margin: '20px 0',
 };
 
@@ -162,7 +151,7 @@ const section = {
 };
 
 const headline = {
-  color: '#0f172a',
+  color: email.text,
   fontSize: '20px',
   fontWeight: '600' as const,
   lineHeight: '28px',
@@ -170,16 +159,16 @@ const headline = {
 };
 
 const text = {
-  color: '#475569',
+  color: email.textMuted,
   fontSize: '16px',
   lineHeight: '24px',
   margin: '0 0 12px',
 };
 
 const button = {
-  backgroundColor: '#0d9488',
-  borderRadius: '8px',
-  color: '#ffffff',
+  backgroundColor: email.accent,
+  borderRadius: '2px',
+  color: email.textOnAccent,
   display: 'inline-block',
   fontSize: '16px',
   fontWeight: '600' as const,
@@ -189,7 +178,7 @@ const button = {
 };
 
 const footer = {
-  color: '#64748b',
+  color: email.textMuted,
   fontSize: '12px',
   lineHeight: '18px',
   textAlign: 'center' as const,
@@ -197,7 +186,7 @@ const footer = {
 };
 
 const footerLink = {
-  color: '#0d9488',
+  color: email.text,
   textDecoration: 'underline',
 };
 

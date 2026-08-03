@@ -5,8 +5,8 @@ import { Text } from '../../tw';
 
 /**
  * Numeral — broadcast-style typography for any numeric value in the app.
- * Uses Orbitron for emphasis variants, tabular figures everywhere so columns
- * align. Treat strings as "presentational numerals" too (e.g. "P1", "#3", "5 pts").
+ * Uses IBM Plex Mono for emphasis variants, tabular figures everywhere so
+ * columns align. Treat strings as "presentational numerals" too (e.g. "P1", "#3", "5 pts").
  */
 
 type NumeralVariant =

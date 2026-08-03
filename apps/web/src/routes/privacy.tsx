@@ -80,10 +80,9 @@ function PrivacyPage() {
             <p>
               Account and authentication data are handled by Clerk. Prediction
               and leaderboard data are stored in Convex. We rely on these
-              providers’ security and compliance practices. The core game is
-              free to play; an optional paid season pass unlocks premium
-              features. Payments are processed by our payment provider (Paddle),
-              and we do not store your card or payment details.
+              providers’ security and compliance practices. If you make an
+              optional purchase, payments are processed by our payment provider
+              (Paddle), and we do not store your card or payment details.
             </p>
           </section>
 

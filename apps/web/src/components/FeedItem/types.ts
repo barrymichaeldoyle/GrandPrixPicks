@@ -1,3 +1,7 @@
+import type {
+  ReactionCounts,
+  ReactionType,
+} from '@grandprixpicks/shared/reactions';
 import type { Id } from '@convex-generated/dataModel';
 
 export type ScoredPick = {
@@ -47,14 +51,16 @@ export type FeedEvent = {
   leagueSlug?: string;
   // streak_milestone
   streakCount?: number;
-  revCount: number;
-  recentRevUsers?: {
+  reactionCount: number;
+  reactionCounts: ReactionCounts;
+  recentReactionUsers?: {
     userId: Id<'users'>;
     username?: string;
     avatarUrl?: string;
+    reactionType: ReactionType;
   }[];
   createdAt: number;
-  viewerHasReved: boolean;
+  viewerReaction: ReactionType | null;
 };
 
 // Feed events carry sessionType as a plain string, so widen the shared map.

@@ -6,9 +6,8 @@ import {
 } from '@grandprixpicks/shared/driverStatus';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Gavel, Swords } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { m } from 'framer-motion';
+import { ChevronDown, ChevronUp, Gavel, Swords, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
@@ -40,93 +39,6 @@ interface H2HResultsSectionProps {
   initialDrivers?: Doc<'drivers'>[];
   initialAvailableSessions?: SessionType[];
   initialResultsBySession?: RaceWeekendInitialResults['resultsBySession'];
-}
-
-function SessionBreakdownPillShell({
-  label,
-  variant,
-  value,
-}: {
-  label: ReactNode;
-  variant: 'default' | 'emphasis';
-  value: ReactNode;
-}) {
-  const shellClassName =
-    variant === 'emphasis'
-      ? 'border border-accent/40 bg-accent-muted/30'
-      : 'border border-border bg-surface';
-
-  return (
-    <div
-      className={`w-full rounded-lg px-3 py-1.5 text-sm sm:w-auto ${shellClassName}`}
-    >
-      <div className="flex w-full items-center justify-between gap-1.5 sm:w-auto sm:justify-start sm:gap-2">
-        <span className="min-w-0 shrink text-xs text-text-muted">{label}</span>
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function SessionBreakdownStatPill({
-  label,
-  points,
-}: {
-  label: string;
-  points: number;
-}) {
-  return (
-    <SessionBreakdownPillShell
-      label={label}
-      variant="default"
-      value={
-        <div className="leading-tight font-semibold text-accent">
-          +{points} pts
-        </div>
-      }
-    />
-  );
-}
-
-function SessionBreakdownH2HStatPill({
-  points,
-  correctPicks,
-  totalPicks,
-}: {
-  points: number;
-  correctPicks: number;
-  totalPicks: number;
-}) {
-  return (
-    <SessionBreakdownPillShell
-      label={
-        <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
-          <span>H2H</span>
-          <span>
-            {correctPicks}/{totalPicks} correct
-          </span>
-        </span>
-      }
-      variant="default"
-      value={
-        <div className="leading-tight font-semibold text-accent">
-          +{points} pts
-        </div>
-      }
-    />
-  );
-}
-
-function SessionBreakdownSessionGainPill({ points }: { points: number }) {
-  return (
-    <SessionBreakdownPillShell
-      label="Session Gain"
-      variant="emphasis"
-      value={
-        <div className="leading-tight font-bold text-accent">+{points} pts</div>
-      }
-    />
-  );
 }
 
 export function H2HResultsSection({
@@ -330,38 +242,9 @@ export function H2HResultsSection({
 
   return (
     <div data-testid="session-points-breakdown">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Swords className="h-5 w-5 text-accent" />
-          <h2 className="text-lg font-semibold text-text sm:text-xl">
-            {isSignedIn ? 'Session Points Breakdown' : 'Session Results'}
-          </h2>
-        </div>
-
-        {/* Every pill here is the viewer's own score, so for a signed-out
-            reader the whole row is zeros. */}
-        {isSignedIn && (
-          <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-[repeat(3,max-content)]">
-            <SessionBreakdownStatPill
-              label="Top 5"
-              points={selectedTop5Points}
-            />
-            {myH2HScore ? (
-              <SessionBreakdownH2HStatPill
-                points={selectedH2HPoints}
-                correctPicks={myH2HScore.correctPicks}
-                totalPicks={myH2HScore.totalPicks}
-              />
-            ) : (
-              <SessionBreakdownStatPill
-                label="H2H"
-                points={selectedH2HPoints}
-              />
-            )}
-            <SessionBreakdownSessionGainPill points={sessionPointsGain} />
-          </div>
-        )}
-      </div>
+      <h2 className="mb-3 text-lg font-semibold text-text sm:text-xl">
+        Session Results
+      </h2>
 
       {!isSelectedSessionScored ? (
         <div className="rounded-lg border border-border bg-surface px-4 py-5 text-sm text-text-muted">
@@ -399,6 +282,17 @@ export function H2HResultsSection({
                 </div>
               </div>
             )}
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-1.5">
+              <Trophy className="h-4 w-4 text-accent" />
+              <h3 className="text-sm font-semibold text-text">Top 5</h3>
+            </div>
+            {isSignedIn && (
+              <span className="text-sm font-semibold text-accent">
+                +{selectedTop5Points} pts
+              </span>
+            )}
+          </div>
           <div className="flex flex-col gap-1">
             <div className="rounded-lg border border-border bg-surface">
               <table className="w-full">
@@ -443,7 +337,6 @@ export function H2HResultsSection({
                       ? top5ByPredictedPosition.get(predictedPos)
                       : undefined;
                     const top5Pts = top5?.points ?? 0;
-                    const rowTotal = top5Pts;
                     const isTop5Actual = entry.position <= 5;
 
                     return (
@@ -475,15 +368,6 @@ export function H2HResultsSection({
                                       No pick
                                     </span>
                                   )}
-                                  <span
-                                    className={`text-xs font-semibold ${
-                                      top5Pts > 0
-                                        ? 'text-success'
-                                        : 'text-text-muted'
-                                    }`}
-                                  >
-                                    +{top5Pts}
-                                  </span>
                                 </div>
                               ) : (
                                 <span className="text-xs text-text-muted/60">
@@ -493,10 +377,10 @@ export function H2HResultsSection({
                             </td>
                             <td
                               className={`px-2 py-2 text-right text-sm font-semibold sm:px-4 ${
-                                rowTotal > 0 ? 'text-accent' : 'text-text-muted'
+                                top5Pts > 0 ? 'text-accent' : 'text-text-muted'
                               }`}
                             >
-                              +{rowTotal}
+                              +{top5Pts}
                             </td>
                           </>
                         )}
@@ -508,7 +392,7 @@ export function H2HResultsSection({
                   <tfoot>
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={isSignedIn ? 4 : 2}
                         className="border-t border-border px-2 py-0 sm:px-4"
                       >
                         <button
@@ -542,7 +426,7 @@ export function H2HResultsSection({
               6-driver one. Collapsed state is height 0 plus inert.
             */}
             {remainingRows.length > 0 && (
-              <motion.div
+              <m.div
                 key="full-results"
                 initial={false}
                 animate={{
@@ -606,7 +490,7 @@ export function H2HResultsSection({
                   <ChevronUp size={14} />
                   Hide full results
                 </button>
-              </motion.div>
+              </m.div>
             )}
           </div>
           <div className="flex items-center justify-between gap-2 pt-2">
@@ -646,20 +530,11 @@ export function H2HResultsSection({
           )}
 
           {isSignedIn && (
-            <div className="rounded-lg border border-border bg-surface-muted/60 px-3 py-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold text-text">Session Total</span>
-                <span className="font-semibold">
-                  <span className="text-text">Top 5 </span>
-                  <span className="text-accent">+{selectedTop5Points}</span>
-                  <span className="text-text-muted"> | </span>
-                  <span className="text-text">H2H </span>
-                  <span className="text-accent">+{selectedH2HPoints}</span>
-                  <span className="text-text-muted"> | </span>
-                  <span className="text-text">Total </span>
-                  <span className="text-accent">+{sessionPointsGain}</span>
-                </span>
-              </div>
+            <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+              <span className="font-semibold text-text">Session Total</span>
+              <span className="font-semibold text-accent">
+                +{sessionPointsGain} pts
+              </span>
             </div>
           )}
         </div>

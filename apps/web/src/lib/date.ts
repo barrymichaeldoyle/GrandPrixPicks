@@ -138,7 +138,7 @@ export function formatTimeZoneAbbreviation(
   }
 }
 
-/** Human-readable countdown (e.g. "23d 3h 5m 9s" or "2h 30m 15s"). */
+/** Zero-padded countdown, omitting seconds while at least one day remains. */
 function getTimeUntil(timestamp: number): string {
   const parts = getCountdownParts(timestamp - Date.now());
 
@@ -147,10 +147,15 @@ function getTimeUntil(timestamp: number): string {
   }
 
   const { days, hours, minutes, seconds } = parts;
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+  function pad(value: number): string {
+    return String(value).padStart(2, '0');
   }
-  return `${hours}h ${minutes}m ${seconds}s`;
+
+  if (days > 0) {
+    return `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m`;
+  }
+  return `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
 }
 
 /** Live countdown that ticks every second. */

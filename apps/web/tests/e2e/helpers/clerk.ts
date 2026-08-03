@@ -148,15 +148,14 @@ export async function signInE2EClerkIdentity(
         timeout: 20_000,
       });
       await page.waitForFunction(
-        () => {
+        (appOrigin) => {
           const href = window.location.href;
           return (
-            href.includes('127.0.0.1:3000') ||
-            href.includes('localhost:3000') ||
+            href.startsWith(appOrigin) ||
             href.includes('accounts.dev/default-redirect')
           );
         },
-        undefined,
+        E2E_APP_ORIGIN,
         { timeout: 20_000 },
       );
 

@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { SeasonLeaderboardLayout } from './board';
 import { LeaderboardContentLoader } from './rows';
-import type { GameMode, LeaderboardEntry } from './types';
+import type { LeaderboardEntry } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
 
 export function FollowingGuard({ children }: PropsWithChildren) {
@@ -24,7 +24,7 @@ export function FollowingGuard({ children }: PropsWithChildren) {
           <SignInButton mode="modal">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent/90"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-text-on-accent transition-colors hover:bg-accent/90"
             >
               Sign In
             </button>
@@ -39,7 +39,6 @@ export function FollowingGuard({ children }: PropsWithChildren) {
 
 export function FollowingSeasonContent({
   data,
-  gameMode,
 }: {
   data:
     | {
@@ -48,7 +47,6 @@ export function FollowingSeasonContent({
         hasMore: boolean;
       }
     | undefined;
-  gameMode: GameMode;
 }) {
   if (data === undefined) {
     return <LeaderboardContentLoader />;
@@ -74,7 +72,6 @@ export function FollowingSeasonContent({
       entries={data.entries}
       hasMore={data.hasMore}
       totalCount={data.totalCount}
-      gameMode={gameMode}
       isLoadingMore={false}
       onLoadMore={() => {}}
     />

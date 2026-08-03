@@ -5,12 +5,13 @@
  * Set VITE_SITE_URL in .env.local to your dev URL (e.g. http://localhost:3000).
  */
 
+export const CURRENT_SEASON = 2026;
+
 export const siteConfig = {
   title: 'Grand Prix Picks',
-  description:
-    'Predict the top 5 finishers for each Formula 1 race and compete with friends throughout the 2026 season.',
+  description: `Predict the top 5 finishers for each Formula 1 race and compete with friends throughout the ${CURRENT_SEASON} season.`,
   url: 'https://grandprixpicks.com',
-  themeColor: '#0d9488',
+  themeColor: '#101113',
   author: {
     name: 'Barry Michael Doyle',
     url: 'https://barrymichaeldoyle.com',
@@ -19,6 +20,10 @@ export const siteConfig = {
     x: {
       handle: '@GrandPrixPicks',
       url: 'https://x.com/GrandPrixPicks',
+    },
+    reddit: {
+      name: 'r/GPPicks',
+      url: 'https://www.reddit.com/r/GPPicks/',
     },
   },
 } as const;
@@ -29,7 +34,22 @@ const ogBaseUrl =
   siteConfig.url;
 
 /** Temporary shared OG image until per-page variants are finalized. */
-export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260302b`;
+export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260731`;
+
+/**
+ * Absolute URL for the site's own OG card, rendered against the next race.
+ *
+ * The slug is in the URL rather than resolved server-side because scrapers key
+ * their image cache on the URL: a stable `/og/next` would keep showing the
+ * previous Grand Prix in WhatsApp and X previews for weeks after it ran. A new
+ * round is a new URL, so it is fetched fresh. Falls back to the evergreen card
+ * off-season, when there is no next race to name.
+ *
+ * @param raceSlug — slug of the next race, or undefined off-season
+ */
+export function nextRaceOgImageUrl(raceSlug: string | undefined) {
+  return raceSlug ? `${ogBaseUrl}/og/next?race=${raceSlug}` : defaultOgImage;
+}
 
 /**
  * Absolute URL for a dynamically rendered share-card OG image.

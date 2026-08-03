@@ -25,7 +25,7 @@ const clerkElements = {
   userButtonAvatarBox: 'ring-0',
   userButtonPopoverRootBox: 'z-[120]',
   userButtonPopoverCard:
-    'overflow-hidden rounded-xl border border-white/10 bg-surface/95 text-text shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-md',
+    'overflow-hidden rounded-lg border border-border bg-surface text-text',
   userButtonPopoverMain: 'bg-transparent',
   userButtonPopoverFooter: 'border-t border-border/50 bg-surface-muted/20',
   userButtonPopoverActions: 'border-border/50 bg-transparent',
@@ -43,7 +43,7 @@ const clerkElements = {
   userPreviewMainIdentifierText: 'font-semibold text-text',
   userPreviewSecondaryIdentifier: 'text-text-muted',
   badge:
-    '!rounded-sm !border !border-border-strong !bg-surface-muted !px-2 !py-0.5 !text-[11px] !font-semibold !text-text',
+    '!rounded-sm !border !border-border-strong !bg-surface-muted !px-2 !py-0.5 !text-xs !font-semibold !text-text',
   badge__primary: '!border-accent !bg-accent !text-page',
   badge__actionRequired: '!border-warning !bg-warning !text-page',
   activeDevice:
@@ -51,8 +51,7 @@ const clerkElements = {
   activeDeviceListItem:
     '!rounded-none !border-0 !bg-transparent !text-text !shadow-none',
   activeDeviceIcon: '!text-text-muted',
-  notificationBadge:
-    'border border-error/45 bg-error/15 text-error shadow-[0_0_0_1px_rgb(var(--error-rgb)/0.1)]',
+  notificationBadge: 'border border-error/45 bg-error-muted text-error',
 };
 
 export function AppClerkProvider({

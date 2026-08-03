@@ -1,13 +1,18 @@
+import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
-import { emptyTally, tallyTeammateBattles } from './lib/teammateBattles';
-import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
+import {
+  emptyTally,
+  sortByConstructorStanding,
+  tallyTeammateBattles,
+} from './lib/teammateBattles';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -62,44 +67,51 @@ export function resolveH2HSessionsToUpdate(params: {
 
 // ───────────────────────── Queries ─────────────────────────
 
+/**
+ * A season's team-mate matchups with both drivers resolved.
+ *
+ * Shared with the landing page's SSR payload (`home.getHomePageData`) so a
+ * visitor resuming at the team-mate step gets real duels in the server markup
+ * instead of eleven skeleton boxes waiting on a websocket round trip.
+ */
+export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
+  const matchups = await ctx.db
+    .query('h2hMatchups')
+    .withIndex('by_season', (q) => q.eq('season', season))
+    .take(MAX_H2H_MATCHUPS);
+
+  return await Promise.all(
+    matchups.map(async (m) => {
+      const driver1 = await ctx.db.get(m.driver1Id);
+      const driver2 = await ctx.db.get(m.driver2Id);
+      return {
+        _id: m._id,
+        team: m.team,
+        driver1: {
+          _id: m.driver1Id,
+          code: driver1?.code ?? '???',
+          displayName: driver1?.displayName ?? 'Unknown',
+          number: driver1?.number ?? null,
+          team: driver1?.team ?? null,
+          nationality: driver1?.nationality ?? null,
+        },
+        driver2: {
+          _id: m.driver2Id,
+          code: driver2?.code ?? '???',
+          displayName: driver2?.displayName ?? 'Unknown',
+          number: driver2?.number ?? null,
+          team: driver2?.team ?? null,
+          nationality: driver2?.nationality ?? null,
+        },
+      };
+    }),
+  );
+}
+
 export const getMatchupsForSeason = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const season = args.season ?? 2026;
-
-    const matchups = await ctx.db
-      .query('h2hMatchups')
-      .withIndex('by_season', (q) => q.eq('season', season))
-      .take(MAX_H2H_MATCHUPS);
-
-    const enriched = await Promise.all(
-      matchups.map(async (m) => {
-        const driver1 = await ctx.db.get(m.driver1Id);
-        const driver2 = await ctx.db.get(m.driver2Id);
-        return {
-          _id: m._id,
-          team: m.team,
-          driver1: {
-            _id: m.driver1Id,
-            code: driver1?.code ?? '???',
-            displayName: driver1?.displayName ?? 'Unknown',
-            number: driver1?.number ?? null,
-            team: driver1?.team ?? null,
-            nationality: driver1?.nationality ?? null,
-          },
-          driver2: {
-            _id: m.driver2Id,
-            code: driver2?.code ?? '???',
-            displayName: driver2?.displayName ?? 'Unknown',
-            number: driver2?.number ?? null,
-            team: driver2?.team ?? null,
-            nationality: driver2?.nationality ?? null,
-          },
-        };
-      }),
-    );
-
-    return enriched;
+    return await loadMatchupsForSeason(ctx, args.season ?? 2026);
   },
 });
 
@@ -949,7 +961,18 @@ export const getTeammateBattles = query({
       .withIndex('by_season', (q) => q.eq('season', season))
       .take(20);
     if (matchups.length === 0) {
-      return { season, teams: [], sessionsCounted: 0, lastUpdated: null };
+      return {
+        season,
+        teams: [],
+        sessionsCounted: 0,
+        sessionCounts: {
+          qualifying: 0,
+          race: 0,
+          sprintQualifying: 0,
+          sprint: 0,
+        },
+        lastUpdated: null,
+      };
     }
 
     const matchupIds = new Set(matchups.map((matchup) => matchup._id));
@@ -960,13 +983,19 @@ export const getTeammateBattles = query({
 
     const outcomes: TeammateSessionOutcome[] = [];
     let sessionsCounted = 0;
+    const sessionCounts = {
+      qualifying: 0,
+      race: 0,
+      sprintQualifying: 0,
+      sprint: 0,
+    };
     let lastUpdated = 0;
 
     for (const race of races) {
       if (race.status === 'cancelled') {
         continue;
       }
-      const seenSessions = new Set<string>();
+      const seenSessions = new Set<SessionType>();
       for await (const result of ctx.db
         .query('h2hResults')
         .withIndex('by_race_session', (q) => q.eq('raceId', race._id))) {
@@ -981,7 +1010,24 @@ export const getTeammateBattles = query({
         seenSessions.add(result.sessionType);
         lastUpdated = Math.max(lastUpdated, result.publishedAt);
       }
+
       sessionsCounted += seenSessions.size;
+      for (const sessionType of seenSessions) {
+        switch (sessionType) {
+          case 'quali':
+            sessionCounts.qualifying += 1;
+            break;
+          case 'race':
+            sessionCounts.race += 1;
+            break;
+          case 'sprint_quali':
+            sessionCounts.sprintQualifying += 1;
+            break;
+          case 'sprint':
+            sessionCounts.sprint += 1;
+            break;
+        }
+      }
     }
 
     const tallies = tallyTeammateBattles(outcomes);
@@ -1013,8 +1059,8 @@ export const getTeammateBattles = query({
       };
     }
 
-    const teams = matchups
-      .map((matchup) => {
+    const teams = sortByConstructorStanding(
+      matchups.map((matchup) => {
         const tally = tallies.get(matchup._id) ?? new Map();
         const driver1 = describe(
           matchup.driver1Id,
@@ -1035,13 +1081,14 @@ export const getTeammateBattles = query({
               : [driver1, driver2],
           sessionsSettled: driver1.total + driver2.total,
         };
-      })
-      .sort((a, b) => a.team.localeCompare(b.team));
+      }),
+    );
 
     return {
       season,
       teams,
       sessionsCounted,
+      sessionCounts,
       lastUpdated: lastUpdated || null,
     };
   },

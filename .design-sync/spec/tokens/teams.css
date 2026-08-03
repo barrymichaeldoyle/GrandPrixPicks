@@ -1,0 +1,25 @@
+/* Team colours are DATA, not theme. They change every season.
+   Use only as a 3px vertical edge bar on driver rows/chips and as a 5px dot
+   beside a team name. Never a background, text colour, or card border.
+
+   This is the real 2026 grid: eleven teams, with Audi and Cadillac joining and
+   Sauber and RB gone. Authored in packages/shared/src/tokens.ts (`teams`) and
+   consumed by both the web and mobile apps. */
+:root {
+  --team-mercedes: #00d7b6;
+  --team-mclaren: #f47600;
+  --team-ferrari: #ed1131;
+  --team-redbullracing: #4781d7;
+  --team-williams: #1868db;
+  --team-alpine: #00a1e8;
+  --team-audi: #f50537;
+  --team-racingbulls: #6c98ff;
+  --team-haas: #9c9fa2;
+  --team-astonmartin: #229971;
+  --team-cadillac: #909090;
+
+  /* Shown for a driver whose team is unknown or off the current grid.
+     Deliberately darker than every real livery — Haas #9c9fa2 and Cadillac #909090
+     are both silver, so a mid grey here reads as a team rather than as missing data. */
+  --team-fallback: #3f4147;
+}

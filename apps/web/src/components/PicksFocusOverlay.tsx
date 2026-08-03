@@ -163,7 +163,7 @@ export function PicksFocusOverlay({
         aria-modal="true"
         aria-labelledby="picks-focus-title"
         tabIndex={-1}
-        className="flex h-full w-full flex-col bg-page outline-none sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border sm:shadow-2xl"
+        className="flex h-full w-full flex-col bg-page outline-none sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border"
       >
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-2.5">

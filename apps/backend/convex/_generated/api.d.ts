@@ -21,6 +21,7 @@ import type * as emails_SessionResultsPreRaceMadePredictionsEmail from "../email
 import type * as emails_SessionResultsPreRaceMissedPredictionsEmail from "../emails/SessionResultsPreRaceMissedPredictionsEmail.js";
 import type * as emails_SessionResultsPreRaceMissingH2HPredictionsEmail from "../emails/SessionResultsPreRaceMissingH2HPredictionsEmail.js";
 import type * as emails_SignupNudgeEmail from "../emails/SignupNudgeEmail.js";
+import type * as emails_fonts from "../emails/fonts.js";
 import type * as emails_sendReminderEmails from "../emails/sendReminderEmails.js";
 import type * as emails_sendResultEmails from "../emails/sendResultEmails.js";
 import type * as emails_sendSupportEmail from "../emails/sendSupportEmail.js";
@@ -41,6 +42,7 @@ import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
+import type * as lib_reactions from "../lib/reactions.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
 import type * as lib_scoring from "../lib/scoring.js";
 import type * as lib_standings from "../lib/standings.js";
@@ -55,6 +57,7 @@ import type * as predictions from "../predictions.js";
 import type * as push from "../push.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as races from "../races.js";
+import type * as reactionMigrations from "../reactionMigrations.js";
 import type * as results from "../results.js";
 import type * as resultsRecheck from "../resultsRecheck.js";
 import type * as seed from "../seed.js";
@@ -83,6 +86,7 @@ declare const fullApi: ApiFromModules<{
   "emails/SessionResultsPreRaceMissedPredictionsEmail": typeof emails_SessionResultsPreRaceMissedPredictionsEmail;
   "emails/SessionResultsPreRaceMissingH2HPredictionsEmail": typeof emails_SessionResultsPreRaceMissingH2HPredictionsEmail;
   "emails/SignupNudgeEmail": typeof emails_SignupNudgeEmail;
+  "emails/fonts": typeof emails_fonts;
   "emails/sendReminderEmails": typeof emails_sendReminderEmails;
   "emails/sendResultEmails": typeof emails_sendResultEmails;
   "emails/sendSupportEmail": typeof emails_sendSupportEmail;
@@ -103,6 +107,7 @@ declare const fullApi: ApiFromModules<{
   "lib/leaguePassword": typeof lib_leaguePassword;
   "lib/notificationChannels": typeof lib_notificationChannels;
   "lib/raceTimezones": typeof lib_raceTimezones;
+  "lib/reactions": typeof lib_reactions;
   "lib/recheckSchedule": typeof lib_recheckSchedule;
   "lib/scoring": typeof lib_scoring;
   "lib/standings": typeof lib_standings;
@@ -117,6 +122,7 @@ declare const fullApi: ApiFromModules<{
   push: typeof push;
   pushNotifications: typeof pushNotifications;
   races: typeof races;
+  reactionMigrations: typeof reactionMigrations;
   results: typeof results;
   resultsRecheck: typeof resultsRecheck;
   seed: typeof seed;

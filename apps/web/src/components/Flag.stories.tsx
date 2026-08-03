@@ -62,7 +62,7 @@ export const AllCountries: Story = {
       {AVAILABLE.map((code) => (
         <div key={code} className="text-center">
           <Flag code={code} size="md" />
-          <div className="mt-1 font-mono text-[10px] text-text-muted uppercase">
+          <div className="gpp-mono mt-1 text-xs text-text-muted uppercase">
             {code}
           </div>
         </div>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { PageLoader } from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
+import { trackRegionalPreference } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { NotificationsSection } from './settings/-components/NotificationsSection';
@@ -45,7 +46,6 @@ const SEASON_PASS_SEASON = 2026;
 const USERNAME_COOLDOWN_MS = 90 * 24 * 60 * 60 * 1000;
 const SETTINGS_NAV = [
   { href: '#profile', label: 'Profile' },
-  { href: '#season-pass', label: 'Season pass' },
   { href: '#regional', label: 'Regional' },
   { href: '#notifications', label: 'Notifications' },
 ] as const;
@@ -160,6 +160,8 @@ function SettingsPage() {
       setOptimisticLocale(settings.locale);
     }
 
+    trackRegionalPreference(settings);
+
     updateRegional(settings).catch(() => {
       if (settings.timezone !== undefined) {
         setOptimisticTimezone(undefined);
@@ -186,14 +188,14 @@ function SettingsPage() {
     <div className="bg-page">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <header className="mb-6 max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.2em] text-accent uppercase">
+          <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">
             Account
           </p>
           <h1 className="font-title mt-1 text-3xl leading-tight font-semibold text-text sm:text-4xl">
             Settings
           </h1>
-          <p className="mt-2 text-sm text-text-muted sm:text-base">
-            Manage your identity, regional preferences, access, and alerts.
+          <p className="gpp-reading-copy mt-2 text-text-muted">
+            Manage your identity, regional preferences, and alerts.
           </p>
         </header>
 
@@ -212,7 +214,7 @@ function SettingsPage() {
             aria-label="Settings sections"
             className="sticky top-20 z-10 -mx-1 flex gap-1 overflow-x-auto bg-page/95 px-1 py-1 md:top-24 md:mx-0 md:flex-col md:overflow-visible md:bg-transparent md:p-0"
           >
-            <p className="mb-2 hidden text-[10px] font-semibold tracking-[0.16em] text-text-muted uppercase md:block">
+            <p className="mb-2 hidden text-xs font-semibold tracking-label text-text-muted uppercase md:block">
               Sections
             </p>
             {SETTINGS_NAV.map((item) => (
@@ -229,10 +231,12 @@ function SettingsPage() {
           <div className="min-w-0 space-y-4">
             <ProfileSection user={me} {...profileForm} />
 
-            <SeasonPassSection
-              season={SEASON_PASS_SEASON}
-              hasSeasonPass={hasSeasonPassFor2026}
-            />
+            {hasSeasonPassFor2026 === true ? (
+              <SeasonPassSection
+                season={SEASON_PASS_SEASON}
+                hasSeasonPass={hasSeasonPassFor2026}
+              />
+            ) : null}
 
             <RegionalSection
               timezone={displayTimezone}

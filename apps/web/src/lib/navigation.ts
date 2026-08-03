@@ -4,26 +4,45 @@ type SiteNavLink = {
   exact?: boolean;
 };
 
-/**
- * Public nav links: auth-independent, so the header renders them immediately
- * (SSR + first paint). The signed-in extras (Feed, My Results) are rendered
- * directly in the header once Clerk resolves.
- */
+/** Core app navigation shared by signed-in and signed-out product pages. */
 export const primaryNavLinks: SiteNavLink[] = [
   { to: '/races', label: 'Races', exact: true },
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/leagues', label: 'Leagues' },
 ];
 
-export const footerExploreLinks: SiteNavLink[] = [
-  { to: '/', label: 'Home', exact: true },
+/**
+ * Public pages also expose the game guide. Keep it out of the authenticated
+ * app header, where making picks and checking results are the primary jobs.
+ */
+export const publicNavLinks: SiteNavLink[] = [
   { to: '/how-to-play', label: 'How to Play' },
-  { to: '/results-policy', label: 'Results Policy' },
-  { to: '/races', label: 'Races', exact: true },
+  ...primaryNavLinks,
+  { to: '/guides', label: 'Guides' },
+];
+
+export const footerPlayLinks: SiteNavLink[] = [
+  { to: '/how-to-play', label: 'How to Play' },
+  { to: '/guides', label: 'F1 Guides' },
+  { to: '/races', label: 'Race Calendar', exact: true },
+  { to: '/leaderboard', label: 'Global Leaderboard' },
+  { to: '/leagues', label: 'Prediction Leagues' },
+];
+
+export const footerF1Links: SiteNavLink[] = [
   { to: '/f1-standings', label: 'F1 Standings' },
-  { to: '/f1-teammate-battles', label: 'Teammate H2H' },
-  { to: '/leaderboard', label: 'Leaderboard' },
-  { to: '/leagues', label: 'Leagues' },
-  { to: '/feed', label: 'Feed' },
-  { to: '/me', label: 'My Results' },
+  { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
+  { to: '/results-policy', label: 'Results & Penalties' },
+];
+
+export const footerSupportLinks: SiteNavLink[] = [
+  { to: '/about', label: 'About' },
+  { to: '/support', label: 'Support' },
+  { to: '/pricing', label: 'Season Pass' },
+];
+
+export const footerLegalLinks: SiteNavLink[] = [
+  { to: '/refund-policy', label: 'Refund Policy' },
+  { to: '/terms', label: 'Terms of Service' },
+  { to: '/privacy', label: 'Privacy Policy' },
 ];

@@ -78,6 +78,9 @@ export const Route = createFileRoute('/leagues/$slug')({
       title,
       description,
       path: `/leagues/${params.slug}`,
+      // Member-scoped scoreboards: private by intent, and near-identical to
+      // every other league page in the eyes of a crawler.
+      noIndex: true,
     });
   },
 });
@@ -130,7 +133,9 @@ function LeagueDetailPage() {
         <div className="mx-auto max-w-lg px-4 py-16">
           <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-bold text-text">{league.name}</h1>
+            <h1 className="mb-2 text-2xl font-semibold text-text">
+              {league.name}
+            </h1>
             <p className="mb-1 text-text-muted">
               {league.memberCount} member
               {league.memberCount !== 1 ? 's' : ''}

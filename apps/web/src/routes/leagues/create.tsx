@@ -23,6 +23,8 @@ export const Route = createFileRoute('/leagues/create')({
       description:
         'Create a private or public league for the 2026 Grand Prix Picks season.',
       path: '/leagues/create',
+      // A signed-in form, nothing for a crawler to land on.
+      noIndex: true,
     }),
 });
 
@@ -142,7 +144,7 @@ function CreateLeagueContent() {
         Number.isFinite(privateCreateLimit)
       ) {
         setError(
-          `You are at ${privateCreatedCount}/${privateCreateLimit} private leagues for ${season}. Upgrade to create more.`,
+          `You are at the ${privateCreateLimit}-league creation limit for ${season}.`,
         );
         return;
       }
@@ -184,30 +186,11 @@ function CreateLeagueContent() {
         />
 
         <div className="reveal-up reveal-delay-1 mb-6 rounded-xl border border-border bg-surface p-4">
-          {leagueUsage && !leagueUsage.hasSeasonPass ? (
-            <div className="mb-3 rounded-lg border border-accent/30 bg-accent-muted/40 p-3">
-              <p className="text-sm font-medium text-text">
-                Private leagues used: {privateCreatedCount}/
-                {leagueUsage.limits.maxPrivateLeaguesCreated}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                Free accounts can create up to{' '}
-                {leagueUsage.limits.maxPrivateLeaguesCreated} private leagues
-                per season.
-              </p>
-              <p className="mt-1 text-xs text-accent">
-                <Link to="/pricing" className="font-semibold hover:underline">
-                  Upgrade to Season Pass
-                </Link>{' '}
-                for higher league limits and public league creation.
-              </p>
-            </div>
-          ) : null}
-
           {privateCreateLimitReached && visibility === 'private' ? (
             <div className="mb-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3">
-              <p className="text-sm text-text">
-                You&apos;ve reached your private league limit for {season}.
+              <p className="text-base text-text">
+                You&apos;ve reached the private league creation limit for{' '}
+                {season}.
               </p>
             </div>
           ) : null}
@@ -307,57 +290,46 @@ function CreateLeagueContent() {
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
               />
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-text">
-                Visibility
-              </label>
-              <div
-                className="flex gap-1 rounded-lg border border-border bg-surface p-1"
-                role="tablist"
-                aria-label="League visibility"
-              >
-                <Button
-                  type="button"
-                  variant="tab"
-                  size="tab"
-                  active={visibility === 'private'}
-                  onClick={() => setVisibility('private')}
-                  className="h-8 max-h-8 min-h-8 flex-1"
+            {hasSeasonPassFor2026 === true ? (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-text">
+                  Visibility
+                </label>
+                <div
+                  className="flex gap-1 rounded-lg border border-border bg-surface p-1"
+                  role="group"
+                  aria-label="League visibility"
                 >
-                  Private
-                </Button>
-                <Button
-                  type="button"
-                  variant="tab"
-                  size="tab"
-                  active={visibility === 'public'}
-                  onClick={() => setVisibility('public')}
-                  disabled={hasSeasonPassFor2026 === false}
-                  className="h-8 max-h-8 min-h-8 flex-1"
-                  tooltip={
-                    hasSeasonPassFor2026 === false
-                      ? 'Public league creation requires a 2026 Season Pass.'
-                      : undefined
-                  }
-                >
-                  Public
-                </Button>
-              </div>
-              <p className="mt-1 text-xs text-text-muted">
-                Private leagues are invite-only. Public leagues can appear in
-                the league directory and on member profiles; they cannot have a
-                password.
-              </p>
-              {hasSeasonPassFor2026 === false && (
-                <p className="mt-1 text-xs text-accent">
-                  Public league creation requires a 2026 Season Pass.{' '}
-                  <Link to="/pricing" className="font-semibold hover:underline">
-                    See pricing
-                  </Link>
-                  .
+                  <Button
+                    type="button"
+                    variant="tab"
+                    size="tab"
+                    active={visibility === 'private'}
+                    aria-pressed={visibility === 'private'}
+                    onClick={() => setVisibility('private')}
+                    className="h-8 max-h-8 min-h-8 flex-1"
+                  >
+                    Private
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="tab"
+                    size="tab"
+                    active={visibility === 'public'}
+                    aria-pressed={visibility === 'public'}
+                    onClick={() => setVisibility('public')}
+                    className="h-8 max-h-8 min-h-8 flex-1"
+                  >
+                    Public
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-text-muted">
+                  Private leagues are invite-only. Public leagues can appear in
+                  the league directory and on member profiles; they cannot have
+                  a password.
                 </p>
-              )}
-            </div>
+              </div>
+            ) : null}
             {visibility === 'private' && (
               <div>
                 <label

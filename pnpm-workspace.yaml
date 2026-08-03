@@ -42,7 +42,7 @@ auditConfig:
     - GHSA-mh99-v99m-4gvg
 
 catalog:
-  convex: 1.42.1
+  convex: 1.43.0
   typescript: 7.0.2
 
 minimumReleaseAgeExclude:

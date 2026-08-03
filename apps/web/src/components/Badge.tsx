@@ -17,16 +17,19 @@ type BadgeVariant =
 const successBadgeStyles =
   'bg-success-muted text-success border border-success/30';
 const mutedBadgeStyles =
-  'bg-surface-muted text-text-muted border border-border';
+  'bg-surface-elevated text-text-muted border border-border';
 
 const variantStyles: Record<BadgeVariant, string> = {
-  sprint: 'bg-sprint/30 text-sprint-text border border-sprint-border/45',
+  // Sprint reuses the violet result semantic rather than adding a sixth hue.
+  sprint:
+    'bg-result-exact-quiet text-sprint-text border border-sprint-border/45',
   upcoming: successBadgeStyles,
   not_yet_open: mutedBadgeStyles,
-  locked: 'border border-warning/50 bg-warning/18 text-warning',
+  locked: 'border border-warning/50 bg-warning-muted text-warning',
+  // Amber, not red: a cancelled race is information, not an alarm.
+  cancelled: 'border border-error/50 bg-error-muted text-error',
   submitted: successBadgeStyles,
   finished: mutedBadgeStyles,
-  cancelled: 'border border-error/50 bg-error/15 text-error',
 };
 
 const statusIcons: Record<
@@ -74,8 +77,10 @@ export function Badge({ variant, icon, children }: BadgeProps) {
   const label = children ?? defaultLabel;
 
   return (
+    // A status badge is a micro label: 2px radius (pill is reserved for the
+    // 5px team dot), uppercase and tracked. Statuses are three words max.
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${variantStyles[variant]}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-sm border px-2 py-1 text-xs font-medium tracking-label uppercase ${variantStyles[variant]}`}
     >
       {showIcon}
       {label}

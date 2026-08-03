@@ -41,7 +41,8 @@ export function SignedOutRacePreview({
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-text-muted">
           Rank who you think finishes ahead and score points every session. It's
-          free. Make your picks now, with no account needed to start.
+          free to play. Try the picker now, then create a free account to save
+          your picks and earn points.
         </p>
         <div className="mt-4 flex flex-col items-center gap-2">
           <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>
@@ -64,7 +65,7 @@ export function SignedOutRacePreview({
 
       {drivers.length > 0 && (
         <section aria-label="Driver grid" className="space-y-3">
-          <p className="text-xs font-semibold tracking-[0.14em] text-text-muted uppercase">
+          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
             {race.season} Driver Grid
           </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

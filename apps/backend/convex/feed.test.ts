@@ -197,7 +197,7 @@ function makePersonalizedFeedCtx({
 
             if (indexName === 'by_user_event') {
               return {
-                first: vi.fn(async () =>
+                unique: vi.fn(async () =>
                   secondValue && viewerRevEventIds.includes(secondValue)
                     ? { _id: 'rev-1' }
                     : null,
@@ -429,7 +429,7 @@ describe('getPersonalizedFeedPageData', () => {
     expect(result.sessions).toEqual({});
   });
 
-  it('applies viewer rev state and recent rev users to joined league events', async () => {
+  it('applies typed reaction state and recent reactors to joined league events', async () => {
     const viewer = {
       _id: userId('viewer'),
       clerkUserId: 'viewer',
@@ -460,12 +460,30 @@ describe('getPersonalizedFeedPageData', () => {
     expect(result.events).toHaveLength(1);
     expect(result.events[0]).toMatchObject({
       _id: feedEventId('event-1'),
+      reactionCount: 0,
+      reactionCounts: {
+        fire: 0,
+        nice: 0,
+        wow: 0,
+        funny: 0,
+        oof: 0,
+      },
+      viewerReaction: 'fire',
       viewerHasReved: true,
+      recentReactionUsers: [
+        {
+          userId: userId('rev-user'),
+          username: 'revver',
+          avatarUrl: 'https://example.com/avatar.png',
+          reactionType: 'fire',
+        },
+      ],
       recentRevUsers: [
         {
           userId: userId('rev-user'),
           username: 'revver',
           avatarUrl: 'https://example.com/avatar.png',
+          reactionType: 'fire',
         },
       ],
     });

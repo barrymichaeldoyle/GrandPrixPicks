@@ -55,9 +55,9 @@ export function formatLockCountdown(msRemaining: number): string {
   const seconds = totalSeconds % 60;
 
   if (days > 0) {
-    return `${days}d ${hours.toString().padStart(2, '0')}h ${minutes
+    return `${days.toString().padStart(2, '0')}d ${hours
       .toString()
-      .padStart(2, '0')}m`;
+      .padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
   }
 
   return `${hours.toString().padStart(2, '0')}h ${minutes

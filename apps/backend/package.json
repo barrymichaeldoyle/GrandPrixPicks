@@ -18,7 +18,9 @@
     "scenario": "dotenv -e ../../.env.local -- node scripts/convex/testing-scenarios.mjs",
     "smoke:openf1": "node scripts/convex/smoke-openf1.mjs",
     "smoke:openf1:prod": "node scripts/convex/smoke-openf1.mjs --prod",
-    "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit -p convex/tsconfig.json"
+    "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit -p convex/tsconfig.json",
+    "test": "vitest run",
+    "test:ci": "vitest run --reporter=dot"
   },
   "dependencies": {
     "@convex-dev/resend": "0.2.5",

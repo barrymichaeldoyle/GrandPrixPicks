@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,7 +17,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { Button } from '@/components/Button/Button';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { FaqItem, FaqSection } from '@/components/Faq';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import { pageMeta } from '@/lib/site';
 import { Pill } from '@/components/Pill';
 
 const EARLY_BIRD_CODE = 'EARLYBIRD2026';
@@ -44,55 +44,14 @@ export const Route = createFileRoute('/pricing')({
     return { checkout };
   },
   component: PricingPage,
-  head: () => {
-    const meta = pageMeta({
+  head: () =>
+    pageMeta({
       title: 'F1 Season Pass Pricing | Grand Prix Picks',
       description:
         'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and public leagues.',
       path: '/pricing',
-    });
-
-    const earlyBird = isEarlyBirdActive();
-
-    return {
-      ...meta,
-      scripts: [
-        {
-          type: 'application/ld+json',
-          children: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'Product',
-                '@id': `${siteConfig.url}/pricing#season-pass`,
-                name: 'Grand Prix Picks Season Pass',
-                description:
-                  'One purchase for the full F1 season. Unlocks unlimited private leagues and public leagues.',
-                brand: { '@type': 'Brand', name: siteConfig.title },
-                offers: {
-                  '@type': 'Offer',
-                  url: `${siteConfig.url}/pricing`,
-                  priceCurrency: 'USD',
-                  price: earlyBird
-                    ? EARLY_BIRD_PRICE_USD
-                    : SEASON_PASS_PRICE_USD,
-                  availability: 'https://schema.org/InStock',
-                  ...(earlyBird
-                    ? {
-                        priceValidUntil: EARLY_BIRD_EXPIRES_AT_UTC.slice(0, 10),
-                      }
-                    : {}),
-                },
-              },
-              breadcrumbSchema('/pricing', [
-                { name: 'Pricing', path: '/pricing' },
-              ]),
-            ],
-          }),
-        },
-      ],
-    };
-  },
+      noIndex: true,
+    }),
 });
 
 function PricingPage() {
@@ -163,7 +122,7 @@ function PricingPage() {
 
   return (
     <div className="mx-auto max-w-5xl bg-page px-4 py-6 sm:py-8">
-      <motion.div
+      <m.div
         className="mb-8 text-center sm:mb-10"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -173,18 +132,18 @@ function PricingPage() {
           <CalendarDays className="h-3.5 w-3.5 text-accent" aria-hidden />
           2026 Season Pricing
         </p>
-        <h1 className="mb-2 text-3xl font-bold text-text sm:text-4xl">
+        <h1 className="mb-2 text-3xl font-semibold text-text sm:text-4xl">
           Pricing
         </h1>
         <p className="mx-auto max-w-2xl text-text-muted">
           Grand Prix Picks is free to play. Upgrade for full-season league
           access.
         </p>
-      </motion.div>
+      </m.div>
 
       <div className="space-y-8 sm:space-y-10">
         {showCheckoutCancelled ? (
-          <motion.section
+          <m.section
             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/35 bg-warning-muted/45 p-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -207,30 +166,30 @@ function PricingPage() {
             >
               Dismiss
             </Button>
-          </motion.section>
+          </m.section>
         ) : null}
 
         {isEarlyBirdActive() ? (
-          <motion.section
+          <m.section
             className="rounded-xl border border-accent/35 bg-accent-muted/50 p-5 sm:p-6"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className="text-xs font-semibold tracking-[0.12em] text-accent">
+            <p className="text-xs font-semibold tracking-label text-accent">
               LIMITED-TIME PROMO
             </p>
-            <h2 className="mt-1 text-2xl font-bold text-text">
+            <h2 className="mt-1 text-2xl font-semibold text-text">
               Use code {EARLY_BIRD_CODE} at checkout
             </h2>
             <p className="mt-2 text-sm text-text-muted">
               Active through April 1, 2026 at 11:59 PM UTC. We&apos;ll prefill
               the code for you when you launch checkout from this page.
             </p>
-          </motion.section>
+          </m.section>
         ) : null}
 
-        <motion.section
+        <m.section
           className="rounded-2xl border border-border bg-surface/95 p-6 sm:p-8"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -253,14 +212,14 @@ function PricingPage() {
               <span className="text-2xl font-semibold tracking-tight text-text-muted line-through">
                 ${SEASON_PASS_PRICE_USD}
               </span>
-              <span className="text-4xl font-bold tracking-tight text-success">
+              <span className="text-4xl font-semibold tracking-tight text-success">
                 ${EARLY_BIRD_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>
             </div>
           ) : (
             <div className="mb-6 flex items-baseline gap-2">
-              <span className="text-4xl font-bold tracking-tight text-text">
+              <span className="text-4xl font-semibold tracking-tight text-text">
                 ${SEASON_PASS_PRICE_USD}
               </span>
               <span className="text-text-muted">USD</span>
@@ -268,7 +227,7 @@ function PricingPage() {
           )}
 
           <ul className="mb-6 space-y-2 text-sm text-text">
-            <motion.li
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -281,8 +240,8 @@ function PricingPage() {
               <span>
                 Join unlimited leagues (free accounts are limited to 5)
               </span>
-            </motion.li>
-            <motion.li
+            </m.li>
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -293,8 +252,8 @@ function PricingPage() {
                 aria-hidden
               />
               <span>Create public leagues anyone can discover and join</span>
-            </motion.li>
-            <motion.li
+            </m.li>
+            <m.li
               className="flex items-start gap-2"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -305,7 +264,7 @@ function PricingPage() {
                 aria-hidden
               />
               <span>One-time payment for the entire 2026 season</span>
-            </motion.li>
+            </m.li>
           </ul>
 
           {isSignedIn ? (
@@ -365,10 +324,10 @@ function PricingPage() {
               for details.
             </p>
           </div>
-        </motion.section>
+        </m.section>
 
         <section className="grid gap-3 sm:grid-cols-3">
-          <motion.div
+          <m.div
             {...fadeUp}
             className="rounded-xl border border-border bg-surface p-4"
           >
@@ -381,9 +340,9 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               Create and join as many leagues as you want all season.
             </p>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.08 }}
             className="rounded-xl border border-border bg-surface p-4"
@@ -397,9 +356,9 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               Session locks and transparent scoring keep competition clean.
             </p>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.16 }}
             className="rounded-xl border border-border bg-surface p-4"
@@ -413,7 +372,7 @@ function PricingPage() {
             <p className="mt-1 text-sm text-text-muted">
               One purchase covers the entire 2026 campaign. No monthly plan.
             </p>
-          </motion.div>
+          </m.div>
         </section>
 
         <FaqSection title="Pricing FAQ">

@@ -1,14 +1,16 @@
-import { CheckCircle2, Clock, Radio } from 'lucide-react';
-
 import { getWeekendSessionStarts } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
-import { SESSION_LABELS } from '@/lib/sessions';
-import { useUserDateFormat } from '@/lib/useUserDateFormat';
-import { Pill } from '@/components/Pill';
+import { SESSION_LABELS, SESSION_LABELS_FULL } from '@/lib/sessions';
 
 export type SessionEntry = {
   type: SessionType;
+  /** Compact label for dense UI — "Sprint Quali". */
   label: string;
+  /**
+   * Spelled-out label — "Sprint Qualifying". Used on the landing page, where
+   * the reader may not know the abbreviation yet.
+   */
+  labelFull: string;
   startAt: number;
 };
 
@@ -18,6 +20,7 @@ export function buildSessions(
   return getWeekendSessionStarts(race).map((entry) => ({
     ...entry,
     label: SESSION_LABELS[entry.type],
+    labelFull: SESSION_LABELS_FULL[entry.type],
   }));
 }
 
@@ -35,104 +38,4 @@ export function getSessionStatus(
     return 'in_progress';
   }
   return 'upcoming';
-}
-
-export function groupSessionsByDay(
-  sessions: SessionEntry[],
-): Array<{ dayKey: string; dayLabel: string; sessions: SessionEntry[] }> {
-  const groups = new Map<
-    string,
-    { dayLabel: string; sessions: SessionEntry[] }
-  >();
-  for (const session of sessions) {
-    const d = new Date(session.startAt);
-    const dayKey = d.toDateString();
-    const dayLabel = d.toLocaleDateString(undefined, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'short',
-    });
-    if (!groups.has(dayKey)) {
-      groups.set(dayKey, { dayLabel, sessions: [] });
-    }
-    groups.get(dayKey)!.sessions.push(session);
-  }
-  return Array.from(groups.entries()).map(([dayKey, data]) => ({
-    dayKey,
-    ...data,
-  }));
-}
-
-export function SessionRow({
-  session,
-  status,
-  isNext,
-}: {
-  session: SessionEntry;
-  status: SessionStatus;
-  isNext: boolean;
-}) {
-  const { formatTime } = useUserDateFormat();
-  return (
-    <div
-      className={`flex items-center gap-3 py-2.5 ${
-        isNext
-          ? '-ml-3 border-l-2 border-accent pl-3'
-          : 'border-l-2 border-transparent'
-      }`}
-    >
-      <span className="w-4 shrink-0">
-        {status === 'finished' && (
-          <CheckCircle2
-            className="h-4 w-4 text-success"
-            aria-label="Finished"
-          />
-        )}
-        {status === 'in_progress' && (
-          <Radio
-            className="h-4 w-4 animate-pulse text-accent"
-            aria-label="In progress"
-          />
-        )}
-        {status === 'upcoming' && (
-          <Clock
-            className={`h-4 w-4 ${isNext ? 'text-accent' : 'text-text-muted/35'}`}
-            aria-label="Upcoming"
-          />
-        )}
-      </span>
-
-      <span
-        className={`flex-1 text-sm font-medium ${
-          status === 'finished' ? 'text-text-muted' : 'text-text'
-        }`}
-      >
-        <span className="flex items-center gap-2">
-          <span>{session.label}</span>
-          {status === 'in_progress' && (
-            <Pill
-              tone="accent"
-              size="sm"
-              className="shadow-[0_0_0_1px_rgb(var(--accent-rgb)/0.08)]"
-            >
-              Live
-            </Pill>
-          )}
-        </span>
-      </span>
-
-      <span
-        className={`shrink-0 text-sm tabular-nums ${
-          status === 'finished'
-            ? 'text-text-muted/80'
-            : status === 'in_progress' || isNext
-              ? 'font-semibold text-accent'
-              : 'text-text-muted'
-        }`}
-        suppressHydrationWarning
-      >
-        {formatTime(session.startAt)}
-      </span>
-    </div>
-  );
 }

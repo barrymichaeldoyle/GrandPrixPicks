@@ -54,7 +54,7 @@ export function DevNowPanel({ race, now }: { race: Race | null; now: number }) {
     >
       {isOpen ? (
         <div
-          className="w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur"
+          className="w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-border bg-surface p-3"
           data-testid="dev-now-panel-content"
         >
           <div className="mb-2 space-y-1.5">
@@ -121,9 +121,9 @@ export function DevNowPanel({ race, now }: { race: Race | null; now: number }) {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border shadow-lg backdrop-blur transition-colors ${
+          className={`inline-flex h-11 w-11 items-center justify-center rounded-sm border transition-colors ${
             overrideNow == null
-              ? 'border-border bg-surface/95 text-text hover:bg-surface-muted'
+              ? 'border-border bg-surface text-text hover:bg-surface-elevated'
               : 'border-warning/50 bg-warning/12 text-warning hover:bg-warning/18'
           }`}
           title="Open dev time controls"

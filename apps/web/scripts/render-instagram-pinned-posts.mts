@@ -193,6 +193,23 @@ function eyebrow(text: string): ReactNode {
   );
 }
 
+function panelLabel(text: string): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        fontFamily: 'IBM Plex Mono',
+        fontSize: 15,
+        fontWeight: 600,
+        letterSpacing: 2.2,
+        color: colors.textMuted,
+      },
+    },
+    text,
+  );
+}
+
 function headline(text: string, fontSize = 88, width = 860): ReactNode {
   return e(
     'div',
@@ -1697,6 +1714,7 @@ function driverRow(
   compact = false,
 ): ReactNode {
   const teamColor = teams[driver.team];
+  const rowHeight = compact ? 62 : 94;
   return e(
     'div',
     {
@@ -1704,84 +1722,79 @@ function driverRow(
         display: 'flex',
         alignItems: 'center',
         position: 'relative',
-        height: compact ? 76 : 92,
-        padding: compact ? '0 20px 0 22px' : '0 28px 0 26px',
+        height: rowHeight,
         borderBottom: `1px solid ${colors.border}`,
         backgroundColor: colors.surface,
       },
     },
-    e('div', {
-      style: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 5,
-        backgroundColor: teamColor,
-      },
-    }),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          width: compact ? 52 : 62,
+          alignItems: 'center',
+          justifyContent: 'center',
+          alignSelf: 'stretch',
+          width: compact ? 74 : 88,
+          borderRight: `1px solid ${colors.border}`,
           fontFamily: 'IBM Plex Mono',
-          fontSize: compact ? 17 : 20,
+          fontSize: compact ? 16 : 20,
           fontWeight: 600,
           color: position === 1 ? colors.accent : colors.textMuted,
         },
       },
       `P${position}`,
     ),
-    driverFlag(driver, compact ? 30 : 38),
     e(
       'div',
       {
         style: {
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
-          minWidth: 0,
-          marginLeft: compact ? 14 : 18,
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          alignSelf: 'stretch',
+          position: 'relative',
+          width: compact ? 106 : 122,
+          paddingLeft: compact ? 24 : 30,
+          borderRight: `1px solid ${colors.border}`,
+          fontFamily: 'IBM Plex Mono',
         },
       },
+      e('div', {
+        style: {
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 5,
+          backgroundColor: teamColor,
+        },
+      }),
       e(
         'div',
         {
           style: {
             display: 'flex',
-            alignItems: 'baseline',
-            fontSize: compact ? 19 : 24,
-            fontWeight: 600,
+            fontSize: compact ? 19 : 25,
+            lineHeight: 1,
             color: colors.text,
           },
         },
-        driver.displayName,
+        driver.number,
       ),
       e(
         'div',
         {
           style: {
             display: 'flex',
-            alignItems: 'center',
-            marginTop: 4,
-            fontFamily: 'IBM Plex Mono',
-            fontSize: compact ? 11 : 13,
-            letterSpacing: 1.3,
+            marginTop: compact ? 3 : 7,
+            fontSize: compact ? 12 : 15,
+            letterSpacing: 1.2,
             color: colors.textMuted,
           },
         },
-        e('div', {
-          style: {
-            width: 6,
-            height: 6,
-            marginRight: 8,
-            borderRadius: 999,
-            backgroundColor: teamColor,
-          },
-        }),
-        driver.team,
+        driver.code,
       ),
     ),
     e(
@@ -1789,36 +1802,57 @@ function driverRow(
       {
         style: {
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-          marginLeft: 14,
-          fontFamily: 'IBM Plex Mono',
+          alignItems: 'center',
+          flex: 1,
+          minWidth: 0,
+          paddingLeft: compact ? 24 : 32,
         },
       },
+      driverFlag(driver, compact ? 30 : 38),
       e(
         'div',
         {
           style: {
             display: 'flex',
-            fontSize: compact ? 22 : 28,
-            fontWeight: 600,
-            color: colors.text,
+            flexDirection: 'column',
+            marginLeft: compact ? 16 : 20,
           },
         },
-        `#${driver.number}`,
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 2,
-            fontSize: compact ? 11 : 13,
-            letterSpacing: 1.4,
-            color: colors.textDisabled,
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              fontSize: compact ? 19 : 25,
+              fontWeight: 600,
+              lineHeight: 1.1,
+              color: colors.text,
+            },
           },
-        },
-        driver.code,
+          driver.displayName,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              marginTop: compact ? 3 : 7,
+              fontSize: compact ? 14 : 17,
+              color: colors.textMuted,
+            },
+          },
+          e('div', {
+            style: {
+              width: 7,
+              height: 7,
+              marginRight: 9,
+              borderRadius: 999,
+              backgroundColor: teamColor,
+            },
+          }),
+          driver.team,
+        ),
       ),
     ),
   );
@@ -1852,8 +1886,8 @@ function completedTopFive(compact = false): ReactNode {
           color: colors.textMuted,
         },
       },
-      e('div', { style: { display: 'flex' } }, 'EXAMPLE TOP 5'),
-      e('div', { style: { display: 'flex', color: colors.accent } }, 'SAVED'),
+      e('div', { style: { display: 'flex' } }, 'YOUR PICKS'),
+      e('div', { style: { display: 'flex', color: colors.accent } }, '5 OF 5'),
     ),
     ...exampleTopFive.map((driver, index) =>
       driverRow(driver, index + 1, compact),
@@ -1870,7 +1904,8 @@ function h2hDriverChoice(driver: DriverVisual, selected: boolean): ReactNode {
         display: 'flex',
         alignItems: 'center',
         position: 'relative',
-        height: 116,
+        width: '100%',
+        height: 98,
         padding: '0 24px 0 28px',
         border: `1px solid ${selected ? colors.accent : colors.borderStrong}`,
         backgroundColor: selected ? colors.accentMuted : colors.surface,
@@ -1987,8 +2022,8 @@ function introCoverSlide(): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute',
-          left: 118,
-          right: 40,
+          left: 80,
+          right: 80,
           top: 730,
         },
       },
@@ -2011,7 +2046,7 @@ function introGameSlide(): ReactNode {
         },
       },
       eyebrow('How it works'),
-      headline('Two calls. Every session.', 92, 900),
+      headline('Two calls. Every session.', 86, 900),
     ),
     e(
       'div',
@@ -2021,11 +2056,11 @@ function introGameSlide(): ReactNode {
           flexDirection: 'column',
           position: 'absolute',
           left: 72,
-          top: 400,
-          width: 570,
+          right: 72,
+          top: 350,
         },
       },
-      eyebrow('Rank the Top 5'),
+      panelLabel('RANK THE TOP 5'),
       e(
         'div',
         { style: { display: 'flex', width: '100%', marginTop: 18 } },
@@ -2039,12 +2074,12 @@ function introGameSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          right: 64,
-          top: 510,
-          width: 360,
+          left: 72,
+          right: 72,
+          top: 840,
         },
       },
-      eyebrow('Pick the team-mate winner'),
+      panelLabel('TEAM-MATE HEAD-TO-HEAD'),
       e(
         'div',
         {
@@ -2052,25 +2087,48 @@ function introGameSlide(): ReactNode {
             display: 'flex',
             flexDirection: 'column',
             marginTop: 18,
-            gap: 14,
+            padding: 18,
+            border: `1px solid ${colors.borderStrong}`,
+            backgroundColor: colors.surface,
+            gap: 10,
           },
         },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: 42,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 13,
+              letterSpacing: 1.6,
+              color: colors.textMuted,
+            },
+          },
+          e('div', { style: { display: 'flex' } }, 'McLAREN'),
+          e('div', { style: { display: 'flex' } }, 'WHO FINISHES AHEAD?'),
+        ),
         h2hDriverChoice(exampleTopFive[0]!, true),
         h2hDriverChoice(exampleTopFive[3]!, false),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 18,
-            fontFamily: 'IBM Plex Mono',
-            fontSize: 14,
-            letterSpacing: 1.7,
-            color: colors.textMuted,
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              justifyContent: 'flex-end',
+              height: 32,
+              paddingTop: 8,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: 1.5,
+              color: colors.accent,
+            },
           },
-        },
-        'McLAREN HEAD-TO-HEAD',
+          'PICK SAVED',
+        ),
       ),
     ),
   );
@@ -2100,22 +2158,112 @@ function introPayoffSlide(): ReactNode {
           display: 'flex',
           flexDirection: 'column',
           position: 'absolute',
-          left: 80,
-          right: 80,
-          top: 520,
-          gap: 34,
+          left: 0,
+          width: WIDTH,
+          top: 405,
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'IBM Plex Mono',
+          color: colors.accent,
         },
       },
-      standingsPanel('GLOBAL LEADERBOARD', [
-        ['1', 'Dave is P1 again', '486'],
-        ['2', 'Undercut Enjoyer', '471'],
-        ['3', 'You', '455', true],
-      ]),
-      standingsPanel('PRIVATE LEAGUE', [
-        ['1', 'You', '455', true],
-        ['2', 'Box Box Barbara', '443'],
-        ['3', 'Two Stopper Truther', '428'],
-      ]),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontSize: 146,
+            fontWeight: 600,
+            lineHeight: 1,
+          },
+        },
+        '455',
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 6,
+            fontSize: 18,
+            fontWeight: 600,
+            letterSpacing: 2.3,
+            color: colors.textMuted,
+          },
+        },
+        'YOUR SCORE',
+      ),
+    ),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 539,
+        top: 585,
+        width: 2,
+        height: 84,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 300,
+        top: 668,
+        width: 480,
+        height: 2,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 302,
+        top: 668,
+        width: 2,
+        height: 47,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 777,
+        top: 668,
+        width: 2,
+        height: 47,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 715,
+          gap: 28,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', width: 446 } },
+        standingsPanel('GLOBAL LEADERBOARD', [
+          ['1', 'Dave is P1 again', '486'],
+          ['2', 'You', '455', true],
+          ['3', 'Undercut Enjoyer', '443'],
+        ]),
+      ),
+      e(
+        'div',
+        { style: { display: 'flex', width: 446 } },
+        standingsPanel('PRIVATE LEAGUE', [
+          ['1', 'You', '455', true],
+          ['2', 'Box Box Barbara', '443'],
+          ['3', 'Two Stopper Truther', '428'],
+        ]),
+      ),
     ),
     e(
       'div',
@@ -2123,8 +2271,8 @@ function introPayoffSlide(): ReactNode {
         style: {
           display: 'flex',
           position: 'absolute',
-          right: 80,
-          bottom: 86,
+          left: 80,
+          bottom: 98,
           fontFamily: 'IBM Plex Mono',
           fontSize: 16,
           letterSpacing: 2.1,
@@ -2159,7 +2307,7 @@ function introCtaSlide(): ReactNode {
           style: {
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             width: '100%',
             height: 118,
             marginTop: 86,
@@ -2173,18 +2321,21 @@ function introCtaSlide(): ReactNode {
           { style: { display: 'flex', fontSize: 31, fontWeight: 600 } },
           'Play Grand Prix Picks',
         ),
-        e(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              fontFamily: 'IBM Plex Mono',
-              fontSize: 24,
-              fontWeight: 600,
-            },
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: 30,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 22,
+            fontWeight: 600,
+            color: colors.accent,
           },
-          'GrandPrixPicks.com/ig',
-        ),
+        },
+        'GrandPrixPicks.com/ig',
       ),
       e(
         'div',
@@ -2192,7 +2343,7 @@ function introCtaSlide(): ReactNode {
           style: {
             display: 'flex',
             alignItems: 'center',
-            marginTop: 44,
+            marginTop: 46,
             paddingTop: 30,
             borderTop: `1px solid ${colors.borderStrong}`,
             fontFamily: 'IBM Plex Mono',

@@ -125,6 +125,10 @@ const config = defineConfig(({ mode }) => {
               preset: nitroPreset,
               wasm: {},
               scanDirs: ['server'],
+              // Replaces Nitro's raw JSON 500 body with a branded page. See
+              // server/error.ts — an SSR throw is fatal on the Workers build,
+              // so this is the only thing a visitor sees when it happens.
+              errorHandler: './server/error.ts',
               rollupConfig: {
                 external: (id: string) => {
                   if (id.startsWith('cloudflare:')) {

@@ -42,6 +42,8 @@ Use the Instagram mobile app so you can pin the finished post immediately.
 
 `artifacts/social/instagram-launch-2026/images/01-what-is`
 
+This folder contains only the four final 1080 x 1350 slides. They use Instagram's supported 4:5 portrait aspect ratio. The contact sheet is stored separately under `images/previews` and must not be selected for upload.
+
 ## Shared publishing notes
 
 - Format: 1080 x 1350 portrait carousel
@@ -106,7 +108,7 @@ Which do you trust more, your Top 5 or your team-mate calls?
 ### Alt text
 
 1. Grand Prix Picks introduction reading “Everyone's a strategist on Sunday. Prove it.” above an example Top 5 containing Lando Norris, Charles Leclerc, Kimi Antonelli, Oscar Piastri and Lewis Hamilton. Each driver row includes their 2026 number, nationality flag and team colour.
-2. Explanation that every session has two calls, showing the completed Top 5 alongside a McLaren team-mate Head-to-Head between Lando Norris and Oscar Piastri. Driver numbers, nationality flags and McLaren team colours are shown.
+2. Explanation that every session has two calls, showing a completed Top 5 with a McLaren team-mate Head-to-Head underneath. Lando Norris is selected ahead of Oscar Piastri, with driver numbers, nationality flags and McLaren team colours shown.
 3. Explanation that one score counts in two tables, with the same player and score highlighted on the global leaderboard and in a private league.
 4. Call to make picks before the next session starts and play Grand Prix Picks for free at GrandPrixPicks.com/ig.
 

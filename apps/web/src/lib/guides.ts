@@ -31,8 +31,7 @@ const GUIDES: readonly Guide[] = [
   {
     slug: 'f1-sprint-weekends-explained',
     title: 'How F1 sprint weekends work',
-    metaTitle:
-      'How F1 Sprint Weekends Work | Format Explained | Grand Prix Picks',
+    metaTitle: 'How F1 Sprint Weekends Work | Grand Prix Picks',
     metaDescription:
       'A plain explanation of the Formula 1 sprint weekend format: the running order, how sprint qualifying differs, and what changes for a normal Grand Prix weekend.',
     summary:
@@ -99,8 +98,7 @@ const GUIDES: readonly Guide[] = [
   {
     slug: 'f1-points-system-explained',
     title: 'The F1 points system explained',
-    metaTitle:
-      'F1 Points System Explained | How Drivers Score | Grand Prix Picks',
+    metaTitle: 'F1 Points System Explained | Grand Prix Picks',
     metaDescription:
       'How Formula 1 championship points work: the scoring positions for a Grand Prix, sprint points, the constructors championship, and how tie-breaks are settled.',
     summary:
@@ -157,7 +155,7 @@ const GUIDES: readonly Guide[] = [
   {
     slug: 'how-to-predict-f1-top-five',
     title: 'How to predict an F1 top five',
-    metaTitle: 'How to Predict an F1 Top 5 | Strategy Guide | Grand Prix Picks',
+    metaTitle: 'How to Predict an F1 Top 5 | Grand Prix Picks',
     metaDescription:
       'Practical strategy for predicting Formula 1 finishing positions: what qualifying actually tells you, which signals are worth trusting, and where most predictions go wrong.',
     summary:
@@ -216,8 +214,7 @@ const GUIDES: readonly Guide[] = [
   {
     slug: 'f1-race-weekend-format',
     title: 'What happens across an F1 race weekend',
-    metaTitle:
-      'F1 Race Weekend Format Explained | Sessions & Timing | Grand Prix Picks',
+    metaTitle: 'F1 Race Weekend Format Explained | Grand Prix Picks',
     metaDescription:
       'A session-by-session explanation of a Formula 1 race weekend: what practice is for, how the three-part qualifying session works, and what happens on race day.',
     summary:

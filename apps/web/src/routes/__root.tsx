@@ -232,13 +232,21 @@ function RootDocument({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    // The conversion page does not render ads. Loading AdSense there added
-    // network/CPU work and could mutate <head> before React hydration. Other
-    // routes load it only after the document and an idle main-thread window.
-    if (
-      pathname === '/' ||
-      document.querySelector<HTMLScriptElement>('#gpp-adsense-script')
-    ) {
+    // Every route, landing page included. This used to skip `/` to keep the
+    // conversion page free of third-party work, but "ad code not found" is its
+    // own AdSense rejection reason and the home page is the first thing a
+    // reviewer opens — a risk worth more than the bytes after a previous
+    // rejection. The cost also fell sharply: the StartupBar widget this page
+    // used to carry was 232 KB plus the 163 KB of Google Tag Manager it pulled
+    // in, and both are gone.
+    //
+    // The app declares no `<ins class="adsbygoogle">` slots of its own, but Auto
+    // ads is on and injects one, so this does put an ad unit on the landing
+    // page once the account is approved — not merely the code. Excluding `/`
+    // from Auto ads is a dashboard setting if that is not wanted. It still
+    // waits for the document and an idle main thread, so it cannot touch first
+    // paint either way.
+    if (document.querySelector<HTMLScriptElement>('#gpp-adsense-script')) {
       return;
     }
 
@@ -254,7 +262,9 @@ function RootDocument({ children }: PropsWithChildren) {
         'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598';
       document.head.append(script);
     });
-  }, [pathname]);
+    // Once per document, not per navigation: the loader is global and the
+    // route no longer decides whether it runs.
+  }, []);
 
   return (
     <html lang="en" className="dark" data-theme="dark">

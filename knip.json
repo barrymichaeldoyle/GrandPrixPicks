@@ -17,6 +17,7 @@
         "src/start.ts",
         "instrument.server.mjs",
         "server/routes/**/*.ts",
+        "server/middleware/**/*.ts",
         "server/error.ts"
       ],
       "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],

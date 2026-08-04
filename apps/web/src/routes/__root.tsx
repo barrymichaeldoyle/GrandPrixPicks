@@ -125,9 +125,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
             { rel: 'dns-prefetch', href: CLERK_ORIGIN },
           ]
         : []),
-      // Only the two faces that paint above the fold get preloaded: Archivo
-      // for all UI text and Plex Mono 500 for the countdown and points. The
-      // other Plex weights load on demand.
+      // Only the faces that paint above the fold get preloaded, because a face
+      // discovered from @font-face sits three hops deep (document → CSS →
+      // font) and swaps in ~1.4s on a cold mobile load. Above the fold that is
+      // Archivo for all UI text, Plex Mono 400 for the countdown and driver
+      // codes (the countdown asks for 300, and with no 300 face CSS matching
+      // resolves it up to 400), and Plex Mono 600 for the position badges.
+      // Plex Mono 500 is points-only, which is always below the fold, so it
+      // loads on demand.
       {
         rel: 'preload',
         href: '/fonts/archivo-latin-var.woff2',
@@ -137,7 +142,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         rel: 'preload',
-        href: '/fonts/ibm-plex-mono-500-latin.woff2',
+        href: '/fonts/ibm-plex-mono-400-latin.woff2',
+        as: 'font',
+        type: 'font/woff2',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'preload',
+        href: '/fonts/ibm-plex-mono-600-latin.woff2',
         as: 'font',
         type: 'font/woff2',
         crossOrigin: 'anonymous',

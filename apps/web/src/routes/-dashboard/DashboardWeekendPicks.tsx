@@ -148,7 +148,7 @@ function DashboardWeekendPicksReady({
   const [h2hVisited, setH2HVisited] = useState(
     initialStep === 'h2h' || initialStep === 'summary',
   );
-  const [top5OverlayOpen, setTop5OverlayOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerGeneration, setPickerGeneration] = useState(0);
   /**
    * Which session's saved card is on screen. Null follows the weekend's own
@@ -161,6 +161,13 @@ function DashboardWeekendPicksReady({
   // Back to Top 5 must stick even when the backend already says "finish H2H"
   // (otherwise the capability sync effect immediately re-advances to step 2).
   const suppressStepAutoAdvanceRef = useRef(false);
+  /**
+   * Read by the capability sync effect, which deliberately does not depend on
+   * the open state — a ref keeps the value fresh there without re-running the
+   * sync every time the overlay is toggled.
+   */
+  const pickerOpenRef = useRef(false);
+  pickerOpenRef.current = pickerOpen;
 
   const actionKind = action?.kind;
   const existingTop5Key = existingTop5?.join(',') ?? '';
@@ -171,7 +178,12 @@ function DashboardWeekendPicksReady({
     const next = resolveInitialStep(action);
     setStep((current) => {
       if (current === 'top5' && (next === 'h2h' || next === 'summary')) {
-        if (suppressStepAutoAdvanceRef.current) {
+        // While the picker is open the player drives the steps. The Top 5
+        // saves the instant it is complete, so this fires on the same beat as
+        // the celebration — advancing here would snatch the finished card away
+        // before they had looked at it, and make the Continue button they were
+        // reaching for vanish under their thumb.
+        if (suppressStepAutoAdvanceRef.current || pickerOpenRef.current) {
           return current;
         }
         return next;
@@ -189,6 +201,16 @@ function DashboardWeekendPicksReady({
     // stable capability + pick signature instead.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
   }, [actionKind, existingTop5Key]);
+
+  // The last duel saves itself, and that save is what moves the weekend to
+  // `summary` — it does not go through the form's `onSuccess`. Without this the
+  // overlay stayed open over a step that no longer renders anything, so
+  // finishing the card left an empty sheet with only a close button.
+  useEffect(() => {
+    if (step === 'summary' && pickerOpen) {
+      setPickerOpen(false);
+    }
+  }, [step, pickerOpen]);
 
   useEffect(() => {
     return deferUntilAfterLoad(() => void loadH2HForm());
@@ -263,8 +285,22 @@ function DashboardWeekendPicksReady({
     setStep('top5');
   }
 
-  function openTop5Overlay() {
-    setTop5OverlayOpen(true);
+  function openPicker() {
+    setPickerOpen(true);
+    if (step === 'h2h') {
+      setH2HVisited(true);
+    }
+  }
+
+  /**
+   * Closing is always safe: both forms save themselves the moment their set is
+   * complete, so there is never an unsaved card to lose here. Remounting the
+   * pickers on the next open is what keeps a half-finished attempt from being
+   * restored into a card that has since been saved from another device.
+   */
+  function closePicker() {
+    setPickerOpen(false);
+    setPickerGeneration((generation) => generation + 1);
   }
 
   return (
@@ -355,82 +391,12 @@ function DashboardWeekendPicksReady({
 
       <div className="p-4 sm:p-5">
         {showInteractive ? (
-          <>
-            <div className="mb-4">
-              {step === 'h2h' && topFiveComplete ? (
-                <button
-                  type="button"
-                  className="gpp-label -ml-1 inline-flex items-center gap-0.5 text-accent transition-colors hover:text-accent-hover"
-                  onClick={goBackToTop5}
-                >
-                  <ChevronLeft className="size-3.5" aria-hidden />
-                  Step 2 of 2
-                </button>
-              ) : (
-                <p className="gpp-label text-accent">
-                  Step {step === 'top5' ? '1' : '2'} of 2
-                </p>
-              )}
-              <h3 className="mt-1 text-lg font-semibold text-text sm:text-xl">
-                {step === 'top5'
-                  ? 'Choose your Top 5'
-                  : 'Pick each team-mate winner'}
-              </h3>
-            </div>
-
-            {step === 'top5' && !top5OverlayOpen ? (
-              <PredictionForm
-                key={pickerGeneration}
-                raceId={weekend.race._id}
-                initialDrivers={drivers}
-                existingPicks={existingTop5 ?? undefined}
-                enableNavigationBlocker={false}
-                mobileActionFirst
-                onCompletionStateChange={setTopFiveComplete}
-                onPicksChange={setTopFivePicks}
-                renderActionArea={({ complete }) =>
-                  complete ? (
-                    <div className="mt-3" data-testid="top5-handoff">
-                      <Button
-                        variant="primary"
-                        size="md"
-                        className="w-full sm:w-auto"
-                        onClick={continueToH2H}
-                      >
-                        Continue to team-mate battles
-                      </Button>
-                    </div>
-                  ) : null
-                }
-              />
-            ) : null}
-
-            {step === 'h2h' && h2hVisited ? (
-              matchups === undefined ? (
-                <H2HPickerSkeleton />
-              ) : (
-                <Suspense fallback={<H2HPickerSkeleton />}>
-                  <H2HPredictionForm
-                    key={`h2h-${pickerGeneration}`}
-                    raceId={weekend.race._id}
-                    matchups={matchups}
-                    existingPicks={existingH2H ?? undefined}
-                    entryMethod="top5_handoff"
-                    topFivePositions={topFivePositions}
-                    onSuccess={() => setStep('summary')}
-                    onExitPrevious={goBackToTop5}
-                    renderCardIntro={() => (
-                      <TopFiveStrip
-                        topFivePicks={topFivePicks}
-                        drivers={drivers}
-                        onEditTopFive={openTop5Overlay}
-                      />
-                    )}
-                  />
-                </Suspense>
-              )
-            ) : null}
-          </>
+          <PicksInvitation
+            step={step}
+            topFivePicks={topFivePicks}
+            drivers={drivers}
+            onOpen={openPicker}
+          />
         ) : activeSession ? (
           <DashboardPicksSummary
             key={activeSession.sessionType}
@@ -449,44 +415,91 @@ function DashboardWeekendPicksReady({
         ) : null}
       </div>
 
+      {/* Both steps live in here, and the card outside is only ever an
+          invitation into it. Picking is the one thing on this page that wants
+          the whole screen: twenty-two drivers and then eleven duels do not fit
+          beside a leagues rail, and inline they pushed everything else on the
+          dashboard below the fold. */}
       <PicksFocusOverlay
-        open={top5OverlayOpen}
-        onClose={() => setTop5OverlayOpen(false)}
-        title="Your Top 5"
-        subtitle="Applies to every session this weekend"
+        open={pickerOpen}
+        onClose={closePicker}
+        title={step === 'h2h' ? 'Team-mate battles' : 'Your Top 5'}
+        subtitle={
+          step === 'h2h'
+            ? 'Step 2 of 2'
+            : 'Step 1 of 2 · applies to every open session'
+        }
       >
         <div className="pb-4 sm:pb-0">
-          <PredictionForm
-            key={`overlay-${pickerGeneration}`}
-            raceId={weekend.race._id}
-            initialDrivers={drivers}
-            existingPicks={
-              topFivePicks.length === 5
-                ? topFivePicks
-                : (existingTop5 ?? undefined)
-            }
-            enableNavigationBlocker={false}
-            onCompletionStateChange={setTopFiveComplete}
-            onPicksChange={setTopFivePicks}
-            onSuccess={() => {
-              setTop5OverlayOpen(false);
-              setPickerGeneration((g) => g + 1);
-            }}
-            renderActionArea={({ complete }) =>
-              complete ? (
-                <div className="mt-3">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="w-full sm:w-auto"
-                    onClick={() => setTop5OverlayOpen(false)}
-                  >
-                    Done
-                  </Button>
-                </div>
-              ) : null
-            }
-          />
+          {step === 'h2h' && topFiveComplete ? (
+            <button
+              type="button"
+              className="gpp-label -ml-1 mb-4 inline-flex items-center gap-0.5 text-accent transition-colors hover:text-accent-hover"
+              onClick={goBackToTop5}
+            >
+              <ChevronLeft className="size-3.5" aria-hidden />
+              Back to your Top 5
+            </button>
+          ) : null}
+
+          {step === 'top5' ? (
+            <PredictionForm
+              key={`picker-${pickerGeneration}`}
+              raceId={weekend.race._id}
+              initialDrivers={drivers}
+              // Server truth only. Seeding this from the live `topFivePicks`
+              // tells the form its current picks are already saved, so `dirty`
+              // goes false on the fifth tap and the auto-save never fires —
+              // the picks then exist nowhere but this component's state.
+              existingPicks={existingTop5 ?? undefined}
+              enableNavigationBlocker={false}
+              mobileActionFirst
+              onCompletionStateChange={setTopFiveComplete}
+              onPicksChange={setTopFivePicks}
+              renderActionArea={({ complete }) =>
+                complete ? (
+                  <div className="mt-3" data-testid="top5-handoff">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      className="w-full sm:w-auto"
+                      onClick={continueToH2H}
+                    >
+                      Continue to team-mate battles
+                    </Button>
+                  </div>
+                ) : null
+              }
+            />
+          ) : null}
+
+          {step === 'h2h' && h2hVisited ? (
+            matchups === undefined ? (
+              <H2HPickerSkeleton />
+            ) : (
+              <Suspense fallback={<H2HPickerSkeleton />}>
+                <H2HPredictionForm
+                  key={`h2h-${pickerGeneration}`}
+                  raceId={weekend.race._id}
+                  matchups={matchups}
+                  existingPicks={existingH2H ?? undefined}
+                  entryMethod="top5_handoff"
+                  topFivePositions={topFivePositions}
+                  onSuccess={closePicker}
+                  onExitPrevious={goBackToTop5}
+                  renderCardIntro={() => (
+                    <TopFiveStrip
+                      topFivePicks={topFivePicks}
+                      drivers={drivers}
+                      // Editing the Top 5 from step 2 rewinds this overlay
+                      // rather than stacking a second one on top of it.
+                      onEditTopFive={goBackToTop5}
+                    />
+                  )}
+                />
+              </Suspense>
+            )
+          ) : null}
         </div>
       </PicksFocusOverlay>
     </section>
@@ -669,6 +682,68 @@ function SessionChip({
     >
       {label}
     </button>
+  );
+}
+
+/**
+ * What the card shows while there is still picking to do: what the step is,
+ * what is already down, and one button into the full-screen picker.
+ *
+ * The pickers used to render here. Twenty-two driver tiles and then eleven
+ * duels is more than a dashboard card can hold — it buried the rail, the
+ * standings and everything else below a screen and a half of picker, and made
+ * the card look like the page rather than one thing on it.
+ */
+function PicksInvitation({
+  step,
+  topFivePicks,
+  drivers,
+  onOpen,
+}: {
+  step: PicksStep;
+  topFivePicks: Id<'drivers'>[];
+  drivers: Doc<'drivers'>[];
+  onOpen: () => void;
+}) {
+  const onH2H = step === 'h2h';
+  const hasTopFive = topFivePicks.length === 5;
+
+  return (
+    <div data-testid="dashboard-picks-invitation">
+      <p className="gpp-label text-accent">Step {onH2H ? '2' : '1'} of 2</p>
+      <h3 className="mt-1 text-lg font-semibold text-text sm:text-xl">
+        {onH2H ? 'Pick each team-mate winner' : 'Choose your Top 5'}
+      </h3>
+      <p className="mt-1 text-sm text-text-muted">
+        {onH2H
+          ? 'Eleven team-mate battles. One point for each one you call right.'
+          : 'Tap drivers in finishing order. One card covers every open session.'}
+      </p>
+
+      {hasTopFive ? (
+        <div className="mt-4">
+          <p className="gpp-label text-text-muted">Your Top 5</p>
+          <TopFivePicksBar picks={topFivePicks} drivers={drivers} />
+        </div>
+      ) : null}
+
+      <div className="mt-4">
+        <Button
+          variant="primary"
+          size="md"
+          className="w-full sm:w-auto"
+          onClick={onOpen}
+          rightIcon={ArrowRight}
+          data-testid="open-picks-picker"
+        >
+          {onH2H
+            ? 'Call the team-mate battles'
+            : hasTopFive
+              ? 'Edit your Top 5'
+              : 'Make your picks'}
+        </Button>
+      </div>
+    </div>
   );
 }
 

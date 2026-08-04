@@ -24,10 +24,9 @@ export type DashboardSessionState = {
  * always means "auth has not landed yet" rather than "this viewer is a guest".
  */
 export function weekendReflectsViewer(
-  sessions: ReadonlyArray<DashboardSessionState>,
+  sessions: readonly DashboardSessionState[],
 ): boolean {
   return (
-    sessions.length > 0 &&
     sessions.some((session) => session.denialReason !== 'sign_in')
   );
 }

@@ -1,9 +1,14 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
+import {
+  isNotificationFilter,
+  NOTIFICATION_PAGE_SIZE,
+  type NotificationFilter,
+} from '@grandprixpicks/shared/notifications';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import { CheckCheck, LogIn } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
 import { Button } from '@/components/Button/Button';
@@ -15,7 +20,6 @@ import {
 import { NotificationFilterNav } from '@/components/notifications/NotificationFilterNav';
 import { NotificationSettingsCard } from '@/components/notifications/NotificationSettingsCard';
 import { NotificationToolbar } from '@/components/notifications/NotificationToolbar';
-import { PageHeader } from '@/components/PageHeader';
 import { PageLoader } from '@/components/PageLoader';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
@@ -25,12 +29,9 @@ import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
-  countNotificationsByFilter,
-  isNotificationFilter,
-  matchesNotificationFilter,
+  EMPTY_NOTIFICATION_FILTER_COUNTS,
   mergeNotificationPages,
   NOTIFICATION_FILTERS,
-  type NotificationFilter,
 } from '@/lib/notificationFilters';
 import { pageMeta } from '@/lib/site';
 
@@ -110,6 +111,9 @@ function NotificationsPage() {
   const unreadOnly = unreadParam === true;
   const navigate = Route.useNavigate();
 
+  // The filters are query arguments, not a post-filter over the loaded page.
+  // Changing one starts a fresh pagination of that category, so an empty list
+  // means the category is empty rather than "not in what we happen to hold".
   const {
     results,
     status,
@@ -117,7 +121,7 @@ function NotificationsPage() {
     isLoading: isLoadingPage,
   } = usePaginatedQuery(
     api.inAppNotifications.getMyNotifications,
-    isSignedIn ? {} : 'skip',
+    isSignedIn ? { filter, unreadOnly } : 'skip',
     { initialNumItems: NOTIFICATION_PAGE_SIZE },
   );
   // The unread total is counted server-side off the unread index, so it stays
@@ -126,6 +130,13 @@ function NotificationsPage() {
   // would otherwise render as an empty inbox.
   const unread = useQuery(
     api.inAppNotifications.getMyUnreadCount,
+    isSignedIn ? {} : 'skip',
+  );
+  // Counted server-side over the whole history for the same reason the list is
+  // filtered server-side: a badge derived from the loaded page said "no
+  // reactions" to someone who had eleven.
+  const countsResult = useQuery(
+    api.inAppNotifications.getMyNotificationCounts,
     isSignedIn ? {} : 'skip',
   );
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
@@ -141,16 +152,29 @@ function NotificationsPage() {
   // A reaction thread whose rows straddle a page boundary comes back as two
   // groups; merging on the feed event puts it back together.
   const notifications = mergeNotificationPages(results as Notification[]);
-  const counts = countNotificationsByFilter(notifications);
-  const filtered = notifications.filter(
-    (notification) =>
-      matchesNotificationFilter(notification, filter) &&
-      (!unreadOnly || !notification.readAt),
-  );
-  const groups = groupByDay(filtered);
+  const counts = countsResult?.counts ?? EMPTY_NOTIFICATION_FILTER_COUNTS;
+  const countsTruncated = countsResult?.truncated ?? false;
+  const groups = groupByDay(notifications);
   const activeFilter = NOTIFICATION_FILTERS.find((f) => f.value === filter);
   const canLoadMore = status === 'CanLoadMore';
   const isLoadingMore = status === 'LoadingMore' || isLoadingPage;
+
+  // A filtered page can come back short of a full page without being the end
+  // of the category. That is a detail of how the scan is chunked, not
+  // something to hand to the reader as a button, so keep pulling while the
+  // list is empty and there is more to read.
+  useEffect(() => {
+    if (canLoadMore && notifications.length === 0) {
+      loadMore(NOTIFICATION_PAGE_SIZE);
+    }
+  }, [canLoadMore, notifications.length, loadMore]);
+
+  // An empty list is only news once the category is exhausted: until then the
+  // effect above is still pulling, and showing "nothing here" in the meantime
+  // would be the same lie in a quieter voice.
+  const isResolving =
+    isLoadingFirstPage ||
+    (notifications.length === 0 && status !== 'Exhausted');
 
   function searchFor(nextFilter: NotificationFilter): NotificationSearch {
     return {
@@ -241,6 +265,7 @@ function NotificationsPage() {
             <NotificationFilterNav
               filter={filter}
               counts={counts}
+              countsTruncated={countsTruncated}
               searchFor={searchFor}
             />
           </RailItem>
@@ -267,40 +292,48 @@ function NotificationsPage() {
         </>
       }
     >
-      <PageHeader
-        size="compact"
-        className="mb-0"
-        title="Notifications"
-        subtitle={
-          unreadCount > 0
-            ? `${unreadLabel} unread across locks, results, reactions, and announcements.`
-            : 'Session locks, results, reactions, and announcements.'
-        }
-        actionsPlacement="trailing"
-        // Settings live in the Delivery rail card, which also appears in the
-        // mobile widget stack, so the header carries no second link.
-        actions={
-          unreadCount > 0 ? (
-            <Button
-              size="sm"
-              variant="text"
-              onClick={() => {
-                captureAnalyticsEvent('notifications_mark_all_read', {
-                  unread_count: unreadCount,
-                });
-                void markAllReadMutation({});
-              }}
-            >
-              <CheckCheck className="h-3.5 w-3.5" aria-hidden />
-              Mark all read
-            </Button>
-          ) : null
-        }
-      />
+      {/*
+        A utility header, not a page hero. This is a destination you reach by
+        tapping a thing already labelled "Notifications", and the route is
+        `noIndex`, so a display title over a sentence defining the word was
+        costing half a phone screen to tell the reader something they knew and
+        nobody else could read. The heading stays an `h1` — the page still
+        needs one — sized like the section eyebrows on the dashboard.
+
+        Settings live in the Delivery rail card, which also appears in the
+        mobile widget stack, so the header carries no second link.
+      */}
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="gpp-label text-text-muted">Notifications</h1>
+          {/* Keeps its slot at zero unread: marking everything read removes
+              both the count and the button, and a collapsing header would
+              yank the list up under the thumb that just did it. */}
+          <p className="mt-1 min-h-5 text-sm text-text">
+            {unreadCount > 0 ? `${unreadLabel} unread` : null}
+          </p>
+        </div>
+        {unreadCount > 0 ? (
+          <Button
+            size="sm"
+            variant="text"
+            onClick={() => {
+              captureAnalyticsEvent('notifications_mark_all_read', {
+                unread_count: unreadCount,
+              });
+              void markAllReadMutation({});
+            }}
+          >
+            <CheckCheck className="h-3.5 w-3.5" aria-hidden />
+            Mark all read
+          </Button>
+        ) : null}
+      </header>
 
       <NotificationToolbar
         filter={filter}
         counts={counts}
+        countsTruncated={countsTruncated}
         unreadOnly={unreadOnly}
         searchFor={searchFor}
         onUnreadOnlyChange={(next) => updateSearch({ unreadOnly: next })}
@@ -308,26 +341,27 @@ function NotificationsPage() {
 
       {/* Filtering, loading and mark-as-read change the list silently. */}
       <p role="status" className="sr-only">
-        {isLoadingFirstPage
+        {isResolving
           ? 'Loading notifications'
-          : `Showing ${filtered.length} ${activeFilter?.shortLabel.toLowerCase() ?? ''} notifications${unreadOnly ? ', unread only' : ''}. ${unreadLabel} unread in total.`}
+          : `Showing ${notifications.length} ${activeFilter?.shortLabel.toLowerCase() ?? ''} notifications${unreadOnly ? ', unread only' : ''}. ${unreadLabel} unread in total.`}
       </p>
 
-      {isLoadingFirstPage ? (
+      {isResolving ? (
         <NotificationListSkeleton />
       ) : groups.length === 0 ? (
-        <div className="space-y-4">
-          <EmptyState
-            categoryLabel={activeFilter?.shortLabel.toLowerCase() ?? 'new'}
-            isDefaultView={filter === 'all' && !unreadOnly}
-            unreadOnly={unreadOnly}
-            hasMorePages={canLoadMore}
-            onShowAll={() => updateSearch({ filter: 'all', unreadOnly: false })}
-          />
-          {/* Nothing matched *in what is loaded* — the rest of the history may
-              still hold some, so the way forward stays on screen. */}
-          {loadMoreButton}
-        </div>
+        // No load-more button here any more. The query is filtered, so an
+        // empty result is the whole answer for this category rather than a
+        // report on what happened to be in memory, and there is nothing left
+        // for the reader to go digging through.
+        <EmptyState
+          categoryLabel={activeFilter?.shortLabel.toLowerCase() ?? 'new'}
+          isDefaultView={filter === 'all' && !unreadOnly}
+          unreadOnly={unreadOnly}
+          // "You've read them all" and "there are none" are different facts,
+          // and the counts know which one this is.
+          categoryHasAny={counts[filter].total > 0}
+          onShowAll={() => updateSearch({ filter: 'all', unreadOnly: false })}
+        />
       ) : (
         <div className="space-y-5">
           {groups.map((group) => (
@@ -382,22 +416,36 @@ function NotificationListSkeleton({ rows = 4 }: { rows?: number }) {
   );
 }
 
+/**
+ * Says what is true of the whole category, not of the loaded page.
+ *
+ * The old copy ("Nothing in what has loaded so far. Try another filter, or
+ * load older notifications.") was an accurate description of a client-side
+ * filter and a terrible thing to read: it admitted the app had not actually
+ * checked, and asked the reader to page through their own history to find out.
+ * With the filter in the query there is nothing left to qualify.
+ */
 function EmptyState({
   categoryLabel,
   isDefaultView,
   unreadOnly,
-  hasMorePages,
+  categoryHasAny,
   onShowAll,
 }: {
   categoryLabel: string;
   isDefaultView: boolean;
   unreadOnly: boolean;
-  hasMorePages: boolean;
+  /** Whether this category holds anything at all, read or not. */
+  categoryHasAny: boolean;
   onShowAll: () => void;
 }) {
+  // Under "unread only" there are two ways to be empty, and telling someone
+  // they have read every announcement when they have never had one is the kind
+  // of small wrongness that makes the rest of the page feel untrustworthy.
+  const readThemAll = unreadOnly && categoryHasAny;
   const title = isDefaultView
     ? "You're all caught up"
-    : unreadOnly
+    : readThemAll
       ? 'Nothing unread here'
       : `No ${categoryLabel} yet`;
 
@@ -407,8 +455,8 @@ function EmptyState({
       <p className="mt-1 text-xs leading-relaxed text-text-muted">
         {isDefaultView
           ? "We'll ping you when sessions lock, results publish, or someone reacts to your picks."
-          : hasMorePages
-            ? 'Nothing in what has loaded so far. Try another filter, or load older notifications.'
+          : readThemAll
+            ? "You've read every one of these."
             : 'Try another filter, or check back after the next session.'}
       </p>
       {isDefaultView ? (

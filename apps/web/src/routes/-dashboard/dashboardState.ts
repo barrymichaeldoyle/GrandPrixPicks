@@ -26,9 +26,7 @@ export type DashboardSessionState = {
 export function weekendReflectsViewer(
   sessions: readonly DashboardSessionState[],
 ): boolean {
-  return (
-    sessions.some((session) => session.denialReason !== 'sign_in')
-  );
+  return sessions.some((session) => session.denialReason !== 'sign_in');
 }
 
 export type DashboardWeekendAction =

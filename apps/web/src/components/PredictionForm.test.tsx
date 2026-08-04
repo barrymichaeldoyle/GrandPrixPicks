@@ -298,6 +298,98 @@ describe('PredictionForm try-before-signup', () => {
     );
   });
 
+  it('flushes an unsaved edit on demand so an exit button cannot outrun the debounce', async () => {
+    convexAuth.isAuthenticated = true;
+    const actionArea: {
+      saveState?: string;
+      saveNow?: () => Promise<void>;
+    } = {};
+
+    // A saved card whose picks have since been changed: the state a player is
+    // in when they reorder and immediately reach for Done.
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          existingPicks={[...DRIVER_IDS].reverse()}
+          renderActionArea={({ saveState, saveNow }) => {
+            actionArea.saveState = saveState;
+            actionArea.saveNow = saveNow;
+            return null;
+          }}
+        />,
+      );
+    });
+
+    expect(actionArea.saveState).toBe('unsaved');
+    expect(submitSpy).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await actionArea.saveNow?.();
+    });
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+
+    // Nothing to flush once the picks match the server, so leaving a card the
+    // player only looked at costs no write.
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          existingPicks={DRIVER_IDS}
+          renderActionArea={({ saveState, saveNow }) => {
+            actionArea.saveState = saveState;
+            actionArea.saveNow = saveNow;
+            return null;
+          }}
+        />,
+      );
+    });
+
+    expect(actionArea.saveState).toBe('saved');
+    await act(async () => {
+      await actionArea.saveNow?.();
+    });
+    expect(submitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports whether a save was the first one and whether it was automatic', async () => {
+    convexAuth.isAuthenticated = true;
+    const onSuccess = vi.fn();
+
+    await act(async () => {
+      root.render(
+        <PredictionForm
+          raceId={RACE_ID}
+          existingPicks={[...DRIVER_IDS].reverse()}
+          onSuccess={onSuccess}
+          renderActionArea={() => null}
+        />,
+      );
+    });
+
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="remove-pick-1"]')
+        ?.click();
+    });
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(`[data-testid="driver-D0"]`)
+        ?.click();
+    });
+
+    // The edit's auto-save is debounced; wait it out rather than flushing, so
+    // this asserts what the *background* write reports.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1400));
+    });
+
+    expect(onSuccess).toHaveBeenCalledWith({
+      autoSaved: true,
+      wasFirstSave: false,
+    });
+  });
+
   it('moves restored-draft status into parent chrome when given a target', async () => {
     await act(async () => {
       root.render(

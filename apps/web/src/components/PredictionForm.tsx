@@ -406,8 +406,13 @@ interface PredictionFormProps {
   suppressDraftRestoredNotice?: boolean;
   /** If provided, only update this specific session. Otherwise cascade to all. */
   sessionType?: SessionType;
-  /** Called after a successful submit (e.g. to close an edit view). */
-  onSuccess?: () => void;
+  /**
+   * Called after a successful submit. The argument says what kind of save it
+   * was, because a parent must never treat a background auto-save of an edit as
+   * a user action: closing an overlay out from under someone who is still
+   * reordering their picks is the UI moving on its own.
+   */
+  onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
   /** Emits whether the form currently has unsaved changes. */
   onDirtyChange?: (dirty: boolean) => void;
   /** Disable route navigation blocking in environments like Storybook. */
@@ -425,8 +430,16 @@ interface PredictionFormProps {
    * Replaces the entire submit area for a guided parent flow. Unlike the
    * signed-out save wall, this renders regardless of auth state and lets the
    * parent defer saving until a later step.
+   *
+   * `saveNow` exists for exit buttons: the auto-save of an edit is debounced,
+   * so a parent that unmounts this form within that window (closing an overlay)
+   * would cancel the pending write. Await it before closing.
    */
-  renderActionArea?: (state: { complete: boolean }) => ReactNode;
+  renderActionArea?: (state: {
+    complete: boolean;
+    saveState: SaveState;
+    saveNow: () => Promise<void>;
+  }) => ReactNode;
   /** Moves restored-draft status into parent chrome such as a step header. */
   draftNoticeTarget?: HTMLElement | null;
   /** Adds conversion-funnel properties/events without changing app forms. */
@@ -450,6 +463,13 @@ type Top5Draft = {
   picks: Id<'drivers'>[];
   updatedAt: string;
 };
+
+/**
+ * What the form would tell you about the server if you asked right now. Auto-
+ * save is silent, and silence is only trustworthy when there is somewhere to
+ * look: without this, "Done" reads as "discard".
+ */
+export type SaveState = 'unsaved' | 'saving' | 'saved' | 'error';
 
 /**
  * Grace period after the 5th pick lands before auto-saving. Longer than the
@@ -876,7 +896,10 @@ export function PredictionForm({
       clearPredictionDraft(draftKey);
       clearPendingSubmit(draftKey);
       setRestoredDraftAt(null);
-      onSuccess?.();
+      onSuccess?.({
+        autoSaved: Boolean(options?.autoSaved),
+        wasFirstSave,
+      });
     } catch (error) {
       captureAnalyticsEvent('prediction_submit_failed', {
         race_id: raceId,
@@ -1017,6 +1040,29 @@ export function PredictionForm({
   const isUnchangedFromSaved = Boolean(
     existingPicks?.length === 5 && picks.length === 5 && !hasChanges,
   );
+
+  const saveState: SaveState = isSubmitting
+    ? 'saving'
+    : submitStatus === 'error'
+      ? 'error'
+      : hasChanges
+        ? 'unsaved'
+        : 'saved';
+
+  /**
+   * Write whatever is on screen, right now, and resolve when it has landed.
+   *
+   * The exit button of an overlay calls this before closing. Auto-saving an
+   * edit is debounced by `EDIT_SAVE_DEBOUNCE_MS`, and unmounting the form
+   * cancels that timer, so a player who reorders and immediately leaves would
+   * otherwise take their change with them.
+   */
+  async function saveNow() {
+    if (!hasChanges || picks.length !== 5 || isSubmissionBlocked) {
+      return;
+    }
+    await handleSubmit();
+  }
 
   function handleDiscardDraft() {
     captureAnalyticsEvent('prediction_draft_discarded', {
@@ -1162,7 +1208,11 @@ export function PredictionForm({
             {/* Guided funnels can own this area completely so progressing to
                 the next step never competes with an early save action. */}
             {renderActionArea ? (
-              renderActionArea({ complete: picks.length === 5 })
+              renderActionArea({
+                complete: picks.length === 5,
+                saveState,
+                saveNow,
+              })
             ) : showSaveWall && renderSaveWall ? (
               renderSaveWall({ lockIn: () => requestSubmit() })
             ) : (

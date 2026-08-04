@@ -53,7 +53,7 @@ type PredictionFormSlotProps = {
   raceId: Id<'races'>;
   existingPicks?: Id<'drivers'>[];
   sessionType?: SessionType;
-  onSuccess?: () => void;
+  onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
   onDirtyChange?: (dirty: boolean) => void;
 };
 
@@ -198,7 +198,13 @@ export function RaceEventPage({
     onTop5DirtyChange(false);
   }
 
-  function handleTop5Success() {
+  function handleTop5Success({ wasFirstSave }: { wasFirstSave: boolean }) {
+    // Only the save that first puts a card on the board ends the overlay and
+    // hands off to H2H. Editing a saved card auto-saves in the background, and
+    // a background write must never close the thing the player is working in.
+    if (!wasFirstSave) {
+      return;
+    }
     closeTop5Overlay();
     // One-time nudge to follow the brand X account, shown after the first
     // prediction ever saved on this device.

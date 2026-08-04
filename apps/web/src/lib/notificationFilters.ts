@@ -1,15 +1,15 @@
+import type { NotificationFilter } from '@grandprixpicks/shared/notifications';
 import { Flame, Inbox, Lock, Megaphone, Trophy } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import type { Notification } from '@/components/NotificationItem';
 
-export type NotificationFilter =
-  | 'all'
-  | 'reactions'
-  | 'results'
-  | 'locked'
-  | 'announcements';
-
+/**
+ * Presentation for each filter. The filter *values* and the notification types
+ * behind them live in `@grandprixpicks/shared/notifications`, because the query
+ * applies them — see the note there. This file only decides what they look
+ * like.
+ */
 export const NOTIFICATION_FILTERS: {
   value: NotificationFilter;
   label: string;
@@ -38,39 +38,6 @@ export const NOTIFICATION_FILTERS: {
     icon: Megaphone,
   },
 ];
-
-export function isNotificationFilter(
-  value: unknown,
-): value is NotificationFilter {
-  return (
-    value === 'all' ||
-    value === 'reactions' ||
-    value === 'results' ||
-    value === 'locked' ||
-    value === 'announcements'
-  );
-}
-
-export function matchesNotificationFilter(
-  notification: Notification,
-  filter: NotificationFilter,
-): boolean {
-  switch (filter) {
-    case 'all':
-      return true;
-    case 'reactions':
-      return notification.type === 'rev_received';
-    case 'results':
-      return (
-        notification.type === 'results_published' ||
-        notification.type === 'results_amended'
-      );
-    case 'locked':
-      return notification.type === 'session_locked';
-    case 'announcements':
-      return notification.type === 'announcement';
-  }
-}
 
 /**
  * Collapses reaction rows that describe the same feed event into one.
@@ -133,28 +100,23 @@ export type NotificationFilterCounts = Record<
   { total: number; unread: number }
 >;
 
-export function countNotificationsByFilter(
-  notifications: Notification[],
-): NotificationFilterCounts {
-  const counts = {
-    all: { total: 0, unread: 0 },
-    reactions: { total: 0, unread: 0 },
-    results: { total: 0, unread: 0 },
-    locked: { total: 0, unread: 0 },
-    announcements: { total: 0, unread: 0 },
-  } satisfies NotificationFilterCounts;
+/** What the rails show before the counts query answers. */
+export const EMPTY_NOTIFICATION_FILTER_COUNTS: NotificationFilterCounts = {
+  all: { total: 0, unread: 0 },
+  reactions: { total: 0, unread: 0 },
+  results: { total: 0, unread: 0 },
+  locked: { total: 0, unread: 0 },
+  announcements: { total: 0, unread: 0 },
+};
 
-  for (const notification of notifications) {
-    const unread = !notification.readAt;
-    for (const { value } of NOTIFICATION_FILTERS) {
-      if (matchesNotificationFilter(notification, value)) {
-        counts[value].total += 1;
-        if (unread) {
-          counts[value].unread += 1;
-        }
-      }
-    }
-  }
-
-  return counts;
+/**
+ * The counts are taken over a bounded window of history, so past that window a
+ * badge is a floor rather than a total. Say so with a "+" instead of printing
+ * a precise-looking number that is quietly short.
+ */
+export function formatNotificationCount(
+  count: number,
+  truncated: boolean,
+): string {
+  return truncated ? `${count}+` : `${count}`;
 }

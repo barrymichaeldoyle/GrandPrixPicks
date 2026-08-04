@@ -8,6 +8,7 @@ import { H2HDuelFocusModal } from '@/components/H2HDuelFocusModal';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { H2HPicksBar } from '@/components/H2HPicksBar';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { PicksSaveStatus } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -200,22 +201,35 @@ export function DashboardPicksSummary({
             initialDrivers={drivers}
             existingPicks={picks.top5 ?? undefined}
             enableNavigationBlocker={false}
-            onSuccess={() => setTop5OverlayOpen(false)}
+            // No `onSuccess` close. This card is already saved, so every write
+            // in here is a background auto-save of an edit, and letting one
+            // close the overlay meant the screen vanished mid-swap: drag a
+            // driver, pause, and the debounce fired the exit for you. Leaving
+            // is the player's move and theirs only.
+            //
             // Matches the weekend card's overlay. Without it this one ended on
             // a disabled "Saved" button: the picks were safe, but the only way
             // out was the X in the corner, so the state that means "you're
             // finished" looked like the state that means "this is broken".
-            renderActionArea={({ complete }) =>
+            renderActionArea={({ complete, saveState, saveNow }) =>
               complete ? (
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <Button
                     variant="primary"
                     size="md"
                     className="w-full sm:w-auto"
-                    onClick={() => setTop5OverlayOpen(false)}
+                    // Flush first: an edit made in the last second is still
+                    // sitting behind the debounce, and closing unmounts the
+                    // form that owns the timer.
+                    onClick={async () => {
+                      await saveNow();
+                      setTop5OverlayOpen(false);
+                    }}
+                    data-testid="summary-top5-done"
                   >
                     Done
                   </Button>
+                  <PicksSaveStatus state={saveState} />
                 </div>
               ) : null
             }

@@ -45,10 +45,38 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
+/** Set by the PredictionForm mock so a test can drive the real form's contract. */
+let top5Form: {
+  onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
+  renderActionArea?: (state: {
+    complete: boolean;
+    saveState: string;
+    saveNow: () => Promise<void>;
+  }) => React.ReactNode;
+} = {};
+const saveNow = vi.fn(() => Promise.resolve());
+
 vi.mock('@/components/PredictionForm', () => ({
-  PredictionForm: ({ sessionType }: { sessionType?: string }) => (
-    <div data-testid="top5-form" data-session={sessionType ?? 'cascade'} />
-  ),
+  PredictionForm: ({
+    sessionType,
+    onSuccess,
+    renderActionArea,
+  }: {
+    sessionType?: string;
+    onSuccess?: (save: { autoSaved: boolean; wasFirstSave: boolean }) => void;
+    renderActionArea?: (state: {
+      complete: boolean;
+      saveState: string;
+      saveNow: () => Promise<void>;
+    }) => React.ReactNode;
+  }) => {
+    top5Form = { onSuccess, renderActionArea };
+    return (
+      <div data-testid="top5-form" data-session={sessionType ?? 'cascade'}>
+        {renderActionArea?.({ complete: true, saveState: 'saved', saveNow })}
+      </div>
+    );
+  },
 }));
 
 vi.mock('@/components/H2HPredictionForm', () => ({
@@ -128,7 +156,17 @@ afterEach(() => {
   container?.remove();
   container = null;
   root = null;
+  top5Form = {};
+  saveNow.mockClear();
 });
+
+function openTop5Editor(el: HTMLElement) {
+  act(() => {
+    el.querySelector<HTMLButtonElement>(
+      '[data-testid="summary-edit-top5"]',
+    )!.click();
+  });
+}
 
 describe('DashboardPicksSummary', () => {
   it('shows the saved card for the session without leaving the dashboard', () => {
@@ -157,6 +195,32 @@ describe('DashboardPicksSummary', () => {
     expect(form).not.toBeNull();
     expect(form!.getAttribute('data-session')).toBe('quali');
     expect(document.body.textContent).toContain('Qualifying only');
+  });
+
+  it('keeps the Top 5 editor open when a background auto-save lands', () => {
+    const el = render();
+    openTop5Editor(el);
+
+    act(() => {
+      top5Form.onSuccess?.({ autoSaved: true, wasFirstSave: false });
+    });
+
+    expect(document.querySelector('[data-testid="top5-form"]')).not.toBeNull();
+  });
+
+  it('flushes a pending save before Done closes the editor', async () => {
+    const el = render();
+    openTop5Editor(el);
+
+    const done = document.querySelector<HTMLButtonElement>(
+      '[data-testid="summary-top5-done"]',
+    )!;
+    await act(async () => {
+      done.click();
+    });
+
+    expect(saveNow).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('[data-testid="top5-form"]')).toBeNull();
   });
 
   it('opens a single duel when a team-mate cell is tapped', () => {

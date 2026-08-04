@@ -26,13 +26,6 @@ type PageHeaderProps = {
    * wide screens, dropping under it on mobile.
    */
   actionsPlacement?: 'below' | 'trailing';
-  /**
-   * `compact` shrinks the title one step and tightens the copy beneath it, for
-   * pages whose centre column sits between rails (notifications). The display
-   * size is tuned for a full-width content page and overwhelms a 220px rail
-   * layout.
-   */
-  size?: 'default' | 'compact';
   className?: string;
 };
 
@@ -45,6 +38,11 @@ type PageHeaderProps = {
  * background, not a card stacked on top of more cards. If a page needs a
  * visual anchor, give it a stronger eyebrow or a first section, not a border
  * around the title.
+ *
+ * This is for pages you *read*. A utility destination reached from the nav
+ * (notifications) wants its own small header instead: a display title over a
+ * sentence describing the page is worth its space on `/leaderboard`, and is
+ * half a phone screen of nothing on a page the reader opened on purpose.
  */
 export function PageHeader({
   eyebrow,
@@ -53,21 +51,14 @@ export function PageHeader({
   subtitle,
   actions,
   actionsPlacement = 'below',
-  size = 'default',
   className,
 }: PageHeaderProps) {
-  const compact = size === 'compact';
-  const titleClass = compact
-    ? 'font-title text-2xl font-semibold text-text sm:text-3xl'
-    : 'font-title text-3xl font-semibold text-text sm:text-4xl';
-  // Line boxes of the title sizes above, so the real title lands in exactly
-  // the space the placeholder held.
-  const placeholderClass = compact
-    ? 'block h-8 w-64 max-w-full animate-pulse rounded bg-surface-muted sm:h-9'
-    : 'block h-9 w-72 max-w-full animate-pulse rounded bg-surface-muted sm:h-10';
-  const subtitleClass = compact
-    ? 'gpp-reading-copy mt-2 max-w-2xl text-sm text-text-muted'
-    : 'gpp-reading-copy mt-4 max-w-2xl text-text-muted';
+  const titleClass = 'font-title text-3xl font-semibold text-text sm:text-4xl';
+  // Line box of the title size above, so the real title lands in exactly the
+  // space the placeholder held.
+  const placeholderClass =
+    'block h-9 w-72 max-w-full animate-pulse rounded bg-surface-muted sm:h-10';
+  const subtitleClass = 'gpp-reading-copy mt-4 max-w-2xl text-text-muted';
 
   const heading = (
     <div>
@@ -97,14 +88,12 @@ export function PageHeader({
     </div>
   );
 
-  const headerClass = `${compact ? 'mb-6' : 'mb-10'} ${className ?? ''}`;
+  const headerClass = `mb-10 ${className ?? ''}`;
 
   if (actions && actionsPlacement === 'trailing') {
     return (
       <header className={headerClass}>
-        <div
-          className={`flex flex-col sm:flex-row sm:items-end sm:justify-between ${compact ? 'gap-3' : 'gap-5'}`}
-        >
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           {heading}
           {actions}
         </div>
@@ -115,9 +104,7 @@ export function PageHeader({
   return (
     <header className={headerClass}>
       {heading}
-      {actions ? (
-        <div className={compact ? 'mt-4' : 'mt-6'}>{actions}</div>
-      ) : null}
+      {actions ? <div className="mt-6">{actions}</div> : null}
     </header>
   );
 }

@@ -632,6 +632,12 @@ export default defineSchema({
   })
     .index('by_user_created', ['userId', 'createdAt'])
     .index('by_user_unread', ['userId', 'readAt'])
+    // Unread-only paging, newest first. `by_user_unread` can serve the same
+    // range, but it orders the matches by `_creationTime`, and a re-surfaced
+    // `results_amended` row rewrites `createdAt` without moving that — so it
+    // would sort by when the result was first published rather than when it
+    // was amended, which is the one thing that view is about.
+    .index('by_user_unread_created', ['userId', 'readAt', 'createdAt'])
     .index('by_user_type_and_feedEventId', ['userId', 'type', 'feedEventId'])
     .index('by_user_type_raceId_and_sessionType', [
       'userId',

@@ -19,6 +19,7 @@ import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { PicksSaveStatus } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
@@ -434,7 +435,7 @@ function DashboardWeekendPicksReady({
           {step === 'h2h' && topFiveComplete ? (
             <button
               type="button"
-              className="gpp-label -ml-1 mb-4 inline-flex items-center gap-0.5 text-accent transition-colors hover:text-accent-hover"
+              className="gpp-label mb-4 -ml-1 inline-flex items-center gap-0.5 text-accent transition-colors hover:text-accent-hover"
               onClick={goBackToTop5}
             >
               <ChevronLeft className="size-3.5" aria-hidden />
@@ -456,17 +457,28 @@ function DashboardWeekendPicksReady({
               mobileActionFirst
               onCompletionStateChange={setTopFiveComplete}
               onPicksChange={setTopFivePicks}
-              renderActionArea={({ complete }) =>
+              renderActionArea={({ complete, saveState, saveNow }) =>
                 complete ? (
-                  <div className="mt-3" data-testid="top5-handoff">
+                  <div
+                    className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2"
+                    data-testid="top5-handoff"
+                  >
                     <Button
                       variant="primary"
                       size="md"
                       className="w-full sm:w-auto"
-                      onClick={continueToH2H}
+                      // Step 2 unmounts this form, which cancels any debounced
+                      // edit save with it. The first save is immediate and has
+                      // already landed by now; a reorder made just before
+                      // tapping Continue has not.
+                      onClick={async () => {
+                        await saveNow();
+                        continueToH2H();
+                      }}
                     >
                       Continue to team-mate battles
                     </Button>
+                    <PicksSaveStatus state={saveState} />
                   </div>
                 ) : null
               }

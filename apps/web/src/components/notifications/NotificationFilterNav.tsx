@@ -1,8 +1,9 @@
+import type { NotificationFilter } from '@grandprixpicks/shared/notifications';
 import { Link } from '@tanstack/react-router';
 
 import {
+  formatNotificationCount,
   NOTIFICATION_FILTERS,
-  type NotificationFilter,
   type NotificationFilterCounts,
 } from '@/lib/notificationFilters';
 
@@ -16,10 +17,13 @@ import {
 export function NotificationFilterNav({
   filter,
   counts,
+  countsTruncated = false,
   searchFor,
 }: {
   filter: NotificationFilter;
   counts: NotificationFilterCounts;
+  /** Counts cover a bounded window of history; render them as "N+" past it. */
+  countsTruncated?: boolean;
   searchFor: (filter: NotificationFilter) => {
     filter?: NotificationFilter;
     unread?: true;
@@ -55,12 +59,12 @@ export function NotificationFilterNav({
                 <span className="min-w-0 flex-1 truncate">{label}</span>
                 {unread > 0 ? (
                   <span className="gpp-mono shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-[10px] leading-none font-semibold text-text-on-accent">
-                    {unread}
+                    {formatNotificationCount(unread, countsTruncated)}
                     <span className="sr-only"> unread</span>
                   </span>
                 ) : total > 0 ? (
                   <span className="gpp-mono shrink-0 text-[11px] text-text-muted">
-                    {total}
+                    {formatNotificationCount(total, countsTruncated)}
                     <span className="sr-only"> notifications, all read</span>
                   </span>
                 ) : null}

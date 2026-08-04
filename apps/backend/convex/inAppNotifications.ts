@@ -1,3 +1,8 @@
+import {
+  NOTIFICATION_FILTER_VALUES,
+  NOTIFICATION_TYPES_BY_FILTER,
+  type NotificationFilter,
+} from '@grandprixpicks/shared/notifications';
 import { paginationOptsValidator } from 'convex/server';
 import { v } from 'convex/values';
 
@@ -25,11 +30,22 @@ const UNREAD_COUNT_LIMIT = 99;
  */
 const MARK_ALL_READ_LIMIT = 500;
 
+/**
+ * How far back the per-category counts look. They feed small rail badges, so
+ * an exact number across an unbounded history is not worth the read; past this
+ * the payload says `truncated` and the UI renders "N+".
+ */
+const COUNT_SCAN_LIMIT = 200;
+
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
   v.literal('sprint'),
   v.literal('race'),
+);
+
+const notificationFilterValidator = v.union(
+  ...NOTIFICATION_FILTER_VALUES.map((value) => v.literal(value)),
 );
 
 async function loadFollowedActorIds(
@@ -161,9 +177,23 @@ function countGrouped(notifications: Doc<'inAppNotifications'>[]): number {
 
 // ============ Public queries ============
 
-/** Paginated notification history, newest first. */
+/**
+ * Paginated notification history, newest first, narrowed by the reader's
+ * filters.
+ *
+ * The filters belong here rather than on the client. When the page filtered
+ * what it had already loaded, "Reactions" over a history whose reactions were
+ * forty rows back showed an empty inbox next to a button asking the reader to
+ * page through their own history looking for them. Filtering in the query
+ * means an empty result means empty, and `isDone` means there is genuinely no
+ * more of *this* category.
+ */
 export const getMyNotifications = query({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    filter: v.optional(notificationFilterValidator),
+    unreadOnly: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
     if (!viewer) {
@@ -172,16 +202,123 @@ export const getMyNotifications = query({
       return { page: [], isDone: true, continueCursor: '' };
     }
 
-    const result = await ctx.db
-      .query('inAppNotifications')
-      .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
-      .order('desc')
-      .paginate(args.paginationOpts);
+    // Unread-only rides its own index rather than scanning the history and
+    // discarding read rows: a reader with a year of read notifications and one
+    // unread should cost one row, not a year of them.
+    const base = args.unreadOnly
+      ? ctx.db
+          .query('inAppNotifications')
+          .withIndex('by_user_unread_created', (q) =>
+            q.eq('userId', viewer._id).eq('readAt', undefined),
+          )
+      : ctx.db
+          .query('inAppNotifications')
+          .withIndex('by_user_created', (q) => q.eq('userId', viewer._id));
+
+    const types = notificationTypesForFilter(args.filter);
+    const ordered = base.order('desc');
+    // query-hygiene-ignore db-filter: the category is a set of `type` values
+    // (Results is two of them), so an index range would need one index per
+    // category plus a second copy for the unread variant, and Results would
+    // still have to merge two paginated streams by hand. The scan this costs
+    // is bounded to the one signed-in user's own notifications — around a
+    // hundred a season plus reactions — and only runs when they pick a
+    // category. Revisit if per-user history ever reaches the thousands.
+    const scoped = types
+      ? ordered.filter((q) =>
+          q.or(...types.map((type) => q.eq(q.field('type'), type))),
+        )
+      : ordered;
+
+    const result = await scoped.paginate(args.paginationOpts);
 
     return {
       ...result,
       page: await groupNotifications(ctx, viewer._id, result.page),
     };
+  },
+});
+
+/** `null` for the unfiltered view, so callers can skip the predicate. */
+function notificationTypesForFilter(
+  filter: NotificationFilter | undefined,
+): readonly string[] | null {
+  if (!filter || filter === 'all') {
+    return null;
+  }
+  return NOTIFICATION_TYPES_BY_FILTER[filter];
+}
+
+/**
+ * Per-category totals for the filter rail and the mobile chip row.
+ *
+ * Counted here for the same reason the list is filtered here: counting the
+ * loaded page told the reader they had no reactions when they had eleven,
+ * which is worse than showing no number at all. Reaction rows are collapsed
+ * per feed event so a badge matches the rows the list will actually render.
+ */
+export const getMyNotificationCounts = query({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const scanned = await ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
+      .order('desc')
+      .take(COUNT_SCAN_LIMIT + 1);
+
+    const rows = scanned.slice(0, COUNT_SCAN_LIMIT);
+    const counts: Record<
+      NotificationFilter,
+      { total: number; unread: number }
+    > = {
+      all: { total: 0, unread: 0 },
+      reactions: { total: 0, unread: 0 },
+      results: { total: 0, unread: 0 },
+      locked: { total: 0, unread: 0 },
+      announcements: { total: 0, unread: 0 },
+    };
+
+    // One reaction thread is one row in the list, so it is one here too. Its
+    // unread-ness is the thread's: unread if any row in it is.
+    const reactionThreads = new Map<string, { unread: boolean }>();
+
+    for (const row of rows) {
+      if (row.type === 'rev_received' && row.feedEventId) {
+        const thread = reactionThreads.get(row.feedEventId);
+        if (thread) {
+          thread.unread ||= !row.readAt;
+          continue;
+        }
+        reactionThreads.set(row.feedEventId, { unread: !row.readAt });
+        continue;
+      }
+      for (const filter of NOTIFICATION_FILTER_VALUES) {
+        const types = notificationTypesForFilter(filter);
+        if (types && !types.includes(row.type)) {
+          continue;
+        }
+        counts[filter].total += 1;
+        if (!row.readAt) {
+          counts[filter].unread += 1;
+        }
+      }
+    }
+
+    for (const thread of reactionThreads.values()) {
+      for (const filter of ['all', 'reactions'] as const) {
+        counts[filter].total += 1;
+        if (thread.unread) {
+          counts[filter].unread += 1;
+        }
+      }
+    }
+
+    return { counts, truncated: scanned.length > COUNT_SCAN_LIMIT };
   },
 });
 

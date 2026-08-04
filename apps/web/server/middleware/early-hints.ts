@@ -39,14 +39,27 @@ const LINK_HEADER = [
   ),
 ].join(', ');
 
+/** Machine-facing prefixes: JSON, images and analytics, never a rendered page. */
+const NON_DOCUMENT_PREFIXES = ['/api/', '/og/', '/ingest/'];
+
 export default defineHandler((event) => {
-  // Document requests only. A navigating browser (and every crawler worth
-  // hinting to) asks for text/html; the OG image routes, the Paddle and Clerk
-  // webhooks, and the PostHog ingest proxy do not, and none of them will ever
-  // render a font. Matching on Accept rather than a list of paths means new
-  // routes are covered the day they ship instead of the day someone remembers
-  // to add them here.
-  if (!event.req.headers.get('accept')?.includes('text/html')) {
+  const { pathname } = new URL(event.req.url);
+
+  // Deliberately keyed on the path alone, NOT on the request's Accept header.
+  // These documents are edge-cached (`s-maxage=60`) and Cloudflare's cache key
+  // does not include Accept, so whichever request fills the cache decides what
+  // every later visitor gets. Gating on Accept meant one monitor or crawler
+  // sending `*/*` would store a header-less response and silently strip the
+  // hints from every browser behind it until the entry expired.
+  if (NON_DOCUMENT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return;
+  }
+
+  // Anything with a file extension is an asset or a machine format
+  // (/sitemap.xml, /robots.txt, /sw.js). Excluding by shape rather than by
+  // name keeps new page routes covered the day they ship, which is the part
+  // worth preserving from the Accept-based version.
+  if (pathname.slice(pathname.lastIndexOf('/')).includes('.')) {
     return;
   }
 

@@ -4,6 +4,40 @@ import { RaceFlag } from '@/components/RaceFlag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 /**
+ * The weekend card's outer shell, shared by the live card and this skeleton.
+ *
+ * Shared because the two swap places mid-load and any difference between them
+ * shows up as a layout shift. That swap is already the page's single largest
+ * remaining CLS contributor, so the shell is defined once rather than copied.
+ *
+ * On a phone the card goes edge to edge. It is the page's one real job and the
+ * only full-bleed surface on it, which is what makes the bleed read as
+ * hierarchy rather than as a broken container: everything below it stays
+ * inset. Practically it also buys back the horizontal room the 22-driver grid
+ * wants, and the ~20px strip above it, which mattered because at 320px the
+ * card header alone used to fill the viewport and push every driver row below
+ * the fold.
+ *
+ * Three details make the bleed look deliberate rather than clipped:
+ *
+ * - The side borders and the corner radius go. Rounded corners flush to a
+ *   viewport edge always read as a clipping bug, and square is truer to the
+ *   flat direction anyway.
+ * - The top border goes too. The sticky header already ends in a
+ *   `border-b`, so keeping both would stack two hairlines; the header's
+ *   border becomes this card's top edge.
+ * - The negative top margin matches the page frame's own padding at each
+ *   breakpoint (`py-5`, then `sm:py-7`), so the card meets the header exactly
+ *   rather than approximately.
+ *
+ * Inner padding is untouched: the container bleeds, the content never touches
+ * the glass.
+ */
+export const WEEKEND_CARD_SHELL =
+  'gpp-stripe overflow-hidden border-b border-border bg-surface ' +
+  '-mt-5 max-md:-mx-4 sm:-mt-7 md:mt-0 md:rounded-lg md:border';
+
+/**
  * The weekend picks card while its data is still in flight.
  *
  * Shared deliberately, because on a signed-in load this shape is rendered from
@@ -42,7 +76,7 @@ export function WeekendCardSkeleton({
 
   return (
     <div
-      className="gpp-stripe overflow-hidden rounded-lg border border-border bg-surface"
+      className={WEEKEND_CARD_SHELL}
       aria-label="Loading current race weekend"
       aria-busy="true"
     >

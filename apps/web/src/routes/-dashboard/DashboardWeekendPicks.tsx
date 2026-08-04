@@ -23,7 +23,10 @@ import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PredictionForm } from '@/components/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
-import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
+import {
+  WEEKEND_CARD_SHELL,
+  WeekendCardSkeleton,
+} from '@/components/WeekendCardSkeleton';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import type { SessionType } from '@/lib/sessions';
@@ -269,7 +272,7 @@ function DashboardWeekendPicksReady({
   return (
     <section
       id="dashboard-weekend-picks"
-      className="gpp-stripe scroll-mt-28 overflow-hidden rounded-lg border border-border bg-surface"
+      className={`scroll-mt-28 ${WEEKEND_CARD_SHELL}`}
       aria-labelledby="dashboard-weekend-title"
       data-testid="dashboard-weekend-hero"
     >
@@ -567,7 +570,11 @@ function SessionClockLine({
 
   return (
     <p
-      className="gpp-mono mt-3 flex min-h-5 items-center gap-1.5 text-sm text-text-muted"
+      // `flex-wrap` because the label and the clock are separate flex items:
+      // without it, a 320px screen shrinks both instead of wrapping between
+      // them, and "Qualifying locks in 00h 44m 57s" breaks mid-phrase with a
+      // ragged gap. Wrapping puts the whole clock on the second line.
+      className="gpp-mono mt-3 flex min-h-5 flex-wrap items-center gap-1.5 text-sm text-text-muted"
       suppressHydrationWarning
     >
       {session ? (
@@ -576,7 +583,7 @@ function SessionClockLine({
           {clock?.kind === 'countdown' ? (
             <>
               {SESSION_LABELS[session.sessionType]} locks in
-              <strong className="font-medium text-text ml-1">
+              <strong className="ml-1 font-medium text-text">
                 {formatLockCountdown(clock.msRemaining)}
               </strong>
             </>

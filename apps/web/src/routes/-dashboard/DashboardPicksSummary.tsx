@@ -201,6 +201,24 @@ export function DashboardPicksSummary({
             existingPicks={picks.top5 ?? undefined}
             enableNavigationBlocker={false}
             onSuccess={() => setTop5OverlayOpen(false)}
+            // Matches the weekend card's overlay. Without it this one ended on
+            // a disabled "Saved" button: the picks were safe, but the only way
+            // out was the X in the corner, so the state that means "you're
+            // finished" looked like the state that means "this is broken".
+            renderActionArea={({ complete }) =>
+              complete ? (
+                <div className="mt-3">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="w-full sm:w-auto"
+                    onClick={() => setTop5OverlayOpen(false)}
+                  >
+                    Done
+                  </Button>
+                </div>
+              ) : null
+            }
           />
         </div>
       </PicksFocusOverlay>
@@ -214,15 +232,21 @@ export function DashboardPicksSummary({
         {matchups ? (
           <Suspense fallback={<div className="h-40" aria-busy />}>
             <H2HPredictionForm
+              // A half-called card opens as an empty one on purpose. Resuming
+              // mid-sequence drops the player on battle four of eleven with no
+              // account of the three behind it, and the calls it skips are
+              // exactly the ones they stopped to think about. Eleven quick
+              // questions from the top is the shape this flow is good at, and
+              // re-answering three is cheaper than wondering what they were.
+              // A single call they want to revisit has its own duel modal.
+              existingPicks={h2hComplete ? (picks.h2h ?? undefined) : undefined}
               raceId={raceId}
               sessionType={session.sessionType}
               matchups={matchups}
-              existingPicks={picks.h2h ?? undefined}
               topFivePositions={topFivePositions}
               onSuccess={() => setH2HOverlayOpen(false)}
-              // This overlay is only ever reached to *finish* the battles, and
-              // eleven stacked rows in a full-screen takeover is a scroll, not
-              // a decision. Single-duel edits have their own modal.
+              // Eleven stacked rows in a full-screen takeover is a scroll, not
+              // a decision.
               layout="sequential"
             />
           </Suspense>

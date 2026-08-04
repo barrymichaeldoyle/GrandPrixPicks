@@ -22,9 +22,9 @@ auditConfig:
     # the 1.x and 2.x lines that are still maintained.
     #
     # Two of those lines survive in the tree and cannot be overridden away:
-    #   brace-expansion@1.1.16 <- minimatch@3.1.5 <- glob@7 <- dot-object
+    #   brace-expansion@1.1.18 <- minimatch@3.1.5 <- glob@7 <- dot-object
     #                             <- twirp-ts <- @devvit/protos
-    #   brace-expansion@2.1.2  <- minimatch@5.1.9 <- filelist <- jake <- ejs
+    #   brace-expansion@2.1.4  <- minimatch@5.1.9 <- filelist <- jake <- ejs
     #                             <- @oclif/core <- @devvit/cli
     # brace-expansion@5's CJS entry exports an object ({ expand, EXPANSION_MAX,
     # EXPANSION_MAX_LENGTH }) rather than a callable, but minimatch 3/5 do
@@ -111,10 +111,16 @@ overrides:
   '@clerk/clerk-react@>=5.9.0 <=5.61.5': 5.61.6
   '@clerk/shared@>=3.0.0 <=3.47.4': 3.47.5
   '@xmldom/xmldom@<0.8.13': 0.8.13
-  # These lift what can be lifted; the residual 1.1.16 / 2.1.2 copies under
-  # apps/reddit stay flagged on purpose — see auditConfig.ignoreGhsas above.
-  'brace-expansion@>=1.0.0 <1.1.16': 1.1.16
-  'brace-expansion@>=3.0.0 <5.0.8': 5.0.8
+  # One line per surviving major, each lifted to the newest patch within its
+  # own major. Staying inside the major is the point: minimatch 3/5 call the
+  # CJS export directly, and 5.x exports an object instead of a function.
+  #
+  # This clears GHSA-rgw5-rvv9-x895, which upstream did backport to 1.x and
+  # 2.x. It does not clear GHSA-mh99-v99m-4gvg, whose fix exists only in 5.x
+  # and so still needs the ignore in auditConfig above.
+  'brace-expansion@>=1.0.0 <1.1.18': 1.1.18
+  'brace-expansion@>=2.0.0 <2.1.4': 2.1.4
+  'brace-expansion@>=3.0.0 <5.0.9': 5.0.9
   'dompurify@<3.4.12': 3.4.12
   'h3@<2.0.1-rc.21': 2.0.1-rc.21
   'lodash@<4.18.0': 4.18.1
@@ -122,15 +128,15 @@ overrides:
   'node-forge@<1.4.0': 1.4.0
   'picomatch@>=2.0.0 <2.3.2': 2.3.2
   'picomatch@>=4.0.0 <4.0.4': 4.0.4
-  'postcss@<8.5.18': 8.5.18
+  'postcss@<8.5.23': 8.5.23
   'protobufjs@<7.6.5': 7.6.5
   'tmp@<0.2.6': 0.2.7
-  'socket.io-parser@<4.2.6': 4.2.6
+  'socket.io-parser@<4.2.7': 4.2.7
   'srvx@<0.11.13': 0.11.15
   'uuid@<14.0.0': 14.0.0
   'yaml@>=1.0.0 <1.10.3': 1.10.3
   'yaml@>=2.0.0 <2.8.3': 2.8.3
-  'fast-uri@<3.1.4': 3.1.4
+  'fast-uri@<3.1.5': 3.1.5
   '@protobufjs/utf8@<=1.1.0': '>=1.1.1'
   'ws@>=8.0.0 <8.21.0': 8.21.0
   'js-cookie@<=3.0.5': '>=3.0.7'
@@ -144,3 +150,9 @@ overrides:
   'next@>=16.0.0 <16.2.11': 16.2.11
   '@opentelemetry/core@<2.8.0': 2.8.0
   '@babel/core@<=7.29.0': 7.29.6
+  # Reached only through Convex/Nitro server plumbing; the 7.x line carries
+  # the fix, so this is a patch lift rather than a major move.
+  'undici@>=7.0.0 <7.29.0': 7.29.0
+  # Transitive via @convex-dev/resend's workpool and apps/reddit's
+  # @hono/node-server. Neither pins a range that excludes the fix.
+  'hono@>=4.0.0 <4.12.34': 4.12.34

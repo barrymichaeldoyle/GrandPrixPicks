@@ -18,7 +18,6 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { NoticeCard } from '@/components/NoticeCard';
-import { Pill } from '@/components/Pill';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { PredictionForm } from '@/components/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
@@ -207,7 +206,6 @@ function DashboardWeekendPicksReady({
   const openSessions = weekend.sessions.filter(
     (session) => session.canCreate || session.canEdit,
   );
-  const openCount = openSessions.length;
 
   const showInteractive = step === 'top5' || step === 'h2h';
 
@@ -277,7 +275,10 @@ function DashboardWeekendPicksReady({
       data-testid="dashboard-weekend-hero"
     >
       <div className="border-b border-border p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        {/* No wrap: the link belongs in the corner, level with the eyebrow.
+            Wrapping dropped it under the race name, where it read as part of
+            the card's own controls rather than a way out of it. */}
+        <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {countryCode ? (
               <RaceFlag
@@ -299,20 +300,18 @@ function DashboardWeekendPicksReady({
               </h2>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Pill tone={openCount > 0 ? 'success' : 'warning'} size="sm">
-              {openCount > 0 ? `${openCount} open` : 'Locked'}
-            </Pill>
-            <Button asChild variant="text" size="sm" rightIcon={ArrowRight}>
-              <Link
-                to="/races/$raceSlug"
-                params={{ raceSlug: weekend.race.slug }}
-                search={{ from: 'home' }}
-              >
-                Full weekend
-              </Link>
-            </Button>
-          </div>
+          {/* There used to be an "N open" pill next to this. The tab row below
+              already names every session and its state, so the count was the
+              same fact in a louder font. */}
+          <Link
+            to="/races/$raceSlug"
+            params={{ raceSlug: weekend.race.slug }}
+            search={{ from: 'home' }}
+            className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+          >
+            Full weekend
+            <ArrowRight className="size-3.5 shrink-0" aria-hidden />
+          </Link>
         </div>
 
         {/* This line keeps its slot whatever the selected session is. It used to

@@ -28,6 +28,8 @@ vi.mock('@tanstack/react-router', () => ({
     children,
     to,
     className,
+    activeProps: _activeProps,
+    activeOptions: _activeOptions,
     ...props
   }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     to?: string;

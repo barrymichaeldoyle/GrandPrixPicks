@@ -450,7 +450,10 @@ type Top5Draft = {
  * Grace period after the 5th pick lands before auto-saving. Longer than the
  * H2H delay because pick order matters here — reordering resets the timer.
  */
-const AUTO_SAVE_DELAY_MS = 2500;
+/** Completing the set saves it. See `useAutoSaveOnFirstComplete`. */
+const FIRST_SAVE_DELAY_MS = 0;
+/** Long enough that a drag-reorder writes once, short enough to feel saved. */
+const EDIT_SAVE_DEBOUNCE_MS = 1200;
 
 export function PredictionForm({
   raceId,
@@ -710,14 +713,19 @@ export function PredictionForm({
       : null;
   const isSubmissionBlocked = submissionBlockedMessage !== null;
 
-  const isFirstEntry = !existingPicks || existingPicks.length === 0;
-
-  // First-time picks save themselves shortly after the 5th driver lands —
-  // users kept filling the list and forgetting the Save button. The delay
-  // leaves room to reorder (any change re-arms it); edits stay manual.
+  // Completing the set *is* the save: the 5th driver lands, the celebration
+  // fires and the write goes out together, so there is no window in which the
+  // player believes they are done but nothing is stored. Edits afterwards are
+  // debounced rather than immediate, so dragging a driver up the order writes
+  // once when they stop rather than once per frame.
+  //
+  // `dirty` is what keeps that affordable: it is false whenever the picks
+  // already match the server, so a remount, a reorder that lands back where it
+  // started, or simply re-opening the card never writes at all.
+  const savedSignature = JSON.stringify(existingPicks ?? []);
+  const picksSignature = JSON.stringify(picks);
   const { markInteraction } = useAutoSaveOnFirstComplete({
     enabled:
-      isFirstEntry &&
       // Signed-out users drive the save explicitly (which opens sign-in); we
       // never want the auto-save timer to pop a modal on its own.
       isAuthenticated &&
@@ -726,10 +734,14 @@ export function PredictionForm({
       !hasPendingSubmit(draftKey) &&
       !isSubmitting &&
       !isSubmissionBlocked &&
+      // A failed save falls back to the manual button rather than retrying on
+      // a loop the player cannot see or stop.
       submitStatus !== 'error',
     complete: picks.length === 5,
-    picksSignature: JSON.stringify(picks),
-    delayMs: AUTO_SAVE_DELAY_MS,
+    dirty: picksSignature !== savedSignature,
+    picksSignature,
+    delayMs: FIRST_SAVE_DELAY_MS,
+    subsequentDelayMs: EDIT_SAVE_DEBOUNCE_MS,
     save: () => void handleSubmit({ autoSaved: true }),
   });
 
@@ -819,6 +831,8 @@ export function PredictionForm({
       return;
     }
 
+    const wasFirstSave = !existingPicks || existingPicks.length === 0;
+
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
@@ -842,7 +856,9 @@ export function PredictionForm({
         });
       }
       setSubmitStatus('success');
-      if (existingPicks && existingPicks.length > 0) {
+      // The celebration marks "your picks are in", so it belongs to the save
+      // that first puts them there rather than to every later adjustment.
+      if (wasFirstSave) {
         // Celebration is not part of the critical picker bundle.
         void import('canvas-confetti').then(({ default: confetti }) => {
           confetti({

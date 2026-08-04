@@ -13,6 +13,7 @@ type HookProps = {
   enabled: boolean;
   complete: boolean;
   picksSignature: string;
+  dirty?: boolean;
   save: () => void;
 };
 
@@ -181,7 +182,11 @@ describe('useAutoSaveOnFirstComplete', () => {
     harness.unmount();
   });
 
-  it('fires at most once per mount', () => {
+  it('saves again when the picks change after the first save', () => {
+    // The contract changed deliberately: edits after the first save are what
+    // keep the server in step with what the player is looking at, so a second
+    // dirty change must write. The old behaviour fired once per mount, which
+    // left every later reorder unsaved.
     const save = vi.fn();
     const harness = renderHook({
       enabled: true,
@@ -204,7 +209,6 @@ describe('useAutoSaveOnFirstComplete', () => {
     });
     expect(save).toHaveBeenCalledTimes(1);
 
-    // Simulate a failed save: still complete, picks change again.
     harness.rerender({
       enabled: true,
       complete: true,
@@ -214,7 +218,35 @@ describe('useAutoSaveOnFirstComplete', () => {
     act(() => {
       vi.advanceTimersByTime(DELAY_MS * 2);
     });
-    expect(save).toHaveBeenCalledTimes(1);
+    expect(save).toHaveBeenCalledTimes(2);
+    harness.unmount();
+  });
+
+  it('does not write when the picks already match what is saved', () => {
+    // `dirty` is the whole cost control: without it every remount and every
+    // edit that lands back on the saved order would re-submit the same payload.
+    const save = vi.fn();
+    const harness = renderHook({
+      enabled: true,
+      complete: true,
+      dirty: false,
+      picksSignature: 'a,b',
+      save,
+    });
+    act(() => {
+      harness.getLatest().markInteraction();
+    });
+    harness.rerender({
+      enabled: true,
+      complete: true,
+      dirty: false,
+      picksSignature: 'a,b',
+      save,
+    });
+    act(() => {
+      vi.advanceTimersByTime(DELAY_MS * 3);
+    });
+    expect(save).not.toHaveBeenCalled();
     harness.unmount();
   });
 

@@ -7,7 +7,9 @@ import { displayTeamName } from '@/lib/display';
 
 import { Button } from './Button/Button';
 import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
+import { Flag } from './Flag';
 import type { H2HDriver, H2HMatchup } from './H2HMatchupGrid';
+import { H2HPicksBar } from './H2HPicksBar';
 
 const ADVANCE_DELAY_MS = 280;
 
@@ -17,6 +19,7 @@ export function H2HDuelPicker({
   onSelect,
   draftHydrated = true,
   topFivePositions,
+  onExitPrevious,
 }: {
   matchups: H2HMatchup[];
   selections: Record<string, H2HDriver['_id'] | undefined>;
@@ -29,6 +32,11 @@ export function H2HDuelPicker({
   draftHydrated?: boolean;
   /** Top 5 slot (1-5) per driver, so a duel can show what you already called. */
   topFivePositions?: Record<string, number | undefined>;
+  /**
+   * When on the first battle, Previous can leave the duel sequence (e.g. back
+   * to Top 5 in a two-step funnel). Without this, Previous stays disabled.
+   */
+  onExitPrevious?: () => void;
 }) {
   const reduceMotion = useReducedMotion();
   const firstOpenIndex = (() => {
@@ -185,11 +193,12 @@ export function H2HDuelPicker({
             <p className="text-xs text-text-muted">Tap one to change it</p>
           ) : null}
         </div>
-        <DuelProgressStrip
+        <H2HPicksBar
           matchups={matchups}
           selections={selections}
           activeIndex={collapsed ? -1 : activeIndex}
-          onJump={goTo}
+          onSelectIndex={goTo}
+          testId="h2h-duel-strip"
         />
       </div>
 
@@ -251,9 +260,16 @@ export function H2HDuelPicker({
             <Button
               variant="text"
               size="sm"
+              className="[&_svg]:translate-y-px"
               leftIcon={ArrowLeft}
-              disabled={activeIndex === 0}
-              onClick={() => goTo(activeIndex - 1)}
+              disabled={activeIndex === 0 && !onExitPrevious}
+              onClick={() => {
+                if (activeIndex === 0) {
+                  onExitPrevious?.();
+                  return;
+                }
+                goTo(activeIndex - 1);
+              }}
             >
               Previous
             </Button>
@@ -278,92 +294,34 @@ export function H2HDuelPicker({
 }
 
 /**
- * Progress and review in one control. It replaces the plain progress bar: the
- * bar could only say how many were done, this says which, by whom, and lets
- * you go back and look. Eleven cells fit a 320px viewport without scrolling.
- *
- * Once every battle is called it stops being progress and becomes the card
- * itself, so `activeIndex` of -1 means "nothing is being asked right now".
+ * One side of a duel. Exported because a single battle is also editable on its
+ * own from a finished card (see H2HDuelFocusModal) and both places must feel
+ * like the same control.
  */
-function DuelProgressStrip({
-  matchups,
-  selections,
-  activeIndex,
-  onJump,
-}: {
-  matchups: H2HMatchup[];
-  selections: Record<string, H2HDriver['_id'] | undefined>;
-  activeIndex: number;
-  onJump: (index: number) => void;
-}) {
-  return (
-    <div
-      className="mt-2 grid gap-0.5 sm:gap-1"
-      style={{
-        gridTemplateColumns: `repeat(${matchups.length}, minmax(0, 1fr))`,
-      }}
-      role="group"
-      aria-label="Team-mate battles"
-      data-testid="h2h-duel-strip"
-    >
-      {matchups.map((matchup, index) => {
-        const selectedId = selections[matchup._id];
-        const picked = [matchup.driver1, matchup.driver2].find(
-          (driver) => driver._id === selectedId,
-        );
-        const isActive = index === activeIndex;
-        const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
-
-        return (
-          <button
-            key={matchup._id}
-            type="button"
-            onClick={() => onJump(index)}
-            aria-current={isActive ? 'step' : undefined}
-            aria-label={`Battle ${index + 1} of ${matchups.length}, ${displayTeamName(
-              matchup.team,
-            )}. ${picked ? `${picked.displayName} picked` : 'Not called yet'}.`}
-            className={`gpp-team-bar flex h-7 min-w-0 items-center justify-center overflow-hidden rounded-sm border pr-0.5 pl-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
-              isActive
-                ? 'border-accent bg-surface-elevated'
-                : picked
-                  ? 'border-border bg-surface-elevated hover:border-border-strong'
-                  : 'border-dashed border-border bg-page hover:border-border-strong'
-            }`}
-            style={{ '--team-colour': teamColor } as CSSProperties}
-          >
-            {/* Re-keying on the code replays the settle, so a cell visibly
-                takes the driver's name the instant the call is made. */}
-            <m.span
-              key={picked ? picked.code : 'open'}
-              initial={{ opacity: 0, y: 3 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              className={`gpp-mono truncate text-[10px] leading-none sm:text-xs ${
-                picked ? 'text-text' : 'text-text-muted'
-              }`}
-            >
-              {picked ? picked.code : index + 1}
-            </m.span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function DuelDriverButton({
+export function DuelDriverButton({
   driver,
   selected,
   topFivePosition,
   onClick,
+  className = '',
+  size = 'md',
 }: {
   driver: H2HDriver;
   selected: boolean;
   topFivePosition?: number;
   onClick: () => void;
+  /** Lets a caller size the panel, e.g. stretch it to fill a takeover. */
+  className?: string;
+  /**
+   * `lg` for a panel that owns the screen (the single-duel takeover), where
+   * the default type left the driver as a small island in a tall card. The
+   * eleven-battle sequence keeps `md`: there the card is one step of many and
+   * the surrounding chrome needs the room.
+   */
+  size?: 'md' | 'lg';
 }) {
   const reduceMotion = useReducedMotion();
+  const isLarge = size === 'lg';
   const teamColor =
     (driver.team && TEAM_COLORS[driver.team]) ?? FALLBACK_TEAM_COLOR;
 
@@ -398,7 +356,7 @@ function DuelDriverButton({
         selected
           ? 'border-accent bg-accent-muted/25'
           : 'border-border bg-page hover:border-border-strong hover:bg-surface-elevated'
-      }`}
+      } ${className}`}
       style={{ '--team-colour': teamColor } as CSSProperties}
     >
       {sweepId > 0 && !reduceMotion ? (
@@ -418,20 +376,38 @@ function DuelDriverButton({
           YOUR P{topFivePosition}
         </span>
       ) : null}
-      <DriverBadge
-        code={driver.code}
-        team={driver.team}
-        displayName={driver.displayName}
-        number={driver.number}
-        nationality={driver.nationality}
-        prerenderTooltip={false}
-      />
+      {/* Flag beside the code, not beside the name: a name long enough to wrap
+          ("Antonelli" at this size on a 375px screen) would strand the flag
+          alone on the first line. Pinned to the badge it reads as one identity
+          plate and never moves. */}
+      <span className="flex items-center gap-2">
+        {driver.nationality ? (
+          <Flag code={driver.nationality} size={isLarge ? 'md' : 'sm'} />
+        ) : null}
+        <DriverBadge
+          code={driver.code}
+          team={driver.team}
+          displayName={driver.displayName}
+          number={driver.number}
+          nationality={driver.nationality}
+          size={isLarge ? 'lg' : 'md'}
+          prerenderTooltip={false}
+        />
+      </span>
       <span className="min-w-0">
-        <span className="block text-base leading-tight font-medium text-text sm:text-lg">
+        <span
+          className={`block leading-tight font-medium text-text ${
+            isLarge ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
+          }`}
+        >
           {driver.displayName}
         </span>
         {driver.number != null ? (
-          <span className="gpp-mono mt-1 block text-sm text-text-muted">
+          <span
+            className={`gpp-mono mt-1 block text-text-muted ${
+              isLarge ? 'text-base' : 'text-sm'
+            }`}
+          >
             #{driver.number}
           </span>
         ) : null}

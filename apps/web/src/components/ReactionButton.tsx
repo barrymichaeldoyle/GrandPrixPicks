@@ -12,6 +12,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { useMutation } from 'convex/react';
 import { useEffect, useState } from 'react';
 
+import { Tooltip } from '@/components/Tooltip';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 interface ReactionButtonProps {
@@ -139,32 +140,36 @@ export function ReactionButton({
       onMouseLeave={() => setPickerOpen(false)}
     >
       {pickerOpen && (
-        <div
-          className="absolute bottom-full left-0 z-30 mb-2 flex items-center gap-1 rounded-sm border border-border-strong bg-surface-elevated p-1.5"
-          role="menu"
-          aria-label="Choose a reaction"
-        >
-          {REACTION_OPTIONS.map((reaction) => {
-            const selected = selectedReaction === reaction.type;
-            return (
-              <button
-                key={reaction.type}
-                type="button"
-                role="menuitemradio"
-                aria-checked={selected}
-                title={reaction.label}
-                onClick={() => void chooseReaction(reaction.type)}
-                className={`group/reaction flex h-10 w-10 items-center justify-center rounded-sm text-xl transition-colors duration-150 ease-out hover:bg-surface-hover ${
-                  selected
-                    ? 'bg-accent/15 ring-1 ring-accent/50'
-                    : 'hover:bg-page'
-                }`}
-              >
-                <span aria-hidden="true">{reaction.emoji}</span>
-                <span className="sr-only">{reaction.label}</span>
-              </button>
-            );
-          })}
+        // pb-2 keeps a visual gap above the trigger while remaining inside the
+        // hover target — margin would create a dead zone that fires mouseleave.
+        <div className="absolute bottom-full left-0 z-30 pb-2">
+          <div
+            className="flex items-center gap-1 rounded-sm border border-border-strong bg-surface-elevated p-1.5"
+            role="menu"
+            aria-label="Choose a reaction"
+          >
+            {REACTION_OPTIONS.map((reaction) => {
+              const selected = selectedReaction === reaction.type;
+              return (
+                <Tooltip key={reaction.type} content={reaction.label}>
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selected}
+                    onClick={() => void chooseReaction(reaction.type)}
+                    className={`group/reaction flex h-10 w-10 items-center justify-center rounded-sm text-xl transition-colors duration-150 ease-out hover:bg-surface-hover ${
+                      selected
+                        ? 'bg-accent/15 ring-1 ring-accent/50'
+                        : 'hover:bg-page'
+                    }`}
+                  >
+                    <span aria-hidden="true">{reaction.emoji}</span>
+                    <span className="sr-only">{reaction.label}</span>
+                  </button>
+                </Tooltip>
+              );
+            })}
+          </div>
         </div>
       )}
 

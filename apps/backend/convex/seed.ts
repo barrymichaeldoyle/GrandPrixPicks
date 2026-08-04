@@ -6621,12 +6621,32 @@ export const seedFeedEvents = internalMutation({
       created++;
     }
 
-    // joined_league — one per leagueMember row
+    // joined_league — only public, passwordless leagues (matches production
+    // writeJoinedLeagueFeedEvent). Private demo leagues were flooding the
+    // personalized feed with "X joined Y" and crowding out score activity.
     const memberships = await ctx.db.query('leagueMembers').take(200);
     for (const membership of memberships) {
       const user = await ctx.db.get(membership.userId);
       const league = await ctx.db.get(membership.leagueId);
       if (!user || !league) {
+        continue;
+      }
+      if (league.visibility !== 'public' || league.password) {
+        continue;
+      }
+      const existingJoin = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_league_created', (q) =>
+          q.eq('leagueId', membership.leagueId),
+        )
+        .take(50);
+      if (
+        existingJoin.some(
+          (event) =>
+            event.type === 'joined_league' &&
+            event.userId === membership.userId,
+        )
+      ) {
         continue;
       }
       await ctx.db.insert('feedEvents', {
@@ -6646,6 +6666,123 @@ export const seedFeedEvents = internalMutation({
     }
 
     return { created };
+  },
+});
+
+/**
+ * Enrich an existing leaderboard/dev seed so the signed-in dashboard feed looks
+ * closer to production: follow people who have scores, backfill score feed
+ * events, strip private-league join noise, and add a few revs.
+ *
+ * Does **not** reset races or wipe picks — safe to run on top of
+ * seedLeaderboardScenario while testing the Dutch (or current) open weekend.
+ *
+ * Run via:
+ *   npx convex run seed:seedDashboardSocialFeed '{"username": "barrymichaeldoyle"}'
+ */
+export const seedDashboardSocialFeed = internalMutation({
+  args: {
+    username: v.optional(v.string()),
+    clerkUserId: v.optional(v.string()),
+    followLimit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const followLimit = args.followLimit ?? 8;
+
+    let target = args.clerkUserId
+      ? await ctx.db
+          .query('users')
+          .withIndex('by_clerkUserId', (q) =>
+            q.eq('clerkUserId', args.clerkUserId!),
+          )
+          .unique()
+      : null;
+
+    if (!target && args.username) {
+      target = await ctx.db
+        .query('users')
+        .withIndex('by_username', (q) => q.eq('username', args.username!))
+        .unique();
+    }
+
+    if (!target) {
+      target = await ctx.db.query('users').first();
+    }
+
+    if (!target) {
+      throw new Error(
+        'No user found. Sign in first or pass username/clerkUserId.',
+      );
+    }
+
+    // Prefer users who already have scored sessions — their feed events are
+    // what make the activity stream feel alive.
+    const scoredUserIds = new Set<Id<'users'>>();
+    const scores = await ctx.db.query('scores').take(500);
+    for (const score of scores) {
+      if (score.userId !== target._id) {
+        scoredUserIds.add(score.userId);
+      }
+    }
+
+    let candidates = [...scoredUserIds];
+    if (candidates.length === 0) {
+      const others = await ctx.db.query('users').take(40);
+      candidates = others
+        .filter((user) => user._id !== target!._id)
+        .map((user) => user._id);
+    }
+
+    let followsCreated = 0;
+    for (const followeeId of candidates.slice(0, followLimit)) {
+      const existing = await ctx.db
+        .query('follows')
+        .withIndex('by_follower_followee', (q) =>
+          q.eq('followerId', target!._id).eq('followeeId', followeeId),
+        )
+        .unique();
+      if (existing) {
+        continue;
+      }
+      await ctx.db.insert('follows', {
+        followerId: target._id,
+        followeeId,
+        createdAt: now - followsCreated * 60 * 60 * 1000,
+      });
+      followsCreated++;
+    }
+
+    // Keep denormalized counts honest for profile cards.
+    const touched = new Set<Id<'users'>>([
+      target._id,
+      ...candidates.slice(0, followLimit),
+    ]);
+    for (const userId of touched) {
+      const counts = await computeFollowCountsForUser(ctx, userId);
+      await ctx.db.patch(userId, { ...counts, updatedAt: now });
+    }
+
+    // Private demo leagues should not dominate the feed the way they do after
+    // a naive seedFeedEvents backfill.
+    const purgeResult: { deletedEvents: number; deletedRevs: number } =
+      await ctx.runMutation(internal.feed.purgePrivateLeagueJoinEvents, {});
+
+    const feedResult: { created: number } = await ctx.runMutation(
+      internal.seed.seedFeedEvents,
+    );
+    const revsResult: { created: number } = await ctx.runMutation(
+      internal.seed.seedRevs,
+    );
+
+    return {
+      username: target.username,
+      followsCreated,
+      following: Math.min(candidates.length, followLimit),
+      privateJoinsRemoved: purgeResult.deletedEvents,
+      feedEventsCreated: feedResult.created,
+      revsCreated: revsResult.created,
+    };
   },
 });
 
@@ -6731,6 +6868,173 @@ export const seedRevs = internalMutation({
  *
  * To reset back to normal, run seedRaces again or resetToPreSeason.
  */
+/**
+ * Point the signed-in dashboard at a real calendar race with a live weekend
+ * schedule (flag + near-term lock countdowns), instead of leftover
+ * `scenario-race-*` fixtures or a GP still weeks away on the 2026 calendar.
+ *
+ * - Deletes synthetic scenario/test races so they stop winning getNextRace
+ * - Pulls the target race (default: Dutch GP sprint) into a Fri→Sun shape
+ *   relative to Date.now()
+ * - Marks earlier rounds finished / clears locked mid-weekends so this race
+ *   is unambiguously "current"
+ * - Clears results on the open weekend so every session is pickable
+ *
+ * Does not wipe leagues, follows, or historical scores.
+ *
+ * Run via:
+ *   npx convex run seed:seedDashboardOpenWeekend
+ *   npx convex run seed:seedDashboardOpenWeekend '{"slug":"netherlands-2026"}'
+ *   npx convex run seed:seedDashboardOpenWeekend '{"slug":"spain-2026"}'
+ */
+export const seedDashboardOpenWeekend = internalMutation({
+  args: {
+    slug: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+    const slug = args.slug ?? 'netherlands-2026';
+
+    const calendarSlugs = new Set(F1_RACES_2026.map((race) => race.slug));
+    const races = await ctx.db.query('races').collect();
+
+    let scenarioRacesDeleted = 0;
+    for (const race of races) {
+      if (calendarSlugs.has(race.slug)) {
+        continue;
+      }
+      await ctx.db.delete(race._id);
+      scenarioRacesDeleted++;
+    }
+
+    const target =
+      (await ctx.db
+        .query('races')
+        .withIndex('by_slug', (q) => q.eq('slug', slug))
+        .unique()) ??
+      (await ctx.db
+        .query('races')
+        .withIndex('by_slug', (q) => q.eq('slug', 'netherlands-2026'))
+        .unique());
+
+    if (!target) {
+      throw new Error(
+        `Race ${slug} not found. Run seedRaces first: npx convex run seed:seedRaces`,
+      );
+    }
+
+    const original = F1_RACES_2026.find((race) => race.slug === target.slug);
+    const hasSprint = Boolean(original?.hasSprint ?? target.hasSprint);
+
+    // Fri → Sun shape relative to now so countdowns read like a live weekend.
+    let sprintQualiStartAt: number | undefined;
+    let sprintStartAt: number | undefined;
+    let qualiStartAt: number;
+    let raceStartAt: number;
+
+    if (hasSprint) {
+      sprintQualiStartAt = now + 2 * HOUR;
+      sprintStartAt = now + 20 * HOUR;
+      qualiStartAt = now + 26 * HOUR;
+      raceStartAt = now + 2 * DAY + 4 * HOUR;
+    } else {
+      qualiStartAt = now + 4 * HOUR;
+      raceStartAt = now + DAY + 6 * HOUR;
+    }
+
+    await ctx.db.patch(target._id, {
+      status: 'upcoming',
+      name: original?.name ?? target.name,
+      hasSprint,
+      timeZone: getRaceTimeZoneFromSlug(target.slug),
+      sprintQualiStartAt,
+      sprintQualiLockAt: sprintQualiStartAt,
+      sprintStartAt,
+      sprintLockAt: sprintStartAt,
+      qualiStartAt,
+      qualiLockAt: qualiStartAt,
+      raceStartAt,
+      predictionLockAt: raceStartAt,
+      updatedAt: now,
+    });
+
+    // Earlier rounds shouldn't still look "open" or locked mid-weekend.
+    let earlierFinished = 0;
+    let lockedCleared = 0;
+    for (const race of await ctx.db.query('races').collect()) {
+      if (race._id === target._id) {
+        continue;
+      }
+      if (race.status === 'locked') {
+        await ctx.db.patch(race._id, {
+          status: 'finished',
+          updatedAt: now,
+        });
+        lockedCleared++;
+        continue;
+      }
+      if (race.round < target.round && race.status === 'upcoming') {
+        const pastRaceStart = now - (target.round - race.round) * 7 * DAY;
+        await ctx.db.patch(race._id, {
+          status: 'finished',
+          raceStartAt: pastRaceStart,
+          predictionLockAt: pastRaceStart,
+          qualiStartAt: pastRaceStart - DAY,
+          qualiLockAt: pastRaceStart - DAY,
+          updatedAt: now,
+        });
+        earlierFinished++;
+      }
+    }
+
+    // Open weekend must be pickable — drop any published results on it.
+    let resultsCleared = 0;
+    for (const sessionType of [
+      'sprint_quali',
+      'sprint',
+      'quali',
+      'race',
+    ] as const) {
+      const existing = await ctx.db
+        .query('results')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', target._id).eq('sessionType', sessionType),
+        )
+        .unique();
+      if (existing) {
+        await ctx.db.delete(existing._id);
+        resultsCleared++;
+      }
+    }
+
+    const countryHint = target.slug.replace(/-\d{4}$/, '');
+
+    return {
+      race: original?.name ?? target.name,
+      slug: target.slug,
+      hasSprint,
+      countryHint,
+      scenarioRacesDeleted,
+      earlierFinished,
+      lockedCleared,
+      resultsCleared,
+      sessions: hasSprint
+        ? {
+            sprint_quali: new Date(sprintQualiStartAt!).toISOString(),
+            sprint: new Date(sprintStartAt!).toISOString(),
+            quali: new Date(qualiStartAt).toISOString(),
+            race: new Date(raceStartAt).toISOString(),
+          }
+        : {
+            quali: new Date(qualiStartAt).toISOString(),
+            race: new Date(raceStartAt).toISOString(),
+          },
+    };
+  },
+});
+
 export const seedHomePageScenario = internalMutation({
   args: {},
   handler: async (ctx) => {

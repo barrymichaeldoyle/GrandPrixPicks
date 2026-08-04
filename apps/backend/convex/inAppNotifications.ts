@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from 'convex/server';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -11,14 +12,25 @@ import {
   reactionTypeValidator,
 } from './lib/reactions';
 
+/**
+ * Ceiling on the unread badge. Past this the UI says "99+" rather than paying
+ * to count a number nobody reads precisely.
+ */
+const UNREAD_COUNT_LIMIT = 99;
+
+/**
+ * How many unread rows one "mark all read" clears. High enough to cover any
+ * realistic backlog in a single transaction; a reader deeper than this taps
+ * again.
+ */
+const MARK_ALL_READ_LIMIT = 500;
+
 const sessionTypeValidator = v.union(
   v.literal('quali'),
   v.literal('sprint_quali'),
   v.literal('sprint'),
   v.literal('race'),
 );
-
-const MAX_NOTIFICATIONS = 30;
 
 async function loadFollowedActorIds(
   ctx: Pick<QueryCtx, 'db'>,
@@ -44,9 +56,141 @@ async function loadFollowedActorIds(
   return followedIds;
 }
 
+type GroupedNotification = Doc<'inAppNotifications'> & {
+  actors?: Array<{
+    userId?: Id<'users'>;
+    username?: string;
+    displayName?: string;
+    avatarUrl?: string;
+    isFollowed: boolean;
+    reactionType: ReactionType;
+  }>;
+  totalReactionCount?: number;
+  totalRevCount?: number;
+};
+
+/**
+ * Collapses reaction notifications onto one row per feed event and leaves every
+ * other type alone. The persisted type stays `rev_received` during the
+ * compatibility window for released clients.
+ *
+ * Grouping is scoped to the rows handed in, so a paginated caller can end up
+ * with two rows for one feed event when its reactions straddle a page boundary.
+ * The clients merge on `feedEventId` for that reason.
+ */
+async function groupNotifications(
+  ctx: Pick<QueryCtx, 'db'>,
+  viewerId: Id<'users'>,
+  notifications: Doc<'inAppNotifications'>[],
+): Promise<GroupedNotification[]> {
+  const actorIds = new Set<Id<'users'>>();
+  for (const notification of notifications) {
+    if (notification.actorUserId) {
+      actorIds.add(notification.actorUserId);
+    }
+  }
+  const followedIds = await loadFollowedActorIds(ctx, viewerId, actorIds);
+
+  const revsByEventId = new Map<
+    Id<'feedEvents'>,
+    Doc<'inAppNotifications'>[]
+  >();
+  const result: GroupedNotification[] = [];
+
+  for (const n of notifications) {
+    if (n.type === 'rev_received' && n.feedEventId) {
+      const key = n.feedEventId;
+      if (!revsByEventId.has(key)) {
+        revsByEventId.set(key, []);
+      }
+      revsByEventId.get(key)!.push(n);
+    } else {
+      result.push(n);
+    }
+  }
+
+  for (const revNotifs of revsByEventId.values()) {
+    // Followed actors first, then most recent
+    revNotifs.sort((a, b) => {
+      const aF = a.actorUserId && followedIds.has(a.actorUserId) ? 0 : 1;
+      const bF = b.actorUserId && followedIds.has(b.actorUserId) ? 0 : 1;
+      if (aF !== bF) {
+        return aF - bF;
+      }
+      return b.createdAt - a.createdAt;
+    });
+
+    const representative = revNotifs[0];
+    const groupUnread = revNotifs.some((n) => !n.readAt);
+
+    result.push({
+      ...representative,
+      readAt: groupUnread ? undefined : representative.readAt,
+      actors: revNotifs.map((n) => ({
+        userId: n.actorUserId,
+        username: n.actorUsername,
+        displayName: n.actorDisplayName,
+        avatarUrl: n.actorAvatarUrl,
+        isFollowed: n.actorUserId ? followedIds.has(n.actorUserId) : false,
+        reactionType: n.reactionType ?? DEFAULT_REACTION_TYPE,
+      })),
+      totalReactionCount: revNotifs.length,
+      totalRevCount: revNotifs.length,
+    });
+  }
+
+  result.sort((a, b) => b.createdAt - a.createdAt);
+  return result;
+}
+
+/** Counts reaction rows the way the list renders them: one per feed event. */
+function countGrouped(notifications: Doc<'inAppNotifications'>[]): number {
+  const seenEventIds = new Set<Id<'feedEvents'>>();
+  let count = 0;
+  for (const n of notifications) {
+    if (n.type === 'rev_received' && n.feedEventId) {
+      if (seenEventIds.has(n.feedEventId)) {
+        continue;
+      }
+      seenEventIds.add(n.feedEventId);
+    }
+    count += 1;
+  }
+  return count;
+}
+
 // ============ Public queries ============
 
+/** Paginated notification history, newest first. */
 export const getMyNotifications = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      // A pagination result has to keep its shape, so signal "nothing here"
+      // with an exhausted page. Auth-readiness is `getMyUnreadCount`'s null.
+      return { page: [], isDone: true, continueCursor: '' };
+    }
+
+    const result = await ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
+      .order('desc')
+      .paginate(args.paginationOpts);
+
+    return {
+      ...result,
+      page: await groupNotifications(ctx, viewer._id, result.page),
+    };
+  },
+});
+
+/**
+ * Unread total for the header bell and the page heading, independent of how far
+ * the reader has paged. Reads only unread rows off `by_user_unread`, so it stays
+ * cheap as history grows.
+ */
+export const getMyUnreadCount = query({
   args: {},
   handler: async (ctx) => {
     const viewer = await getViewer(ctx);
@@ -54,86 +198,19 @@ export const getMyNotifications = query({
       return null;
     }
 
-    const notifications = await ctx.db
+    const unread = await ctx.db
       .query('inAppNotifications')
-      .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
-      .order('desc')
-      .take(MAX_NOTIFICATIONS);
+      .withIndex('by_user_unread', (q) =>
+        q.eq('userId', viewer._id).eq('readAt', undefined),
+      )
+      .take(UNREAD_COUNT_LIMIT + 1);
 
-    const actorIds = new Set<Id<'users'>>();
-    for (const notification of notifications) {
-      if (notification.actorUserId) {
-        actorIds.add(notification.actorUserId);
-      }
-    }
-    const followedIds = await loadFollowedActorIds(ctx, viewer._id, actorIds);
-
-    // Group reaction notifications by feedEventId; pass everything else
-    // through unchanged. The persisted type stays `rev_received` during the
-    // compatibility window for released clients.
-    const revsByEventId = new Map<Id<'feedEvents'>, typeof notifications>();
-    const result: Array<
-      (typeof notifications)[number] & {
-        actors?: Array<{
-          userId?: Id<'users'>;
-          username?: string;
-          displayName?: string;
-          avatarUrl?: string;
-          isFollowed: boolean;
-          reactionType: ReactionType;
-        }>;
-        totalReactionCount?: number;
-        totalRevCount?: number;
-      }
-    > = [];
-
-    for (const n of notifications) {
-      if (n.type === 'rev_received' && n.feedEventId) {
-        const key = n.feedEventId;
-        if (!revsByEventId.has(key)) {
-          revsByEventId.set(key, []);
-        }
-        revsByEventId.get(key)!.push(n);
-      } else {
-        result.push(n);
-      }
-    }
-
-    for (const revNotifs of revsByEventId.values()) {
-      // Followed actors first, then most recent
-      revNotifs.sort((a, b) => {
-        const aF = a.actorUserId && followedIds.has(a.actorUserId) ? 0 : 1;
-        const bF = b.actorUserId && followedIds.has(b.actorUserId) ? 0 : 1;
-        if (aF !== bF) {
-          return aF - bF;
-        }
-        return b.createdAt - a.createdAt;
-      });
-
-      const representative = revNotifs[0];
-      const groupUnread = revNotifs.some((n) => !n.readAt);
-
-      result.push({
-        ...representative,
-        readAt: groupUnread ? undefined : representative.readAt,
-        actors: revNotifs.map((n) => ({
-          userId: n.actorUserId,
-          username: n.actorUsername,
-          displayName: n.actorDisplayName,
-          avatarUrl: n.actorAvatarUrl,
-          isFollowed: n.actorUserId ? followedIds.has(n.actorUserId) : false,
-          reactionType: n.reactionType ?? DEFAULT_REACTION_TYPE,
-        })),
-        totalReactionCount: revNotifs.length,
-        totalRevCount: revNotifs.length,
-      });
-    }
-
-    result.sort((a, b) => b.createdAt - a.createdAt);
-
-    const unreadCount = result.filter((n) => !n.readAt).length;
-
-    return { notifications: result, unreadCount };
+    return {
+      count: countGrouped(unread.slice(0, UNREAD_COUNT_LIMIT)),
+      // The badge renders "99+" rather than claiming a precise number it did
+      // not count.
+      hasMore: unread.length > UNREAD_COUNT_LIMIT,
+    };
   },
 });
 
@@ -145,16 +222,17 @@ export const markAllRead = mutation({
     const viewer = requireViewer(await getViewer(ctx));
     const now = Date.now();
 
+    // Everything unread, not just the newest page: the reader can now page
+    // back through their whole history, so "mark all read" has to mean all.
     const unread = await ctx.db
       .query('inAppNotifications')
-      .withIndex('by_user_created', (q) => q.eq('userId', viewer._id))
-      .order('desc')
-      .take(MAX_NOTIFICATIONS);
+      .withIndex('by_user_unread', (q) =>
+        q.eq('userId', viewer._id).eq('readAt', undefined),
+      )
+      .take(MARK_ALL_READ_LIMIT);
 
     for (const n of unread) {
-      if (!n.readAt) {
-        await ctx.db.patch(n._id, { readAt: now });
-      }
+      await ctx.db.patch(n._id, { readAt: now });
     }
   },
 });

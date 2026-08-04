@@ -5,8 +5,12 @@ type SiteNavLink = {
 };
 
 /**
- * Core signed-in app navigation. The race calendar stays reachable from Home,
- * race detail back-links, empty states, and the footer — not as a top-level item.
+ * Core play destinations shared by the public nav and footer. Signed-in chrome
+ * carries the same two as header tabs (and, below 844px, as mobile tab bar
+ * items) — see `APP_NAV_TABS`, which is the authority for that surface; this
+ * list is the public/footer one. The race calendar stays reachable from Home,
+ * race detail back-links, empty states, the Quick Links card and the footer,
+ * but not as a top-level item.
  */
 export const primaryNavLinks: SiteNavLink[] = [
   { to: '/leaderboard', label: 'Leaderboard' },
@@ -15,7 +19,7 @@ export const primaryNavLinks: SiteNavLink[] = [
 
 /**
  * Public pages also expose the game guide. Keep it out of the authenticated
- * app header, where making picks and checking results are the primary jobs.
+ * header, which is just brand + notifications + account.
  */
 export const publicNavLinks: SiteNavLink[] = [
   { to: '/how-to-play', label: 'How to Play' },
@@ -41,6 +45,24 @@ export const footerSupportLinks: SiteNavLink[] = [
   { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
+];
+
+/**
+ * Condensed set for the signed-in dashboard rail. The full four-group footer is
+ * a public-page / SEO surface; in the rail it only has to be the "everything
+ * else" run of small print, so game navigation lives in Quick Links instead and
+ * anything duplicated there is dropped.
+ */
+export const railFooterLinks: SiteNavLink[] = [
+  { to: '/how-to-play', label: 'How to Play' },
+  { to: '/guides', label: 'F1 Guides' },
+  { to: '/about', label: 'About' },
+  { to: '/support', label: 'Support' },
+  { to: '/pricing', label: 'Season Pass' },
+  { to: '/results-policy', label: 'Results Policy' },
+  { to: '/terms', label: 'Terms' },
+  { to: '/privacy', label: 'Privacy' },
+  { to: '/refund-policy', label: 'Refunds' },
 ];
 
 export const footerLegalLinks: SiteNavLink[] = [

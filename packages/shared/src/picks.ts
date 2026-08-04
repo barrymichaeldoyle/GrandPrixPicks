@@ -43,6 +43,15 @@ export function getLockUrgencyBadgeTone(urgency: LockUrgency): LockBadgeTone {
   return 'warning';
 }
 
+/**
+ * A countdown to a session lock, as a standalone string.
+ *
+ * Note the expired return value is the word "Locked", not a zeroed clock. That
+ * reads correctly on its own but not inside a sentence: callers writing
+ * "<session> locks in {…}" must branch on `msRemaining <= 0` themselves, or
+ * they render "Sprint locks in Locked". Both landing-page callers do; the
+ * dashboard's did not, which is how that shipped once already.
+ */
 export function formatLockCountdown(msRemaining: number): string {
   if (msRemaining <= 0) {
     return 'Locked';

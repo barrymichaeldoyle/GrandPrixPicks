@@ -3,9 +3,10 @@ import { useQuery } from 'convex/react';
 import { Loader2 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 
-import { abbreviateGrandPrix } from '@/lib/display';
-import { getCountryCodeForRace } from '@/lib/raceCountries';
-
+import {
+  HEADER_NAV_TAB_CLASS,
+  HEADER_NAV_TAB_ICON_CLASS,
+} from '@/components/headerNavTabStyles';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -36,17 +37,8 @@ export function HeaderUser() {
   const { isSignedIn, confirmedSignedIn } = useViewerSession();
   const runtime = useClerkRuntimeControl();
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
-  const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
   const [isMobile, setIsMobile] = useState(false);
-  const myPicksHref = me?.username ? `/p/${me.username}` : '/me';
-  const nextRaceLink =
-    nextRace && nextRace.status === 'upcoming'
-      ? {
-          href: `/races/${nextRace.slug}`,
-          label: abbreviateGrandPrix(nextRace.name),
-          countryCode: getCountryCodeForRace(nextRace) ?? undefined,
-        }
-      : undefined;
+  const profileHref = me?.username ? `/p/${me.username}` : '/me';
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_MENU_BREAKPOINT);
@@ -73,8 +65,7 @@ export function HeaderUser() {
           <ClerkHeaderUser
             isMobile={isMobile}
             isSignedIn={false}
-            myPicksHref={myPicksHref}
-            nextRaceLink={nextRaceLink}
+            profileHref={profileHref}
             openSignInOnMount={runtime.openSignInOnMount}
             signInOpened={runtime.signInOpened}
           />
@@ -85,40 +76,39 @@ export function HeaderUser() {
     return <AnonymousSignInButton />;
   }
 
-  // Both signed-in states share one fixed 28x28 slot (shrink-0) so the nav never
-  // reflows during the hand-off: the loading pulse, and Clerk's UserButton —
-  // which can render a frame empty on mount, or briefly remount when its `key`
-  // (mobile/desktop) resolves — always sit in a stable-width box. Reserving the
-  // slot means the sibling nav items never bounce even while the avatar itself
-  // is mid-mount.
-  const avatarSlotClasses = 'flex h-7 w-7 shrink-0 items-center justify-center';
+  // Both signed-in states share one slot so the nav never reflows during the
+  // hand-off: the loading pulse, and Clerk's UserButton — which can render a
+  // frame empty on mount, or briefly remount when its `key` (mobile/desktop)
+  // resolves — always sit in a stable-width box. The placeholder carries the
+  // same tab classes as Clerk's real trigger, including the `Me` pseudo-element
+  // label, so the two are the same width down to the pixel and the sibling tabs
+  // never bounce while the avatar is mid-mount.
+  const tabPlaceholder = (
+    <div
+      className={`${HEADER_NAV_TAB_CLASS} gpp-header-me-tab`}
+      aria-hidden="true"
+    >
+      <span className={HEADER_NAV_TAB_ICON_CLASS}>
+        <span className="block h-6 w-6 animate-pulse rounded-full bg-surface-muted" />
+      </span>
+    </div>
+  );
 
   if (!confirmedSignedIn) {
     return (
-      <div className={avatarSlotClasses} data-testid="header-user-loading">
-        <span
-          className="block h-7 w-7 animate-pulse rounded-full bg-surface-muted"
-          aria-hidden="true"
-        />
+      <div className="gpp-header-me-slot" data-testid="header-user-loading">
+        {tabPlaceholder}
       </div>
     );
   }
 
   return (
-    <div className={avatarSlotClasses} data-testid="header-user-authenticated">
-      <Suspense
-        fallback={
-          <span
-            className="block h-7 w-7 animate-pulse rounded-full bg-surface-muted"
-            aria-hidden="true"
-          />
-        }
-      >
+    <div className="gpp-header-me-slot" data-testid="header-user-authenticated">
+      <Suspense fallback={tabPlaceholder}>
         <ClerkHeaderUser
           isMobile={isMobile}
           isSignedIn={true}
-          myPicksHref={myPicksHref}
-          nextRaceLink={nextRaceLink}
+          profileHref={profileHref}
           openSignInOnMount={false}
           signInOpened={runtime.signInOpened}
         />

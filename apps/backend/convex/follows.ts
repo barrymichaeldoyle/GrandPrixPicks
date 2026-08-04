@@ -12,12 +12,72 @@ const MAX_FOLLOWS_PER_USER = 5000;
 const MAX_SUGGESTED_FOLLOWS = 6;
 const MAX_SUGGESTION_SOURCE_LEAGUES = 25;
 
+/**
+ * Social proof bounds for {@link getSuggestedLeagueMembersToFollow}.
+ *
+ * Working out "people you follow who also follow them" costs one index scan per
+ * candidate, and a league can have thousands of members, so it is only computed
+ * for the strongest shared-league candidates. A candidate below that cut cannot
+ * be promoted by mutuals alone — a deliberate ceiling on work per dashboard
+ * load, not an oversight.
+ */
+const MAX_MUTUAL_CANDIDATES = 12;
+/** Followers scanned per candidate. Beyond this the count under-reports, which
+ *  is the safe direction: we never name someone who is not a mutual. */
+const MAX_MUTUAL_FOLLOWER_SCAN = 500;
+/** Named in the UI before it collapses to "and N others". */
+const MAX_MUTUAL_NAMES = 3;
+
 async function getExistingUsersForFollows(
   ctx: Parameters<typeof getViewer>[0],
   userIds: Id<'users'>[],
 ): Promise<Array<Doc<'users'>>> {
   const users = await Promise.all(userIds.map((userId) => ctx.db.get(userId)));
   return users.filter((user): user is Doc<'users'> => user != null);
+}
+
+/**
+ * The people the viewer already follows who also follow this candidate — the
+ * "followed by Lando and 2 others" line on the dashboard.
+ *
+ * Exported for tests: the ordering and de-duplication here decide whose name
+ * appears, and a follow table can legitimately hold the same follower twice
+ * across a botched write.
+ */
+export function intersectMutualFollowers(
+  candidateFollowerIds: Id<'users'>[],
+  viewerFolloweeIds: Set<Id<'users'>>,
+): Id<'users'>[] {
+  const seen = new Set<Id<'users'>>();
+  return candidateFollowerIds.filter((followerId) => {
+    if (!viewerFolloweeIds.has(followerId) || seen.has(followerId)) {
+      return false;
+    }
+    seen.add(followerId);
+    return true;
+  });
+}
+
+/**
+ * Final suggestion order: mutual followers first, then shared leagues, then
+ * name so the card is stable between loads rather than reshuffling on every
+ * subscription tick.
+ */
+export function rankSuggestionsByMutuals<
+  T extends {
+    mutualFollowerCount: number;
+    sharedLeagueCount: number;
+    displayName: string;
+  },
+>(suggestions: T[]): T[] {
+  return [...suggestions].sort((a, b) => {
+    if (b.mutualFollowerCount !== a.mutualFollowerCount) {
+      return b.mutualFollowerCount - a.mutualFollowerCount;
+    }
+    return b.sharedLeagueCount !== a.sharedLeagueCount
+      ? b.sharedLeagueCount - a.sharedLeagueCount
+      : a.displayName.localeCompare(b.displayName);
+  });
 }
 
 export const follow = mutation({
@@ -281,13 +341,61 @@ export const getSuggestedLeagueMembersToFollow = query({
       }),
     );
 
-    return users
+    const ranked = users
       .filter((user): user is NonNullable<typeof user> => user !== null)
       .sort((a, b) =>
         b.sharedLeagueCount !== a.sharedLeagueCount
           ? b.sharedLeagueCount - a.sharedLeagueCount
           : a.displayName.localeCompare(b.displayName),
-      )
-      .slice(0, limit);
+      );
+
+    // "Two people you follow follow them" is a stronger reason to follow
+    // someone than "you are both in the Monaco Masters league", so mutuals
+    // decide the final order — but only among the shortlist, to keep the work
+    // bounded. See MAX_MUTUAL_CANDIDATES.
+    const shortlist = ranked.slice(0, MAX_MUTUAL_CANDIDATES);
+    const viewerFolloweeIds = new Set(
+      follows.map((follow) => follow.followeeId),
+    );
+
+    const withMutuals = await Promise.all(
+      shortlist.map(async (candidate) => {
+        const candidateFollowers = await ctx.db
+          .query('follows')
+          .withIndex('by_followee', (q) => q.eq('followeeId', candidate._id))
+          .take(MAX_MUTUAL_FOLLOWER_SCAN);
+
+        const mutualIds = intersectMutualFollowers(
+          candidateFollowers.map((follow) => follow.followerId),
+          viewerFolloweeIds,
+        );
+
+        const namedMutuals = await getExistingUsersForFollows(
+          ctx,
+          mutualIds.slice(0, MAX_MUTUAL_NAMES),
+        );
+
+        return {
+          ...candidate,
+          mutualFollowerCount: mutualIds.length,
+          // Inline, not toUserIdentity(): that helper returns the fields as
+          // `string | undefined`, and the UI links to `/p/$username`. Same
+          // narrowing reason as the candidate mapping above.
+          mutualFollowers: namedMutuals
+            .map((user) =>
+              user.username && user.displayName
+                ? {
+                    username: user.username,
+                    displayName: user.displayName,
+                    avatarUrl: user.avatarUrl,
+                  }
+                : null,
+            )
+            .filter((user): user is NonNullable<typeof user> => user !== null),
+        };
+      }),
+    );
+
+    return rankSuggestionsByMutuals(withMutuals).slice(0, limit);
   },
 });

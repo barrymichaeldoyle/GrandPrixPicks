@@ -1,3 +1,9 @@
+import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { MyLeaguesCard } from '@/components/dashboard/MyLeaguesCard';
+import { ProfileCard } from '@/components/dashboard/ProfileCard';
+import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
+import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
+import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { convexQuery } from '@convex-dev/react-query';
 import { api } from '@convex-generated/api';
@@ -274,8 +280,40 @@ function LeaderboardPage() {
         }`;
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-6">
+    <AppPageLayout
+      // Public route: logged-out visitors (and crawlers) get the board on its
+      // own, full width, with none of the signed-in furniture around it.
+      leftLabel={isSignedIn ? 'Profile and quick links' : undefined}
+      left={
+        isSignedIn ? (
+          <>
+            <RailItem hideOnMobile>
+              <ProfileCard me={viewer} />
+            </RailItem>
+            <RailItem order={3}>
+              <QuickLinksCard />
+            </RailItem>
+          </>
+        ) : undefined
+      }
+      rightLabel={isSignedIn ? 'Leagues and suggestions' : undefined}
+      right={
+        isSignedIn ? (
+          <>
+            <RailItem order={1}>
+              <MyLeaguesCard />
+            </RailItem>
+            <RailItem order={2}>
+              <SuggestedFollowsCard />
+            </RailItem>
+            <RailItem order={4}>
+              <RailFooterLinks />
+            </RailItem>
+          </>
+        ) : undefined
+      }
+    >
+      <div>
         <PageHeader
           eyebrow={timeScope === 'weekend' ? 'Race weekend' : 'Season rankings'}
           title="Leaderboard"
@@ -420,6 +458,6 @@ function LeaderboardPage() {
           />
         )}
       </div>
-    </div>
+    </AppPageLayout>
   );
 }

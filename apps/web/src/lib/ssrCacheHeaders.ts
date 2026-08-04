@@ -14,7 +14,18 @@ import { isClerkSessionPresent } from '../../server/lib/auth';
  * cookie this check reads.
  *
  * Requires a Cloudflare Cache Rule that respects origin cache-control for the
- * route to take effect at the edge; harmless without one.
+ * route to take effect at the edge; harmless without one. That rule must also
+ * *bypass* the cache when this instance's `__client_uat` cookie is non-zero.
+ * `private, no-store` only stops the edge from storing a signed-in document —
+ * a cache *lookup* never reaches this function, so without the bypass a
+ * signed-in visitor is served the stored signed-out HTML and gets exactly the
+ * auth flash the SSR read exists to prevent. `Vary: Cookie` cannot do this
+ * job: Cloudflare ignores Vary for anything but `Accept-Encoding`.
+ *
+ * Bypass on the cookie's *value*, not its presence. Clerk leaves
+ * `__client_uat=0` behind on every browser that has ever signed out, so a
+ * presence check would lock those visitors out of the cache permanently —
+ * see {@link isClerkSessionPresent}, which the rule has to mirror.
  *
  * @param publicCacheControl — the header value to use for signed-out visitors.
  */

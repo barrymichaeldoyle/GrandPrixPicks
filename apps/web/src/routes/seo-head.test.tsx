@@ -161,30 +161,28 @@ describe('SEO head metadata', () => {
     expect(ogImage(undefined)).toContain('/og-default.png');
   });
 
+  // `/feed` used to be listed here. It is a redirect to the dashboard now, not
+  // a page, so it has no head to assert on — nothing to index either way.
   it('marks gated pages as noindex with a single canonical', async () => {
     const [
-      { Route: feedRoute },
       { Route: supportRoute },
       { Route: meRoute },
       { Route: settingsRoute },
     ] = await Promise.all([
-      import('./feed/index'),
       import('./support'),
       import('./me'),
       import('./settings'),
     ]);
     const routes: StaticHeadRoute[] = [
-      asStaticHeadRoute(feedRoute),
       asStaticHeadRoute(supportRoute),
       asStaticHeadRoute(meRoute),
       asStaticHeadRoute(settingsRoute),
     ];
 
     for (const [path, route] of [
-      ['/feed', routes[0]],
-      ['/support', routes[1]],
-      ['/me', routes[2]],
-      ['/settings', routes[3]],
+      ['/support', routes[0]],
+      ['/me', routes[1]],
+      ['/settings', routes[2]],
     ] as const) {
       const head = route.head();
       expect(head.meta).toContainEqual({

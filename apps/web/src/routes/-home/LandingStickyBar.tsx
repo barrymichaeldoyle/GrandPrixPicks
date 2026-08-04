@@ -165,7 +165,7 @@ export function LandingStickyBar({
           {/* Same rail as the header above it: the strip reads as an extension
               of the app chrome, so its content has to line up with the
               wordmark. */}
-          <div className="mx-auto flex h-12 w-full max-w-(--page-max) items-center gap-3 px-4 min-[844px]:px-8">
+          <div className="mx-auto flex h-12 w-full max-w-(--page-max) items-center gap-3 px-4">
             {/* One line can't always hold the name, the deadline and a 135px
               button: at 360px it leaves ~67px for the name, so anything past
               "Dutch GP" truncated mid-word. The deadline is its own flex item

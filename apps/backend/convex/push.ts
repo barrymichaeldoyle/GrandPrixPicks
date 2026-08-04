@@ -521,7 +521,10 @@ export const sendPushForSessionLocked = internalMutation({
     const message = {
       title: `🔒 ${race.name}: ${sessionLabel}`,
       body: "See everyone's picks.",
-      url: `/feed?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
+      // The dashboard, not `/feed`: that page has been removed and its activity
+      // stream is the lower half of the dashboard now. Pushes already delivered
+      // with the old URL still work — `/feed` redirects here.
+      url: `/?utm_source=push&utm_medium=push&utm_campaign=session_locked`,
     };
     if (subscriptions.length > 0) {
       await scheduleSendPushBatches(ctx, { subscriptions, ...message });

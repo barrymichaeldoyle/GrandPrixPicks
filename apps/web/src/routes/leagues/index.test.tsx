@@ -28,6 +28,9 @@ vi.mock('@convex-generated/api', () => ({
       getMyLeagueUsage: 'leagues:getMyLeagueUsage',
       listPublicLeagues: 'leagues:listPublicLeagues',
     },
+    // Feeds the signed-in rail's ProfileCard; skipped for the signed-out
+    // visitors this file covers, but the module still reads the reference.
+    users: { me: 'users:me' },
   },
 }));
 

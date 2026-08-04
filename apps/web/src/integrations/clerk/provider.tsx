@@ -3,6 +3,7 @@ import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
 import { useEffect, useState } from 'react';
 
+import { HEADER_NAV_TAB_CLASS } from '@/components/headerNavTabStyles';
 import { useInitialAuth } from './initial-auth';
 import {
   deriveViewerSession,
@@ -26,9 +27,22 @@ interface AppClerkProviderProps extends PropsWithChildren {
 }
 
 const clerkElements = {
-  userButtonTrigger:
-    'rounded-full !border-transparent bg-transparent px-2 py-1 text-text transition-colors hover:bg-surface-muted/45 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 data-[state=open]:bg-surface-muted/45',
-  userButtonAvatarBox: 'ring-0',
+  // The only UserButton in the app is the header's account tab, so its trigger
+  // wears the shared nav-tab chrome: avatar over a "Me" label with a caret,
+  // flush with Home and Notifications. Clerk owns the trigger's markup, so the
+  // label itself is a pseudo-element (`.gpp-header-me-tab` in styles.css) and
+  // Clerk's own round-avatar sizing has to be overridden with `!`.
+  // The open state gets a background rather than the accent underline: the
+  // underline means "this is the page you are on", and an open menu is a
+  // transient state, not a navigation. Borrowing the stripe would claim you had
+  // left Home the moment you opened the menu.
+  //
+  // Keyed off `aria-expanded`, not `data-[state=open]` — Clerk marks the open
+  // trigger with `data-open` / `aria-expanded` / a `cl-open` class, so the
+  // `data-[state=open]:` rules this replaced never matched anything.
+  userButtonTrigger: `${HEADER_NAV_TAB_CLASS} gpp-header-me-tab !w-auto !rounded-none !bg-transparent !p-0 !px-2 sm:!px-3 aria-expanded:!bg-surface aria-expanded:!text-text`,
+  userButtonBox: 'contents',
+  userButtonAvatarBox: 'ring-0 !h-6 !w-6',
   userButtonPopoverRootBox: 'z-[120]',
   userButtonPopoverCard:
     'overflow-hidden rounded-lg border border-border bg-surface text-text',
@@ -92,6 +106,12 @@ export function AppClerkProvider({
         elements: clerkElements,
       }}
       localization={{
+        userButton: {
+          // Clerk's default is "Manage account", which is indistinguishable
+          // from our own Settings page. This row is specifically the things
+          // Settings does not cover: email, password, 2FA, devices, deletion.
+          action__manageAccount: 'Login & security',
+        },
         userProfile: {
           deletePage: {
             messageLine1:

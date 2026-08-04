@@ -105,7 +105,7 @@ export function RaceEventPageLayout({
 
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6">
+      <div className="mx-auto max-w-(--page-max) px-4 py-4 sm:py-6">
         {(backLink || leaderboardLink) && (
           <div className="mb-4 flex items-center justify-between">
             {backLink ?? <span />}

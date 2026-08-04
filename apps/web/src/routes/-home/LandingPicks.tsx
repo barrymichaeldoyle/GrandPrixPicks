@@ -10,9 +10,9 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { LandingTopFivePicker } from './LandingTopFivePicker';
 import { Button } from '@/components/Button/Button';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/components/DriverBadge';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
+import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -627,35 +627,7 @@ function PredictionCardIntro({
               </Button>
             ) : null}
           </div>
-          <ol
-            className="mt-2 grid grid-cols-5 gap-1"
-            aria-label="Your Top 5, in order"
-          >
-            {pickedDrivers.map((driver, index) => (
-              <li
-                key={driver._id}
-                // Same cell height and stripe as the team-mate strip below, and
-                // the code sits against its team colour rather than floating in
-                // the middle of a wide box: five slots and eleven battles read
-                // as one card, not two unrelated grids.
-                className="gpp-team-bar flex h-7 min-w-0 items-center gap-1.5 overflow-hidden rounded-sm border border-border bg-surface-elevated pr-1 pl-2"
-                style={
-                  {
-                    '--team-colour':
-                      (driver.team && TEAM_COLORS[driver.team]) ||
-                      FALLBACK_TEAM_COLOR,
-                  } as React.CSSProperties
-                }
-              >
-                <span className="gpp-mono text-[10px] leading-none text-accent">
-                  P{index + 1}
-                </span>
-                <span className="gpp-mono truncate text-xs leading-none text-text">
-                  {driver.code}
-                </span>
-              </li>
-            ))}
-          </ol>
+          <TopFivePicksBar picks={topFivePicks} drivers={drivers} />
         </>
       ) : null}
     </div>

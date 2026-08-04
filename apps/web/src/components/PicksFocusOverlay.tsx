@@ -19,6 +19,14 @@ interface PicksFocusOverlayProps {
   suspended?: boolean;
   title: ReactNode;
   subtitle?: ReactNode;
+  /**
+   * Let the body stretch to the takeover's full height instead of stacking from
+   * the top. Long forms want the default (scroll from the top); a single
+   * question does not, because on a phone it leaves two thirds of the screen
+   * empty under it. Only affects the mobile takeover — the desktop modal is
+   * already sized to its content.
+   */
+  fillBody?: boolean;
   children: ReactNode;
 }
 
@@ -33,6 +41,7 @@ export function PicksFocusOverlay({
   suspended = false,
   title,
   subtitle,
+  fillBody = false,
   children,
 }: PicksFocusOverlayProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -192,7 +201,11 @@ export function PicksFocusOverlay({
         {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
             enter the scroll container's padding, so padding would leave a gap
             under it. Content without its own bar should bring pb-4 sm:pb-0. */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 sm:px-6 sm:py-5">
+        <div
+          className={`min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 sm:px-6 sm:py-5 ${
+            fillBody ? 'flex flex-col sm:block' : ''
+          }`}
+        >
           {children}
         </div>
       </div>

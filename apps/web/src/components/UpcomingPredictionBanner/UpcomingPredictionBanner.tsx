@@ -217,16 +217,11 @@ export function UpcomingPredictionBanner() {
     }
   }
 
-  // On /feed at lg+, the sidebar already surfaces a next-race card, so suppress
-  // the banner there to avoid duplicating the same CTA.
-  if (pathname === '/feed' || pathname.startsWith('/feed/')) {
-    return (
-      <div className="lg:hidden">
-        <UpcomingPredictionBannerInner />
-      </div>
-    );
-  }
-
+  // The /feed carve-out that used to live here is gone with the page: it
+  // suppressed the banner at lg+ because FeedSidebar surfaced the same
+  // next-race CTA, and neither the sidebar nor the page exists now.
+  // `/feed/$feedEventId` is a single event with no rail, so it gets the banner
+  // like everywhere else.
   return <UpcomingPredictionBannerInner />;
 }
 

@@ -1,8 +1,10 @@
 import { api } from '@convex-generated/api';
+import type { Doc } from '@convex-generated/dataModel';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense, useEffect } from 'react';
 
 import { DevNowPanel } from '@/components/DevNowPanel';
+import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { convexHttp as convex } from '@/integrations/convex/client';
@@ -19,6 +21,10 @@ import {
 import { useNow } from '@/lib/testing/now';
 
 import {
+  preloadDashboardForReturningViewer,
+  preloadDashboardPage,
+} from './-dashboard/preload';
+import {
   BrowseRacesCta,
   LandingHero,
   ScrollToPicksCta,
@@ -34,10 +40,16 @@ const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
 export const PUBLIC_HOME_TITLE = `Free F1 Prediction Game ${CURRENT_SEASON} | Grand Prix Picks`;
 const DASHBOARD_TITLE = 'Dashboard | Grand Prix Picks';
 const AuthenticatedDashboard = lazy(() =>
-  import('./-dashboard/DashboardPage').then((module) => ({
+  preloadDashboardPage().then((module) => ({
     default: module.DashboardPage,
   })),
 );
+
+// Module scope, not an effect: this has to win a race against hydration, and an
+// effect runs long after the Suspense boundary has already committed a
+// fallback. This module is in the entry chunk, so it executes while the router
+// is still booting. See `-dashboard/preload.ts`.
+preloadDashboardForReturningViewer();
 
 /**
  * The FAQPage entry that used to sit alongside this was dropped with the
@@ -129,36 +141,69 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const { isSignedIn } = useViewerSession();
+  const { drivers, h2hMatchups, nextRace } = Route.useLoaderData();
 
   useEffect(() => {
     document.title = isSignedIn ? DASHBOARD_TITLE : PUBLIC_HOME_TITLE;
   }, [isSignedIn]);
 
   return isSignedIn ? (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <AuthenticatedDashboard />
+    <Suspense fallback={<DashboardSkeleton race={nextRace} />}>
+      <AuthenticatedDashboard
+        initialRace={nextRace}
+        initialDrivers={drivers}
+        initialMatchups={h2hMatchups}
+      />
     </Suspense>
   ) : (
     <PublicLandingPage />
   );
 }
 
-function DashboardSkeleton() {
+/**
+ * Stands in for the dashboard between hydration and the lazy chunk resolving.
+ *
+ * React commits this over the server's markup whether or not the chunk is
+ * cached — `React.lazy` suspends at least once on hydration — so this is not a
+ * rare path, it is on every signed-in load. It therefore has to be a
+ * continuation of what SSR drew rather than a different screen: same page
+ * frame, same weekend card, same race name. Get that wrong and the page
+ * visibly empties out for a beat and refills.
+ *
+ * `WeekendCardSkeleton` is the same component the dashboard itself falls back
+ * to, which is what keeps the two in step. It costs the landing bundle only its
+ * own markup: its dependencies are already there via `SessionClock`.
+ */
+function DashboardSkeleton({ race }: { race?: Doc<'races'> | null }) {
   // Held for the same reason `DashboardPage` holds: during a sign-in handoff
   // the curtain should lift onto the dashboard, not onto its skeleton. Outside
   // a handoff there is no curtain and this is a no-op.
   useAuthCurtainGate(false);
 
   return (
-    <div
-      className="mx-auto min-h-[70vh] w-full max-w-6xl px-4 py-9"
-      aria-label="Loading dashboard"
-      aria-busy="true"
-    >
-      <div className="h-3 w-24 animate-pulse rounded bg-surface-muted" />
-      <div className="mt-4 h-10 w-80 max-w-full animate-pulse rounded bg-surface-muted" />
-      <div className="mt-5 h-4 w-full max-w-xl animate-pulse rounded bg-surface-muted" />
-      <div className="mt-10 h-64 animate-pulse rounded-lg border border-border bg-surface" />
+    // Frame copied from `AppPageLayout` rather than imported: matching padding
+    // is what stops the swap nudging the page, and importing the layout would
+    // pull the dashboard's frame onto the landing bundle for no other gain.
+    <div className="min-h-full bg-page">
+      <div
+        className="mx-auto w-full max-w-(--page-max) px-4 py-5 sm:py-7"
+        aria-label="Loading dashboard"
+        aria-busy="true"
+      >
+        <div className="grid gap-6 md:items-start lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:gap-7 xl:grid-cols-[240px_minmax(0,1fr)_300px] xl:gap-8">
+          <div className="hidden space-y-4 lg:block">
+            <div className="h-20 animate-pulse rounded-lg border border-border bg-surface" />
+            <div className="h-40 animate-pulse rounded-lg border border-border bg-surface" />
+          </div>
+          <div className="min-w-0 space-y-6">
+            <WeekendCardSkeleton race={race} />
+          </div>
+          <div className="hidden space-y-4 lg:block">
+            <div className="h-32 animate-pulse rounded-lg border border-border bg-surface" />
+            <div className="h-32 animate-pulse rounded-lg border border-border bg-surface" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

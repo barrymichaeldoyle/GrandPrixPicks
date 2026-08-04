@@ -1,7 +1,8 @@
 import type { ReactionType } from '@grandprixpicks/shared/reactions';
 import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery } from 'convex/react';
+import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
+import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
 import * as Haptics from 'expo-haptics';
 
 import { Avatar } from '../components/ui/Avatar';
@@ -75,8 +76,13 @@ export function NotificationsScreen() {
   const { convexEnabled } = useMobileConfig();
   const { refreshing, onRefresh } = useRefreshSpinner();
   const { showToast } = useToast();
-  const result = useQuery(
+  const { results, status, loadMore } = usePaginatedQuery(
     api.inAppNotifications.getMyNotifications,
+    convexEnabled ? {} : 'skip',
+    { initialNumItems: NOTIFICATION_PAGE_SIZE },
+  );
+  const unread = useQuery(
+    api.inAppNotifications.getMyUnreadCount,
     convexEnabled ? {} : 'skip',
   );
   const markRead = useMutation(api.inAppNotifications.markRead);
@@ -108,11 +114,11 @@ export function NotificationsScreen() {
     );
   }
 
-  if (result === undefined) {
+  if (status === 'LoadingFirstPage' || unread === undefined) {
     return <LoadingScreen />;
   }
 
-  if (result === null) {
+  if (unread === null) {
     return (
       <View className="flex-1 bg-page px-4 pt-3">
         <Header subtitle="Notifications" />
@@ -125,14 +131,15 @@ export function NotificationsScreen() {
     );
   }
 
-  const notifications = result.notifications as Notification[];
-  const unreadCount = result.unreadCount ?? 0;
+  const notifications = results as Notification[];
+  const unreadCount = unread.count;
+  const unreadLabel = unread.hasMore ? `${unreadCount}+` : `${unreadCount}`;
 
   return (
     <View className="flex-1 bg-page px-4 pt-3">
       <Header
         subtitle={
-          unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"
+          unreadCount > 0 ? `${unreadLabel} unread` : "You're all caught up"
         }
         action={
           unreadCount > 0 ? (
@@ -160,6 +167,21 @@ export function NotificationsScreen() {
         ItemSeparatorComponent={() => (
           <View className="ml-[52px] h-px bg-border" />
         )}
+        // Paging on scroll rather than a button: a phone list has no obvious
+        // bottom edge to put one against.
+        onEndReached={() => {
+          if (status === 'CanLoadMore') {
+            loadMore(NOTIFICATION_PAGE_SIZE);
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          status === 'LoadingMore' ? (
+            <Text className="text-muted py-4 text-center text-xs">
+              Loading older notifications
+            </Text>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             colors={[colors.accent]}

@@ -1,4 +1,3 @@
-import { api } from '@convex-generated/api';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -18,6 +17,7 @@ import { AppMotionProvider } from '@/components/AppMotionProvider';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
+import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import {
@@ -33,8 +33,9 @@ import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
 } from '@/integrations/clerk/runtime-control';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { ViewerSessionProvider } from '@/integrations/clerk/viewer-session-context';
-import { convex, convexHttp } from '@/integrations/convex/client';
+import { convex } from '@/integrations/convex/client';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
@@ -169,14 +170,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   // backend) so the header renders the correct nav on the first paint.
   loader: async () => {
     const initialAuth = await fetchInitialAuth();
-    // Seed the header's "next race" quick link at SSR so it renders on the first
-    // paint instead of popping in after the client Convex query resolves. The
-    // link is signed-in only, so skip the query for anonymous visitors, and
-    // never let it fail the whole app render.
-    const nextRace = initialAuth.isSignedIn
-      ? await convexHttp.query(api.races.getNextRace).catch(() => null)
-      : null;
-    return { initialAuth, nextRace };
+    return { initialAuth };
   },
 
   notFoundComponent: NotFoundPage,
@@ -226,7 +220,7 @@ export function NotFoundPage() {
 }
 
 function RootDocument({ children }: PropsWithChildren) {
-  const { initialAuth, nextRace } = Route.useLoaderData();
+  const { initialAuth } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
 
   useEffect(() => {
@@ -313,7 +307,7 @@ function RootDocument({ children }: PropsWithChildren) {
                 >
                   Skip to main content
                 </a>
-                <Header initialNextRace={nextRace} />
+                <Header />
                 <OfflineBanner />
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
@@ -325,7 +319,11 @@ function RootDocument({ children }: PropsWithChildren) {
                   <main id="main-content" className="min-h-0 flex-1">
                     <ErrorBoundary>{children}</ErrorBoundary>
                   </main>
-                  <Footer />
+                  <ShellFooter />
+                  {/* Signed-in only, and only below 844px — see MobileTabBar.
+                      Inside AppShell so the sign-in curtain makes it inert
+                      along with everything else behind the loader. */}
+                  <MobileTabBar />
                   <TanStackDevtools
                     config={{
                       position: 'bottom-right',
@@ -373,6 +371,19 @@ function AppShell({ children }: PropsWithChildren) {
       {children}
     </div>
   );
+}
+
+/**
+ * Signed-in Home carries Play / Legal / Support links in its right rail, so
+ * the global footer would be a duplicate. Everywhere else keeps the full footer.
+ */
+function ShellFooter() {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const { isSignedIn } = useViewerSession();
+  if (isSignedIn && pathname === '/') {
+    return null;
+  }
+  return <Footer />;
 }
 
 function AppRuntimeBoundary({

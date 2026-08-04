@@ -33,12 +33,24 @@ const variants = {
   tab: 'border border-transparent text-text-muted hover:bg-surface hover:text-text disabled:bg-transparent disabled:text-text-disabled disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-disabled',
 } as const;
 
-/** Heights come from the density tokens: 36px compact, 44px touch target. */
+/**
+ * Heights come from the density tokens: 36px compact, 44px touch target.
+ *
+ * The compact sizes grow to the touch target on coarse pointers. A 36px control
+ * is comfortable under a mouse and awkward under a thumb, and the phone is
+ * where most of these are actually used, so the density is spent where it buys
+ * something rather than applied uniformly. `pointer-coarse` keys off the input
+ * device, not the viewport, so a small window on a laptop stays compact and a
+ * large tablet does not.
+ *
+ * Widths are untouched: only the vertical hit area was short.
+ */
 const sizes = {
-  inline: 'gap-1 rounded-sm px-1.5 py-0.5 text-xs',
-  sm: 'h-9 px-4 text-sm',
+  inline:
+    'gap-1 rounded-sm px-1.5 py-0.5 text-xs pointer-coarse:min-h-11 pointer-coarse:px-2.5',
+  sm: 'h-9 px-4 text-sm pointer-coarse:h-11',
   md: 'h-11 gap-1.5 px-5 text-base',
-  tab: 'h-9 rounded-sm px-3 text-sm',
+  tab: 'h-9 rounded-sm px-3 text-sm pointer-coarse:h-11',
 } as const;
 
 /** Icon size (px) per button size for consistent alignment. */

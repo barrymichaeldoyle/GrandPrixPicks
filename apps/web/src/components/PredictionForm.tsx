@@ -379,7 +379,10 @@ function DriverPoolDroppable({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={setNodeRef}
-      className={`grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 md:grid-cols-4 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
+      // Columns follow the form's own width (container), not the viewport —
+      // the dashboard center rail is ~640px wide while the viewport is `lg`,
+      // and viewport breakpoints left a 4-col grid crushed into ~280px.
+      className={`grid grid-cols-2 gap-2 @min-[360px]:grid-cols-3 @min-[480px]:grid-cols-4 @min-[640px]:grid-cols-5 ${isOver ? 'rounded-lg bg-accent-muted/20' : ''}`}
       data-testid="driver-selection"
     >
       {children}
@@ -1036,20 +1039,21 @@ export function PredictionForm({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-4 sm:space-y-6">
+      <div className="@container space-y-4 sm:space-y-6">
         {restoredDraftAt ? (
           <DraftRestoredNotice
             target={draftNoticeTarget}
             onDiscard={handleDiscardDraft}
           />
         ) : null}
-        {/* Two-column layout on desktop: Your Picks | Select Drivers */}
-        <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:gap-8">
+        {/* Side-by-side only when *this* form is wide enough. Viewport `lg`
+            alone is wrong inside the dashboard's narrow center column. */}
+        <div className="flex flex-col gap-4 sm:gap-6 @min-[720px]:flex-row @min-[720px]:items-start @min-[720px]:gap-8">
           {/* Your Picks - sortable list via @dnd-kit */}
           <div
             ref={yourPicksRef}
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 lg:order-1' : ''} lg:min-w-0 lg:min-w-[400px] lg:flex-1`}
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[720px]:order-1' : ''} @min-[720px]:w-[min(100%,380px)] @min-[720px]:min-w-0 @min-[720px]:shrink-0`}
           >
             <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
               <h3 className="text-lg font-semibold text-text">Your Picks</h3>
@@ -1203,22 +1207,22 @@ export function PredictionForm({
             )}
           </div>
 
-          {/* Available Drivers - selection pool (right column on desktop) */}
+          {/* Available Drivers - selection pool (right column when wide) */}
           <div
-            className={`${mobileActionFirst ? 'order-1 lg:order-2' : ''} lg:min-w-0 lg:flex-2`}
+            className={`${mobileActionFirst ? 'order-1 @min-[720px]:order-2' : ''} @min-[720px]:min-w-0 @min-[720px]:flex-1`}
           >
-            {/* The label only earns its line on desktop, where it names the
-                right-hand column against "Your Picks". Stacked on mobile it
-                just repeats the heading directly above it ("Choose your Top 5"
-                on the landing page, the session title in the race overlay), so
-                below lg it stays for screen readers only and costs no space. */}
-            <h3 className="mb-0 text-lg font-semibold text-text lg:mb-3">
-              <span className="sr-only lg:not-sr-only">Select Drivers</span>
+            {/* The label only earns its line in the side-by-side layout, where
+                it names the right-hand column against "Your Picks". Stacked it
+                just repeats the section heading, so it stays sr-only then. */}
+            <h3 className="mb-0 text-lg font-semibold text-text @min-[720px]:mb-3">
+              <span className="sr-only @min-[720px]:not-sr-only">
+                Select Drivers
+              </span>
             </h3>
             {mobileActionFirst ? (
               /* Sentences are inline-block so the line breaks between them
                  rather than mid-sentence, and stays on one line when it fits. */
-              <p className="mb-3 text-sm text-text-muted lg:hidden">
+              <p className="mb-3 text-sm text-text-muted @min-[720px]:hidden">
                 <span className="inline-block">
                   Tap drivers in finishing order.
                 </span>{' '}

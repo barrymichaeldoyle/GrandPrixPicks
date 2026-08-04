@@ -44,7 +44,7 @@ export function UpcomingPredictionNudge({
         <Link
           to="/races/$raceSlug"
           params={{ raceSlug }}
-          className="group relative mx-auto flex max-w-7xl items-center gap-2 px-4 py-2 pr-10"
+          className="group relative mx-auto flex max-w-(--page-max) items-center gap-2 px-4 py-2 pr-10"
         >
           <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-70" />

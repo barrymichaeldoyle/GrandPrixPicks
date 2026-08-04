@@ -195,10 +195,14 @@ export const density = {
   controlHeightLg: 44,
 } as const;
 
-/** Page frame. Full-bleed nav, 1200px content, 32px gutters. */
+/**
+ * Page frame. Full-bleed nav, 1280px content, 16px gutters. The header and the
+ * page containers share this frame so the nav tabs line up with the columns
+ * underneath them — don't widen one without the other.
+ */
 export const layout = {
-  pageMax: 1200,
-  pageGutter: 32,
+  pageMax: 1280,
+  pageGutter: 16,
   navHeight: 64,
   mobileNavHeight: 60,
 } as const;

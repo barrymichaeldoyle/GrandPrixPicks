@@ -13,12 +13,12 @@ type NotificationBellProps = {
 
 export function NotificationBell({ onPress }: NotificationBellProps) {
   const { convexEnabled } = useMobileConfig();
-  const result = useQuery(
-    api.inAppNotifications.getMyNotifications,
+  const unread = useQuery(
+    api.inAppNotifications.getMyUnreadCount,
     convexEnabled ? {} : 'skip',
   );
 
-  const unreadCount = result?.unreadCount ?? 0;
+  const unreadCount = unread?.count ?? 0;
 
   function handlePress() {
     void Haptics.selectionAsync();

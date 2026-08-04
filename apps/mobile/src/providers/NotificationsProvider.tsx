@@ -48,12 +48,14 @@ function ClerkAwareNotifications() {
   const saveToken = useMutation(api.push.saveExpoPushToken);
   const tokenRef = useRef<string | null>(null);
 
-  // Mirror the in-app unread count on the home-screen icon badge.
-  const notifications = useQuery(
-    api.inAppNotifications.getMyNotifications,
+  // Mirror the in-app unread count on the home-screen icon badge. The count
+  // query reads only unread rows, so the badge never depends on how much of
+  // the history the notifications screen has paged in.
+  const unread = useQuery(
+    api.inAppNotifications.getMyUnreadCount,
     isSignedIn ? {} : 'skip',
   );
-  const unreadCount = isSignedIn ? (notifications?.unreadCount ?? 0) : 0;
+  const unreadCount = isSignedIn ? (unread?.count ?? 0) : 0;
   useEffect(() => {
     void Notifications.setBadgeCountAsync(unreadCount).catch(() => {
       // Badge permission not granted — nothing to do.

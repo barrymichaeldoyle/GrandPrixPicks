@@ -132,7 +132,7 @@ function RacesPage() {
   return (
     <>
       <div className="min-h-screen bg-page">
-        <div className="mx-auto max-w-7xl px-4 py-6">
+        <div className="mx-auto max-w-(--page-max) px-4 py-6">
           {races.length === 0 ? (
             <div className="py-16 text-center">
               <Calendar className="mx-auto mb-4 h-16 w-16 text-text-muted" />

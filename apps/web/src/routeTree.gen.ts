@@ -18,6 +18,7 @@ import { Route as FeedRouteImport } from './routes/feed'
 import { Route as HowToPlayRouteImport } from './routes/how-to-play'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as MeRouteImport } from './routes/me'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PayRouteImport } from './routes/pay'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -87,6 +88,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PayRoute = PayRouteImport.update({
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/pay': typeof PayRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/pay': typeof PayRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/how-to-play': typeof HowToPlayRoute
   '/leaderboard': typeof LeaderboardRoute
   '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
   '/pay': typeof PayRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/me'
+    | '/notifications'
     | '/pay'
     | '/pricing'
     | '/privacy'
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/me'
+    | '/notifications'
     | '/pay'
     | '/pricing'
     | '/privacy'
@@ -406,6 +417,7 @@ export interface FileRouteTypes {
     | '/how-to-play'
     | '/leaderboard'
     | '/me'
+    | '/notifications'
     | '/pay'
     | '/pricing'
     | '/privacy'
@@ -443,6 +455,7 @@ export interface RootRouteChildren {
   HowToPlayRoute: typeof HowToPlayRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MeRoute: typeof MeRoute
+  NotificationsRoute: typeof NotificationsRoute
   PayRoute: typeof PayRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -528,6 +541,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/me'
       preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pay': {
@@ -756,6 +776,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowToPlayRoute: HowToPlayRoute,
   LeaderboardRoute: LeaderboardRoute,
   MeRoute: MeRoute,
+  NotificationsRoute: NotificationsRoute,
   PayRoute: PayRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,

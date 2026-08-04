@@ -7,6 +7,7 @@ import {
   footerSupportLinks,
   primaryNavLinks,
   publicNavLinks,
+  railFooterLinks,
 } from './navigation';
 
 describe('site navigation', () => {
@@ -57,5 +58,33 @@ describe('site navigation', () => {
     expect(footerDestinations).not.toContain('/feed');
     expect(footerDestinations).not.toContain('/me');
     expect(footerDestinations).not.toContain('/settings');
+  });
+
+  it('keeps the dashboard rail footer to small print the Quick Links card does not already carry', () => {
+    expect(railFooterLinks).toEqual([
+      { to: '/how-to-play', label: 'How to Play' },
+      { to: '/guides', label: 'F1 Guides' },
+      { to: '/about', label: 'About' },
+      { to: '/support', label: 'Support' },
+      { to: '/pricing', label: 'Season Pass' },
+      { to: '/results-policy', label: 'Results Policy' },
+      { to: '/terms', label: 'Terms' },
+      { to: '/privacy', label: 'Privacy' },
+      { to: '/refund-policy', label: 'Refunds' },
+    ]);
+
+    // Quick Links owns these on the same screen, so repeating them in the rail
+    // footer is the bloat this list exists to avoid.
+    const quickLinkDestinations = [
+      '/races',
+      '/leaderboard',
+      '/leagues',
+      '/me',
+      '/f1-standings',
+      '/f1-team-mate-battles',
+    ];
+    for (const destination of quickLinkDestinations) {
+      expect(railFooterLinks.map((link) => link.to)).not.toContain(destination);
+    }
   });
 });

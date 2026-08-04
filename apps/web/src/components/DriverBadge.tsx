@@ -12,6 +12,7 @@ export { FALLBACK_TEAM_COLOR, TEAM_COLORS };
 const BADGE_SIZES = {
   sm: 'h-6 min-w-9 pr-1.5 pl-2 text-xs',
   md: 'h-8 min-w-11 pr-2.5 pl-3 text-xs',
+  lg: 'h-10 min-w-14 pr-3 pl-3.5 text-sm',
 } as const;
 
 interface DriverBadgeProps {
@@ -26,7 +27,7 @@ interface DriverBadgeProps {
   /** Driver's nationality (ISO 3166-1 alpha-2 code, e.g., "NL", "GB") */
   nationality?: string | null;
   /** Badge size variant */
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   /** Show driver number before code */
   showNumber?: boolean;
   /**

@@ -5,6 +5,11 @@ import { Crown, Globe, LogIn, Plus, Search, Shield, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
+import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { ProfileCard } from '@/components/dashboard/ProfileCard';
+import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
+import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
+import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
@@ -98,6 +103,8 @@ function LeaguesExplainer() {
 
 function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   const leagues = useQuery(api.leagues.getMyLeagues);
+  // Rail only; skipped for signed-out viewers, who get no rails at all.
+  const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const season = 2026;
   const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, {
     season,
@@ -156,8 +163,39 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   const myLeagues = leagues ?? [];
 
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-6">
+    <AppPageLayout
+      // Public route: signed-out visitors get the explainer and the public
+      // league directory full width, with none of the signed-in furniture.
+      // MyLeaguesCard is deliberately absent from the rails here — this page is
+      // already the long form of that card.
+      leftLabel={isSignedIn ? 'Profile and quick links' : undefined}
+      left={
+        isSignedIn ? (
+          <>
+            <RailItem hideOnMobile>
+              <ProfileCard me={me} />
+            </RailItem>
+            <RailItem order={2}>
+              <QuickLinksCard />
+            </RailItem>
+          </>
+        ) : undefined
+      }
+      rightLabel={isSignedIn ? 'Suggested players' : undefined}
+      right={
+        isSignedIn ? (
+          <>
+            <RailItem order={1}>
+              <SuggestedFollowsCard />
+            </RailItem>
+            <RailItem order={3}>
+              <RailFooterLinks />
+            </RailItem>
+          </>
+        ) : undefined
+      }
+    >
+      <div>
         <div className="mb-7">
           <PageHeader
             eyebrow="Social play"
@@ -421,14 +459,14 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
           </section>
         ) : null}
       </div>
-    </div>
+    </AppPageLayout>
   );
 }
 
 function LeaguesPageSkeleton() {
   return (
-    <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-6">
+    <AppPageLayout>
+      <div>
         <PageHeader
           eyebrow="Social play"
           title="Leagues"
@@ -451,6 +489,6 @@ function LeaguesPageSkeleton() {
           <div className="mt-3 h-20 rounded-xl border border-border bg-surface" />
         </div>
       </div>
-    </div>
+    </AppPageLayout>
   );
 }

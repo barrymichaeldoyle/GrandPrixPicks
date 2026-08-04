@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DashboardSessionState } from './dashboardState';
-import { getDashboardWeekendAction } from './dashboardState';
+import {
+  getDashboardWeekendAction,
+  getSessionClockState,
+  weekendReflectsViewer,
+} from './dashboardState';
 
 function session(
   overrides: Partial<DashboardSessionState> = {},
@@ -94,5 +98,99 @@ describe('getDashboardWeekendAction', () => {
       label: 'View results',
       sessionType: 'quali',
     });
+  });
+});
+
+describe('weekendReflectsViewer', () => {
+  it('rejects the pre-auth payload, where every session is sign_in-denied', () => {
+    // What the weekend query answers with before Clerk's token reaches Convex.
+    // Read as real it looks like a weekend with nothing open, which would open
+    // the dashboard on the last session of the weekend and call it locked.
+    expect(
+      weekendReflectsViewer([
+        session({
+          sessionType: 'sprint',
+          canCreate: false,
+          canEdit: false,
+          denialReason: 'sign_in',
+        }),
+        session({
+          sessionType: 'race',
+          canCreate: false,
+          canEdit: false,
+          denialReason: 'sign_in',
+        }),
+      ]),
+    ).toBe(false);
+  });
+
+  it('accepts a weekend that is genuinely all locked for this viewer', () => {
+    expect(
+      weekendReflectsViewer([
+        session({
+          sessionType: 'quali',
+          canCreate: false,
+          canEdit: false,
+          denialReason: 'session_locked',
+        }),
+        session({
+          sessionType: 'race',
+          canCreate: false,
+          canEdit: false,
+          denialReason: 'race_not_submittable',
+        }),
+      ]),
+    ).toBe(true);
+  });
+
+  it('accepts an open weekend', () => {
+    expect(weekendReflectsViewer([session({ denialReason: null })])).toBe(true);
+  });
+
+  it('rejects an empty weekend', () => {
+    expect(weekendReflectsViewer([])).toBe(false);
+  });
+});
+
+describe('getSessionClockState', () => {
+  it('counts down while the lock is ahead of this device', () => {
+    expect(getSessionClockState(session({ lockAt: 5_000 }), 1_000)).toEqual({
+      kind: 'countdown',
+      msRemaining: 4_000,
+    });
+  });
+
+  it('reports locking, not locked, once the deadline passes while the backend still allows writes', () => {
+    // The regression: this used to fall through to the countdown branch, where
+    // `formatLockCountdown` returns "Locked" and the line read
+    // "Sprint locks in Locked".
+    expect(getSessionClockState(session({ lockAt: 1_000 }), 1_000)).toEqual({
+      kind: 'locking',
+    });
+    expect(getSessionClockState(session({ lockAt: 1_000 }), 9_999)).toEqual({
+      kind: 'locking',
+    });
+  });
+
+  it('prefers results over locked once a session is scored', () => {
+    expect(
+      getSessionClockState(
+        session({ canCreate: false, canEdit: false, hasResult: true }),
+        1_000,
+      ),
+    ).toEqual({ kind: 'results' });
+  });
+
+  it('reports locked when writes are refused and nothing is scored', () => {
+    expect(
+      getSessionClockState(
+        session({ canCreate: false, canEdit: false }),
+        1_000,
+      ),
+    ).toEqual({ kind: 'locked' });
+  });
+
+  it('has nothing to say without a session', () => {
+    expect(getSessionClockState(null, 1_000)).toBeNull();
   });
 });

@@ -125,6 +125,32 @@ describe('H2HDuelPicker', () => {
     expect(container.textContent).toContain('Ferrari');
   });
 
+  it('calls onExitPrevious from battle one instead of staying disabled', () => {
+    const onExitPrevious = vi.fn();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    act(() =>
+      root?.render(
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={{}}
+          onSelect={() => undefined}
+          onExitPrevious={onExitPrevious}
+        />,
+      ),
+    );
+
+    act(() => {
+      [...(container?.querySelectorAll('button') ?? [])]
+        .find((button) => button.textContent?.includes('Previous'))
+        ?.click();
+    });
+
+    expect(onExitPrevious).toHaveBeenCalledOnce();
+  });
+
   it('lets Previous return to a battle that was already called', () => {
     vi.useFakeTimers();
     container = document.createElement('div');

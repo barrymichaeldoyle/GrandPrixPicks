@@ -1,5 +1,9 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 
+import {
+  HEADER_NAV_TAB_CLASS,
+  HEADER_NAV_TAB_ICON_CLASS,
+} from '@/components/headerNavTabStyles';
 import { renderSignedInOnly, useStorybookMockState } from './mockAppRuntime';
 
 export function useAuth() {
@@ -46,6 +50,12 @@ export function Show({
   return shouldRender ? <>{children}</> : null;
 }
 
+/**
+ * Shaped like the real header account tab (avatar over a "Me" label), because
+ * Storybook renders the Header for real and a bare round avatar would preview a
+ * bar that no longer exists. The label comes from `.gpp-header-me-tab::after`,
+ * the same pseudo-element the live trigger uses.
+ */
 function UserButtonRoot({
   children,
 }: PropsWithChildren<{ appearance?: unknown }>) {
@@ -53,12 +63,16 @@ function UserButtonRoot({
   const label = user?.username?.[0]?.toUpperCase() ?? 'U';
 
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="flex h-full items-stretch">
       <button
         type="button"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-sm font-semibold text-text"
+        className={`${HEADER_NAV_TAB_CLASS} gpp-header-me-tab`}
       >
-        {label}
+        <span className={HEADER_NAV_TAB_ICON_CLASS}>
+          <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-[10px] font-semibold text-text">
+            {label}
+          </span>
+        </span>
       </button>
       {children}
     </div>
@@ -93,4 +107,38 @@ export function SignedIn({ children }: PropsWithChildren) {
 
 export function SignedOut({ children }: PropsWithChildren) {
   return useStorybookMockState().auth.isSignedIn ? null : <>{children}</>;
+}
+
+/*
+ * Clerk's full-page components. Nothing in Storybook renders them, but
+ * `@clerk/react` is aliased to this file for the whole graph, and a missing
+ * export is a hard build error even on a code path no story reaches. Same rule
+ * as the Convex mock: add a Clerk component to the app, add a stub here.
+ */
+function ClerkPagePlaceholder({ name }: { name: string }) {
+  return (
+    <div className="rounded-sm border border-border bg-surface p-4 text-sm text-text-muted">
+      {name} (Clerk-hosted, not rendered in Storybook)
+    </div>
+  );
+}
+
+export function SignIn() {
+  return <ClerkPagePlaceholder name="SignIn" />;
+}
+
+export function SignUp() {
+  return <ClerkPagePlaceholder name="SignUp" />;
+}
+
+export function UserProfile() {
+  return <ClerkPagePlaceholder name="UserProfile" />;
+}
+
+export function OrganizationProfile() {
+  return <ClerkPagePlaceholder name="OrganizationProfile" />;
+}
+
+export function OrganizationList() {
+  return <ClerkPagePlaceholder name="OrganizationList" />;
 }

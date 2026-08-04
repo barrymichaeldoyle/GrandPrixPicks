@@ -18,6 +18,7 @@
     "./dates": "./src/dates.ts",
     "./displayName": "./src/displayName.ts",
     "./driverStatus": "./src/driverStatus.ts",
+    "./notifications": "./src/notifications.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./reactions": "./src/reactions.ts",

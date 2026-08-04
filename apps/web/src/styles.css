@@ -324,6 +324,35 @@ html:has([data-landing-hero-cta]) .gpp-public-wordmark {
   }
 }
 
+/*
+ * The header account tab. Clerk renders the UserButton trigger's markup, so the
+ * "Me" label under the avatar has to be a pseudo-element rather than a child —
+ * the trigger is already a flex column (see `userButtonTrigger` in the Clerk
+ * provider), so ::after lands in the label slot on its own. The caret is part of
+ * the content string so it tracks the label's colour and size for free.
+ *
+ * The loading placeholder wears the same class, which is what keeps the tab from
+ * changing width when Clerk's client SDK finishes booting.
+ */
+.gpp-header-me-tab::after {
+  content: 'Me \25bc';
+  font-size: 10px;
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  white-space: nowrap;
+}
+
+/* Clerk wraps the trigger in two divs of its own; both have to stretch or the
+   tab loses its full-height underline. */
+.gpp-header-me-slot,
+.gpp-header-me-slot .cl-userButton-root {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
 /* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge
    of the thing that matters — the active card, the selected slot, the current
    user's leaderboard row, the active nav item.
@@ -355,12 +384,7 @@ html:has([data-landing-hero-cta]) .gpp-public-wordmark {
   bottom: 0;
   width: calc(var(--stripe-width) + var(--stripe-lean));
   background: var(--accent);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    calc(100% - var(--stripe-lean)) 100%,
-    0 100%
-  );
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--stripe-lean)) 100%, 0 100%);
   pointer-events: none;
 }
 

@@ -26,6 +26,13 @@ type PageHeaderProps = {
    * wide screens, dropping under it on mobile.
    */
   actionsPlacement?: 'below' | 'trailing';
+  /**
+   * `compact` shrinks the title one step and tightens the copy beneath it, for
+   * pages whose centre column sits between rails (notifications). The display
+   * size is tuned for a full-width content page and overwhelms a 220px rail
+   * layout.
+   */
+  size?: 'default' | 'compact';
   className?: string;
 };
 
@@ -46,8 +53,22 @@ export function PageHeader({
   subtitle,
   actions,
   actionsPlacement = 'below',
+  size = 'default',
   className,
 }: PageHeaderProps) {
+  const compact = size === 'compact';
+  const titleClass = compact
+    ? 'font-title text-2xl font-semibold text-text sm:text-3xl'
+    : 'font-title text-3xl font-semibold text-text sm:text-4xl';
+  // Line boxes of the title sizes above, so the real title lands in exactly
+  // the space the placeholder held.
+  const placeholderClass = compact
+    ? 'block h-8 w-64 max-w-full animate-pulse rounded bg-surface-muted sm:h-9'
+    : 'block h-9 w-72 max-w-full animate-pulse rounded bg-surface-muted sm:h-10';
+  const subtitleClass = compact
+    ? 'gpp-reading-copy mt-2 max-w-2xl text-sm text-text-muted'
+    : 'gpp-reading-copy mt-4 max-w-2xl text-text-muted';
+
   const heading = (
     <div>
       {eyebrow ? (
@@ -55,16 +76,11 @@ export function PageHeader({
           {eyebrow}
         </p>
       ) : null}
-      <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+      <h1 className={titleClass}>
         {titleLoading ? (
           <>
             <span className="sr-only">{title}</span>
-            {/* h-9 / sm:h-10 are the line boxes of text-3xl / text-4xl, so the
-                real title lands in exactly this space. */}
-            <span
-              aria-hidden
-              className="block h-9 w-72 max-w-full animate-pulse rounded bg-surface-muted sm:h-10"
-            />
+            <span aria-hidden className={placeholderClass} />
           </>
         ) : (
           title
@@ -74,21 +90,21 @@ export function PageHeader({
           (the leaderboard runs a second line with a link in it) is rendered
           as-is, because nesting block content inside that <p> is invalid. */}
       {typeof subtitle === 'string' ? (
-        <p className="gpp-reading-copy mt-4 max-w-2xl text-text-muted">
-          {subtitle}
-        </p>
+        <p className={subtitleClass}>{subtitle}</p>
       ) : subtitle ? (
-        <div className="gpp-reading-copy mt-4 max-w-2xl text-text-muted">
-          {subtitle}
-        </div>
+        <div className={subtitleClass}>{subtitle}</div>
       ) : null}
     </div>
   );
 
+  const headerClass = `${compact ? 'mb-6' : 'mb-10'} ${className ?? ''}`;
+
   if (actions && actionsPlacement === 'trailing') {
     return (
-      <header className={`mb-10 ${className ?? ''}`}>
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <header className={headerClass}>
+        <div
+          className={`flex flex-col sm:flex-row sm:items-end sm:justify-between ${compact ? 'gap-3' : 'gap-5'}`}
+        >
           {heading}
           {actions}
         </div>
@@ -97,9 +113,11 @@ export function PageHeader({
   }
 
   return (
-    <header className={`mb-10 ${className ?? ''}`}>
+    <header className={headerClass}>
       {heading}
-      {actions ? <div className="mt-6">{actions}</div> : null}
+      {actions ? (
+        <div className={compact ? 'mt-4' : 'mt-6'}>{actions}</div>
+      ) : null}
     </header>
   );
 }

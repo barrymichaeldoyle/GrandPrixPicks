@@ -63,6 +63,11 @@ interface H2HPredictionFormProps {
   onSelectionProgress?: (selected: number, total: number) => void;
   /** Top 5 slot (1-5) per driver, surfaced on the matching duel card. */
   topFivePositions?: Record<string, number | undefined>;
+  /**
+   * Leaves the duel sequence from battle one (e.g. back to Top 5). Wired to
+   * the picker's Previous control when provided.
+   */
+  onExitPrevious?: () => void;
 }
 
 type H2HDraft = {
@@ -89,6 +94,7 @@ export function H2HPredictionForm({
   draftNoticeTarget,
   onSelectionProgress,
   topFivePositions,
+  onExitPrevious,
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
@@ -498,6 +504,7 @@ export function H2HPredictionForm({
           onSelect={toggleSelection}
           draftHydrated={hasHydratedDraft}
           topFivePositions={topFivePositions}
+          onExitPrevious={onExitPrevious}
         />
       ) : (
         <H2HMatchupGrid

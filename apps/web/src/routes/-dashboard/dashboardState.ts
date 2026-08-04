@@ -64,7 +64,7 @@ export type DashboardWeekendAction =
  * re-deriving whether a session may still be changed.
  */
 export function getDashboardWeekendAction(
-  sessions: ReadonlyArray<DashboardSessionState>,
+  sessions: readonly DashboardSessionState[],
 ): DashboardWeekendAction | null {
   const writable = sessions.filter(
     (session) => session.canCreate || session.canEdit,

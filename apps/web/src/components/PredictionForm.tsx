@@ -320,7 +320,13 @@ function DraggableDriverCard({
        * both identically made a picked driver read as "unavailable for some
        * reason" against twenty-one lookalikes.
        */
-      className={`gpp-team-bar flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
+      /*
+       * `@container` is on the button itself so the code/surname layout tracks
+       * *this* cell's width, not the form's. At 5 columns the dashboard rail
+       * leaves ~75px per pill — enough for "ANT" but not "ANT Antonelli" on
+       * one line — so below 7.5rem the surname stacks under the code.
+       */
+      className={`gpp-team-bar @container flex min-h-11 w-full items-center justify-start gap-2 rounded-sm border py-2.5 pr-2 pl-3 text-left transition-colors duration-150 ease-out ${
         picked
           ? 'cursor-not-allowed border-accent/40 bg-accent-muted/15'
           : 'border-border bg-surface-elevated hover:border-border-strong hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface-elevated'
@@ -332,11 +338,15 @@ function DraggableDriverCard({
         } as React.CSSProperties
       }
     >
-      {/* `items-baseline`, not `items-center`: the code steps up to 14px at sm
-          while the surname and position stay at 12px, and centring line boxes
-          of different heights leaves their baselines 1px apart. Centring the
-          group as a whole is still the button's job, one level up. */}
-      <span className="flex w-full min-w-0 items-baseline gap-2">
+      {/* Corner badge, not in the text flow — stacked surnames used to collide
+          with an inline trailing P#. */}
+      {picked ? (
+        <span className="gpp-mono absolute top-1 right-1.5 text-[10px] leading-none font-semibold text-accent">
+          P{pickedPosition}
+        </span>
+      ) : null}
+      {/* Narrow: surname under the code. Wide: one baseline row. */}
+      <span className="flex w-full min-w-0 flex-col gap-0.5 @min-[7.5rem]:flex-row @min-[7.5rem]:items-baseline @min-[7.5rem]:gap-2">
         <span
           className={`gpp-mono shrink-0 text-xs leading-none sm:text-sm ${
             picked ? 'text-text-muted' : 'text-text'
@@ -345,16 +355,11 @@ function DraggableDriverCard({
           {driver.code}
         </span>
         {/* Three-letter codes are the broadcast language, but a landing-page
-            visitor may not know all twenty-two. Two columns on phones leave
-            enough room to keep the surname visible at every width. */}
+            visitor may not know all twenty-two. Stack under the code when the
+            pill is too narrow for a side-by-side pair. */}
         {surname ? (
-          <span className="min-w-0 flex-1 truncate text-xs leading-none text-text-muted">
+          <span className="min-w-0 truncate text-xs leading-none text-text-muted @min-[7.5rem]:flex-1">
             {surname}
-          </span>
-        ) : null}
-        {picked ? (
-          <span className="gpp-mono ml-auto shrink-0 text-xs leading-none font-semibold text-accent">
-            P{pickedPosition}
           </span>
         ) : null}
       </span>
@@ -1064,12 +1069,12 @@ export function PredictionForm({
         ) : null}
         {/* Side-by-side only when *this* form is wide enough. Viewport `lg`
             alone is wrong inside the dashboard's narrow center column. */}
-        <div className="flex flex-col gap-4 sm:gap-6 @min-[720px]:flex-row @min-[720px]:items-start @min-[720px]:gap-8">
+        <div className="flex flex-col gap-4 sm:gap-6 @min-[875px]:flex-row @min-[875px]:items-start @min-[875px]:gap-8">
           {/* Your Picks - sortable list via @dnd-kit */}
           <div
             ref={yourPicksRef}
             data-testid="your-picks"
-            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[720px]:order-1' : ''} @min-[720px]:w-[min(100%,380px)] @min-[720px]:min-w-0 @min-[720px]:shrink-0`}
+            className={`${mobileActionFirst ? 'order-2 scroll-mt-28 @min-[875px]:order-1' : ''} @min-[875px]:w-[min(100%,380px)] @min-[875px]:min-w-0 @min-[875px]:shrink-0`}
           >
             <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:mb-3">
               <h3 className="text-lg font-semibold text-text">Your Picks</h3>
@@ -1225,20 +1230,20 @@ export function PredictionForm({
 
           {/* Available Drivers - selection pool (right column when wide) */}
           <div
-            className={`${mobileActionFirst ? 'order-1 @min-[720px]:order-2' : ''} @min-[720px]:min-w-0 @min-[720px]:flex-1`}
+            className={`${mobileActionFirst ? 'order-1 @min-[875px]:order-2' : ''} @min-[875px]:min-w-0 @min-[875px]:flex-1`}
           >
             {/* The label only earns its line in the side-by-side layout, where
                 it names the right-hand column against "Your Picks". Stacked it
                 just repeats the section heading, so it stays sr-only then. */}
-            <h3 className="mb-0 text-lg font-semibold text-text @min-[720px]:mb-3">
-              <span className="sr-only @min-[720px]:not-sr-only">
+            <h3 className="mb-0 text-lg font-semibold text-text @min-[875px]:mb-3">
+              <span className="sr-only @min-[875px]:not-sr-only">
                 Select Drivers
               </span>
             </h3>
             {mobileActionFirst ? (
               /* Sentences are inline-block so the line breaks between them
                  rather than mid-sentence, and stays on one line when it fits. */
-              <p className="mb-3 text-sm text-text-muted @min-[720px]:hidden">
+              <p className="mb-3 text-sm text-text-muted @min-[875px]:hidden">
                 <span className="inline-block">
                   Tap drivers in finishing order.
                 </span>{' '}

@@ -53,8 +53,10 @@
     {
       "files": [
         "apps/web/vite.config.ts",
-        "apps/web/server/routes/api/**/*.ts",
-        "apps/web/server/routes/api/**/*.tsx",
+        "apps/web/server/routes/**/*.ts",
+        "apps/web/server/routes/**/*.tsx",
+        "apps/web/server/middleware/**/*.ts",
+        "apps/web/server/error.ts",
         "apps/web/src/**/*.stories.ts",
         "apps/web/src/**/*.stories.tsx",
         "apps/web/src/integrations/tanstack-query/devtools.tsx"

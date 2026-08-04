@@ -82,8 +82,44 @@ const CLERK_ORIGIN = clerkFrontendApiOrigin(
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
 
+/**
+ * How hard to warm Clerk's origin, decided by whether the server already knows
+ * this visitor is signed in.
+ *
+ * A signed-in document mounts Clerk during hydration, so the request is a
+ * certainty and `preconnect` is paid back in full. A signed-out document may
+ * never touch Clerk at all: most visitors read the landing page and leave, and
+ * a speculative socket costs them a DNS lookup, a TCP handshake and a TLS
+ * negotiation to a third origin during the exact window the fonts and the app
+ * chunk are competing for bandwidth. Chrome then closes it unused after ~10s,
+ * which is what Lighthouse reports as an unused preconnect.
+ *
+ * So signed-out visitors get `dns-prefetch` only: it resolves the name without
+ * opening anything, which is the half of the cold-start cost worth paying up
+ * front. The other half is covered by `useClerkWarmHandlers`, which upgrades to
+ * a real connection on pointerenter / focus / touchstart — all of which fire
+ * before the click that needs it.
+ */
+function clerkOriginHints(isSignedIn: boolean) {
+  if (!CLERK_ORIGIN) {
+    return [];
+  }
+  return isSignedIn
+    ? [
+        {
+          rel: 'preconnect',
+          href: CLERK_ORIGIN,
+          crossOrigin: 'anonymous' as const,
+        },
+        { rel: 'dns-prefetch', href: CLERK_ORIGIN },
+      ]
+    : [{ rel: 'dns-prefetch', href: CLERK_ORIGIN }];
+}
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-  head: () => ({
+  // `loaderData` is undefined while the root loader is still in flight, which
+  // is the signed-out shape anyway: the cheaper hint is the safe default.
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: 'utf-8' },
       {
@@ -115,16 +151,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { name: 'twitter:site', content: siteConfig.social.x.handle },
     ],
     links: [
-      ...(CLERK_ORIGIN
-        ? [
-            {
-              rel: 'preconnect',
-              href: CLERK_ORIGIN,
-              crossOrigin: 'anonymous' as const,
-            },
-            { rel: 'dns-prefetch', href: CLERK_ORIGIN },
-          ]
-        : []),
+      ...clerkOriginHints(loaderData?.initialAuth.isSignedIn ?? false),
       // Only the faces that paint above the fold get preloaded, because a face
       // discovered from @font-face sits three hops deep (document → CSS →
       // font) and swaps in ~1.4s on a cold mobile load. Above the fold that is

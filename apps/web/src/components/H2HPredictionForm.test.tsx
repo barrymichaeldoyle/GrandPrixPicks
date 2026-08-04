@@ -58,7 +58,7 @@ vi.mock('./H2HMatchupGrid', () => ({
     onSelect: (matchupId: Id<'h2hMatchups'>, driverId: Id<'drivers'>) => void;
     actionCard?: ReactNode;
   }) => (
-    <div>
+    <div data-testid="h2h-picker-grid">
       <button
         type="button"
         data-testid="select-h2h-driver"
@@ -82,13 +82,15 @@ vi.mock('./H2HDuelPicker', () => ({
     }[];
     onSelect: (matchupId: Id<'h2hMatchups'>, driverId: Id<'drivers'>) => void;
   }) => (
-    <button
-      type="button"
-      data-testid="select-h2h-driver"
-      onClick={() => onSelect(matchups[0]._id, matchups[0].driver1._id)}
-    >
-      Pick driver
-    </button>
+    <div data-testid="h2h-picker-duels">
+      <button
+        type="button"
+        data-testid="select-h2h-driver"
+        onClick={() => onSelect(matchups[0]._id, matchups[0].driver1._id)}
+      >
+        Pick driver
+      </button>
+    </div>
   ),
 }));
 
@@ -188,5 +190,62 @@ describe('H2HPredictionForm try-before-signup', () => {
       sessionType: undefined,
     });
     expect(hasPendingSubmit(draftKey)).toBe(false);
+  });
+});
+
+describe('H2HPredictionForm picker layout', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const savedPicks = { [MATCHUP_ID]: DRIVER_ID };
+
+  beforeEach(() => {
+    convexAuth.isAuthenticated = true;
+    window.localStorage.clear();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    window.localStorage.clear();
+  });
+
+  function render(layout?: 'auto' | 'sequential') {
+    act(() => {
+      root.render(
+        <H2HPredictionForm
+          raceId={RACE_ID}
+          matchups={matchups}
+          existingPicks={savedPicks}
+          layout={layout}
+        />,
+      );
+    });
+  }
+
+  it('shows the scannable grid by default when a card is already saved', () => {
+    render();
+    expect(container.querySelector('[data-testid="h2h-picker-grid"]')).not.toBe(
+      null,
+    );
+    expect(container.querySelector('[data-testid="h2h-picker-duels"]')).toBe(
+      null,
+    );
+  });
+
+  it('keeps the duel sequence when the caller asks for it, saved card or not', () => {
+    // The focus overlay passes this. Layout must not be inferred from
+    // "something is saved" there: eleven rows in a takeover is a scroll, and
+    // the overlay is only ever opened to finish the remaining battles.
+    render('sequential');
+    expect(
+      container.querySelector('[data-testid="h2h-picker-duels"]'),
+    ).not.toBe(null);
+    expect(container.querySelector('[data-testid="h2h-picker-grid"]')).toBe(
+      null,
+    );
   });
 });

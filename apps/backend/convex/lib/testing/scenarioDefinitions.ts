@@ -5,6 +5,7 @@ export const scenarioNameValidator = v.union(
   v.literal('race_upcoming_signed_in_complete'),
   v.literal('race_upcoming_signed_in_top5_only'),
   v.literal('race_upcoming_signed_in_complete_h2h'),
+  v.literal('race_mid_weekend_sprint_first_locked'),
   v.literal('race_locked_signed_in_no_picks'),
   v.literal('race_locked_signed_in_complete_no_results'),
   v.literal('race_locked_signed_in_complete_h2h_no_results'),
@@ -20,6 +21,7 @@ export type ScenarioName =
   | 'race_upcoming_signed_in_complete'
   | 'race_upcoming_signed_in_top5_only'
   | 'race_upcoming_signed_in_complete_h2h'
+  | 'race_mid_weekend_sprint_first_locked'
   | 'race_locked_signed_in_no_picks'
   | 'race_locked_signed_in_complete_no_results'
   | 'race_locked_signed_in_complete_h2h_no_results'
@@ -33,6 +35,13 @@ export type ScenarioSurface = 'web' | 'story' | 'e2e';
 export type ScenarioActorRole = 'primary' | 'admin';
 export type RacePhase =
   | 'upcoming_open'
+  /**
+   * Mid weekend: the first session has locked while later ones are still
+   * open. Distinct from `partial_results`, which locks every session and
+   * publishes some — this is the only phase where locked and open sessions
+   * coexist, which is what a player actually meets on a Saturday.
+   */
+  | 'mid_weekend_open'
   | 'locked_pending_results'
   | 'partial_results'
   | 'finished_scored';
@@ -107,6 +116,20 @@ export const SCENARIOS: Record<ScenarioName, ScenarioDefinition> = {
     weekendType: 'standard',
     racePhase: 'upcoming_open',
     predictionShape: 'complete',
+    resultsShape: 'none',
+    signedIn: true,
+    hasRank: false,
+  },
+  race_mid_weekend_sprint_first_locked: {
+    name: 'race_mid_weekend_sprint_first_locked',
+    description:
+      'Primary user is signed in mid sprint weekend with no picks: sprint qualifying has already locked while sprint, qualifying and the race are still open.',
+    surfaces: ['web', 'story', 'e2e'],
+    tags: ['race-detail', 'dashboard', 'upcoming', 'locked', 'sprint', 'top5'],
+    actorRole: 'primary',
+    weekendType: 'sprint',
+    racePhase: 'mid_weekend_open',
+    predictionShape: 'none',
     resultsShape: 'none',
     signedIn: true,
     hasRank: false,

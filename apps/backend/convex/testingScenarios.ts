@@ -240,7 +240,10 @@ export const getScenarioSummaryAdmin = query({
 });
 
 async function buildScenario(ctx: MutationCtx, scenario: ScenarioContext) {
-  if (scenario.definition.racePhase === 'upcoming_open') {
+  if (
+    scenario.definition.racePhase === 'upcoming_open' ||
+    scenario.definition.racePhase === 'mid_weekend_open'
+  ) {
     await upsertScenarioPreviousRace(ctx, scenario);
   }
 
@@ -1395,6 +1398,24 @@ function buildTimings(phase: RacePhase, now: number) {
     };
   }
 
+  if (phase === 'mid_weekend_open') {
+    // Saturday of a sprint weekend. The race lock stays an hour out so this
+    // race still wins the `by_status_and_predictionLockAt` index against the
+    // real calendar, which is what makes it the one the submit mutations
+    // accept; sprint quali is already behind us.
+    return {
+      status: 'upcoming' as const,
+      sprintQualiStartAt: now - 90 * MINUTE,
+      sprintQualiLockAt: now - 90 * MINUTE,
+      sprintStartAt: now + 20 * MINUTE,
+      sprintLockAt: now + 20 * MINUTE,
+      qualiStartAt: now + 40 * MINUTE,
+      qualiLockAt: now + 40 * MINUTE,
+      raceStartAt: now + HOUR,
+      predictionLockAt: now + HOUR,
+    };
+  }
+
   if (phase === 'locked_pending_results' || phase === 'partial_results') {
     return {
       status: 'locked' as const,
@@ -1435,7 +1456,10 @@ function scenarioPrimaryEmail(namespace: string) {
 }
 
 function getScenarioRaceRound(definition: ScenarioDefinition) {
-  if (definition.racePhase !== 'upcoming_open') {
+  if (
+    definition.racePhase !== 'upcoming_open' &&
+    definition.racePhase !== 'mid_weekend_open'
+  ) {
     return 99;
   }
 
@@ -1448,6 +1472,8 @@ function getScenarioRaceRound(definition: ScenarioDefinition) {
       return -18;
     case 'race_upcoming_signed_in_complete_h2h':
       return -17;
+    case 'race_mid_weekend_sprint_first_locked':
+      return -16;
     default:
       return 0;
   }
@@ -1488,6 +1514,7 @@ const SCENARIO_NAME_MAP: Record<ScenarioName, true> = {
   race_upcoming_signed_in_complete: true,
   race_upcoming_signed_in_top5_only: true,
   race_upcoming_signed_in_complete_h2h: true,
+  race_mid_weekend_sprint_first_locked: true,
   race_locked_signed_in_no_picks: true,
   race_locked_signed_in_complete_no_results: true,
   race_locked_signed_in_complete_h2h_no_results: true,

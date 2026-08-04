@@ -68,6 +68,16 @@ interface H2HPredictionFormProps {
    * the picker's Previous control when provided.
    */
   onExitPrevious?: () => void;
+  /**
+   * How the eleven battles are presented.
+   *
+   * `auto` steps through them one at a time for a first entry and shows the
+   * full grid to someone editing a saved card. Pass `sequential` to keep the
+   * one-duel-at-a-time picker regardless — the right call for a focus overlay,
+   * where the grid's scan-and-compare advantage is worth nothing and its
+   * height is the whole problem.
+   */
+  layout?: 'auto' | 'sequential';
 }
 
 type H2HDraft = {
@@ -95,6 +105,7 @@ export function H2HPredictionForm({
   onSelectionProgress,
   topFivePositions,
   onExitPrevious,
+  layout = 'auto',
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
@@ -143,6 +154,11 @@ export function H2HPredictionForm({
   const selectionsSignature = JSON.stringify(selections);
   const isFirstEntry =
     !existingPicks || Object.keys(existingPicks).length === 0;
+  // Kept apart from `isFirstEntry` on purpose. That flag still means "nothing
+  // is saved yet", which is what decides auto-save and confetti; this one only
+  // decides what the picker looks like, so a caller can ask for the duel
+  // sequence without claiming the card is empty.
+  const useDuelSequence = isFirstEntry || layout === 'sequential';
 
   // First-time picks save themselves as the last matchup is tapped — users
   // kept completing the grid and forgetting the Save button. Edits stay manual.
@@ -445,7 +461,6 @@ export function H2HPredictionForm({
     disabled: !allSelected || isSubmitting || isUnchangedFromSaved,
     onClick: requestSubmit,
     leftIcon: isUnchangedFromSaved ? Check : Save,
-    'data-testid': 'h2h-submit-button',
     children: isUnchangedFromSaved
       ? 'Saved'
       : !isAuthenticated
@@ -455,12 +470,26 @@ export function H2HPredictionForm({
           : 'Save H2H Predictions',
   };
 
+  // Both are in the DOM at once, hidden by breakpoint rather than unmounted,
+  // so they cannot share a testid: a selector for it matched two nodes and the
+  // hidden one could win. `h2h-submit-button` stays the name of whichever is
+  // the visible save control on the current viewport.
   const desktopSubmitButton = (
-    <Button {...submitButtonProps} size="md" className="w-100 max-w-full" />
+    <Button
+      {...submitButtonProps}
+      size="md"
+      className="w-100 max-w-full"
+      data-testid="h2h-submit-button-desktop"
+    />
   );
 
   const mobileSubmitButton = (
-    <Button {...submitButtonProps} size="sm" className="w-full" />
+    <Button
+      {...submitButtonProps}
+      size="sm"
+      className="w-full"
+      data-testid="h2h-submit-button"
+    />
   );
   const showCustomSaveWall = Boolean(
     !isAuthenticated && allSelected && renderSaveWall,
@@ -497,7 +526,7 @@ export function H2HPredictionForm({
           strip, which is eleven codes on one line instead of the twenty-two
           names the full grid spreads over a screen. The grid is for someone
           coming back to edit a saved card, where scanning beats stepping. */}
-      {isFirstEntry ? (
+      {useDuelSequence ? (
         <H2HDuelPicker
           matchups={matchups}
           selections={selections}
@@ -527,7 +556,7 @@ export function H2HPredictionForm({
       {/* The sequential picker owns progress during first entry. Its save row
           appears only after the final duel; overview edits retain the sticky
           mobile progress/save bar used by the longer matchup grid. */}
-      {!showCustomSaveWall && (!isFirstEntry || allSelected) ? (
+      {!showCustomSaveWall && (!useDuelSequence || allSelected) ? (
         <div className="sticky bottom-0 z-10 -mx-3 border-t border-border bg-page px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:static sm:z-auto sm:mx-0 sm:border-t-0 sm:bg-transparent sm:p-0 sm:pb-0">
           <div className="flex flex-col items-stretch gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-3">
             <span className="min-h-5 text-center text-sm text-text-muted sm:w-auto">
@@ -540,7 +569,7 @@ export function H2HPredictionForm({
 
             <>
               <div className="sm:hidden">{mobileSubmitButton}</div>
-              {isFirstEntry ? (
+              {useDuelSequence ? (
                 <div className="hidden sm:block">{desktopSubmitButton}</div>
               ) : null}
             </>

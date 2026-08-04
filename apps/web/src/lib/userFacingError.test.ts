@@ -21,6 +21,27 @@ describe('toUserFacingMessage', () => {
     );
   });
 
+  it('keeps H2H failures specific even inside Convex server-error wrapping', () => {
+    // This is the whole point of matching them ahead of the noise branch: a
+    // real failure arrives as the wrapped form below, and "Something went
+    // wrong" left players with no idea their Top 5 was the missing piece.
+    function wrapped(serverMessage: string) {
+      return new Error(
+        `[CONVEX M(h2h:submitH2HPredictions)] Server Error\nUncaught Error: ${serverMessage}\n  at handler\nCalled by client\nRequest ID: 5f3c`,
+      );
+    }
+
+    expect(
+      toUserFacingMessage(wrapped('Submit your top 5 predictions first')),
+    ).toBe('Pick your Top 5 first, then call the team-mate battles.');
+    expect(
+      toUserFacingMessage(wrapped('H2H predictions are locked for quali')),
+    ).toBe('That session locked before this pick was saved.');
+    expect(toUserFacingMessage(wrapped('All sessions are locked'))).toBe(
+      "Every session this weekend is locked. You can't change picks now.",
+    );
+  });
+
   it('maps network/convex noise to generic recoverable messaging', () => {
     expect(
       toUserFacingMessage(new Error('NetworkError when attempting fetch')),

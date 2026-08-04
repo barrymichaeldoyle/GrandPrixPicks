@@ -220,6 +220,10 @@ export function DashboardPicksSummary({
               existingPicks={picks.h2h ?? undefined}
               topFivePositions={topFivePositions}
               onSuccess={() => setH2HOverlayOpen(false)}
+              // This overlay is only ever reached to *finish* the battles, and
+              // eleven stacked rows in a full-screen takeover is a scroll, not
+              // a decision. Single-duel edits have their own modal.
+              layout="sequential"
             />
           </Suspense>
         ) : null}

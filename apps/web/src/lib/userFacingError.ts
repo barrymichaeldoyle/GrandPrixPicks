@@ -47,6 +47,38 @@ export function toUserFacingErrorDetails(
     };
   }
 
+  // H2H. These have to be matched here, above the Convex-noise branch: every
+  // one of them arrives wrapped in "Server Error ... Request ID:", so left to
+  // that branch they all collapse into "Something went wrong", which tells a
+  // player nothing about what to actually do next.
+  if (message.includes('Submit your top 5 predictions first')) {
+    return {
+      message: 'Pick your Top 5 first, then call the team-mate battles.',
+      isGenericFallback: false,
+    };
+  }
+  if (message.includes('H2H predictions are locked for')) {
+    return {
+      message: 'That session locked before this pick was saved.',
+      isGenericFallback: false,
+    };
+  }
+  if (message.includes('All sessions are locked')) {
+    return {
+      message:
+        "Every session this weekend is locked. You can't change picks now.",
+      isGenericFallback: false,
+    };
+  }
+  if (
+    message.includes('H2H predictions are only open for the next upcoming race')
+  ) {
+    return {
+      message: 'Team-mate battles are only open for the next race.',
+      isGenericFallback: false,
+    };
+  }
+
   // Convex/network noise → generic
   if (
     message.includes('Server Error') ||

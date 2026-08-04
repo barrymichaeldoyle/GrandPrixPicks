@@ -11,6 +11,7 @@ const expectedScenarioNames: ScenarioName[] = [
   'race_upcoming_signed_in_complete',
   'race_upcoming_signed_in_top5_only',
   'race_upcoming_signed_in_complete_h2h',
+  'race_mid_weekend_sprint_first_locked',
   'race_locked_signed_in_no_picks',
   'race_locked_signed_in_complete_no_results',
   'race_locked_signed_in_complete_h2h_no_results',
@@ -69,6 +70,7 @@ describe('testing scenario catalog', () => {
     expect(phases).toEqual(
       new Set([
         'upcoming_open',
+        'mid_weekend_open',
         'locked_pending_results',
         'partial_results',
         'finished_scored',

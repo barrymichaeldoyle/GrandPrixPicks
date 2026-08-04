@@ -326,8 +326,13 @@ function DashboardWeekendPicksReady({
             would be asking a question with no consequence. Once there is a
             saved card it becomes the tab strip for it, which is what keeps
             per-session edits on the dashboard instead of on the race page. */}
+        {/* `nowrap` is the contract, and the overflow is the safety net for it:
+            shortened copy fits four sprint sessions at 320px, but a longer
+            session name or a large text setting must scroll rather than
+            reflow. `-mx-*`/`px-*` keeps the scroll edge flush with the card
+            while the chips stay aligned to its padding. */}
         <div
-          className="mt-4 flex flex-wrap gap-x-4 gap-y-1"
+          className="-mx-4 mt-4 flex [scrollbar-width:none] gap-x-4 overflow-x-auto px-4 [-ms-overflow-style:none] sm:-mx-5 sm:px-5 [&::-webkit-scrollbar]:hidden"
           role={showInteractive ? undefined : 'tablist'}
           aria-label={showInteractive ? undefined : 'Weekend sessions'}
         >
@@ -624,10 +629,14 @@ function SessionChip({
     : isOpen
       ? 'text-accent'
       : 'text-warning';
-  // "Sprint Quali · Locked" four times wrapped this row onto two lines at
-  // 375px. The icon already carries the status (lock / clock / trophy) and so
-  // does the colour, so a phone gets the short name and the icon alone; the
-  // word comes back as soon as there is room for it.
+  // This row must never wrap. Four chips reading "Sprint Quali · Locked" ran
+  // past the card at every width that mattered, and a tab strip that reflows
+  // to a second line stops reading as one control.
+  //
+  // The status word is what got cut. The icon carries it (lock / clock /
+  // trophy) and so does the colour, so spelling it out was the third copy of
+  // the same fact — it stays for screen readers, which get neither. Names go
+  // short below `sm` on top of that.
   const label = (
     <>
       <Icon className="h-3 w-3 shrink-0" aria-hidden />
@@ -635,13 +644,13 @@ function SessionChip({
         {SESSION_LABELS_SHORT[session.sessionType]}
       </span>
       <span className="hidden sm:inline">
-        {SESSION_LABELS[session.sessionType]} · {status}
+        {SESSION_LABELS[session.sessionType]}
       </span>
-      <span className="sr-only sm:hidden">· {status}</span>
+      <span className="sr-only">· {status}</span>
     </>
   );
   const base =
-    'inline-flex items-center gap-1 rounded-sm text-[11px] font-semibold tracking-label uppercase transition-colors';
+    'inline-flex shrink-0 items-center gap-1 rounded-sm text-[11px] font-semibold tracking-label whitespace-nowrap uppercase transition-colors';
 
   if (!onSelect) {
     return <span className={`${base} ${tone}`}>{label}</span>;

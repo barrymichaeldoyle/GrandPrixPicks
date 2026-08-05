@@ -10,24 +10,50 @@ const FOCUSABLE_SELECTOR =
  * One lock for however many modals are open. A duel takeover can stack a
  * confirm dialog on top of it, and the inner one closing must not hand scrolling
  * back to a page that is still covered — so the lock is counted, and only the
- * last modal out restores what it found.
+ * last one out releases it.
+ *
+ * The lock is an attribute (styled in `styles.css`) rather than an inline
+ * `body.style.overflow`, because that property is not ours alone: Clerk's
+ * sign-in modal writes it directly. This used to snapshot the value it found
+ * and put it back on release, which meant the sign-in curtain — which rises
+ * while Clerk's modal is still up — captured Clerk's own `hidden` and restored
+ * it after everything had closed, leaving the page permanently unscrollable.
+ * Owning a separate attribute means the two never share a slot.
  */
+const SCROLL_LOCK_ATTRIBUTE = 'data-scroll-locked';
 let scrollLockCount = 0;
-let overflowBeforeLock = '';
 
 function lockBodyScroll() {
   if (scrollLockCount === 0) {
-    overflowBeforeLock = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.documentElement.setAttribute(SCROLL_LOCK_ATTRIBUTE, '');
   }
   scrollLockCount++;
 
   return () => {
     scrollLockCount--;
     if (scrollLockCount === 0) {
-      document.body.style.overflow = overflowBeforeLock;
+      document.documentElement.removeAttribute(SCROLL_LOCK_ATTRIBUTE);
     }
   };
+}
+
+/**
+ * Just the scroll lock, for a full-screen surface that is not a dialog.
+ *
+ * The sign-in curtain is the case: it covers the page and makes it `inert`, so
+ * it needs nothing from the focus trap or Escape, but the page behind it was
+ * still scrolling under the loader. It shares the counted lock above rather
+ * than setting `overflow` itself, because a sign-in started from inside a
+ * takeover has both up at once and whichever leaves first must not hand
+ * scrolling back to a page the other one is still covering.
+ */
+export function useBodyScrollLock(active: boolean) {
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+    return lockBodyScroll();
+  }, [active]);
 }
 
 /**

@@ -52,6 +52,12 @@ describe('AuthCurtainHost', () => {
     );
   }
 
+  /** Attribute, not inline `body.style.overflow`: Clerk's sign-in modal owns
+   *  that property and the curtain rises while it is still up. */
+  function isScrollLocked() {
+    return document.documentElement.hasAttribute('data-scroll-locked');
+  }
+
   function curtain() {
     return container.querySelector('[role="status"]');
   }
@@ -92,6 +98,38 @@ describe('AuthCurtainHost', () => {
 
     render({ handoff: true, confirmedSignedIn: true });
     expect(curtain()).toBeNull();
+  });
+
+  it('stops the page scrolling underneath, and hands scrolling back when it lifts', () => {
+    // `inert` keeps the tab order and screen readers out of the page behind the
+    // curtain, but does nothing about a wheel or a swipe: the handoff used to
+    // end on a page scrolled somewhere the visitor never chose.
+    expect(isScrollLocked()).toBe(false);
+
+    render({ handoff: true, confirmedSignedIn: false });
+    expect(isScrollLocked()).toBe(true);
+
+    render({ handoff: true, confirmedSignedIn: true });
+    expect(curtain()).toBeNull();
+    expect(isScrollLocked()).toBe(false);
+  });
+
+  it('leaves Clerk’s own scroll lock exactly as it found it', () => {
+    // Clerk's sign-in modal sets `body.style.overflow` itself, and the curtain
+    // always rises while that modal is still up. A lock that snapshotted the
+    // value it found captured Clerk's `hidden` and restored it on release, so
+    // the page never scrolled again once the handoff finished.
+    document.body.style.overflow = 'hidden';
+
+    render({ handoff: true, confirmedSignedIn: false });
+    expect(isScrollLocked()).toBe(true);
+
+    // Clerk closes its modal and cleans up after itself.
+    document.body.style.overflow = '';
+
+    render({ handoff: true, confirmedSignedIn: true });
+    expect(isScrollLocked()).toBe(false);
+    expect(document.body.style.overflow).toBe('');
   });
 
   it('gives up after the timeout rather than trapping the visitor', () => {

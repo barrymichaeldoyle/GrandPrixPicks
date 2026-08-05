@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-08-05T19:53:00.885Z",
+  "organization": {
+    "id": "64f9a17b902afdecc48c8d02",
+    "name": "My Organization"
+  },
+  "channel": {
+    "id": "6a7050c899afb44349f18cbd",
+    "name": "grandprixpicks",
+    "displayName": "grandprixpicks",
+    "service": "instagram",
+    "externalLink": "https://instagram.com/grandprixpicks",
+    "isDisconnected": false,
+    "isLocked": false,
+    "hasActiveMemberDevice": false
+  },
+  "deviceTestConfirmedByUser": true,
+  "bufferPostId": "6a73949ce4e00c7b0529c566",
+  "dueAt": "2026-08-06T10:30:00.000Z",
+  "status": "scheduled",
+  "assetUrl": "https://scoring-poll-2026-08-06.gpp-social-assets-2026.pages.dev/01-scoring-poll.png",
+  "storyInstructionsVerified": true
+}

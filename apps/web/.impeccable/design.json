@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-05T00:00:00.000Z",
+  "title": "Design System: Grand Prix Picks",
+  "extensions": {
+    "colorMeta": {
+      "page": {
+        "role": "neutral",
+        "displayName": "Carbon Page",
+        "canonical": "oklch(17.7% 0.004 264)",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Carbon Surface",
+        "canonical": "#191a1d",
+        "tonalRamp": [
+          "#0c0d0f",
+          "#101113",
+          "#191a1d",
+          "#212226",
+          "#292a2e",
+          "#2c2d31",
+          "#3a3b41",
+          "#5c5d63"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#f2f2f0",
+        "tonalRamp": [
+          "#5c5d63",
+          "#71727a",
+          "#8b8c92",
+          "#a7a8ad",
+          "#c2c3c6",
+          "#d8d8d9",
+          "#e8e8e7",
+          "#f2f2f0"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Pit Lane Chartreuse",
+        "canonical": "oklch(93.8% 0.209 121)",
+        "tonalRamp": [
+          "#040f00",
+          "#192d00",
+          "#344d00",
+          "#506f00",
+          "#6f9200",
+          "#91b600",
+          "#b5db2a",
+          "#daff67"
+        ]
+      },
+      "result-exact": {
+        "role": "tertiary",
+        "displayName": "Sector Violet",
+        "canonical": "#d000ff",
+        "tonalRamp": [
+          "#2f004f",
+          "#530076",
+          "#78009f",
+          "#9f00ca",
+          "#c700f6",
+          "#eb4bff",
+          "#ff7dff",
+          "#ffaaff"
+        ]
+      },
+      "result-near": {
+        "role": "tertiary",
+        "displayName": "Sector Green",
+        "canonical": "#00ed46",
+        "tonalRamp": [
+          "#001800",
+          "#003900",
+          "#005c00",
+          "#008000",
+          "#00a500",
+          "#00ca24",
+          "#41ef5b",
+          "#7aff88"
+        ]
+      },
+      "result-top5": {
+        "role": "tertiary",
+        "displayName": "Sector Yellow",
+        "canonical": "#ffe600",
+        "tonalRamp": [
+          "#1b0400",
+          "#382000",
+          "#583f00",
+          "#796000",
+          "#9c8200",
+          "#bea600",
+          "#e2cb00",
+          "#fff159"
+        ]
+      },
+      "result-miss": {
+        "role": "tertiary",
+        "displayName": "Miss Red",
+        "canonical": "oklch(65.7% 0.230 23)",
+        "tonalRamp": [
+          "#3e0000",
+          "#680000",
+          "#930000",
+          "#bf0017",
+          "#ec2338",
+          "#ff5b5e",
+          "#ff8785",
+          "#ffb2ac"
+        ]
+      },
+      "sprint": {
+        "role": "secondary",
+        "displayName": "Sprint Violet",
+        "canonical": "#c084fc",
+        "tonalRamp": [
+          "#1c003b",
+          "#38005f",
+          "#581c85",
+          "#793fac",
+          "#9c60d5",
+          "#bf86f8",
+          "#e3acff",
+          "#ffd3ff"
+        ]
+      },
+      "podium-gold": {
+        "role": "tertiary",
+        "displayName": "Podium Gold",
+        "canonical": "#e0b64a",
+        "tonalRamp": [
+          "#1e0200",
+          "#3c1d00",
+          "#5d3b00",
+          "#805a00",
+          "#a47c00",
+          "#c79f37",
+          "#ebc465",
+          "#ffea90"
+        ]
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "Instructive Amber",
+        "canonical": "#facc15",
+        "tonalRamp": [
+          "#1a1400",
+          "#332900",
+          "#4d3e00",
+          "#6b5600",
+          "#8c7100",
+          "#b08e00",
+          "#d6ad00",
+          "#facc15"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page heroes and race names. Weight 300, because light-on-dark reads bolder."
+      },
+      "headline": { "displayName": "Headline", "purpose": "Section headings." },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and panel headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default reading size. Marketing prose uses the looser reading roles."
+      },
+      "label": {
+        "displayName": "Micro Label",
+        "purpose": "The only uppercase in the system: card eyebrows and column heads, tracked 0.12em."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Everything a person compares: times, points, positions, deltas, race numbers. Always tabular."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.2, 0.8, 0.3, 1)",
+        "purpose": "The only easing curve. Every transition and entrance uses it."
+      },
+      {
+        "name": "dur-fast",
+        "value": "150ms",
+        "purpose": "Colour transitions on hover and press."
+      },
+      { "name": "dur", "value": "180ms", "purpose": "Default state change." },
+      {
+        "name": "dur-slow",
+        "value": "200ms",
+        "purpose": "Row entrance fade and banner expand/collapse."
+      },
+      {
+        "name": "stagger-step",
+        "value": "28ms",
+        "purpose": "Delay between staggered row entrances. Maximum three steps."
+      }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "360px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "nav", "value": "844px" },
+      { "name": "page-max", "value": "1280px" }
+    ],
+    "density": [
+      {
+        "name": "row-height-compact",
+        "value": "36px",
+        "purpose": "Timing sheet data rows."
+      },
+      {
+        "name": "row-height",
+        "value": "44px",
+        "purpose": "Touch target minimum; compact controls grow to this on pointer: coarse."
+      },
+      { "name": "nav-height", "value": "64px", "purpose": "Desktop header." },
+      {
+        "name": "mobile-nav-height",
+        "value": "60px",
+        "purpose": "Mobile tab bar."
+      }
+    ],
+    "motif": [
+      {
+        "name": "stripe-width",
+        "value": "3px",
+        "purpose": "The signature accent stripe. One per container."
+      },
+      {
+        "name": "stripe-lean",
+        "value": "5px",
+        "purpose": "Fixed pixel lean via clip-path, never a proportional skew."
+      },
+      {
+        "name": "team-bar-width",
+        "value": "3px",
+        "purpose": "Team livery as a full-height left edge bar."
+      },
+      {
+        "name": "team-dot-size",
+        "value": "5px",
+        "purpose": "Team livery as a dot before a team name."
+      },
+      {
+        "name": "flag-aspect",
+        "value": "4 / 3",
+        "purpose": "Every country flag, cropped to fill, whatever the asset's own ratio."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one place the accent is allowed to be a large fill. Press is a colour change only: nothing lifts, scales, or translates.",
+      "html": "<button class=\"ds-btn-primary\">Submit picks</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 20px; border: 1px solid transparent; border-radius: 2px; background: #d4ff3f; color: #101113; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; line-height: 1; letter-spacing: -0.01em; cursor: pointer; transition: color 150ms cubic-bezier(0.2,0.8,0.3,1), background-color 150ms cubic-bezier(0.2,0.8,0.3,1), border-color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-btn-primary:hover { background: #e2ff6e; } .ds-btn-primary:active { background: #b8e035; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #101113, 0 0 0 4px rgb(212 255 63 / 0.55); } .ds-btn-primary:disabled { background: #212226; color: #5c5d63; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Transparent with a hairline. Hover strengthens the border and fills one surface step.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 20px; border: 1px solid #2c2d31; border-radius: 2px; background: transparent; color: #f2f2f0; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; cursor: pointer; transition: color 150ms cubic-bezier(0.2,0.8,0.3,1), background-color 150ms cubic-bezier(0.2,0.8,0.3,1), border-color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-btn-secondary:hover { border-color: #3a3b41; background: #212226; } .ds-btn-secondary:focus-visible { outline: 2px solid rgb(212 255 63 / 0.55); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Amber, not red: red means a scoring miss. Outlined at rest so a delete never outweighs the primary action beside it.",
+      "html": "<button class=\"ds-btn-danger\">Delete league</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 20px; border: 1px solid rgb(250 204 21 / 0.4); border-radius: 2px; background: transparent; color: #facc15; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 500; line-height: 1; cursor: pointer; transition: color 150ms cubic-bezier(0.2,0.8,0.3,1), background-color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-btn-danger:hover { background: #facc15; color: #101113; } .ds-btn-danger:focus-visible { outline: 2px solid rgb(212 255 63 / 0.55); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Surface fill, hairline border, 4px container radius. Focus shifts the border to the accent and adds a 1px accent ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"League name\" />",
+      "css": ".ds-input { width: 260px; padding: 8px 12px; border: 1px solid #2c2d31; border-radius: 4px; background: #191a1d; color: #f2f2f0; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; font-size: 16px; line-height: 1.5; transition: border-color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-input::placeholder { color: #a7a8ad; } .ds-input:focus { outline: none; border-color: #d4ff3f; box-shadow: 0 0 0 1px #d4ff3f; } .ds-input:disabled { opacity: 0.4; cursor: not-allowed; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "A micro label in a 2px box. Uppercase and tracked, three words maximum. Pill radius is reserved for the team dot.",
+      "html": "<span class=\"ds-badge\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/></svg>Open for predictions</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1px solid rgb(74 222 128 / 0.3); border-radius: 2px; background: #16321f; color: #4ade80; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 1.25; text-transform: uppercase; letter-spacing: 0.12em; } .ds-badge svg { display: block; flex: none; }"
+    },
+    {
+      "name": "Driver Row",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The recurring unit of the product. Team colour as a 3px left edge, mono race number, three-letter code, name in Archivo, tabular figure right-aligned.",
+      "html": "<div class=\"ds-driver-row\"><span class=\"ds-driver-num\">81</span><span class=\"ds-driver-code\">PIA</span><span class=\"ds-driver-name\">Oscar Piastri</span><span class=\"ds-driver-pts\">25</span></div>",
+      "css": ".ds-driver-row { position: relative; display: flex; align-items: center; gap: 12px; width: 320px; height: 44px; padding: 0 12px 0 15px; border: 1px solid #2c2d31; border-radius: 4px; background: #191a1d; color: #f2f2f0; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; transition: background-color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-driver-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #f47600; pointer-events: none; } .ds-driver-row:hover { background: #212226; } .ds-driver-num { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 12px; letter-spacing: 0.02em; color: #a7a8ad; min-width: 18px; } .ds-driver-code { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; } .ds-driver-name { flex: 1; font-size: 14px; color: #a7a8ad; } .ds-driver-pts { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 18px; letter-spacing: 0.02em; }"
+    },
+    {
+      "name": "Striped Active Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The signature motif. A 3px accent bar with a fixed 5px lean drawn by clip-path, pinned to the left edge of the single most important container on screen. One per screen.",
+      "html": "<div class=\"ds-card-striped\"><span class=\"ds-card-label\">Next session</span><p class=\"ds-card-title\">Qualifying</p></div>",
+      "css": ".ds-card-striped { position: relative; overflow: hidden; width: 280px; padding: 16px 16px 16px 20px; border: 1px solid #2c2d31; border-radius: 4px; background: #191a1d; color: #f2f2f0; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; } .ds-card-striped::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: #d4ff3f; clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%); pointer-events: none; } .ds-card-label { display: block; font-size: 12px; font-weight: 500; line-height: 1.25; text-transform: uppercase; letter-spacing: 0.12em; color: #a7a8ad; } .ds-card-title { margin: 4px 0 0; font-size: 22px; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; }"
+    },
+    {
+      "name": "Empty Slot",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Awaiting input reads as a dashed hairline; filled reads as solid. The system's only structural variation on the border.",
+      "html": "<div class=\"ds-empty\"><span class=\"ds-empty-pos\">P4</span><span class=\"ds-empty-hint\">Pick a driver</span></div>",
+      "css": ".ds-empty { display: flex; align-items: center; gap: 12px; width: 280px; height: 44px; padding: 0 12px; border: 1px dashed #2c2d31; border-radius: 4px; background: transparent; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; } .ds-empty-pos { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 26px; font-weight: 500; letter-spacing: 0.02em; color: #5c5d63; } .ds-empty-hint { font-size: 14px; color: #a7a8ad; }"
+    },
+    {
+      "name": "Nav Tab",
+      "kind": "nav",
+      "refersTo": "nav-tab-active",
+      "description": "Icon over uppercase micro label, full bar height, 2px accent underline when selected. The icon fills solid and drops its stroke when active, so selection never depends on colour alone.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-tab ds-nav-tab--active\" href=\"#\" aria-current=\"page\"><span class=\"ds-nav-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z\"/></svg></span><span class=\"ds-nav-label\">Home</span></a><a class=\"ds-nav-tab\" href=\"#\"><span class=\"ds-nav-icon\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0z\"/></svg></span><span class=\"ds-nav-label\">Leaderboard</span></a></nav>",
+      "css": ".ds-nav { display: flex; height: 64px; background: #101113; border-bottom: 1px solid #2c2d31; } .ds-nav-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 80px; height: 100%; padding: 0 12px; border-bottom: 2px solid transparent; color: #a7a8ad; text-decoration: none; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; transition: color 150ms cubic-bezier(0.2,0.8,0.3,1); } .ds-nav-tab:hover { color: #f2f2f0; } .ds-nav-tab--active { border-bottom-color: #d4ff3f; color: #d4ff3f; } .ds-nav-icon { display: flex; height: 24px; align-items: center; justify-content: center; } .ds-nav-icon svg { display: block; } .ds-nav-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap; }"
+    },
+    {
+      "name": "Scoring Bands",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The sector-colour vocabulary with its fixed meanings. These four hues mean scoring bands and are not a general status palette.",
+      "html": "<div class=\"ds-bands\"><div class=\"ds-band\"><span class=\"ds-band-pts ds-band-pts--exact\">5</span><span class=\"ds-band-txt\">Exact position</span></div><div class=\"ds-band\"><span class=\"ds-band-pts ds-band-pts--near\">3</span><span class=\"ds-band-txt\">Off by one</span></div><div class=\"ds-band\"><span class=\"ds-band-pts ds-band-pts--top5\">1</span><span class=\"ds-band-txt\">In the actual Top 5</span></div><div class=\"ds-band\"><span class=\"ds-band-pts ds-band-pts--miss\">0</span><span class=\"ds-band-txt\">No scoring match</span></div></div>",
+      "css": ".ds-bands { display: flex; flex-direction: column; gap: 2px; width: 260px; font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif; } .ds-band { display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 12px; background: #191a1d; border: 1px solid #2c2d31; border-radius: 4px; } .ds-band-pts { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 500; letter-spacing: 0.02em; min-width: 14px; } .ds-band-pts--exact { color: #d000ff; } .ds-band-pts--near { color: #00ed46; } .ds-band-pts--top5 { color: #ffe600; } .ds-band-pts--miss { color: #ff3b47; } .ds-band-txt { font-size: 14px; color: #a7a8ad; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Timing Sheet",
+    "overview": "The FIA timing sheet is the reference object: monospace figures in columns, sector colours with fixed meanings, hairline rules, and nothing on the page that is not a fact. It is a document designed to be read at a glance by someone who is busy, in the dark, and about to run out of time. That is also the person using this product, on a phone, minutes before the lights go out.\n\nThe whole system follows from three refusals. There are no shadows: depth is a lighter surface plus a 1px hairline, and the shadow-* scale is mapped to none so a stray utility compiles to nothing. Backgrounds are flat colour: no gradients, grain, glow, or grid. And colour is never decoration: one accent for what needs action, four fixed hues for scoring outcomes, team livery confined to 3px. Personality does not come from ornament. It comes from the two-speed density (generous page chrome, compact data rows), from type that runs one weight step lighter than usual because light-on-dark reads bolder, and from a single skewed accent stripe pinned to whatever matters most on the screen.\n\nThe system is dark-only, and that is a decision about the use scene rather than a category default: this is watched alongside a race, often at night, usually on a phone. The one exception is transactional email, which is light because Outlook drops dark backgrounds outright and Gmail force-inverts what it keeps, so a dark shell would render as a different email for a large share of readers.",
+    "keyCharacteristics": [
+      "Flat by construction. No shadows anywhere, enforced by a lint ratchet.",
+      "Warm near-black base on an even four-step surface ramp; never pure black.",
+      "One accent (chartreuse), rationed to CTAs, active states, the current user, and the stripe.",
+      "Two typefaces with a hard division of labour: Archivo for what you read, IBM Plex Mono for what you compare.",
+      "Colour carries fixed meaning. A hue is never chosen for looks.",
+      "Sharp corners: 2px on controls, 4px on containers, pill only for the team dot and avatars.",
+      "Two-speed density: 36px data rows, 44px touch targets, generous page frame.",
+      "Motion only on hover, selection, drag, and one entrance fade. Leaderboard positions never animate."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "There is exactly one accent. It marks action and identity, nothing else. If two things on a screen are chartreuse and only one of them is the thing to do, the accent has failed. A global a { color: var(--accent) } was removed for precisely this reason: it lit all 29 player names on the leaderboard and buried the one row that mattered.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fixed Meaning Rule",
+        "body": "Every hue outside the neutral ramp has one job. The four scoring bands mean scoring bands; reuse them elsewhere only where the sector-colour reading genuinely holds, never as a general status palette. A red in this system means 'you got this wrong', an amber means 'attention', and neither is ever swapped for the other.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Pixel Rule",
+        "body": "Team livery is confined to a 3px bar or a 5px dot. Never a background, never text colour, never a card border. Eleven teams in one list stays calm only because the colour is rationed.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Palette Rule",
+        "body": "Colour comes from the design tokens, never from Tailwind's stock palette. Two palettes is how the app once shipped share cards in colours it had abandoned, and how a destructive class matching no token sat on the cancelled-race badge rendering nothing at all. apps/web/scripts/check-design-tokens.mjs enforces this as a downward-only ratchet.",
+        "section": "colors"
+      },
+      {
+        "name": "The Compare-In-Mono Rule",
+        "body": "Anything a person compares is monospace with tabular-nums: lap times, points, positions, deltas, race numbers, countdown digits. Digits then line up down a column, which is the entire reason the timing sheet works. Numbers are always numerals, never spelled out. Corollary: mono is for measurement, never a costume for 'technical'.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Weight Down Rule",
+        "body": "Every type role sits one weight step below where it would normally land, because light-on-dark reads bolder: display and h1 at 300, h2 at 400, h3 and labels at 500, primary buttons at 600. Nothing is heavier than 600.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase Rule",
+        "body": "Uppercase appears in exactly one form: the tracked micro label (.gpp-label, 12px, 0.12em). Headings and buttons are sentence case, always. The label does three jobs and no others: it opens a card, it heads a column, and it sits above a section heading as an eyebrow. The eyebrow is a deliberate part of this system, not a generic habit: on a timing sheet the column head names what the figures below are, and that is exactly what it does here. It carries the accent when the section is a step in the flow and muted ink when it is not.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Shadow Rule",
+        "body": "Not softened, not 'subtle', not on hover. Zero. If something needs to come forward, it takes the next surface step and keeps its hairline. Enforced by the elevation lint ratchet, which catches shadow-* utilities and raw box-shadow in inline styles.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat Fill Rule",
+        "body": "Backgrounds are flat colour. No gradients, textures, noise, or glow. This is the rule most likely to be broken by someone reaching for 'just a subtle gradient', which is exactly how the previous design accumulated an atmosphere field, a grain overlay, and three separate grid backgrounds. Enforced by the flat lint ratchet. If photography is ever introduced it goes inside a 4px-radius container as content, never behind the page.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do put every figure a person compares in IBM Plex Mono with tabular-nums: times, points, positions, deltas, race numbers.",
+      "Do convey depth with the next surface step plus a 1px hairline. The ramp is even, so one step means the same everywhere.",
+      "Do ration the accent. Audit test: on any screen, count the chartreuse elements. If more than one is not the action, the current user, or the active state, remove some.",
+      "Do use a dashed hairline for empty or awaiting-input containers, and a solid one once filled.",
+      "Do keep team colour to the 3px bar or the 5px dot, and nothing else.",
+      "Do use amber for errors, warnings, and destructive intent. Errors here are instructive, not alarming.",
+      "Do label movement instead of animating it. A leaderboard position change is up-2 / down-1 / dash, never a transition.",
+      "Do pull every value from packages/shared/src/tokens.ts. It is the only place they are authored, and both CSS layers are generated from it (pnpm generate-tokens).",
+      "Do grow compact controls to 44px on pointer: coarse, keyed off the input device rather than the viewport.",
+      "Do render every flag at 4:3, cropped to fill, with the 10% inset outline."
+    ],
+    "donts": [
+      "Don't add a shadow. Not on hover, not 'subtle', not anywhere. The scale is mapped to none and the lint ratchet will catch it.",
+      "Don't put a gradient, texture, noise, or glow behind anything. Flat colour only.",
+      "Don't reach for Tailwind's stock palette (bg-slate-900, text-red-500). Use a token. The one accepted exception is /admin, which is internal operator tooling with its own visual language and is explicitly exempt from the ratchet; do not let its slate-and-teal leak into a player-facing surface.",
+      "Don't use red for an error or a warning. Red means a scoring miss. Amber means attention.",
+      "Don't put the accent on body text, on links by default, or on a large fill other than a primary button.",
+      "Don't nest a card inside a card. Use a hairline divider or a surface step.",
+      "Don't set anything in uppercase except the tracked micro label. Headings and buttons stay sentence case, including when the label directly above them is uppercase.",
+      "Don't introduce a second display typeface. The display face is the UI face; personality comes from weight and tracking.",
+      "Don't animate anything outside hover, selection, drag, and the one-time row entrance fade. In particular, leaderboard positions never move.",
+      "Don't put a thick coloured border on the left or right edge of a card, list item, or callout. Above 1px, colour belongs on a bottom or top edge (the nav underline, the mobile bar tab, the 8px scoring-band rule) where it reads as a column marker rather than a tab.",
+      "Don't write a raw a { color: ... } or any other unlayered base rule. Unlayered CSS beats all layered CSS regardless of specificity and will silently override every Tailwind utility; wrap base styles in @layer base.",
+      "Don't move scrolling into an inner element. The document is the scroll container.",
+      "Don't use a dark shell for transactional email. Email is the one light surface, and the accent there is a background only, never ink: chartreuse on white is about 1.4:1.",
+      "Don't redefine a token in styles.css or in a component. Edit tokens.ts and regenerate, or web and mobile drift apart."
+    ]
+  }
+}

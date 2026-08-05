@@ -14,20 +14,9 @@ import { SESSION_LABELS } from '@/lib/sessions';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
-import { DuelDriverButton } from './H2HDuelPicker';
+import { DUEL_CONFIRM_HOLD_MS, H2HDuelQuestion } from './H2HDuelQuestion';
 import type { H2HMatchup } from './H2HMatchupGrid';
 import { PicksFocusOverlay } from './PicksFocusOverlay';
-
-/**
- * How long the confirmed card stays on screen before the takeover closes.
- *
- * The pick animation (accent sweep, then the check snapping in behind it) runs
- * about 420ms. Closing on the mutation's promise meant that on a fast
- * connection the overlay was gone before any of it drew: you tapped a driver
- * and the screen simply vanished, which reads as "did that work?" rather than
- * "that's saved".
- */
-const CONFIRM_HOLD_MS = 520;
 
 /** Confetti draws to a canvas, so it needs a literal rather than a token class. */
 const ACCENT_COLOR = colors.accent;
@@ -91,6 +80,16 @@ export function H2HDuelFocusModal({
     useState<Id<'drivers'> | null>(null);
   const shownDriverId = optimisticDriverId ?? selectedDriverId;
 
+  // See `shownMatchup` below: this is only ever read on the way out.
+  const [closingMatchup, setClosingMatchup] = useState<H2HMatchup | null>(
+    matchup,
+  );
+  useEffect(() => {
+    if (matchup) {
+      setClosingMatchup(matchup);
+    }
+  }, [matchup]);
+
   // Reopening on another battle must not inherit the last one's answer.
   useEffect(() => {
     setOptimisticDriverId(null);
@@ -151,7 +150,7 @@ export function H2HDuelFocusModal({
       }
       closeTimerRef.current = window.setTimeout(
         onClose,
-        prefersReducedMotion() ? 0 : CONFIRM_HOLD_MS,
+        prefersReducedMotion() ? 0 : DUEL_CONFIRM_HOLD_MS,
       );
     } catch (error) {
       // The card has to go back to what is actually saved: leaving the tapped
@@ -168,11 +167,16 @@ export function H2HDuelFocusModal({
     }
   }
 
-  if (!matchup) {
+  // The last battle stays rendered while the takeover animates out. The
+  // dashboard clears its active duel the moment close is asked for, and
+  // rendering nothing from that frame is what made the overlay blink out of
+  // existence rather than leave: there was no content left to animate.
+  const shownMatchup = matchup ?? closingMatchup;
+  if (!shownMatchup) {
     return null;
   }
 
-  const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
+  const teamColor = TEAM_COLORS[shownMatchup.team] ?? FALLBACK_TEAM_COLOR;
 
   return (
     <PicksFocusOverlay
@@ -190,78 +194,42 @@ export function H2HDuelFocusModal({
             style={{ backgroundColor: teamColor }}
             aria-hidden="true"
           />
-          {displayTeamName(matchup.team)}
+          {displayTeamName(shownMatchup.team)}
         </span>
       }
       subtitle={`${SESSION_LABELS[sessionType]} only`}
       fillBody
     >
       {/* One question, so it takes the whole takeover rather than sitting in
-          the top third of it. The two drivers are the screen on a phone: full
-          width, stacked, each stretching to half the space left over, which is
-          both the clearest way to read a duel and the biggest tap target we can
-          give it. Desktop keeps them side by side, where the versus reads
-          better and there is no empty space to fill. */}
+          the top third of it. `H2HDuelQuestion` is the same question the
+          landing page asks in its eleven-battle sequence, in its takeover
+          layout: the drivers stack on a phone and go side by side from `sm`.
+          The team is already the modal's title, so it is not repeated here. */}
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col pb-4 sm:block sm:pb-0">
-        {/* The team is already the modal's title; naming it again under it was
-            the same word twice in the space of two lines. */}
-        <h3 className="mb-3 text-center text-lg font-medium text-text sm:mb-4 sm:text-xl">
-          Who finishes ahead?
-        </h3>
-
-        {/* Capped, then centred: stretched to a tall phone's full height each
-            panel became a 490px box with a small island of driver floating in
-            the middle of it. The cap keeps the panel a card; `justify-center`
-            hands the leftover height back to the margins instead. */}
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:items-stretch sm:gap-3">
-          <DuelDriverButton
-            driver={matchup.driver1}
-            selected={shownDriverId === matchup.driver1._id}
-            topFivePosition={topFivePositions?.[matchup.driver1._id]}
-            onClick={() => void pick(matchup.driver1._id)}
-            size="lg"
-            className="max-h-72 min-h-0 flex-1 sm:max-h-none sm:flex-none"
-          />
-          {/* Hairlines on the phone, where the two panels sit above each other
-              and "VS" alone in the gap reads as a stray label. */}
-          <span
-            className="gpp-mono flex shrink-0 items-center justify-center gap-3 text-xs font-semibold text-text-muted"
-            aria-hidden="true"
-          >
-            <span className="h-px flex-1 bg-border sm:hidden" />
-            VS
-            <span className="h-px flex-1 bg-border sm:hidden" />
-          </span>
-          <DuelDriverButton
-            driver={matchup.driver2}
-            selected={shownDriverId === matchup.driver2._id}
-            topFivePosition={topFivePositions?.[matchup.driver2._id]}
-            onClick={() => void pick(matchup.driver2._id)}
-            size="lg"
-            className="max-h-72 min-h-0 flex-1 sm:max-h-none sm:flex-none"
-          />
-        </div>
-
-        <p
-          className="mt-3 min-h-5 shrink-0 text-center text-sm text-text-muted"
-          aria-live="polite"
-        >
-          {errorMessage ? (
-            <span className="text-error">{errorMessage}</span>
-          ) : saved ? (
-            // The one thing worth saying during the hold before the takeover
-            // closes. Without it the caption went back to inviting a tap on a
-            // card that had just been answered.
-            <span className="inline-flex items-center gap-1.5 text-accent">
-              <Check size={14} strokeWidth={3} aria-hidden="true" />
-              Saved
-            </span>
-          ) : pending ? (
-            'Saving…'
-          ) : (
-            'Tap a driver to save this battle.'
-          )}
-        </p>
+        <H2HDuelQuestion
+          matchup={shownMatchup}
+          selectedDriverId={shownDriverId}
+          topFivePositions={topFivePositions}
+          onPick={(driverId) => void pick(driverId)}
+          variant="takeover"
+          status={
+            errorMessage ? (
+              <span className="text-error">{errorMessage}</span>
+            ) : saved ? (
+              // The one thing worth saying during the hold before the takeover
+              // closes. Without it the caption went back to inviting a tap on a
+              // card that had just been answered.
+              <span className="inline-flex items-center gap-1.5 text-accent">
+                <Check size={14} strokeWidth={3} aria-hidden="true" />
+                Saved
+              </span>
+            ) : pending ? (
+              'Saving…'
+            ) : (
+              'Tap a driver to save this battle.'
+            )
+          }
+        />
       </div>
     </PicksFocusOverlay>
   );

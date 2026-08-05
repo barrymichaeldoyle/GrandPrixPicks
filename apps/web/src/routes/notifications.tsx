@@ -311,7 +311,12 @@ function NotificationsPage() {
         Settings live in the Delivery rail card, which also appears in the
         mobile widget stack, so the header carries no second link.
       */}
-      <header className="mb-4">
+      {/* The controls share the title's line rather than stacking under it: at
+          `md` and up the title is one short word and the row beside it was
+          empty, so a second row was spending vertical space on nothing. Below
+          `md` the title is `sr-only` and takes no width, so the control cluster
+          spreads across the full row exactly as it did before. */}
+      <header className="mb-4 flex items-center justify-between gap-3">
         <h1 className="gpp-label text-text-muted max-md:sr-only">
           Notifications
         </h1>
@@ -320,7 +325,7 @@ function NotificationsPage() {
             paragraph open so the row would not collapse and yank the list up
             under the thumb that had just marked everything read. A control
             that is always present holds the row open by itself. */}
-        <div className="flex items-center justify-between gap-3 md:mt-1">
+        <div className="flex min-w-0 items-center gap-3 max-md:w-full max-md:justify-between">
           <NotificationUnreadToggle
             unreadOnly={unreadOnly}
             onUnreadOnlyChange={(next) => updateSearch({ unreadOnly: next })}

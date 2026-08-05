@@ -1,3 +1,4 @@
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
@@ -43,6 +44,7 @@ export function PicksFocusOverlay({
   fillBody = false,
   children,
 }: PicksFocusOverlayProps) {
+  const reduceMotion = useReducedMotion();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const suspendedRef = useRef(suspended);
@@ -96,64 +98,94 @@ export function PicksFocusOverlay({
     };
   }, [open]);
 
-  if (!open) {
+  // Portalling needs a document, and an overlay is never open during SSR.
+  if (typeof document === 'undefined') {
     return null;
   }
 
   return createPortal(
-    <div
-      data-testid="picks-focus-overlay"
-      className="fixed inset-0 z-50 flex bg-page sm:items-center sm:justify-center sm:bg-black/60 sm:p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !suspended) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="picks-focus-title"
-        tabIndex={-1}
-        className="flex h-full w-full flex-col bg-page outline-none sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border"
-      >
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="min-w-0">
-              <h2
-                id="picks-focus-title"
-                className="truncate text-lg font-semibold text-text"
-              >
-                {title}
-              </h2>
-              {subtitle ? (
-                <p className="truncate text-xs text-text-muted">{subtitle}</p>
-              ) : null}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            data-testid="picks-focus-close"
-            className="shrink-0 rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+    // The takeover used to vanish: `open` went false and the portal returned
+    // null on the same frame, so a decision that had just been made ended in a
+    // blink. It leaves now — the surface settles back and fades — which is
+    // what makes the close read as the end of the flow rather than a glitch.
+    // `AnimatePresence` is what holds it mounted long enough to do that.
+    <AnimatePresence>
+      {open ? (
+        <m.div
+          key="picks-focus-overlay"
+          data-testid="picks-focus-overlay"
+          className="fixed inset-0 z-50 flex bg-page sm:items-center sm:justify-center sm:bg-black/60 sm:p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !suspended) {
+              onClose();
+            }
+          }}
+        >
+          <m.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="picks-focus-title"
+            tabIndex={-1}
+            className="flex h-full w-full flex-col bg-page outline-none sm:h-auto sm:max-h-[92vh] sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border"
+            // One gesture that works at both sizes: a small rise on the way in
+            // and a settle back on the way out. The panel is the whole screen
+            // on a phone, where anything larger reads as the page itself
+            // moving, and a modest scale is all a desktop dialog needs.
+            initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={
+              reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.99 }
+            }
+            transition={{
+              duration: reduceMotion ? 0 : 0.22,
+              ease: [0.16, 1, 0.3, 1],
+            }}
           >
-            <X size={20} aria-hidden />
-          </button>
-        </header>
-        {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
+            <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-3 sm:px-6">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <div className="min-w-0">
+                  <h2
+                    id="picks-focus-title"
+                    className="truncate text-lg font-semibold text-text"
+                  >
+                    {title}
+                  </h2>
+                  {subtitle ? (
+                    <p className="truncate text-xs text-text-muted">
+                      {subtitle}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                data-testid="picks-focus-close"
+                className="shrink-0 rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+              >
+                <X size={20} aria-hidden />
+              </button>
+            </header>
+            {/* No bottom padding on mobile: a sticky bottom bar (H2H submit) can't
             enter the scroll container's padding, so padding would leave a gap
             under it. Content without its own bar should bring pb-4 sm:pb-0. */}
-        <div
-          className={`min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 sm:px-6 sm:py-5 ${
-            fillBody ? 'flex flex-col sm:block' : ''
-          }`}
-        >
-          {children}
-        </div>
-      </div>
-    </div>,
+            <div
+              className={`min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-0 sm:px-6 sm:py-5 ${
+                fillBody ? 'flex flex-col sm:block' : ''
+              }`}
+            >
+              {children}
+            </div>
+          </m.div>
+        </m.div>
+      ) : null}
+    </AnimatePresence>,
     document.body,
   );
 }

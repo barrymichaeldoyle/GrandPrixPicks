@@ -78,6 +78,11 @@ interface H2HPredictionFormProps {
    * height is the whole problem.
    */
   layout?: 'auto' | 'sequential';
+  /**
+   * How reopening one battle from a finished duel card is presented. Passed
+   * straight through to {@link H2HDuelPicker}; see its prop for why.
+   */
+  collapsedEdit?: 'inline' | 'modal';
 }
 
 type H2HDraft = {
@@ -106,6 +111,7 @@ export function H2HPredictionForm({
   topFivePositions,
   onExitPrevious,
   layout = 'auto',
+  collapsedEdit = 'inline',
 }: H2HPredictionFormProps) {
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const draftKey = getWebH2HDraftStorageKey(raceId, sessionType);
@@ -534,6 +540,8 @@ export function H2HPredictionForm({
           draftHydrated={hasHydratedDraft}
           topFivePositions={topFivePositions}
           onExitPrevious={onExitPrevious}
+          collapsedEdit={collapsedEdit}
+          sessionType={sessionType}
         />
       ) : (
         <H2HMatchupGrid

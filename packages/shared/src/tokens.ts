@@ -71,17 +71,26 @@ export const colors = {
   buttonAccentHover: '#e2ff6e',
   buttonAccentShadow: '#b8e035',
 
-  // Prediction result semantics, F1 sector-colour inspired. Fixed meanings:
-  // a miss is grey, never red. The only red in the system is `deltaDown`.
+  // Prediction result semantics, F1 sector-colour inspired.
   //
   // Named for the scoring bands in lib/scoring.ts, richest to quietest. The
   // previous names (perfect / beat / close) described a game that does not
   // exist: nothing in the engine "beats" a prediction, and "close" read as
   // off-by-one when it actually means in-the-top-five-but-off-by-two-or-more.
+  //
+  // These four hues mean scoring bands. Reuse them elsewhere only where the
+  // sector-colour reading genuinely holds; they are not a general status set.
+  //
+  // A miss is RED. It was grey (#71717a) on the theory that a zero should stay
+  // quiet, but quiet is the wrong job here: grey read as "no data" rather than
+  // "you got this wrong", and at 3.3:1 on `surfaceElevated` it was under AA as
+  // text anyway. Red is free to mean this because errors in this system are
+  // amber, so nothing else claims it. `deltaDown` (#f87171) is a softer,
+  // oranger coral for a dropped leaderboard position and stays distinct.
   resultExact: '#d000ff', // exact position, driver finished <= P5, 5 pts
   resultNear: '#00ed46', // off by exactly one, incl. P5 -> P6, 3 pts (also H2H correct, 1 pt)
   resultTop5: '#ffe600', // in the actual top five but off by 2+, 1 pt
-  resultMiss: '#71717a', // no points
+  resultMiss: '#ff3b47', // no points — clears 4.5:1 on page, surface and elevated
 
   // Position delta, for batch leaderboard updates. Movement is *labelled*
   // (▲2 / ▼1 / –), never animated.
@@ -90,7 +99,8 @@ export const colors = {
   deltaFlat: '#5c5d63',
 
   // Brand — retained names, retuned to the new palette. `racingRed` is now
-  // only the delta-down red; nothing uses it as atmosphere any more.
+  // only the delta-down coral; nothing uses it as atmosphere any more. It is
+  // deliberately softer than `resultMiss`, which is the system's one loud red.
   racingRed: '#f87171',
   racingRedMuted: '#3a1f22',
   racingAmber: '#facc15',

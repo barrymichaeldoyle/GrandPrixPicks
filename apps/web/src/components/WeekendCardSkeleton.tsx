@@ -64,7 +64,7 @@ export const WEEKEND_CARD_SHELL =
  * authenticated payload lands. Only the weekend's identity paints early.
  *
  * Landing-page cost is just this markup: `RaceFlag` and `getCountryCodeForRace`
- * are already on that bundle via `SessionClock` and `LandingStickyBar`.
+ * are already on that bundle via `SessionClock`.
  */
 export function WeekendCardSkeleton({
   race,

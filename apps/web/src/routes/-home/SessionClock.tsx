@@ -159,7 +159,6 @@ export function SessionClock({
   return (
     <div>
       <p
-        data-landing-sticky-anchor="true"
         className={`flex items-center gap-2 font-medium tracking-label uppercase ${
           large ? 'text-sm' : 'text-xs'
         }`}
@@ -313,10 +312,7 @@ export function SessionClockChip({
   return (
     // Primary text, not muted: the lock time is the urgency payload, so it
     // has to clear contrast at `text-xs`. Weight alone separates the GP name.
-    <p
-      data-landing-sticky-anchor="true"
-      className="flex min-w-0 items-center gap-1.5 text-xs text-text"
-    >
+    <p className="flex min-w-0 items-center gap-1.5 text-xs text-text">
       {countryCode ? <Flag code={countryCode} size="xs" /> : null}
       <span className="min-w-0 truncate" suppressHydrationWarning>
         <span className="font-medium">{shortName}</span>

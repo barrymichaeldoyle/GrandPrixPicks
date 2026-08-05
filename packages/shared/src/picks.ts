@@ -153,3 +153,37 @@ export function getWebH2HDraftStorageKey(
 ): string {
   return `gpp:web:h2h:${raceId}:${sessionType ?? 'cascade'}`;
 }
+
+export type WebDraftKind = 'top5' | 'h2h';
+
+export type ParsedWebDraftStorageKey = {
+  kind: WebDraftKind;
+  raceId: string;
+  /** Undefined for a cascade draft, which applies to every open session. */
+  sessionType?: SessionType;
+};
+
+const WEB_DRAFT_KEY_PATTERN = /^gpp:web:(top5|h2h):([^:]+):([^:]+)$/;
+
+/**
+ * The inverse of the two builders above.
+ *
+ * Recovering a stranded draft means starting from the key rather than from a
+ * race: whoever drains it after sign-in knows only what is in storage, not
+ * which race the visitor was looking at. Keeping the parse next to the format
+ * is what stops the two drifting apart.
+ */
+export function parseWebDraftStorageKey(
+  key: string,
+): ParsedWebDraftStorageKey | null {
+  const match = WEB_DRAFT_KEY_PATTERN.exec(key);
+  if (!match) {
+    return null;
+  }
+  const [, kind, raceId, session] = match;
+  return {
+    kind: kind as WebDraftKind,
+    raceId,
+    sessionType: session === 'cascade' ? undefined : (session as SessionType),
+  };
+}

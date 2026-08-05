@@ -7,6 +7,7 @@ import {
   getLockStatusViewModel,
   getWebH2HDraftStorageKey,
   getWebTop5DraftStorageKey,
+  parseWebDraftStorageKey,
 } from './picks';
 
 describe('formatLockCountdown', () => {
@@ -105,5 +106,41 @@ describe('draft storage keys', () => {
     expect(getWebH2HDraftStorageKey('race_123', 'race')).toBe(
       'gpp:web:h2h:race_123:race',
     );
+  });
+
+  it('round-trips every web key it builds', () => {
+    const cases = [
+      { key: getWebTop5DraftStorageKey('race_123'), kind: 'top5' },
+      { key: getWebH2HDraftStorageKey('race_123'), kind: 'h2h' },
+    ] as const;
+    for (const { key, kind } of cases) {
+      expect(parseWebDraftStorageKey(key)).toEqual({
+        kind,
+        raceId: 'race_123',
+        sessionType: undefined,
+      });
+    }
+    expect(
+      parseWebDraftStorageKey(getWebTop5DraftStorageKey('race_123', 'sprint')),
+    ).toEqual({ kind: 'top5', raceId: 'race_123', sessionType: 'sprint' });
+    expect(
+      parseWebDraftStorageKey(getWebH2HDraftStorageKey('race_9', 'quali')),
+    ).toEqual({ kind: 'h2h', raceId: 'race_9', sessionType: 'quali' });
+  });
+
+  it('refuses keys it does not own', () => {
+    // The drainer walks all of sessionStorage, so anything else living there
+    // has to come back null rather than be read as a race id.
+    for (const key of [
+      '',
+      'gpp:web:top5:race_123',
+      'gpp:web:top5:race_123:cascade:extra',
+      'gpp:web:teams:race_123:cascade',
+      getConnectedDraftStorageKey('australia-2026', 'race'),
+      getLocalRaceDraftStorageKey('australia-2026'),
+      'clerk:session',
+    ]) {
+      expect(parseWebDraftStorageKey(key)).toBeNull();
+    }
   });
 });

@@ -55,6 +55,20 @@ This folder contains only the four final 1080 x 1350 slides. They use Instagram'
 - In captions, use “link in bio” because Instagram caption links are not clickable
 - Tracking URL for the profile link: `https://grandprixpicks.com/ig`
 
+## Scoring poll Story
+
+Schedule this supporting Story for Thursday 6 August at 12:30 SAST using
+Buffer notification publishing. The notification must be completed manually in
+Instagram because interactive stickers are not available through the API.
+
+- Asset: `images/stories/01-scoring-poll.png`
+- Poll question: `Which is harder to predict?`
+- Choice 1: `Exact Top 5`
+- Choice 2: `Team-mate calls`
+- Link sticker label: `Make your picks`
+- Link sticker URL: `https://grandprixpicks.com/ig`
+- After publishing, add it to the `How to play` Highlight.
+
 ## Pinned post 1: What is Grand Prix Picks?
 
 ### Purpose

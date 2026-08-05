@@ -9,7 +9,6 @@ import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
-import { abbreviateGrandPrix } from '@/lib/display';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
 import { withRetry } from '@/lib/retry';
 import {
@@ -30,7 +29,6 @@ import {
   ScrollToPicksCta,
 } from './-home/LandingHero';
 import { LANDING_PICKS_ANCHOR, LandingPicks } from './-home/LandingPicks';
-import { LandingStickyBar } from './-home/LandingStickyBar';
 import { CompetitionSection } from './-home/CompetitionSection';
 import { ScoringSection } from './-home/ScoringSection';
 import { SessionClock, SessionClockChip } from './-home/SessionClock';
@@ -271,15 +269,6 @@ function PublicLandingPage() {
   return (
     <>
       <div className="bg-page">
-        {nextRace && nextSession ? (
-          <LandingStickyBar
-            raceName={abbreviateGrandPrix(nextRace.name)}
-            raceSlug={nextRace.slug}
-            msRemaining={nextSession.startAt - now}
-            targetId={LANDING_PICKS_ANCHOR}
-          />
-        ) : null}
-
         <LandingHero
           clock={clock}
           clockCompact={clockCompact}

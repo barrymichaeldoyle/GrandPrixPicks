@@ -292,16 +292,38 @@
 
 /*
  * The signed-out header owns the primary CTA on every page except the one that
- * has its own. On the landing page the hero button is the action while the hero
- * is on screen, and the deadline strip takes it over the moment the hero
- * scrolls away — so the header version would only ever be a second identical
- * lime button pointing at the same anchor.
+ * has its own. On the landing page the hero button is the action, and the picker
+ * it points at is the very next section, carrying its own controls. A header
+ * copy would only ever be a second identical lime button aimed at the same
+ * anchor, and the accent marks one action per screen.
+ *
+ * A sticky deadline strip used to take the CTA over once the hero scrolled away.
+ * It was removed: its window overlapped the picker being fully on screen, so it
+ * put three accent CTAs in view at once and pointed two of them at content the
+ * reader was already looking at.
  *
  * Keyed off the hero CTA rather than the route so the between-seasons hero,
- * which has no picker to scroll to and no deadline strip, keeps the header CTA.
+ * which has no picker to scroll to, keeps the header CTA.
  */
 html:has([data-landing-hero-cta]) .gpp-public-header-cta {
   display: none;
+}
+
+/*
+ * The scroll lock every modal and the sign-in curtain share (see
+ * `useModalDialog`). It is an attribute rather than an inline
+ * `body.style.overflow` because Clerk's sign-in modal writes that exact
+ * property itself, from outside our counting: the curtain rises while Clerk's
+ * modal is still up, so a lock that snapshotted "what overflow was before"
+ * captured Clerk's `hidden` and restored it on release, freezing the page for
+ * good. An attribute composes with Clerk instead of fighting it for one slot.
+ *
+ * Deliberately unlayered, so it beats the utilities. Both elements are set
+ * because `body` alone leaves the document scrolling on some engines.
+ */
+html[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: hidden;
 }
 
 /*

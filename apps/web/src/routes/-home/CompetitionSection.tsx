@@ -229,10 +229,19 @@ export function CompetitionSection({
           </div>
 
           <div className="mx-auto h-7 w-px bg-accent" aria-hidden="true" />
+          {/*
+           * The branch drops land on the CENTRES of the two boards below, which
+           * are not the quarter points of this container. With `md:grid-cols-2`
+           * and `gap-6`, each column is `(100% - 24px) / 2` wide, so its centre
+           * sits at `25% - 6px` from the nearest edge. A bare `left-1/4` splayed
+           * both drops 6px inward, and the line visibly missed the card it was
+           * pointing at. Change the gap below and these insets change with it:
+           * the offset is always a quarter of the gap.
+           */}
           <div className="relative hidden h-7 md:block" aria-hidden="true">
-            <div className="absolute top-0 right-1/4 left-1/4 h-px bg-accent" />
-            <div className="absolute top-0 left-1/4 h-7 w-px bg-accent" />
-            <div className="absolute top-0 right-1/4 h-7 w-px bg-accent" />
+            <div className="absolute top-0 right-[calc(25%-6px)] left-[calc(25%-6px)] h-px bg-accent" />
+            <div className="absolute top-0 left-[calc(25%-6px)] h-7 w-px bg-accent" />
+            <div className="absolute top-0 right-[calc(25%-6px)] h-7 w-px bg-accent" />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">

@@ -19,6 +19,7 @@ import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import {
   AuthCurtainHost,
@@ -595,7 +596,14 @@ function AppRuntimeBoundary({
         }
       >
         <AuthenticatedAppRuntime assumeSignedIn={authHandoff}>
-          <AuthCurtainHost handoff={authHandoff}>{children}</AuthCurtainHost>
+          <AuthCurtainHost handoff={authHandoff}>
+            {/* Inside the curtain host rather than beside the runtime's other
+                post-sign-in effects, because it has to be able to hold the
+                curtain: `useAuthCurtainGate` reads a context this provides, and
+                outside it the gate is a silent no-op. */}
+            <PendingPickSubmitter />
+            {children}
+          </AuthCurtainHost>
         </AuthenticatedAppRuntime>
       </Suspense>
     </ClerkRuntimeControlProvider>

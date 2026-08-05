@@ -13,6 +13,8 @@ import { loadFonts } from '../src/lib/og/fonts';
 
 const WIDTH = 1080;
 const HEIGHT = 1350;
+const STORY_WIDTH = 1080;
+const STORY_HEIGHT = 1920;
 const GUTTER = 88;
 const CAMPAIGN_OUTPUT_DIR = fileURLToPath(
   new URL(
@@ -2351,6 +2353,222 @@ function wordmark(): ReactNode {
   );
 }
 
+function storyGameCard(
+  label: string,
+  title: string,
+  description: string,
+  accent: string,
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 280,
+        padding: '34px 32px',
+        border: `1px solid ${colors.borderStrong}`,
+        borderTop: `8px solid ${accent}`,
+        backgroundColor: colors.surface,
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 18,
+          fontWeight: 600,
+          letterSpacing: 2.7,
+          color: accent,
+        },
+      },
+      label,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          marginTop: 26,
+          fontSize: 38,
+          fontWeight: 600,
+          lineHeight: 1.08,
+          color: colors.text,
+        },
+      },
+      title,
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          marginTop: 22,
+          fontSize: 24,
+          lineHeight: 1.4,
+          color: colors.textMuted,
+        },
+      },
+      description,
+    ),
+  );
+}
+
+function scoringPollStory(): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        position: 'relative',
+        width: STORY_WIDTH,
+        height: STORY_HEIGHT,
+        overflow: 'hidden',
+        backgroundColor: colors.page,
+        color: colors.text,
+        fontFamily: 'Archivo',
+      },
+    },
+    e('div', {
+      style: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: 14,
+        height: STORY_HEIGHT,
+        backgroundColor: colors.accent,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 96,
+        },
+      },
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 18,
+            fontWeight: 600,
+            letterSpacing: 3.2,
+            color: colors.textMuted,
+          },
+        },
+        'GRAND PRIX PICKS',
+      ),
+      mark(0.62),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 270,
+        },
+      },
+      eyebrow('How scoring works'),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            width: 900,
+            marginTop: 30,
+            fontSize: 96,
+            fontWeight: 300,
+            letterSpacing: -2.4,
+            lineHeight: 1.03,
+            color: colors.text,
+          },
+        },
+        'Two ways to put points on the board.',
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            width: 820,
+            marginTop: 34,
+            fontSize: 31,
+            lineHeight: 1.42,
+            color: colors.textMuted,
+          },
+        },
+        'Rank the front five. Then call every team-mate battle.',
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          top: 840,
+          gap: 22,
+        },
+      },
+      storyGameCard(
+        'TOP 5',
+        'Exact order',
+        'Five points for every driver in the exact position.',
+        colors.resultExact,
+      ),
+      storyGameCard(
+        'TEAM-MATE H2H',
+        'Every battle',
+        'One point for each correct head-to-head call.',
+        colors.resultNear,
+      ),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'absolute',
+          left: 80,
+          right: 80,
+          bottom: 110,
+          paddingTop: 26,
+          borderTop: `1px solid ${colors.borderStrong}`,
+          justifyContent: 'space-between',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 17,
+          fontWeight: 600,
+          letterSpacing: 2.2,
+          color: colors.textMuted,
+        },
+      },
+      e('div', { style: { display: 'flex' } }, 'FREE F1 PREDICTION GAME'),
+      e(
+        'div',
+        { style: { display: 'flex', color: colors.accent } },
+        'GrandPrixPicks.com/ig',
+      ),
+    ),
+  );
+}
+
 function driverFlag(driver: DriverVisual, width = 36): ReactNode {
   return e('img', {
     src: flagSources[driver.flag],
@@ -3110,6 +3328,22 @@ async function main() {
       console.log('Wrote %s (%d x %d)', outputPath, WIDTH, HEIGHT);
     }
   }
+
+  const storyOutputDirectory = `${CAMPAIGN_OUTPUT_DIR}/stories`;
+  await mkdir(storyOutputDirectory, { recursive: true });
+  const storySvg = await satori(scoringPollStory(), {
+    width: STORY_WIDTH,
+    height: STORY_HEIGHT,
+    fonts,
+  });
+  const storyPng = new Resvg(storySvg, {
+    fitTo: { mode: 'width', value: STORY_WIDTH },
+  })
+    .render()
+    .asPng();
+  const storyOutputPath = `${storyOutputDirectory}/01-scoring-poll.png`;
+  await writeFile(storyOutputPath, storyPng);
+  console.log('Wrote %s (%d x %d)', storyOutputPath, STORY_WIDTH, STORY_HEIGHT);
 }
 
 main().catch((error) => {

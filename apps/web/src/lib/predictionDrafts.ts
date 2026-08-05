@@ -90,3 +90,35 @@ export function clearPendingSubmit(draftKey: string) {
     // Ignore storage availability errors.
   }
 }
+
+const PENDING_SUBMIT_SUFFIX = ':pending-submit';
+
+/**
+ * Every draft key currently waiting on a sign-in, whatever wrote it.
+ *
+ * The flags above are read by whichever form owns that key, which only works
+ * while such a form is mounted. It is not on the landing page: signing in swaps
+ * the whole page for the dashboard on the same beat that auth lands, so both
+ * pickers unmount before they can act on their own flag. This is how the
+ * recovery pass finds what they left behind. See `PendingPickSubmitter`.
+ */
+export function listPendingSubmitDraftKeys(): string[] {
+  if (!canUseSessionStorage()) {
+    return [];
+  }
+  try {
+    const keys: string[] = [];
+    for (let index = 0; index < window.sessionStorage.length; index += 1) {
+      const key = window.sessionStorage.key(index);
+      if (
+        key?.endsWith(PENDING_SUBMIT_SUFFIX) &&
+        window.sessionStorage.getItem(key) === '1'
+      ) {
+        keys.push(key.slice(0, -PENDING_SUBMIT_SUFFIX.length));
+      }
+    }
+    return keys;
+  } catch {
+    return [];
+  }
+}

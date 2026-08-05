@@ -52,7 +52,7 @@ describe('modal dialog behaviour', () => {
     container?.remove();
     container = null;
     root = null;
-    document.body.style.overflow = '';
+    document.documentElement.removeAttribute('data-scroll-locked');
   });
 
   function render(ui: React.ReactNode) {
@@ -62,17 +62,23 @@ describe('modal dialog behaviour', () => {
     act(() => root!.render(ui));
   }
 
+  /** The lock is an attribute so it cannot collide with Clerk's own inline
+   *  `body.style.overflow`; see `lockBodyScroll`. */
+  function isScrollLocked() {
+    return document.documentElement.hasAttribute('data-scroll-locked');
+  }
+
   function buttons() {
     return [...(container?.querySelectorAll('button') ?? [])];
   }
 
   it('stops the page behind it scrolling, and gives it back on close', () => {
     render(<Dialog />);
-    expect(document.body.style.overflow).toBe('hidden');
+    expect(isScrollLocked()).toBe(true);
 
     act(() => root!.unmount());
     root = null;
-    expect(document.body.style.overflow).toBe('');
+    expect(isScrollLocked()).toBe(false);
   });
 
   it('keeps the page locked until the last stacked modal closes', () => {
@@ -85,14 +91,14 @@ describe('modal dialog behaviour', () => {
         <Dialog />
       </>,
     );
-    expect(document.body.style.overflow).toBe('hidden');
+    expect(isScrollLocked()).toBe(true);
 
     act(() => root!.render(<Dialog />));
-    expect(document.body.style.overflow).toBe('hidden');
+    expect(isScrollLocked()).toBe(true);
 
     act(() => root!.unmount());
     root = null;
-    expect(document.body.style.overflow).toBe('');
+    expect(isScrollLocked()).toBe(false);
   });
 
   it('moves focus into the panel, and to a requested element when given one', () => {

@@ -2,6 +2,8 @@ import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
+import { useBodyScrollLock } from '@/hooks/useModalDialog';
+
 import { useViewerSession } from './useViewerSession';
 
 /**
@@ -108,8 +110,15 @@ export function AuthCurtainHost({
  * `role="status"` + `aria-live="polite"` announces the wait once; the shell
  * behind it carries `inert` (see `AppShell` in `__root.tsx`) so assistive tech
  * and the tab order never reach the content this is covering.
+ *
+ * `inert` does not stop a wheel or a swipe, though, so the page kept scrolling
+ * under the loader: the curtain is opaque and fixed, so what moved behind it
+ * was invisible, and the handoff ended on a page scrolled somewhere the visitor
+ * never chose. The lock is the same counted one the modals use.
  */
 function SigningInCurtain() {
+  useBodyScrollLock(true);
+
   return (
     <div
       className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page"

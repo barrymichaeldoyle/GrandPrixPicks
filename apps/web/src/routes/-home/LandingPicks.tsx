@@ -405,15 +405,23 @@ export function LandingPicks({
           the team-mate step is a single narrow column. Sizing the container to
           the active step keeps the heading on the same left edge as the picker
           under it, instead of the heading spanning 6xl while a centred 3xl
-          panel sat 192px inboard of it. */}
+          panel sat 192px inboard of it.
+
+          That column has to move between the steps, then — there is no width
+          that is right for both — so the point of the transition is that it
+          moves rather than teleports. Continue already scrolls the step header
+          up the page; a 24rem snap landing on the same frame read as the layout
+          breaking rather than as one step handing over to the next. Only the
+          container animates: the duel card inside is already at its own 3xl and
+          simply re-centres as the box closes around it.
+
+          `ease-in-out`, not the `ease-out` the rest of the page uses for
+          entrances. Over 384px an ease-out spends three quarters of the travel
+          in the first 100ms, which is the snap again with a slow tail bolted
+          on; a symmetric curve is the one that reads as the column moving. */}
       <div
-        className={`mx-auto w-full ${activeStep === 'top5' ? 'max-w-6xl' : 'max-w-3xl'}`}
+        className={`mx-auto w-full transition-[max-width] duration-300 ease-in-out motion-reduce:transition-none ${activeStep === 'top5' ? 'max-w-6xl' : 'max-w-3xl'}`}
       >
-        <span
-          data-landing-picks-start="true"
-          className="block h-px"
-          aria-hidden="true"
-        />
         {/* No rule under the step heading: the section already opens on a
             hairline, and a second one here reads as a divider between the
             heading and the picker it introduces, not as a heading underline. */}
@@ -511,6 +519,11 @@ export function LandingPicks({
                       matchups={matchups}
                       analyticsSource="landing"
                       entryMethod={h2hEntryMethod}
+                      // The finished card here sits above the sign-in button
+                      // and below the Top 5, so reopening a battle inline
+                      // pushed both away from the reader mid-decision. One
+                      // battle in a takeover leaves the card where it was.
+                      collapsedEdit="modal"
                       onSaveIntent={prepareCombinedSave}
                       onStartOver={startOver}
                       onSelectionProgress={handleSelectionProgress}
@@ -646,7 +659,10 @@ function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
 
   return (
     <div
-      className="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center"
+      // No rule above this. The button submits the card directly above it, so a
+      // divider between them reads as a boundary between two things when it is
+      // one thing and its action. Spacing alone carries the grouping.
+      className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"
       data-testid="h2h-save-wall"
     >
       {/* The conversion button on the page. Booting Clerk starts on the hover

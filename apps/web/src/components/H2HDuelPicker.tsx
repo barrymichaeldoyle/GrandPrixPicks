@@ -1,18 +1,28 @@
 import { m, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, Check, Swords } from 'lucide-react';
-import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
 import { tapHaptic } from '@/lib/haptics';
+import type { SessionType } from '@/lib/sessions';
+import { SESSION_LABELS } from '@/lib/sessions';
 
 import { Button } from './Button/Button';
-import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
-import { Flag } from './Flag';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import type { H2HDriver, H2HMatchup } from './H2HMatchupGrid';
 import { H2HPicksBar } from './H2HPicksBar';
+import { DUEL_CONFIRM_HOLD_MS, H2HDuelQuestion } from './H2HDuelQuestion';
+import { PicksFocusOverlay } from './PicksFocusOverlay';
 
-const ADVANCE_DELAY_MS = 280;
+/**
+ * How long the answered duel stays on screen before the next one replaces it.
+ *
+ * Long enough to see the pick land: the accent line takes about 460ms to run
+ * the card's perimeter and the check badge lands with it, and an animation
+ * nobody ever watches finish is one there is no point paying for. Short enough
+ * that eleven battles still feel like a rhythm rather than a queue.
+ */
+const ADVANCE_DELAY_MS = 420;
 
 export function H2HDuelPicker({
   matchups,
@@ -21,6 +31,8 @@ export function H2HDuelPicker({
   draftHydrated = true,
   topFivePositions,
   onExitPrevious,
+  collapsedEdit = 'inline',
+  sessionType,
 }: {
   matchups: H2HMatchup[];
   selections: Record<string, H2HDriver['_id'] | undefined>;
@@ -38,6 +50,20 @@ export function H2HDuelPicker({
    * to Top 5 in a two-step funnel). Without this, Previous stays disabled.
    */
   onExitPrevious?: () => void;
+  /**
+   * How reopening one battle from a *finished* card is presented.
+   *
+   * `inline` reopens the duel under the strip, which grows the card and pushes
+   * everything below it (including the submit button) down the page. That is
+   * fine mid-sequence, where the card is the only thing on screen, but on a
+   * completed prediction card it shoves content around under the reader's
+   * thumb. `modal` puts that one battle in the same focused takeover a
+   * signed-in player gets from their dashboard, so the card underneath stays
+   * exactly where it was. Mid-sequence presentation is unaffected either way.
+   */
+  collapsedEdit?: 'inline' | 'modal';
+  /** Names the session in the takeover subtitle, so an edit says what it edits. */
+  sessionType?: SessionType;
 }) {
   const reduceMotion = useReducedMotion();
   const firstOpenIndex = (() => {
@@ -54,6 +80,8 @@ export function H2HDuelPicker({
    * cell brings that one battle back; answering it folds the card away again.
    */
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  /** Confirms the answer during the hold before the takeover closes. */
+  const [justSaved, setJustSaved] = useState(false);
   const timerRef = useRef<number | null>(null);
   const syncedToDraftRef = useRef(false);
 
@@ -107,6 +135,7 @@ export function H2HDuelPicker({
     const next = Math.min(Math.max(index, 0), matchups.length - 1);
     setActiveIndex(next);
     setEditingIndex(next);
+    setJustSaved(false);
   }
 
   function goToNextOpenMatchup(selectedMatchupId: H2HMatchup['_id']) {
@@ -149,10 +178,14 @@ export function H2HDuelPicker({
         candidate._id === matchup._id ||
         selections[candidate._id] !== undefined,
     );
+    setJustSaved(answered);
     timerRef.current = window.setTimeout(
       () =>
         answered ? setEditingIndex(null) : goToNextOpenMatchup(matchup._id),
-      reduceMotion ? 0 : ADVANCE_DELAY_MS,
+      // A takeover closing is a bigger event than a card advancing, and it is
+      // the only one that has to show its own answer before it goes: the
+      // sequence hands you the next battle, the takeover hands you nothing.
+      reduceMotion ? 0 : modalEdit ? DUEL_CONFIRM_HOLD_MS : ADVANCE_DELAY_MS,
     );
   }
 
@@ -163,10 +196,63 @@ export function H2HDuelPicker({
   const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
 
   const collapsed = complete && editingIndex === null;
+  /**
+   * Reopening one battle from a finished card, presented as a takeover.
+   *
+   * Mutually exclusive with `collapsed` (that is the same card with nothing
+   * open). While it is true the card underneath must keep reading as finished:
+   * the takeover is over the top, so the strip has not gone back to being a
+   * sequence and its chrome should not say it has.
+   */
+  const modalEdit =
+    collapsedEdit === 'modal' && complete && editingIndex !== null;
+  const showFinishedCard = collapsed || modalEdit;
+
+  const duelCard = (
+    <m.div
+      key={matchup._id}
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
+      }
+      style={{ transformOrigin: '50% 40%' }}
+      // In the takeover the card *is* the screen, so it stretches and the
+      // question lays itself out for that; inline it stays a card in a page.
+      className={modalEdit ? 'flex min-h-0 flex-1 flex-col pb-4 sm:block' : ''}
+    >
+      <H2HDuelQuestion
+        matchup={matchup}
+        selectedDriverId={selections[matchup._id]}
+        topFivePositions={topFivePositions}
+        onPick={pick}
+        variant={modalEdit ? 'takeover' : 'inline'}
+        // The takeover's own title already carries the team dot and name.
+        showTeam={!modalEdit}
+        // Only in the takeover: mid-sequence the row under the card already
+        // says where you are and what to do, and the dashboard's duel modal
+        // says exactly this in exactly this place.
+        status={
+          modalEdit ? (
+            justSaved ? (
+              <span className="inline-flex items-center gap-1.5 text-accent">
+                <Check size={14} strokeWidth={3} aria-hidden="true" />
+                Saved
+              </span>
+            ) : (
+              'Tap a driver to save this battle.'
+            )
+          ) : undefined
+        }
+      />
+    </m.div>
+  );
 
   return (
     <div className="mx-auto w-full max-w-3xl" data-testid="h2h-duel-picker">
-      <div className={collapsed ? '' : 'mb-4'}>
+      <div className={showFinishedCard ? '' : 'mb-4'}>
         {/* One progress mechanism, not three. This label and the strip under it
             already say where you are; the "n/11" counter that used to sit
             opposite restated both, and on a finished card "11/11" restated
@@ -177,7 +263,7 @@ export function H2HDuelPicker({
             aria-live="polite"
             data-testid="h2h-duel-progress"
           >
-            {collapsed ? (
+            {showFinishedCard ? (
               <>
                 <Check size={14} className="text-accent" aria-hidden="true" />
                 All battles called
@@ -190,7 +276,7 @@ export function H2HDuelPicker({
               strip in the same shouty label style as the status above it, so a
               finished card spent three lines of chrome on eleven cells. It is a
               hint, not a heading: quiet, and on the row it belongs to. */}
-          {collapsed ? (
+          {showFinishedCard ? (
             <p className="text-xs text-text-muted">Tap one to change it</p>
           ) : null}
         </div>
@@ -203,7 +289,7 @@ export function H2HDuelPicker({
         />
       </div>
 
-      {collapsed ? null : (
+      {showFinishedCard ? null : (
         <>
           {/* Stable chrome, animated contents. Sliding the whole card made each
           pick feel like a carousel page; the frame stays put and the next
@@ -212,49 +298,7 @@ export function H2HDuelPicker({
           header counter and the card on screen disagreed for the length of
           the transition. */}
           <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
-            <m.div
-              key={matchup._id}
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 6 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={
-                reduceMotion
-                  ? { duration: 0 }
-                  : { type: 'spring', stiffness: 520, damping: 32, mass: 0.8 }
-              }
-              style={{ transformOrigin: '50% 40%' }}
-            >
-              <div className="mb-4 text-center">
-                <p className="gpp-label flex items-center justify-center gap-2 text-text-muted">
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: teamColor }}
-                    aria-hidden="true"
-                  />
-                  {displayTeamName(matchup.team)}
-                </p>
-                <h3 className="mt-2 text-xl font-medium text-text">
-                  Who finishes ahead?
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:gap-3">
-                <DuelDriverButton
-                  driver={matchup.driver1}
-                  selected={selections[matchup._id] === matchup.driver1._id}
-                  topFivePosition={topFivePositions?.[matchup.driver1._id]}
-                  onClick={() => pick(matchup.driver1._id)}
-                />
-                <span className="gpp-mono flex items-center justify-center text-xs font-semibold text-text-muted">
-                  VS
-                </span>
-                <DuelDriverButton
-                  driver={matchup.driver2}
-                  selected={selections[matchup._id] === matchup.driver2._id}
-                  topFivePosition={topFivePositions?.[matchup.driver2._id]}
-                  onClick={() => pick(matchup.driver2._id)}
-                />
-              </div>
-            </m.div>
+            {duelCard}
           </div>
 
           <div className="mt-3 flex min-h-9 items-center justify-between gap-3">
@@ -290,141 +334,37 @@ export function H2HDuelPicker({
           </div>
         </>
       )}
-    </div>
-  );
-}
 
-/**
- * One side of a duel. Exported because a single battle is also editable on its
- * own from a finished card (see H2HDuelFocusModal) and both places must feel
- * like the same control.
- */
-export function DuelDriverButton({
-  driver,
-  selected,
-  topFivePosition,
-  onClick,
-  className = '',
-  size = 'md',
-}: {
-  driver: H2HDriver;
-  selected: boolean;
-  topFivePosition?: number;
-  onClick: () => void;
-  /** Lets a caller size the panel, e.g. stretch it to fill a takeover. */
-  className?: string;
-  /**
-   * `lg` for a panel that owns the screen (the single-duel takeover), where
-   * the default type left the driver as a small island in a tall card. The
-   * eleven-battle sequence keeps `md`: there the card is one step of many and
-   * the surrounding chrome needs the room.
-   */
-  size?: 'md' | 'lg';
-}) {
-  const reduceMotion = useReducedMotion();
-  const isLarge = size === 'lg';
-  const teamColor =
-    (driver.team && TEAM_COLORS[driver.team]) ?? FALLBACK_TEAM_COLOR;
-
-  /*
-   * Hover does not move the card. Lifting it was generic (every SaaS card in
-   * existence does it) and it fought the flat surface this system is built on,
-   * where depth is a lighter surface plus a hairline and nothing floats. Hover
-   * is that surface step, full stop.
-   *
-   * The reward is spent on the pick instead, where it is earned and where it
-   * only fires eleven times: an accent beam crosses the card like a car
-   * tripping a timing loop, and the confirm badge snaps in behind it.
-   */
-  const [sweepId, setSweepId] = useState(0);
-  const wasSelectedRef = useRef(selected);
-  useEffect(() => {
-    if (selected && !wasSelectedRef.current) {
-      setSweepId((id) => id + 1);
-    }
-    wasSelectedRef.current = selected;
-  }, [selected]);
-
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      aria-label={`Pick ${driver.displayName}${
-        topFivePosition ? `, your P${topFivePosition}` : ''
-      }`}
-      onClick={onClick}
-      className={`gpp-team-bar relative flex min-h-36 min-w-0 flex-col items-center justify-center gap-3 overflow-hidden rounded-lg border px-2 py-5 text-center transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:min-h-44 sm:px-4 ${
-        selected
-          ? 'border-accent bg-accent-muted/25'
-          : 'border-border bg-page hover:border-border-strong hover:bg-surface-elevated'
-      } ${className}`}
-      style={{ '--team-colour': teamColor } as CSSProperties}
-    >
-      {sweepId > 0 && !reduceMotion ? (
-        <m.span
-          key={sweepId}
-          className="pointer-events-none absolute inset-y-0 w-0.5 bg-accent"
-          initial={{ left: '0%', opacity: 1 }}
-          animate={{ left: '100%', opacity: 0 }}
-          transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-          aria-hidden="true"
-        />
-      ) : null}
-      {/* The one place the two games talk to each other: if you already put
-          this driver in your Top 5, the duel should not make you remember. */}
-      {topFivePosition ? (
-        <span className="gpp-mono absolute top-2 left-2 rounded-sm border border-accent/40 px-1 py-0.5 text-[10px] leading-none text-accent">
-          YOUR P{topFivePosition}
-        </span>
-      ) : null}
-      {/* Flag beside the code, not beside the name: a name long enough to wrap
-          ("Antonelli" at this size on a 375px screen) would strand the flag
-          alone on the first line. Pinned to the badge it reads as one identity
-          plate and never moves. */}
-      <span className="flex items-center gap-2">
-        {driver.nationality ? (
-          <Flag code={driver.nationality} size={isLarge ? 'md' : 'sm'} />
-        ) : null}
-        <DriverBadge
-          code={driver.code}
-          team={driver.team}
-          displayName={driver.displayName}
-          number={driver.number}
-          nationality={driver.nationality}
-          size={isLarge ? 'lg' : 'md'}
-          prerenderTooltip={false}
-        />
-      </span>
-      <span className="min-w-0">
-        <span
-          className={`block leading-tight font-medium text-text ${
-            isLarge ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
-          }`}
+      {/* One battle, over the top of the finished card, so changing a call
+          never moves the card or the submit button under the reader's thumb.
+          Deliberately the same overlay a signed-in player gets from their
+          dashboard: the difference between the two is only where the answer is
+          written (a device draft here, Convex there), which is not something
+          the interface should express. There is no Save button because the
+          pick is the submit, and no Previous/Next because this is one battle
+          rather than a sequence. */}
+      {collapsedEdit === 'modal' ? (
+        <PicksFocusOverlay
+          open={modalEdit}
+          onClose={() => setEditingIndex(null)}
+          title={
+            <span className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: teamColor }}
+                aria-hidden="true"
+              />
+              {displayTeamName(matchup.team)}
+            </span>
+          }
+          subtitle={
+            sessionType ? `${SESSION_LABELS[sessionType]} only` : undefined
+          }
+          fillBody
         >
-          {driver.displayName}
-        </span>
-        {driver.number != null ? (
-          <span
-            className={`gpp-mono mt-1 block text-text-muted ${
-              isLarge ? 'text-base' : 'text-sm'
-            }`}
-          >
-            #{driver.number}
-          </span>
-        ) : null}
-      </span>
-      <m.span
-        className={`absolute right-2 bottom-2 inline-flex h-5 w-5 items-center justify-center rounded-full border ${
-          selected
-            ? 'border-accent bg-accent text-text-on-accent'
-            : 'border-border text-transparent'
-        }`}
-        animate={selected && !reduceMotion ? { scale: [0.4, 1] } : { scale: 1 }}
-        transition={{ type: 'spring', stiffness: 620, damping: 18 }}
-        aria-hidden="true"
-      >
-        <Check size={12} strokeWidth={3} />
-      </m.span>
-    </button>
+          {duelCard}
+        </PicksFocusOverlay>
+      ) : null}
+    </div>
   );
 }

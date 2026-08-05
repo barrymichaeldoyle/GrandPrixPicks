@@ -14,6 +14,7 @@
     "render-x-posts": "tsx scripts/render-x-posts.mts",
     "schedule-x-launch": "tsx scripts/schedule-x-launch-posts.mts",
     "schedule-instagram-h2h": "tsx scripts/schedule-instagram-h2h-content.mts",
+    "schedule-instagram-scoring-poll": "tsx scripts/schedule-instagram-scoring-poll.mts",
     "render-reddit-banners": "tsx scripts/render-social-banners.mts --reddit-only",
     "render-reddit-launch": "tsx scripts/render-reddit-launch-posts.mts",
     "render-instagram-pins": "tsx scripts/render-instagram-pinned-posts.mts",

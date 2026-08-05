@@ -10,7 +10,7 @@ const scoringBands = [
     title: 'Exact position',
     copy: 'Your driver finishes exactly where you predicted.',
     textClass: 'text-result-exact',
-    ruleClass: 'border-b-result-exact',
+    ruleClass: 'bg-result-exact',
   },
   {
     points: 3,
@@ -18,7 +18,7 @@ const scoringBands = [
     title: 'One position away',
     copy: 'Your driver finishes one place above or below your pick.',
     textClass: 'text-result-near',
-    ruleClass: 'border-b-result-near',
+    ruleClass: 'bg-result-near',
   },
   {
     points: 1,
@@ -26,7 +26,7 @@ const scoringBands = [
     title: 'In the actual Top 5',
     copy: 'Your driver still finishes in the Top 5, but further away.',
     textClass: 'text-result-top5',
-    ruleClass: 'border-b-result-top5',
+    ruleClass: 'bg-result-top5',
   },
 ] as const;
 
@@ -56,18 +56,31 @@ export function ScoringSection() {
           {scoringBands.map((band) => (
             <article
               key={band.points}
-              className={`flex min-h-48 flex-col border border-b-4 border-border bg-surface p-5 ${band.ruleClass}`}
+              // `min-h-48` equalises the three columns on desktop. Below `md`
+              // they stack single-column, where the floor is no longer holding
+              // anything level and just leaves a dead band between the copy and
+              // the sector rule, so it starts at the same breakpoint as the grid.
+              //
+              // `border-b-0` + a filled rule strip (not `border-b-8`) keeps the
+              // sector colour square-ended — CSS miters adjacent borders.
+              className="flex flex-col border border-b-0 border-border bg-surface md:min-h-48"
             >
-              <div className={`flex items-end gap-2 ${band.textClass}`}>
-                <span className="gpp-mono text-4xl leading-none font-semibold">
-                  {band.points}
-                </span>
-                <span className="gpp-label pb-0.5">{band.unit}</span>
+              <div className="flex flex-1 flex-col p-5">
+                <div className={`flex items-end gap-2 ${band.textClass}`}>
+                  <span className="gpp-mono text-4xl leading-none font-semibold">
+                    {band.points}
+                  </span>
+                  <span className="gpp-label pb-0.5">{band.unit}</span>
+                </div>
+                <h3 className="mt-5 font-semibold text-text">{band.title}</h3>
+                <p className="gpp-reading-copy mt-2 text-text-muted">
+                  {band.copy}
+                </p>
               </div>
-              <h3 className="mt-5 font-semibold text-text">{band.title}</h3>
-              <p className="gpp-reading-copy mt-2 text-text-muted">
-                {band.copy}
-              </p>
+              <div
+                className={`h-2 shrink-0 ${band.ruleClass}`}
+                aria-hidden="true"
+              />
             </article>
           ))}
         </div>

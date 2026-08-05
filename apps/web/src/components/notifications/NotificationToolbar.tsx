@@ -1,6 +1,7 @@
 import type { NotificationFilter } from '@grandprixpicks/shared/notifications';
 import { Link } from '@tanstack/react-router';
 import { Check } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import {
   formatNotificationCount,
@@ -12,34 +13,26 @@ const pillClass =
   'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none';
 
 /**
- * Filter controls above the list. The category chips are the mobile stand-in
- * for the rail nav, which collapses below `lg`; the unread switch is the one
- * control that stays visible at every width.
+ * The unread lens, which is not a filter category: it narrows whichever
+ * category is selected and survives changing them.
  *
- * Chips are links for the same reason the rail nav is. The switch stays a
- * button: it is a state toggle rather than a destination, and `aria-pressed`
- * is what conveys that.
+ * It used to lead the chip row, where it ate roughly a third of a phone's
+ * width and pushed the last two categories off screen with nothing to say they
+ * were there. It lives in the page header now, which is the row that had space
+ * going spare, and where its "lens over everything below" reading is the
+ * obvious one.
+ *
+ * A button rather than a link: it is a state toggle rather than a destination,
+ * and `aria-pressed` is what conveys that.
  */
-export function NotificationToolbar({
-  filter,
-  counts,
-  countsTruncated = false,
+export function NotificationUnreadToggle({
   unreadOnly,
-  searchFor,
   onUnreadOnlyChange,
 }: {
-  filter: NotificationFilter;
-  counts: NotificationFilterCounts;
-  /** Counts cover a bounded window of history; render them as "N+" past it. */
-  countsTruncated?: boolean;
   unreadOnly: boolean;
-  searchFor: (filter: NotificationFilter) => {
-    filter?: NotificationFilter;
-    unread?: true;
-  };
   onUnreadOnlyChange: (unreadOnly: boolean) => void;
 }) {
-  const unreadToggle = (
+  return (
     <button
       type="button"
       aria-pressed={unreadOnly}
@@ -57,22 +50,62 @@ export function NotificationToolbar({
       Unread only
     </button>
   );
+}
+
+/**
+ * The category chips: the mobile stand-in for the rail nav, which only appears
+ * from `lg`. Chips are links for the same reason the rail nav is — the filter
+ * is URL state.
+ */
+export function NotificationToolbar({
+  filter,
+  counts,
+  countsTruncated = false,
+  searchFor,
+}: {
+  filter: NotificationFilter;
+  counts: NotificationFilterCounts;
+  /** Counts cover a bounded window of history; render them as "N+" past it. */
+  countsTruncated?: boolean;
+  searchFor: (filter: NotificationFilter) => {
+    filter?: NotificationFilter;
+    unread?: true;
+  };
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLAnchorElement>(null);
+
+  // A selected category that sits off the right edge is a filter the reader
+  // cannot see they are inside: the list is narrowed and the control saying so
+  // is out of frame. Centring it is also the scroll affordance — a row that
+  // arrives already scrolled is visibly a row that scrolls.
+  //
+  // Instant, not smooth: on first paint there is nothing to animate away from,
+  // and `scrollTo` on the row (rather than `scrollIntoView` on the chip) keeps
+  // this from ever moving the page vertically.
+  useEffect(() => {
+    const row = rowRef.current;
+    const chip = selectedRef.current;
+    if (!row || !chip) {
+      return;
+    }
+    const centred = chip.offsetLeft - (row.clientWidth - chip.clientWidth) / 2;
+    row.scrollTo({ left: Math.max(0, centred) });
+  }, [filter]);
 
   return (
-    <div className="mb-5">
+    <div className="mb-5 lg:hidden">
       {/*
         One scrolling row beats a wrapping block of chips on a phone. The
         negative margin lets it bleed to the screen edge so the last chip reads
         as scrollable rather than clipped.
 
-        The unread toggle rides in the same row rather than owning a second one
-        below it, which spent a full row of a phone screen on a single control.
-        It leads, and a hairline separates it from the categories, because it is
-        not a sixth category: it is a lens over whichever one is selected, and
-        it survives changing them. Sitting inline between "All" and "Reactions"
-        it read as a category you would lose by picking another.
+        The unread toggle used to lead this row and cost it a third of its
+        width, which was the difference between five categories being reachable
+        and two of them being invisible. It lives in the page header now.
       */}
       <div
+        ref={rowRef}
         role="group"
         // Distinct from the rail `<nav aria-label="Notification filters">`,
         // which is the same set of categories at `lg`. Two landmarks answering
@@ -80,47 +113,35 @@ export function NotificationToolbar({
         aria-label="Filter notifications"
         className="-mx-4 flex [scrollbar-width:none] items-center gap-2 overflow-x-auto px-4 pb-1 [&::-webkit-scrollbar]:hidden"
       >
-        {unreadToggle}
-        {/* `contents` so these stay flex items of the scrolling row while the
-            wrapper still carries the one `lg:hidden` that retires the whole
-            category group to the desktop rail. */}
-        <div className="contents lg:hidden">
-          {/* `border-strong`, not `border`: a hairline at the card-edge value
-              is invisible against a pill row and reads as an accidental gap,
-              which is worse than no separator at all. */}
-          <span
-            aria-hidden
-            className="mx-0.5 h-5 w-px shrink-0 self-center bg-border-strong"
-          />
-          {NOTIFICATION_FILTERS.map(({ value, shortLabel, icon: Icon }) => {
-            const selected = filter === value;
-            const { unread } = counts[value];
-            return (
-              <Link
-                key={value}
-                to="/notifications"
-                search={searchFor(value)}
-                replace
-                resetScroll={false}
-                aria-current={selected ? 'true' : undefined}
-                className={`${pillClass} ${
-                  selected
-                    ? 'border-accent bg-accent text-text-on-accent'
-                    : 'border-border bg-surface text-text hover:border-border-strong hover:bg-surface-muted/60'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden />
-                {shortLabel}
-                {unread > 0 && !selected ? (
-                  <span className="gpp-mono text-[10px] text-accent">
-                    {formatNotificationCount(unread, countsTruncated)}
-                    <span className="sr-only"> unread</span>
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </div>
+        {NOTIFICATION_FILTERS.map(({ value, shortLabel, icon: Icon }) => {
+          const selected = filter === value;
+          const { unread } = counts[value];
+          return (
+            <Link
+              key={value}
+              ref={selected ? selectedRef : undefined}
+              to="/notifications"
+              search={searchFor(value)}
+              replace
+              resetScroll={false}
+              aria-current={selected ? 'true' : undefined}
+              className={`${pillClass} ${
+                selected
+                  ? 'border-accent bg-accent text-text-on-accent'
+                  : 'border-border bg-surface text-text hover:border-border-strong hover:bg-surface-muted/60'
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" aria-hidden />
+              {shortLabel}
+              {unread > 0 && !selected ? (
+                <span className="gpp-mono text-[10px] text-accent">
+                  {formatNotificationCount(unread, countsTruncated)}
+                  <span className="sr-only"> unread</span>
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

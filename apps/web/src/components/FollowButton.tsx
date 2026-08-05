@@ -32,8 +32,19 @@ export function FollowButton({
   const unfollowMutation = useMutation(api.follows.unfollow);
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  /*
+   * The pointer has not left since the user acted, so the button is only under
+   * the cursor because they just clicked it.
+   *
+   * Without this the hover swap eats its own confirmation: you click Follow,
+   * the cursor is still on the button, and "Following" immediately reads
+   * "Unfollow" in error red — which looks like the follow did not take. The
+   * swap is for *returning* to the button, so it waits for a real departure.
+   */
+  const [heldSinceAction, setHeldSinceAction] = useState(false);
 
   const following = optimistic ?? isFollowing;
+  const offeringUnfollow = isHovered && !heldSinceAction;
 
   if (isFollowing === undefined) {
     return null;
@@ -44,6 +55,7 @@ export function FollowButton({
     e.stopPropagation();
     const willFollow = !following;
     setOptimistic(willFollow);
+    setHeldSinceAction(true);
     try {
       if (willFollow) {
         await followMutation({ followeeId });
@@ -71,10 +83,21 @@ export function FollowButton({
       <button
         type="button"
         onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        // Pointer events, not mouse events, and only for a real mouse: a tap
+        // fires the compatibility mouse events with no `mouseleave` to follow,
+        // which used to leave a phone showing "Unfollow" until the next tap.
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') {
+            setIsHovered(true);
+          }
+        }}
+        onPointerLeave={() => {
+          setIsHovered(false);
+          setHeldSinceAction(false);
+        }}
+        onBlur={() => setHeldSinceAction(false)}
         className={`${buttonClass} ${
-          isHovered
+          offeringUnfollow
             ? 'border border-error/30 bg-error/10 text-error'
             : 'border border-border bg-surface-muted text-text-muted'
         }`}
@@ -82,7 +105,7 @@ export function FollowButton({
         <span className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
           <span
             className={`absolute inset-0 flex items-center justify-center transition-opacity ${
-              isHovered ? 'opacity-0' : 'opacity-100'
+              offeringUnfollow ? 'opacity-0' : 'opacity-100'
             }`}
             aria-hidden
           >
@@ -90,14 +113,16 @@ export function FollowButton({
           </span>
           <span
             className={`absolute inset-0 flex -translate-x-0.5 items-center justify-center transition-opacity ${
-              isHovered ? 'opacity-100' : 'opacity-0'
+              offeringUnfollow ? 'opacity-100' : 'opacity-0'
             }`}
             aria-hidden
           >
             <User className="h-3.5 w-3.5" />
           </span>
         </span>
-        <span className="flex-1">{isHovered ? 'Unfollow' : 'Following'}</span>
+        <span className="flex-1">
+          {offeringUnfollow ? 'Unfollow' : 'Following'}
+        </span>
       </button>
     );
   }

@@ -8,11 +8,9 @@ import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/Button/Button';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
+import { useModalDialog } from '@/hooks/useModalDialog';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import type { SessionType } from '@/lib/sessions';
-
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 type CompetitiveSessionType = 'sprint_quali' | 'sprint' | 'quali';
 
@@ -50,9 +48,12 @@ export function PracticeResultsModal({
   predictionSession: SessionType;
   hasSprint: boolean;
 }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useModalDialog<HTMLDivElement>({
+    open,
+    onClose,
+    initialFocusRef: closeButtonRef,
+  });
   const results = useQuery(
     api.practiceResults.getPracticeResultsForRace,
     open ? { raceId } : 'skip',
@@ -84,53 +85,13 @@ export function PracticeResultsModal({
     if (!open) {
       return;
     }
-    returnFocusRef.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
     captureAnalyticsEvent('session_results_modal_opened', {
       race_id: raceId,
       race_slug: raceSlug,
       prediction_session: predictionSession,
       has_sprint: hasSprint,
     });
-    closeButtonRef.current?.focus();
-    return () => {
-      returnFocusRef.current?.focus();
-    };
   }, [hasSprint, open, predictionSession, raceId, raceSlug]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        onClose();
-        return;
-      }
-      if (event.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-        ).filter((element) => element.offsetParent !== null);
-        if (focusable.length === 0) {
-          return;
-        }
-        const currentIndex = focusable.indexOf(
-          document.activeElement as HTMLElement,
-        );
-        if (event.shiftKey && currentIndex <= 0) {
-          event.preventDefault();
-          focusable.at(-1)?.focus();
-        } else if (!event.shiftKey && currentIndex === focusable.length - 1) {
-          event.preventDefault();
-          focusable[0]?.focus();
-        }
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose, open]);
 
   if (!open) {
     return null;

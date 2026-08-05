@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import { useQuery } from 'convex/react';
+import { useRef } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
@@ -85,7 +86,23 @@ export function SuggestedFollowsCard() {
     limit: 3,
   });
 
-  if (suggested === undefined || suggested.length === 0) {
+  /*
+   * The query is reactive, so following someone drops them from its result and
+   * pulls a replacement in behind them — the card refills itself and the list
+   * never ends, which is how you give someone follow fatigue in three clicks.
+   *
+   * So the first non-empty result is pinned for the life of the mount: the row
+   * you just followed stays put and flips to "Following", and the card runs out
+   * of people the way a finite list should. Fresh suggestions arrive on the
+   * next visit to the page.
+   */
+  const pinned = useRef<typeof suggested>(undefined);
+  if (pinned.current === undefined && suggested && suggested.length > 0) {
+    pinned.current = suggested;
+  }
+  const rows = pinned.current;
+
+  if (!rows || rows.length === 0) {
     return null;
   }
 
@@ -98,9 +115,21 @@ export function SuggestedFollowsCard() {
 
       {/* Rows are separated by rule rather than gap: three name/reason pairs
           stacked on plain background read as one block of text otherwise. */}
-      <ul className="-my-3 divide-y divide-border/40">
-        {suggested.map((user) => (
-          <li key={user._id} className="flex gap-2.5 py-3">
+      <ul className="-my-2.5 divide-y divide-border/40">
+        {/* One wrap flow rather than a fixed stack. The button carries a 7rem
+            min-width so "Following" cannot resize into "Unfollow" on hover;
+            beside a 8rem-minimum text column that fits a full-width card (the
+            mobile case, and the point of the row layout) but not the ~300px
+            desktop rail, where it drops to its own line and the reason keeps
+            the whole width instead of truncating to "Followed by Lan...".
+
+            The text column's fixed floor is also what lets a long display name
+            truncate rather than widen the row. */}
+        {rows.map((user) => (
+          <li
+            key={user._id}
+            className="flex flex-wrap items-center gap-x-2.5 gap-y-2 py-2.5"
+          >
             <Link
               to="/p/$username"
               params={{ username: user.username }}
@@ -116,15 +145,7 @@ export function SuggestedFollowsCard() {
               />
             </Link>
 
-            {/* The follow button sits under the text, not beside it. It carries
-                a 7rem min-width so "Following" cannot resize into "Unfollow" on
-                hover, and in a 300px rail that left the reason line ~130px —
-                every variant truncated to "Followed by Lan...". Below the text
-                it gets the full column instead, and the reason survives.
-
-                min-w-0 here and on the name is what lets a long display name
-                truncate rather than widening the row. */}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-[8rem] flex-1">
               <Link
                 to="/p/$username"
                 params={{ username: user.username }}
@@ -134,7 +155,7 @@ export function SuggestedFollowsCard() {
                 {user.displayName}
               </Link>
 
-              <div className="mt-1 flex items-center gap-1.5">
+              <div className="mt-0.5 flex items-center gap-1.5">
                 <MutualAvatars user={user} />
                 {/* Two lines before it gives up, so a long league name wraps
                     instead of being cut mid-word. */}
@@ -142,13 +163,10 @@ export function SuggestedFollowsCard() {
                   {reasonText(user)}
                 </p>
               </div>
+            </div>
 
-              <div className="mt-2">
-                <FollowButton
-                  followeeId={user._id}
-                  source="suggested_follows"
-                />
-              </div>
+            <div className="shrink-0">
+              <FollowButton followeeId={user._id} source="suggested_follows" />
             </div>
           </li>
         ))}

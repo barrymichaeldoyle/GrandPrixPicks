@@ -3,8 +3,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
+import { useModalDialog } from '@/hooks/useModalDialog';
 
 /** Sentinel key marking the history entry pushed while the overlay is open. */
 const HISTORY_KEY = 'picksFocusOverlay';
@@ -44,36 +43,18 @@ export function PicksFocusOverlay({
   fillBody = false,
   children,
 }: PicksFocusOverlayProps) {
-  const panelRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const suspendedRef = useRef(suspended);
   suspendedRef.current = suspended;
 
-  // Focus the panel on open; hand focus back to the trigger on close.
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const previouslyFocused = document.activeElement;
-    panelRef.current?.focus();
-    return () => {
-      if (previouslyFocused instanceof HTMLElement) {
-        previouslyFocused.focus();
-      }
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
+  // Scroll lock, focus trap, Escape and focus restore. `suspended` releases the
+  // trap and Escape (not the lock) so a stacked confirm dialog owns them.
+  const panelRef = useModalDialog<HTMLDivElement>({
+    open,
+    onClose,
+    suspended,
+  });
 
   // Make browser/hardware Back close the overlay instead of leaving the page
   // (it's a full-screen takeover on mobile, where Back is the natural close
@@ -114,43 +95,6 @@ export function PicksFocusOverlay({
       }
     };
   }, [open]);
-
-  function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
-      onClose();
-      return;
-    }
-
-    // Focus trap
-    if (e.key === 'Tab' && panelRef.current) {
-      const focusable = Array.from(
-        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter((el) => el.offsetParent !== null);
-
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = focusable.indexOf(
-        document.activeElement as HTMLElement,
-      );
-
-      if (e.shiftKey && currentIndex <= 0) {
-        e.preventDefault();
-        focusable[focusable.length - 1]?.focus();
-      } else if (!e.shiftKey && currentIndex === focusable.length - 1) {
-        e.preventDefault();
-        focusable[0]?.focus();
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (open && !suspended) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [open, suspended, handleKeyDown]);
 
   if (!open) {
     return null;

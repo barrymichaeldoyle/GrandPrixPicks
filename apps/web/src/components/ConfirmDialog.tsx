@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-import { Button } from './Button/Button';
+import { useModalDialog } from '@/hooks/useModalDialog';
 
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])';
+import { Button } from './Button/Button';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -29,50 +28,14 @@ export function ConfirmDialog({
   error = null,
 }: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (open) {
-      confirmRef.current?.focus();
-    }
-  }, [open]);
-
-  function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && !loading) {
-      onClose();
-      return;
-    }
-
-    // Focus trap
-    if (e.key === 'Tab' && dialogRef.current) {
-      const focusable = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      ).filter((el) => el.offsetParent !== null);
-
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = focusable.indexOf(
-        document.activeElement as HTMLElement,
-      );
-
-      if (e.shiftKey && currentIndex <= 0) {
-        e.preventDefault();
-        focusable[focusable.length - 1]?.focus();
-      } else if (!e.shiftKey && currentIndex === focusable.length - 1) {
-        e.preventDefault();
-        focusable[0]?.focus();
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [open, handleKeyDown]);
+  // While it is working, the dialog stops answering Escape: closing mid-write
+  // would leave the user unsure whether the thing they confirmed happened.
+  const dialogRef = useModalDialog<HTMLDivElement>({
+    open,
+    onClose,
+    suspended: loading,
+    initialFocusRef: confirmRef,
+  });
 
   if (!open) {
     return null;

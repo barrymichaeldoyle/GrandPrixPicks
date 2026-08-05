@@ -4,10 +4,16 @@ import { Avatar } from '../Avatar';
 import { RaceFlag } from '../RaceFlag';
 import { ReactionButton } from '../ReactionButton';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
-import { podiumClasses } from '@/lib/podium';
-import { useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Flag, Trophy } from 'lucide-react';
-import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
+import { EmptySlot, PickSlot, ResultSlot } from './PickSlot';
 import type { FeedEvent, SessionHeader } from './types';
 import { FeedItem } from './FeedItem';
 import { H2HPicksDialog } from './H2HPicksDialog';
@@ -19,57 +25,78 @@ import {
   formatRelativeTime,
 } from './helpers';
 
-function RankMedal({ rank }: { rank: number | null }) {
-  if (rank === null) {
-    return <span className="mt-0.5 h-6 w-6 shrink-0" aria-hidden />;
-  }
+/*
+ * The five slots are one grid, shared by the result row in the header and by
+ * every player row below it. Same columns, same padding, so a pick sits
+ * directly under the position it was aiming at and the sticky header doubles as
+ * a column key while you scroll the players.
+ */
+const SLOT_GRID = 'grid w-full max-w-[26rem] grid-cols-5 gap-1';
 
-  const medal = podiumClasses(rank);
-
-  if (medal) {
-    return (
-      <span
-        className={`gpp-mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border text-xs font-semibold ${medal}`}
-      >
-        {rank}
-      </span>
-    );
-  }
-
+/** Every band in the group reads the same: quiet eyebrow, then the row. */
+function BandLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="gpp-mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-xs font-semibold text-text-muted/70">
-      {rank}
+    <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-label text-text-muted/70 uppercase">
+      {children}
     </span>
   );
 }
 
-// 66px gutter matches a player row's rank + avatar so the P1–P5 badges line up
-// as column headers above every player's picks.
-
-function AnswerKeyRow({ top5 }: { top5: SessionHeader['top5'] }) {
+function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
   return (
-    <div className="flex items-end gap-2.5 border border-t-0 border-border bg-surface-muted/40 px-2.5 py-2">
-      <div className="flex h-8 w-[66px] shrink-0 items-center gap-1.5 text-text-muted">
-        <Trophy className="h-4 w-4 shrink-0 text-accent" />
-        <span className="text-xs font-semibold tracking-label uppercase">
-          Result
-        </span>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-        {top5.map((driver, i) => (
-          <div key={driver.code} className="flex flex-col items-center gap-0.5">
-            <span className="text-xs font-medium text-text-muted">
-              P{i + 1}
-            </span>
-            <DriverBadge
-              code={driver.code}
-              team={driver.team}
-              displayName={driver.displayName}
-              nationality={driver.nationality}
-              size="sm"
-            />
-          </div>
+    <div className="space-y-1">
+      <BandLabel>
+        <Trophy className="h-3 w-3 shrink-0 text-accent" aria-hidden />
+        Result
+      </BandLabel>
+      <div className={SLOT_GRID}>
+        {top5.map((_, i) => (
+          <span
+            key={i}
+            className="gpp-mono text-center text-[10px] leading-none text-text-muted/70"
+          >
+            P{i + 1}
+          </span>
         ))}
+      </div>
+      <div className={SLOT_GRID}>
+        {top5.map((driver, i) => (
+          <ResultSlot
+            key={driver.code}
+            code={driver.code}
+            team={driver.team}
+            displayName={driver.displayName}
+            position={i + 1}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Teammate duels, winners only: reading a code here means they beat the other car. */
+function H2HWinnersRow({ h2h }: { h2h: NonNullable<SessionHeader['h2h']> }) {
+  return (
+    <div className="space-y-1">
+      <BandLabel>H2H won</BandLabel>
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+        {h2h.map((duel) => {
+          const color =
+            (duel.winner.team && TEAM_COLORS[duel.winner.team]) ||
+            FALLBACK_TEAM_COLOR;
+          return (
+            <span
+              key={duel.team}
+              title={`${duel.winner.displayName} beat ${duel.loser.displayName} (${duel.team})`}
+              className="gpp-team-bar flex h-4 items-center pr-1 pl-1.5"
+              style={{ '--team-colour': color } as CSSProperties}
+            >
+              <span className="gpp-mono text-[10px] leading-none tracking-data text-text-muted uppercase">
+                {duel.winner.code}
+              </span>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -77,12 +104,10 @@ function AnswerKeyRow({ top5 }: { top5: SessionHeader['top5'] }) {
 
 function SessionLeaderboardRow({
   event,
-  rank,
   isViewer,
   isLast,
 }: {
   event: FeedEvent;
-  rank: number | null;
   isViewer: boolean;
   isLast: boolean;
 }) {
@@ -90,84 +115,93 @@ function SessionLeaderboardRow({
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const total = eventTotalPoints(event);
 
+  const picks = [...(event.picks ?? [])].sort(
+    (a, b) => a.predictedPosition - b.predictedPosition,
+  );
+
   return (
     <>
       <div
-        className={`flex items-start gap-2.5 border border-t-0 border-border px-2.5 py-2 ${
+        className={`space-y-1.5 border border-t-0 border-border px-2.5 py-2 ${
           isLast ? 'rounded-b-sm' : ''
         } ${isViewer ? 'bg-accent/8 ring-1 ring-accent/40 ring-inset' : 'bg-surface'}`}
       >
-        <RankMedal rank={rank} />
-        <Link
-          to="/p/$username"
-          params={{ username: event.username ?? '' }}
-          search={{ from: undefined, fromLabel: undefined }}
-          className="mt-0.5 shrink-0"
-          tabIndex={event.username ? 0 : -1}
-        >
-          <Avatar
-            avatarUrl={event.avatarUrl}
-            username={event.username}
-            size="sm"
-          />
-        </Link>
+        {/* Identity line. No "You" chip (the highlighted row says it) and no
+            rank number: the rows are already in points order, and a numbered
+            column here competes with the leaderboard, which is where a
+            standing is a fact rather than a by-product of sorting. */}
+        <div className="flex items-center gap-2">
+          <Link
+            to="/p/$username"
+            params={{ username: event.username ?? '' }}
+            search={{ from: undefined, fromLabel: undefined }}
+            className="shrink-0"
+            tabIndex={event.username ? 0 : -1}
+          >
+            <Avatar
+              avatarUrl={event.avatarUrl}
+              username={event.username}
+              size="sm"
+            />
+          </Link>
+          <p className="flex min-w-0 flex-1 items-baseline gap-x-1.5 text-sm leading-snug">
+            <UserLink
+              username={event.username}
+              displayName={event.displayName}
+            />
+            {event.username && (
+              <span className="hidden truncate text-xs text-text-muted sm:inline">
+                @{event.username}
+              </span>
+            )}
+          </p>
+          {event.h2hScore && event.raceId && event.sessionType && (
+            <button
+              type="button"
+              onClick={() => setH2hOpen(true)}
+              className="gpp-mono inline-flex shrink-0 items-center gap-1 rounded-sm border border-border px-1.5 py-0.5 text-[10px] font-semibold tracking-data text-text-muted uppercase transition-colors hover:border-accent/60 hover:text-accent"
+            >
+              H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
+            </button>
+          )}
+          <span className="gpp-mono shrink-0 text-sm font-semibold text-accent">
+            +{total}
+          </span>
+        </div>
 
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <p className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 text-sm leading-snug">
-              <UserLink
-                username={event.username}
-                displayName={event.displayName}
-              />
-              {isViewer && (
-                <span className="rounded-sm bg-accent/15 px-1.5 py-px text-xs font-semibold tracking-label text-accent uppercase">
-                  You
-                </span>
-              )}
-              {event.username && (
-                <span className="truncate text-xs text-text-muted">
-                  @{event.username}
-                </span>
-              )}
-            </p>
-            <span className="gpp-mono shrink-0 text-sm font-semibold text-accent">
-              +{total}
-            </span>
+        {/* Picks, one per finishing slot, banded with their score colour. One
+            wrap flow rather than a breakpoint: the reaction sits beside the
+            slots whenever the row is genuinely wide enough for both, which a
+            viewport query cannot know inside a 300px rail. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          {/* The floor is what makes the wrap happen: without it the slots
+              squeeze to keep the reaction on the line and the codes collide. */}
+          <div className={`${SLOT_GRID} min-w-[15rem] flex-1`}>
+            {Array.from({ length: 5 }, (_, i) => {
+              const pick = picks[i];
+              return pick ? (
+                <PickSlot
+                  key={pick.predictedPosition}
+                  code={pick.code}
+                  team={pick.team}
+                  displayName={pick.displayName}
+                  points={pick.points}
+                  predictedPosition={pick.predictedPosition}
+                />
+              ) : (
+                <EmptySlot key={`empty-${i}`} />
+              );
+            })}
           </div>
 
-          {/* One wrap flow: badges fill first, reactions stay right and
-              lets it drop to its own line on narrow screens. */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {(event.picks ?? []).map((pick) => (
-              <ScoredDriverBadge
-                key={pick.predictedPosition}
-                code={pick.code}
-                team={pick.team}
-                displayName={pick.displayName}
-                nationality={pick.nationality}
-                pickPoints={pick.points}
-                hideDot
-                size="sm"
-              />
-            ))}
-            {event.h2hScore && event.raceId && event.sessionType && (
-              <button
-                type="button"
-                onClick={() => setH2hOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent transition-colors hover:border-accent/60 hover:bg-accent/20"
-              >
-                H2H {event.h2hScore.correctPicks}/{event.h2hScore.totalPicks}
-              </button>
-            )}
-            <div className="ml-auto shrink-0">
-              <ReactionButton
-                feedEventId={event._id}
-                reactionCount={event.reactionCount}
-                reactionCounts={event.reactionCounts}
-                viewerReaction={event.viewerReaction}
-                onCountClick={() => setReactionsOpen(true)}
-              />
-            </div>
+          <div className="ml-auto shrink-0">
+            <ReactionButton
+              feedEventId={event._id}
+              reactionCount={event.reactionCount}
+              reactionCounts={event.reactionCounts}
+              viewerReaction={event.viewerReaction}
+              onCountClick={() => setReactionsOpen(true)}
+            />
           </div>
         </div>
       </div>
@@ -234,35 +268,23 @@ export function SessionGroup({
     );
   }
 
-  // Rank by total points (Top 5 + H2H), descending. Equal scores share a rank.
-  // A lone row isn't a ranking, so skip the medal there.
+  // Best total (Top 5 + H2H) first. The order is the whole statement; the
+  // positions themselves belong to the leaderboard, not to a feed card.
   const ranked = [...events].sort(
     (a, b) => eventTotalPoints(b) - eventTotalPoints(a),
   );
-  const showRanks = ranked.length > 1;
-  let lastPoints: number | null = null;
-  let lastRank = 0;
 
   return (
     <div>
-      <SessionSeparator session={sessionWithTime} grouped showResult={false} />
-      <AnswerKeyRow top5={session.top5} />
-      {ranked.map((event, i) => {
-        const pts = eventTotalPoints(event);
-        if (pts !== lastPoints) {
-          lastRank = i + 1;
-          lastPoints = pts;
-        }
-        return (
-          <SessionLeaderboardRow
-            key={event._id}
-            event={event}
-            rank={showRanks ? lastRank : null}
-            isViewer={!!viewerId && event.userId === viewerId}
-            isLast={i === ranked.length - 1}
-          />
-        );
-      })}
+      <SessionSeparator session={sessionWithTime} grouped />
+      {ranked.map((event, i) => (
+        <SessionLeaderboardRow
+          key={event._id}
+          event={event}
+          isViewer={!!viewerId && event.userId === viewerId}
+          isLast={i === ranked.length - 1}
+        />
+      ))}
     </div>
   );
 }
@@ -271,12 +293,10 @@ function SessionSeparator({
   session,
   grouped,
   pending = false,
-  showResult = true,
 }: {
   session: SessionHeader;
   grouped?: boolean;
   pending?: boolean;
-  showResult?: boolean;
 }) {
   const label = SESSION_LABELS[session.sessionType] ?? session.sessionType;
   const countryCode = session.raceSlug
@@ -345,23 +365,16 @@ function SessionSeparator({
         </div>
       </div>
 
-      {/* Bottom row: actual results */}
-      {showResult && session.top5.length > 0 && (
-        <div className="flex gap-2 px-3 pt-2 pb-2.5">
-          {session.top5.map((driver, i) => (
-            <div key={driver.code} className="flex flex-col items-center gap-1">
-              <span className="text-xs font-medium text-text-muted">
-                P{i + 1}
-              </span>
-              <DriverBadge
-                code={driver.code}
-                team={driver.team}
-                displayName={driver.displayName}
-                nationality={driver.nationality}
-                size="sm"
-              />
-            </div>
-          ))}
+      {/* The published result and who won each teammate duel. Both belong to
+          the header panel, so they share its raised surface and are set apart
+          by spacing alone — a rule between two labelled bands is a separator
+          doing work the labels already did. */}
+      {session.top5.length > 0 && (
+        <div className="space-y-2.5 bg-surface-elevated px-2.5 pt-2 pb-2.5">
+          <ResultRow top5={session.top5} />
+          {session.h2h && session.h2h.length > 0 && (
+            <H2HWinnersRow h2h={session.h2h} />
+          )}
         </div>
       )}
     </div>

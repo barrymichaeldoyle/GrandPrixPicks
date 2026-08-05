@@ -7,6 +7,7 @@ import { Check, Gavel, Lock, Megaphone, Trophy } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Avatar } from './Avatar';
+import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { RaceFlag } from './RaceFlag';
 
@@ -51,6 +52,11 @@ export type Notification = {
   totalRevCount?: number;
 };
 
+/**
+ * Relative for as long as relative means something. "142d ago" is a worse
+ * answer than a date: past a month nobody is counting days, and the season is
+ * long enough that these rows really do get that old.
+ */
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60_000);
@@ -65,38 +71,113 @@ function timeAgo(ts: number): string {
     return `${hours}h ago`;
   }
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (days < 30) {
+    return `${days}d ago`;
+  }
+  const created = new Date(ts);
+  return created.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    ...(created.getFullYear() === new Date().getFullYear()
+      ? {}
+      : { year: 'numeric' }),
+  });
 }
 
-function NotificationRaceChip({
-  raceSlug,
-  raceName,
-  sessionType,
+/**
+ * The row's identity slot: the country flag, wearing a small badge for the
+ * kind of notification it is.
+ *
+ * These rows used to carry a type roundel on the left *and* a flag inside a
+ * bordered chip below the title, which is two icons to say one thing. The flag
+ * is the part that distinguishes one row from the next — four "results are in"
+ * rows differ only by which weekend they belong to — so it takes the slot, and
+ * the type rides along as a badge rather than a whole extra element.
+ */
+function NotificationIcon({
+  countryCode,
+  tone,
+  icon: Icon,
 }: {
-  raceSlug?: string;
-  raceName?: string;
-  sessionType?: Notification['sessionType'];
+  countryCode: string | null;
+  tone: 'success' | 'warning' | 'accent';
+  icon: typeof Trophy;
 }) {
-  if (!raceName) {
-    return null;
+  const toneClass =
+    tone === 'success'
+      ? 'bg-success/15 text-success'
+      : tone === 'warning'
+        ? 'bg-warning/15 text-warning'
+        : 'bg-accent/15 text-accent';
+
+  if (!countryCode) {
+    return (
+      <div
+        className={`flex h-8 w-8 items-center justify-center rounded-full ${toneClass}`}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+    );
   }
 
-  const countryCode = raceSlug
-    ? getCountryCodeForRace({ slug: raceSlug })
-    : null;
-  const sessionLabel = sessionType ? SESSION_LABELS[sessionType] : null;
-
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-surface-muted/55 px-2.5 py-1 text-xs font-medium text-text">
-      {countryCode ? (
+    <div className="relative">
+      <div className="h-6 w-8 overflow-hidden rounded-[3px] ring-1 ring-border">
         <RaceFlag
           countryCode={countryCode}
-          size="sm"
-          className="rounded-[2px] shadow-none ring-0"
+          size="full"
+          className="rounded-none shadow-none ring-0"
         />
-      ) : null}
-      <span>{sessionLabel ?? raceName}</span>
-    </span>
+      </div>
+      <span
+        className={`absolute -right-1.5 -bottom-1.5 flex h-4 w-4 items-center justify-center rounded-full ring-2 ring-surface ${toneClass}`}
+      >
+        <Icon className="h-2.5 w-2.5" />
+      </span>
+    </div>
+  );
+}
+
+/**
+ * One line under the title carrying every scrap of context: which weekend,
+ * and when.
+ *
+ * Both used to cost a line of their own — the race in a bordered chip, the
+ * timestamp in a full-height column pinned bottom-right whose width squeezed
+ * the title into wrapping. Folding them together took roughly a third off the
+ * row height, which on a phone is the difference between four notifications
+ * and six.
+ */
+function NotificationMeta({
+  createdAt,
+  raceName,
+  sessionLabel,
+}: {
+  createdAt: number;
+  raceName?: string;
+  /** Only where the title does not already name the session. */
+  sessionLabel?: string;
+}) {
+  const created = new Date(createdAt);
+  const parts = [
+    raceName ? abbreviateGrandPrix(raceName) : null,
+    sessionLabel ?? null,
+  ].filter((part): part is string => Boolean(part));
+
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
+      {parts.map((part, index) => (
+        <span key={part} className="flex items-center gap-x-1.5">
+          <span className={index === 0 ? 'font-medium text-text' : undefined}>
+            {part}
+          </span>
+          <span aria-hidden>·</span>
+        </span>
+      ))}
+      <time dateTime={created.toISOString()} title={created.toLocaleString()}>
+        {timeAgo(createdAt)}
+      </time>
+    </p>
   );
 }
 
@@ -185,26 +266,46 @@ export function NotificationItem({
 
   const itemClass = `block w-full text-left transition-colors hover:bg-surface-muted/50 ${isUnread ? 'bg-accent/[0.04]' : ''}`;
 
-  function LeftCol({ children }: { children: React.ReactNode }) {
-    return <div className="flex w-8 shrink-0 items-start">{children}</div>;
+  const countryCode = notification.raceSlug
+    ? getCountryCodeForRace({ slug: notification.raceSlug })
+    : null;
+
+  /**
+   * Every row is the same three parts: identity on the left, a one-line title
+   * with an optional trailing pill, and a meta line under it.
+   *
+   * `pr-5` on the title line, always, is what reserves the corner the
+   * mark-as-read control is positioned over — read and unread rows have to
+   * share one layout, or marking a row read would reflow it under the thumb
+   * that just did it.
+   */
+  function RowBody({
+    leading,
+    title,
+    trailing,
+    meta,
+  }: {
+    leading: ReactNode;
+    title: ReactNode;
+    trailing?: ReactNode;
+    meta: ReactNode;
+  }) {
+    return (
+      <div className="flex items-start gap-3 px-4 py-3">
+        <div className="flex w-8 shrink-0 items-start pt-0.5">{leading}</div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start gap-2 pr-5">
+            <p className="min-w-0 flex-1 text-sm leading-snug text-text">
+              {unreadLabel}
+              {title}
+            </p>
+            {trailing}
+          </div>
+          {meta}
+        </div>
+      </div>
+    );
   }
-
-  const created = new Date(notification.createdAt);
-
-  const rightMeta = (
-    <div className="flex shrink-0 flex-col items-end justify-between self-stretch pl-1">
-      {/* Reserves the corner the mark-as-read control is positioned over, so
-          read and unread rows share one layout. */}
-      <span aria-hidden className="mt-1 h-2 w-2" />
-      <time
-        dateTime={created.toISOString()}
-        title={created.toLocaleString()}
-        className="text-xs whitespace-nowrap text-text-muted"
-      >
-        {timeAgo(notification.createdAt)}
-      </time>
-    </div>
-  );
 
   /**
    * The row is one big link, so the per-item control cannot live inside it —
@@ -286,8 +387,8 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <div className="flex items-start gap-3 px-4 py-3">
-            <LeftCol>
+          <RowBody
+            leading={
               <div className="relative">
                 <Avatar
                   avatarUrl={primary.avatarUrl}
@@ -298,28 +399,26 @@ export function NotificationItem({
                   {REACTION_BY_TYPE[primary.reactionType ?? 'fire'].emoji}
                 </span>
               </div>
-            </LeftCol>
-            <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-sm text-text">
-                {unreadLabel}
+            }
+            title={
+              <>
                 <ReactionActorNames actors={actors} />{' '}
                 <span className="inline-flex items-center gap-1">
                   <span className="text-text-muted">reacted to your pick</span>
                   <span aria-label="Reactions">{reactionEmojis}</span>
                 </span>
-              </p>
-              {notification.raceName && (
-                <div className="mt-1.5">
-                  <NotificationRaceChip
-                    raceSlug={notification.raceSlug}
-                    raceName={notification.raceName}
-                    sessionType={notification.sessionType}
-                  />
-                </div>
-              )}
-            </div>
-            {rightMeta}
-          </div>
+              </>
+            }
+            meta={
+              <NotificationMeta
+                createdAt={notification.createdAt}
+                raceName={notification.raceName}
+                // The only row whose title does not name the session, so this
+                // is the one place the meta line has to.
+                sessionLabel={sessionLabel || undefined}
+              />
+            }
+          />
         </Link>
       </Row>
     );
@@ -344,36 +443,29 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <div className="flex items-start gap-3 px-4 py-3">
-            <LeftCol>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-success/15 text-success">
-                <Trophy className="h-4 w-4" />
-              </div>
-            </LeftCol>
-            <div className="min-w-0 flex-1 pt-0.5">
-              <div className="flex items-start gap-2">
-                <p className="flex-1 text-sm leading-snug text-text">
-                  {unreadLabel}
-                  {resultTitle}
-                </p>
-                {hasPoints && (
-                  <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
-                    +{notification.points} pts
-                  </span>
-                )}
-              </div>
-              {notification.raceName && (
-                <div className="mt-2">
-                  <NotificationRaceChip
-                    raceSlug={notification.raceSlug}
-                    raceName={notification.raceName}
-                    sessionType={notification.sessionType}
-                  />
-                </div>
-              )}
-            </div>
-            {rightMeta}
-          </div>
+          <RowBody
+            leading={
+              <NotificationIcon
+                countryCode={countryCode}
+                tone="success"
+                icon={Trophy}
+              />
+            }
+            title={resultTitle}
+            trailing={
+              hasPoints ? (
+                <span className="shrink-0 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+                  +{notification.points} pts
+                </span>
+              ) : null
+            }
+            meta={
+              <NotificationMeta
+                createdAt={notification.createdAt}
+                raceName={notification.raceName}
+              />
+            }
+          />
         </Link>
       </Row>
     );
@@ -398,41 +490,39 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <div className="flex items-start gap-3 px-4 py-3">
-            <LeftCol>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
-                <Gavel className="h-4 w-4" />
-              </div>
-            </LeftCol>
-            <div className="min-w-0 flex-1 pt-0.5">
-              <div className="flex items-start gap-2">
-                <p className="flex-1 text-sm leading-snug text-text">
-                  {unreadLabel}
-                  {amendedTitle}
-                </p>
-                {hasPoints && (
-                  <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
-                    now +{notification.points} pts
-                  </span>
+          <RowBody
+            leading={
+              <NotificationIcon
+                countryCode={countryCode}
+                tone="warning"
+                icon={Gavel}
+              />
+            }
+            title={amendedTitle}
+            trailing={
+              hasPoints ? (
+                <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
+                  now +{notification.points} pts
+                </span>
+              ) : null
+            }
+            meta={
+              <>
+                <NotificationMeta
+                  createdAt={notification.createdAt}
+                  raceName={notification.raceName}
+                />
+                {/* The steward's reason is the point of an amendment, so it
+                    keeps its own line rather than being folded into the meta
+                    run and truncated. */}
+                {notification.amendmentNote && (
+                  <p className="mt-1 text-xs leading-snug text-text-muted">
+                    {notification.amendmentNote}
+                  </p>
                 )}
-              </div>
-              {notification.amendmentNote && (
-                <p className="mt-1 text-xs leading-snug text-text-muted">
-                  {notification.amendmentNote}
-                </p>
-              )}
-              {notification.raceName && (
-                <div className="mt-2">
-                  <NotificationRaceChip
-                    raceSlug={notification.raceSlug}
-                    raceName={notification.raceName}
-                    sessionType={notification.sessionType}
-                  />
-                </div>
-              )}
-            </div>
-            {rightMeta}
-          </div>
+              </>
+            }
+          />
         </Link>
       </Row>
     );
@@ -440,28 +530,28 @@ export function NotificationItem({
 
   if (notification.type === 'announcement') {
     const content = (
-      <div className="flex items-start gap-3 px-4 py-3">
-        <LeftCol>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent">
-            <Megaphone className="h-4 w-4" />
-          </div>
-        </LeftCol>
-        <div className="min-w-0 flex-1 pt-0.5">
-          <p className="text-sm leading-snug font-medium text-text">
-            {unreadLabel}
-            {notification.title}
-          </p>
-          {notification.body && (
-            <p className="mt-1 text-xs leading-snug text-text-muted">
-              {notification.body}
-            </p>
-          )}
-          {notification.linkPath && (
-            <p className="mt-1.5 text-xs font-medium text-accent">Read more</p>
-          )}
-        </div>
-        {rightMeta}
-      </div>
+      <RowBody
+        leading={
+          // Never race-scoped, so there is no flag to lead with.
+          <NotificationIcon countryCode={null} tone="accent" icon={Megaphone} />
+        }
+        title={<span className="font-medium">{notification.title}</span>}
+        meta={
+          <>
+            {notification.body && (
+              <p className="mt-1 text-xs leading-snug text-text-muted">
+                {notification.body}
+              </p>
+            )}
+            <NotificationMeta createdAt={notification.createdAt} />
+            {notification.linkPath && (
+              <p className="mt-1.5 text-xs font-medium text-accent">
+                Read more
+              </p>
+            )}
+          </>
+        }
+      />
     );
 
     // linkPath is set by an admin broadcast, so it is always an internal path.
@@ -507,34 +597,30 @@ export function NotificationItem({
         onClick={handleClick}
         className={itemClass}
       >
-        <div className="flex items-start gap-3 px-4 py-3">
-          <LeftCol>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-warning/15 text-warning">
-              <Lock className="h-4 w-4" />
-            </div>
-          </LeftCol>
-          <div className="min-w-0 flex-1 pt-0.5">
-            <p className="text-sm leading-snug text-text">
-              {unreadLabel}
-              {notification.raceName && sessionLabel
-                ? `${sessionLabel} picks are locked`
-                : 'Session picks are locked'}
-            </p>
-            {notification.raceName && (
-              <div className="mt-2">
-                <NotificationRaceChip
-                  raceSlug={notification.raceSlug}
-                  raceName={notification.raceName}
-                  sessionType={notification.sessionType}
-                />
-              </div>
-            )}
-            <p className="mt-1.5 text-xs text-text-muted">
-              See how everyone lined up
-            </p>
-          </div>
-          {rightMeta}
-        </div>
+        <RowBody
+          leading={
+            <NotificationIcon
+              countryCode={countryCode}
+              tone="warning"
+              icon={Lock}
+            />
+          }
+          title={
+            notification.raceName && sessionLabel
+              ? `${sessionLabel} picks are locked`
+              : 'Session picks are locked'
+          }
+          meta={
+            // "See how everyone lined up" used to hang off the end here. It
+            // was a caption for a link the whole row already is, and on a
+            // longer race name it wrapped the meta line, spending a second
+            // line to say nothing the row did not.
+            <NotificationMeta
+              createdAt={notification.createdAt}
+              raceName={notification.raceName}
+            />
+          }
+        />
       </Link>
     </Row>
   );

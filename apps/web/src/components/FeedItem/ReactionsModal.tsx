@@ -10,6 +10,8 @@ import { useQuery } from 'convex/react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
+import { useModalDialog } from '@/hooks/useModalDialog';
+
 import { Avatar } from '../Avatar';
 import { FollowButton } from '../FollowButton';
 
@@ -20,6 +22,7 @@ export function ReactionsModal({
   feedEventId: Id<'feedEvents'>;
   onClose: () => void;
 }) {
+  const panelRef = useModalDialog<HTMLDivElement>({ onClose });
   const users = useQuery(api.feed.getReactionUsers, { feedEventId });
   const me = useQuery(api.users.me, {});
   const followedIds = useQuery(api.follows.getViewerFollowedIds, {});
@@ -39,7 +42,12 @@ export function ReactionsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-sm border border-border bg-surface"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Reactions"
+        tabIndex={-1}
+        className="w-full max-w-sm rounded-sm border border-border bg-surface outline-none"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">

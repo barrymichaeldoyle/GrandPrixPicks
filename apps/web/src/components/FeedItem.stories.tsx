@@ -328,6 +328,61 @@ export const GroupedSession: Story = {
           nationality: 'GB',
         },
       ],
+      h2h: [
+        {
+          team: 'Ferrari',
+          winner: {
+            code: 'LEC',
+            displayName: 'Charles Leclerc',
+            team: 'Ferrari',
+          },
+          loser: {
+            code: 'HAM',
+            displayName: 'Lewis Hamilton',
+            team: 'Ferrari',
+          },
+        },
+        {
+          team: 'McLaren',
+          winner: {
+            code: 'PIA',
+            displayName: 'Oscar Piastri',
+            team: 'McLaren',
+          },
+          loser: { code: 'NOR', displayName: 'Lando Norris', team: 'McLaren' },
+        },
+        {
+          team: 'Mercedes',
+          winner: {
+            code: 'ANT',
+            displayName: 'Kimi Antonelli',
+            team: 'Mercedes',
+          },
+          loser: {
+            code: 'RUS',
+            displayName: 'George Russell',
+            team: 'Mercedes',
+          },
+        },
+        {
+          team: 'Red Bull Racing',
+          winner: {
+            code: 'VER',
+            displayName: 'Max Verstappen',
+            team: 'Red Bull Racing',
+          },
+          loser: {
+            code: 'LAW',
+            displayName: 'Liam Lawson',
+            team: 'Red Bull Racing',
+          },
+        },
+        {
+          team: 'Williams',
+          winner: { code: 'ALB', displayName: 'Alex Albon', team: 'Williams' },
+          loser: { code: 'SAI', displayName: 'Carlos Sainz', team: 'Williams' },
+        },
+      ],
     };
 
     const events = [

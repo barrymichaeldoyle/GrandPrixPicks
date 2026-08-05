@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import { displayTeamName } from '@/lib/display';
+import { tapHaptic } from '@/lib/haptics';
 
 import { Button } from './Button/Button';
 import { DriverBadge, FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
@@ -138,7 +139,7 @@ export function H2HDuelPicker({
     // anyone changing their mind inside 280ms) had the tap swallowed with no
     // feedback at all. Re-picking now just re-arms the advance.
     onSelect(matchup._id, driverId);
-    navigator.vibrate?.(12);
+    tapHaptic();
 
     cancelPendingAdvance();
     // Changing a call on a finished card has nowhere to advance to, so the

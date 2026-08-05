@@ -19,7 +19,10 @@ import {
 } from '@/components/NotificationItem';
 import { NotificationFilterNav } from '@/components/notifications/NotificationFilterNav';
 import { NotificationSettingsCard } from '@/components/notifications/NotificationSettingsCard';
-import { NotificationToolbar } from '@/components/notifications/NotificationToolbar';
+import {
+  NotificationToolbar,
+  NotificationUnreadToggle,
+} from '@/components/notifications/NotificationToolbar';
 import { PageLoader } from '@/components/PageLoader';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
@@ -297,46 +300,59 @@ function NotificationsPage() {
         tapping a thing already labelled "Notifications", and the route is
         `noIndex`, so a display title over a sentence defining the word was
         costing half a phone screen to tell the reader something they knew and
-        nobody else could read. The heading stays an `h1` — the page still
-        needs one — sized like the section eyebrows on the dashboard.
+        nobody else could read.
+
+        On a phone it goes further and hides the word entirely: the tab bar's
+        active item already says NOTIFICATIONS, directly below the list. The
+        `h1` stays in the document — the page still needs one, and so does
+        anyone landing here by heading navigation — it just stops being said
+        three times on one screen.
 
         Settings live in the Delivery rail card, which also appears in the
         mobile widget stack, so the header carries no second link.
       */}
-      <header className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="gpp-label text-text-muted">Notifications</h1>
-          {/* Keeps its slot at zero unread: marking everything read removes
-              both the count and the button, and a collapsing header would
-              yank the list up under the thumb that just did it. */}
-          <p className="mt-1 min-h-5 text-sm text-text">
-            {unreadCount > 0 ? `${unreadLabel} unread` : null}
-          </p>
+      <header className="mb-4">
+        <h1 className="gpp-label text-text-muted max-md:sr-only">
+          Notifications
+        </h1>
+        {/* The unread lens sits here rather than above the list, which also
+            fixes what the old header did at zero unread: it held an empty
+            paragraph open so the row would not collapse and yank the list up
+            under the thumb that had just marked everything read. A control
+            that is always present holds the row open by itself. */}
+        <div className="flex items-center justify-between gap-3 md:mt-1">
+          <NotificationUnreadToggle
+            unreadOnly={unreadOnly}
+            onUnreadOnlyChange={(next) => updateSearch({ unreadOnly: next })}
+          />
+          {unreadCount > 0 ? (
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-sm text-text-muted">
+                {unreadLabel} unread
+              </span>
+              <Button
+                size="sm"
+                variant="text"
+                onClick={() => {
+                  captureAnalyticsEvent('notifications_mark_all_read', {
+                    unread_count: unreadCount,
+                  });
+                  void markAllReadMutation({});
+                }}
+              >
+                <CheckCheck className="h-3.5 w-3.5" aria-hidden />
+                Mark all read
+              </Button>
+            </div>
+          ) : null}
         </div>
-        {unreadCount > 0 ? (
-          <Button
-            size="sm"
-            variant="text"
-            onClick={() => {
-              captureAnalyticsEvent('notifications_mark_all_read', {
-                unread_count: unreadCount,
-              });
-              void markAllReadMutation({});
-            }}
-          >
-            <CheckCheck className="h-3.5 w-3.5" aria-hidden />
-            Mark all read
-          </Button>
-        ) : null}
       </header>
 
       <NotificationToolbar
         filter={filter}
         counts={counts}
         countsTruncated={countsTruncated}
-        unreadOnly={unreadOnly}
         searchFor={searchFor}
-        onUnreadOnlyChange={(next) => updateSearch({ unreadOnly: next })}
       />
 
       {/* Filtering, loading and mark-as-read change the list silently. */}
@@ -366,7 +382,15 @@ function NotificationsPage() {
         <div className="space-y-5">
           {groups.map((group) => (
             <section key={group.id} aria-labelledby={group.id}>
-              <h2 id={group.id} className="gpp-label mb-2 text-text-muted">
+              {/* A day heading earns its place by separating one bucket from
+                  another. A lone "Older" over the entire list separates
+                  nothing and just repeats what the timestamps say, so it goes
+                  visually and stays for screen readers, which still need the
+                  section labelled. */}
+              <h2
+                id={group.id}
+                className={`gpp-label mb-2 text-text-muted ${groups.length === 1 ? 'sr-only' : ''}`}
+              >
                 {group.label}
               </h2>
               <ul className="divide-y divide-border/50 overflow-hidden rounded-lg border border-border bg-surface">

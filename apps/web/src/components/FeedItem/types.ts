@@ -65,15 +65,23 @@ export type FeedEvent = {
 
 // Feed events carry sessionType as a plain string, so widen the shared map.
 
+type SessionHeaderDriver = {
+  code: string;
+  displayName: string;
+  team?: string;
+  nationality?: string;
+};
+
 export type SessionHeader = {
   raceName: string;
   sessionType: string;
   raceSlug?: string;
   createdAt?: number;
-  top5: {
-    code: string;
-    displayName: string;
-    team?: string;
-    nationality?: string;
+  top5: SessionHeaderDriver[];
+  /** Teammate duels for the session, one entry per team. */
+  h2h?: {
+    team: string;
+    winner: SessionHeaderDriver;
+    loser: SessionHeaderDriver;
   }[];
 };

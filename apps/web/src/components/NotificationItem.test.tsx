@@ -96,6 +96,60 @@ describe('NotificationItem', () => {
     view.unmount();
   });
 
+  it('names the race once, and the session only in the title', () => {
+    const view = renderItem({
+      _id: 'notification_race' as never,
+      type: 'results_published',
+      createdAt: Date.now(),
+      raceId: 'race_1' as never,
+      raceName: 'Canadian Grand Prix',
+      raceSlug: 'canadian-grand-prix-2026',
+      sessionType: 'race',
+      points: 6,
+    });
+
+    // The weekend is the only thing telling two "Race results are in" rows
+    // apart, so it has to be written down rather than left to the flag.
+    expect(view.container.textContent).toContain('Canadian GP');
+    // The chip under the title used to repeat the session label already in the
+    // title, so a row read "Race results are in" and then "Race".
+    expect(view.container.textContent?.match(/Race/g)).toHaveLength(1);
+    view.unmount();
+  });
+
+  it('keeps the session in the meta line of a reaction, which has no title for it', () => {
+    const view = renderItem({
+      _id: 'notification_rev' as never,
+      type: 'rev_received',
+      createdAt: Date.now(),
+      raceId: 'race_1' as never,
+      raceName: 'Canadian Grand Prix',
+      raceSlug: 'canadian-grand-prix-2026',
+      sessionType: 'quali',
+      actorDisplayName: 'Cait Davies',
+      reactionType: 'fire',
+    });
+
+    const text = view.container.textContent ?? '';
+    expect(text).toContain('Cait Davies');
+    expect(text).toContain('reacted to your pick');
+    expect(text).toContain('Canadian GP');
+    expect(text).toContain('Qualifying');
+    view.unmount();
+  });
+
+  it('falls back to a date once a notification is months old', () => {
+    const view = renderItem({
+      _id: 'notification_old' as never,
+      type: 'announcement',
+      createdAt: Date.now() - 200 * 86_400_000,
+      title: 'Season pass is live',
+    });
+
+    expect(view.container.textContent).not.toContain('200d ago');
+    view.unmount();
+  });
+
   it('uses picks-focused copy for locked session notifications', () => {
     const view = renderItem({
       _id: 'notification_2' as never,

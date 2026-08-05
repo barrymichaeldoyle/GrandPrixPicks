@@ -40,7 +40,7 @@ function suggestion(overrides: Partial<Suggestion> & { username: string }) {
   } satisfies Suggestion;
 }
 
-function render(suggestions: Suggestion[]) {
+function render(suggestions: Suggestion[], width = 300) {
   return (
     <StorybookMockProviders
       auth={{ isLoaded: true, isSignedIn: true }}
@@ -55,8 +55,8 @@ function render(suggestions: Suggestion[]) {
         ],
       })}
     >
-      {/* The width the card actually gets in the dashboard's right rail. */}
-      <div className="w-[300px]">
+      {/* Defaults to the width the card gets in the dashboard's right rail. */}
+      <div style={{ width }}>
         <SuggestedFollowsCard />
       </div>
     </StorybookMockProviders>
@@ -140,4 +140,39 @@ export const LongNamesAndOverflow: Story = {
         mutualFollowers: [],
       }),
     ]),
+};
+
+/**
+ * Full-width card on a 390px phone. The follow button rides beside the text
+ * here — it only drops to its own line once the column gets rail-narrow, which
+ * is the whole reason the row is a wrap flow rather than a fixed stack.
+ */
+export const MobileWidth: Story = {
+  render: () =>
+    render(
+      [
+        suggestion({
+          username: 'oscarp',
+          displayName: 'Oscar Piastri',
+          mutualFollowerCount: 3,
+          mutualFollowers: [
+            mutual('lando', 'Lando'),
+            mutual('george', 'George'),
+            mutual('carlos', 'Carlos'),
+          ],
+        }),
+        suggestion({
+          username: 'charles',
+          displayName: 'Charles Leclerc',
+          mutualFollowerCount: 1,
+          mutualFollowers: [mutual('lando', 'Lando Norris')],
+        }),
+        suggestion({
+          username: 'kimi',
+          displayName: 'Kimi Antonelli',
+          sharedLeagueNames: ['Pit Wall Prophets'],
+        }),
+      ],
+      358,
+    ),
 };

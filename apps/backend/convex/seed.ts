@@ -1,8 +1,9 @@
 import { REACTION_TYPES } from '@grandprixpicks/shared/reactions';
+import { TEAMMATE_PAIRINGS_2026 } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { computeFollowCountsForUser } from './lib/followCounts';
@@ -548,21 +549,6 @@ const F1_RACES_2026: Array<{
   },
 ];
 
-// H2H matchups - teammate pairings for 2026
-const H2H_MATCHUPS_2026 = [
-  { team: 'McLaren', driver1Code: 'NOR', driver2Code: 'PIA' },
-  { team: 'Ferrari', driver1Code: 'LEC', driver2Code: 'HAM' },
-  { team: 'Red Bull Racing', driver1Code: 'VER', driver2Code: 'HAD' },
-  { team: 'Mercedes', driver1Code: 'RUS', driver2Code: 'ANT' },
-  { team: 'Aston Martin', driver1Code: 'ALO', driver2Code: 'STR' },
-  { team: 'Alpine', driver1Code: 'GAS', driver2Code: 'COL' },
-  { team: 'Williams', driver1Code: 'ALB', driver2Code: 'SAI' },
-  { team: 'Racing Bulls', driver1Code: 'LAW', driver2Code: 'LIN' },
-  { team: 'Audi', driver1Code: 'HUL', driver2Code: 'BOR' },
-  { team: 'Haas', driver1Code: 'OCO', driver2Code: 'BEA' },
-  { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER' },
-];
-
 export const seedRaces = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -684,7 +670,7 @@ export const seedH2HMatchups = internalMutation({
     const drivers = await ctx.db.query('drivers').collect();
     const driverByCode = new Map(drivers.map((d) => [d.code, d]));
 
-    for (const matchup of H2H_MATCHUPS_2026) {
+    for (const matchup of TEAMMATE_PAIRINGS_2026) {
       const driver1 = driverByCode.get(matchup.driver1Code);
       const driver2 = driverByCode.get(matchup.driver2Code);
 
@@ -720,7 +706,7 @@ export const seedH2HMatchups = internalMutation({
       created++;
     }
 
-    return { created, skipped, total: H2H_MATCHUPS_2026.length };
+    return { created, skipped, total: TEAMMATE_PAIRINGS_2026.length };
   },
 });
 
@@ -3809,6 +3795,63 @@ const LEADERBOARD_SCENARIO_FAKE_USERS = [
 ];
 
 /**
+ * Every way five slots can be filled, indexed by what that shape scores.
+ *
+ * A slot holds either a top-5 driver (0-4, so its actual position is index + 1)
+ * or someone from deep in the field (-1), who can never score. That makes a
+ * shape's value pure index arithmetic under the same bands as `scoreTopFive` —
+ * which the seed then runs for real, so the stored breakdown is genuine rather
+ * than a second implementation of the scoring rules.
+ *
+ * This is what lets a seeded user hit a designed points total with picks that
+ * actually earn it. Writing `points` straight onto a score with invented picks
+ * is why the dev feed used to show a total beside five empty slots.
+ */
+function buildTopFiveShapes(): Map<number, Array<Array<number>>> {
+  const SHAPES_PER_TOTAL = 24; // enough for variety between users, not a catalogue
+  const shapes = new Map<number, Array<Array<number>>>();
+  const current: Array<number> = [];
+
+  function slotPoints(slot: number, choice: number) {
+    if (choice === -1) {
+      return 0;
+    }
+    const difference = Math.abs(choice - slot);
+    if (difference === 0) {
+      return 5;
+    }
+    if (difference === 1) {
+      return 3;
+    }
+    return 1;
+  }
+
+  function fillSlot(slot: number, used: Set<number>, total: number) {
+    if (slot === 5) {
+      const list = shapes.get(total) ?? [];
+      if (list.length < SHAPES_PER_TOTAL) {
+        list.push([...current]);
+      }
+      shapes.set(total, list);
+      return;
+    }
+    for (let choice = -1; choice < 5; choice++) {
+      if (choice !== -1 && used.has(choice)) {
+        continue;
+      }
+      used.add(choice);
+      current.push(choice);
+      fillSlot(slot + 1, used, total + slotPoints(slot, choice));
+      current.pop();
+      used.delete(choice);
+    }
+  }
+
+  fillSlot(0, new Set(), 0);
+  return shapes;
+}
+
+/**
  * Internal: Seed 25 scored users + 5 zero-point predictors for leaderboard testing.
  * The specified user (default: barrymichaeldoyle) is placed ~6th (below the podium).
  * Uses the first 3 races in the calendar; marks them as finished with results.
@@ -3866,8 +3909,11 @@ export const _seedLeaderboardData = internalMutation({
     // Mark races as finished, create fresh results
     type SessionClassification = {
       sessionType: SessionType;
+      classification: Array<Id<'drivers'>>;
       top5: Array<Id<'drivers'>>;
-      outOfTop5: Array<Id<'drivers'>>;
+      // Drivers from P8 back. P6 and P7 are held out on purpose: predicted at
+      // P5, a P6 finisher is off by one and still scores 3.
+      filler: Array<Id<'drivers'>>;
     };
     const raceResultData: Array<{
       raceId: Id<'races'>;
@@ -3896,8 +3942,6 @@ export const _seedLeaderboardData = internalMutation({
       for (let si = 0; si < sessions.length; si++) {
         const sessionType = sessions[si];
         const classification = deterministicShuffle(driverIds, i * 100 + si);
-        const top5 = classification.slice(0, 5);
-        const outOfTop5 = classification.slice(5);
 
         await ctx.db.insert('results', {
           raceId: race._id,
@@ -3907,7 +3951,12 @@ export const _seedLeaderboardData = internalMutation({
           updatedAt: now,
         });
 
-        sessionData.push({ sessionType, top5, outOfTop5 });
+        sessionData.push({
+          sessionType,
+          classification,
+          top5: classification.slice(0, 5),
+          filler: classification.slice(7),
+        });
       }
 
       raceResultData.push({ raceId: race._id, sessions: sessionData });
@@ -3928,18 +3977,84 @@ export const _seedLeaderboardData = internalMutation({
       );
     }
 
-    // Make picks for a session: scoring users pick from top5 area, zero users pick outside
+    const shapesByTotal = buildTopFiveShapes();
+    const achievableTotals = [...shapesByTotal.keys()].sort((a, b) => a - b);
+
+    /** Nearest total a real set of five picks can actually score. */
+    function snapToAchievable(wanted: number) {
+      const clamped = Math.max(0, Math.min(25, wanted));
+      return achievableTotals.reduce((best, total) =>
+        Math.abs(total - clamped) < Math.abs(best - clamped) ? total : best,
+      );
+    }
+
+    /**
+     * Picks that genuinely score `target` in this session, varied per user so
+     * two rows of the feed never show the same five slots in the same order.
+     */
     function makePicks(
-      top5: Array<Id<'drivers'>>,
-      outOfTop5: Array<Id<'drivers'>>,
-      sessionPoints: number,
+      session: SessionClassification,
+      target: number,
+      variant: number,
     ): Array<Id<'drivers'>> {
-      if (sessionPoints === 0) {
-        // picks entirely outside the actual top 5 — guaranteed 0 pts
-        return outOfTop5.slice(0, 5);
+      const shapes = shapesByTotal.get(target) ?? [];
+      const shape = shapes[variant % shapes.length] ?? [-1, -1, -1, -1, -1];
+      let fillerIndex = 0;
+      return shape.map((choice) =>
+        choice === -1 ? session.filler[fillerIndex++] : session.top5[choice],
+      );
+    }
+
+    /**
+     * One user's whole season: picks that score, the real breakdown from
+     * `scoreTopFive`, and the actual total (which is what the standings get —
+     * a designed total the picks cannot reach would put the leaderboard and the
+     * feed rows into disagreement).
+     */
+    async function seedUserSessions(
+      user: Doc<'users'>,
+      designedTotal: number,
+      variantSeed: number,
+    ) {
+      const perSession = distributePoints(designedTotal, numSessions);
+      let carry = 0;
+      let actualTotal = 0;
+
+      for (let si = 0; si < allSessions.length; si++) {
+        const session = allSessions[si];
+        const target = snapToAchievable(perSession[si] + carry);
+        carry = perSession[si] + carry - target;
+
+        const picks = makePicks(session, target, variantSeed * 7 + si * 3);
+        const { total, breakdown } = scoreTopFive({
+          picks,
+          classification: session.classification,
+        });
+        actualTotal += total;
+
+        await ctx.db.insert('predictions', {
+          userId: user._id,
+          raceId: session.raceId,
+          sessionType: session.sessionType,
+          picks,
+          submittedAt: now - 7 * DAY,
+          updatedAt: now - 7 * DAY,
+        });
+
+        await ctx.db.insert('scores', {
+          userId: user._id,
+          raceId: session.raceId,
+          sessionType: session.sessionType,
+          points: total,
+          breakdown,
+          username: user.username,
+          displayName: user.displayName,
+          createdAt: now,
+          updatedAt: now,
+        });
       }
-      // picks from within top5 (order scrambled slightly for realism)
-      return [top5[1], top5[0], top5[3], top5[2], top5[4]];
+
+      return actualTotal;
     }
 
     // Create all fake users + their scores, predictions, and standings
@@ -3970,38 +4085,12 @@ export const _seedLeaderboardData = internalMutation({
         throw new Error('Failed to create fake user');
       }
 
-      const pointsList = distributePoints(totalPoints, numSessions);
-
-      for (let si = 0; si < allSessions.length; si++) {
-        const { raceId, sessionType, top5, outOfTop5 } = allSessions[si];
-        const sessionPoints = pointsList[si];
-        const picks = makePicks(top5, outOfTop5, sessionPoints);
-
-        await ctx.db.insert('predictions', {
-          userId: fakeUser._id,
-          raceId,
-          sessionType,
-          picks,
-          submittedAt: now - 7 * DAY,
-          updatedAt: now - 7 * DAY,
-        });
-
-        await ctx.db.insert('scores', {
-          userId: fakeUser._id,
-          raceId,
-          sessionType,
-          points: sessionPoints,
-          username,
-          displayName,
-          createdAt: now,
-          updatedAt: now,
-        });
-      }
+      const scoredTotal = await seedUserSessions(fakeUser, totalPoints, ui + 1);
 
       await ctx.db.insert('seasonStandings', {
         userId: fakeUser._id,
         season: 2026,
-        totalPoints,
+        totalPoints: scoredTotal,
         raceCount: racesToFinish.length,
         username,
         displayName,
@@ -4010,38 +4099,16 @@ export const _seedLeaderboardData = internalMutation({
     }
 
     // Create the target user's scores and standings at rank 2
-    const targetPointsList = distributePoints(TARGET_POINTS, numSessions);
-
-    for (let si = 0; si < allSessions.length; si++) {
-      const { raceId, sessionType, top5, outOfTop5 } = allSessions[si];
-      const sessionPoints = targetPointsList[si];
-      const picks = makePicks(top5, outOfTop5, sessionPoints);
-
-      await ctx.db.insert('predictions', {
-        userId: targetUser._id,
-        raceId,
-        sessionType,
-        picks,
-        submittedAt: now - 7 * DAY,
-        updatedAt: now - 7 * DAY,
-      });
-
-      await ctx.db.insert('scores', {
-        userId: targetUser._id,
-        raceId,
-        sessionType,
-        points: sessionPoints,
-        username: targetUser.username,
-        displayName: targetUser.displayName,
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
+    const targetScoredTotal = await seedUserSessions(
+      targetUser,
+      TARGET_POINTS,
+      0,
+    );
 
     await ctx.db.insert('seasonStandings', {
       userId: targetUser._id,
       season: 2026,
-      totalPoints: TARGET_POINTS,
+      totalPoints: targetScoredTotal,
       raceCount: racesToFinish.length,
       username: targetUser.username,
       displayName: targetUser.displayName,
@@ -4050,7 +4117,7 @@ export const _seedLeaderboardData = internalMutation({
 
     return {
       targetUserId: targetUser._id,
-      targetUserPoints: TARGET_POINTS,
+      targetUserPoints: targetScoredTotal,
       racesFinished: racesToFinish.length,
       sessionsPerRace: 2,
       fakeUsersCreated: usersCreated,
@@ -4192,6 +4259,8 @@ export const _seedH2HLeaderboardData = internalMutation({
       }
     >();
 
+    let h2hPredictionsCreated = 0;
+
     // Seed fake users with varying accuracy based on rank index
     for (let ui = 0; ui < LEADERBOARD_SCENARIO_FAKE_USERS.length; ui++) {
       const { username, displayName } = LEADERBOARD_SCENARIO_FAKE_USERS[ui];
@@ -4226,6 +4295,24 @@ export const _seedH2HLeaderboardData = internalMutation({
           if (isCorrect) {
             correctPicks++;
           }
+
+          // The duel a fake user actually called. Without this their H2H score
+          // is a number with nothing behind it, and opening their duels from
+          // the feed shows an empty dialog.
+          await ctx.db.insert('h2hPredictions', {
+            userId: fakeUser._id,
+            raceId,
+            sessionType,
+            matchupId: matchup._id,
+            predictedWinnerId: isCorrect
+              ? winnerId
+              : winnerId === matchup.driver1Id
+                ? matchup.driver2Id
+                : matchup.driver1Id,
+            submittedAt: now - 60 * 60 * 1000,
+            updatedAt: now,
+          });
+          h2hPredictionsCreated++;
         }
 
         if (totalPicks > 0) {
@@ -4258,7 +4345,6 @@ export const _seedH2HLeaderboardData = internalMutation({
     let targetCorrect = 0;
     let targetTotal = 0;
     let targetPoints = 0;
-    let h2hPredictionsCreated = 0;
 
     for (const { raceId, sessionType, raceRound, winners } of allSessions) {
       let correctPicks = 0;

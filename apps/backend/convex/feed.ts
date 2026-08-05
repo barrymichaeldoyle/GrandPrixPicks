@@ -614,26 +614,40 @@ function makeFeedCursor(
   });
 }
 
+type SessionHeaderDriver = {
+  code: string;
+  displayName: string;
+  team?: string;
+  nationality?: string;
+};
+
+/** One teammate duel's outcome, for the header's H2H winners strip. */
+type SessionHeaderH2H = {
+  team: string;
+  winner: SessionHeaderDriver;
+  loser: SessionHeaderDriver;
+};
+
+type SessionHeader = {
+  raceName: string;
+  sessionType: string;
+  raceSlug?: string;
+  top5: Array<SessionHeaderDriver>;
+  h2h: Array<SessionHeaderH2H>;
+};
+
+const UNKNOWN_DRIVER: SessionHeaderDriver = {
+  nationality: undefined,
+  code: '?',
+  displayName: 'Unknown',
+  team: 'Unknown',
+};
+
 /** Build a map of session headers (top-5 results) for all score_published events. */
 async function buildSessionHeaders(
   ctx: DbCtx,
   events: Array<RawEvent>,
-): Promise<
-  Record<
-    string,
-    {
-      raceName: string;
-      sessionType: string;
-      raceSlug?: string;
-      top5: Array<{
-        code: string;
-        displayName: string;
-        team?: string;
-        nationality?: string;
-      }>;
-    }
-  >
-> {
+): Promise<Record<string, SessionHeader>> {
   // Collect unique race+session keys from score_published events
   const combos = new Map<
     string,
@@ -693,16 +707,52 @@ async function buildSessionHeaders(
     }
   }
 
-  // Load all needed drivers in one pass
-  const driverMap = new Map<
+  // Teammate duel outcomes for the same sessions. The header only needs the
+  // pair, so a matchup lookup per published result is enough (11 per session).
+  const h2hByKey = new Map<
     string,
-    {
-      code: string;
-      displayName: string;
-      team?: string;
-      nationality?: string;
-    }
+    Array<{ team: string; winnerId: Id<'drivers'>; loserId: Id<'drivers'> }>
   >();
+  const comboH2H = await Promise.all(
+    [...combos].map(async ([key, { raceId, sessionType }]) => {
+      const h2hResults = await ctx.db
+        .query('h2hResults')
+        .withIndex('by_race_session', (q) =>
+          q.eq('raceId', raceId).eq('sessionType', sessionType),
+        )
+        .collect();
+      const duels = await Promise.all(
+        h2hResults.map(async (h2hResult) => {
+          const matchup = await ctx.db.get(h2hResult.matchupId);
+          if (!matchup) {
+            return null;
+          }
+          const loserId =
+            matchup.driver1Id === h2hResult.winnerId
+              ? matchup.driver2Id
+              : matchup.driver1Id;
+          return {
+            team: matchup.team,
+            winnerId: h2hResult.winnerId,
+            loserId,
+          };
+        }),
+      );
+      return [key, duels.filter((duel) => duel !== null)] as const;
+    }),
+  );
+  for (const [key, duels] of comboH2H) {
+    // Stable order across renders; the source rows carry no ordering.
+    duels.sort((a, b) => a.team.localeCompare(b.team));
+    h2hByKey.set(key, duels);
+    for (const duel of duels) {
+      driverIdsNeeded.add(duel.winnerId);
+      driverIdsNeeded.add(duel.loserId);
+    }
+  }
+
+  // Load all needed drivers in one pass
+  const driverMap = new Map<string, SessionHeaderDriver>();
   const drivers = await Promise.all(
     [...driverIdsNeeded].map((driverId) => ctx.db.get(driverId)),
   );
@@ -718,35 +768,19 @@ async function buildSessionHeaders(
   }
 
   // Assemble headers
-  const sessions: Record<
-    string,
-    {
-      raceName: string;
-      sessionType: string;
-      raceSlug?: string;
-      top5: Array<{
-        code: string;
-        displayName: string;
-        team?: string;
-        nationality?: string;
-      }>;
-    }
-  > = {};
+  const sessions: Record<string, SessionHeader> = {};
   for (const [key, { raceName, raceSlug, sessionType }] of combos) {
     const top5Ids = top5ByKey.get(key) ?? [];
     sessions[key] = {
       raceName: raceName ?? '',
       sessionType,
       raceSlug,
-      top5: top5Ids.map(
-        (id) =>
-          driverMap.get(String(id)) ?? {
-            nationality: undefined,
-            code: '?',
-            displayName: 'Unknown',
-            team: 'Unknown',
-          },
-      ),
+      top5: top5Ids.map((id) => driverMap.get(String(id)) ?? UNKNOWN_DRIVER),
+      h2h: (h2hByKey.get(key) ?? []).map((duel) => ({
+        team: duel.team,
+        winner: driverMap.get(String(duel.winnerId)) ?? UNKNOWN_DRIVER,
+        loser: driverMap.get(String(duel.loserId)) ?? UNKNOWN_DRIVER,
+      })),
     };
   }
 

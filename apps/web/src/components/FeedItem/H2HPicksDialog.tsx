@@ -1,9 +1,57 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import {
+  TEAMMATE_PAIRINGS_2026,
+  teamStandingsIndex,
+} from '@grandprixpicks/shared/teams';
 import { useQuery } from 'convex/react';
 import { createPortal } from 'react-dom';
 import { Check, X } from 'lucide-react';
+import type { CSSProperties } from 'react';
+
+import { useModalDialog } from '@/hooks/useModalDialog';
+import { displayTeamName } from '@/lib/display';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
+
 import { DriverBadge } from '../DriverBadge';
+
+/** Constructors' order, so the loading rows land exactly where the real ones do. */
+const loadingRows = [...TEAMMATE_PAIRINGS_2026].sort(
+  (a, b) =>
+    teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
+    a.team.localeCompare(b.team),
+);
+
+/**
+ * The team column, which the loading state can fill in for real.
+ *
+ * The grid's eleven teams are the same all season and the rows are sorted into
+ * a fixed order, so a skeleton that greys them out is hiding something it
+ * already knows. Only the duel itself has to wait.
+ */
+function TeamCell({ team }: { team: string }) {
+  return (
+    <span
+      className="flex min-w-0 flex-1 items-center gap-1.5"
+      style={
+        {
+          '--team-colour': TEAM_COLORS[team] ?? FALLBACK_TEAM_COLOR,
+        } as CSSProperties
+      }
+    >
+      <span className="gpp-team-dot" aria-hidden />
+      <span className="truncate text-xs leading-none text-text-muted">
+        {displayTeamName(team)}
+      </span>
+    </span>
+  );
+}
+
+function VersusLabel() {
+  return (
+    <span className="shrink-0 text-xs leading-none text-text-muted/40">vs</span>
+  );
+}
 
 export function H2HPicksDialog({
   userId,
@@ -18,12 +66,23 @@ export function H2HPicksDialog({
   displayName: string;
   onClose: () => void;
 }) {
+  const panelRef = useModalDialog<HTMLDivElement>({ onClose });
   const picks = useQuery(api.h2h.getH2HPicksForFeedItem, {
     userId,
     raceId,
     sessionType,
   });
-  const ROW_COUNT = 11;
+
+  // Constructors' order, the same one the picker uses. The query returns rows
+  // in whatever order the player's predictions were written, which differs
+  // between players and would make the skeleton's teams a guess.
+  const rows = picks
+    ? [...picks].sort(
+        (a, b) =>
+          teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
+          a.team.localeCompare(b.team),
+      )
+    : picks;
 
   return createPortal(
     <div
@@ -34,11 +93,20 @@ export function H2HPicksDialog({
         }
       }}
     >
-      <div className="mx-4 w-full max-w-xs rounded-sm border border-border bg-surface">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="h2h-picks-dialog-title"
+        tabIndex={-1}
+        className="mx-4 w-full max-w-sm rounded-sm border border-border bg-surface outline-none"
+      >
         {/* Header */}
         <div className="flex items-start justify-between px-4 pt-4 pb-2">
           <div>
-            <h3 className="font-semibold text-text">Head to Head</h3>
+            <h3 id="h2h-picks-dialog-title" className="font-semibold text-text">
+              Head to Head
+            </h3>
             <p className="text-xs text-text-muted">
               {displayName}&apos;s picks
             </p>
@@ -57,22 +125,41 @@ export function H2HPicksDialog({
 
         {/* Rows */}
         <div className="py-1">
-          {picks === undefined ? (
-            [...Array(ROW_COUNT)].map((_, i) => (
-              <div key={i} className="flex h-9 items-center gap-2 px-4">
-                <div className="h-2 w-20 shrink-0 animate-pulse rounded bg-surface-muted" />
-                <div className="ml-auto h-6 w-10 shrink-0 animate-pulse rounded-md bg-surface-muted" />
-                <div className="h-2 w-2.5 shrink-0 animate-pulse rounded bg-surface-muted" />
-                <div className="h-6 w-10 shrink-0 animate-pulse rounded-md bg-surface-muted" />
-                <div className="h-4 w-4 shrink-0 animate-pulse rounded-full bg-surface-muted" />
+          {rows === undefined ? (
+            // The finished row, dimmed. Teams, duels and the drivers in them
+            // are all fixed for the season, so the only thing actually being
+            // waited on is the outcome — which is the only thing that pulses.
+            // Nothing here is a different shape from the loaded row, so
+            // nothing reflows when it arrives.
+            loadingRows.map((duel) => (
+              <div key={duel.team} className="flex h-9 items-center gap-2 px-4">
+                <TeamCell team={duel.team} />
+                <span className="inline-flex shrink-0 opacity-30">
+                  <DriverBadge
+                    code={duel.driver1Code}
+                    team={duel.team}
+                    size="sm"
+                  />
+                </span>
+                <VersusLabel />
+                <span className="inline-flex shrink-0 opacity-30">
+                  <DriverBadge
+                    code={duel.driver2Code}
+                    team={duel.team}
+                    size="sm"
+                  />
+                </span>
+                <span className="flex w-4 shrink-0 items-center">
+                  <span className="h-4 w-4 animate-pulse rounded-full bg-surface-muted" />
+                </span>
               </div>
             ))
-          ) : !picks || picks.length === 0 ? (
+          ) : !rows || rows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-text-muted">
               No H2H picks for this session.
             </p>
           ) : (
-            picks.map((pick) => {
+            rows.map((pick) => {
               const d1Picked = pick.predictedWinnerId === pick.driver1._id;
 
               return (
@@ -80,12 +167,10 @@ export function H2HPicksDialog({
                   key={pick.matchupId}
                   className="flex h-9 items-center gap-2 px-4"
                 >
-                  <span className="w-20 shrink-0 truncate text-xs leading-none text-text-muted">
-                    {pick.team}
-                  </span>
+                  <TeamCell team={pick.team} />
 
                   <span
-                    className={`ml-auto inline-flex shrink-0 ${d1Picked ? '' : 'opacity-30'}`}
+                    className={`inline-flex shrink-0 ${d1Picked ? '' : 'opacity-30'}`}
                   >
                     <DriverBadge
                       code={pick.driver1.code}
@@ -96,9 +181,7 @@ export function H2HPicksDialog({
                     />
                   </span>
 
-                  <span className="shrink-0 text-xs leading-none text-text-muted/40">
-                    vs
-                  </span>
+                  <VersusLabel />
 
                   <span
                     className={`inline-flex shrink-0 ${!d1Picked ? '' : 'opacity-30'}`}

@@ -1,17 +1,36 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
+import { colors } from '@grandprixpicks/shared/tokens';
 import { useMutation } from 'convex/react';
-import { useState } from 'react';
+import { Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { displayTeamName } from '@/lib/display';
+import { successHaptic, tapHaptic } from '@/lib/haptics';
+import { prefersReducedMotion } from '@/lib/motion';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 import { DuelDriverButton } from './H2HDuelPicker';
 import type { H2HMatchup } from './H2HMatchupGrid';
 import { PicksFocusOverlay } from './PicksFocusOverlay';
+
+/**
+ * How long the confirmed card stays on screen before the takeover closes.
+ *
+ * The pick animation (accent sweep, then the check snapping in behind it) runs
+ * about 420ms. Closing on the mutation's promise meant that on a fast
+ * connection the overlay was gone before any of it drew: you tapped a driver
+ * and the screen simply vanished, which reads as "did that work?" rather than
+ * "that's saved".
+ */
+const CONFIRM_HOLD_MS = 520;
+
+/** Confetti draws to a canvas, so it needs a literal rather than a token class. */
+const ACCENT_COLOR = colors.accent;
 
 /**
  * One team-mate battle, on its own, saved the moment it is answered.
@@ -49,13 +68,67 @@ export function H2HDuelFocusModal({
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const [pending, setPending] = useState<Id<'drivers'> | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [saved, setSaved] = useState(false);
+  const closeTimerRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  // The tapped driver, shown as chosen before the server has agreed.
+  //
+  // Without this the takeover was the one place the pick animation never
+  // played: `selectedDriverId` is the parent's saved state, so the card you
+  // tapped stayed visually unpicked until a round trip completed, by which
+  // point the overlay was closing. The panels answer the tap now, and the
+  // write catches up behind them.
+  const [optimisticDriverId, setOptimisticDriverId] =
+    useState<Id<'drivers'> | null>(null);
+  const shownDriverId = optimisticDriverId ?? selectedDriverId;
+
+  // Reopening on another battle must not inherit the last one's answer.
+  useEffect(() => {
+    setOptimisticDriverId(null);
+    setErrorMessage('');
+    setSaved(false);
+  }, [matchup?._id, open]);
+
+  function celebrate() {
+    if (import.meta.env.MODE === 'test' || prefersReducedMotion()) {
+      return;
+    }
+    void import('canvas-confetti').then(({ default: confetti }) => {
+      confetti({
+        // Deliberately smaller than the burst for a completed card. This is
+        // one battle of eleven: enough to land the save, not so much that
+        // finishing the set feels like the same event.
+        particleCount: 28,
+        spread: 45,
+        startVelocity: 26,
+        scalar: 0.75,
+        ticks: 90,
+        origin: { y: 0.62 },
+        colors: [teamColor, ACCENT_COLOR],
+      });
+    });
+  }
 
   async function pick(driverId: Id<'drivers'>) {
     if (!matchup || pending) {
       return;
     }
+    const isChange = selectedDriverId !== driverId;
     setPending(driverId);
+    setOptimisticDriverId(driverId);
     setErrorMessage('');
+    // Synchronously, inside the tap: iOS only produces a haptic while the
+    // user gesture is still live, so anything after the await is Android-only.
+    tapHaptic();
     try {
       await submitH2H({
         raceId,
@@ -66,12 +139,25 @@ export function H2HDuelFocusModal({
         race_id: raceId,
         session_type: sessionType,
         team: matchup.team,
-        changed_pick: selectedDriverId !== driverId,
+        changed_pick: isChange,
         source: 'dashboard',
       });
-      navigator.vibrate?.(12);
-      onClose();
+      successHaptic();
+      setSaved(true);
+      // Re-confirming the call you already had is not an achievement, and
+      // confetti for it would cheapen the times it means something.
+      if (isChange) {
+        celebrate();
+      }
+      closeTimerRef.current = window.setTimeout(
+        onClose,
+        prefersReducedMotion() ? 0 : CONFIRM_HOLD_MS,
+      );
     } catch (error) {
+      // The card has to go back to what is actually saved: leaving the tapped
+      // driver looking chosen next to an error message tells two stories.
+      setOptimisticDriverId(null);
+      setSaved(false);
       setErrorMessage(
         error instanceof Error
           ? toUserFacingMessage(error)
@@ -86,11 +172,27 @@ export function H2HDuelFocusModal({
     return null;
   }
 
+  const teamColor = TEAM_COLORS[matchup.team] ?? FALLBACK_TEAM_COLOR;
+
   return (
     <PicksFocusOverlay
       open={open}
       onClose={onClose}
-      title={displayTeamName(matchup.team)}
+      title={
+        // The team's colour, where the team is named. It is the fastest way to
+        // know which battle you opened — you recognise papaya or Ferrari red
+        // before you have read the word — and the duel card in the eleven-step
+        // sequence already leads with the same dot, so the two surfaces now
+        // introduce a battle the same way.
+        <span className="flex items-center gap-2">
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: teamColor }}
+            aria-hidden="true"
+          />
+          {displayTeamName(matchup.team)}
+        </span>
+      }
       subtitle={`${SESSION_LABELS[sessionType]} only`}
       fillBody
     >
@@ -114,7 +216,7 @@ export function H2HDuelFocusModal({
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-2 sm:grid sm:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] sm:items-stretch sm:gap-3">
           <DuelDriverButton
             driver={matchup.driver1}
-            selected={selectedDriverId === matchup.driver1._id}
+            selected={shownDriverId === matchup.driver1._id}
             topFivePosition={topFivePositions?.[matchup.driver1._id]}
             onClick={() => void pick(matchup.driver1._id)}
             size="lg"
@@ -132,7 +234,7 @@ export function H2HDuelFocusModal({
           </span>
           <DuelDriverButton
             driver={matchup.driver2}
-            selected={selectedDriverId === matchup.driver2._id}
+            selected={shownDriverId === matchup.driver2._id}
             topFivePosition={topFivePositions?.[matchup.driver2._id]}
             onClick={() => void pick(matchup.driver2._id)}
             size="lg"
@@ -146,6 +248,14 @@ export function H2HDuelFocusModal({
         >
           {errorMessage ? (
             <span className="text-error">{errorMessage}</span>
+          ) : saved ? (
+            // The one thing worth saying during the hold before the takeover
+            // closes. Without it the caption went back to inviting a tap on a
+            // card that had just been answered.
+            <span className="inline-flex items-center gap-1.5 text-accent">
+              <Check size={14} strokeWidth={3} aria-hidden="true" />
+              Saved
+            </span>
           ) : pending ? (
             'Saving…'
           ) : (

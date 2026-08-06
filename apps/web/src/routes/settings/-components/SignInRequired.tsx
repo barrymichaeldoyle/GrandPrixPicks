@@ -1,25 +1,14 @@
-import { SignInButton } from '@clerk/react';
-import { LogIn } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 
-import { Button } from '@/components/Button/Button';
-import { NoticeCard } from '@/components/NoticeCard';
+import { SignInPrompt } from '@/components/SignInPrompt';
 
 export function SignInRequired() {
   return (
-    <div className="bg-page">
-      <div className="mx-auto max-w-4xl px-4 py-6">
-        <NoticeCard
-          level="page"
-          icon={LogIn}
-          title="Sign In Required"
-          description="Sign in to access your settings."
-          action={
-            <SignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
-            </SignInButton>
-          }
-        />
-      </div>
-    </div>
+    <SignInPrompt
+      icon={SlidersHorizontal}
+      title="Your account settings"
+      description="Your display name and avatar, timezone and locale for session times, notification preferences, and your season pass."
+      actionLabel="Sign in to manage your account"
+    />
   );
 }

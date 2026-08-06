@@ -1,14 +1,14 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { LogIn } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { NoticeCard } from '@/components/NoticeCard';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
+import { SignInPrompt } from '@/components/SignInPrompt';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/me')({
@@ -39,28 +39,21 @@ function MyPredictionsPage() {
     }
   }, [me?.username, navigate]);
 
-  if (!isLoaded) {
-    return <PageLoader />;
-  }
-
+  // Signed-out is resolved at SSR, so it renders before Clerk boots rather
+  // than behind the loader.
   if (!isSignedIn) {
     return (
-      <div className="bg-page">
-        <div className="mx-auto max-w-4xl px-4 py-6">
-          <NoticeCard
-            level="page"
-            icon={LogIn}
-            title="Sign In Required"
-            description="Sign in to view your prediction history."
-            action={
-              <AppSignInButton mode="modal">
-                <Button size="sm">Sign In</Button>
-              </AppSignInButton>
-            }
-          />
-        </div>
-      </div>
+      <SignInPrompt
+        icon={UserRound}
+        title="Your profile"
+        description="Your season score, pick history, head-to-head record and the people you follow."
+        actionLabel="Sign in to see your profile"
+      />
     );
+  }
+
+  if (!isLoaded) {
+    return <PageLoader />;
   }
 
   // Signed in but no username — can't redirect to profile

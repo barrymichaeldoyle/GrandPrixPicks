@@ -172,12 +172,14 @@ function SettingsPage() {
     });
   }
 
-  if (!isLoaded) {
-    return <PageLoader />;
-  }
-
+  // Signed-out is resolved at SSR, so it renders before Clerk boots rather
+  // than behind the loader.
   if (!isSignedIn) {
     return <SignInRequired />;
+  }
+
+  if (!isLoaded) {
+    return <PageLoader />;
   }
 
   if (me === undefined) {

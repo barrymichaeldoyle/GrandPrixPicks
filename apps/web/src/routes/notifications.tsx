@@ -7,12 +7,11 @@ import {
 } from '@grandprixpicks/shared/notifications';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
-import { CheckCheck, LogIn } from 'lucide-react';
+import { Bell, CheckCheck } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
 import { Button } from '@/components/Button/Button';
-import { NoticeCard } from '@/components/NoticeCard';
 import {
   NotificationItem,
   type Notification,
@@ -24,11 +23,11 @@ import {
   NotificationUnreadToggle,
 } from '@/components/notifications/NotificationToolbar';
 import { PageLoader } from '@/components/PageLoader';
+import { SignInPrompt } from '@/components/SignInPrompt';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
 import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
 import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
@@ -227,28 +226,22 @@ function NotificationsPage() {
     });
   }
 
-  if (!isLoaded) {
-    return <PageLoader />;
-  }
-
+  // Signed-out is resolved at SSR, so it renders before Clerk boots rather
+  // than behind the loader. Only a viewer we already believe is signed in
+  // waits, and only for their session to confirm.
   if (!isSignedIn) {
     return (
-      <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-3xl px-4 py-6">
-          <NoticeCard
-            level="page"
-            icon={LogIn}
-            title="Sign In Required"
-            description="Sign in to view your notifications."
-            action={
-              <AppSignInButton mode="modal">
-                <Button size="sm">Sign In</Button>
-              </AppSignInButton>
-            }
-          />
-        </div>
-      </div>
+      <SignInPrompt
+        icon={Bell}
+        title="Your notifications"
+        description="Results, reactions, league activity and lock reminders for the sessions you have picks in, all in one place."
+        actionLabel="Sign in to see your notifications"
+      />
     );
+  }
+
+  if (!isLoaded) {
+    return <PageLoader />;
   }
 
   const loadMoreButton = canLoadMore ? (
@@ -425,22 +418,39 @@ function NotificationsPage() {
 /**
  * Keeps the page shell (and both rails) on screen while a page loads, rather
  * than swapping the whole route for a centred spinner.
+ *
+ * Mirrors a single day-group's card — the common first-paint case, where the
+ * live heading is `sr-only`. A pulse bar above the list used to sit exactly
+ * where the unread control lived when it was stacked under the title; once
+ * that control moved onto the title row, the bar was only spending height the
+ * content never claimed, then yanking the list up on arrival.
  */
 function NotificationListSkeleton({ rows = 4 }: { rows?: number }) {
+  // Varied title widths so four identical bars don't read as a stuck paint.
+  const titleWidths = ['w-2/3', 'w-1/2', 'w-3/5', 'w-3/4'] as const;
+
   return (
-    <div aria-hidden className="space-y-5">
-      <div className="h-3 w-20 animate-pulse rounded bg-surface-muted" />
-      <div className="divide-y divide-border/50 overflow-hidden rounded-lg border border-border bg-surface">
-        {Array.from({ length: rows }, (_, row) => (
-          <div key={row} className="flex items-start gap-3 px-4 py-3">
-            <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-surface-muted" />
-            <div className="min-w-0 flex-1 space-y-2 pt-1">
-              <div className="h-3.5 w-2/3 animate-pulse rounded bg-surface-muted" />
-              <div className="h-3 w-24 animate-pulse rounded bg-surface-muted" />
-            </div>
+    <div
+      aria-hidden
+      className="divide-y divide-border/50 overflow-hidden rounded-lg border border-border bg-surface"
+    >
+      {Array.from({ length: rows }, (_, row) => (
+        <div key={row} className="flex items-start gap-3 px-4 py-3">
+          {/* Same leading slot as NotificationItem's RowBody. */}
+          <div className="flex w-8 shrink-0 items-start pt-0.5">
+            <div className="h-8 w-8 animate-pulse rounded-full bg-surface-muted" />
           </div>
-        ))}
-      </div>
+          <div className="min-w-0 flex-1">
+            {/* `pr-5` matches the corner reserved for the mark-as-read control. */}
+            <div className="pr-5">
+              <div
+                className={`h-3.5 animate-pulse rounded bg-surface-muted ${titleWidths[row % titleWidths.length]}`}
+              />
+            </div>
+            <div className="mt-1 h-3 w-28 animate-pulse rounded bg-surface-muted" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

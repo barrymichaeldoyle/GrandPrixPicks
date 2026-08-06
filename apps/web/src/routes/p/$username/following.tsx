@@ -4,6 +4,8 @@ import { useQuery } from 'convex/react';
 import { UserPlus } from 'lucide-react';
 
 import { PageLoader } from '@/components/PageLoader';
+import { SignInPrompt } from '@/components/SignInPrompt';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
 import { FollowListPage } from './-follow-list-page';
 
@@ -30,6 +32,25 @@ function FollowingPage() {
     profile ? { userId: profile._id } : 'skip',
   );
 
+  // Signed-out is resolved at SSR, so it renders before Clerk boots and before
+  // the profile lookup, rather than behind two loaders.
+  if (!isSignedIn) {
+    return (
+      <SignInPrompt
+        eyebrow="Following"
+        title={`Who ${username} follows`}
+        description="Following turns the global table into a race against people you actually know. Sign in to see who this player is watching."
+        actionLabel="Sign in to see who they follow"
+        behind={[
+          'Everyone this player follows',
+          'Follow the same players in one tap',
+          'A leaderboard filtered to people you follow',
+          'Their results in your activity feed',
+        ]}
+      />
+    );
+  }
+
   if (!isLoaded) {
     return <PageLoader />;
   }
@@ -44,15 +65,11 @@ function FollowingPage() {
       username={username}
       displayName={displayName}
       heading={`Who ${displayName} follows`}
-      signInTitle="Sign in to view following"
-      signInDescription={`Sign in to see who ${username} follows and discover other players.`}
       emptyMessage="Not following anyone yet."
       icon={UserPlus}
-      isSignedIn={isSignedIn}
       profileExists={profile !== null}
       users={following}
       viewerUserId={me?._id}
     />
   );
 }
-import { useViewerSession } from '@/integrations/clerk/useViewerSession';

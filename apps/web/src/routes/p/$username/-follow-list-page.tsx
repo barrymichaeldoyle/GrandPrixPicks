@@ -1,8 +1,7 @@
-import { SignInButton } from '@clerk/react';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, LogIn } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Avatar } from '@/components/Avatar';
@@ -22,11 +21,8 @@ type FollowListPageProps = {
   username: string;
   displayName: string;
   heading: string;
-  signInTitle: string;
-  signInDescription: string;
   emptyMessage: string;
   icon: LucideIcon;
-  isSignedIn: boolean;
   profileExists: boolean;
   users: FollowListUser[] | null;
   viewerUserId?: Id<'users'>;
@@ -92,32 +88,15 @@ export function FollowListPage({
   username,
   displayName,
   heading,
-  signInTitle,
-  signInDescription,
   emptyMessage,
   icon: Icon,
-  isSignedIn,
   profileExists,
   users,
   viewerUserId,
 }: FollowListPageProps) {
-  if (!isSignedIn) {
-    return (
-      <FollowListStateShell>
-        <NoticeCard
-          level="page"
-          icon={LogIn}
-          title={signInTitle}
-          description={signInDescription}
-          action={
-            <SignInButton mode="modal">
-              <Button size="sm">Sign In</Button>
-            </SignInButton>
-          }
-        />
-      </FollowListStateShell>
-    );
-  }
+  // The signed-out gate lives in the routes, not here: it has to short-circuit
+  // ahead of the profile and follow-list queries this component renders from,
+  // so an anonymous visitor never waits on data they will not be shown.
 
   if (!profileExists) {
     return (

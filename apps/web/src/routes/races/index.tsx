@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Calendar } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,11 +16,18 @@ import { PageHeader } from '@/components/PageHeader';
 export const Route = createFileRoute('/races/')({
   component: RacesPage,
   loader: async () => {
-    const [races, nextRace] = await Promise.all([
+    // The practice slugs drive the practice-results index below. Those pages
+    // are in the sitemap but the only in-app link to them lives in a
+    // client-only Convex card, so without this list they have no
+    // server-rendered inbound link at all and read as orphans to a crawler.
+    const [races, nextRace, practiceSlugs] = await Promise.all([
       withRetry(() => convex.query(api.races.listRaces, { season: 2026 })),
       withRetry(() => convex.query(api.races.getNextRace)),
+      withRetry(() =>
+        convex.query(api.practiceResults.listRaceSlugsWithPracticeResults),
+      ),
     ]);
-    return { races, nextRace };
+    return { races, nextRace, practiceSlugs };
   },
   head: ({ loaderData }) => {
     const meta = pageMeta({
@@ -74,12 +81,19 @@ export const Route = createFileRoute('/races/')({
 });
 
 function RacesPage() {
-  const { races, nextRace } = Route.useLoaderData();
+  const { races, nextRace, practiceSlugs } = Route.useLoaderData();
   const now = useNow(0);
   const [view, setView] = useState<'upcoming' | 'completed' | 'all'>(
     'upcoming',
   );
   const orderedRaces = [...races].sort((a, b) => a.round - b.round);
+  // Rendered independently of the Upcoming/Completed filter so the links are
+  // always in the SSR markup, not just when a crawler happens to see the
+  // completed tab.
+  const practiceSlugSet = new Set(practiceSlugs);
+  const practiceRaces = orderedRaces.filter((race) =>
+    practiceSlugSet.has(race.slug),
+  );
   const displayedRaces = orderedRaces.filter((race) => {
     if (view === 'all') {
       return true;
@@ -227,6 +241,37 @@ function RacesPage() {
               ) : null}
             </div>
           )}
+
+          {practiceRaces.length > 0 ? (
+            <nav
+              aria-label="Practice results by round"
+              className="mt-10 border-t border-border pt-6"
+            >
+              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                Practice results
+              </p>
+              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+                Free practice classifications
+              </h2>
+              <p className="mt-1 text-sm text-text-muted">
+                FP1, FP2 and FP3 lap times and gaps for every round that has
+                run.
+              </p>
+              <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                {practiceRaces.map((race) => (
+                  <li key={race._id}>
+                    <Link
+                      to="/races/$raceSlug/practice"
+                      params={{ raceSlug: race.slug }}
+                      className="text-accent hover:text-accent-hover"
+                    >
+                      Round {race.round}: {race.name} practice results
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </div>
       {SHOW_DEV_TIME_CONTROLS ? (

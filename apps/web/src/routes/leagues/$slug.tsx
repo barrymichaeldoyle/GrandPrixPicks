@@ -7,10 +7,9 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { ArrowLeft, LogIn, Shield } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
@@ -24,6 +23,7 @@ import type {
   TimeScope,
 } from './$slug/-components/types';
 import { NoticeCard } from '@/components/NoticeCard';
+import { SignInPrompt } from '@/components/SignInPrompt';
 
 export const Route = createFileRoute('/leagues/$slug')({
   component: LeagueDetailPage,
@@ -90,19 +90,27 @@ function LeagueDetailPage() {
     select: (state) => state.location.pathname.endsWith('/settings'),
   });
 
+  const { slug } = Route.useParams();
+  const { league: loadedLeague } = Route.useLoaderData();
+  const { isSignedIn, isLoaded } = useViewerSession();
+  const liveLeague = useQuery(api.leagues.getLeagueBySlug, { slug });
+
+  // Every hook runs before this. It used to sit above the five below it, so a
+  // client-side transition from the league to its own settings flipped the
+  // condition inside one component instance and changed the hook count, which
+  // is the "rendered fewer hooks than expected" crash.
   if (isSettingsSubroute) {
     return <Outlet />;
   }
+  // The loader already resolved this league server-side, so an anonymous
+  // visitor never waits on the subscription to say what they were invited to.
+  // `??` would be wrong here: a deleted league comes back as `null`, and
+  // falling back to loader data for that case would render a league that no
+  // longer exists instead of the not-found state. Only `undefined` (still
+  // loading) defers to the loader.
+  const league = liveLeague === undefined ? loadedLeague : liveLeague;
 
-  const { slug } = Route.useParams();
-  const { isSignedIn, isLoaded } = useViewerSession();
-  const league = useQuery(api.leagues.getLeagueBySlug, { slug });
-  const currentLeagueUrl =
-    typeof window === 'undefined'
-      ? undefined
-      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
-
-  if (!isLoaded || league === undefined) {
+  if (isSignedIn && (!isLoaded || liveLeague === undefined)) {
     return <PageLoader />;
   }
 
@@ -126,36 +134,33 @@ function LeagueDetailPage() {
     );
   }
 
-  // Not signed in — show sign-in prompt with league info
+  // A league URL is an invite: it gets shared in a group chat and opened by
+  // people without an account. So this leads with the league they were sent
+  // to, from loader data so the name is in the SSR markup, rather than with a
+  // generic wall. No fallbackRedirectUrl is needed to come back here, because
+  // the sign-in modal never leaves the page.
   if (!isSignedIn) {
     return (
-      <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-lg px-4 py-16">
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <LogIn className="mx-auto mb-4 h-16 w-16 text-text-muted" />
-            <h1 className="mb-2 text-2xl font-semibold text-text">
-              {league.name}
-            </h1>
-            <p className="mb-1 text-text-muted">
-              {league.memberCount} member
-              {league.memberCount !== 1 ? 's' : ''}
-            </p>
-            {league.description && (
-              <p className="mb-4 text-sm text-text-muted">
-                {league.description}
-              </p>
-            )}
-            <p className="mb-4 text-text-muted">Sign in to join this league.</p>
-            <AppSignInButton
-              mode="modal"
-              fallbackRedirectUrl={currentLeagueUrl}
-              signUpFallbackRedirectUrl={currentLeagueUrl}
-            >
-              <Button size="sm">Sign In</Button>
-            </AppSignInButton>
-          </div>
-        </div>
-      </div>
+      <SignInPrompt
+        eyebrow={
+          league.visibility === 'public' ? 'Public league' : 'League invite'
+        }
+        title={league.name}
+        meta={`${league.memberCount} ${
+          league.memberCount === 1 ? 'member' : 'members'
+        } · ${league.season} season${league.hasPassword ? ' · Password required' : ''}`}
+        description={
+          league.description ??
+          'Same picks, scored against a table of just this league.'
+        }
+        actionLabel="Sign in to join"
+        behind={[
+          `The ${league.name} table, updated every session`,
+          'Your Top 5 and head-to-head picks scored against its members',
+          "The league's own activity feed",
+          'Your position in it across the whole season',
+        ]}
+      />
     );
   }
 

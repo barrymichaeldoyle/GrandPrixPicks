@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -15,6 +16,12 @@ type SignInPromptProps = {
   /** One sentence on what the page does once you are signed in. */
   description: string;
   actionLabel?: string;
+  /**
+   * Quiet context under the title: member counts, a round, a season. Use it
+   * when the page is about one named thing and the reader needs to know they
+   * have arrived at the right one.
+   */
+  meta?: ReactNode;
   /**
    * What this page holds, as rows. These are the page's real contents, not
    * decoration: the panel is only worth its space because a reader can tell
@@ -45,6 +52,7 @@ export function SignInPrompt({
   title,
   description,
   actionLabel = 'Sign in',
+  meta,
   behind,
 }: SignInPromptProps) {
   const { requestSignIn, signInPending } = useClerkRuntimeControl();
@@ -64,6 +72,9 @@ export function SignInPrompt({
             <h1 className="font-title mt-2 max-w-3xl text-4xl font-light text-balance text-text sm:text-5xl">
               {title}
             </h1>
+            {meta ? (
+              <p className="gpp-reading-meta mt-2 text-text-muted">{meta}</p>
+            ) : null}
             <p className="gpp-reading-copy mt-4 max-w-xl text-pretty text-text-muted">
               {description}
             </p>

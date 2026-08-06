@@ -140,8 +140,10 @@ function PayPage() {
         captureAnalyticsEvent('checkout_open_failed', {
           reason: 'missing_transaction_id',
         });
-        setErrorMessage('Missing Paddle transaction ID in URL (_ptxn).');
-        setStatusMessage('Checkout could not be opened.');
+        setErrorMessage(
+          'This link is missing the details Paddle needs to take a payment. Start from the pricing page and it will be built for you.',
+        );
+        setStatusMessage('This checkout link is incomplete.');
         return;
       }
 
@@ -150,7 +152,7 @@ function PayPage() {
           reason: 'missing_client_token',
         });
         setErrorMessage(
-          'Missing VITE_PADDLE_CLIENT_TOKEN environment variable.',
+          'Secure checkout could not start. This one is on us, not you, and nothing has been charged.',
         );
         setStatusMessage('Checkout could not be opened.');
         return;
@@ -222,9 +224,12 @@ function PayPage() {
         captureAnalyticsEvent('checkout_open_failed', {
           reason: error instanceof Error ? error.message : 'unexpected_error',
         });
-        const message =
-          error instanceof Error ? error.message : 'Unexpected checkout error';
-        setErrorMessage(message);
+        // The thrown message goes to analytics above, never to the page: it
+        // carries Paddle.js internals and env var names, and a payment screen
+        // is the last place to show either.
+        setErrorMessage(
+          'Something went wrong opening the secure checkout window. Nothing has been charged. Try again from pricing, and tell us if it keeps happening.',
+        );
         setStatusMessage('Checkout could not be opened.');
       }
     }
@@ -240,10 +245,7 @@ function PayPage() {
         </h1>
         <p className="text-sm text-text-muted">{statusMessage}</p>
         {errorMessage ? (
-          <p className="mt-3 text-sm text-error">
-            {errorMessage} If this keeps happening, go back to pricing and try
-            again.
-          </p>
+          <p className="mt-3 text-sm text-error">{errorMessage}</p>
         ) : null}
         <Button asChild size="sm" leftIcon={ArrowLeft} className="mt-4">
           <Link to="/pricing">Back to pricing</Link>

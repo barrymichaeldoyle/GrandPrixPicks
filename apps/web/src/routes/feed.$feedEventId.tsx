@@ -14,6 +14,7 @@ import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
+import { SignInPrompt } from '@/components/SignInPrompt';
 import { canonicalMeta, noIndexMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/feed/$feedEventId')({
@@ -173,6 +174,27 @@ function FeedEventPage() {
       : 'skip',
   );
 
+  // Reached from a reaction push, so the reader is almost always the signed-in
+  // owner of the pick. There is deliberately no public preview: another
+  // player's picks are not ours to show, and the old card's "Go to feed"
+  // button pointed at /feed, which redirects to /.
+  if (!isSignedIn) {
+    return (
+      <SignInPrompt
+        eyebrow="Activity"
+        title="This one is someone's actual pick"
+        description="Predictions and the reactions they collect are only visible to signed-in players."
+        actionLabel="Sign in to view it"
+        behind={[
+          'The prediction this link points at',
+          'Every reaction it collected',
+          'Activity from the players you follow',
+          'Reactions on your own picks',
+        ]}
+      />
+    );
+  }
+
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-2xl px-4 py-8">
@@ -184,16 +206,6 @@ function FeedEventPage() {
 
         {!isLoaded ? (
           <FeedEventSkeleton />
-        ) : !isSignedIn ? (
-          <div className="rounded-sm border border-border bg-surface px-6 py-10 text-center">
-            <Gauge className="mx-auto mb-3 h-8 w-8 text-accent" />
-            <p className="mb-4 text-sm text-text-muted">
-              Sign in to view this prediction and its reactions.
-            </p>
-            <Button asChild variant="primary" size="md">
-              <Link to="/feed">Go to feed</Link>
-            </Button>
-          </div>
         ) : feedEvent === undefined ? (
           <FeedEventSkeleton />
         ) : !feedEvent ? (

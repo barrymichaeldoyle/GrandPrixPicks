@@ -1,7 +1,6 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { UserRound } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/Button/Button';
@@ -44,10 +43,16 @@ function MyPredictionsPage() {
   if (!isSignedIn) {
     return (
       <SignInPrompt
-        icon={UserRound}
-        title="Your profile"
-        description="Your season score, pick history, head-to-head record and the people you follow."
+        eyebrow="Profile"
+        title="Your season, on the record"
+        description="Every pick you have made this year, what it scored, and where it puts you against everyone else."
         actionLabel="Sign in to see your profile"
+        behind={[
+          'Season points and championship position',
+          'Pick history for every session',
+          'Head-to-head record against team-mates',
+          'Followers, and the players you follow',
+        ]}
       />
     );
   }

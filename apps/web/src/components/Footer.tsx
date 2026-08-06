@@ -91,7 +91,7 @@ const socialLinks = [
 ] as const;
 
 const socialLinkClass =
-  'inline-flex min-h-8 items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
+  'inline-flex min-h-6 items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
 
 function MadeByCredit({
   className,
@@ -133,7 +133,11 @@ export function Footer() {
 
   return (
     <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
-      <div className="relative mx-auto max-w-6xl px-4 py-8">
+      {/* Same frame as the header and every page container
+          (`max-w-(--page-max) px-4`). This was `max-w-6xl`, 128px narrower,
+          so the footer columns sat 64px inboard of the nav and of the page
+          content above them on any viewport past 1152px. */}
+      <div className="relative mx-auto w-full max-w-(--page-max) px-4 py-8">
         <div className="grid grid-cols-1 gap-8 text-sm text-text-muted min-[360px]:grid-cols-2 min-[360px]:gap-x-6 sm:gap-10 lg:grid-cols-[1.35fr_0.9fr_1fr_1.05fr]">
           <div className="space-y-3 min-[360px]:col-span-2 lg:col-span-1">
             <Link
@@ -149,7 +153,7 @@ export function Footer() {
               A free-to-play F1 prediction game for every race weekend.
             </p>
             <div className="space-y-2 pt-1 text-xs">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="flex flex-wrap items-center gap-x-4">
                 {socialLinks.map((link) => (
                   <a
                     key={link.key}

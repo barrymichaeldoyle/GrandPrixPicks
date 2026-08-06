@@ -169,7 +169,7 @@ leaderboards.ts        # Season + weekend leaderboards with pagination
 h2h.ts                 # Head-to-head matchups, predictions, scoring
 leagues.ts             # Private leagues + membership
 follows.ts             # Follower / following graph
-feed.ts                # Activity feed events + "revs" (kudos)
+feed.ts                # Activity feed events + reactions
 notifications.ts       # Notification scheduling/batching (nudges, milestones)
 push.ts, pushNotifications.ts  # Expo + web push delivery / tokens
 inAppNotifications.ts  # In-app notification bell feed
@@ -227,7 +227,7 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 - **Season pass**: a paid (Paddle) per-season entitlement (`userSeasonPasses`)
   gates premium surfaces.
 - **Feed**: activity events (score published, session locked, joined league,
-  streak milestone); other users can "rev" (kudos) an event.
+  streak milestone); other users can react to an event with an emoji.
 
 ### Database Tables (Convex)
 
@@ -238,6 +238,8 @@ Grouped by area (24 tables):
 - **Head-to-head**: `h2hMatchups`, `h2hPredictions`, `h2hResults`, `h2hScores`,
   `h2hSeasonStandings`
 - **Social**: `follows`, `feedEvents`, `revs`, `leagues`, `leagueMembers`
+  (`revs` is the legacy table name for reactions; the feature is called
+  **reactions** everywhere user-facing, and in `packages/shared/src/reactions.ts`)
 - **Notifications**: `inAppNotifications`, `pushSubscriptions`, `expoPushTokens`
 - **Billing / ops**: `userSeasonPasses`, `processedPaddleWebhookEvents`,
   `announcements`, `supportRequests`

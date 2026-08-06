@@ -112,8 +112,8 @@ joined, 5 public created, unlimited public joined. Promotional prices are
 operational configuration and must be revalidated before any copy reuses them.
 
 **Social.** Follows, an activity feed of system-generated events (score
-published, session locked, joined league, streak milestone), and reactions
-("revs") on those events. There are no user-authored posts and no direct
+published, session locked, joined league, streak milestone), and emoji
+reactions on those events. There are no user-authored posts and no direct
 messaging.
 
 **Privacy rule with design consequences.** Another player's picks and

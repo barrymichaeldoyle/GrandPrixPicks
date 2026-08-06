@@ -7,7 +7,7 @@ import {
 } from '@grandprixpicks/shared/notifications';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
-import { Bell, CheckCheck } from 'lucide-react';
+import { CheckCheck } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
@@ -232,10 +232,16 @@ function NotificationsPage() {
   if (!isSignedIn) {
     return (
       <SignInPrompt
-        icon={Bell}
-        title="Your notifications"
-        description="Results, reactions, league activity and lock reminders for the sessions you have picks in, all in one place."
+        eyebrow="Notifications"
+        title="Everything that happened while you were away"
+        description="One inbox for the sessions you have picks in: what locked, what scored, and who reacted."
         actionLabel="Sign in to see your notifications"
+        behind={[
+          'Session lock reminders before you miss a pick',
+          'Your score, the moment results publish',
+          'Reactions to your picks and posts',
+          'League invites and member activity',
+        ]}
       />
     );
   }

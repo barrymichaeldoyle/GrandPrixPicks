@@ -57,9 +57,11 @@ afterEach(() => {
 
 const prompt = (
   <SignInPrompt
-    title="Your notifications"
-    description="Everything that happened while you were away."
+    eyebrow="Notifications"
+    title="Everything that happened while you were away"
+    description="One inbox for the sessions you have picks in."
     actionLabel="Sign in to see your notifications"
+    behind={['Session lock reminders', 'Your score when results publish']}
   />
 );
 
@@ -69,14 +71,17 @@ describe('SignInPrompt', () => {
   // with no browser and no Clerk.
   it('server-renders its copy without a Clerk runtime', () => {
     const html = renderToStaticMarkup(prompt);
-    expect(html).toContain('Your notifications');
-    expect(html).toContain('Everything that happened while you were away.');
+    expect(html).toContain('Everything that happened while you were away');
+    expect(html).toContain('One inbox for the sessions you have picks in.');
     expect(html).toContain('Sign in to see your notifications');
+    // The withheld rows are the page's real contents, so they must be in the
+    // SSR markup too, not painted in later.
+    expect(html).toContain('Session lock reminders');
   });
 
   it('renders the page heading as an h1', () => {
     expect(render(prompt).querySelector('h1')?.textContent).toBe(
-      'Your notifications',
+      'Everything that happened while you were away',
     );
   });
 
@@ -89,6 +94,18 @@ describe('SignInPrompt', () => {
     expect(hrefs).toContain('/how-to-play');
     expect(hrefs).toContain('/races');
     expect(hrefs).toContain('/leaderboard');
+  });
+
+  // The panel is the argument for signing in: it has to name what is behind
+  // the gate, and keep the column a real figure lands in.
+  it('lists what the page holds, with the figure column withheld', () => {
+    const rows = Array.from(render(prompt).querySelectorAll('section li')).map(
+      (row) => row.textContent,
+    );
+    expect(rows).toEqual([
+      'Session lock reminders--',
+      'Your score when results publish--',
+    ]);
   });
 
   // Goes through the runtime control rather than Clerk's SignInButton so the

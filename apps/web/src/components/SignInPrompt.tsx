@@ -1,23 +1,25 @@
 import { Link } from '@tanstack/react-router';
-import { Loader2, type LucideIcon } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
-import { NoticeCard } from '@/components/NoticeCard';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
 } from '@/integrations/clerk/runtime-control';
 
 type SignInPromptProps = {
-  icon?: LucideIcon;
-  /** What this page is, as a heading. Not "Sign In Required" on every page. */
+  /** Micro label above the title. Names the page, not the gate. */
+  eyebrow: string;
   title: string;
   /** One sentence on what the page does once you are signed in. */
   description: string;
-  /** Label on the primary button, e.g. "Sign in to see your notifications". */
   actionLabel?: string;
-  /** Width constraint for the surrounding column. */
-  maxWidthClass?: string;
+  /**
+   * What this page holds, as rows. These are the page's real contents, not
+   * decoration: the panel is only worth its space because a reader can tell
+   * from it whether signing in gets them what they came for.
+   */
+  behind: ReadonlyArray<string>;
 };
 
 /**
@@ -31,76 +33,119 @@ type SignInPromptProps = {
  * from SSR instead of waiting on Clerk's boot. And it does not dead-end: these
  * pages are frequently a first touch from a shared link, so there is always
  * somewhere public to go next.
+ *
+ * The shape is the timing sheet with its figures withheld. A gate is an empty
+ * container awaiting input, so the panel takes the system's dashed hairline,
+ * and each row keeps the right-aligned mono column a real figure would sit in.
+ * That column is the whole argument: there is data here, it is yours, and it is
+ * not showing. A centred card with an icon over "Sign In Required" made the
+ * same page look like it had nothing behind it.
  */
 export function SignInPrompt({
-  icon,
+  eyebrow,
   title,
   description,
   actionLabel = 'Sign in',
-  maxWidthClass = 'max-w-3xl',
+  behind,
 }: SignInPromptProps) {
   const { requestSignIn, signInPending } = useClerkRuntimeControl();
   const warmHandlers = useClerkWarmHandlers();
 
   return (
-    <div className="min-h-full bg-page">
-      <div className={`mx-auto ${maxWidthClass} px-4 py-6`}>
-        <NoticeCard
-          level="page"
-          icon={icon}
-          title={title}
-          description={description}
-          action={
+    <main className="min-h-full bg-page">
+      {/* Same frame as every other page container, so the stripe, the panel
+          and the footer columns all land on one left edge. */}
+      <div className="mx-auto w-full max-w-(--page-max) px-4 py-10 sm:py-14">
+        {/* One stripe per container, on the thing that matters most. */}
+        <header className="gpp-stripe pl-5">
+          <p className="gpp-label">{eyebrow}</p>
+          <h1 className="font-title mt-2 max-w-3xl text-4xl font-light text-balance text-text sm:text-5xl">
+            {title}
+          </h1>
+          <p className="gpp-reading-copy mt-4 max-w-xl text-pretty text-text-muted">
+            {description}
+          </p>
+          <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
             <Button
-              size="sm"
+              size="md"
+              /* Suppresses the header's own chartreuse CTA (see styles.css):
+                 the accent marks one action per screen, and on this page the
+                 action is here. */
+              data-landing-hero-cta
               {...warmHandlers}
               onClick={() => requestSignIn()}
               aria-busy={signInPending || undefined}
             >
+              {/* Stays enabled while Clerk boots: a disabled button reads as
+                  "this broke" rather than "this is opening". */}
               <span className="relative inline-flex items-center justify-center">
                 <span className={signInPending ? 'invisible' : undefined}>
                   {actionLabel}
                 </span>
                 {signInPending ? (
                   <Loader2
-                    size={16}
+                    size={20}
                     className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
                     aria-hidden="true"
                   />
                 ) : null}
               </span>
             </Button>
-          }
-        />
+            <p className="gpp-reading-meta text-text-disabled">
+              Free to play. No card needed.
+            </p>
+          </div>
+        </header>
 
-        <nav
-          aria-label="Public pages"
-          className="mt-8 border-t border-border pt-6"
-        >
-          <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-            No account yet?
-          </p>
-          <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2 [&_a]:text-accent [&_a:hover]:text-accent-hover">
-            <li>
-              <Link to="/how-to-play">How the game works</Link>
-            </li>
-            <li>
-              <Link to="/races">2026 F1 race calendar</Link>
-            </li>
-            <li>
-              <Link to="/leaderboard">Season leaderboard</Link>
-            </li>
-            <li>
-              <Link
-                to="/guides/$guideSlug"
-                params={{ guideSlug: 'how-to-predict-f1-top-five' }}
-              >
-                How to predict an F1 top five
-              </Link>
-            </li>
-          </ul>
-        </nav>
+        {/* Echoes the signed-in page's own shape: a content column with a
+            narrower rail beside it, rather than a narrow strip in a wide frame
+            with half the page empty. */}
+        <div className="mt-12 grid gap-x-12 gap-y-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <section>
+            <h2 className="gpp-label">Behind sign-in</h2>
+            <ul className="gpp-empty mt-3 divide-y divide-border rounded-lg">
+              {behind.map((row) => (
+                <li
+                  key={row}
+                  className="flex items-baseline justify-between gap-4 px-4 py-3"
+                >
+                  <span className="text-sm text-text">{row}</span>
+                  {/* The column a figure lands in once you are in. */}
+                  <span
+                    className="gpp-mono text-sm text-text-disabled"
+                    aria-label="Hidden until you sign in"
+                  >
+                    --
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <nav aria-labelledby="signed-out-public-pages">
+            <h2 id="signed-out-public-pages" className="gpp-label">
+              Open to everyone
+            </h2>
+            <ul className="mt-3 border-t border-border">
+              {[
+                { to: '/how-to-play', label: 'How the game works' },
+                { to: '/races', label: '2026 F1 race calendar' },
+                { to: '/leaderboard', label: 'Season leaderboard' },
+                { to: '/f1-standings', label: 'F1 championship standings' },
+              ].map((link) => (
+                <li key={link.to} className="border-b border-border">
+                  <Link
+                    to={link.to}
+                    className="block py-3 text-sm text-text-muted transition-colors hover:text-accent"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

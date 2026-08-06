@@ -109,6 +109,17 @@ describe('SignInPrompt', () => {
     ]);
   });
 
+  // The landing page is the only place a logged-out visitor can build a real
+  // pick, and the header only reaches it through the wordmark. A gate that
+  // offers no way to find out what the product is wastes its best traffic.
+  it('offers the landing page beside the sign-in action', () => {
+    const header = render(prompt).querySelector('header');
+    const hrefs = Array.from(header?.querySelectorAll('a') ?? []).map(
+      (anchor) => anchor.getAttribute('href'),
+    );
+    expect(hrefs).toContain('/');
+  });
+
   // Goes through the runtime control rather than Clerk's SignInButton so the
   // page stays on its own URL and Clerk is never imported until it is wanted.
   it('opens sign-in through the runtime control', () => {

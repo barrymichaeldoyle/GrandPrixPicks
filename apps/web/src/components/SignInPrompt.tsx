@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 import {
@@ -34,12 +34,10 @@ type SignInPromptProps = {
  * pages are frequently a first touch from a shared link, so there is always
  * somewhere public to go next.
  *
- * The shape is the timing sheet with its figures withheld. A gate is an empty
- * container awaiting input, so the panel takes the system's dashed hairline,
- * and each row keeps the right-aligned mono column a real figure would sit in.
- * That column is the whole argument: there is data here, it is yours, and it is
- * not showing. A centred card with an icon over "Sign In Required" made the
- * same page look like it had nothing behind it.
+ * A gate is a container awaiting input, so the panel naming what is behind it
+ * takes the system's dashed hairline. That is the whole withheld treatment: a
+ * centred card with an icon over "Sign In Required" made a page with plenty
+ * behind it look like it had nothing.
  */
 export function SignInPrompt({
   eyebrow,
@@ -91,10 +89,28 @@ export function SignInPrompt({
                 ) : null}
               </span>
             </Button>
-            <p className="gpp-reading-meta text-text-disabled">
-              Free to play. No card needed.
-            </p>
+            {/* The one exit that is not a dead end for someone who has never
+                heard of this. `/` is the only page where a logged-out visitor
+                can build a real pick, and it was reachable from here only via
+                the wordmark: the header's "How it works" goes to
+                /how-to-play, which is the rules, not the offer. */}
+            {/* No left padding until the buttons sit side by side: stacked on
+                a phone, the text variant's px-5 pushed its label inboard of
+                the primary button's edge and the column stopped reading as a
+                column. */}
+            <Button
+              asChild
+              variant="text"
+              size="md"
+              rightIcon={ArrowRight}
+              className="!px-0 sm:!px-5"
+            >
+              <Link to="/">Try a pick without an account</Link>
+            </Button>
           </div>
+          <p className="gpp-reading-meta mt-3 text-text-disabled">
+            Free to play. No card needed.
+          </p>
         </header>
 
         {/* Echoes the signed-in page's own shape: a content column with a

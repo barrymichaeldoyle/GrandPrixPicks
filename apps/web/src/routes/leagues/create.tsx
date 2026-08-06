@@ -1,15 +1,14 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery } from 'convex/react';
-import { AlertCircle, ArrowLeft, Check, Loader2, LogIn } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
-import { NoticeCard } from '@/components/NoticeCard';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { SignInPrompt } from '@/components/SignInPrompt';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageHeader } from '@/components/PageHeader';
 import { PageLoader } from '@/components/PageLoader';
@@ -31,28 +30,28 @@ export const Route = createFileRoute('/leagues/create')({
 function CreateLeaguePage() {
   const { isSignedIn, isLoaded } = useViewerSession();
 
-  if (!isLoaded) {
-    return <PageLoader />;
-  }
-
+  // Signed-out is resolved at SSR, so it renders before Clerk boots rather
+  // than behind the loader. Only a viewer we already believe is signed in
+  // waits, and only for their session to confirm.
   if (!isSignedIn) {
     return (
-      <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-4xl px-4 py-6">
-          <NoticeCard
-            level="page"
-            icon={LogIn}
-            title="Sign In Required"
-            description="Sign in to create a league."
-            action={
-              <AppSignInButton mode="modal">
-                <Button size="sm">Sign In</Button>
-              </AppSignInButton>
-            }
-          />
-        </div>
-      </div>
+      <SignInPrompt
+        eyebrow="Leagues"
+        title="Run the championship with your own people"
+        description="A private league scores the same picks against a table of only the people you invite."
+        actionLabel="Sign in to create a league"
+        behind={[
+          'Create a league with a shareable join link',
+          'A members-only table for every session',
+          'Your league\u2019s own activity feed',
+          'Admin controls for members and access',
+        ]}
+      />
     );
+  }
+
+  if (!isLoaded) {
+    return <PageLoader />;
   }
 
   return <CreateLeagueContent />;

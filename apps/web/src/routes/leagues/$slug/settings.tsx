@@ -8,7 +8,6 @@ import {
   Globe,
   Loader2,
   Lock,
-  LogIn,
   LogOut,
   Pencil,
   Settings,
@@ -21,13 +20,13 @@ import { useState } from 'react';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { convexHttp as convex } from '@/integrations/convex/client';
 import { withRetry } from '@/lib/retry';
 import { pageMeta } from '@/lib/site';
 import { NoticeCard } from '@/components/NoticeCard';
+import { SignInPrompt } from '@/components/SignInPrompt';
 
 export const Route = createFileRoute('/leagues/$slug/settings')({
   component: LeagueSettingsPage,
@@ -65,6 +64,13 @@ function LeagueSettingsPage() {
   const { isSignedIn, isLoaded } = useViewerSession();
   const league = useQuery(api.leagues.getLeagueBySlug, { slug });
 
+  // Signed-out first: it is resolved at SSR, so it renders immediately rather
+  // than behind the loader, and the league lookup below is only ever going to
+  // end at the same gate for an anonymous visitor anyway.
+  if (!isSignedIn) {
+    return <LeagueSettingsSignInPrompt />;
+  }
+
   if (!isLoaded || league === undefined) {
     return <PageLoader />;
   }
@@ -82,26 +88,6 @@ function LeagueSettingsPage() {
               <Button asChild size="sm" leftIcon={ArrowLeft}>
                 <Link to="/leagues">Back to Leagues</Link>
               </Button>
-            }
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSignedIn) {
-    return (
-      <div className="min-h-full bg-page">
-        <div className="mx-auto max-w-lg px-4 py-16">
-          <NoticeCard
-            level="page"
-            icon={LogIn}
-            title="Sign In Required"
-            description="Sign in to manage league settings."
-            action={
-              <AppSignInButton mode="modal">
-                <Button size="sm">Sign In</Button>
-              </AppSignInButton>
             }
           />
         </div>
@@ -655,5 +641,22 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
         Leave league
       </button>
     </div>
+  );
+}
+
+function LeagueSettingsSignInPrompt() {
+  return (
+    <SignInPrompt
+      eyebrow="League settings"
+      title="Only admins can change a league"
+      description="Sign in as an admin of this league to edit its details, manage who is in it, and control how people join."
+      actionLabel="Sign in to manage this league"
+      behind={[
+        'League name and description',
+        'Join password and access',
+        'Members, admins and removals',
+        'Deleting the league',
+      ]}
+    />
   );
 }

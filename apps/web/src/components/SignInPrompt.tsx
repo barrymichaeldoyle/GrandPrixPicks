@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
+import { NextEventPanel } from '@/components/NextEventPanel';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -54,64 +55,70 @@ export function SignInPrompt({
       {/* Same frame as every other page container, so the stripe, the panel
           and the footer columns all land on one left edge. */}
       <div className="mx-auto w-full max-w-(--page-max) px-4 py-10 sm:py-14">
-        {/* One stripe per container, on the thing that matters most. */}
-        <header className="gpp-stripe pl-5">
-          <p className="gpp-label">{eyebrow}</p>
-          <h1 className="font-title mt-2 max-w-3xl text-4xl font-light text-balance text-text sm:text-5xl">
-            {title}
-          </h1>
-          <p className="gpp-reading-copy mt-4 max-w-xl text-pretty text-text-muted">
-            {description}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
-            <Button
-              size="md"
-              /* Suppresses the header's own chartreuse CTA (see styles.css):
+        {/* Same rail track as the grid below, so the next-event panel and the
+            public links form one column down the right of the page. */}
+        <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          {/* One stripe per container, on the thing that matters most. */}
+          <header className="gpp-stripe pl-5">
+            <p className="gpp-label">{eyebrow}</p>
+            <h1 className="font-title mt-2 max-w-3xl text-4xl font-light text-balance text-text sm:text-5xl">
+              {title}
+            </h1>
+            <p className="gpp-reading-copy mt-4 max-w-xl text-pretty text-text-muted">
+              {description}
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
+              <Button
+                size="md"
+                /* Suppresses the header's own chartreuse CTA (see styles.css):
                  the accent marks one action per screen, and on this page the
                  action is here. */
-              data-landing-hero-cta
-              {...warmHandlers}
-              onClick={() => requestSignIn()}
-              aria-busy={signInPending || undefined}
-            >
-              {/* Stays enabled while Clerk boots: a disabled button reads as
+                data-landing-hero-cta
+                {...warmHandlers}
+                onClick={() => requestSignIn()}
+                aria-busy={signInPending || undefined}
+              >
+                {/* Stays enabled while Clerk boots: a disabled button reads as
                   "this broke" rather than "this is opening". */}
-              <span className="relative inline-flex items-center justify-center">
-                <span className={signInPending ? 'invisible' : undefined}>
-                  {actionLabel}
+                <span className="relative inline-flex items-center justify-center">
+                  <span className={signInPending ? 'invisible' : undefined}>
+                    {actionLabel}
+                  </span>
+                  {signInPending ? (
+                    <Loader2
+                      size={20}
+                      className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
+                      aria-hidden="true"
+                    />
+                  ) : null}
                 </span>
-                {signInPending ? (
-                  <Loader2
-                    size={20}
-                    className="absolute top-1/2 left-1/2 shrink-0 -translate-x-1/2 -translate-y-1/2 animate-spin"
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </span>
-            </Button>
-            {/* The one exit that is not a dead end for someone who has never
+              </Button>
+              {/* The one exit that is not a dead end for someone who has never
                 heard of this. `/` is the only page where a logged-out visitor
                 can build a real pick, and it was reachable from here only via
                 the wordmark: the header's "How it works" goes to
                 /how-to-play, which is the rules, not the offer. */}
-            {/* No left padding until the buttons sit side by side: stacked on
+              {/* No left padding until the buttons sit side by side: stacked on
                 a phone, the text variant's px-5 pushed its label inboard of
                 the primary button's edge and the column stopped reading as a
                 column. */}
-            <Button
-              asChild
-              variant="text"
-              size="md"
-              rightIcon={ArrowRight}
-              className="!px-0 sm:!px-5"
-            >
-              <Link to="/">Try a pick without an account</Link>
-            </Button>
-          </div>
-          <p className="gpp-reading-meta mt-3 text-text-disabled">
-            Free to play. No card needed.
-          </p>
-        </header>
+              <Button
+                asChild
+                variant="text"
+                size="md"
+                rightIcon={ArrowRight}
+                className="!px-0 sm:!px-5"
+              >
+                <Link to="/">Try a pick without an account</Link>
+              </Button>
+            </div>
+            <p className="gpp-reading-meta mt-3 text-text-disabled">
+              Free to play. No card needed.
+            </p>
+          </header>
+
+          <NextEventPanel />
+        </div>
 
         {/* Echoes the signed-in page's own shape: a content column with a
             narrower rail beside it, rather than a narrow strip in a wide frame

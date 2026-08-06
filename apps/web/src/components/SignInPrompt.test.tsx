@@ -20,6 +20,11 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }));
 
+// NextEventPanel reads the next race from Convex. `undefined` is its real
+// first-render value (query in flight), where it renders nothing, so these
+// assertions cover the gate itself rather than the panel beside it.
+vi.mock('convex/react', () => ({ useQuery: () => undefined }));
+
 const requestSignIn = vi.fn();
 vi.mock('@/integrations/clerk/runtime-control', () => ({
   useClerkRuntimeControl: () => ({ requestSignIn, signInPending: false }),

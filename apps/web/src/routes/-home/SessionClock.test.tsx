@@ -23,6 +23,48 @@ describe('SessionClock', () => {
     container.remove();
   });
 
+  // Regression: `locked` only fires at zero and the segments bottom out at
+  // minutes, so the final 60 seconds rendered "00 00 00" under three unit
+  // labels. That is the most urgent minute on the page and it read as a
+  // broken clock.
+  it('does not show a row of zeros in the last minute before lock', () => {
+    act(() => {
+      root.render(
+        <SessionClock
+          raceName="Dutch Grand Prix"
+          raceSlug="dutch-2026"
+          sessionLabel="Qualifying"
+          msRemaining={30 * 1000}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain('Under a minute');
+    expect(container.textContent).not.toContain('00');
+    expect(
+      container.querySelector('[role="timer"]')?.getAttribute('aria-label'),
+    ).toBe('Qualifying picks lock in under a minute');
+  });
+
+  // The Grand Prix is the one proper noun in the block. It used to be set in
+  // the tracked uppercase micro label, which read as a column header.
+  it('renders the race name and its round as context, not as a label', () => {
+    act(() => {
+      root.render(
+        <SessionClock
+          raceName="Dutch Grand Prix"
+          raceSlug="netherlands-2026"
+          round={15}
+          sessionLabel="Qualifying"
+          msRemaining={2 * 24 * 60 * 60 * 1000}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain('Dutch Grand Prix');
+    expect(container.textContent).toContain('Round 15');
+  });
+
   it('announces countdown units as words', () => {
     act(() => {
       root.render(

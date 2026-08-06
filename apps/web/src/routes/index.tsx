@@ -250,6 +250,7 @@ function PublicLandingPage() {
       <SessionClock
         raceName={featuredRace.name}
         raceSlug={featuredRace.slug}
+        round={featuredRace.round}
         sessionLabel={nextSession.labelFull}
         msRemaining={nextSession.startAt - now}
         lockAt={nextSession.startAt}

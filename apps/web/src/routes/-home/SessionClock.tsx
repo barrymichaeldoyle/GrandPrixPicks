@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Flag } from '@/components/Flag';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { getRaceLocation } from '@/lib/raceLocations';
 import {
   formatRaceLocalLockDate,
   formatViewerLockDate,
@@ -33,6 +34,14 @@ import {
  * visitor comes back.
  */
 const COUNTDOWN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Below a minute the segments are all zero, and "00 00 00" under three unit
+ * labels reads as a broken clock rather than the most urgent minute on the
+ * page. `locked` only fires at zero, so without this the last 60 seconds
+ * before a session closes were the worst-looking state in the hero.
+ */
+const IMMINENT_MS = 60_000;
 
 type ClockUnit = 'day' | 'hour' | 'minute';
 type ClockSegment = { value: number; unit: ClockUnit };
@@ -127,6 +136,7 @@ function useLockDateDisplay({
 export function SessionClock({
   raceName,
   raceSlug,
+  round,
   sessionLabel,
   msRemaining,
   lockAt,
@@ -134,6 +144,8 @@ export function SessionClock({
 }: {
   raceName: string;
   raceSlug: string;
+  /** Championship round, shown beside the circuit as quiet context. */
+  round?: number;
   /**
    * Session whose picks lock next, spelled out — "Sprint Qualifying", not
    * "Sprint Quali". This is the first F1 word a first-time visitor reads, so it
@@ -150,7 +162,15 @@ export function SessionClock({
 }) {
   const countryCode = getCountryCodeForRace({ slug: raceSlug });
   const locked = msRemaining <= 0;
+  const imminent = !locked && msRemaining < IMMINENT_MS;
   const segments = segmentsFor(msRemaining);
+  const location = getRaceLocation(raceSlug);
+  const contextLine = [
+    round === undefined ? null : `Round ${round}`,
+    location?.locality ?? null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const large = size === 'lg';
   const lockDate = useLockDateDisplay({ locked, lockAt, raceSlug });
   const farOut = msRemaining > COUNTDOWN_WINDOW_MS;
@@ -158,16 +178,22 @@ export function SessionClock({
 
   return (
     <div>
-      <p
-        className={`flex items-center gap-2 font-medium tracking-label uppercase ${
-          large ? 'text-sm' : 'text-xs'
-        }`}
-      >
+      {/* The event, as a name. This used to be set in the tracked uppercase
+          micro label, which made the one proper noun in the block read as a
+          column header rather than the Grand Prix being counted down to. */}
+      <p className="flex items-center gap-2">
         {countryCode ? (
           <Flag code={countryCode} size={large ? 'sm' : 'xs'} />
         ) : null}
-        <span className="text-text">{raceName}</span>
+        <span
+          className={`font-title font-medium text-text ${large ? 'text-lg' : 'text-base'}`}
+        >
+          {raceName}
+        </span>
       </p>
+      {contextLine ? (
+        <p className="gpp-reading-meta mt-0.5 text-text-muted">{contextLine}</p>
+      ) : null}
 
       {/* The label and countdown read as one direct sentence:
           "Sprint Qualifying picks lock in 19 days." */}
@@ -183,6 +209,15 @@ export function SessionClock({
           suppressHydrationWarning
         >
           Locked
+        </p>
+      ) : imminent ? (
+        <p
+          className={`font-title mt-2 font-medium text-text ${large ? 'text-2xl' : 'text-lg'}`}
+          role="timer"
+          aria-label={`${sessionLabel} picks lock in under a minute`}
+          suppressHydrationWarning
+        >
+          Under a minute
         </p>
       ) : (
         <div className="mt-2" suppressHydrationWarning>

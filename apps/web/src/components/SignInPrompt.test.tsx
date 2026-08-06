@@ -96,15 +96,16 @@ describe('SignInPrompt', () => {
     expect(hrefs).toContain('/leaderboard');
   });
 
-  // The panel is the argument for signing in: it has to name what is behind
-  // the gate, and keep the column a real figure lands in.
-  it('lists what the page holds, with the figure column withheld', () => {
+  // The panel is the argument for signing in, so it has to name what is
+  // behind the gate and nothing else. A placeholder glyph in a second column
+  // read as stray punctuation, so each row is exactly its own text.
+  it('lists what the page holds, and nothing else', () => {
     const rows = Array.from(render(prompt).querySelectorAll('section li')).map(
       (row) => row.textContent,
     );
     expect(rows).toEqual([
-      'Session lock reminders--',
-      'Your score when results publish--',
+      'Session lock reminders',
+      'Your score when results publish',
     ]);
   });
 

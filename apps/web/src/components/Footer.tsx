@@ -246,7 +246,7 @@ export function Footer() {
           />
         </div>
 
-        <p className="mt-4 text-[11px] leading-relaxed text-text-muted">
+        <p className="mt-4 text-center text-[11px] leading-relaxed text-text-muted">
           This website is unofficial and is not associated in any way with the
           Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD
           CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula

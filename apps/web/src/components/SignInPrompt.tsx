@@ -103,20 +103,15 @@ export function SignInPrompt({
         <div className="mt-12 grid gap-x-12 gap-y-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <section>
             <h2 className="gpp-label">Behind sign-in</h2>
+            {/* Dashed hairline is the system's "awaiting input", which is what
+                a gate is. That carries the withheld meaning on its own: an
+                earlier version put a mono "--" in a right-hand column to stand
+                for the figure you would see signed in, and it just read as
+                four rows of stray punctuation. */}
             <ul className="gpp-empty mt-3 divide-y divide-border rounded-lg">
               {behind.map((row) => (
-                <li
-                  key={row}
-                  className="flex items-baseline justify-between gap-4 px-4 py-3"
-                >
-                  <span className="text-sm text-text">{row}</span>
-                  {/* The column a figure lands in once you are in. */}
-                  <span
-                    className="gpp-mono text-sm text-text-disabled"
-                    aria-label="Hidden until you sign in"
-                  >
-                    --
-                  </span>
+                <li key={row} className="px-4 py-3 text-sm text-text">
+                  {row}
                 </li>
               ))}
             </ul>

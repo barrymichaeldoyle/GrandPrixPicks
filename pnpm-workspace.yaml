@@ -41,12 +41,33 @@ auditConfig:
     # up a backport of the length cap.
     - GHSA-mh99-v99m-4gvg
 
+    # image-size DoS in the ICNS (GHSA-w3rx-r6r6-pgpr) and JXL/HEIF
+    # (GHSA-5p2g-fcmc-qvqq) parsers. Both advisories name >=2.0.3 as patched,
+    # but 2.0.2 IS the latest published release: there is no fixed version to
+    # override to, in either major.
+    #
+    # Two lines survive in the tree, neither of which we choose:
+    #   image-size@1.2.1 <- metro <- react-native (all 101 paths)
+    #   image-size@2.0.2 <- @devvit/cli
+    # Metro is also stuck inside 1.x on its own terms: 1.x takes
+    # `Uint8Array | string`, 2.x narrowed the input to `Uint8Array` only, and
+    # metro's Assets.js hands it a file path for every asset that is not
+    # inside a .zip. Forcing 2.x there breaks bundling on ordinary images.
+    #
+    # Scope: both consumers parse images at build time, from assets in this
+    # repo. Nothing here reads an image an attacker chose, and neither package
+    # ships to users: metro is the bundler, @devvit/cli is a CLI.
+    #
+    # Revisit when image-size publishes 2.0.3, or when metro moves off 1.x.
+    - GHSA-w3rx-r6r6-pgpr
+    - GHSA-5p2g-fcmc-qvqq
+
 catalog:
   convex: 1.43.0
   typescript: 7.0.2
 
 minimumReleaseAgeExclude:
-  - dompurify@3.4.12
+  - dompurify@3.4.13
   - '@convex-dev/resend@0.2.5'
   - '@react-email/render@2.0.9'
   - '@tanstack/react-router@1.170.16'
@@ -121,10 +142,11 @@ overrides:
   'brace-expansion@>=1.0.0 <1.1.18': 1.1.18
   'brace-expansion@>=2.0.0 <2.1.4': 2.1.4
   'brace-expansion@>=3.0.0 <5.0.9': 5.0.9
-  'dompurify@<3.4.12': 3.4.12
+  'dompurify@<3.4.13': 3.4.13
   'h3@<2.0.1-rc.21': 2.0.1-rc.21
   'lodash@<4.18.0': 4.18.1
   'minimatch@>=10.0.0 <10.2.3': 10.2.5
+  'nanoid@>=3.0.0 <3.3.17': 3.3.17
   'node-forge@<1.4.0': 1.4.0
   'picomatch@>=2.0.0 <2.3.2': 2.3.2
   'picomatch@>=4.0.0 <4.0.4': 4.0.4
@@ -144,7 +166,8 @@ overrides:
   'esbuild@>=0.17.0 <0.28.1': 0.28.1
   'ws@>=7.0.0 <7.5.11': 7.5.11
   'launch-editor@<=2.14.0': 2.14.1
-  'js-yaml@>=4.0.0 <4.3.0': 4.3.0
+  'js-yaml@>=3.0.0 <3.15.1': 3.15.1
+  'js-yaml@>=4.0.0 <4.3.1': 4.3.1
   'engine.io@>=4.1.0 <6.6.7': 6.6.7
   'sharp@<0.35.0': 0.35.0
   'next@>=16.0.0 <16.2.11': 16.2.11

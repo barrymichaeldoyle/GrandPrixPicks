@@ -6,6 +6,10 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import {
+  getLeagueEntitlement,
+  isLeagueCreateLimitReached,
+} from './lib/entitlements';
+import {
   hashLeaguePassword,
   isHashedLeaguePassword,
   verifyLeaguePassword,
@@ -20,27 +24,6 @@ const RESERVED_LEAGUE_SLUGS = new Set(['create']);
 const MAX_FAILED_JOIN_ATTEMPTS = 5;
 const JOIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const JOIN_LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
-
-type LeagueLimits = {
-  maxPrivateLeaguesCreated: number;
-  maxPrivateLeaguesJoined: number;
-  maxPublicLeaguesCreated: number;
-  maxPublicLeaguesJoined: number;
-};
-
-const FREE_LIMITS: LeagueLimits = {
-  maxPrivateLeaguesCreated: 5,
-  maxPrivateLeaguesJoined: 5,
-  maxPublicLeaguesCreated: 0,
-  maxPublicLeaguesJoined: 5,
-};
-
-const SEASON_PASS_LIMITS: LeagueLimits = {
-  maxPrivateLeaguesCreated: 50,
-  maxPrivateLeaguesJoined: Number.POSITIVE_INFINITY,
-  maxPublicLeaguesCreated: 5,
-  maxPublicLeaguesJoined: Number.POSITIVE_INFINITY,
-};
 
 // League membership views currently materialize the full roster in one request.
 // Keep the write-side contract aligned with that bounded read pattern.
@@ -67,31 +50,6 @@ function requireLeagueCounts(league: Doc<'leagues'>): {
     memberCount: league.memberCount,
     adminCount: league.adminCount,
   };
-}
-
-async function hasSeasonPassForSeason(
-  ctx: MutationCtx | QueryCtx,
-  userId: Id<'users'>,
-  season: number,
-) {
-  const pass = await ctx.db
-    .query('userSeasonPasses')
-    .withIndex('by_user_season', (q) =>
-      q.eq('userId', userId).eq('season', season),
-    )
-    .unique();
-
-  return !!pass;
-}
-
-async function getLeagueLimitsForUser(
-  ctx: MutationCtx,
-  userId: Id<'users'>,
-  season: number,
-): Promise<{ limits: LeagueLimits; hasSeasonPass: boolean }> {
-  const hasSeasonPass = await hasSeasonPassForSeason(ctx, userId, season);
-  const limits = hasSeasonPass ? SEASON_PASS_LIMITS : FREE_LIMITS;
-  return { limits, hasSeasonPass };
 }
 
 async function getDefaultLeagueSeason(ctx: MutationCtx | QueryCtx) {
@@ -435,8 +393,11 @@ export const getMyLeagueUsage = query({
     }
 
     const season = args.season ?? (await getDefaultLeagueSeason(ctx));
-    const hasSeasonPass = await hasSeasonPassForSeason(ctx, viewer._id, season);
-    const limits = hasSeasonPass ? SEASON_PASS_LIMITS : FREE_LIMITS;
+    const { plan, isPro, limits } = await getLeagueEntitlement(
+      ctx,
+      viewer._id,
+      season,
+    );
 
     const createdLeagues = await ctx.db
       .query('leagues')
@@ -481,7 +442,11 @@ export const getMyLeagueUsage = query({
 
     return {
       season,
-      hasSeasonPass,
+      plan,
+      isPro,
+      // Deprecated alias, kept until the subscription ships so nothing reading
+      // the old field breaks mid-migration. Prefer `isPro`.
+      hasSeasonPass: isPro,
       limits,
       usage: {
         createdPrivate,
@@ -544,18 +509,7 @@ export const createLeague = mutation({
       : undefined;
 
     const season = await getDefaultLeagueSeason(ctx);
-    const { limits, hasSeasonPass } = await getLeagueLimitsForUser(
-      ctx,
-      viewer._id,
-      season,
-    );
-
-    // Only Season Pass users can create public leagues.
-    if (visibility === 'public') {
-      if (!hasSeasonPass) {
-        throw new Error('Only Season Pass users can create public leagues.');
-      }
-    }
+    const { limits } = await getLeagueEntitlement(ctx, viewer._id, season);
 
     // Count leagues created by this user for the season, by visibility.
     const createdLeagues = await ctx.db
@@ -576,21 +530,22 @@ export const createLeague = mutation({
       }
     }
 
-    if (
-      visibility === 'private' &&
-      createdPrivate >= limits.maxPrivateLeaguesCreated
-    ) {
+    const createLimitReached = isLeagueCreateLimitReached(limits, visibility, {
+      createdPrivate,
+      createdPublic,
+    });
+
+    if (visibility === 'private' && createLimitReached) {
       throw new Error(
         'You have reached the maximum number of private leagues you can create.',
       );
     }
 
-    if (
-      visibility === 'public' &&
-      createdPublic >= limits.maxPublicLeaguesCreated
-    ) {
+    if (visibility === 'public' && createLimitReached) {
       throw new Error(
-        'You have reached the maximum number of public leagues you can create.',
+        limits.maxPublicLeaguesCreated === 1
+          ? 'You already have a public league this season. Upgrade to create more.'
+          : 'You have reached the maximum number of public leagues you can create.',
       );
     }
 
@@ -633,7 +588,7 @@ export const joinLeague = mutation({
     }
 
     const season = league.season;
-    const { limits } = await getLeagueLimitsForUser(ctx, viewer._id, season);
+    const { limits } = await getLeagueEntitlement(ctx, viewer._id, season);
 
     if (league.password) {
       const now = Date.now();

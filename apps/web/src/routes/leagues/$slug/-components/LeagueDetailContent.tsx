@@ -136,7 +136,7 @@ function JoinSection({
       ? leagueUsage?.limits.maxPrivateLeaguesJoined
       : leagueUsage?.limits.maxPublicLeaguesJoined;
   const joinLimitReached =
-    leagueUsage?.hasSeasonPass === false &&
+    leagueUsage?.isPro === false &&
     typeof joinLimit === 'number' &&
     Number.isFinite(joinLimit) &&
     joinedCount >= joinLimit;

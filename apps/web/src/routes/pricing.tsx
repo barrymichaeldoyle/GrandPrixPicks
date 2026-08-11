@@ -48,7 +48,7 @@ export const Route = createFileRoute('/pricing')({
     pageMeta({
       title: 'F1 Season Pass Pricing | Grand Prix Picks',
       description:
-        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and public leagues.',
+        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and up to five public leagues.',
       path: '/pricing',
       noIndex: true,
     }),
@@ -251,7 +251,7 @@ function PricingPage() {
                 className="mt-0.5 h-4 w-4 shrink-0 text-accent"
                 aria-hidden
               />
-              <span>Create public leagues anyone can discover and join</span>
+              <span>Run up to five public leagues instead of the free one</span>
             </m.li>
             <m.li
               className="flex items-start gap-2"
@@ -381,8 +381,9 @@ function PricingPage() {
             question="Do I need the Season Pass to play?"
           >
             <p className="text-sm text-text-muted">
-              No. Grand Prix Picks is free to play. The pass unlocks unlimited
-              leagues and public league creation.
+              No. Grand Prix Picks is free to play, and every player gets one
+              free public league. The pass unlocks unlimited league joins and up
+              to five public leagues.
             </p>
           </FaqItem>
           <FaqItem icon={HelpCircle} question="Is this a subscription?">

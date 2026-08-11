@@ -120,12 +120,12 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   const publicJoinLimit = leagueUsage?.limits.maxPublicLeaguesJoined;
   const publicJoinedCount = leagueUsage?.usage.joinedPublic ?? 0;
   const privateCreateLimitReached =
-    leagueUsage?.hasSeasonPass === false &&
+    leagueUsage?.isPro === false &&
     typeof privateCreateLimit === 'number' &&
     Number.isFinite(privateCreateLimit) &&
     privateCreatedCount >= privateCreateLimit;
   const publicJoinLimitReached =
-    leagueUsage?.hasSeasonPass === false &&
+    leagueUsage?.isPro === false &&
     typeof publicJoinLimit === 'number' &&
     Number.isFinite(publicJoinLimit) &&
     publicJoinedCount >= publicJoinLimit;

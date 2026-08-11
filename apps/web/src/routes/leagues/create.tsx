@@ -73,13 +73,18 @@ function CreateLeagueContent() {
   const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, {
     season,
   });
-  const hasSeasonPassFor2026 = leagueUsage?.hasSeasonPass;
   const privateCreateLimit = leagueUsage?.limits.maxPrivateLeaguesCreated;
   const privateCreatedCount = leagueUsage?.usage.createdPrivate ?? 0;
   const privateCreateLimitReached =
     typeof privateCreateLimit === 'number' &&
     Number.isFinite(privateCreateLimit) &&
     privateCreatedCount >= privateCreateLimit;
+  const publicCreateLimit = leagueUsage?.limits.maxPublicLeaguesCreated;
+  const publicCreatedCount = leagueUsage?.usage.createdPublic ?? 0;
+  const publicCreateLimitReached =
+    typeof publicCreateLimit === 'number' &&
+    Number.isFinite(publicCreateLimit) &&
+    publicCreatedCount >= publicCreateLimit;
 
   const slugAvailable = useQuery(
     api.leagues.isSlugAvailable,
@@ -289,46 +294,55 @@ function CreateLeagueContent() {
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-text placeholder:text-text-muted focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
               />
             </div>
-            {hasSeasonPassFor2026 === true ? (
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text">
-                  Visibility
-                </label>
-                <div
-                  className="flex gap-1 rounded-lg border border-border bg-surface p-1"
-                  role="group"
-                  aria-label="League visibility"
+            <div>
+              <label className="mb-2 block text-sm font-medium text-text">
+                Visibility
+              </label>
+              <div
+                className="flex gap-1 rounded-lg border border-border bg-surface p-1"
+                role="group"
+                aria-label="League visibility"
+              >
+                <Button
+                  type="button"
+                  variant="tab"
+                  size="tab"
+                  active={visibility === 'private'}
+                  aria-pressed={visibility === 'private'}
+                  onClick={() => setVisibility('private')}
+                  className="h-8 max-h-8 min-h-8 flex-1"
                 >
-                  <Button
-                    type="button"
-                    variant="tab"
-                    size="tab"
-                    active={visibility === 'private'}
-                    aria-pressed={visibility === 'private'}
-                    onClick={() => setVisibility('private')}
-                    className="h-8 max-h-8 min-h-8 flex-1"
-                  >
-                    Private
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="tab"
-                    size="tab"
-                    active={visibility === 'public'}
-                    aria-pressed={visibility === 'public'}
-                    onClick={() => setVisibility('public')}
-                    className="h-8 max-h-8 min-h-8 flex-1"
-                  >
-                    Public
-                  </Button>
-                </div>
-                <p className="mt-1 text-sm text-text-muted">
-                  Private leagues are invite-only. Public leagues can appear in
-                  the league directory and on member profiles; they cannot have
-                  a password.
-                </p>
+                  Private
+                </Button>
+                <Button
+                  type="button"
+                  variant="tab"
+                  size="tab"
+                  active={visibility === 'public'}
+                  aria-pressed={visibility === 'public'}
+                  disabled={publicCreateLimitReached}
+                  onClick={() => setVisibility('public')}
+                  className="h-8 max-h-8 min-h-8 flex-1"
+                >
+                  Public
+                </Button>
               </div>
-            ) : null}
+              <p className="mt-1 text-sm text-text-muted">
+                Private leagues are invite-only. Public leagues can appear in
+                the league directory and on member profiles; they cannot have a
+                password.
+              </p>
+              {publicCreateLimitReached ? (
+                <p className="mt-1 text-sm text-text-muted">
+                  You already run a public league this season. Upgrade to run
+                  more than one.
+                </p>
+              ) : publicCreatedCount === 0 && publicCreateLimit === 1 ? (
+                <p className="mt-1 text-sm text-text-muted">
+                  Your first public league is free.
+                </p>
+              ) : null}
+            </div>
             {visibility === 'private' && (
               <div>
                 <label

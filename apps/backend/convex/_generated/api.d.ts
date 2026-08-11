@@ -37,6 +37,7 @@ import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_classificationDiff from "../lib/classificationDiff.js";
 import type * as lib_email from "../lib/email.js";
+import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_followCounts from "../lib/followCounts.js";
 import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
@@ -102,6 +103,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/classificationDiff": typeof lib_classificationDiff;
   "lib/email": typeof lib_email;
+  "lib/entitlements": typeof lib_entitlements;
   "lib/followCounts": typeof lib_followCounts;
   "lib/leaderboard": typeof lib_leaderboard;
   "lib/leaguePassword": typeof lib_leaguePassword;

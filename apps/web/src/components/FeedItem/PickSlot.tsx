@@ -40,8 +40,14 @@ const RESULT_CELL = `${CELL_BASE} h-8 bg-surface-sunken`;
 const CODE_BASE = 'gpp-mono pl-1 leading-none tracking-data uppercase';
 const PICK_CODE = `${CODE_BASE} text-xs text-text`;
 const RESULT_CODE = `${CODE_BASE} text-[13px] font-semibold text-text`;
-/** Sector-band weight, set off from the cell by a hairline of page behind it. */
-const BAND = 'h-1 w-full';
+/*
+ * Sector-band weight, set off from the cell by a hairline of page behind it.
+ *
+ * It starts where the driver code does, not at the cell's left edge: running it
+ * under the team bar made the two colours read as one misaligned stack. Inset
+ * by the bar plus the cell's 1px border so the band lines up with the field.
+ */
+const BAND = 'h-1 ms-[calc(var(--team-bar-width)+1px)]';
 const BAND_GAP = 'gap-[3px]';
 
 function teamStyle(team?: string | null) {

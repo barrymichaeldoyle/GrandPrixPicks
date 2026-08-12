@@ -1,4 +1,4 @@
-import { useQuery } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 
 import { mockRaceWeekends } from '../data/mockRaces';
 import { api } from '../integrations/convex/api';

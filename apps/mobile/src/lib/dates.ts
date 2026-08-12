@@ -1,6 +1,6 @@
 import type { UserDateSettings } from '@grandprixpicks/shared/dates';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
-import { useQuery } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 
 import { api } from '../integrations/convex/api';
 

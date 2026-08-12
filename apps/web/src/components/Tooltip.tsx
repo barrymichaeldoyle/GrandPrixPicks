@@ -339,6 +339,13 @@ export function Tooltip({
         ref={triggerRef}
         className={`inline-flex cursor-help ${triggerClassName ?? ''}`.trim()}
         aria-describedby={tooltipId}
+        // A tooltip only a mouse can open is a tooltip half the readers never
+        // see. Tab reaches the trigger and focus reveals it, with no delay:
+        // the delay exists to stop a pointer sweeping across the page from
+        // firing tooltips, and focus is always deliberate.
+        tabIndex={0}
+        onFocus={openAtTrigger}
+        onBlur={() => setIsVisible(false)}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         onPointerEnter={handlePointerEnter}

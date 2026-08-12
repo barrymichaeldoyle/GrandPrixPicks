@@ -1,6 +1,7 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useCallbackRef } from '@/hooks/useCallbackRef';
 
 type Driver = Doc<'drivers'>;
 
@@ -68,11 +69,13 @@ export function DriverSearchSelect({
     ? available.filter((d) => matchDriver(d, query))
     : available;
 
-  function close() {
+  // Stable identity: the listener effects below depend on it, and a fresh
+  // function each render would re-subscribe them on every render.
+  const close = useCallbackRef(() => {
     setOpen(false);
     setQuery('');
     setHighlightIndex(0);
-  }
+  });
 
   // Sync highlight when options change
   useEffect(() => {
@@ -214,6 +217,10 @@ export function DriverSearchSelect({
               disabled={disabled}
               className="min-w-0 flex-1 bg-transparent py-2 pr-2 pl-0 text-white placeholder-slate-500 focus:outline-none"
               aria-label={ariaLabel}
+              // `aria-expanded` and `aria-controls` are not valid on the
+              // implicit `textbox` role an input carries; the combobox role is
+              // what makes this markup mean what it already looked like.
+              role="combobox"
               aria-autocomplete="list"
               aria-expanded={open}
               aria-controls={open ? listId : undefined}

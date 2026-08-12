@@ -14,12 +14,17 @@ import { clearDevNow, setDevNow, useDevNowOverride } from '@/lib/testing/now';
 type Race = Doc<'races'>;
 
 export function DevNowPanel({ race, now }: { race: Race | null; now: number }) {
+  // Above the early return, not below it. `race` arrives as null and fills in
+  // once the loader data lands, so hooks placed after the guard change count
+  // between renders of the same instance: the "rendered fewer hooks than
+  // expected" crash. Neither hook reads `race`, so they cost nothing here.
+  const [isOpen, setIsOpen] = useState(false);
+  const overrideNow = useDevNowOverride();
+
   if (!race) {
     return null;
   }
 
-  const [isOpen, setIsOpen] = useState(false);
-  const overrideNow = useDevNowOverride();
   const presets: {
     label: string;
     timestamp: number;

@@ -6,7 +6,8 @@ import {
   type SessionType,
 } from '@grandprixpicks/shared/sessions';
 import { buildScoreShareText } from '@grandprixpicks/shared/share';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Share } from 'react-native';

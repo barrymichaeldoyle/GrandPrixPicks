@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/clerk-expo';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import type { ReactNode } from 'react';
 
@@ -22,10 +23,27 @@ export function MobileConvexProvider({ children }: { children: ReactNode }) {
   if (clerkEnabled && convexEnabled && convexClient) {
     return (
       <ConvexProviderWithClerk client={activeClient} useAuth={useAuth}>
-        {children}
+        <QueryCache>{children}</QueryCache>
       </ConvexProviderWithClerk>
     );
   }
 
-  return <ConvexProvider client={activeClient}>{children}</ConvexProvider>;
+  return (
+    <ConvexProvider client={activeClient}>
+      <QueryCache>{children}</QueryCache>
+    </ConvexProvider>
+  );
+}
+
+/**
+ * Keeps recently-read queries subscribed after their last reader unmounts,
+ * which is what lets the hooks in `./query` paint a popped-and-reopened screen
+ * from cache. Must sit under a Convex provider, so both branches get one.
+ */
+function QueryCache({ children }: { children: ReactNode }) {
+  return (
+    <ConvexQueryCacheProvider expiration={5 * 60_000} maxIdleEntries={50}>
+      {children}
+    </ConvexQueryCacheProvider>
+  );
 }

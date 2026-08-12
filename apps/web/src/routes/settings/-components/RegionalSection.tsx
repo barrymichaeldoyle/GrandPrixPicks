@@ -50,17 +50,17 @@ export function RegionalSection({
             <>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-text">
+                  <span className="block text-sm font-medium text-text">
                     Timezone
-                  </label>
+                  </span>
                   <div className="h-3.5 w-24 animate-pulse rounded bg-surface-muted" />
                 </div>
                 <div className="h-10 animate-pulse rounded-sm border border-border bg-surface-muted" />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-text">
+                <span className="block text-sm font-medium text-text">
                   Time format
-                </label>
+                </span>
                 <div className="h-10 animate-pulse rounded-sm border border-border bg-surface-muted" />
               </div>
             </>

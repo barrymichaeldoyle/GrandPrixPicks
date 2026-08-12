@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useCallbackRef } from '@/hooks/useCallbackRef';
 
 const detectedTimezone =
   typeof Intl !== 'undefined'
@@ -108,10 +109,12 @@ export function TimezoneSelect({
   const displayParts = formatTimezoneParts(displayValue);
   const isUsingDefault = value === undefined || value === detectedTimezone;
 
-  function close() {
+  // Stable identity: the click-outside effect depends on it, and a fresh
+  // function each render would re-subscribe it on every render.
+  const close = useCallbackRef(() => {
     setOpen(false);
     setFilter('');
-  }
+  });
 
   useEffect(() => {
     if (!open) {
@@ -130,7 +133,12 @@ export function TimezoneSelect({
   return (
     <div ref={containerRef} className="w-full">
       <div className="mb-1 flex items-center justify-between">
-        <label className="block text-sm font-medium text-text">Timezone</label>
+        <span
+          id="timezone-select-label"
+          className="block text-sm font-medium text-text"
+        >
+          Timezone
+        </span>
         <div className="pr-2 leading-none">
           {isUsingDefault ? (
             <span className="text-xs text-text-muted">Browser default</span>
@@ -148,6 +156,9 @@ export function TimezoneSelect({
       <div className="relative">
         <button
           type="button"
+          // Without this the trigger announces only the current zone, with no
+          // hint of what it selects.
+          aria-labelledby="timezone-select-label"
           onClick={() => setOpen(!open)}
           className="flex w-full items-center justify-between gap-2 rounded-sm border border-border bg-page px-3 py-2 text-left text-text focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
         >

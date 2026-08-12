@@ -1,7 +1,8 @@
 import { useUser } from '@clerk/clerk-expo';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';

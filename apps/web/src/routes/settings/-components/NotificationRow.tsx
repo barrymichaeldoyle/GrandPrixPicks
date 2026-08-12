@@ -1,10 +1,13 @@
 function ToggleSwitch({
   checked,
   onChange,
+  label,
   loading = false,
 }: {
   checked: boolean;
   onChange: () => void;
+  /** The row's visible label, which is all this control has to announce. */
+  label: string;
   loading?: boolean;
 }) {
   if (loading) {
@@ -21,6 +24,7 @@ function ToggleSwitch({
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={onChange}
       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none ${
         checked ? 'bg-accent' : 'bg-surface-muted'
@@ -59,6 +63,7 @@ export function NotificationRow({
       <ToggleSwitch
         checked={checked}
         onChange={() => onChange(!checked)}
+        label={label}
         loading={loading}
       />
     </div>

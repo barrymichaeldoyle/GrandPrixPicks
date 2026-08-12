@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useQuery } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 
 import { RaceDetailHero } from '../components/races/RaceDetailHero';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';

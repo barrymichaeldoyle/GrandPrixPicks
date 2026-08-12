@@ -296,9 +296,9 @@ function CreateLeagueContent() {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-text">
+              <span className="mb-2 block text-sm font-medium text-text">
                 Visibility
-              </label>
+              </span>
               <div
                 className="flex gap-1 rounded-lg border border-border bg-surface p-1"
                 role="group"

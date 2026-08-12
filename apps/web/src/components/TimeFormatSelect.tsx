@@ -68,9 +68,9 @@ export function TimeFormatSelect({
 
   return (
     <div className="w-full">
-      <label className="mb-1 block text-sm font-medium text-text">
+      <span className="mb-1 block text-sm font-medium text-text">
         Time format
-      </label>
+      </span>
       <div
         className="flex gap-1 rounded-sm border border-border bg-page p-1"
         role="group"

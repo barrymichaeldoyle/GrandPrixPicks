@@ -165,6 +165,9 @@ importers:
       convex:
         specifier: 'catalog:'
         version: 1.43.0(@clerk/clerk-react@5.61.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@clerk/react@6.12.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6)
+      convex-helpers:
+        specifier: 0.1.112
+        version: 0.1.112(@standard-schema/spec@1.1.0)(convex@1.43.0(@clerk/clerk-react@5.61.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@clerk/react@6.12.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6))(hono@4.12.34)(react@19.2.7)(typescript@7.0.2)(zod@4.4.3)
       expo:
         specifier: ~57.0.4
         version: 57.0.4(@babel/core@7.29.6)(@expo/dom-webview@55.0.6)(bufferutil@4.1.0)(react-dom@19.2.7(react@19.2.7))(react-native-worklets@0.10.0(@babel/core@7.29.6)(@react-native/metro-config@0.86.0(@babel/core@7.29.6)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(react-native@0.86.0(@babel/core@7.29.6)(@react-native/metro-config@0.86.0(@babel/core@7.29.6)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6))(react@19.2.7))(react-native@0.86.0(@babel/core@7.29.6)(@react-native/metro-config@0.86.0(@babel/core@7.29.6)(bufferutil@4.1.0)(utf-8-validate@6.0.6))(@types/react@19.2.17)(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6))(react@19.2.7)(typescript@7.0.2)(utf-8-validate@6.0.6)

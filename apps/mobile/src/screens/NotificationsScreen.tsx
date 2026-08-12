@@ -2,7 +2,8 @@ import type { ReactionType } from '@grandprixpicks/shared/reactions';
 import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import { Ionicons } from '@expo/vector-icons';
 import { NOTIFICATION_PAGE_SIZE } from '@grandprixpicks/shared/notifications';
-import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { usePaginatedQuery, useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 
 import { Avatar } from '../components/ui/Avatar';

@@ -185,6 +185,10 @@ function AdminRaceDetailPage() {
     setSelectedSession((currentSession) =>
       currentSession === defaultSession ? currentSession : defaultSession,
     );
+    // The array deps are keyed by content, not identity: `availableSessions`
+    // and `submittedSessions` are derived fresh every render, so listing them
+    // would re-run this on every render and fight the reader's session choice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableSessionsKey, race?.hasSprint, submittedSessionsKey]);
 
   // Initialize/reset when session or existing result changes

@@ -4,7 +4,7 @@ import {
   REACTION_OPTIONS,
 } from '@grandprixpicks/shared/reactions';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useQuery } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 
 import type { FeedEvent } from '../components/feed/FeedEventCard';
 import { FeedEventCard } from '../components/feed/FeedEventCard';

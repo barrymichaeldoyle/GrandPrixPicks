@@ -7,10 +7,9 @@ import { DevNowPanel } from '@/components/DevNowPanel';
 import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 import {
   CURRENT_SEASON,
   nextRaceOgImageUrl,
@@ -89,14 +88,30 @@ const homeStructuredData = {
   ],
 };
 
+/** Matches the home HTML's `s-maxage` and `useNow`'s tick. */
+const HOME_NOW_BUCKET_MS = 60_000;
+
 export const Route = createFileRoute('/')({
   component: HomePage,
-  loader: async () => {
+  loader: async ({ context }) => {
     await setHomeCacheHeaders();
 
-    const now = Date.now();
-    const data = await withRetry(() =>
-      convex.query(api.home.getHomePageData, { now }),
+    // Rounded down to the minute so the query has a cache key that repeats.
+    // With a raw `Date.now()` every navigation back to the home page was a
+    // fresh key and so a fresh HTTPS round trip for this whole aggregate.
+    //
+    // The bucket costs no accuracy that was not already spent: this HTML is
+    // edge-cached at `s-maxage=60`, so a served response's `now` is already up
+    // to a minute old, and the client re-ticks at the same 60s granularity via
+    // `useNow` below. Unlike the other migrated loaders this one deliberately
+    // has no component-side observer — home is meant to be one query and a
+    // cache header, not a standing subscription — and it does not need one:
+    // the key changes every minute, so the entry cannot go stale for longer
+    // than that.
+    const now =
+      Math.floor(Date.now() / HOME_NOW_BUCKET_MS) * HOME_NOW_BUCKET_MS;
+    const data = await context.queryClient.ensureQueryData(
+      routeQuery(api.home.getHomePageData, { now }),
     );
 
     // Keep the public landing payload focused on the data it actually renders.

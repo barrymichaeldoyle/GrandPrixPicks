@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';

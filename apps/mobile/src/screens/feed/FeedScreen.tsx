@@ -1,6 +1,7 @@
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '../../integrations/convex/query';
 import { useEffect, useRef, useState } from 'react';
 
 import type { FeedEvent } from '../../components/feed/FeedEventCard';

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { useConvex, useQuery } from 'convex/react';
+import { useConvex } from 'convex/react';
+import { useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { RefreshControl } from 'react-native';

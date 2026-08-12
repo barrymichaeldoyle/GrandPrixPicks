@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["oxc", "typescript", "unicorn", "import"],
+  "plugins": ["oxc", "typescript", "unicorn", "import", "react", "jsx-a11y"],
   "ignorePatterns": [
     "**/.expo/**",
     "**/.output/**",
@@ -29,7 +29,40 @@
         ]
       }
     ],
-    "typescript/no-explicit-any": "error"
+    "typescript/no-explicit-any": "error",
+    // Enabled 2026-08-12. It found two hooks sitting after an early return in
+    // DevNowPanel — the same "rendered fewer hooks than expected" shape that
+    // crashed the league page once already.
+    "react-hooks/rules-of-hooks": "error",
+    // React Compiler only runs in the production build, so a missing dep is a
+    // dev-only infinite loop that prod never reproduces. Worth an error.
+    "react-hooks/exhaustive-deps": "error",
+    // Written for documents, not component libraries: it reads `role="dialog"`
+    // on our own modal and suggests `<dialog>`, `role="listbox"` on our own
+    // combobox and suggests `<select>`. The remaining jsx-a11y rules stay on.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // The radio labels in UpdateModeSelector wrap their text two spans deep.
+    "jsx-a11y/label-has-associated-control": ["error", { "depth": 4 }],
+    /*
+     * The four rules below all ask the same thing of a modal backdrop: put a
+     * key handler on the div you can click to dismiss. Every modal here routes
+     * Escape and the focus trap through `useModalDialog`, which the rule
+     * cannot see from the JSX, and the remaining sites are `stopPropagation`
+     * guards wrapping a real button. Satisfying them would mean adding
+     * listeners to elements that never take focus, which reads as compliance
+     * and helps nobody.
+     */
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "jsx-a11y/no-noninteractive-element-to-interactive-role": "off",
+    // Focusing the filter box when a dropdown opens is the point of the
+    // dropdown. The rule is aimed at autofocus on page load.
+    "jsx-a11y/no-autofocus": "off",
+    // A tooltip trigger wraps arbitrary children, so it cannot be a button
+    // without risking a button inside a button. `tabIndex={0}` on the span is
+    // how the keyboard reaches it at all.
+    "jsx-a11y/no-noninteractive-tabindex": "off"
   },
   "overrides": [
     {
@@ -63,6 +96,31 @@
       ],
       "rules": {
         "import/no-default-export": "off"
+      }
+    },
+    {
+      // Test files and the Storybook mocks are not shipped UI: an `<a>` with no
+      // href in a router stub is a stub, not an accessibility defect.
+      "files": [
+        "apps/web/src/**/*.test.ts",
+        "apps/web/src/**/*.test.tsx",
+        "apps/web/src/storybook/**"
+      ],
+      "rules": {
+        "jsx-a11y/anchor-is-valid": "off",
+        "jsx-a11y/control-has-associated-label": "off"
+      }
+    },
+    {
+      // A story's `render` is a component; the rule only sees an anonymous
+      // function and assumes a plain callback. Nine false positives, no true
+      // ones, so the rule is off here rather than annotated nine times.
+      "files": [
+        "apps/web/src/**/*.stories.ts",
+        "apps/web/src/**/*.stories.tsx"
+      ],
+      "rules": {
+        "react-hooks/rules-of-hooks": "off"
       }
     }
   ]

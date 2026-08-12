@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from 'convex/react';
+import { useQuery } from '../../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 
 import { api } from '../../integrations/convex/api';

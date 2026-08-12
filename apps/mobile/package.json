@@ -34,6 +34,7 @@
     "@tailwindcss/postcss": "^4.3.2",
     "clsx": "^2.1.1",
     "convex": "catalog:",
+    "convex-helpers": "0.1.112",
     "expo": "~57.0.4",
     "expo-apple-authentication": "~57.0.0",
     "expo-application": "~57.0.0",

@@ -380,6 +380,17 @@ export async function publishResultsCore(
     resultId,
   });
 
+  // Tell the search engines the race page and both championship tables just
+  // changed, rather than waiting to be crawled. Unlike the player-facing
+  // notifications above this deliberately also fires on a silent republish:
+  // the pages really did change, and a search engine is not someone we can
+  // spam. No-ops unless INDEXNOW_HOST is set, so only prod submits.
+  if (race) {
+    await ctx.scheduler.runAfter(0, internal.indexNow.submitPublishedResult, {
+      raceSlug: race.slug,
+    });
+  }
+
   return {
     ok: true,
     message: 'Results published. Scoring in progress.',

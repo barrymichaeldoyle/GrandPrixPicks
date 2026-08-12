@@ -32,6 +32,7 @@ import type * as follows from "../follows.js";
 import type * as h2h from "../h2h.js";
 import type * as home from "../home.js";
 import type * as inAppNotifications from "../inAppNotifications.js";
+import type * as indexNow from "../indexNow.js";
 import type * as leaderboards from "../leaderboards.js";
 import type * as leagues from "../leagues.js";
 import type * as lib_auth from "../lib/auth.js";
@@ -98,6 +99,7 @@ declare const fullApi: ApiFromModules<{
   h2h: typeof h2h;
   home: typeof home;
   inAppNotifications: typeof inAppNotifications;
+  indexNow: typeof indexNow;
   leaderboards: typeof leaderboards;
   leagues: typeof leagues;
   "lib/auth": typeof lib_auth;

@@ -10,7 +10,8 @@
       [
         "expo-notifications",
         {
-          "color": "#14b8a6"
+          "color": "#D4FF3F",
+          "icon": "./assets/notification-icon.png"
         }
       ],
       "expo-apple-authentication",
@@ -26,16 +27,31 @@
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"]
       },
-      "appleTeamId": "LBZ6C9H52C"
+      "appleTeamId": "LBZ6C9H52C",
+      "buildNumber": "1",
+      "supportsTablet": false
     },
     "android": {
-      "package": "com.barrymichaeldoyle.grandprixpicks"
+      "package": "com.barrymichaeldoyle.grandprixpicks",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#101113"
+      }
     },
     "extra": {
       "eas": {
         "projectId": "71791ac4-8281-4067-9b8d-f3773f6367b3"
       }
     },
-    "owner": "barrymichaeldoyle"
+    "owner": "barrymichaeldoyle",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#101113",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#101113"
+    }
   }
 }

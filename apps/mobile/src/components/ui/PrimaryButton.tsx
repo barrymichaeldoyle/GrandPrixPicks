@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
@@ -13,7 +12,15 @@ type PrimaryButtonProps = {
 };
 
 /**
- * The web primary CTA: teal gradient pill with a trailing arrow.
+ * The primary CTA: a flat accent fill with dark ink, matching the web
+ * `primary` variant (`bg-accent text-text-on-accent rounded-sm`).
+ *
+ * This was a gradient pill with a white label, ported from the teal identity.
+ * Two things were wrong with it by the time the accent became chartreuse. The
+ * gradient ran between two shades of the same colour, so it was cost without
+ * effect in a direction that has no gradients. More seriously the white label
+ * sat on chartreuse at roughly 1.4:1, which is not a style question: it was
+ * unreadable. Accent surfaces take `textOnAccent` ink.
  */
 export function PrimaryButton({
   label,
@@ -23,31 +30,29 @@ export function PrimaryButton({
 }: PrimaryButtonProps) {
   return (
     <Pressable
-      className={`overflow-hidden rounded-xl ${
-        disabled ? 'opacity-40' : 'active:opacity-90'
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      className={`overflow-hidden rounded-sm ${
+        disabled ? 'bg-surface-elevated' : 'bg-accent active:bg-accent-press'
       }`}
       disabled={disabled}
       onPress={onPress}
     >
-      <View className="absolute inset-0">
-        <Svg
-          height="100%"
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-          width="100%"
-        >
-          <Defs>
-            <LinearGradient id="primary-cta" x1="0" x2="1" y1="0" y2="0">
-              <Stop offset="0%" stopColor={colors.buttonAccent} />
-              <Stop offset="100%" stopColor={colors.accent} />
-            </LinearGradient>
-          </Defs>
-          <Rect fill="url(#primary-cta)" height="100" width="100" x="0" y="0" />
-        </Svg>
-      </View>
       <View className="flex-row items-center justify-center gap-2 py-3.5">
-        <Text className="text-sm font-bold text-white">{label}</Text>
-        {icon ? <Ionicons color="#ffffff" name={icon} size={15} /> : null}
+        <Text
+          className={`text-sm font-semibold ${
+            disabled ? 'text-text-disabled' : 'text-text-on-accent'
+          }`}
+        >
+          {label}
+        </Text>
+        {icon ? (
+          <Ionicons
+            color={disabled ? colors.textDisabled : colors.textOnAccent}
+            name={icon}
+            size={15}
+          />
+        ) : null}
       </View>
     </Pressable>
   );

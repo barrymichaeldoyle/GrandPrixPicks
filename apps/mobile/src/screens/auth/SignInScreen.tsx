@@ -13,6 +13,7 @@ import { Platform } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
 import { captureAnalyticsEvent } from '../../lib/analytics';
+import { BrandMark } from '../../components/ui/BrandMark';
 import { colors } from '../../theme/tokens';
 import { useTypography } from '../../theme/typography';
 import {
@@ -257,16 +258,16 @@ export function SignInScreen() {
         {/* Hero */}
         <View className="flex-1 items-center justify-center gap-3 px-6 py-10">
           <View className="mb-1">
-            <AppLogo />
+            <BrandMark />
           </View>
           <Text
             className="text-foreground text-4xl font-bold"
             style={titleFontFamily ? { fontFamily: titleFontFamily } : null}
           >
-            GrandPrixPicks
+            Grand Prix Picks
           </Text>
           <Text className="text-muted text-center text-base leading-[22px]">
-            Predict the top 5 finishers every race weekend.
+            Pick the top five and call every team-mate battle.
           </Text>
         </View>
 
@@ -306,7 +307,7 @@ export function SignInScreen() {
                 disabled={code.length < 6 || loading}
                 onPress={() => void handleVerify()}
               >
-                <Text className="text-foreground text-[15px] font-bold">
+                <Text className="text-[15px] font-bold text-text-on-accent">
                   {loading ? 'Verifying…' : 'Verify email'}
                 </Text>
               </Pressable>
@@ -369,6 +370,10 @@ export function SignInScreen() {
               {/* OAuth */}
               {Platform.OS === 'ios' ? (
                 <Pressable
+                  accessibilityLabel={
+                    isSignUp ? 'Sign up with Apple' : 'Sign in with Apple'
+                  }
+                  accessibilityRole="button"
                   className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-black active:opacity-80"
                   onPress={() => void handleSSO('oauth_apple')}
                 >
@@ -379,6 +384,10 @@ export function SignInScreen() {
                 </Pressable>
               ) : null}
               <Pressable
+                accessibilityLabel={
+                  isSignUp ? 'Sign up with Google' : 'Sign in with Google'
+                }
+                accessibilityRole="button"
                 className="h-[50px] flex-row items-center justify-center gap-3 rounded-lg bg-white active:opacity-80"
                 onPress={() => void handleSSO('oauth_google')}
               >
@@ -397,6 +406,7 @@ export function SignInScreen() {
 
               {/* Email / password */}
               <TextInput
+                accessibilityLabel="Email"
                 autoCapitalize="none"
                 autoComplete="email"
                 className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
@@ -414,6 +424,7 @@ export function SignInScreen() {
                 value={email}
               />
               <TextInput
+                accessibilityLabel="Password"
                 autoComplete={isSignUp ? 'new-password' : 'password'}
                 className="text-foreground h-[50px] rounded-md border border-border bg-surface px-3.5 text-[15px]"
                 onChangeText={(v) => {
@@ -484,22 +495,6 @@ export function SignInScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-}
-
-// Logo matching the web favicon exactly
-function AppLogo() {
-  return (
-    <Svg height={36} viewBox="0 0 24 24" width={36}>
-      <Path
-        d="M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528"
-        fill="none"
-        stroke="#2dd4bf"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </Svg>
   );
 }
 

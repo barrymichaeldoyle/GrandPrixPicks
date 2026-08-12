@@ -167,7 +167,11 @@ export function PracticeResultsSheet({
                 });
               }}
             >
-              <Text className="text-foreground text-xs font-bold">
+              <Text
+                className={`text-xs font-bold ${
+                  tab === active ? 'text-text-on-accent' : 'text-foreground'
+                }`}
+              >
                 {LABELS[tab]}
               </Text>
             </Pressable>

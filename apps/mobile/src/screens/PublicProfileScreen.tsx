@@ -112,7 +112,7 @@ export function PublicProfileScreen({ route }: Props) {
         >
           <Text
             className={`text-sm font-bold ${
-              isFollowing ? 'text-foreground' : 'text-accent'
+              isFollowing ? 'text-text-on-accent' : 'text-accent'
             }`}
           >
             {isFollowing ? 'Following' : 'Follow'}

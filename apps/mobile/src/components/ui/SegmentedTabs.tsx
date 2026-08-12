@@ -32,7 +32,7 @@ export function SegmentedTabs<T extends string>({
           >
             <Text
               className={`text-[13px] font-bold ${
-                isActive ? 'text-foreground' : 'text-muted'
+                isActive ? 'text-text-on-accent' : 'text-muted'
               }`}
             >
               {option.label}

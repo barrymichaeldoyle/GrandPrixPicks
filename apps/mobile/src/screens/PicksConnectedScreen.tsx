@@ -21,7 +21,6 @@ import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
-import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { useAutoSaveOnFirstComplete } from '../hooks/useAutoSaveOnFirstComplete';
 import { useOfferPushAfterFirstSave } from '../hooks/useOfferPushAfterFirstSave';
 import { useRequestReviewAfterScoredWeekend } from '../hooks/useRequestReviewAfterScoredWeekend';
@@ -219,7 +218,6 @@ function PredictForRace({
 
   return (
     <View className="flex-1 bg-page">
-      <ScreenGlow />
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"

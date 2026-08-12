@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { Alert } from 'react-native';
 
-import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { captureAnalyticsEvent } from '../lib/analytics';
 import type { MoreStackParamList } from '../navigation/types';
@@ -34,7 +33,6 @@ export function MoreScreen() {
 
   return (
     <View className="flex-1 bg-page">
-      <ScreenGlow />
       <ScrollView className="flex-1" contentContainerClassName="gap-6 p-4 pb-8">
         <View className="gap-2.5">
           <Text className="text-muted text-[10px] font-extrabold uppercase">

@@ -299,7 +299,7 @@ export function SettingsScreen() {
                 }}
                 className="items-center rounded-md border border-border px-3 py-2"
               >
-                <Text className="text-foreground text-[13px] font-bold">
+                <Text className="text-[13px] font-bold text-text-on-accent">
                   Cancel
                 </Text>
               </Pressable>
@@ -311,7 +311,7 @@ export function SettingsScreen() {
                 {isSavingName ? (
                   <ActivityIndicator color={colors.text} size="small" />
                 ) : (
-                  <Text className="text-foreground text-[13px] font-bold">
+                  <Text className="text-[13px] font-bold text-text-on-accent">
                     Save
                   </Text>
                 )}
@@ -629,10 +629,11 @@ function PushPermissionRow({
         </Text>
       </View>
       <Pressable
+        accessibilityRole="button"
         className="rounded-md bg-button-accent px-3 py-2"
         onPress={isDenied || !canAskAgain ? onOpenSettings : onRequest}
       >
-        <Text className="text-foreground text-[13px] font-bold">
+        <Text className="text-[13px] font-bold text-text-on-accent">
           {isDenied || !canAskAgain ? 'Open settings' : 'Allow'}
         </Text>
       </Pressable>

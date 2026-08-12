@@ -230,7 +230,7 @@ export function RaceDetailScreen({ route }: Props) {
           onPress={() => rootNav.navigate('PicksTab')}
         >
           <Ionicons color={colors.text} name="trophy-outline" size={16} />
-          <Text className="text-foreground text-[15px] font-bold">
+          <Text className="text-[15px] font-bold text-text-on-accent">
             Make My Picks
           </Text>
         </Pressable>

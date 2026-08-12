@@ -14,7 +14,6 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import { PageHeader } from '../components/ui/PageHeader';
 import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
-import { ScreenGlow } from '../components/ui/ScreenGlow';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
@@ -396,7 +395,7 @@ export function LeaderboardScreen() {
                 <FlagImage raceSlug={race.slug} />
                 <Text
                   className={`text-xs font-bold ${
-                    isSelected ? 'text-foreground' : 'text-muted'
+                    isSelected ? 'text-text-on-accent' : 'text-muted'
                   }`}
                 >
                   R{race.round}
@@ -427,7 +426,6 @@ export function LeaderboardScreen() {
 
   return (
     <View className="flex-1 bg-page">
-      <ScreenGlow />
       <Header timeScope={timeScope} subtitle={subtitle} />
       <FlatList
         contentContainerClassName="px-4 pb-8"

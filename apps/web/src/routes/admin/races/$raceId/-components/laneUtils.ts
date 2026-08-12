@@ -12,7 +12,7 @@ export function parseLaneId(id: string): number | null {
 
 /** Nearest empty lane below `fromIndex`, falling back to the nearest one above. */
 export function findNextEmptyLane(
-  lanes: ReadonlyArray<Id<'drivers'> | null>,
+  lanes: readonly (Id<'drivers'> | null)[],
   fromIndex: number,
 ): number | null {
   for (let i = fromIndex + 1; i < lanes.length; i++) {

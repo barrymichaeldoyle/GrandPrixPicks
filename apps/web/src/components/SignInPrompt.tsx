@@ -27,7 +27,7 @@ type SignInPromptProps = {
    * decoration: the panel is only worth its space because a reader can tell
    * from it whether signing in gets them what they came for.
    */
-  behind: ReadonlyArray<string>;
+  behind: readonly string[];
 };
 
 /**

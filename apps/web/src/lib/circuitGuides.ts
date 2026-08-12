@@ -21,10 +21,10 @@ export type CircuitGuide = {
   /** How to approach a Top 5 prediction here. */
   predicting: string;
   /** Short qualitative chips. Judgement calls, not spec-sheet numbers. */
-  traits: ReadonlyArray<{
+  traits: readonly {
     label: 'Track type' | 'Overtaking' | 'Upset risk';
     value: string;
-  }>;
+  }[];
 };
 
 const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {

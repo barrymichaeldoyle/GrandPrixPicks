@@ -144,7 +144,7 @@ export function pageMeta({
  */
 export function breadcrumbSchema(
   path: string,
-  trail: ReadonlyArray<{ name: string; path: string }>,
+  trail: readonly { name: string; path: string }[],
 ) {
   return {
     '@type': 'BreadcrumbList',

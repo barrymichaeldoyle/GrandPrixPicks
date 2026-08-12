@@ -20,10 +20,10 @@ export function DevNowPanel({ race, now }: { race: Race | null; now: number }) {
 
   const [isOpen, setIsOpen] = useState(false);
   const overrideNow = useDevNowOverride();
-  const presets: Array<{
+  const presets: {
     label: string;
     timestamp: number;
-  }> = [
+  }[] = [
     {
       label: '5m Before Quali Lock',
       timestamp: getRaceSessionLockAt(race, 'quali') - 5 * 60 * 1000,

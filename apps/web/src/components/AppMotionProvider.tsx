@@ -19,7 +19,7 @@ import type { PropsWithChildren } from 'react';
  * critical path. Use `m.*` from 'framer-motion' instead.
  */
 function loadMotionFeatures() {
-  return import('./motionFeatures').then((module) => module.default);
+  return import('./motionFeatures').then((module) => module.motionFeatures);
 }
 
 export function AppMotionProvider({ children }: PropsWithChildren) {

@@ -10,7 +10,7 @@ type CircuitGuideProps = {
 /** Prose fields, in reading order. Excludes `character` (shown as the intro). */
 type ProseKey = Exclude<keyof CircuitGuideContent, 'traits' | 'character'>;
 
-const SECTIONS: ReadonlyArray<{ key: ProseKey; heading: string }> = [
+const SECTIONS: readonly { key: ProseKey; heading: string }[] = [
   { key: 'layout', heading: 'What the lap demands' },
   { key: 'racing', heading: 'How the racing unfolds' },
   { key: 'predicting', heading: 'Picking a Top 5 here' },

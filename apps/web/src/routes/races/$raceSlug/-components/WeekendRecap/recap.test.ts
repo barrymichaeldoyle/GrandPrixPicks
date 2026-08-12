@@ -15,12 +15,14 @@ function driverId(n: number): Id<'drivers'> {
 }
 
 function session(
-  breakdown: Array<{
-    predicted: number;
-    actual?: number;
-    points: number;
-    code: string;
-  }> | null,
+  breakdown:
+    | {
+        predicted: number;
+        actual?: number;
+        points: number;
+        code: string;
+      }[]
+    | null,
 ): SessionCardData {
   const picks =
     breakdown == null

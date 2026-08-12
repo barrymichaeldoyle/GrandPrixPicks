@@ -223,7 +223,7 @@ function AdminRaceDetailPage() {
 
   // Search inputs per lane (only mounted while the lane is empty), so we can
   // move focus to the next open position after a pick.
-  const laneInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const laneInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [focusLaneIndex, setFocusLaneIndex] = useState<number | null>(null);
 
   useEffect(() => {

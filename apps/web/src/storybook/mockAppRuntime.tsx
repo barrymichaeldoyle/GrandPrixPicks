@@ -143,8 +143,8 @@ export function buildStorybookConvexMocks({
   mutations = [],
   connectionState,
 }: {
-  queries?: Array<readonly [AnyFunctionReference, QueryResolver]>;
-  mutations?: Array<readonly [AnyFunctionReference, MutationResolver]>;
+  queries?: (readonly [AnyFunctionReference, QueryResolver])[];
+  mutations?: (readonly [AnyFunctionReference, MutationResolver])[];
   connectionState?: StorybookConvexMocks['connectionState'];
 }): StorybookConvexMocks {
   return {

@@ -11,7 +11,7 @@ export {
 
 /** `P1 🇬🇧 NOR\nP2 ...` — one driver per line with its flag, in pick order. */
 function formatPositionList(
-  drivers: ReadonlyArray<{ code: string; nationality?: string | null }>,
+  drivers: readonly { code: string; nationality?: string | null }[],
 ) {
   return drivers
     .map((driver, index) => {
@@ -30,7 +30,7 @@ export function buildRaceResultShareText({
 }: {
   raceName: string;
   sessionLabel: string;
-  drivers: ReadonlyArray<{ code: string; nationality?: string | null }>;
+  drivers: readonly { code: string; nationality?: string | null }[];
   accountHandle: string;
   raceHashtag?: string;
 }) {
@@ -50,7 +50,7 @@ export function buildPicksShareText({
 }: {
   raceName: string;
   sessionLabel: string;
-  picks: ReadonlyArray<{ code: string; nationality?: string | null }>;
+  picks: readonly { code: string; nationality?: string | null }[];
   accountHandle: string;
   raceHashtag?: string;
 }) {
@@ -94,7 +94,7 @@ export function buildH2HScoreShareText({
   correct: number;
   total: number;
   /** Per-matchup verdicts in grid order; code is null when no pick was made. */
-  picks: ReadonlyArray<{ code: string | null; correct: boolean }>;
+  picks: readonly { code: string | null; correct: boolean }[];
   accountHandle: string;
   raceHashtag?: string;
 }) {
@@ -115,11 +115,11 @@ export function buildOfficialH2HResultReplyText({
 }: {
   raceName: string;
   sessionLabel: string;
-  matchups: ReadonlyArray<{
+  matchups: readonly {
     team: string;
     winnerCode: string;
     loserCode: string;
-  }>;
+  }[];
   raceHashtag?: string;
 }) {
   const hashtags = formatRaceHashtags(raceHashtag);

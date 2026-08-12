@@ -20,7 +20,4 @@
  * nothing reads it yet and an unused re-export fails `knip` — re-export it
  * here the first time something needs it, rather than importing it directly.
  */
-export {
-  usePaginatedQuery,
-  useQuery,
-} from 'convex-helpers/react/cache/hooks';
+export { usePaginatedQuery, useQuery } from 'convex-helpers/react/cache/hooks';

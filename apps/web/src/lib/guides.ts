@@ -12,7 +12,7 @@ type GuideSection = {
   heading: string;
   paragraphs: readonly string[];
   /** Optional definition list rendered after the paragraphs. */
-  list?: ReadonlyArray<{ term: string; detail: string }>;
+  list?: readonly { term: string; detail: string }[];
 };
 
 export type Guide = {

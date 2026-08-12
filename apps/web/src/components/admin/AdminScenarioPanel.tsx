@@ -37,11 +37,11 @@ type ScenarioSummary = {
     raceCount: number;
     predictionCount: number;
     resultSessions: string[];
-    scoreSessions: Array<{
+    scoreSessions: {
       userId: string;
       sessionType: string;
       points: number;
-    }>;
+    }[];
   };
   routes: {
     webRaceDetail: string;

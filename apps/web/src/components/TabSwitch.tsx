@@ -35,7 +35,7 @@ export function TabSwitch<T extends string>({
 }: TabSwitchProps<T>) {
   const generatedId = useId().replaceAll(':', '');
   const baseId = id ?? `tab-switch-${generatedId}`;
-  const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const tabMode = panelId !== undefined;
 
   function optionId(value: T) {

@@ -21,9 +21,9 @@ vi.mock('@/integrations/convex/client', () => ({
 }));
 
 type HeadResult = {
-  links?: Array<{ href: string; rel: string }>;
-  meta?: Array<{ content: string; name?: string; property?: string }>;
-  scripts?: Array<{ children: string; type: string }>;
+  links?: { href: string; rel: string }[];
+  meta?: { content: string; name?: string; property?: string }[];
+  scripts?: { children: string; type: string }[];
 };
 
 type StaticHeadRoute = {
@@ -33,7 +33,7 @@ type StaticHeadRoute = {
 type HomeHeadRoute = {
   head: (args: {
     loaderData?: { nextRace: { slug: string } | null };
-  }) => HeadResult & { scripts?: Array<{ children: string; type: string }> };
+  }) => HeadResult & { scripts?: { children: string; type: string }[] };
 };
 
 type UsernameHeadRoute = {
@@ -45,7 +45,7 @@ type ProfileHeadRoute = {
     loaderData: {
       initialProfile: { displayName: string; username: string };
     };
-    matches: Array<{ routeId: string }>;
+    matches: { routeId: string }[];
     params: { username: string };
   }) => HeadResult | Record<string, never>;
 };
@@ -55,17 +55,17 @@ type TeammateHeadRoute = {
     loaderData: {
       battles: {
         lastUpdated: number;
-        teams: Array<{
+        teams: {
           team: string;
           drivers: [
             { displayName: string; total: number },
             { displayName: string; total: number },
           ];
-        }>;
+        }[];
       };
     };
   }) => HeadResult & {
-    scripts?: Array<{ children: string; type: string }>;
+    scripts?: { children: string; type: string }[];
   };
 };
 
@@ -100,25 +100,25 @@ describe('SEO head metadata', () => {
     const head = asHomeHeadRoute(homeRoute).head({
       loaderData: { nextRace: { slug: 'netherlands-2026' } },
     }) as unknown as {
-      links?: Array<{ href: string; rel: string }>;
-      scripts?: Array<{ children: string; type: string }>;
-      meta?: Array<{
+      links?: { href: string; rel: string }[];
+      scripts?: { children: string; type: string }[];
+      meta?: {
         content?: string;
         name?: string;
         property?: string;
         title?: string;
-      }>;
+      }[];
     };
     const title = head.meta?.find((tag) => tag.title)?.title;
     const description = head.meta?.find(
       (tag) => tag.name === 'description',
     )?.content;
     const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
-      | Array<{
+      | {
           '@type': string;
           name?: string;
           offers?: { price?: string };
-        }>
+        }[]
       | undefined;
     const app = graph?.find((node) => node['@type'] === 'WebApplication');
 
@@ -237,11 +237,11 @@ describe('SEO head metadata', () => {
   it('describes the results policy page and its breadcrumb trail', async () => {
     const { Route: policyRoute } = await import('./results-policy');
     const head = asStaticHeadRoute(policyRoute).head() as HeadResult & {
-      scripts?: Array<{ children: string; type: string }>;
+      scripts?: { children: string; type: string }[];
     };
 
     const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
-      | Array<{ '@type': string }>
+      | { '@type': string }[]
       | undefined;
     const types = graph?.map((node) => node['@type']);
 
@@ -276,7 +276,7 @@ describe('SEO head metadata', () => {
       | undefined;
     const description = head.meta?.find((tag) => tag.name === 'description');
     const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
-      | Array<{ '@type': string; numberOfItems?: number }>
+      | { '@type': string; numberOfItems?: number }[]
       | undefined;
 
     expect(title?.title.length).toBeLessThanOrEqual(60);

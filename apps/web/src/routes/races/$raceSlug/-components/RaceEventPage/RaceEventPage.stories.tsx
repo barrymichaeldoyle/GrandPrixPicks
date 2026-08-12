@@ -311,13 +311,13 @@ function buildH2HResultsBySession(
   ) as Partial<
     Record<
       SessionType,
-      Array<{
+      {
         matchupId: Id<'h2hMatchups'>;
         team: string;
         winnerId: Id<'drivers'>;
         driver1: Doc<'drivers'>;
         driver2: Doc<'drivers'>;
-      }>
+      }[]
     >
   >;
 }

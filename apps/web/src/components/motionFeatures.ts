@@ -13,4 +13,4 @@ import { domMax } from 'framer-motion';
  * `domMax` rather than `domAnimation` because PredictionForm animates pick
  * reordering with `layout`, which only the larger feature set provides.
  */
-export default domMax;
+export const motionFeatures = domMax;

@@ -16,11 +16,11 @@ type Suggestion = {
   sharedLeagueCount: number;
   sharedLeagueNames: string[];
   mutualFollowerCount: number;
-  mutualFollowers: Array<{
+  mutualFollowers: {
     username: string;
     displayName: string;
     avatarUrl?: string;
-  }>;
+  }[];
 };
 
 function mutual(username: string, displayName: string) {

@@ -294,7 +294,7 @@ describe('H2HDuelPicker', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
-    const selected: Array<string> = [];
+    const selected: string[] = [];
 
     function Harness() {
       const [selections, setSelections] = useState<

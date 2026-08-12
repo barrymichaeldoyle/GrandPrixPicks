@@ -109,7 +109,7 @@ export const mockViewer: MockUser = {
   avatarUrl: 'https://i.pravatar.cc/80?img=13',
 };
 
-export const mockOtherUsers: ReadonlyArray<MockUser> = [
+export const mockOtherUsers: readonly MockUser[] = [
   {
     _id: fakeId<'users'>('user-nina'),
     username: 'nina',

@@ -291,6 +291,7 @@ export function SettingsScreen() {
                 value={displayName}
               />
               <Pressable
+                accessibilityRole="button"
                 disabled={isSavingName}
                 onPress={() => {
                   setIsEditingName(false);
@@ -304,6 +305,7 @@ export function SettingsScreen() {
                 </Text>
               </Pressable>
               <Pressable
+                accessibilityRole="button"
                 disabled={isSavingName}
                 onPress={() => void handleSaveName()}
                 className="items-center rounded-md bg-button-accent px-3 py-2"
@@ -323,6 +325,7 @@ export function SettingsScreen() {
                 {me?.displayName ?? '—'}
               </Text>
               <Pressable
+                accessibilityRole="button"
                 onPress={() => setIsEditingName(true)}
                 className="items-center rounded-md border border-border px-3 py-2"
               >
@@ -355,6 +358,7 @@ export function SettingsScreen() {
       {/* Regional */}
       <SettingsSection title="Regional">
         <Pressable
+          accessibilityRole="button"
           className="flex-row items-center gap-2"
           onPress={() => setTzPickerOpen(true)}
         >
@@ -380,6 +384,7 @@ export function SettingsScreen() {
           </Text>
           <View className="flex-row rounded-md border border-border bg-surface-elevated p-[3px]">
             <Pressable
+              accessibilityRole="button"
               onPress={() => handleTimeFormatSelect('en-US')}
               className={`flex-1 items-center rounded-md py-2 ${currentTimeFormat === 'en-US' ? 'bg-accent-muted' : ''}`}
             >
@@ -390,6 +395,7 @@ export function SettingsScreen() {
               </Text>
             </Pressable>
             <Pressable
+              accessibilityRole="button"
               onPress={() => handleTimeFormatSelect('en-GB')}
               className={`flex-1 items-center rounded-md py-2 ${currentTimeFormat === 'en-GB' ? 'bg-accent-muted' : ''}`}
             >
@@ -464,6 +470,7 @@ export function SettingsScreen() {
       {/* Account */}
       <SettingsSection title="Account">
         <Pressable
+          accessibilityRole="button"
           className="flex-row items-center gap-2.5"
           onPress={handleSignOut}
         >
@@ -473,6 +480,7 @@ export function SettingsScreen() {
         <View className="my-3 h-px bg-border" />
         <View className="gap-1.5">
           <Pressable
+            accessibilityRole="button"
             className="flex-row items-center gap-2.5"
             disabled={isDeletingAccount}
             onPress={handleDeleteAccount}

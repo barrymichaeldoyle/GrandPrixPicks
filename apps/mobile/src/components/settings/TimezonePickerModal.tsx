@@ -89,7 +89,7 @@ export function TimezonePickerModal({
           <Text className="text-foreground text-[17px] font-bold">
             Choose timezone
           </Text>
-          <Pressable hitSlop={10} onPress={onClose}>
+          <Pressable accessibilityRole="button" hitSlop={10} onPress={onClose}>
             <Ionicons color={colors.text} name="close" size={22} />
           </Pressable>
         </View>
@@ -105,6 +105,7 @@ export function TimezonePickerModal({
         />
 
         <Pressable
+          accessibilityRole="button"
           className="mb-3 flex-row items-center gap-3 rounded-md border border-accent bg-accent-muted px-3.5 py-3"
           onPress={() => {
             onSelect(null);
@@ -136,6 +137,7 @@ export function TimezonePickerModal({
             const isSelected = item === currentValue;
             return (
               <Pressable
+                accessibilityRole="button"
                 className={`flex-row items-center gap-3 border-b border-border px-1.5 py-3 ${
                   isSelected ? 'rounded-md bg-surface' : ''
                 }`}

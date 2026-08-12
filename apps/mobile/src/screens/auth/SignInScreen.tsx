@@ -301,6 +301,7 @@ export function SignInScreen() {
                 value={code}
               />
               <Pressable
+                accessibilityRole="button"
                 className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
                   code.length < 6 || loading ? 'opacity-40' : ''
                 }`}
@@ -312,6 +313,7 @@ export function SignInScreen() {
                 </Text>
               </Pressable>
               <Pressable
+                accessibilityRole="button"
                 onPress={() => {
                   setScreen('auth');
                   setCode('');
@@ -334,6 +336,7 @@ export function SignInScreen() {
               {/* Mode toggle */}
               <View className="mb-1 flex-row border-b border-border">
                 <Pressable
+                  accessibilityRole="button"
                   className={`flex-1 items-center border-b-2 py-2.5 ${
                     mode === 'signIn' ? 'border-accent' : 'border-transparent'
                   }`}
@@ -350,6 +353,7 @@ export function SignInScreen() {
                   </Text>
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
                   className={`flex-1 items-center border-b-2 py-2.5 ${
                     mode === 'signUp' ? 'border-accent' : 'border-transparent'
                   }`}
@@ -442,6 +446,7 @@ export function SignInScreen() {
                 value={password}
               />
               <Pressable
+                accessibilityRole="button"
                 className={`h-[50px] items-center justify-center rounded-lg bg-button-accent ${
                   !canSubmit ? 'opacity-40' : ''
                 }`}

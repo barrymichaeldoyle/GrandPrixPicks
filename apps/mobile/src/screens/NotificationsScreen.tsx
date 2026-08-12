@@ -144,7 +144,11 @@ export function NotificationsScreen() {
         }
         action={
           unreadCount > 0 ? (
-            <Pressable hitSlop={8} onPress={() => void handleMarkAll()}>
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => void handleMarkAll()}
+            >
               <Text className="text-xs font-bold text-accent">
                 Mark all read
               </Text>
@@ -236,6 +240,7 @@ function NotificationRow({
 
   return (
     <Pressable
+      accessibilityRole="button"
       className={`flex-row items-center gap-3 px-1.5 py-3 ${
         isUnread ? 'rounded-md bg-accent/10' : ''
       }`}

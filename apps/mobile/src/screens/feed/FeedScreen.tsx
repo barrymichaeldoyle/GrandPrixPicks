@@ -286,6 +286,7 @@ function TopPlayersToFollow() {
               {i > 0 ? <View className="ml-10 h-px bg-border" /> : null}
               <View className="flex-row items-center gap-2.5 py-2">
                 <Pressable
+                  accessibilityRole="button"
                   className="flex-1 flex-row items-center gap-2.5"
                   onPress={() =>
                     p.username
@@ -313,6 +314,7 @@ function TopPlayersToFollow() {
                   </View>
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
                   className={`rounded-full border px-3 py-1.5 ${
                     isFollowed ? 'border-border' : 'border-accent'
                   }`}

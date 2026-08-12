@@ -59,6 +59,7 @@ function PickedRow({
       }`}
     >
       <Pressable
+        accessibilityRole="button"
         delayLongPress={120}
         disabled={disabled}
         onLongPress={() => {
@@ -80,6 +81,7 @@ function PickedRow({
         </View>
       </Pressable>
       <Pressable
+        accessibilityRole="button"
         delayLongPress={120}
         disabled={disabled}
         onLongPress={() => {
@@ -103,6 +105,9 @@ function PickedRow({
       {!disabled ? (
         <View className="flex-row gap-1">
           <Pressable
+            accessibilityLabel={`Move ${item.driver.displayName} up`}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canMoveUp }}
             disabled={!canMoveUp}
             onPress={onMoveUp}
             className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
@@ -116,6 +121,9 @@ function PickedRow({
             />
           </Pressable>
           <Pressable
+            accessibilityLabel={`Move ${item.driver.displayName} down`}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canMoveDown }}
             disabled={!canMoveDown}
             onPress={onMoveDown}
             className={`h-7 w-7 items-center justify-center rounded-lg bg-surface-muted ${
@@ -129,6 +137,8 @@ function PickedRow({
             />
           </Pressable>
           <Pressable
+            accessibilityLabel={`Remove ${item.driver.displayName} from your picks`}
+            accessibilityRole="button"
             className="h-7 w-7 items-center justify-center rounded-lg bg-surface-muted"
             onPress={onRemove}
           >
@@ -171,6 +181,7 @@ function PoolDriverCard({
 
   return (
     <Pressable
+      accessibilityRole="button"
       className={`m-[3px] h-14 flex-1 items-center justify-center rounded-md ${
         inPicks ? 'opacity-40' : isDisabled ? 'opacity-35' : ''
       }`}

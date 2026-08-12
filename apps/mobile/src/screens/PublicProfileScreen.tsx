@@ -103,6 +103,7 @@ export function PublicProfileScreen({ route }: Props) {
 
       {!isOwner && isFollowing !== undefined ? (
         <Pressable
+          accessibilityRole="button"
           className={`items-center rounded-lg border py-2.5 ${
             isFollowing
               ? 'border-button-accent bg-button-accent'

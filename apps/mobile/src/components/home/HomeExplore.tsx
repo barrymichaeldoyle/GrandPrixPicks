@@ -42,6 +42,7 @@ export function HomeExplore() {
           <View key={item.tab}>
             {i > 0 ? <View className="ml-12 h-px bg-border" /> : null}
             <Pressable
+              accessibilityRole="button"
               className="flex-row items-center gap-3 py-3 active:opacity-70"
               onPress={() => tabNav?.navigate(item.tab)}
             >

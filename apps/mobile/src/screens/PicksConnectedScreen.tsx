@@ -440,6 +440,7 @@ function WeekendPointsStrip({
         </Text>
       </View>
       <Pressable
+        accessibilityRole="button"
         className="flex-row items-center gap-1 rounded-full border border-border px-2.5 py-1 active:opacity-70"
         hitSlop={6}
         onPress={() => void handleShare()}
@@ -636,6 +637,8 @@ function SessionTabs({
         const hasPicks = predictionsBySession[session] !== null;
         return (
           <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
             className="flex-1 items-center gap-1.5"
             key={session}
             onPress={() => onSelect(session)}
@@ -707,6 +710,7 @@ function EditToggle({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
       className="flex-row items-center gap-1 active:opacity-70"
       hitSlop={8}
       onPress={onToggle}
@@ -941,6 +945,7 @@ function Top5Editor({
             Draft from {formatDateTime(restoredDraftAt)}
           </Text>
           <Pressable
+            accessibilityRole="button"
             hitSlop={6}
             onPress={() => {
               void handleDiscardDraft();
@@ -1257,6 +1262,7 @@ function H2HEditor({
             H2H draft from {formatDateTime(restoredDraftAt)}
           </Text>
           <Pressable
+            accessibilityRole="button"
             hitSlop={6}
             onPress={() => {
               void handleDiscardDraft();

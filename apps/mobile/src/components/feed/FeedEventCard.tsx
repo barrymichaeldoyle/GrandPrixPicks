@@ -275,5 +275,9 @@ export function FeedEventCard({
   if (!inner || !onPress) {
     return inner;
   }
-  return <Pressable onPress={onPress}>{inner}</Pressable>;
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress}>
+      {inner}
+    </Pressable>
+  );
 }

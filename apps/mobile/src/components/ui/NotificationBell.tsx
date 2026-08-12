@@ -27,6 +27,14 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
 
   return (
     <Pressable
+      // Without this the badge is the only thing announced, so VoiceOver read
+      // the control as the number "3" with no hint of what it opens.
+      accessibilityLabel={
+        unreadCount > 0
+          ? `Notifications, ${unreadCount} unread`
+          : 'Notifications'
+      }
+      accessibilityRole="button"
       className="relative px-2 py-1.5"
       hitSlop={10}
       onPress={handlePress}

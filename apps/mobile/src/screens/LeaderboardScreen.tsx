@@ -381,6 +381,7 @@ export function LeaderboardScreen() {
             const isSelected = race._id === selectedRaceId;
             return (
               <Pressable
+                accessibilityRole="button"
                 className={`flex-row items-center gap-1.5 rounded-full border px-2.5 py-1.5 ${
                   isSelected
                     ? 'border-button-accent bg-button-accent'
@@ -630,6 +631,7 @@ function PodiumRow({
 
   return (
     <Pressable
+      accessibilityRole="button"
       className={`mb-2 flex-row items-center gap-2.5 overflow-hidden rounded-xl border border-border px-3 py-3 ${
         entry.isViewer ? 'bg-accent/10' : ''
       }`}
@@ -696,6 +698,7 @@ function BoardRow({
   const subline = modeSubline(entry, mode);
   return (
     <Pressable
+      accessibilityRole="button"
       className={`flex-row items-center gap-2.5 px-1 py-2.5 ${
         entry.isViewer ? 'bg-accent/10' : ''
       }`}

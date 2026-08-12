@@ -98,6 +98,7 @@ function DriverButton({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
       disabled={mode === 'readonly'}
       className="min-w-14 items-center rounded-md border border-border py-[7px]"
       onPress={onPress}

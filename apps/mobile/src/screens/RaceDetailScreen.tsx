@@ -226,6 +226,7 @@ export function RaceDetailScreen({ route }: Props) {
 
       {hasOpenSession ? (
         <Pressable
+          accessibilityRole="button"
           className="flex-row items-center justify-center gap-2 rounded-lg bg-button-accent py-3.5 active:bg-button-accent-hover"
           onPress={() => rootNav.navigate('PicksTab')}
         >

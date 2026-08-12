@@ -99,6 +99,7 @@ export function SessionGroupCard({
           const isViewer = Boolean(viewerId && event.userId === viewerId);
           return (
             <Pressable
+              accessibilityRole="button"
               key={event._id}
               onPress={() => onPressEvent(event)}
               className={`flex-row items-center gap-2.5 px-2.5 py-2.5 ${

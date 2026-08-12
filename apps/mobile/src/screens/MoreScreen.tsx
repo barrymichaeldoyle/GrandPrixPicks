@@ -101,6 +101,7 @@ export function MoreScreen() {
         </View>
 
         <Pressable
+          accessibilityRole="button"
           className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
           hitSlop={8}
           onPress={confirmSignOut}
@@ -126,6 +127,7 @@ function LinkRow({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
       className="flex-row items-center gap-3 py-3 active:opacity-70"
       onPress={onPress}
     >

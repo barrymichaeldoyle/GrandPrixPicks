@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as F12027CalendarRouteImport } from './routes/f1-2027-calendar'
 import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as F1TeamMateBattlesRouteImport } from './routes/f1-team-mate-battles'
 import { Route as F1TeammateBattlesRouteImport } from './routes/f1-teammate-battles'
@@ -53,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const F12027CalendarRoute = F12027CalendarRouteImport.update({
+  id: '/f1-2027-calendar',
+  path: '/f1-2027-calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const F1StandingsRoute = F1StandingsRouteImport.update({
@@ -224,6 +230,7 @@ const RacesRaceSlugPracticeRoute = RacesRaceSlugPracticeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -298,6 +306,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -374,6 +384,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -410,6 +421,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -448,6 +460,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  F12027CalendarRoute: typeof F12027CalendarRoute
   F1StandingsRoute: typeof F1StandingsRoute
   F1TeamMateBattlesRoute: typeof F1TeamMateBattlesRoute
   F1TeammateBattlesRoute: typeof F1TeammateBattlesRoute
@@ -492,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-2027-calendar': {
+      id: '/f1-2027-calendar'
+      path: '/f1-2027-calendar'
+      fullPath: '/f1-2027-calendar'
+      preLoaderRoute: typeof F12027CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-standings': {
@@ -769,6 +789,7 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  F12027CalendarRoute: F12027CalendarRoute,
   F1StandingsRoute: F1StandingsRoute,
   F1TeamMateBattlesRoute: F1TeamMateBattlesRoute,
   F1TeammateBattlesRoute: F1TeammateBattlesRoute,

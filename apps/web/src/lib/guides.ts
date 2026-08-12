@@ -121,6 +121,46 @@ const GUIDES: readonly Guide[] = [
         ],
       },
     ],
+    faqs: [
+      {
+        question: 'How many practice sessions are there on a sprint weekend?',
+        answer:
+          'One. A conventional Grand Prix weekend has three, so teams go into a competitive session with about a third of the usual running.',
+      },
+      {
+        question: 'What order do the sessions run in on a sprint weekend?',
+        answer:
+          'Free Practice 1, then sprint qualifying, then the sprint, then qualifying, then the Grand Prix. Sprint qualifying comes before the sprint, and the main qualifying session sits between the sprint and Sunday.',
+      },
+      {
+        question: 'Does sprint qualifying set the grid for the Grand Prix?',
+        answer:
+          'No. Sprint qualifying sets the grid for the sprint only. The Grand Prix grid comes from the separate qualifying session held after the sprint.',
+      },
+      {
+        question: 'How many points does the sprint pay?',
+        answer:
+          'The top eight score, from 8 points for the win down to 1 point for eighth. Those points are added to the same championship totals as Grand Prix points.',
+      },
+      {
+        question: 'Is a sprint weekend worth more on Grand Prix Picks?',
+        answer:
+          'Yes. Every session is scored separately, so a sprint weekend has four scoreable sessions instead of two: sprint qualifying, the sprint, qualifying and the race.',
+      },
+    ],
+    liveLinks: [
+      {
+        to: '/races',
+        label: 'Race calendar',
+        detail:
+          'Which rounds are sprint weekends, with times for every session.',
+      },
+      {
+        to: '/f1-standings',
+        label: 'F1 championship standings',
+        detail: 'Where the sprint points have landed so far this season.',
+      },
+    ],
   },
   {
     slug: 'f1-points-system-explained',
@@ -288,6 +328,45 @@ const GUIDES: readonly Guide[] = [
           'Check the forecast. If rain is likely, widen your expectations considerably and favour drivers with a track record in changeable conditions over the fastest car.',
           'Finally, look at your positions three to five and ask whether you have simply copied the grid. If you have, and the circuit is one where the order tends to move, you are probably being too conservative in exactly the place where accuracy pays.',
         ],
+      },
+    ],
+    faqs: [
+      {
+        question: 'How does Grand Prix Picks score a top five prediction?',
+        answer:
+          'Five points for putting a driver in exactly the right position, three for being one place out, and one for naming a driver who finished in the top five but placing them two or more positions away. Twenty-five points is the maximum for a session.',
+      },
+      {
+        question: 'Does the order of my picks matter?',
+        answer:
+          'Yes. Scoring compares each pick against the position you gave it, so naming the right five drivers in the wrong order scores far less than getting the order right. Being one place out still pays three points, which is why near misses are worth chasing.',
+      },
+      {
+        question: 'Which positions should I spend the most time on?',
+        answer:
+          'Positions three to five. The front of the grid is usually settled, while three to five is where several teams are genuinely close and where the order actually moves.',
+      },
+      {
+        question: 'Is practice pace useful for predicting a race?',
+        answer:
+          'Long-run stint pace is one of the best signals available and most people ignore it. Single practice lap times are close to meaningless, because fuel loads and engine modes are not published.',
+      },
+      {
+        question: 'Do last season results at the same circuit help?',
+        answer:
+          'Less than they feel like they should. The character of a circuit persists, but the competitive order does not: cars change enormously between seasons, and recent form over the last two or three weekends is a better guide.',
+      },
+    ],
+    liveLinks: [
+      {
+        to: '/races',
+        label: 'Race calendar',
+        detail: 'The next round, with the lock time for every session.',
+      },
+      {
+        to: '/leaderboard',
+        label: 'Prediction leaderboard',
+        detail: 'How the accurate predictors are actually scoring this season.',
       },
     ],
   },

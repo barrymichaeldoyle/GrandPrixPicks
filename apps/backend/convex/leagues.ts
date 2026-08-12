@@ -2,9 +2,10 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
+import { getCurrentSeason } from './lib/season';
 import {
   getLeagueEntitlement,
   isLeagueCreateLimitReached,
@@ -50,26 +51,6 @@ function requireLeagueCounts(league: Doc<'leagues'>): {
     memberCount: league.memberCount,
     adminCount: league.adminCount,
   };
-}
-
-async function getDefaultLeagueSeason(ctx: MutationCtx | QueryCtx) {
-  const now = Date.now();
-  const nextUpcomingRace = await ctx.db
-    .query('races')
-    .withIndex('by_status_and_predictionLockAt', (q) =>
-      q.eq('status', 'upcoming').gt('predictionLockAt', now),
-    )
-    .first();
-  if (nextUpcomingRace) {
-    return nextUpcomingRace.season;
-  }
-
-  const latestRace = await ctx.db
-    .query('races')
-    .withIndex('by_raceStartAt')
-    .order('desc')
-    .first();
-  return latestRace?.season ?? 2026;
 }
 
 function validateSlug(slug: string): string {
@@ -194,7 +175,7 @@ export const listPublicLeagues = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    const season = args.season ?? (await getDefaultLeagueSeason(ctx));
+    const season = args.season ?? (await getCurrentSeason(ctx));
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
 
     const publicLeagues = await ctx.db
@@ -392,7 +373,7 @@ export const getMyLeagueUsage = query({
       return null;
     }
 
-    const season = args.season ?? (await getDefaultLeagueSeason(ctx));
+    const season = args.season ?? (await getCurrentSeason(ctx));
     const { plan, isPro, limits } = await getLeagueEntitlement(
       ctx,
       viewer._id,
@@ -508,7 +489,7 @@ export const createLeague = mutation({
       ? await hashLeaguePassword(plainPassword)
       : undefined;
 
-    const season = await getDefaultLeagueSeason(ctx);
+    const season = await getCurrentSeason(ctx);
     const { limits } = await getLeagueEntitlement(ctx, viewer._id, season);
 
     // Count leagues created by this user for the season, by visibility.

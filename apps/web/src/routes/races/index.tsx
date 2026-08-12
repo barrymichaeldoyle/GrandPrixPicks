@@ -261,6 +261,45 @@ function RacesPage() {
             </div>
           )}
 
+          {/*
+            Every round, linked, regardless of which tab is showing. The card
+            grid above renders the selected filter only, so on a default load a
+            crawler sees the upcoming races and nothing else; completed rounds
+            were reachable only through their practice pages, which meant a
+            round with no published practice results had no inbound link at all
+            and dropped out of the crawlable site. Same reasoning as the
+            practice index below, which is why it sits next to it.
+          */}
+          {orderedRaces.length > 0 ? (
+            <nav
+              aria-label="All rounds"
+              className="mt-10 border-t border-border pt-6"
+            >
+              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                Full calendar
+              </p>
+              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+                Every round of the 2026 season
+              </h2>
+              <p className="mt-1 text-sm text-text-muted">
+                Session times, results and the picks you made, round by round.
+              </p>
+              <ul className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+                {orderedRaces.map((race) => (
+                  <li key={race._id}>
+                    <Link
+                      to="/races/$raceSlug"
+                      params={{ raceSlug: race.slug }}
+                      className="text-accent hover:text-accent-hover"
+                    >
+                      Round {race.round}: {race.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
+
           {practiceRaces.length > 0 ? (
             <nav
               aria-label="Practice results by round"

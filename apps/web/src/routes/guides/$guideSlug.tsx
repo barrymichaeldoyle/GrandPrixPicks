@@ -56,6 +56,25 @@ export const Route = createFileRoute('/guides/$guideSlug')({
                 { name: 'Guides', path: '/guides' },
                 { name: guide.title, path: `/guides/${guide.slug}` },
               ]),
+              // Only when the guide actually renders these questions on the
+              // page. FAQ markup that does not match visible content is a
+              // structured-data violation, not a shortcut.
+              ...(guide.faqs && guide.faqs.length > 0
+                ? [
+                    {
+                      '@type': 'FAQPage',
+                      '@id': `${siteConfig.url}/guides/${guide.slug}#faq`,
+                      mainEntity: guide.faqs.map((faq) => ({
+                        '@type': 'Question',
+                        name: faq.question,
+                        acceptedAnswer: {
+                          '@type': 'Answer',
+                          text: faq.answer,
+                        },
+                      })),
+                    },
+                  ]
+                : []),
             ],
           }),
         },
@@ -125,7 +144,51 @@ function GuidePage() {
               )}
             </section>
           ))}
+          {guide.faqs && guide.faqs.length > 0 ? (
+            <section className="mt-10 border-t border-border pt-8">
+              <h2 className="font-title text-2xl font-semibold text-text">
+                Common questions
+              </h2>
+              <dl className="mt-6 border-t border-border">
+                {guide.faqs.map((faq) => (
+                  <div
+                    key={faq.question}
+                    className="border-b border-border py-5"
+                  >
+                    <dt className="font-semibold text-text">{faq.question}</dt>
+                    <dd className="gpp-reading-copy mt-2 text-text-muted">
+                      {faq.answer}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
         </article>
+
+        {guide.liveLinks && guide.liveLinks.length > 0 ? (
+          <aside className="mt-12 border-t border-border pt-8">
+            <h2 className="font-title text-lg font-semibold text-text">
+              See it live
+            </h2>
+            <ul className="mt-4 space-y-4">
+              {guide.liveLinks.map((link) => (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    className="group inline-flex items-center gap-1.5 font-semibold text-accent hover:text-accent-hover"
+                  >
+                    {link.label}
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                  <p className="gpp-reading-copy mt-1 text-sm text-text-muted">
+                    {link.detail}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
 
         <aside className="mt-12 border-t border-border pt-8">
           <h2 className="font-title text-lg font-semibold text-text">

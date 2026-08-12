@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Pencil, Swords } from 'lucide-react';
 import { useState } from 'react';
 

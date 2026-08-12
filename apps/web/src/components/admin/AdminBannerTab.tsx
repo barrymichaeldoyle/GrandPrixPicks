@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { useState } from 'react';
 
 import { InlineLoader } from '@/components/InlineLoader';

@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Loader2 } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState } from 'react';
 

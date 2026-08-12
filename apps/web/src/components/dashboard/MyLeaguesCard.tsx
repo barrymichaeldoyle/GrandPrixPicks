@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
 import { ArrowRight, Users } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 
 import { Button } from '@/components/Button/Button';
 

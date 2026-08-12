@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { BarChart3, ExternalLink, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';

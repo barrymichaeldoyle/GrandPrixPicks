@@ -5,7 +5,7 @@ import {
   DRIVER_STATUS_LABELS,
 } from '@grandprixpicks/shared/driverStatus';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { m } from 'framer-motion';
 import { ChevronDown, ChevronUp, Gavel, Swords, Trophy } from 'lucide-react';
 import { useState } from 'react';

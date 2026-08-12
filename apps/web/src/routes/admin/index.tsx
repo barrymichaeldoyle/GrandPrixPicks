@@ -1,7 +1,8 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute } from '@tanstack/react-router';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { useEffect, useState } from 'react';
 
 import { AdminBannerTab } from '@/components/admin/AdminBannerTab';

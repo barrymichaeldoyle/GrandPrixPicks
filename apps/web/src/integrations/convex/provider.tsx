@@ -3,11 +3,12 @@ import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import type { PropsWithChildren } from 'react';
 
 import { convex } from './client';
+import { AppConvexQueryCache } from './queryCache';
 
 export function AppConvexProvider({ children }: PropsWithChildren) {
   return (
     <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-      {children}
+      <AppConvexQueryCache>{children}</AppConvexQueryCache>
     </ConvexProviderWithClerk>
   );
 }

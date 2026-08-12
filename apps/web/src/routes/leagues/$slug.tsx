@@ -6,7 +6,7 @@ import {
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';

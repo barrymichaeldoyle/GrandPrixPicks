@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Gauge, Trophy } from 'lucide-react';
 import { useState } from 'react';
 

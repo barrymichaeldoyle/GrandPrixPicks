@@ -1,7 +1,7 @@
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { convexHttp as convex } from '@/integrations/convex/client';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -16,7 +16,7 @@ import {
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { getRaceLocation } from '@/lib/raceLocations';
 import {
@@ -99,16 +99,16 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           shareSession: search.session,
         },
   component: RaceDetailPage,
-  loader: async ({ params, deps }) => {
+  loader: async ({ context, params, deps }) => {
     // Fetch the driver roster alongside the race so a signed-out visitor (and
     // search-engine crawlers, which don't run the client Convex subscriptions)
     // get a real, crawlable grid on the page instead of an empty sign-in gate.
     const [race, nextRace, drivers] = await Promise.all([
-      withRetry(() =>
-        convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
       ),
-      withRetry(() => convex.query(api.races.getNextRace)),
-      withRetry(() => convex.query(api.drivers.listDrivers)),
+      context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
+      context.queryClient.ensureQueryData(routeQuery(api.drivers.listDrivers)),
     ]);
     if (!race) {
       throw notFound();
@@ -118,16 +118,16 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     // and visible before the client Convex subscriptions boot) rather than an
     // empty table. Upcoming races have no results, so this is a single cheap
     // query for them.
-    const availableSessions = await withRetry(() =>
-      convex.query(api.results.getAllResultsForRace, { raceId: race._id }),
+    const availableSessions = await context.queryClient.ensureQueryData(
+      routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
     );
     const resultEntries = await Promise.all(
       availableSessions.map(
         async (sessionType) =>
           [
             sessionType,
-            await withRetry(() =>
-              convex.query(api.results.getResultForRace, {
+            await context.queryClient.ensureQueryData(
+              routeQuery(api.results.getResultForRace, {
                 raceId: race._id,
                 sessionType,
               }),
@@ -275,7 +275,25 @@ function RaceNotFound() {
 }
 
 function RaceDetailPage() {
-  const { race, nextRace, drivers, initialResults } = Route.useLoaderData();
+  const { raceSlug } = Route.useParams();
+  const {
+    race: initialRace,
+    nextRace: initialNextRace,
+    drivers,
+    initialResults,
+  } = Route.useLoaderData();
+  // `race` and `nextRace` are the only loader reads on this page with no live
+  // subscription behind them, so they get their own observers: that is what
+  // keeps their cache entries subscribed, which an infinite stale time
+  // otherwise leaves frozen. The roster and the published results need no
+  // equivalent here — `RaceEventPage` and `useRaceWeekendData` already
+  // subscribe to both and treat these loader values as first-paint seed.
+  const { data: liveRace } = useQuery(
+    routeQuery(api.races.getRaceBySlug, { slug: raceSlug }),
+  );
+  const { data: liveNextRace } = useQuery(routeQuery(api.races.getNextRace));
+  const race = liveRace ?? initialRace;
+  const nextRace = liveNextRace ?? initialNextRace;
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const { from } = search;

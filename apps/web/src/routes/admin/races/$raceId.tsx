@@ -11,7 +11,8 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import {
   ArrowLeft,
   Check,

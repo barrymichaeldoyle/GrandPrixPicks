@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Bell } from 'lucide-react';
 
 import type { AppNavTab, NavTabVariant } from './NavTab';

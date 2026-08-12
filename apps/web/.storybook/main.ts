@@ -58,6 +58,17 @@ const config: StorybookConfig = {
           new URL('../src/storybook/mockConvexReact.tsx', import.meta.url),
         ),
       },
+      {
+        // The app's cached read hooks (`@/integrations/convex/query`) are the
+        // same three functions with a longer-lived subscription behind them,
+        // so they resolve to the same mock as `convex/react`. Without this a
+        // story would drag the real `convex-helpers` cache — and its provider
+        // requirement — into a tree that mounts no Convex client.
+        find: /^@\/integrations\/convex\/query$/,
+        replacement: fileURLToPath(
+          new URL('../src/storybook/mockConvexReact.tsx', import.meta.url),
+        ),
+      },
     ];
     return {
       ...config,

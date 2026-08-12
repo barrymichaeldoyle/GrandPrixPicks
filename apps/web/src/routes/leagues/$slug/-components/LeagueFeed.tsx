@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Gauge } from 'lucide-react';
 import { useState } from 'react';
 

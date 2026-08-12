@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import type { FunctionReturnType } from 'convex/server';
 
 import { fromRaceDetail } from '@/components/RaceScoreCard/adapters';

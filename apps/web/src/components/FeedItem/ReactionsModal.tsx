@@ -6,7 +6,7 @@ import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 

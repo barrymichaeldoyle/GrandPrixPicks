@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Crown, Globe, LogIn, Plus, Search, Shield, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

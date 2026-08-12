@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Doc, Id } from '@convex-generated/dataModel';
 import type { FunctionReturnType } from 'convex/server';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import {
   ArrowRight,

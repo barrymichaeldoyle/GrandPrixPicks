@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 
 import { Flag } from '@/components/Flag';
 import { useEffect, useState } from 'react';

@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { useRef } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Link } from '@tanstack/react-router';

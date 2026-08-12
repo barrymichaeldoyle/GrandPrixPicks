@@ -1,30 +1,32 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Calendar } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { RaceCard } from '@/components/RaceCard';
-import { convexHttp as convex } from '@/integrations/convex/client';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 import { PageHeader } from '@/components/PageHeader';
 
 export const Route = createFileRoute('/races/')({
   component: RacesPage,
-  loader: async () => {
+  loader: async ({ context }) => {
     // The practice slugs drive the practice-results index below. Those pages
     // are in the sitemap but the only in-app link to them lives in a
     // client-only Convex card, so without this list they have no
     // server-rendered inbound link at all and read as orphans to a crawler.
     const [races, nextRace, practiceSlugs] = await Promise.all([
-      withRetry(() => convex.query(api.races.listRaces, { season: 2026 })),
-      withRetry(() => convex.query(api.races.getNextRace)),
-      withRetry(() =>
-        convex.query(api.practiceResults.listRaceSlugsWithPracticeResults),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.listRaces, { season: 2026 }),
+      ),
+      context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
       ),
     ]);
     return { races, nextRace, practiceSlugs };
@@ -81,7 +83,24 @@ export const Route = createFileRoute('/races/')({
 });
 
 function RacesPage() {
-  const { races, nextRace, practiceSlugs } = Route.useLoaderData();
+  const {
+    races: initialRaces,
+    nextRace: initialNextRace,
+    practiceSlugs: initialPracticeSlugs,
+  } = Route.useLoaderData();
+  // These are also the observers that keep the loader's cache entries
+  // subscribed; without them the entries would sit unwatched behind an
+  // infinite stale time.
+  const { data: liveRaces } = useQuery(
+    routeQuery(api.races.listRaces, { season: 2026 }),
+  );
+  const { data: liveNextRace } = useQuery(routeQuery(api.races.getNextRace));
+  const { data: livePracticeSlugs } = useQuery(
+    routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
+  );
+  const races = liveRaces ?? initialRaces;
+  const nextRace = liveNextRace ?? initialNextRace;
+  const practiceSlugs = livePracticeSlugs ?? initialPracticeSlugs;
   const now = useNow(0);
   const [view, setView] = useState<'upcoming' | 'completed' | 'all'>(
     'upcoming',

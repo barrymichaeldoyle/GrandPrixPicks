@@ -1,25 +1,25 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { CircuitGuide } from '@/components/CircuitGuide';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
-import { convexHttp as convex } from '@/integrations/convex/client';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { breadcrumbSchema, pageMeta } from '@/lib/site';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 
 export const Route = createFileRoute('/races/$raceSlug/practice')({
-  loader: async ({ params }) => {
-    const race = await withRetry(() =>
-      convex.query(api.races.getRaceBySlug, { slug: params.raceSlug }),
+  loader: async ({ context, params }) => {
+    const race = await context.queryClient.ensureQueryData(
+      routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
     );
     if (!race) {
       throw notFound();
     }
-    const results = await withRetry(() =>
-      convex.query(api.practiceResults.getPracticeResultsForRace, {
+    const results = await context.queryClient.ensureQueryData(
+      routeQuery(api.practiceResults.getPracticeResultsForRace, {
         raceId: race._id,
       }),
     );
@@ -69,7 +69,21 @@ export const Route = createFileRoute('/races/$raceSlug/practice')({
 });
 
 function PracticeResultsPage() {
-  const { race, results } = Route.useLoaderData();
+  const { raceSlug } = Route.useParams();
+  const { race: initialRace, results: initialResults } = Route.useLoaderData();
+  // These are also the observers that keep the loader's cache entries
+  // subscribed; without them the entries would sit unwatched behind an
+  // infinite stale time.
+  const { data: liveRace } = useQuery(
+    routeQuery(api.races.getRaceBySlug, { slug: raceSlug }),
+  );
+  const race = liveRace ?? initialRace;
+  const { data: liveResults } = useQuery(
+    routeQuery(api.practiceResults.getPracticeResultsForRace, {
+      raceId: race._id,
+    }),
+  );
+  const results = liveResults ?? initialResults;
   useEffect(() => {
     captureAnalyticsEvent('practice_results_page_viewed', {
       race_id: race._id,

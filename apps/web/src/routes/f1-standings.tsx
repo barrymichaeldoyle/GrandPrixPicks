@@ -1,14 +1,14 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Flag, Trophy } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
-import { convexHttp as convex } from '@/integrations/convex/client';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName } from '@/lib/display';
 import { setF1StandingsCacheHeaders } from '@/lib/f1StandingsCacheHeaders';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 import { pageMeta, siteConfig } from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { NoticeCard } from '@/components/NoticeCard';
@@ -17,10 +17,10 @@ const SEASON = 2026;
 
 export const Route = createFileRoute('/f1-standings')({
   component: F1StandingsPage,
-  loader: async () => {
+  loader: async ({ context }) => {
     const [standings] = await Promise.all([
-      withRetry(() =>
-        convex.query(api.f1Standings.getF1Championship, { season: SEASON }),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.f1Standings.getF1Championship, { season: SEASON }),
       ),
       setF1StandingsCacheHeaders(),
     ]);
@@ -127,7 +127,13 @@ const LAST_UPDATED_FORMAT: UserDateSettings = {
 };
 
 function F1StandingsPage() {
-  const { standings } = Route.useLoaderData();
+  const { standings: initialStandings } = Route.useLoaderData();
+  // Also the observer that keeps the loader's cache entry subscribed; without
+  // it the entry would sit unwatched behind an infinite stale time.
+  const { data: liveStandings } = useQuery(
+    routeQuery(api.f1Standings.getF1Championship, { season: SEASON }),
+  );
+  const standings = liveStandings ?? initialStandings;
   const { constructors, drivers, lastUpdated, roundsScored, season } =
     standings;
   const hasResults = drivers.length > 0 && roundsScored > 0;

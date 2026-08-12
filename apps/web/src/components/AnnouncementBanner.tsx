@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { Megaphone, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

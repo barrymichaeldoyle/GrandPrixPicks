@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 

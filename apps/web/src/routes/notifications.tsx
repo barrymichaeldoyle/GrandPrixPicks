@@ -6,7 +6,8 @@ import {
   type NotificationFilter,
 } from '@grandprixpicks/shared/notifications';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useMutation, usePaginatedQuery, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { usePaginatedQuery, useQuery } from '@/integrations/convex/query';
 import { CheckCheck } from 'lucide-react';
 import { useEffect } from 'react';
 

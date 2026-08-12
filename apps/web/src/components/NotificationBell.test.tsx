@@ -2,7 +2,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 
 import { NotificationBell } from './NotificationBell';
 

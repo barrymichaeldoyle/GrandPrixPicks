@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/react';
 import { api } from '@convex-generated/api';
 import { useLocation } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 
 import { useUpcomingPredictionBannerDismissal } from '@/hooks/useUpcomingPredictionBannerDismissal';
 import type { SessionType } from '@/lib/sessions';

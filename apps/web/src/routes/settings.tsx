@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { useEffect, useState } from 'react';
 
 import { PageLoader } from '@/components/PageLoader';

@@ -413,6 +413,9 @@ importers:
       convex:
         specifier: 'catalog:'
         version: 1.43.0(@clerk/clerk-react@5.61.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@clerk/react@6.12.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6)
+      convex-helpers:
+        specifier: 0.1.112
+        version: 0.1.112(@standard-schema/spec@1.1.0)(convex@1.43.0(@clerk/clerk-react@5.61.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@clerk/react@6.12.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(bufferutil@4.1.0)(react@19.2.7)(utf-8-validate@6.0.6))(hono@4.12.34)(react@19.2.7)(typescript@7.0.2)(zod@4.4.3)
       dotenv-cli:
         specifier: 11.0.0
         version: 11.0.0

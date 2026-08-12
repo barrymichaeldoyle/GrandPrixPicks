@@ -37,6 +37,7 @@ import {
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { ViewerSessionProvider } from '@/integrations/clerk/viewer-session-context';
 import { convex } from '@/integrations/convex/client';
+import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
@@ -543,7 +544,7 @@ function AppRuntimeBoundary({
             client={convex}
             useAuth={useAnonymousConvexAuth}
           >
-            {children}
+            <AppConvexQueryCache>{children}</AppConvexQueryCache>
             {/* Clerk's modal portals to document.body, so the provider does not
                 have to wrap the page for it to render. Mounting it as a leaf
                 sibling instead of a parent is the whole point: this slot can
@@ -647,7 +648,7 @@ function AnonymousAppRuntime({ children }: PropsWithChildren) {
       }}
     >
       <ConvexProviderWithAuth client={convex} useAuth={useAnonymousConvexAuth}>
-        {children}
+        <AppConvexQueryCache>{children}</AppConvexQueryCache>
       </ConvexProviderWithAuth>
     </ViewerSessionProvider>
   );

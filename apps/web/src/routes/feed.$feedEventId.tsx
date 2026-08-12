@@ -5,7 +5,7 @@ import {
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { ArrowLeft, Gauge } from 'lucide-react';
 
 import { Avatar } from '@/components/Avatar';

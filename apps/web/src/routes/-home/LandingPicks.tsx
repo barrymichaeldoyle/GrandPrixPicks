@@ -4,7 +4,7 @@ import {
   getWebH2HDraftStorageKey,
   getWebTop5DraftStorageKey,
 } from '@grandprixpicks/shared/picks';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { ChevronLeft, Pencil } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 

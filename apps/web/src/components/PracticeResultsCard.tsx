@@ -2,7 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 

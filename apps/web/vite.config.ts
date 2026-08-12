@@ -61,6 +61,13 @@ const config = defineConfig(({ mode }) => {
       tsconfigPaths: true,
       ...(isCloudflarePages ? { conditions: ['browser'] } : {}),
       alias: {
+        // Component tests mock `convex/react` wholesale, and the app's cached
+        // read hooks are the same three functions with a longer-lived
+        // subscription behind them. Pointing the module back at `convex/react`
+        // under Vitest keeps those mocks working and keeps a unit test out of
+        // the business of mounting a Convex client and a cache provider.
+        // Listed first: `@` is a prefix alias and the first match wins.
+        ...(isVitest ? { '@/integrations/convex/query': 'convex/react' } : {}),
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         ...(isCloudflarePages
           ? { '@sentry/tanstackstart-react': sentryTanstackClientEntry }

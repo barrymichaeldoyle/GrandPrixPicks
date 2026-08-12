@@ -4,7 +4,7 @@ import {
   TEAMMATE_PAIRINGS_2026,
   teamStandingsIndex,
 } from '@grandprixpicks/shared/teams';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { createPortal } from 'react-dom';
 import { Check, X } from 'lucide-react';
 import type { CSSProperties } from 'react';

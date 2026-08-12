@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
+import { useQuery } from '@/integrations/convex/query';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/Button/Button';

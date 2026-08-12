@@ -1,14 +1,14 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import type { FunctionReturnType } from 'convex/server';
 import { Swords } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
-import { convexHttp as convex } from '@/integrations/convex/client';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName } from '@/lib/display';
-import { withRetry } from '@/lib/retry';
+import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
@@ -30,9 +30,9 @@ const LAST_UPDATED_FORMAT: UserDateSettings = {
 
 export const Route = createFileRoute('/f1-team-mate-battles')({
   component: TeammateBattlesPage,
-  loader: async () => {
-    const battles = await withRetry(() =>
-      convex.query(api.h2h.getTeammateBattles, { season: SEASON }),
+  loader: async ({ context }) => {
+    const battles = await context.queryClient.ensureQueryData(
+      routeQuery(api.h2h.getTeammateBattles, { season: SEASON }),
     );
     return { battles };
   },
@@ -199,7 +199,13 @@ function screenReaderSummary(
 }
 
 function TeammateBattlesPage() {
-  const { battles } = Route.useLoaderData();
+  const { battles: initialBattles } = Route.useLoaderData();
+  // Also the observer that keeps the loader's cache entry subscribed; without
+  // it the entry would sit unwatched behind an infinite stale time.
+  const { data: liveBattles } = useQuery(
+    routeQuery(api.h2h.getTeammateBattles, { season: SEASON }),
+  );
+  const battles = liveBattles ?? initialBattles;
   const hasData = battles.teams.some((team) => team.sessionsSettled > 0);
   const sprintSessions =
     battles.sessionCounts.sprintQualifying + battles.sessionCounts.sprint;

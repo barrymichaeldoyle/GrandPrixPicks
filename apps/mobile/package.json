@@ -14,12 +14,14 @@
     "typecheck": "pnpm --dir ../.. --filter @grandprixpicks/shared typecheck && tsc --noEmit",
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
-    "lint": "pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/mobile",
+    "lint": "pnpm run lint:native-assets && pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/mobile",
     "lint:fix": "pnpm --dir ../.. exec oxlint -c .oxlintrc.json apps/mobile --fix",
     "fix": "pnpm run format && pnpm run lint:fix",
     "format": "pnpm --dir ../.. exec oxfmt apps/mobile",
     "format:check": "pnpm --dir ../.. exec oxfmt --check apps/mobile",
-    "check": "pnpm run format:check && pnpm run lint"
+    "check": "pnpm run format:check && pnpm run lint",
+    "lint:native-assets": "node scripts/check-native-assets.mjs",
+    "prebuild:ios": "pnpm generate-tokens && expo prebuild --platform ios"
   },
   "dependencies": {
     "@clerk/clerk-expo": "2.19.39",

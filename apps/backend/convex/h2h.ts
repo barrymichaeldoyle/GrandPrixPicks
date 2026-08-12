@@ -8,6 +8,7 @@ import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
+import { getCurrentSeason } from './lib/season';
 import {
   emptyTally,
   sortByConstructorStanding,
@@ -111,7 +112,10 @@ export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
 export const getMatchupsForSeason = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    return await loadMatchupsForSeason(ctx, args.season ?? 2026);
+    return await loadMatchupsForSeason(
+      ctx,
+      args.season ?? (await getCurrentSeason(ctx)),
+    );
   },
 });
 
@@ -263,7 +267,7 @@ export const getH2HSeasonLeaderboard = query({
   },
   handler: async (ctx, args) => {
     const viewer = await getViewer(ctx);
-    const season = args.season ?? 2026;
+    const season = args.season ?? (await getCurrentSeason(ctx));
     const MAX_LIMIT = 100;
     const limit = Math.min(MAX_LIMIT, Math.max(1, args.limit ?? 50));
     const offset = Math.max(0, args.offset ?? 0);
@@ -584,7 +588,7 @@ export const getUserH2HDetailedPicks = query({
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
       .take(MAX_H2H_PREDICTIONS_PER_RACE);
 
-    // Fetch matchups for season 2026
+    // Fetch matchups for the season being scored
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', race.season))
@@ -954,7 +958,7 @@ export const submitH2HPredictions = mutation({
 export const getTeammateBattles = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const season = args.season ?? 2026;
+    const season = args.season ?? (await getCurrentSeason(ctx));
 
     const matchups = await ctx.db
       .query('h2hMatchups')

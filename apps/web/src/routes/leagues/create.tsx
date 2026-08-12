@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
+import { CURRENT_SEASON } from '@/lib/site';
 
 import { Button } from '@/components/Button/Button';
 import { SignInPrompt } from '@/components/SignInPrompt';
@@ -20,8 +21,7 @@ export const Route = createFileRoute('/leagues/create')({
   head: () =>
     pageMeta({
       title: 'Create League | Grand Prix Picks',
-      description:
-        'Create a private or public league for the 2026 Grand Prix Picks season.',
+      description: `Create a private or public league for the ${CURRENT_SEASON} Grand Prix Picks season.`,
       path: '/leagues/create',
       // A signed-in form, nothing for a crawler to land on.
       noIndex: true,
@@ -69,7 +69,11 @@ function CreateLeagueContent() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const season = 2026;
+  // Derived, not declared: a league created in January must belong to the
+  // season the app is actually in, not the one this file was written during.
+  // Derived, not declared: a league created in January must belong to the
+  // season the app is actually in, not the one this file was written during.
+  const season = useQuery(api.races.getCurrentSeasonNumber) ?? CURRENT_SEASON;
 
   const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, {
     season,
@@ -187,7 +191,7 @@ function CreateLeagueContent() {
         <PageHeader
           eyebrow="League Setup"
           title="Create League"
-          subtitle="Set up a league for the 2026 season and invite friends."
+          subtitle={`Set up a league for the ${season} season and invite friends.`}
         />
 
         <div className="reveal-up reveal-delay-1 mb-6 rounded-xl border border-border bg-surface p-4">

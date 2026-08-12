@@ -47,6 +47,7 @@ import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_reactions from "../lib/reactions.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
 import type * as lib_scoring from "../lib/scoring.js";
+import type * as lib_season from "../lib/season.js";
 import type * as lib_standings from "../lib/standings.js";
 import type * as lib_teammateBattles from "../lib/teammateBattles.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   "lib/reactions": typeof lib_reactions;
   "lib/recheckSchedule": typeof lib_recheckSchedule;
   "lib/scoring": typeof lib_scoring;
+  "lib/season": typeof lib_season;
   "lib/standings": typeof lib_standings;
   "lib/teammateBattles": typeof lib_teammateBattles;
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;

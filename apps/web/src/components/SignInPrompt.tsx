@@ -4,6 +4,7 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 import { NextEventPanel } from '@/components/NextEventPanel';
+import { CURRENT_SEASON } from '@/lib/site';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -158,7 +159,7 @@ export function SignInPrompt({
             <ul className="mt-3 border-t border-border">
               {[
                 { to: '/how-to-play', label: 'How the game works' },
-                { to: '/races', label: '2026 F1 race calendar' },
+                { to: '/races', label: `${CURRENT_SEASON} F1 race calendar` },
                 { to: '/leaderboard', label: 'Season leaderboard' },
                 { to: '/f1-standings', label: 'F1 championship standings' },
               ].map((link) => (

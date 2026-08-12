@@ -8,15 +8,14 @@ import { NoticeCard } from '@/components/NoticeCard';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { PageLoader } from '@/components/PageLoader';
 import { SignInPrompt } from '@/components/SignInPrompt';
-import { pageMeta } from '@/lib/site';
+import { CURRENT_SEASON, pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/me')({
   component: MyPredictionsPage,
   head: () =>
     pageMeta({
       title: 'My Predictions | Grand Prix Picks',
-      description:
-        'View your F1 prediction history and track your scores across the 2026 season.',
+      description: `View your F1 prediction history and track your scores across the ${CURRENT_SEASON} season.`,
       path: '/me',
       noIndex: true,
     }),

@@ -21,6 +21,7 @@ import {
   decrementFollowingCount,
 } from './lib/followCounts';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
+import { getCurrentSeason } from './lib/season';
 import {
   STANDINGS_SYNC_BATCH_SIZE,
   STANDINGS_SYNC_STEPS,
@@ -133,26 +134,6 @@ async function patchRows<T extends { _id: string }>(
   for (const row of rows) {
     await ctx.db.patch(row._id as never, patch);
   }
-}
-
-async function getCurrentSeason(ctx: Pick<QueryCtx, 'db'>) {
-  const now = Date.now();
-  const nextUpcomingRace = await ctx.db
-    .query('races')
-    .withIndex('by_status_and_predictionLockAt', (q) =>
-      q.eq('status', 'upcoming').gt('predictionLockAt', now),
-    )
-    .first();
-  if (nextUpcomingRace) {
-    return nextUpcomingRace.season;
-  }
-
-  const latestRace = await ctx.db
-    .query('races')
-    .withIndex('by_raceStartAt')
-    .order('desc')
-    .first();
-  return latestRace?.season ?? 2026;
 }
 
 async function deleteRows<T extends { _id: string }>(

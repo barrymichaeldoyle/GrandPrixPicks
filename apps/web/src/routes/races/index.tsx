@@ -9,7 +9,12 @@ import { DevNowPanel } from '@/components/DevNowPanel';
 import { RaceCard } from '@/components/RaceCard';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import {
+  breadcrumbSchema,
+  CURRENT_SEASON,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 import { useNow } from '@/lib/testing/now';
 import { PageHeader } from '@/components/PageHeader';
 
@@ -20,22 +25,30 @@ export const Route = createFileRoute('/races/')({
     // are in the sitemap but the only in-app link to them lives in a
     // client-only Convex card, so without this list they have no
     // server-rendered inbound link at all and read as orphans to a crawler.
-    const [races, nextRace, practiceSlugs] = await Promise.all([
+    const [currentSeason, nextRace, practiceSlugs] = await Promise.all([
       context.queryClient.ensureQueryData(
-        routeQuery(api.races.listRaces, { season: 2026 }),
+        routeQuery(api.races.listCurrentSeason),
       ),
       context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
       context.queryClient.ensureQueryData(
         routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
       ),
     ]);
-    return { races, nextRace, practiceSlugs };
+    return {
+      races: currentSeason.races,
+      season: currentSeason.season,
+      nextRace,
+      practiceSlugs,
+    };
   },
   head: ({ loaderData }) => {
+    // The year is loader data, not a literal. This page used to announce 2026
+    // in its title, description and structured data, which meant a season
+    // rollover silently shipped a calendar labelled with last year.
+    const season = loaderData?.season ?? CURRENT_SEASON;
     const meta = pageMeta({
-      title: '2026 F1 Race Calendar & Predictions | Grand Prix Picks',
-      description:
-        'Browse the full 2026 Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.',
+      title: `${season} F1 Race Calendar & Predictions | Grand Prix Picks`,
+      description: `Browse the full ${season} Formula 1 calendar. Make your top 5 predictions for upcoming Grands Prix, track results, and climb the season leaderboard.`,
       path: '/races',
     });
 
@@ -57,7 +70,7 @@ export const Route = createFileRoute('/races/')({
                 '@type': 'CollectionPage',
                 '@id': `${siteConfig.url}/races#page`,
                 url: `${siteConfig.url}/races`,
-                name: '2026 F1 race calendar',
+                name: `${season} F1 race calendar`,
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
               },
@@ -65,7 +78,7 @@ export const Route = createFileRoute('/races/')({
               {
                 '@type': 'ItemList',
                 '@id': `${siteConfig.url}/races#calendar`,
-                name: '2026 Formula 1 race calendar',
+                name: `${season} Formula 1 race calendar`,
                 numberOfItems: races.length,
                 itemListElement: races.map((race, index) => ({
                   '@type': 'ListItem',
@@ -85,20 +98,22 @@ export const Route = createFileRoute('/races/')({
 function RacesPage() {
   const {
     races: initialRaces,
+    season: initialSeason,
     nextRace: initialNextRace,
     practiceSlugs: initialPracticeSlugs,
   } = Route.useLoaderData();
   // These are also the observers that keep the loader's cache entries
   // subscribed; without them the entries would sit unwatched behind an
   // infinite stale time.
-  const { data: liveRaces } = useQuery(
-    routeQuery(api.races.listRaces, { season: 2026 }),
+  const { data: liveSeason } = useQuery(
+    routeQuery(api.races.listCurrentSeason),
   );
   const { data: liveNextRace } = useQuery(routeQuery(api.races.getNextRace));
   const { data: livePracticeSlugs } = useQuery(
     routeQuery(api.practiceResults.listRaceSlugsWithPracticeResults),
   );
-  const races = liveRaces ?? initialRaces;
+  const races = liveSeason?.races ?? initialRaces;
+  const season = liveSeason?.season ?? initialSeason;
   const nextRace = liveNextRace ?? initialNextRace;
   const practiceSlugs = livePracticeSlugs ?? initialPracticeSlugs;
   const now = useNow(0);
@@ -173,13 +188,13 @@ function RacesPage() {
                 No races scheduled yet
               </h2>
               <p className="text-text-muted">
-                Check back soon for the 2026 race calendar
+                Check back soon for the {season} race calendar
               </p>
             </div>
           ) : (
             <div className="reveal-up reveal-delay-2">
               <PageHeader
-                eyebrow="2026 season"
+                eyebrow={`${season} season`}
                 title="Race calendar"
                 subtitle="Pick the top five before each session locks."
                 actionsPlacement="trailing"
@@ -279,7 +294,7 @@ function RacesPage() {
                 Full calendar
               </p>
               <h2 className="font-title mt-1 text-xl font-semibold text-text">
-                Every round of the 2026 season
+                Every round of the {season} season
               </h2>
               <p className="mt-1 text-sm text-text-muted">
                 Session times, results and the picks you made, round by round.

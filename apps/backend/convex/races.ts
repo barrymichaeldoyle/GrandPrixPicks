@@ -16,6 +16,7 @@ import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import type { SessionCapability } from './lib/weekendCapabilities';
 import { deriveSessionCapability } from './lib/weekendCapabilities';
+import { getCurrentSeason } from './lib/season';
 
 const raceStatusValidator = v.union(
   v.literal('upcoming'),
@@ -103,6 +104,35 @@ export const listRaces = query({
       }
       return a.round - b.round;
     });
+  },
+});
+
+/**
+ * The season the app is currently in, for callers that need the number itself
+ * (page titles, structured data, a league being created for "this season").
+ */
+export const getCurrentSeasonNumber = query({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => await getCurrentSeason(ctx),
+});
+
+/**
+ * The current season's races, with the season they belong to.
+ *
+ * One query rather than "ask which season, then ask for its races", because
+ * the second call would have to wait for the first and this pair sits in the
+ * SSR path of both the calendar and the leaderboard.
+ */
+export const listCurrentSeason = query({
+  args: {},
+  handler: async (ctx) => {
+    const season = await getCurrentSeason(ctx);
+    const races = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) => q.eq('season', season))
+      .take(40);
+    return { season, races };
   },
 });
 

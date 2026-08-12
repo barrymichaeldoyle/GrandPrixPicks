@@ -9,10 +9,19 @@ import { PageHeader } from '@/components/PageHeader';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName } from '@/lib/display';
 import { routeQuery } from '@/lib/routeQuery';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import {
+  breadcrumbSchema,
+  CURRENT_SEASON,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
-const SEASON = 2026;
+/**
+ * Falls back only until the loader answers. `getTeammateBattles` derives the
+ * season itself, so the page follows a rollover without an edit here.
+ */
+const SEASON = CURRENT_SEASON;
 const PATH = '/f1-team-mate-battles';
 type TeammateBattles = FunctionReturnType<typeof api.h2h.getTeammateBattles>;
 type BattleTeam = TeammateBattles['teams'][number];
@@ -32,7 +41,7 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
   component: TeammateBattlesPage,
   loader: async ({ context }) => {
     const battles = await context.queryClient.ensureQueryData(
-      routeQuery(api.h2h.getTeammateBattles, { season: SEASON }),
+      routeQuery(api.h2h.getTeammateBattles, {}),
     );
     return { battles };
   },
@@ -203,7 +212,7 @@ function TeammateBattlesPage() {
   // Also the observer that keeps the loader's cache entry subscribed; without
   // it the entry would sit unwatched behind an infinite stale time.
   const { data: liveBattles } = useQuery(
-    routeQuery(api.h2h.getTeammateBattles, { season: SEASON }),
+    routeQuery(api.h2h.getTeammateBattles, {}),
   );
   const battles = liveBattles ?? initialBattles;
   const hasData = battles.teams.some((team) => team.sessionsSettled > 0);

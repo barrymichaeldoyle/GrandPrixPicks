@@ -16,7 +16,12 @@ import { useEffect, useState } from 'react';
 
 import { TabSwitch } from '@/components/TabSwitch';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import {
+  breadcrumbSchema,
+  CURRENT_SEASON,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 
 import { PAGE_SIZE, playerCountFormatter } from './-leaderboard/constants';
 import { SCOPE_OPTIONS, TIME_SCOPE_OPTIONS } from './-leaderboard/options';
@@ -45,14 +50,15 @@ export const Route = createFileRoute('/leaderboard')({
   },
   loaderDeps: ({ search }) => search,
   loader: async ({ context, deps }) => {
-    const [defaultRace, allRaces] = await Promise.all([
+    const [defaultRace, currentSeason] = await Promise.all([
       context.queryClient.ensureQueryData(
         convexQuery(api.races.getWeekendLeaderboardRace, {}),
       ),
       context.queryClient.ensureQueryData(
-        convexQuery(api.races.listRaces, { season: 2026 }),
+        convexQuery(api.races.listCurrentSeason),
       ),
     ]);
+    const allRaces = currentSeason.races;
     const selectedRace =
       allRaces.find((race) => race._id === deps.raceId) ?? defaultRace;
     const [initialSeason, initialWeekend] = await Promise.all([
@@ -69,13 +75,18 @@ export const Route = createFileRoute('/leaderboard')({
           )
         : Promise.resolve(null),
     ]);
-    return { defaultRace, allRaces, initialSeason, initialWeekend };
+    return {
+      defaultRace,
+      allRaces,
+      season: currentSeason.season,
+      initialSeason,
+      initialWeekend,
+    };
   },
   head: () => {
     const meta = pageMeta({
-      title: '2026 F1 Prediction Leaderboard | Grand Prix Picks',
-      description:
-        'See who tops the 2026 F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.',
+      title: `${CURRENT_SEASON} F1 Prediction Leaderboard | Grand Prix Picks`,
+      description: `See who tops the ${CURRENT_SEASON} F1 prediction standings. Track your ranking, compare scores, and compete with friends across every race weekend.`,
       path: '/leaderboard',
     });
     return {
@@ -90,7 +101,7 @@ export const Route = createFileRoute('/leaderboard')({
                 '@type': 'WebPage',
                 '@id': `${siteConfig.url}/leaderboard#page`,
                 url: `${siteConfig.url}/leaderboard`,
-                name: '2026 F1 prediction leaderboard',
+                name: `${CURRENT_SEASON} F1 prediction leaderboard`,
                 description:
                   'Season standings for the Grand Prix Picks F1 prediction game, with Top 5 and Head-to-Head points combined into one total.',
                 inLanguage: 'en',
@@ -108,7 +119,7 @@ export const Route = createFileRoute('/leaderboard')({
 });
 
 function LeaderboardPage() {
-  const { defaultRace, allRaces, initialSeason, initialWeekend } =
+  const { defaultRace, allRaces, season, initialSeason, initialWeekend } =
     Route.useLoaderData();
   // SSR-resolved so the signed-in-only scope selector is present on the first
   // paint instead of popping in (and shifting the row) once Clerk boots.
@@ -273,7 +284,7 @@ function LeaderboardPage() {
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
             : ''
         }`
-      : `2026 Season Standings${
+      : `${season} Season Standings${
           activeTotalCount && activeTotalCount > 0
             ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
             : ''

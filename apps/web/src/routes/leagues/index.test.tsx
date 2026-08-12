@@ -31,6 +31,9 @@ vi.mock('@convex-generated/api', () => ({
     // Feeds the signed-in rail's ProfileCard; skipped for the signed-out
     // visitors this file covers, but the module still reads the reference.
     users: { me: 'users:me' },
+    // The page derives its season rather than declaring it, so the reference
+    // is read on every render including the signed-out one.
+    races: { getCurrentSeasonNumber: 'races:getCurrentSeasonNumber' },
   },
 }));
 

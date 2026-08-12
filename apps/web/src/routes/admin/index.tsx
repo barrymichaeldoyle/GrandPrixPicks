@@ -25,7 +25,7 @@ export const Route = createFileRoute('/admin/')({
 
 function AdminPage() {
   const isAdmin = useQuery(api.users.amIAdmin);
-  const races = useQuery(api.races.listRaces, { season: 2026 });
+  const races = useQuery(api.races.listCurrentSeason)?.races;
   const [activeTab, setActiveTab] = useState<'races' | 'users' | 'banner'>(
     'races',
   );

@@ -18,6 +18,7 @@ import {
   reactionTypeValidator,
 } from './lib/reactions';
 import { toUserIdentity } from './lib/userIdentity';
+import { getCurrentSeason } from './lib/season';
 
 const sessionTypeValidator = v.union(
   v.literal('quali'),
@@ -1503,7 +1504,7 @@ export const backfillFeedEventsForSeason = internalMutation({
     updated: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const season = args.season ?? 2026;
+    const season = args.season ?? (await getCurrentSeason(ctx));
     const startAfterRound = args.startAfterRound ?? 0;
     let created = args.created ?? 0;
     let updated = args.updated ?? 0;

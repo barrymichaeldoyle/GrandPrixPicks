@@ -12,7 +12,7 @@ import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
 import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
 import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { pageMeta } from '@/lib/site';
+import { CURRENT_SEASON, pageMeta } from '@/lib/site';
 import { PageHeader } from '@/components/PageHeader';
 import { Pill } from '@/components/Pill';
 import { NoticeCard } from '@/components/NoticeCard';
@@ -105,7 +105,9 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   const leagues = useQuery(api.leagues.getMyLeagues);
   // Rail only; skipped for signed-out viewers, who get no rails at all.
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
-  const season = 2026;
+  // Derived so league limits and the public directory follow the season the
+  // app is actually in.
+  const season = useQuery(api.races.getCurrentSeasonNumber) ?? CURRENT_SEASON;
   const leagueUsage = useQuery(api.leagues.getMyLeagueUsage, {
     season,
   });

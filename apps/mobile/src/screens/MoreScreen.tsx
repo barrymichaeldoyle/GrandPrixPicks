@@ -10,6 +10,7 @@ import type { MoreStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
+import { useSignInSheet } from '../lib/useSignInSheet';
 
 const SITE_URL = 'https://grandprixpicks.com';
 
@@ -18,6 +19,7 @@ export function MoreScreen() {
   const signOut = useSignOutWithCleanup();
 
   const isSignedIn = useIsSignedIn();
+  const openSignIn = useSignInSheet();
 
   function openOnWeb(path: string) {
     void WebBrowser.openBrowserAsync(`${SITE_URL}${path}`);
@@ -126,10 +128,7 @@ export function MoreScreen() {
             accessibilityLabel="Sign in or create an account"
             accessibilityRole="button"
             className="self-center rounded-sm bg-accent px-4 py-2.5 active:bg-accent-press"
-            onPress={() => {
-              // @ts-expect-error the sign-in sheet lives on the root stack.
-              navigation.navigate('SignIn');
-            }}
+            onPress={openSignIn}
           >
             <Text className="text-[13px] font-bold text-text-on-accent">
               Sign in or create an account

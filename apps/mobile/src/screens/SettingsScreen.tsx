@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
+import { SignedOutState } from '../components/SignedOutState';
 import { TimezonePickerModal } from '../components/settings/TimezonePickerModal';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { useDeleteAccount } from '../hooks/useDeleteAccount';
@@ -255,6 +256,27 @@ export function SettingsScreen() {
 
   if (me === undefined && clerkEnabled && convexEnabled) {
     return <LoadingScreen />;
+  }
+
+  // `users.me` is null for a reader with no identity. Before the tabs were
+  // ungated that could not happen here; now it can, and falling through
+  // rendered the whole form against placeholder values: a name of "—" and
+  // notification toggles defaulting to on, every one of which would have
+  // failed to save. A settings screen that appears to work and does not is
+  // worse than one that says it needs an account.
+  if (me === null) {
+    return (
+      <SignedOutState
+        behind={[
+          'Your display name and username, used wherever you appear',
+          'Which results and reminders reach you, by email and by push',
+          'Your timezone, so lock times read in your own clock',
+        ]}
+        description="Settings are tied to your account: how you appear to other players, and what the app is allowed to send you."
+        eyebrow="Settings"
+        title="Make the app yours"
+      />
+    );
   }
 
   return (

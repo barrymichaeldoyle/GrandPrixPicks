@@ -18,6 +18,12 @@ export function NotificationBell({ onPress }: NotificationBellProps) {
     convexEnabled ? {} : 'skip',
   );
 
+  // null is "no identity", distinct from undefined's "still loading". A bell
+  // signed out could only ever open a gate, so it does not earn header space.
+  if (unread === null) {
+    return null;
+  }
+
   const unreadCount = unread?.count ?? 0;
 
   function handlePress() {

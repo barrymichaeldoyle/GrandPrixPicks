@@ -28,14 +28,12 @@ import type {
   LeaderboardStackParamList,
   MoreStackParamList,
   PicksStackParamList,
+  RootStackParamList,
   RootTabParamList,
 } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
-const RootStack = createNativeStackNavigator<{
-  Tabs: undefined;
-  SignIn: undefined;
-}>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 const PicksStack = createNativeStackNavigator<PicksStackParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LeaderboardStack =

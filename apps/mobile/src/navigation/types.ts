@@ -31,3 +31,15 @@ export type RootTabParamList = {
   LeaderboardTab: NavigatorScreenParams<LeaderboardStackParamList> | undefined;
   MoreTab: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
+
+/**
+ * The root stack sits above the tabs and holds only the sign-in sheet.
+ *
+ * It lives here rather than inline in the navigator so any screen can ask for
+ * sign-in without a cast. Every tab is reachable signed out now, so "send this
+ * reader to sign-in" is a cross-cutting need, not a one-screen one.
+ */
+export type RootStackParamList = {
+  Tabs: undefined;
+  SignIn: undefined;
+};

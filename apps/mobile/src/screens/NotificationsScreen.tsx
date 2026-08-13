@@ -7,6 +7,7 @@ import { usePaginatedQuery, useQuery } from '../integrations/convex/query';
 import * as Haptics from 'expo-haptics';
 
 import { Avatar } from '../components/ui/Avatar';
+import { SignedOutState } from '../components/SignedOutState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import type { ConvexId } from '../integrations/convex/api';
@@ -119,16 +120,22 @@ export function NotificationsScreen() {
     return <LoadingScreen />;
   }
 
+  // `getMyUnreadCount` returns null for a reader with no identity, which is
+  // the screen's auth signal. This used to be an EmptyState reading "Sign in
+  // required" with no way to do so, which was a dead end even while the tabs
+  // were gated and everyone arriving here had an account.
   if (unread === null) {
     return (
-      <View className="flex-1 bg-page px-4 pt-3">
-        <Header subtitle="Notifications" />
-        <EmptyState
-          body="Sign in to view notifications."
-          icon="notifications-off-outline"
-          title="Sign in required"
-        />
-      </View>
+      <SignedOutState
+        behind={[
+          'Results the moment a session is scored',
+          'A reminder before picks lock, so a weekend cannot pass you by',
+          'Reactions and follows from other players',
+        ]}
+        description="Notifications tell you when your picks score and when the next session is about to lock."
+        eyebrow="Notifications"
+        title="Keep up with your weekend"
+      />
     );
   }
 

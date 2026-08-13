@@ -15,14 +15,14 @@ import { PublicProfileScreen } from '../screens/PublicProfileScreen';
 import { RaceDetailScreen } from '../screens/RaceDetailScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { FeedScreen } from '../screens/feed/FeedScreen';
+import { SignInScreen } from '../screens/auth/SignInScreen';
 import { flushPendingPushRoute } from '../lib/pushRouting';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { Text, View } from '../tw';
-import { AuthGate } from './AuthGate';
+import { PendingPickSubmitter } from '../components/PendingPickSubmitter';
 import { linking } from './linking';
 import { navigationRef } from './navigationRef';
-import { SignInScreen } from '../screens/auth/SignInScreen';
 import type {
   HomeStackParamList,
   LeaderboardStackParamList,
@@ -32,6 +32,10 @@ import type {
 } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const RootStack = createNativeStackNavigator<{
+  Tabs: undefined;
+  SignIn: undefined;
+}>();
 const PicksStack = createNativeStackNavigator<PicksStackParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const LeaderboardStack =
@@ -182,6 +186,61 @@ function MoreStackNavigator() {
   );
 }
 
+function TabsNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        sceneStyle: { backgroundColor: colors.page },
+        tabBarActiveTintColor: colors.accent,
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons color={color} name={TAB_ICONS[route.name]} size={size} />
+        ),
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarItemStyle: {
+          justifyContent: 'center',
+          paddingBottom: 0,
+          paddingTop: 0,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          marginBottom: 0,
+        },
+        tabBarBackground: () => <HeaderBackground />,
+        tabBarStyle: {
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          height: 76,
+          paddingBottom: 6,
+          paddingTop: 6,
+        },
+      })}
+    >
+      <Tab.Screen
+        component={HomeStackNavigator}
+        name="HomeTab"
+        options={{ title: 'Home' }}
+      />
+      <Tab.Screen
+        component={PicksStackNavigator}
+        name="PicksTab"
+        options={{ title: 'Picks' }}
+      />
+      <Tab.Screen
+        component={LeaderboardStackNavigator}
+        name="LeaderboardTab"
+        options={{ title: 'Leaderboard' }}
+      />
+      <Tab.Screen
+        component={MoreStackNavigator}
+        name="MoreTab"
+        options={{ title: 'More' }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 export function AppNavigator() {
   return (
     <NavigationContainer
@@ -189,62 +248,22 @@ export function AppNavigator() {
       onReady={flushPendingPushRoute}
       ref={navigationRef}
     >
-      <AuthGate fallback={<SignInScreen />}>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            sceneStyle: { backgroundColor: colors.page },
-            tabBarActiveTintColor: colors.accent,
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons
-                color={color}
-                name={TAB_ICONS[route.name]}
-                size={size}
-              />
-            ),
-            tabBarInactiveTintColor: colors.textMuted,
-            tabBarItemStyle: {
-              justifyContent: 'center',
-              paddingBottom: 0,
-              paddingTop: 0,
-            },
-            tabBarLabelStyle: {
-              fontSize: 11,
-              marginBottom: 0,
-            },
-            tabBarBackground: () => <HeaderBackground />,
-            tabBarStyle: {
-              backgroundColor: 'transparent',
-              borderTopWidth: 0,
-              elevation: 0,
-              height: 76,
-              paddingBottom: 6,
-              paddingTop: 6,
-            },
-          })}
-        >
-          <Tab.Screen
-            component={HomeStackNavigator}
-            name="HomeTab"
-            options={{ title: 'Home' }}
-          />
-          <Tab.Screen
-            component={PicksStackNavigator}
-            name="PicksTab"
-            options={{ title: 'Picks' }}
-          />
-          <Tab.Screen
-            component={LeaderboardStackNavigator}
-            name="LeaderboardTab"
-            options={{ title: 'Leaderboard' }}
-          />
-          <Tab.Screen
-            component={MoreStackNavigator}
-            name="MoreTab"
-            options={{ title: 'More' }}
-          />
-        </Tab.Navigator>
-      </AuthGate>
+      {/*
+        No auth gate above the tabs any more. The calendar, the countdown and
+        the leaderboard are all public data, and a visitor can build a card
+        before they have an account: the screens that genuinely need an
+        identity ask for it themselves, and sign-in is a sheet they can reach
+        from wherever they hit that point.
+      */}
+      <PendingPickSubmitter />
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        <RootStack.Screen component={TabsNavigator} name="Tabs" />
+        <RootStack.Screen
+          component={SignInScreen}
+          name="SignIn"
+          options={{ presentation: 'modal' }}
+        />
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 }

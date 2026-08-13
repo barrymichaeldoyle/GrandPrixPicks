@@ -1,7 +1,12 @@
 import { getConnectedDraftStorageKey } from '@grandprixpicks/shared/picks';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 
-import { getStoredJson, removeStoredValue, setStoredJson } from './storage';
+import {
+  getStoredJson,
+  listStoredKeys,
+  removeStoredValue,
+  setStoredJson,
+} from './storage';
 
 type ConnectedDraft = {
   h2hByMatchup: Record<string, string>;
@@ -58,4 +63,44 @@ export async function patchConnectedDraft(
     return;
   }
   await setStoredJson(getConnectedDraftStorageKey(raceSlug, session), next);
+}
+
+/** Shape of a stored draft plus the race and session it belongs to. */
+export type PendingDraft = ConnectedDraft & {
+  raceSlug: string;
+  session: SessionType;
+};
+
+/**
+ * Every draft currently on the device.
+ *
+ * Drafts are written as the reader edits, signed in or not, so after a
+ * signed-out visitor makes picks and then signs in, this is what has to be
+ * submitted on their behalf.
+ */
+export async function listPendingDrafts(): Promise<PendingDraft[]> {
+  const keys = await listStoredKeys('gpp:draft:connected:');
+  const drafts: PendingDraft[] = [];
+
+  for (const key of keys) {
+    // gpp:draft:connected:<raceSlug>:<session>
+    const rest = key.slice('gpp:draft:connected:'.length);
+    const split = rest.lastIndexOf(':');
+    if (split <= 0) {
+      continue;
+    }
+    const raceSlug = rest.slice(0, split);
+    const session = rest.slice(split + 1) as SessionType;
+    const draft = await getStoredJson<ConnectedDraft>(key);
+    if (!draft) {
+      continue;
+    }
+    const isEmpty =
+      draft.top5.length === 0 && Object.keys(draft.h2hByMatchup).length === 0;
+    if (!isEmpty) {
+      drafts.push({ ...draft, raceSlug, session });
+    }
+  }
+
+  return drafts;
 }

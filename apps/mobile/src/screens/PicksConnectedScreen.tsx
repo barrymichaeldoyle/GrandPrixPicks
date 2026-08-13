@@ -37,6 +37,9 @@ import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { Pressable, ScrollView, Text, View } from '../tw';
+import { useNavigation } from '@react-navigation/native';
+import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
@@ -131,6 +134,23 @@ function PredictForRace({
 
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
+  const isSignedIn = useIsSignedIn();
+  const navigation = useNavigation();
+  const { showToast } = useToast();
+  const { formatDateTime } = useUserDateFormat();
+
+  /**
+   * A signed-out save is not a failure and must not read like one. The editor
+   * has already written the draft to the device, so the only thing missing is
+   * an account: send them to get one. `PendingPickSubmitter` submits the card
+   * the moment they have one.
+   */
+  function requireAccountToSave() {
+    showToast('Sign in and these picks go straight in', 'success');
+    // @ts-expect-error the sign-in sheet lives on the root stack, above these
+    // tabs, so it is not in this navigator's param list.
+    navigation.navigate('SignIn');
+  }
 
   const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
 
@@ -278,6 +298,20 @@ function PredictForRace({
           />
         ) : (
           <>
+            {!isSignedIn ? (
+              <SignedOutPicksNotice
+                lockLabel={
+                  selectedLockAt
+                    ? formatDateTime(new Date(selectedLockAt).toISOString())
+                    : undefined
+                }
+                onSignIn={() => {
+                  // @ts-expect-error root stack route, see above.
+                  navigation.navigate('SignIn');
+                }}
+              />
+            ) : null}
+
             {!hasAnyTop5 ? (
               <CascadeBanner hasSprint={Boolean(race.hasSprint)} />
             ) : null}
@@ -291,6 +325,10 @@ function PredictForRace({
               existingPicks={predictionsBySession[selectedSession] ?? []}
               sessionIsLocked={selectedSessionIsLocked}
               onSubmit={async (picks, sessionType) => {
+                if (!isSignedIn) {
+                  requireAccountToSave();
+                  return;
+                }
                 const isFirstSave = !hasAnyTop5;
                 const scope = sessionType === undefined ? 'cascade' : 'session';
                 try {

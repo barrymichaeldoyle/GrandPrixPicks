@@ -24,3 +24,8 @@ export async function setStoredJson(key: string, value: unknown) {
 export async function removeStoredValue(key: string) {
   storage.remove(key);
 }
+
+/** Every stored key beginning with `prefix`. Used to find pending drafts. */
+export async function listStoredKeys(prefix: string): Promise<string[]> {
+  return storage.getAllKeys().filter((key) => key.startsWith(prefix));
+}

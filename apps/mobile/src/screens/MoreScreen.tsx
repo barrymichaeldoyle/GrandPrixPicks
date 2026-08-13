@@ -9,12 +9,15 @@ import { captureAnalyticsEvent } from '../lib/analytics';
 import type { MoreStackParamList } from '../navigation/types';
 import { colors } from '../theme/tokens';
 import { Pressable, ScrollView, Text, View } from '../tw';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
 
 const SITE_URL = 'https://grandprixpicks.com';
 
 export function MoreScreen() {
   const navigation = useNavigation<NavigationProp<MoreStackParamList>>();
   const signOut = useSignOutWithCleanup();
+
+  const isSignedIn = useIsSignedIn();
 
   function openOnWeb(path: string) {
     void WebBrowser.openBrowserAsync(`${SITE_URL}${path}`);
@@ -100,15 +103,39 @@ export function MoreScreen() {
           </View>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
-          hitSlop={8}
-          onPress={confirmSignOut}
-        >
-          <Ionicons color={colors.textMuted} name="log-out-outline" size={14} />
-          <Text className="text-muted text-xs font-semibold">Sign out</Text>
-        </Pressable>
+        {/* Signed out this offered "Sign out", which is both wrong and the
+            only route back to an account from here now that the tabs are not
+            gated. */}
+        {isSignedIn ? (
+          <Pressable
+            accessibilityLabel="Sign out"
+            accessibilityRole="button"
+            className="flex-row items-center gap-1.5 self-center py-2 active:opacity-70"
+            hitSlop={8}
+            onPress={confirmSignOut}
+          >
+            <Ionicons
+              color={colors.textMuted}
+              name="log-out-outline"
+              size={14}
+            />
+            <Text className="text-muted text-xs font-semibold">Sign out</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            accessibilityLabel="Sign in or create an account"
+            accessibilityRole="button"
+            className="self-center rounded-sm bg-accent px-4 py-2.5 active:bg-accent-press"
+            onPress={() => {
+              // @ts-expect-error the sign-in sheet lives on the root stack.
+              navigation.navigate('SignIn');
+            }}
+          >
+            <Text className="text-[13px] font-bold text-text-on-accent">
+              Sign in or create an account
+            </Text>
+          </Pressable>
+        )}
       </ScrollView>
     </View>
   );

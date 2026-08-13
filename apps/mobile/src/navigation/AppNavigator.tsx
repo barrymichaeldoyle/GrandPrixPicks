@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { HeaderBackground } from '../components/ui/HeaderBackground';
 import { NotificationBell } from '../components/ui/NotificationBell';
+import { BrandMark } from '../components/ui/BrandMark';
 import { FeedEventDetailScreen } from '../screens/FeedEventDetailScreen';
 import { LeaderboardScreen } from '../screens/LeaderboardScreen';
 import { MoreScreen } from '../screens/MoreScreen';
@@ -60,9 +61,10 @@ function BrandHeaderTitle() {
   const { titleFontFamily } = useTypography();
   return (
     <View className="flex-row items-center gap-2">
-      <View className="h-[26px] w-[26px] items-center justify-center rounded-full border border-accent-hover/35 bg-accent/10">
-        <Ionicons color={colors.accent} name="flag" size={14} />
-      </View>
+      {/* The mark, not a generic flag glyph in a tinted chip. That chip was
+          the old identity's motif and survived the reskin by being recoloured
+          rather than replaced. */}
+      <BrandMark size={24} />
       <Text
         className="text-foreground text-[17px] font-bold"
         style={titleFontFamily ? { fontFamily: titleFontFamily } : undefined}

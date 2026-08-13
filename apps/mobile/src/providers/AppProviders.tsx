@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { MobileClerkProvider } from '../integrations/clerk/provider';
+import { DevTicketSignIn } from '../lib/devTicketSignIn';
 import { MobileConvexProvider } from '../integrations/convex/provider';
 import { TypographyProvider } from '../theme/typography';
 import { AnalyticsProvider } from './AnalyticsProvider';
@@ -18,6 +19,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           <TypographyProvider>
             <MobileClerkProvider>
               <MobileConvexProvider>
+                {__DEV__ ? <DevTicketSignIn /> : null}
                 <AnalyticsProvider />
                 <NotificationsProvider />
                 <ToastProvider>{children}</ToastProvider>

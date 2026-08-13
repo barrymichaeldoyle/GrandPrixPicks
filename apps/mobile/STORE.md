@@ -122,12 +122,37 @@ Declare what is actually collected:
 Apple requires one 6.9 inch set (1320 x 2868). Everything else can scale from
 it, so start there and add more only if you want device-specific framing.
 
-Capture with the app signed in and populated, on an iPhone 17 Pro Max
-simulator:
+The app can put itself into a signed-in, populated state without anyone typing
+a password, so this is repeatable rather than a manual ritual:
 
 ```sh
-xcrun simctl io booted screenshot shot.png
+# 1. Populate the dev deployment (once).
+pnpm --filter @grandprixpicks/web dev:setup-scenarios
+
+# 2. Boot a 6.9 inch simulator and install a dev build.
+xcrun simctl boot "iPhone 17 Pro Max"
+pnpm --filter @grandprixpicks/mobile exec expo run:ios --device "iPhone 17 Pro Max"
+
+# 3. Mint a Clerk sign-in token and start Metro holding it. The app signs
+#    itself in on mount, and screenshot mode hides the LogBox banner that
+#    otherwise sits exactly where the tab bar is.
+TICKET=$(pnpm --filter @grandprixpicks/web dev:signin \
+  | grep -o '__clerk_ticket=[^&]*' | cut -d= -f2)
+EXPO_PUBLIC_DEV_SIGNIN_TICKET="$TICKET" EXPO_PUBLIC_SCREENSHOT_MODE=1 \
+  pnpm --filter @grandprixpicks/mobile exec expo start --dev-client
+
+# 4. Launch, then capture each screen.
+xcrun simctl launch booted com.barrymichaeldoyle.grandprixpicks
+xcrun simctl io booted screenshot 01-home.png
 ```
+
+Tokens expire after 300 seconds, so mint one per run. `simctl openurl` with
+`grandprixpicks://dev-signin?ticket=...` works too, but iOS puts a confirmation
+sheet in front of custom-scheme opens, which is why the environment variable
+exists.
+
+Output is 1320 x 2868, exactly the 6.9 inch requirement, with no cropping or
+scaling needed.
 
 Suggested order, because the first two are what people actually see in search:
 

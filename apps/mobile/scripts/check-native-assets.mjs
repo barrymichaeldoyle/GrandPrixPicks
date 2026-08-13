@@ -1,5 +1,5 @@
 /**
- * The native iOS project must carry the icon the brand mark generates.
+ * The native iOS project must agree with app.json.
  *
  * `ios/` is tracked in this repo, so changing `app.json` does not update the
  * native asset catalog. Nothing fails when they disagree: the build succeeds
@@ -8,7 +8,16 @@
  * placeholder, and the first sign anyone would have had was a white square on
  * the App Store listing.
  *
- * So the disagreement is made loud here instead. Run from apps/mobile:
+ * So the disagreement is made loud here instead. This checks the icon and the
+ * Info.plist keys that app.json claims to own; `UIUserInterfaceStyle` had
+ * drifted to Light against a dark-only app, which left every native surface
+ * (alerts, keyboard, in-app browser) rendering light.
+ *
+ * It is deliberately not a full prebuild diff. Regenerating the project to
+ * compare would discard the hand-maintained parts of ios/, so this pins the
+ * specific keys that have a stated source of truth in app.json.
+ *
+ * Run from apps/mobile:
  *   node scripts/check-native-assets.mjs
  */
 import { readFile } from 'node:fs/promises';
@@ -53,6 +62,86 @@ if (!native) {
   console.error(
     `Missing ${path.relative(APP_ROOT, NATIVE_ICON)}.\n` +
       'Run `npx expo prebuild --platform ios` to regenerate the native project.',
+  );
+  process.exit(1);
+}
+
+const APP_JSON = path.join(APP_ROOT, 'app.json');
+const INFO_PLIST = path.join(APP_ROOT, 'ios', 'GrandPrixPicks', 'Info.plist');
+
+/**
+ * app.json key -> how the same fact is spelled in Info.plist. Expo title-cases
+ * the interface style, so the mapping is explicit rather than inferred.
+ */
+const PLIST_EXPECTATIONS = [
+  {
+    appJson: (expo) => expo.userInterfaceStyle,
+    plistKey: 'UIUserInterfaceStyle',
+    toPlist: (value) => value.charAt(0).toUpperCase() + value.slice(1),
+  },
+  {
+    appJson: (expo) => expo.ios?.bundleIdentifier,
+    plistKey: 'CFBundleURLSchemes',
+    // The bundle id is one of the registered URL schemes, not a scalar key.
+    read: (plist) => {
+      const match =
+        /<key>CFBundleURLSchemes<\/key>\s*<array>([\s\S]*?)<\/array>/.exec(
+          plist,
+        );
+      return match
+        ? [...match[1].matchAll(/<string>(.*?)<\/string>/g)].map((m) => m[1])
+        : [];
+    },
+    compare: (schemes, expected) => schemes.includes(expected),
+    describe: (schemes) => schemes.join(', ') || '(none)',
+  },
+  {
+    appJson: (expo) => expo.version,
+    plistKey: 'CFBundleShortVersionString',
+    toPlist: (value) => value,
+  },
+];
+
+const [appJsonRaw, plistRaw] = await Promise.all([
+  readFile(APP_JSON, 'utf8'),
+  readFile(INFO_PLIST, 'utf8'),
+]);
+const { expo } = JSON.parse(appJsonRaw);
+
+function readScalar(plist, key) {
+  const match = new RegExp(`<key>${key}</key>\\s*<string>(.*?)</string>`).exec(
+    plist,
+  );
+  return match?.[1];
+}
+
+const drift = [];
+for (const check of PLIST_EXPECTATIONS) {
+  const declared = check.appJson(expo);
+  if (declared === undefined) {
+    continue;
+  }
+  const actual = check.read
+    ? check.read(plistRaw)
+    : readScalar(plistRaw, check.plistKey);
+  const expected = check.toPlist ? check.toPlist(declared) : declared;
+  const ok = check.compare
+    ? check.compare(actual, expected)
+    : actual === expected;
+  if (!ok) {
+    drift.push(
+      `  ${check.plistKey}: app.json implies ${JSON.stringify(expected)}, ` +
+        `Info.plist has ${JSON.stringify(check.describe ? check.describe(actual) : actual)}`,
+    );
+  }
+}
+
+if (drift.length > 0) {
+  console.error(
+    'The native Info.plist disagrees with app.json:\n\n' +
+      drift.join('\n') +
+      '\n\nThe native file is what actually ships. Sync it with\n' +
+      '`npx expo prebuild --platform ios`, or edit Info.plist to match.',
   );
   process.exit(1);
 }

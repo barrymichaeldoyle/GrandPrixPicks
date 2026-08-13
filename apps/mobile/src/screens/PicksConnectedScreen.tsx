@@ -37,9 +37,9 @@ import { useToast } from '../providers/ToastProvider';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { Pressable, ScrollView, Text, View } from '../tw';
-import { useNavigation } from '@react-navigation/native';
 import { SignedOutPicksNotice } from '../components/picks/SignedOutPicksNotice';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
+import { useSignInSheet } from '../lib/useSignInSheet';
 
 const MAX_TOP5 = 5;
 const CASCADE_DRAFT_SESSION: SessionType = 'race';
@@ -135,7 +135,7 @@ function PredictForRace({
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const submitH2H = useMutation(api.h2h.submitH2HPredictions);
   const isSignedIn = useIsSignedIn();
-  const navigation = useNavigation();
+  const openSignIn = useSignInSheet();
   const { showToast } = useToast();
   const { formatDateTime } = useUserDateFormat();
 
@@ -147,9 +147,7 @@ function PredictForRace({
    */
   function requireAccountToSave() {
     showToast('Sign in and these picks go straight in', 'success');
-    // @ts-expect-error the sign-in sheet lives on the root stack, above these
-    // tabs, so it is not in this navigator's param list.
-    navigation.navigate('SignIn');
+    openSignIn();
   }
 
   const weekendSessions = getSessionsForWeekend(Boolean(race.hasSprint));
@@ -298,17 +296,19 @@ function PredictForRace({
           />
         ) : (
           <>
-            {!isSignedIn ? (
+            {/* Only while the session can still be saved to. On a locked
+                session the notice named a deadline that had already passed
+                ("before this session locks on 13 Aug 2026 at 09:19", read on
+                the 13th at 10:51), which is the one thing this notice exists
+                to get right. There is nothing to save here either way. */}
+            {!isSignedIn && !selectedSessionIsLocked ? (
               <SignedOutPicksNotice
                 lockLabel={
                   selectedLockAt
                     ? formatDateTime(new Date(selectedLockAt).toISOString())
                     : undefined
                 }
-                onSignIn={() => {
-                  // @ts-expect-error root stack route, see above.
-                  navigation.navigate('SignIn');
-                }}
+                onSignIn={openSignIn}
               />
             ) : null}
 

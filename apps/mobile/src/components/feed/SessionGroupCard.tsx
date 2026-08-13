@@ -129,7 +129,7 @@ export function SessionGroupCard({
                     {event.displayName ?? event.username}
                   </Text>
                   {isViewer ? (
-                    <Text className="text-foreground overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold">
+                    <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold text-text-on-accent">
                       YOU
                     </Text>
                   ) : null}

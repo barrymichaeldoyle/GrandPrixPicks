@@ -13,7 +13,6 @@ import { FlagImage } from '../components/ui/FlagImage';
 import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { Numeral } from '../components/ui/Numeral';
 import { PageHeader } from '../components/ui/PageHeader';
-import { PodiumBackdrop } from '../components/ui/PodiumBackdrop';
 import { SegmentedTabs } from '../components/ui/SegmentedTabs';
 import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
@@ -618,14 +617,17 @@ function PodiumRow({
   mode: GameMode;
   onPress?: () => void;
 }) {
+  // Flat data colours, the way team colours are. The metallic #FFD700 /
+  // #C0C0C0 / #CD7F32 that used to be here are the "gold, silver, bronze"
+  // reflex this direction rejects: DESIGN.md asks for no gradient, bevel or
+  // metal, and these tokens are the muted versions it specifies.
   const placeColor =
     entry.rank === 1
-      ? colors.warning
+      ? colors.podiumGold
       : entry.rank === 2
-        ? '#C0C0C0'
-        : '#CD7F32';
+        ? colors.podiumSilver
+        : colors.podiumBronze;
   const iconName = entry.rank === 1 ? 'trophy' : 'medal';
-  const podiumRank = Math.min(Math.max(entry.rank, 1), 3) as 1 | 2 | 3;
   const ordinal = ['1st', '2nd', '3rd'][entry.rank - 1] ?? `#${entry.rank}`;
   const subline = modeSubline(entry, mode);
 
@@ -638,7 +640,14 @@ function PodiumRow({
       disabled={!onPress}
       onPress={onPress}
     >
-      <PodiumBackdrop rank={podiumRank} />
+      {/* A rail, not a wash. The old backdrop laid an amber-to-orange
+          diagonal gradient across the whole row, off-palette and in a
+          direction that has no gradients. Colour earns 3px here, as it does
+          for teams elsewhere. */}
+      <View
+        className="absolute inset-y-0 left-0 w-[3px]"
+        style={{ backgroundColor: placeColor }}
+      />
       <View className="w-[74px] flex-row items-center gap-2">
         <View
           className="h-9 w-9 items-center justify-center rounded-full"
@@ -667,7 +676,7 @@ function PodiumRow({
             {entry.displayName ?? entry.username}
           </Text>
           {entry.isViewer ? (
-            <Text className="text-foreground overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold">
+            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold text-text-on-accent">
               YOU
             </Text>
           ) : null}
@@ -726,7 +735,7 @@ function BoardRow({
             {entry.displayName ?? entry.username}
           </Text>
           {entry.isViewer ? (
-            <Text className="text-foreground overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold">
+            <Text className="overflow-hidden rounded-full bg-accent px-1.5 py-px text-[9px] font-extrabold text-text-on-accent">
               YOU
             </Text>
           ) : null}

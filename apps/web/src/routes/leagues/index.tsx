@@ -460,8 +460,78 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
             )}
           </section>
         ) : null}
+
+        <LeaguesLongform />
       </div>
     </AppPageLayout>
+  );
+}
+
+/**
+ * Editorial footer for the leagues index. `LeaguesExplainer` above it says what
+ * the features are in four cards; this says why you would want them and how
+ * they behave over a season, which the cards have no room for. Everything else
+ * on the page is either a sign-in wall or a list that is empty until public
+ * leagues exist.
+ */
+function LeaguesLongform() {
+  return (
+    <section className="mt-12 border-t border-border pt-8">
+      <h2 className="font-title text-2xl font-semibold text-text">
+        Why play in a league rather than the global standings
+      </h2>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The global leaderboard ranks everybody who plays, which makes it a fair
+        measure and a poor rivalry. Most people care far more about beating four
+        colleagues than about placing 300th out of a few thousand, and a league
+        is what turns the same picks into that smaller contest. You do not pick
+        twice or play differently: your Top 5 and Head-to-Head predictions are
+        scored once per session, then counted towards every league you belong to
+        at the same time.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Which kind you want depends on who you are trying to beat. An
+        invite-only league is the better format for people you already know,
+        because a scoreboard of six friends stays legible and every position on
+        it means something. A public league is the better format if you have
+        nobody to invite, since a private league with two members in it is not a
+        contest. Nothing stops you being in both.
+      </p>
+      <h2 className="font-title mt-10 text-2xl font-semibold text-text">
+        How a league behaves across a season
+      </h2>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Leagues run for the whole season rather than resetting each weekend, and
+        that changes how they feel to play. A bad Sunday costs you places
+        instead of the title, so the game rewards turning up for twenty-odd
+        weekends more than it rewards one inspired guess. It also means the
+        standings tend to settle: the gap at the top usually reflects
+        consistency rather than a single result.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        You can join at any point in the year. A league counts the sessions
+        scored while you were a member, so joining in the second half does not
+        hand you points you never predicted for, and it does not lock you out of
+        the rest of the season either. Each league also carries its own activity
+        feed, so you can see how the people in it did on a given weekend without
+        reading past everyone else's results.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Playing the game in full is free. An optional{' '}
+        <Link to="/pricing" className="font-medium text-accent hover:underline">
+          Season Pass
+        </Link>{' '}
+        raises how many leagues you can create and join, and that limit is the
+        only thing it changes. If you have not made a set of picks yet,{' '}
+        <Link
+          to="/how-to-play"
+          className="font-medium text-accent hover:underline"
+        >
+          how to play
+        </Link>{' '}
+        covers scoring and session deadlines first.
+      </p>
+    </section>
   );
 }
 

@@ -468,7 +468,80 @@ function LeaderboardPage() {
             seasonCombinedFollowing={stickySeasonCombinedFollowing}
           />
         )}
+
+        <LeaderboardExplainer />
       </div>
     </AppPageLayout>
+  );
+}
+
+/**
+ * Editorial footer for the standings. The table above is the point of the page,
+ * but a ranked list of names explains nothing on its own: a visitor who has not
+ * played cannot tell what a points total means, why two players can tie, or
+ * what separates the weekend view from the season view. This answers that in
+ * prose rather than sending people to /how-to-play to find out.
+ */
+function LeaderboardExplainer() {
+  return (
+    <section className="mt-12 border-t border-border pt-8">
+      <h2 className="font-title text-2xl font-semibold text-text">
+        How these standings are scored
+      </h2>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Every player ranks the five drivers they expect to finish at the front
+        of each session of a race weekend. Scoring is order-sensitive, so where
+        you put a driver matters as much as whether you picked them at all. An
+        exact position match is worth 5 points. Being off by a single position
+        is worth 3, which is also what you get for a driver you placed fifth who
+        finished sixth. A driver who does finish in the actual top five but two
+        or more places away from where you put them is worth 1 point. Everything
+        else scores nothing.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        That caps a perfect session at 25 points. Head-to-Head picks are scored
+        separately and more simply: each team-mate pairing on the grid is one
+        point, awarded for correctly calling which of the two finishes ahead.
+        The totals here combine both games.
+      </p>
+      <h2 className="font-title mt-10 text-2xl font-semibold text-text">
+        Weekend and season views
+      </h2>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        The weekend view ranks players on a single race weekend, added up across
+        every session that weekend held. Because qualifying, the sprint and the
+        race are each scored on their own, a player can lose the race badly and
+        still finish the weekend high. The season view is the running total of
+        every session scored so far, which is the standing that decides who
+        finishes the year in front.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        Ties are shown as shared ranks rather than broken arbitrarily, so two
+        players on the same total both hold the position and the next rank skips
+        accordingly. Scores appear here once an{' '}
+        <Link
+          to="/results-policy"
+          className="font-medium text-accent hover:underline"
+        >
+          official classification
+        </Link>{' '}
+        is published for a session, which means the standings can move after the
+        flag if a stewards' decision changes the result.
+      </p>
+      <p className="gpp-reading-copy mt-4 text-text-muted">
+        New to it?{' '}
+        <Link
+          to="/how-to-play"
+          className="font-medium text-accent hover:underline"
+        >
+          How to play
+        </Link>{' '}
+        walks through a full weekend, and the{' '}
+        <Link to="/guides" className="font-medium text-accent hover:underline">
+          F1 guides
+        </Link>{' '}
+        cover the sport itself rather than the game.
+      </p>
+    </section>
   );
 }

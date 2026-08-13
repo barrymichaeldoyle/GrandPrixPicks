@@ -12,6 +12,7 @@ import type { TabSwitchOption } from '@/components/TabSwitch';
 import { TabSwitch } from '@/components/TabSwitch';
 
 import type { SessionSchedule, ViewerState, WeekendStatus } from '../types';
+import { shouldLeadWithCircuitGuide } from './circuitGuidePlacement';
 
 type RaceEventPageLayoutProps = {
   race: Doc<'races'>;
@@ -40,7 +41,12 @@ type RaceEventPageLayoutProps = {
   top5MainContent: ReactNode;
   h2hContent: ReactNode;
   h2hResultsContent: ReactNode;
-  /** Circuit briefing, rendered last so it never displaces the picks flow. */
+  /**
+   * Circuit briefing. Rendered last so it never displaces the picks flow,
+   * except on a weekend that has neither opened nor been scored, where the
+   * picks flow is only a "Not Yet Open" notice and the briefing is the whole
+   * reason the page is worth loading. See `leadWithCircuitGuide` below.
+   */
   circuitGuideContent?: ReactNode;
 };
 
@@ -98,6 +104,12 @@ export function RaceEventPageLayout({
       race.status === 'locked' ||
       (race.status !== 'finished' && hasPredictions));
   const showReadonlyPredictions = raceIsActiveOrPlayable && hasPredictions;
+  const leadWithCircuitGuide = shouldLeadWithCircuitGuide({
+    raceStatus: race.status,
+    isPredictable,
+    hasPublishedResults,
+    hasPredictions,
+  });
   // Show H2H once the user has at least Top 5 picks for the weekend so they
   // can submit their first H2H entry even if they skipped earlier sessions.
   const showReadonlyH2H =
@@ -143,6 +155,8 @@ export function RaceEventPageLayout({
 
         {recapContent}
         {practiceResultsContent}
+
+        {leadWithCircuitGuide && circuitGuideContent}
 
         {!isAuthLoaded || isPredictionsLoading ? (
           <div className="py-8">
@@ -234,7 +248,7 @@ export function RaceEventPageLayout({
           </div>
         )}
 
-        {circuitGuideContent}
+        {!leadWithCircuitGuide && circuitGuideContent}
       </div>
     </div>
   );

@@ -53,6 +53,37 @@ function GuidesIndexPage() {
           subtitle="How the weekend is structured, how points are awarded, and how to turn all of that into a better prediction."
         />
 
+        <section className="mt-2 border-t border-border pt-8">
+          <p className="gpp-reading-copy text-text-muted">
+            Formula 1 is unusually hard to follow from the outside. The result
+            you see on Sunday is the end of a three-day process, and most of
+            what decides it happens before the race starts: a knockout
+            qualifying session that sets the grid, a tyre choice locked in hours
+            earlier, a car that suits one circuit and not the next. None of that
+            is explained on screen, which is why a new viewer can watch a full
+            weekend and still not know why the fast car finished fourth.
+          </p>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            These guides are written to close that gap. They cover the shape of
+            a race weekend and how it changes on a sprint weekend, how the sport
+            awards its own championship points, and how to read the signals that
+            actually predict a finishing order. They are deliberately
+            plain-English: no lap-time tables, no engineering jargon left
+            undefined.
+          </p>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            If you play Grand Prix Picks, the last one is the useful one.
+            Picking a top five well is a different skill from knowing which car
+            is quickest, because the points reward getting the order right
+            rather than picking winners. If you are just here to understand the
+            sport, start with the weekend format and work down.
+          </p>
+        </section>
+
+        <h2 className="font-title mt-10 text-sm font-semibold tracking-wide text-text-muted uppercase">
+          The guides
+        </h2>
+
         <ul className="mt-2 border-t border-border">
           {guides.map((guide) => (
             <li key={guide.slug} className="border-b border-border">

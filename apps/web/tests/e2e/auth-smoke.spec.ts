@@ -13,7 +13,10 @@ test.describe('[auth] smoke', () => {
       targetPath: '/',
     });
 
-    await expect(page.getByText('Dashboard', { exact: true })).toBeVisible();
+    // The word "Dashboard" is the document title and has not been body copy
+    // since the weekend card became the page. Asserting on the title keeps the
+    // "this is the dashboard" half of the check, and the hero keeps the rest.
+    await expect(page).toHaveTitle(/^Dashboard \| /);
     await expect(page.getByTestId('dashboard-weekend-hero')).toBeVisible();
     await expect(
       page.getByRole('heading', {

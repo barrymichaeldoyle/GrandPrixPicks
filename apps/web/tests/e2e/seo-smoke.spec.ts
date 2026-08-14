@@ -25,18 +25,32 @@ test.describe('[public] seo smoke', () => {
     ).toBeVisible();
   });
 
-  test('emits noindex and correct canonical tags on gated and follow-list pages', async ({
+  test('retires /feed to the dashboard rather than indexing it', async ({
     page,
+    request,
   }) => {
+    // /feed was a standalone activity page and is now a redirect: the stream
+    // lives on the dashboard, but session-locked pushes already on people's
+    // phones still point here. This used to assert noindex and a self
+    // canonical, which described the page before it was retired and has been
+    // failing ever since.
+    const response = await request.get('/feed', { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    expect(response.headers()['location']).toBe('/');
+
     await page.goto('/feed');
-    await expect
-      .poll(() => page.locator('meta[name="robots"]').getAttribute('content'))
-      .toBe('noindex, follow');
+    await expect(page).toHaveURL(`${new URL(page.url()).origin}/`);
+    // Landing on the dashboard means the homepage's own canonical, not a
+    // second page claiming to be it.
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      `${SITE_URL}/feed`,
+      `${SITE_URL}/`,
     );
+  });
 
+  test('emits noindex and a self canonical on follow-list pages', async ({
+    page,
+  }) => {
     await page.goto('/p/barrymichaeldoyle/followers');
     await expect
       .poll(() => page.locator('meta[name="robots"]').getAttribute('content'))

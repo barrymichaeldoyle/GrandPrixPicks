@@ -25,9 +25,12 @@ test.describe('[flow] smoke', () => {
 
     await pickFirstFiveDrivers(page);
 
-    await expect(page.getByTestId('submit-prediction')).toBeEnabled();
-    await page.getByTestId('submit-prediction').click();
-
+    // No save button to press: filling the fifth slot saves the card by itself
+    // and moves on, so `submit-prediction` is gone by the time anything could
+    // click it. This used to assert it became enabled and then click it, which
+    // raced the auto-save and then waited out the timeout on a button that had
+    // unmounted.
+    //
     // Saving Top 5 chains straight into the H2H picks focus overlay, which
     // opens on the first duel: a first-time card is made one battle at a time,
     // so there is nothing to submit until all eleven are called.
@@ -35,7 +38,14 @@ test.describe('[flow] smoke', () => {
     await expect(page.getByTestId('h2h-duel-progress')).toContainText(
       'Team-mate battle 1 of',
     );
-    await page.getByTestId('picks-focus-close').click();
+    // Both overlays are mounted at this point -- the Top 5 one is still behind
+    // the duel it handed over to -- so the close button has to be the duel's,
+    // not whichever of the two the selector happens to reach first.
+    await page
+      .getByTestId('picks-focus-overlay')
+      .filter({ has: page.getByTestId('h2h-duel-picker') })
+      .getByTestId('picks-focus-close')
+      .click();
 
     await expect(page.getByTestId('picks-focus-overlay')).toHaveCount(0);
     await expect(page.getByTestId('race-top5-section')).toBeVisible();

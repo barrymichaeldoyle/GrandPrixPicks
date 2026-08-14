@@ -7,6 +7,35 @@ on:
       - main
 
 jobs:
+  # Repo-wide checks that belong to no single app. Both already run in the
+  # pre-push hook via `ci:check`; without them here a PR could be green in CI
+  # and still fail the moment someone tries to push on top of it.
+  repo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Audit dependencies
+        run: pnpm audit
+
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -120,6 +149,35 @@ jobs:
       - name: Test mobile
         run: pnpm --filter @grandprixpicks/mobile test:ci
 
+  reddit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Lint reddit
+        run: pnpm --filter @grandprixpicks/reddit lint
+
+      - name: Typecheck reddit
+        run: pnpm --filter @grandprixpicks/reddit typecheck
+
+      - name: Build reddit
+        run: pnpm --filter @grandprixpicks/reddit build
+
   knip:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -142,6 +200,69 @@ jobs:
 
       - name: Run knip
         run: pnpm knip
+
+  # Builds the app the way production is built, then serves that output and
+  # asks questions of the real HTML.
+  #
+  # `pnpm start` runs the Nitro output rather than `vite preview`, because the
+  # two disagree about the thing most worth catching: an SSR throw is recovered
+  # in dev and fatal on Cloudflare.
+  web-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+      CLERK_JWT_KEY: ${{ secrets.CLERK_JWT_KEY }}
+      VITE_CONVEX_URL: ${{ secrets.VITE_CONVEX_URL }}
+      CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod=false
+
+      - name: Build web
+        run: pnpm --filter @grandprixpicks/web build
+
+      - name: Serve the built app
+        run: |
+          nohup pnpm --filter @grandprixpicks/web start > /tmp/web-server.log 2>&1 &
+          echo "$!" > /tmp/web-server.pid
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:3000/; then
+              echo "Server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error title=Server never came up::No 200 from http://127.0.0.1:3000/ after 60s"
+          cat /tmp/web-server.log
+          exit 1
+
+      - name: Check for orphaned pages
+        run: pnpm --filter @grandprixpicks/web check:orphans
+
+      # The server log is where an SSR throw shows up, and an SSR throw is the
+      # failure mode this job exists to catch.
+      - name: Server log
+        if: ${{ failure() }}
+        run: cat /tmp/web-server.log || true
+
+      - name: Stop the server
+        if: ${{ always() }}
+        run: kill "$(cat /tmp/web-server.pid)" 2>/dev/null || true
 
   web-e2e-smoke:
     runs-on: ubuntu-latest

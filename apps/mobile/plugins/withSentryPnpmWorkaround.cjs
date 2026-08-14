@@ -7,8 +7,12 @@ const BLOCK = `
 # Sentry sourcemap/dSYM auto-upload is disabled: @sentry/react-native@7.11's
 # Xcode build scripts cannot resolve @sentry/cli under this pnpm monorepo
 # layout, which fails the "Bundle React Native code and images" phase.
-# Remove the plugin (and set SENTRY_* secrets on EAS) once Expo's SDK pins
-# @sentry/react-native 8.x, which fixes the pnpm path resolution.
+#
+# We are on @sentry/react-native 8.x now, which is the version that was meant
+# to fix that path resolution, but nothing here has been through a native build
+# yet. Drop this plugin on the first EAS build that also has SENTRY_AUTH_TOKEN
+# / SENTRY_ORG / SENTRY_PROJECT set as secrets, so a working upload replaces
+# the disabled one rather than an unverified one.
 export SENTRY_DISABLE_AUTO_UPLOAD=true
 # Pre-set the CLI path so the Sentry scripts skip their \`require.resolve('@sentry/cli')\`
 # lookup, which throws under pnpm and aborts the build (set -e) before the

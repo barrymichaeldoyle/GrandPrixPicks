@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toUserFacingMessage } from '@/lib/userFacingError';
 
 import { Button } from '@/components/Button/Button';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
 
@@ -248,9 +248,9 @@ function SupportPage() {
                 message comes with you either way.
               </p>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <AppSignInButton mode="modal">
-                  <Button size="sm">Sign in and send</Button>
-                </AppSignInButton>
+                <SignInActionButton size="sm">
+                  Sign in and send
+                </SignInActionButton>
                 <Button asChild variant="secondary" size="sm" leftIcon={Mail}>
                   <a href={mailtoHref}>Email {SUPPORT_EMAIL}</a>
                 </Button>

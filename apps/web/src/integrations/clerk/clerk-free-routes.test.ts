@@ -26,11 +26,12 @@ describe('isClerkFreeRoute', () => {
     }
   });
 
-  it('keeps Clerk on routes that mount a Clerk component', () => {
-    // Each of these renders AppSignInButton, which is Clerk's own SignInButton
-    // and throws without a provider. This is the direction that breaks pages.
+  it('covers the sign-in surfaces that go through requestSignIn', () => {
+    // These four asked for a provider until SignInActionButton replaced Clerk's
+    // own SignInButton on them. Prompting for sign-in is not the same as
+    // mounting Clerk.
     for (const path of ['/pricing', '/support', '/leagues', '/sign-in']) {
-      expect(isClerkFreeRoute(path), path).toBe(false);
+      expect(isClerkFreeRoute(path), path).toBe(true);
     }
   });
 
@@ -42,6 +43,7 @@ describe('isClerkFreeRoute', () => {
       '/p/barrymichaeldoyle',
       '/admin',
       '/pay',
+      // The index is public; everything under it is viewer-scoped.
       '/leagues/create',
       '/leagues/some-league',
     ]) {

@@ -1,9 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 
-import { Button } from '@/components/Button/Button';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { pageMeta } from '@/lib/site';
 import { NoticeCard } from '@/components/NoticeCard';
@@ -48,9 +47,9 @@ function SignInPage() {
         description="Sign in to make picks, join leagues, and track your results."
         action={
           <div className="flex flex-col items-center gap-3">
-            <AppSignInButton mode="modal">
-              <Button size="sm">Continue to sign in</Button>
-            </AppSignInButton>
+            <SignInActionButton size="sm">
+              Continue to sign in
+            </SignInActionButton>
             <Link to="/" className="text-sm text-text-muted hover:text-text">
               Back to home
             </Link>

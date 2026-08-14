@@ -17,10 +17,14 @@
  * which is the failure worth having.
  *
  * A route belongs here when it renders no Clerk component directly. Prompting
- * for sign-in is fine on its own — `SignInPrompt` and the pick forms go through
- * `requestSignIn`, which is exactly the provider-free path. What disqualifies a
- * route is `AppSignInButton`, which mounts Clerk's `SignInButton`: that is why
- * /pricing, /support, /leagues and /sign-in are absent.
+ * for sign-in does not count against it: `SignInPrompt`, the pick forms and
+ * `SignInActionButton` all go through `requestSignIn`, which is the
+ * provider-free path. What disqualifies a route is mounting one of Clerk's own
+ * components — `AppSignInButton` wraps `SignInButton` and needs a provider —
+ * or reading viewer-scoped data that only exists once Clerk has booted.
+ *
+ * /sign-in is on the list and is not a contradiction: the page is a button that
+ * opens the modal, and the modal has never needed the page to be wrapped.
  *
  * Signed-in visitors never reach this list — `clerkRequired` short-circuits on
  * `initialSignedIn` before consulting it — so these are the anonymous renders
@@ -35,10 +39,14 @@ const CLERK_FREE_EXACT = new Set([
   '/guides',
   '/how-to-play',
   '/leaderboard',
+  '/leagues',
+  '/pricing',
   '/privacy',
   '/races',
   '/refund-policy',
   '/results-policy',
+  '/sign-in',
+  '/support',
   '/terms',
 ]);
 

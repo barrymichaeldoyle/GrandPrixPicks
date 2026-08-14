@@ -10,7 +10,7 @@ import { ProfileCard } from '@/components/dashboard/ProfileCard';
 import { QuickLinksCard } from '@/components/dashboard/QuickLinksCard';
 import { RailFooterLinks } from '@/components/dashboard/RailFooterLinks';
 import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCard';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { CURRENT_SEASON, pageMeta } from '@/lib/site';
 import { PageHeader } from '@/components/PageHeader';
@@ -269,11 +269,9 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 Sign in to create leagues and track your standings with other
                 players.
               </p>
-              <AppSignInButton mode="modal">
-                <Button className="mt-4" leftIcon={LogIn} size="sm">
-                  Sign In
-                </Button>
-              </AppSignInButton>
+              <SignInActionButton className="mt-4" leftIcon={LogIn} size="sm">
+                Sign In
+              </SignInActionButton>
             </div>
           </>
         ) : null}

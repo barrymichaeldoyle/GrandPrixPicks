@@ -14,7 +14,7 @@ import { captureAnalyticsEvent } from '@/lib/analytics';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 
 import { Button } from '@/components/Button/Button';
-import { AppSignInButton } from '@/integrations/clerk/sign-in-button';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import { FaqItem, FaqSection } from '@/components/Faq';
 import { pageMeta } from '@/lib/site';
 import { Pill } from '@/components/Pill';
@@ -53,10 +53,6 @@ function PricingPage() {
   const { isSignedIn } = useViewerSession();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
-  const currentUrl =
-    typeof window === 'undefined'
-      ? undefined
-      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const [isStartingCheckout, setIsStartingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const showCheckoutCancelled = search.checkout === 'cancelled';
@@ -241,15 +237,9 @@ function PricingPage() {
                 : 'Get 2026 Season Pass'}
             </Button>
           ) : (
-            <AppSignInButton
-              mode="modal"
-              fallbackRedirectUrl={currentUrl}
-              signUpFallbackRedirectUrl={currentUrl}
-            >
-              <Button type="button" size="sm" rightIcon={ArrowRight}>
-                Sign In to Continue
-              </Button>
-            </AppSignInButton>
+            <SignInActionButton size="sm" rightIcon={ArrowRight}>
+              Sign In to Continue
+            </SignInActionButton>
           )}
 
           <p className="mt-3 text-sm text-text-muted">

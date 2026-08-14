@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in the game is broken
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Players only.** Issues from people without a Grand Prix Picks account
+        are closed without review. See
+        [CONTRIBUTING.md](https://github.com/barrymichaeldoyle/GrandPrixPicks/blob/main/CONTRIBUTING.md).
+
+  - type: input
+    id: username
+    attributes:
+      label: Your Grand Prix Picks username
+      description: The one at grandprixpicks.com/p/<username>. Required.
+      placeholder: e.g. barry
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: account-confirmation
+    attributes:
+      label: Account confirmation
+      options:
+        - label: I confirm this is my own Grand Prix Picks account and I have played at least one session.
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Pick ...
+        3. See ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where did it happen
+      options:
+        - Web
+        - iOS app
+        - Android app
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser or device
+      placeholder: e.g. Chrome 141 on macOS, or iPhone 15 / iOS 26
+
+  - type: input
+    id: weekend
+    attributes:
+      label: Race weekend and session
+      description: If the bug is tied to picks, scoring, or results.
+      placeholder: e.g. Spanish GP, sprint qualifying
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else

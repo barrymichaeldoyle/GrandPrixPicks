@@ -51,6 +51,13 @@ See [docs/monorepo.md](./docs/monorepo.md) for the full guide.
 - Testing conventions: [docs/testing.md](./docs/testing.md)
 - Mobile API contract: [docs/mobile-api-contract.md](./docs/mobile-api-contract.md)
 
+## Contributing
+
+Issues and pull requests are **only accepted from Grand Prix Picks players**.
+You must state your in-app username when you open one; anything without a valid
+username is closed without review. Read
+[CONTRIBUTING.md](./CONTRIBUTING.md) before opening anything.
+
 ## License
 
 This repository is **source-available** for transparency and portfolio/reference

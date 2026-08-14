@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Not a Grand Prix Picks player yet?
+    url: https://grandprixpicks.com
+    about: Issues are only accepted from players. Sign up and play a weekend first.
+  - name: Account, billing or private report
+    url: https://grandprixpicks.com/support
+    about: Use the in-app support form. It is already linked to your account.
+  - name: Contribution guidelines
+    url: https://github.com/barrymichaeldoyle/GrandPrixPicks/blob/main/CONTRIBUTING.md
+    about: Read this before opening anything. Non-players are closed without review.

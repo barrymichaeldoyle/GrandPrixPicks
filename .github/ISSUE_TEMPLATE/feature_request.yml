@@ -1,0 +1,47 @@
+name: Feature request
+description: Suggest a change to the game
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Players only.** Requests from people without a Grand Prix Picks account
+        are closed without review. See
+        [CONTRIBUTING.md](https://github.com/barrymichaeldoyle/GrandPrixPicks/blob/main/CONTRIBUTING.md).
+
+  - type: input
+    id: username
+    attributes:
+      label: Your Grand Prix Picks username
+      description: The one at grandprixpicks.com/p/<username>. Required.
+      placeholder: e.g. barry
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: account-confirmation
+    attributes:
+      label: Account confirmation
+      options:
+        - label: I confirm this is my own Grand Prix Picks account and I have played at least one session.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is the problem
+      description: Describe the frustration you hit while playing, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you tried or considered

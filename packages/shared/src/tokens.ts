@@ -87,7 +87,11 @@ export const colors = {
   // text anyway. Red is free to mean this because errors in this system are
   // amber, so nothing else claims it. `deltaDown` (#f87171) is a softer,
   // oranger coral for a dropped leaderboard position and stays distinct.
-  resultExact: '#d000ff', // exact position, driver finished <= P5, 5 pts
+  // Lifted from #d000ff, which was the one colour in this family that did
+  // not clear 4.5:1: it managed 4.68 on `page` but fell to 4.46 on
+  // `surface` and 4.25 on `surfaceElevated`, so the scoring legend on
+  // /how-to-play failed AA as small text. This clears all three at 5.0+.
+  resultExact: '#dc38ff', // exact position, driver finished <= P5, 5 pts
   resultNear: '#00ed46', // off by exactly one, incl. P5 -> P6, 3 pts (also H2H correct, 1 pt)
   resultTop5: '#ffe600', // in the actual top five but off by 2+, 1 pt
   resultMiss: '#ff3b47', // no points — clears 4.5:1 on page, surface and elevated

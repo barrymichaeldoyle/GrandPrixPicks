@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Flag } from '@/components/Flag';
 import { abbreviateGrandPrix } from '@/lib/display';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
-import { getRaceLocation } from '@/lib/raceLocations';
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   formatRaceLocalLockDate,
   formatViewerLockDate,
@@ -164,10 +164,10 @@ export function SessionClock({
   const locked = msRemaining <= 0;
   const imminent = !locked && msRemaining < IMMINENT_MS;
   const segments = segmentsFor(msRemaining);
-  const location = getRaceLocation(raceSlug);
+  const circuit = getCircuitForRace(raceSlug);
   const contextLine = [
     round === undefined ? null : `Round ${round}`,
-    location?.locality ?? null,
+    circuit?.locality ?? null,
   ]
     .filter(Boolean)
     .join(' · ');

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { getCircuitGuide } from './circuitGuides';
+import {
+  getCircuitForRace,
+  listCircuits,
+} from '@grandprixpicks/shared/circuits';
+
+import { getCircuitGuide, getCircuitGuideBySlug } from './circuitGuides';
 
 /**
  * Every slug on the 2026 calendar. A race page with no guide falls back to
@@ -57,6 +62,28 @@ describe('circuit guides', () => {
       expect(wordCount, `${slug} is too short`).toBeGreaterThan(150);
       expect(guide!.traits.length, slug).toBe(3);
     }
+  });
+
+  it('reaches the guide through the circuit, not the race name', () => {
+    // The 2026 Bahrain GP runs at Sepang, so it must get the Sepang guide and
+    // not Sakhir's. This is the case the race-slug keying used to get wrong.
+    expect(getCircuitGuide('bahrain-2026')).toEqual(
+      getCircuitGuideBySlug('sepang'),
+    );
+    expect(getCircuitGuide('bahrain-2026')).not.toEqual(
+      getCircuitGuideBySlug('sakhir'),
+    );
+  });
+
+  it('keys every guide by a circuit that actually exists', () => {
+    // Catches a typo'd key, which would otherwise fail silently as a missing
+    // guide on whichever race page happens to point at it.
+    const known = new Set(listCircuits().map((circuit) => circuit.slug));
+    const orphaned = CALENDAR_2026.map((raceSlug) => {
+      const circuit = getCircuitForRace(raceSlug);
+      return circuit && known.has(circuit.slug) ? null : raceSlug;
+    }).filter(Boolean);
+    expect(orphaned).toEqual([]);
   });
 
   it('matches on a slug with or without its season suffix', () => {

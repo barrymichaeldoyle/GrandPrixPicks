@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { formatDate, formatTime } from '@/lib/date';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
-import { getRaceLocation } from '@/lib/raceLocations';
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   getNextSessionLockAt,
   getWeekendSessionStarts,
@@ -82,7 +82,7 @@ function NextEvent({ race }: { race: NonNullable<RaceDoc> }) {
   const sessions = getWeekendSessionStarts(race);
   const nextSession = sessions.find((entry) => entry.startAt >= lockAt);
   const countryCode = getCountryCodeForRace(race);
-  const location = getRaceLocation(race.slug);
+  const circuit = getCircuitForRace(race.slug);
 
   return (
     <aside
@@ -101,7 +101,7 @@ function NextEvent({ race }: { race: NonNullable<RaceDoc> }) {
       </div>
       <p className="gpp-reading-meta mt-1 text-text-muted">
         Round {race.round}
-        {location ? ` · ${location.locality}` : ''}
+        {circuit ? ` · ${circuit.locality}` : ''}
       </p>
 
       <div className="mt-4 border-t border-border pt-4">

@@ -1,9 +1,12 @@
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
 /**
  * Editorial circuit guides shown on every race page.
  *
- * Keyed by the race slug without its season suffix ("britain-2026" → "britain"),
- * matching `raceLocations.ts`, so entries carry over between seasons. A new
- * venue needs a new entry in both files.
+ * Keyed by circuit slug ("silverstone", "monza"), matching
+ * `@grandprixpicks/shared/circuits`. A guide describes a place, so it belongs
+ * to the venue rather than to whichever Grand Prix happens to be run there in
+ * a given season. A new venue needs an entry in both files.
  *
  * These are deliberately qualitative. The value to someone about to rank five
  * drivers is knowing how much the order tends to move at a given track, not a
@@ -28,7 +31,7 @@ export type CircuitGuide = {
 };
 
 const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
-  australia: {
+  'albert-park': {
     character:
       'Albert Park is a parkland circuit that spends most of the year as public road around a lake in Melbourne. Resurfacing and a set of faster corners have moved it a long way from the stop-start layout it used to be, and it now rewards a car that can carry speed through medium-fast direction changes.',
     layout:
@@ -43,7 +46,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'High (season opener)' },
     ],
   },
-  china: {
+  shanghai: {
     character:
       'Shanghai pairs one of the most distinctive corners in the sport with one of its longest straights. The opening complex spirals tighter and tighter for what feels like an age before releasing onto the infield, and getting it right sets up the entire lap.',
     layout:
@@ -58,7 +61,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  japan: {
+  suzuka: {
     character:
       'Suzuka is the drivers’ circuit, the one they name when asked for a favourite. It crosses over itself in a figure of eight and strings together a set of high-speed direction changes that reward bravery and expose a nervous car immediately.',
     layout:
@@ -88,7 +91,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  canada: {
+  'gilles-villeneuve': {
     character:
       'Circuit Gilles Villeneuve runs along an island in the St Lawrence, a low-grip, stop-start layout of straights joined by heavy braking zones and chicanes. It ends with the run past the wall that has caught out more than one world champion.',
     layout:
@@ -118,7 +121,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Low, then sudden' },
     ],
   },
-  spain: {
+  barcelona: {
     character:
       'Barcelona is the circuit every team knows better than any other, having tested here for decades. That familiarity is exactly what makes it revealing: nobody has an excuse, and the finishing order tends to reflect the real order of the field.',
     layout:
@@ -133,7 +136,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Low' },
     ],
   },
-  austria: {
+  'red-bull-ring': {
     character:
       'The Red Bull Ring is short, simple and set in the Styrian hills, with a lap time so brief that the entire field can be covered by a couple of seconds. Its simplicity is deceptive: the elevation change is severe and the margins are tiny.',
     layout:
@@ -148,7 +151,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  britain: {
+  silverstone: {
     character:
       'Silverstone is fast, open and exposed, built on a former airfield where the wind comes from every direction and the weather can change within a single stint. Maggotts and Becketts is one of the great sequences in motorsport.',
     layout:
@@ -163,7 +166,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Weather dependent' },
     ],
   },
-  belgium: {
+  spa: {
     character:
       'Spa-Francorchamps is the longest lap of the season, cut through the Ardennes forest with enormous elevation change and the most famous corner in the sport at Eau Rouge and Raidillon. Its scale is the point: a lap here takes noticeably longer than anywhere else.',
     layout:
@@ -178,7 +181,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'High' },
     ],
   },
-  hungary: {
+  hungaroring: {
     character:
       'The Hungaroring is tight, twisty and relentless, often described as a street circuit without the walls. It sits in a natural bowl outside Budapest and is traditionally one of the hottest races of the year.',
     layout:
@@ -193,7 +196,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Low' },
     ],
   },
-  netherlands: {
+  zandvoort: {
     character:
       'Zandvoort runs through the coastal dunes north of Amsterdam, an old-school circuit brought back to the calendar with steep banking added at two corners. It is narrow, quick and completely unlike the modern venues around it.',
     layout:
@@ -208,7 +211,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  italy: {
+  monza: {
     character:
       'Monza is the Temple of Speed, the fastest circuit of the year and one of the oldest venues still in use. It is essentially a set of long straights joined by chicanes, run inside a royal park outside Milan, and the atmosphere is unlike anywhere else.',
     layout:
@@ -223,7 +226,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  madrid: {
+  madring: {
     character:
       'A new venue for the 2026 calendar, built around the IFEMA exhibition complex in Madrid and mixing existing roads with purpose-built sections. It is the newest circuit in the championship and nobody has meaningful history here.',
     layout:
@@ -238,7 +241,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'High (new circuit)' },
     ],
   },
-  azerbaijan: {
+  baku: {
     character:
       'Baku pairs one of the longest flat-out runs in the championship with a section threaded between the walls of the old city that is barely wider than a car and a half. That combination makes it one of the most unpredictable races of the year.',
     layout:
@@ -253,7 +256,22 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Very high' },
     ],
   },
-  singapore: {
+  sepang: {
+    character:
+      'Sepang is a Hermann Tilke design from 1999 that hosted Formula 1 until 2017, and it returns as the venue for a Grand Prix carrying another country\u2019s name. It is a proper permanent circuit with generous run-off, enormous width and a surface that has aged into something abrasive. Heat and humidity sit close to Singapore levels, but here they are endured in daylight.',
+    layout:
+      'Two very long straights joined by a hairpin give the lap its shape, and either side of them is a sequence of fast, wide, constant-radius corners that reward a car with aerodynamic load at speed. The width is the defining feature: there is almost always more than one line through a corner, and a driver can commit to an unusual entry without being punished for it.',
+    racing:
+      'Among the easier tracks on the calendar to pass on. The braking zones at the end of both straights are heavy and wide enough to permit a move that goes slightly wrong, so drivers attempt passes here that they would not risk elsewhere. Tyre degradation on the abrasive surface is high, which spreads strategies apart, and tropical afternoon rain is a genuine and frequent possibility rather than a footnote.',
+    predicting:
+      'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, degradation opens up strategy, and the chance of a downpour rearranging everything is real. Nobody on the current grid has raced a Grand Prix here, so track-specific form is no guide. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
+    traits: [
+      { label: 'Track type', value: 'Permanent (tropical)' },
+      { label: 'Overtaking', value: 'Easy' },
+      { label: 'Upset risk', value: 'High' },
+    ],
+  },
+  'marina-bay': {
     character:
       'A night race through the streets of Singapore, run in heat and humidity that make it the most physically demanding event of the season. Drivers routinely lose several kilograms across the race distance.',
     layout:
@@ -268,7 +286,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium to high' },
     ],
   },
-  usa: {
+  cota: {
     character:
       'Circuit of the Americas in Austin borrows ideas from several classic circuits, most obviously in the steep uphill run to the first corner and a fast esses sequence inspired by Silverstone. It has become notably bumpy as the ground has settled.',
     layout:
@@ -283,7 +301,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  mexico: {
+  'mexico-city': {
     character:
       'Mexico City sits well over two kilometres above sea level, and the thin air changes everything. Cars run maximum downforce configurations yet still behave as though they have very little, because there is simply less air to work with.',
     layout:
@@ -298,7 +316,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  brazil: {
+  interlagos: {
     character:
       'Interlagos runs anticlockwise over a compact, hilly site in São Paulo, and it has produced more memorable races than almost anywhere on the calendar. The lap is short, the crowd is enormous and the weather is famously unreliable.',
     layout:
@@ -328,7 +346,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'High' },
     ],
   },
-  qatar: {
+  lusail: {
     character:
       'Lusail is a fast, flowing circuit originally built for motorcycle racing, which shows in its wide, sweeping corners and near-total absence of slow sections. It is run at night and remains punishingly hot even after dark.',
     layout:
@@ -343,7 +361,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
       { label: 'Upset risk', value: 'Medium' },
     ],
   },
-  'abu-dhabi': {
+  'yas-marina': {
     character:
       'Yas Marina closes the season at dusk, starting in daylight and finishing under lights as the track cools and grip improves. Layout revisions removed the tightest sections and opened the circuit up considerably.',
     layout:
@@ -361,41 +379,19 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
 };
 
 /**
- * Circuit guide for a race slug, or null for a venue with no entry yet.
+ * Circuit guide for a race, resolved through the circuit it is run on.
+ * Null for a venue with no entry yet.
  *
- * @param slug — the race slug, with or without its season suffix
+ * @param raceSlug — a race slug, with or without its season suffix
  */
-/**
- * Overrides keyed by the *full* slug, checked before the prefix map. A Grand
- * Prix that keeps its name while moving venue needs the guide for the ground
- * it is actually run on, not for the country on the entry list. Mirrors the
- * override tables in `raceLocations.ts` and `@grandprixpicks/shared/raceTimezones`.
- */
-const CIRCUIT_GUIDE_OVERRIDES: Record<string, CircuitGuide> = {
-  // The 2026 Bahrain GP is run at Sepang. A future Bahrain GP at Sakhir would
-  // want its own `bahrain` prefix entry rather than this one.
-  'bahrain-2026': {
-    character:
-      'Sepang is a Hermann Tilke design from 1999 that hosted Formula 1 until 2017, and it returns as the venue for a Grand Prix carrying another country\u2019s name. It is a proper permanent circuit with generous run-off, enormous width and a surface that has aged into something abrasive. Heat and humidity sit close to Singapore levels, but here they are endured in daylight.',
-    layout:
-      'Two very long straights joined by a hairpin give the lap its shape, and either side of them is a sequence of fast, wide, constant-radius corners that reward a car with aerodynamic load at speed. The width is the defining feature: there is almost always more than one line through a corner, and a driver can commit to an unusual entry without being punished for it.',
-    racing:
-      'Among the easier tracks on the calendar to pass on. The braking zones at the end of both straights are heavy and wide enough to permit a move that goes slightly wrong, so drivers attempt passes here that they would not risk elsewhere. Tyre degradation on the abrasive surface is high, which spreads strategies apart, and tropical afternoon rain is a genuine and frequent possibility rather than a footnote.',
-    predicting:
-      'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, degradation opens up strategy, and the chance of a downpour rearranging everything is real. Nobody on the current grid has raced a Grand Prix here, so track-specific form is no guide. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
-    traits: [
-      { label: 'Track type', value: 'Permanent (tropical)' },
-      { label: 'Overtaking', value: 'Easy' },
-      { label: 'Upset risk', value: 'High' },
-    ],
-  },
-};
+export function getCircuitGuide(raceSlug: string): CircuitGuide | null {
+  const circuit = getCircuitForRace(raceSlug);
+  return circuit ? getCircuitGuideBySlug(circuit.slug) : null;
+}
 
-export function getCircuitGuide(slug: string): CircuitGuide | null {
-  const normalized = slug.toLowerCase();
-  return (
-    CIRCUIT_GUIDE_OVERRIDES[normalized] ??
-    CIRCUIT_GUIDES[normalized.replace(/-\d{4}$/, '')] ??
-    null
-  );
+/** The guide for a circuit, by circuit slug. */
+export function getCircuitGuideBySlug(
+  circuitSlug: string,
+): CircuitGuide | null {
+  return CIRCUIT_GUIDES[circuitSlug.toLowerCase()] ?? null;
 }

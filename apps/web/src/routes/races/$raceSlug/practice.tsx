@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 
-import { CircuitGuide } from '@/components/CircuitGuide';
+import { CircuitSummary } from '@/components/CircuitSummary';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { breadcrumbSchema, pageMeta } from '@/lib/site';
@@ -137,7 +137,7 @@ function PracticeResultsPage() {
           to see how much of it carried over.
         </p>
 
-        <CircuitGuide raceSlug={race.slug} raceName={race.name} />
+        <CircuitSummary raceSlug={race.slug} />
 
         <nav
           aria-label="Related pages"

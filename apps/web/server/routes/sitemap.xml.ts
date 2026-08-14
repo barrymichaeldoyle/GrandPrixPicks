@@ -2,6 +2,9 @@ import { api } from '@convex-generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 
 import { captureServerException, startServerSpan } from '../lib/sentry';
+import { listCircuits } from '@grandprixpicks/shared/circuits';
+
+import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { GUIDE_SLUGS } from '../../src/lib/guides';
 import { siteConfig } from '../../src/lib/site';
 
@@ -42,6 +45,20 @@ const staticEntries: SitemapEntry[] = [
     changefreq: 'monthly' as const,
     priority: '0.7',
   })),
+  {
+    loc: `${siteConfig.url}/circuits`,
+    changefreq: 'monthly',
+    priority: '0.8',
+  },
+  // Only circuits with a guide are routable; the rest 404, and a sitemap that
+  // lists 404s is a crawl-budget leak.
+  ...listCircuits()
+    .filter((circuit) => getCircuitGuideBySlug(circuit.slug) !== null)
+    .map((circuit) => ({
+      loc: `${siteConfig.url}/circuits/${circuit.slug}`,
+      changefreq: 'monthly' as const,
+      priority: '0.7',
+    })),
   {
     loc: `${siteConfig.url}/about`,
     changefreq: 'monthly',

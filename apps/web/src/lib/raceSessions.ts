@@ -90,6 +90,48 @@ export function getWeekendSessionStarts(
   });
 }
 
+export const PRACTICE_LABELS = {
+  fp1: 'Practice 1',
+  fp2: 'Practice 2',
+  fp3: 'Practice 3',
+} as const;
+
+type PracticeType = keyof typeof PRACTICE_LABELS;
+
+export interface WeekendPracticeStart {
+  type: PracticeType;
+  startAt: number;
+}
+
+type RacePracticeTimesShape = Pick<
+  Doc<'races'>,
+  'fp1StartAt' | 'fp2StartAt' | 'fp3StartAt'
+>;
+
+/**
+ * The weekend's free practice sessions, in track order.
+ *
+ * Deliberately separate from `getWeekendSessionStarts`. Practice is not a
+ * `SessionType`: there is nothing to pick, nothing to lock and nothing to
+ * score, and every consumer of that function assumes all three. Folding
+ * practice in there would put FP1 in front of the prediction UI.
+ *
+ * Sprint weekends only run FP1, so the absent entries simply drop out.
+ */
+export function getWeekendPracticeStarts(
+  race: RacePracticeTimesShape,
+): WeekendPracticeStart[] {
+  const startAtByPractice: Record<PracticeType, number | undefined> = {
+    fp1: race.fp1StartAt,
+    fp2: race.fp2StartAt,
+    fp3: race.fp3StartAt,
+  };
+  return (Object.keys(PRACTICE_LABELS) as PracticeType[]).flatMap((type) => {
+    const startAt = startAtByPractice[type];
+    return startAt === undefined ? [] : [{ type, startAt }];
+  });
+}
+
 type RaceWeekendShape = Pick<
   Doc<'races'>,
   'hasSprint' | 'qualiLockAt' | 'sprintQualiLockAt'

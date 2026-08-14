@@ -36,6 +36,7 @@ describe('site navigation', () => {
       { to: '/f1-standings', label: 'F1 Standings' },
       { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
       { to: '/f1-2027-calendar', label: '2027 Calendar' },
+      { to: '/circuits', label: 'F1 Circuits' },
       { to: '/results-policy', label: 'Results & Penalties' },
     ]);
     expect(footerSupportLinks).toEqual([

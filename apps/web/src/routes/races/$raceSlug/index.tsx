@@ -18,7 +18,7 @@ import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
-import { getRaceLocation } from '@/lib/raceLocations';
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   defaultOgImage,
   pageMeta,
@@ -179,7 +179,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
             : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     const scripts: { type: string; children: string }[] = [];
     if (race) {
-      const location = getRaceLocation(race.slug);
+      const circuit = getCircuitForRace(race.slug);
       scripts.push({
         type: 'application/ld+json',
         children: JSON.stringify({
@@ -199,14 +199,14 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           description,
           url: `${siteConfig.url}/races/${params.raceSlug}`,
           sport: 'Formula 1',
-          ...(location && {
+          ...(circuit && {
             location: {
               '@type': 'Place',
-              name: location.circuit,
+              name: circuit.name,
               address: {
                 '@type': 'PostalAddress',
-                addressLocality: location.locality,
-                addressCountry: location.country,
+                addressLocality: circuit.locality,
+                addressCountry: circuit.country,
               },
             },
           }),

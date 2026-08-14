@@ -30,6 +30,8 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as CircuitsIndexRouteImport } from './routes/circuits/index'
+import { Route as CircuitsCircuitSlugRouteImport } from './routes/circuits/$circuitSlug'
 import { Route as FeedIndexRouteImport } from './routes/feed/index'
 import { Route as FeedFeedEventIdRouteImport } from './routes/feed.$feedEventId'
 import { Route as GuidesIndexRouteImport } from './routes/guides/index'
@@ -151,6 +153,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CircuitsIndexRoute = CircuitsIndexRouteImport.update({
+  id: '/circuits/',
+  path: '/circuits/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CircuitsCircuitSlugRoute = CircuitsCircuitSlugRouteImport.update({
+  id: '/circuits/$circuitSlug',
+  path: '/circuits/$circuitSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedIndexRoute = FeedIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -248,12 +260,14 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/circuits/': typeof CircuitsIndexRoute
   '/feed/': typeof FeedIndexRoute
   '/guides/': typeof GuidesIndexRoute
   '/leagues/': typeof LeaguesIndexRoute
@@ -285,12 +299,14 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin': typeof AdminIndexRoute
+  '/circuits': typeof CircuitsIndexRoute
   '/feed': typeof FeedIndexRoute
   '/guides': typeof GuidesIndexRoute
   '/leagues': typeof LeaguesIndexRoute
@@ -324,12 +340,14 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/circuits/$circuitSlug': typeof CircuitsCircuitSlugRoute
   '/feed/$feedEventId': typeof FeedFeedEventIdRoute
   '/guides/$guideSlug': typeof GuidesGuideSlugRoute
   '/leagues/$slug': typeof LeaguesSlugRouteWithChildren
   '/leagues/create': typeof LeaguesCreateRoute
   '/p/$username': typeof PUsernameRouteWithChildren
   '/admin/': typeof AdminIndexRoute
+  '/circuits/': typeof CircuitsIndexRoute
   '/feed/': typeof FeedIndexRoute
   '/guides/': typeof GuidesIndexRoute
   '/leagues/': typeof LeaguesIndexRoute
@@ -364,12 +382,14 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin/'
+    | '/circuits/'
     | '/feed/'
     | '/guides/'
     | '/leagues/'
@@ -401,12 +421,14 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin'
+    | '/circuits'
     | '/feed'
     | '/guides'
     | '/leagues'
@@ -439,12 +461,14 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/support'
     | '/terms'
+    | '/circuits/$circuitSlug'
     | '/feed/$feedEventId'
     | '/guides/$guideSlug'
     | '/leagues/$slug'
     | '/leagues/create'
     | '/p/$username'
     | '/admin/'
+    | '/circuits/'
     | '/feed/'
     | '/guides/'
     | '/leagues/'
@@ -478,11 +502,13 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  CircuitsCircuitSlugRoute: typeof CircuitsCircuitSlugRoute
   GuidesGuideSlugRoute: typeof GuidesGuideSlugRoute
   LeaguesSlugRoute: typeof LeaguesSlugRouteWithChildren
   LeaguesCreateRoute: typeof LeaguesCreateRoute
   PUsernameRoute: typeof PUsernameRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
+  CircuitsIndexRoute: typeof CircuitsIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
   LeaguesIndexRoute: typeof LeaguesIndexRoute
   RacesIndexRoute: typeof RacesIndexRoute
@@ -638,6 +664,20 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/circuits/': {
+      id: '/circuits/'
+      path: '/circuits'
+      fullPath: '/circuits/'
+      preLoaderRoute: typeof CircuitsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/circuits/$circuitSlug': {
+      id: '/circuits/$circuitSlug'
+      path: '/circuits/$circuitSlug'
+      fullPath: '/circuits/$circuitSlug'
+      preLoaderRoute: typeof CircuitsCircuitSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feed/': {
@@ -807,11 +847,13 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  CircuitsCircuitSlugRoute: CircuitsCircuitSlugRoute,
   GuidesGuideSlugRoute: GuidesGuideSlugRoute,
   LeaguesSlugRoute: LeaguesSlugRouteWithChildren,
   LeaguesCreateRoute: LeaguesCreateRoute,
   PUsernameRoute: PUsernameRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
+  CircuitsIndexRoute: CircuitsIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
   LeaguesIndexRoute: LeaguesIndexRoute,
   RacesIndexRoute: RacesIndexRoute,

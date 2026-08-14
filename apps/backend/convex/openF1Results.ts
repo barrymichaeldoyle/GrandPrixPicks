@@ -345,8 +345,8 @@ export async function fetchOfficialClassification(args: {
 
   return {
     openF1SessionKey: session.session_key,
-    classification: rows.map(
-      (row) => args.driverByNumber.get(row.driver_number)!,
+    classification: rows.map((row) =>
+      args.driverByNumber.get(row.driver_number)!,
     ),
     dnfDriverIds: rows
       .filter((row) => row.dnf || row.dns || row.dsq)

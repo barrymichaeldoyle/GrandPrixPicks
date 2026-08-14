@@ -140,8 +140,13 @@ export function H2HDuelQuestion({
       </div>
 
       {status !== undefined ? (
+        // A flex line, not a text line. Some statuses are bare text and some
+        // wrap an icon in an inline-flex span, and an inline-flex box is an
+        // atomic inline: it sits its bottom edge on the baseline, growing the
+        // line box past min-h-5 and nudging the whole caption down as "Saving…"
+        // becomes "Saved". As flex items both states measure the same.
         <p
-          className="mt-3 min-h-5 shrink-0 text-center text-sm text-text-muted"
+          className="mt-3 flex min-h-5 shrink-0 items-center justify-center text-center text-sm text-text-muted"
           aria-live="polite"
         >
           {status}

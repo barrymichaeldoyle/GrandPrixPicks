@@ -62,6 +62,25 @@ auditConfig:
     - GHSA-w3rx-r6r6-pgpr
     - GHSA-5p2g-fcmc-qvqq
 
+    # extract-zip symlink path traversal. The advisory names >=2.0.2 as
+    # patched, but 2.0.1 IS the latest published release: there is no fixed
+    # version to override to, the same dead end as image-size above.
+    #
+    # One line in the tree, all of it new with Lighthouse CI:
+    #   extract-zip@2.0.1 <- @puppeteer/browsers <- puppeteer-core
+    #                     <- lighthouse <- @lhci/cli
+    #
+    # Scope: the only zip it opens is the Chrome build @puppeteer/browsers
+    # downloads from Google so Lighthouse has a browser to drive. The archive
+    # is not attacker-chosen, it is fetched over TLS from a fixed host, and
+    # @lhci/cli is a devDependency that runs in CI and ships to nobody. On the
+    # runners this actually executes on, Chrome is preinstalled and the
+    # download path is never taken at all.
+    #
+    # Revisit when extract-zip publishes 2.0.2, or when puppeteer-core moves
+    # off it.
+    - GHSA-jmr9-qjv8-65gv
+
 catalog:
   convex: 1.43.0
   typescript: 7.0.2

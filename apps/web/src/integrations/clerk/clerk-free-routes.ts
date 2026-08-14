@@ -20,8 +20,8 @@
  * for sign-in does not count against it: `SignInPrompt`, the pick forms and
  * `SignInActionButton` all go through `requestSignIn`, which is the
  * provider-free path. What disqualifies a route is mounting one of Clerk's own
- * components — `AppSignInButton` wraps `SignInButton` and needs a provider —
- * or reading viewer-scoped data that only exists once Clerk has booted.
+ * components, which need a provider around them, or reading viewer-scoped data
+ * that only exists once Clerk has booted.
  *
  * /sign-in is on the list and is not a contradiction: the page is a button that
  * opens the modal, and the modal has never needed the page to be wrapped.

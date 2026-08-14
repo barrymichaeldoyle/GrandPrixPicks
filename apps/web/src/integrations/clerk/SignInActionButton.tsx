@@ -15,12 +15,12 @@ type SignInActionButtonProps = Omit<
 /**
  * A button that opens the sign-in modal without putting Clerk on the page.
  *
- * The alternative is `AppSignInButton`, which renders Clerk's own
- * `SignInButton` and therefore needs a provider around it — which in turn means
- * every anonymous visitor to the route downloads the auth runtime before they
- * have asked for anything. This goes through `requestSignIn` instead, the same
- * path `SignInPrompt` and the pick forms use: the modal boots on demand and the
- * page it was opened from is never re-parented.
+ * It replaced a wrapper around Clerk's own `SignInButton`, which needed a
+ * provider around it — which in turn meant every anonymous visitor to the route
+ * downloaded the auth runtime before they had asked for anything. This goes
+ * through `requestSignIn` instead, the same path `SignInPrompt` and the pick
+ * forms use: the modal boots on demand and the page it was opened from is never
+ * re-parented.
  *
  * Sign-in happens in place. `clerk.openSignIn()` takes no redirect, the URL
  * does not change, and the page re-renders as its signed-in self once the

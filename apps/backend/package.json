@@ -23,19 +23,19 @@
     "test:ci": "vitest run --reporter=dot"
   },
   "dependencies": {
-    "@convex-dev/resend": "0.2.5",
+    "@convex-dev/resend": "0.2.6",
     "@grandprixpicks/shared": "workspace:*",
-    "@react-email/render": "2.0.10",
+    "@react-email/render": "2.1.0",
     "convex": "catalog:",
     "dotenv-cli": "11.0.0",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "react-email": "6.6.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-email": "6.9.2",
     "web-push": "3.6.7"
   },
   "devDependencies": {
-    "@react-email/ui": "6.6.7",
-    "@types/react": "19.2.17",
+    "@react-email/ui": "6.9.2",
+    "@types/react": "19.2.18",
     "@types/web-push": "3.6.4",
     "typescript": "catalog:",
     "vitest": "4.1.10"

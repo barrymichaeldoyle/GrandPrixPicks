@@ -50,10 +50,10 @@
     "test:web": "pnpm --filter @grandprixpicks/web test"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.1",
-    "knip": "6.25.0",
-    "oxfmt": "0.58.0",
-    "oxlint": "1.73.0",
+    "@playwright/test": "1.62.1",
+    "knip": "6.32.2",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },

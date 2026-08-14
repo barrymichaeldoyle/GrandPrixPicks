@@ -24,6 +24,7 @@ const CALENDAR_2026 = [
   'italy-2026',
   'madrid-2026',
   'azerbaijan-2026',
+  'bahrain-2026',
   'singapore-2026',
   'usa-2026',
   'mexico-2026',

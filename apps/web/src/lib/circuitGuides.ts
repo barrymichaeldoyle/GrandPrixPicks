@@ -381,7 +381,7 @@ const CIRCUIT_GUIDE_OVERRIDES: Record<string, CircuitGuide> = {
       'Two very long straights joined by a hairpin give the lap its shape, and either side of them is a sequence of fast, wide, constant-radius corners that reward a car with aerodynamic load at speed. The width is the defining feature: there is almost always more than one line through a corner, and a driver can commit to an unusual entry without being punished for it.',
     racing:
       'Among the easier tracks on the calendar to pass on. The braking zones at the end of both straights are heavy and wide enough to permit a move that goes slightly wrong, so drivers attempt passes here that they would not risk elsewhere. Tyre degradation on the abrasive surface is high, which spreads strategies apart, and tropical afternoon rain is a genuine and frequent possibility rather than a footnote.',
-      predicting:
+    predicting:
       'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, degradation opens up strategy, and the chance of a downpour rearranging everything is real. Nobody on the current grid has raced a Grand Prix here, so track-specific form is no guide. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
     traits: [
       { label: 'Track type', value: 'Permanent (tropical)' },

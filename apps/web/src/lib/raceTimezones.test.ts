@@ -17,6 +17,14 @@ describe('getRaceTimeZoneFromSlug', () => {
     );
   });
 
+  it('lets a full-slug override beat the prefix for a relocated race', () => {
+    // The 2026 Bahrain GP is run at Sepang, Malaysia.
+    expect(getRaceTimeZoneFromSlug('bahrain-2026')).toBe('Asia/Kuala_Lumpur');
+    // Every other Bahrain GP is still at Sakhir.
+    expect(getRaceTimeZoneFromSlug('bahrain')).toBe('Asia/Bahrain');
+    expect(getRaceTimeZoneFromSlug('bahrain-2027')).toBe('Asia/Bahrain');
+  });
+
   it('returns undefined for unknown slugs', () => {
     expect(getRaceTimeZoneFromSlug('made-up-grand-prix-2026')).toBeUndefined();
   });

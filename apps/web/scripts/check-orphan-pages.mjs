@@ -32,6 +32,20 @@ const ALLOWED_ORPHANS = new Set([
   '/', // The origin itself; every page links to it via the logo anyway.
 ]);
 
+/**
+ * Test fixtures, not pages. The scenario runner creates and deletes these
+ * races on the dev deployment while it works, and in CI it does so from a
+ * different job than this one, against the same Convex deployment. A race that
+ * is in the sitemap when it is read and gone by the time its page is fetched
+ * is that job finishing, not a broken link — and none of these exist in
+ * production, so skipping them costs the check nothing it was built for.
+ */
+const SCENARIO_PATH_PREFIX = '/races/scenario-';
+
+function isScenarioPath(path) {
+  return path.startsWith(SCENARIO_PATH_PREFIX);
+}
+
 function normalize(pathname) {
   const clean = pathname.split('#')[0].split('?')[0];
   return clean.length > 1 ? clean.replace(/\/$/, '') : clean;
@@ -89,12 +103,18 @@ if (sitemapPaths.length === 0) {
 
 const linkedFrom = new Map();
 let failed = 0;
+let skipped = 0;
 
 for (const path of sitemapPaths) {
   let html;
   try {
     html = await fetchText(`${BASE_URL}${path}`);
   } catch (error) {
+    if (isScenarioPath(path)) {
+      console.warn(`- ${path}: skipped (scenario fixture, ${error.message})`);
+      skipped++;
+      continue;
+    }
     console.error(`- ${path}: could not fetch (${error.message})`);
     failed++;
     continue;
@@ -112,13 +132,20 @@ for (const path of sitemapPaths) {
 }
 
 const orphans = sitemapPaths.filter(
-  (path) => !ALLOWED_ORPHANS.has(path) && !linkedFrom.has(path),
+  (path) =>
+    !ALLOWED_ORPHANS.has(path) &&
+    !isScenarioPath(path) &&
+    !linkedFrom.has(path),
 );
 
 console.log(
   `Checked ${sitemapPaths.length} sitemap URLs against ${BASE_URL} — ` +
     `${orphans.length} with no server-rendered inbound link.`,
 );
+
+if (skipped > 0) {
+  console.warn(`${skipped} scenario fixture(s) skipped.`);
+}
 
 if (failed > 0) {
   console.error(`${failed} page(s) could not be fetched.`);

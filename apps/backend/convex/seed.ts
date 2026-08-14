@@ -470,7 +470,22 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-09-26T11:00:00Z',
   },
   {
+    // Bahrain's own round was called off, and the Grand Prix was reinstated
+    // later in the year at Sepang, Malaysia, keeping the Bahrain name. The
+    // slug stays `bahrain-2026` to match the event name and F1's own URL;
+    // timezone, circuit location and circuit guide are overridden per-slug.
     round: 16,
+    name: 'Bahrain Grand Prix',
+    hashtag: '#BahrainGP',
+    slug: 'bahrain-2026',
+    fp1Date: '2026-10-02T04:30:00Z',
+    fp2Date: '2026-10-02T08:00:00Z',
+    fp3Date: '2026-10-03T04:30:00Z',
+    qualiDate: '2026-10-03T08:00:00Z',
+    raceDate: '2026-10-04T07:00:00Z',
+  },
+  {
+    round: 17,
     name: 'Singapore Grand Prix',
     hashtag: '#SingaporeGP',
     slug: 'singapore-2026',
@@ -482,7 +497,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-10-11T12:00:00Z',
   },
   {
-    round: 17,
+    round: 18,
     name: 'United States Grand Prix',
     hashtag: '#USGP',
     slug: 'usa-2026',
@@ -493,7 +508,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-10-25T20:00:00Z',
   },
   {
-    round: 18,
+    round: 19,
     name: 'Mexican Grand Prix',
     hashtag: '#MexicoGP',
     slug: 'mexico-2026',
@@ -504,7 +519,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-11-01T20:00:00Z',
   },
   {
-    round: 19,
+    round: 20,
     name: 'Brazilian Grand Prix',
     hashtag: '#BrazilianGP',
     slug: 'brazil-2026',
@@ -515,7 +530,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-11-08T17:00:00Z',
   },
   {
-    round: 20,
+    round: 21,
     name: 'Las Vegas Grand Prix',
     hashtag: '#LasVegasGP',
     slug: 'las-vegas-2026',
@@ -526,7 +541,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-11-21T04:00:00Z',
   },
   {
-    round: 21,
+    round: 22,
     name: 'Qatar Grand Prix',
     hashtag: '#QatarGP',
     slug: 'qatar-2026',
@@ -537,7 +552,7 @@ const F1_RACES_2026: Array<{
     raceDate: '2026-11-29T16:00:00Z',
   },
   {
-    round: 22,
+    round: 23,
     name: 'Abu Dhabi Grand Prix',
     hashtag: '#AbuDhabiGP',
     slug: 'abu-dhabi-2026',

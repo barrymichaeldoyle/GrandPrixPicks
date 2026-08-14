@@ -88,7 +88,9 @@ export function App() {
   useEffect(() => {
     void fetch('/api/init')
       .then(async (response) => {
-        if (!response.ok) throw new Error('Could not load this race.');
+        if (!response.ok) {
+          throw new Error('Could not load this race.');
+        }
         return (await response.json()) as InitResponse;
       })
       .then((response) => {
@@ -157,7 +159,9 @@ export function App() {
     setDrafts((current) => {
       const next = [...(current[sessionId] ?? [])];
       const target = index + direction;
-      if (target < 0 || target >= next.length) return current;
+      if (target < 0 || target >= next.length) {
+        return current;
+      }
       [next[index], next[target]] = [next[target]!, next[index]!];
       return { ...current, [sessionId]: next };
     });

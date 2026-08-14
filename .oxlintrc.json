@@ -66,6 +66,16 @@
   },
   "overrides": [
     {
+      // The Devvit prototype builds with a plain `react()` vite plugin and no
+      // React Compiler, so the reason the rest of the repo bans useMemo /
+      // useCallback (the compiler already does it, by hand is worse) is simply
+      // not true here. Manual memoization is the only memoization this app has.
+      "files": ["apps/reddit/src/**/*.ts", "apps/reddit/src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    },
+    {
       "files": [
         "apps/web/src/**/*.ts",
         "apps/web/src/**/*.tsx",

@@ -28,35 +28,7 @@ import { RaceFlag } from '@/components/RaceFlag';
 import { pageMeta } from '@/lib/site';
 import { NoticeCard } from '@/components/NoticeCard';
 import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
-
-/**
- * Only accept same-origin relative paths for the "back" link. Without this an
- * attacker-crafted `?from=//evil.com` (or `/\evil.com`, or an absolute URL)
- * renders a trusted-domain "Back to …" link that navigates off-site on
- * click / middle-click / native href follow (open redirect).
- */
-function sanitizeInternalPath(value: unknown): string | undefined {
-  if (typeof value !== 'string' || value.length === 0) {
-    return undefined;
-  }
-  // Must be a path rooted at "/", but not protocol-relative ("//") or a
-  // backslash-smuggled variant ("/\") that browsers treat as a host.
-  if (
-    !value.startsWith('/') ||
-    value.startsWith('//') ||
-    value.startsWith('/\\')
-  ) {
-    return undefined;
-  }
-  // Reject control characters (incl. tab/newline/space) that browsers may
-  // strip to expose a leading "//".
-  for (let i = 0; i < value.length; i++) {
-    if (value.charCodeAt(i) <= 0x20) {
-      return undefined;
-    }
-  }
-  return value;
-}
+import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 
 export const Route = createFileRoute('/p/$username')({
   validateSearch: (search: Record<string, unknown>) => ({

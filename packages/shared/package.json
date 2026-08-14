@@ -19,6 +19,7 @@
     "./displayName": "./src/displayName.ts",
     "./driverStatus": "./src/driverStatus.ts",
     "./indexNow": "./src/indexNow.ts",
+    "./internalPath": "./src/internalPath.ts",
     "./notifications": "./src/notifications.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",

@@ -1,3 +1,4 @@
+import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 import { api } from '@convex-generated/api';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
@@ -51,6 +52,16 @@ export function AnnouncementBanner() {
     setDismissedKey(announcementKey);
   }
 
+  // The banner is site-wide, so an off-origin CTA here would read as a link the
+  // domain vouches for. The mutation rejects one, and so does this.
+  const cta =
+    'linkPath' in announcement && announcement.linkPath
+      ? {
+          to: sanitizeInternalPath(announcement.linkPath),
+          label: announcement.linkLabel ?? 'Read more',
+        }
+      : undefined;
+
   return (
     <div
       role="status"
@@ -65,14 +76,14 @@ export function AnnouncementBanner() {
       />
       <p className="min-w-0 whitespace-pre-line">
         {announcement.message}
-        {'linkPath' in announcement && announcement.linkPath ? (
+        {cta?.to ? (
           <>
             {' '}
             <Link
-              to={announcement.linkPath}
+              to={cta.to}
               className="font-medium text-accent underline underline-offset-2"
             >
-              {announcement.linkLabel ?? 'Read more'}
+              {cta.label}
             </Link>
           </>
         ) : null}

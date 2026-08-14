@@ -1,3 +1,4 @@
+import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 import { v } from 'convex/values';
 
 import { mutation, query } from './_generated/server';
@@ -24,7 +25,9 @@ export const getActive = query({
     return {
       _id: announcement._id,
       message: announcement.message,
-      linkPath: announcement.linkPath ?? null,
+      // Sanitized on read too, so a row written before the write-side check
+      // can't serve an off-origin link.
+      linkPath: sanitizeInternalPath(announcement.linkPath) ?? null,
       linkLabel: announcement.linkLabel ?? null,
       startsAt: announcement.startsAt ?? null,
       expiresAt: announcement.expiresAt ?? null,
@@ -68,8 +71,12 @@ export const adminSetAnnouncement = mutation({
         `Announcement message must be at most ${MAX_ANNOUNCEMENT_LENGTH} characters`,
       );
     }
-    const linkPath = args.linkPath?.trim() || undefined;
-    if (linkPath !== undefined && !linkPath.startsWith('/')) {
+    // The banner is site-wide and public, so a link that escapes the origin
+    // ("//evil.com" and friends) would be a trusted-domain open redirect.
+    const rawLinkPath = args.linkPath?.trim() || undefined;
+    const linkPath =
+      rawLinkPath === undefined ? undefined : sanitizeInternalPath(rawLinkPath);
+    if (rawLinkPath !== undefined && linkPath === undefined) {
       throw new Error('Announcement link must be an internal path');
     }
     const linkLabel = args.linkLabel?.trim() || undefined;

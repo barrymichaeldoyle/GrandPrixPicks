@@ -1,3 +1,4 @@
+import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 import {
   NOTIFICATION_FILTER_VALUES,
   NOTIFICATION_TYPES_BY_FILTER,
@@ -721,6 +722,12 @@ export const broadcastAnnouncement = internalMutation({
     sent: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<{ sent: number; done: boolean }> => {
+    // Rendered as an href on every recipient's bell, so it must stay on-origin.
+    const linkPath = sanitizeInternalPath(args.linkPath);
+    if (args.linkPath !== undefined && linkPath === undefined) {
+      throw new Error('Broadcast link must be an internal path');
+    }
+
     const page = await ctx.db.query('users').paginate({
       numItems: BROADCAST_BATCH_SIZE,
       cursor: args.cursor ?? null,
@@ -739,7 +746,7 @@ export const broadcastAnnouncement = internalMutation({
         type: 'announcement',
         title: args.title,
         body: args.body,
-        linkPath: args.linkPath,
+        linkPath,
         createdAt: now,
       });
       sent += 1;
@@ -752,7 +759,7 @@ export const broadcastAnnouncement = internalMutation({
         {
           title: args.title,
           body: args.body,
-          linkPath: args.linkPath,
+          linkPath,
           cursor: page.continueCursor,
           sent,
         },

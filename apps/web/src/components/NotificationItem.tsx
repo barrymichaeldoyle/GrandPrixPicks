@@ -1,3 +1,4 @@
+import { sanitizeInternalPath } from '@grandprixpicks/shared/internalPath';
 import type { ReactionType } from '@grandprixpicks/shared/reactions';
 import { REACTION_BY_TYPE } from '@grandprixpicks/shared/reactions';
 import type { Id } from '@convex-generated/dataModel';
@@ -529,6 +530,9 @@ export function NotificationItem({
   }
 
   if (notification.type === 'announcement') {
+    // Sanitized rather than trusted: the broadcast mutation rejects off-origin
+    // targets, and a row that predates that check must not render one either.
+    const linkPath = sanitizeInternalPath(notification.linkPath);
     const content = (
       <RowBody
         leading={
@@ -544,7 +548,7 @@ export function NotificationItem({
               </p>
             )}
             <NotificationMeta createdAt={notification.createdAt} />
-            {notification.linkPath && (
+            {linkPath && (
               <p className="mt-1.5 text-xs font-medium text-accent">
                 Read more
               </p>
@@ -554,18 +558,13 @@ export function NotificationItem({
       />
     );
 
-    // linkPath is set by an admin broadcast, so it is always an internal path.
-    // Without one there is nowhere to go, so the row drops its hover affordance
-    // rather than pretending to be clickable; the corner control still marks it
-    // read.
+    // Without a link there is nowhere to go, so the row drops its hover
+    // affordance rather than pretending to be clickable; the corner control
+    // still marks it read.
     return (
       <Row>
-        {notification.linkPath ? (
-          <Link
-            to={notification.linkPath}
-            onClick={handleClick}
-            className={itemClass}
-          >
+        {linkPath ? (
+          <Link to={linkPath} onClick={handleClick} className={itemClass}>
             {content}
           </Link>
         ) : (

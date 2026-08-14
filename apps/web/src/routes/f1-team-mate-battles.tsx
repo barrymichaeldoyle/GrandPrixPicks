@@ -148,12 +148,17 @@ function Driver({
     </span>
   );
   const badge = (
+    // Every Driver here renders inside the `aria-hidden` half of the card,
+    // whose content the `sr-only` summary above it already states in prose.
+    // Leaving the tooltip trigger focusable put 22 tab stops on this page
+    // inside a region assistive tech is told is not there.
     <DriverBadge
       code={driver.code}
       team={team}
       displayName={driver.displayName}
       number={driver.number}
       nationality={driver.nationality}
+      tooltipFocusable={false}
     />
   );
 

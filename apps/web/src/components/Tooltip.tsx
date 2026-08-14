@@ -19,6 +19,19 @@ interface TooltipProps {
   openOnClick?: boolean;
   /** Ignore click/tap handling when the event starts inside this selector. */
   ignoreClickWithinSelector?: string;
+  /**
+   * Whether the trigger takes keyboard focus. Defaults to true, which is what
+   * almost every caller wants.
+   *
+   * Set false only where the tooltip sits inside an `aria-hidden` region that
+   * a visible `sr-only` element already describes. There the trigger is a tab
+   * stop leading to content assistive tech has been told does not exist, which
+   * axe reports as `aria-hidden-focus` and a keyboard reader experiences as a
+   * stop that announces nothing. `inert` on the region would also fix it and
+   * would take the pointer affordance down with it, which is the half worth
+   * keeping.
+   */
+  focusable?: boolean;
 }
 
 const DEFAULT_DISTANCE = 6;
@@ -111,6 +124,7 @@ export function Tooltip({
   prerender = false,
   openOnClick = false,
   ignoreClickWithinSelector,
+  focusable = true,
 }: TooltipProps) {
   const tooltipId = useId();
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -338,14 +352,14 @@ export function Tooltip({
       <span
         ref={triggerRef}
         className={`inline-flex cursor-help ${triggerClassName ?? ''}`.trim()}
-        aria-describedby={tooltipId}
+        aria-describedby={focusable ? tooltipId : undefined}
         // A tooltip only a mouse can open is a tooltip half the readers never
         // see. Tab reaches the trigger and focus reveals it, with no delay:
         // the delay exists to stop a pointer sweeping across the page from
         // firing tooltips, and focus is always deliberate.
-        tabIndex={0}
-        onFocus={openAtTrigger}
-        onBlur={() => setIsVisible(false)}
+        tabIndex={focusable ? 0 : undefined}
+        onFocus={focusable ? openAtTrigger : undefined}
+        onBlur={focusable ? () => setIsVisible(false) : undefined}
         onPointerDown={handlePointerDown}
         onClick={handleClick}
         onPointerEnter={handlePointerEnter}

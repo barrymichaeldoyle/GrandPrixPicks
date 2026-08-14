@@ -37,6 +37,12 @@ interface DriverBadgeProps {
    * should turn it off — otherwise every row preloads a flag nobody hovers.
    */
   prerenderTooltip?: boolean;
+  /**
+   * Whether the tooltip trigger takes keyboard focus. Off only inside an
+   * `aria-hidden` region that an `sr-only` summary already covers — see the
+   * note on Tooltip's own `focusable`.
+   */
+  tooltipFocusable?: boolean;
 }
 
 /**
@@ -53,6 +59,7 @@ export function DriverBadge({
   size = 'md',
   showNumber = false,
   prerenderTooltip,
+  tooltipFocusable,
 }: DriverBadgeProps) {
   const color = (team && TEAM_COLORS[team]) || FALLBACK_TEAM_COLOR;
   const hasTooltip = displayName || number != null || team || nationality;
@@ -140,6 +147,7 @@ export function DriverBadge({
       <Tooltip
         content={tooltipContent}
         prerender={prerenderTooltip ?? !!nationality}
+        focusable={tooltipFocusable}
       >
         {badge}
       </Tooltip>

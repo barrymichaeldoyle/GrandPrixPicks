@@ -139,6 +139,27 @@ const RACE_LOCATIONS: Record<string, RaceLocation> = {
   },
 };
 
+/**
+ * Overrides keyed by the *full* slug, checked before the prefix map. A Grand
+ * Prix keeps its commercial name when it moves venue for a season, so the
+ * prefix would otherwise send Google the wrong circuit and country. Mirrors
+ * the override table in `@grandprixpicks/shared/raceTimezones`.
+ */
+const RACE_LOCATION_OVERRIDES: Record<string, RaceLocation> = {
+  // The 2026 Bahrain GP is run at Sepang after Bahrain's own round was called
+  // off. A future Bahrain GP at Sakhir must still resolve to Bahrain.
+  'bahrain-2026': {
+    circuit: 'Sepang International Circuit',
+    locality: 'Kuala Lumpur',
+    country: 'Malaysia',
+  },
+};
+
 export function getRaceLocation(slug: string): RaceLocation | null {
-  return RACE_LOCATIONS[slug.replace(/-\d{4}$/, '')] ?? null;
+  const normalized = slug.toLowerCase();
+  return (
+    RACE_LOCATION_OVERRIDES[normalized] ??
+    RACE_LOCATIONS[normalized.replace(/-\d{4}$/, '')] ??
+    null
+  );
 }

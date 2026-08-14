@@ -29,6 +29,7 @@ import {
   fetchInitialAuth,
   InitialAuthProvider,
 } from '@/integrations/clerk/initial-auth';
+import { isClerkFreeRoute } from '@/integrations/clerk/clerk-free-routes';
 import { preloadClerkRuntime } from '@/integrations/clerk/preload';
 import {
   ClerkRuntimeControlProvider,
@@ -455,11 +456,13 @@ function AppRuntimeBoundary({
     '/leagues/create' | null
   >(null);
 
-  // Every route except a signed-out landing page renders inside Clerk from the
-  // first paint, so for them this boundary is exactly what it always was.
+  // Signed-out visitors to public content render without Clerk on the page at
+  // all; everyone else renders inside it from the first paint, exactly as
+  // before. `initialSignedIn` is checked first so a signed-in viewer never
+  // takes the anonymous branch on a route that happens to be public.
   const clerkRequired =
     initialSignedIn ||
-    pathname !== '/' ||
+    !isClerkFreeRoute(pathname) ||
     returningFromClerk ||
     signedInViaModal;
 

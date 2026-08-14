@@ -365,6 +365,37 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
  *
  * @param slug — the race slug, with or without its season suffix
  */
+/**
+ * Overrides keyed by the *full* slug, checked before the prefix map. A Grand
+ * Prix that keeps its name while moving venue needs the guide for the ground
+ * it is actually run on, not for the country on the entry list. Mirrors the
+ * override tables in `raceLocations.ts` and `@grandprixpicks/shared/raceTimezones`.
+ */
+const CIRCUIT_GUIDE_OVERRIDES: Record<string, CircuitGuide> = {
+  // The 2026 Bahrain GP is run at Sepang. A future Bahrain GP at Sakhir would
+  // want its own `bahrain` prefix entry rather than this one.
+  'bahrain-2026': {
+    character:
+      'Sepang is a Hermann Tilke design from 1999 that hosted Formula 1 until 2017, and it returns as the venue for a Grand Prix carrying another country\u2019s name. It is a proper permanent circuit with generous run-off, enormous width and a surface that has aged into something abrasive. Heat and humidity sit close to Singapore levels, but here they are endured in daylight.',
+    layout:
+      'Two very long straights joined by a hairpin give the lap its shape, and either side of them is a sequence of fast, wide, constant-radius corners that reward a car with aerodynamic load at speed. The width is the defining feature: there is almost always more than one line through a corner, and a driver can commit to an unusual entry without being punished for it.',
+    racing:
+      'Among the easier tracks on the calendar to pass on. The braking zones at the end of both straights are heavy and wide enough to permit a move that goes slightly wrong, so drivers attempt passes here that they would not risk elsewhere. Tyre degradation on the abrasive surface is high, which spreads strategies apart, and tropical afternoon rain is a genuine and frequent possibility rather than a footnote.',
+      predicting:
+      'This is one of the least sticky rounds you will predict all year. Qualifying matters less than usual because the layout genuinely allows recovery, degradation opens up strategy, and the chance of a downpour rearranging everything is real. Nobody on the current grid has raced a Grand Prix here, so track-specific form is no guide. Lean on outright car pace over qualifying position, and treat the lower half of your Top 5 as close to a coin toss.',
+    traits: [
+      { label: 'Track type', value: 'Permanent (tropical)' },
+      { label: 'Overtaking', value: 'Easy' },
+      { label: 'Upset risk', value: 'High' },
+    ],
+  },
+};
+
 export function getCircuitGuide(slug: string): CircuitGuide | null {
-  return CIRCUIT_GUIDES[slug.replace(/-\d{4}$/, '')] ?? null;
+  const normalized = slug.toLowerCase();
+  return (
+    CIRCUIT_GUIDE_OVERRIDES[normalized] ??
+    CIRCUIT_GUIDES[normalized.replace(/-\d{4}$/, '')] ??
+    null
+  );
 }

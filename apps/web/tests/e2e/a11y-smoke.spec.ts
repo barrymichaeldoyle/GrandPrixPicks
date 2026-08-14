@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectNoA11yViolations } from './helpers/a11y';
+import { waitForHydration } from './helpers/hydration';
 
 /**
  * One pass per distinct layout, not per route.
@@ -24,7 +25,15 @@ test.describe('[public] a11y smoke', () => {
       // Axe reads the composed document, so it has to run against the page as
       // a reader gets it — after the client has filled in whatever SSR left
       // blank, not on the first frame of markup.
-      await expect(page.locator('main')).toBeVisible();
+      //
+      // Waiting for hydration rather than for `main` to be visible, because
+      // `main` is server-rendered and therefore visible long before React owns
+      // it. Running axe in that window cost a "Execution context was destroyed"
+      // failure on CI's slower runner: a navigation the router had not finished
+      // making yet tore the context out from under it mid-analysis.
+      const main = page.locator('main');
+      await expect(main).toBeVisible();
+      await waitForHydration(main);
       await expectNoA11yViolations(page);
     });
   }

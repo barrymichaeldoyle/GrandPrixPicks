@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prod=false
 
+      # oxfmt follows the CSS import graph, and `tokens.generated.css` is
+      # generated rather than committed, so on a fresh checkout it cannot
+      # resolve it and errors before formatting anything.
+      - name: Generate design tokens
+        run: pnpm --filter @grandprixpicks/shared generate-tokens
+
       - name: Check formatting
         run: pnpm format:check
 

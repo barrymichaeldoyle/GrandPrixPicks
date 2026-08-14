@@ -48,7 +48,7 @@ export function PurchaseSuccessBanner({
         </button>
       </div>
       <p className="mt-3 text-sm text-text-muted">
-        <Link to="/leagues" className="text-accent hover:underline">
+        <Link to="/leagues" className="text-accent underline">
           Go to leagues
         </Link>{' '}
         to create or join leagues with your new limits.

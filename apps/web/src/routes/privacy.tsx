@@ -148,11 +148,11 @@ function PrivacyPage() {
             <p>
               For privacy-related questions or requests, including access and
               deletion, email{' '}
-              <a href={SUPPORT_MAILTO} className="text-accent hover:underline">
+              <a href={SUPPORT_MAILTO} className="text-accent underline">
                 {SUPPORT_EMAIL}
               </a>{' '}
               or use the{' '}
-              <Link to="/support" className="text-accent hover:underline">
+              <Link to="/support" className="text-accent underline">
                 support form
               </Link>
               .

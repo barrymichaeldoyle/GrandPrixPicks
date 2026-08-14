@@ -133,7 +133,7 @@ function TermsPage() {
             <p>
               Refunds for paid products are handled in accordance with
               Paddle&apos;s refund policy and buyer terms. Please see our{' '}
-              <Link to="/refund-policy" className="text-accent hover:underline">
+              <Link to="/refund-policy" className="text-accent underline">
                 Refund Policy
               </Link>{' '}
               page for details on how to request a refund.
@@ -144,11 +144,11 @@ function TermsPage() {
             <h2 className="mb-2 text-xl font-semibold text-text">9. Contact</h2>
             <p>
               For questions about these terms or the app, contact us at{' '}
-              <a href={SUPPORT_MAILTO} className="text-accent hover:underline">
+              <a href={SUPPORT_MAILTO} className="text-accent underline">
                 {SUPPORT_EMAIL}
               </a>{' '}
               or via the{' '}
-              <Link to="/support" className="text-accent hover:underline">
+              <Link to="/support" className="text-accent underline">
                 Support page
               </Link>
               .

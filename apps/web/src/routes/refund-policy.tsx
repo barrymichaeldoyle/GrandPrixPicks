@@ -68,7 +68,7 @@ function RefundPolicyPage() {
             </p>
             <p>
               You can also{' '}
-              <Link to="/support" className="text-accent hover:underline">
+              <Link to="/support" className="text-accent underline">
                 contact us
               </Link>{' '}
               and we will help direct your request. We cannot process or refuse
@@ -85,7 +85,7 @@ function RefundPolicyPage() {
             <p>
               If you were charged twice for the same season, or bought a Season
               Pass you did not intend to,{' '}
-              <Link to="/support" className="text-accent hover:underline">
+              <Link to="/support" className="text-accent underline">
                 get in touch
               </Link>
               . Please raise it before starting a chargeback with your bank: a

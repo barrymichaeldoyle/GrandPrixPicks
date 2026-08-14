@@ -46,6 +46,9 @@ export default defineConfig({
         /auth\.setup\.ts$/,
         /public-smoke\.spec\.ts$/,
         /seo-smoke\.spec\.ts$/,
+        // Signed-out pages, so running them again with a session attached
+        // would double the runtime to re-check the same DOM.
+        /a11y-smoke\.spec\.ts$/,
       ],
     },
   ],

@@ -30,7 +30,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=dot",
     "test:e2e": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts",
-    "test:e2e:smoke": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts tests/e2e/public-smoke.spec.ts tests/e2e/seo-smoke.spec.ts tests/e2e/auth-smoke.spec.ts tests/e2e/prediction-flow-smoke.spec.ts --project=public-chromium --project=auth-chromium --workers=1",
+    "test:e2e:smoke": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts tests/e2e/public-smoke.spec.ts tests/e2e/seo-smoke.spec.ts tests/e2e/a11y-smoke.spec.ts tests/e2e/auth-smoke.spec.ts tests/e2e/prediction-flow-smoke.spec.ts --project=public-chromium --project=auth-chromium --workers=1",
     "test:e2e:headed": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts --headed",
     "test:e2e:ui": "dotenv -e ../../.env.local -e ../../.env.test -- pnpm exec playwright test -c playwright.config.ts --ui",
     "dev:signin": "dotenv -e ../../.env.local -- pnpm exec tsx scripts/dev-signin.ts",
@@ -89,6 +89,7 @@
     "tailwindcss": "4.3.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@rolldown/plugin-babel": "0.2.3",
     "@sentry/vite-plugin": "5.4.0",
     "@storybook/addon-vitest": "10.5.7",

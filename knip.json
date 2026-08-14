@@ -18,9 +18,18 @@
         "instrument.server.mjs",
         "server/routes/**/*.ts",
         "server/middleware/**/*.ts",
-        "server/error.ts"
+        "server/error.ts",
+        // Playwright specs are entry points: nothing imports them, the runner
+        // discovers them. Without this the e2e tree is invisible to knip, and
+        // a dependency only the specs use reads as unused.
+        "tests/e2e/**/*.spec.ts",
+        "tests/e2e/**/*.setup.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}", "server/**/*.{ts,tsx}"],
+      "project": [
+        "src/**/*.{ts,tsx}",
+        "server/**/*.{ts,tsx}",
+        "tests/**/*.{ts,tsx}"
+      ],
       "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss"],
       "ignoreBinaries": ["cloudflared"]
     },

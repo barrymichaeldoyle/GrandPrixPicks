@@ -272,11 +272,11 @@ function PricingPage() {
             <p className="mb-2 text-sm text-text-muted">
               If you purchase and change your mind, refunds are handled in
               accordance with Paddle&apos;s refund policy. See our{' '}
-              <Link to="/refund-policy" className="text-accent hover:underline">
+              <Link to="/refund-policy" className="text-accent underline">
                 Refund Policy
               </Link>{' '}
               and{' '}
-              <Link to="/terms" className="text-accent hover:underline">
+              <Link to="/terms" className="text-accent underline">
                 Terms of Service
               </Link>{' '}
               for details.

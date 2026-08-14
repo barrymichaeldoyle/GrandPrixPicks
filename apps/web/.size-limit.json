@@ -1,0 +1,22 @@
+[
+  {
+    "name": "client entry (index)",
+    "path": "dist/assets/index-*.js",
+    "limit": "104 KB"
+  },
+  {
+    "name": "motion engine (must stay lazy)",
+    "path": "dist/assets/motionFeatures-*.js",
+    "limit": "26 KB"
+  },
+  {
+    "name": "react vendor",
+    "path": "dist/assets/react-*.js",
+    "limit": "52 KB"
+  },
+  {
+    "name": "all client JS",
+    "path": "dist/assets/*.js",
+    "limit": "500 KB"
+  }
+]

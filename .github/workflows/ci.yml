@@ -236,6 +236,11 @@ jobs:
       - name: Build web
         run: pnpm --filter @grandprixpicks/web build
 
+      # Runs before the server starts: it only reads the build output, and a
+      # payload regression is worth reporting even if the app fails to boot.
+      - name: Check bundle size
+        run: pnpm --filter @grandprixpicks/web check:size
+
       - name: Serve the built app
         run: |
           nohup pnpm --filter @grandprixpicks/web start > /tmp/web-server.log 2>&1 &

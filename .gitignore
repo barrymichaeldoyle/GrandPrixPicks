@@ -52,3 +52,6 @@ debug-storybook.log
 /.design-sync/node_modules
 /.design-sync/ds-package/types/
 /.design-sync/*.log
+
+# Lighthouse CI run output
+.lighthouseci

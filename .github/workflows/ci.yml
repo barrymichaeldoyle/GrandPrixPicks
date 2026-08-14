@@ -259,6 +259,17 @@ jobs:
       - name: Check for orphaned pages
         run: pnpm --filter @grandprixpicks/web check:orphans
 
+      - name: Lighthouse budgets
+        run: pnpm check:lighthouse
+
+      - name: Upload Lighthouse reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci
+          if-no-files-found: ignore
+
       # The server log is where an SSR throw shows up, and an SSR throw is the
       # failure mode this job exists to catch.
       - name: Server log

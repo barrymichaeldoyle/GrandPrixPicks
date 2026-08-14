@@ -5,7 +5,10 @@
     // Tooling for the claude.ai/design sync, none of which is imported by the
     // app: `check-spec-drift.mjs` is run by hand (see .design-sync/spec/README.md)
     // and `ds-package/*` are entry points the sync's own build consumes.
-    ".design-sync/**"
+    ".design-sync/**",
+    // Read by the `lhci` binary via --config, so nothing imports it. knip has
+    // no built-in plugin for Lighthouse CI to infer that from.
+    "lighthouserc.cjs"
   ],
   "ignoreIssues": {
     "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"],

@@ -30,6 +30,7 @@
     "lint": "pnpm --filter @grandprixpicks/web lint && pnpm --filter @grandprixpicks/backend lint && pnpm --filter @grandprixpicks/mobile lint && pnpm --filter @grandprixpicks/reddit lint",
     "lint:fix": "pnpm --filter @grandprixpicks/web lint:fix && pnpm --filter @grandprixpicks/backend lint:fix && pnpm --filter @grandprixpicks/mobile lint:fix && pnpm --filter @grandprixpicks/reddit lint:fix",
     "knip": "knip",
+    "check:lighthouse": "lhci autorun --config=lighthouserc.cjs",
     "ci:check": "pnpm audit && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm test:mobile && pnpm knip",
     "storybook": "pnpm --filter @grandprixpicks/web storybook",
     "build-storybook": "pnpm --filter @grandprixpicks/web build-storybook",
@@ -50,6 +51,7 @@
     "test:web": "pnpm --filter @grandprixpicks/web test"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "1.62.1",
     "knip": "6.32.2",
     "oxfmt": "0.63.0",

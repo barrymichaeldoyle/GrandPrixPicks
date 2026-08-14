@@ -1,4 +1,3 @@
-import { m } from 'framer-motion';
 import type { CSSProperties } from 'react';
 
 import { displayTeamName } from '@/lib/display';
@@ -82,19 +81,18 @@ export function H2HPicksBar({
         }`;
 
         // Re-keying on the code replays the settle, so a cell visibly takes the
-        // driver's name the instant the call is made.
+        // driver's name the instant the call is made. The key change remounts
+        // the span, which restarts the CSS animation the same way it restarted
+        // the JS one, so this needs no engine.
         const cellContent = (
-          <m.span
+          <span
             key={picked ? picked.code : 'open'}
-            initial={{ opacity: 0, y: 3 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-            className={`gpp-mono truncate text-xs leading-none sm:text-[10px] md:text-xs ${
+            className={`gpp-row-in gpp-mono truncate text-xs leading-none sm:text-[10px] md:text-xs ${
               picked ? 'text-text' : 'text-text-muted'
             }`}
           >
             {picked ? picked.code : index + 1}
-          </m.span>
+          </span>
         );
 
         if (!interactive) {

@@ -6,7 +6,6 @@ import {
 } from '@grandprixpicks/shared/driverStatus';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
-import { m } from 'framer-motion';
 import { ChevronDown, ChevronUp, Gavel, Swords, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
@@ -426,19 +425,20 @@ export function H2HResultsSection({
               6-driver one. Collapsed state is height 0 plus inert.
             */}
             {remainingRows.length > 0 && (
-              <m.div
-                key="full-results"
-                initial={false}
-                animate={{
-                  height: fullResultsExpanded ? 'auto' : 0,
-                  opacity: fullResultsExpanded ? 1 : 0,
-                }}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
+              // Height animates via grid-template-rows (0fr/1fr) rather than a
+              // measured pixel height, which is the same trick the announcement
+              // banner uses: it lets the row size itself to content without
+              // anything having to measure it, so no engine is involved.
+              <div
                 aria-hidden={!fullResultsExpanded}
                 inert={!fullResultsExpanded}
-                className="overflow-hidden"
+                className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                  fullResultsExpanded
+                    ? 'grid-rows-[1fr] opacity-100'
+                    : 'grid-rows-[0fr] opacity-0'
+                }`}
               >
-                <div className="grid gap-x-1 md:grid-cols-2">
+                <div className="grid min-h-0 gap-x-1 md:grid-cols-2">
                   {remainingColumns.map((column, index) => (
                     <div
                       key={index}
@@ -490,7 +490,7 @@ export function H2HResultsSection({
                   <ChevronUp size={14} />
                   Hide full results
                 </button>
-              </m.div>
+              </div>
             )}
           </div>
           <div className="flex items-center justify-between gap-2 pt-2">

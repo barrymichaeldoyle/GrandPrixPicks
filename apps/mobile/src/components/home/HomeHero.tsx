@@ -53,7 +53,11 @@ function getFeatured(
     return null;
   }
   const race = sorted[upcomingIndex];
-  const round = upcomingIndex + 1;
+  // The round is the backend's, not this list's. Deriving it from the sorted
+  // index assumed the list was always a complete season numbered from one, so
+  // any gap, filter or extra entry shifted every round number on the hero: dev
+  // renders 25 races and showed the round 12 Dutch GP as "ROUND 14".
+  const round = race.round;
   let nextSession: NextSession | null = null;
   for (const session of race.sessions) {
     const startAt = new Date(session.startsAt).getTime();

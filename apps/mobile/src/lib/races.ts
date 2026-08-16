@@ -38,6 +38,7 @@ export function mapConvexRaceToWeekend(
     country: race.name.split(' ')[0] ?? race.name,
     hasSprint,
     name: race.name,
+    round: race.round,
     sessions: getSessionsForWeekend(hasSprint).map((sessionType) => ({
       startsAt: sessionStartsByType[sessionType],
       type: sessionType,

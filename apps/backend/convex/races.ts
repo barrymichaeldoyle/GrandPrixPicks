@@ -24,6 +24,25 @@ const raceStatusValidator = v.union(
   v.literal('finished'),
 );
 
+/**
+ * How long a `locked` race stays the current weekend, measured from its race
+ * start (`predictionLockAt`).
+ *
+ * `locked` only clears when the race session's result is published, in
+ * results.ts. A weekend whose result never lands therefore stays `locked`
+ * forever, and without a bound here it pins the picks surface to that race for
+ * good: the home countdown moves on to the next round while the picks screen
+ * sits on a months-old locked weekend. That is not hypothetical, it is what the
+ * dev deployment does today with round 3 still locked from March.
+ *
+ * 72 hours is the full automatic reconciliation window from
+ * lib/recheckSchedule (3h + 9h + 60h). While reconciliation is still running
+ * the weekend is genuinely live and should stay in front of the player. Past
+ * it, a race still marked `locked` is stuck rather than current, so fall
+ * through to the next upcoming race.
+ */
+const LOCKED_WEEKEND_GRACE_MS = 72 * 60 * 60 * 1000;
+
 type PredictionRace = {
   _id: string;
   season: number;
@@ -38,7 +57,11 @@ export function findQuickPickRace<T extends PredictionRace>(
 ): T | null {
   const lockedRace =
     races
-      .filter((race) => race.status === 'locked')
+      .filter(
+        (race) =>
+          race.status === 'locked' &&
+          race.predictionLockAt > now - LOCKED_WEEKEND_GRACE_MS,
+      )
       .sort((a, b) => b.predictionLockAt - a.predictionLockAt)[0] ?? null;
 
   return lockedRace ?? findNextPredictionRace(races, now);
@@ -156,7 +179,9 @@ export const getQuickPickRace = query({
     const lockedRace = await ctx.db
       .query('races')
       .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'locked'),
+        q
+          .eq('status', 'locked')
+          .gt('predictionLockAt', now - LOCKED_WEEKEND_GRACE_MS),
       )
       .order('desc')
       .first();
@@ -198,7 +223,9 @@ export const getCurrentWeekend = query({
     const lockedRace = await ctx.db
       .query('races')
       .withIndex('by_status_and_predictionLockAt', (q) =>
-        q.eq('status', 'locked'),
+        q
+          .eq('status', 'locked')
+          .gt('predictionLockAt', now - LOCKED_WEEKEND_GRACE_MS),
       )
       .order('desc')
       .first();

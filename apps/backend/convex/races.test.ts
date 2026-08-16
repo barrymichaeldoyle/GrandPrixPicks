@@ -138,6 +138,67 @@ describe('findQuickPickRace', () => {
       currentRace,
     );
   });
+
+  it('moves on once a locked race is stale enough to be stuck, not live', () => {
+    // A race whose result never published stays 'locked' forever, because
+    // only publishing the race session clears it. Without a bound, that race
+    // pins the picks surface for good while the rest of the app counts down
+    // to the next round.
+    const now = 100 * 24 * 60 * 60 * 1000;
+    const strandedRace = {
+      _id: 'r1',
+      season: 2026,
+      round: 3,
+      status: 'locked',
+      predictionLockAt: now - 73 * 60 * 60 * 1000,
+    };
+    const nextRace = {
+      _id: 'r2',
+      season: 2026,
+      round: 14,
+      status: 'upcoming',
+      predictionLockAt: now + 5 * 24 * 60 * 60 * 1000,
+    };
+
+    expect(findQuickPickRace([strandedRace, nextRace], now)).toEqual(nextRace);
+  });
+
+  it('still prefers a locked race inside the reconciliation window', () => {
+    // The mirror of the case above: results are pending but reconciliation is
+    // still running, so the weekend is genuinely live and stays in front.
+    const now = 100 * 24 * 60 * 60 * 1000;
+    const justRacedRace = {
+      _id: 'r1',
+      season: 2026,
+      round: 13,
+      status: 'locked',
+      predictionLockAt: now - 71 * 60 * 60 * 1000,
+    };
+    const nextRace = {
+      _id: 'r2',
+      season: 2026,
+      round: 14,
+      status: 'upcoming',
+      predictionLockAt: now + 5 * 24 * 60 * 60 * 1000,
+    };
+
+    expect(findQuickPickRace([justRacedRace, nextRace], now)).toEqual(
+      justRacedRace,
+    );
+  });
+
+  it('falls back to nothing when the only race is a stranded locked one', () => {
+    const now = 100 * 24 * 60 * 60 * 1000;
+    const strandedRace = {
+      _id: 'r1',
+      season: 2026,
+      round: 3,
+      status: 'locked',
+      predictionLockAt: now - 90 * 24 * 60 * 60 * 1000,
+    };
+
+    expect(findQuickPickRace([strandedRace], now)).toBeNull();
+  });
 });
 
 describe('getPredictionOpenAtFromRaces', () => {

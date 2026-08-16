@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/expo';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';

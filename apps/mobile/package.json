@@ -24,7 +24,7 @@
     "prebuild:ios": "pnpm generate-tokens && expo prebuild --platform ios"
   },
   "dependencies": {
-    "@clerk/clerk-expo": "2.20.0",
+    "@clerk/expo": "4.3.0",
     "@expo-google-fonts/archivo": "^0.4.2",
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo/vector-icons": "15.1.1",
@@ -32,25 +32,26 @@
     "@react-navigation/bottom-tabs": "7.18.16",
     "@react-navigation/native": "7.3.16",
     "@react-navigation/native-stack": "7.18.8",
-    "@sentry/react-native": "~8.22.0",
+    "@sentry/react-native": "~8.23.0",
     "@tailwindcss/postcss": "^4.3.3",
     "clsx": "^2.1.1",
     "convex": "catalog:",
-    "convex-helpers": "0.1.122",
-    "expo": "~57.0.4",
+    "convex-helpers": "0.1.123",
+    "expo": "~57.0.13",
     "expo-apple-authentication": "~57.0.0",
     "expo-application": "~57.0.0",
-    "expo-auth-session": "~57.0.2",
-    "expo-constants": "~57.0.3",
+    "expo-auth-session": "~57.0.7",
+    "expo-constants": "~57.0.11",
     "expo-device": "~57.0.0",
-    "expo-file-system": "~57.0.0",
+    "expo-file-system": "~57.0.4",
     "expo-font": "~57.0.0",
     "expo-haptics": "~57.0.0",
     "expo-localization": "~57.0.0",
-    "expo-notifications": "~57.0.3",
+    "expo-notifications": "~57.0.11",
     "expo-secure-store": "~57.0.0",
+    "expo-splash-screen": "~57.0.6",
     "expo-status-bar": "~57.0.0",
-    "expo-store-review": "~57.0.0",
+    "expo-store-review": "~57.0.2",
     "expo-system-ui": "~57.0.2",
     "expo-web-browser": "~57.0.0",
     "nativewind": "5.0.0-preview.2",
@@ -60,7 +61,7 @@
     "react-native": "0.86.2",
     "react-native-css": "3.0.7",
     "react-native-draggable-flatlist": "^4.0.3",
-    "react-native-gesture-handler": "3.1.0",
+    "react-native-gesture-handler": "3.2.1",
     "react-native-mmkv": "^4.3.2",
     "react-native-nitro-modules": "^0.36.5",
     "react-native-reanimated": "4.5.1",
@@ -72,12 +73,24 @@
     "tailwindcss": "^4.3.3"
   },
   "expo": {
+    "autolinking": {
+      "exclude": [
+        "@clerk/expo"
+      ]
+    },
     "install": {
       "exclude": [
         "react",
         "react-dom",
-        "typescript"
+        "typescript",
+        "@sentry/react-native",
+        "react-native-gesture-handler"
       ]
+    },
+    "doctor": {
+      "appConfigFieldsNotSyncedCheck": {
+        "enabled": false
+      }
     }
   },
   "devDependencies": {

@@ -1,10 +1,19 @@
-import {
-  useAuth,
-  useClerk,
-  useSignIn,
-  useSignUp,
-  useSSO,
-} from '@clerk/clerk-expo';
+import { useAuth, useClerk, useSSO } from '@clerk/expo';
+/*
+ * `useSignIn` / `useSignUp` come from `@clerk/expo/legacy`.
+ *
+ * Clerk Core 3 replaced the default exports of these two hooks with a
+ * signals API: `useSignIn()` now returns a `SignInSignalValue` with no
+ * `isLoaded`, and the create/attempt calls resolve to `{ error }` instead of
+ * a resource carrying `status` and `createdSessionId`. Every other Clerk
+ * hook kept its shape across the major.
+ *
+ * The legacy entry point is Clerk's own supported path for exactly this, and
+ * it keeps the custom email + SSO flows below behaving identically through
+ * the upgrade. Moving them to the signals API is a separate piece of work,
+ * worth doing deliberately rather than folding into a package rename.
+ */
+import { useSignIn, useSignUp } from '@clerk/expo/legacy';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useRef, useState } from 'react';

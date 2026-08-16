@@ -21,7 +21,15 @@
       "@sentry/react-native",
       "expo-localization",
       "./plugins/withSentryPnpmWorkaround.cjs",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#101113"
+        }
+      ]
     ],
     "ios": {
       "bundleIdentifier": "com.barrymichaeldoyle.grandprixpicks",
@@ -48,11 +56,6 @@
     "owner": "barrymichaeldoyle",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#101113",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#101113"
-    }
+    "backgroundColor": "#101113"
   }
 }

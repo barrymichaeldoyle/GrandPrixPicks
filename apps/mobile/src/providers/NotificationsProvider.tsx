@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/expo';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
 import { useMutation } from 'convex/react';

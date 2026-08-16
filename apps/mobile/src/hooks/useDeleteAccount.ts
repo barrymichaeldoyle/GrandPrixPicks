@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/expo';
 import { useMutation } from 'convex/react';
 
 import { api } from '../integrations/convex/api';

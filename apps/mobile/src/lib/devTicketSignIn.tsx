@@ -1,4 +1,8 @@
-import { useClerk, useSignIn } from '@clerk/clerk-expo';
+import { useClerk } from '@clerk/expo';
+// Legacy entry point: Core 3's default `useSignIn` is the signals API, which
+// has no `isLoaded` and no `createdSessionId`. See SignInScreen for the full
+// note.
+import { useSignIn } from '@clerk/expo/legacy';
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
 

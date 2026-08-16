@@ -83,11 +83,13 @@ and play the season out against your friends.
 
 ## App Review Information
 
-**A demo account is required.** The app opens on a sign-in screen, and a
-reviewer with no way in is the single most common cause of a first rejection.
-Create a real account, put the credentials in App Review Information, and make
-sure it has picks and a league so the reviewer sees a populated app rather than
-empty states.
+**Supply a demo account anyway.** The app no longer opens on a sign-in
+screen: home, picks, leaderboard and the feed are all browsable signed out, so
+a reviewer can reach the product without an account. Settings and notifications
+still gate, and only a signed-in account shows submitted picks, a personal
+standing and the notification bell. Create a real account with picks against
+the current round, put the credentials in App Review Information, and the
+reviewer sees a populated app rather than empty states.
 
 Notes worth adding for the reviewer:
 
@@ -108,7 +110,8 @@ standing only, with no prize.
 
 ## Privacy nutrition labels
 
-Declare what is actually collected:
+Declare what is actually collected. The same five types are declared in
+`ios/GrandPrixPicks/PrivacyInfo.xcprivacy`, so keep the two in step:
 
 | Data                                    | Purpose                        | Linked to identity |
 | --------------------------------------- | ------------------------------ | ------------------ |
@@ -146,6 +149,27 @@ xcrun simctl launch booted com.barrymichaeldoyle.grandprixpicks
 xcrun simctl io booted screenshot 01-home.png
 ```
 
+Two things that will otherwise cost you an afternoon. The dev client
+auto-connects to whatever Metro is on **port 8081**, so another project's
+bundler on that port will be loaded instead of this one, and the app will crash
+on someone else's bundle. Start Metro before anything else, or stop the other
+one.
+
+Navigation does not need the simulator's UI. Every top-level screen has a deep
+link, and `simctl openurl` drives them headlessly, which is what makes an
+unattended capture run possible:
+
+```sh
+xcrun simctl openurl booted grandprixpicks://predict
+xcrun simctl openurl booted grandprixpicks://leaderboard
+xcrun simctl openurl booted grandprixpicks://more
+xcrun simctl openurl booted grandprixpicks://more/settings
+```
+
+A session survives an app uninstall, because the Clerk token cache lives in the
+iOS keychain and the keychain outlives the app. To capture genuine signed-out
+screens, `xcrun simctl erase` the device first.
+
 Tokens expire after 300 seconds, so mint one per run. `simctl openurl` with
 `grandprixpicks://dev-signin?ticket=...` works too, but iOS puts a confirmation
 sheet in front of custom-scheme opens, which is why the environment variable
@@ -161,8 +185,11 @@ Suggested order, because the first two are what people actually see in search:
 2. **The weekend.** Session tabs with a countdown to the next lock.
 3. **Team-mate duels.** The H2H grid, part answered.
 4. **Leaderboard.** Season standings with a few real names.
-5. **A league.** Private league standings, to show it is social.
-6. **The feed.** Reactions on somebody's picks.
+5. **The feed.** Reactions on somebody's picks, to show it is social.
+
+Leagues are deliberately absent from this list: they are managed on the web,
+and the More tab links out rather than rendering them. There is no league
+screen in the app to photograph.
 
 Captions should say what the screen does, not name it: "Rank the top five
 before the session locks" beats "Picks".
@@ -172,8 +199,9 @@ before the session locks" beats "Picks".
 - Set the nine `EXPO_PUBLIC_*` variables plus the three Sentry ones on the EAS
   production environment. See RELEASE.md; a missing value ships as `undefined`
   and nothing fails loudly.
-- Check `pnpm --filter @grandprixpicks/mobile lint` passes, which now includes
-  the native icon check.
-- Consider letting the app be browsed without an account. Guideline 5.1.1(v)
-  asks that apps not require registration for content that does not need it,
-  and the web already does try-before-signup. Reviewers see a login wall today.
+- Check `pnpm --filter @grandprixpicks/mobile lint` passes. It includes the
+  native asset check, which covers the app icon, the Info.plist keys app.json
+  owns, and the push entitlement for the Release configuration.
+- Guideline 5.1.1(v) is covered on both counts: the app is browsable without
+  an account, and Settings has a working Delete account that removes the Clerk
+  user and its data. Nothing to do here beyond not regressing it.

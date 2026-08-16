@@ -35,6 +35,19 @@ eas env:create --environment production --name SENTRY_ORG --value <org>
 eas env:create --environment production --name SENTRY_PROJECT --value <project>
 ```
 
+**Setting those three is not enough on its own.** `ios/.xcode.env` is tracked
+in this repo and contains `export SENTRY_DISABLE_AUTO_UPLOAD=true`, written by
+`plugins/withSentryPnpmWorkaround.cjs` back when @sentry/react-native 7.x could
+not resolve @sentry/cli under pnpm. The upload step runs and does nothing, so
+crashes still arrive minified with the secrets apparently configured and no
+error anywhere.
+
+We are on 8.x now, which is the release that fixed that resolution. On the
+first production build that has the three secrets set, drop the plugin from
+`app.json`, delete the block from `ios/.xcode.env`, and confirm the build log
+shows a real upload. Replace the workaround with something that works rather
+than leaving an unverified one in place.
+
 ## Building
 
 ```sh
@@ -58,7 +71,18 @@ it simply shipped blank.
 
 After changing anything in `app.json` that affects native config (icons, splash,
 plugins, permissions), either run `npx expo prebuild --platform ios` and commit
-the result, or update the native file by hand and check it. The icons
+the result, or update the native file by hand and check it.
+
+`scripts/check-native-assets.mjs` runs as part of `pnpm lint` and pins the
+specific facts that have bitten: the app icon, the Info.plist keys app.json
+claims to own, and the push entitlement per build configuration. That last one
+matters most, because Debug and Release shared a single entitlements file
+asking for the development APNs gateway, and a store build made from it
+registers sandbox tokens and silently delivers no notifications at all.
+
+expo-doctor's own app-config check is disabled in `package.json`: it cannot be
+satisfied while `ios/` is tracked, and an advisory nobody can action is worse
+than none. The check above is the actionable part of it, enforced. The icons
 themselves are generated from the shared brand mark by
 `apps/web/scripts/render-logo-png.mjs`, so regenerate there rather than editing
 PNGs.

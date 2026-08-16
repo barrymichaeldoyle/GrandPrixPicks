@@ -102,9 +102,17 @@ const PLIST_EXPECTATIONS = [
   },
 ];
 
-const [appJsonRaw, plistRaw] = await Promise.all([
+const PBXPROJ = path.join(
+  APP_ROOT,
+  'ios',
+  'GrandPrixPicks.xcodeproj',
+  'project.pbxproj',
+);
+
+const [appJsonRaw, plistRaw, pbxproj] = await Promise.all([
   readFile(APP_JSON, 'utf8'),
   readFile(INFO_PLIST, 'utf8'),
+  readFile(PBXPROJ, 'utf8'),
 ]);
 const { expo } = JSON.parse(appJsonRaw);
 
@@ -142,6 +150,61 @@ if (drift.length > 0) {
       drift.join('\n') +
       '\n\nThe native file is what actually ships. Sync it with\n' +
       '`npx expo prebuild --platform ios`, or edit Info.plist to match.',
+  );
+  process.exit(1);
+}
+
+/**
+ * Push environment, per build configuration.
+ *
+ * Both configurations pointed at the same entitlements file, which asks for
+ * the development APNs gateway. A store build made from that registers sandbox
+ * tokens against the production gateway, so every notification fails to
+ * deliver and nothing says so: the build succeeds, the app installs, and push
+ * is simply dead. `ios/` is committed, so no prebuild will correct it either.
+ *
+ * expo-doctor's app-config check is switched off for this project because it
+ * cannot be satisfied while ios/ is tracked. This is the part of it that
+ * actually matters, enforced instead of advised.
+ */
+const ENTITLEMENTS = [
+  { config: 'Debug', file: 'GrandPrixPicks.entitlements', aps: 'development' },
+  {
+    config: 'Release',
+    file: 'GrandPrixPicksRelease.entitlements',
+    aps: 'production',
+  },
+];
+
+const apsDrift = [];
+for (const { config, file, aps } of ENTITLEMENTS) {
+  const entitlementsPath = path.join(APP_ROOT, 'ios', 'GrandPrixPicks', file);
+  const raw = await readFile(entitlementsPath, 'utf8').catch(() => null);
+  if (raw === null) {
+    apsDrift.push(`  ${config}: missing ${file}`);
+    continue;
+  }
+  const actual = readScalar(raw, 'aps-environment');
+  if (actual !== aps) {
+    apsDrift.push(
+      `  ${config}: ${file} has aps-environment ${JSON.stringify(actual)}, expected ${JSON.stringify(aps)}`,
+    );
+  }
+
+  const referenced = pbxproj.includes(
+    `CODE_SIGN_ENTITLEMENTS = GrandPrixPicks/${file};`,
+  );
+  if (!referenced) {
+    apsDrift.push(`  ${config}: project.pbxproj does not reference ${file}`);
+  }
+}
+
+if (apsDrift.length > 0) {
+  console.error(
+    'Push entitlements are wrong for the build configuration:\n\n' +
+      apsDrift.join('\n') +
+      '\n\nA Release build with aps-environment development registers sandbox\n' +
+      'push tokens, and every notification silently fails in production.',
   );
   process.exit(1);
 }

@@ -14,7 +14,6 @@
           "icon": "./assets/notification-icon.png"
         }
       ],
-      "expo-apple-authentication",
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",

@@ -17,6 +17,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { FeedScreen } from '../screens/feed/FeedScreen';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import { flushPendingPushRoute } from '../lib/pushRouting';
+import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
 import { Text, View } from '../tw';
@@ -78,6 +79,8 @@ function BrandHeaderTitle() {
 }
 
 function PicksStackNavigator() {
+  const isSignedIn = useIsSignedIn();
+
   return (
     <PicksStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <PicksStack.Screen
@@ -85,11 +88,13 @@ function PicksStackNavigator() {
         name="PicksMain"
         options={({ navigation }) => ({
           headerTitle: () => <BrandHeaderTitle />,
-          headerRight: () => (
-            <NotificationBell
-              onPress={() => navigation.navigate('Notifications')}
-            />
-          ),
+          headerRight: isSignedIn
+            ? () => (
+                <NotificationBell
+                  onPress={() => navigation.navigate('Notifications')}
+                />
+              )
+            : undefined,
         })}
       />
       <PicksStack.Screen
@@ -107,6 +112,8 @@ function PicksStackNavigator() {
 }
 
 function HomeStackNavigator() {
+  const isSignedIn = useIsSignedIn();
+
   return (
     <HomeStack.Navigator screenOptions={SCREEN_OPTIONS}>
       <HomeStack.Screen
@@ -114,11 +121,13 @@ function HomeStackNavigator() {
         name="HomeMain"
         options={({ navigation }) => ({
           headerTitle: () => <BrandHeaderTitle />,
-          headerRight: () => (
-            <NotificationBell
-              onPress={() => navigation.navigate('Notifications')}
-            />
-          ),
+          headerRight: isSignedIn
+            ? () => (
+                <NotificationBell
+                  onPress={() => navigation.navigate('Notifications')}
+                />
+              )
+            : undefined,
         })}
       />
       <HomeStack.Screen

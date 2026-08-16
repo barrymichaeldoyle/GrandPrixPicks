@@ -147,7 +147,11 @@ export function NotificationsScreen() {
     <View className="flex-1 bg-page px-4 pt-3">
       <Header
         subtitle={
-          unreadCount > 0 ? `${unreadLabel} unread` : "You're all caught up"
+          unreadCount > 0
+            ? `${unreadLabel} unread`
+            : notifications.length > 0
+              ? "You're all caught up"
+              : undefined
         }
         action={
           unreadCount > 0 ? (
@@ -223,14 +227,15 @@ function Header({
   subtitle,
   action,
 }: {
-  subtitle: string;
+  /** Omitted entirely when the list is empty: the empty state says it better. */
+  subtitle?: string;
   action?: React.ReactNode;
 }) {
   // The nav bar already titles this screen "Notifications" — repeating it
   // here read as a glitch, so the page header carries only the status line.
   return (
     <View className="flex-row items-center justify-between gap-3 pb-3">
-      <Text className="text-muted flex-1 text-xs">{subtitle}</Text>
+      <Text className="text-muted flex-1 text-xs">{subtitle ?? ''}</Text>
       {action ?? null}
     </View>
   );

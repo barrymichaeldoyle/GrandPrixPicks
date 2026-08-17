@@ -15,7 +15,11 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 
 import { DriverBadge } from '../DriverBadge';
 
-/** Constructors' order, so the loading rows land exactly where the real ones do. */
+/**
+ * Constructors' order for the loading rows. This is last season's order, the
+ * best a component with no database can do, so a team or two may shift when the
+ * live standings arrive with the real rows.
+ */
 const loadingRows = [...TEAMMATE_PAIRINGS_2026].sort(
   (a, b) =>
     teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
@@ -73,16 +77,11 @@ export function H2HPicksDialog({
     sessionType,
   });
 
-  // Constructors' order, the same one the picker uses. The query returns rows
-  // in whatever order the player's predictions were written, which differs
-  // between players and would make the skeleton's teams a guess.
-  const rows = picks
-    ? [...picks].sort(
-        (a, b) =>
-          teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
-          a.team.localeCompare(b.team),
-      )
-    : picks;
+  // The server sorts these by the live constructors table now, so re-sorting
+  // here on last season's order would quietly undo it. It used to be needed:
+  // the query returned rows in whatever order the player's predictions were
+  // written, which differs between players.
+  const rows = picks;
 
   return createPortal(
     <div

@@ -17,6 +17,8 @@ import {
   type ReactionType,
   reactionTypeValidator,
 } from './lib/reactions';
+import { loadConstructorPoints } from './f1Standings';
+import { sortByConstructorStanding } from './lib/teammateBattles';
 import { toUserIdentity } from './lib/userIdentity';
 import { getCurrentSeason } from './lib/season';
 
@@ -742,11 +744,19 @@ async function buildSessionHeaders(
       return [key, duels.filter((duel) => duel !== null)] as const;
     }),
   );
+  // One championship read for the whole page, reused by every session header
+  // below. The strip used to be alphabetical, which only ever meant
+  // "deterministic": it put Alpine above McLaren and read as arbitrary next to
+  // the duel grid these picks were made in.
+  const constructorPoints = await loadConstructorPoints(
+    ctx,
+    await getCurrentSeason(ctx),
+  );
+
   for (const [key, duels] of comboH2H) {
-    // Stable order across renders; the source rows carry no ordering.
-    duels.sort((a, b) => a.team.localeCompare(b.team));
-    h2hByKey.set(key, duels);
-    for (const duel of duels) {
+    const ordered = sortByConstructorStanding(duels, constructorPoints);
+    h2hByKey.set(key, ordered);
+    for (const duel of ordered) {
       driverIdsNeeded.add(duel.winnerId);
       driverIdsNeeded.add(duel.loserId);
     }

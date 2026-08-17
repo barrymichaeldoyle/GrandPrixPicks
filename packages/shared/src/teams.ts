@@ -1,19 +1,31 @@
 /**
- * Team order by constructors standings (e.g. previous season).
- * Used to sort drivers in the prediction pool and to match H2H matchup order.
- * Shared between web and mobile.
+ * Last season's constructors order, used only where this season's cannot be.
+ *
+ * The live table is the real source: `f1Standings.loadConstructorPoints`
+ * computes it from the results we publish, and every server-side ordering runs
+ * through it. This list breaks ties underneath that, which matters most before
+ * a wheel has turned: with everyone level on zero, points alone would collapse
+ * to alphabetical, and alphabetical is the arbitrary order we are trying to be
+ * rid of. It also stands in for the client-side sorts that have no database.
+ *
+ * Final 2025 constructors' championship, with the two changes the 2026 grid
+ * forces: Audi is Kick Sauber's entry rebranded so it takes Sauber's ninth,
+ * and Cadillac is a new entry with no 2025 result so it sorts last.
+ *
+ * It had drifted badly: Mercedes was first and Williams ninth, when Mercedes
+ * finished second and Williams fifth.
  */
 const CONSTRUCTOR_STANDINGS_ORDER: string[] = [
-  'Mercedes',
-  'Ferrari',
   'McLaren',
+  'Mercedes',
   'Red Bull Racing',
+  'Ferrari',
+  'Williams',
   'Racing Bulls',
-  'Alpine',
+  'Aston Martin',
   'Haas',
   'Audi',
-  'Williams',
-  'Aston Martin',
+  'Alpine',
   'Cadillac',
 ];
 

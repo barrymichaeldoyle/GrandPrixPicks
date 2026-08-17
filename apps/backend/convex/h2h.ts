@@ -7,6 +7,7 @@ import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
+import { loadConstructorPoints } from './f1Standings';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
 import { getCurrentSeason } from './lib/season';
 import {
@@ -76,10 +77,19 @@ export function resolveH2HSessionsToUpdate(params: {
  * instead of eleven skeleton boxes waiting on a websocket round trip.
  */
 export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
-  const matchups = await ctx.db
+  const rows = await ctx.db
     .query('h2hMatchups')
     .withIndex('by_season', (q) => q.eq('season', season))
     .take(MAX_H2H_MATCHUPS);
+
+  // The index hands these back in insertion order, which is the order they
+  // were seeded from TEAMMATE_PAIRINGS_2026 rather than any standing. Sorting
+  // here is what lets the duel grid, the feed strip and the season records all
+  // show the same order.
+  const matchups = sortByConstructorStanding(
+    rows,
+    await loadConstructorPoints(ctx, season),
+  );
 
   return await Promise.all(
     matchups.map(async (m) => {
@@ -803,7 +813,13 @@ export const getH2HPicksForFeedItem = query({
       }),
     );
 
-    return enriched.filter((p) => p !== null);
+    // Same constructors order as the header strip above it and the duel grid
+    // the picks were made in. Unsorted, these came back in whatever order the
+    // prediction rows happened to be written.
+    return sortByConstructorStanding(
+      enriched.filter((p) => p !== null),
+      await loadConstructorPoints(ctx, race.season),
+    );
   },
 });
 
@@ -1063,6 +1079,7 @@ export const getTeammateBattles = query({
       };
     }
 
+    const constructorPoints = await loadConstructorPoints(ctx, season);
     const teams = sortByConstructorStanding(
       matchups.map((matchup) => {
         const tally = tallies.get(matchup._id) ?? new Map();
@@ -1086,6 +1103,7 @@ export const getTeammateBattles = query({
           sessionsSettled: driver1.total + driver2.total,
         };
       }),
+      constructorPoints,
     );
 
     return {

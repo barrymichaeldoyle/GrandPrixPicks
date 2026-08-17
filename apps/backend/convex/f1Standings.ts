@@ -1,6 +1,9 @@
 import { v } from 'convex/values';
 
+import type { DatabaseReader } from './_generated/server';
 import { query } from './_generated/server';
+
+type ReadCtx = { db: DatabaseReader };
 
 /**
  * Formula 1 World Championship standings, computed from the actual finishing
@@ -175,99 +178,119 @@ export function rankConstructorStandings(
     }));
 }
 
+/**
+ * The constructors' championship as it actually stands, from our own results.
+ *
+ * Pulled out of `getF1Championship` so ordering-sensitive views can share it
+ * rather than hand-maintaining a team order that goes stale the moment a race
+ * is scored. Returns points per team; callers decide how to break ties.
+ *
+ * Cost is one pass over the season's races, their race/sprint results and the
+ * driver roster, so call it once per query and reuse the map.
+ */
+export async function loadConstructorPoints(
+  ctx: ReadCtx,
+  season: number,
+): Promise<Map<string, number>> {
+  const { constructors } = await loadChampionship(ctx, season);
+  return new Map(constructors.map((c) => [c.team, c.points]));
+}
+
+async function loadChampionship(ctx: ReadCtx, season: number) {
+  const races = await ctx.db
+    .query('races')
+    .withIndex('by_season_round', (q) => q.eq('season', season))
+    .take(40);
+
+  const orderedRaces = races
+    .filter((race) => race.status !== 'cancelled')
+    .sort((a, b) => a.round - b.round);
+
+  const sessions: ChampionshipSessionResult[] = [];
+  let lastUpdated = 0;
+  let roundsScored = 0;
+
+  for (const race of orderedRaces) {
+    const raceResults = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+      .take(8);
+
+    let scoredThisRound = false;
+    for (const result of raceResults) {
+      if (result.sessionType !== 'race' && result.sessionType !== 'sprint') {
+        continue;
+      }
+      sessions.push({
+        sessionType: result.sessionType,
+        classification: result.classification as string[],
+        dnfDriverIds: result.dnfDriverIds as string[] | undefined,
+      });
+      lastUpdated = Math.max(lastUpdated, result.publishedAt);
+      if (result.sessionType === 'race') {
+        scoredThisRound = true;
+      }
+    }
+    if (scoredThisRound) {
+      roundsScored += 1;
+    }
+  }
+
+  // Load the roster once, rather than a per-driver db.get.
+  const drivers = await ctx.db
+    .query('drivers')
+    .withIndex('by_displayName')
+    .take(60);
+
+  const tally = tallyDriverPoints(sessions);
+
+  // List the whole grid, the way the official table does: a driver who has
+  // not scored (or who debuts mid-season) still belongs in the standings on
+  // zero, rather than vanishing until their first points finish.
+  const rankedDrivers = drivers
+    .map((driver) => ({
+      driver,
+      stats: tally.get(driver._id as string) ?? emptyDriverTally(),
+    }))
+    .sort(
+      (a, b) =>
+        b.stats.points - a.stats.points ||
+        compareCountback(a.stats, b.stats) ||
+        a.driver.displayName.localeCompare(b.driver.displayName),
+    );
+
+  const driverStandings = rankedDrivers.map(({ driver, stats }, index) => ({
+    driverId: driver._id,
+    code: driver.code,
+    displayName: driver.displayName,
+    team: driver.team ?? null,
+    nationality: driver.nationality ?? null,
+    number: driver.number ?? null,
+    points: stats.points,
+    wins: stats.wins,
+    podiums: stats.podiums,
+    position: index + 1,
+  }));
+
+  const constructorStandings = rankConstructorStandings(
+    rankedDrivers.map(({ driver, stats }) => ({
+      team: driver.team ?? null,
+      stats,
+    })),
+  );
+
+  return {
+    season,
+    lastUpdated: lastUpdated || null,
+    roundsScored,
+    drivers: driverStandings,
+    constructors: constructorStandings,
+  };
+}
+
 export const getF1Championship = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const season = args.season ?? 2026;
-
-    const races = await ctx.db
-      .query('races')
-      .withIndex('by_season_round', (q) => q.eq('season', season))
-      .take(40);
-
-    const orderedRaces = races
-      .filter((race) => race.status !== 'cancelled')
-      .sort((a, b) => a.round - b.round);
-
-    const sessions: ChampionshipSessionResult[] = [];
-    let lastUpdated = 0;
-    let roundsScored = 0;
-
-    for (const race of orderedRaces) {
-      const raceResults = await ctx.db
-        .query('results')
-        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-        .take(8);
-
-      let scoredThisRound = false;
-      for (const result of raceResults) {
-        if (result.sessionType !== 'race' && result.sessionType !== 'sprint') {
-          continue;
-        }
-        sessions.push({
-          sessionType: result.sessionType,
-          classification: result.classification as string[],
-          dnfDriverIds: result.dnfDriverIds as string[] | undefined,
-        });
-        lastUpdated = Math.max(lastUpdated, result.publishedAt);
-        if (result.sessionType === 'race') {
-          scoredThisRound = true;
-        }
-      }
-      if (scoredThisRound) {
-        roundsScored += 1;
-      }
-    }
-
-    // Load the roster once, rather than a per-driver db.get.
-    const drivers = await ctx.db
-      .query('drivers')
-      .withIndex('by_displayName')
-      .take(60);
-
-    const tally = tallyDriverPoints(sessions);
-
-    // List the whole grid, the way the official table does: a driver who has
-    // not scored (or who debuts mid-season) still belongs in the standings on
-    // zero, rather than vanishing until their first points finish.
-    const rankedDrivers = drivers
-      .map((driver) => ({
-        driver,
-        stats: tally.get(driver._id as string) ?? emptyDriverTally(),
-      }))
-      .sort(
-        (a, b) =>
-          b.stats.points - a.stats.points ||
-          compareCountback(a.stats, b.stats) ||
-          a.driver.displayName.localeCompare(b.driver.displayName),
-      );
-
-    const driverStandings = rankedDrivers.map(({ driver, stats }, index) => ({
-      driverId: driver._id,
-      code: driver.code,
-      displayName: driver.displayName,
-      team: driver.team ?? null,
-      nationality: driver.nationality ?? null,
-      number: driver.number ?? null,
-      points: stats.points,
-      wins: stats.wins,
-      podiums: stats.podiums,
-      position: index + 1,
-    }));
-
-    const constructorStandings = rankConstructorStandings(
-      rankedDrivers.map(({ driver, stats }) => ({
-        team: driver.team ?? null,
-        stats,
-      })),
-    );
-
-    return {
-      season,
-      lastUpdated: lastUpdated || null,
-      roundsScored,
-      drivers: driverStandings,
-      constructors: constructorStandings,
-    };
+    return await loadChampionship(ctx, args.season ?? 2026);
   },
 });

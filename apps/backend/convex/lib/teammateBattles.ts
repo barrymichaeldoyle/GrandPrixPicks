@@ -88,11 +88,27 @@ export function tallyTeammateBattles(
  * Order teammate rows by the shared Constructors' Championship order used
  * across the prediction pool and H2H views.
  */
+/**
+ * Order teams the way the championship does.
+ *
+ * `livePoints` is this season's constructors table, computed from our own
+ * published results by `f1Standings.loadConstructorPoints`. Pass it and the
+ * order tracks the real championship as rounds are scored; omit it and the
+ * previous season's order stands in.
+ *
+ * The fallback is not decoration. Before the first race everyone is level on
+ * zero, and any tie-break on points alone collapses to alphabetical, which is
+ * exactly the arbitrary order this function exists to avoid. So points decide
+ * first, last season decides ties, and the name is only the last resort for a
+ * team that appears in neither.
+ */
 export function sortByConstructorStanding<T extends { team: string }>(
   teams: ReadonlyArray<T>,
+  livePoints?: ReadonlyMap<string, number>,
 ): T[] {
   return [...teams].sort(
     (a, b) =>
+      (livePoints?.get(b.team) ?? 0) - (livePoints?.get(a.team) ?? 0) ||
       teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
       a.team.localeCompare(b.team),
   );

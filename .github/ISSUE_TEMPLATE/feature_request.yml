@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest a change to the game
-labels: ["enhancement", "needs-triage"]
+labels: ['enhancement', 'needs-triage']
 body:
   - type: markdown
     attributes:

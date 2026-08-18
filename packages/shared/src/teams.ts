@@ -12,8 +12,11 @@
  * forces: Audi is Kick Sauber's entry rebranded so it takes Sauber's ninth,
  * and Cadillac is a new entry with no 2025 result so it sorts last.
  *
- * It had drifted badly: Mercedes was first and Williams ninth, when Mercedes
- * finished second and Williams fifth.
+ * This list previously held the *current* 2026 order, hand-updated as rounds
+ * were scored. That is why it read as stale against 2025 and was not: it was
+ * being maintained, just against a different season than its comment claimed.
+ * Anchoring it to last season's final result is what makes it stop needing
+ * maintenance at all, now that the live table above it is doing the real work.
  */
 const CONSTRUCTOR_STANDINGS_ORDER: string[] = [
   'McLaren',

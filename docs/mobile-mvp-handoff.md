@@ -30,7 +30,9 @@ backend deploy (`pnpm deploy:backend`) has NOT been run.
 
 1. **Simulator review pass** — the app hasn't had a human eyeball since the
    restructure. `pnpm dev:mobile` against dev; run
-   `convex run seed:reseedDevThroughMonaco` first so rounds 1–6 are scored
+   `convex run seed:reseedDevThroughMonaco` first so rounds 1–11 are scored,
+   matching where production is (pass `{"raceCount": N}` for a different point
+   in the season)
    (scored picks view, leaderboard weekend boards, feed session groups all
    need result data to show).
 2. **Rebuild the dev client** — native modules changed twice (SDK 57 pods,

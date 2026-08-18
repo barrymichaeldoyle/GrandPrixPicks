@@ -5005,11 +5005,23 @@ export const seedLeaderboardScenario = internalAction({
  *   npx convex run seed:reseedDevThroughMonaco
  *   npx convex run seed:reseedDevThroughMonaco '{"username":"yourname"}'
  */
+/**
+ * Rebuild dev into a realistic mid-season state.
+ *
+ * `raceCount` is how many rounds are scored, counting from round 1. It
+ * defaults to matching production: as of August 2026 prod has rounds 1–11
+ * finished with the Dutch Grand Prix (round 12) open, and developing against
+ * three scored rounds hides everything that only appears with a season behind
+ * it — long standings, deep H2H records, a feed with history.
+ *
+ * Bump this when prod moves on, or pass `raceCount` for a specific state:
+ * 0 for a pre-season app, 22 for a title decider.
+ */
 export const reseedDevThroughMonaco = internalAction({
-  args: { username: v.optional(v.string()) },
+  args: { username: v.optional(v.string()), raceCount: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const username = args.username ?? 'barrymichaeldoyle';
-    const RACE_COUNT = 6; // rounds 1–6, ending with Monaco
+    const RACE_COUNT = args.raceCount ?? 11;
 
     // Phase 1: Clear all dev data
     let totalDeleted = 0;
@@ -5080,8 +5092,8 @@ export const reseedDevThroughMonaco = internalAction({
       scenarioRacesDeleted: raceResult.deleted,
       racesReset: raceResult.reset,
       feedEventsCreated: feedResult.created,
-      throughRace: 'Monaco Grand Prix',
-      nextOpenRace: 'Barcelona Grand Prix',
+      roundsScored: RACE_COUNT,
+      nextOpenRound: RACE_COUNT + 1,
       username,
       leagues: leagueResult.leaguesCreated,
       ...seedResult,

@@ -6,7 +6,7 @@ import DraggableFlatList, {
   ShadowDecorator,
 } from 'react-native-draggable-flatlist';
 
-import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
+import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 
 import type { ConvexDoc } from '../../integrations/convex/api';
 import { getTeamColor } from '../../lib/teamColors';
@@ -208,20 +208,14 @@ function PoolDriverCard({
   );
 }
 
+/**
+ * The pool arrives from `listDrivers` in championship order already, computed
+ * from this season's results. This exists for the mock roster the
+ * unconfigured-Convex dev shell renders, which has no server to sort it, and
+ * it shares the web comparator so the two cannot drift.
+ */
 function sortDrivers(drivers: Driver[]): Driver[] {
-  return [...drivers].sort((a, b) => {
-    const teamA = teamStandingsIndex(a.team);
-    const teamB = teamStandingsIndex(b.team);
-    if (teamA !== teamB) {
-      return teamA - teamB;
-    }
-    const numA = a.number ?? 999;
-    const numB = b.number ?? 999;
-    if (numA !== numB) {
-      return numA - numB;
-    }
-    return a.displayName.localeCompare(b.displayName);
-  });
+  return [...drivers].sort((a, b) => compareDriversByTeam(a, b));
 }
 
 export function DraggableTop5({

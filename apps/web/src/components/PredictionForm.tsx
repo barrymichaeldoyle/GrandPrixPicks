@@ -20,7 +20,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getWebTop5DraftStorageKey } from '@grandprixpicks/shared/picks';
-import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { useBlocker } from '@tanstack/react-router';
 import { useConvexAuth, useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
@@ -776,19 +775,11 @@ export function PredictionForm({
     .map((id) => availableDrivers.find((d) => d._id === id))
     .filter((d): d is Driver => d !== undefined);
 
-  const driversSortedByTeam = [...availableDrivers].sort((a, b) => {
-    const teamA = teamStandingsIndex(a.team);
-    const teamB = teamStandingsIndex(b.team);
-    if (teamA !== teamB) {
-      return teamA - teamB;
-    }
-    const numA = a.number ?? 999;
-    const numB = b.number ?? 999;
-    if (numA !== numB) {
-      return numA - numB;
-    }
-    return a.displayName.localeCompare(b.displayName);
-  });
+  // listDrivers already returns championship order, computed from this
+  // season's results. Re-sorting here on last season's static list would
+  // quietly undo that, so the pool takes the order it is given. The fallback
+  // still covers the pre-seeded `initialDrivers` a route can hand in.
+  const driversSortedByTeam = availableDrivers;
 
   function addDriver(driverId: Id<'drivers'>) {
     if (picks.length >= 5) {

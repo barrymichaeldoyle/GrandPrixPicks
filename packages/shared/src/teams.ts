@@ -56,6 +56,39 @@ export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<{
   { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER' },
 ];
 
+/**
+ * Order drivers by team, then by car number within a team.
+ *
+ * The pool on both apps used to hand-roll this identically, which is fine
+ * until the tie-breaks drift apart. `teamPoints` is this season's
+ * constructors table when the caller has it; without it the sort falls back to
+ * last season, the same way `sortByConstructorStanding` does on the server.
+ */
+export function compareDriversByTeam<
+  T extends {
+    team?: string | null;
+    number?: number | null;
+    displayName: string;
+  },
+>(a: T, b: T, teamPoints?: ReadonlyMap<string, number>): number {
+  const pointsA = teamPoints?.get(a.team ?? '') ?? 0;
+  const pointsB = teamPoints?.get(b.team ?? '') ?? 0;
+  if (pointsA !== pointsB) {
+    return pointsB - pointsA;
+  }
+  const teamA = teamStandingsIndex(a.team);
+  const teamB = teamStandingsIndex(b.team);
+  if (teamA !== teamB) {
+    return teamA - teamB;
+  }
+  const numA = a.number ?? 999;
+  const numB = b.number ?? 999;
+  if (numA !== numB) {
+    return numA - numB;
+  }
+  return a.displayName.localeCompare(b.displayName);
+}
+
 /** Index of team in constructors order (teams not in list sort last). */
 export function teamStandingsIndex(team: string | null | undefined): number {
   if (team == null || team === '') {

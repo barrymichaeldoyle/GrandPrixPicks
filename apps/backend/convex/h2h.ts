@@ -171,6 +171,7 @@ export const getH2HResultsForRace = query({
   },
   handler: async (ctx, args) => {
     const sessionType = args.sessionType ?? 'race';
+    const race = await ctx.db.get(args.raceId);
 
     const results = await ctx.db
       .query('h2hResults')
@@ -214,7 +215,15 @@ export const getH2HResultsForRace = query({
       }),
     );
 
-    return enriched;
+    // Championship order, like every other duel view. The OG share card used to
+    // sort this itself, which meant the card and the page could disagree.
+    return sortByConstructorStanding(
+      enriched,
+      await loadConstructorPoints(
+        ctx,
+        race?.season ?? (await getCurrentSeason(ctx)),
+      ),
+    );
   },
 });
 

@@ -1,5 +1,4 @@
 import { api } from '@convex-generated/api';
-import { teamStandingsIndex } from '@grandprixpicks/shared/teams';
 import { ConvexHttpClient } from 'convex/browser';
 
 import { renderOgImage } from '../../../src/lib/og/renderer';
@@ -57,20 +56,18 @@ export default async function handler(event: RouteEvent) {
       );
     }
 
-    const rows = results
-      .map((result) => {
-        const loser =
-          result.driver1?._id === result.winnerId
-            ? result.driver2
-            : result.driver1;
-        return {
-          team: result.team,
-          color: TEAM_COLORS[result.team] ?? FALLBACK_TEAM_COLOR,
-          winnerCode: result.winnerCode,
-          loserCode: loser?.code ?? '???',
-        };
-      })
-      .sort((a, b) => teamStandingsIndex(a.team) - teamStandingsIndex(b.team));
+    const rows = results.map((result) => {
+      const loser =
+        result.driver1?._id === result.winnerId
+          ? result.driver2
+          : result.driver1;
+      return {
+        team: result.team,
+        color: TEAM_COLORS[result.team] ?? FALLBACK_TEAM_COLOR,
+        winnerCode: result.winnerCode,
+        loserCode: loser?.code ?? '???',
+      };
+    });
 
     const flagSrc = await loadFlagDataUri(url.origin, race);
 

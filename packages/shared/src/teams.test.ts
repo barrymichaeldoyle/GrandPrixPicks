@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { teamStandingsIndex } from './teams';
+import { compareDriversByTeam, teamStandingsIndex } from './teams';
 
 describe('teamStandingsIndex', () => {
   it('ranks teams by last season, not by name', () => {
@@ -26,5 +26,54 @@ describe('teamStandingsIndex', () => {
     expect(teamStandingsIndex('')).toBe(11);
     expect(teamStandingsIndex(null)).toBe(11);
     expect(teamStandingsIndex(undefined)).toBe(11);
+  });
+});
+
+describe('compareDriversByTeam', () => {
+  const driver = (displayName: string, team: string, number: number) => ({
+    displayName,
+    team,
+    number,
+  });
+
+  it('groups by team, then by car number inside a team', () => {
+    const drivers = [
+      driver('Oscar Piastri', 'McLaren', 81),
+      driver('George Russell', 'Mercedes', 63),
+      driver('Lando Norris', 'McLaren', 1),
+    ];
+
+    expect(
+      [...drivers]
+        .sort((a, b) => compareDriversByTeam(a, b))
+        .map((d) => d.number),
+    ).toEqual([1, 81, 63]);
+  });
+
+  it('follows this season when the live table is passed', () => {
+    const drivers = [
+      driver('Lando Norris', 'McLaren', 1),
+      driver('Pierre Gasly', 'Alpine', 10),
+    ];
+    const livePoints = new Map([['Alpine', 58]]);
+
+    expect(
+      [...drivers]
+        .sort((a, b) => compareDriversByTeam(a, b, livePoints))
+        .map((d) => d.team),
+    ).toEqual(['Alpine', 'McLaren']);
+  });
+
+  it('falls back to last season when nobody has scored yet', () => {
+    const drivers = [
+      driver('Pierre Gasly', 'Alpine', 10),
+      driver('Lando Norris', 'McLaren', 1),
+    ];
+
+    expect(
+      [...drivers]
+        .sort((a, b) => compareDriversByTeam(a, b, new Map()))
+        .map((d) => d.team),
+    ).toEqual(['McLaren', 'Alpine']);
   });
 });

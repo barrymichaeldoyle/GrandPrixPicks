@@ -250,9 +250,10 @@ is one `scoreTopFive()` and no per-session branching in the point math.
   `drivers.team` is the driver's _current_ team, for display only: never use it
   to attribute a past result. Declare changes in `TEAMMATE_PAIRINGS_2026`
   (`packages/shared/src/teams.ts`), then run `convex run seed:applyLineup`.
-  Follow it with `seed:pruneOrphanedH2HPicks` (dry-run first): picks already
-  made on a retired pairing for a future round must be deleted, or the pick
-  form counts them and reports the weekend complete with duels still blank.
+  Follow it with `seed:migrateOrphanedH2HPicks` (dry-run first): picks already
+  made on a retired pairing move to the pairing that replaced it, because a
+  duel pick backs a **seat**, not a driver. Never leave players mid-way: a
+  stale row makes an incomplete weekend read as complete and disables Save.
 - **Leagues**: private leagues with a shareable slug; members get a league-scoped
   leaderboard and feed.
 - **Season pass**: a paid (Paddle) per-season entitlement (`userSeasonPasses`)

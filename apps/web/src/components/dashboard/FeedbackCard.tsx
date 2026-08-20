@@ -26,8 +26,7 @@ export function FeedbackCard() {
         Feedback
       </p>
       <p className="mt-2 text-sm text-text-muted">
-        Something broken, missing, or just annoying? Say so in a line and it
-        goes straight to Barry.
+        Something broken, missing, or just annoying? Tell us in a line.
       </p>
       <Button
         variant="secondary"

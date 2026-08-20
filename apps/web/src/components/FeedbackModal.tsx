@@ -140,7 +140,7 @@ export function FeedbackModal({
               strokeWidth={1.5}
               aria-hidden
             />
-            <p className="text-sm text-text">That is with Barry now.</p>
+            <p className="text-sm text-text">Got it.</p>
             <p className="mt-1 text-xs text-text-muted">
               Every message gets read, and the good ones get built.
             </p>
@@ -207,7 +207,7 @@ export function FeedbackModal({
 
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs text-text-muted">
-                Goes straight to Barry, with your account attached.
+                Sent with your account, so we can reply if we need to.
               </p>
               <Button
                 type="submit"

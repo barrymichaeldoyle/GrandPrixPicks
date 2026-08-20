@@ -100,7 +100,7 @@ describe('feedback modal', () => {
       message: 'Sprint quali picks should default to my race picks',
       category: 'feedback',
     });
-    expect(panel().textContent).toContain('That is with Barry now');
+    expect(panel().textContent).toContain('Got it.');
   });
 
   it('carries the chosen category', async () => {

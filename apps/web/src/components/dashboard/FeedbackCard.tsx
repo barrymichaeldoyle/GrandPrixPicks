@@ -1,0 +1,54 @@
+import { MessageSquarePlus } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/Button/Button';
+import { FeedbackModal } from '@/components/FeedbackModal';
+import { captureAnalyticsEvent } from '@/lib/analytics';
+
+/**
+ * The ask for feedback, where the player already is.
+ *
+ * It sits under the latest result on purpose: that is the moment someone has
+ * just seen how they did and has an opinion about the game, which is exactly
+ * the opinion `/support` never hears because getting there means leaving what
+ * you were doing. The card is a prompt, not a form; the writing happens in
+ * {@link FeedbackModal}, over the page rather than instead of it.
+ */
+export function FeedbackCard() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <section
+      className="rounded-lg border border-border bg-surface p-4"
+      aria-labelledby="feedback-card-heading"
+    >
+      <p id="feedback-card-heading" className="gpp-label">
+        Feedback
+      </p>
+      <p className="mt-2 text-sm text-text-muted">
+        Something broken, missing, or just annoying? Say so in a line and it
+        goes straight to Barry.
+      </p>
+      <Button
+        variant="secondary"
+        size="sm"
+        leftIcon={MessageSquarePlus}
+        className="mt-3 w-full"
+        onClick={() => {
+          captureAnalyticsEvent('feedback_widget_opened', {
+            source: 'dashboard_rail',
+          });
+          setOpen(true);
+        }}
+      >
+        Send feedback
+      </Button>
+
+      <FeedbackModal
+        open={open}
+        onClose={() => setOpen(false)}
+        source="dashboard_rail"
+      />
+    </section>
+  );
+}

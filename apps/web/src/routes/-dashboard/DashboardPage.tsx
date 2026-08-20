@@ -3,6 +3,7 @@ import type { Doc } from '@convex-generated/dataModel';
 import { useQuery } from '@/integrations/convex/query';
 
 import { AppPageLayout, RailItem } from '@/components/AppPageLayout';
+import { FeedbackCard } from '@/components/dashboard/FeedbackCard';
 import { LatestResultCard } from '@/components/dashboard/LatestResultCard';
 import { MyLeaguesCard } from '@/components/dashboard/MyLeaguesCard';
 import { ProfileCard } from '@/components/dashboard/ProfileCard';
@@ -119,7 +120,15 @@ export function DashboardPage({
               hideWhenEmpty
             />
           </RailItem>
+          {/* Under the latest result, which is the moment a player has just
+              seen how they did and has an opinion about the game. On a phone
+              it lands after the navigation instead: the run of rail cards is
+              already long there, and an ask is the last thing to reach, not
+              something to scroll past on the way to the small print. */}
           <RailItem order={6}>
+            <FeedbackCard />
+          </RailItem>
+          <RailItem order={7}>
             <RailFooterLinks />
           </RailItem>
         </>

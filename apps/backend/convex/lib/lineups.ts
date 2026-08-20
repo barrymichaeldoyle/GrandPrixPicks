@@ -87,3 +87,42 @@ export function rosterForRound<T extends { _id: Id<'drivers'> }>(
     })
     .filter((entry): entry is T & { team: string | null } => entry !== null);
 }
+
+/**
+ * Where a pick lands when the duel it was made on is replaced.
+ *
+ * A pick is on a SEAT, not on a person: choosing Lawson in the Racing Bulls
+ * duel is a bet on that car beating its sister car, so when Tsunoda takes the
+ * seat the bet moves with it. Picking Verstappen over Hadjar is a bet on
+ * Verstappen, and he is still there, so it stays put.
+ *
+ * Resolved by identity rather than by slot position, so it does not depend on
+ * the successor pairing happening to list its drivers in the same order:
+ *
+ * - the picked driver is still in the duel: the pick is unchanged;
+ * - the picked driver is gone and exactly one seat changed hands: the pick
+ *   goes to whoever took it;
+ * - both seats changed at once: there is no identity to follow, so fall back
+ *   to slot position, which is the only remaining signal.
+ */
+export function successorPick(
+  previous: { driver1Id: Id<'drivers'>; driver2Id: Id<'drivers'> },
+  next: { driver1Id: Id<'drivers'>; driver2Id: Id<'drivers'> },
+  pickedDriverId: Id<'drivers'>,
+): Id<'drivers'> {
+  if (pickedDriverId === next.driver1Id || pickedDriverId === next.driver2Id) {
+    return pickedDriverId;
+  }
+
+  const previousDrivers = [previous.driver1Id, previous.driver2Id];
+  const arrivals = [next.driver1Id, next.driver2Id].filter(
+    (driverId) => !previousDrivers.includes(driverId),
+  );
+  if (arrivals.length === 1) {
+    return arrivals[0];
+  }
+
+  return pickedDriverId === previous.driver1Id
+    ? next.driver1Id
+    : next.driver2Id;
+}

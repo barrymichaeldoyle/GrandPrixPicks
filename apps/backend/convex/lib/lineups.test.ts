@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import type { Id } from '../_generated/dataModel';
 import type { Stint } from './lineups';
-import { rosterForRound, teamForRound } from './lineups';
+import { rosterForRound, successorPick, teamForRound } from './lineups';
 
 function driverId(value: string) {
   return value as Id<'drivers'>;
@@ -92,5 +92,56 @@ describe('rosterForRound', () => {
     const roster = rosterForRound(withUnknown, stints, 12);
     expect(roster.map((d) => d.code)).toContain('NEW');
     expect(roster.find((d) => d.code === 'NEW')?.team).toBe('Haas');
+  });
+});
+
+describe('successorPick', () => {
+  const oldRedBull = { driver1Id: driverId('ver'), driver2Id: driverId('had') };
+  const newRedBull = { driver1Id: driverId('ver'), driver2Id: driverId('law') };
+  const oldRacingBulls = {
+    driver1Id: driverId('law'),
+    driver2Id: driverId('lin'),
+  };
+  const newRacingBulls = {
+    driver1Id: driverId('tsu'),
+    driver2Id: driverId('lin'),
+  };
+
+  test('keeps a pick on a driver who is still in the duel', () => {
+    expect(successorPick(oldRedBull, newRedBull, driverId('ver'))).toBe('ver');
+    expect(successorPick(oldRacingBulls, newRacingBulls, driverId('lin'))).toBe(
+      'lin',
+    );
+  });
+
+  test('moves a pick to whoever took the seat', () => {
+    // The point Barry made: backing Lawson in the Racing Bulls car is backing
+    // that seat, so it becomes Tsunoda rather than following Lawson to Red Bull.
+    expect(successorPick(oldRacingBulls, newRacingBulls, driverId('law'))).toBe(
+      'tsu',
+    );
+    expect(successorPick(oldRedBull, newRedBull, driverId('had'))).toBe('law');
+  });
+
+  test('does not depend on the successor listing drivers in the same order', () => {
+    const reversed = {
+      driver1Id: driverId('lin'),
+      driver2Id: driverId('tsu'),
+    };
+    expect(successorPick(oldRacingBulls, reversed, driverId('law'))).toBe(
+      'tsu',
+    );
+    expect(successorPick(oldRacingBulls, reversed, driverId('lin'))).toBe(
+      'lin',
+    );
+  });
+
+  test('falls back to slot position when both seats change at once', () => {
+    const bothNew = {
+      driver1Id: driverId('alo'),
+      driver2Id: driverId('str'),
+    };
+    expect(successorPick(oldRacingBulls, bothNew, driverId('law'))).toBe('alo');
+    expect(successorPick(oldRacingBulls, bothNew, driverId('lin'))).toBe('str');
   });
 });

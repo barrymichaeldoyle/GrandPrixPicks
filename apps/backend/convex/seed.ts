@@ -11,6 +11,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { internalAction, internalMutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { computeFollowCountsForUser } from './lib/followCounts';
+import { successorPick } from './lib/lineups';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import {
   changeReactionCount,
@@ -844,27 +845,33 @@ export const seedH2HMatchups = internalMutation({
 });
 
 /**
- * Find (and optionally delete) H2H rows left pointing at a pairing that did
- * not race the round they belong to.
+ * Move H2H picks off a pairing that will not race the round they belong to,
+ * onto the pairing that replaced it.
  *
- * A lineup change retires a pairing, and any pick already made against it for
- * a later round is now a pick on a duel that will not happen. Those rows have
- * to go rather than linger: the pick form seeds itself from the raw
- * matchupId-to-winner map and compares its size against the number of duels on
- * track, so two orphans plus nine real picks reads as a complete set of eleven
- * while the two new duels sit unpicked and unsaveable.
+ * A lineup change retires a duel and opens another for the same team, and a
+ * pick already made on the old one is a pick on a SEAT: whoever is in that car
+ * now inherits it. Backing Lawson in the Racing Bulls duel becomes backing
+ * Tsunoda; backing Verstappen over Hadjar stays backing Verstappen, because he
+ * is still in the duel. See `successorPick` for the rule.
  *
- * Deliberately NOT part of `applyLineup`: this deletes player data, so it is an
- * explicit second step. Run it with `dryRun: true` first, which reports exactly
- * what would go without touching anything.
+ * Migrating rather than deleting is what keeps players whole. A deleted pick
+ * would leave them nine picks against eleven duels, and the pick form seeds
+ * itself from the stored matchup-to-winner map and compares its size to the
+ * duels on track, so an incomplete weekend would either read as complete (with
+ * orphans still counted) or quietly demand two picks nobody told them about.
+ * There should be no incomplete state either way.
  *
- * Only ever removes rows whose race the matchup does not cover, so a finished
- * race keeps every pick made on the pairing that actually raced it.
+ * A retired pairing with no successor means the team is not racing that round
+ * at all; the pick has nothing to move to and is deleted, which lowers the
+ * required count by the same one, so the weekend stays complete.
+ *
+ * Idempotent: once migrated, every pick sits on a covering matchup and later
+ * runs find nothing. Run with `dryRun: true` first.
  *
  * Run via:
- *   npx convex run --prod seed:pruneOrphanedH2HPicks '"'"'{"dryRun":true}'"'"'
+ *   npx convex run --prod seed:migrateOrphanedH2HPicks '{"dryRun":true}'
  */
-export const pruneOrphanedH2HPicks = internalMutation({
+export const migrateOrphanedH2HPicks = internalMutation({
   args: { dryRun: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     const dryRun = args.dryRun ?? false;
@@ -872,17 +879,23 @@ export const pruneOrphanedH2HPicks = internalMutation({
     const matchups = await ctx.db.query('h2hMatchups').take(100);
     const matchupById = new Map(matchups.map((m) => [m._id, m]));
 
-    const affected: Array<{
+    const moves: Array<{
       race: string;
-      round: number;
       team: string;
-      sessionType: string;
-      userId: string;
+      from: string;
+      to: string;
     }> = [];
-    let deletedPredictions = 0;
-    let deletedResults = 0;
+    const affectedUsers = new Set<string>();
+    let migrated = 0;
+    let deleted = 0;
 
     for (const race of races) {
+      const successorForTeam = new Map(
+        matchups
+          .filter((m) => m.season === race.season && coversRound(m, race.round))
+          .map((m) => [m.team, m]),
+      );
+
       const predictions = await ctx.db
         .query('h2hPredictions')
         .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
@@ -890,54 +903,69 @@ export const pruneOrphanedH2HPicks = internalMutation({
 
       for (const prediction of predictions) {
         const matchup = matchupById.get(prediction.matchupId);
-        // An unknown matchup is orphaned too: the pairing row is gone, so
-        // nothing can ever score this pick.
         if (matchup && coversRound(matchup, race.round)) {
           continue;
         }
-        affected.push({
+
+        affectedUsers.add(prediction.userId as string);
+        const successor = matchup
+          ? successorForTeam.get(matchup.team)
+          : undefined;
+
+        // No matchup row at all, or no pairing for that team this round: there
+        // is no duel for this pick to belong to.
+        if (!matchup || !successor) {
+          moves.push({
+            race: race.slug,
+            team: matchup?.team ?? 'unknown',
+            from: 'orphan',
+            to: 'deleted',
+          });
+          if (!dryRun) {
+            await ctx.db.delete(prediction._id);
+          }
+          deleted++;
+          continue;
+        }
+
+        const winnerId = successorPick(
+          matchup,
+          successor,
+          prediction.predictedWinnerId,
+        );
+        const [before, after] = await Promise.all([
+          ctx.db.get(prediction.predictedWinnerId),
+          ctx.db.get(winnerId),
+        ]);
+        moves.push({
           race: race.slug,
-          round: race.round,
-          team: matchup?.team ?? 'unknown',
-          sessionType: prediction.sessionType,
-          userId: prediction.userId as string,
+          team: matchup.team,
+          from: before?.code ?? '???',
+          to: after?.code ?? '???',
         });
         if (!dryRun) {
-          await ctx.db.delete(prediction._id);
-          deletedPredictions++;
+          await ctx.db.patch(prediction._id, {
+            matchupId: successor._id,
+            predictedWinnerId: winnerId,
+            updatedAt: Date.now(),
+          });
         }
-      }
-
-      const results = await ctx.db
-        .query('h2hResults')
-        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
-        .take(2000);
-      for (const result of results) {
-        const matchup = matchupById.get(result.matchupId);
-        if (matchup && coversRound(matchup, race.round)) {
-          continue;
-        }
-        if (!dryRun) {
-          await ctx.db.delete(result._id);
-          deletedResults++;
-        }
+        migrated++;
       }
     }
 
-    const byUser: Record<string, number> = {};
-    for (const row of affected) {
-      byUser[row.userId] = (byUser[row.userId] ?? 0) + 1;
+    const summary: Record<string, number> = {};
+    for (const move of moves) {
+      const key = `${move.race} ${move.team}: ${move.from} -> ${move.to}`;
+      summary[key] = (summary[key] ?? 0) + 1;
     }
 
     return {
       dryRun,
-      orphanedPredictions: affected.length,
-      affectedUsers: Object.keys(byUser).length,
-      picksPerUser: byUser,
-      races: [...new Set(affected.map((a) => `${a.race} (r${a.round})`))],
-      teams: [...new Set(affected.map((a) => a.team))],
-      deletedPredictions,
-      deletedResults,
+      migrated,
+      deleted,
+      affectedUsers: affectedUsers.size,
+      moves: summary,
     };
   },
 });

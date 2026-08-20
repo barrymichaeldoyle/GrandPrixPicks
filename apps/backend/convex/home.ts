@@ -5,6 +5,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { loadMatchupsForSeason } from './h2h';
+import { loadStintsForSeason, rosterForRound } from './lib/lineups';
 import {
   getDefaultLeaderboardSeason,
   loadCombinedSeasonRows,
@@ -128,7 +129,7 @@ export function rankBeforeLastScoredRace(
 export const getHomePageData = query({
   args: { now: v.number() },
   handler: async (ctx, { now }) => {
-    const [nextRace, races, drivers] = await Promise.all([
+    const [nextRace, races, allDrivers] = await Promise.all([
       ctx.db
         .query('races')
         .withIndex('by_status_and_predictionLockAt', (q) =>
@@ -150,6 +151,17 @@ export const getHomePageData = query({
       // loading skeleton.
       ctx.db.query('drivers').withIndex('by_displayName').take(30),
     ]);
+
+    // The landing picker must offer the grid that is actually racing next, so
+    // the roster is resolved for the upcoming round: an injured driver is not
+    // pickable and his stand-in is, each under the team they will drive for.
+    const drivers = nextRace
+      ? rosterForRound(
+          allDrivers,
+          await loadStintsForSeason(ctx, nextRace.season),
+          nextRace.round,
+        )
+      : allDrivers;
 
     const startedRaces = races
       .filter((race) => race.raceStartAt <= now && race.status !== 'cancelled')
@@ -183,7 +195,7 @@ export const getHomePageData = query({
     // skeleton boxes waiting on a websocket round trip for data the SSR render
     // already had in hand.
     const h2hMatchups = nextRace
-      ? await loadMatchupsForSeason(ctx, nextRace.season)
+      ? await loadMatchupsForSeason(ctx, nextRace.season, nextRace.round)
       : [];
 
     const season = await getDefaultLeaderboardSeason(ctx);

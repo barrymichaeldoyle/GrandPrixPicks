@@ -1,12 +1,14 @@
 import { describe, expect, test } from 'vitest';
 
 import {
+  type ChampionshipSessionResult,
   compareCountback,
   type DriverTally,
   pointsForPosition,
   RACE_POINTS,
   rankConstructorStandings,
   SPRINT_POINTS,
+  tallyBy,
   tallyDriverPoints,
 } from './f1Standings';
 
@@ -39,9 +41,9 @@ describe('tallyDriverPoints', () => {
   test('sums race and sprint points across sessions', () => {
     const tally = tallyDriverPoints([
       // Round 1 race: ver P1, nor P2, lec P3
-      { sessionType: 'race', classification: ['ver', 'nor', 'lec'] },
+      { sessionType: 'race', round: 1, classification: ['ver', 'nor', 'lec'] },
       // Sprint: nor P1 (8), ver P2 (7)
-      { sessionType: 'sprint', classification: ['nor', 'ver'] },
+      { sessionType: 'sprint', round: 1, classification: ['nor', 'ver'] },
     ]);
 
     expect(tally.get('ver')).toMatchObject({
@@ -59,8 +61,8 @@ describe('tallyDriverPoints', () => {
 
   test('counts wins and podiums from main races only, not sprints', () => {
     const tally = tallyDriverPoints([
-      { sessionType: 'sprint', classification: ['ham'] },
-      { sessionType: 'race', classification: ['ham'] },
+      { sessionType: 'sprint', round: 1, classification: ['ham'] },
+      { sessionType: 'race', round: 1, classification: ['ham'] },
     ]);
 
     // 8 (sprint P1) + 25 (race P1); one win + one podium from the race only.
@@ -69,7 +71,9 @@ describe('tallyDriverPoints', () => {
 
   test('drivers outside the points positions score zero but still appear', () => {
     const classification = Array.from({ length: 15 }, (_, i) => `d${i + 1}`);
-    const tally = tallyDriverPoints([{ sessionType: 'race', classification }]);
+    const tally = tallyDriverPoints([
+      { sessionType: 'race', round: 1, classification },
+    ]);
 
     expect(tally.get('d11')).toMatchObject({ points: 0, wins: 0, podiums: 0 });
     expect(tally.get('d15')).toMatchObject({ points: 0, wins: 0, podiums: 0 });
@@ -83,6 +87,7 @@ describe('tallyDriverPoints', () => {
     const tally = tallyDriverPoints([
       {
         sessionType: 'race',
+        round: 1,
         classification: ['ver', 'nor', 'lec'],
         dnfDriverIds: ['nor'],
       },
@@ -97,6 +102,7 @@ describe('tallyDriverPoints', () => {
     const tally = tallyDriverPoints([
       {
         sessionType: 'race',
+        round: 1,
         classification: ['ver', 'nor', 'lec'],
         dnfDriverIds: ['nor'],
       },
@@ -108,10 +114,10 @@ describe('tallyDriverPoints', () => {
 
   test('records main-race finishing positions for the tie-break', () => {
     const tally = tallyDriverPoints([
-      { sessionType: 'race', classification: ['ver', 'nor'] },
-      { sessionType: 'race', classification: ['nor', 'ver'] },
+      { sessionType: 'race', round: 1, classification: ['ver', 'nor'] },
+      { sessionType: 'race', round: 1, classification: ['nor', 'ver'] },
       // Sprints never feed the countback.
-      { sessionType: 'sprint', classification: ['ver', 'nor'] },
+      { sessionType: 'sprint', round: 1, classification: ['ver', 'nor'] },
     ]);
 
     // One P1 and one P2 apiece from the two races.
@@ -193,5 +199,64 @@ describe('rankConstructorStandings', () => {
       'mercedes',
       'ferrari',
     ]);
+  });
+});
+
+describe('constructor points across a mid-season driver move', () => {
+  // Lawson drove for Racing Bulls through round 11, then replaced the injured
+  // Hadjar at Red Bull from round 12. Points follow the car he was in at the
+  // time: pooling by his current team would hand Red Bull the whole lot.
+  function teamAtRound(driverId: string, round: number): string | null {
+    if (driverId === 'law') {
+      return round <= 11 ? 'Racing Bulls' : 'Red Bull Racing';
+    }
+    if (driverId === 'lin') {
+      return 'Racing Bulls';
+    }
+    if (driverId === 'ver') {
+      return 'Red Bull Racing';
+    }
+    return null;
+  }
+
+  const sessions: ChampionshipSessionResult[] = [
+    // Round 11: Lawson wins for Racing Bulls, Verstappen second.
+    { sessionType: 'race', round: 11, classification: ['law', 'ver', 'lin'] },
+    // Round 12: same finishing order, but Lawson is in the Red Bull now.
+    { sessionType: 'race', round: 12, classification: ['law', 'ver', 'lin'] },
+  ];
+
+  test('leaves points earned before the move with the old team', () => {
+    const tally = tallyBy(sessions, (driverId, session) =>
+      teamAtRound(driverId, session.round),
+    );
+    // Round 11 only: Lawson's 25 plus Lindblad's 15.
+    // Round 12: Lindblad's 15 alone.
+    expect(tally.get('Racing Bulls')?.points).toBe(25 + 15 + 15);
+  });
+
+  test('credits the new team only from the round the driver joined it', () => {
+    const tally = tallyBy(sessions, (driverId, session) =>
+      teamAtRound(driverId, session.round),
+    );
+    // Verstappen's 18 twice, plus Lawson's round-12 win only.
+    expect(tally.get('Red Bull Racing')?.points).toBe(18 + 18 + 25);
+  });
+
+  test('still gives the driver every point he scored, either side of the move', () => {
+    // The drivers' championship is unaffected by which car he was in.
+    const tally = tallyDriverPoints(sessions);
+    expect(tally.get('law')?.points).toBe(50);
+    expect(tally.get('law')?.wins).toBe(2);
+  });
+
+  test('does not promote the rest of the field when a driver has no team', () => {
+    // An unattributed driver still occupies his finishing position, exactly as
+    // a retirement does, so nobody behind him is promoted into his points.
+    const tally = tallyBy(sessions, (driverId, session) =>
+      driverId === 'law' ? null : teamAtRound(driverId, session.round),
+    );
+    expect(tally.get('Red Bull Racing')?.points).toBe(18 + 18);
+    expect(tally.has('law')).toBe(false);
   });
 });

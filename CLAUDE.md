@@ -69,6 +69,27 @@ Workspace package names:
 - `pnpm knip` — Detect unused code/exports
 - `pnpm storybook` — Storybook on port 6006
 - `pnpm deploy` / `pnpm deploy:backend` — Cloudflare Pages / Convex prod
+  (manual, web-only / backend-only — see Deploys below before reaching for these)
+
+## Deploys
+
+**A push to `main` deploys everything.** Cloudflare Pages runs
+`scripts/cloudflare-build.sh`, which deploys **Convex first**, smoke-tests
+OpenF1, runs prod migrations, then builds the web client against the backend
+that is already live. Web and backend ship together from one commit, in the
+right order, with no manual step. Do not tell the user a backend change is
+"still pending" after a normal push, and do not offer to run `pnpm
+deploy:backend` for them: that is the same deploy done twice.
+
+The manual scripts are the exception, not the norm:
+
+- `pnpm deploy` builds web locally and uploads it, from whatever branch you are
+  on, skipping CI **and** skipping Convex. That is the one path that can leave
+  prod web calling functions prod Convex does not have.
+- `pnpm deploy:backend` is for deploying Convex by hand when Cloudflare is down.
+
+Verify rather than assume: `npx convex function-spec --prod` shows what is
+actually live. Full detail in `docs/convex-cicd.md`.
 
 ## Git Workflow
 
@@ -222,6 +243,16 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 - Race status: `upcoming` → `locked` → `finished`
 - **H2H**: per-session teammate matchups; pick a winner from each pair, 1 pt per
   correct pick. Fully implemented (predictions, scoring, leaderboard, race UI).
+- **Lineups are round-scoped**: who drives for whom is a per-round fact, held in
+  `driverTeamStints`, and `h2hMatchups` carry `fromRound`/`toRound` to match. A
+  mid-season change closes the old records and opens new ones, so past races
+  keep the grid, team colours, duels and constructor points they actually had.
+  `drivers.team` is the driver's _current_ team, for display only: never use it
+  to attribute a past result. Declare changes in `TEAMMATE_PAIRINGS_2026`
+  (`packages/shared/src/teams.ts`), then run `convex run seed:applyLineup`.
+  Follow it with `seed:pruneOrphanedH2HPicks` (dry-run first): picks already
+  made on a retired pairing for a future round must be deleted, or the pick
+  form counts them and reports the weekend complete with duels still blank.
 - **Leagues**: private leagues with a shareable slug; members get a league-scoped
   leaderboard and feed.
 - **Season pass**: a paid (Paddle) per-season entitlement (`userSeasonPasses`)
@@ -231,10 +262,10 @@ is one `scoreTopFive()` and no per-session branching in the point math.
 
 ### Database Tables (Convex)
 
-Grouped by area (24 tables):
+Grouped by area (25 tables):
 
 - **Core game**: `users`, `drivers`, `races`, `predictions`, `results`, `scores`,
-  `seasonStandings`
+  `seasonStandings`, `driverTeamStints`
 - **Head-to-head**: `h2hMatchups`, `h2hPredictions`, `h2hResults`, `h2hScores`,
   `h2hSeasonStandings`
 - **Social**: `follows`, `feedEvents`, `revs`, `leagues`, `leagueMembers`

@@ -1,7 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import {
-  TEAMMATE_PAIRINGS_2026,
+  currentPairings,
   teamStandingsIndex,
 } from '@grandprixpicks/shared/teams';
 import { useQuery } from '@/integrations/convex/query';
@@ -19,8 +19,12 @@ import { DriverBadge } from '../DriverBadge';
  * Constructors' order for the loading rows. This is last season's order, the
  * best a component with no database can do, so a team or two may shift when the
  * live standings arrive with the real rows.
+ *
+ * The current pairings only: the season's list also holds the pairings that
+ * mid-season driver changes have retired, and including those would draw a
+ * team twice.
  */
-const loadingRows = [...TEAMMATE_PAIRINGS_2026].sort(
+const loadingRows = [...currentPairings()].sort(
   (a, b) =>
     teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
     a.team.localeCompare(b.team),
@@ -31,7 +35,8 @@ const loadingRows = [...TEAMMATE_PAIRINGS_2026].sort(
  *
  * The grid's eleven teams are the same all season and the rows are sorted into
  * a fixed order, so a skeleton that greys them out is hiding something it
- * already knows. Only the duel itself has to wait.
+ * already knows. Only the duel itself has to wait — and that is now the part
+ * that can genuinely change mid-season, when a driver swaps seats.
  */
 function TeamCell({ team }: { team: string }) {
   return (

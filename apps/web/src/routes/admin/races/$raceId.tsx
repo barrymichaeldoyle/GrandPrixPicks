@@ -91,7 +91,12 @@ function AdminRaceDetailPage() {
   const typedRaceId = raceId as Id<'races'>;
   const isAdmin = useQuery(api.users.amIAdmin);
   const race = useQuery(api.races.getRace, { raceId: typedRaceId });
-  const drivers = useQuery(api.drivers.listDrivers);
+  // The grid that raced this round, so publishing a past race's results offers
+  // the drivers who were actually in the cars.
+  const drivers = useQuery(
+    api.drivers.listDrivers,
+    race ? { round: race.round, season: race.season } : 'skip',
+  );
   const submittedSessions = useQuery(api.results.getAllResultsForRace, {
     raceId: typedRaceId,
   });

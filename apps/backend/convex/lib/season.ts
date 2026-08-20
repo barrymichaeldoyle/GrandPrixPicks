@@ -41,3 +41,40 @@ export async function getCurrentSeason(
     .first();
   return latestRace?.season ?? FALLBACK_SEASON;
 }
+
+/**
+ * The season and round the app is currently pointed at: the next race that has
+ * not locked, or the latest race once the season is over.
+ *
+ * Anything lineup-sensitive needs the round as well as the season, because who
+ * is in which car is a per-round fact. Callers that already know which race
+ * they are rendering should pass that race's round instead of calling this —
+ * a past race page must resolve the grid as it was, not as it is now.
+ */
+export async function getCurrentSeasonAndRound(
+  ctx: Pick<QueryCtx, 'db'>,
+): Promise<{ season: number; round: number }> {
+  const now = Date.now();
+  const nextUpcomingRace = await ctx.db
+    .query('races')
+    .withIndex('by_status_and_predictionLockAt', (q) =>
+      q.eq('status', 'upcoming').gt('predictionLockAt', now),
+    )
+    .first();
+  if (nextUpcomingRace) {
+    return {
+      season: nextUpcomingRace.season,
+      round: nextUpcomingRace.round,
+    };
+  }
+
+  const latestRace = await ctx.db
+    .query('races')
+    .withIndex('by_raceStartAt')
+    .order('desc')
+    .first();
+  return {
+    season: latestRace?.season ?? FALLBACK_SEASON,
+    round: latestRace?.round ?? 1,
+  };
+}

@@ -22,6 +22,10 @@ export type Race = {
   drivers: Driver[];
 };
 
+// The grid as it currently races. This app posts about the upcoming weekend
+// only, so unlike the main app it has no need to remember past line-ups: from
+// round 12 Lawson replaces the injured Hadjar at Red Bull and Tsunoda takes
+// the Racing Bulls seat Lawson vacates.
 const teams = [
   [
     'McLaren',
@@ -44,7 +48,7 @@ const teams = [
     '#3671c6',
     [
       ['VER', 'Max Verstappen'],
-      ['HAD', 'Isack Hadjar'],
+      ['LAW', 'Liam Lawson'],
     ],
   ],
   [
@@ -83,7 +87,7 @@ const teams = [
     'Racing Bulls',
     '#6692ff',
     [
-      ['LAW', 'Liam Lawson'],
+      ['TSU', 'Yuki Tsunoda'],
       ['LIN', 'Arvid Lindblad'],
     ],
   ],

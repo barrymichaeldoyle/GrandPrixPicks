@@ -42,6 +42,7 @@ import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_followCounts from "../lib/followCounts.js";
 import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
+import type * as lib_lineups from "../lib/lineups.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_reactions from "../lib/reactions.js";
@@ -110,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   "lib/followCounts": typeof lib_followCounts;
   "lib/leaderboard": typeof lib_leaderboard;
   "lib/leaguePassword": typeof lib_leaguePassword;
+  "lib/lineups": typeof lib_lineups;
   "lib/notificationChannels": typeof lib_notificationChannels;
   "lib/raceTimezones": typeof lib_raceTimezones;
   "lib/reactions": typeof lib_reactions;

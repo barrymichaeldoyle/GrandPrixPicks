@@ -100,27 +100,40 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         },
   component: RaceDetailPage,
   loader: async ({ context, params, deps }) => {
-    // Fetch the driver roster alongside the race so a signed-out visitor (and
-    // search-engine crawlers, which don't run the client Convex subscriptions)
-    // get a real, crawlable grid on the page instead of an empty sign-in gate.
-    const [race, nextRace, drivers] = await Promise.all([
+    const [race, nextRace] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
       ),
       context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
-      context.queryClient.ensureQueryData(routeQuery(api.drivers.listDrivers)),
     ]);
     if (!race) {
       throw notFound();
     }
+    // The driver roster is fetched server-side so a signed-out visitor (and
+    // search-engine crawlers, which don't run the client Convex subscriptions)
+    // get a real, crawlable grid on the page instead of an empty sign-in gate.
+    // It is pinned to this race's round so the SSR markup shows the grid that
+    // raced it, which for a past race is not today's grid.
+    //
     // Published results are public, so fetch them server-side too: a finished
     // race then renders its actual finishing order in the SSR HTML (crawlable,
     // and visible before the client Convex subscriptions boot) rather than an
     // empty table. Upcoming races have no results, so this is a single cheap
     // query for them.
-    const availableSessions = await context.queryClient.ensureQueryData(
-      routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
-    );
+    //
+    // Both depend on the race, so they share its round trip rather than adding
+    // one each.
+    const [drivers, availableSessions] = await Promise.all([
+      context.queryClient.ensureQueryData(
+        routeQuery(api.drivers.listDrivers, {
+          round: race.round,
+          season: race.season,
+        }),
+      ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
+      ),
+    ]);
     const resultEntries = await Promise.all(
       availableSessions.map(
         async (sessionType) =>

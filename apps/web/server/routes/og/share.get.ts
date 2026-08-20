@@ -65,7 +65,7 @@ export default async function handler(event: RouteEvent) {
           season: race.season,
           sessionLabel: SESSION_LABELS[card.session],
           flagSrc,
-          picks: await resolvePickColors(convex, card.picks),
+          picks: await resolvePickColors(convex, card.picks, race),
         };
         return card.variant === 'picks'
           ? sharePicksTemplate({
@@ -81,7 +81,7 @@ export default async function handler(event: RouteEvent) {
           season: race.season,
           sessionLabel: SESSION_LABELS[card.session],
           flagSrc,
-          winners: await resolvePickColors(convex, card.winners),
+          winners: await resolvePickColors(convex, card.winners, race),
         };
         return card.variant === 'h2h_picks'
           ? shareH2HPicksTemplate({ ...data, by: card.by })
@@ -92,6 +92,7 @@ export default async function handler(event: RouteEvent) {
           ? await resolvePickColors(
               convex,
               card.picks.map((pick) => pick.code),
+              race,
             )
           : undefined;
         return shareH2HScoreTemplate({
@@ -143,8 +144,21 @@ export default async function handler(event: RouteEvent) {
   }
 }
 
-async function resolvePickColors(convex: ConvexHttpClient, codes: string[]) {
-  const drivers = await convex.query(api.drivers.listDrivers, {});
+/**
+ * Team colours for a shared card, taken from the grid as it stood at that
+ * race. A driver who has since switched teams (or a stand-in who only covered
+ * a few rounds) keeps the colour they raced in, so an old card still looks
+ * like the weekend it is about.
+ */
+async function resolvePickColors(
+  convex: ConvexHttpClient,
+  codes: string[],
+  race: { round: number; season: number },
+) {
+  const drivers = await convex.query(api.drivers.listDrivers, {
+    round: race.round,
+    season: race.season,
+  });
   const colorByCode = new Map(
     drivers.map((driver) => [
       driver.code,

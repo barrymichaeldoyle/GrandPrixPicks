@@ -71,7 +71,13 @@ export function useRaceWeekendData({
       api.results.getAllResultsForRace,
       race ? { raceId: race._id } : 'skip',
     ) ?? initialResults?.availableSessions;
-  const drivers = useQuery(api.drivers.listDrivers);
+  // Pinned to this race's round, so a past race shows the grid that raced it
+  // rather than today's: a driver who has since changed teams keeps the team
+  // he drove for here, and a stand-in stays visible on the rounds he covered.
+  const drivers = useQuery(
+    api.drivers.listDrivers,
+    race ? { round: race.round, season: race.season } : 'skip',
+  );
   const raceRank = useQuery(
     api.results.getRaceRank,
     race ? { raceId: race._id } : 'skip',
@@ -112,7 +118,10 @@ export function useRaceWeekendData({
   // Keep the matchups subscription warm at route level: H2HSection (which
   // also queries this) only mounts after Top 5 picks exist, and without the
   // warm cache the Top 5 → H2H chained overlay opens onto a loading spinner.
-  useQuery(api.h2h.getMatchupsForSeason, race ? {} : 'skip');
+  useQuery(
+    api.h2h.getMatchupsForSeason,
+    race ? { round: race.round, season: race.season } : 'skip',
+  );
   const h2hPredictions = useQuery(
     api.h2h.myH2HPredictionsForRace,
     race ? { raceId: race._id } : 'skip',

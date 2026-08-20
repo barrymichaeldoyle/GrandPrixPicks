@@ -87,6 +87,11 @@ export default defineSchema({
     familyName: v.optional(v.string()),
     displayName: v.string(), // "Max Verstappen"
     number: v.optional(v.number()), // 1, 44, etc.
+    // The driver's CURRENT team, for display only (badge colour, roster
+    // grouping). Never use it to attribute a past result: a mid-season move
+    // rewrites this field, so pooling season points by it would move a
+    // driver's whole haul to their new team. `driverTeamStints` is the
+    // round-accurate answer and what the championship tables read.
     team: v.optional(v.string()), // "Red Bull Racing", "Ferrari", etc.
     nationality: v.optional(v.string()), // ISO 3166-1 alpha-2: "NL", "GB", etc.
     createdAt: v.number(),
@@ -95,6 +100,32 @@ export default defineSchema({
     .index('by_code', ['code'])
     .index('by_displayName', ['displayName'])
     .index('by_team', ['team']),
+
+  // Which team a driver drove for, over a range of rounds. The source of truth
+  // for every round-sensitive lineup question: who is in the pick pool for a
+  // race, which team a result's points belong to, and which team-mate pairing
+  // was on track.
+  //
+  // Every driver on the grid has at least one stint. A mid-season move closes
+  // the old stint (`toRound` = their last round in that car) and opens a new
+  // one, so the history stays intact and a driver can return to a seat later
+  // as a third stint rather than an edit to the first two. A driver with no
+  // stint covering a round simply was not racing that round, which is how an
+  // injured driver leaves the pick pool without deleting the results that
+  // already reference them.
+  driverTeamStints: defineTable({
+    driverId: v.id('drivers'),
+    season: v.number(),
+    team: v.string(),
+    /** First round of this stint, inclusive. */
+    fromRound: v.number(),
+    /** Last round, inclusive. Unset means the stint is still running. */
+    toRound: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_season', ['season'])
+    .index('by_driver_season', ['driverId', 'season']),
 
   races: defineTable({
     season: v.number(), // 2026
@@ -319,11 +350,24 @@ export default defineSchema({
   // ============ HEAD TO HEAD ============
 
   // Teammate pairings per season
+  // A team-mate pairing over a range of rounds. Round-scoped rather than
+  // season-scoped because race pages resolve a past duel through its matchup
+  // row: editing a row's drivers in place would relabel every already-scored
+  // round that referenced it, and would merge two distinct team-mate battles
+  // into one meaningless record. A lineup change closes the old row and opens
+  // a new one, so `h2hPredictions` and `h2hResults` keep pointing at the
+  // pairing that was actually on track.
   h2hMatchups: defineTable({
     season: v.number(),
     team: v.string(), // "McLaren", "Ferrari", etc.
     driver1Id: v.id('drivers'),
     driver2Id: v.id('drivers'),
+    // Optional only to admit the season-scoped rows written before pairings
+    // were round-scoped; readers treat an absent `fromRound` as round 1. Go
+    // through `coversRound` in lib/lineups rather than reading these directly.
+    fromRound: v.optional(v.number()),
+    /** Last round, inclusive. Unset means the pairing is still current. */
+    toRound: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

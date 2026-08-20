@@ -1,5 +1,9 @@
 import { REACTION_TYPES } from '@grandprixpicks/shared/reactions';
-import { TEAMMATE_PAIRINGS_2026 } from '@grandprixpicks/shared/teams';
+import {
+  coversRound,
+  driverStintsForSeason,
+  TEAMMATE_PAIRINGS_2026,
+} from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -161,14 +165,28 @@ const F1_DRIVERS_2026 = [
   },
 
   // Racing Bulls
+  //
+  // Lawson's row says Red Bull Racing because `drivers.team` is the CURRENT
+  // team, and from round 12 that is where he races. The eleven rounds he drove
+  // for Racing Bulls are not lost: they live in `driverTeamStints`, which is
+  // what the constructors' championship reads.
   {
     code: 'LAW',
     givenName: 'Liam',
     familyName: 'Lawson',
     displayName: 'Liam Lawson',
     number: 30,
-    team: 'Racing Bulls',
+    team: 'Red Bull Racing',
     nationality: 'NZ',
+  },
+  {
+    code: 'TSU',
+    givenName: 'Yuki',
+    familyName: 'Tsunoda',
+    displayName: 'Yuki Tsunoda',
+    number: 22,
+    team: 'Racing Bulls',
+    nationality: 'JP',
   },
   {
     code: 'LIN',
@@ -674,11 +692,88 @@ export const seedRaces = internalMutation({
   },
 });
 
+/**
+ * Write each driver's team stints from the declared pairings.
+ *
+ * Idempotent and safe to re-run: a stint is identified by driver + team +
+ * fromRound, so an existing one is patched (which is how a swap closes an
+ * open-ended stint by giving it a `toRound`) and a missing one is inserted.
+ * Nothing is deleted, because a stint that has already been raced is history.
+ */
+export const seedDriverTeamStints = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    let created = 0;
+    let updated = 0;
+    const missing: string[] = [];
+
+    const drivers = await ctx.db.query('drivers').collect();
+    const driverByCode = new Map(drivers.map((d) => [d.code, d]));
+
+    for (const stint of driverStintsForSeason()) {
+      const driver = driverByCode.get(stint.driverCode);
+      if (!driver) {
+        missing.push(stint.driverCode);
+        continue;
+      }
+
+      const existing = await ctx.db
+        .query('driverTeamStints')
+        .withIndex('by_driver_season', (q) =>
+          q.eq('driverId', driver._id).eq('season', 2026),
+        )
+        .collect();
+
+      const match = existing.find(
+        (row) => row.team === stint.team && row.fromRound === stint.fromRound,
+      );
+
+      if (match) {
+        if (match.toRound !== stint.toRound) {
+          await ctx.db.patch(match._id, {
+            toRound: stint.toRound,
+            updatedAt: now,
+          });
+          updated++;
+        }
+        continue;
+      }
+
+      await ctx.db.insert('driverTeamStints', {
+        driverId: driver._id,
+        season: 2026,
+        team: stint.team,
+        fromRound: stint.fromRound,
+        toRound: stint.toRound,
+        createdAt: now,
+        updatedAt: now,
+      });
+      created++;
+    }
+
+    return { created, updated, missing };
+  },
+});
+
+/**
+ * Seed the round-scoped team-mate matchups.
+ *
+ * A matchup is identified by team + fromRound rather than by team alone, which
+ * is what lets a season hold more than one pairing per team. Re-running after
+ * a lineup change closes the outgoing pairing (patching its `toRound`) and
+ * inserts the incoming one. A row is never deleted, because `h2hPredictions`
+ * and `h2hResults` from the rounds it covered still reference it. A row is
+ * only repointed at different drivers when the declared list changes the
+ * pairing for that exact `fromRound`, which is a correction, not a swap: a
+ * swap is expressed as a new `fromRound` and leaves the old row alone.
+ */
 export const seedH2HMatchups = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
     let created = 0;
+    let updated = 0;
     let skipped = 0;
 
     // First, get all drivers by code
@@ -697,15 +792,36 @@ export const seedH2HMatchups = internalMutation({
         continue;
       }
 
-      // Check if matchup already exists
-      const existing = await ctx.db
+      const existingForTeam = await ctx.db
         .query('h2hMatchups')
         .withIndex('by_season_team', (q) =>
           q.eq('season', 2026).eq('team', matchup.team),
         )
-        .first();
+        .collect();
+
+      // Rows written before pairings were round-scoped have no `fromRound`;
+      // they are the round-1 pairing, so match them as such.
+      const existing = existingForTeam.find(
+        (row) => (row.fromRound ?? 1) === matchup.fromRound,
+      );
 
       if (existing) {
+        const needsPatch =
+          existing.fromRound !== matchup.fromRound ||
+          existing.toRound !== matchup.toRound ||
+          existing.driver1Id !== driver1._id ||
+          existing.driver2Id !== driver2._id;
+        if (needsPatch) {
+          await ctx.db.patch(existing._id, {
+            fromRound: matchup.fromRound,
+            toRound: matchup.toRound,
+            driver1Id: driver1._id,
+            driver2Id: driver2._id,
+            updatedAt: now,
+          });
+          updated++;
+          continue;
+        }
         skipped++;
         continue;
       }
@@ -715,13 +831,155 @@ export const seedH2HMatchups = internalMutation({
         team: matchup.team,
         driver1Id: driver1._id,
         driver2Id: driver2._id,
+        fromRound: matchup.fromRound,
+        toRound: matchup.toRound,
         createdAt: now,
         updatedAt: now,
       });
       created++;
     }
 
-    return { created, skipped, total: TEAMMATE_PAIRINGS_2026.length };
+    return { created, updated, skipped, total: TEAMMATE_PAIRINGS_2026.length };
+  },
+});
+
+/**
+ * Find (and optionally delete) H2H rows left pointing at a pairing that did
+ * not race the round they belong to.
+ *
+ * A lineup change retires a pairing, and any pick already made against it for
+ * a later round is now a pick on a duel that will not happen. Those rows have
+ * to go rather than linger: the pick form seeds itself from the raw
+ * matchupId-to-winner map and compares its size against the number of duels on
+ * track, so two orphans plus nine real picks reads as a complete set of eleven
+ * while the two new duels sit unpicked and unsaveable.
+ *
+ * Deliberately NOT part of `applyLineup`: this deletes player data, so it is an
+ * explicit second step. Run it with `dryRun: true` first, which reports exactly
+ * what would go without touching anything.
+ *
+ * Only ever removes rows whose race the matchup does not cover, so a finished
+ * race keeps every pick made on the pairing that actually raced it.
+ *
+ * Run via:
+ *   npx convex run --prod seed:pruneOrphanedH2HPicks '"'"'{"dryRun":true}'"'"'
+ */
+export const pruneOrphanedH2HPicks = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const dryRun = args.dryRun ?? false;
+    const races = await ctx.db.query('races').take(100);
+    const matchups = await ctx.db.query('h2hMatchups').take(100);
+    const matchupById = new Map(matchups.map((m) => [m._id, m]));
+
+    const affected: Array<{
+      race: string;
+      round: number;
+      team: string;
+      sessionType: string;
+      userId: string;
+    }> = [];
+    let deletedPredictions = 0;
+    let deletedResults = 0;
+
+    for (const race of races) {
+      const predictions = await ctx.db
+        .query('h2hPredictions')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+        .take(2000);
+
+      for (const prediction of predictions) {
+        const matchup = matchupById.get(prediction.matchupId);
+        // An unknown matchup is orphaned too: the pairing row is gone, so
+        // nothing can ever score this pick.
+        if (matchup && coversRound(matchup, race.round)) {
+          continue;
+        }
+        affected.push({
+          race: race.slug,
+          round: race.round,
+          team: matchup?.team ?? 'unknown',
+          sessionType: prediction.sessionType,
+          userId: prediction.userId as string,
+        });
+        if (!dryRun) {
+          await ctx.db.delete(prediction._id);
+          deletedPredictions++;
+        }
+      }
+
+      const results = await ctx.db
+        .query('h2hResults')
+        .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
+        .take(2000);
+      for (const result of results) {
+        const matchup = matchupById.get(result.matchupId);
+        if (matchup && coversRound(matchup, race.round)) {
+          continue;
+        }
+        if (!dryRun) {
+          await ctx.db.delete(result._id);
+          deletedResults++;
+        }
+      }
+    }
+
+    const byUser: Record<string, number> = {};
+    for (const row of affected) {
+      byUser[row.userId] = (byUser[row.userId] ?? 0) + 1;
+    }
+
+    return {
+      dryRun,
+      orphanedPredictions: affected.length,
+      affectedUsers: Object.keys(byUser).length,
+      picksPerUser: byUser,
+      races: [...new Set(affected.map((a) => `${a.race} (r${a.round})`))],
+      teams: [...new Set(affected.map((a) => a.team))],
+      deletedPredictions,
+      deletedResults,
+    };
+  },
+});
+
+/**
+ * Apply the declared 2026 lineup to a deployment: roster, team stints and
+ * round-scoped team-mate matchups, in that order (stints and matchups both
+ * resolve drivers by code, so the roster has to exist first).
+ *
+ * This is the whole procedure for a mid-season driver change. Edit
+ * `TEAMMATE_PAIRINGS_2026` — close the outgoing pairing with a `toRound`, add
+ * the incoming one with a `fromRound` — add any new driver to
+ * `F1_DRIVERS_2026`, then run this. Every step is idempotent, so re-running is
+ * safe and running it on a deployment that is already correct is a no-op.
+ *
+ * Run via:
+ *   npx convex run seed:applyLineup            # dev
+ *   npx convex run --prod seed:applyLineup     # prod
+ */
+export const applyLineup = internalAction({
+  args: {},
+  // Annotated because each step's result type is inferred from this module,
+  // which would otherwise make the action's own type circular.
+  handler: async (
+    ctx,
+  ): Promise<{
+    drivers: { created: number; updated: number; total: number };
+    stints: { created: number; updated: number; missing: string[] };
+    matchups: {
+      created: number;
+      updated: number;
+      skipped: number;
+      total: number;
+    };
+  }> => {
+    const drivers = await ctx.runMutation(internal.seed.seedDrivers, {});
+    const stints = await ctx.runMutation(
+      internal.seed.seedDriverTeamStints,
+      {},
+    );
+    const matchups = await ctx.runMutation(internal.seed.seedH2HMatchups, {});
+    return { drivers, stints, matchups };
   },
 });
 

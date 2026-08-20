@@ -501,9 +501,15 @@ export function PredictionForm({
   onPicksChange,
   onStartOver,
 }: PredictionFormProps) {
-  const liveDrivers = useQuery(api.drivers.listDrivers);
-  const drivers = liveDrivers ?? initialDrivers;
   const race = useQuery(api.races.getRace, { raceId });
+  // Pinned to this race's round once it resolves, so the pool is the grid that
+  // races here. Until then `initialDrivers` covers the gap; for the next race
+  // the round-less default is the same answer anyway.
+  const liveDrivers = useQuery(
+    api.drivers.listDrivers,
+    race ? { round: race.round, season: race.season } : {},
+  );
+  const drivers = liveDrivers ?? initialDrivers;
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
   const submitPrediction = useMutation(api.predictions.submitPrediction);
   const draftKey = getWebTop5DraftStorageKey(raceId, sessionType);

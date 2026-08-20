@@ -33,31 +33,128 @@ const CONSTRUCTOR_STANDINGS_ORDER: string[] = [
 ];
 
 /**
- * The season's teammate pairings — the H2H matchups, in driver code form.
+ * The season's team-mate pairings, each valid over a range of rounds.
  *
  * The backend seeds `h2hMatchups` from this list, which is what makes it safe
- * for the UI to draw a duel before its data arrives: the pairings are fixed for
- * the season, so only the outcome of a duel is ever unknown. The database rows
- * stay authoritative — a lineup change lands there first and simply corrects
+ * for the UI to draw a duel before its data arrives: a round's pairings are
+ * fixed, so only the outcome of a duel is ever unknown. The database rows stay
+ * authoritative — a lineup change lands there first and simply corrects
  * whatever a loading state drew.
+ *
+ * Pairings are round-scoped because a mid-season driver swap is a real event
+ * and rewriting a pairing in place would rewrite history with it: the race
+ * pages resolve a past duel through its matchup row, so flipping Red Bull's
+ * second seat from HAD to LAW would relabel eleven scored rounds of
+ * Verstappen-vs-Hadjar as Verstappen-vs-Lawson, and would fold two separate
+ * team-mate battles into one bogus record. `fromRound` is inclusive;
+ * `toRound` is inclusive too, and omitting it means "still current".
+ *
+ * `driverTeamStints` in the backend is the underlying source of truth for who
+ * drove for whom in a given round; this list is the pre-season shape of it and
+ * what a client renders from before the database answers.
  */
-export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<{
+export type TeammatePairing = {
   team: string;
   driver1Code: string;
   driver2Code: string;
-}> = [
-  { team: 'McLaren', driver1Code: 'NOR', driver2Code: 'PIA' },
-  { team: 'Ferrari', driver1Code: 'LEC', driver2Code: 'HAM' },
-  { team: 'Red Bull Racing', driver1Code: 'VER', driver2Code: 'HAD' },
-  { team: 'Mercedes', driver1Code: 'RUS', driver2Code: 'ANT' },
-  { team: 'Aston Martin', driver1Code: 'ALO', driver2Code: 'STR' },
-  { team: 'Alpine', driver1Code: 'GAS', driver2Code: 'COL' },
-  { team: 'Williams', driver1Code: 'ALB', driver2Code: 'SAI' },
-  { team: 'Racing Bulls', driver1Code: 'LAW', driver2Code: 'LIN' },
-  { team: 'Audi', driver1Code: 'HUL', driver2Code: 'BOR' },
-  { team: 'Haas', driver1Code: 'OCO', driver2Code: 'BEA' },
-  { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER' },
+  /** First round this pairing raced, inclusive. */
+  fromRound: number;
+  /** Last round this pairing raced, inclusive. Omitted while it is current. */
+  toRound?: number;
+};
+
+export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
+  { team: 'McLaren', driver1Code: 'NOR', driver2Code: 'PIA', fromRound: 1 },
+  { team: 'Ferrari', driver1Code: 'LEC', driver2Code: 'HAM', fromRound: 1 },
+  // Hadjar broke his wrist before round 12 (Dutch GP). Lawson steps up from
+  // Racing Bulls to partner Verstappen; Tsunoda takes the vacated Racing Bulls
+  // seat. Open-ended on purpose: Hadjar is expected back, and his return is a
+  // third pairing from whichever round he is fit for, not an edit to these.
+  {
+    team: 'Red Bull Racing',
+    driver1Code: 'VER',
+    driver2Code: 'HAD',
+    fromRound: 1,
+    toRound: 11,
+  },
+  {
+    team: 'Red Bull Racing',
+    driver1Code: 'VER',
+    driver2Code: 'LAW',
+    fromRound: 12,
+  },
+  { team: 'Mercedes', driver1Code: 'RUS', driver2Code: 'ANT', fromRound: 1 },
+  {
+    team: 'Aston Martin',
+    driver1Code: 'ALO',
+    driver2Code: 'STR',
+    fromRound: 1,
+  },
+  { team: 'Alpine', driver1Code: 'GAS', driver2Code: 'COL', fromRound: 1 },
+  { team: 'Williams', driver1Code: 'ALB', driver2Code: 'SAI', fromRound: 1 },
+  {
+    team: 'Racing Bulls',
+    driver1Code: 'LAW',
+    driver2Code: 'LIN',
+    fromRound: 1,
+    toRound: 11,
+  },
+  {
+    team: 'Racing Bulls',
+    driver1Code: 'TSU',
+    driver2Code: 'LIN',
+    fromRound: 12,
+  },
+  { team: 'Audi', driver1Code: 'HUL', driver2Code: 'BOR', fromRound: 1 },
+  { team: 'Haas', driver1Code: 'OCO', driver2Code: 'BEA', fromRound: 1 },
+  { team: 'Cadillac', driver1Code: 'BOT', driver2Code: 'PER', fromRound: 1 },
 ];
+
+/**
+ * A round below 1 is not a position in the calendar. Test-scenario races use
+ * negative rounds as sentinels to sort themselves clear of the real season, so
+ * the only sensible lineup for one is the current grid — answering "nobody was
+ * racing" would leave those scenarios with no drivers and no duels at all.
+ *
+ * Normalising here rather than at each call site is deliberate: the failure it
+ * prevents is silent (an empty grid, not an error), so it must not depend on
+ * every caller remembering to do it.
+ */
+function effectiveRound(round: number): number {
+  return round < 1 ? Number.MAX_SAFE_INTEGER : round;
+}
+
+/** Whether a round-scoped lineup record applies to `round`. */
+export function coversRound(
+  span: { fromRound?: number; toRound?: number },
+  round: number,
+): boolean {
+  const effective = effectiveRound(round);
+  return (
+    effective >= (span.fromRound ?? 1) &&
+    effective <= (span.toRound ?? Infinity)
+  );
+}
+
+/** The pairings racing in a given round. */
+export function pairingsForRound(round: number): TeammatePairing[] {
+  return TEAMMATE_PAIRINGS_2026.filter((pairing) =>
+    coversRound(pairing, round),
+  );
+}
+
+/**
+ * The pairings as they stand now: one per team, the retired ones dropped.
+ *
+ * For callers with no round to hand, such as a loading skeleton drawn before
+ * any data arrives. Anything rendering a specific race should use
+ * `pairingsForRound` with that race's round instead.
+ */
+export function currentPairings(): TeammatePairing[] {
+  return TEAMMATE_PAIRINGS_2026.filter(
+    (pairing) => pairing.toRound === undefined,
+  );
+}
 
 /**
  * Order drivers by team, then by car number within a team.
@@ -99,4 +196,65 @@ export function teamStandingsIndex(team: string | null | undefined): number {
   }
   const i = CONSTRUCTOR_STANDINGS_ORDER.indexOf(team);
   return i === -1 ? CONSTRUCTOR_STANDINGS_ORDER.length : i;
+}
+
+export type DriverTeamStint = {
+  driverCode: string;
+  team: string;
+  fromRound: number;
+  toRound?: number;
+};
+
+/**
+ * Every driver's team stints for the season, derived from the pairings above.
+ *
+ * Derived rather than declared so the grid cannot contradict itself: a pairing
+ * already says which two drivers were in a team's cars over which rounds, and
+ * writing that out a second time per driver is the kind of duplication that
+ * drifts the moment somebody edits one list and not the other.
+ *
+ * Consecutive pairings for the same driver and team merge into one stint, so
+ * Verstappen reads as a single unbroken Red Bull run rather than one stint per
+ * team-mate he has had.
+ */
+export function driverStintsForSeason(): DriverTeamStint[] {
+  const byDriver = new Map<string, DriverTeamStint[]>();
+
+  for (const pairing of TEAMMATE_PAIRINGS_2026) {
+    for (const driverCode of [pairing.driver1Code, pairing.driver2Code]) {
+      const stint: DriverTeamStint = {
+        driverCode,
+        team: pairing.team,
+        fromRound: pairing.fromRound,
+        toRound: pairing.toRound,
+      };
+      const existing = byDriver.get(driverCode);
+      if (existing) {
+        existing.push(stint);
+        continue;
+      }
+      byDriver.set(driverCode, [stint]);
+    }
+  }
+
+  const merged: DriverTeamStint[] = [];
+  for (const stints of byDriver.values()) {
+    const ordered = [...stints].sort((a, b) => a.fromRound - b.fromRound);
+    for (const stint of ordered) {
+      const previous = merged[merged.length - 1];
+      const joinsPrevious =
+        previous !== undefined &&
+        previous.driverCode === stint.driverCode &&
+        previous.team === stint.team &&
+        previous.toRound !== undefined &&
+        previous.toRound + 1 === stint.fromRound;
+
+      if (joinsPrevious) {
+        previous.toRound = stint.toRound;
+        continue;
+      }
+      merged.push({ ...stint });
+    }
+  }
+  return merged;
 }

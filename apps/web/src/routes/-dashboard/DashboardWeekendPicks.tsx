@@ -130,7 +130,10 @@ function DashboardWeekendPicksReady({
   const myH2H = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: weekend.race._id,
   });
-  const liveDrivers = useQuery(api.drivers.listDrivers);
+  const liveDrivers = useQuery(api.drivers.listDrivers, {
+    round: weekend.race.round,
+    season: weekend.race.season,
+  });
   const drivers = liveDrivers ?? initialDrivers;
 
   const existingTop5 = firstWeekendTop5(myPredictions?.predictions);
@@ -220,7 +223,7 @@ function DashboardWeekendPicksReady({
   const liveMatchups = useQuery(
     api.h2h.getMatchupsForSeason,
     h2hVisited || step === 'h2h' || step === 'summary'
-      ? { season: weekend.race.season }
+      ? { round: weekend.race.round, season: weekend.race.season }
       : 'skip',
   );
   const matchups = liveMatchups ?? initialMatchups;

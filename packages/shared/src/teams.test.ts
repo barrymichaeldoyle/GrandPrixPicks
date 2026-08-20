@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { compareDriversByTeam, teamStandingsIndex } from './teams';
+import {
+  compareDriversByTeam,
+  coversRound,
+  currentPairings,
+  driverStintsForSeason,
+  pairingsForRound,
+  TEAMMATE_PAIRINGS_2026,
+  teamStandingsIndex,
+} from './teams';
 
 describe('teamStandingsIndex', () => {
   it('ranks teams by last season, not by name', () => {
@@ -75,5 +83,152 @@ describe('compareDriversByTeam', () => {
         .sort((a, b) => compareDriversByTeam(a, b, new Map()))
         .map((d) => d.team),
     ).toEqual(['McLaren', 'Alpine']);
+  });
+});
+
+describe('round-scoped pairings', () => {
+  const teamFor = (round: number, code: string) =>
+    pairingsForRound(round).find(
+      (pairing) => pairing.driver1Code === code || pairing.driver2Code === code,
+    )?.team ?? null;
+
+  it('gives every team exactly one pairing in any round', () => {
+    for (const round of [1, 11, 12, 23]) {
+      const pairings = pairingsForRound(round);
+      const teams = pairings.map((pairing) => pairing.team);
+      expect(new Set(teams).size).toBe(teams.length);
+      expect(teams).toHaveLength(11);
+    }
+  });
+
+  it('puts Hadjar alongside Verstappen up to round 11 and nobody after', () => {
+    expect(teamFor(11, 'HAD')).toBe('Red Bull Racing');
+    expect(teamFor(12, 'HAD')).toBeNull();
+  });
+
+  it('moves Lawson up and Tsunoda in from round 12', () => {
+    // Lawson's wrist-injury callup: the Racing Bulls seat he vacates is
+    // Tsunoda's, and neither driver's earlier rounds are disturbed.
+    expect(teamFor(11, 'LAW')).toBe('Racing Bulls');
+    expect(teamFor(12, 'LAW')).toBe('Red Bull Racing');
+    expect(teamFor(11, 'TSU')).toBeNull();
+    expect(teamFor(12, 'TSU')).toBe('Racing Bulls');
+  });
+
+  it('keeps the pairings on each side of the swap as separate records', () => {
+    // The point of round-scoping: round 11 must still read as
+    // Verstappen-vs-Hadjar rather than being relabelled by a later change.
+    const before = pairingsForRound(11).find(
+      (pairing) => pairing.team === 'Red Bull Racing',
+    );
+    const after = pairingsForRound(12).find(
+      (pairing) => pairing.team === 'Red Bull Racing',
+    );
+    expect(before?.driver2Code).toBe('HAD');
+    expect(after?.driver2Code).toBe('LAW');
+  });
+});
+
+describe('driverStintsForSeason', () => {
+  const stintsFor = (code: string) =>
+    driverStintsForSeason().filter((stint) => stint.driverCode === code);
+
+  it('merges a driver who only changed team-mates into one unbroken stint', () => {
+    // Verstappen appears in two pairings (with Hadjar, then with Lawson) but
+    // never left the car, so he must not read as two Red Bull stints.
+    expect(stintsFor('VER')).toEqual([
+      {
+        driverCode: 'VER',
+        team: 'Red Bull Racing',
+        fromRound: 1,
+        toRound: undefined,
+      },
+    ]);
+    expect(stintsFor('LIN')).toEqual([
+      {
+        driverCode: 'LIN',
+        team: 'Racing Bulls',
+        fromRound: 1,
+        toRound: undefined,
+      },
+    ]);
+  });
+
+  it('splits a driver who actually moved team', () => {
+    expect(stintsFor('LAW')).toEqual([
+      { driverCode: 'LAW', team: 'Racing Bulls', fromRound: 1, toRound: 11 },
+      {
+        driverCode: 'LAW',
+        team: 'Red Bull Racing',
+        fromRound: 12,
+        toRound: undefined,
+      },
+    ]);
+  });
+
+  it('closes an injured driver and opens his replacement', () => {
+    expect(stintsFor('HAD')).toEqual([
+      { driverCode: 'HAD', team: 'Red Bull Racing', fromRound: 1, toRound: 11 },
+    ]);
+    expect(stintsFor('TSU')).toEqual([
+      {
+        driverCode: 'TSU',
+        team: 'Racing Bulls',
+        fromRound: 12,
+        toRound: undefined,
+      },
+    ]);
+  });
+
+  it('gives every driver on the grid at least one stint', () => {
+    const codes = new Set(driverStintsForSeason().map((s) => s.driverCode));
+    for (const pairing of TEAMMATE_PAIRINGS_2026) {
+      expect(codes.has(pairing.driver1Code)).toBe(true);
+      expect(codes.has(pairing.driver2Code)).toBe(true);
+    }
+  });
+});
+
+describe('coversRound', () => {
+  it('treats a missing fromRound as round 1 and a missing toRound as open', () => {
+    // Matchup rows written before pairings were round-scoped have neither.
+    expect(coversRound({}, 1)).toBe(true);
+    expect(coversRound({}, 99)).toBe(true);
+  });
+
+  it('treats a non-calendar round as the current grid', () => {
+    // Test-scenario races use negative rounds as sentinels. Answering "not
+    // racing" for those would strip every driver out of the scenario.
+    expect(coversRound({ fromRound: 1, toRound: 11 }, -17)).toBe(false);
+    expect(coversRound({ fromRound: 12 }, -17)).toBe(true);
+    expect(coversRound({ fromRound: 1 }, -17)).toBe(true);
+  });
+
+  it('is inclusive at both ends', () => {
+    expect(coversRound({ fromRound: 3, toRound: 5 }, 2)).toBe(false);
+    expect(coversRound({ fromRound: 3, toRound: 5 }, 3)).toBe(true);
+    expect(coversRound({ fromRound: 3, toRound: 5 }, 5)).toBe(true);
+    expect(coversRound({ fromRound: 3, toRound: 5 }, 6)).toBe(false);
+  });
+});
+
+describe('currentPairings', () => {
+  it('returns one pairing per team, with the retired ones dropped', () => {
+    const current = currentPairings();
+    const teams = current.map((pairing) => pairing.team);
+    expect(new Set(teams).size).toBe(teams.length);
+    expect(teams).toHaveLength(11);
+  });
+
+  it('names the drivers currently in the cars', () => {
+    const current = currentPairings();
+    const redBull = current.find(
+      (pairing) => pairing.team === 'Red Bull Racing',
+    );
+    const racingBulls = current.find(
+      (pairing) => pairing.team === 'Racing Bulls',
+    );
+    expect(redBull?.driver2Code).toBe('LAW');
+    expect(racingBulls?.driver1Code).toBe('TSU');
   });
 });

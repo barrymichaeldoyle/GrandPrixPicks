@@ -9,7 +9,8 @@ import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { streamRankedLeaderboardRows } from './lib/leaderboard';
 import { loadConstructorPoints } from './f1Standings';
 import type { TeammateSessionOutcome } from './lib/teammateBattles';
-import { getCurrentSeason } from './lib/season';
+import { coversRound, loadStintsForSeason, teamForRound } from './lib/lineups';
+import { getCurrentSeason, getCurrentSeasonAndRound } from './lib/season';
 import {
   emptyTally,
   sortByConstructorStanding,
@@ -23,7 +24,19 @@ const sessionTypeValidator = v.union(
   v.literal('race'),
 );
 
+/**
+ * Pairings on track in a single round: one per team, so this bounds a race's
+ * duel grid and everything derived from it.
+ */
 const MAX_H2H_MATCHUPS = 16;
+/**
+ * Matchup ROWS in a season, which is a different number: every mid-season
+ * driver swap retires a pairing and opens another, so the table grows over the
+ * year even though a round still only has one pairing per team. Season-wide
+ * reads must take this many or a `.take()` would truncate real pairings before
+ * the round filter ever sees them.
+ */
+const MAX_MATCHUP_ROWS_PER_SEASON = 48;
 const MAX_H2H_SESSIONS_PER_WEEKEND = 4;
 const MAX_H2H_PREDICTIONS_PER_RACE =
   MAX_H2H_MATCHUPS * MAX_H2H_SESSIONS_PER_WEEKEND;
@@ -70,17 +83,27 @@ export function resolveH2HSessionsToUpdate(params: {
 // ───────────────────────── Queries ─────────────────────────
 
 /**
- * A season's team-mate matchups with both drivers resolved.
+ * The team-mate matchups racing in a given round, with both drivers resolved.
+ *
+ * Round-scoped, not season-scoped: a mid-season swap retires one pairing and
+ * opens another, and a race page must draw the pairing that was on track for
+ * *its* round rather than whoever is in the car today.
  *
  * Shared with the landing page's SSR payload (`home.getHomePageData`) so a
  * visitor resuming at the team-mate step gets real duels in the server markup
  * instead of eleven skeleton boxes waiting on a websocket round trip.
  */
-export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
-  const rows = await ctx.db
-    .query('h2hMatchups')
-    .withIndex('by_season', (q) => q.eq('season', season))
-    .take(MAX_H2H_MATCHUPS);
+export async function loadMatchupsForSeason(
+  ctx: QueryCtx,
+  season: number,
+  round: number,
+) {
+  const rows = (
+    await ctx.db
+      .query('h2hMatchups')
+      .withIndex('by_season', (q) => q.eq('season', season))
+      .take(MAX_MATCHUP_ROWS_PER_SEASON)
+  ).filter((matchup) => coversRound(matchup, round));
 
   // The index hands these back in insertion order, which is the order they
   // were seeded from TEAMMATE_PAIRINGS_2026 rather than any standing. Sorting
@@ -90,6 +113,12 @@ export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
     rows,
     await loadConstructorPoints(ctx, season),
   );
+
+  // A driver's team is read for THIS round, not from their driver row: after a
+  // mid-season move that row names their new team, which would paint an old
+  // round's duel in the wrong colours. Falling back to the row keeps a
+  // deployment whose stints are not backfilled yet behaving as before.
+  const stints = await loadStintsForSeason(ctx, season);
 
   return await Promise.all(
     matchups.map(async (m) => {
@@ -103,7 +132,8 @@ export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
           code: driver1?.code ?? '???',
           displayName: driver1?.displayName ?? 'Unknown',
           number: driver1?.number ?? null,
-          team: driver1?.team ?? null,
+          team:
+            teamForRound(stints, m.driver1Id, round) ?? driver1?.team ?? null,
           nationality: driver1?.nationality ?? null,
         },
         driver2: {
@@ -111,7 +141,8 @@ export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
           code: driver2?.code ?? '???',
           displayName: driver2?.displayName ?? 'Unknown',
           number: driver2?.number ?? null,
-          team: driver2?.team ?? null,
+          team:
+            teamForRound(stints, m.driver2Id, round) ?? driver2?.team ?? null,
           nationality: driver2?.nationality ?? null,
         },
       };
@@ -119,12 +150,20 @@ export async function loadMatchupsForSeason(ctx: QueryCtx, season: number) {
   );
 }
 
+/**
+ * Name kept from when pairings were season-scoped: Convex ships before the web
+ * client does, so a rename would 404 for anyone mid-session during a deploy.
+ * The added `round` arg is backwards compatible; omitting it answers for the
+ * next race, which is what every pre-existing caller meant.
+ */
 export const getMatchupsForSeason = query({
-  args: { season: v.optional(v.number()) },
+  args: { season: v.optional(v.number()), round: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const current = await getCurrentSeasonAndRound(ctx);
     return await loadMatchupsForSeason(
       ctx,
-      args.season ?? (await getCurrentSeason(ctx)),
+      args.season ?? current.season,
+      args.round ?? current.round,
     );
   },
 });
@@ -607,11 +646,15 @@ export const getUserH2HDetailedPicks = query({
       .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))
       .take(MAX_H2H_PREDICTIONS_PER_RACE);
 
-    // Fetch matchups for the season being scored
-    const matchups = await ctx.db
-      .query('h2hMatchups')
-      .withIndex('by_season', (q) => q.eq('season', race.season))
-      .take(MAX_H2H_MATCHUPS);
+    // Fetch the matchups that raced this round. A pairing retired before this
+    // race (or introduced after it) has nothing to say about it, and including
+    // one would put a driver who was not in the car into the summary.
+    const matchups = (
+      await ctx.db
+        .query('h2hMatchups')
+        .withIndex('by_season', (q) => q.eq('season', race.season))
+        .take(MAX_MATCHUP_ROWS_PER_SEASON)
+    ).filter((matchup) => coversRound(matchup, race.round));
 
     // Build driver cache
     const driverIds = new Set<Id<'drivers'>>();
@@ -985,10 +1028,14 @@ export const getTeammateBattles = query({
   handler: async (ctx, args) => {
     const season = args.season ?? (await getCurrentSeason(ctx));
 
+    // Every pairing the season has had, retired ones included: a swap creates
+    // a second record rather than continuing the first, so Verstappen's battle
+    // with Hadjar and his battle with Lawson are listed as the separate
+    // contests they are. Sized for a full grid plus mid-season changes.
     const matchups = await ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', season))
-      .take(20);
+      .take(MAX_MATCHUP_ROWS_PER_SEASON);
     if (matchups.length === 0) {
       return {
         season,

@@ -78,7 +78,10 @@ export function H2HSection({
   const h2hPredictions = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: race._id,
   });
-  const matchups = useQuery(api.h2h.getMatchupsForSeason, {});
+  const matchups = useQuery(api.h2h.getMatchupsForSeason, {
+    round: race.round,
+    season: race.season,
+  });
   const now = useNow();
   const selectedSessionLockTime = getRaceSessionLockAt(race, selectedSession);
   const selectedSessionLocked = now >= selectedSessionLockTime;

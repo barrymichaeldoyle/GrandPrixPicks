@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import type { DatabaseReader } from './_generated/server';
 import { query } from './_generated/server';
+import { loadStintsForSeason, teamForRound } from './lib/lineups';
 
 type ReadCtx = { db: DatabaseReader };
 
@@ -30,6 +31,8 @@ export function pointsForPosition(
 
 export type ChampionshipSessionResult = {
   sessionType: 'race' | 'sprint';
+  /** Championship round, which decides who a driver scored *for*. */
+  round: number;
   /** Ordered driver ids, index 0 = P1. */
   classification: string[];
   /** Drivers who did not classify (DNF/DSQ). They score nothing. */
@@ -82,6 +85,26 @@ export function compareCountback(a: DriverTally, b: DriverTally): number {
 export function tallyDriverPoints(
   sessions: ChampionshipSessionResult[],
 ): Map<string, DriverTally> {
+  return tallyBy(sessions, (driverId) => driverId);
+}
+
+/**
+ * Accumulate the same championship points, pooled by whatever key `keyFor`
+ * returns for a driver in a given session. Returning null drops that driver
+ * from that session's tally.
+ *
+ * The constructors' championship goes through this with the driver's team *in
+ * that round*, which is the whole reason it exists: pooling by the driver's
+ * current team instead would hand a mid-season switcher's entire back
+ * catalogue to their new employer the moment they moved.
+ */
+export function tallyBy(
+  sessions: ChampionshipSessionResult[],
+  keyFor: (
+    driverId: string,
+    session: ChampionshipSessionResult,
+  ) => string | null,
+): Map<string, DriverTally> {
   const tally = new Map<string, DriverTally>();
   function ensure(id: string): DriverTally {
     const existing = tally.get(id);
@@ -102,11 +125,18 @@ export function tallyDriverPoints(
     let position = 0;
 
     for (const driverId of session.classification) {
-      const driver = ensure(driverId);
+      const key = keyFor(driverId, session);
+      // A driver with no key here still occupies a classifying position — they
+      // finished ahead of the people behind them — so advance the counter
+      // before skipping, exactly as a retirement does not.
+      const driver = key === null ? null : ensure(key);
       if (retired.has(driverId)) {
         continue;
       }
       position += 1;
+      if (!driver) {
+        continue;
+      }
       driver.points += pointsForPosition(position, table);
       // Wins and podiums are counted from main races only, matching how F1
       // reports them (sprint wins are tracked separately in the real world).
@@ -223,6 +253,7 @@ async function loadChampionship(ctx: ReadCtx, season: number) {
       }
       sessions.push({
         sessionType: result.sessionType,
+        round: race.round,
         classification: result.classification as string[],
         dnfDriverIds: result.dnfDriverIds as string[] | undefined,
       });
@@ -241,6 +272,11 @@ async function loadChampionship(ctx: ReadCtx, season: number) {
     .query('drivers')
     .withIndex('by_displayName')
     .take(60);
+
+  const stints = await loadStintsForSeason(ctx, season);
+  const driversById = new Map(
+    drivers.map((driver) => [driver._id as string, driver]),
+  );
 
   const tally = tallyDriverPoints(sessions);
 
@@ -272,11 +308,23 @@ async function loadChampionship(ctx: ReadCtx, season: number) {
     position: index + 1,
   }));
 
+  // Constructors are pooled per session by the team the driver drove for in
+  // that round, not by the team on their driver row today. Without this a
+  // mid-season move (Lawson to Red Bull for round 12) would silently carry his
+  // eleven rounds of Racing Bulls points across with him.
+  //
+  // Drivers with no stint recorded fall back to their current team, so this
+  // matches the old behaviour for every season seeded before stints existed.
+  const teamTally = tallyBy(sessions, (driverId, session) => {
+    const stintTeam = teamForRound(stints, driverId, session.round);
+    if (stintTeam) {
+      return stintTeam;
+    }
+    return driversById.get(driverId)?.team ?? null;
+  });
+
   const constructorStandings = rankConstructorStandings(
-    rankedDrivers.map(({ driver, stats }) => ({
-      team: driver.team ?? null,
-      stats,
-    })),
+    [...teamTally.entries()].map(([team, stats]) => ({ team, stats })),
   );
 
   return {

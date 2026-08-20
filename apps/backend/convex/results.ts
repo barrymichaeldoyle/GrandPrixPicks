@@ -18,6 +18,7 @@ import {
   requireAdmin,
   requireViewer,
 } from './lib/auth';
+import { coversRound } from './lib/lineups';
 import { nextRecheckAt } from './lib/recheckSchedule';
 import { scoreTopFive } from './lib/scoring';
 import { toUserIdentity } from './lib/userIdentity';
@@ -1210,10 +1211,19 @@ export const scoreH2HForSession = internalMutation({
     );
 
     // Determine H2H winner for each matchup and upsert h2hResults
-    // (bounded by team count ~10, fine in one transaction)
+    // (bounded by team count ~10, fine in one transaction).
+    //
+    // Only the pairings that raced this round: a retired pairing has a driver
+    // who was not in the car, so it would be "won" by whichever of the two
+    // happened to appear in the classification and would credit players for a
+    // duel that never took place.
+    const raceDoc = await ctx.db.get(args.raceId);
     for await (const matchup of ctx.db
       .query('h2hMatchups')
       .withIndex('by_season', (q) => q.eq('season', args.season))) {
+      if (raceDoc && !coversRound(matchup, raceDoc.round)) {
+        continue;
+      }
       const pos1 = classificationPosition.get(matchup.driver1Id);
       const pos2 = classificationPosition.get(matchup.driver2Id);
       const bothMissedTheStart =

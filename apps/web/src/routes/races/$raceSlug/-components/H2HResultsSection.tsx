@@ -52,7 +52,11 @@ export function H2HResultsSection({
   const { isSignedIn } = useViewerSession();
   const { formatDate } = useUserDateFormat();
   const me = useQuery(api.users.me, {});
-  const drivers = useQuery(api.drivers.listDrivers) ?? initialDrivers;
+  const drivers =
+    useQuery(api.drivers.listDrivers, {
+      round: race.round,
+      season: race.season,
+    }) ?? initialDrivers;
   const availableSessions =
     useQuery(api.results.getAllResultsForRace, {
       raceId,

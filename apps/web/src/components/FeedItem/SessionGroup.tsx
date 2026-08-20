@@ -42,13 +42,12 @@ function BandLabel({ children }: { children: ReactNode }) {
   );
 }
 
+/* No "Result" eyebrow here: the session line above already says "Race Result",
+   and repeating it costs a row of height in a header that has to stay short
+   enough to sit on screen while you scroll the players under it. */
 function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
   return (
     <div className="space-y-1">
-      <BandLabel>
-        <Trophy className="h-3 w-3 shrink-0 text-accent" aria-hidden />
-        Result
-      </BandLabel>
       <div className={SLOT_GRID}>
         {top5.map((_, i) => (
           <span
@@ -299,6 +298,7 @@ function SessionSeparator({
   pending?: boolean;
 }) {
   const label = SESSION_LABELS[session.sessionType] ?? session.sessionType;
+  const hasResult = session.top5.length > 0;
   const countryCode = session.raceSlug
     ? getCountryCodeForRace({ slug: session.raceSlug })
     : null;
@@ -314,8 +314,17 @@ function SessionSeparator({
     if (!el) {
       return;
     }
-    const observer = new IntersectionObserver(([entry]) =>
-      setIsStuck(!entry.isIntersecting),
+    // The panel pins under the site nav, so it is "stuck" once the sentinel
+    // has passed behind the nav — not once it leaves the viewport.
+    const navHeight =
+      Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          '--nav-height',
+        ),
+      ) || 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsStuck(!entry.isIntersecting),
+      { rootMargin: `-${navHeight}px 0px 0px 0px` },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -345,7 +354,12 @@ function SessionSeparator({
             <p className="font-title text-sm leading-tight font-semibold text-text">
               {session.raceName}
             </p>
-            <p className="text-xs text-text-muted">{label}</p>
+            <p className="flex items-center gap-1 text-xs text-text-muted">
+              {hasResult && (
+                <Trophy className="h-3 w-3 shrink-0 text-accent" aria-hidden />
+              )}
+              {hasResult ? `${label} Result` : label}
+            </p>
           </div>
           <div className="shrink-0 text-right">
             {session.createdAt && (
@@ -369,7 +383,7 @@ function SessionSeparator({
           the header panel, so they share its raised surface and are set apart
           by spacing alone — a rule between two labelled bands is a separator
           doing work the labels already did. */}
-      {session.top5.length > 0 && (
+      {hasResult && (
         <div className="space-y-2.5 bg-surface-elevated px-2.5 pt-2 pb-2.5">
           <ResultRow top5={session.top5} />
           {session.h2h && session.h2h.length > 0 && (
@@ -386,7 +400,9 @@ function SessionSeparator({
       <div
         className={[
           'overflow-hidden border border-border bg-surface',
-          grouped ? 'sticky top-0 z-10' : '',
+          // Pinned below the site nav: at top-0 the flag/race row slid under
+          // the (z-50) header and only the result band stayed visible.
+          grouped ? 'sticky top-(--nav-height) z-10' : '',
           roundedClass,
         ].join(' ')}
       >

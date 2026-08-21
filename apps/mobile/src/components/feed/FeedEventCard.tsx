@@ -5,6 +5,7 @@ import type {
 import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 
 import type { ConvexId } from '../../integrations/convex/api';
+import { getTeamColor } from '../../lib/teamColors';
 import { colors } from '../../theme/tokens';
 import { Pressable, Text, View } from '../../tw';
 import { FlagImage } from '../ui/FlagImage';
@@ -33,8 +34,10 @@ export type FeedEvent = {
     | 'results_amended'
     | 'session_locked'
     | 'joined_league'
-    | 'streak_milestone';
-  userId: ConvexId<'users'>;
+    | 'streak_milestone'
+    | 'lineup_change';
+  /** Absent on `lineup_change`: the site authors it, not a player. */
+  userId?: ConvexId<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
@@ -55,6 +58,16 @@ export type FeedEvent = {
   leagueSlug?: string;
   // streak_milestone
   streakCount?: number;
+  // lineup_change
+  round?: number;
+  seatMoves?: {
+    team: string;
+    outDriverCode?: string;
+    outDriverName?: string;
+    inDriverCode: string;
+    inDriverName: string;
+  }[];
+  lineupNote?: string;
   reactionCount: number;
   reactionCounts: ReactionCounts;
   createdAt: number;
@@ -243,6 +256,77 @@ function SimpleEventCard({
   );
 }
 
+/**
+ * A mid-season driver swap. The one card with no author, so it leads with a
+ * label where the others lead with an avatar: the site is talking, not
+ * somebody the reader follows.
+ *
+ * Seats rather than drivers, because that is what changes for the player. A
+ * duel pick backs one side of a garage, so naming the seat is what lets a
+ * reader find their own picks in the news.
+ */
+function LineupChangeCard({ event }: { event: FeedEvent }) {
+  const moves = event.seatMoves ?? [];
+  return (
+    <Card>
+      <View className="gap-0.5">
+        <Text className="text-xs font-bold tracking-widest text-accent uppercase">
+          Grid change
+        </Text>
+        <Text className="text-foreground text-sm font-bold">
+          {event.raceName
+            ? `New line-up from the ${event.raceName}`
+            : 'The line-up has changed'}
+        </Text>
+        <Text className="text-muted text-xs">
+          {formatRelativeTime(event.createdAt)}
+        </Text>
+      </View>
+
+      <View className="gap-1.5 pt-1">
+        {moves.map((move) => (
+          <View
+            key={`${move.team}-${move.inDriverCode}`}
+            className="flex-row items-center gap-2.5"
+          >
+            <View
+              className="h-8 w-[3px] rounded-full"
+              style={{ backgroundColor: getTeamColor(move.team) }}
+            />
+            <View className="flex-1 gap-0.5">
+              <Text className="text-muted text-xs">{move.team}</Text>
+              <Text className="text-foreground text-sm">
+                {move.outDriverName ? (
+                  <Text className="text-muted line-through">
+                    {move.outDriverName}
+                  </Text>
+                ) : null}
+                {move.outDriverName ? (
+                  <Text className="text-muted"> to </Text>
+                ) : null}
+                <Text className="font-bold">{move.inDriverName}</Text>
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {event.lineupNote ? (
+        <Text className="text-muted text-sm leading-5">{event.lineupNote}</Text>
+      ) : null}
+
+      <View className="flex-row items-center pt-0.5">
+        <ReactionButton
+          feedEventId={event._id}
+          reactionCount={event.reactionCount}
+          reactionCounts={event.reactionCounts}
+          viewerReaction={event.viewerReaction}
+        />
+      </View>
+    </Card>
+  );
+}
+
 export function FeedEventCard({
   event,
   onPress,
@@ -264,6 +348,9 @@ export function FeedEventCard({
     if (event.type === 'joined_league') {
       const description = `Joined ${event.leagueName ?? 'a league'}`;
       return <SimpleEventCard event={event} description={description} />;
+    }
+    if (event.type === 'lineup_change') {
+      return <LineupChangeCard event={event} />;
     }
     if (event.type === 'streak_milestone') {
       const description = `🔥 ${event.streakCount}-race prediction streak`;

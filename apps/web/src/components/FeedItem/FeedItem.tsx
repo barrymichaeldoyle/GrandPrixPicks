@@ -1,4 +1,5 @@
 import type { FeedEvent } from './types';
+import { LineupChangeItem } from './LineupChangeItem';
 import { JoinedLeagueItem, ScorePublishedItem } from './ScorePublishedItem';
 
 export function FeedItem({
@@ -39,9 +40,11 @@ export function FeedItem({
           : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
-      {event.type === 'score_published' ||
-      event.type === 'results_amended' ||
-      event.type === 'session_locked' ? (
+      {event.type === 'lineup_change' ? (
+        <LineupChangeItem event={event} />
+      ) : event.type === 'score_published' ||
+        event.type === 'results_amended' ||
+        event.type === 'session_locked' ? (
         <ScorePublishedItem event={event} grouped={grouped} />
       ) : (
         <JoinedLeagueItem event={event} />

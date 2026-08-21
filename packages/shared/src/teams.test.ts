@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  TEAMMATE_PAIRINGS_2026,
   compareDriversByTeam,
   coversRound,
   currentPairings,
   driverStintsForSeason,
   pairingsForRound,
-  TEAMMATE_PAIRINGS_2026,
+  roundsWithSeatMoves,
+  seatMovesForRound,
   teamStandingsIndex,
 } from './teams';
 
@@ -230,5 +232,62 @@ describe('currentPairings', () => {
     );
     expect(redBull?.driver2Code).toBe('LAW');
     expect(racingBulls?.driver1Code).toBe('TSU');
+  });
+});
+
+describe('seat moves', () => {
+  // Hadjar broke his wrist before round 12. Lawson moves up to Red Bull and
+  // Tsunoda takes the Racing Bulls seat Lawson vacated, so two seats change
+  // hands at the same boundary and one of them is filled by the driver who
+  // left the other.
+  it('describes the round 12 change as two seat moves', () => {
+    const moves = seatMovesForRound(12);
+
+    expect(moves).toHaveLength(2);
+    expect(moves).toContainEqual({
+      team: 'Red Bull Racing',
+      outDriverCode: 'HAD',
+      inDriverCode: 'LAW',
+    });
+    expect(moves).toContainEqual({
+      team: 'Racing Bulls',
+      outDriverCode: 'LAW',
+      inDriverCode: 'TSU',
+    });
+  });
+
+  // The driver who keeps his seat across the boundary is not news. Reporting
+  // Verstappen as "in" would double the size of the announcement and say
+  // nothing.
+  it('leaves out the driver who held his seat', () => {
+    const moves = seatMovesForRound(12);
+    expect(moves.some((move) => move.inDriverCode === 'VER')).toBe(false);
+    expect(moves.some((move) => move.inDriverCode === 'LIN')).toBe(false);
+  });
+
+  it('reports nothing for a round where the grid did not change', () => {
+    expect(seatMovesForRound(2)).toEqual([]);
+    expect(seatMovesForRound(11)).toEqual([]);
+    expect(seatMovesForRound(13)).toEqual([]);
+  });
+
+  it('finds the rounds that have a change', () => {
+    expect(roundsWithSeatMoves()).toEqual([12]);
+  });
+
+  // The announcement is derived from the same list the grid is built from, so
+  // this is the property that keeps the two from ever disagreeing.
+  it('names drivers who are really in those seats that round', () => {
+    for (const round of roundsWithSeatMoves()) {
+      for (const move of seatMovesForRound(round)) {
+        const pairing = pairingsForRound(round).find(
+          (candidate) => candidate.team === move.team,
+        );
+        expect(
+          [pairing?.driver1Code, pairing?.driver2Code],
+          `${move.inDriverCode} should be in the ${move.team} car at round ${round}`,
+        ).toContain(move.inDriverCode);
+      }
+    }
   });
 });

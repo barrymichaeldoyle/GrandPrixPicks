@@ -571,8 +571,13 @@ export default defineSchema({
       v.literal('session_locked'),
       v.literal('joined_league'),
       v.literal('streak_milestone'),
+      v.literal('lineup_change'),
     ),
-    userId: v.id('users'),
+    // Absent on `lineup_change`, which is the site talking rather than a
+    // player: a driver swap happens to everyone's picks at once and belongs to
+    // no one's activity. Every other event type still has an author, and the
+    // feed's scoping treats an authorless event as visible to all.
+    userId: v.optional(v.id('users')),
     // Denormalized user fields for display (avoids N+1 lookups)
     username: v.optional(v.string()),
     displayName: v.optional(v.string()),
@@ -594,6 +599,23 @@ export default defineSchema({
     leagueSlug: v.optional(v.string()),
     // streak_milestone fields
     streakCount: v.optional(v.number()),
+    // lineup_change fields. `round` is the round the change takes effect, and
+    // the moves are seats rather than drivers because that is what a duel pick
+    // backs: when the person in the seat changes, the pick moves with it.
+    round: v.optional(v.number()),
+    seatMoves: v.optional(
+      v.array(
+        v.object({
+          team: v.string(),
+          outDriverCode: v.optional(v.string()),
+          outDriverName: v.optional(v.string()),
+          inDriverCode: v.string(),
+          inDriverName: v.string(),
+        }),
+      ),
+    ),
+    // The human reason, which no amount of diffing the grid can derive.
+    lineupNote: v.optional(v.string()),
     // Engagement
     revCount: v.number(),
     // New reaction model. Optional during the rev -> reaction rollout; when
@@ -602,6 +624,10 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_created', ['createdAt'])
+    // Lets the seeder ask "has this round's lineup change already been
+    // announced?" without scanning the feed, which is what makes re-running
+    // applyLineup safe.
+    .index('by_type_season_round', ['type', 'season', 'round'])
     .index('by_user_created', ['userId', 'createdAt'])
     .index('by_user_race_session', ['userId', 'raceId', 'sessionType'])
     .index('by_race_session', ['raceId', 'sessionType'])

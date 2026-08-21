@@ -289,6 +289,86 @@ export const JoinedLeague: Story = {
   },
 };
 
+export const LineupChange: Story = {
+  args: {
+    event: makeFeedEvent({
+      _id: fakeId<'feedEvents'>('feed-lineup-change'),
+      type: 'lineup_change',
+      // Authorless on purpose: this is the site talking. The card has to read
+      // as an announcement without the avatar and name every other item leads
+      // with, which is the thing worth looking at in isolation here.
+      userId: undefined,
+      username: undefined,
+      displayName: undefined,
+      avatarUrl: undefined,
+      raceId: undefined,
+      sessionType: undefined,
+      points: undefined,
+      picks: undefined,
+      h2hScore: null,
+      raceName: 'Dutch Grand Prix',
+      raceSlug: 'netherlands-2026',
+      season: 2026,
+      round: 12,
+      seatMoves: [
+        {
+          team: 'Red Bull Racing',
+          outDriverCode: 'HAD',
+          outDriverName: 'Isack Hadjar',
+          inDriverCode: 'LAW',
+          inDriverName: 'Liam Lawson',
+        },
+        {
+          team: 'Racing Bulls',
+          outDriverCode: 'LAW',
+          outDriverName: 'Liam Lawson',
+          inDriverCode: 'TSU',
+          inDriverName: 'Yuki Tsunoda',
+        },
+      ],
+      lineupNote:
+        'Isack Hadjar broke his wrist in a training crash and is out for the Dutch Grand Prix. Liam Lawson steps up to Red Bull alongside Max Verstappen, and Yuki Tsunoda takes the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar is expected back in his car for Monza.',
+      reactionCount: 6,
+      reactionCounts: { fire: 2, nice: 1, wow: 3, funny: 0, oof: 0 },
+      createdAt: NOW - 20 * MINUTE,
+    }),
+  },
+};
+
+/** A new entry taking a seat nobody vacated: no strike-through, no arrow. */
+export const LineupChangeNewEntry: Story = {
+  args: {
+    event: makeFeedEvent({
+      _id: fakeId<'feedEvents'>('feed-lineup-debut'),
+      type: 'lineup_change',
+      userId: undefined,
+      username: undefined,
+      displayName: undefined,
+      avatarUrl: undefined,
+      raceId: undefined,
+      sessionType: undefined,
+      points: undefined,
+      picks: undefined,
+      h2hScore: null,
+      raceName: 'Italian Grand Prix',
+      raceSlug: 'italy-2026',
+      season: 2026,
+      round: 13,
+      seatMoves: [
+        {
+          team: 'Cadillac',
+          inDriverCode: 'PER',
+          inDriverName: 'Sergio Perez',
+        },
+      ],
+      lineupNote: undefined,
+      reactionCount: 0,
+      reactionCounts: { fire: 0, nice: 0, wow: 0, funny: 0, oof: 0 },
+      createdAt: NOW - 2 * HOUR,
+    }),
+  },
+};
+
 export const GroupedSession: Story = {
   render: () => {
     const session = {

@@ -2,6 +2,7 @@ import { REACTION_TYPES } from '@grandprixpicks/shared/reactions';
 import {
   coversRound,
   driverStintsForSeason,
+  roundsWithSeatMoves,
   TEAMMATE_PAIRINGS_2026,
 } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
@@ -1000,6 +1001,7 @@ export const applyLineup = internalAction({
       skipped: number;
       total: number;
     };
+    announced: Array<{ round: number; status: string }>;
   }> => {
     const drivers = await ctx.runMutation(internal.seed.seedDrivers, {});
     const stints = await ctx.runMutation(
@@ -1007,9 +1009,37 @@ export const applyLineup = internalAction({
       {},
     );
     const matchups = await ctx.runMutation(internal.seed.seedH2HMatchups, {});
-    return { drivers, stints, matchups };
+
+    // Announcing is part of applying, not a follow-up step someone has to
+    // remember. A swap that has reached the grid but not the feed is the worst
+    // of both: players find their duel has quietly changed and nothing says
+    // why. Each write is idempotent per round, so re-running applyLineup (which
+    // happens on every reseed) re-announces nothing.
+    const announced: Array<{ round: number; status: string }> = [];
+    for (const round of roundsWithSeatMoves()) {
+      const result = await ctx.runMutation(
+        internal.feed.writeLineupChangeFeedEvent,
+        { season: 2026, round, note: LINEUP_CHANGE_NOTES[round] },
+      );
+      announced.push({ round, status: result.status });
+    }
+
+    return { drivers, stints, matchups, announced };
   },
 });
+
+/**
+ * The part of a lineup change that cannot be derived: why it happened, and
+ * what is expected next.
+ *
+ * Keyed by the round the change takes effect. The seats themselves come from
+ * `TEAMMATE_PAIRINGS_2026`, so this holds only what the pairing list has no way
+ * of knowing. Leaving a round out is fine: the announcement still names the
+ * moves, it just does not explain them.
+ */
+const LINEUP_CHANGE_NOTES: Record<number, string | undefined> = {
+  12: 'Isack Hadjar broke his wrist in a training crash and is out for the Dutch Grand Prix. Liam Lawson steps up to Red Bull alongside Max Verstappen, and Yuki Tsunoda takes the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar is expected back in his car for Monza.',
+};
 
 /**
  * One-off prod cleanup: delete the cancelled bahrain-2026 and saudi-arabia-2026

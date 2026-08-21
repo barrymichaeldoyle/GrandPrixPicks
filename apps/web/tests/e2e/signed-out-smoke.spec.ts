@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { waitForHydration } from './helpers/hydration';
+
 /**
  * Every public route must render for a visitor who is not signed in.
  *
@@ -86,10 +88,18 @@ const PUBLIC_ROUTES = [
  * Loads a route as an anonymous visitor and fails if anything threw or if the
  * router fell through to its error component.
  *
- * `networkidle` rather than `load`: the failure this guards against happens
- * when the client boots and React hydrates, which is after `load` fires. A
- * check that runs any earlier passes on exactly the markup that was never the
- * problem.
+ * Gated on hydration rather than on `load`, because the failure this guards
+ * against happens as React hydrates and mounts, which is after `load` fires. A
+ * check that runs any earlier passes on exactly the server markup that was
+ * never the problem.
+ *
+ * Hydration rather than `networkidle`, which was the first attempt: `/sign-in`
+ * warms Clerk, Clerk holds connections open, and the page never goes idle. The
+ * throw is a mount-time event and `waitForHydration` waits for precisely that,
+ * so it is both the more accurate gate and the one that terminates.
+ *
+ * A route that dies on hydration still hydrates -- into its error boundary --
+ * so this returns and the assertions below are what catch it.
  */
 async function expectRendersSignedOut(page: Page, route: string) {
   const errors: string[] = [];
@@ -102,22 +112,21 @@ async function expectRendersSignedOut(page: Page, route: string) {
 
   page.on('pageerror', onPageError);
   try {
-    const response = await page.goto(route, { waitUntil: 'networkidle' });
+    const response = await page.goto(route, {
+      waitUntil: 'domcontentloaded',
+    });
     expect(response?.status(), `${route} responded ${response?.status()}`).toBe(
       200,
     );
+
+    const main = page.locator('#main-content');
+    await expect(main, `${route} rendered no main`).toBeVisible();
+    await waitForHydration(main);
 
     await expect(
       page.getByTestId('error-fallback'),
       `${route} rendered the error boundary for a signed-out visitor`,
     ).toHaveCount(0);
-
-    // A rendered page fills the root landmark. Without this the check would
-    // pass on a blank body, which is the other shape this failure takes.
-    await expect(
-      page.locator('#main-content'),
-      `${route} rendered no main`,
-    ).toBeVisible();
 
     // `__root` owns the only `<main>`. Four pages used to nest a second one
     // inside it — invalid HTML, and two landmarks where a screen reader
@@ -164,7 +173,7 @@ test.describe('[public] signed-out race detail', () => {
     //
     // A smoke sweep should observe the app, not reshape it. The calendar
     // already names the next race, so read it from there.
-    await page.goto('/races', { waitUntil: 'networkidle' });
+    await page.goto('/races', { waitUntil: 'domcontentloaded' });
     const nextRaceLink = page
       .getByRole('link')
       .filter({ hasText: 'Next Race' })

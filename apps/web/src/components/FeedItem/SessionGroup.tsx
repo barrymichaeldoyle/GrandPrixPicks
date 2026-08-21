@@ -205,7 +205,7 @@ function SessionLeaderboardRow({
         </div>
       </div>
 
-      {h2hOpen && event.raceId && event.sessionType && (
+      {h2hOpen && event.raceId && event.sessionType && event.userId && (
         <H2HPicksDialog
           userId={event.userId}
           raceId={event.raceId}

@@ -27,8 +27,10 @@ export type FeedEvent = {
     | 'results_amended'
     | 'session_locked'
     | 'joined_league'
-    | 'streak_milestone';
-  userId: Id<'users'>;
+    | 'streak_milestone'
+    | 'lineup_change';
+  /** Absent on `lineup_change`: the site authors it, not a player. */
+  userId?: Id<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
@@ -51,6 +53,16 @@ export type FeedEvent = {
   leagueSlug?: string;
   // streak_milestone
   streakCount?: number;
+  // lineup_change
+  round?: number;
+  seatMoves?: {
+    team: string;
+    outDriverCode?: string;
+    outDriverName?: string;
+    inDriverCode: string;
+    inDriverName: string;
+  }[];
+  lineupNote?: string;
   reactionCount: number;
   reactionCounts: ReactionCounts;
   recentReactionUsers?: {

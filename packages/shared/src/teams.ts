@@ -258,3 +258,80 @@ export function driverStintsForSeason(): DriverTeamStint[] {
   }
   return merged;
 }
+
+/**
+ * One seat that changed hands at a round boundary.
+ *
+ * A seat, not a driver, because that is the unit the game is played in: a duel
+ * pick backs one side of a garage, so when the person in it changes the pick
+ * moves with the seat (see `seed:migrateOrphanedH2HPicks`). Describing a
+ * change as "this seat, from them to them" is therefore the shape that matches
+ * what actually happened to a player's picks.
+ *
+ * `outDriverCode` is absent when a seat opens with nobody leaving it, which is
+ * what a brand-new entry looks like.
+ */
+export type SeatMove = {
+  team: string;
+  outDriverCode?: string;
+  inDriverCode: string;
+};
+
+/**
+ * The seat moves that take effect at `round`, derived from the pairing list.
+ *
+ * A change is visible in `TEAMMATE_PAIRINGS_2026` as a pairing ending at
+ * `round - 1` and another for the same team beginning at `round`, so the moves
+ * are already in the declaration and do not need declaring twice. Diffing them
+ * here means the announcement can never disagree with the grid it announces:
+ * both read the same list.
+ *
+ * A driver who holds their seat across the boundary is not a move and is left
+ * out, so a change that swaps one seat reports one move rather than a pair of
+ * identical-looking rows.
+ */
+export function seatMovesForRound(round: number): SeatMove[] {
+  const opening = TEAMMATE_PAIRINGS_2026.filter(
+    (pairing) => pairing.fromRound === round,
+  );
+  const moves: SeatMove[] = [];
+
+  for (const pairing of opening) {
+    const closing = TEAMMATE_PAIRINGS_2026.find(
+      (candidate) =>
+        candidate.team === pairing.team && candidate.toRound === round - 1,
+    );
+    const before = closing
+      ? [closing.driver1Code, closing.driver2Code]
+      : ([] as string[]);
+    const after = [pairing.driver1Code, pairing.driver2Code];
+
+    // Whoever is in the car now but was not before has taken a seat. Pair them
+    // with whoever left, positionally: with one seat changing there is exactly
+    // one of each, and with both changing the pairing order is the only thing
+    // relating them anyway.
+    const arrived = after.filter((code) => !before.includes(code));
+    const departed = before.filter((code) => !after.includes(code));
+
+    for (const [index, inDriverCode] of arrived.entries()) {
+      moves.push({
+        team: pairing.team,
+        outDriverCode: departed[index],
+        inDriverCode,
+      });
+    }
+  }
+
+  return moves;
+}
+
+/** Every round at which the declared lineup changes hands. */
+export function roundsWithSeatMoves(): number[] {
+  const rounds = new Set<number>();
+  for (const pairing of TEAMMATE_PAIRINGS_2026) {
+    if (pairing.fromRound > 1) {
+      rounds.add(pairing.fromRound);
+    }
+  }
+  return [...rounds].sort((a, b) => a - b);
+}

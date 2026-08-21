@@ -1,3 +1,4 @@
+import { seatMovesForRound } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
@@ -358,6 +359,87 @@ export const writeJoinedLeagueFeedEvent = internalMutation({
   },
 });
 
+/**
+ * Announce a lineup change to everyone.
+ *
+ * Written by `seed:applyLineup`, so the announcement is a consequence of
+ * applying the change rather than a second thing to remember: the moves are
+ * diffed out of `TEAMMATE_PAIRINGS_2026`, the same list the grid, the duels
+ * and the team colours are built from. It cannot describe a swap that did not
+ * happen, and it cannot miss one that did.
+ *
+ * Idempotent by season and round. `applyLineup` is run again for every
+ * subsequent change and after every deploy that reseeds, and a driver swap
+ * announced four times is worse than one announced late.
+ */
+export const writeLineupChangeFeedEvent = internalMutation({
+  args: {
+    season: v.number(),
+    round: v.number(),
+    note: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const moves = seatMovesForRound(args.round);
+    if (moves.length === 0) {
+      return { status: 'no_change' as const };
+    }
+
+    const existing = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_type_season_round', (q) =>
+        q
+          .eq('type', 'lineup_change')
+          .eq('season', args.season)
+          .eq('round', args.round),
+      )
+      .first();
+    if (existing) {
+      return { status: 'already_announced' as const };
+    }
+
+    // Resolve the codes to names once, here, rather than at render time. The
+    // event is a record of what was announced, and a driver who later leaves
+    // the grid entirely should not turn a past announcement into blanks.
+    const byCode = new Map<string, Doc<'drivers'>>();
+    for await (const driver of ctx.db.query('drivers')) {
+      byCode.set(driver.code, driver);
+    }
+    function nameFor(code: string | undefined) {
+      return code === undefined
+        ? undefined
+        : (byCode.get(code)?.displayName ?? code);
+    }
+
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_season_round', (q) =>
+        q.eq('season', args.season).eq('round', args.round),
+      )
+      .unique();
+
+    await ctx.db.insert('feedEvents', {
+      type: 'lineup_change',
+      season: args.season,
+      round: args.round,
+      seatMoves: moves.map((move) => ({
+        team: move.team,
+        outDriverCode: move.outDriverCode,
+        outDriverName: nameFor(move.outDriverCode),
+        inDriverCode: move.inDriverCode,
+        inDriverName: nameFor(move.inDriverCode) ?? move.inDriverCode,
+      })),
+      lineupNote: args.note,
+      raceName: race?.name,
+      raceSlug: race?.slug,
+      revCount: 0,
+      reactionCounts: newReactionCounts(),
+      createdAt: Date.now(),
+    });
+
+    return { status: 'announced' as const, moves: moves.length };
+  },
+});
+
 const STREAK_MILESTONES = new Set([3, 5, 10, 15, 20, 25, 30]);
 
 /**
@@ -460,8 +542,10 @@ type RawEvent = {
     | 'results_amended'
     | 'session_locked'
     | 'joined_league'
-    | 'streak_milestone';
-  userId: Id<'users'>;
+    | 'streak_milestone'
+    | 'lineup_change';
+  /** Absent on `lineup_change`, which the site authors rather than a player. */
+  userId?: Id<'users'>;
   username?: string;
   displayName?: string;
   avatarUrl?: string;
@@ -477,6 +561,15 @@ type RawEvent = {
   leagueName?: string;
   leagueSlug?: string;
   streakCount?: number;
+  round?: number;
+  seatMoves?: Array<{
+    team: string;
+    outDriverCode?: string;
+    outDriverName?: string;
+    inDriverCode: string;
+    inDriverName: string;
+  }>;
+  lineupNote?: string;
   revCount: number;
   createdAt: number;
 };
@@ -541,7 +634,10 @@ export async function buildFilteredFeedPage(
       continue;
     }
 
-    if (!allowedUserIds.has(event.userId)) {
+    // An authorless event is the site speaking, not a player, so it is not
+    // anyone's to follow and reaches every scope: a driver swap changes the
+    // duels in front of all of them at once.
+    if (event.userId !== undefined && !allowedUserIds.has(event.userId)) {
       continue;
     }
 
@@ -821,13 +917,21 @@ async function enrichScoreEvent(
       event.type !== 'results_amended' &&
       event.type !== 'session_locked') ||
     !event.raceId ||
-    !event.sessionType
+    !event.sessionType ||
+    // These three always have an author, and every lookup below is scoped to
+    // them. Stating it keeps the authorless `lineup_change` out by type rather
+    // than by the reader trusting that the checks above already excluded it.
+    !event.userId
   ) {
     return { picks: undefined, h2hScore: null };
   }
 
   const sessionType = event.sessionType as SessionType;
   const raceId = event.raceId;
+  // Hoisted for the same reason as `raceId`: the guard above narrows the
+  // property expression, and the index callbacks below are closures, where TS
+  // widens it back to `| undefined`.
+  const userId = event.userId;
 
   if (event.type === 'session_locked') {
     const race = await ctx.db.get(raceId);
@@ -840,7 +944,7 @@ async function enrichScoreEvent(
       .query('predictions')
       .withIndex('by_user_race_session', (q) =>
         q
-          .eq('userId', event.userId)
+          .eq('userId', userId)
           .eq('raceId', raceId)
           .eq('sessionType', sessionType),
       )
@@ -894,7 +998,7 @@ async function enrichScoreEvent(
       .query('scores')
       .withIndex('by_user_race_session', (q) =>
         q
-          .eq('userId', event.userId)
+          .eq('userId', userId)
           .eq('raceId', raceId)
           .eq('sessionType', sessionType),
       )
@@ -903,7 +1007,7 @@ async function enrichScoreEvent(
       .query('h2hScores')
       .withIndex('by_user_race_session', (q) =>
         q
-          .eq('userId', event.userId)
+          .eq('userId', userId)
           .eq('raceId', raceId)
           .eq('sessionType', sessionType),
       )
@@ -1281,6 +1385,13 @@ async function setReactionForViewer(
       1,
     ),
   });
+
+  // Nobody to tell when the site authored the event: a reaction to a lineup
+  // change has no author waiting to hear about it. The reaction itself is
+  // still recorded above, so the count and the viewer's own state are intact.
+  if (event.userId === undefined) {
+    return { status: 'added' as const };
+  }
 
   await ctx.scheduler.runAfter(
     0,

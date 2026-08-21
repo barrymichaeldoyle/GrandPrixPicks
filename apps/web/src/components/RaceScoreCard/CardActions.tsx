@@ -89,22 +89,6 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
     );
   }
 
-  if (cardState === 'fully_locked') {
-    if (variant === 'compact') {
-      return null;
-    }
-    return (
-      <div className="pb-3">
-        <h2 className="mb-2 text-xl font-semibold text-text">
-          Predictions Locked
-        </h2>
-        <p className="text-sm text-text-muted">
-          Predictions are closed. Results will be available after the race.
-        </p>
-      </div>
-    );
-  }
-
   if (cardState === 'hidden_upcoming') {
     return (
       <div className="flex items-center justify-center gap-1.5 border-t border-border/60 px-4 py-3">

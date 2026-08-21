@@ -11,12 +11,14 @@ import { SignedOutRacePreview } from './SignedOutRacePreview';
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-// The real SignInButton needs a ClerkProvider; the preview only relies on it to
-// wrap the CTA, so a passthrough is enough to assert the button renders.
-vi.mock('@clerk/react', () => ({
-  SignInButton: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+// The preview must not touch Clerk itself (see check-clerk-free-routes.mjs);
+// it prompts through the runtime control, which these tests stub out.
+vi.mock('@/integrations/clerk/runtime-control', () => ({
+  useClerkRuntimeControl: () => ({
+    requestSignIn: () => {},
+    signInPending: false,
+  }),
+  useClerkWarmHandlers: () => ({}),
 }));
 
 // The standings link only needs its rendered label in these component tests.

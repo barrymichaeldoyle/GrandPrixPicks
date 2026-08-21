@@ -1,10 +1,13 @@
-import { SignInButton } from '@clerk/react';
 import type { Doc } from '@convex-generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Trophy } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Button } from '@/components/Button/Button';
+import {
+  useClerkRuntimeControl,
+  useClerkWarmHandlers,
+} from '@/integrations/clerk/runtime-control';
 
 type DriverRecord = Doc<'drivers'>;
 
@@ -18,19 +21,24 @@ type DriverRecord = Doc<'drivers'>;
  * The primary CTA opens the Top 5 picker directly (try-before-signup): visitors
  * build their picks first and only sign in to save them. A secondary link keeps
  * returning users one tap from signing in.
+ *
+ * That secondary link goes through `requestSignIn`, not Clerk's `SignInButton`:
+ * `/races/*` is a Clerk-free route, so there is no provider on the page for a
+ * Clerk component to find and mounting one threw the whole route into the error
+ * boundary for exactly the audience this preview exists to serve.
  */
 export function SignedOutRacePreview({
   race,
   drivers,
-  currentUrl,
   onStartPicks,
 }: {
   race: Doc<'races'>;
   drivers: DriverRecord[];
-  currentUrl?: string;
   onStartPicks: () => void;
 }) {
   const teams = groupByTeam(drivers);
+  const { requestSignIn } = useClerkRuntimeControl();
+  const warmHandlers = useClerkWarmHandlers();
 
   return (
     <div className="space-y-6">
@@ -48,18 +56,14 @@ export function SignedOutRacePreview({
           <Button size="md" rightIcon={ArrowRight} onClick={onStartPicks}>
             Make your free picks
           </Button>
-          <SignInButton
-            mode="modal"
-            fallbackRedirectUrl={currentUrl}
-            signUpFallbackRedirectUrl={currentUrl}
+          <button
+            type="button"
+            {...warmHandlers}
+            onClick={() => requestSignIn()}
+            className="text-xs font-medium text-text-muted underline-offset-2 hover:text-text hover:underline"
           >
-            <button
-              type="button"
-              className="text-xs font-medium text-text-muted underline-offset-2 hover:text-text hover:underline"
-            >
-              Already playing? Sign in
-            </button>
-          </SignInButton>
+            Already playing? Sign in
+          </button>
         </div>
       </div>
 

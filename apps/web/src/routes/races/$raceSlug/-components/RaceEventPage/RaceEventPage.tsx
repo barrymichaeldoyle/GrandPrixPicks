@@ -160,10 +160,6 @@ export function RaceEventPage({
   // content-rich preview (driver grid + a clear "play free" CTA) so the page is
   // useful to crawlers and gives first-timers a reason to sign up.
   const showSignedOutPreview = isPredictable && !isSignedIn;
-  const currentUrl =
-    typeof window === 'undefined'
-      ? undefined
-      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const selectedSessionData = cardData?.sessions[selectedSession] ?? null;
   const canManagePredictions = isNextRace;
   const canEditSelectedSession = Boolean(
@@ -444,7 +440,6 @@ export function RaceEventPage({
             <SignedOutRacePreview
               race={race}
               drivers={drivers}
-              currentUrl={currentUrl}
               onStartPicks={() => setTop5StartTarget('cascade')}
             />
           ) : (

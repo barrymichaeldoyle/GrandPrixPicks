@@ -1,4 +1,3 @@
-import { SignInButton, useAuth } from '@clerk/react';
 import { Users } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 
@@ -6,11 +5,22 @@ import { SeasonLeaderboardLayout } from './board';
 import { LeaderboardContentLoader } from './rows';
 import type { LeaderboardEntry } from './types';
 import { NoticeCard } from '@/components/NoticeCard';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 
+/**
+ * `/leaderboard` is a Clerk-free route, so this guard reads the SSR-resolved
+ * viewer session rather than Clerk's `useAuth`, and prompts through
+ * `requestSignIn` rather than Clerk's `SignInButton`. Both of Clerk's own
+ * versions need a provider that is deliberately not on this page, and threw the
+ * route into its error boundary when a signed-out visitor opened this tab.
+ */
 export function FollowingGuard({ children }: PropsWithChildren) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, confirmedSignedIn } = useViewerSession();
 
-  if (!isLoaded) {
+  // Only a viewer SSR already believes is signed in has anything left to
+  // confirm; an anonymous visitor never waits on Clerk here.
+  if (isSignedIn && !confirmedSignedIn) {
     return <LeaderboardContentLoader />;
   }
 
@@ -20,16 +30,7 @@ export function FollowingGuard({ children }: PropsWithChildren) {
         icon={Users}
         title="Sign in to see your friends"
         description="Follow other players to compete against them on a private leaderboard."
-        action={
-          <SignInButton mode="modal">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-text-on-accent transition-colors hover:bg-accent/90"
-            >
-              Sign In
-            </button>
-          </SignInButton>
-        }
+        action={<SignInActionButton size="sm">Sign In</SignInActionButton>}
       />
     );
   }

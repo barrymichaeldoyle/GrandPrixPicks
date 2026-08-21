@@ -1,9 +1,8 @@
-import { SignInButton } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import { Ban, Lock, LogIn } from 'lucide-react';
 
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
-import { Button } from '@/components/Button/Button';
+import { SignInActionButton } from '@/integrations/clerk/SignInActionButton';
 import type { CardDisplayState } from './state';
 import type { WeekendCardData } from './types';
 
@@ -15,10 +14,6 @@ interface CardActionsProps {
 
 export function CardActions({ data, cardState, variant }: CardActionsProps) {
   const { formatDate, formatTime } = useUserDateFormat();
-  const currentUrl =
-    typeof window === 'undefined'
-      ? undefined
-      : `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
   if (cardState === 'cancelled') {
     return (
@@ -75,13 +70,7 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
           Pick your top 5 for each session and call the team-mate battles. It's
           free, and each session is worth up to 25 points.
         </p>
-        <SignInButton
-          mode="modal"
-          fallbackRedirectUrl={currentUrl}
-          signUpFallbackRedirectUrl={currentUrl}
-        >
-          <Button size="sm">Sign In</Button>
-        </SignInButton>
+        <SignInActionButton size="sm">Sign In</SignInActionButton>
       </div>
     );
   }

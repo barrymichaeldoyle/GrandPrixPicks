@@ -128,6 +128,10 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         routeQuery(api.drivers.listDrivers, {
           round: race.round,
           season: race.season,
+          // Matches what the client subscription asks for. If SSR resolved a
+          // narrower roster, a saved pick naming a replaced driver would
+          // render as four slots server-side and five after hydration.
+          includeNotRacing: true,
         }),
       ),
       context.queryClient.ensureQueryData(

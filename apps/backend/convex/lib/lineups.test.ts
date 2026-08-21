@@ -2,7 +2,12 @@ import { describe, expect, test } from 'vitest';
 
 import type { Id } from '../_generated/dataModel';
 import type { Stint } from './lineups';
-import { rosterForRound, successorPick, teamForRound } from './lineups';
+import {
+  annotateRosterForRound,
+  rosterForRound,
+  successorPick,
+  teamForRound,
+} from './lineups';
 
 function driverId(value: string) {
   return value as Id<'drivers'>;
@@ -143,5 +148,45 @@ describe('successorPick', () => {
     };
     expect(successorPick(oldRacingBulls, bothNew, driverId('law'))).toBe('alo');
     expect(successorPick(oldRacingBulls, bothNew, driverId('lin'))).toBe('str');
+  });
+});
+
+describe('annotateRosterForRound', () => {
+  test('keeps everyone, flagging who is in a car', () => {
+    const round12 = annotateRosterForRound(grid, stints, 12);
+    expect(round12.map((d) => d.code)).toEqual([
+      'VER',
+      'HAD',
+      'LAW',
+      'TSU',
+      'LIN',
+    ]);
+    expect(Object.fromEntries(round12.map((d) => [d.code, d.racing]))).toEqual({
+      VER: true,
+      HAD: false,
+      LAW: true,
+      TSU: true,
+      LIN: true,
+    });
+  });
+
+  test('is the same set as rosterForRound once the non-racers are dropped', () => {
+    for (const round of [11, 12]) {
+      expect(
+        annotateRosterForRound(grid, stints, round)
+          .filter((d) => d.racing)
+          .map((d) => d.code),
+      ).toEqual(rosterForRound(grid, stints, round).map((d) => d.code));
+    }
+  });
+
+  test('reports the driver last known team for someone not racing', () => {
+    // Hadjar is out for round 12 but must still be nameable, because saved
+    // picks and past results reference him.
+    const had = annotateRosterForRound(grid, stints, 12).find(
+      (d) => d.code === 'HAD',
+    );
+    expect(had?.racing).toBe(false);
+    expect(had?.team).toBe('Red Bull Racing');
   });
 });

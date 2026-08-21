@@ -13,6 +13,7 @@ import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
+import { resolvePicks } from '@/lib/roster';
 import {
   useClerkRuntimeControl,
   useClerkWarmHandlers,
@@ -609,9 +610,10 @@ function PredictionCardIntro({
    */
   onEditTopFive?: () => void;
 }) {
-  const pickedDrivers = topFivePicks
-    .map((driverId) => drivers.find((driver) => driver._id === driverId))
-    .filter((driver): driver is Doc<'drivers'> => driver !== undefined);
+  // Keeps a pick whose driver is no longer racing, so five saved picks stay
+  // five. Without that `includesTopFive` goes false and the card claims the
+  // Top 5 was never finished.
+  const pickedDrivers = resolvePicks(topFivePicks, drivers);
   const includesTopFive = pickedDrivers.length === 5;
   return (
     <div className="mb-6" data-testid="prediction-card-intro">

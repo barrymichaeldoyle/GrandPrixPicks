@@ -57,35 +57,53 @@ export function teamForRound(
 }
 
 /**
- * Resolve a whole roster as it stood in `round`: only the drivers who were
- * racing, each carrying the team they drove for at the time rather than
- * whatever `drivers.team` says today.
+ * Resolve a whole roster as it stood in `round`, marking who was racing.
  *
  * This is what keeps a past race page honest. Lawson's round-9 result belongs
  * to Racing Bulls and should render in Racing Bulls colours even after he has
  * moved to Red Bull, and Hadjar must stay visible on the rounds he actually
  * raced while dropping out of the pool for the rounds he is injured for.
  *
- * A driver with no stint at all is treated as racing throughout, so a
- * deployment whose backfill has not run yet degrades to the old behaviour
- * instead of serving an empty grid.
+ * Everyone is returned, each carrying `racing` for this round, because the two
+ * questions callers ask are different: "who can be picked" wants the racing
+ * subset, but "who is this saved pick" has to resolve a driver who may since
+ * have lost their seat. Dropping the latter is what turns a complete set of
+ * five picks into four rendered slots.
+ *
+ * A driver with no stint at all is treated as racing, so a deployment whose
+ * backfill has not run yet degrades to the old behaviour instead of serving an
+ * empty grid.
+ */
+export function annotateRosterForRound<T extends { _id: Id<'drivers'> }>(
+  drivers: ReadonlyArray<T>,
+  stints: ReadonlyMap<string, Stint[]>,
+  round: number,
+): Array<T & { team: string | null; racing: boolean }> {
+  return drivers.map((driver) => {
+    const current = (driver as { team?: string | null }).team ?? null;
+    const hasStints = (stints.get(driver._id as string)?.length ?? 0) > 0;
+    if (!hasStints) {
+      return { ...driver, team: current, racing: true };
+    }
+    const team = teamForRound(stints, driver._id, round);
+    return team === null
+      ? { ...driver, team: current, racing: false }
+      : { ...driver, team, racing: true };
+  });
+}
+
+/**
+ * The drivers actually racing in `round`. The pick pool: anyone not in a car
+ * this round must not be offerable.
  */
 export function rosterForRound<T extends { _id: Id<'drivers'> }>(
   drivers: ReadonlyArray<T>,
   stints: ReadonlyMap<string, Stint[]>,
   round: number,
-): Array<T & { team: string | null }> {
-  return drivers
-    .map((driver) => {
-      const hasStints = (stints.get(driver._id as string)?.length ?? 0) > 0;
-      if (!hasStints) {
-        const current = (driver as { team?: string | null }).team ?? null;
-        return { ...driver, team: current };
-      }
-      const team = teamForRound(stints, driver._id, round);
-      return team === null ? null : { ...driver, team };
-    })
-    .filter((entry): entry is T & { team: string | null } => entry !== null);
+): Array<T & { team: string | null; racing: boolean }> {
+  return annotateRosterForRound(drivers, stints, round).filter(
+    (driver) => driver.racing,
+  );
 }
 
 /**

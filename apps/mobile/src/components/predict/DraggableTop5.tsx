@@ -14,7 +14,19 @@ import { colors } from '../../theme/tokens';
 import { FlatList, Pressable, Text, View } from '../../tw';
 import { Numeral } from '../ui/Numeral';
 
-type Driver = ConvexDoc<'drivers'>;
+/**
+ * As `listDrivers` returns them: the team for the round that was asked about,
+ * and whether the driver is racing it. `racing` is optional so the mock roster
+ * in the unconfigured-Convex dev shell still type-checks; absent means racing.
+ */
+type Driver = ConvexDoc<'drivers'> & {
+  team?: string | null;
+  racing?: boolean;
+};
+
+function isRacing(driver: Driver): boolean {
+  return driver.racing !== false;
+}
 
 type DraggableTop5Props = {
   picks: string[];
@@ -225,7 +237,11 @@ export function DraggableTop5({
   disabled = false,
   action,
 }: DraggableTop5Props) {
-  const sortedDrivers = sortDrivers(drivers);
+  // The pool only offers drivers in a car this round; the lookup keeps
+  // everyone, so a saved pick naming a driver who has since lost their seat
+  // still renders in its slot instead of leaving four picks where five were
+  // saved.
+  const sortedDrivers = sortDrivers(drivers.filter(isRacing));
   const driverMap = new Map<string, Driver>(
     drivers.map((d) => [d._id as string, d]),
   );

@@ -91,11 +91,16 @@ function AdminRaceDetailPage() {
   const typedRaceId = raceId as Id<'races'>;
   const isAdmin = useQuery(api.users.amIAdmin);
   const race = useQuery(api.races.getRace, { raceId: typedRaceId });
-  // The grid that raced this round, so publishing a past race's results offers
-  // the drivers who were actually in the cars.
+  // The grid for this round, ordered by it, but including drivers who are not
+  // in a car: publishing must record who actually finished, and reality can
+  // differ from the lineup we declared (a late reserve call-up). An admin
+  // being unable to enter the true classification is worse than an extra name
+  // in the search box.
   const drivers = useQuery(
     api.drivers.listDrivers,
-    race ? { round: race.round, season: race.season } : 'skip',
+    race
+      ? { round: race.round, season: race.season, includeNotRacing: true }
+      : 'skip',
   );
   const submittedSessions = useQuery(api.results.getAllResultsForRace, {
     raceId: typedRaceId,

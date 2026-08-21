@@ -46,6 +46,8 @@ import { toUserFacingMessage } from '@/lib/userFacingError';
 import { getRaceSessionLockAt } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
+import type { RosterDriver } from '@/lib/roster';
+import { isRacing, pickPool, resolvePicks } from '@/lib/roster';
 import { useIsomorphicLayoutEffect } from '@/lib/useIsomorphicLayoutEffect';
 import { Button } from './Button/Button';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -92,7 +94,7 @@ function parseEmptySlotId(id: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
-type Driver = Doc<'drivers'>;
+type Driver = RosterDriver;
 
 /** Left-side badge (number + code) – reused so it can be wrapped as drag handle on mobile. */
 function DriverPickBadge({ driver }: { driver: Driver }) {
@@ -179,19 +181,32 @@ function SortablePickRow({
               {driver.displayName}
             </span>
           </div>
-          {driver.team && (
+          {!isRacing(driver) ? (
+            // The driver is no longer in a car for this round, but the pick is
+            // still the player's: it stays in place, in position, and says so,
+            // rather than vanishing and leaving four slots where five were
+            // saved. Swapping it out is then an ordinary edit.
             <span
-              className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted"
-              style={
-                {
-                  '--team-colour':
-                    TEAM_COLORS[driver.team] || FALLBACK_TEAM_COLOR,
-                } as CSSProperties
-              }
+              className="flex min-w-0 items-center gap-1.5 text-xs text-error"
+              data-testid={`pick-not-racing-${driver.code}`}
             >
-              <span className="gpp-team-dot" aria-hidden />
-              <span className="truncate">{displayTeamName(driver.team)}</span>
+              <span className="truncate">Not racing this round</span>
             </span>
+          ) : (
+            driver.team && (
+              <span
+                className="flex min-w-0 items-center gap-1.5 text-xs text-text-muted"
+                style={
+                  {
+                    '--team-colour':
+                      TEAM_COLORS[driver.team] || FALLBACK_TEAM_COLOR,
+                  } as CSSProperties
+                }
+              >
+                <span className="gpp-team-dot" aria-hidden />
+                <span className="truncate">{displayTeamName(driver.team)}</span>
+              </span>
+            )
           )}
         </div>
       </div>
@@ -507,7 +522,9 @@ export function PredictionForm({
   // the round-less default is the same answer anyway.
   const liveDrivers = useQuery(
     api.drivers.listDrivers,
-    race ? { round: race.round, season: race.season } : {},
+    race
+      ? { round: race.round, season: race.season, includeNotRacing: true }
+      : { includeNotRacing: true },
   );
   const drivers = liveDrivers ?? initialDrivers;
   const nextPredictionRace = useQuery(api.races.getNextRace, {});
@@ -777,15 +794,19 @@ export function PredictionForm({
   });
 
   const availableDrivers = drivers ?? [];
-  const pickedDrivers = picks
-    .map((id) => availableDrivers.find((d) => d._id === id))
-    .filter((d): d is Driver => d !== undefined);
+  // Every saved pick resolves, including a driver who has since lost their
+  // seat. Dropping one would render four slots for five saved picks and, worse,
+  // leave the form believing it was already complete.
+  const pickedDrivers = resolvePicks(picks, availableDrivers);
 
   // listDrivers already returns championship order, computed from this
   // season's results. Re-sorting here on last season's static list would
   // quietly undo that, so the pool takes the order it is given. The fallback
   // still covers the pre-seeded `initialDrivers` a route can hand in.
-  const driversSortedByTeam = availableDrivers;
+  // The pool is the racing subset: the query is asked for everyone so saved
+  // picks resolve, so this filter is what keeps a driver who is out of a car
+  // from being offered again.
+  const driversSortedByTeam = pickPool(availableDrivers);
 
   function addDriver(driverId: Id<'drivers'>) {
     if (picks.length >= 5) {

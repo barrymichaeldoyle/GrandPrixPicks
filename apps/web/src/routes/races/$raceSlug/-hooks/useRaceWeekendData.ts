@@ -76,7 +76,9 @@ export function useRaceWeekendData({
   // he drove for here, and a stand-in stays visible on the rounds he covered.
   const drivers = useQuery(
     api.drivers.listDrivers,
-    race ? { round: race.round, season: race.season } : 'skip',
+    race
+      ? { round: race.round, season: race.season, includeNotRacing: true }
+      : 'skip',
   );
   const raceRank = useQuery(
     api.results.getRaceRank,

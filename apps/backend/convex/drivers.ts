@@ -3,7 +3,11 @@ import { v } from 'convex/values';
 
 import { query } from './_generated/server';
 import { loadConstructorPoints } from './f1Standings';
-import { loadStintsForSeason, rosterForRound } from './lib/lineups';
+import {
+  annotateRosterForRound,
+  loadStintsForSeason,
+  rosterForRound,
+} from './lib/lineups';
 import { getCurrentSeasonAndRound } from './lib/season';
 
 export const listDrivers = query({
@@ -15,6 +19,18 @@ export const listDrivers = query({
      */
     round: v.optional(v.number()),
     season: v.optional(v.number()),
+    /**
+     * Also return drivers who are not racing this round, each flagged
+     * `racing: false`. For callers that have to resolve a SAVED pick, which
+     * may name a driver who has since lost their seat: dropping them turns a
+     * complete set of five picks into four rendered slots, and a complete set
+     * of duels into an unsaveable one.
+     *
+     * Such a caller must build its pick pool by filtering on `racing`.
+     * Off by default so a caller that only needs the pool cannot leak a
+     * driver who is not in a car into it.
+     */
+    includeNotRacing: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const current = await getCurrentSeasonAndRound(ctx);
@@ -37,7 +53,9 @@ export const listDrivers = query({
     // its own round therefore still shows the grid that actually raced it,
     // each driver under the team they drove for at the time.
     const stints = await loadStintsForSeason(ctx, season);
-    const roster = rosterForRound(drivers, stints, round);
+    const roster = args.includeNotRacing
+      ? annotateRosterForRound(drivers, stints, round)
+      : rosterForRound(drivers, stints, round);
 
     // The index gives alphabetical order, so both apps re-sorted this by hand
     // into team order and had to agree on the tie-breaks to stay in step.

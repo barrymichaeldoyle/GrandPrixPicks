@@ -56,6 +56,7 @@ export function H2HResultsSection({
     useQuery(api.drivers.listDrivers, {
       round: race.round,
       season: race.season,
+      includeNotRacing: true,
     }) ?? initialDrivers;
   const availableSessions =
     useQuery(api.results.getAllResultsForRace, {

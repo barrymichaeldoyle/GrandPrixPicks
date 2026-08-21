@@ -115,9 +115,17 @@ function PredictForRace({
 }) {
   const now = useNow();
   const maybeOfferPush = useOfferPushAfterFirstSave();
-  const driversQuery = useQuery(api.drivers.listDrivers, {});
+  // Pinned to this race's round, and asking for the drivers who are not in a
+  // car too: the picker filters those out of its pool, but a saved pick has to
+  // be able to name one.
+  const driversQuery = useQuery(api.drivers.listDrivers, {
+    round: race.round,
+    season: race.season,
+    includeNotRacing: true,
+  });
   const matchupsQuery = useQuery(api.h2h.getMatchupsForSeason, {
-    season: 2026,
+    round: race.round,
+    season: race.season,
   });
   const weekendPredictions = useQuery(api.predictions.myWeekendPredictions, {
     raceId: race._id,

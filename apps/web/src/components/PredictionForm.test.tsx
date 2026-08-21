@@ -25,6 +25,8 @@ const DRIVER_IDS = ['d0', 'd1', 'd2', 'd3', 'd4'] as Doc<'drivers'>['_id'][];
 // Controllable Convex auth state — flipped to authenticated to simulate the
 // moment sign-in completes.
 const convexAuth = { isLoading: false, isAuthenticated: false };
+/** Driver codes a test wants treated as out of a car for the round. */
+const notRacingCodes = new Set<string>();
 const submitSpy = vi.fn().mockResolvedValue(null);
 const requestSignInSpy = vi.fn();
 
@@ -107,6 +109,9 @@ vi.mock('convex/react', () => ({
         displayName: `Driver ${i}`,
         team: 'Team',
         number: i + 1,
+        // `undefined` for everyone unless a test says otherwise, which is how
+        // the real query answers when it is not asked for the non-racers.
+        racing: notRacingCodes.has(`D${i}`) ? false : undefined,
       }));
     }
     return undefined;
@@ -462,5 +467,73 @@ describe('PredictionForm try-before-signup', () => {
       HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
       requestAnimationFrame.mockRestore();
     }
+  });
+});
+
+describe('a pick whose driver is no longer racing', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    // jsdom has no matchMedia; the form reads it for a responsive tooltip.
+    // Stubbed here rather than relied on from the block above, so these tests
+    // pass or fail on their own.
+    window.matchMedia = ((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+    convexAuth.isLoading = false;
+    convexAuth.isAuthenticated = true;
+    notRacingCodes.clear();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    notRacingCodes.clear();
+  });
+
+  it('keeps all five slots and flags the one who is out', () => {
+    // Hadjar's injury: a saved pick names a driver who is no longer in a car.
+    // Dropping him would render four slots for five saved picks AND leave the
+    // form believing the set was already complete, which disables Save.
+    notRacingCodes.add('D1');
+
+    act(() => {
+      root.render(
+        <PredictionForm raceId={RACE_ID} existingPicks={[...DRIVER_IDS]} />,
+      );
+    });
+
+    // Five saved picks fill five slots. The failure this guards against is a
+    // phantom "Select a driver" slot: the dropped pick still occupies one of
+    // the five, so the empty slot can never be filled.
+    expect(
+      container.querySelectorAll('[data-testid^="remove-pick-"]'),
+    ).toHaveLength(5);
+    expect(container.textContent).not.toContain('Select a driver');
+    expect(
+      container.querySelector('[data-testid="pick-not-racing-D1"]'),
+    ).not.toBeNull();
+  });
+
+  it('does not offer the non-racing driver in the pool', () => {
+    notRacingCodes.add('D1');
+
+    act(() => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    expect(container.querySelector('[data-testid="driver-D1"]')).toBeNull();
+    expect(container.querySelector('[data-testid="driver-D0"]')).not.toBeNull();
   });
 });

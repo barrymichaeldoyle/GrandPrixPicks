@@ -1,5 +1,8 @@
-import type { Doc, Id } from '@convex-generated/dataModel';
+import type { Id } from '@convex-generated/dataModel';
 import type { CSSProperties } from 'react';
+
+import type { RosterDriver } from '@/lib/roster';
+import { isRacing, resolvePicks } from '@/lib/roster';
 
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from './DriverBadge';
 
@@ -16,12 +19,14 @@ export function TopFivePicksBar({
   className = 'mt-2',
 }: {
   picks: Id<'drivers'>[];
-  drivers: Doc<'drivers'>[];
+  drivers: RosterDriver[];
   className?: string;
 }) {
-  const pickedDrivers = picks
-    .map((driverId) => drivers.find((driver) => driver._id === driverId))
-    .filter((driver): driver is Doc<'drivers'> => driver !== undefined);
+  // Five saved picks render as five slots. A driver who has lost their seat
+  // since the pick was made is shown struck through rather than dropped,
+  // because a bar that quietly loses a cell reads as picks that were never
+  // made.
+  const pickedDrivers = resolvePicks(picks, drivers);
 
   if (pickedDrivers.length === 0) {
     return null;
@@ -44,11 +49,16 @@ export function TopFivePicksBar({
                 FALLBACK_TEAM_COLOR,
             } as CSSProperties
           }
+          title={isRacing(driver) ? undefined : 'Not racing this round'}
         >
           <span className="gpp-mono text-[10px] leading-none text-accent">
             P{index + 1}
           </span>
-          <span className="gpp-mono truncate text-xs leading-none text-text">
+          <span
+            className={`gpp-mono truncate text-xs leading-none ${
+              isRacing(driver) ? 'text-text' : 'text-text-muted line-through'
+            }`}
+          >
             {driver.code}
           </span>
         </li>

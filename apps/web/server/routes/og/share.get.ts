@@ -158,6 +158,10 @@ async function resolvePickColors(
   const drivers = await convex.query(api.drivers.listDrivers, {
     round: race.round,
     season: race.season,
+    // A shared card can name a driver who was replaced after the pick was
+    // made. Without this they resolve to the fallback grey, so the card would
+    // quietly lose one chip's team colour.
+    includeNotRacing: true,
   });
   const colorByCode = new Map(
     drivers.map((driver) => [

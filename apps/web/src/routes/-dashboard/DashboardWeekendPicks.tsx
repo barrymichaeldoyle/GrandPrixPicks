@@ -130,9 +130,14 @@ function DashboardWeekendPicksReady({
   const myH2H = useQuery(api.h2h.myH2HPredictionsForRace, {
     raceId: weekend.race._id,
   });
+  // Everyone, not just the racing subset: this array feeds the saved-picks
+  // summaries as well as the picker, and a summary has to be able to name a
+  // driver who has since lost their seat. `PredictionForm` filters it down to
+  // the pool it offers.
   const liveDrivers = useQuery(api.drivers.listDrivers, {
     round: weekend.race.round,
     season: weekend.race.season,
+    includeNotRacing: true,
   });
   const drivers = liveDrivers ?? initialDrivers;
 

@@ -60,7 +60,7 @@ export function SignInPrompt({
   const warmHandlers = useClerkWarmHandlers();
 
   return (
-    <main className="min-h-full bg-page">
+    <div className="min-h-full bg-page">
       {/* Same frame as every other page container, so the stripe, the panel
           and the footer columns all land on one left edge. */}
       <div className="mx-auto w-full max-w-(--page-max) px-4 py-10 sm:py-14">
@@ -176,6 +176,6 @@ export function SignInPrompt({
           </nav>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -81,7 +81,7 @@ function CircuitPage() {
   const { circuit, guide, season, racesHere } = Route.useLoaderData();
 
   return (
-    <main className="min-h-full bg-page">
+    <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-3 py-5 sm:px-4 sm:py-8">
         <Link
           to="/circuits"
@@ -200,6 +200,6 @@ function CircuitPage() {
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   );
 }

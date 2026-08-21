@@ -93,7 +93,7 @@ function PracticeResultsPage() {
   }, [race._id, race.slug, results.length]);
 
   return (
-    <main className="min-h-full bg-page">
+    <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-3 py-5 sm:px-4 sm:py-8">
         <Link
           to="/races/$raceSlug"
@@ -182,6 +182,6 @@ function PracticeResultsPage() {
           </ul>
         </nav>
       </div>
-    </main>
+    </div>
   );
 }

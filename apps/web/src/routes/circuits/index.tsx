@@ -50,7 +50,7 @@ function CircuitsIndexPage() {
   });
 
   return (
-    <main className="min-h-full bg-page">
+    <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
         <PageHeader
           eyebrow="Circuits"
@@ -121,6 +121,6 @@ function CircuitsIndexPage() {
           </ul>
         </nav>
       </div>
-    </main>
+    </div>
   );
 }

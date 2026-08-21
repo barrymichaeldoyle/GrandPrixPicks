@@ -90,7 +90,13 @@ export function ErrorFallback({
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col justify-center px-4 py-16">
+    // The testid is what the signed-out smoke sweep asserts the absence of on
+    // every public route. Matching on copy instead would mean a reworded
+    // heading silently disarms the check.
+    <div
+      data-testid="error-fallback"
+      className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col justify-center px-4 py-16"
+    >
       {/* Copy and clip sit side by side from `sm` up, which is what stops the
           three blocks below from each ending at a different right edge. Source
           order is copy then clip, so stacking on mobile drops the clip under

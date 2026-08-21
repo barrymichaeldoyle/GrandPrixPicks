@@ -18,7 +18,9 @@ todos.json
 debug-storybook.log
 
 # Playwright
-/.playwright-mcp/
+# Scratch screenshots, wherever they are taken from. The leading slash used to
+# pin this to the repo root, so a run started inside apps/web committed them.
+.playwright-mcp/
 /test-results/
 /playwright-report/
 /apps/web/test-results/

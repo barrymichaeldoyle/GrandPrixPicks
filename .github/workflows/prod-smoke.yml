@@ -1,0 +1,74 @@
+# Does production still render for a visitor who is not signed in?
+#
+# CI answers this before a merge; nothing answered it after one. On 2026-08-14 a
+# change put Clerk components on routes that deliberately render without a
+# provider, which threw on hydration and error-boundaried every race page for
+# every signed-out visitor. It stayed that way for a week. SSR kept returning a
+# healthy 200 the whole time, so uptime checks were green, and Sentry had the
+# reports but nobody was watching them.
+#
+# So this runs the signed-out sweep against the real site: the real bundle, the
+# real backend, no session. It is the check that would have caught it in half an
+# hour rather than a week.
+#
+# Read-only by construction. Every route it visits is public and it never signs
+# in, so there is nothing here that can write to production.
+name: Production smoke
+
+on:
+  schedule:
+    # Every 30 minutes. Free on a public repo, and GitHub may delay a scheduled
+    # run under load, which is fine: this is a safety net, not a pager.
+    - cron: '*/30 * * * *'
+  # So a deploy can be checked immediately rather than waiting for the tick.
+  workflow_dispatch:
+
+# A late run has nothing to add once a newer one is going.
+concurrency:
+  group: prod-smoke
+  cancel-in-progress: true
+
+jobs:
+  signed-out:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+      PLAYWRIGHT_BASE_URL: https://grandprixpicks.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm --filter @grandprixpicks/web exec playwright install --with-deps chromium
+
+      # Only the signed-out sweep, and only the public project. The rest of the
+      # suite seeds scenarios, which must never point at production.
+      - name: Sweep public routes as a signed-out visitor
+        run: >
+          pnpm --filter @grandprixpicks/web exec playwright test
+          -c playwright.config.ts
+          tests/e2e/signed-out-smoke.spec.ts
+          --project=public-chromium
+          --workers=1
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-smoke-report
+          path: apps/web/playwright-report/
+          retention-days: 7

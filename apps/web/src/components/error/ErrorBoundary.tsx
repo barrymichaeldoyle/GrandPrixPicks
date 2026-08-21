@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/tanstackstart-react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
+import { errorDiagnosticTags } from './diagnostics';
 import { ErrorFallback } from './ErrorFallback';
 
 interface FallbackRenderProps {
@@ -31,9 +32,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
     Sentry.captureException(error, {
+      // Stays at `error`. This boundary wraps a section, so the rest of the
+      // page survived; the route-level ErrorFallback reports `fatal`.
+      level: 'error',
       tags: {
-        location:
-          typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+        ...errorDiagnosticTags(),
         component: 'ErrorBoundary',
       },
       extra: {

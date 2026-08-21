@@ -4,7 +4,17 @@ import { fileURLToPath } from 'node:url';
 
 const PORT = 3000;
 const HOST = '127.0.0.1';
-const baseURL = `http://${HOST}:${PORT}`;
+/**
+ * Point the suite at a deployed environment instead of a local dev server.
+ *
+ * Set by the scheduled production smoke run, which exists because the crash
+ * that took every race page down for signed-out visitors was invisible to a
+ * suite that only ever tested localhost: it needed real prod, a real bundle and
+ * no session. When this is set there is nothing to boot, so `webServer` is
+ * dropped rather than racing a server that is already there.
+ */
+const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+const baseURL = externalBaseURL ?? `http://${HOST}:${PORT}`;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const authStorageState = path.resolve(__dirname, 'tests/e2e/.auth/user.json');
@@ -56,11 +66,13 @@ export default defineConfig({
       ],
     },
   ],
-  webServer: {
-    command:
-      'pnpm run generate-tokens && VITE_ENABLE_DEV_TIME_CONTROLS=true pnpm run dev:vite',
-    url: baseURL,
-    reuseExistingServer: true,
-    timeout: 120_000,
-  },
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        command:
+          'pnpm run generate-tokens && VITE_ENABLE_DEV_TIME_CONTROLS=true pnpm run dev:vite',
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
 });

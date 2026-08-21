@@ -5,10 +5,27 @@ import { useEffect, useRef } from 'react';
 
 import { Button } from '@/components/Button/Button';
 
+import { errorDiagnosticTags } from './diagnostics';
+
 interface ErrorFallbackProps {
   error: unknown;
   reset?: () => void;
   reportToSentry?: boolean;
+}
+
+/**
+ * The matched route pattern, e.g. `/races/$raceSlug`, rather than the URL that
+ * happened to hit it. This is the router's own answer, so it stays right when
+ * routes are added or renamed, unlike the pathname-collapsing fallback the
+ * class boundary has to use.
+ */
+function routePatternFromRouter(router: ReturnType<typeof useRouter>): string {
+  try {
+    const matches = router.state.matches;
+    return matches[matches.length - 1]?.routeId ?? 'unknown';
+  } catch {
+    return 'unknown';
+  }
 }
 
 function getErrorObject(error: unknown): Error {
@@ -38,13 +55,17 @@ export function ErrorFallback({
     }
 
     Sentry.captureException(getErrorObject(error), {
+      // Fatal, not error: reaching this component means the visitor is looking
+      // at "It's broken" instead of the page they asked for. A section that
+      // failed inside an otherwise working page is the ErrorBoundary's case and
+      // stays at `error`, which is what lets one alert rule tell them apart.
+      level: 'fatal',
       tags: {
-        location:
-          typeof window !== 'undefined' ? window.location.pathname : 'unknown',
+        ...errorDiagnosticTags(routePatternFromRouter(router)),
         component: 'ErrorFallback',
       },
     });
-  }, [error, reportToSentry]);
+  }, [error, reportToSentry, router]);
 
   // An errored route keeps the title and meta of the page it failed to render,
   // so without this a crawler can index "It's broken" under a real URL. Same

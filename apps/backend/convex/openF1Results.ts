@@ -253,6 +253,22 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * OpenF1 closes the free tier to anonymous callers for as long as any F1
+ * session is running, past sessions included, and answers 401 with this in the
+ * body. It is a posture, not an outage: it clears by itself when the session
+ * ends.
+ *
+ * Worth naming because it is indistinguishable from a real 401 by status
+ * alone, and the two want opposite handling — this one is "come back later",
+ * a genuine one is "our access is broken".
+ */
+const LIVE_SESSION_RESTRICTION = /live .*session in progress/i;
+
+export function isLiveSessionRestriction(error: unknown): boolean {
+  return LIVE_SESSION_RESTRICTION.test(errorMessage(error));
+}
+
+/**
  * OpenF1's free tier rate-limits bursts, which a season-wide sweep hits easily.
  * Back off and retry on 429 rather than reporting the whole session as
  * unverifiable.
@@ -266,7 +282,15 @@ export async function fetchJson(url: URL): Promise<unknown> {
       return (await response.json()) as unknown;
     }
     if (response.status !== 429 || attempt >= RATE_LIMIT_RETRIES) {
-      throw new Error(`OpenF1 request failed with HTTP ${response.status}`);
+      // The body carries the only account of why. Without it every refusal
+      // reads as a bare "HTTP 401", which is what made a routine live-session
+      // block look like broken credentials in the deploy log.
+      const detail = await response.text().catch(() => '');
+      throw new Error(
+        `OpenF1 request failed with HTTP ${response.status}${
+          detail ? `: ${detail.slice(0, 300)}` : ''
+        }`,
+      );
     }
     const retryAfter = Number(response.headers.get('retry-after'));
     await sleep(
@@ -605,66 +629,90 @@ export const pollDueResults = internalAction({
 export const smokeTest = internalAction({
   args: { sessionKey: v.number() },
   handler: async (ctx, args) => {
-    const sessionUrl = new URL('https://api.openf1.org/v1/sessions');
-    sessionUrl.searchParams.set('session_key', String(args.sessionKey));
-    const sessionRows = parseOpenF1Sessions(await fetchJson(sessionUrl));
-    const sourceSession = sessionRows.find(
-      (session) => session.session_key === args.sessionKey,
-    );
-    if (!sourceSession) {
-      throw new Error(`OpenF1 session ${args.sessionKey} was not found`);
+    try {
+      return await runSmokeTest(ctx, args.sessionKey);
+    } catch (error) {
+      // A live-session block is not a failed smoke test, and failing the
+      // deploy on it means the app cannot ship on a race weekend -- the one
+      // time shipping a fix matters most. Worse, Convex has already deployed
+      // by the time this runs, so aborting here leaves the backend live and
+      // the web bundle behind it.
+      //
+      // Every other error still throws: "OpenF1 changed under us" has to keep
+      // blocking the deploy, which is the whole point of the check.
+      if (isLiveSessionRestriction(error)) {
+        console.warn(
+          `OpenF1 smoke test skipped: ${errorMessage(error)}. ` +
+            'Access is restricted while a session runs and returns by itself ' +
+            'once it ends. Not treated as a deployment failure.',
+        );
+        return { ok: true, skipped: 'live_session_in_progress' as const };
+      }
+      throw error;
     }
-
-    // Re-run the same time-window discovery used by the polling action.
-    const sessionStartAt = new Date(sourceSession.date_start).getTime();
-    if (!Number.isFinite(sessionStartAt)) {
-      throw new Error('OpenF1 returned an invalid session start time');
-    }
-    const discoveryUrl = buildSessionDiscoveryUrl(
-      new Date(sessionStartAt).getUTCFullYear(),
-      sessionStartAt,
-    );
-    const discoveredSessions = parseOpenF1Sessions(
-      await fetchJson(discoveryUrl),
-    );
-    if (
-      !discoveredSessions.some(
-        (session) =>
-          session.session_key === args.sessionKey &&
-          session.session_name === sourceSession.session_name,
-      )
-    ) {
-      throw new Error(
-        'OpenF1 time-window session discovery did not round-trip',
-      );
-    }
-
-    const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
-    resultsUrl.searchParams.set('session_key', String(args.sessionKey));
-    const results = parseOpenF1Results(await fetchJson(resultsUrl));
-    const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
-      await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
-    const mappedNumbers = new Set(mappings.map(({ number }) => number));
-    const unmappedNumbers = results
-      .map(({ driver_number }) => driver_number)
-      .filter((number) => !mappedNumbers.has(number));
-    if (unmappedNumbers.length > 0) {
-      throw new Error(
-        `Deployed drivers are missing OpenF1 number(s): ${unmappedNumbers.join(', ')}`,
-      );
-    }
-
-    return {
-      ok: true,
-      sessionKey: args.sessionKey,
-      sessionName: sourceSession.session_name,
-      driverCount: results.length,
-      dnfCount: results.filter((row) => row.dnf || row.dns || row.dsq).length,
-      firstDriverNumber: results[0]?.driver_number ?? null,
-      lastDriverNumber: results.at(-1)?.driver_number ?? null,
-    };
   },
 });
+
+/**
+ * The smoke test proper. Split out so the action above is only the decision of
+ * what counts as a deployment failure.
+ */
+async function runSmokeTest(ctx: ActionCtx, sessionKey: number) {
+  const sessionUrl = new URL('https://api.openf1.org/v1/sessions');
+  sessionUrl.searchParams.set('session_key', String(sessionKey));
+  const sessionRows = parseOpenF1Sessions(await fetchJson(sessionUrl));
+  const sourceSession = sessionRows.find(
+    (session) => session.session_key === sessionKey,
+  );
+  if (!sourceSession) {
+    throw new Error(`OpenF1 session ${sessionKey} was not found`);
+  }
+
+  // Re-run the same time-window discovery used by the polling action.
+  const sessionStartAt = new Date(sourceSession.date_start).getTime();
+  if (!Number.isFinite(sessionStartAt)) {
+    throw new Error('OpenF1 returned an invalid session start time');
+  }
+  const discoveryUrl = buildSessionDiscoveryUrl(
+    new Date(sessionStartAt).getUTCFullYear(),
+    sessionStartAt,
+  );
+  const discoveredSessions = parseOpenF1Sessions(await fetchJson(discoveryUrl));
+  if (
+    !discoveredSessions.some(
+      (session) =>
+        session.session_key === sessionKey &&
+        session.session_name === sourceSession.session_name,
+    )
+  ) {
+    throw new Error('OpenF1 time-window session discovery did not round-trip');
+  }
+
+  const resultsUrl = new URL('https://api.openf1.org/v1/session_result');
+  resultsUrl.searchParams.set('session_key', String(sessionKey));
+  const results = parseOpenF1Results(await fetchJson(resultsUrl));
+  const mappings: Array<{ number: number; driverId: Id<'drivers'> }> =
+    await ctx.runQuery(internal.openF1Results.getDriverNumberMap, {});
+  const mappedNumbers = new Set(mappings.map(({ number }) => number));
+  const unmappedNumbers = results
+    .map(({ driver_number }) => driver_number)
+    .filter((number) => !mappedNumbers.has(number));
+  if (unmappedNumbers.length > 0) {
+    throw new Error(
+      `Deployed drivers are missing OpenF1 number(s): ${unmappedNumbers.join(', ')}`,
+    );
+  }
+
+  return {
+    ok: true,
+    sessionKey: sessionKey,
+    sessionName: sourceSession.session_name,
+    driverCount: results.length,
+    dnfCount: results.filter((row) => row.dnf || row.dns || row.dsq).length,
+    firstDriverNumber: results[0]?.driver_number ?? null,
+    lastDriverNumber: results.at(-1)?.driver_number ?? null,
+  };
+}
 
 export const getAdminPollStatus = query({
   args: {

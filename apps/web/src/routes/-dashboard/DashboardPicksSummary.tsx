@@ -15,6 +15,17 @@ import { SESSION_LABELS } from '@/lib/sessions';
 
 import type { DashboardSessionState } from './dashboardState';
 
+/**
+ * The label row above a picks bar keeps its height whether or not the session
+ * is editable. The "Edit" button and the team-mate hint only exist on an open
+ * session, so without a reserved slot every switch between a locked tab and an
+ * open one moved both bars (and everything under them) by a few pixels. The
+ * coarse-pointer floor matches the inline button's touch target for the same
+ * reason.
+ */
+const PICKS_LABEL_ROW =
+  'flex min-h-5 items-center justify-between gap-3 pointer-coarse:min-h-11';
+
 const H2HPredictionForm = lazy(() =>
   import('@/components/H2HPredictionForm').then((module) => ({
     default: module.H2HPredictionForm,
@@ -123,7 +134,7 @@ export function DashboardPicksSummary({
       {hasCard ? (
         <>
           <div className="mt-5">
-            <div className="flex items-center justify-between gap-3">
+            <div className={PICKS_LABEL_ROW}>
               <p className="gpp-label text-text-muted">Your Top 5</p>
               {editable ? (
                 <Button
@@ -141,7 +152,7 @@ export function DashboardPicksSummary({
           </div>
 
           <div className="mt-5">
-            <div className="flex items-center justify-between gap-3">
+            <div className={PICKS_LABEL_ROW}>
               <p className="gpp-label flex items-center gap-1.5 text-text-muted">
                 {h2hComplete ? (
                   <Check size={14} className="text-accent" aria-hidden="true" />

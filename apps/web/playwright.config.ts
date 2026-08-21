@@ -49,6 +49,10 @@ export default defineConfig({
         // Signed-out pages, so running them again with a session attached
         // would double the runtime to re-check the same DOM.
         /a11y-smoke\.spec\.ts$/,
+        // Same reason, and more pointedly: this one asserts what an anonymous
+        // visitor sees. Handing it a signed-in storage state to clear on every
+        // test is the opposite of what it is for.
+        /signed-out-smoke\.spec\.ts$/,
       ],
     },
   ],

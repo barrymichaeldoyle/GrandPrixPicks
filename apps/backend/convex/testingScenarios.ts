@@ -10,6 +10,7 @@ import {
   query,
 } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireAdmin } from './lib/auth';
+import { coversRound } from './lib/lineups';
 import { getRaceTimeZoneFromSlug } from './lib/raceTimezones';
 import {
   getScenarioDefinition,
@@ -125,7 +126,11 @@ export const applyScenario = internalMutation({
       drivers,
       primary,
       secondary,
-      matchupIds: await ensureScenarioMatchups(ctx, drivers),
+      matchupIds: await ensureScenarioMatchups(
+        ctx,
+        drivers,
+        getScenarioRaceRound(definition),
+      ),
     };
 
     const race = await buildScenario(ctx, scenarioContext);
@@ -183,7 +188,11 @@ export const applyScenarioAdmin = mutation({
       drivers,
       primary,
       secondary,
-      matchupIds: await ensureScenarioMatchups(ctx, drivers),
+      matchupIds: await ensureScenarioMatchups(
+        ctx,
+        drivers,
+        getScenarioRaceRound(definition),
+      ),
     };
 
     const race = await buildScenario(ctx, scenarioContext);
@@ -1218,16 +1227,35 @@ async function upsertH2HResultsAndScores(
   });
 }
 
+/**
+ * The duels a scenario should seed picks for: the ones racing `round`, which is
+ * exactly what the pick form will show.
+ *
+ * Round-scoping matters here even though a scenario is throwaway data. A
+ * mid-season swap retires a pairing and opens its replacement, so the season
+ * holds both rows and `by_season` returns more duels than any single round has.
+ * Seeding a pick against every one of them left the form holding thirteen
+ * selections for eleven duels, and a card that can never equal its own total is
+ * a card whose Save button is disabled forever -- which is how a "complete H2H"
+ * scenario stopped being completable, and took CI with it.
+ *
+ * Teams are still de-duplicated against *every* existing row, retired ones
+ * included: a team that has stopped racing should end up with no duel this
+ * round, not a second matchup row papering over the first.
+ */
 async function ensureScenarioMatchups(
   ctx: MutationCtx,
   drivers: Array<Doc<'drivers'>>,
+  round: number,
 ): Promise<Array<Id<'h2hMatchups'>>> {
   const existing = await ctx.db
     .query('h2hMatchups')
     .withIndex('by_season', (q) => q.eq('season', 2026))
     .collect();
 
-  const ids: Array<Id<'h2hMatchups'>> = existing.map((matchup) => matchup._id);
+  const ids: Array<Id<'h2hMatchups'>> = existing
+    .filter((matchup) => coversRound(matchup, round))
+    .map((matchup) => matchup._id);
   const existingTeams = new Set(existing.map((matchup) => matchup.team));
   const byTeam = new Map<string, Array<Doc<'drivers'>>>();
 

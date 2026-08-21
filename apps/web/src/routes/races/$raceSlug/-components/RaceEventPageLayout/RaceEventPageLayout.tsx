@@ -159,7 +159,11 @@ export function RaceEventPageLayout({
         {leadWithCircuitGuide && circuitGuideContent}
 
         {!isAuthLoaded || isPredictionsLoading ? (
-          <div className="py-8">
+          // The testid is the race page's "still loading" signal for the e2e
+          // helpers. They used to guess at whichever section a given race
+          // state renders, which meant a finished race or an empty card sat
+          // out the full timeout waiting for markup that was never coming.
+          <div className="py-8" data-testid="race-page-loading">
             <InlineLoader />
           </div>
         ) : isPredictable && isSignedIn && !hasPredictions ? (

@@ -1,7 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { applyScenario } from './helpers/scenarios';
-
 /**
  * Every public route must render for a visitor who is not signed in.
  *
@@ -152,20 +150,33 @@ test.describe('[public] signed-out smoke', () => {
 });
 
 test.describe('[public] signed-out race detail', () => {
-  test('an upcoming race renders its signed-out preview', async ({
+  test('the next race renders its signed-out preview', async ({
     page,
     context,
   }) => {
-    // The exact page that was broken: an upcoming race, signed out, which is
-    // the branch that renders SignedOutRacePreview and the unauthenticated
-    // CardActions. A seeded scenario rather than whatever the calendar says
-    // today, so the branch under test is the one that actually runs.
-    const summary = applyScenario('race_upcoming_signed_in_no_picks', {
-      namespace: 'playwright_signed_out_race',
-    });
-
     await context.clearCookies();
-    await expectRendersSignedOut(page, summary.routes!.webRaceDetail);
+
+    // Deliberately not seeded. The preview only renders for the race that is
+    // *next*, so seeding one here would make this spec the next race for every
+    // spec that runs after it -- which is exactly what happened: the flow smoke
+    // tests started failing with "Team-mate battles are only open for the next
+    // race" because they were pointed at a race this file had displaced.
+    //
+    // A smoke sweep should observe the app, not reshape it. The calendar
+    // already names the next race, so read it from there.
+    await page.goto('/races', { waitUntil: 'networkidle' });
+    const nextRaceLink = page
+      .getByRole('link')
+      .filter({ hasText: 'Next Race' })
+      .first();
+    await expect(
+      nextRaceLink,
+      'the race calendar named no next race',
+    ).toBeVisible();
+    const nextRaceHref = await nextRaceLink.getAttribute('href');
+    expect(nextRaceHref).toBeTruthy();
+
+    await expectRendersSignedOut(page, nextRaceHref!);
 
     // The preview is the point of leaving this route Clerk-free: a signed-out
     // visitor gets real content and a way in, not a gate.

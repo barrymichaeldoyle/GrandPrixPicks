@@ -10,6 +10,7 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx } from './_generated/server';
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
@@ -749,6 +750,156 @@ export const getAdminPollStatus = query({
       poll,
       unattended: unattendedSetting?.enabled ?? false,
     };
+  },
+});
+
+/**
+ * Everything the manual fetch needs about one session, plus the admin check.
+ * Auth propagates through `runQuery`, so the action's caller is the viewer
+ * here: an admin-only query is a real gate, not a UI courtesy.
+ */
+export const getManualFetchTask = internalQuery({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args) => {
+    const viewer = requireViewer(await getViewer(ctx));
+    requireAdmin(viewer);
+    const race = await ctx.db.get(args.raceId);
+    if (!race) {
+      throw new Error('Race not found');
+    }
+    const start = getSessionStarts(race).find(
+      (item) => item.sessionType === args.sessionType,
+    );
+    if (!start) {
+      throw new Error(
+        `${SESSION_LABELS_FULL[args.sessionType]} is not part of this weekend`,
+      );
+    }
+    const existingResult = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+
+    return {
+      raceName: race.name,
+      season: race.season,
+      sessionStartAt: start.sessionStartAt,
+      alreadyPublished: existingResult !== null,
+      ...getFallbackWindow(args.sessionType, start.sessionStartAt),
+    };
+  },
+});
+
+type ManualFetchOutcome = {
+  ok: boolean;
+  status: 'published' | 'already_published' | 'failed';
+  message: string;
+  driverCount?: number;
+  openF1SessionKey?: number;
+};
+
+/**
+ * Run the OpenF1 fetch-and-publish for one session right now, instead of
+ * waiting for the 5-minute cron to reach its scheduled window.
+ *
+ * This is the same work `pollDueResults` does for one task, including the poll
+ * bookkeeping, so a manual success stops the cron from repeating it and the
+ * status panel above the button keeps telling the truth. What it does *not*
+ * do is bypass any rule: a session with published results comes back
+ * `already_published` and is left alone (rescoring stays with the publish
+ * form, which is where the silent-rescore guards live).
+ *
+ * A failure is returned, not thrown: "OpenF1 has not exposed this session yet"
+ * and "access is blocked while the session runs" are the two normal answers
+ * before a result exists, and both are information for the admin rather than
+ * an error to swallow.
+ */
+export const adminFetchResultsNow = action({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+  },
+  handler: async (ctx, args): Promise<ManualFetchOutcome> => {
+    const task = await ctx.runQuery(internal.openF1Results.getManualFetchTask, {
+      raceId: args.raceId,
+      sessionType: args.sessionType,
+    });
+
+    if (task.alreadyPublished) {
+      return {
+        ok: true,
+        status: 'already_published',
+        message: `${SESSION_LABELS_FULL[args.sessionType]} results are already published.`,
+      };
+    }
+
+    const driverByNumber = await loadDriverNumberMap(ctx);
+    await ctx.runMutation(internal.openF1Results.recordAttempt, {
+      raceId: args.raceId,
+      sessionType: args.sessionType,
+      firstAttemptAt: task.firstAttemptAt,
+      deadlineAt: task.deadlineAt,
+    });
+
+    let openF1SessionKey: number | undefined;
+    try {
+      const official = await fetchOfficialClassification({
+        season: task.season,
+        sessionType: args.sessionType,
+        sessionStartAt: task.sessionStartAt,
+        raceName: task.raceName,
+        driverByNumber,
+      });
+      openF1SessionKey = official.openF1SessionKey;
+      const { classification, dnfDriverIds, driverStatuses } = official;
+      const outcome: { status: 'published' | 'already_published' } =
+        await ctx.runMutation(internal.results.autoPublishResults, {
+          raceId: args.raceId,
+          sessionType: args.sessionType,
+          classification,
+          dnfDriverIds,
+          driverStatuses,
+        });
+      await ctx.runMutation(internal.openF1Results.recordOutcome, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        status: outcome.status,
+        openF1SessionKey,
+      });
+
+      return {
+        ok: true,
+        status: outcome.status,
+        message:
+          outcome.status === 'published'
+            ? `Published ${classification.length} classified drivers from OpenF1 session ${openF1SessionKey}.`
+            : 'Results were already published, so nothing was changed.',
+        driverCount: classification.length,
+        openF1SessionKey,
+      };
+    } catch (error) {
+      const message = errorMessage(error);
+      await ctx.runMutation(internal.openF1Results.recordOutcome, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        status: 'retrying',
+        error: message.slice(0, 500),
+        openF1SessionKey,
+      });
+
+      return {
+        ok: false,
+        status: 'failed',
+        message: isLiveSessionRestriction(error)
+          ? `OpenF1 blocks result access while a session is running. It returns by itself once the session ends. (${message})`
+          : message,
+      };
+    }
   },
 });
 

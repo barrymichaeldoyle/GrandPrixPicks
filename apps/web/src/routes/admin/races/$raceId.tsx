@@ -11,7 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { createFileRoute, Link, useBlocker } from '@tanstack/react-router';
-import { useMutation } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
 import {
   ArrowLeft,
@@ -19,6 +19,7 @@ import {
   CircleAlert,
   Copy,
   Loader2,
+  RefreshCw,
   Save,
   Trophy,
 } from 'lucide-react';
@@ -139,10 +140,19 @@ function AdminRaceDetailPage() {
   >({});
   const publishResults = useMutation(api.results.adminPublishResults);
   const setUnattended = useMutation(api.openF1Results.adminSetUnattended);
+  const fetchResultsNow = useAction(api.openF1Results.adminFetchResultsNow);
   const cancelRace = useMutation(api.races.adminCancelRace);
   const restoreRace = useMutation(api.races.adminRestoreRace);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUpdatingUnattended, setIsUpdatingUnattended] = useState(false);
+  const [isFetchingNow, setIsFetchingNow] = useState(false);
+  // The outcome of the last manual fetch, kept per session so switching tabs
+  // never shows one session's answer under another's heading.
+  const [fetchNowOutcome, setFetchNowOutcome] = useState<{
+    sessionType: SessionType;
+    ok: boolean;
+    message: string;
+  } | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [h2hCopyStatus, setH2hCopyStatus] = useState<
     'idle' | 'copied' | 'error'
@@ -599,6 +609,33 @@ function AdminRaceDetailPage() {
     }
   }
 
+  async function handleFetchResultsNow() {
+    const sessionType = selectedSession;
+    setIsFetchingNow(true);
+    setFetchNowOutcome(null);
+    try {
+      const outcome = await fetchResultsNow({
+        raceId: typedRaceId,
+        sessionType,
+      });
+      setFetchNowOutcome({
+        sessionType,
+        ok: outcome.ok,
+        message: outcome.message,
+      });
+    } catch (error) {
+      // Only the gate and lookup failures reach here: the fetch itself
+      // reports OpenF1's own answer through `outcome`.
+      setFetchNowOutcome({
+        sessionType,
+        ok: false,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsFetchingNow(false);
+    }
+  }
+
   async function handleUnattendedChange(enabled: boolean) {
     setIsUpdatingUnattended(true);
     try {
@@ -723,6 +760,47 @@ function AdminRaceDetailPage() {
                         {openF1Fallback.poll.lastError
                           ? ` · ${openF1Fallback.poll.lastError}`
                           : ''}
+                      </p>
+                    )}
+
+                  {/* Run the fetch the cron would run, now. Useful the moment
+                      a session is done and the wait for the next 5-minute tick
+                      (or for the first-attempt window to open at all) is the
+                      only thing standing between players and their scores. */}
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      leftIcon={RefreshCw}
+                      disabled={isFetchingNow}
+                      onClick={() => void handleFetchResultsNow()}
+                    >
+                      {isFetchingNow
+                        ? 'Fetching from OpenF1...'
+                        : 'Fetch results now'}
+                    </Button>
+                    <span className="text-xs text-slate-400">
+                      Publishes automatically if OpenF1 already has the
+                      classification.
+                    </span>
+                  </div>
+                  {fetchNowOutcome &&
+                    fetchNowOutcome.sessionType === selectedSession && (
+                      <p
+                        role="status"
+                        className={`mt-2 flex items-start gap-2 text-sm ${
+                          fetchNowOutcome.ok
+                            ? 'text-emerald-300'
+                            : 'text-red-300'
+                        }`}
+                      >
+                        {fetchNowOutcome.ok ? (
+                          <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                        ) : (
+                          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                        )}
+                        <span>{fetchNowOutcome.message}</span>
                       </p>
                     )}
                 </div>

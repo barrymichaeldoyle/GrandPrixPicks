@@ -21,6 +21,7 @@ import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import { ScrollToTop } from '@/components/ScrollToTop';
+import { UnreadTabIndicator } from '@/components/UnreadTabIndicator';
 import {
   AuthCurtainHost,
   useAuthCurtain,
@@ -341,6 +342,12 @@ function RootDocument({ children }: PropsWithChildren) {
             >
               <AuthenticatedDeferredFeature>
                 <DeferredObservabilityUserSync />
+              </AuthenticatedDeferredFeature>
+              {/* Unread count in the tab title, tab icon and OS badge. Renders
+                  no visible DOM, so it sits outside the shell rather than in
+                  the header next to the bell it mirrors. */}
+              <AuthenticatedDeferredFeature>
+                <UnreadTabIndicator />
               </AuthenticatedDeferredFeature>
               <AppShell>
                 <a

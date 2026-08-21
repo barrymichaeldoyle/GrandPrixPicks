@@ -496,6 +496,7 @@ async function sendResultEmailsForSessionBatchCore(
         recipients: batch,
         raceName: race.name,
         raceSlug: race.slug,
+        raceId: race._id,
         sessionLabel,
         round: race.round,
         countryCode,

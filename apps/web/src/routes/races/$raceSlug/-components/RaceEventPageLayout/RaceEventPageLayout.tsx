@@ -154,7 +154,6 @@ export function RaceEventPageLayout({
         />
 
         {recapContent}
-        {practiceResultsContent}
 
         {leadWithCircuitGuide && circuitGuideContent}
 
@@ -253,6 +252,12 @@ export function RaceEventPageLayout({
         )}
 
         {!leadWithCircuitGuide && circuitGuideContent}
+
+        {/* Timing sheets last. They used to sit above the picks, which put a
+            twenty-row FP1 classification between the visitor and the thing the
+            page is for. Reference material for the picks, not the headline: it
+            belongs after them, and closed. */}
+        {practiceResultsContent}
       </div>
     </div>
   );

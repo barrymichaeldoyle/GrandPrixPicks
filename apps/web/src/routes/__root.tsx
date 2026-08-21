@@ -11,7 +11,14 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { ConvexProviderWithAuth } from 'convex/react';
 import { Flag, Home, Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
+import {
+  lazy,
+  startTransition,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { AppMotionProvider } from '@/components/AppMotionProvider';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
@@ -21,7 +28,6 @@ import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import { ScrollToTop } from '@/components/ScrollToTop';
-import { UnreadTabIndicator } from '@/components/UnreadTabIndicator';
 import {
   AuthCurtainHost,
   useAuthCurtain,
@@ -32,6 +38,7 @@ import {
 } from '@/integrations/clerk/initial-auth';
 import { isClerkFreeRoute } from '@/integrations/clerk/clerk-free-routes';
 import { preloadClerkRuntime } from '@/integrations/clerk/preload';
+import { hasClerkSessionCookie } from '@/integrations/clerk/session-cookie';
 import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
@@ -43,6 +50,8 @@ import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
+import { showsGlobalFooter } from '@/lib/globalFooter';
+import { isNotificationArrival } from '@/lib/notificationArrival';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
 import appCss from '@/styles.css?url';
 
@@ -59,6 +68,11 @@ const DeferredObservabilityUserSync = lazy(() =>
 const DeferredPredictionBanner = lazy(() =>
   import('@/integrations/clerk/runtime-bundle').then((module) => ({
     default: module.DeferredPredictionBanner,
+  })),
+);
+const UnreadTabIndicator = lazy(() =>
+  import('@/integrations/clerk/runtime-bundle').then((module) => ({
+    default: module.UnreadTabIndicator,
   })),
 );
 const AuthenticatedAppRuntime = lazy(() =>
@@ -424,12 +438,13 @@ function AppShell({ children }: PropsWithChildren) {
 
 /**
  * Signed-in Home carries Play / Legal / Support links in its right rail, so
- * the global footer would be a duplicate. Everywhere else keeps the full footer.
+ * the global footer would be a duplicate. Everywhere else keeps the full
+ * footer. `RailFooterLinks` reads the same rule from the other side.
  */
 function ShellFooter() {
   const pathname = useLocation({ select: (location) => location.pathname });
   const { isSignedIn } = useViewerSession();
-  if (isSignedIn && pathname === '/') {
+  if (!showsGlobalFooter(pathname, isSignedIn)) {
     return null;
   }
   return <Footer />;
@@ -473,7 +488,15 @@ function AppRuntimeBoundary({
     returningFromClerk ||
     signedInViaModal;
 
+  /** Arrival is decided once per page load, not re-decided on every render. */
+  const hasHandledArrivalRef = useRef(false);
+
   useEffect(() => {
+    if (hasHandledArrivalRef.current) {
+      return;
+    }
+    hasHandledArrivalRef.current = true;
+
     const fromClerk =
       document.referrer.length > 0 &&
       (() => {
@@ -493,7 +516,35 @@ function AppRuntimeBoundary({
     if (hasClerkCallback) {
       setClerkHandshake(true);
     }
-  }, []);
+
+    /**
+     * A signed-out arrival on a link we mailed or pushed is a lapsed session,
+     * not a new visitor: we only send those to people who already have an
+     * account. Open sign-in for them straight away rather than making them find
+     * the button, because the thing they came to see (their score, their picks,
+     * their standing) is not on the page until they are signed in.
+     *
+     * Skipped mid-handshake — `hasClerkCallback` is Clerk handing the session
+     * back, and re-opening sign-in on top of that fights the curtain.
+     *
+     * Both auth signals are checked because they fail in different directions:
+     * `initialSignedIn` is the SSR cookie read, which is stale if the session
+     * ended in another tab, and `hasClerkSessionCookie` is the live read, which
+     * is the one that catches a session Clerk has not booted yet. Either
+     * saying "signed in" is enough to leave the visitor alone.
+     */
+    if (
+      !hasClerkCallback &&
+      !fromClerk &&
+      !initialSignedIn &&
+      !hasClerkSessionCookie() &&
+      isNotificationArrival(window.location.search)
+    ) {
+      requestSignIn();
+    }
+    // `initialSignedIn` is read, not watched: the ref above pins this to the
+    // arrival, so a later change must not re-open sign-in.
+  }, [initialSignedIn]);
 
   /**
    * Mount the provider without opening anything. Fired by hover/focus/touch on

@@ -5,6 +5,7 @@ import { v } from 'convex/values';
 
 import { internalAction } from '../_generated/server';
 import { sendEmail } from '../lib/email';
+import { buildWeekendLeaderboardEmailUrl } from './urls';
 import type { SessionResultsPostRaceMadePredictionsEmailProps } from './SessionResultsPostRaceMadePredictionsEmail';
 import { SessionResultsPostRaceMadePredictionsEmail } from './SessionResultsPostRaceMadePredictionsEmail';
 import type { SessionResultsPostRaceMissedPredictionsEmailProps } from './SessionResultsPostRaceMissedPredictionsEmail';
@@ -54,6 +55,7 @@ export const sendBatch = internalAction({
     ),
     raceName: v.string(),
     raceSlug: v.string(),
+    raceId: v.id('races'),
     sessionLabel: v.string(),
     round: v.number(),
     countryCode: v.union(v.string(), v.null()),
@@ -77,7 +79,14 @@ export const sendBatch = internalAction({
         round: args.round,
         countryCode: args.countryCode,
       };
-      const resultsUrl = `${appUrl}/races/${args.raceSlug}?utm_source=email&utm_medium=email&utm_campaign=results`;
+      // "See my score" goes to the weekend standings, not the race page: the
+      // reader already knows what happened on track, they want to know where it
+      // put them. See `buildWeekendLeaderboardEmailUrl`.
+      const resultsUrl = buildWeekendLeaderboardEmailUrl({
+        appUrl,
+        raceId: args.raceId,
+        campaign: 'results',
+      });
       const racePredictionUrl = `${appUrl}/races/${args.raceSlug}?utm_source=email&utm_medium=email&utm_campaign=results_race_cta`;
       const nextRaceUrl = args.nextRaceSlug
         ? `${appUrl}/races/${args.nextRaceSlug}?utm_source=email&utm_medium=email&utm_campaign=results_next_race_cta`

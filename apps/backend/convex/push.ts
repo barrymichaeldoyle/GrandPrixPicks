@@ -450,7 +450,12 @@ export const sendPushResultsForSession = internalMutation({
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
     const title = `🏁 ${race.name}: ${sessionLabel} results`;
     const body = `Session results are in. See how you scored!`;
-    const url = `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=results`;
+    // Matches the results email: "See how you scored" is a standings question,
+    // so it opens the weekend leaderboard for this round rather than the race
+    // page. `time`/`raceId` scope it on web; mobile's push router maps the
+    // path to the Leaderboard tab (see apps/mobile/src/lib/pushRouting.ts,
+    // which must know any path we send here or the tap does nothing).
+    const url = `/leaderboard?time=weekend&raceId=${race._id}&utm_source=push&utm_medium=push&utm_campaign=results`;
 
     const subscriptions = [...subscriptionsByUser.entries()]
       .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))

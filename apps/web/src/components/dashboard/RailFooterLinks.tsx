@@ -1,5 +1,7 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 
+import { showsGlobalFooter } from '@/lib/globalFooter';
+import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { railFooterLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from '@/components/PrivacyChoicesButton';
@@ -21,9 +23,21 @@ const linkClass =
  * Small print for the signed-in rail: one wrapped run of links with the
  * copyright as the last item, no group headings. Grouping is for the public
  * footer, where the extra structure earns its height.
+ *
+ * Renders nothing on the pages that keep the real footer. Several rail layouts
+ * mount this, and most of them sit on pages that also end in the global footer,
+ * which stacked the same links twice. Deciding here rather than at each call
+ * site means a rail cannot reintroduce the duplicate by being added to one more
+ * page: see {@link showsGlobalFooter}.
  */
 export function RailFooterLinks() {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const { isSignedIn } = useViewerSession();
   const year = new Date().getFullYear();
+
+  if (showsGlobalFooter(pathname, isSignedIn)) {
+    return null;
+  }
 
   return (
     <nav

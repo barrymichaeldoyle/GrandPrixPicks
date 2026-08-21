@@ -5,3 +5,4 @@ export {
   DeferredObservabilityUserSync,
   DeferredPredictionBanner,
 } from '@/components/DeferredAuthenticatedFeatures';
+export { UnreadTabIndicator } from '@/components/UnreadTabIndicator';

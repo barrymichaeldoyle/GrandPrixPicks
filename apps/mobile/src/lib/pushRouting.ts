@@ -3,8 +3,12 @@ import { navigationRef } from '../navigation/navigationRef';
 /**
  * Routes a push-notification tap to the right screen. The backend sends a
  * site path in `data.url` (shared contract with web push): `/races/{slug}`,
- * `/feed/{feedEventId}`, or `/feed`. Anything unrecognized is ignored rather
- * than guessed at.
+ * `/leaderboard`, `/feed/{feedEventId}`, or `/feed`. Anything unrecognized is
+ * ignored rather than guessed at.
+ *
+ * That last rule is why this file has to be updated in the same change as any
+ * new push destination: an unhandled path is not a fallback, it is a tap that
+ * does nothing.
  *
  * Taps can arrive before the navigator mounts (cold start), so unroutable
  * URLs are buffered and flushed from the NavigationContainer's onReady.
@@ -42,6 +46,15 @@ function navigateTo(url: string): boolean {
 
   if (path === '/feed') {
     navigationRef.navigate('HomeTab', { screen: 'HomeMain' });
+    return true;
+  }
+
+  // Results pushes land here: "how did I do" is a standings question, and the
+  // web link carries `?time=weekend&raceId=…` to say which round. The mobile
+  // screen takes no params, but a results push fires as the results publish,
+  // so the weekend it opens on is already the one the push is about.
+  if (path === '/leaderboard') {
+    navigationRef.navigate('LeaderboardTab', { screen: 'LeaderboardMain' });
     return true;
   }
 

@@ -16,7 +16,10 @@ import { stripUnreadTitlePrefix, unreadTitlePrefix } from '@/lib/unreadTitle';
  * anything read.
  *
  * Mounted once, from the root shell, and only after load — see
- * `AuthenticatedDeferredFeature` in `routes/__root.tsx`.
+ * `AuthenticatedDeferredFeature` in `routes/__root.tsx`. Reached through
+ * `integrations/clerk/runtime-bundle` rather than imported directly, so it
+ * rides the authenticated runtime chunk its siblings already pull in instead
+ * of weighing down the client entry a signed-out visitor pays for.
  */
 export function UnreadTabIndicator() {
   // The count query, not the list: the same subscription the header bell

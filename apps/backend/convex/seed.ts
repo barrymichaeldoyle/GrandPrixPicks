@@ -1038,7 +1038,7 @@ export const applyLineup = internalAction({
  * moves, it just does not explain them.
  */
 const LINEUP_CHANGE_NOTES: Record<number, string | undefined> = {
-  12: 'Isack Hadjar broke his wrist in a training crash and is out for the Dutch Grand Prix. Liam Lawson steps up to Red Bull alongside Max Verstappen, and Yuki Tsunoda takes the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar is expected back in his car for Monza.',
+  12: 'Isack Hadjar broke his wrist during boxing training and is out for the Dutch Grand Prix. Liam Lawson steps up to Red Bull alongside Max Verstappen, and Yuki Tsunoda takes the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar is expected back in his car for Monza.',
 };
 
 /**

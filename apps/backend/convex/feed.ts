@@ -394,6 +394,16 @@ export const writeLineupChangeFeedEvent = internalMutation({
       )
       .first();
     if (existing) {
+      // The seats are derived and settled, but the note is editorial and can
+      // be wrong in ways no diff can catch: this one first went out saying
+      // Hadjar hurt his wrist in a training crash, when he did it boxing.
+      // Reconciling the note on re-run makes a correction a code change plus
+      // an applyLineup, the same path the announcement took, rather than a
+      // hand-patched row on prod.
+      if (args.note !== undefined && args.note !== existing.lineupNote) {
+        await ctx.db.patch(existing._id, { lineupNote: args.note });
+        return { status: 'note_corrected' as const };
+      }
       return { status: 'already_announced' as const };
     }
 

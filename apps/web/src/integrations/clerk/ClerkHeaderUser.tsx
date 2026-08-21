@@ -1,5 +1,5 @@
 import { SignInButton, useAuth, useClerk, UserButton } from '@clerk/react';
-import { SlidersHorizontal, User } from 'lucide-react';
+import { ShieldCheck, SlidersHorizontal, User } from 'lucide-react';
 import { useEffect } from 'react';
 
 const signInButtonClasses =
@@ -8,12 +8,14 @@ const signInButtonClasses =
 export function ClerkHeaderUser({
   isMobile,
   isSignedIn,
+  isAdmin,
   profileHref,
   openSignInOnMount,
   signInOpened,
 }: {
   isMobile: boolean;
   isSignedIn: boolean;
+  isAdmin: boolean;
   profileHref: string;
   openSignInOnMount: boolean;
   signInOpened: () => void;
@@ -59,6 +61,18 @@ export function ClerkHeaderUser({
           labelIcon={<SlidersHorizontal className="h-4 w-4" />}
           href="/settings"
         />
+        {/* Admins reach race management and result publishing from here: /admin
+            is not in the nav rail (it is not a player destination) and it turns
+            away non-admins anyway, so the row only exists when it leads
+            somewhere. `isAdmin` comes from the server (`users.me`), so a client
+            that fakes it still hits the same requireAdmin checks. */}
+        {isAdmin && (
+          <UserButton.Link
+            label="Admin"
+            labelIcon={<ShieldCheck className="h-4 w-4" />}
+            href="/admin"
+          />
+        )}
         {/* Clerk's own account modal: email, password, 2FA, devices, deletion.
             None of that lives in /settings, so this stays — relabelled from
             "Manage account" (see `localization` in the Clerk provider) because

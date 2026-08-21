@@ -39,6 +39,7 @@ export function HeaderUser() {
   const me = useQuery(api.users.me, isSignedIn ? {} : 'skip');
   const [isMobile, setIsMobile] = useState(false);
   const profileHref = me?.username ? `/p/${me.username}` : '/me';
+  const isAdmin = me?.isAdmin ?? false;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(MOBILE_MENU_BREAKPOINT);
@@ -65,6 +66,7 @@ export function HeaderUser() {
           <ClerkHeaderUser
             isMobile={isMobile}
             isSignedIn={false}
+            isAdmin={false}
             profileHref={profileHref}
             openSignInOnMount={runtime.openSignInOnMount}
             signInOpened={runtime.signInOpened}
@@ -108,6 +110,7 @@ export function HeaderUser() {
         <ClerkHeaderUser
           isMobile={isMobile}
           isSignedIn={true}
+          isAdmin={isAdmin}
           profileHref={profileHref}
           openSignInOnMount={false}
           signInOpened={runtime.signInOpened}

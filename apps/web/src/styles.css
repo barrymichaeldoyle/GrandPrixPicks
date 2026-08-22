@@ -262,9 +262,20 @@
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
-  color: var(--text-muted);
   font-weight: var(--fw-medium);
   line-height: var(--lh-snug);
+}
+
+/* The default colour is the one thing about this label that a call site is
+   allowed to change, so it lives in `base` while the typography stays
+   unlayered. Unlayered, `color` here beat every `text-*` utility beside it:
+   `gpp-label text-accent` rendered muted, and the leaderboard's YOU chip
+   rendered muted-on-accent, which is where the missing contrast came from.
+   A label with no colour of its own still lands on muted. */
+@layer base {
+  .gpp-label {
+    color: var(--text-muted);
+  }
 }
 
 /*

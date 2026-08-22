@@ -91,7 +91,7 @@ export function WeekendCardSkeleton({
               />
             ) : null}
             <div className="min-w-0">
-              <p className="gpp-label text-accent">
+              <p className="gpp-label text-text-muted">
                 Round {race.round}
                 {race.hasSprint ? ' · Sprint weekend' : ''}
               </p>

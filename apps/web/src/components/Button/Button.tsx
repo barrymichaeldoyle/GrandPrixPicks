@@ -44,12 +44,17 @@ const variants = {
  * large tablet does not.
  *
  * Widths are untouched: only the vertical hit area was short.
+ *
+ * The icon-to-label gap is one step above the base 4px for both standard
+ * sizes: at 4px a leading icon reads as glued to the first letter rather than
+ * as its own mark. `inline` keeps the tighter base, where the whole control is
+ * only slightly bigger than its text.
  */
 const sizes = {
   inline:
     'gap-1 rounded-sm px-1.5 py-0.5 text-xs pointer-coarse:min-h-11 pointer-coarse:px-2.5',
-  sm: 'h-9 px-4 text-sm pointer-coarse:h-11',
-  md: 'h-11 gap-1.5 px-5 text-base',
+  sm: 'h-9 gap-2 px-4 text-sm pointer-coarse:h-11',
+  md: 'h-11 gap-2 px-5 text-base',
   tab: 'h-9 rounded-sm px-3 text-sm pointer-coarse:h-11',
 } as const;
 

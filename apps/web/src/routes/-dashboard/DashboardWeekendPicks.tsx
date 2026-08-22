@@ -333,7 +333,7 @@ function DashboardWeekendPicksReady({
               />
             ) : null}
             <div className="min-w-0">
-              <p className="gpp-label text-accent">
+              <p className="gpp-label text-text-muted">
                 Round {weekend.race.round}
                 {weekend.race.hasSprint ? ' · Sprint weekend' : ''}
               </p>

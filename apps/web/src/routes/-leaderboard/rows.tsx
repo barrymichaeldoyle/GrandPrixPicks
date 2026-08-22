@@ -51,7 +51,7 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
             {entry.displayName ?? entry.username}
           </span>
           {entry.isViewer && (
-            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
+            <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 font-semibold text-text-on-accent">
               YOU
             </span>
           )}
@@ -103,7 +103,7 @@ export function SmallLeaderboard({ entries }: { entries: LeaderboardEntry[] }) {
                 {entry.displayName ?? entry.username}
               </span>
               {entry.isViewer && (
-                <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 text-text-on-accent">
+                <span className="gpp-label rounded-sm bg-accent px-1.5 py-0.5 font-semibold text-text-on-accent">
                   YOU
                 </span>
               )}

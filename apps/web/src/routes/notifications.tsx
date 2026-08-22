@@ -316,7 +316,12 @@ function NotificationsPage() {
           empty, so a second row was spending vertical space on nothing. Below
           `md` the title is `sr-only` and takes no width, so the control cluster
           spreads across the full row exactly as it did before. */}
-      <header className="mb-4 flex items-center justify-between gap-3">
+      {/* The row is held to the height of its tallest state. "Mark all read"
+          is a 36px control (44px under a thumb) and the lens pill beside it is
+          shorter, so without a floor the row shrank the instant the count hit
+          zero and pulled the whole list up under the finger that had just
+          tapped it. */}
+      <header className="mb-4 flex min-h-9 items-center justify-between gap-3 pointer-coarse:min-h-11">
         <h1 className="gpp-label text-text-muted max-md:sr-only">
           Notifications
         </h1>

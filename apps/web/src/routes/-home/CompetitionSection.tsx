@@ -208,7 +208,7 @@ export function CompetitionSection({
     >
       <div className="mx-auto w-full max-w-5xl">
         <div className="max-w-3xl">
-          <p className="gpp-label text-accent">Compete your way</p>
+          <p className="gpp-label text-text-muted">Compete your way</p>
           <h2
             id="landing-competition-heading"
             className="mt-2 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"

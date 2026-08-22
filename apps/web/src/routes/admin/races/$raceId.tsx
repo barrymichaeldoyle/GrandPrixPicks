@@ -171,7 +171,18 @@ function AdminRaceDetailPage() {
   // hand-entered order should stand.
   const [pauseRecheck, setPauseRecheck] = useState(false);
 
-  const driverCount = drivers?.length ?? 0;
+  // One lane per driver actually in a car this round. `drivers` deliberately
+  // carries the ones who are not, so an admin can enter a reserve who really
+  // took the start, but sizing the grid off that list asks for a P23 nobody
+  // can fill the moment a mid-season swap retires a seat. A saved
+  // classification wins when it is longer, so a published result that already
+  // records more finishers stays editable.
+  const racingDriverCount =
+    drivers?.filter((driver) => driver.racing).length ?? 0;
+  const driverCount = Math.max(
+    racingDriverCount,
+    existingResult?.classification?.length ?? 0,
+  );
   const availableSessions = getSessionsForWeekend(race?.hasSprint ?? false);
   const availableSessionsKey = availableSessions.join(',');
   const submittedSessionsKey = submittedSessions?.join(',') ?? '';
@@ -376,9 +387,8 @@ function AdminRaceDetailPage() {
     }
   }, [blocker]);
 
-  const driverCountForHooks = drivers?.length ?? 0;
   const allFilledForHooks =
-    selectedDrivers.length === driverCountForHooks &&
+    selectedDrivers.length === driverCount &&
     selectedDrivers.every((id) => id != null);
 
   // Must be before early returns - hooks cannot run conditionally

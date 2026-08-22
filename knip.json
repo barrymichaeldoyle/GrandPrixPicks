@@ -8,7 +8,8 @@
     ".design-sync/**",
     // Read by the `lhci` binary via --config, so nothing imports it. knip has
     // no built-in plugin for Lighthouse CI to infer that from.
-    "lighthouserc.cjs"
+    "lighthouserc.cjs",
+    "lighthouserc.mobile.cjs"
   ],
   "ignoreIssues": {
     "apps/web/src/integrations/tanstack-query/root-provider.tsx": ["exports"],

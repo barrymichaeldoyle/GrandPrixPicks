@@ -31,6 +31,7 @@
     "lint:fix": "pnpm --filter @grandprixpicks/web lint:fix && pnpm --filter @grandprixpicks/backend lint:fix && pnpm --filter @grandprixpicks/mobile lint:fix && pnpm --filter @grandprixpicks/reddit lint:fix",
     "knip": "knip",
     "check:lighthouse": "lhci autorun --config=lighthouserc.cjs",
+    "check:lighthouse:mobile": "lhci autorun --config=lighthouserc.mobile.cjs",
     "ci:check": "pnpm audit && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm test:mobile && pnpm knip",
     "storybook": "pnpm --filter @grandprixpicks/web storybook",
     "build-storybook": "pnpm --filter @grandprixpicks/web build-storybook",

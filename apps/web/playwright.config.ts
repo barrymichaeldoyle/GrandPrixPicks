@@ -76,6 +76,11 @@ export default defineConfig({
         /auth\.setup\.ts$/,
         /public-smoke\.spec\.ts$/,
         /seo-smoke\.spec\.ts$/,
+        // Signed-out crawl of every public URL. Running it again with a
+        // session attached re-checks the same markup, and against a dev server
+        // that is twelve minutes of it — long enough that the Clerk-dependent
+        // specs behind it started failing on expired sessions.
+        /sitemap-invariants\.spec\.ts$/,
         // Signed-out pages, so running them again with a session attached
         // would double the runtime to re-check the same DOM.
         /a11y-smoke\.spec\.ts$/,

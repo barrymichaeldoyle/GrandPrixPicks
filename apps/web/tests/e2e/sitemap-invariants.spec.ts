@@ -22,11 +22,27 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 const SITE_URL = 'https://grandprixpicks.com';
 
 /**
- * Full crawl of every advertised URL, so a slow CI runner is the constraint
- * rather than the assertion count. Kept sequential in batches rather than all
- * at once: a hundred parallel requests measures our own rate limiting.
+ * Batched rather than all at once: a hundred parallel requests measures our own
+ * rate limiting rather than the pages.
  */
 const BATCH_SIZE = 8;
+
+/**
+ * Against a deployment, crawl everything. Against a dev server, sample.
+ *
+ * The full 77-URL crawl costs 16 seconds on production and twelve minutes on
+ * `vite dev`, which compiles each route on first request. Twelve minutes is not
+ * a slow test, it is a broken one: it pushed the whole suite past half an hour
+ * and the Clerk-backed specs behind it started failing on expired sessions.
+ *
+ * Every race page is the same route rendered against different rows, so a
+ * handful of them proves the route and the other thirty prove the seed data.
+ * Sampling keeps every *distinct* page in the local run and hands the
+ * exhaustive version to the environment where it is both cheap and meaningful:
+ * the scheduled production smoke, which is the only place a stale sitemap or a
+ * 404 can actually hurt anyone.
+ */
+const SAMPLED_RACE_PAGES = 4;
 
 type PageFacts = {
   canonical: string | null;
@@ -59,17 +75,28 @@ test.describe('[public] sitemap invariants', () => {
     expect(response.status()).toBe(200);
     const xml = await response.text();
 
-    const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    const advertised = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
       // The sitemap always names the production origin, so the path is what
       // travels: that is what lets the same spec run against localhost and
       // against prod without two sets of expectations.
       (match) => new URL(match[1]).pathname,
     );
 
-    expect(paths.length, 'sitemap listed no URLs').toBeGreaterThan(0);
-    expect(new Set(paths).size, 'sitemap contains duplicate URLs').toBe(
-      paths.length,
+    expect(advertised.length, 'sitemap listed no URLs').toBeGreaterThan(0);
+    expect(new Set(advertised).size, 'sitemap contains duplicate URLs').toBe(
+      advertised.length,
     );
+
+    // Duplicate detection above runs on the whole list either way — it reads
+    // the XML, not the pages, so it costs nothing.
+    const isDeployment = Boolean(process.env.PLAYWRIGHT_BASE_URL);
+    const racePages = advertised.filter((path) => path.startsWith('/races/'));
+    const paths = isDeployment
+      ? advertised
+      : [
+          ...advertised.filter((path) => !path.startsWith('/races/')),
+          ...racePages.slice(0, SAMPLED_RACE_PAGES),
+        ];
 
     const facts: PageFacts[] = [];
     for (let index = 0; index < paths.length; index += BATCH_SIZE) {

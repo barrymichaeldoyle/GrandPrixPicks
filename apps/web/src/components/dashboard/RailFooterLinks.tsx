@@ -15,9 +15,16 @@ import { PrivacyChoicesButton } from '@/components/PrivacyChoicesButton';
  * rarely-tapped legal destinations rather than anything on the primary path.
  * The links were 18px, which failed both bars; `py-2` clears the accessibility
  * minimum with room to spare while keeping the small-print look.
+ *
+ * That padding is not gated on `pointer-coarse`. It was, and the effect was to
+ * meet 2.5.8 on phones and miss it everywhere else: the success criterion is
+ * about pointer targets, not touch targets, so a mouse user reading the rail at
+ * 18px tall rows failed the same check a thumb passed. `inline-flex` comes
+ * along for the ride because vertical padding on an inline `<a>` paints without
+ * changing the line box it is measured in.
  */
 const linkClass =
-  'rounded-sm transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none pointer-coarse:inline-flex pointer-coarse:items-center pointer-coarse:py-2';
+  'inline-flex items-center rounded-sm py-2 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
 
 /**
  * Small print for the signed-in rail: one wrapped run of links with the

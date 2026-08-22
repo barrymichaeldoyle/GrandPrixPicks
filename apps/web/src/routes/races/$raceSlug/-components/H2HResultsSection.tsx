@@ -374,7 +374,7 @@ export function H2HResultsSection({
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-xs text-text-muted/60">
+                                <span className="text-xs text-text-muted">
                                   —
                                 </span>
                               )}

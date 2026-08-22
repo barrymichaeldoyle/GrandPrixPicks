@@ -37,7 +37,7 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
             {event.raceName
               ? `New line-up from the ${event.raceName}`
               : 'The line-up has changed'}
-            <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted/60">
+            <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
               · {formatRelativeTime(event.createdAt)}
             </span>
           </p>

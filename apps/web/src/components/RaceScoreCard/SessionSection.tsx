@@ -32,7 +32,7 @@ export function SessionSection({
         </span>
         <span className="text-text-muted/30">&middot;</span>
         <Lock className="h-3 w-3 text-text-muted/40" />
-        <span className="text-xs text-text-muted/60">Hidden until lock</span>
+        <span className="text-xs text-text-muted">Hidden until lock</span>
       </div>
     );
   }

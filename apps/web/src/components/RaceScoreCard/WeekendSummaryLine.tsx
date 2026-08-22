@@ -72,7 +72,7 @@ export function WeekendSummaryLine({
         </span>
       )}
       {isPartial && (
-        <span className="text-xs text-text-muted/60">
+        <span className="text-xs text-text-muted">
           &middot; {scoredCount} of {sessions.length} sessions
         </span>
       )}

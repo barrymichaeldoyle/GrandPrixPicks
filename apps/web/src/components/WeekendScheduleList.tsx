@@ -80,7 +80,7 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
               <span
                 className={
                   isLocked || isPractice
-                    ? 'text-text-muted/60'
+                    ? 'text-text-muted'
                     : isRace
                       ? 'font-medium text-text'
                       : 'text-text'
@@ -90,17 +90,13 @@ export function WeekendScheduleList({ race }: { race: Doc<'races'> }) {
               </span>
               <span className="flex items-baseline gap-2">
                 {isLocked && !isPractice && (
-                  <span className="text-xs font-medium tracking-label text-text-muted/60 uppercase">
+                  <span className="text-xs font-medium tracking-label text-text-muted uppercase">
                     Locked
                   </span>
                 )}
                 <span
                   suppressHydrationWarning
-                  className={`gpp-mono ${
-                    isLocked || isPractice
-                      ? 'text-text-muted/60'
-                      : 'text-text-muted'
-                  }`}
+                  className="gpp-mono text-text-muted"
                 >
                   {formatDate(startAt)} · {formatTime(startAt)}
                 </span>

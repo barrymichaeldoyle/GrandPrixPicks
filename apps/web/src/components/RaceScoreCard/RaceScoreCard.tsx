@@ -232,7 +232,7 @@ function CompactCard({
                   data.raceStatus === 'upcoming' && (
                     <div className="-mb-3 flex items-center justify-center gap-1.5 px-3 py-1">
                       <EyeOff className="h-3 w-3 text-text-muted/60" />
-                      <span className="text-xs text-text-muted/60">
+                      <span className="text-xs text-text-muted">
                         Only visible to you until session locks
                       </span>
                     </div>

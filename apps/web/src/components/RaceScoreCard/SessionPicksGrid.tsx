@@ -30,7 +30,7 @@ export function SessionPicksGrid({
 
         return (
           <div key={position} className="flex flex-col items-center gap-0.5">
-            <span className="text-xs font-semibold text-text-muted/60">
+            <span className="text-xs font-semibold text-text-muted">
               P{position + 1}
             </span>
             {pick.code !== '???' ? (

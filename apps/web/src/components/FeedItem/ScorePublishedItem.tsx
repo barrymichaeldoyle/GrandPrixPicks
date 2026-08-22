@@ -261,7 +261,7 @@ export function JoinedLeagueItem({ event }: { event: FeedEvent }) {
           ) : (
             <span className="font-medium text-text">{event.leagueName}</span>
           )}
-          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted/60">
+          <span className="ml-1.5 text-xs whitespace-nowrap text-text-muted">
             · {formatRelativeTime(event.createdAt)}
           </span>
         </p>

@@ -35,7 +35,9 @@ test.describe('[public] seo smoke', () => {
     // canonical, which described the page before it was retired and has been
     // failing ever since.
     const response = await request.get('/feed', { maxRedirects: 0 });
-    expect(response.status()).toBe(307);
+    // 301, because the page is retired rather than temporarily moved: a 307
+    // would keep /feed in the index as its own URL indefinitely.
+    expect(response.status()).toBe(301);
     expect(response.headers()['location']).toBe('/');
 
     await page.goto('/feed');

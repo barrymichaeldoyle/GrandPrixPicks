@@ -37,7 +37,27 @@ export default defineConfig({
         /auth\.setup\.ts$/,
         /auth-smoke\.spec\.ts$/,
         /prediction-flow-smoke\.spec\.ts$/,
+        // Signed-in by definition; it has no meaning without a session.
+        /a11y-authed\.spec\.ts$/,
       ],
+    },
+    /**
+     * The a11y sweep again, at a phone width.
+     *
+     * Not redundant with `public-chromium`: the two find different defects.
+     * The header's home link lost its accessible name below 440px and kept it
+     * above, so a suite that only ever rendered at 1280px reported the site as
+     * clean while a serious violation sat on every public page on production.
+     * Anything driven by a breakpoint — a hidden label, a collapsed nav, a tap
+     * target — is invisible to the desktop pass by construction.
+     *
+     * Pixel 7 is 412px wide, which lands inside that window rather than beside
+     * it, and `target-size` (WCAG 2.5.8) only means anything here.
+     */
+    {
+      name: 'mobile-chromium',
+      use: { ...devices['Pixel 7'], channel: browserChannel },
+      testMatch: /a11y-smoke\.spec\.ts$/,
     },
     {
       name: 'auth-setup',

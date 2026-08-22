@@ -20,7 +20,8 @@ import { routeQuery } from '@/lib/routeQuery';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
-  defaultOgImage,
+  breadcrumbSchema,
+  raceOgImageUrl,
   pageMeta,
   shareCardOgImageUrl,
   siteConfig,
@@ -165,12 +166,17 @@ export const Route = createFileRoute('/races/$raceSlug/')({
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
     const shareCard = loaderData?.shareCard ?? null;
+    // A shared result link carries its own card. The bare race URL — the one
+    // in the sitemap, and the one people actually paste — used to fall back to
+    // the site-wide image, so all 35 race pages previewed identically. The
+    // per-race renderer already existed for the home page's card; this points
+    // the race pages at it too.
     const ogImage = shareCard
       ? shareCardOgImageUrl({
           race: params.raceSlug,
           ...encodeShareCardSearch(shareCard),
         })
-      : defaultOgImage;
+      : raceOgImageUrl(params.raceSlug);
     const title =
       race &&
       (shareCard?.variant === 'result' ||
@@ -201,37 +207,48 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         type: 'application/ld+json',
         children: JSON.stringify({
           '@context': 'https://schema.org',
-          '@type': 'SportsEvent',
-          name: race.name,
-          startDate: new Date(race.raceStartAt).toISOString(),
-          // Grands Prix run to a 2-hour limit
-          endDate: new Date(
-            race.raceStartAt + 2 * 60 * 60 * 1000,
-          ).toISOString(),
-          eventStatus:
-            race.status === 'cancelled'
-              ? 'https://schema.org/EventCancelled'
-              : 'https://schema.org/EventScheduled',
-          eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-          description,
-          url: `${siteConfig.url}/races/${params.raceSlug}`,
-          sport: 'Formula 1',
-          ...(circuit && {
-            location: {
-              '@type': 'Place',
-              name: circuit.name,
-              address: {
-                '@type': 'PostalAddress',
-                addressLocality: circuit.locality,
-                addressCountry: circuit.country,
-              },
+          '@graph': [
+            {
+              '@type': 'SportsEvent',
+              name: race.name,
+              startDate: new Date(race.raceStartAt).toISOString(),
+              // Grands Prix run to a 2-hour limit
+              endDate: new Date(
+                race.raceStartAt + 2 * 60 * 60 * 1000,
+              ).toISOString(),
+              eventStatus:
+                race.status === 'cancelled'
+                  ? 'https://schema.org/EventCancelled'
+                  : 'https://schema.org/EventScheduled',
+              eventAttendanceMode:
+                'https://schema.org/OfflineEventAttendanceMode',
+              description,
+              url: `${siteConfig.url}/races/${params.raceSlug}`,
+              sport: 'Formula 1',
+              ...(circuit && {
+                location: {
+                  '@type': 'Place',
+                  name: circuit.name,
+                  address: {
+                    '@type': 'PostalAddress',
+                    addressLocality: circuit.locality,
+                    addressCountry: circuit.country,
+                  },
+                },
+              }),
+              // No `organizer`. This used to name Grand Prix Picks, which is a
+              // claim about who runs the Grand Prix rather than about who
+              // wrote the page — untrue, and the kind of untrue a structured
+              // data checker reads as misleading markup. F1 and the FIA
+              // organise the event; we are not going to assert a relationship
+              // to them in schema, so the property is better absent.
+              image: ogImage,
             },
-          }),
-          organizer: {
-            '@type': 'Organization',
-            name: 'Grand Prix Picks',
-            url: siteConfig.url,
-          },
+            breadcrumbSchema(`/races/${params.raceSlug}`, [
+              { name: 'Races', path: '/races' },
+              { name: race.name, path: `/races/${params.raceSlug}` },
+            ]),
+          ],
         }),
       });
     }

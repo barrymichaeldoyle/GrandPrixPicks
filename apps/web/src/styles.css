@@ -336,6 +336,15 @@ html:has([data-landing-hero-cta]) .gpp-public-wordmark {
   display: inline;
 }
 
+/*
+ * Which is why the landing page does not need the screen-reader fallback in
+ * `Header.tsx`: a wordmark is visible here from 320px up, so the fallback would
+ * only add a second copy of the name to the link.
+ */
+html:has([data-landing-hero-cta]) .gpp-wordmark-fallback {
+  display: none;
+}
+
 @media (width >= 360px) {
   html:has([data-landing-hero-cta]) .gpp-public-wordmark {
     display: none;

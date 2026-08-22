@@ -74,6 +74,23 @@ export function Header() {
             {/* The brand mark, replacing the generic Lucide flag. Three bars
                 descending like a timing tower, sheared to echo the stripe. */}
             <BrandMark className="h-5 w-[1.875rem] shrink-0 text-accent" />
+            {/* Below 440px the signed-out header hides both wordmarks, and the
+                brand mark is aria-hidden — which left this link with no
+                accessible name at all on every page but the landing one. This
+                carries the name through that window and switches off at 440px,
+                where the compact wordmark takes over.
+
+                A name in the markup rather than an `aria-label`, because the
+                label would replace the visible text at wider widths: "Grand
+                Prix Picks" does not contain "GP Picks", so voice control would
+                lose the visible name (WCAG 2.5.3). `.gpp-wordmark-fallback`
+                drops it on the landing page, where the override below keeps a
+                wordmark visible from 320px. */}
+            {showSignedOutNav && (
+              <span className="gpp-wordmark-fallback sr-only min-[440px]:hidden">
+                Grand Prix Picks
+              </span>
+            )}
             {/* The signed-out header carries sign-in plus the primary CTA, and
                 at 360px those two leave only ~90px for the name — so the
                 compact wordmark waits for 440px. On the landing page the hero

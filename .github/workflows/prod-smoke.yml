@@ -55,14 +55,28 @@ jobs:
       - name: Install Playwright browser
         run: pnpm --filter @grandprixpicks/web exec playwright install --with-deps chromium
 
-      # Only the signed-out sweep, and only the public project. The rest of the
-      # suite seeds scenarios, which must never point at production.
+      # Only the specs that seed nothing. The rest of the suite writes scenario
+      # data, which must never point at production.
       - name: Sweep public routes as a signed-out visitor
         run: >
           pnpm --filter @grandprixpicks/web exec playwright test
           -c playwright.config.ts
           tests/e2e/signed-out-smoke.spec.ts
+          tests/e2e/sitemap-invariants.spec.ts
           --project=public-chromium
+          --workers=1
+
+      # Both defects found in the August 2026 audit were live on production and
+      # invisible to CI: one because CI never rendered below 1280px, and one
+      # because nothing had ever walked the deployed sitemap. Neither spec
+      # seeds anything, so both are safe here — and here is where they would
+      # actually have caught it, against the real bundle behind the real CDN.
+      - name: Check accessibility at a phone width
+        run: >
+          pnpm --filter @grandprixpicks/web exec playwright test
+          -c playwright.config.ts
+          tests/e2e/a11y-smoke.spec.ts
+          --project=mobile-chromium
           --workers=1
 
       - name: Upload report

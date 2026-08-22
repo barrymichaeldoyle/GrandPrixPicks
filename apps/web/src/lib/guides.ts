@@ -42,6 +42,21 @@ type GuideFaq = {
 
 export type Guide = {
   slug: string;
+  /**
+   * ISO date the guide first went live, as `datePublished`.
+   *
+   * Google treats this as required for Article rich results, and it is the
+   * freshness signal an evergreen explainer competes on — so it is real data
+   * here rather than a build timestamp, which would claim every guide was
+   * rewritten on every deploy.
+   */
+  publishedAt: string;
+  /**
+   * ISO date of the last substantive revision, as `dateModified`. Omit while
+   * the guide still says what it said on day one; bump it when the words
+   * change, not when the file does.
+   */
+  updatedAt?: string;
   /** H1 and index-card title. */
   title: string;
   /** <title> tag. Longer, keyword-bearing. */
@@ -57,6 +72,7 @@ export type Guide = {
 const GUIDES: readonly Guide[] = [
   {
     slug: 'f1-sprint-weekends-explained',
+    publishedAt: '2026-08-03',
     title: 'How F1 sprint weekends work',
     metaTitle: 'How F1 Sprint Weekends Work | Grand Prix Picks',
     metaDescription:
@@ -164,6 +180,7 @@ const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'f1-points-system-explained',
+    publishedAt: '2026-08-03',
     title: 'The F1 points system explained',
     metaTitle: 'F1 Points System Explained | Grand Prix Picks',
     metaDescription:
@@ -274,6 +291,7 @@ const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'how-to-predict-f1-top-five',
+    publishedAt: '2026-08-03',
     title: 'How to predict an F1 top five',
     metaTitle: 'How to Predict an F1 Top 5 | Grand Prix Picks',
     metaDescription:
@@ -372,6 +390,7 @@ const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'f1-race-weekend-format',
+    publishedAt: '2026-08-03',
     title: 'What happens across an F1 race weekend',
     metaTitle: 'F1 Race Weekend Format Explained | Grand Prix Picks',
     metaDescription:
@@ -476,8 +495,6 @@ const GUIDES: readonly Guide[] = [
     ],
   },
 ];
-
-export const GUIDE_SLUGS: readonly string[] = GUIDES.map((guide) => guide.slug);
 
 /** All guides, in the order they should appear on the index page. */
 export function listGuides(): readonly Guide[] {

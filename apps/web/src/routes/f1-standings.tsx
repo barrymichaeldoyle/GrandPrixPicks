@@ -29,9 +29,12 @@ export const Route = createFileRoute('/f1-standings')({
   head: ({ loaderData }) => {
     const standings = loaderData?.standings;
     const leader = standings?.drivers[0];
+    // Kept short enough that the longest driver name on the grid still leaves
+    // it inside the 160-character SERP limit, and punctuated with a colon
+    // rather than an em dash, per the copy convention.
     const description = leader
-      ? `${SEASON} Formula 1 World Championship standings — ${leader.displayName} leads on ${leader.points} points. Full drivers' and constructors' standings, updated after every Grand Prix.`
-      : `${SEASON} Formula 1 World Championship standings — full drivers' and constructors' points, updated after every Grand Prix.`;
+      ? `${SEASON} Formula 1 championship standings: ${leader.displayName} leads on ${leader.points} points. Full drivers' and constructors' tables, updated after every race.`
+      : `${SEASON} Formula 1 championship standings: full drivers' and constructors' points, updated after every race.`;
 
     const scripts: { type: string; children: string }[] = [];
     if (standings && standings.drivers.length > 0) {

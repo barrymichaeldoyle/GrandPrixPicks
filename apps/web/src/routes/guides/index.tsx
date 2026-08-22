@@ -11,7 +11,7 @@ export const Route = createFileRoute('/guides/')({
     const meta = pageMeta({
       title: 'F1 Guides | Formats, Scoring and Prediction Strategy',
       description:
-        'Plain-English guides to Formula 1: how sprint weekends work, how championship points are awarded, what happens across a race weekend, and how to predict a top five.',
+        'Plain-English guides to Formula 1: how sprint weekends work, how championship points are awarded, and how to predict a top five.',
       path: '/guides',
     });
     return {

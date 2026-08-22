@@ -2,7 +2,13 @@ import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import { getGuide, listGuides } from '@/lib/guides';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import {
+  breadcrumbSchema,
+  defaultOgImage,
+  organizationSchema,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 
 export const Route = createFileRoute('/guides/$guideSlug')({
   loader: ({ params }) => {
@@ -40,18 +46,22 @@ export const Route = createFileRoute('/guides/$guideSlug')({
                 headline: guide.title,
                 description: guide.metaDescription,
                 inLanguage: 'en',
+                datePublished: guide.publishedAt,
+                // Falls back to the publication date rather than to today:
+                // an unrevised guide was not modified, and saying otherwise
+                // is a freshness claim we would be making up.
+                dateModified: guide.updatedAt ?? guide.publishedAt,
+                image: defaultOgImage,
                 author: {
                   '@type': 'Person',
                   name: siteConfig.author.name,
                   url: siteConfig.author.url,
                 },
-                publisher: {
-                  '@type': 'Organization',
-                  name: siteConfig.title,
-                  url: siteConfig.url,
-                },
+                // By reference, so the logo and profiles live in one place.
+                publisher: { '@id': `${siteConfig.url}/#organization` },
                 mainEntityOfPage: `${siteConfig.url}/guides/${guide.slug}`,
               },
+              organizationSchema(),
               breadcrumbSchema(`/guides/${guide.slug}`, [
                 { name: 'Guides', path: '/guides' },
                 { name: guide.title, path: `/guides/${guide.slug}` },
@@ -166,9 +176,19 @@ function GuidePage() {
           ) : null}
         </article>
 
+        {/* Named landmarks. Two <aside>s on one page are two
+            `complementary` regions, and unnamed they are indistinguishable
+            in a screen reader's landmark list: "complementary" twice, with
+            nothing to choose between them. */}
         {guide.liveLinks && guide.liveLinks.length > 0 ? (
-          <aside className="mt-12 border-t border-border pt-8">
-            <h2 className="font-title text-lg font-semibold text-text">
+          <aside
+            aria-labelledby="guide-live-links"
+            className="mt-12 border-t border-border pt-8"
+          >
+            <h2
+              id="guide-live-links"
+              className="font-title text-lg font-semibold text-text"
+            >
               See it live
             </h2>
             <ul className="mt-4 space-y-4">
@@ -190,8 +210,14 @@ function GuidePage() {
           </aside>
         ) : null}
 
-        <aside className="mt-12 border-t border-border pt-8">
-          <h2 className="font-title text-lg font-semibold text-text">
+        <aside
+          aria-labelledby="guide-keep-reading"
+          className="mt-12 border-t border-border pt-8"
+        >
+          <h2
+            id="guide-keep-reading"
+            className="font-title text-lg font-semibold text-text"
+          >
             Keep reading
           </h2>
           <ul className="mt-4 space-y-3">

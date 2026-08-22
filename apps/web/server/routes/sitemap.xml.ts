@@ -5,7 +5,7 @@ import { captureServerException, startServerSpan } from '../lib/sentry';
 import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
-import { GUIDE_SLUGS } from '../../src/lib/guides';
+import { listGuides } from '../../src/lib/guides';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -19,6 +19,16 @@ type SitemapEntry = {
   priority: string;
 };
 
+/**
+ * `lastmod` is given only where a real date exists to give.
+ *
+ * Races carry `race.updatedAt`, and guides now carry their own publication and
+ * revision dates. Everything else — the policies, the index pages, the live
+ * data pages — deliberately ships without one. A build timestamp was the
+ * tempting fill-in and is the wrong answer: it would tell Google every page on
+ * the site was rewritten on every deploy, and an inaccurate `lastmod` is
+ * exactly the signal Google stops trusting. No date beats a wrong date.
+ */
 const staticEntries: SitemapEntry[] = [
   {
     loc: `${siteConfig.url}/`,
@@ -40,9 +50,11 @@ const staticEntries: SitemapEntry[] = [
     changefreq: 'monthly',
     priority: '0.8',
   },
-  ...GUIDE_SLUGS.map((slug) => ({
-    loc: `${siteConfig.url}/guides/${slug}`,
+  // Real dates, from the guide entries themselves.
+  ...listGuides().map((guide) => ({
+    loc: `${siteConfig.url}/guides/${guide.slug}`,
     changefreq: 'monthly' as const,
+    lastmod: new Date(guide.updatedAt ?? guide.publishedAt).toISOString(),
     priority: '0.7',
   })),
   {

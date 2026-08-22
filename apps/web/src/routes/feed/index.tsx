@@ -12,9 +12,14 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
  *
  * `/feed/$feedEventId` is untouched — reaction pushes and notification-bell
  * items still deep-link to individual events.
+ *
+ * 301, not the default 307: the page is retired, not moved for the afternoon.
+ * A temporary redirect asks Google to keep `/feed` in the index as its own URL
+ * and re-crawl it indefinitely, where a permanent one folds whatever it had
+ * onto the dashboard and stops.
  */
 export const Route = createFileRoute('/feed/')({
   beforeLoad: () => {
-    throw redirect({ to: '/', replace: true });
+    throw redirect({ to: '/', replace: true, statusCode: 301 });
   },
 });

@@ -57,7 +57,7 @@ export const Route = createFileRoute('/f1-2027-calendar')({
     const meta = pageMeta({
       title: 'F1 2027 Calendar: What Is Confirmed | Grand Prix Picks',
       description:
-        'The 2027 Formula 1 calendar is not official yet. What has to happen before it is, when that usually occurs, what is currently being reported, and where the confirmed dates will appear.',
+        'The 2027 Formula 1 calendar is not official yet. What has to happen first, when that usually occurs, what is being reported, and where the dates will appear.',
       path: '/f1-2027-calendar',
     });
     return {
@@ -108,8 +108,12 @@ function F1Calendar2027Page() {
           subtitle="It is not official yet. Here is what that actually means, and what is known so far."
         />
 
+        {/* `section`, not `subsection`: this card sits directly under the h1
+            with no h2 above it, so an h3 here skipped a level and broke the
+            outline a screen reader navigates by. The two levels render at the
+            same size, so this is a change of heading rank only. */}
         <NoticeCard
-          level="subsection"
+          level="section"
           icon={CircleHelp}
           title="No 2027 date is confirmed"
           description="A Formula 1 calendar becomes official when the FIA World Motor Sport Council ratifies it, usually in the autumn before the season. Everything circulating before that is a target or a report."

@@ -55,7 +55,23 @@ export const defaultOgImage = `${ogBaseUrl}/og-default.png?v=20260731`;
  * @param raceSlug — slug of the next race, or undefined off-season
  */
 export function nextRaceOgImageUrl(raceSlug: string | undefined) {
-  return raceSlug ? `${ogBaseUrl}/og/next?race=${raceSlug}` : defaultOgImage;
+  return raceSlug ? raceOgImageUrl(raceSlug) : defaultOgImage;
+}
+
+/**
+ * Absolute URL for a given race's own OG card.
+ *
+ * Same renderer as {@link nextRaceOgImageUrl}, named for what it actually
+ * takes: any race slug, past or future. The endpoint is called `/og/next`
+ * because the home page was its first caller, but it has never cared whether
+ * the race it is handed is the next one — race detail pages use it for
+ * finished rounds too, so each of them previews as itself rather than as the
+ * site-wide card.
+ *
+ * @param raceSlug — slug of the race to render
+ */
+export function raceOgImageUrl(raceSlug: string) {
+  return `${ogBaseUrl}/og/next?race=${raceSlug}`;
 }
 
 /**
@@ -132,6 +148,38 @@ export function pageMeta({
       ...canonical.meta,
     ],
     links: [...canonical.links],
+  };
+}
+
+/**
+ * The site's Organization node, as one definition shared by every page that
+ * emits it.
+ *
+ * `@id` is what makes that safe: two pages carrying this node describe the
+ * same entity rather than two rival ones, and anything else in a graph can
+ * point at `#organization` instead of restating it. It belongs on the home
+ * page above all — that is where a search engine looks for the entity behind a
+ * domain — and `logo` is the property that drives the logo rich result, so an
+ * Organization without one is doing half its job.
+ */
+export function organizationSchema() {
+  return {
+    '@type': 'Organization',
+    '@id': `${siteConfig.url}/#organization`,
+    name: siteConfig.title,
+    url: siteConfig.url,
+    // 512x512 and crop-safe, the same raster the storefront listing uses.
+    logo: `${siteConfig.url}/logo-storefront.png`,
+    founder: {
+      '@type': 'Person',
+      name: siteConfig.author.name,
+      url: siteConfig.author.url,
+    },
+    sameAs: [
+      siteConfig.social.x.url,
+      siteConfig.social.reddit.url,
+      siteConfig.social.instagram.url,
+    ],
   };
 }
 

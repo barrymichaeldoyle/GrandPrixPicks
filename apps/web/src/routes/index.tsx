@@ -13,6 +13,7 @@ import { routeQuery } from '@/lib/routeQuery';
 import {
   CURRENT_SEASON,
   nextRaceOgImageUrl,
+  organizationSchema,
   pageMeta,
   siteConfig,
 } from '@/lib/site';
@@ -84,7 +85,13 @@ const homeStructuredData = {
         priceCurrency: 'USD',
         description: 'Free core predictions and leaderboards',
       },
+      publisher: { '@id': `${siteConfig.url}/#organization` },
     },
+    // The app and the organisation behind it are two entities, and a search
+    // engine looks for the second one on the home page. It used to appear only
+    // on /about, which is the page least likely to be crawled as the domain's
+    // root identity.
+    organizationSchema(),
   ],
 };
 

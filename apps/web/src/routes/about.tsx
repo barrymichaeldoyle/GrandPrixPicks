@@ -3,7 +3,12 @@ import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
 import { PageHeader } from '@/components/PageHeader';
-import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+import {
+  breadcrumbSchema,
+  organizationSchema,
+  pageMeta,
+  siteConfig,
+} from '@/lib/site';
 
 export const Route = createFileRoute('/about')({
   component: AboutPage,
@@ -11,7 +16,7 @@ export const Route = createFileRoute('/about')({
     const meta = pageMeta({
       title: 'About Grand Prix Picks | Who Makes It and How It Works',
       description:
-        'Grand Prix Picks is an independent, fan-made Formula 1 prediction game with no gambling and no real-money betting. Who builds it, where the results come from, and how to get in touch.',
+        'An independent, fan-made Formula 1 prediction game with no gambling and no real-money betting. Who builds it, where results come from, and how to get in touch.',
       path: '/about',
     });
     return {
@@ -30,22 +35,7 @@ export const Route = createFileRoute('/about')({
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
               },
-              {
-                '@type': 'Organization',
-                '@id': `${siteConfig.url}/#organization`,
-                name: siteConfig.title,
-                url: siteConfig.url,
-                founder: {
-                  '@type': 'Person',
-                  name: siteConfig.author.name,
-                  url: siteConfig.author.url,
-                },
-                sameAs: [
-                  siteConfig.social.x.url,
-                  siteConfig.social.reddit.url,
-                  siteConfig.social.instagram.url,
-                ],
-              },
+              organizationSchema(),
               breadcrumbSchema('/about', [{ name: 'About', path: '/about' }]),
             ],
           }),

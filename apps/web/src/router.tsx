@@ -5,6 +5,11 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
 import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
+import {
+  isStaleChunkError,
+  listenForStaleChunks,
+  reloadForStaleChunk,
+} from './lib/staleChunk';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
@@ -18,13 +23,26 @@ export function getRouter() {
       ...rqContext,
     },
     defaultPreload: 'intent',
-    defaultErrorComponent: ({ error }) => <ErrorFallback error={error} />,
+    defaultErrorComponent: ({ error }) => {
+      // A visitor one deploy behind asked for a chunk that no longer exists.
+      // Nothing is broken for them that new HTML would not fix, so reload
+      // instead of showing a red flag. `vite:preloadError` below catches most
+      // of these first; this is the path for the ones that reach the boundary.
+      if (isStaleChunkError(error) && reloadForStaleChunk()) {
+        return null;
+      }
+      return <ErrorFallback error={error} />;
+    },
   });
 
   setupRouterSsrQueryIntegration({
     router,
     queryClient: rqContext.queryClient,
   });
+
+  if (!router.isServer) {
+    listenForStaleChunks();
+  }
 
   if (
     !router.isServer &&
@@ -53,6 +71,13 @@ export function getRouter() {
           message.includes('Failed to load Clerk UI') ||
           /failed to load script/i.test(message)
         ) {
+          return null;
+        }
+        // A chunk that vanished under a visitor holding pre-deploy HTML. We
+        // reload them onto the new build, so there is no defect here to
+        // report — only a record of how often we deployed while people were
+        // reading, which is not what this tray is for.
+        if (isStaleChunkError(message)) {
           return null;
         }
         return event;

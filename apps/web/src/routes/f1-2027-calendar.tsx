@@ -220,7 +220,7 @@ function F1Calendar2027Page() {
                 <Flag className="h-4 w-4" aria-hidden />
                 The 2026 race calendar
               </Link>
-              <p className="gpp-reading-copy mt-1 text-sm text-text-muted">
+              <p className="mt-1 text-sm text-text-muted">
                 Every round of the current season, with session times and the
                 lock time for each one.
               </p>
@@ -234,7 +234,7 @@ function F1Calendar2027Page() {
                 <CalendarClock className="h-4 w-4" aria-hidden />
                 What happens across a race weekend
               </Link>
-              <p className="gpp-reading-copy mt-1 text-sm text-text-muted">
+              <p className="mt-1 text-sm text-text-muted">
                 Session by session, and what each one is actually for.
               </p>
             </li>

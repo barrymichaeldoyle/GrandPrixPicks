@@ -121,7 +121,7 @@ function PracticeResultsPage() {
           <PracticeResultsPanel results={results} />
         </section>
 
-        <p className="gpp-reading-copy mt-8 max-w-3xl text-sm text-text-muted">
+        <p className="gpp-reading-copy mt-8 max-w-3xl text-text-muted">
           Practice sets the reference for the weekend, but it is the weakest of
           the three signals. Teams run different fuel loads and tyre compounds
           in every session, so a headline lap time says as much about when a

@@ -95,7 +95,7 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
       </ul>
 
       {event.lineupNote ? (
-        <p className="gpp-reading-copy mt-3 text-sm text-text-muted">
+        <p className="mt-3 text-sm leading-relaxed text-text-muted">
           {event.lineupNote}
         </p>
       ) : null}

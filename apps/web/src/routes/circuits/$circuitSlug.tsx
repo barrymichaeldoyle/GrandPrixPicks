@@ -155,7 +155,7 @@ function CircuitPage() {
                 </li>
               ))}
             </ul>
-            <p className="gpp-reading-copy mt-4 max-w-3xl text-sm text-text-muted">
+            <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
               The race page carries the weekend schedule, the running order once
               each session is classified, and how the Top 5 picks scored.
             </p>

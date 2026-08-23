@@ -38,7 +38,7 @@ export function CircuitSummary({ raceSlug }: { raceSlug: string }) {
       <p className="mt-1 text-sm text-text-muted">
         {circuit.locality}, {circuit.country}
       </p>
-      <p className="gpp-reading-copy mt-4 max-w-3xl text-sm text-text-muted">
+      <p className="gpp-reading-copy mt-4 max-w-3xl text-text-muted">
         {guide.character}
       </p>
       <Link

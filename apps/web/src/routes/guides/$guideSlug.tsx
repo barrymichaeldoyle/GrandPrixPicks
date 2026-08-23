@@ -116,7 +116,7 @@ function GuidePage() {
             <h1 className="font-title mt-1 text-3xl font-semibold text-text sm:text-4xl">
               {guide.title}
             </h1>
-            <p className="gpp-reading-copy mt-3 text-lg text-text-muted">
+            <p className="gpp-reading-copy-lg mt-3 text-text-muted">
               {guide.summary}
             </p>
           </header>
@@ -201,9 +201,7 @@ function GuidePage() {
                     {link.label}
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </Link>
-                  <p className="gpp-reading-copy mt-1 text-sm text-text-muted">
-                    {link.detail}
-                  </p>
+                  <p className="mt-1 text-sm text-text-muted">{link.detail}</p>
                 </li>
               ))}
             </ul>

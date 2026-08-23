@@ -514,98 +514,100 @@
    never animate, because movement is labelled with a delta instead.
    ========================================================================== */
 
-@keyframes gpp-row-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.gpp-row-in {
-  animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
-}
-
-/* `reveal-up` is the same fade, kept under its old name because ~13 routes
-   already use it. Retuned from the previous 550ms cubic-bezier(.22,1,.36,1)
-   ease-out-back to the system's 200ms — content should be there, not arrive. */
-.reveal-up {
-  animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
-}
-
-/* Stagger steps, one --stagger-step apart. */
-.reveal-delay-1 {
-  animation-delay: calc(var(--stagger-step) * 1);
-}
-
-.reveal-delay-2 {
-  animation-delay: calc(var(--stagger-step) * 2);
-}
-
-.reveal-delay-3 {
-  animation-delay: calc(var(--stagger-step) * 3);
-}
-
-/* The announcement/nudge banner opening and closing. Height is animated via
-   grid-template-rows so the banner can size to its content. This is a
-   selection-adjacent state change, which is why it keeps motion at all. */
-@keyframes banner-expand {
-  from {
-    grid-template-rows: 0fr;
-  }
-  to {
-    grid-template-rows: 1fr;
-  }
-}
-
-@keyframes banner-collapse {
-  from {
-    grid-template-rows: 1fr;
-  }
-  to {
-    grid-template-rows: 0fr;
-  }
-}
-
-.banner-drop-in,
-.banner-drop-out {
-  display: grid;
-}
-
-.banner-drop-in {
-  animation: banner-expand var(--dur-slow) var(--ease-out) both;
-}
-
-.banner-drop-out {
-  animation: banner-collapse var(--dur) var(--ease-out) both;
-}
-
-.banner-drop-in > .banner-drop-inner,
-.banner-drop-out > .banner-drop-inner {
-  min-height: 0;
-  overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+@layer base {
+  @keyframes gpp-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
-  .gpp-row-in,
-  .reveal-up,
-  .reveal-delay-1,
-  .reveal-delay-2,
-  .reveal-delay-3,
+  .gpp-row-in {
+    animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
+  }
+
+  /* `reveal-up` is the same fade, kept under its old name because ~13 routes
+     already use it. Retuned from the previous 550ms cubic-bezier(.22,1,.36,1)
+     ease-out-back to the system's 200ms — content should be there, not arrive. */
+  .reveal-up {
+    animation: gpp-row-in var(--dur-slow) var(--ease-out) both;
+  }
+
+  /* Stagger steps, one --stagger-step apart. */
+  .reveal-delay-1 {
+    animation-delay: calc(var(--stagger-step) * 1);
+  }
+
+  .reveal-delay-2 {
+    animation-delay: calc(var(--stagger-step) * 2);
+  }
+
+  .reveal-delay-3 {
+    animation-delay: calc(var(--stagger-step) * 3);
+  }
+
+  /* The announcement/nudge banner opening and closing. Height is animated via
+     grid-template-rows so the banner can size to its content. This is a
+     selection-adjacent state change, which is why it keeps motion at all. */
+  @keyframes banner-expand {
+    from {
+      grid-template-rows: 0fr;
+    }
+    to {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  @keyframes banner-collapse {
+    from {
+      grid-template-rows: 1fr;
+    }
+    to {
+      grid-template-rows: 0fr;
+    }
+  }
+
   .banner-drop-in,
   .banner-drop-out {
-    animation: none;
+    display: grid;
+  }
+
+  .banner-drop-in {
+    animation: banner-expand var(--dur-slow) var(--ease-out) both;
+  }
+
+  .banner-drop-out {
+    animation: banner-collapse var(--dur) var(--ease-out) both;
+  }
+
+  .banner-drop-in > .banner-drop-inner,
+  .banner-drop-out > .banner-drop-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+
+    .gpp-row-in,
+    .reveal-up,
+    .reveal-delay-1,
+    .reveal-delay-2,
+    .reveal-delay-3,
+    .banner-drop-in,
+    .banner-drop-out {
+      animation: none;
+    }
   }
 }

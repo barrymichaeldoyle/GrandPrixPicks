@@ -343,6 +343,7 @@ function NotificationsPage() {
               <Button
                 size="sm"
                 variant="text"
+                leftIcon={CheckCheck}
                 onClick={() => {
                   captureAnalyticsEvent('notifications_mark_all_read', {
                     unread_count: unreadCount,
@@ -350,7 +351,6 @@ function NotificationsPage() {
                   void markAllReadMutation({});
                 }}
               >
-                <CheckCheck className="h-3.5 w-3.5" aria-hidden />
                 Mark all read
               </Button>
             </div>

@@ -257,24 +257,24 @@
 
 /* The micro label that opens a card or heads a column. Uppercase and tracked
    is the ONLY place uppercase is allowed — headings and buttons are sentence
-   case. */
-.gpp-label {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  font-weight: var(--fw-medium);
-  line-height: var(--lh-snug);
-}
+   case.
 
-/* The default colour is the one thing about this label that a call site is
-   allowed to change, so it lives in `base` while the typography stays
-   unlayered. Unlayered, `color` here beat every `text-*` utility beside it:
-   `gpp-label text-accent` rendered muted, and the leaderboard's YOU chip
-   rendered muted-on-accent, which is where the missing contrast came from.
-   A label with no colour of its own still lands on muted. */
+   In `base`, not unlayered with the rest of this section: these are DEFAULTS
+   a call site is expected to override, and unlayered they beat every Tailwind
+   utility beside them regardless of specificity. `gpp-label text-accent`
+   rendered muted, the leaderboard's YOU chip rendered muted-on-accent (which
+   is where its missing contrast came from), `font-semibold` on that chip did
+   nothing, and the compact session clock's `text-[0.625rem]` never applied.
+   From `base` a bare `.gpp-label` still gets all five, and any `text-*`,
+   `font-*` or tracking utility written beside it now wins. */
 @layer base {
   .gpp-label {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
     color: var(--text-muted);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-snug);
   }
 }
 

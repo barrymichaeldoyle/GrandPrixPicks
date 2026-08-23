@@ -14,7 +14,11 @@ import {
   getRaceSessionStartAt,
 } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
-import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
+import {
+  getSessionsForWeekend,
+  SESSION_LABELS,
+  SESSION_LABELS_SHORT,
+} from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
@@ -122,9 +126,20 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     // empty table. Upcoming races have no results, so this is a single cheap
     // query for them.
     //
-    // Both depend on the race, so they share its round trip rather than adding
-    // one each.
-    const [drivers, availableSessions] = await Promise.all([
+    // All three depend only on the race, so they share one round trip.
+    //
+    // The per-session results used to be a third wave, because they waited for
+    // `getAllResultsForRace` to say which sessions were published. They did
+    // not need to: which sessions a weekend HAS is a property of the weekend,
+    // and `getSessionsForWeekend` answers it from `hasSprint`, which we are
+    // already holding. Asking all of them up front costs no extra trip, and
+    // the ones with nothing published answer null and are dropped below, so
+    // `resultsBySession` keeps exactly the keys it had.
+    //
+    // Worth the care: this loader ran three sequential waves, and prod served
+    // this page with a 1.7-2.7s TTFB against 0.14s for a route that fetches
+    // nothing. The queries are not slow; the trips are.
+    const [drivers, availableSessions, resultEntries] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.drivers.listDrivers, {
           round: race.round,
@@ -138,24 +153,26 @@ export const Route = createFileRoute('/races/$raceSlug/')({
       context.queryClient.ensureQueryData(
         routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
       ),
-    ]);
-    const resultEntries = await Promise.all(
-      availableSessions.map(
-        async (sessionType) =>
-          [
-            sessionType,
-            await context.queryClient.ensureQueryData(
-              routeQuery(api.results.getResultForRace, {
-                raceId: race._id,
-                sessionType,
-              }),
-            ),
-          ] as const,
+      Promise.all(
+        getSessionsForWeekend(race.hasSprint ?? false).map(
+          async (sessionType) =>
+            [
+              sessionType,
+              await context.queryClient.ensureQueryData(
+                routeQuery(api.results.getResultForRace, {
+                  raceId: race._id,
+                  sessionType,
+                }),
+              ),
+            ] as const,
+        ),
       ),
-    );
+    ]);
     const initialResults = {
       availableSessions,
-      resultsBySession: Object.fromEntries(resultEntries),
+      resultsBySession: Object.fromEntries(
+        resultEntries.filter(([, result]) => result != null),
+      ),
     };
     const shareCard =
       'share' in deps

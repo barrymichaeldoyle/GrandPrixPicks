@@ -222,52 +222,62 @@
 
    The primitives the whole app leans on. Everything else is Tailwind.
 
-   Deliberately unlayered so they beat the `base` layer above and sit alongside
-   Tailwind's own utilities.
+   In `base`, one layer below Tailwind's utilities. These are DEFAULTS: a call
+   site puts one on an element and then adjusts it with a utility beside it.
+   Unlayered — which is what this section used to be — they beat every utility
+   regardless of specificity, and the adjustment silently did nothing. That is
+   not a theoretical hazard, it is what shipped: 78 headings asked for
+   `font-semibold` and rendered light, the H2H option's `hover:bg-*` never
+   painted, the picks overlay's `sm:bg-black/60` scrim never appeared, and the
+   leaderboard's YOU chip rendered muted-on-accent.
+
+   So: put a property here only if a call site overriding it should win.
+   Anything that must hold the line belongs in the component, not in a class
+   that looks like a utility.
    ========================================================================== */
 
-/* Backgrounds are flat colour. No grid, no gradient, no grain, no imagery —
-   if photography is ever introduced it goes inside a 4px-radius container as
-   content, never behind the page. */
-.bg-page {
-  background-color: var(--page);
-}
-
-/* In this system the display face IS the UI face: personality comes from
-   weight and tracking, not a second typeface. Kept as a class because ~20
-   components still ask for it. */
-.font-title {
-  font-family: var(--font-ui);
-  font-weight: var(--fw-light);
-  letter-spacing: var(--tracking-display);
-}
-
-.font-data {
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Everything a person COMPARES: lap times, points, positions, deltas, race
-   numbers. Always mono, always tabular, so digits line up down a column. */
-.gpp-mono {
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tracking-data);
-}
-
-/* The micro label that opens a card or heads a column. Uppercase and tracked
-   is the ONLY place uppercase is allowed — headings and buttons are sentence
-   case.
-
-   In `base`, not unlayered with the rest of this section: these are DEFAULTS
-   a call site is expected to override, and unlayered they beat every Tailwind
-   utility beside them regardless of specificity. `gpp-label text-accent`
-   rendered muted, the leaderboard's YOU chip rendered muted-on-accent (which
-   is where its missing contrast came from), `font-semibold` on that chip did
-   nothing, and the compact session clock's `text-[0.625rem]` never applied.
-   From `base` a bare `.gpp-label` still gets all five, and any `text-*`,
-   `font-*` or tracking utility written beside it now wins. */
 @layer base {
+  /* Backgrounds are flat colour. No grid, no gradient, no grain, no imagery —
+     if photography is ever introduced it goes inside a 4px-radius container as
+     content, never behind the page. */
+  .bg-page {
+    background-color: var(--page);
+  }
+
+  /* In this system the display face IS the UI face: personality comes from
+     weight and tracking, not a second typeface. Kept as a class because ~20
+     components still ask for it. */
+  .font-title {
+    font-family: var(--font-ui);
+    font-weight: var(--fw-light);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .font-data {
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Everything a person COMPARES: lap times, points, positions, deltas, race
+     numbers. Always mono, always tabular, so digits line up down a column. */
+  .gpp-mono {
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-data);
+  }
+
+  /* The micro label that opens a card or heads a column. Uppercase and tracked
+     is the ONLY place uppercase is allowed — headings and buttons are sentence
+     case.
+
+     In `base`, not unlayered with the rest of this section: these are DEFAULTS
+     a call site is expected to override, and unlayered they beat every Tailwind
+     utility beside them regardless of specificity. `gpp-label text-accent`
+     rendered muted, the leaderboard's YOU chip rendered muted-on-accent (which
+     is where its missing contrast came from), `font-semibold` on that chip did
+     nothing, and the compact session clock's `text-[0.625rem]` never applied.
+     From `base` a bare `.gpp-label` still gets all five, and any `text-*`,
+     `font-*` or tracking utility written beside it now wins. */
   .gpp-label {
     font-size: var(--text-xs);
     text-transform: uppercase;
@@ -276,219 +286,224 @@
     font-weight: var(--fw-medium);
     line-height: var(--lh-snug);
   }
-}
 
-/*
- * Reading roles for public and marketing pages.
- *
- * Dense product UI can still use text-sm for metadata and timing-sheet rows,
- * but prose should ask for one of these roles instead of inheriting that
- * density. Keeping the roles here makes the distinction explicit and reusable
- * across landing, rules, pricing and policy pages.
- */
-.gpp-reading-copy {
-  font-size: var(--text-base);
-  line-height: 1.65;
-}
+  /*
+   * Reading roles for public and marketing pages.
+   *
+   * Dense product UI can still use text-sm for metadata and timing-sheet rows,
+   * but prose should ask for one of these roles instead of inheriting that
+   * density. Keeping the roles here makes the distinction explicit and reusable
+   * across landing, rules, pricing and policy pages.
+   */
+  .gpp-reading-copy {
+    font-size: var(--text-base);
+    line-height: 1.65;
+  }
 
-.gpp-reading-copy-lg {
-  font-size: var(--text-lg);
-  line-height: 1.6;
-}
+  .gpp-reading-copy-lg {
+    font-size: var(--text-lg);
+    line-height: 1.6;
+  }
 
-.gpp-reading-meta {
-  font-size: var(--text-sm);
-  line-height: 1.5;
-}
+  .gpp-reading-meta {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
 
-/*
- * The signed-out header owns the primary CTA on every page except the one that
- * has its own. On the landing page the hero button is the action, and the picker
- * it points at is the very next section, carrying its own controls. A header
- * copy would only ever be a second identical lime button aimed at the same
- * anchor, and the accent marks one action per screen.
- *
- * A sticky deadline strip used to take the CTA over once the hero scrolled away.
- * It was removed: its window overlapped the picker being fully on screen, so it
- * put three accent CTAs in view at once and pointed two of them at content the
- * reader was already looking at.
- *
- * Keyed off the hero CTA rather than the route so the between-seasons hero,
- * which has no picker to scroll to, keeps the header CTA.
- */
-html:has([data-landing-hero-cta]) .gpp-public-header-cta {
-  display: none;
-}
-
-/*
- * The scroll lock every modal and the sign-in curtain share (see
- * `useModalDialog`). It is an attribute rather than an inline
- * `body.style.overflow` because Clerk's sign-in modal writes that exact
- * property itself, from outside our counting: the curtain rises while Clerk's
- * modal is still up, so a lock that snapshotted "what overflow was before"
- * captured Clerk's `hidden` and restored it on release, freezing the page for
- * good. An attribute composes with Clerk instead of fighting it for one slot.
- *
- * Deliberately unlayered, so it beats the utilities. Both elements are set
- * because `body` alone leaves the document scrolling on some engines.
- */
-html[data-scroll-locked],
-html[data-scroll-locked] body {
-  overflow: hidden;
-}
-
-/*
- * Same condition, opposite effect: with the header CTA gone the bar is just the
- * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
- * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
- * "GP Picks" covers the 320px-class screens below that.
- */
-html:has([data-landing-hero-cta]) .gpp-public-wordmark {
-  display: inline;
-}
-
-/*
- * Which is why the landing page does not need the screen-reader fallback in
- * `Header.tsx`: a wordmark is visible here from 320px up, so the fallback would
- * only add a second copy of the name to the link.
- */
-html:has([data-landing-hero-cta]) .gpp-wordmark-fallback {
-  display: none;
-}
-
-@media (width >= 360px) {
-  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+  /*
+   * The signed-out header owns the primary CTA on every page except the one that
+   * has its own. On the landing page the hero button is the action, and the picker
+   * it points at is the very next section, carrying its own controls. A header
+   * copy would only ever be a second identical lime button aimed at the same
+   * anchor, and the accent marks one action per screen.
+   *
+   * A sticky deadline strip used to take the CTA over once the hero scrolled away.
+   * It was removed: its window overlapped the picker being fully on screen, so it
+   * put three accent CTAs in view at once and pointed two of them at content the
+   * reader was already looking at.
+   *
+   * Keyed off the hero CTA rather than the route so the between-seasons hero,
+   * which has no picker to scroll to, keeps the header CTA.
+   */
+  html:has([data-landing-hero-cta]) .gpp-public-header-cta {
     display: none;
   }
 
-  html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
+  /*
+   * The scroll lock every modal and the sign-in curtain share (see
+   * `useModalDialog`). It is an attribute rather than an inline
+   * `body.style.overflow` because Clerk's sign-in modal writes that exact
+   * property itself, from outside our counting: the curtain rises while Clerk's
+   * modal is still up, so a lock that snapshotted "what overflow was before"
+   * captured Clerk's `hidden` and restored it on release, freezing the page for
+   * good. An attribute composes with Clerk instead of fighting it for one slot.
+   *
+   * Deliberately unlayered, so it beats the utilities. Both elements are set
+   * because `body` alone leaves the document scrolling on some engines.
+   */
+  html[data-scroll-locked],
+  html[data-scroll-locked] body {
+    overflow: hidden;
+  }
+
+  /*
+   * Same condition, opposite effect: with the header CTA gone the bar is just the
+   * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
+   * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
+   * "GP Picks" covers the 320px-class screens below that.
+   */
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
     display: inline;
   }
-}
 
-/*
- * The header account tab. Clerk renders the UserButton trigger's markup, so the
- * "Me" label under the avatar has to be a pseudo-element rather than a child —
- * the trigger is already a flex column (see `userButtonTrigger` in the Clerk
- * provider), so ::after lands in the label slot on its own. The caret is part of
- * the content string so it tracks the label's colour and size for free.
- *
- * The loading placeholder wears the same class, which is what keeps the tab from
- * changing width when Clerk's client SDK finishes booting.
- */
-.gpp-header-me-tab::after {
-  content: 'Me \25bc';
-  font-size: 10px;
-  font-weight: var(--fw-medium);
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  white-space: nowrap;
-}
+  /*
+   * Which is why the landing page does not need the screen-reader fallback in
+   * `Header.tsx`: a wordmark is visible here from 320px up, so the fallback would
+   * only add a second copy of the name to the link.
+   */
+  html:has([data-landing-hero-cta]) .gpp-wordmark-fallback {
+    display: none;
+  }
 
-/* Clerk wraps the trigger in two divs of its own; both have to stretch or the
-   tab loses its full-height underline. */
-.gpp-header-me-slot,
-.gpp-header-me-slot .cl-userButton-root {
-  display: flex;
-  align-items: stretch;
-  height: 100%;
-}
+  @media (width >= 360px) {
+    html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+      display: none;
+    }
 
-/* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge
-   of the thing that matters — the active card, the selected slot, the current
-   user's leaderboard row, the active nav item.
+    html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
+      display: inline;
+    }
+  }
 
-   One stripe per container. Never two, never on all sides, never decorative. */
-.gpp-stripe {
-  position: relative;
-  overflow: hidden;
-}
+  /*
+   * The header account tab. Clerk renders the UserButton trigger's markup, so the
+   * "Me" label under the avatar has to be a pseudo-element rather than a child —
+   * the trigger is already a flex column (see `userButtonTrigger` in the Clerk
+   * provider), so ::after lands in the label slot on its own. The caret is part of
+   * the content string so it tracks the label's colour and size for free.
+   *
+   * The loading placeholder wears the same class, which is what keeps the tab from
+   * changing width when Clerk's client SDK finishes booting.
+   */
+  .gpp-header-me-tab::after {
+    content: 'Me \25bc';
+    font-size: 10px;
+    font-weight: var(--fw-medium);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    white-space: nowrap;
+  }
 
-/*
- * Drawn with a clip-path rather than `transform: skewX()`.
- *
- * A skew leans the bar by an amount proportional to the container's height, so
- * on a 44px row it is a crisp -12deg accent but on a 360px hero card the
- * bottom of the bar travels ~76px to the left and is clipped away entirely by
- * the `overflow: hidden` this class needs — which is exactly what happened:
- * the stripe showed as a small nub in the top-left corner and nothing else.
- *
- * The lean is therefore a fixed `--stripe-lean`, so the motif stays visible and
- * consistent at every container height. The outer (left) edge stays flush to
- * the wall from top to bottom; the cant lives on the inner edge only.
- */
-.gpp-stripe::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: calc(var(--stripe-width) + var(--stripe-lean));
-  background: var(--accent);
-  clip-path: polygon(0 0, 100% 0, calc(100% - var(--stripe-lean)) 100%, 0 100%);
-  pointer-events: none;
-}
+  /* Clerk wraps the trigger in two divs of its own; both have to stretch or the
+     tab loses its full-height underline. */
+  .gpp-header-me-slot,
+  .gpp-header-me-slot .cl-userButton-root {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+  }
 
-/* Team colour appears in exactly two forms: this 3px full-height edge bar on a
-   driver row or chip, and a 5px dot before a team name. Never a background,
-   never text colour, never a card border. Ten teams in one list stays calm
-   because the colour is confined to 3px. */
-.gpp-team-bar {
-  position: relative;
-}
+  /* The signature motif: a 3px accent bar skewed -12deg, pinned to the left edge
+     of the thing that matters — the active card, the selected slot, the current
+     user's leaderboard row, the active nav item.
 
-.gpp-team-bar::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--team-bar-width);
-  background: var(--team-colour, var(--border-strong));
-  pointer-events: none;
-}
+     One stripe per container. Never two, never on all sides, never decorative. */
+  .gpp-stripe {
+    position: relative;
+    overflow: hidden;
+  }
 
-.gpp-team-dot {
-  display: inline-block;
-  width: var(--team-dot-size);
-  height: var(--team-dot-size);
-  border-radius: var(--radius-pill);
-  background: var(--team-colour, var(--border-strong));
-  flex: none;
-}
+  /*
+   * Drawn with a clip-path rather than `transform: skewX()`.
+   *
+   * A skew leans the bar by an amount proportional to the container's height, so
+   * on a 44px row it is a crisp -12deg accent but on a 360px hero card the
+   * bottom of the bar travels ~76px to the left and is clipped away entirely by
+   * the `overflow: hidden` this class needs — which is exactly what happened:
+   * the stripe showed as a small nub in the top-left corner and nothing else.
+   *
+   * The lean is therefore a fixed `--stripe-lean`, so the motif stays visible and
+   * consistent at every container height. The outer (left) edge stays flush to
+   * the wall from top to bottom; the cant lives on the inner edge only.
+   */
+  .gpp-stripe::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: calc(var(--stripe-width) + var(--stripe-lean));
+    background: var(--accent);
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      calc(100% - var(--stripe-lean)) 100%,
+      0 100%
+    );
+    pointer-events: none;
+  }
 
-/* Awaiting input reads as a dashed hairline; filled reads as solid. */
-.gpp-empty {
-  border: 1px dashed var(--border);
-  background: transparent;
-}
+  /* Team colour appears in exactly two forms: this 3px full-height edge bar on a
+     driver row or chip, and a 5px dot before a team name. Never a background,
+     never text colour, never a card border. Ten teams in one list stays calm
+     because the colour is confined to 3px. */
+  .gpp-team-bar {
+    position: relative;
+  }
 
-/*
- * Country flags are DATA, like team colours — and like team colours they only
- * behave if their presentation is pinned down.
- *
- * Every flag renders in one ratio, cropped to fill, whatever the asset's own
- * proportions are. The alternative (`width: auto`, letting each SVG's viewBox
- * decide) meant Qatar at 4.17:1 drew 3.6x wider than Belgium at 1.15:1, so any
- * row with a flag in it changed width from race to race.
- *
- * `object-fit: cover` rather than `contain`: letterboxing would keep every
- * flag whole but leave uneven gaps on a dark surface, which just moves the
- * inconsistency from the box to the artwork inside it.
- */
-.gpp-flag {
-  display: block;
-  aspect-ratio: var(--flag-aspect);
-  object-fit: cover;
-  object-position: center;
-  border-radius: var(--radius-sm);
-  /* Flags are light artwork on a dark page, so white-heavy ones (Japan,
-     Canada) bleed into the surface without an edge. A real hairline, not an
-     inset shadow — this system has no shadows, and `outline` keeps the box
-     the same size so the aspect ratio above stays exact. */
-  outline: 1px solid rgb(var(--text-rgb) / 0.1);
-  outline-offset: -1px;
+  .gpp-team-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--team-bar-width);
+    background: var(--team-colour, var(--border-strong));
+    pointer-events: none;
+  }
+
+  .gpp-team-dot {
+    display: inline-block;
+    width: var(--team-dot-size);
+    height: var(--team-dot-size);
+    border-radius: var(--radius-pill);
+    background: var(--team-colour, var(--border-strong));
+    flex: none;
+  }
+
+  /* Awaiting input reads as a dashed hairline; filled reads as solid. */
+  .gpp-empty {
+    border: 1px dashed var(--border);
+    background: transparent;
+  }
+
+  /*
+   * Country flags are DATA, like team colours — and like team colours they only
+   * behave if their presentation is pinned down.
+   *
+   * Every flag renders in one ratio, cropped to fill, whatever the asset's own
+   * proportions are. The alternative (`width: auto`, letting each SVG's viewBox
+   * decide) meant Qatar at 4.17:1 drew 3.6x wider than Belgium at 1.15:1, so any
+   * row with a flag in it changed width from race to race.
+   *
+   * `object-fit: cover` rather than `contain`: letterboxing would keep every
+   * flag whole but leave uneven gaps on a dark surface, which just moves the
+   * inconsistency from the box to the artwork inside it.
+   */
+  .gpp-flag {
+    display: block;
+    aspect-ratio: var(--flag-aspect);
+    object-fit: cover;
+    object-position: center;
+    border-radius: var(--radius-sm);
+    /* Flags are light artwork on a dark page, so white-heavy ones (Japan,
+       Canada) bleed into the surface without an edge. A real hairline, not an
+       inset shadow — this system has no shadows, and `outline` keeps the box
+       the same size so the aspect ratio above stays exact. */
+    outline: 1px solid rgb(var(--text-rgb) / 0.1);
+    outline-offset: -1px;
+  }
 }
 
 /* ==========================================================================

@@ -198,7 +198,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   zandvoort: {
     character:
-      'Zandvoort runs through the coastal dunes north of Amsterdam, an old-school circuit brought back to the calendar with steep banking added at two corners. It is narrow, quick and completely unlike the modern venues around it.',
+      'Zandvoort runs through the coastal dunes north of Amsterdam, an old-school circuit brought back to the calendar with steep banking added at two corners. The 2026 Dutch Grand Prix was its final Formula 1 race, ending a six-year modern run after the promoters chose not to renew amid rising hosting and operational costs. The circuit itself remains active, with Formula E planned from 2027.',
     layout:
       'The banking at Hugenholtz and at the final corner lets cars carry far more speed than a flat equivalent would allow, and it changes how the car has to be set up. The lap is short and flowing with very little respite, and the surface offers less grip when sand blows in off the dunes.',
     racing:

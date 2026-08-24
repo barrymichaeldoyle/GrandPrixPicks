@@ -69,6 +69,11 @@ const ROUTES: {
   { module: './how-to-play', path: '/how-to-play' },
   { module: './guides/index', path: '/guides' },
   { module: './circuits/index', path: '/circuits' },
+  {
+    module: './f1-standings',
+    path: '/f1-standings',
+    args: { loaderData: { standings: null } },
+  },
   { module: './leaderboard', path: '/leaderboard' },
   { module: './leagues/index', path: '/leagues' },
   { module: './results-policy', path: '/results-policy' },

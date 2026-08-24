@@ -135,7 +135,9 @@ function HowToPlayPage() {
           actions={
             <div className="flex flex-wrap gap-3">
               <Button asChild size="sm" rightIcon={ArrowRight}>
-                <Link to="/races">Make your picks</Link>
+                <Link to="/" hash="make-picks">
+                  Try the F1 picker
+                </Link>
               </Button>
               <Button asChild size="sm" variant="secondary">
                 <Link to="/leaderboard">View leaderboard</Link>

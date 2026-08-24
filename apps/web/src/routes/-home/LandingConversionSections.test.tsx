@@ -63,6 +63,11 @@ describe('landing conversion sections', () => {
     expect(container.querySelector('a')?.getAttribute('href')).toBe(
       '/how-to-play',
     );
+    expect(container.textContent).toContain('Make a more informed prediction');
+    expect(container.querySelector('a[href="/f1-standings"]')).not.toBeNull();
+    expect(
+      container.querySelector('a[href="/guides/$guideSlug"]'),
+    ).not.toBeNull();
   });
 
   it('connects live global proof with a private-league action', () => {

@@ -103,6 +103,47 @@ export function ScoringSection() {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
+
+        <nav
+          aria-label="F1 prediction resources"
+          className="mt-8 border-t border-border pt-6"
+        >
+          <h3 className="font-title text-lg font-medium text-text">
+            Make a more informed prediction
+          </h3>
+          <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
+            Use the live championship order, the official F1 points system and a
+            practical Top 5 routine before the next session locks.
+          </p>
+          <ul className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+            <li>
+              <Link
+                to="/f1-standings"
+                className="font-medium text-accent hover:text-accent-hover"
+              >
+                2026 F1 standings
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/guides/$guideSlug"
+                params={{ guideSlug: 'f1-points-system-explained' }}
+                className="font-medium text-accent hover:text-accent-hover"
+              >
+                F1 points system explained
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/guides/$guideSlug"
+                params={{ guideSlug: 'how-to-predict-f1-top-five' }}
+                className="font-medium text-accent hover:text-accent-hover"
+              >
+                How to predict an F1 Top 5
+              </Link>
+            </li>
+          </ul>
+        </nav>
       </div>
     </section>
   );

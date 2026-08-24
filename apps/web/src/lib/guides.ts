@@ -23,7 +23,12 @@ type GuideSection = {
  * a player. The union is closed so a link cannot rot into a 404.
  */
 type GuideLiveLink = {
-  to: '/f1-standings' | '/f1-team-mate-battles' | '/races' | '/leaderboard';
+  to:
+    | '/'
+    | '/f1-standings'
+    | '/f1-team-mate-battles'
+    | '/races'
+    | '/leaderboard';
   label: string;
   detail: string;
 };
@@ -181,6 +186,7 @@ const GUIDES: readonly Guide[] = [
   {
     slug: 'f1-points-system-explained',
     publishedAt: '2026-08-03',
+    updatedAt: '2026-08-24',
     title: 'The F1 points system explained',
     metaTitle: 'F1 Points System Explained | Grand Prix Picks',
     metaDescription:
@@ -191,7 +197,7 @@ const GUIDES: readonly Guide[] = [
       {
         heading: 'Grand Prix points',
         paragraphs: [
-          'Championship points in Formula 1 go to the top ten finishers in a Grand Prix, on a sliding scale that rewards winning far more than it rewards a solid points finish. The gap between first and second is deliberately large, which is why a driver with more wins can lead a championship over a rival who finishes second more often.',
+          'The top ten finishers score in a Formula 1 Grand Prix: 25 points for first, then 18, 15, 12, 10, 8, 6, 4, 2 and 1 point for tenth. The sliding scale rewards winning far more than a solid points finish; first place alone is worth seven more points than second.',
         ],
         list: [
           { term: '1st', detail: '25 points' },
@@ -276,6 +282,12 @@ const GUIDES: readonly Guide[] = [
       },
     ],
     liveLinks: [
+      {
+        to: '/',
+        label: 'Make your F1 predictions',
+        detail:
+          'Try the Top 5 picker and see how prediction scoring differs from championship points.',
+      },
       {
         to: '/f1-standings',
         label: 'F1 championship standings',
@@ -376,6 +388,11 @@ const GUIDES: readonly Guide[] = [
       },
     ],
     liveLinks: [
+      {
+        to: '/',
+        label: 'Make your F1 predictions',
+        detail: 'Put the routine into practice in the next open session.',
+      },
       {
         to: '/races',
         label: 'Race calendar',

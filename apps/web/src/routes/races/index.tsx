@@ -349,6 +349,35 @@ function RacesPage() {
               </ul>
             </nav>
           ) : null}
+
+          <nav
+            aria-label="Plan your predictions"
+            className="mt-10 border-t border-border pt-6"
+          >
+            <h2 className="font-title text-xl font-semibold text-text">
+              Read the track before you pick
+            </h2>
+            <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
+              Circuit character changes how closely the race tends to follow
+              qualifying. Compare overtaking difficulty, track type and upset
+              risk before choosing your Top 5.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              <Link
+                to="/circuits"
+                className="font-medium text-accent hover:text-accent-hover"
+              >
+                Compare every F1 circuit
+              </Link>
+              <Link
+                to="/guides/$guideSlug"
+                params={{ guideSlug: 'how-to-predict-f1-top-five' }}
+                className="font-medium text-accent hover:text-accent-hover"
+              >
+                Build a Top 5 prediction
+              </Link>
+            </div>
+          </nav>
         </div>
       </div>
       {SHOW_DEV_TIME_CONTROLS ? (

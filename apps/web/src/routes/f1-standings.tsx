@@ -92,7 +92,7 @@ export const Route = createFileRoute('/f1-standings')({
 
     return {
       ...pageMeta({
-        title: `${SEASON} F1 Championship Standings | Grand Prix Picks`,
+        title: `${SEASON} F1 Standings: Drivers & Constructors`,
         description,
         path: '/f1-standings',
       }),
@@ -387,6 +387,13 @@ function F1StandingsPage() {
         )}
 
         <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-sm">
+          <Link
+            to="/guides/$guideSlug"
+            params={{ guideSlug: 'f1-points-system-explained' }}
+            className="font-medium text-accent underline-offset-2 hover:underline"
+          >
+            How F1 points work
+          </Link>
           <Link
             to="/races"
             className="font-medium text-accent underline-offset-2 hover:underline"

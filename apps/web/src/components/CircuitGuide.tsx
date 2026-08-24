@@ -38,6 +38,7 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
     return null;
   }
   const circuit = getCircuitForRace(raceSlug);
+  const hasDedicatedPredictionGuide = raceSlug === 'italy-2026';
 
   return (
     <section
@@ -89,15 +90,31 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
         ))}
       </div>
 
-      {circuit && (
-        <Link
-          to="/circuits/$circuitSlug"
-          params={{ circuitSlug: circuit.slug }}
-          className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
+      {(hasDedicatedPredictionGuide || circuit) && (
+        <nav
+          aria-label={`${raceName} guides`}
+          className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:gap-x-6"
         >
-          More on {circuit.name}, and every race held there
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
+          {hasDedicatedPredictionGuide && (
+            <Link
+              to="/f1-2026-italian-grand-prix-predictions"
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent underline decoration-accent/40 underline-offset-4 hover:text-accent-hover hover:decoration-current"
+            >
+              Read the 2026 Monza prediction guide
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          )}
+          {circuit && (
+            <Link
+              to="/circuits/$circuitSlug"
+              params={{ circuitSlug: circuit.slug }}
+              className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text hover:decoration-current"
+            >
+              Explore {circuit.name} and its race history
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          )}
+        </nav>
       )}
     </section>
   );

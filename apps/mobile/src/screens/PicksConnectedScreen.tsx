@@ -27,6 +27,10 @@ import { useRequestReviewAfterScoredWeekend } from '../hooks/useRequestReviewAft
 import type { ConvexDoc, ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
+import {
+  analyticsEvents,
+  analyticsFailureReason,
+} from '@grandprixpicks/shared/analytics';
 import { useUserDateFormat } from '../lib/dates';
 import { getTeamColor } from '../lib/teamColors';
 import { formatCountdown, getLockStatusViewModel } from '../lib/lockTime';
@@ -346,14 +350,15 @@ function PredictForRace({
                     sessionType,
                   });
                 } catch (err) {
-                  captureAnalyticsEvent('top5_save_failed', {
+                  captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
+                    prediction_type: 'top5',
                     scope,
-                    session_locked:
-                      err instanceof Error && /locked/i.test(err.message),
+                    reason: analyticsFailureReason(err),
                   });
                   throw err;
                 }
-                captureAnalyticsEvent('top5_saved', {
+                captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+                  prediction_type: 'top5',
                   scope,
                   viewed_form_guide: viewedFormGuide,
                   open_sessions: sessionLockState.filter((s) => !s.isLocked)
@@ -389,14 +394,18 @@ function PredictForRace({
                         sessionType,
                       });
                     } catch (err) {
-                      captureAnalyticsEvent('h2h_save_failed', {
-                        scope,
-                        session_locked:
-                          err instanceof Error && /locked/i.test(err.message),
-                      });
+                      captureAnalyticsEvent(
+                        analyticsEvents.predictionSaveFailed,
+                        {
+                          prediction_type: 'h2h',
+                          scope,
+                          reason: analyticsFailureReason(err),
+                        },
+                      );
                       throw err;
                     }
-                    captureAnalyticsEvent('h2h_saved', {
+                    captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+                      prediction_type: 'h2h',
                       scope,
                       viewed_form_guide: viewedFormGuide,
                       open_sessions: sessionLockState.filter((s) => !s.isLocked)

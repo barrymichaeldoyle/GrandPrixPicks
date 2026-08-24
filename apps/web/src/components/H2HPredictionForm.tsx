@@ -11,6 +11,10 @@ import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import {
+  analyticsEvents,
+  analyticsFailureReason,
+} from '@grandprixpicks/shared/analytics';
+import {
   clearPendingSubmit,
   clearPredictionDraft,
   hasPendingSubmit,
@@ -299,7 +303,9 @@ export function H2HPredictionForm({
         }),
       );
       await submitH2H({ raceId, picks, sessionType });
-      captureAnalyticsEvent('h2h_prediction_submitted', {
+      captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+        prediction_type: 'h2h',
+        scope: sessionType ? 'session' : 'cascade',
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
         is_edit: Boolean(
@@ -337,7 +343,10 @@ export function H2HPredictionForm({
         onSuccess?.();
       }
     } catch (error) {
-      captureAnalyticsEvent('h2h_prediction_submit_failed', {
+      captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
+        prediction_type: 'h2h',
+        scope: sessionType ? 'session' : 'cascade',
+        reason: analyticsFailureReason(error),
         race_id: raceId,
         session_type: sessionType ?? 'cascade',
         is_edit: Boolean(

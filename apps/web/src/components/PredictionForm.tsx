@@ -32,6 +32,10 @@ import { useAutoSaveOnFirstComplete } from '@/hooks/useAutoSaveOnFirstComplete';
 import { useCallbackRef } from '@/hooks/useCallbackRef';
 import { useClerkRuntimeControl } from '@/integrations/clerk/runtime-control';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import {
+  analyticsEvents,
+  analyticsFailureReason,
+} from '@grandprixpicks/shared/analytics';
 import { displayTeamName } from '@/lib/display';
 import {
   clearPendingSubmit,
@@ -883,7 +887,9 @@ export function PredictionForm({
 
     try {
       await submitPrediction({ raceId, picks, sessionType });
-      captureAnalyticsEvent('prediction_submitted', {
+      captureAnalyticsEvent(analyticsEvents.predictionSaved, {
+        prediction_type: 'top5',
+        scope: sessionType ? 'session' : 'cascade',
         race_id: raceId,
         race_slug: race?.slug,
         session_type: sessionType ?? 'cascade',
@@ -920,7 +926,10 @@ export function PredictionForm({
         wasFirstSave,
       });
     } catch (error) {
-      captureAnalyticsEvent('prediction_submit_failed', {
+      captureAnalyticsEvent(analyticsEvents.predictionSaveFailed, {
+        prediction_type: 'top5',
+        scope: sessionType ? 'session' : 'cascade',
+        reason: analyticsFailureReason(error),
         race_id: raceId,
         race_slug: race?.slug,
         session_type: sessionType ?? 'cascade',

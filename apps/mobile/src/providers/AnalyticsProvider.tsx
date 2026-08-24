@@ -35,11 +35,7 @@ function ClerkAwareAnalytics() {
         return;
       }
       identifiedIdRef.current = user.id;
-      identifyAnalyticsUser(user.id, {
-        email: user.primaryEmailAddress?.emailAddress,
-        name: user.fullName ?? undefined,
-        username: user.username ?? undefined,
-      });
+      identifyAnalyticsUser(user.id);
     } else if (identifiedIdRef.current !== null) {
       identifiedIdRef.current = null;
       resetAnalyticsUser();

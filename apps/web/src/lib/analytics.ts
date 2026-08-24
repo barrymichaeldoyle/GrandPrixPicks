@@ -34,6 +34,9 @@ export function initAnalytics() {
         ui_host: 'https://eu.posthog.com',
         capture_pageview: false,
         capture_pageleave: true,
+        // Product analytics is intentionally event-only. This also prevents
+        // DOM text and interaction metadata from entering PostHog implicitly.
+        autocapture: false,
         opt_out_capturing_by_default: true,
         // We don't run PostHog surveys; skip the extra surveys.js download.
         disable_surveys: true,
@@ -46,7 +49,7 @@ export function initAnalytics() {
       posthogClient = posthog;
       // Every event carries the locale, so any existing funnel or trend can be
       // broken down by it without instrumenting call sites one at a time.
-      posthog.register(localeProperties());
+      posthog.register({ ...localeProperties(), platform: 'web' });
       // Person properties, set before anyone signs in: most visitors never do,
       // and flags and experiments can only target the person, so a flag that
       // decides which language the landing page speaks would otherwise be
@@ -157,20 +160,13 @@ function initialLocaleProperties(): AnalyticsProperties {
   };
 }
 
-export function identifyAnalyticsUser(
-  userId: string,
-  properties: AnalyticsProperties,
-) {
+export function identifyAnalyticsUser(userId: string) {
   if (!isEnabled()) {
     return;
   }
 
   void getPostHog().then((posthog) => {
-    posthog?.identify(
-      userId,
-      { ...localeProperties(), ...properties },
-      initialLocaleProperties(),
-    );
+    posthog?.identify(userId, localeProperties(), initialLocaleProperties());
   });
 }
 
@@ -214,7 +210,12 @@ export function resetAnalyticsUser() {
   }
 
   void getPostHog().then((posthog) => {
-    posthog?.reset();
+    if (!posthog) {
+      return;
+    }
+    posthog.reset();
+    posthog.register({ ...localeProperties(), platform: 'web' });
+    posthog.setPersonProperties(localeProperties(), initialLocaleProperties());
   });
 }
 

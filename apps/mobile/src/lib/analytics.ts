@@ -57,7 +57,10 @@ export function initAnalytics(): boolean {
   // On every event, so any funnel can be broken down by locale without
   // touching call sites; and on the person, so flags can target the device's
   // language from first run, before anyone signs in.
-  client.register(compact(localeProperties()) ?? {});
+  client.register({
+    ...compact(localeProperties()),
+    platform: process.env.EXPO_OS ?? 'native',
+  });
   client.setPersonProperties(
     compact(localeProperties()),
     compact(initialLocaleProperties()),
@@ -86,11 +89,8 @@ export function captureAnalyticsEvent(
   client?.capture(eventName, compact(properties));
 }
 
-export function identifyAnalyticsUser(
-  userId: string,
-  properties?: AnalyticsProperties,
-) {
-  client?.identify(userId, compact({ ...localeProperties(), ...properties }));
+export function identifyAnalyticsUser(userId: string) {
+  client?.identify(userId, compact(localeProperties()));
   // Unlike web, RN's `identify` takes capture options as its third argument
   // rather than a `$set_once` bag, so first-touch values are set separately.
   client?.setPersonProperties(
@@ -100,5 +100,16 @@ export function identifyAnalyticsUser(
 }
 
 export function resetAnalyticsUser() {
-  client?.reset();
+  if (!client) {
+    return;
+  }
+  client.reset();
+  client.register({
+    ...compact(localeProperties()),
+    platform: process.env.EXPO_OS ?? 'native',
+  });
+  client.setPersonProperties(
+    compact(localeProperties()),
+    compact(initialLocaleProperties()),
+  );
 }

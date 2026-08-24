@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/Button/Button';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { analyticsFailureReason } from '@grandprixpicks/shared/analytics';
 
 import { canonicalMeta } from '@/lib/site';
 
@@ -180,7 +181,7 @@ function PayPage() {
             }
 
             if (event.name === 'checkout.completed') {
-              captureAnalyticsEvent('checkout_completed', {
+              captureAnalyticsEvent('checkout_ui_completed', {
                 season: DEFAULT_SEASON,
                 paddle_environment: environment,
               });
@@ -222,7 +223,7 @@ function PayPage() {
         });
       } catch (error) {
         captureAnalyticsEvent('checkout_open_failed', {
-          reason: error instanceof Error ? error.message : 'unexpected_error',
+          reason: analyticsFailureReason(error),
         });
         // The thrown message goes to analytics above, never to the page: it
         // carries Paddle.js internals and env var names, and a payment screen

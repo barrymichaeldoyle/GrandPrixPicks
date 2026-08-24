@@ -290,6 +290,12 @@ At minimum capture:
 - notification permission result, notification opened, and push setting changed;
 - leagues web handoff opened.
 
+Canonical cross-platform outcomes and the production verification procedure
+are documented in `docs/analytics.md`. In particular, both clients emit
+`prediction_saved` / `prediction_save_failed` with `prediction_type` rather
+than platform-specific Top 5 and H2H event aliases. Mobile navigation emits
+`screen_viewed` for each newly active route.
+
 Never include driver picks or private user content in analytics payloads.
 
 ## MVP acceptance criteria

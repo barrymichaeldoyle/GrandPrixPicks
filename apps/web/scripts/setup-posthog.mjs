@@ -9,42 +9,71 @@ const funnels = [
     name: 'Activation: pageview to prediction',
     description: 'Tracks whether visitors reach the core game action.',
     steps: [
-      { event: '$pageview', name: 'Pageview' },
-      { event: 'prediction_submitted', name: 'Top 5 submitted' },
+      { event: '$pageview', name: 'Landing page viewed', path: '/' },
+      {
+        event: 'prediction_saved',
+        name: 'Top 5 saved',
+        properties: { prediction_type: 'top5' },
+      },
     ],
   },
   {
     name: 'Prediction completion: Top 5 to H2H',
     description: 'Tracks whether users complete both prediction modes.',
     steps: [
-      { event: 'prediction_submitted', name: 'Top 5 submitted' },
-      { event: 'h2h_prediction_submitted', name: 'H2H submitted' },
+      {
+        event: 'prediction_saved',
+        name: 'Top 5 saved',
+        properties: { prediction_type: 'top5' },
+      },
+      {
+        event: 'prediction_saved',
+        name: 'H2H saved',
+        properties: { prediction_type: 'h2h' },
+      },
     ],
   },
   {
     name: 'Checkout: pricing to payment complete',
     description: 'Tracks season pass checkout conversion.',
     steps: [
-      { event: '$pageview', name: 'Pageview' },
+      { event: '$pageview', name: 'Pricing viewed', path: '/pricing' },
       { event: 'checkout_started', name: 'Checkout started' },
       { event: 'checkout_opened', name: 'Checkout opened' },
-      { event: 'checkout_completed', name: 'Checkout completed' },
+      { event: 'purchase_completed', name: 'Purchase completed' },
     ],
   },
   {
-    name: 'League growth: pageview to create or join',
-    description: 'Tracks whether users create or join leagues.',
+    name: 'League creation: pageview to created',
+    legacyNames: ['League growth: pageview to create or join'],
+    description: 'Tracks whether users complete the league creation flow.',
     steps: [
-      { event: '$pageview', name: 'Pageview' },
+      {
+        event: '$pageview',
+        name: 'League creation viewed',
+        path: '/leagues/create',
+      },
       { event: 'league_created', name: 'League created' },
-      { event: 'league_joined', name: 'League joined', optional: true },
+    ],
+  },
+  {
+    name: 'League acquisition: invite to joined',
+    description: 'Tracks whether visitors who open a league go on to join it.',
+    steps: [
+      { event: '$pageview', name: 'League viewed', pathRegex: '^/leagues/' },
+      { event: 'league_joined', name: 'League joined' },
     ],
   },
   {
     name: 'Social engagement: follow to reaction',
+    legacyNames: ['Social engagement: follow to rev'],
     description: 'Tracks whether social discovery leads to feed engagement.',
     steps: [
-      { event: '$pageview', name: 'Pageview' },
+      {
+        event: '$pageview',
+        name: 'Social surface viewed',
+        pathRegex: '^/(feed|leagues/)',
+      },
       { event: 'user_followed', name: 'User followed' },
       {
         event: 'feed_event_reaction_added',
@@ -134,6 +163,27 @@ async function findInsightByName(name) {
 }
 
 function eventNode(step, order) {
+  const properties = [
+    ...(step.path
+      ? [{ key: 'path', value: step.path, operator: 'exact', type: 'event' }]
+      : []),
+    ...(step.pathRegex
+      ? [
+          {
+            key: 'path',
+            value: step.pathRegex,
+            operator: 'regex',
+            type: 'event',
+          },
+        ]
+      : []),
+    ...Object.entries(step.properties ?? {}).map(([key, value]) => ({
+      key,
+      value,
+      operator: 'exact',
+      type: 'event',
+    })),
+  ];
   return {
     id: step.event,
     event: step.event,
@@ -141,6 +191,7 @@ function eventNode(step, order) {
     type: 'events',
     kind: 'EventsNode',
     order,
+    properties,
     optionalInFunnel: Boolean(step.optional),
   };
 }
@@ -177,6 +228,7 @@ function funnelPayload(funnel, dashboardId) {
           event: event.event,
           name: event.name,
           custom_name: event.name,
+          properties: event.properties,
           optionalInFunnel: event.optionalInFunnel,
         })),
       },
@@ -217,7 +269,10 @@ async function main() {
   }
 
   for (const funnel of funnels) {
-    const existing = await findInsightByName(funnel.name);
+    let existing = await findInsightByName(funnel.name);
+    for (const legacyName of funnel.legacyNames ?? []) {
+      existing ??= await findInsightByName(legacyName);
+    }
     if (existing) {
       const updated = await updateInsight(existing.id, funnel, dashboard.id);
       process.stderr.write(

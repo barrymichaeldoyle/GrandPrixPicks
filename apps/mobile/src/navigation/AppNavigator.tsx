@@ -2,6 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { analyticsEvents } from '@grandprixpicks/shared/analytics';
+import { useRef } from 'react';
 
 import { HeaderBackground } from '../components/ui/HeaderBackground';
 import { NotificationBell } from '../components/ui/NotificationBell';
@@ -17,6 +19,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { FeedScreen } from '../screens/feed/FeedScreen';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import { flushPendingPushRoute } from '../lib/pushRouting';
+import { captureAnalyticsEvent } from '../lib/analytics';
 import { useIsSignedIn } from '../lib/useIsSignedIn';
 import { colors } from '../theme/tokens';
 import { useTypography } from '../theme/typography';
@@ -249,10 +252,26 @@ function TabsNavigator() {
 }
 
 export function AppNavigator() {
+  const previousRouteKeyRef = useRef<string | null>(null);
+
+  function captureCurrentScreen() {
+    const route = navigationRef.getCurrentRoute();
+    if (route && route.key !== previousRouteKeyRef.current) {
+      previousRouteKeyRef.current = route.key;
+      captureAnalyticsEvent(analyticsEvents.screenViewed, {
+        screen: route.name,
+      });
+    }
+  }
+
   return (
     <NavigationContainer
       linking={linking}
-      onReady={flushPendingPushRoute}
+      onReady={() => {
+        flushPendingPushRoute();
+        captureCurrentScreen();
+      }}
+      onStateChange={captureCurrentScreen}
       ref={navigationRef}
     >
       {/*

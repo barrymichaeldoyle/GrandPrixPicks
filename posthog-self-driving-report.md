@@ -1,5 +1,9 @@
 # PostHog Self-driving setup report
 
+> Historical setup snapshot. The maintained event contract and mobile launch
+> verification checklist now live in `docs/analytics.md`; managed funnels live
+> in `apps/web/scripts/setup-posthog.mjs`.
+
 **Project:** Grand Prix Picks (project 134013)
 **Date:** 2026-07-28
 

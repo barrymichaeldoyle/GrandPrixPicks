@@ -32,6 +32,12 @@ type PaddleCompletedTransactionEvent = {
         product_id?: string;
       };
     }[];
+    currency_code?: string;
+    details?: {
+      totals?: {
+        total?: string;
+      };
+    };
   };
 };
 
@@ -248,5 +254,18 @@ export async function grantSeasonPassFromWebhook(
     paddleProductId: event.data?.items?.[0]?.price?.product_id,
   });
 
-  return { handled: true, result };
+  return {
+    handled: true,
+    result,
+    analytics: {
+      distinctId: clerkUserId,
+      insertId: event.event_id,
+      season: normalizedSeason,
+      productId: event.data?.items?.[0]?.price?.product_id,
+      currency: event.data?.currency_code,
+      // Paddle minor units are strings. Keep the integer minor-unit value so
+      // currency-specific decimal rules cannot silently corrupt revenue.
+      valueMinorUnits: Number(event.data?.details?.totals?.total),
+    },
+  };
 }

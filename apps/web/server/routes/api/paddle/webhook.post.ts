@@ -5,6 +5,8 @@ import {
   verifyPaddleWebhookSignature,
 } from '../../../lib/paddle';
 import { captureServerException, startServerSpan } from '../../../lib/sentry';
+import { captureServerAnalyticsEvent } from '../../../lib/posthog';
+import { analyticsEvents } from '@grandprixpicks/shared/analytics';
 
 const JSON_HEADERS = { 'content-type': 'application/json' } as const;
 
@@ -98,6 +100,23 @@ export default async function handler(event: RouteEvent) {
       handled: result.handled,
       reason: 'reason' in result ? result.reason : null,
     });
+
+    if (result.handled && result.result?.granted && result.analytics) {
+      await captureServerAnalyticsEvent({
+        event: analyticsEvents.purchaseCompleted,
+        distinctId: result.analytics.distinctId,
+        insertId: result.analytics.insertId,
+        properties: {
+          season: result.analytics.season,
+          product_id: result.analytics.productId,
+          currency: result.analytics.currency,
+          value_minor_units: Number.isFinite(result.analytics.valueMinorUnits)
+            ? result.analytics.valueMinorUnits
+            : undefined,
+          entitlement_created: result.result.created,
+        },
+      });
+    }
 
     return {
       ok: true,

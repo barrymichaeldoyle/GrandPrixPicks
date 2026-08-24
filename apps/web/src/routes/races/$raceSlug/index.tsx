@@ -21,6 +21,7 @@ import {
 } from '@/lib/sessions';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
+import { withLoaderSpan } from '@/lib/loaderSpan';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
@@ -104,82 +105,83 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           shareSession: search.session,
         },
   component: RaceDetailPage,
-  loader: async ({ context, params, deps }) => {
-    const [race, nextRace] = await Promise.all([
-      context.queryClient.ensureQueryData(
-        routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
-      ),
-      context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
-    ]);
-    if (!race) {
-      throw notFound();
-    }
-    // The driver roster is fetched server-side so a signed-out visitor (and
-    // search-engine crawlers, which don't run the client Convex subscriptions)
-    // get a real, crawlable grid on the page instead of an empty sign-in gate.
-    // It is pinned to this race's round so the SSR markup shows the grid that
-    // raced it, which for a past race is not today's grid.
-    //
-    // Published results are public, so fetch them server-side too: a finished
-    // race then renders its actual finishing order in the SSR HTML (crawlable,
-    // and visible before the client Convex subscriptions boot) rather than an
-    // empty table. Upcoming races have no results, so this is a single cheap
-    // query for them.
-    //
-    // All three depend only on the race, so they share one round trip.
-    //
-    // The per-session results used to be a third wave, because they waited for
-    // `getAllResultsForRace` to say which sessions were published. They did
-    // not need to: which sessions a weekend HAS is a property of the weekend,
-    // and `getSessionsForWeekend` answers it from `hasSprint`, which we are
-    // already holding. Asking all of them up front costs no extra trip, and
-    // the ones with nothing published answer null and are dropped below, so
-    // `resultsBySession` keeps exactly the keys it had.
-    //
-    // Worth the care: this loader ran three sequential waves, and prod served
-    // this page with a 1.7-2.7s TTFB against 0.14s for a route that fetches
-    // nothing. The queries are not slow; the trips are.
-    const [drivers, availableSessions, resultEntries] = await Promise.all([
-      context.queryClient.ensureQueryData(
-        routeQuery(api.drivers.listDrivers, {
-          round: race.round,
-          season: race.season,
-          // Matches what the client subscription asks for. If SSR resolved a
-          // narrower roster, a saved pick naming a replaced driver would
-          // render as four slots server-side and five after hydration.
-          includeNotRacing: true,
-        }),
-      ),
-      context.queryClient.ensureQueryData(
-        routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
-      ),
-      Promise.all(
-        getSessionsForWeekend(race.hasSprint ?? false).map(
-          async (sessionType) =>
-            [
-              sessionType,
-              await context.queryClient.ensureQueryData(
-                routeQuery(api.results.getResultForRace, {
-                  raceId: race._id,
-                  sessionType,
-                }),
-              ),
-            ] as const,
+  loader: ({ context, params, deps }) =>
+    withLoaderSpan('/races/$raceSlug', 2, async () => {
+      const [race, nextRace] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
         ),
-      ),
-    ]);
-    const initialResults = {
-      availableSessions,
-      resultsBySession: Object.fromEntries(
-        resultEntries.filter(([, result]) => result != null),
-      ),
-    };
-    const shareCard =
-      'share' in deps
-        ? parseShareCard({ ...deps, session: deps.shareSession })
-        : null;
-    return { race, nextRace, drivers, initialResults, shareCard };
-  },
+        context.queryClient.ensureQueryData(routeQuery(api.races.getNextRace)),
+      ]);
+      if (!race) {
+        throw notFound();
+      }
+      // The driver roster is fetched server-side so a signed-out visitor (and
+      // search-engine crawlers, which don't run the client Convex subscriptions)
+      // get a real, crawlable grid on the page instead of an empty sign-in gate.
+      // It is pinned to this race's round so the SSR markup shows the grid that
+      // raced it, which for a past race is not today's grid.
+      //
+      // Published results are public, so fetch them server-side too: a finished
+      // race then renders its actual finishing order in the SSR HTML (crawlable,
+      // and visible before the client Convex subscriptions boot) rather than an
+      // empty table. Upcoming races have no results, so this is a single cheap
+      // query for them.
+      //
+      // All three depend only on the race, so they share one round trip.
+      //
+      // The per-session results used to be a third wave, because they waited for
+      // `getAllResultsForRace` to say which sessions were published. They did
+      // not need to: which sessions a weekend HAS is a property of the weekend,
+      // and `getSessionsForWeekend` answers it from `hasSprint`, which we are
+      // already holding. Asking all of them up front costs no extra trip, and
+      // the ones with nothing published answer null and are dropped below, so
+      // `resultsBySession` keeps exactly the keys it had.
+      //
+      // Worth the care: this loader ran three sequential waves, and prod served
+      // this page with a 1.7-2.7s TTFB against 0.14s for a route that fetches
+      // nothing. The queries are not slow; the trips are.
+      const [drivers, availableSessions, resultEntries] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          routeQuery(api.drivers.listDrivers, {
+            round: race.round,
+            season: race.season,
+            // Matches what the client subscription asks for. If SSR resolved a
+            // narrower roster, a saved pick naming a replaced driver would
+            // render as four slots server-side and five after hydration.
+            includeNotRacing: true,
+          }),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.results.getAllResultsForRace, { raceId: race._id }),
+        ),
+        Promise.all(
+          getSessionsForWeekend(race.hasSprint ?? false).map(
+            async (sessionType) =>
+              [
+                sessionType,
+                await context.queryClient.ensureQueryData(
+                  routeQuery(api.results.getResultForRace, {
+                    raceId: race._id,
+                    sessionType,
+                  }),
+                ),
+              ] as const,
+          ),
+        ),
+      ]);
+      const initialResults = {
+        availableSessions,
+        resultsBySession: Object.fromEntries(
+          resultEntries.filter(([, result]) => result != null),
+        ),
+      };
+      const shareCard =
+        'share' in deps
+          ? parseShareCard({ ...deps, session: deps.shareSession })
+          : null;
+      return { race, nextRace, drivers, initialResults, shareCard };
+    }),
   head: ({ loaderData, params }) => {
     const race = loaderData?.race;
     const shareCard = loaderData?.shareCard ?? null;

@@ -23,6 +23,7 @@ import {
   siteConfig,
 } from '@/lib/site';
 
+import { withLoaderSpan } from '@/lib/loaderSpan';
 import { PAGE_SIZE, playerCountFormatter } from './-leaderboard/constants';
 import { SCOPE_OPTIONS, TIME_SCOPE_OPTIONS } from './-leaderboard/options';
 import { SeasonContent } from './-leaderboard/SeasonContent';
@@ -49,40 +50,46 @@ export const Route = createFileRoute('/leaderboard')({
     return { time, scope, raceId };
   },
   loaderDeps: ({ search }) => search,
-  loader: async ({ context, deps }) => {
-    const [defaultRace, currentSeason] = await Promise.all([
-      context.queryClient.ensureQueryData(
-        convexQuery(api.races.getWeekendLeaderboardRace, {}),
-      ),
-      context.queryClient.ensureQueryData(
-        convexQuery(api.races.listCurrentSeason),
-      ),
-    ]);
-    const allRaces = currentSeason.races;
-    const selectedRace =
-      allRaces.find((race) => race._id === deps.raceId) ?? defaultRace;
-    const [initialSeason, initialWeekend] = await Promise.all([
-      context.queryClient.ensureQueryData(
-        convexQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
-          limit: PAGE_SIZE,
-        }),
-      ),
-      selectedRace
-        ? context.queryClient.ensureQueryData(
-            convexQuery(api.leaderboards.getCombinedRaceLeaderboard, {
-              raceId: selectedRace._id,
-            }),
-          )
-        : Promise.resolve(null),
-    ]);
-    return {
-      defaultRace,
-      allRaces,
-      season: currentSeason.season,
-      initialSeason,
-      initialWeekend,
-    };
-  },
+  // Two waves, and both earn their place: the second needs `selectedRace` from
+  // the first. Note the season leaderboard deliberately stays in the second
+  // wave even though it depends on nothing — it is the slowest query here, so
+  // moving it up would make the cheap metadata wave wait for it and then still
+  // pay for the race leaderboard afterwards.
+  loader: ({ context, deps }) =>
+    withLoaderSpan('/leaderboard', 2, async () => {
+      const [defaultRace, currentSeason] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          convexQuery(api.races.getWeekendLeaderboardRace, {}),
+        ),
+        context.queryClient.ensureQueryData(
+          convexQuery(api.races.listCurrentSeason),
+        ),
+      ]);
+      const allRaces = currentSeason.races;
+      const selectedRace =
+        allRaces.find((race) => race._id === deps.raceId) ?? defaultRace;
+      const [initialSeason, initialWeekend] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          convexQuery(api.leaderboards.getCombinedSeasonLeaderboard, {
+            limit: PAGE_SIZE,
+          }),
+        ),
+        selectedRace
+          ? context.queryClient.ensureQueryData(
+              convexQuery(api.leaderboards.getCombinedRaceLeaderboard, {
+                raceId: selectedRace._id,
+              }),
+            )
+          : Promise.resolve(null),
+      ]);
+      return {
+        defaultRace,
+        allRaces,
+        season: currentSeason.season,
+        initialSeason,
+        initialWeekend,
+      };
+    }),
   head: () => {
     const meta = pageMeta({
       title: `${CURRENT_SEASON} F1 Prediction Leaderboard | Grand Prix Picks`,

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as F12026ItalianGrandPrixPredictionsRouteImport } from './routes/f1-2026-italian-grand-prix-predictions'
 import { Route as F12027CalendarRouteImport } from './routes/f1-2027-calendar'
 import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as F1TeamMateBattlesRouteImport } from './routes/f1-team-mate-battles'
@@ -58,6 +59,12 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const F12026ItalianGrandPrixPredictionsRoute =
+  F12026ItalianGrandPrixPredictionsRouteImport.update({
+    id: '/f1-2026-italian-grand-prix-predictions',
+    path: '/f1-2026-italian-grand-prix-predictions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const F12027CalendarRoute = F12027CalendarRouteImport.update({
   id: '/f1-2027-calendar',
   path: '/f1-2027-calendar',
@@ -242,6 +249,7 @@ const RacesRaceSlugPracticeRoute = RacesRaceSlugPracticeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
@@ -282,6 +290,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
@@ -322,6 +331,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/f1-2026-italian-grand-prix-predictions': typeof F12026ItalianGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
@@ -404,6 +415,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
@@ -443,6 +455,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/f1-2026-italian-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-standings'
     | '/f1-team-mate-battles'
@@ -484,6 +497,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  F12026ItalianGrandPrixPredictionsRoute: typeof F12026ItalianGrandPrixPredictionsRoute
   F12027CalendarRoute: typeof F12027CalendarRoute
   F1StandingsRoute: typeof F1StandingsRoute
   F1TeamMateBattlesRoute: typeof F1TeamMateBattlesRoute
@@ -531,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-2026-italian-grand-prix-predictions': {
+      id: '/f1-2026-italian-grand-prix-predictions'
+      path: '/f1-2026-italian-grand-prix-predictions'
+      fullPath: '/f1-2026-italian-grand-prix-predictions'
+      preLoaderRoute: typeof F12026ItalianGrandPrixPredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-2027-calendar': {
@@ -829,6 +850,8 @@ const PUsernameRouteWithChildren = PUsernameRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  F12026ItalianGrandPrixPredictionsRoute:
+    F12026ItalianGrandPrixPredictionsRoute,
   F12027CalendarRoute: F12027CalendarRoute,
   F1StandingsRoute: F1StandingsRoute,
   F1TeamMateBattlesRoute: F1TeamMateBattlesRoute,

@@ -100,6 +100,9 @@ describe('sitemap.xml route', () => {
     const { xml } = await renderSitemap();
 
     expect(xml).toContain('<loc>https://grandprixpicks.com/about</loc>');
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/f1-2026-italian-grand-prix-predictions</loc>',
+    );
     expect(xml).toContain('<loc>https://grandprixpicks.com/guides</loc>');
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/guides/f1-sprint-weekends-explained</loc>',

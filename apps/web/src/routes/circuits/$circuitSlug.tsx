@@ -1,8 +1,9 @@
 import { api } from '@convex-generated/api';
 import { getCircuit, getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
+import { InAppBackLink } from '@/components/InAppBackLink';
 import { getCircuitGuideBySlug } from '@/lib/circuitGuides';
 import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
@@ -83,13 +84,12 @@ function CircuitPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-3 py-5 sm:px-4 sm:py-8">
-        <Link
-          to="/circuits"
+        <InAppBackLink
+          fallbackHref="/circuits"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-muted hover:text-text"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          All circuits
-        </Link>
+          Back
+        </InAppBackLink>
 
         <header className="mt-5">
           <p className="text-xs font-semibold tracking-label text-accent uppercase">
@@ -191,6 +191,15 @@ function CircuitPage() {
         </nav>
 
         <p className="mt-8">
+          {circuit.slug === 'monza' && season === 2026 && (
+            <Link
+              to="/f1-2026-italian-grand-prix-predictions"
+              className="mr-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
+            >
+              2026 Italian Grand Prix prediction guide
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          )}
           <Link
             to="/races"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"

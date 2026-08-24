@@ -5,7 +5,7 @@ import { captureServerException, startServerSpan } from '../lib/sentry';
 import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
-import { listGuides } from '../../src/lib/guides';
+import { listGuideMeta } from '../../src/lib/guideMeta';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -51,7 +51,7 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.8',
   },
   // Real dates, from the guide entries themselves.
-  ...listGuides().map((guide) => ({
+  ...listGuideMeta().map((guide) => ({
     loc: `${siteConfig.url}/guides/${guide.slug}`,
     changefreq: 'monthly' as const,
     lastmod: new Date(guide.updatedAt ?? guide.publishedAt).toISOString(),
@@ -89,6 +89,12 @@ const staticEntries: SitemapEntry[] = [
   {
     loc: `${siteConfig.url}/f1-team-mate-battles`,
     changefreq: 'weekly',
+    priority: '0.8',
+  },
+  {
+    loc: `${siteConfig.url}/f1-2026-italian-grand-prix-predictions`,
+    changefreq: 'daily',
+    lastmod: '2026-08-24T00:00:00.000Z',
     priority: '0.8',
   },
   {

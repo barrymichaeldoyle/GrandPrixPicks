@@ -1,10 +1,10 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
 import { useEffect } from 'react';
 
 import { CircuitSummary } from '@/components/CircuitSummary';
+import { InAppBackLink } from '@/components/InAppBackLink';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { breadcrumbSchema, pageMeta } from '@/lib/site';
@@ -95,14 +95,12 @@ function PracticeResultsPage() {
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-3 py-5 sm:px-4 sm:py-8">
-        <Link
-          to="/races/$raceSlug"
-          params={{ raceSlug: race.slug }}
+        <InAppBackLink
+          fallbackHref={`/races/${race.slug}`}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-muted hover:text-text"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to {race.name}
-        </Link>
+          Back
+        </InAppBackLink>
 
         <header className="mt-5">
           <p className="text-xs font-semibold tracking-label text-text-muted uppercase">

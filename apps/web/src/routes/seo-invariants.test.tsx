@@ -77,6 +77,15 @@ const ROUTES: {
   { module: './leaderboard', path: '/leaderboard' },
   { module: './leagues/index', path: '/leagues' },
   { module: './results-policy', path: '/results-policy' },
+  {
+    module: './f1-2026-italian-grand-prix-predictions',
+    path: '/f1-2026-italian-grand-prix-predictions',
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_788_699_600_000 },
+      },
+    },
+  },
   { module: './f1-2027-calendar', path: '/f1-2027-calendar' },
   { module: './terms', path: '/terms' },
   { module: './privacy', path: '/privacy' },

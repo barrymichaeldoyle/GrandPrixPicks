@@ -33,6 +33,7 @@
 const CLERK_FREE_EXACT = new Set([
   '/',
   '/about',
+  '/f1-2026-italian-grand-prix-predictions',
   '/f1-2027-calendar',
   '/f1-standings',
   '/f1-team-mate-battles',

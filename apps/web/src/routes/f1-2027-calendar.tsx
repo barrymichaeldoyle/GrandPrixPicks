@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { CalendarClock, CircleHelp, Flag } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -52,6 +54,7 @@ const FAQS = [
 ] as const;
 
 export const Route = createFileRoute('/f1-2027-calendar')({
+  loader: setStaticContentCacheHeaders,
   component: F1Calendar2027Page,
   head: () => {
     const meta = pageMeta({

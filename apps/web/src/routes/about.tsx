@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -11,6 +13,7 @@ import {
 } from '@/lib/site';
 
 export const Route = createFileRoute('/about')({
+  loader: setStaticContentCacheHeaders,
   component: AboutPage,
   head: () => {
     const meta = pageMeta({

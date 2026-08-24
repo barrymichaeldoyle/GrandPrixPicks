@@ -1,5 +1,7 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar } from 'lucide-react';
 import { useState } from 'react';
@@ -21,6 +23,8 @@ import { PageHeader } from '@/components/PageHeader';
 export const Route = createFileRoute('/races/')({
   component: RacesPage,
   loader: async ({ context }) => {
+    await setRaceDataCacheHeaders();
+
     // The practice slugs drive the practice-results index below. Those pages
     // are in the sitemap but the only in-app link to them lives in a
     // client-only Convex card, so without this list they have no

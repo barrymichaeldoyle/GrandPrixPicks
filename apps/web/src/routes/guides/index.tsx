@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowRight } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
@@ -6,6 +8,7 @@ import { listGuides } from '@/lib/guides';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/guides/')({
+  loader: setStaticContentCacheHeaders,
   component: GuidesIndexPage,
   head: () => {
     const meta = pageMeta({

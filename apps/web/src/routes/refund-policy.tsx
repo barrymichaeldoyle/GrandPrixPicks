@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -7,6 +9,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/refund-policy')({
+  loader: setStaticContentCacheHeaders,
   component: RefundPolicyPage,
   head: () =>
     pageMeta({

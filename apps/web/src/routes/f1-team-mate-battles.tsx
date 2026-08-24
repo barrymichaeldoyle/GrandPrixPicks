@@ -1,5 +1,7 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { useQuery } from '@tanstack/react-query';
 import type { FunctionReturnType } from 'convex/server';
 import { Swords } from 'lucide-react';
@@ -40,6 +42,8 @@ const LAST_UPDATED_FORMAT: UserDateSettings = {
 export const Route = createFileRoute('/f1-team-mate-battles')({
   component: TeammateBattlesPage,
   loader: async ({ context }) => {
+    await setRaceDataCacheHeaders();
+
     const battles = await context.queryClient.ensureQueryData(
       routeQuery(api.h2h.getTeammateBattles, {}),
     );

@@ -5,9 +5,11 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/Button/Button';
 
 import { PageHeader } from '@/components/PageHeader';
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/terms')({
+  loader: setStaticContentCacheHeaders,
   component: TermsPage,
   head: () =>
     pageMeta({

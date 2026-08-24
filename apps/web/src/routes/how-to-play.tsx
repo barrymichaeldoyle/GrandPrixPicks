@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   ArrowRight,
   Check,
@@ -13,6 +15,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/how-to-play')({
+  loader: setStaticContentCacheHeaders,
   component: HowToPlayPage,
   head: () => {
     const meta = pageMeta({

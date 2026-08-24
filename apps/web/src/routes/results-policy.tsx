@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowRight, Flag, TimerReset } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -94,6 +96,7 @@ const structuredData = {
 };
 
 export const Route = createFileRoute('/results-policy')({
+  loader: setStaticContentCacheHeaders,
   component: ResultsPolicyPage,
   head: () => {
     const meta = pageMeta({

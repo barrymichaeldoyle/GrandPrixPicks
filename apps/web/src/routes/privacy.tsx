@@ -1,5 +1,7 @@
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@grandprixpicks/shared/contact';
 import { createFileRoute, Link } from '@tanstack/react-router';
+
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/Button/Button';
@@ -8,6 +10,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { pageMeta } from '@/lib/site';
 
 export const Route = createFileRoute('/privacy')({
+  loader: setStaticContentCacheHeaders,
   component: PrivacyPage,
   head: () =>
     pageMeta({

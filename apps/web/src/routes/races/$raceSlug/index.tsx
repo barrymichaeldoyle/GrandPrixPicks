@@ -22,6 +22,7 @@ import {
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
 import { withLoaderSpan } from '@/lib/loaderSpan';
+import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
@@ -107,6 +108,8 @@ export const Route = createFileRoute('/races/$raceSlug/')({
   component: RaceDetailPage,
   loader: ({ context, params, deps }) =>
     withLoaderSpan('/races/$raceSlug', 2, async () => {
+      await setRaceDataCacheHeaders();
+
       const [race, nextRace] = await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),

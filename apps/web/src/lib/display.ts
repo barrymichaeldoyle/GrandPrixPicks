@@ -18,3 +18,21 @@ export function displayTeamName(team: string | null | undefined): string {
 export function abbreviateGrandPrix(name: string): string {
   return name.replace(/\bGrand Prix\b/g, 'GP');
 }
+
+/**
+ * Round span for a pairing that is not the team's only one this season.
+ * Open-ended rows are "from this round onwards"; a single-round stint is rare
+ * but still a span of one.
+ */
+export function pairingRoundSpanLabel(
+  fromRound: number,
+  toRound?: number,
+): string {
+  if (toRound == null) {
+    return fromRound <= 1 ? 'All season' : `Round ${fromRound} onwards`;
+  }
+  if (fromRound === toRound) {
+    return `Round ${fromRound}`;
+  }
+  return `Rounds ${fromRound}–${toRound}`;
+}

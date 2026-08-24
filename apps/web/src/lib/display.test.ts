@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayTeamName } from './display';
+import { displayTeamName, pairingRoundSpanLabel } from './display';
 
 describe('displayTeamName', () => {
   it('applies known short names', () => {
@@ -15,5 +15,23 @@ describe('displayTeamName', () => {
     expect(displayTeamName('')).toBe('');
     expect(displayTeamName(null)).toBe('');
     expect(displayTeamName(undefined)).toBe('');
+  });
+});
+
+describe('pairingRoundSpanLabel', () => {
+  it('names a closed multi-round stint as an inclusive span', () => {
+    expect(pairingRoundSpanLabel(1, 11)).toBe('Rounds 1–11');
+  });
+
+  it('names an open stint from a mid-season swap', () => {
+    expect(pairingRoundSpanLabel(12)).toBe('Round 12 onwards');
+  });
+
+  it('names a single-round stint without a plural', () => {
+    expect(pairingRoundSpanLabel(12, 12)).toBe('Round 12');
+  });
+
+  it('names an unbroken season pairing', () => {
+    expect(pairingRoundSpanLabel(1)).toBe('All season');
   });
 });

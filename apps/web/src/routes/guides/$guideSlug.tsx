@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-import { getGuide, listGuides } from '@/lib/guides';
+import { InAppBackLink } from '@/components/InAppBackLink';
+import { getGuide } from '@/lib/guides';
+import { getGuideMeta, listGuideMeta } from '@/lib/guideMeta';
 import {
   breadcrumbSchema,
   defaultOgImage,
@@ -12,7 +14,10 @@ import {
 
 export const Route = createFileRoute('/guides/$guideSlug')({
   loader: ({ params }) => {
-    const guide = getGuide(params.guideSlug);
+    // Front matter only. `head` needs the title, description and FAQ schema;
+    // pulling the writing here would put every guide in the client entry,
+    // because `loader` is not part of the split chunk `component` gets.
+    const guide = getGuideMeta(params.guideSlug);
     if (!guide) {
       throw notFound();
     }
@@ -94,19 +99,25 @@ export const Route = createFileRoute('/guides/$guideSlug')({
 });
 
 function GuidePage() {
-  const { guide } = Route.useLoaderData();
-  const others = listGuides().filter((entry) => entry.slug !== guide.slug);
+  const { guide: meta } = Route.useLoaderData();
+  // The writing, imported here rather than in the loader so it rides the
+  // component's own chunk. Unreachable when null: the loader already threw.
+  const guide = getGuide(meta.slug);
+  const others = listGuideMeta().filter((entry) => entry.slug !== meta.slug);
+
+  if (!guide) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <Link
-          to="/guides"
+        <InAppBackLink
+          fallbackHref="/guides"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-muted hover:text-text"
         >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          All guides
-        </Link>
+          Back
+        </InAppBackLink>
 
         <article className="mt-6">
           <header>

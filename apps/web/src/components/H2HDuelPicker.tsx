@@ -266,10 +266,10 @@ export function H2HDuelPicker({
             {showFinishedCard ? (
               <>
                 <Check size={14} className="text-accent" aria-hidden="true" />
-                All battles called
+                All team-mate picks made
               </>
             ) : (
-              `Team-mate battle ${activeIndex + 1} of ${matchups.length}`
+              `Team-mate pick ${activeIndex + 1} of ${matchups.length}`
             )}
           </p>
           {/* The "tap a battle to change your mind" hint used to sit under the
@@ -322,7 +322,7 @@ export function H2HDuelPicker({
               {complete ? (
                 <>
                   <Check size={14} className="text-accent" aria-hidden="true" />
-                  All battles called
+                  All team-mate picks made
                 </>
               ) : (
                 <>

@@ -276,7 +276,7 @@ export function SignInScreen() {
             Grand Prix Picks
           </Text>
           <Text className="text-muted text-center text-base leading-[22px]">
-            Pick the top five and call every team-mate battle.
+            Pick your Top 5. Choose who finishes ahead in each team.
           </Text>
         </View>
 

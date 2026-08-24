@@ -139,7 +139,7 @@ export const Route = createFileRoute('/')({
     const meta = pageMeta({
       title: PUBLIC_HOME_TITLE,
       description:
-        'Predict the top 5 in Formula 1 qualifying and races, call team-mate battles, and compete on global or private leaderboards. Free to play.',
+        'Predict the Top 5 in Formula 1 qualifying and races, choose who finishes ahead in each team, and compete on global or private leaderboards. Free to play.',
       path: '/',
       // The bare domain is what gets pasted into group chats, so this card is
       // the first thing most visitors ever see of the product. Naming the

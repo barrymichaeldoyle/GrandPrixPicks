@@ -33,7 +33,7 @@ spaces, because spaces count.
 Editable without review, so use it for the current round.
 
 ```
-The season is back. Get your top five in before qualifying locks, call the team-mate duels, and see how you stack up against everyone else this weekend.
+The season is back. Get your Top 5 in before qualifying locks, choose who finishes ahead in each team, and see how you stack up against everyone else this weekend.
 ```
 
 ## Description
@@ -77,7 +77,7 @@ No wagering, no stakes, no prizes. Just whether you were right.
 ## What's New (version 1.0.0)
 
 ```
-First release. Pick the top five for every session, call the team-mate duels,
+First release. Pick your Top 5 for every session, choose who finishes ahead in each team,
 and play the season out against your friends.
 ```
 
@@ -183,7 +183,7 @@ Suggested order, because the first two are what people actually see in search:
 1. **Making picks.** The top five picker mid-selection, drivers in team
    colours. This is the product; lead with it.
 2. **The weekend.** Session tabs with a countdown to the next lock.
-3. **Team-mate duels.** The H2H grid, part answered.
+3. **Team-mate picks.** The H2H grid, part answered.
 4. **Leaderboard.** Season standings with a few real names.
 5. **The feed.** Reactions on somebody's picks, to show it is social.
 

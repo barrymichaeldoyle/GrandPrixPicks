@@ -21,7 +21,7 @@ export function H2HPicksBar({
   selections,
   activeIndex = -1,
   onSelectIndex,
-  ariaLabel = 'Team-mate battles',
+  ariaLabel = 'Team-mate picks',
   className = 'mt-2',
   testId = 'h2h-picks-bar',
 }: {

@@ -311,71 +311,6 @@
   }
 
   /*
-   * The signed-out header owns the primary CTA on every page except the one that
-   * has its own. On the landing page the hero button is the action, and the picker
-   * it points at is the very next section, carrying its own controls. A header
-   * copy would only ever be a second identical lime button aimed at the same
-   * anchor, and the accent marks one action per screen.
-   *
-   * A sticky deadline strip used to take the CTA over once the hero scrolled away.
-   * It was removed: its window overlapped the picker being fully on screen, so it
-   * put three accent CTAs in view at once and pointed two of them at content the
-   * reader was already looking at.
-   *
-   * Keyed off the hero CTA rather than the route so the between-seasons hero,
-   * which has no picker to scroll to, keeps the header CTA.
-   */
-  html:has([data-landing-hero-cta]) .gpp-public-header-cta {
-    display: none;
-  }
-
-  /*
-   * The scroll lock every modal and the sign-in curtain share (see
-   * `useModalDialog`). It is an attribute rather than an inline
-   * `body.style.overflow` because Clerk's sign-in modal writes that exact
-   * property itself, from outside our counting: the curtain rises while Clerk's
-   * modal is still up, so a lock that snapshotted "what overflow was before"
-   * captured Clerk's `hidden` and restored it on release, freezing the page for
-   * good. An attribute composes with Clerk instead of fighting it for one slot.
-   *
-   * Deliberately unlayered, so it beats the utilities. Both elements are set
-   * because `body` alone leaves the document scrolling on some engines.
-   */
-  html[data-scroll-locked],
-  html[data-scroll-locked] body {
-    overflow: hidden;
-  }
-
-  /*
-   * Same condition, opposite effect: with the header CTA gone the bar is just the
-   * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
-   * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
-   * "GP Picks" covers the 320px-class screens below that.
-   */
-  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
-    display: inline;
-  }
-
-  /*
-   * Which is why the landing page does not need the screen-reader fallback in
-   * `Header.tsx`: a wordmark is visible here from 320px up, so the fallback would
-   * only add a second copy of the name to the link.
-   */
-  html:has([data-landing-hero-cta]) .gpp-wordmark-fallback {
-    display: none;
-  }
-
-  @media (width >= 360px) {
-    html:has([data-landing-hero-cta]) .gpp-public-wordmark {
-      display: none;
-    }
-
-    html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
-      display: inline;
-    }
-  }
-
-  /*
    * The header account tab. Clerk renders the UserButton trigger's markup, so the
    * "Me" label under the avatar has to be a pseudo-element rather than a child —
    * the trigger is already a flex column (see `userButtonTrigger` in the Clerk
@@ -503,6 +438,95 @@
        the same size so the aspect ratio above stays exact. */
     outline: 1px solid rgb(var(--text-rgb) / 0.1);
     outline-offset: -1px;
+  }
+}
+
+/*
+ * Rules that must outrank a Tailwind utility on the same element.
+ *
+ * These live in `utilities` rather than `base` for a reason the cascade makes
+ * unforgiving: a layered rule loses to every rule in a later layer no matter
+ * how specific it is, so in `base` each of these was silently beaten by the
+ * `hidden` / `inline-flex` sitting in the element's own class string. In
+ * `utilities` they compete with those classes on specificity, which
+ * `html:has(...) .gpp-x` wins comfortably.
+ *
+ * That is not theoretical. From 2026-08-23 to 2026-08-24 all of these were in
+ * `base`: the header CTA doubled on the landing page and the brand link lost
+ * its accessible name entirely on phones, because the rule below that hides
+ * the screen-reader fallback was the only one with no utility to beat, so it
+ * was also the only one that still applied.
+ *
+ * They are NOT unlayered, which would beat every utility everywhere and is the
+ * bug `scripts/check-css-layers.mjs` exists to prevent. Same layer, higher
+ * specificity: predictable, and a call site can still win by being more
+ * specific still.
+ */
+@layer utilities {
+  /*
+   * The signed-out header owns the primary CTA on every page except the one that
+   * has its own. On the landing page the hero button is the action, and the picker
+   * it points at is the very next section, carrying its own controls. A header
+   * copy would only ever be a second identical lime button aimed at the same
+   * anchor, and the accent marks one action per screen.
+   *
+   * A sticky deadline strip used to take the CTA over once the hero scrolled away.
+   * It was removed: its window overlapped the picker being fully on screen, so it
+   * put three accent CTAs in view at once and pointed two of them at content the
+   * reader was already looking at.
+   *
+   * Keyed off the hero CTA rather than the route so the between-seasons hero,
+   * which has no picker to scroll to, keeps the header CTA.
+   */
+  html:has([data-landing-hero-cta]) .gpp-public-header-cta {
+    display: none;
+  }
+
+  /*
+   * The scroll lock every modal and the sign-in curtain share (see
+   * `useModalDialog`). It is an attribute rather than an inline
+   * `body.style.overflow` because Clerk's sign-in modal writes that exact
+   * property itself, from outside our counting: the curtain rises while Clerk's
+   * modal is still up, so a lock that snapshotted "what overflow was before"
+   * captured Clerk's `hidden` and restored it on release, freezing the page for
+   * good. An attribute composes with Clerk instead of fighting it for one slot.
+   *
+   * In `utilities` so it beats them on specificity (it was unlayered for this
+   * reason before the layer sweep). Both elements are set because `body` alone
+   * leaves the document scrolling on some engines.
+   */
+  html[data-scroll-locked],
+  html[data-scroll-locked] body {
+    overflow: hidden;
+  }
+
+  /*
+   * Same condition, opposite effect: with the header CTA gone the bar is just the
+   * mark and "Sign in", so the name fits on a phone. The full wordmark needs a
+   * 334px viewport, so it runs from 360px (41px of slack on an iPhone SE) and
+   * "GP Picks" covers the 320px-class screens below that.
+   */
+  html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+    display: inline;
+  }
+
+  /*
+   * Which is why the landing page does not need the screen-reader fallback in
+   * `Header.tsx`: a wordmark is visible here from 320px up, so the fallback would
+   * only add a second copy of the name to the link.
+   */
+  html:has([data-landing-hero-cta]) .gpp-wordmark-fallback {
+    display: none;
+  }
+
+  @media (width >= 360px) {
+    html:has([data-landing-hero-cta]) .gpp-public-wordmark {
+      display: none;
+    }
+
+    html:has([data-landing-hero-cta]) .gpp-public-wordmark-full {
+      display: inline;
+    }
   }
 }
 

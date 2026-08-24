@@ -507,9 +507,8 @@ function LeaderboardExplainer() {
       </p>
       <p className="gpp-reading-copy mt-4 text-text-muted">
         That caps a perfect session at 25 points. Head-to-Head picks are scored
-        separately and more simply: each team-mate pairing on the grid is one
-        point, awarded for correctly calling which of the two finishes ahead.
-        The totals here combine both games.
+        separately and more simply. You earn one point when the driver you chose
+        finishes ahead of their team-mate. The totals here combine both games.
       </p>
       <h2 className="font-title mt-10 text-2xl font-semibold text-text">
         Weekend and season views

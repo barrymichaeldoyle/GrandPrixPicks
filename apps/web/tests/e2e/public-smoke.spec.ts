@@ -48,7 +48,7 @@ test.describe('[public] smoke', () => {
     // Filling the fifth slot no longer swaps the panel on its own: the player
     // gets their finished order to check and moves on when they choose to.
     await page
-      .getByRole('button', { name: 'Continue to team-mate battles' })
+      .getByRole('button', { name: 'Continue to team-mate picks' })
       .click();
 
     await expect(page.getByText('Step 2 of 2')).toBeVisible();
@@ -56,14 +56,14 @@ test.describe('[public] smoke', () => {
       page.getByRole('heading', { name: 'Pick each team-mate winner' }),
     ).toBeVisible();
     await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
-      'Team-mate battle 1 of 11',
+      'Team-mate pick 1 of 11',
     );
     await page
       .locator('[data-testid="h2h-duel-picker"] button[aria-label^="Pick"]')
       .first()
       .click();
     await expect(page.getByTestId('h2h-duel-progress')).toHaveText(
-      'Team-mate battle 2 of 11',
+      'Team-mate pick 2 of 11',
     );
 
     await page.goto('/how-to-play');

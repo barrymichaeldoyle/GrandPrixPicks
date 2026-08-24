@@ -33,7 +33,9 @@ describe('toUserFacingMessage', () => {
 
     expect(
       toUserFacingMessage(wrapped('Submit your top 5 predictions first')),
-    ).toBe('Pick your Top 5 first, then call the team-mate battles.');
+    ).toBe(
+      'Pick your Top 5 first, then choose who finishes ahead in each team.',
+    );
     expect(
       toUserFacingMessage(wrapped('H2H predictions are locked for quali')),
     ).toBe('That session locked before this pick was saved.');

@@ -157,14 +157,14 @@ export function DashboardPicksSummary({
                 {h2hComplete ? (
                   <Check size={14} className="text-accent" aria-hidden="true" />
                 ) : null}
-                Team-mate battles
+                Team-mate picks
               </p>
               {/* A hint, not a heading: quiet, and on the row it belongs to. */}
               {editable && h2hTotal > 0 ? (
                 <p className="text-xs text-text-muted">
                   {h2hComplete
                     ? 'Tap one to change it'
-                    : `${h2hTotal - h2hCalled} left to call`}
+                    : `${h2hTotal - h2hCalled} left to pick`}
                 </p>
               ) : null}
             </div>
@@ -190,8 +190,8 @@ export function DashboardPicksSummary({
                   data-testid="summary-finish-h2h"
                 >
                   {h2hCalled === 0
-                    ? 'Call the team-mate battles'
-                    : 'Finish team-mate battles'}
+                    ? 'Make your team-mate picks'
+                    : 'Finish team-mate picks'}
                 </Button>
               </div>
             ) : null}
@@ -251,7 +251,7 @@ export function DashboardPicksSummary({
       <PicksFocusOverlay
         open={h2hOverlayOpen}
         onClose={() => setH2HOverlayOpen(false)}
-        title="Team-mate battles"
+        title="Team-mate picks"
         subtitle={`${sessionLabel} only`}
       >
         {matchups ? (
@@ -316,7 +316,7 @@ function summaryDetail({
     return 'Locked in. Points land once the results are published.';
   }
   if (!h2hComplete) {
-    return 'Your Top 5 is saved. Call the team-mate battles to finish the card.';
+    return 'Your Top 5 is saved. Finish your team-mate picks to complete the card.';
   }
   return 'Saved. Change anything here until this session locks.';
 }

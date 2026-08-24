@@ -624,7 +624,7 @@ function PredictionCardIntro({
       <p className="text-xl font-medium text-text">
         {includesTopFive
           ? 'That’s your prediction card.'
-          : 'Every team-mate battle called.'}
+          : 'All team-mate picks made.'}
       </p>
 
       {includesTopFive ? (

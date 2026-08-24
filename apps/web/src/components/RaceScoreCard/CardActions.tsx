@@ -67,8 +67,8 @@ export function CardActions({ data, cardState, variant }: CardActionsProps) {
           Sign in to make your prediction
         </p>
         <p className="mb-4 text-sm text-text-muted">
-          Pick your top 5 for each session and call the team-mate battles. It's
-          free, and each session is worth up to 25 points.
+          Pick your Top 5 for each session and choose who finishes ahead in each
+          team. It&apos;s free, and each session is worth up to 25 points.
         </p>
         <SignInActionButton size="sm">Sign In</SignInActionButton>
       </div>

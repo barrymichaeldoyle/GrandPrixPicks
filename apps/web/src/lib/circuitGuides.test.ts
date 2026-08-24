@@ -5,7 +5,12 @@ import {
   listCircuits,
 } from '@grandprixpicks/shared/circuits';
 
-import { getCircuitGuide, getCircuitGuideBySlug } from './circuitGuides';
+import {
+  getCircuitGuide,
+  getCircuitGuideBySlug,
+  listCircuitGuideSlugs,
+} from './circuitGuides';
+import { CIRCUIT_GUIDE_SLUGS, hasCircuitGuide } from './circuitGuideSlugs';
 
 /**
  * Every slug on the 2026 calendar. A race page with no guide falls back to
@@ -92,5 +97,23 @@ describe('circuit guides', () => {
 
   it('returns null for a venue with no entry yet', () => {
     expect(getCircuitGuide('not-a-real-circuit-2026')).toBeNull();
+  });
+
+  /**
+   * `circuitGuideSlugs.ts` repeats these slugs as literals so a route loader
+   * can ask "is there a guide?" without importing 28 kB of prose into the
+   * client entry. Duplication only stays safe while something checks it.
+   */
+  it('keeps the lightweight slug list in step with the guides themselves', () => {
+    expect([...CIRCUIT_GUIDE_SLUGS].sort()).toEqual(
+      listCircuitGuideSlugs().sort(),
+    );
+  });
+
+  it('answers the existence check the same way the lookup does', () => {
+    for (const slug of listCircuitGuideSlugs()) {
+      expect(hasCircuitGuide(slug)).toBe(true);
+    }
+    expect(hasCircuitGuide('not-a-real-circuit')).toBe(false);
   });
 });

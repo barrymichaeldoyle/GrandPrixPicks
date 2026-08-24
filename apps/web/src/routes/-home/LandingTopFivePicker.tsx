@@ -14,7 +14,7 @@ export function LandingTopFivePicker({
   onPicksChange,
   onStartOver,
   draftNoticeTarget,
-  continueLabel = 'Continue to team-mate battles',
+  continueLabel = 'Continue to team-mate picks',
 }: {
   raceId: Id<'races'>;
   initialDrivers: Doc<'drivers'>[];

@@ -36,7 +36,7 @@ test.describe('[flow] smoke', () => {
     // so there is nothing to submit until all eleven are called.
     await expect(page.getByTestId('h2h-duel-picker')).toBeVisible();
     await expect(page.getByTestId('h2h-duel-progress')).toContainText(
-      'Team-mate battle 1 of',
+      'Team-mate pick 1 of',
     );
     // Both overlays are mounted at this point -- the Top 5 one is still behind
     // the duel it handed over to -- so the close button has to be the duel's,

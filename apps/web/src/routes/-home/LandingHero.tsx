@@ -72,8 +72,8 @@ export function LandingHero({
             </span>
           </h1>
           <p className="gpp-reading-copy-lg mt-5 max-w-[48ch] text-text-muted">
-            Pick the top 5 and call every team-mate battle. Score points across
-            qualifying, sprints and race day.
+            Pick your Top 5. Choose who finishes ahead in each team. Score
+            points across qualifying, sprints and race day.
           </p>
           {/*
            * Mobile order: headline → subtext → deadline chip → CTA. The chip

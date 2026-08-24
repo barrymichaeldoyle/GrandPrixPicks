@@ -53,7 +53,8 @@ export function toUserFacingErrorDetails(
   // player nothing about what to actually do next.
   if (message.includes('Submit your top 5 predictions first')) {
     return {
-      message: 'Pick your Top 5 first, then call the team-mate battles.',
+      message:
+        'Pick your Top 5 first, then choose who finishes ahead in each team.',
       isGenericFallback: false,
     };
   }
@@ -74,7 +75,7 @@ export function toUserFacingErrorDetails(
     message.includes('H2H predictions are only open for the next upcoming race')
   ) {
     return {
-      message: 'Team-mate battles are only open for the next race.',
+      message: 'Team-mate picks are only open for the next race.',
       isGenericFallback: false,
     };
   }

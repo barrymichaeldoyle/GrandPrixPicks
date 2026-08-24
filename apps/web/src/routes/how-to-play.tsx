@@ -169,8 +169,8 @@ function HowToPlayPage() {
                   copy: 'Choose five unique drivers in the order you expect them to finish.',
                 },
                 {
-                  title: 'Call team-mate battles',
-                  copy: 'Pick which driver will finish ahead in each Head-to-Head matchup.',
+                  title: 'Make your team-mate picks',
+                  copy: 'Choose which driver will finish ahead in each team.',
                 },
                 {
                   title: 'Score and climb',

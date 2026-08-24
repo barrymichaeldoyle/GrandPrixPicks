@@ -65,10 +65,10 @@ function AboutPage() {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             Grand Prix Picks is a free prediction game for Formula 1 race
             weekends. You rank the five drivers you expect to finish at the
-            front of each session, call which driver will come out ahead in each
-            team-mate pairing, and score points based on how close you were.
-            Your results carry across the season on a global leaderboard and in
-            any private leagues you join.
+            front of each session, choose who will finish ahead in each team,
+            and score points based on how close you were. Your results carry
+            across the season on a global leaderboard and in any private leagues
+            you join.
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             There is no gambling here and no real-money betting of any kind. You

@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 
 import { InAppBackLink } from '@/components/InAppBackLink';
 import { getCircuitGuideBySlug } from '@/lib/circuitGuides';
+import { hasCircuitGuide } from '@/lib/circuitGuideSlugs';
 import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
@@ -17,8 +18,10 @@ const SECTIONS = [
 export const Route = createFileRoute('/circuits/$circuitSlug')({
   loader: async ({ context, params }) => {
     const circuit = getCircuit(params.circuitSlug);
-    const guide = circuit ? getCircuitGuideBySlug(circuit.slug) : null;
-    if (!circuit || !guide) {
+    // Existence only. Reading the guide itself here would put all 23 of them
+    // in the client entry, because `loader` is not part of the split chunk
+    // that `component` gets — see `circuitGuideSlugs.ts`.
+    if (!circuit || !hasCircuitGuide(circuit.slug)) {
       throw notFound();
     }
     // Loader data, not a client hook: a `<Link>` behind `useQuery` is absent
@@ -29,14 +32,13 @@ export const Route = createFileRoute('/circuits/$circuitSlug')({
     const racesHere = races
       .filter((race) => getCircuitForRace(race.slug)?.slug === circuit.slug)
       .sort((a, b) => a.round - b.round);
-    return { circuit, guide, season, racesHere };
+    return { circuit, season, racesHere };
   },
   component: CircuitPage,
   head: ({ loaderData, params }) => {
     const path = `/circuits/${params.circuitSlug}`;
     const circuit = loaderData?.circuit;
-    const guide = loaderData?.guide;
-    if (!circuit || !guide) {
+    if (!circuit) {
       return pageMeta({
         title: 'Circuit | Grand Prix Picks',
         description: 'Formula 1 circuit guides from Grand Prix Picks.',
@@ -79,7 +81,14 @@ export const Route = createFileRoute('/circuits/$circuitSlug')({
 });
 
 function CircuitPage() {
-  const { circuit, guide, season, racesHere } = Route.useLoaderData();
+  const { circuit, season, racesHere } = Route.useLoaderData();
+  const guide = getCircuitGuideBySlug(circuit.slug);
+  // Unreachable: the loader threw `notFound()` for a circuit without a guide.
+  // Narrowing rather than asserting, so a drift between the two lists renders
+  // nothing instead of throwing on `guide.character`.
+  if (!guide) {
+    return null;
+  }
 
   return (
     <div className="min-h-full bg-page">

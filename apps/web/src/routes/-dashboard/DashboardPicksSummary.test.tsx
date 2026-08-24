@@ -256,7 +256,7 @@ describe('DashboardPicksSummary', () => {
       picks: { top5: DRIVER_IDS, h2h: { matchup_1: DRIVER_IDS[0] } },
     });
 
-    expect(el.textContent).toContain('1 left to call');
+    expect(el.textContent).toContain('1 left to pick');
     expect(
       el.querySelector('[data-testid="summary-finish-h2h"]'),
     ).not.toBeNull();

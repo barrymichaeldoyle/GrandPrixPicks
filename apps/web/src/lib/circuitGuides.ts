@@ -389,6 +389,17 @@ export function getCircuitGuide(raceSlug: string): CircuitGuide | null {
   return circuit ? getCircuitGuideBySlug(circuit.slug) : null;
 }
 
+/**
+ * Every circuit slug that has a guide, read from the guides themselves.
+ *
+ * For tests and tooling. Application code that only needs to know whether a
+ * guide exists should use `hasCircuitGuide` from `circuitGuideSlugs.ts`:
+ * calling this one imports all of the writing.
+ */
+export function listCircuitGuideSlugs(): string[] {
+  return Object.keys(CIRCUIT_GUIDES);
+}
+
 /** The guide for a circuit, by circuit slug. */
 export function getCircuitGuideBySlug(
   circuitSlug: string,

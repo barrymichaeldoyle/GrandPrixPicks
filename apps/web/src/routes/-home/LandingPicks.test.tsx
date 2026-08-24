@@ -79,7 +79,7 @@ vi.mock('./LandingTopFivePicker', () => ({
         Complete Top 5
       </button>
       <button type="button" onClick={onContinue}>
-        Continue to team-mate battles
+        Continue to team-mate picks
       </button>
       <button type="button" onClick={() => onStartOver?.()}>
         Top 5 start over
@@ -180,7 +180,7 @@ describe('LandingPicks linear journey', () => {
 
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to team-mate battles')?.click();
+      button(container, 'Continue to team-mate picks')?.click();
     });
 
     expect(container.textContent).toContain('Step 2 of 2');
@@ -224,7 +224,7 @@ describe('LandingPicks linear journey', () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to team-mate battles')?.click();
+      button(container, 'Continue to team-mate picks')?.click();
     });
 
     expect(container.textContent).toContain('That’s your prediction card.');
@@ -256,7 +256,7 @@ describe('LandingPicks linear journey', () => {
     await renderJourney();
     act(() => button(container, 'Complete Top 5')?.click());
     await act(async () => {
-      button(container, 'Continue to team-mate battles')?.click();
+      button(container, 'Continue to team-mate picks')?.click();
     });
     expect(container.textContent).toContain('Step 2 of 2');
 

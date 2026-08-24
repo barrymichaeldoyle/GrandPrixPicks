@@ -47,7 +47,6 @@ export function ScoringSection() {
           </h2>
           <p className="gpp-reading-copy-lg mt-3 text-text-muted">
             Each Top 5 pick scores on its own. A perfect five earns 25 points,
-            <br />
             but you do not need the exact order to get on the board.
           </p>
         </div>

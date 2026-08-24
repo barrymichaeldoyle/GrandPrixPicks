@@ -9,7 +9,7 @@ import { Swords } from 'lucide-react';
 import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
-import { displayTeamName } from '@/lib/display';
+import { displayTeamName, pairingRoundSpanLabel } from '@/lib/display';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -28,6 +28,16 @@ const PATH = '/f1-team-mate-battles';
 type TeammateBattles = FunctionReturnType<typeof api.h2h.getTeammateBattles>;
 type BattleTeam = TeammateBattles['teams'][number];
 type BattleDriver = BattleTeam['drivers'][number];
+
+function pairingCountByTeam(
+  teams: readonly { team: string }[],
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const row of teams) {
+    counts.set(row.team, (counts.get(row.team) ?? 0) + 1);
+  }
+  return counts;
+}
 
 /**
  * Viewer-agnostic page, so the date is pinned to one locale and zone. Left to
@@ -51,6 +61,7 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
   },
   head: ({ loaderData }) => {
     const battles = loaderData?.battles;
+    const pairingCounts = pairingCountByTeam(battles?.teams ?? []);
     const biggestGap = [...(battles?.teams ?? [])].sort(
       (a, b) =>
         b.drivers[0].total -
@@ -102,11 +113,18 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
                       numberOfItems: battles.teams.length,
                       itemListOrder:
                         'https://schema.org/ItemListOrderUnordered',
-                      itemListElement: battles.teams.map((team, index) => ({
-                        '@type': 'ListItem',
-                        position: index + 1,
-                        name: `${displayTeamName(team.team)}: ${team.drivers[0].displayName} ${team.drivers[0].total}-${team.drivers[1].total} ${team.drivers[1].displayName}`,
-                      })),
+                      itemListElement: battles.teams.map((team, index) => {
+                        const span =
+                          pairingCounts.get(team.team)! > 1 &&
+                          team.fromRound != null
+                            ? ` (${pairingRoundSpanLabel(team.fromRound, team.toRound)})`
+                            : '';
+                        return {
+                          '@type': 'ListItem',
+                          position: index + 1,
+                          name: `${displayTeamName(team.team)}${span}: ${team.drivers[0].displayName} ${team.drivers[0].total}-${team.drivers[1].total} ${team.drivers[1].displayName}`,
+                        };
+                      }),
                     },
                   ]
                 : []),
@@ -228,6 +246,7 @@ function TeammateBattlesPage() {
   const sprintSessions =
     battles.sessionCounts.sprintQualifying + battles.sessionCounts.sprint;
   const includeSprints = sprintSessions > 0;
+  const pairingCounts = pairingCountByTeam(battles.teams);
 
   return (
     <div className="min-h-full bg-page">
@@ -287,6 +306,10 @@ function TeammateBattlesPage() {
               const [lead, trail] = team.drivers;
               const drawn = lead.total === trail.total;
               const headingId = `team-${team.matchupId}`;
+              const spanLabel =
+                pairingCounts.get(team.team)! > 1 && team.fromRound != null
+                  ? pairingRoundSpanLabel(team.fromRound, team.toRound)
+                  : null;
               const isUnpairedLastTeam =
                 battles.teams.length % 2 === 1 &&
                 index === battles.teams.length - 1;
@@ -312,6 +335,11 @@ function TeammateBattlesPage() {
                       className="text-base font-semibold text-text"
                     >
                       {displayTeamName(team.team)}
+                      {spanLabel ? (
+                        <span className="ml-2 font-normal text-text-muted">
+                          {spanLabel}
+                        </span>
+                      ) : null}
                     </h2>
                   </div>
 
@@ -408,9 +436,9 @@ function TeammateBattlesPage() {
               .
             </p>
             <p>
-              Team-mate battles are also a game on Grand Prix Picks: pick the
-              winner of each pairing before a session and score a point for
-              every one you call right.{' '}
+              You can also make team-mate picks on Grand Prix Picks. Choose who
+              finishes ahead in each team before a session and score one point
+              for every correct pick.{' '}
               <Link
                 to="/how-to-play"
                 className="font-medium text-accent hover:underline"

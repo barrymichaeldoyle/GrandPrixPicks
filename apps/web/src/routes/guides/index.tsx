@@ -4,7 +4,7 @@ import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { ArrowRight } from 'lucide-react';
 
 import { PageHeader } from '@/components/PageHeader';
-import { listGuides } from '@/lib/guides';
+import { listGuideMeta } from '@/lib/guideMeta';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/guides/')({
@@ -45,7 +45,9 @@ export const Route = createFileRoute('/guides/')({
 });
 
 function GuidesIndexPage() {
-  const guides = listGuides();
+  // Front matter only: this page shows titles and summaries, and reading
+  // the full guides here would pull every word into the client entry.
+  const guides = listGuideMeta();
 
   return (
     <div className="min-h-screen bg-page">

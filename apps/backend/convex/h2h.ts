@@ -1150,6 +1150,8 @@ export const getTeammateBattles = query({
         return {
           matchupId: matchup._id,
           team: matchup.team,
+          fromRound: matchup.fromRound ?? 1,
+          toRound: matchup.toRound,
           // Show whoever is ahead on the left, the way a battle is usually
           // written up. Ties keep the roster order.
           drivers:
@@ -1160,6 +1162,11 @@ export const getTeammateBattles = query({
         };
       }),
       constructorPoints,
+    ).sort((a, b) =>
+      // Constructor order groups a team with itself; chronological within that
+      // so Hadjar's Red Bull stint sits above Lawson's rather than whichever
+      // row the index happened to return first.
+      a.team === b.team ? a.fromRound - b.fromRound : 0,
     );
 
     return {

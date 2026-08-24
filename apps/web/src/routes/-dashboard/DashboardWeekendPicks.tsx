@@ -432,7 +432,7 @@ function DashboardWeekendPicksReady({
       <PicksFocusOverlay
         open={pickerOpen}
         onClose={closePicker}
-        title={step === 'h2h' ? 'Team-mate battles' : 'Your Top 5'}
+        title={step === 'h2h' ? 'Team-mate picks' : 'Your Top 5'}
         subtitle={
           step === 'h2h'
             ? 'Step 2 of 2'
@@ -484,7 +484,7 @@ function DashboardWeekendPicksReady({
                         continueToH2H();
                       }}
                     >
-                      Continue to team-mate battles
+                      Continue to team-mate picks
                     </Button>
                     <PicksSaveStatus state={saveState} />
                   </div>
@@ -732,11 +732,11 @@ function PicksInvitation({
     <div data-testid="dashboard-picks-invitation">
       <p className="gpp-label text-accent">Step {onH2H ? '2' : '1'} of 2</p>
       <h3 className="mt-1 text-lg font-semibold text-text sm:text-xl">
-        {onH2H ? 'Pick each team-mate winner' : 'Choose your Top 5'}
+        {onH2H ? 'Choose who finishes ahead' : 'Choose your Top 5'}
       </h3>
       <p className="mt-1 text-sm text-text-muted">
         {onH2H
-          ? 'Eleven team-mate battles. One point for each one you call right.'
+          ? 'Choose one driver from each team. Each correct pick earns one point.'
           : 'Tap drivers in finishing order. One card covers every open session.'}
       </p>
 
@@ -757,7 +757,7 @@ function PicksInvitation({
           data-testid="open-picks-picker"
         >
           {onH2H
-            ? 'Call the team-mate battles'
+            ? 'Make your team-mate picks'
             : hasTopFive
               ? 'Edit your Top 5'
               : 'Make your picks'}

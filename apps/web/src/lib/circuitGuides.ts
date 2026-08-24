@@ -213,13 +213,13 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   monza: {
     character:
-      'Monza is the Temple of Speed, the fastest circuit of the year and one of the oldest venues still in use. It is essentially a set of long straights joined by chicanes, run inside a royal park outside Milan, and the atmosphere is unlike anywhere else.',
+      'Monza is the Temple of Speed: a 5.793-kilometre sequence of long straights, heavy braking zones and fast corners inside the royal park north-east of Milan. Drivers spend about 80% of the lap at full throttle, and the 1.1-kilometre main straight helps make this one of Formula 1’s fastest circuits.',
     layout:
-      'Teams run their lowest-downforce configuration of the season here, which makes the cars fast in a straight line and unstable everywhere else. Braking into the chicanes from very high speed is the defining challenge, and riding the kerbs cleanly is worth real time.',
+      'Teams bring their lowest-downforce package, but headline top speed is only part of the problem: the car still needs to stay settled under very heavy braking and find traction out of slow chicanes. Monza was fully resurfaced and its kerbs rebuilt before the 2024 race, leaving a smoother track and changing how drivers attack the chicanes and Ascari.',
     racing:
-      'Slipstreaming is a genuine tactical factor, both in qualifying and in the race, and the braking zones at the first two chicanes produce plenty of passes. Cars can run in packs here in a way they cannot at most circuits.',
+      'The slipstream matters in qualifying and the race. Rettifilo, the first chicane at the end of the main straight, is the clearest overtaking opportunity and a first-lap pinch point; Roggia provides another heavy braking zone, but a poor exit from either chicane can undo the move.',
     predicting:
-      'Engine performance matters more than usual, which can lift teams that struggle elsewhere. The order is fairly fluid and the slipstream introduces genuine randomness into qualifying, so do not over-trust the grid. A good weekend to consider a driver from a team with a strong power unit.',
+      'Do not reduce Monza form to engine power. Prioritise straight-line efficiency, braking confidence, traction and balance in the low-downforce setup. Qualifying still matters, but tow and traffic can distort the margins, while the first-chicane squeeze raises the opening-lap risk. Compare long-run pace and speed-trap data before making a marginal pick.',
     traits: [
       { label: 'Track type', value: 'Permanent' },
       { label: 'Overtaking', value: 'Good' },
@@ -228,16 +228,16 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
   },
   madring: {
     character:
-      'A new venue for the 2026 calendar, built around the IFEMA exhibition complex in Madrid and mixing existing roads with purpose-built sections. It is the newest circuit in the championship and nobody has meaningful history here.',
+      'Madring makes its Formula 1 debut in 2026 as a 5.416-kilometre, 22-corner circuit around the IFEMA exhibition complex in north-east Madrid. It combines public roads with purpose-built sections, so one lap moves between a street-circuit feel and the elevation changes and fast sweepers of a permanent track.',
     layout:
-      'The layout combines street-circuit sections with faster purpose-built stretches, including a banked corner. Because it is new, teams arrive with simulation data rather than experience, and the first practice sessions carry more weight than they normally would.',
+      'The 1.3-kilometre longest straight and several heavy stops reward straight-line speed and braking stability, while the near-flat Valdebebas sequence asks for high-speed balance. Turn 12, La Monumental, is the signature: a 550-metre corner with 24% banking, approached at high speed and followed by heavy braking for Turn 13.',
     racing:
-      'Unknown. New circuits often take a season or two before their real character is clear, and early expectations about overtaking are frequently wrong in both directions.',
+      'The organisers identify Turns 1, 13 and 17 as overtaking opportunities, with large speed reductions at the latter two. La Monumental may also help a following car build a tow before Turn 13. Those ingredients are promising, but no Formula 1 race has yet shown whether cars can follow closely through the fast sections, so treat overtaking claims as unproven.',
     predicting:
-      'Treat this as the highest-uncertainty weekend on the calendar. With no historical form to lean on, the usual heuristics are weaker: track evolution across the weekend will be steep, setup mistakes will be common, and a team that reads the circuit well in simulation can arrive unexpectedly strong. Watch practice more closely than usual before committing your picks.',
+      'Treat this as the highest-uncertainty weekend on the calendar. There is no historical form, tyre-degradation pattern or proven overtaking baseline, and teams begin with simulation rather than race data. Give practice more weight than usual: watch braking confidence, pace through the fast linked corners, long-run tyre behaviour and how quickly each team adapts as the new surface evolves.',
     traits: [
       { label: 'Track type', value: 'Street and permanent mix' },
-      { label: 'Overtaking', value: 'Unproven' },
+      { label: 'Overtaking', value: 'Promising, unproven' },
       { label: 'Upset risk', value: 'High (new circuit)' },
     ],
   },

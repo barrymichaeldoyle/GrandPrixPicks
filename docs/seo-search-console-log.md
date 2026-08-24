@@ -15,12 +15,12 @@ Search Console data was updated on 2026-08-24 for performance (through
 The three-month report currently contains roughly one month of data
 (2026-07-23–2026-08-22):
 
-| Metric | Baseline |
-| --- | ---: |
-| Clicks | 17 |
-| Impressions | 1,110 |
-| CTR | 1.5% |
-| Average position | 33.1 |
+| Metric           | Baseline |
+| ---------------- | -------: |
+| Clicks           |       17 |
+| Impressions      |    1,110 |
+| CTR              |     1.5% |
+| Average position |     33.1 |
 
 Search Console Insights' last-28-day comparison reports 15 clicks (+650%) and
 1,060 impressions (+1,929%). The growth is real, but the absolute sample is too
@@ -28,33 +28,33 @@ small to optimize around percentages alone.
 
 Top queries shown in the Performance report:
 
-| Query | Clicks | Impressions |
-| --- | ---: | ---: |
-| f1 picks | 1 | 37 |
-| grand prediction | 1 | 4 |
-| f1 standings | 0 | 34 |
-| gp prediction | 0 | 26 |
-| formula 1 picks | 0 | 25 |
-| gp picks | 0 | 14 |
-| f1 predictions | 0 | 14 |
-| grand pick | 0 | 13 |
-| formula 1 standings | 0 | 13 |
-| grand prix predictions | 0 | 6 |
+| Query                  | Clicks | Impressions |
+| ---------------------- | -----: | ----------: |
+| f1 picks               |      1 |          37 |
+| grand prediction       |      1 |           4 |
+| f1 standings           |      0 |          34 |
+| gp prediction          |      0 |          26 |
+| formula 1 picks        |      0 |          25 |
+| gp picks               |      0 |          14 |
+| f1 predictions         |      0 |          14 |
+| grand pick             |      0 |          13 |
+| formula 1 standings    |      0 |          13 |
+| grand prix predictions |      0 |           6 |
 
 Top pages shown in the Performance report:
 
-| Page | Clicks | Impressions | Observed CTR |
-| --- | ---: | ---: | ---: |
-| `/` | 11 | 265 | 4.2% |
-| `/races/netherlands-2026` | 5 | 321 | 1.6% |
-| `/about` | 1 | 12 | 8.3% |
-| `/f1-standings` | 0 | 144 | 0% |
-| `/guides/f1-points-system-explained` | 0 | 90 | 0% |
-| `/races` | 0 | 53 | 0% |
-| `/guides/f1-race-weekend-format` | 0 | 42 | 0% |
-| `/f1-teammate-battles` | 0 | 26 | 0% |
-| `/leaderboard` | 0 | 18 | 0% |
-| `/how-to-play` | 0 | 15 | 0% |
+| Page                                 | Clicks | Impressions | Observed CTR |
+| ------------------------------------ | -----: | ----------: | -----------: |
+| `/`                                  |     11 |         265 |         4.2% |
+| `/races/netherlands-2026`            |      5 |         321 |         1.6% |
+| `/about`                             |      1 |          12 |         8.3% |
+| `/f1-standings`                      |      0 |         144 |           0% |
+| `/guides/f1-points-system-explained` |      0 |          90 |           0% |
+| `/races`                             |      0 |          53 |           0% |
+| `/guides/f1-race-weekend-format`     |      0 |          42 |           0% |
+| `/f1-teammate-battles`               |      0 |          26 |           0% |
+| `/leaderboard`                       |      0 |          18 |           0% |
+| `/how-to-play`                       |      0 |          15 |           0% |
 
 The homepage and Dutch Grand Prix page account for 16 of 17 clicks. Discovery
 is broadening, but most pages are still ranking too low for CTR alone to be a
@@ -62,10 +62,10 @@ useful diagnosis.
 
 ### Indexing
 
-| Status | Pages |
-| --- | ---: |
-| Indexed | 75 |
-| Not indexed | 84 |
+| Status      | Pages |
+| ----------- | ----: |
+| Indexed     |    75 |
+| Not indexed |    84 |
 
 The 84 exclusions comprise 27 intentional `noindex` URLs, 27 alternate
 canonicals, five 404s, four redirects, 13 discovered but not indexed, and eight
@@ -148,12 +148,14 @@ canonical, and redirect exclusions alone.
 
 Add one row per deployed change. Use the deploy date, not the coding date.
 
-| Deploy date | Pages | Hypothesis | Exact change | Review date | Outcome |
-| --- | --- | --- | --- | --- | --- |
-| TBD | `/f1-standings` | A direct query-first title earns clicks and moves standings queries upward | Changed title from “2026 F1 Championship Standings \| Grand Prix Picks” to “2026 F1 Standings: Drivers & Constructors”; added a contextual link to the points guide | +7 days and +28 days after deploy | Pending |
-| TBD | `/circuits` and selected circuit pages | Strong crawlable internal links cause Google to crawl the discovered URLs | Added a contextual circuit-index link from `/races`; existing race-to-circuit links, footer link, all-round SSR links and sitemap filtering remain in place | +7 days and +28 days after deploy | Pending |
-| TBD | `/` and prediction guides | A coherent F1-predictions topic cluster improves discovery and sends informational visitors into the playable flow | Added homepage links to standings, points and Top 5 strategy; points and Top 5 guides now link back to the picker; How to Play CTA now opens the picker | +7 days and +28 days after deploy | Pending |
-| TBD | `/guides/f1-points-system-explained` | A direct first-sentence answer better satisfies points-system intent | Opened with the complete 25–1 scoring sequence and recorded `dateModified` as 2026-08-24 | +7 days and +28 days after deploy | Pending |
+| Deploy date | Pages                                       | Hypothesis                                                                                                             | Exact change                                                                                                                                                              | Review date                       | Outcome |
+| ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------- |
+| TBD         | `/f1-standings`                             | A direct query-first title earns clicks and moves standings queries upward                                             | Changed title from “2026 F1 Championship Standings \| Grand Prix Picks” to “2026 F1 Standings: Drivers & Constructors”; added a contextual link to the points guide       | +7 days and +28 days after deploy | Pending |
+| TBD         | `/circuits` and selected circuit pages      | Strong crawlable internal links cause Google to crawl the discovered URLs                                              | Added a contextual circuit-index link from `/races`; existing race-to-circuit links, footer link, all-round SSR links and sitemap filtering remain in place               | +7 days and +28 days after deploy | Pending |
+| TBD         | `/` and prediction guides                   | A coherent F1-predictions topic cluster improves discovery and sends informational visitors into the playable flow     | Added homepage links to standings, points and Top 5 strategy; points and Top 5 guides now link back to the picker; How to Play CTA now opens the picker                   | +7 days and +28 days after deploy | Pending |
+| TBD         | `/guides/f1-points-system-explained`        | A direct first-sentence answer better satisfies points-system intent                                                   | Opened with the complete 25–1 scoring sequence and recorded `dateModified` as 2026-08-24                                                                                  | +7 days and +28 days after deploy | Pending |
+| TBD         | `/circuits/monza` and `/races/italy-2026`   | A current, useful Monza guide captures growing Italian Grand Prix research demand and leads readers toward predictions | Updated the shared guide with official circuit dimensions, the 2024 resurfacing and kerb changes, clearer overtaking guidance, and prediction factors beyond engine power | +7 days and +28 days after deploy | Pending |
+| TBD         | `/circuits/madring` and `/races/spain-2026` | A substantive guide to an unfamiliar new circuit captures Madrid F1 research demand before the inaugural race          | Replaced the provisional Madring copy with confirmed dimensions, circuit sections, likely overtaking zones and first-race prediction signals while preserving unknowns    | +7 days and +28 days after deploy | Pending |
 
 ### Implementation note — 2026-08-24
 

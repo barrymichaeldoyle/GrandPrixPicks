@@ -95,8 +95,12 @@ test.describe('[public] smoke', () => {
     await expect(
       page.getByRole('heading', { name: summary.race!.name }),
     ).toBeVisible();
+    // `tab`, not `button`: the session strip is a real ARIA tablist, so the
+    // options carry role="tab". Asserting the role is the point of the check
+    // as much as the label is, since it is what makes the strip navigable by
+    // arrow key.
     await expect(
-      page.getByRole('button', { name: /Sprint Quali/i }),
+      page.getByRole('tab', { name: /Sprint Quali/i }),
     ).toBeVisible();
   });
 

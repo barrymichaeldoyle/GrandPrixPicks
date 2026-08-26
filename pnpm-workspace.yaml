@@ -209,6 +209,13 @@ overrides:
   'next@>=16.0.0 <16.2.11': 16.2.11
   '@opentelemetry/core@<2.8.0': 2.8.0
   '@babel/core@<=7.29.0': 7.29.6
+  # Lifts @lhci/cli's pinned lighthouse 12.6.1 to the 13.x line, whose
+  # puppeteer-core ^25.3.0 pulls @puppeteer/browsers 3.x. That line replaced
+  # extract-zip with modern-tar, which is the only way to get
+  # GHSA-jmr9-qjv8-65gv out of the tree: extract-zip 2.0.1 is the newest
+  # release, so there is nothing to override it to directly.
+  'lighthouse@<13.4.1': 13.4.1
+
   # Reached only through Convex/Nitro server plumbing; the 7.x line carries
   # the fix, so this is a patch lift rather than a major move.
   'undici@>=7.0.0 <7.29.0': 7.29.0

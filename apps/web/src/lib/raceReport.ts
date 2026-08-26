@@ -11,7 +11,7 @@ export type RaceReportEntry = {
   status?: string | null;
 };
 
-export type RaceReportResults = Partial<
+type RaceReportResults = Partial<
   Record<SessionType, { enrichedClassification?: RaceReportEntry[] } | null>
 >;
 

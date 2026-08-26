@@ -18,7 +18,6 @@
   "workspaces": {
     "apps/web": {
       "entry": [
-        "src/start.ts",
         "instrument.server.mjs",
         "server/routes/**/*.ts",
         "server/middleware/**/*.ts",
@@ -30,11 +29,11 @@
         "tests/e2e/**/*.setup.ts"
       ],
       "project": [
-        "src/**/*.{ts,tsx}",
+        "src/**/*.{ts,tsx,css}",
         "server/**/*.{ts,tsx}",
         "tests/**/*.{ts,tsx}"
       ],
-      "ignoreDependencies": ["@tanstack/router-plugin", "tailwindcss"],
+      "ignoreDependencies": ["@tanstack/router-plugin"],
       "ignoreBinaries": ["cloudflared"]
     },
     "apps/backend": {
@@ -43,8 +42,7 @@
     },
     "apps/mobile": {
       "entry": ["App.tsx"],
-      "project": ["**/*.{ts,tsx,js,cjs}"],
-      "ignoreFiles": ["babel.config.cjs"],
+      "project": ["**/*.{ts,tsx,js,cjs,css}"],
       "ignoreDependencies": ["expo-updates", "tailwind-merge", "clsx"],
       "ignore": ["src/tw/index.tsx", "plugins/*.cjs"]
     },
@@ -54,9 +52,9 @@
         "src/client/splash.tsx",
         "src/server/index.ts"
       ],
-      "project": ["src/**/*.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx,css}"],
       "ignoreFiles": ["src/client/global.ts"],
-      "ignoreDependencies": ["@grandprixpicks/shared", "tailwindcss"]
+      "ignoreDependencies": ["@grandprixpicks/shared"]
     },
     "packages/shared": {
       "project": ["src/**/*.{ts,tsx}"]

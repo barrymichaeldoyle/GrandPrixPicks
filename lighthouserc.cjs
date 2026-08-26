@@ -30,7 +30,11 @@
  * Real-world performance numbers should come from field data, not from here.
  * This is a regression gate, not a measurement of what players experience.
  *
- * Baseline measured 2026-08-14, median of 3 desktop runs:
+ * Baseline measured 2026-08-14 under Lighthouse 12, median of 3 desktop runs.
+ * The runner moved to Lighthouse 13 on 2026-08-26 (see the `lighthouse`
+ * override in pnpm-workspace.yaml); the gated audits all survived that move,
+ * but the perf column below predates it and is not a like-for-like comparison:
+
  *   /              perf 88  a11y 100  seo 100  LCP 1538ms  CLS 0  TBT 0ms
  *   /races         perf 90  a11y 100  seo 100  LCP 1506ms  CLS 0  TBT 0ms
  *   /f1-standings  perf 89  a11y 100  seo 100  LCP 1686ms  CLS 0  TBT 0ms

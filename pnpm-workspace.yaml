@@ -16,35 +16,11 @@ allowBuilds:
 
 auditConfig:
   ignoreGhsas:
-    # brace-expansion DoS (unbounded expansion length -> OOM). The fix is an
-    # EXPANSION_MAX_LENGTH accumulator cap that upstream shipped only in 5.0.8;
-    # the advisory therefore marks every version <=5.0.7 vulnerable, including
-    # the 1.x and 2.x lines that are still maintained.
-    #
-    # Two of those lines survive in the tree and cannot be overridden away:
-    #   brace-expansion@1.1.18 <- minimatch@3.1.5 <- glob@7 <- dot-object
-    #                             <- twirp-ts <- @devvit/protos
-    #   brace-expansion@2.1.4  <- minimatch@5.1.9 <- filelist <- jake <- ejs
-    #                             <- @oclif/core <- @devvit/cli
-    # brace-expansion@5's CJS entry exports an object ({ expand, EXPANSION_MAX,
-    # EXPANSION_MAX_LENGTH }) rather than a callable, but minimatch 3/5 do
-    # `var expand = require('brace-expansion'); expand(pattern)`. Forcing 5.0.8
-    # there fails with "expand is not a function" and breaks `devvit upload`
-    # plus the protos codegen.
-    #
-    # Scope: all 105 paths are under apps/reddit (the Devvit prototype), and
-    # they are reached only by build/CLI-time globbing over our own repo paths.
-    # No attacker-controlled brace patterns, and nothing here ships to users or
-    # reaches apps/web, apps/mobile, or apps/backend.
-    #
-    # Revisit when devvit drops the glob@7 / ejs chain, or when 1.x / 2.x pick
-    # up a backport of the length cap.
-    - GHSA-mh99-v99m-4gvg
-
     # image-size DoS in the ICNS (GHSA-w3rx-r6r6-pgpr) and JXL/HEIF
     # (GHSA-5p2g-fcmc-qvqq) parsers. Both advisories name >=2.0.3 as patched,
     # but 2.0.2 IS the latest published release: there is no fixed version to
-    # override to, in either major.
+    # override to, in either major. Re-verified against the registry
+    # 2026-08-26 (dist-tags: latest 2.0.2, legacy 1.2.1).
     #
     # Two lines survive in the tree, neither of which we choose:
     #   image-size@1.2.1 <- metro <- react-native (all 101 paths)
@@ -53,6 +29,9 @@ auditConfig:
     # `Uint8Array | string`, 2.x narrowed the input to `Uint8Array` only, and
     # metro's Assets.js hands it a file path for every asset that is not
     # inside a .zip. Forcing 2.x there breaks bundling on ordinary images.
+    # Still true on metro@0.87.0, the newest release: it pins `image-size
+    # ^1.0.2` and calls the default export, so there is no metro upgrade that
+    # exits the 1.x line either.
     #
     # Scope: both consumers parse images at build time, from assets in this
     # repo. Nothing here reads an image an attacker chose, and neither package
@@ -61,25 +40,6 @@ auditConfig:
     # Revisit when image-size publishes 2.0.3, or when metro moves off 1.x.
     - GHSA-w3rx-r6r6-pgpr
     - GHSA-5p2g-fcmc-qvqq
-
-    # extract-zip symlink path traversal. The advisory names >=2.0.2 as
-    # patched, but 2.0.1 IS the latest published release: there is no fixed
-    # version to override to, the same dead end as image-size above.
-    #
-    # One line in the tree, all of it new with Lighthouse CI:
-    #   extract-zip@2.0.1 <- @puppeteer/browsers <- puppeteer-core
-    #                     <- lighthouse <- @lhci/cli
-    #
-    # Scope: the only zip it opens is the Chrome build @puppeteer/browsers
-    # downloads from Google so Lighthouse has a browser to drive. The archive
-    # is not attacker-chosen, it is fetched over TLS from a fixed host, and
-    # @lhci/cli is a devDependency that runs in CI and ships to nobody. On the
-    # runners this actually executes on, Chrome is preinstalled and the
-    # download path is never taken at all.
-    #
-    # Revisit when extract-zip publishes 2.0.2, or when puppeteer-core moves
-    # off it.
-    - GHSA-jmr9-qjv8-65gv
 
 catalog:
   convex: 1.45.0
@@ -172,9 +132,10 @@ overrides:
   # own major. Staying inside the major is the point: minimatch 3/5 call the
   # CJS export directly, and 5.x exports an object instead of a function.
   #
-  # This clears GHSA-rgw5-rvv9-x895, which upstream did backport to 1.x and
-  # 2.x. It does not clear GHSA-mh99-v99m-4gvg, whose fix exists only in 5.x
-  # and so still needs the ignore in auditConfig above.
+  # This clears GHSA-rgw5-rvv9-x895, and as of 2026-08-26 GHSA-mh99-v99m-4gvg
+  # too: upstream backported the EXPANSION_MAX_LENGTH cap to the maintenance
+  # lines, and 1.1.18 / 2.1.4 / 5.0.9 are all now outside the advisory's
+  # vulnerable range. The ignore that used to sit in auditConfig is gone.
   'brace-expansion@>=1.0.0 <1.1.18': 1.1.18
   'brace-expansion@>=2.0.0 <2.1.4': 2.1.4
   'brace-expansion@>=3.0.0 <5.0.9': 5.0.9

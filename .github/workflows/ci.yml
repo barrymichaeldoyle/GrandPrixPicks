@@ -268,7 +268,7 @@ jobs:
       - name: Lighthouse budgets
         run: pnpm check:lighthouse
 
-      # Mobile emulation is the only place `font-size` and `tap-targets` run.
+      # The only check that renders the built app under mobile emulation.
       # See lighthouserc.mobile.cjs for why it is a separate config rather than
       # more URLs in the first one.
       - name: Lighthouse budgets (mobile)

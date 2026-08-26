@@ -10,17 +10,26 @@
  *
  * ## What this run is actually for
  *
- * Two SEO audits only exist in mobile emulation and so have never run here:
+ * It was created for two SEO audits that only ran in mobile emulation:
+ * `font-size` (body copy too small to read on a phone) and `tap-targets`
+ * (controls too small or too close to hit with a thumb).
  *
- *   - `font-size`, which fails a page whose body copy is too small to read on a
- *     phone (currently ~70-75% legible text across the sampled pages, against a
- *     60% floor — passing, but not by so much that a type change could not
- *     break it);
- *   - `tap-targets`, Lighthouse's own heuristic for controls too small or too
- *     close to hit with a thumb.
+ * Lighthouse 13 removed both. They are gone from the default config, not
+ * renamed, so neither this file nor any other config can ask for them again.
+ * What that leaves:
  *
- * That is the whole reason this file exists. Everything else it measures is
- * either already covered at desktop or not worth gating twice.
+ *   - `tap-targets` is no real loss. The axe smoke opts into `wcag22aa`
+ *     specifically for `target-size`, and runs it on a Pixel 7, so the same
+ *     ground is covered by a normative WCAG rule rather than a heuristic.
+ *   - `font-size` has no replacement anywhere in the repo. Type that shrinks
+ *     below legibility on a phone is currently caught by nobody. If that
+ *     matters, it wants an explicit test, not a Lighthouse budget.
+ *
+ * So this file now earns its place on a narrower claim: it is the only check
+ * that renders the built app under mobile emulation and asserts that
+ * accessibility and SEO still score 100 there. That is worth keeping (the
+ * violation described above was invisible at 1280px), but it is a smaller
+ * claim than the one this file was opened with.
  *
  * ## Why accessibility is asserted but is not the real gate
  *

@@ -210,8 +210,6 @@ export function LeagueMembers({
     userId: string;
     rank: number;
     points: number;
-    top5Points?: number;
-    h2hPoints?: number;
     correctPicks?: number;
     totalPicks?: number;
     isViewer?: boolean;
@@ -270,8 +268,6 @@ export function LeagueMembers({
       isFollowing,
       rank: standing?.rank,
       points: standing?.points,
-      top5Points: standing?.top5Points,
-      h2hPoints: standing?.h2hPoints,
       correctPicks: standing?.correctPicks,
       totalPicks: standing?.totalPicks,
     };

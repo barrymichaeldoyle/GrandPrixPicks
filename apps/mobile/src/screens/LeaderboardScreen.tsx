@@ -36,9 +36,6 @@ type Entry = {
   points: number;
   raceCount?: number;
   isViewer?: boolean;
-  // combined
-  top5Points?: number;
-  h2hPoints?: number;
   // h2h
   correctPicks?: number;
   totalPicks?: number;
@@ -101,9 +98,11 @@ function isRaceSelectable(race: RaceLite, now: number): boolean {
 }
 
 function modeSubline(entry: Entry, mode: GameMode): string | null {
-  if (mode === 'combined') {
-    return `${entry.top5Points ?? 0} Top 5 · ${entry.h2hPoints ?? 0} H2H`;
-  }
+  // Combined deliberately has no subline of its own, so it falls through to
+  // the weekend count below. It used to split the total back into "x Top 5 ·
+  // y H2H", which is the one thing a combined board is for not doing: the web
+  // leaderboard shows a single total against a race count, and this is the
+  // same board.
   if (mode === 'h2h') {
     return `${entry.correctPicks ?? 0}/${entry.totalPicks ?? 0} correct`;
   }

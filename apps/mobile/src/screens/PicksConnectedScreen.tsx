@@ -490,9 +490,6 @@ function WeekendPointsStrip({
         <Text className="text-sm font-extrabold text-accent-hover">
           {totalPoints} pts
         </Text>
-        <Text className="text-muted text-[11px]">
-          {top5Total} Top 5 · {h2hTotal} H2H
-        </Text>
       </View>
       <Pressable
         accessibilityRole="button"

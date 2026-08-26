@@ -50,10 +50,6 @@ export function LatestResultCard({
         <LatestResultHeading />
         <div className="mt-3 h-4 w-40 animate-pulse rounded bg-surface-muted" />
         <div className="mt-4 h-10 animate-pulse rounded bg-surface-muted" />
-        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border">
-          <div className="h-11 animate-pulse bg-surface-elevated" />
-          <div className="h-11 animate-pulse bg-surface-elevated" />
-        </div>
       </div>
     );
   }
@@ -103,18 +99,17 @@ export function LatestResultCard({
 
       {/* Same shape as the season standing card one rail over: the number that
           matters at title size on the left, position as a quiet mono line on
-          the right. The two cards then read as one family instead of two
-          unrelated stat blocks. */}
+          the right, so the two cards read as one family.
+
+          No label under the points. It used to say "Combined", which is how
+          the leaderboard code names the Top 5 + H2H sum, not how a player
+          thinks about the weekend they just played: on a card headed "Latest
+          result" for one named race, the points are simply the result. */}
       <div className="mt-4 flex items-end justify-between gap-3">
-        <div>
-          <p className="font-title text-3xl font-semibold text-accent">
-            {totalPoints}
-            <span className="ml-1 text-sm font-medium text-text-muted">
-              pts
-            </span>
-          </p>
-          <p className="mt-1 text-xs text-text-muted">Combined</p>
-        </div>
+        <p className="font-title text-3xl font-semibold text-accent">
+          {totalPoints}
+          <span className="ml-1 text-sm font-medium text-text-muted">pts</span>
+        </p>
         <p className="gpp-mono text-sm font-medium text-text">
           {rank == null ? (
             '—'
@@ -127,14 +122,6 @@ export function LatestResultCard({
             </>
           )}
         </p>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border text-center">
-        <ResultStat
-          value={viewerEntry?.top5Points ?? weekend.totalPoints}
-          label="Top 5"
-        />
-        <ResultStat value={viewerEntry?.h2hPoints ?? '—'} label="H2H" />
       </div>
 
       {/* A bottom link, not a header button. In a rail this narrow the old
@@ -163,23 +150,6 @@ function LatestResultHeading() {
       <h2 id="latest-result-heading" className="gpp-label text-text-muted">
         Latest result
       </h2>
-    </div>
-  );
-}
-
-function ResultStat({
-  value,
-  label,
-}: {
-  value: number | string;
-  label: string;
-}) {
-  return (
-    <div className="bg-surface-elevated px-2 py-2">
-      <p className="gpp-mono text-sm text-text">{value}</p>
-      <p className="text-[9px] tracking-label text-text-muted uppercase">
-        {label}
-      </p>
     </div>
   );
 }

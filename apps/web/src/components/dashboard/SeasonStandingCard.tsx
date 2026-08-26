@@ -47,6 +47,9 @@ export function SeasonStandingCard({
     return null;
   }
 
+  // No Top 5 / H2H split. One standing is the thing a player has: the season
+  // leaderboard stopped separating the two, and a rank in H2H alone is not a
+  // number anyone came here for. The full breakdown lives on the leaderboard.
   return (
     <div className="rounded-lg border border-border bg-surface p-4">
       <SeasonStandingHeading />
@@ -64,20 +67,6 @@ export function SeasonStandingCard({
             <p className="gpp-mono text-sm font-medium text-text">
               {entry.points} pts
             </p>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border text-center">
-            <div className="bg-surface-elevated px-2 py-2">
-              <p className="gpp-mono text-sm text-text">{entry.top5Points}</p>
-              <p className="text-[9px] tracking-label text-text-muted uppercase">
-                Top 5
-              </p>
-            </div>
-            <div className="bg-surface-elevated px-2 py-2">
-              <p className="gpp-mono text-sm text-text">{entry.h2hPoints}</p>
-              <p className="text-[9px] tracking-label text-text-muted uppercase">
-                H2H
-              </p>
-            </div>
           </div>
         </>
       ) : (

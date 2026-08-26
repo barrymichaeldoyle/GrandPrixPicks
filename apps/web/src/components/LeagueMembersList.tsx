@@ -17,8 +17,6 @@ export type LeagueMembersListItem = {
   isFollowing?: boolean;
   rank?: number;
   points?: number;
-  top5Points?: number;
-  h2hPoints?: number;
   correctPicks?: number;
   totalPicks?: number;
 };
@@ -252,13 +250,6 @@ export function LeagueMembersList({
             >
               {member.points != null ? `${member.points} pts` : '—'}
             </span>
-            {gameMode === 'combined' &&
-              member.top5Points != null &&
-              member.h2hPoints != null && (
-                <p className="mt-0.5 text-xs text-text-muted">
-                  T5: {member.top5Points} · H2H: {member.h2hPoints}
-                </p>
-              )}
             {gameMode === 'h2h' &&
               member.correctPicks != null &&
               member.totalPicks != null && (

@@ -54,9 +54,9 @@
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "1.62.1",
-    "knip": "6.32.2",
-    "oxfmt": "0.63.0",
-    "oxlint": "1.78.0",
+    "knip": "6.32.3",
+    "oxfmt": "0.65.0",
+    "oxlint": "1.80.0",
     "patch-pulse": "4.1.1",
     "typescript": "catalog:"
   },

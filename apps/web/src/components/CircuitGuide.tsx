@@ -45,12 +45,21 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
       aria-labelledby="circuit-guide-heading"
       className="mt-10 border-t border-border pt-8"
     >
-      <p className="text-xs font-semibold tracking-label text-accent uppercase">
-        Circuit guide
-      </p>
+      {/*
+        Muted, not accent. DESIGN.md gives the eyebrow the accent only when the
+        section is a step in the picks flow; reference material is not, and on
+        a scored race page this was one of the loudest chartreuse elements
+        below the fold while the page's actual call to action had none.
+      */}
+      <p className="gpp-label">Circuit guide</p>
+      {/*
+        Headline role, matching "Session Results" above it. At `2xl`/600 this
+        heading outweighed both of them and, before the race name was given
+        its display role, it was the largest text on the page.
+      */}
       <h2
         id="circuit-guide-heading"
-        className="font-title mt-1 text-2xl font-semibold text-text"
+        className="mt-2 text-2xl leading-tight font-normal tracking-tight text-text sm:text-3xl"
       >
         {circuit ? circuit.name : raceName}
       </h2>
@@ -67,12 +76,8 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
       <dl className="mt-6 grid gap-px border border-border bg-border sm:grid-cols-3">
         {guide.traits.map((trait) => (
           <div key={trait.label} className="bg-surface px-4 py-3">
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {trait.label}
-            </dt>
-            <dd className="mt-1 text-sm font-semibold text-text">
-              {trait.value}
-            </dd>
+            <dt className="gpp-label">{trait.label}</dt>
+            <dd className="gpp-mono mt-1 text-sm text-text">{trait.value}</dd>
           </div>
         ))}
       </dl>
@@ -80,7 +85,7 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
       <div className="mt-8 grid gap-8 md:grid-cols-3">
         {SECTIONS.map((section) => (
           <div key={section.key}>
-            <h3 className="font-title text-base font-semibold text-text">
+            <h3 className="text-xl leading-tight font-medium tracking-tight text-text">
               {section.heading}
             </h3>
             <p className="gpp-reading-copy mt-2 text-text-muted">

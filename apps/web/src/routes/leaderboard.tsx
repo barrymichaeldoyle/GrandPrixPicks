@@ -14,7 +14,9 @@ import { AnimatePresence, m } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { RaceFlag } from '@/components/RaceFlag';
 import { TabSwitch } from '@/components/TabSwitch';
+import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { isRaceSelectableForLeaderboard } from '@/lib/raceSessions';
 import {
   breadcrumbSchema,
@@ -275,8 +277,10 @@ function LeaderboardPage() {
       : (activeSeasonData?.totalCount ?? 0);
 
   const activeViewKey = `${timeScope}:${scope}`;
-  const showStandingCard =
-    headerViewerEntry != null || (timeScope === 'weekend' && isSignedIn);
+  // The card is a rank badge, so it only exists once there is a rank. Someone
+  // who has not scored this weekend got "Not ranked this weekend" next to a
+  // dash, which reads as a status report on a player who has done nothing
+  // wrong; the board below already tells them they are not on it.
   const standingName =
     (headerViewerEntry as LeaderboardEntry | null)?.displayName ??
     headerViewerEntry?.username ??
@@ -284,18 +288,38 @@ function LeaderboardPage() {
     viewer?.username ??
     'Your standing';
 
-  const heroSubtitle =
+  const playerCountSuffix =
+    activeTotalCount && activeTotalCount > 0
+      ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
+      : '';
+
+  // The weekend board is about one venue, so it gets that venue's flag — the
+  // same mark the race pages and the rail's latest result carry, so "which
+  // race am I looking at" is answerable without reading. The season board has
+  // no single country to show and stays text.
+  const weekendCountryCode =
     timeScope === 'weekend' && selectedRace
-      ? `${selectedRace.season} ${selectedRace.name}${
-          activeTotalCount > 0
-            ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
-            : ''
-        }`
-      : `${season} Season Standings${
-          activeTotalCount && activeTotalCount > 0
-            ? ` · ${playerCountFormatter.format(activeTotalCount)} ${activeTotalCount === 1 ? 'player' : 'players'}`
-            : ''
-        }`;
+      ? getCountryCodeForRace({ slug: selectedRace.slug })
+      : null;
+
+  const heroSubtitle =
+    timeScope === 'weekend' && selectedRace ? (
+      <span className="inline-flex items-center gap-2">
+        {weekendCountryCode ? (
+          <RaceFlag
+            countryCode={weekendCountryCode}
+            size="sm"
+            className="shrink-0 overflow-hidden rounded-sm border border-border"
+          />
+        ) : null}
+        <span>
+          {selectedRace.season} {selectedRace.name}
+          {playerCountSuffix}
+        </span>
+      </span>
+    ) : (
+      `${season} Season Standings${playerCountSuffix}`
+    );
 
   return (
     <AppPageLayout
@@ -342,7 +366,7 @@ function LeaderboardPage() {
                 Looking for the real-world points?{' '}
                 <Link
                   to="/f1-standings"
-                  className="font-medium text-accent underline-offset-2 hover:underline"
+                  className="inline-block font-medium whitespace-nowrap text-accent underline-offset-2 hover:underline"
                 >
                   F1 championship standings
                 </Link>
@@ -351,40 +375,32 @@ function LeaderboardPage() {
           }
           actionsPlacement="trailing"
           actions={
-            isSignedIn ? (
+            isSignedIn && headerViewerEntry ? (
               <div className="min-h-14">
                 <AnimatePresence mode="wait">
-                  {showStandingCard ? (
-                    <m.div
-                      key={timeScope}
-                      initial={{ opacity: 0, scale: 0.96 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.96 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
-                    >
-                      <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
-                        {headerViewerEntry?.rank ?? '—'}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                          Your standing
-                        </div>
-                        <div className="truncate text-sm font-semibold text-text">
-                          {standingName}
-                        </div>
-                        {headerViewerEntry ? (
-                          <div className="text-sm font-semibold text-accent">
-                            {headerViewerEntry.points} pts
-                          </div>
-                        ) : (
-                          <div className="text-sm font-medium text-text-muted">
-                            Not ranked this weekend
-                          </div>
-                        )}
+                  <m.div
+                    key={timeScope}
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex shrink-0 items-center gap-3 rounded-lg bg-accent-muted px-3 py-2"
+                  >
+                    <span className="gpp-mono flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-semibold text-text-on-accent">
+                      {headerViewerEntry.rank}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                        Your standing
                       </div>
-                    </m.div>
-                  ) : null}
+                      <div className="truncate text-sm font-semibold text-text">
+                        {standingName}
+                      </div>
+                      <div className="text-sm font-semibold text-accent">
+                        {headerViewerEntry.points} pts
+                      </div>
+                    </div>
+                  </m.div>
                 </AnimatePresence>
               </div>
             ) : undefined
@@ -396,20 +412,41 @@ function LeaderboardPage() {
           className="reveal-up reveal-delay-1 mb-6 flex flex-col gap-2.5"
           aria-label="Leaderboard filters"
         >
-          {/* Row 1: Time scope */}
-          <TabSwitch
-            value={timeScope}
-            onChange={(v) =>
-              navigate({
-                search: (prev) => ({ ...prev, time: v }),
-                replace: true,
-              })
-            }
-            options={[...TIME_SCOPE_OPTIONS]}
-            className="flex gap-1 rounded-lg bg-surface-muted/55 p-1"
-            buttonClassName="flex-1"
-            ariaLabel="Leaderboard time scope"
-          />
+          {/* Row 1: which board, and whose. Two different questions, but the
+              scope switch only ever needs ~14rem, so it rides on the end of the
+              time-scope row instead of spending a whole line to sit half-empty.
+              Stacked on mobile, where there is no width to share. */}
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+            <TabSwitch
+              value={timeScope}
+              onChange={(v) =>
+                navigate({
+                  search: (prev) => ({ ...prev, time: v }),
+                  replace: true,
+                })
+              }
+              options={[...TIME_SCOPE_OPTIONS]}
+              className="flex gap-1 rounded-lg bg-surface-muted/55 p-1 sm:flex-1"
+              buttonClassName="flex-1"
+              ariaLabel="Leaderboard time scope"
+            />
+
+            {isSignedIn && (
+              <TabSwitch
+                value={scope}
+                onChange={(v) =>
+                  navigate({
+                    search: (prev) => ({ ...prev, scope: v }),
+                    replace: true,
+                  })
+                }
+                options={[...SCOPE_OPTIONS]}
+                className="flex shrink-0 gap-1 rounded-lg bg-surface-muted/40 p-1 sm:w-56"
+                buttonClassName="flex-1"
+                ariaLabel="Leaderboard scope"
+              />
+            )}
+          </div>
 
           {/* Race selector (weekend tab only) */}
           {timeScope === 'weekend' && selectableRaces.length > 1 && (
@@ -432,24 +469,6 @@ function LeaderboardPage() {
                 ))}
               </select>
               <ChevronDown className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
-            </div>
-          )}
-
-          {isSignedIn && (
-            <div className="sm:w-56">
-              <TabSwitch
-                value={scope}
-                onChange={(v) =>
-                  navigate({
-                    search: (prev) => ({ ...prev, scope: v }),
-                    replace: true,
-                  })
-                }
-                options={[...SCOPE_OPTIONS]}
-                className="flex gap-1 rounded-lg bg-surface-muted/40 p-1"
-                buttonClassName="flex-1"
-                ariaLabel="Leaderboard scope"
-              />
             </div>
           )}
         </div>

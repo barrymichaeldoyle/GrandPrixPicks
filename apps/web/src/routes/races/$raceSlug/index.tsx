@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { RandomizeButton } from '@/components/RandomizeButton';
-import { Tooltip } from '@/components/Tooltip';
 import {
   getRaceSessionLockAt,
   getRaceSessionStartAt,
@@ -270,6 +269,15 @@ export const Route = createFileRoute('/races/$raceSlug/')({
               { name: 'Races', path: '/races' },
               { name: race.name, path: `/races/${params.raceSlug}` },
             ]),
+            // The classification itself. A page titled "<race> <year> Results"
+            // previously carried no results in its structured data at all: the
+            // graph described when and where the event happened and never what
+            // occurred at it.
+            ...raceClassificationSchema(
+              params.raceSlug,
+              loaderData?.initialResults?.resultsBySession?.race
+                ?.enrichedClassification,
+            ),
           ],
         }),
       });
@@ -285,6 +293,43 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     };
   },
 });
+
+/**
+ * The finishing order as an `ItemList`, for a race that has one.
+ *
+ * Returns an empty array when the race session has not been published, so the
+ * graph never asserts a result that does not exist yet.
+ */
+function raceClassificationSchema(
+  raceSlug: string,
+  classification:
+    | { position: number; displayName: string; team?: string | null }[]
+    | undefined,
+) {
+  if (!classification || classification.length === 0) {
+    return [];
+  }
+  return [
+    {
+      '@type': 'ItemList',
+      '@id': `${siteConfig.url}/races/${raceSlug}#classification`,
+      name: 'Race classification',
+      numberOfItems: classification.length,
+      itemListOrder: 'https://schema.org/ItemListOrderAscending',
+      itemListElement: classification.map((entry) => ({
+        '@type': 'ListItem',
+        position: entry.position,
+        item: {
+          '@type': 'Person',
+          name: entry.displayName,
+          ...(entry.team && {
+            memberOf: { '@type': 'SportsTeam', name: entry.team },
+          }),
+        },
+      })),
+    },
+  ];
+}
 
 function BackToRacesLink() {
   return (
@@ -458,39 +503,52 @@ function RaceDetailPage() {
       isTop5SavedForSession(session) && isH2HSavedForSession(session);
     // `+N` is the viewer's own score for the session. Signed out it is always
     // `+0`, so show the session's state instead of a meaningless zero.
-    const secondaryLabel = hasResults
-      ? isSignedIn
-        ? `+${sessionPoints}`
-        : 'Results in'
-      : isLocked
-        ? 'Locked'
-        : sessionPicksComplete
-          ? '✓ Picked'
-          : 'Open';
-    const secondaryClassName = hasResults
-      ? 'text-accent'
-      : isLocked
-        ? 'text-warning'
-        : sessionPicksComplete
-          ? 'text-accent'
+    const secondaryIsScore = hasResults && isSignedIn;
+    const secondaryLabel = secondaryIsScore
+      ? `+${sessionPoints}`
+      : hasResults
+        ? 'Scored'
+        : isLocked
+          ? 'Locked'
+          : sessionPicksComplete
+            ? 'Picked'
+            : 'Open';
+    // The accent marks the *selected* tab and nothing else here. It used to
+    // also colour every "results in" and "picked" badge, so a fully scored
+    // weekend put five chartreuse elements in one 36px strip and the active
+    // tab stopped reading as active. Amber still means attention (locked).
+    // `hasResults` is checked before `isLocked` because a scored session is
+    // also a locked one: ordering these the other way painted all four badges
+    // amber on a finished weekend, which is the same "one loud colour across
+    // the whole strip" problem the accent had.
+    const secondaryClassName = secondaryIsScore
+      ? 'gpp-mono text-text'
+      : hasResults
+        ? 'text-text-muted'
+        : isLocked
+          ? 'text-warning'
           : 'text-text-muted';
+
+    const fullLabel = SESSION_LABELS[session];
+    const shortLabel = hasSprintWeekend
+      ? SESSION_LABELS_SHORT[session]
+      : fullLabel;
 
     return {
       value: session,
       label: (
-        <span className="flex items-baseline gap-1.5">
-          <span className="hidden sm:inline">{SESSION_LABELS[session]}</span>
-          {hasSprintWeekend ? (
-            <span className="sm:hidden">
-              <Tooltip content={SESSION_LABELS[session]}>
-                <span>{SESSION_LABELS_SHORT[session]}</span>
-              </Tooltip>
-            </span>
-          ) : (
-            <span className="sm:hidden">{SESSION_LABELS[session]}</span>
-          )}
+        // Stacked on mobile so the status badge fits: it used to be
+        // `hidden sm:inline`, which left phone users with no session status
+        // at all. The abbreviation is spoken in full rather than explained by
+        // a tooltip, which touch cannot open.
+        <span className="flex flex-col items-center gap-0.5 sm:flex-row sm:items-baseline sm:gap-1.5">
+          <span aria-hidden="true">
+            <span className="hidden sm:inline">{fullLabel}</span>
+            <span className="sm:hidden">{shortLabel}</span>
+          </span>
+          <span className="sr-only">{fullLabel}</span>
           <span
-            className={`hidden text-xs leading-none font-semibold sm:inline ${secondaryClassName}`}
+            className={`text-xs leading-none font-medium ${secondaryClassName}`}
           >
             {secondaryLabel}
           </span>
@@ -512,6 +570,7 @@ function RaceDetailPage() {
       <RaceEventPage
         race={currentRace}
         isNextRace={isNextRace}
+        nextRace={nextRace}
         viewer={{ isAuthLoaded, isSignedIn: !!isSignedIn }}
         drivers={drivers}
         initialResults={initialResults}

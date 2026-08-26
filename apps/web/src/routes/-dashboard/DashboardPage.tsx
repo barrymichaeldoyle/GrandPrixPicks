@@ -116,7 +116,6 @@ export function DashboardPage({
               weekend={latestScoredWeekend}
               leaderboard={latestRaceLeaderboard}
               loading={!latestResultReady}
-              compact
               hideWhenEmpty
             />
           </RailItem>

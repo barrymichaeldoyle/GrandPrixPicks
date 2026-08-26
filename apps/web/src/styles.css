@@ -331,9 +331,11 @@
   }
 
   /* Clerk wraps the trigger in two divs of its own; both have to stretch or the
-     tab loses its full-height underline. */
-  .gpp-header-me-slot,
-  .gpp-header-me-slot .cl-userButton-root {
+     tab loses its full-height underline. Clerk's own wrapper is styled through
+     the `rootBox` appearance key on the UserButton (see ClerkHeaderUser), not
+     through its `.cl-` class: targeting those classes from our stylesheet ties
+     the header's layout to Clerk's internal DOM, and Clerk warns about it. */
+  .gpp-header-me-slot {
     display: flex;
     align-items: stretch;
     height: 100%;

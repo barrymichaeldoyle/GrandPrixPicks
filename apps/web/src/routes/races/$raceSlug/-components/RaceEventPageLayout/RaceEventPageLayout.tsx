@@ -14,6 +14,9 @@ import { TabSwitch } from '@/components/TabSwitch';
 import type { SessionSchedule, ViewerState, WeekendStatus } from '../types';
 import { shouldLeadWithCircuitGuide } from './circuitGuidePlacement';
 
+/** Ties the session tablist to the region it swaps. */
+const SESSION_PANEL_ID = 'race-session-panel';
+
 type RaceEventPageLayoutProps = {
   race: Doc<'races'>;
   isNextRace: boolean;
@@ -35,6 +38,14 @@ type RaceEventPageLayoutProps = {
   leaderboardLink?: ReactNode;
   /** Weekend recap "moment", shown under the header once fully scored. */
   recapContent?: ReactNode;
+  /**
+   * A short factual account of the weekend, built from the published
+   * classifications. The page's only prose of its own: everything else on it
+   * comes from the shared circuit guide.
+   */
+  raceReportContent?: ReactNode;
+  /** Hand-off to the next weekend, once this one is done. */
+  nextRaceCtaContent?: ReactNode;
   practiceResultsContent?: ReactNode;
   initialTop5Content: ReactNode;
   top5HeaderAside?: ReactNode;
@@ -68,6 +79,8 @@ export function RaceEventPageLayout({
   backLink,
   leaderboardLink,
   recapContent,
+  raceReportContent,
+  nextRaceCtaContent,
   practiceResultsContent,
   initialTop5Content,
   top5HeaderAside,
@@ -153,6 +166,8 @@ export function RaceEventPageLayout({
           }
         />
 
+        {raceReportContent}
+
         {recapContent}
 
         {leadWithCircuitGuide && circuitGuideContent}
@@ -180,76 +195,103 @@ export function RaceEventPageLayout({
         ) : (
           <div className="mt-5">
             {showSessionTabs && (
-              <div className="rounded-sm border border-border bg-surface-elevated p-1">
+              // Hugs its content from `sm` up. Full-bleed with `flex-1` tabs,
+              // each session label sat alone in a ~307px cell on desktop and
+              // the strip read as four unrelated words. Equal widths still
+              // make sense on a phone, where four tabs fill the screen.
+              <div className="rounded-sm border border-border bg-surface-elevated p-1 sm:inline-flex">
                 <TabSwitch
                   value={selectedSession}
                   onChange={onSelectedSessionChange}
                   options={sessionTabOptions}
                   className="flex gap-1"
-                  buttonClassName="flex-1"
+                  buttonClassName="flex-1 sm:flex-none sm:px-4"
                   ariaLabel="Predictions by session"
+                  panelId={SESSION_PANEL_ID}
                 />
               </div>
             )}
-            {!showResultsView && (
-              <>
-                {!showReadonlyPredictions && (
-                  <div className="mt-5">
-                    <WeekendScheduleList race={race} />
-                  </div>
-                )}
-                {showReadonlyPredictions && (
-                  <div className="mt-3">
-                    <SessionEventSummary
-                      startsAt={getSessionStartAt(selectedSession)}
-                      lockAt={getSessionLockAt(selectedSession)}
-                      hasResults={isSessionPublished(selectedSession)}
-                      trackTimeZone={trackTimeZone}
-                    />
-                  </div>
-                )}
-                {showReadonlyPredictions && (
-                  <div className="mt-7 flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                      Your {SESSION_LABELS[selectedSession]} Picks
-                    </p>
-                    <span className="text-xs font-medium text-text-muted">
-                      {(top5Done ? 1 : 0) + (h2hDone ? 1 : 0)} of 2 done
-                    </span>
-                  </div>
-                )}
-                <div className="mt-4 space-y-8">
-                  <section
-                    data-testid="race-top5-section"
-                    className="space-y-2"
-                  >
-                    {showReadonlyPredictions && (
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <StepBadge step={1} done={top5Done} />
-                          <h2 className="text-xl font-semibold text-text">
-                            Top 5 Predictions
-                          </h2>
-                          {top5HeaderAside}
-                        </div>
-                      </div>
-                    )}
-                    <div className="min-w-0">{top5MainContent}</div>
-                  </section>
-                  {showReadonlyH2H && (
-                    <section
-                      className="space-y-2"
-                      data-testid="race-h2h-section"
-                    >
-                      {h2hContent}
-                    </section>
+            {/*
+              Supplying `panelId` opts TabSwitch into the complete ARIA tabs
+              pattern it already implements — role=tablist/tab, aria-selected,
+              roving tabindex, arrow/Home/End keys. Without it the switcher
+              degraded to aria-pressed toggle buttons and the region it
+              controls was associated with nothing.
+            */}
+            <div
+              id={SESSION_PANEL_ID}
+              role={showSessionTabs ? 'tabpanel' : undefined}
+              aria-label={
+                showSessionTabs
+                  ? `${SESSION_LABELS[selectedSession]} predictions and results`
+                  : undefined
+              }
+              tabIndex={showSessionTabs ? -1 : undefined}
+            >
+              {!showResultsView && (
+                <>
+                  {!showReadonlyPredictions && (
+                    <div className="mt-5">
+                      <WeekendScheduleList race={race} />
+                    </div>
                   )}
-                </div>
-              </>
-            )}
-            {showResultsView && <div className="mt-5">{h2hResultsContent}</div>}
+                  {showReadonlyPredictions && (
+                    <div className="mt-3">
+                      <SessionEventSummary
+                        startsAt={getSessionStartAt(selectedSession)}
+                        lockAt={getSessionLockAt(selectedSession)}
+                        hasResults={isSessionPublished(selectedSession)}
+                        trackTimeZone={trackTimeZone}
+                      />
+                    </div>
+                  )}
+                  {showReadonlyPredictions && (
+                    <div className="mt-7 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                        Your {SESSION_LABELS[selectedSession]} Picks
+                      </p>
+                      <span className="text-xs font-medium text-text-muted">
+                        {(top5Done ? 1 : 0) + (h2hDone ? 1 : 0)} of 2 done
+                      </span>
+                    </div>
+                  )}
+                  <div className="mt-4 space-y-8">
+                    <section
+                      data-testid="race-top5-section"
+                      className="space-y-2"
+                    >
+                      {showReadonlyPredictions && (
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <StepBadge step={1} done={top5Done} />
+                            <h2 className="text-xl font-semibold text-text">
+                              Top 5 Predictions
+                            </h2>
+                            {top5HeaderAside}
+                          </div>
+                        </div>
+                      )}
+                      <div className="min-w-0">{top5MainContent}</div>
+                    </section>
+                    {showReadonlyH2H && (
+                      <section
+                        className="space-y-2"
+                        data-testid="race-h2h-section"
+                      >
+                        {h2hContent}
+                      </section>
+                    )}
+                  </div>
+                </>
+              )}
+              {showResultsView && (
+                <div className="mt-5">{h2hResultsContent}</div>
+              )}
+            </div>
           </div>
         )}
+
+        {nextRaceCtaContent}
 
         {!leadWithCircuitGuide && circuitGuideContent}
 

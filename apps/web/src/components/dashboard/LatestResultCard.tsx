@@ -1,9 +1,8 @@
 import { api } from '@convex-generated/api';
 import type { FunctionReturnType } from 'convex/server';
-import { ArrowRight, Trophy } from 'lucide-react';
+import { ArrowRight, Flag } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
-import { Button } from '@/components/Button/Button';
 import { NoticeCard } from '@/components/NoticeCard';
 import { RaceFlag } from '@/components/RaceFlag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
@@ -20,13 +19,11 @@ export function LatestResultCard({
   weekend,
   leaderboard,
   loading,
-  compact = false,
   hideWhenEmpty = false,
 }: {
   weekend: HistoryWeekend | undefined;
   leaderboard: RaceLeaderboard | undefined;
   loading: boolean;
-  compact?: boolean;
   /**
    * Render nothing until there is a result, instead of the placeholder.
    *
@@ -50,15 +47,12 @@ export function LatestResultCard({
         aria-label="Loading latest result"
         aria-busy="true"
       >
-        <div className="h-3 w-24 animate-pulse rounded bg-surface-muted" />
-        <div className="mt-3 h-5 w-40 animate-pulse rounded bg-surface-muted" />
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {Array.from({ length: compact ? 2 : 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-14 animate-pulse rounded-sm bg-surface-muted"
-            />
-          ))}
+        <LatestResultHeading />
+        <div className="mt-3 h-4 w-40 animate-pulse rounded bg-surface-muted" />
+        <div className="mt-4 h-10 animate-pulse rounded bg-surface-muted" />
+        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border">
+          <div className="h-11 animate-pulse bg-surface-elevated" />
+          <div className="h-11 animate-pulse bg-surface-elevated" />
         </div>
       </div>
     );
@@ -68,7 +62,7 @@ export function LatestResultCard({
     return hideWhenEmpty ? null : (
       <NoticeCard
         level="section"
-        icon={Trophy}
+        icon={Flag}
         title="Your first result will land here"
         description="Once a session is scored, this becomes the quick view of your points and weekend position."
       />
@@ -89,77 +83,101 @@ export function LatestResultCard({
 
   return (
     <section
-      className="overflow-hidden rounded-lg border border-border bg-surface"
+      className="rounded-lg border border-border bg-surface p-4"
       aria-labelledby="latest-result-heading"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div className="min-w-0">
-          <p className="gpp-label">Latest result</p>
-          <div className="mt-1 flex min-w-0 items-center gap-2">
-            {countryCode ? (
-              <RaceFlag
-                countryCode={countryCode}
-                size="sm"
-                className="shrink-0 overflow-hidden rounded-sm border border-border"
-              />
-            ) : null}
-            <h2
-              id="latest-result-heading"
-              className="truncate font-semibold text-text"
-            >
-              {weekend.raceName}
-            </h2>
-          </div>
+      <LatestResultHeading />
+
+      <div className="mt-3 flex min-w-0 items-center gap-2">
+        {countryCode ? (
+          <RaceFlag
+            countryCode={countryCode}
+            size="sm"
+            className="shrink-0 overflow-hidden rounded-sm border border-border"
+          />
+        ) : null}
+        <p className="truncate text-sm font-semibold text-text">
+          {weekend.raceName}
+        </p>
+      </div>
+
+      {/* Same shape as the season standing card one rail over: the number that
+          matters at title size on the left, position as a quiet mono line on
+          the right. The two cards then read as one family instead of two
+          unrelated stat blocks. */}
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div>
+          <p className="font-title text-3xl font-semibold text-accent">
+            {totalPoints}
+            <span className="ml-1 text-sm font-medium text-text-muted">
+              pts
+            </span>
+          </p>
+          <p className="mt-1 text-xs text-text-muted">Combined</p>
         </div>
-        <Button asChild variant="text" size="sm" rightIcon={ArrowRight}>
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: weekend.raceSlug }}
-            search={{ from: 'home' }}
-          >
-            Full breakdown
-          </Link>
-        </Button>
+        <p className="gpp-mono text-sm font-medium text-text">
+          {rank == null ? (
+            '—'
+          ) : (
+            <>
+              P{rank}
+              {fieldSize > 0 ? (
+                <span className="text-text-muted"> of {fieldSize}</span>
+              ) : null}
+            </>
+          )}
+        </p>
       </div>
-      <div
-        className={`grid gap-px bg-border ${compact ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'}`}
-      >
-        <ResultStat value={totalPoints} label="Combined" accent />
+
+      <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-sm bg-border text-center">
         <ResultStat
-          value={rank != null ? `P${rank}` : '—'}
-          label={fieldSize > 0 ? `of ${fieldSize}` : 'Rank'}
+          value={viewerEntry?.top5Points ?? weekend.totalPoints}
+          label="Top 5"
         />
-        {compact ? null : (
-          <>
-            <ResultStat
-              value={viewerEntry?.top5Points ?? weekend.totalPoints}
-              label="Top 5"
-            />
-            <ResultStat value={viewerEntry?.h2hPoints ?? '—'} label="H2H" />
-          </>
-        )}
+        <ResultStat value={viewerEntry?.h2hPoints ?? '—'} label="H2H" />
       </div>
+
+      {/* A bottom link, not a header button. In a rail this narrow the old
+          header row wrapped, leaving the link stranded in a band of empty
+          card. */}
+      <Link
+        to="/races/$raceSlug"
+        params={{ raceSlug: weekend.raceSlug }}
+        search={{ from: 'home' }}
+        // Matches the season standing card: 17px of text is a fine mouse
+        // target and a poor thumb one, so coarse pointers get the 44px row
+        // and give most of the top margin back.
+        className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover pointer-coarse:mt-2 pointer-coarse:min-h-11"
+      >
+        Full breakdown
+        <ArrowRight className="h-3 w-3" aria-hidden />
+      </Link>
     </section>
+  );
+}
+
+function LatestResultHeading() {
+  return (
+    <div className="flex items-center gap-2">
+      <Flag className="h-4 w-4 text-accent" aria-hidden />
+      <h2 id="latest-result-heading" className="gpp-label text-text-muted">
+        Latest result
+      </h2>
+    </div>
   );
 }
 
 function ResultStat({
   value,
   label,
-  accent = false,
 }: {
   value: number | string;
   label: string;
-  accent?: boolean;
 }) {
   return (
-    <div className="bg-surface-elevated px-3 py-3 text-center">
-      <p
-        className={`font-title text-xl font-semibold ${accent ? 'text-accent' : 'text-text'}`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-[10px] font-semibold tracking-label text-text-muted uppercase">
+    <div className="bg-surface-elevated px-2 py-2">
+      <p className="gpp-mono text-sm text-text">{value}</p>
+      <p className="text-[9px] tracking-label text-text-muted uppercase">
         {label}
       </p>
     </div>

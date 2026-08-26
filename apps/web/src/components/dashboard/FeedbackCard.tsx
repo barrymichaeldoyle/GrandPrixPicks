@@ -1,8 +1,8 @@
 import { MessageSquarePlus } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '@/components/Button/Button';
 import { FeedbackModal } from '@/components/FeedbackModal';
+import { RailCardAction } from '@/components/dashboard/RailCardAction';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 /**
@@ -19,20 +19,19 @@ export function FeedbackCard() {
 
   return (
     <section
-      className="rounded-lg border border-border bg-surface p-4"
+      className="overflow-hidden rounded-lg border border-border bg-surface"
       aria-labelledby="feedback-card-heading"
     >
-      <p id="feedback-card-heading" className="gpp-label">
-        Feedback
-      </p>
-      <p className="mt-2 text-sm text-text-muted">
-        Something broken, missing, or just annoying? Tell us in a line.
-      </p>
-      <Button
-        variant="secondary"
-        size="sm"
-        leftIcon={MessageSquarePlus}
-        className="mt-3 w-full"
+      <div className="p-4">
+        <p id="feedback-card-heading" className="gpp-label">
+          Feedback
+        </p>
+        <p className="mt-2 text-sm text-text-muted">
+          Something broken, missing, or just annoying? Tell us in a line.
+        </p>
+      </div>
+      <RailCardAction
+        icon={MessageSquarePlus}
         onClick={() => {
           captureAnalyticsEvent('feedback_widget_opened', {
             source: 'dashboard_rail',
@@ -41,7 +40,7 @@ export function FeedbackCard() {
         }}
       >
         Send feedback
-      </Button>
+      </RailCardAction>
 
       <FeedbackModal
         open={open}

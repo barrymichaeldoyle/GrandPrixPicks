@@ -58,3 +58,5 @@ debug-storybook.log
 # Lighthouse CI run output
 .lighthouseci
 .lighthouseci-mobile
+
+.impeccable

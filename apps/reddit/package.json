@@ -21,23 +21,23 @@
     "node": ">=22.2.0"
   },
   "dependencies": {
-    "@devvit/start": "0.14.0",
-    "@devvit/web": "0.14.0",
+    "@devvit/start": "0.14.1",
+    "@devvit/web": "0.14.1",
     "@grandprixpicks/shared": "workspace:*",
-    "@hono/node-server": "2.1.0",
-    "devvit": "0.14.0",
-    "hono": "4.13.1",
+    "@hono/node-server": "2.1.1",
+    "devvit": "0.14.1",
+    "hono": "4.13.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
-    "@types/node": "26.2.0",
+    "@types/node": "26.3.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
-    "@vitejs/plugin-react": "6.0.5",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "6.1.0",
     "tailwindcss": "4.3.3",
     "typescript": "catalog:",
-    "vite": "8.2.1"
+    "vite": "8.2.2"
   }
 }

@@ -6,12 +6,12 @@ import {
 } from '@grandprixpicks/shared/driverStatus';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
-import { ChevronDown, ChevronUp, Gavel, Swords, Trophy } from 'lucide-react';
+import { ChevronDown, ChevronUp, Gavel } from 'lucide-react';
 import { useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
-import { H2HMatchupGrid } from '@/components/H2HMatchupGrid';
+import { H2HResultsTable } from '@/components/H2HResultsTable';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import {
   toPointsBySession,
@@ -224,7 +224,7 @@ export function H2HResultsSection({
     compact = false,
   ) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <DriverBadge
           code={entry.code}
           team={entry.team}
@@ -233,9 +233,19 @@ export function H2HResultsSection({
           nationality={entry.nationality}
           size={compact ? 'sm' : 'md'}
         />
+        {/*
+          The driver's name is the answer this page exists to give, so it
+          renders at every width and in full ink. It used to be
+          `hidden text-xs sm:inline`, which left a phone showing "P1 · NOR"
+          with the name reachable only through a hover tooltip that touch
+          cannot open — while the collapsed P7-P22 rows below, which pass
+          `compact`, showed their names all along.
+        */}
         <span
-          className={`min-w-0 truncate text-text-muted ${
-            compact ? 'text-sm' : 'hidden text-xs sm:inline'
+          className={`min-w-0 truncate ${
+            compact
+              ? 'text-sm text-text-muted'
+              : 'text-sm text-text sm:text-base'
           }`}
         >
           {entry.displayName}
@@ -246,7 +256,11 @@ export function H2HResultsSection({
 
   return (
     <div data-testid="session-points-breakdown">
-      <h2 className="mb-3 text-lg font-semibold text-text sm:text-xl">
+      {/*
+        Headline role (`3xl`, weight 400). It used to be `lg`/`xl` semibold,
+        which put it level with the race name in the page header above it.
+      */}
+      <h2 className="mb-4 text-2xl leading-tight font-normal tracking-tight text-text sm:text-3xl">
         Session Results
       </h2>
 
@@ -286,13 +300,19 @@ export function H2HResultsSection({
                 </div>
               </div>
             )}
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <div className="flex items-center gap-1.5">
-              <Trophy className="h-4 w-4 text-accent" />
-              <h3 className="text-sm font-semibold text-text">Top 5</h3>
-            </div>
+          {/*
+            Title role (`xl`, weight 500). This was `sm`/600 — smaller than the
+            body text underneath it — with a decorative accent trophy beside
+            it. The icon carried no information the heading did not, and it
+            spent the accent on something that is neither the action nor the
+            active state.
+          */}
+          <div className="flex items-baseline justify-between gap-3 pt-1">
+            <h3 className="text-xl leading-tight font-medium tracking-tight text-text">
+              Top 5
+            </h3>
             {isSignedIn && (
-              <span className="text-sm font-semibold text-accent">
+              <span className="gpp-mono shrink-0 text-sm font-medium text-accent">
                 +{selectedTop5Points} pts
               </span>
             )}
@@ -300,12 +320,27 @@ export function H2HResultsSection({
           <div className="flex flex-col gap-1">
             <div className="rounded-lg border border-border bg-surface">
               <table className="w-full">
+                <caption className="sr-only">
+                  {race.name} {SESSION_LABELS[selectedSession]} classification,
+                  positions 1 to 6. P6 is shown because a driver predicted at P5
+                  who finishes P6 is off by one and still scores.
+                </caption>
                 <thead>
                   <tr className="border-b border-border text-xs uppercase sm:text-sm">
-                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                    {/*
+                      `scope` is what lets a screen reader announce "P1,
+                      Actual: Lando Norris" instead of reading cells blind.
+                    */}
+                    <th
+                      scope="col"
+                      className="sticky top-0 z-20 w-16 bg-surface px-2 py-2 text-left text-text-muted sm:w-24 sm:px-4"
+                    >
                       Pos
                     </th>
-                    <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                    <th
+                      scope="col"
+                      className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4"
+                    >
                       Actual
                     </th>
                     {/*
@@ -316,10 +351,16 @@ export function H2HResultsSection({
                     */}
                     {isSignedIn && (
                       <>
-                        <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4">
+                        <th
+                          scope="col"
+                          className="sticky top-0 z-20 bg-surface px-2 py-2 text-left text-text-muted sm:px-4"
+                        >
                           Top 5
                         </th>
-                        <th className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4">
+                        <th
+                          scope="col"
+                          className="sticky top-0 z-20 bg-surface px-2 py-2 text-right text-text-muted sm:px-4"
+                        >
                           Pts
                         </th>
                       </>
@@ -348,7 +389,7 @@ export function H2HResultsSection({
                         key={entry.driverId}
                         className={`border-b border-border ${isTop5Actual ? 'bg-accent-muted/15' : ''}`}
                       >
-                        <td className="px-2 py-2 text-xs font-semibold text-text-muted sm:px-4">
+                        <td className="gpp-mono px-2 py-2 text-sm text-text-muted sm:px-4">
                           {renderPositionCell(entry)}
                         </td>
                         <td className="px-2 py-2 sm:px-4">
@@ -454,16 +495,27 @@ export function H2HResultsSection({
                       }`}
                     >
                       <table className="w-full">
+                        <caption className="sr-only">
+                          {race.name} {SESSION_LABELS[selectedSession]}{' '}
+                          classification, remaining finishers (part {index + 1}{' '}
+                          of {remainingColumns.length}).
+                        </caption>
                         <thead
                           className={
                             index === 1 ? 'hidden md:table-header-group' : ''
                           }
                         >
                           <tr className="border-b border-border text-xs uppercase">
-                            <th className="px-3 py-2 text-left text-text-muted">
+                            <th
+                              scope="col"
+                              className="w-16 px-3 py-2 text-left text-text-muted"
+                            >
                               Pos
                             </th>
-                            <th className="px-3 py-2 text-left text-text-muted">
+                            <th
+                              scope="col"
+                              className="px-3 py-2 text-left text-text-muted"
+                            >
                               Driver
                             </th>
                           </tr>
@@ -474,7 +526,7 @@ export function H2HResultsSection({
                               key={entry.driverId}
                               className="border-b border-border last:border-0"
                             >
-                              <td className="px-3 py-2 text-xs font-semibold text-text-muted">
+                              <td className="gpp-mono px-3 py-2 text-sm text-text-muted">
                                 {renderPositionCell(entry)}
                               </td>
                               <td className="px-3 py-2">
@@ -498,23 +550,23 @@ export function H2HResultsSection({
               </div>
             )}
           </div>
-          <div className="flex items-center justify-between gap-2 pt-2">
-            <div className="flex items-center gap-1.5">
-              <Swords className="h-4 w-4 text-accent" />
-              <h3 className="text-sm font-semibold text-text">Head-to-Head</h3>
-            </div>
+          <div className="flex items-baseline justify-between gap-3 pt-4">
+            <h3 className="text-xl leading-tight font-medium tracking-tight text-text">
+              Head-to-Head
+            </h3>
             {isSignedIn && (
-              <span className="text-sm font-semibold text-accent">
+              <span className="gpp-mono shrink-0 text-sm font-medium text-accent">
                 +{selectedH2HPoints} pts
               </span>
             )}
           </div>
-          <H2HMatchupGrid
+          <H2HResultsTable
             matchups={h2hResultMatchups}
             selections={h2hSelections}
             winners={h2hWinners}
             pointsByMatchup={h2hPointsMap}
-            mode="results"
+            showViewerColumn={isSignedIn}
+            caption={`${race.name} ${SESSION_LABELS[selectedSession]} team-mate duels: which driver finished ahead in each pairing.`}
           />
           {h2hShareText && h2hShareUrl && (
             <div className="flex justify-center pt-1">

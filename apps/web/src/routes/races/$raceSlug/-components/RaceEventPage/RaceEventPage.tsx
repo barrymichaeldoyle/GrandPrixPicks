@@ -30,11 +30,15 @@ import type { ShareCard } from '@/lib/og/shareCard';
 import { encodeShareCardSearch } from '@/lib/og/shareCard';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS } from '@/lib/sessions';
+import { buildRaceReport } from '@/lib/raceReport';
 import { buildPicksShareText, buildScoreShareText } from '@/lib/share';
 import { siteConfig } from '@/lib/site';
 import type { TabSwitchOption } from '@/components/TabSwitch';
 
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
 import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
+import { NextRaceCta } from '@/routes/races/$raceSlug/-components/NextRaceCta';
 import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
 import { SignedOutRacePreview } from '@/routes/races/$raceSlug/-components/SignedOutRacePreview';
 import type { RaceWeekendInitialResults } from '@/routes/races/$raceSlug/-hooks/useRaceWeekendData';
@@ -82,6 +86,8 @@ type H2HResultsSectionSlotProps = {
 type RaceEventPageProps = {
   race: Doc<'races'>;
   isNextRace: boolean;
+  /** The season's next open race, for the end-of-weekend hand-off. */
+  nextRace?: Doc<'races'> | null;
   viewer: ViewerState;
   /** Full driver roster, used for the signed-out (crawlable) driver grid. */
   drivers?: Doc<'drivers'>[];
@@ -117,6 +123,7 @@ type RaceEventPageProps = {
 export function RaceEventPage({
   race,
   isNextRace,
+  nextRace,
   viewer,
   drivers = [],
   initialResults,
@@ -156,6 +163,15 @@ export function RaceEventPage({
     onDirtyChange: onTop5DirtyChange,
   } = top5Editing;
   const isPredictable = race.status === 'upcoming' && isNextRace;
+  // Built from loader-seeded public results, so it is in the SSR HTML that a
+  // crawler sees rather than appearing after the client subscriptions boot.
+  const raceReport = buildRaceReport({
+    raceName: race.name,
+    season: race.season,
+    circuitName: getCircuitForRace(race.slug)?.name,
+    hasSprint: race.hasSprint ?? false,
+    resultsBySession: initialResults?.resultsBySession ?? {},
+  });
   // A signed-out visitor on the open race: swap the bare sign-in gate for a
   // content-rich preview (driver grid + a clear "play free" CTA) so the page is
   // useful to crawlers and gives first-timers a reason to sign up.
@@ -405,6 +421,19 @@ export function RaceEventPage({
         backLink={backLink}
         leaderboardLink={leaderboardLink}
         recapContent={recapContent}
+        raceReportContent={
+          raceReport.length > 0 ? (
+            <p className="gpp-reading-copy-lg mt-6 max-w-[68ch] text-text-muted">
+              {raceReport.join(' ')}
+            </p>
+          ) : null
+        }
+        nextRaceCtaContent={
+          // Only once this weekend is done, and never pointing at itself.
+          allEventsScored && nextRace && nextRace._id !== race._id ? (
+            <NextRaceCta nextRace={nextRace} />
+          ) : null
+        }
         practiceResultsContent={
           <PracticeResultsCard raceId={race._id} raceSlug={race.slug} />
         }

@@ -37,15 +37,13 @@ const config: StorybookConfig = {
       );
     });
     const existingAliases = config.resolve?.alias;
+    // Storybook's own aliases go FIRST. The app contributes `@` as a prefix
+    // alias and Vite takes the first match, so an entry for
+    // `@/integrations/convex/query` listed after it never fires: the module
+    // resolves to the real cached hooks, which then throw for want of a
+    // `ConvexQueryCacheProvider` the moment a story mounts one. Same ordering
+    // rule, and same reason, as the Vitest branch in `vite.config.ts`.
     const alias = [
-      ...(Array.isArray(existingAliases)
-        ? existingAliases
-        : existingAliases
-          ? Object.entries(existingAliases).map(([find, replacement]) => ({
-              find,
-              replacement,
-            }))
-          : []),
       {
         find: /^@clerk\/react$/,
         replacement: fileURLToPath(
@@ -69,6 +67,14 @@ const config: StorybookConfig = {
           new URL('../src/storybook/mockConvexReact.tsx', import.meta.url),
         ),
       },
+      ...(Array.isArray(existingAliases)
+        ? existingAliases
+        : existingAliases
+          ? Object.entries(existingAliases).map(([find, replacement]) => ({
+              find,
+              replacement,
+            }))
+          : []),
     ];
     return {
       ...config,

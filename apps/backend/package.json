@@ -23,7 +23,7 @@
     "test:ci": "vitest run --reporter=dot"
   },
   "dependencies": {
-    "@convex-dev/resend": "0.2.6",
+    "@convex-dev/resend": "0.2.7",
     "@grandprixpicks/shared": "workspace:*",
     "@react-email/render": "2.1.0",
     "convex": "catalog:",
@@ -38,6 +38,6 @@
     "@types/react": "19.2.18",
     "@types/web-push": "3.6.4",
     "typescript": "catalog:",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   }
 }

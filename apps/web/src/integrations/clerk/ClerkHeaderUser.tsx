@@ -49,7 +49,17 @@ export function ClerkHeaderUser({
   // to your own profile at all. It points at the public profile page (season
   // stats, followers, results), which is why it is not called "My Results".
   return (
-    <UserButton key={isMobile ? 'mobile' : 'desktop'}>
+    <UserButton
+      key={isMobile ? 'mobile' : 'desktop'}
+      // Clerk's own wrapper around the trigger has to stretch too, or the tab
+      // loses its full-height underline. It is set here rather than in
+      // styles.css because a `.cl-userButton-root` selector would pin the
+      // header's layout to Clerk's internal DOM (and Clerk warns about it);
+      // `rootBox` is the supported hook for the same element. It stays local to
+      // this component rather than going in the provider's shared `elements`,
+      // where it would also stretch the sign-in modal's root box.
+      appearance={{ elements: { rootBox: 'flex h-full items-stretch' } }}
+    >
       <UserButton.MenuItems>
         <UserButton.Link
           label="Profile"

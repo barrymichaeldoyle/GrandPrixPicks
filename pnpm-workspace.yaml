@@ -82,7 +82,7 @@ auditConfig:
     - GHSA-jmr9-qjv8-65gv
 
 catalog:
-  convex: 1.43.0
+  convex: 1.45.0
   typescript: 7.0.2
 
 minimumReleaseAgeExclude:
@@ -141,6 +141,7 @@ minimumReleaseAgeExclude:
   - expo-server@57.0.3
   - expo-store-review@57.0.2
   - expo@57.0.13
+  - knip@6.32.3
 
 onlyBuiltDependencies:
   - '@clerk/shared'
@@ -162,7 +163,7 @@ overrides:
   lightningcss: 1.30.1
   # Force the latest workpool (transitive via @convex-dev/resend, which allows
   # ^0.4.6) so the email workpool's internal crons run on the newest release.
-  '@convex-dev/workpool': 0.4.7
+  '@convex-dev/workpool': 0.4.10
   '@clerk/clerk-js@>=5.22.0 <=5.125.9': 5.125.10
   '@clerk/clerk-react@>=5.9.0 <=5.61.5': 5.61.6
   '@clerk/shared@>=3.0.0 <=3.47.4': 3.47.5

@@ -39,3 +39,17 @@ function installStorage(name: 'localStorage' | 'sessionStorage'): void {
 
 installStorage('localStorage');
 installStorage('sessionStorage');
+
+// These tests drive React directly (`createRoot` + `act`) rather than through
+// Testing Library, which would set this flag itself. Without it React logs
+// "The current testing environment is not configured to support act(...)" for
+// every render, and — more to the point — stops treating `act` as a boundary
+// that flushes effects, so an assertion can run against a half-updated tree.
+//
+// It lives here rather than in each test file because it was in each test
+// file: 32 of them set it by hand, three did not, and the three that did not
+// were the ones printing the warning. Setting it once for the whole run means
+// a new test file cannot forget it.
+(
+  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;

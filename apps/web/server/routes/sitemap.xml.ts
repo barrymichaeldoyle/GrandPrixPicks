@@ -94,7 +94,13 @@ const staticEntries: SitemapEntry[] = [
   {
     loc: `${siteConfig.url}/f1-2026-italian-grand-prix-predictions`,
     changefreq: 'daily',
-    lastmod: '2026-08-24T00:00:00.000Z',
+    lastmod: '2026-08-27T00:00:00.000Z',
+    priority: '0.8',
+  },
+  {
+    loc: `${siteConfig.url}/f1-2026-madrid-grand-prix-predictions`,
+    changefreq: 'daily',
+    lastmod: '2026-08-27T00:00:00.000Z',
     priority: '0.8',
   },
   {

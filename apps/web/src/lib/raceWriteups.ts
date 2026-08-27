@@ -31,6 +31,10 @@ const RACE_WRITEUPS: Record<string, RaceWriteup> = {
     to: '/f1-2026-italian-grand-prix-predictions',
     label: 'Monza preview',
   },
+  'madrid-2026': {
+    to: '/f1-2026-madrid-grand-prix-predictions',
+    label: 'Madring preview',
+  },
 };
 
 /** The write-up for a race, or null when that weekend has none. */

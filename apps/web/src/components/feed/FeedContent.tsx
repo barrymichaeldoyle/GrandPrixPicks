@@ -1,4 +1,5 @@
 import { api } from '@convex-generated/api';
+import type { FunctionReturnType } from 'convex/server';
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 import { Gauge, Trophy } from 'lucide-react';
@@ -11,6 +12,10 @@ import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
 
+type FeedPage = NonNullable<
+  FunctionReturnType<typeof api.feed.getPersonalizedFeed>
+>;
+
 /**
  * The activity stream. Lived at `/feed` until that page was removed for
  * duplicating the dashboard's Activity section; it is a component rather than a
@@ -19,12 +24,25 @@ import { FollowButton } from '@/components/FollowButton';
 // Pre-allocate up to 5 pages of feed (5 x 40 = 200 events max)
 const MAX_EXTRA_PAGES = 4;
 
-export function FeedContent() {
+export function FeedContent({
+  initialPage,
+}: {
+  /**
+   * The top of the feed as the server read it, so the section renders with rows
+   * instead of four skeletons. A truncated slice of the real first page (see
+   * `home.getDashboardPageData`), replaced by the live query as soon as it
+   * answers. Absent whenever the server could not read as the viewer.
+   */
+  initialPage?: FeedPage | null;
+} = {}) {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
   );
 
-  const page0 = useQuery(api.feed.getPersonalizedFeed, {});
+  // `!== undefined` rather than `??`: null is this query's real answer for a
+  // signed-out viewer, and only "has not answered yet" should fall back.
+  const livePage0 = useQuery(api.feed.getPersonalizedFeed, {});
+  const page0 = livePage0 !== undefined ? livePage0 : initialPage;
   const page1 = useQuery(
     api.feed.getPersonalizedFeed,
     extraCursors[0] !== null ? { paginationCursor: extraCursors[0] } : 'skip',

@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
+import { getPersonalizedFeedPageData } from './feed';
 import { loadMatchupsForSeason, loadMyH2HPredictionsForRace } from './h2h';
 import { getViewer } from './lib/auth';
 import { loadMyLeagues } from './leagues';
@@ -245,6 +246,48 @@ export const getHomePageData = query({
 });
 
 /**
+ * How many feed events the server render carries.
+ *
+ * The feed's own first page is 40 events, and all 40 would roughly double the
+ * HTML of every signed-in document to fill a section that starts below the
+ * fold. Five is what the reader can actually see before scrolling, which is all
+ * the server render has to cover: the live query answers moments later with the
+ * full page, and the rest arrive under what is already on screen.
+ */
+const SSR_FEED_EVENTS = 5;
+
+/**
+ * The top of the activity feed, small enough to travel.
+ *
+ * `FeedContent` renders four skeletons while its first page is undefined, and
+ * that was the last thing on the dashboard still arriving blank. Seeding it
+ * removes them without seeding the whole page.
+ *
+ * `hasMore` is false and `nextCursor` null on purpose. They would be a lie
+ * about a truncated slice, and "Load more" paging from a cursor that belongs to
+ * a page the client never had is worse than the control appearing a moment
+ * later, once the real first page replaces this.
+ */
+async function loadFeedPreview(ctx: QueryCtx, viewer: Doc<'users'>) {
+  const page = await getPersonalizedFeedPageData(ctx, viewer, null);
+  const events = page.events.slice(0, SSR_FEED_EVENTS);
+
+  // Session headers are keyed `${raceId}_${sessionType}`, so the ones the kept
+  // events refer to can be picked out of the page's own map rather than built
+  // again with a second pass over the database.
+  const keptKeys = new Set(
+    events
+      .filter((event) => event.raceId && event.sessionType)
+      .map((event) => `${event.raceId}_${event.sessionType}`),
+  );
+  const sessions = Object.fromEntries(
+    Object.entries(page.sessions).filter(([key]) => keptKeys.has(key)),
+  );
+
+  return { events, sessions, hasMore: false, nextCursor: null };
+}
+
+/**
  * The rail cards beside the weekend card: season standing, leagues, last
  * result.
  *
@@ -270,19 +313,22 @@ export const getHomePageData = query({
  * *every* entry for a race with no limit, which is a few kilobytes at 35
  * players and a tax that grows with the game.
  */
-async function loadDashboardRails(ctx: QueryCtx, userId: Id<'users'>) {
-  const [seasonLeaderboard, leagues, history] = await Promise.all([
+async function loadDashboardRails(ctx: QueryCtx, viewer: Doc<'users'>) {
+  const userId = viewer._id;
+  const [seasonLeaderboard, leagues, history, feedPreview] = await Promise.all([
     // The same limit `DashboardPage` passes. A different one here would seed a
     // cache entry under a key nothing reads.
     loadCombinedSeasonLeaderboard(ctx, { limit: 3 }),
     loadMyLeagues(ctx),
     loadUserPredictionHistory(ctx, { userId }),
+    loadFeedPreview(ctx, viewer),
   ]);
 
   return {
     seasonLeaderboard,
     leagues,
     latestScoredWeekend: history.find((weekend) => weekend.hasScores) ?? null,
+    feedPreview,
   };
 }
 
@@ -323,7 +369,7 @@ export const getDashboardPageData = query({
     const [me, weekend, rails] = await Promise.all([
       loadMe(ctx),
       loadCurrentWeekend(ctx),
-      loadDashboardRails(ctx, viewer._id),
+      loadDashboardRails(ctx, viewer),
     ]);
 
     // Between-seasons, or any moment with no open weekend: there is no raceId

@@ -196,7 +196,7 @@ export function DashboardPage({
         >
           Activity
         </h2>
-        <FeedContent />
+        <FeedContent initialPage={initialDashboard?.feedPreview} />
       </section>
 
       {/* Below the feed, which is the one place on this page an ad can go

@@ -19,21 +19,33 @@ export type RaceWriteup = {
   /** Route path for the write-up. */
   to: string;
   /**
-   * Link text. Names the circuit rather than the round, because it sits beside
-   * a card that already says which race this is, and "Monza preview" reads as
-   * something to go and read where "Preview" alone reads as a control.
+   * Short link text, for places with no room to say more (the race page
+   * header). Names the circuit rather than the round, because it sits next to
+   * something that already says which race this is.
    */
   label: string;
+  /**
+   * What is actually in the piece, in the writer's own words.
+   *
+   * The dashboard leads with this rather than with the label, because "Monza
+   * preview" describes a category and nobody clicks a category. A line that
+   * says what you will learn is the thing that earns the tap, and it has to be
+   * written per weekend for the same reason: a generic teaser is just the
+   * label again with more words.
+   */
+  teaser: string;
 };
 
 const RACE_WRITEUPS: Record<string, RaceWriteup> = {
   'italy-2026': {
     to: '/f1-2026-italian-grand-prix-predictions',
     label: 'Monza preview',
+    teaser: 'Two things to know before FP1',
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     label: 'Madring preview',
+    teaser: 'A new circuit, and no form guide for anyone',
   },
 };
 

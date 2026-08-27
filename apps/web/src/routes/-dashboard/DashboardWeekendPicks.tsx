@@ -30,6 +30,7 @@ import {
 } from '@/components/WeekendCardSkeleton';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import type { RaceWriteup } from '@/lib/raceWriteups';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
@@ -438,31 +439,20 @@ function DashboardWeekendPicksReady({
           {/* There used to be an "N open" pill next to this. The tab row below
               already names every session and its state, so the count was the
               same fact in a louder font. */}
-          {/* Two destinations, deliberately unequal. "Full weekend" is the game
-              (picks, results, duels) and keeps the arrow; the write-up, when
-              there is one, is reading, so it sits second and quieter. It only
-              renders for a weekend somebody actually wrote about, which is why
-              this is a lookup rather than a derived path. */}
-          <div className="mt-0.5 flex shrink-0 flex-col items-end gap-1">
-            <Link
-              to="/races/$raceSlug"
-              params={{ raceSlug: weekend.race.slug }}
-              search={{ from: 'home' }}
-              className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
-            >
-              Full weekend
-              <ArrowRight className="size-3.5 shrink-0" aria-hidden />
-            </Link>
-            {writeup ? (
-              <Link
-                to={writeup.to}
-                className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
-              >
-                {writeup.label}
-                <BookOpen className="size-3 shrink-0" aria-hidden />
-              </Link>
-            ) : null}
-          </div>
+          {/* One link up here, not two. The preview used to sit underneath this
+              one as a second underlined link, which made the corner read as a
+              pair of equal choices and gave neither any pull. It moved to the
+              card footer, where it can say what it is instead of just naming
+              itself. */}
+          <Link
+            to="/races/$raceSlug"
+            params={{ raceSlug: weekend.race.slug }}
+            search={{ from: 'home' }}
+            className="gpp-touch-target mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+          >
+            Full weekend
+            <ArrowRight className="size-3.5 shrink-0" aria-hidden />
+          </Link>
         </div>
 
         {/* This line keeps its slot whatever the selected session is. It used to
@@ -551,6 +541,8 @@ function DashboardWeekendPicksReady({
           />
         ) : null}
       </div>
+
+      {writeup ? <WeekendPreviewLink writeup={writeup} /> : null}
 
       {/* Both steps live in here, and the card outside is only ever an
           invitation into it. Picking is the one thing on this page that wants
@@ -771,6 +763,48 @@ function SessionClockLine({
  * thing that does vary per session, and once a card is saved they double as the
  * control that switches which session's card is on screen.
  */
+/**
+ * The weekend write-up, as the last thing in the card.
+ *
+ * It is deliberately not in the header beside "Full weekend". Those two were
+ * competing: same underline, same corner, one of them a place to go and do
+ * something and the other a thing to read, and side by side neither looked
+ * worth the tap.
+ *
+ * Down here it gets the whole width, so it can lead with what the piece
+ * actually says rather than with its own name. The row reads as a continuation
+ * of the card (same left stripe, a divider rather than a box) instead of an
+ * advert bolted underneath it, and the accent arrow is the only bright thing,
+ * which is the one job the accent has in this system.
+ *
+ * Placed after the picks on purpose. A player arrives to answer "have I
+ * picked?", and the invitation to go deeper belongs after that question is
+ * answered, not in front of it.
+ */
+function WeekendPreviewLink({ writeup }: { writeup: RaceWriteup }) {
+  return (
+    <Link
+      to={writeup.to}
+      className="group flex items-center gap-3 border-t border-border px-4 py-3 transition-colors hover:bg-surface-elevated focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none sm:px-5"
+    >
+      <BookOpen
+        className="size-4 shrink-0 text-text-muted transition-colors group-hover:text-accent"
+        aria-hidden
+      />
+      <span className="min-w-0 flex-1">
+        <span className="gpp-label block text-text-muted">Weekend preview</span>
+        <span className="mt-0.5 block truncate text-sm font-medium text-text">
+          {writeup.teaser}
+        </span>
+      </span>
+      <ArrowRight
+        className="size-4 shrink-0 text-text-muted transition-all group-hover:translate-x-0.5 group-hover:text-accent"
+        aria-hidden
+      />
+    </Link>
+  );
+}
+
 function SessionChip({
   session,
   selected = false,

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { RaceCard } from '@/components/RaceCard';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -129,6 +130,20 @@ function RacesPage() {
   // always in the SSR markup, not just when a crawler happens to see the
   // completed tab.
   const practiceSlugSet = new Set(practiceSlugs);
+  /*
+   * The calendar is where a write-up gets found.
+   *
+   * Each one used to have exactly one inbound link, from its own race page,
+   * which is a page Google visits rarely. That is why URL Inspection reported
+   * "Referring page: None detected" for them: not because the link was missing,
+   * but because nothing Google crawls often enough was pointing at it. This is
+   * the same shape that fixed the orphaned practice pages, one list up.
+   */
+  const previewRaces = orderedRaces.flatMap((race) => {
+    const writeup = getRaceWriteup(race.slug);
+    return writeup ? [{ race, writeup }] : [];
+  });
+
   const practiceRaces = orderedRaces.filter((race) =>
     practiceSlugSet.has(race.slug),
   );
@@ -343,6 +358,36 @@ function RacesPage() {
                       className="text-accent hover:text-accent-hover"
                     >
                       Round {race.round}: {race.name} practice results
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
+
+          {previewRaces.length > 0 ? (
+            <nav
+              aria-label="Weekend previews"
+              className="mt-10 border-t border-border pt-6"
+            >
+              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                Weekend previews
+              </p>
+              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+                Read up before you pick
+              </h2>
+              <p className="mt-1 text-sm text-text-muted">
+                What matters at the circuit, who is driving and what to watch in
+                practice, for the rounds we have written up.
+              </p>
+              <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                {previewRaces.map(({ race, writeup }) => (
+                  <li key={race._id}>
+                    <Link
+                      to={writeup.to}
+                      className="text-accent hover:text-accent-hover"
+                    >
+                      Round {race.round}: {race.name} preview
                     </Link>
                   </li>
                 ))}

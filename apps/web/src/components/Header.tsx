@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useLinkProps } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
 import { primaryButtonStyles } from '@/components/Button/Button';
@@ -52,6 +52,27 @@ export function Header() {
   const { isSignedIn } = useViewerSession();
   const showSignedOutNav = !isSignedIn;
 
+  /**
+   * The wordmark is built from `useLinkProps` rather than rendered as a
+   * `<Link>`, for one attribute.
+   *
+   * On `/` the wordmark is an active link, so the router stamps it
+   * `aria-current="page"` — and so is the Home nav tab, which means a screen
+   * reader announces the current page twice crossing one header. The nav tab is
+   * the one that means it: `aria-current` marks the current item *within a set*,
+   * and a wordmark is a way home rather than a position in a list.
+   *
+   * It cannot be turned off through `<Link>`: `STATIC_ACTIVE_PROPS` is spread
+   * last inside the component, after `activeProps` and after any prop passed in.
+   * `useLinkProps` is the same hook `<Link>` and `createLink` are built on and
+   * it hands back the props object before it reaches an element, so dropping one
+   * key here keeps every bit of link behaviour — navigation, preloading, the
+   * composed handlers — and changes only what is announced.
+   */
+  const { 'aria-current': _currentPage, ...homeLinkProps } = useLinkProps({
+    to: '/',
+  });
+
   return (
     <header
       data-app-header
@@ -64,16 +85,8 @@ export function Header() {
           nav tabs sit on the same gutters as the content below. */}
       <div className="mx-auto flex h-full w-full max-w-(--page-max) items-stretch justify-between px-4">
         <div className="flex items-center gap-2">
-          <Link
-            to="/"
-            // On `/` this link is active, so the router stamps it
-            // `aria-current="page"` alongside the Home nav tab and the current
-            // page is announced twice in one header. Left alone deliberately:
-            // `STATIC_ACTIVE_PROPS` is spread last inside `Link`, after
-            // `activeProps` and after any prop passed here, so there is no
-            // supported way to opt out — only a ref that strips the attribute
-            // after every render, which is more machinery than a duplicate
-            // announcement on one link is worth.
+          <a
+            {...homeLinkProps}
             // Wide but only as tall as the wordmark, so on a phone the "go
             // home" affordance was a 28px band. The header has room for the
             // full touch target without moving anything.
@@ -127,7 +140,7 @@ export function Header() {
             >
               Grand Prix Picks
             </span>
-          </Link>
+          </a>
         </div>
 
         <div className="flex items-stretch gap-1 min-[844px]:min-w-24 min-[844px]:shrink-0 min-[844px]:justify-end">

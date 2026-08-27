@@ -1,11 +1,26 @@
 # Grand Prix Picks for Reddit: Product Specification
 
-**Status:** Proposed MVP  
+**Status:** Shelved 27 August 2026. No code in the tree.  
 **Product type:** Reddit Devvit interactive-post app  
 **Working name:** Grand Prix Picks for Reddit  
 **Specification version:** 0.1  
 **Prepared:** 24 July 2026  
 **Parent product:** [Grand Prix Picks](https://grandprixpicks.com)
+
+> **Shelved.** The `apps/reddit` Devvit prototype was deleted on 27 August 2026:
+> it was never finished, never playtested on Reddit, and the usage model was
+> never thought through, so it was carrying CI, lint, dependency and audit cost
+> for nothing. This specification is kept deliberately, as the thinking to pick
+> back up from when there is capacity for it.
+>
+> The prototype's last state is in git history at `99ec750` (`apps/reddit`, plus
+> `docs/reddit-app-handover.md` for the build/playtest notes):
+> `git show 99ec750:apps/reddit/devvit.json`, or
+> `git log --diff-filter=D --stat -1 -- apps/reddit` to find the deletion commit.
+>
+> Nothing here describes shipped behaviour. Reddit as a _distribution channel_
+> (the `/r` share redirect, u/GrandPrixPicks, r/GPPicks) is unrelated, still
+> live, and unaffected by this.
 
 ## 1. Executive summary
 

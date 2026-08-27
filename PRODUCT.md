@@ -2,8 +2,8 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Cross-app product truth for Grand Prix Picks, shared by `apps/web`, `apps/mobile`,
-and `apps/reddit`. Per-app records override the platform-specific sections:
+Cross-app product truth for Grand Prix Picks, shared by `apps/web` and
+`apps/mobile`. Per-app records override the platform-specific sections:
 see `apps/web/PRODUCT.md`.
 
 Full implemented-behavior reference: `docs/web-product-specification.md`

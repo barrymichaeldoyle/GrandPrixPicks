@@ -155,35 +155,6 @@ jobs:
       - name: Test mobile
         run: pnpm --filter @grandprixpicks/mobile test:ci
 
-  reddit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prod=false
-
-      - name: Lint reddit
-        run: pnpm --filter @grandprixpicks/reddit lint
-
-      - name: Typecheck reddit
-        run: pnpm --filter @grandprixpicks/reddit typecheck
-
-      - name: Build reddit
-        run: pnpm --filter @grandprixpicks/reddit build
-
   knip:
     runs-on: ubuntu-latest
     timeout-minutes: 15

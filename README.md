@@ -44,8 +44,7 @@ See [docs/monorepo.md](./docs/monorepo.md) for the full guide.
 ## Engineering Docs
 
 - Web app product specification: [docs/web-product-specification.md](./docs/web-product-specification.md)
-- Devvit product specification: [docs/devvit-product-specification.md](./docs/devvit-product-specification.md)
-- Reddit app handover: [docs/reddit-app-handover.md](./docs/reddit-app-handover.md)
+- Devvit product specification (shelved, no code in tree): [docs/devvit-product-specification.md](./docs/devvit-product-specification.md)
 - Monorepo guide: [docs/monorepo.md](./docs/monorepo.md)
 - CI/CD and Convex migration flow: [docs/convex-cicd.md](./docs/convex-cicd.md)
 - Testing conventions: [docs/testing.md](./docs/testing.md)

@@ -16,16 +16,32 @@ allowBuilds:
 
 auditConfig:
   ignoreGhsas:
-    # image-size DoS in the ICNS (GHSA-w3rx-r6r6-pgpr) and JXL/HEIF
-    # (GHSA-5p2g-fcmc-qvqq) parsers. Both advisories name >=2.0.3 as patched,
-    # but 2.0.2 IS the latest published release: there is no fixed version to
-    # override to, in either major. Re-verified against the registry
-    # 2026-08-26 (dist-tags: latest 2.0.2, legacy 1.2.1).
+    # image-size DoS in the ICNS (GHSA-w3rx-r6r6-pgpr / CVE-2025-71330) and
+    # JXL/HEIF (GHSA-5p2g-fcmc-qvqq / CVE-2025-71329) parsers. Both are the
+    # same bug class: a loop advances its cursor by a size field read straight
+    # out of the file, so a zero-valued size pins the cursor and the loop never
+    # exits, appending to an array forever until the heap dies.
     #
-    # Two lines survive in the tree, neither of which we choose:
+    # These stay ignored because **we patch them ourselves**, and pnpm audit
+    # matches on version number, not file content: the patched package is still
+    # called 1.2.1, so both advisories keep matching forever. See
+    # patches/image-size@1.2.1.patch, wired up under patchedDependencies below.
+    # Each patched loop computes its next cursor and breaks unless it actually
+    # moved forward. Verified both ways: the crafted buffers OOM the unpatched
+    # copy and return in <1ms against the patched one, and a well-formed
+    # multi-entry ICNS still parses every entry rather than stopping at the
+    # first. Only ICNS and JXL needed a guard: 1.2.1's findBox already carries
+    # the zero-size check upstream, and its HEIF parser has no loop at all.
+    #
+    # There is no fixed release to move to instead, and there never will be:
+    # 2.0.2 is the newest published version in either major (registry
+    # dist-tags: latest 2.0.2, legacy 1.2.1), and the upstream repo
+    # image-size/image-size was ARCHIVED on 2026-06-03, after the advisories
+    # landed. Nobody is shipping a 2.0.3.
+    #
+    # One line survives in the tree, and it is not one we choose:
     #   image-size@1.2.1 <- metro <- react-native (all 101 paths)
-    #   image-size@2.0.2 <- @devvit/cli
-    # Metro is also stuck inside 1.x on its own terms: 1.x takes
+    # Metro is stuck inside 1.x on its own terms: 1.x takes
     # `Uint8Array | string`, 2.x narrowed the input to `Uint8Array` only, and
     # metro's Assets.js hands it a file path for every asset that is not
     # inside a .zip. Forcing 2.x there breaks bundling on ordinary images.
@@ -33,11 +49,18 @@ auditConfig:
     # ^1.0.2` and calls the default export, so there is no metro upgrade that
     # exits the 1.x line either.
     #
-    # Scope: both consumers parse images at build time, from assets in this
-    # repo. Nothing here reads an image an attacker chose, and neither package
-    # ships to users: metro is the bundler, @devvit/cli is a CLI.
+    # (A second line, image-size@2.0.2 <- @devvit/cli, was patched the same way
+    # and then left the tree entirely on 2026-08-27 when the unfinished
+    # apps/reddit Devvit prototype was deleted. Its patch is deleted too:
+    # pnpm errors on a patch that matches nothing.)
     #
-    # Revisit when image-size publishes 2.0.3, or when metro moves off 1.x.
+    # Scope, unchanged and still the reason this is not urgent: the one
+    # consumer parses images at build time, from assets in this repo. Nothing
+    # here reads an image an attacker chose, and metro does not ship to users,
+    # it is the bundler.
+    #
+    # Revisit when metro moves off image-size 1.x: that deletes the patch
+    # rather than updating it.
     - GHSA-w3rx-r6r6-pgpr
     - GHSA-5p2g-fcmc-qvqq
 
@@ -180,6 +203,9 @@ overrides:
   # Reached only through Convex/Nitro server plumbing; the 7.x line carries
   # the fix, so this is a patch lift rather than a major move.
   'undici@>=7.0.0 <7.29.0': 7.29.0
-  # Transitive via @convex-dev/resend's workpool and apps/reddit's
-  # @hono/node-server. Neither pins a range that excludes the fix.
+  # Transitive via @convex-dev/resend's workpool, which does not pin a range
+  # that excludes the fix.
   'hono@>=4.0.0 <4.12.34': 4.12.34
+
+patchedDependencies:
+  image-size@1.2.1: patches/image-size@1.2.1.patch

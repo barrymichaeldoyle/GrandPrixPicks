@@ -37,6 +37,7 @@ import { DashboardPicksSummary } from './DashboardPicksSummary';
 import {
   getDashboardWeekendAction,
   getSessionClockState,
+  liveOrSsr,
   nextSessionTabIndex,
   weekendReflectsViewer,
   type DashboardSessionState,
@@ -47,6 +48,13 @@ type CurrentWeekend = NonNullable<
 >;
 
 type PicksStep = 'top5' | 'h2h' | 'summary';
+
+type MyWeekendPredictions = FunctionReturnType<
+  typeof api.predictions.myWeekendPredictions
+>;
+type MyH2HPredictions = FunctionReturnType<
+  typeof api.h2h.myH2HPredictionsForRace
+>;
 
 /**
  * The strip announced itself as a tab strip but controlled nothing: no
@@ -85,6 +93,8 @@ export function DashboardWeekendPicks({
   initialRace,
   initialDrivers,
   initialMatchups,
+  initialPredictions,
+  initialH2H,
 }: {
   weekend: CurrentWeekend | null | undefined;
   /** The next race from the route loader, used to name the card before the
@@ -92,6 +102,10 @@ export function DashboardWeekendPicks({
   initialRace?: Doc<'races'> | null;
   initialDrivers: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
+  /** The viewer's saved picks as read during SSR, so a server render shows the
+   *  card filled in rather than an empty one. See `./ssr`. */
+  initialPredictions?: MyWeekendPredictions;
+  initialH2H?: MyH2HPredictions;
 }) {
   if (weekend === undefined) {
     return <WeekendCardSkeleton race={initialRace} />;
@@ -127,6 +141,8 @@ export function DashboardWeekendPicks({
       weekend={weekend}
       initialDrivers={initialDrivers}
       initialMatchups={initialMatchups}
+      initialPredictions={initialPredictions}
+      initialH2H={initialH2H}
     />
   );
 }
@@ -135,19 +151,32 @@ function DashboardWeekendPicksReady({
   weekend,
   initialDrivers,
   initialMatchups,
+  initialPredictions,
+  initialH2H,
 }: {
   weekend: CurrentWeekend;
   initialDrivers: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
+  initialPredictions?: MyWeekendPredictions;
+  initialH2H?: MyH2HPredictions;
 }) {
   const now = useNow(1_000, weekend.serverNow);
   const action = getDashboardWeekendAction(weekend.sessions);
-  const myPredictions = useQuery(api.predictions.myWeekendPredictions, {
-    raceId: weekend.race._id,
-  });
-  const myH2H = useQuery(api.h2h.myH2HPredictionsForRace, {
-    raceId: weekend.race._id,
-  });
+  // Same `!== undefined` rule as `DashboardPage`: null is "no picks saved",
+  // undefined is "not answered yet", and only the second falls back to the
+  // value SSR read. Every step below derives from these, so without the
+  // fallback a server render has a weekend but no picks and opens the card on
+  // step 1 — telling a player who has already picked to pick again.
+  const myPredictions = liveOrSsr(
+    useQuery(api.predictions.myWeekendPredictions, {
+      raceId: weekend.race._id,
+    }),
+    initialPredictions,
+  );
+  const myH2H = liveOrSsr(
+    useQuery(api.h2h.myH2HPredictionsForRace, { raceId: weekend.race._id }),
+    initialH2H,
+  );
   // Everyone, not just the racing subset: this array feeds the saved-picks
   // summaries as well as the picker, and a summary has to be able to name a
   // driver who has since lost their seat. `PredictionForm` filters it down to

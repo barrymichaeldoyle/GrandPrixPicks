@@ -168,9 +168,16 @@ export const getMatchupsForSeason = query({
   },
 });
 
-export const myH2HPredictionsForRace = query({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
+/**
+ * The body of {@link myH2HPredictionsForRace}, callable from another query.
+ * Shared with `home.getDashboardPageData` for the reason given on
+ * {@link loadCurrentWeekend}.
+ */
+export async function loadMyH2HPredictionsForRace(
+  ctx: QueryCtx,
+  args: { raceId: Id<'races'> },
+) {
+  {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return null;
@@ -200,7 +207,12 @@ export const myH2HPredictionsForRace = query({
     }
 
     return bySession;
-  },
+  }
+}
+
+export const myH2HPredictionsForRace = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => await loadMyH2HPredictionsForRace(ctx, args),
 });
 
 export const getH2HResultsForRace = query({

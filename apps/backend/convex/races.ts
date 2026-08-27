@@ -5,6 +5,7 @@ import {
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import {
   getOrCreateViewer,
@@ -207,16 +208,26 @@ export const getQuickPickRace = query({
  * don't re-implement lock/eligibility rules. Mutations remain the final
  * authority on writes.
  */
-export const getCurrentWeekend = query({
-  args: {},
-  handler: async (
-    ctx,
-  ): Promise<{
-    race: Doc<'races'>;
-    serverNow: number;
-    isSubmittable: boolean;
-    sessions: SessionCapability[];
-  } | null> => {
+export type CurrentWeekendPayload = {
+  race: Doc<'races'>;
+  serverNow: number;
+  isSubmittable: boolean;
+  sessions: SessionCapability[];
+};
+
+/**
+ * The body of {@link getCurrentWeekend}, callable from another query.
+ *
+ * Extracted so `home.getDashboardPageData` can return this exact value rather
+ * than a parallel re-derivation of it. The dashboard seeds its query cache from
+ * that aggregate under this query's own cache key, so the two must not be
+ * merely similar: a drift between them would put a shape in the cache that the
+ * live subscription then contradicts on its first update.
+ */
+export async function loadCurrentWeekend(
+  ctx: QueryCtx,
+): Promise<CurrentWeekendPayload | null> {
+  {
     const now = Date.now();
     const viewer = await getViewer(ctx);
 
@@ -303,7 +314,13 @@ export const getCurrentWeekend = query({
     );
 
     return { race, serverNow: now, isSubmittable, sessions };
-  },
+  }
+}
+
+export const getCurrentWeekend = query({
+  args: {},
+  handler: async (ctx): Promise<CurrentWeekendPayload | null> =>
+    await loadCurrentWeekend(ctx),
 });
 
 export const getRace = query({

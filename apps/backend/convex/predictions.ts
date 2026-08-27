@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { getRaceLeaderboardForViewer } from './leaderboards';
@@ -337,9 +338,17 @@ export const myPredictionForRace = query({
 });
 
 /** Get all predictions for a weekend (all session types) */
-export const myWeekendPredictions = query({
-  args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
+/**
+ * The body of {@link myWeekendPredictions}, callable from another query, so
+ * `home.getDashboardPageData` returns this exact value rather than a second
+ * implementation of it. See {@link loadCurrentWeekend} for why that matters:
+ * the dashboard seeds its cache from the aggregate under this query's key.
+ */
+export async function loadMyWeekendPredictions(
+  ctx: QueryCtx,
+  args: { raceId: Id<'races'> },
+) {
+  {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return null;
@@ -374,7 +383,12 @@ export const myWeekendPredictions = query({
       hasSprint: race.hasSprint ?? false,
       predictions: bySession,
     };
-  },
+  }
+}
+
+export const myWeekendPredictions = query({
+  args: { raceId: v.id('races') },
+  handler: async (ctx, args) => await loadMyWeekendPredictions(ctx, args),
 });
 
 /**

@@ -23,6 +23,7 @@ import {
   preloadDashboardForReturningViewer,
   preloadDashboardPage,
 } from './-dashboard/preload';
+import { fetchDashboardSsrData } from './-dashboard/ssr';
 import {
   BrowseRacesCta,
   LandingHero,
@@ -117,9 +118,25 @@ export const Route = createFileRoute('/')({
     // than that.
     const now =
       Math.floor(Date.now() / HOME_NOW_BUCKET_MS) * HOME_NOW_BUCKET_MS;
-    const data = await context.queryClient.ensureQueryData(
-      routeQuery(api.home.getHomePageData, { now }),
-    );
+
+    // In parallel, never in sequence. SSR time on this route is almost entirely
+    // one round trip to Convex, so a second one alongside costs the difference
+    // between them rather than their sum — and it is what lets a signed-in
+    // visitor receive a rendered dashboard instead of a screen of skeletons.
+    //
+    // Server only. On a client navigation the components already hold live
+    // subscriptions to exactly this data, so calling the server function there
+    // would add an HTTP round trip to re-fetch what the socket has. `document`
+    // is the check rather than `import.meta.env.SSR` because this file is also
+    // rendered by the test environment.
+    const [data, dashboard] = await Promise.all([
+      context.queryClient.ensureQueryData(
+        routeQuery(api.home.getHomePageData, { now }),
+      ),
+      typeof document === 'undefined'
+        ? fetchDashboardSsrData()
+        : Promise.resolve(null),
+    ]);
 
     // Keep the public landing payload focused on the data it actually renders.
     // The backend query is shared with other home states and intentionally
@@ -132,6 +149,7 @@ export const Route = createFileRoute('/')({
       topPlayers: data.topPlayers,
       drivers: data.drivers,
       h2hMatchups: data.h2hMatchups,
+      dashboard,
       now,
     };
   },
@@ -161,7 +179,7 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const { isSignedIn } = useViewerSession();
-  const { drivers, h2hMatchups, nextRace } = Route.useLoaderData();
+  const { dashboard, drivers, h2hMatchups, nextRace } = Route.useLoaderData();
 
   useEffect(() => {
     document.title = isSignedIn ? DASHBOARD_TITLE : PUBLIC_HOME_TITLE;
@@ -173,6 +191,7 @@ function HomePage() {
         initialRace={nextRace}
         initialDrivers={drivers}
         initialMatchups={h2hMatchups}
+        initialDashboard={dashboard}
       />
     </Suspense>
   ) : (

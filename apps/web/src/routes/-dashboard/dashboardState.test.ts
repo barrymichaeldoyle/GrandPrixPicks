@@ -4,6 +4,7 @@ import type { DashboardSessionState } from './dashboardState';
 import {
   getDashboardWeekendAction,
   getSessionClockState,
+  liveOrSsr,
   nextSessionTabIndex,
   weekendReflectsViewer,
 } from './dashboardState';
@@ -237,5 +238,31 @@ describe('nextSessionTabIndex', () => {
   it('stays put on a single tab', () => {
     expect(nextSessionTabIndex('ArrowRight', 0, 1)).toBe(0);
     expect(nextSessionTabIndex('ArrowLeft', 0, 1)).toBe(0);
+  });
+});
+
+describe('liveOrSsr', () => {
+  it('prefers the live answer once there is one', () => {
+    expect(liveOrSsr('live', 'ssr')).toBe('live');
+  });
+
+  it('falls back only while the live query has not answered', () => {
+    expect(liveOrSsr(undefined, 'ssr')).toBe('ssr');
+  });
+
+  it('lets a live null win, because null is an answer', () => {
+    // The regression this guards: with `??` the SSR value would win here, and
+    // a player who cleared their picks would keep seeing them.
+    expect(liveOrSsr(null, 'ssr')).toBeNull();
+  });
+
+  it('is undefined when neither side has anything', () => {
+    expect(liveOrSsr(undefined, undefined)).toBeUndefined();
+  });
+
+  it('passes a live falsy value through untouched', () => {
+    expect(liveOrSsr(0, 99)).toBe(0);
+    expect(liveOrSsr('', 'ssr')).toBe('');
+    expect(liveOrSsr(false, true)).toBe(false);
   });
 });

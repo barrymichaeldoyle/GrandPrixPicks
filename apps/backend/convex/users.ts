@@ -543,9 +543,12 @@ export const processUserDeletionBatch = internalMutation({
   },
 });
 
-export const me = query({
-  args: {},
-  handler: async (ctx) => {
+/**
+ * The body of {@link me}, callable from another query. Shared with
+ * `home.getDashboardPageData` for the reason given on `loadCurrentWeekend`.
+ */
+export async function loadMe(ctx: QueryCtx) {
+  {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return null;
@@ -569,7 +572,12 @@ export const me = query({
       locale: viewer.locale,
       isAdmin: viewer.isAdmin ?? false,
     };
-  },
+  }
+}
+
+export const me = query({
+  args: {},
+  handler: async (ctx) => await loadMe(ctx),
 });
 
 /** Sync the current user's profile from Clerk identity claims. */

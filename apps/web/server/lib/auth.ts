@@ -106,6 +106,33 @@ export async function isClerkSessionPresent(
   return Boolean(value) && value !== '0';
 }
 
+/**
+ * The Clerk session JWT for a request, or null when there is not one.
+ *
+ * This is the token Convex itself verifies — Clerk is the OIDC provider in
+ * `auth.config.ts` — so handing it to a `ConvexHttpClient` lets an SSR render
+ * read as the viewer, with no extra call to Clerk and no new dependency.
+ *
+ * Deliberately *not* validated here. Convex validates it, and it is the only
+ * party that has to: a token this function wrongly accepts buys nothing,
+ * because Convex rejects it and the caller falls back to client fetching.
+ * Validating locally would mean a JWKS fetch on the render path to reach the
+ * same answer more slowly.
+ *
+ * Same suffix rule as {@link isClerkSessionPresent}: only this instance's
+ * cookie counts, because a browser that has visited another Clerk instance
+ * keeps that instance's cookie indefinitely.
+ */
+export async function getClerkSessionToken(
+  request: Request,
+): Promise<string | null> {
+  const cookies = parseCookieHeader(request.headers.get('cookie'));
+  const suffix = await getClerkCookieSuffix();
+
+  const suffixed = suffix ? cookies.get(`__session_${suffix}`) : undefined;
+  return suffixed ?? cookies.get('__session') ?? null;
+}
+
 export function buildConvexTokenIdentifier(params: {
   issuer?: string | null;
   subject?: string | null;

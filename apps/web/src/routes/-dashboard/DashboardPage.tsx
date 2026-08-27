@@ -16,12 +16,14 @@ import { FeedContent } from '@/components/feed/FeedContent';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
-import { weekendReflectsViewer } from './dashboardState';
+import type { DashboardSsrData } from './ssr';
+import { liveOrSsr, weekendReflectsViewer } from './dashboardState';
 
 export function DashboardPage({
   initialRace,
   initialDrivers = [],
   initialMatchups,
+  initialDashboard,
 }: {
   /** Seeds the weekend card's identity from SSR, so the race name (this page's
    *  LCP element) does not wait on Convex re-answering for the signed-in
@@ -29,9 +31,29 @@ export function DashboardPage({
   initialRace?: Doc<'races'> | null;
   initialDrivers?: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
+  /** The viewer's own above-the-fold data, read as the viewer during SSR.
+   *  Null whenever that read could not happen — see `./ssr`. */
+  initialDashboard?: DashboardSsrData | null;
 } = {}) {
-  const currentWeekend = useQuery(api.races.getCurrentWeekend, {});
-  const me = useQuery(api.users.me, {});
+  /*
+   * `?? initial` and not `||`, and `!== undefined` rather than truthiness,
+   * because these queries use null as an answer: null means "no open weekend"
+   * and undefined means "has not answered yet". Only the second one should fall
+   * back to the SSR value.
+   *
+   * The fallback is what renders on the server, where the live query has
+   * nothing, and again through hydration until the socket's first answer — so
+   * the card does not fill in, empty out and fill in again. Once Convex
+   * answers, its value wins for good; nothing here goes stale.
+   */
+  const currentWeekend = liveOrSsr(
+    useQuery(api.races.getCurrentWeekend, {}),
+    initialDashboard?.weekend ?? undefined,
+  );
+  const me = liveOrSsr(
+    useQuery(api.users.me, {}),
+    initialDashboard?.me ?? undefined,
+  );
   const history = useQuery(
     api.predictions.getUserPredictionHistory,
     me ? { userId: me._id } : 'skip',
@@ -138,6 +160,8 @@ export function DashboardPage({
         initialRace={initialRace}
         initialDrivers={initialDrivers}
         initialMatchups={initialMatchups}
+        initialPredictions={initialDashboard?.predictions ?? null}
+        initialH2H={initialDashboard?.h2h ?? null}
       />
 
       {/* No "See all" any more: this *is* all of it. The standalone /feed page

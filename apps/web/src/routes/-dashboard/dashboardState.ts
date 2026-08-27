@@ -196,3 +196,24 @@ export function nextSessionTabIndex(
       return null;
   }
 }
+
+/**
+ * Prefers the live Convex answer, falling back to what SSR read as the viewer.
+ *
+ * The distinction this exists to hold is between the two falsy answers these
+ * queries give. `undefined` means "has not answered yet" and is the only one
+ * that should fall back. `null` is a real answer — no open weekend, no saved
+ * picks — and must win, or a player who cleared their picks would keep being
+ * shown the copy SSR rendered, indefinitely, because the socket's `null` could
+ * never displace it.
+ *
+ * So `!==` rather than `??`. `??` treats both as absent and produces exactly
+ * that bug, which is why this is a named function with a test rather than an
+ * operator repeated at four call sites.
+ */
+export function liveOrSsr<T>(
+  live: T | undefined,
+  fromSsr: T | undefined,
+): T | undefined {
+  return live !== undefined ? live : fromSsr;
+}

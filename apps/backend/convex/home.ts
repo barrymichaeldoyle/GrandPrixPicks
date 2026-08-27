@@ -4,7 +4,11 @@ import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
-import { loadMatchupsForSeason } from './h2h';
+import { loadMatchupsForSeason, loadMyH2HPredictionsForRace } from './h2h';
+import { getViewer } from './lib/auth';
+import { loadMyWeekendPredictions } from './predictions';
+import { loadCurrentWeekend } from './races';
+import { loadMe } from './users';
 import { loadStintsForSeason, rosterForRound } from './lib/lineups';
 import {
   getDefaultLeaderboardSeason,
@@ -232,5 +236,59 @@ export const getHomePageData = query({
       drivers,
       h2hMatchups,
     };
+  },
+});
+
+/**
+ * Everything the signed-in dashboard needs above the fold, in one query.
+ *
+ * This exists for SSR. The dashboard's own components each read their own
+ * query (`races.getCurrentWeekend`, `users.me`, and the two pick queries), and
+ * on the client that is right — four independent subscriptions, each updating
+ * on its own. On the server it was the reason the page could not be rendered:
+ * the picks query needs a raceId that only the weekend query can supply, so
+ * fetching them over HTTP would have cost two serial round trips, and SSR time
+ * on this route is almost entirely one round trip to Convex. Two would have
+ * bought a rendered dashboard by making every signed-in page slower to start.
+ *
+ * Inside a single query that dependency is free: it is one transaction on one
+ * consistent snapshot, so the raceId is just a local variable. One round trip,
+ * everything filled in.
+ *
+ * Every field is the *same value* the individual query returns, because each
+ * comes from that query's own extracted body rather than a re-derivation. The
+ * web app seeds its query cache from this payload under the individual queries'
+ * cache keys, so a drift here would seed a shape the live subscription then
+ * contradicts on its first update.
+ *
+ * Returns null for a signed-out caller, which is also what an expired token
+ * produces — the caller treats both as "nothing to seed" and falls back to
+ * client fetching.
+ */
+export const getDashboardPageData = query({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return null;
+    }
+
+    const [me, weekend] = await Promise.all([
+      loadMe(ctx),
+      loadCurrentWeekend(ctx),
+    ]);
+
+    // Between-seasons, or any moment with no open weekend: there is no raceId
+    // to ask the pick queries about, and no card for them to fill in.
+    if (!weekend) {
+      return { me, weekend: null, predictions: null, h2h: null };
+    }
+
+    const [predictions, h2h] = await Promise.all([
+      loadMyWeekendPredictions(ctx, { raceId: weekend.race._id }),
+      loadMyH2HPredictionsForRace(ctx, { raceId: weekend.race._id }),
+    ]);
+
+    return { me, weekend, predictions, h2h };
   },
 });

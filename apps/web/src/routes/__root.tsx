@@ -306,11 +306,15 @@ function RootDocument({ children }: PropsWithChildren) {
     // become the only trigger, and a page with nothing to show stops paying
     // ~680 KB across four Google hosts for a script it cannot use.
     //
-    // Worth verifying in the dashboard before then: this is supposed to render
-    // nothing without an `<ins>` of ours, but a bare `<ins class="adsbygoogle">`
-    // with `<body>` as its parent shows up on prod, and the app renders none.
-    // If Auto ads is on, Google picks the positions — including inside the
-    // picks flow — which is the thing deliberate placement exists to avoid.
+    // A bare `<ins class="adsbygoogle">` and an iframe show up on prod with
+    // `<body>` as their parent, which the app never rendered. That is the
+    // script's own bookkeeping, not a placement: Auto ads is off in the AdSense
+    // console and stays off, so Google never chooses a position here. Every ad
+    // on this site comes from an `AdSlot` somebody put there on purpose.
+    //
+    // Checked because the alternative mattered: Auto ads would inject its own
+    // slots wherever it liked, including inside the picks flow, which is the
+    // thing deliberate placement exists to prevent.
     //
     // It still waits for the document and an idle main thread, so it cannot
     // touch first paint either way.

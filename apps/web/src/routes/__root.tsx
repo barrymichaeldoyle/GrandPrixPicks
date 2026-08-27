@@ -49,6 +49,7 @@ import { convex } from '@/integrations/convex/client';
 import { AppConvexQueryCache } from '@/integrations/convex/queryCache';
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
+import { ensureAdSenseLoaded } from '@/lib/adsense';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
@@ -295,34 +296,28 @@ function RootDocument({ children }: PropsWithChildren) {
     // used to carry was 232 KB plus the 163 KB of Google Tag Manager it pulled
     // in, and both are gone.
     //
-    // This is the loader only. Placement is deliberate rather than automatic:
-    // Auto ads is turned off in the AdSense dashboard, so loading the script
-    // renders nothing on its own, and an ad appears only where the app puts an
-    // `<ins class="adsbygoogle">` slot. There are none yet.
+    // This is the loader only. Placement belongs to `AdSlot`, which loads the
+    // same script on its own when a slot approaches the viewport, so this call
+    // exists purely to keep the code findable on every route while the account
+    // is under review. Both go through `ensureAdSenseLoaded`, so whichever
+    // fires first wins.
     //
-    // That split is the point. The script can sit on every route, including the
-    // conversion page, purely so the code is findable, without an ad ever
-    // showing somewhere it would get in the way. Auto ads being switched back
-    // on in the dashboard would silently undo that, since it injects its own
-    // slots wherever it likes.
+    // Delete this effect once ads are approved and placed: the slots then
+    // become the only trigger, and a page with nothing to show stops paying
+    // ~680 KB across four Google hosts for a script it cannot use.
+    //
+    // Worth verifying in the dashboard before then: this is supposed to render
+    // nothing without an `<ins>` of ours, but a bare `<ins class="adsbygoogle">`
+    // with `<body>` as its parent shows up on prod, and the app renders none.
+    // If Auto ads is on, Google picks the positions — including inside the
+    // picks flow — which is the thing deliberate placement exists to avoid.
     //
     // It still waits for the document and an idle main thread, so it cannot
     // touch first paint either way.
-    if (document.querySelector<HTMLScriptElement>('#gpp-adsense-script')) {
-      return;
-    }
-
     return deferUntilAfterLoad(() => {
-      if (document.querySelector('#gpp-adsense-script')) {
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'gpp-adsense-script';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      script.src =
-        'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3482457944656598';
-      document.head.append(script);
+      // Failure is fine and expected (ad blockers): the loader clears its own
+      // state so a slot can retry, and nothing here depends on the result.
+      void ensureAdSenseLoaded().catch(() => {});
     });
     // Once per document, not per navigation: the loader is global and the
     // route no longer decides whether it runs.

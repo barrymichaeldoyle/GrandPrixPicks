@@ -1,7 +1,10 @@
 import { v } from 'convex/values';
 
-import { mutation } from './_generated/server';
-import { findUserByClerkIdentity } from './lib/auth';
+import { mutation, query } from './_generated/server';
+import { findUserByClerkIdentity, getViewer } from './lib/auth';
+import type { Plan } from './lib/entitlements';
+import { resolvePlan } from './lib/entitlements';
+import { getCurrentSeason } from './lib/season';
 
 export function isTerminalPaddleWebhookEventStatus(
   status: 'processed' | 'ignored_user_not_found',
@@ -167,5 +170,34 @@ export const grantSeasonPassFromPaddle = mutation({
     }
 
     return { granted: true, created: true };
+  },
+});
+
+/**
+ * The viewer's paid tier, on its own.
+ *
+ * `getMyLeagueUsage` already returns `isPro`, but it earns that answer by
+ * counting every league a player has created and joined — the right shape for
+ * the leagues page and far too much work for a caller that only wants to know
+ * whether to render an ad. This is the same fact with none of the counting.
+ *
+ * Signed-out reads `free` rather than null, because that is the truthful answer
+ * for anonymous visitors and it keeps callers from having to treat "no viewer"
+ * as a third state.
+ */
+export const getMyPlan = query({
+  args: {},
+  handler: async (ctx): Promise<{ plan: Plan; isPro: boolean }> => {
+    const viewer = await getViewer(ctx);
+    if (!viewer) {
+      return { plan: 'free', isPro: false };
+    }
+
+    const plan = await resolvePlan(
+      ctx,
+      viewer._id,
+      await getCurrentSeason(ctx),
+    );
+    return { plan, isPro: plan === 'pro' };
   },
 });

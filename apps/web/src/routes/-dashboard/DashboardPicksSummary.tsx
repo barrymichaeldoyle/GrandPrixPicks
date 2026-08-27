@@ -97,7 +97,9 @@ export function DashboardPicksSummary({
     <div data-testid="dashboard-picks-summary">
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <h3 className="text-xl font-normal text-text">
+          {/* `h2` for the same reason as the invitation heading it swaps
+              with: the card title above it is the page `h1`. */}
+          <h2 className="text-xl font-normal text-text">
             {!hasCard
               ? `No ${sessionLabel.toLowerCase()} picks`
               : session.hasResult
@@ -105,7 +107,7 @@ export function DashboardPicksSummary({
                 : editable
                   ? `Your ${sessionLabel.toLowerCase()} picks`
                   : `${sessionLabel} picks are locked`}
-          </h3>
+          </h2>
           <p className="mt-1 text-sm text-text-muted">
             {summaryDetail({ session, editable, h2hComplete, hasCard })}
           </p>

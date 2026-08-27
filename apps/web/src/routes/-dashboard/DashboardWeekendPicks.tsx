@@ -861,9 +861,14 @@ function PicksInvitation({
   return (
     <div data-testid="dashboard-picks-invitation">
       <p className="gpp-label text-accent">Step {onH2H ? '2' : '1'} of 2</p>
-      <h3 className="mt-1 text-lg font-semibold text-text sm:text-xl">
+      {/* `h2`, not `h3`. The card's title is the page `h1`, and nothing sits
+          between them, so an `h3` here skipped a level and axe failed the
+          dashboard on `heading-order`. The rail cards are all `h2` too, so
+          this is the level the card body belongs at. Purely semantic: the
+          size lives in the class. */}
+      <h2 className="mt-1 text-lg font-semibold text-text sm:text-xl">
         {onH2H ? 'Choose who finishes ahead' : 'Choose your Top 5'}
-      </h3>
+      </h2>
       <p className="mt-1 text-sm text-text-muted">
         {onH2H
           ? 'Choose one driver from each team. Each correct pick earns one point.'

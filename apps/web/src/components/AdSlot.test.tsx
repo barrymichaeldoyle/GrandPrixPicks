@@ -102,7 +102,7 @@ describe('AdSlot', () => {
   it('mounts the <ins> only once the slot is approached', () => {
     // The whole point of the deferral: no ad markup, so no push and no script
     // fetch, for a reader who never scrolls here.
-    const observers: Array<(entries: unknown[]) => void> = [];
+    const observers: ((entries: unknown[]) => void)[] = [];
     vi.stubGlobal(
       'IntersectionObserver',
       class {

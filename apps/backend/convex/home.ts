@@ -6,12 +6,17 @@ import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { loadMatchupsForSeason, loadMyH2HPredictionsForRace } from './h2h';
 import { getViewer } from './lib/auth';
-import { loadMyWeekendPredictions } from './predictions';
+import { loadMyLeagues } from './leagues';
+import {
+  loadMyWeekendPredictions,
+  loadUserPredictionHistory,
+} from './predictions';
 import { loadCurrentWeekend } from './races';
 import { loadMe } from './users';
 import { loadStintsForSeason, rosterForRound } from './lib/lineups';
 import {
   getDefaultLeaderboardSeason,
+  loadCombinedSeasonLeaderboard,
   loadCombinedSeasonRows,
 } from './leaderboards';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
@@ -240,6 +245,48 @@ export const getHomePageData = query({
 });
 
 /**
+ * The rail cards beside the weekend card: season standing, leagues, last
+ * result.
+ *
+ * Bounded on purpose, because every field here is serialised into the HTML of
+ * each signed-in document. The season leaderboard is capped at the three rows
+ * the card shows, and leagues are however many a player has joined.
+ *
+ * `latestScoredWeekend` is the odd one out: it does not server-render its card,
+ * and is not meant to. `LatestResultCard` waits for
+ * `getCombinedRaceLeaderboard` before showing anything, because the rank it
+ * reads from the weekend is the Top 5 rank while the leaderboard's is the
+ * combined one — rendering early would print a position that then visibly
+ * changes. That gate stays.
+ *
+ * What this removes is a serial hop. The leaderboard query is keyed on the
+ * weekend, so the client used to walk the player's whole season, find the last
+ * scored weekend, and only then start asking for its leaderboard: two round
+ * trips, one after the other. Seeding the weekend lets that request go out on
+ * the first render instead.
+ *
+ * Only the weekend travels, never the history it came from. The walk happens
+ * here, and the leaderboard stays a client fetch on purpose — it returns
+ * *every* entry for a race with no limit, which is a few kilobytes at 35
+ * players and a tax that grows with the game.
+ */
+async function loadDashboardRails(ctx: QueryCtx, userId: Id<'users'>) {
+  const [seasonLeaderboard, leagues, history] = await Promise.all([
+    // The same limit `DashboardPage` passes. A different one here would seed a
+    // cache entry under a key nothing reads.
+    loadCombinedSeasonLeaderboard(ctx, { limit: 3 }),
+    loadMyLeagues(ctx),
+    loadUserPredictionHistory(ctx, { userId }),
+  ]);
+
+  return {
+    seasonLeaderboard,
+    leagues,
+    latestScoredWeekend: history.find((weekend) => weekend.hasScores) ?? null,
+  };
+}
+
+/**
  * Everything the signed-in dashboard needs above the fold, in one query.
  *
  * This exists for SSR. The dashboard's own components each read their own
@@ -273,15 +320,16 @@ export const getDashboardPageData = query({
       return null;
     }
 
-    const [me, weekend] = await Promise.all([
+    const [me, weekend, rails] = await Promise.all([
       loadMe(ctx),
       loadCurrentWeekend(ctx),
+      loadDashboardRails(ctx, viewer._id),
     ]);
 
     // Between-seasons, or any moment with no open weekend: there is no raceId
     // to ask the pick queries about, and no card for them to fill in.
     if (!weekend) {
-      return { me, weekend: null, predictions: null, h2h: null };
+      return { me, weekend: null, predictions: null, h2h: null, ...rails };
     }
 
     const [predictions, h2h] = await Promise.all([
@@ -289,6 +337,6 @@ export const getDashboardPageData = query({
       loadMyH2HPredictionsForRace(ctx, { raceId: weekend.race._id }),
     ]);
 
-    return { me, weekend, predictions, h2h };
+    return { me, weekend, predictions, h2h, ...rails };
   },
 });

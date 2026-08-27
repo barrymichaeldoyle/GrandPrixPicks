@@ -407,13 +407,15 @@ export const getLeagueLeaderboard = query({
   },
 });
 
-export const getCombinedSeasonLeaderboard = query({
-  args: {
-    season: v.optional(v.number()),
-    limit: v.optional(v.number()),
-    offset: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
+/**
+ * The body of {@link getCombinedSeasonLeaderboard}, callable from another
+ * query. Shared with `home.getDashboardPageData`.
+ */
+export async function loadCombinedSeasonLeaderboard(
+  ctx: QueryCtx,
+  args: { season?: number; limit?: number; offset?: number },
+) {
+  {
     const viewer = await getViewer(ctx);
     const season = args.season ?? (await getDefaultLeaderboardSeason(ctx));
     const { limit, offset } = clampLeaderboardPagination(
@@ -441,7 +443,16 @@ export const getCombinedSeasonLeaderboard = query({
     }));
 
     return { entries, totalCount: allRows.length, hasMore, viewerEntry };
+  }
+}
+
+export const getCombinedSeasonLeaderboard = query({
+  args: {
+    season: v.optional(v.number()),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
+  handler: async (ctx, args) => await loadCombinedSeasonLeaderboard(ctx, args),
 });
 
 export const getFriendsCombinedLeaderboard = query({

@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
+import type { QueryCtx } from './_generated/server';
 import { mutation, query } from './_generated/server';
 import { getOrCreateViewer, getViewer, requireViewer } from './lib/auth';
 import { getCurrentSeason } from './lib/season';
@@ -130,9 +131,12 @@ async function registerFailedJoinAttempt(
 
 // ──────────────────── Queries ────────────────────
 
-export const getMyLeagues = query({
-  args: {},
-  handler: async (ctx) => {
+/**
+ * The body of {@link getMyLeagues}, callable from another query. Shared with
+ * `home.getDashboardPageData`.
+ */
+export async function loadMyLeagues(ctx: QueryCtx) {
+  {
     const viewer = await getViewer(ctx);
     if (!viewer) {
       return [];
@@ -165,7 +169,12 @@ export const getMyLeagues = query({
     );
 
     return leagues.filter(Boolean);
-  },
+  }
+}
+
+export const getMyLeagues = query({
+  args: {},
+  handler: async (ctx) => await loadMyLeagues(ctx),
 });
 
 export const listPublicLeagues = query({

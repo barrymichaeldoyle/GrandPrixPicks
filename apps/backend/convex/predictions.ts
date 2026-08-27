@@ -160,9 +160,17 @@ export const myPredictionHistory = query({
   },
 });
 
-export const getUserPredictionHistory = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, args) => {
+/**
+ * The body of {@link getUserPredictionHistory}, callable from another query.
+ * Shared with `home.getDashboardPageData`, which uses it only to pick out the
+ * most recent scored weekend — see the note there on why the whole history
+ * does not travel to the client.
+ */
+export async function loadUserPredictionHistory(
+  ctx: QueryCtx,
+  args: { userId: Id<'users'> },
+) {
+  {
     const viewer = await getViewer(ctx);
     const isOwner = viewer ? viewer._id === args.userId : false;
 
@@ -297,7 +305,12 @@ export const getUserPredictionHistory = query({
     return weekends
       .filter((w): w is NonNullable<typeof w> => w !== null)
       .sort((a, b) => b.raceDate - a.raceDate);
-  },
+  }
+}
+
+export const getUserPredictionHistory = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, args) => await loadUserPredictionHistory(ctx, args),
 });
 
 function assertFiveUnique(ids: Array<string>) {

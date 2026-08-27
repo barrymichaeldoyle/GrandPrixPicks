@@ -37,6 +37,7 @@ import { DashboardPicksSummary } from './DashboardPicksSummary';
 import {
   getDashboardWeekendAction,
   getSessionClockState,
+  nextSessionTabIndex,
   weekendReflectsViewer,
   type DashboardSessionState,
 } from './dashboardState';
@@ -46,6 +47,23 @@ type CurrentWeekend = NonNullable<
 >;
 
 type PicksStep = 'top5' | 'h2h' | 'summary';
+
+/**
+ * The strip announced itself as a tab strip but controlled nothing: no
+ * `aria-controls`, and no element carrying `role="tabpanel"`. A screen reader
+ * got "tab 1 of 2" and no way to reach what the tab had switched.
+ *
+ * There is one panel, not one per tab — the summary below is re-keyed on the
+ * active session rather than four panels being toggled — so every tab points at
+ * the same id, and the panel names itself after whichever tab is selected.
+ * That is the documented shape for a single-panel tab strip and it keeps the
+ * ids stable across a session change.
+ */
+const SESSION_TABPANEL_ID = 'dashboard-session-panel';
+
+function sessionTabId(sessionType: SessionType) {
+  return `dashboard-session-tab-${sessionType}`;
+}
 
 let h2hFormModule: Promise<
   typeof import('@/components/H2HPredictionForm')
@@ -254,6 +272,38 @@ function DashboardWeekendPicksReady({
       : null) ?? defaultSession;
   const defaultSessionType = defaultSession?.sessionType;
 
+  const tabStripRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Home/End/arrows across the strip, per the APG tabs pattern. Focus is moved
+   * by hand because the roving tabindex has already left every unselected chip
+   * at -1: selecting alone would update `aria-selected` and leave the browser's
+   * focus on a chip that is no longer the tab stop.
+   *
+   * The DOM is the source of order rather than `weekend.sessions`, so a chip
+   * that stops rendering cannot desynchronise the index from what is on screen.
+   */
+  function handleTabKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const tabs = [
+      ...(tabStripRef.current?.querySelectorAll<HTMLButtonElement>(
+        '[role="tab"]',
+      ) ?? []),
+    ];
+    const next = nextSessionTabIndex(
+      event.key,
+      tabs.findIndex((tab) => tab === document.activeElement),
+      tabs.length,
+    );
+    if (next === null) {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    // Focus follows selection: the panel below is one summary re-keyed on the
+    // session, so selecting as you arrow costs nothing and saves a keystroke.
+    tabs[next].click();
+  }
+
   // Countdown, tabs and card all describe the same session: switching a tab
   // moves the clock with it rather than leaving the header talking about a
   // session the card below is no longer showing.
@@ -337,12 +387,19 @@ function DashboardWeekendPicksReady({
                 Round {weekend.race.round}
                 {weekend.race.hasSprint ? ' · Sprint weekend' : ''}
               </p>
-              <h2
+              {/* `h1`, not `h2`. The dashboard had no `h1` at all — the
+                  highest heading on it was "Season standing" in the rail — so
+                  heading navigation started one level down and skipped the
+                  subject of the page entirely. The race this weekend is that
+                  subject, and this card is only ever rendered on the
+                  dashboard, so it can hold the level. Purely semantic: the
+                  size lives in the class, so nothing moves. */}
+              <h1
                 id="dashboard-weekend-title"
                 className="mt-1 text-xl font-semibold tracking-tight text-text sm:text-2xl"
               >
                 {weekend.race.name}
-              </h2>
+              </h1>
             </div>
           </div>
           {/* There used to be an "N open" pill next to this. The tab row below
@@ -352,7 +409,7 @@ function DashboardWeekendPicksReady({
             to="/races/$raceSlug"
             params={{ raceSlug: weekend.race.slug }}
             search={{ from: 'home' }}
-            className="mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+            className="gpp-touch-target mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
           >
             Full weekend
             <ArrowRight className="size-3.5 shrink-0" aria-hidden />
@@ -375,10 +432,20 @@ function DashboardWeekendPicksReady({
             session name or a large text setting must scroll rather than
             reflow. `-mx-*`/`px-*` keeps the scroll edge flush with the card
             while the chips stay aligned to its padding. */}
+        {/* Arrow keys, because the strip uses a roving tabindex: every chip but
+            the selected one is `tabIndex={-1}`, so Tab reaches the strip and
+            then leaves it, and without a key handler the other sessions could
+            not be reached from the keyboard at all. `TabSwitch` on the race
+            page has carried this since it went to real tabs; this strip is
+            hand-rolled and never got it. Focus follows selection, which is the
+            right model here — the panel below is one re-keyed summary, so
+            selecting is cheap and there is nothing to defer. */}
         <div
+          ref={tabStripRef}
           className="-mx-4 mt-4 flex [scrollbar-width:none] gap-x-4 overflow-x-auto px-4 [-ms-overflow-style:none] sm:-mx-5 sm:px-5 [&::-webkit-scrollbar]:hidden"
           role={showInteractive ? undefined : 'tablist'}
           aria-label={showInteractive ? undefined : 'Weekend sessions'}
+          onKeyDown={showInteractive ? undefined : handleTabKeyDown}
         >
           {weekend.sessions.map((session) => (
             <SessionChip
@@ -398,7 +465,19 @@ function DashboardWeekendPicksReady({
         </div>
       </div>
 
-      <div className="p-4 sm:p-5">
+      {/* Only a panel while the strip above is actually a tab strip. When
+          picks are still being made the strip is status text, so a
+          `tabpanel` here would name a role that has no tab pointing at it. */}
+      <div
+        className="p-4 sm:p-5"
+        id={showInteractive ? undefined : SESSION_TABPANEL_ID}
+        role={showInteractive ? undefined : 'tabpanel'}
+        aria-labelledby={
+          showInteractive || !activeSession
+            ? undefined
+            : sessionTabId(activeSession.sessionType)
+        }
+      >
         {showInteractive ? (
           <PicksInvitation
             step={step}
@@ -692,11 +771,13 @@ function SessionChip({
     <button
       type="button"
       role="tab"
+      id={sessionTabId(session.sessionType)}
       aria-selected={selected}
+      aria-controls={SESSION_TABPANEL_ID}
       tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       data-testid={`session-tab-${session.sessionType}`}
-      className={`${base} ${tone} -mx-1 px-1 decoration-2 underline-offset-[6px] focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
+      className={`${base} ${tone} gpp-touch-target -mx-1 px-1 decoration-2 underline-offset-[6px] focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
         selected ? 'underline' : 'opacity-60 hover:opacity-100'
       }`}
     >

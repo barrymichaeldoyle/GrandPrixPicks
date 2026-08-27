@@ -4,6 +4,7 @@ import type { DashboardSessionState } from './dashboardState';
 import {
   getDashboardWeekendAction,
   getSessionClockState,
+  nextSessionTabIndex,
   weekendReflectsViewer,
 } from './dashboardState';
 
@@ -192,5 +193,49 @@ describe('getSessionClockState', () => {
 
   it('has nothing to say without a session', () => {
     expect(getSessionClockState(null, 1_000)).toBeNull();
+  });
+});
+
+describe('nextSessionTabIndex', () => {
+  // Four, because a sprint weekend is the case where wrapping and Home/End
+  // actually differ from each other.
+  const COUNT = 4;
+
+  it('steps right and left', () => {
+    expect(nextSessionTabIndex('ArrowRight', 1, COUNT)).toBe(2);
+    expect(nextSessionTabIndex('ArrowLeft', 1, COUNT)).toBe(0);
+  });
+
+  it('wraps at both ends', () => {
+    expect(nextSessionTabIndex('ArrowRight', COUNT - 1, COUNT)).toBe(0);
+    expect(nextSessionTabIndex('ArrowLeft', 0, COUNT)).toBe(COUNT - 1);
+  });
+
+  it('jumps to the ends', () => {
+    expect(nextSessionTabIndex('Home', 2, COUNT)).toBe(0);
+    expect(nextSessionTabIndex('End', 2, COUNT)).toBe(COUNT - 1);
+  });
+
+  it('ignores keys the strip does not own', () => {
+    // Tab especially: swallowing it would trap focus in the strip.
+    for (const key of ['Tab', 'Enter', ' ', 'ArrowUp', 'a']) {
+      expect(nextSessionTabIndex(key, 1, COUNT)).toBeNull();
+    }
+  });
+
+  it('does nothing when focus is not on a tab', () => {
+    // -1 is what `findIndex` returns when the event came from the strip's
+    // padding or from a child that is not a chip.
+    expect(nextSessionTabIndex('ArrowRight', -1, COUNT)).toBeNull();
+    expect(nextSessionTabIndex('ArrowRight', COUNT, COUNT)).toBeNull();
+  });
+
+  it('does nothing with no tabs to move between', () => {
+    expect(nextSessionTabIndex('ArrowRight', 0, 0)).toBeNull();
+  });
+
+  it('stays put on a single tab', () => {
+    expect(nextSessionTabIndex('ArrowRight', 0, 1)).toBe(0);
+    expect(nextSessionTabIndex('ArrowLeft', 0, 1)).toBe(0);
   });
 });

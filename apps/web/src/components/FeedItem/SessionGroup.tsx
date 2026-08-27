@@ -33,10 +33,15 @@ import {
  */
 const SLOT_GRID = 'grid w-full max-w-[26rem] grid-cols-5 gap-1';
 
+/* `/80`, not `/70`, on both of the muted labels below. At 10px these are
+   body-size text for WCAG, so they owe 4.5:1 and `/70` measured 4.02 on the
+   card surface. `/75` only reaches 4.40; `/80` is the first step that clears
+   it, at 4.81, and is still quiet enough to stay an eyebrow. */
+
 /** Every band in the group reads the same: quiet eyebrow, then the row. */
 function BandLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-label text-text-muted/70 uppercase">
+    <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-label text-text-muted/80 uppercase">
       {children}
     </span>
   );
@@ -52,7 +57,7 @@ function ResultRow({ top5 }: { top5: SessionHeader['top5'] }) {
         {top5.map((_, i) => (
           <span
             key={i}
-            className="gpp-mono text-center text-[10px] leading-none text-text-muted/70"
+            className="gpp-mono text-center text-[10px] leading-none text-text-muted/80"
           >
             P{i + 1}
           </span>

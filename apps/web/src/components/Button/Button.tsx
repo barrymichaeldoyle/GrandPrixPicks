@@ -51,8 +51,15 @@ const variants = {
  * only slightly bigger than its text.
  */
 const sizes = {
+  // `gpp-touch-target` carries the AA floor (24px) on every pointer; the
+  // `pointer-coarse` bump above it goes on to the 44px touch target. Only the
+  // coarse case was handled before, which passed a thumb and failed a mouse on
+  // the same criterion — 2.5.8 is written about pointers, not touch. Measured
+  // at 57x20 for "Edit" on the dashboard, so it was short on the axis the
+  // padding could not fix without making an inline affordance look like a
+  // button.
   inline:
-    'gap-1 rounded-sm px-1.5 py-0.5 text-xs pointer-coarse:min-h-11 pointer-coarse:px-2.5',
+    'gpp-touch-target gap-1 rounded-sm px-1.5 py-0.5 text-xs pointer-coarse:min-h-11 pointer-coarse:px-2.5',
   sm: 'h-9 gap-2 px-4 text-sm pointer-coarse:h-11',
   md: 'h-11 gap-2 px-5 text-base',
   tab: 'h-9 rounded-sm px-3 text-sm pointer-coarse:h-11',

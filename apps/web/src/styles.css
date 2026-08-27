@@ -466,6 +466,44 @@
  */
 @layer utilities {
   /*
+   * WCAG 2.2 target size (2.5.8) without touching layout.
+   *
+   * `RailFooterLinks` reaches the same bar with `py-2`, and that is the better
+   * tool when the control owns its line. This is for the ones that do not: a
+   * session chip is 11px uppercase inside a `nowrap` scroll strip, and vertical
+   * padding there makes the strip taller than the line it belongs to. So the
+   * hit area becomes an overlay: absolutely positioned, centred on the control,
+   * contributing nothing to layout. The control keeps its measured height; the
+   * pointer gets the target.
+   *
+   * 24px, not 44px. 24 is the AA requirement; 44 is AAA (2.5.5) and the iOS
+   * guideline. It matters here because 2.5.8 also fails on *overlap*, and these
+   * strips are tight — a 44px overlay on a 17px chip reaches 13px into the
+   * clock line above and the panel below, so buying AAA on one criterion would
+   * spend AA on the same one. Controls with room to be bigger should be bigger
+   * on their own; this is the floor for the ones that cannot.
+   *
+   * Not gated on `pointer-coarse`, for the reason `RailFooterLinks` spells out:
+   * 2.5.8 is about pointers, not touch, so gating it passes a thumb and fails
+   * a mouse.
+   */
+  .gpp-touch-target {
+    position: relative;
+  }
+
+  .gpp-touch-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    min-width: 24px;
+    min-height: 24px;
+    width: 100%;
+    height: 100%;
+  }
+
+  /*
    * The signed-out header owns the primary CTA on every page except the one that
    * has its own. On the landing page the hero button is the action, and the picker
    * it points at is the very next section, carrying its own controls. A header

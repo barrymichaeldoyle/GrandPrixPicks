@@ -95,7 +95,7 @@ function SeasonStandingLink() {
       // 17px of text is a fine mouse target and a poor thumb one. On coarse
       // pointers the row grows to the 44px touch target and the top margin
       // gives most of it back, so the card keeps its spacing.
-      className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover pointer-coarse:mt-2 pointer-coarse:min-h-11"
+      className="gpp-touch-target mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover pointer-coarse:mt-2 pointer-coarse:min-h-11"
     >
       View leaderboard
       <ArrowRight className="h-3 w-3" aria-hidden />

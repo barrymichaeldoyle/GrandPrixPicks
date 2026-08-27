@@ -95,11 +95,12 @@ export function WeekendCardSkeleton({
                 Round {race.round}
                 {race.hasSprint ? ' · Sprint weekend' : ''}
               </p>
-              {/* Same classes as the live heading so the swap costs no reflow.
+              {/* Same classes and same level as the live heading so the swap
+                  costs no reflow and the page does not briefly lose its `h1`.
                   Not its id, though: two elements must never share one. */}
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-text sm:text-2xl">
+              <h1 className="mt-1 text-xl font-semibold tracking-tight text-text sm:text-2xl">
                 {race.name}
-              </h2>
+              </h1>
             </div>
           </div>
         ) : (

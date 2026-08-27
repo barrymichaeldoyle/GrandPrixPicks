@@ -161,3 +161,38 @@ export function getSessionClockState(
 
   return session.hasResult ? { kind: 'results' } : { kind: 'locked' };
 }
+
+/**
+ * Where the focus goes when an arrow, Home or End is pressed on the session tab
+ * strip, or null when the key is not one the strip handles.
+ *
+ * Split out from the component because the strip's keyboard behaviour is the
+ * only thing making it reachable at all: it uses a roving tabindex, so every
+ * chip but the selected one is `tabIndex={-1}` and Tab alone can never land on
+ * them. The DOM half (moving focus, selecting) is three lines; this is the part
+ * with the edge cases, so it is the part that gets tested.
+ *
+ * Arrows wrap. The pattern permits either, and the strip scrolls horizontally,
+ * so the far end is often off screen and wrapping is the short way to it.
+ */
+export function nextSessionTabIndex(
+  key: string,
+  current: number,
+  count: number,
+): number | null {
+  if (count === 0 || current < 0 || current >= count) {
+    return null;
+  }
+  switch (key) {
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    case 'ArrowRight':
+      return (current + 1) % count;
+    case 'ArrowLeft':
+      return (current - 1 + count) % count;
+    default:
+      return null;
+  }
+}

@@ -66,6 +66,14 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link
             to="/"
+            // On `/` this link is active, so the router stamps it
+            // `aria-current="page"` alongside the Home nav tab and the current
+            // page is announced twice in one header. Left alone deliberately:
+            // `STATIC_ACTIVE_PROPS` is spread last inside `Link`, after
+            // `activeProps` and after any prop passed here, so there is no
+            // supported way to opt out — only a ref that strips the attribute
+            // after every render, which is more machinery than a duplicate
+            // announcement on one link is worth.
             // Wide but only as tall as the wordmark, so on a phone the "go
             // home" affordance was a 28px band. The header has room for the
             // full touch target without moving anything.

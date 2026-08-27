@@ -28,6 +28,23 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
+    /**
+     * Ask for reduced motion, which the app honours (`AppMotionProvider` sets
+     * `MotionConfig reducedMotion="user"`).
+     *
+     * `helpers/a11y.ts` already neutralises CSS `animation` and `transition`
+     * before measuring, and that covers the reveal classes it was written for.
+     * It cannot touch Framer Motion, which drives `transform` from JS: a picked
+     * driver row mid-stagger is scaled, so its 24x24 reorder buttons measure
+     * fractionally under 24 and `target-size` fails on whichever rows happened
+     * to still be moving. That is a measurement artifact -- the buttons are
+     * exactly 24px at rest and pass -- and it is why the picks-overlay a11y
+     * check failed on rows 2-4 and passed on retry.
+     *
+     * Setting it here rather than in the helper because it has to be true
+     * before the animation starts, not after it is already running.
+     */
+    contextOptions: { reducedMotion: 'reduce' },
   },
   projects: [
     {

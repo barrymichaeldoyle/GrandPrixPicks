@@ -2,6 +2,7 @@ import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
 import { getRaceTimeZoneFromSlug } from '@grandprixpicks/shared/raceTimezones';
 import { useQuery } from '@/integrations/convex/query';
+import { useConvexAuth } from 'convex/react';
 import type { FunctionReturnType } from 'convex/server';
 
 import { fromRaceDetail } from '@/components/RaceScoreCard/adapters';
@@ -133,11 +134,51 @@ export function useRaceWeekendData({
     scoresBySession: h2hScoresBySession,
   } = useMyH2HScoresBySession(race?._id);
 
+  /**
+   * Whether the viewer's own picks are still on their way.
+   *
+   * The point of this flag is to hold the body on a loader rather than flash
+   * "make your picks" at somebody who has already made them. What it must not
+   * do is hold there forever, and the earlier version could: it asked
+   * `weekendPredictions == null`, which is true both while the subscription
+   * has not answered *and* once it has answered `null`.
+   *
+   * Those are different facts. `undefined` means no answer yet. `null` is an
+   * answer, and both viewer queries return it on exactly one path -- `getViewer`
+   * finding nobody -- so it means "Convex does not know who you are". Clerk
+   * signing in on the client and Convex's socket carrying an identity are two
+   * separate events, and between them these queries legitimately answer `null`.
+   * Treating that answer as "still loading" meant that if the second event
+   * never arrived, the page sat on a spinner under a header showing the
+   * viewer's own avatar, with nothing left to wait for.
+   *
+   * The hung-token case that CI actually hit is fixed upstream of here, in
+   * {@link useClerkConvexAuth}: while Clerk's `getToken` never settles, Convex
+   * keeps its socket paused and reports `isLoading`, and no amount of care in
+   * this file escapes that. What this gate owns is the state on the other side
+   * of that deadline -- Convex having decided, wrongly but definitely, that it
+   * has no identity -- which is where a page that waits on `null` still hangs.
+   *
+   * So the wait is now on Convex's auth state, which is the thing actually
+   * being waited for, and the queries are read for what they are:
+   *
+   * - Convex auth still resolving: wait. This is the real gap, and it is the
+   *   window the flash guard exists for.
+   * - Convex authenticated, queries unanswered: wait.
+   * - Convex resolved *unauthenticated* while Clerk says signed in: do not
+   *   wait. Something is wrong, but no amount of spinning fixes it, and the
+   *   page has public content it can show meanwhile.
+   */
+  const { isLoading: isConvexAuthLoading, isAuthenticated: isConvexAuthed } =
+    useConvexAuth();
+
   const isViewerPredictionDataLoading = Boolean(
     race &&
     isAuthLoaded &&
     isSignedIn &&
-    (weekendPredictions == null || h2hPredictions == null),
+    (isConvexAuthLoading ||
+      (isConvexAuthed &&
+        (weekendPredictions === undefined || h2hPredictions === undefined))),
   );
 
   const hasPredictions = Boolean(

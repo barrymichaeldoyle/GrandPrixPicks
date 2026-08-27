@@ -18,6 +18,10 @@ const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
 const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
+const BROWNING_SOURCE =
+  'https://www.gpfans.com/en/f1-news/1089597/williams-f1-team-announce-alex-albon-driver-replacement-luke-browning-italian-grand-prix/';
+const LIVERY_SOURCE =
+  'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -194,6 +198,7 @@ function ItalianGrandPrixPredictionsPage() {
 
         <WatchTable />
         <HadjarStatus />
+        <WeekendNotes />
         <ChampionshipContext />
         <PredictionMethod />
 
@@ -537,6 +542,71 @@ function PredictionMethod() {
         </Link>
       </aside>
     </div>
+  );
+}
+
+/**
+ * The two Monza-specific things that are true this weekend and not true most
+ * weekends. Both are here because they change how a session should be read,
+ * not as trivia: one makes an FP1 timing sheet misleading, and the other makes
+ * a Ferrari unrecognisable on track.
+ */
+function WeekendNotes() {
+  return (
+    <section className="py-12 sm:py-16" aria-labelledby="weekend-notes">
+      <div className="max-w-3xl">
+        <h2
+          id="weekend-notes"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          Two things to know before FP1
+        </h2>
+      </div>
+
+      <div className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
+        <div className="bg-surface p-5 sm:p-6">
+          <h3 className="font-title text-lg font-medium text-text">
+            Albon is out of FP1
+          </h3>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Luke Browning takes the Williams for first practice, his second FP1
+            outing of the season after Austria. Albon is in the car for
+            everything that counts, so this changes nothing about your picks.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            It changes how the FP1 sheet reads, though. A reserve driver on his
+            second run of the year is not a measure of that car&rsquo;s pace, so
+            if you are using Friday morning to judge Williams, use FP2 instead.{' '}
+            <ExternalSource href={BROWNING_SOURCE}>
+              Read the announcement
+            </ExternalSource>
+            .
+          </p>
+        </div>
+
+        <div className="bg-surface p-5 sm:p-6">
+          <h3 className="font-title text-lg font-medium text-text">
+            Ferrari runs a Schumacher tribute
+          </h3>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Ferrari has teased a one-off SF-26 livery for its home race,
+            reported as red with black accents and gold wheels after the 1996
+            F310. It marks thirty years since Schumacher&rsquo;s first season in
+            red and his Italian Grand Prix win that year.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Ferrari has not formally revealed it yet, so treat the detail as
+            reported rather than confirmed. Worth knowing only so a differently
+            coloured Ferrari on Friday does not read as a different car: Leclerc
+            and Hamilton are in it as usual.{' '}
+            <ExternalSource href={LIVERY_SOURCE}>
+              Read the report
+            </ExternalSource>
+            .
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

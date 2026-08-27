@@ -1,7 +1,11 @@
 import type { Doc } from '@convex-generated/dataModel';
 
+import { Link } from '@tanstack/react-router';
+import { BookOpen } from 'lucide-react';
+
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 import { RaceFlag } from './RaceFlag';
 import { Pill } from './Pill';
 
@@ -32,6 +36,7 @@ export function RaceDetailHeader({
   const { settings, formatDateLong, formatTime, formatTimeZoneAbbreviation } =
     useUserDateFormat();
   const countryCode = getCountryCodeForRace(race);
+  const writeup = getRaceWriteup(race.slug);
 
   // The race time is rendered in the viewer's own zone, which made
   // "Sun, Aug 23 · 1:00 PM" unreadable as a fact: no year on a page about a
@@ -89,6 +94,19 @@ export function RaceDetailHeader({
               <span className="gpp-mono"> {timeZoneLabel}</span>
             ) : null}
           </p>
+          {/* The weekend write-up, when there is one. It lives here rather
+              than only on the dashboard because this page is the one a
+              signed-out visitor and a crawler can both reach: a link behind
+              sign-in leaves the write-up an orphan, which is what it was. */}
+          {writeup ? (
+            <Link
+              to={writeup.to}
+              className="gpp-touch-target mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 transition-colors hover:text-text"
+            >
+              <BookOpen className="size-3.5 shrink-0" aria-hidden />
+              {writeup.label}
+            </Link>
+          ) : null}
         </div>
       </div>
       {resultsSummary && (

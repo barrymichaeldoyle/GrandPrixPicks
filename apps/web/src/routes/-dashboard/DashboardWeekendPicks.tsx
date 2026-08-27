@@ -5,6 +5,7 @@ import { useQuery } from '@/integrations/convex/query';
 import { formatLockCountdown } from '@grandprixpicks/shared/picks';
 import {
   ArrowRight,
+  BookOpen,
   ChevronLeft,
   Clock3,
   Flag,
@@ -29,6 +30,7 @@ import {
 } from '@/components/WeekendCardSkeleton';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { useNow } from '@/lib/testing/now';
@@ -301,6 +303,8 @@ function DashboardWeekendPicksReady({
       : null) ?? defaultSession;
   const defaultSessionType = defaultSession?.sessionType;
 
+  const writeup = getRaceWriteup(weekend.race.slug);
+
   const tabStripRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -434,15 +438,31 @@ function DashboardWeekendPicksReady({
           {/* There used to be an "N open" pill next to this. The tab row below
               already names every session and its state, so the count was the
               same fact in a louder font. */}
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: weekend.race.slug }}
-            search={{ from: 'home' }}
-            className="gpp-touch-target mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
-          >
-            Full weekend
-            <ArrowRight className="size-3.5 shrink-0" aria-hidden />
-          </Link>
+          {/* Two destinations, deliberately unequal. "Full weekend" is the game
+              (picks, results, duels) and keeps the arrow; the write-up, when
+              there is one, is reading, so it sits second and quieter. It only
+              renders for a weekend somebody actually wrote about, which is why
+              this is a lookup rather than a derived path. */}
+          <div className="mt-0.5 flex shrink-0 flex-col items-end gap-1">
+            <Link
+              to="/races/$raceSlug"
+              params={{ raceSlug: weekend.race.slug }}
+              search={{ from: 'home' }}
+              className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+            >
+              Full weekend
+              <ArrowRight className="size-3.5 shrink-0" aria-hidden />
+            </Link>
+            {writeup ? (
+              <Link
+                to={writeup.to}
+                className="gpp-touch-target inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
+              >
+                {writeup.label}
+                <BookOpen className="size-3 shrink-0" aria-hidden />
+              </Link>
+            ) : null}
+          </div>
         </div>
 
         {/* This line keeps its slot whatever the selected session is. It used to

@@ -590,6 +590,13 @@ type RawEvent = {
   newsAffectsSessions?: string[];
   newsSourceName?: string;
   newsSourceUrl?: string;
+  newsDrivers?: Array<{
+    code: string;
+    displayName: string;
+    team: string | null;
+    number: number | null;
+    nationality: string | null;
+  }>;
   revCount: number;
   createdAt: number;
 };

@@ -1,8 +1,18 @@
 import { Link } from '@tanstack/react-router';
+
+import { DriverBadge } from '@/components/DriverBadge';
 import { ExternalLink } from 'lucide-react';
 
 import { SESSION_LABELS } from '@/lib/sessions';
 import type { SessionType } from '@/lib/sessions';
+
+type NewsDriver = {
+  code: string;
+  displayName: string;
+  team: string | null;
+  number: number | null;
+  nationality: string | null;
+};
 
 type NewsItem = {
   key: string;
@@ -11,6 +21,7 @@ type NewsItem = {
   affectsSessions: string[];
   sourceName: string;
   sourceUrl: string;
+  drivers?: NewsDriver[];
 };
 
 /**
@@ -62,6 +73,27 @@ export function WeekendNewsSection({
             key={item.key}
             className="flex flex-col bg-surface p-5 sm:p-6"
           >
+            {/* Above the headline rather than beside it: the badge carries the
+                team colour, so a reader sees this is a Williams story or a
+                Mercedes one before reading a word of it. Codes come from the
+                published record, never from scanning the prose, which on this
+                very card would badge Russell for an item about Antonelli. */}
+            {item.drivers && item.drivers.length > 0 ? (
+              <p className="mb-3 flex flex-wrap items-center gap-1.5">
+                {item.drivers.map((driver) => (
+                  <DriverBadge
+                    key={driver.code}
+                    code={driver.code}
+                    team={driver.team}
+                    displayName={driver.displayName}
+                    number={driver.number}
+                    nationality={driver.nationality}
+                    size="sm"
+                    prerenderTooltip={false}
+                  />
+                ))}
+              </p>
+            ) : null}
             <h3 className="font-title text-lg font-medium text-text">
               {item.headline}
             </h3>

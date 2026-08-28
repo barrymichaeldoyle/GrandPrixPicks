@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
+import { DriverBadge } from '@/components/DriverBadge';
 import { SESSION_LABELS } from '@/lib/sessions';
 import type { SessionType } from '@/lib/sessions';
 
@@ -35,7 +36,26 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
           <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
             Weekend news
           </p>
-          <p className="mt-1 text-sm font-semibold text-text">
+          {/* Same badge the write-up cards carry, from the same published
+              codes, so one news item does not look like two different things
+              depending on where you meet it. */}
+          {event.newsDrivers && event.newsDrivers.length > 0 ? (
+            <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {event.newsDrivers.map((driver) => (
+                <DriverBadge
+                  key={driver.code}
+                  code={driver.code}
+                  team={driver.team}
+                  displayName={driver.displayName}
+                  number={driver.number}
+                  nationality={driver.nationality}
+                  size="sm"
+                  prerenderTooltip={false}
+                />
+              ))}
+            </p>
+          ) : null}
+          <p className="mt-1.5 text-sm font-semibold text-text">
             {event.newsHeadline}
             <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
               · {formatRelativeTime(event.createdAt)}

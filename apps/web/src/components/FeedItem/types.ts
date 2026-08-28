@@ -71,6 +71,13 @@ export type FeedEvent = {
   newsAffectsSessions?: string[];
   newsSourceName?: string;
   newsSourceUrl?: string;
+  newsDrivers?: {
+    code: string;
+    displayName: string;
+    team: string | null;
+    number: number | null;
+    nationality: string | null;
+  }[];
   reactionCount: number;
   reactionCounts: ReactionCounts;
   recentReactionUsers?: {

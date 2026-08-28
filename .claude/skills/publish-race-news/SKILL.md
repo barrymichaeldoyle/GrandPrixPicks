@@ -25,6 +25,27 @@ qualifying classification untouched, so it is `["race"]` and not
 `["quali","race"]` — see `/results-policy`. That field drives what the app tells
 a player, so a careless value misinforms them.
 
+## Name the drivers
+
+`driverCodes` is optional but nearly always worth setting. It puts the driver's
+badge and team colour on the card, which is what makes a reader see a Mercedes
+story before reading a word of it.
+
+State it; never let it be inferred from the text. The Antonelli item names
+Russell in its body while being a story about Antonelli, so anything scanning
+the prose would badge the wrong driver with a straight face.
+
+Pick the driver whose **pick** is implicated, which is not always the one in the
+headline. "Luke Browning drives the Williams in FP1" is `["ALB"]`: Browning is
+not on the roster and cannot be picked, and the point of the item is that Albon
+is in the car for everything that counts. Include a second driver only when the
+news genuinely moves their pick too, the way Antonelli's penalty may put him on
+tow duty for Russell.
+
+Codes are validated against the roster at publish, so a typo fails loudly rather
+than shipping a card with a silently missing badge. Leave it off entirely for
+news about a team, a circuit or the weather.
+
 ## The loop
 
 Always in this order.
@@ -45,6 +66,7 @@ npx convex run --prod raceNews:publish '{
   "headline": "Antonelli takes a grid penalty at Monza",
   "body": "Mercedes has confirmed a full power unit change after the Barcelona and Silverstone failures. Ten places minimum, reported as a back-of-grid start.",
   "affectsSessions": ["race"],
+  "driverCodes": ["ANT"],
   "sourceName": "Formula 1",
   "sourceUrl": "https://www.formula1.com/en/latest/article/...",
   "dryRun": true

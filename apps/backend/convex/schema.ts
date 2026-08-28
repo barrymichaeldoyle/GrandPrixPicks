@@ -654,6 +654,26 @@ export default defineSchema({
     newsAffectsSessions: v.optional(v.array(sessionType)),
     newsSourceName: v.optional(v.string()),
     newsSourceUrl: v.optional(v.string()),
+    /**
+     * The drivers the item is about, resolved at publish time, so the feed can
+     * draw a badge without a roster read per event. Denormalised exactly like
+     * `seatMoves` above and for the same reason.
+     *
+     * Frozen rather than live on purpose. Who drives for whom is round-scoped,
+     * and a news item belongs to one weekend, so the seat as it was when the
+     * item was published is the historically correct one to show against it.
+     */
+    newsDrivers: v.optional(
+      v.array(
+        v.object({
+          code: v.string(),
+          displayName: v.string(),
+          team: v.union(v.string(), v.null()),
+          number: v.union(v.number(), v.null()),
+          nationality: v.union(v.string(), v.null()),
+        }),
+      ),
+    ),
     // Engagement
     revCount: v.number(),
     // New reaction model. Optional during the rev -> reaction rollout; when
@@ -722,6 +742,17 @@ export default defineSchema({
     affectsSessions: v.array(sessionType),
     sourceName: v.string(),
     sourceUrl: v.string(),
+    /**
+     * Driver codes this item is about, e.g. `["ANT"]`, so a card can carry the
+     * driver's badge and team colour.
+     *
+     * Stated by the publisher rather than parsed out of the text. The Antonelli
+     * item names Russell in its body while being a Mercedes story about
+     * Antonelli, so anything scanning the prose would badge the wrong driver
+     * with a straight face. Optional: plenty of news is about a team or a
+     * circuit and belongs to no driver.
+     */
+    driverCodes: v.optional(v.array(v.string())),
     /** Retraction without deletion, so a mistake leaves a trail. */
     active: v.boolean(),
     publishedAt: v.number(),

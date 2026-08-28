@@ -43,6 +43,7 @@ weekend card flag the item on the Race tab and leave Qualifying alone, which is
 | `key`                     | Stable slug, e.g. `antonelli-grid-penalty`. The idempotency key |
 | `headline`, `body`        | One line and one or two sentences on what it means for picks    |
 | `affectsSessions`         | Required, non-empty. The editorial gate and the UI hook         |
+| `driverCodes`             | Optional. Puts the driver badge and team colour on the card     |
 | `sourceName`, `sourceUrl` | Attribution, same standard as the write-up pages                |
 | `active`                  | Retraction without deletion, so a mistake leaves a trail        |
 
@@ -110,6 +111,14 @@ so an automated feed would be noise with a source link. The judgement is the
 feature.
 
 ## Later
+
+**Driver codes are stated, never parsed.** The Antonelli item names Russell in
+its body while being a story about Antonelli, so scanning the prose would badge
+the wrong driver confidently. They are validated against the roster at publish,
+because the alternative is a card that renders one badge short weeks later and
+still looks fine. The write-up resolves them live; the feed event stores the
+resolved snapshot, frozen, the way `seatMoves` does, because a news item belongs
+to one weekend and the seat as it was then is the right one to show against it.
 
 1. **Write-up pages read the same records.** The hand-written "Two things to know
    before FP1" section duplicates facts that will already be in `raceNews`. One

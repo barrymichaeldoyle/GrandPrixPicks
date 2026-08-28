@@ -136,18 +136,33 @@ export const list = query({
       .withIndex('by_race', (q) => q.eq('raceId', race._id))
       .take(MAX_NEWS_PER_RACE);
 
-    const items = (args.includeRetracted ? rows : rows.filter((r) => r.active))
-      .sort((a, b) => b.publishedAt - a.publishedAt)
-      .map((row) => ({
-        key: row.key,
-        headline: row.headline,
-        body: row.body,
-        affectsSessions: row.affectsSessions,
-        sourceName: row.sourceName,
-        sourceUrl: row.sourceUrl,
-        active: row.active,
-        publishedAt: row.publishedAt,
-      }));
+    const visible = (
+      args.includeRetracted ? rows : rows.filter((r) => r.active)
+    ).sort((a, b) => b.publishedAt - a.publishedAt);
+
+    // Resolved here rather than by each caller. The record stores codes,
+    // because who drives for whom is round-scoped and a stored team name would
+    // be a second copy of a moving fact; the badge needs the roster to draw.
+    // Doing it once means the write-up pages and the feed cannot disagree.
+    const roster = await driversForCodes(
+      ctx,
+      visible.flatMap((row) => row.driverCodes ?? []),
+    );
+
+    const items = visible.map((row) => ({
+      key: row.key,
+      headline: row.headline,
+      body: row.body,
+      affectsSessions: row.affectsSessions,
+      sourceName: row.sourceName,
+      sourceUrl: row.sourceUrl,
+      active: row.active,
+      publishedAt: row.publishedAt,
+      drivers: (row.driverCodes ?? []).flatMap((code) => {
+        const driver = roster.get(code);
+        return driver ? [driver] : [];
+      }),
+    }));
 
     return {
       race: { slug: race.slug, name: race.name, round: race.round },
@@ -203,6 +218,57 @@ export async function loadActiveRaceNews(
  *     "dryRun": true
  *   }'
  */
+/**
+ * The roster rows a set of codes needs, as a map, in one pass.
+ *
+ * A driver dropped from the roster resolves to nothing rather than throwing:
+ * publishing validates the codes, so by the time a page reads them the only
+ * way to miss is a roster edit afterwards, and a card short one badge beats a
+ * page that will not render.
+ */
+async function driversForCodes(
+  ctx: QueryCtx,
+  codes: string[],
+): Promise<
+  Map<
+    string,
+    {
+      code: string;
+      displayName: string;
+      team: string | null;
+      number: number | null;
+      nationality: string | null;
+    }
+  >
+> {
+  const resolved = new Map<
+    string,
+    {
+      code: string;
+      displayName: string;
+      team: string | null;
+      number: number | null;
+      nationality: string | null;
+    }
+  >();
+  for (const code of new Set(codes)) {
+    const driver = await ctx.db
+      .query('drivers')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .first();
+    if (driver) {
+      resolved.set(code, {
+        code: driver.code,
+        displayName: driver.displayName,
+        team: driver.team ?? null,
+        number: driver.number ?? null,
+        nationality: driver.nationality ?? null,
+      });
+    }
+  }
+  return resolved;
+}
+
 export const publish = internalMutation({
   args: {
     raceSlug: v.string(),
@@ -212,6 +278,11 @@ export const publish = internalMutation({
     affectsSessions: sessionTypesValidator,
     sourceName: v.string(),
     sourceUrl: v.string(),
+    /**
+     * Driver codes the item is about, e.g. `["ANT"]`. Optional: news about a
+     * team, a circuit or the weather belongs to no driver.
+     */
+    driverCodes: v.optional(v.array(v.string())),
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -233,6 +304,12 @@ export const publish = internalMutation({
       throw new Error(problem);
     }
 
+    // Resolved before the write so a typo fails at publish with a message
+    // naming the bad code, rather than publishing an item whose badge silently
+    // never renders. An agent re-running this needs the failure to be loud.
+    const resolved = await resolveDriverCodes(ctx, args.driverCodes);
+    const driverCodes = resolved?.codes;
+
     const existing = await newsByKey(ctx, race._id, args.key);
     const now = Date.now();
     const action = existing
@@ -249,6 +326,7 @@ export const publish = internalMutation({
         key: args.key,
         headline: args.headline,
         affectsSessions: args.affectsSessions,
+        driverCodes,
       };
     }
 
@@ -260,6 +338,7 @@ export const publish = internalMutation({
       affectsSessions: args.affectsSessions,
       sourceName: args.sourceName,
       sourceUrl: args.sourceUrl,
+      driverCodes,
       active: true,
       updatedAt: now,
     };
@@ -270,7 +349,7 @@ export const publish = internalMutation({
       await ctx.db.insert('raceNews', { ...fields, publishedAt: now });
     }
 
-    await syncFeedEvent(ctx, race, args, now);
+    await syncFeedEvent(ctx, race, args, resolved?.drivers, now);
 
     return {
       action,
@@ -278,9 +357,65 @@ export const publish = internalMutation({
       key: args.key,
       headline: args.headline,
       affectsSessions: args.affectsSessions,
+      driverCodes,
     };
   },
 });
+
+/**
+ * Check every code against the roster, and normalise case while we are here.
+ *
+ * Publishing is the last moment anyone is paying attention to this item, so it
+ * is the right place to reject `ANTO` or `Ant0`. The alternative is a card that
+ * renders with a missing badge weeks later, which nobody notices because the
+ * page still looks fine.
+ */
+async function resolveDriverCodes(
+  ctx: MutationCtx,
+  codes: string[] | undefined,
+): Promise<
+  | {
+      codes: string[];
+      drivers: {
+        code: string;
+        displayName: string;
+        team: string | null;
+        number: number | null;
+        nationality: string | null;
+      }[];
+    }
+  | undefined
+> {
+  if (!codes || codes.length === 0) {
+    return undefined;
+  }
+  const normalised = [...new Set(codes.map((code) => code.toUpperCase()))];
+  const unknown: string[] = [];
+  const drivers = [];
+  for (const code of normalised) {
+    const driver = await ctx.db
+      .query('drivers')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .first();
+    if (!driver) {
+      unknown.push(code);
+      continue;
+    }
+    drivers.push({
+      code: driver.code,
+      displayName: driver.displayName,
+      team: driver.team ?? null,
+      number: driver.number ?? null,
+      nationality: driver.nationality ?? null,
+    });
+  }
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown driver ${unknown.length === 1 ? 'code' : 'codes'}: ${unknown.join(', ')}. Use the three-letter code from the roster, e.g. ANT.`,
+    );
+  }
+  return { codes: normalised, drivers };
+}
 
 /**
  * Mirror the item into the feed.
@@ -305,6 +440,15 @@ async function syncFeedEvent(
     sourceName: string;
     sourceUrl: string;
   },
+  drivers:
+    | {
+        code: string;
+        displayName: string;
+        team: string | null;
+        number: number | null;
+        nationality: string | null;
+      }[]
+    | undefined,
   now: number,
 ) {
   const shared = {
@@ -314,6 +458,7 @@ async function syncFeedEvent(
       args.affectsSessions as Doc<'feedEvents'>['newsAffectsSessions'],
     newsSourceName: args.sourceName,
     newsSourceUrl: args.sourceUrl,
+    newsDrivers: drivers,
     raceName: race.name,
     raceSlug: race.slug,
     season: race.season,

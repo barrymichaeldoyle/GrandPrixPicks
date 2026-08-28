@@ -2,13 +2,20 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
 import { ArrowRight, Plus } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
+import { DriverBadge } from '@/components/DriverBadge';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
+import {
+  lastReviewedAt,
+  reviewedIsoDate,
+  reviewedStamp,
+} from '@/lib/lastReviewed';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -19,6 +26,29 @@ import {
 } from '@/lib/site';
 
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
+/**
+ * The date the hand-written prose on this page was last checked. It is the
+ * floor for the reviewed stamp, not the whole answer: the live forecast,
+ * news and standings carry it forward on their own. Bump it when the writing
+ * changes, not when the data does.
+ */
+const PROSE_REVIEWED = '2026-08-24';
+
+/**
+ * One value for the footer stamp and the schema's `dateModified`. They were
+ * two hand-typed literals before, which is how they came to disagree.
+ */
+function reviewedFrom(data: {
+  weather?: { forecast: { checkedAt: number } } | null;
+  news?: { items: { publishedAt: number }[] } | null;
+}): number {
+  return lastReviewedAt(
+    PROSE_REVIEWED,
+    data.weather?.forecast.checkedAt,
+    ...(data.news?.items ?? []).map((item) => item.publishedAt),
+  );
+}
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
@@ -37,15 +67,6 @@ const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
 type Race = NonNullable<FunctionReturnType<typeof api.races.getRaceBySlug>>;
-const MONZA_STANDINGS = [
-  ['Kimi Antonelli', 242],
-  ['George Russell', 183],
-  ['Lewis Hamilton', 183],
-  ['Lando Norris', 159],
-  ['Charles Leclerc', 155],
-  ['Max Verstappen', 112],
-] as const;
-
 /*
  * Durable questions only.
  *
@@ -100,7 +121,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
-      const [race, weather, news] = await Promise.all([
+      const [race, weather, news, championship] = await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
         ),
@@ -113,11 +134,18 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         context.queryClient.ensureQueryData(
           routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
         ),
+        // Live, like the Madrid page. The hardcoded table this replaces was
+        // right when it was typed and wrong the moment a race was scored, and
+        // it carried names only, so the standings block was the one place on
+        // the site showing drivers without their team colour.
+        context.queryClient.ensureQueryData(
+          routeQuery(api.f1Standings.getF1Championship, {}),
+        ),
       ]);
       if (!race) {
         throw notFound();
       }
-      return { race, weather, weatherNow, news };
+      return { race, weather, weatherNow, news, championship };
     },
     head: ({ loaderData }) => {
       const race = loaderData?.race;
@@ -125,6 +153,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
       const description =
         'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
       const circuit = getCircuitForRace(RACE_SLUG);
+      const reviewedAt = reviewedFrom(loaderData ?? {});
       const meta = pageMeta({
         title,
         description,
@@ -146,7 +175,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
                   url: `${siteConfig.url}${PATH}`,
                   name: title,
                   description,
-                  dateModified: '2026-08-24',
+                  dateModified: reviewedIsoDate(reviewedAt),
                   inLanguage: 'en',
                   isPartOf: { '@id': `${siteConfig.url}/#app` },
                   // A complete node or none at all. This was a three-property
@@ -205,7 +234,14 @@ function formatMonzaTime(timestamp: number | undefined) {
 }
 
 function ItalianGrandPrixPredictionsPage() {
-  const { race, weather, weatherNow, news } = Route.useLoaderData();
+  const { race, weather, weatherNow, news, championship } =
+    Route.useLoaderData();
+  // One roster lookup for the sections that name drivers, so a badge and the
+  // standings beside it can never disagree about a seat.
+  const driversByCode = new Map(
+    championship.drivers.map((driver) => [driver.code, driver]),
+  );
+  const reviewedAt = reviewedFrom({ weather, news });
   const isFinished = race.status === 'finished';
 
   return (
@@ -263,8 +299,8 @@ function ItalianGrandPrixPredictionsPage() {
         {/* Hadjar and the standings both carry a right-hand card; the tribute
             does not. Run the two carded sections together so the rail does not
             appear, vanish and reappear, and let the prose-only aside follow. */}
-        <HadjarStatus />
-        <ChampionshipContext />
+        <HadjarStatus byCode={driversByCode} />
+        <ChampionshipContext championship={championship} />
         <FerrariTribute />
         <PredictionMethod />
 
@@ -323,7 +359,9 @@ function ItalianGrandPrixPredictionsPage() {
             Driver availability:{' '}
             <ExternalSource href={HADJAR_SOURCE}>Sky Sports</ExternalSource>.
           </p>
-          <p className="gpp-mono mt-2 text-xs">LAST REVIEWED 24 AUG 2026</p>
+          <p className="gpp-mono mt-2 text-xs">
+            LAST REVIEWED {reviewedStamp(reviewedAt)}
+          </p>
         </footer>
       </div>
     </div>
@@ -451,7 +489,7 @@ function WatchTable() {
   );
 }
 
-function HadjarStatus() {
+function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
   return (
     <section
       className="grid gap-7 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
@@ -478,24 +516,65 @@ function HadjarStatus() {
         </p>
       </div>
       <dl className="self-start rounded-sm bg-surface-elevated px-4">
+        {/* This card is about who is in which seat, which is the one thing
+            team colour exists to show. Names alone left a reader working out
+            that two of these are Red Bull and one is Racing Bulls. */}
         {[
-          ['Monza status', 'Hopeful, not confirmed'],
-          ['Red Bull cover at Zandvoort', 'Liam Lawson'],
-          ['Racing Bulls cover', 'Yuki Tsunoda'],
-        ].map(([label, value]) => (
-          <div key={label} className="border-b border-border py-4">
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-1 text-sm text-text">{value}</dd>
-          </div>
-        ))}
+          {
+            label: 'Monza status',
+            code: 'HAD',
+            note: 'Hopeful, not confirmed',
+          },
+          { label: 'Red Bull cover at Zandvoort', code: 'LAW', note: null },
+          { label: 'Racing Bulls cover', code: 'TSU', note: null },
+        ].map(({ label, code, note }) => {
+          const driver = byCode.get(code);
+          return (
+            <div key={label} className="border-b border-border py-4">
+              <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                {label}
+              </dt>
+              <dd className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text">
+                {driver ? (
+                  <>
+                    <DriverBadge
+                      code={driver.code}
+                      team={driver.team}
+                      displayName={driver.displayName}
+                      number={driver.number}
+                      nationality={driver.nationality}
+                      size="sm"
+                      prerenderTooltip={false}
+                    />
+                    <span>{driver.displayName}</span>
+                  </>
+                ) : null}
+                {note ? (
+                  <span className={driver ? 'text-text-muted' : undefined}>
+                    {note}
+                  </span>
+                ) : null}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </section>
   );
 }
 
-function ChampionshipContext() {
+type Championship = FunctionReturnType<
+  typeof api.f1Standings.getF1Championship
+>;
+type StandingsDriver = Championship['drivers'][number];
+
+function ChampionshipContext({ championship }: { championship: Championship }) {
+  const top = championship.drivers.slice(0, 6);
+  const [leader, second] = top;
+  if (!leader || !second) {
+    return null;
+  }
+
   return (
     <section className="py-12 sm:py-16" aria-labelledby="championship-context">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -506,14 +585,17 @@ function ChampionshipContext() {
           >
             Championship standings before Monza
           </h2>
+          {/* The numbers are read from the same data as the table beside it.
+              They used to be written into the prose, which was accurate until
+              the next race was scored and then quietly disagreed with the
+              standings sitting next to it. */}
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            After 12 rounds, Kimi Antonelli leads the drivers’ table by 59
-            points. George Russell and Lewis Hamilton are tied on 183, with
-            Lando Norris 24 points further back. Use that as a form check, then
-            compare it with the low-downforce pace shown in practice. For the
-            race, read it against Antonelli’s grid penalty above: season form
-            says he is the man to beat, and on Sunday he is not starting where
-            that form suggests.
+            After {championship.roundsScored} rounds, {leader.displayName} leads
+            the drivers&rsquo; table by {leader.points - second.points} points
+            from {second.displayName}. Use that as a form check, then compare it
+            with the low-downforce pace shown in practice. For the race, read it
+            against the grid penalty above: season form and Sunday&rsquo;s
+            starting order are not the same thing this weekend.
           </p>
           <Link
             to="/f1-standings"
@@ -530,26 +612,46 @@ function ChampionshipContext() {
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
             <span className="gpp-mono text-xs text-text-muted">
-              AFTER 12 ROUNDS
+              AFTER {championship.roundsScored} ROUNDS
             </span>
           </div>
           <ol>
-            {MONZA_STANDINGS.map(([driver, points], index) => (
+            {top.map((driver) => (
               <li
-                key={driver}
-                className="grid grid-cols-[1.5rem_1fr_auto] gap-2 border-b border-border/60 px-4 py-2.5 last:border-b-0"
+                key={driver.driverId}
+                className="grid grid-cols-[1.25rem_auto_1fr_auto] items-center gap-2 border-b border-border/60 px-4 py-2.5 last:border-b-0"
               >
                 <span className="gpp-mono text-sm text-text-muted">
-                  {index + 1}
+                  {driver.position}
                 </span>
-                <span className="text-sm text-text">{driver}</span>
-                <span className="gpp-mono text-sm text-text">{points} PTS</span>
+                {/* The badge carries the team colour in its 3px bar, which is
+                    what makes a name scannable as a Mercedes or a Ferrari
+                    rather than a string to read. `prerenderTooltip` off: six
+                    rows should not preload six flags nobody hovers. */}
+                <DriverBadge
+                  code={driver.code}
+                  team={driver.team}
+                  displayName={driver.displayName}
+                  number={driver.number}
+                  nationality={driver.nationality}
+                  size="sm"
+                  prerenderTooltip={false}
+                />
+                <span className="min-w-0 truncate text-sm text-text">
+                  {driver.displayName}
+                </span>
+                <span className="gpp-mono text-sm text-text">
+                  {driver.points} PTS
+                </span>
               </li>
             ))}
           </ol>
           <p className="border-t border-border px-4 py-3 text-xs leading-5 text-text-muted">
-            Standings after the Dutch Grand Prix, checked 24 August 2026.{' '}
-            <ExternalSource href={F1_STANDINGS_SOURCE}>Source</ExternalSource>
+            Scored through round {championship.roundsScored}
+            {championship.lastUpdated
+              ? `, updated ${reviewedStamp(championship.lastUpdated)}`
+              : ''}
+            . <ExternalSource href={F1_STANDINGS_SOURCE}>Source</ExternalSource>
           </p>
         </div>
       </div>
@@ -625,7 +727,17 @@ function PredictionMethod() {
 function FerrariTribute() {
   return (
     <section className="py-12 sm:py-16" aria-labelledby="ferrari-tribute">
-      <div className="max-w-3xl">
+      {/* The one section whose subject is a team's own colour, so it gets the
+          same 3px bar the driver badges use rather than a fourth kind of
+          accent. Ferrari red is read from the tokens, not typed in here. */}
+      <div
+        className="gpp-team-bar max-w-3xl pl-4"
+        style={
+          {
+            '--team-colour': TEAM_COLORS.Ferrari ?? FALLBACK_TEAM_COLOR,
+          } as CSSProperties
+        }
+      >
         <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
           Weekend colour
         </p>

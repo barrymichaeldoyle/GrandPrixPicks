@@ -4,11 +4,17 @@ import type { FunctionReturnType } from 'convex/server';
 import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
+import {
+  lastReviewedAt,
+  reviewedIsoDate,
+  reviewedStamp,
+} from '@/lib/lastReviewed';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -19,6 +25,29 @@ import {
 } from '@/lib/site';
 
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
+
+/**
+ * The date the hand-written prose on this page was last checked. It is the
+ * floor for the reviewed stamp, not the whole answer: the live forecast,
+ * news and standings carry it forward on their own. Bump it when the writing
+ * changes, not when the data does.
+ */
+const PROSE_REVIEWED = '2026-08-27';
+
+/**
+ * One value for the footer stamp and the schema's `dateModified`. They were
+ * two hand-typed literals before, which is how they came to disagree.
+ */
+function reviewedFrom(data: {
+  weather?: { forecast: { checkedAt: number } } | null;
+  news?: { items: { publishedAt: number }[] } | null;
+}): number {
+  return lastReviewedAt(
+    PROSE_REVIEWED,
+    data.weather?.forecast.checkedAt,
+    ...(data.news?.items ?? []).map((item) => item.publishedAt),
+  );
+}
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
@@ -114,6 +143,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
     const description =
       'Make your 2026 Spanish Grand Prix predictions for Madrid’s new Madring. Schedule, what the debut layout asks for, La Monumental, and how to read practice with no form guide.';
     const circuit = getCircuitForRace(RACE_SLUG);
+    const reviewedAt = reviewedFrom(loaderData ?? {});
     const meta = pageMeta({
       title,
       description,
@@ -135,7 +165,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
                 url: `${siteConfig.url}${PATH}`,
                 name: title,
                 description,
-                dateModified: '2026-08-27',
+                dateModified: reviewedIsoDate(reviewedAt),
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
                 // A complete node or none at all. This was a three-property
@@ -195,6 +225,7 @@ function formatMadridTime(timestamp: number | undefined) {
 function MadridGrandPrixPredictionsPage() {
   const { race, championship, weather, weatherNow, news } =
     Route.useLoaderData();
+  const reviewedAt = reviewedFrom({ weather, news });
   const isFinished = race.status === 'finished';
 
   return (
@@ -303,7 +334,9 @@ function MadridGrandPrixPredictionsPage() {
             First running:{' '}
             <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
           </p>
-          <p className="gpp-mono mt-2 text-xs">LAST REVIEWED 27 AUG 2026</p>
+          <p className="gpp-mono mt-2 text-xs">
+            LAST REVIEWED {reviewedStamp(reviewedAt)}
+          </p>
         </footer>
       </div>
     </div>
@@ -580,10 +613,22 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
                 key={driver.displayName}
                 className="flex items-center justify-between border-b border-border/60 px-4 py-2.5 last:border-0"
               >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="gpp-mono text-xs text-text-muted">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="gpp-mono w-4 text-xs text-text-muted">
                     {index + 1}
                   </span>
+                  {/* Same badge as the standings page and the Monza write-up:
+                      the 3px team bar is what makes a row scannable rather
+                      than a name to read. */}
+                  <DriverBadge
+                    code={driver.code}
+                    team={driver.team}
+                    displayName={driver.displayName}
+                    number={driver.number}
+                    nationality={driver.nationality}
+                    size="sm"
+                    prerenderTooltip={false}
+                  />
                   <span className="truncate text-sm text-text">
                     {driver.displayName}
                   </span>

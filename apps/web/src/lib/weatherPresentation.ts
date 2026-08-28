@@ -398,3 +398,66 @@ export function nextWeatherSession(
 ): WeatherSession | null {
   return sessions.find((session) => session.endsAt >= now) ?? null;
 }
+
+/**
+ * Whether this weekend's weather is worth reading in detail.
+ *
+ * The hour-by-hour grid is the largest block on a race write-up: on a settled
+ * Monza weekend it ran to 1080px, a fifth of the page, sat directly under the
+ * hero, and said "dry" twelve times. The news items that actually move a pick
+ * sat below it at half the height. The problem was never the grid's design, it
+ * was that the grid is the same size whether or not it has anything to say.
+ *
+ * So the page asks first. A settled forecast collapses to its day summaries and
+ * puts the detail behind a disclosure; anything that could change a session
+ * keeps the full timeline open. The thresholds are deliberately low, because
+ * the cost of opening the detail on a dry weekend is some scrolling, while the
+ * cost of hiding it on a wet one is a reader missing the thing they came for.
+ */
+export function weekendWeatherOutlook(forecast: WeatherForecast): {
+  settled: boolean;
+  summary: string;
+} {
+  const days = forecast.days;
+  if (days.length === 0) {
+    return { settled: false, summary: '' };
+  }
+
+  const notable = days.some(
+    (day) =>
+      day.hasThunderRisk ||
+      (day.maxPrecipitationProbability ?? 0) >= 20 ||
+      day.totalPrecipitationMm > 0.2 ||
+      (day.maxWindGustMps ?? 0) * 3.6 >= 45,
+  );
+
+  const min = Math.round(Math.min(...days.map((day) => day.minTemperatureC)));
+  const max = Math.round(Math.max(...days.map((day) => day.maxTemperatureC)));
+  const range = min === max ? `${min}°C` : `${min}–${max}°C`;
+
+  return {
+    settled: !notable,
+    // Said once, plainly, instead of twelve times across a grid.
+    summary: notable
+      ? `Conditions vary across the weekend, ${range}. The session-by-session detail is below.`
+      : `Dry across every session in the current model, ${range}.`,
+  };
+}
+
+/**
+ * The circuit-local calendar day a moment falls on, as `YYYY-MM-DD`.
+ *
+ * Needed to spot a session the forecast does not reach. A timeline day derives
+ * its sessions from the hours the model actually returned, so a session past
+ * the end of the model is missing from that list rather than marked absent:
+ * asking it "which sessions have no forecast?" can only ever answer "none".
+ * The schedule is the honest source for what runs that day.
+ */
+export function localDateKey(at: number, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(at));
+}

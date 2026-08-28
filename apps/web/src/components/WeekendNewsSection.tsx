@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 
 import { SESSION_LABELS } from '@/lib/sessions';
@@ -82,14 +83,19 @@ export function WeekendNewsSection({
 }
 
 /**
- * The line that makes an item useful rather than interesting.
+ * Which of your Top 5s to go back and look at.
  *
- * Derived from `affectsSessions` instead of written per item, because the
- * reasoning is the same every time and it is the site's own scoring rule: a
- * grid penalty moves a race start and leaves the qualifying classification
- * alone, so a player wants to know which of their two Top 5s to revisit. Saying
- * what is *not* affected matters as much as what is, and only data can say it
- * without someone remembering to.
+ * The wording is advisory on purpose, and this was got wrong once. "Changes
+ * your Qualifying picks" sitting under a headline about a grid penalty reads as
+ * *the penalty changed the qualifying result*, which is the single thing
+ * players most often get wrong about this game. It does not: a driver
+ * classified P4 scores as P4 however far back the penalty makes him start.
+ *
+ * News never changes how a session is scored, because the scoring rules do not
+ * move. What it changes is the outcome you should expect, so the only honest
+ * question this line can answer is which picks are worth another look. That is
+ * true of every item, which is why it is the default rather than special
+ * handling for penalties.
  */
 function PickImpact({
   affects,
@@ -107,16 +113,33 @@ function PickImpact({
 
   return (
     <p className="mt-3 border-l-2 border-accent/40 pl-3 text-sm text-text">
-      Changes your <strong className="font-semibold">{label(affects)}</strong>{' '}
-      picks.
+      Worth revisiting:{' '}
+      <strong className="font-semibold">{label(affects)}</strong> picks.
       {unaffected.length > 0 ? (
         <>
           {' '}
           <span className="text-text-muted">
-            Your {label(unaffected)} picks are unaffected.
+            No need to revisit {label(unaffected)}.
           </span>
         </>
-      ) : null}
+      ) : null}{' '}
+      {/* "Revisit" says which picks to look at; this says what they are scored
+          against, which is the half people get wrong.
+
+          The hash names the section that draws the line, and today it does not
+          scroll there: `ScrollToTop` fires on every pathname change and the
+          incoming route has not laid out when it runs, so an in-app anchor
+          lands at the top of the target page. Every internal anchor on the site
+          has this, it is not specific to this link. The hash is kept because
+          the URL is right and these links start working the day that is fixed;
+          until then the reader still arrives on the correct page. */}
+      <Link
+        to="/results-policy"
+        hash="sessions-heading"
+        className="whitespace-nowrap text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
+      >
+        How these are scored
+      </Link>
     </p>
   );
 }

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
@@ -59,7 +60,10 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
         {sessions.length > 0 ? (
           <p className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
-            <span className="tracking-label uppercase">Affects</span>
+            {/* "Revisit", not "Affects". A grid penalty does not change the
+                qualifying classification, and a chip reading "Affects
+                Qualifying" is exactly how a reader concludes that it does. */}
+            <span className="tracking-label uppercase">Revisit</span>
             {sessions.map((session) => (
               <span
                 key={session}
@@ -68,6 +72,16 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
                 {SESSION_LABELS[session]}
               </span>
             ))}
+            {/* The chips say which picks to look at again. This says what they
+                are scored against, which is the half that gets misread: a grid
+                penalty moves a start, it does not rewrite a classification. */}
+            <Link
+              to="/results-policy"
+              hash="sessions-heading"
+              className="underline decoration-border-strong underline-offset-4 hover:text-text"
+            >
+              How these are scored
+            </Link>
           </p>
         ) : null}
 

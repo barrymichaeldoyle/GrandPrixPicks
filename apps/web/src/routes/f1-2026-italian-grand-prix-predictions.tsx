@@ -5,6 +5,7 @@ import { ArrowRight, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -22,6 +23,8 @@ const BROWNING_SOURCE =
   'https://www.gpfans.com/en/f1-news/1089597/williams-f1-team-announce-alex-albon-driver-replacement-luke-browning-italian-grand-prix/';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
+const PENALTY_SOURCE =
+  'https://www.formula1.com/en/latest/article/wolff-confirms-antonelli-is-set-for-grid-penalty-at-italian-grand-prix.4IIgVJdITz0W1xOIrbOPAM';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -42,6 +45,11 @@ const FAQS = [
       'The Italian Grand Prix runs from 4 to 6 September 2026 at Monza. Qualifying is on Saturday and the 53-lap Grand Prix is on Sunday.',
   },
   {
+    question: 'Does Antonelli’s grid penalty change my Monza picks?',
+    answer:
+      'It changes your race picks and not your qualifying picks. A grid penalty moves where a driver starts the race; it does not rewrite the qualifying classification, which is what qualifying picks are scored against. Antonelli is unaffected on Saturday and starts near the back on Sunday.',
+  },
+  {
     question: 'Will Isack Hadjar race at Monza?',
     answer:
       'Hadjar said he was hopeful of returning after missing Zandvoort with a wrist injury. His Monza seat was not confirmed when this guide was reviewed, so check the final entry and team updates before locking a pick.',
@@ -50,6 +58,11 @@ const FAQS = [
     question: 'What matters most when predicting Monza?',
     answer:
       'Watch straight-line speed alongside braking stability, traction out of the chicanes and representative long-run pace. A lap helped by a strong tow can flatter a car at Monza.',
+  },
+  {
+    question: 'Does the weather change how I should pick at Monza?',
+    answer:
+      'Mainly through grip. Rain in the hours before a session can leave a damp circuit even if it is dry by the time it starts, which cuts the advantage a low-drag car has on the straights and widens the range of drivers who could reach the Top 5. The forecast for each day of the weekend is on this page and updates as it changes.',
   },
   {
     question: 'Are other players’ picks visible before the session?',
@@ -68,19 +81,28 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
     component: ItalianGrandPrixPredictionsPage,
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
-      const race = await context.queryClient.ensureQueryData(
-        routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-      );
+      const weatherNow = Date.now();
+      const [race, weather] = await Promise.all([
+        context.queryClient.ensureQueryData(
+          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
+        ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.weather.getByRaceSlug, {
+            raceSlug: RACE_SLUG,
+            now: weatherNow,
+          }),
+        ),
+      ]);
       if (!race) {
         throw notFound();
       }
-      return { race };
+      return { race, weather, weatherNow };
     },
     head: ({ loaderData }) => {
       const race = loaderData?.race;
       const title = '2026 Italian Grand Prix Predictions & Picks';
       const description =
-        'Make your 2026 Italian Grand Prix predictions. Check the Monza schedule, Hadjar’s fitness status, championship form and what to watch in practice.';
+        'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
       const meta = pageMeta({
         title,
         description,
@@ -152,7 +174,7 @@ function formatMonzaTime(timestamp: number | undefined) {
 }
 
 function ItalianGrandPrixPredictionsPage() {
-  const { race } = Route.useLoaderData();
+  const { race, weather, weatherNow } = Route.useLoaderData();
   const isFinished = race.status === 'finished';
 
   return (
@@ -196,6 +218,13 @@ function ItalianGrandPrixPredictionsPage() {
           <WeekendSchedule race={race} />
         </div>
 
+        <WeekendWeatherForecast
+          race={race}
+          weather={weather}
+          now={weatherNow}
+        />
+
+        <AntonelliPenalty />
         <WatchTable />
         <HadjarStatus />
         <WeekendNotes />
@@ -294,6 +323,85 @@ function WeekendSchedule({ race }: { race: Race }) {
             <dd className="gpp-mono text-sm text-text sm:text-right">
               {formatMonzaTime(timestamp)}
             </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+/**
+ * The one fact this weekend that changes a pick outright, which is why it is
+ * the first thing after the forecast rather than a line in the standings block.
+ *
+ * It is also the clearest example this site has of its own scoring rule
+ * mattering: the same driver is a good pick in one session and a poor one in
+ * the next, because a grid penalty moves a race start and leaves a qualifying
+ * classification alone. No F1 news page frames it that way, because no F1 news
+ * page is scoring two sessions separately.
+ */
+function AntonelliPenalty() {
+  return (
+    <section
+      className="grid gap-7 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      aria-labelledby="antonelli-penalty"
+    >
+      <div>
+        <h2
+          id="antonelli-penalty"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          The championship leader starts at the back
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          Mercedes has confirmed a full power unit change for Kimi Antonelli at
+          Monza after the failures in Barcelona and Silverstone, so he takes a
+          grid penalty at his home race. It is at least ten places and reported
+          as a back-of-grid start. Mercedes picked Monza on purpose: if you have
+          to spend a penalty somewhere, spend it where overtaking is easiest.{' '}
+          <ExternalSource href={PENALTY_SOURCE}>
+            Read the confirmation
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Here is the part that matters for your picks, and it splits the
+          weekend in two. A grid penalty moves where a driver starts the race.
+          It does not rewrite the qualifying classification, and qualifying is
+          what your qualifying picks are scored against. Antonelli is as quick
+          on Saturday as he was before the penalty.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Sunday is the opposite. Starting from the back at Monza is more
+          recoverable than almost anywhere else, but a Top 5 finish from there
+          is a genuine ask, and the points he drops open the door for whoever
+          you promote in his place. Treat the two sessions as separate
+          questions, because the scoring does.{' '}
+          <Link
+            to="/results-policy"
+            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+          >
+            How penalties affect scoring
+          </Link>
+          .
+        </p>
+      </div>
+      <dl className="self-start rounded-sm bg-surface-elevated px-4">
+        {[
+          ['Driver', 'Kimi Antonelli'],
+          ['Reason', 'Full power unit change'],
+          ['Penalty', 'Ten places minimum'],
+          ['Qualifying picks', 'Unaffected'],
+          ['Race picks', 'Starts at the back'],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            className="border-b border-border py-4 last:border-0"
+          >
+            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+              {label}
+            </dt>
+            <dd className="mt-1 text-sm text-text">{value}</dd>
           </div>
         ))}
       </dl>
@@ -444,7 +552,10 @@ function ChampionshipContext() {
             After 12 rounds, Kimi Antonelli leads the drivers’ table by 59
             points. George Russell and Lewis Hamilton are tied on 183, with
             Lando Norris 24 points further back. Use that as a form check, then
-            compare it with the low-downforce pace shown in practice.
+            compare it with the low-downforce pace shown in practice. For the
+            race, read it against Antonelli’s grid penalty above: season form
+            says he is the man to beat, and on Sunday he is not starting where
+            that form suggests.
           </p>
           <Link
             to="/f1-standings"

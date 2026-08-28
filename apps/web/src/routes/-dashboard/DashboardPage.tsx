@@ -14,8 +14,10 @@ import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCar
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
+import { WeatherFeedCard } from '@/components/weather/WeatherFeedCard';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
+import { useState } from 'react';
 
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
 import type { DashboardSsrData } from './ssr';
@@ -68,6 +70,13 @@ export function DashboardPage({
     useQuery(api.leagues.getMyLeagues),
     initialDashboard?.leagues ?? undefined,
   );
+  const [weatherNow] = useState(
+    () => initialDashboard?.weatherNow ?? Date.now(),
+  );
+  const weather = liveOrSsr(
+    useQuery(api.weather.getUpcoming, { now: weatherNow }),
+    initialDashboard?.weather ?? undefined,
+  );
   /*
    * The history query is deliberately *not* seeded: it walks a player's whole
    * season and exists here only to name the last scored weekend, so shipping it
@@ -109,6 +118,7 @@ export function DashboardPage({
         weekendReflectsViewer(currentWeekend.sessions)) &&
       seasonLeaderboard !== undefined &&
       leagues !== undefined &&
+      weather !== undefined &&
       latestResultReady,
   );
 
@@ -196,6 +206,11 @@ export function DashboardPage({
         >
           Activity
         </h2>
+        <WeatherFeedCard
+          race={currentWeekend?.race}
+          weather={weather}
+          now={weatherNow}
+        />
         <FeedContent initialPage={initialDashboard?.feedPreview} />
       </section>
 

@@ -64,4 +64,13 @@ describe('the circuit table', () => {
     expect(new Set(circuits.map((c) => c.slug)).size).toBe(circuits.length);
     expect(new Set(circuits.map((c) => c.name)).size).toBe(circuits.length);
   });
+
+  it('gives every circuit valid forecast coordinates', () => {
+    for (const circuit of listCircuits()) {
+      expect(circuit.latitude, circuit.slug).toBeGreaterThanOrEqual(-90);
+      expect(circuit.latitude, circuit.slug).toBeLessThanOrEqual(90);
+      expect(circuit.longitude, circuit.slug).toBeGreaterThanOrEqual(-180);
+      expect(circuit.longitude, circuit.slug).toBeLessThanOrEqual(180);
+    }
+  });
 });

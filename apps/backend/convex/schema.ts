@@ -5,6 +5,7 @@ import {
   reactionCountsValidator,
   reactionTypeValidator,
 } from './lib/reactions';
+import { weatherDayValidator, weatherHourValidator } from './lib/weather';
 
 const sessionType = v.union(
   v.literal('quali'),
@@ -163,6 +164,32 @@ export default defineSchema({
     .index('by_status_and_predictionLockAt', ['status', 'predictionLockAt'])
     .index('by_predictionLockAt', ['predictionLockAt'])
     .index('by_raceStartAt', ['raceStartAt']),
+
+  // A provider response is normalized into one bounded document per race.
+  // Keeping full event days (rather than only session instants) lets readers
+  // show approaching/clearing weather in the morning and evening as well.
+  weatherForecasts: defineTable({
+    raceId: v.id('races'),
+    raceSlug: v.string(),
+    timeZone: v.string(),
+    latitude: v.number(),
+    longitude: v.number(),
+    elevation: v.optional(v.number()),
+    provider: v.literal('met_no'),
+    providerUpdatedAt: v.number(),
+    eventDates: v.array(v.string()),
+    hours: v.array(weatherHourValidator),
+    days: v.array(weatherDayValidator),
+    fetchedAt: v.number(),
+    checkedAt: v.number(),
+    expiresAt: v.number(),
+    lastModified: v.optional(v.string()),
+    lastRefreshError: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_raceId', ['raceId'])
+    .index('by_raceSlug', ['raceSlug']),
 
   // Top 5 predictions (quali, sprint, race)
   predictions: defineTable({

@@ -27,4 +27,14 @@ crons.interval(
   {},
 );
 
+// MET Norway supplies cache headers, while weather.refreshWeather adds a
+// slower adaptive cadence until the race is close. The hourly tick therefore
+// does not imply an hourly provider request throughout the forecast window.
+crons.interval(
+  'refresh race weekend weather',
+  { hours: 1 },
+  internal.weather.refreshWeather,
+  {},
+);
+
 export default crons;

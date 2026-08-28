@@ -30,6 +30,11 @@ export type Circuit = {
   country: string;
   /** IANA timezone, for track-local session times. */
   timeZone: string;
+  /** WGS84 coordinates of the circuit, used for point forecasts. */
+  latitude: number;
+  longitude: number;
+  /** Metres above sea level when a reliable circuit value is available. */
+  elevation?: number;
 };
 
 const CIRCUITS = {
@@ -39,6 +44,8 @@ const CIRCUITS = {
     locality: 'Melbourne',
     country: 'Australia',
     timeZone: 'Australia/Melbourne',
+    latitude: -37.8497,
+    longitude: 144.968,
   },
   shanghai: {
     slug: 'shanghai',
@@ -46,6 +53,8 @@ const CIRCUITS = {
     locality: 'Shanghai',
     country: 'China',
     timeZone: 'Asia/Shanghai',
+    latitude: 31.3389,
+    longitude: 121.22,
   },
   suzuka: {
     slug: 'suzuka',
@@ -53,6 +62,8 @@ const CIRCUITS = {
     locality: 'Suzuka',
     country: 'Japan',
     timeZone: 'Asia/Tokyo',
+    latitude: 34.8431,
+    longitude: 136.541,
   },
   sakhir: {
     slug: 'sakhir',
@@ -60,6 +71,8 @@ const CIRCUITS = {
     locality: 'Sakhir',
     country: 'Bahrain',
     timeZone: 'Asia/Bahrain',
+    latitude: 26.0325,
+    longitude: 50.5106,
   },
   jeddah: {
     slug: 'jeddah',
@@ -67,6 +80,8 @@ const CIRCUITS = {
     locality: 'Jeddah',
     country: 'Saudi Arabia',
     timeZone: 'Asia/Riyadh',
+    latitude: 21.6319,
+    longitude: 39.1044,
   },
   miami: {
     slug: 'miami',
@@ -74,6 +89,8 @@ const CIRCUITS = {
     locality: 'Miami',
     country: 'United States',
     timeZone: 'America/New_York',
+    latitude: 25.9581,
+    longitude: -80.2389,
   },
   imola: {
     slug: 'imola',
@@ -81,6 +98,8 @@ const CIRCUITS = {
     locality: 'Imola',
     country: 'Italy',
     timeZone: 'Europe/Rome',
+    latitude: 44.3439,
+    longitude: 11.7167,
   },
   'gilles-villeneuve': {
     slug: 'gilles-villeneuve',
@@ -88,6 +107,8 @@ const CIRCUITS = {
     locality: 'Montreal',
     country: 'Canada',
     timeZone: 'America/Toronto',
+    latitude: 45.5,
+    longitude: -73.5228,
   },
   monaco: {
     slug: 'monaco',
@@ -95,6 +116,8 @@ const CIRCUITS = {
     locality: 'Monte Carlo',
     country: 'Monaco',
     timeZone: 'Europe/Monaco',
+    latitude: 43.7347,
+    longitude: 7.4206,
   },
   barcelona: {
     slug: 'barcelona',
@@ -102,6 +125,8 @@ const CIRCUITS = {
     locality: 'Barcelona',
     country: 'Spain',
     timeZone: 'Europe/Madrid',
+    latitude: 41.57,
+    longitude: 2.2611,
   },
   'red-bull-ring': {
     slug: 'red-bull-ring',
@@ -109,6 +134,8 @@ const CIRCUITS = {
     locality: 'Spielberg',
     country: 'Austria',
     timeZone: 'Europe/Vienna',
+    latitude: 47.2197,
+    longitude: 14.7647,
   },
   silverstone: {
     slug: 'silverstone',
@@ -116,6 +143,8 @@ const CIRCUITS = {
     locality: 'Silverstone',
     country: 'United Kingdom',
     timeZone: 'Europe/London',
+    latitude: 52.0786,
+    longitude: -1.0169,
   },
   spa: {
     slug: 'spa',
@@ -123,6 +152,8 @@ const CIRCUITS = {
     locality: 'Stavelot',
     country: 'Belgium',
     timeZone: 'Europe/Brussels',
+    latitude: 50.4372,
+    longitude: 5.9714,
   },
   hungaroring: {
     slug: 'hungaroring',
@@ -130,6 +161,8 @@ const CIRCUITS = {
     locality: 'Budapest',
     country: 'Hungary',
     timeZone: 'Europe/Budapest',
+    latitude: 47.5789,
+    longitude: 19.2486,
   },
   zandvoort: {
     slug: 'zandvoort',
@@ -137,6 +170,8 @@ const CIRCUITS = {
     locality: 'Zandvoort',
     country: 'Netherlands',
     timeZone: 'Europe/Amsterdam',
+    latitude: 52.3888,
+    longitude: 4.5409,
   },
   monza: {
     slug: 'monza',
@@ -144,6 +179,8 @@ const CIRCUITS = {
     locality: 'Monza',
     country: 'Italy',
     timeZone: 'Europe/Rome',
+    latitude: 45.6156,
+    longitude: 9.2811,
   },
   madring: {
     slug: 'madring',
@@ -151,6 +188,8 @@ const CIRCUITS = {
     locality: 'Madrid',
     country: 'Spain',
     timeZone: 'Europe/Madrid',
+    latitude: 40.4653,
+    longitude: -3.6153,
   },
   baku: {
     slug: 'baku',
@@ -158,6 +197,8 @@ const CIRCUITS = {
     locality: 'Baku',
     country: 'Azerbaijan',
     timeZone: 'Asia/Baku',
+    latitude: 40.3725,
+    longitude: 49.8533,
   },
   sepang: {
     slug: 'sepang',
@@ -165,6 +206,8 @@ const CIRCUITS = {
     locality: 'Kuala Lumpur',
     country: 'Malaysia',
     timeZone: 'Asia/Kuala_Lumpur',
+    latitude: 2.7608,
+    longitude: 101.738,
   },
   'marina-bay': {
     slug: 'marina-bay',
@@ -172,6 +215,8 @@ const CIRCUITS = {
     locality: 'Singapore',
     country: 'Singapore',
     timeZone: 'Asia/Singapore',
+    latitude: 1.2914,
+    longitude: 103.864,
   },
   cota: {
     slug: 'cota',
@@ -179,6 +224,8 @@ const CIRCUITS = {
     locality: 'Austin',
     country: 'United States',
     timeZone: 'America/Chicago',
+    latitude: 30.1328,
+    longitude: -97.6411,
   },
   'mexico-city': {
     slug: 'mexico-city',
@@ -186,6 +233,8 @@ const CIRCUITS = {
     locality: 'Mexico City',
     country: 'Mexico',
     timeZone: 'America/Mexico_City',
+    latitude: 19.4042,
+    longitude: -99.0907,
   },
   interlagos: {
     slug: 'interlagos',
@@ -193,6 +242,8 @@ const CIRCUITS = {
     locality: 'São Paulo',
     country: 'Brazil',
     timeZone: 'America/Sao_Paulo',
+    latitude: -23.7036,
+    longitude: -46.6997,
   },
   'las-vegas': {
     slug: 'las-vegas',
@@ -200,6 +251,8 @@ const CIRCUITS = {
     locality: 'Las Vegas',
     country: 'United States',
     timeZone: 'America/Los_Angeles',
+    latitude: 36.1162,
+    longitude: -115.174,
   },
   lusail: {
     slug: 'lusail',
@@ -207,6 +260,8 @@ const CIRCUITS = {
     locality: 'Lusail',
     country: 'Qatar',
     timeZone: 'Asia/Qatar',
+    latitude: 25.49,
+    longitude: 51.4542,
   },
   'yas-marina': {
     slug: 'yas-marina',
@@ -214,6 +269,8 @@ const CIRCUITS = {
     locality: 'Abu Dhabi',
     country: 'United Arab Emirates',
     timeZone: 'Asia/Dubai',
+    latitude: 24.4672,
+    longitude: 54.6031,
   },
   portimao: {
     slug: 'portimao',
@@ -221,6 +278,8 @@ const CIRCUITS = {
     locality: 'Portimão',
     country: 'Portugal',
     timeZone: 'Europe/Lisbon',
+    latitude: 37.227,
+    longitude: -8.6267,
   },
 } as const satisfies Record<string, Circuit>;
 

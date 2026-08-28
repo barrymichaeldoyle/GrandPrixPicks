@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import {
@@ -49,6 +50,11 @@ const FAQS = [
       'Nobody has a form guide. On top of that, La Monumental is a banked 547-metre corner that compresses the car hard enough to make ride height a real setup gamble, and teams are solving that for the first time on Friday.',
   },
   {
+    question: 'Does the weather change how I should pick at the Madring?',
+    answer:
+      'More than at a circuit with history. Practice is the only reference anyone has here, so a wet Friday removes most of what the weekend was going to teach you and leaves the grid closer to a guess. The forecast for each day is on this page and updates as it changes.',
+  },
+  {
     question: 'Are other players’ picks visible before the session?',
     answer:
       'No. Picks stay private until the relevant session locks, so nobody can copy another player’s Top 5 before making their own call.',
@@ -64,7 +70,8 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   component: MadridGrandPrixPredictionsPage,
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
-    const [race, championship] = await Promise.all([
+    const weatherNow = Date.now();
+    const [race, championship, weather] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
       ),
@@ -74,11 +81,17 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       context.queryClient.ensureQueryData(
         routeQuery(api.f1Standings.getF1Championship, {}),
       ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.weather.getByRaceSlug, {
+          raceSlug: RACE_SLUG,
+          now: weatherNow,
+        }),
+      ),
     ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship };
+    return { race, championship, weather, weatherNow };
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race;
@@ -155,7 +168,7 @@ function formatMadridTime(timestamp: number | undefined) {
 }
 
 function MadridGrandPrixPredictionsPage() {
-  const { race, championship } = Route.useLoaderData();
+  const { race, championship, weather, weatherNow } = Route.useLoaderData();
   const isFinished = race.status === 'finished';
 
   return (
@@ -198,6 +211,12 @@ function MadridGrandPrixPredictionsPage() {
 
           <WeekendSchedule race={race} />
         </div>
+
+        <WeekendWeatherForecast
+          race={race}
+          weather={weather}
+          now={weatherNow}
+        />
 
         <NoFormGuide />
         <LaMonumental />

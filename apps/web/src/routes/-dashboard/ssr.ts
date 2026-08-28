@@ -8,7 +8,10 @@ import { getClerkSessionToken } from '../../../server/lib/auth';
 
 export type DashboardSsrData = FunctionReturnType<
   typeof api.home.getDashboardPageData
->;
+> & {
+  weather: FunctionReturnType<typeof api.weather.getUpcoming>;
+  weatherNow: number;
+};
 
 /**
  * Reads the signed-in dashboard's above-the-fold data during SSR, as the
@@ -50,7 +53,15 @@ export const fetchDashboardSsrData = createServerFn({ method: 'GET' }).handler(
 
       const client = new ConvexHttpClient(convexUrl);
       client.setAuth(token);
-      return await client.query(api.home.getDashboardPageData, {});
+      const weatherNow = Date.now();
+      const [dashboard, weather] = await Promise.all([
+        client.query(api.home.getDashboardPageData, {}),
+        client.query(api.weather.getUpcoming, { now: weatherNow }),
+      ]);
+      if (!dashboard) {
+        return null;
+      }
+      return { ...dashboard, weather, weatherNow };
     } catch {
       // Includes the ordinary case of a token that expired since the tab was
       // last used, which is common enough on a resumed mobile tab that it is

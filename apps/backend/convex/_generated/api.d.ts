@@ -53,6 +53,7 @@ import type * as lib_standings from "../lib/standings.js";
 import type * as lib_teammateBattles from "../lib/teammateBattles.js";
 import type * as lib_testing_scenarioDefinitions from "../lib/testing/scenarioDefinitions.js";
 import type * as lib_userIdentity from "../lib/userIdentity.js";
+import type * as lib_weather from "../lib/weather.js";
 import type * as lib_weekendCapabilities from "../lib/weekendCapabilities.js";
 import type * as notifications from "../notifications.js";
 import type * as openF1Results from "../openF1Results.js";
@@ -69,6 +70,7 @@ import type * as support from "../support.js";
 import type * as testing from "../testing.js";
 import type * as testingScenarios from "../testingScenarios.js";
 import type * as users from "../users.js";
+import type * as weather from "../weather.js";
 
 import type {
   ApiFromModules,
@@ -122,6 +124,7 @@ declare const fullApi: ApiFromModules<{
   "lib/teammateBattles": typeof lib_teammateBattles;
   "lib/testing/scenarioDefinitions": typeof lib_testing_scenarioDefinitions;
   "lib/userIdentity": typeof lib_userIdentity;
+  "lib/weather": typeof lib_weather;
   "lib/weekendCapabilities": typeof lib_weekendCapabilities;
   notifications: typeof notifications;
   openF1Results: typeof openF1Results;
@@ -138,6 +141,7 @@ declare const fullApi: ApiFromModules<{
   testing: typeof testing;
   testingScenarios: typeof testingScenarios;
   users: typeof users;
+  weather: typeof weather;
 }>;
 
 /**

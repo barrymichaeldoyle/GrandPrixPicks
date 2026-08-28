@@ -82,6 +82,28 @@ test.describe('[public] smoke', () => {
     ).toHaveCount(0);
   });
 
+  test('scrolls an in-app cross-route hash link to its target', async ({
+    page,
+  }) => {
+    await page.goto('/how-to-play');
+
+    const pickerLink = page.getByRole('link', { name: 'Try the F1 picker' });
+    await waitForHydration(pickerLink);
+    await pickerLink.click();
+
+    await expect(page).toHaveURL(/\/#make-picks$/);
+    const target = page.locator('#make-picks');
+    await expect(target).toBeVisible();
+    await expect
+      .poll(() =>
+        target.evaluate((element) => {
+          const { top } = element.getBoundingClientRect();
+          return top >= 0 && top < window.innerHeight;
+        }),
+      )
+      .toBe(true);
+  });
+
   test('loads a seeded sprint weekend route', async ({ page }) => {
     const summary = applyScenario('race_partial_results_sprint', {
       namespace: 'scenario__race_partial_results_sprint__pw',

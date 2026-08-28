@@ -27,7 +27,6 @@ import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
-import { ScrollToTop } from '@/components/ScrollToTop';
 import {
   AuthCurtainHost,
   useAuthCurtain,
@@ -345,10 +344,6 @@ function RootDocument({ children }: PropsWithChildren) {
             between the app and "calm". */}
         <AppMotionProvider>
           <InitialAuthProvider value={initialAuth}>
-            {/* Keep route scroll handling outside the swappable Clerk runtime.
-                Activating sign-in from the public picker remounts that runtime,
-                but it is not navigation and must not reset the landing page. */}
-            <ScrollToTop />
             <AppRuntimeBoundary
               initialSignedIn={initialAuth.isSignedIn}
               pathname={pathname}

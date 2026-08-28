@@ -124,15 +124,7 @@ function PickImpact({
         </>
       ) : null}{' '}
       {/* "Revisit" says which picks to look at; this says what they are scored
-          against, which is the half people get wrong.
-
-          The hash names the section that draws the line, and today it does not
-          scroll there: `ScrollToTop` fires on every pathname change and the
-          incoming route has not laid out when it runs, so an in-app anchor
-          lands at the top of the target page. Every internal anchor on the site
-          has this, it is not specific to this link. The hash is kept because
-          the URL is right and these links start working the day that is fixed;
-          until then the reader still arrives on the correct page. */}
+          against, which is the half people get wrong. */}
       <Link
         to="/results-policy"
         hash="sessions-heading"

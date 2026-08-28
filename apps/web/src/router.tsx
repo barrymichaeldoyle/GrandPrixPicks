@@ -23,6 +23,11 @@ export function getRouter() {
       ...rqContext,
     },
     defaultPreload: 'intent',
+    // Let the router restore history positions and scroll hash targets only
+    // after the destination route has rendered. A root-level effect cannot
+    // safely do this: it runs before lazy route content has necessarily laid
+    // out and can overwrite the browser's anchor scroll with a scroll to 0.
+    scrollRestoration: true,
     defaultErrorComponent: ({ error }) => {
       // A visitor one deploy behind asked for a chunk that no longer exists.
       // Nothing is broken for them that new HTML would not fix, so reload

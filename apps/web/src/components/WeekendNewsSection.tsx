@@ -55,7 +55,13 @@ export function WeekendNewsSection({
 
       <div className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
         {items.map((item) => (
-          <article key={item.key} className="bg-surface p-5 sm:p-6">
+          // A column so the source row can be pushed to the bottom: the
+          // bodies differ in length, and without it each card's rule and
+          // attribution sit at a different height across the grid.
+          <article
+            key={item.key}
+            className="flex flex-col bg-surface p-5 sm:p-6"
+          >
             <h3 className="font-title text-lg font-medium text-text">
               {item.headline}
             </h3>
@@ -64,7 +70,7 @@ export function WeekendNewsSection({
               affects={item.affectsSessions as SessionType[]}
               weekendSessions={weekendSessions}
             />
-            <p className="mt-3">
+            <p className="mt-4 border-t border-border pt-3 max-sm:mt-4 sm:mt-auto sm:pt-4">
               <a
                 href={item.sourceUrl}
                 target="_blank"
@@ -78,6 +84,21 @@ export function WeekendNewsSection({
           </article>
         ))}
       </div>
+
+      {/* One link for the section, not one per card. It used to sit inside
+          every impact line, where it wrapped mid-sentence and repeated itself
+          as many times as there was news. What it explains is a rule about
+          scoring, which does not change per item. */}
+      <p className="mt-5 text-sm text-text-muted">
+        A penalty moves where a driver starts, not where they were classified.{' '}
+        <Link
+          to="/results-policy"
+          hash="sessions-heading"
+          className="gpp-touch-target font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+        >
+          How each session is scored
+        </Link>
+      </p>
     </section>
   );
 }
@@ -97,6 +118,26 @@ export function WeekendNewsSection({
  * true of every item, which is why it is the default rather than special
  * handling for penalties.
  */
+/**
+ * The sessions worth naming for a news item, or `null` when naming them adds
+ * nothing.
+ *
+ * An item touching every session of the weekend says "revisit everything",
+ * which is the same as saying nothing at all. Both Monza items affected both
+ * of that weekend's sessions, so each card carried an identical highlighted
+ * line that told a reader precisely nothing about how the two differed. The
+ * line earns its place only when it narrows the weekend down.
+ */
+export function pickImpactSessions(
+  affects: SessionType[],
+  weekendSessions: SessionType[],
+): { affected: SessionType[]; unaffected: SessionType[] } | null {
+  const unaffected = weekendSessions.filter(
+    (session) => !affects.includes(session),
+  );
+  return unaffected.length === 0 ? null : { affected: affects, unaffected };
+}
+
 function PickImpact({
   affects,
   weekendSessions,
@@ -104,9 +145,12 @@ function PickImpact({
   affects: SessionType[];
   weekendSessions: SessionType[];
 }) {
-  const unaffected = weekendSessions.filter(
-    (session) => !affects.includes(session),
-  );
+  const impact = pickImpactSessions(affects, weekendSessions);
+  if (!impact) {
+    return null;
+  }
+  const { unaffected } = impact;
+
   function label(sessions: SessionType[]) {
     return sessions.map((s) => SESSION_LABELS[s]).join(' and ');
   }
@@ -114,24 +158,10 @@ function PickImpact({
   return (
     <p className="mt-3 border-l-2 border-accent/40 pl-3 text-sm text-text">
       Worth revisiting:{' '}
-      <strong className="font-semibold">{label(affects)}</strong> picks.
-      {unaffected.length > 0 ? (
-        <>
-          {' '}
-          <span className="text-text-muted">
-            No need to revisit {label(unaffected)}.
-          </span>
-        </>
-      ) : null}{' '}
-      {/* "Revisit" says which picks to look at; this says what they are scored
-          against, which is the half people get wrong. */}
-      <Link
-        to="/results-policy"
-        hash="sessions-heading"
-        className="whitespace-nowrap text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
-      >
-        How these are scored
-      </Link>
+      <strong className="font-semibold">{label(affects)}</strong> picks.{' '}
+      <span className="text-text-muted">
+        No need to revisit {label(unaffected)}.
+      </span>
     </p>
   );
 }

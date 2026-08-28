@@ -260,9 +260,12 @@ function ItalianGrandPrixPredictionsPage() {
           weekendSessions={race.hasSprint ? SPRINT_SESSIONS : NORMAL_SESSIONS}
         />
         <WatchTable />
+        {/* Hadjar and the standings both carry a right-hand card; the tribute
+            does not. Run the two carded sections together so the rail does not
+            appear, vanish and reappear, and let the prose-only aside follow. */}
         <HadjarStatus />
-        <FerrariTribute />
         <ChampionshipContext />
+        <FerrariTribute />
         <PredictionMethod />
 
         <section className="py-12 sm:py-16" aria-labelledby="common-questions">
@@ -623,9 +626,12 @@ function FerrariTribute() {
   return (
     <section className="py-12 sm:py-16" aria-labelledby="ferrari-tribute">
       <div className="max-w-3xl">
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Weekend colour
+        </p>
         <h2
           id="ferrari-tribute"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
         >
           Ferrari runs a Schumacher tribute
         </h2>
@@ -637,8 +643,9 @@ function FerrariTribute() {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Ferrari has not formally revealed it, so treat the detail as reported
-          rather than confirmed. Nothing here changes a pick: Leclerc and
-          Hamilton are in the car as usual.{' '}
+          rather than confirmed. Whether a home crowd and a throwback livery are
+          worth anything to Leclerc and Hamilton on Sunday is between you and
+          your Top 5.{' '}
           <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>

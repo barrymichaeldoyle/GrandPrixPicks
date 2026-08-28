@@ -28,6 +28,7 @@ export type FeedEvent = {
     | 'session_locked'
     | 'joined_league'
     | 'streak_milestone'
+    | 'race_news'
     | 'lineup_change';
   /** Absent on `lineup_change`: the site authors it, not a player. */
   userId?: Id<'users'>;
@@ -63,6 +64,13 @@ export type FeedEvent = {
     inDriverName: string;
   }[];
   lineupNote?: string;
+  // race_news
+  newsKey?: string;
+  newsHeadline?: string;
+  newsBody?: string;
+  newsAffectsSessions?: string[];
+  newsSourceName?: string;
+  newsSourceUrl?: string;
   reactionCount: number;
   reactionCounts: ReactionCounts;
   recentReactionUsers?: {

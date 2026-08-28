@@ -599,11 +599,13 @@ export default defineSchema({
       v.literal('joined_league'),
       v.literal('streak_milestone'),
       v.literal('lineup_change'),
+      v.literal('race_news'),
     ),
-    // Absent on `lineup_change`, which is the site talking rather than a
-    // player: a driver swap happens to everyone's picks at once and belongs to
-    // no one's activity. Every other event type still has an author, and the
-    // feed's scoping treats an authorless event as visible to all.
+    // Absent on `lineup_change` and `race_news`, which are the site talking
+    // rather than a player: a driver swap or a grid penalty happens to
+    // everyone's picks at once and belongs to no one's activity. Every other
+    // event type still has an author, and the feed's scoping treats an
+    // authorless event as visible to all.
     userId: v.optional(v.id('users')),
     // Denormalized user fields for display (avoids N+1 lookups)
     username: v.optional(v.string()),
@@ -643,6 +645,15 @@ export default defineSchema({
     ),
     // The human reason, which no amount of diffing the grid can derive.
     lineupNote: v.optional(v.string()),
+    // race_news fields, denormalised from `raceNews` so the feed renders
+    // without a second read per event. `newsKey` is what lets a correction
+    // find its own event and edit it in place rather than posting again.
+    newsKey: v.optional(v.string()),
+    newsHeadline: v.optional(v.string()),
+    newsBody: v.optional(v.string()),
+    newsAffectsSessions: v.optional(v.array(sessionType)),
+    newsSourceName: v.optional(v.string()),
+    newsSourceUrl: v.optional(v.string()),
     // Engagement
     revCount: v.number(),
     // New reaction model. Optional during the rev -> reaction rollout; when
@@ -659,6 +670,9 @@ export default defineSchema({
     .index('by_user_race_session', ['userId', 'raceId', 'sessionType'])
     .index('by_race_session', ['raceId', 'sessionType'])
     .index('by_league_created', ['leagueId', 'createdAt'])
+    // Lets a republish find the event it already wrote for this item, which is
+    // what makes a correction an edit instead of a second post.
+    .index('by_race_news_key', ['raceId', 'newsKey'])
     .index('by_user_streak', ['userId', 'streakCount']),
 
   revs: defineTable({
@@ -679,6 +693,43 @@ export default defineSchema({
   // The show window (startsAt/expiresAt) is enforced client-side: Convex
   // queries don't re-run as time passes, so server-side filtering would
   // leave connected clients with a stale banner at the boundaries.
+  /**
+   * Short, pick-relevant news for a race weekend. See `docs/race-news.md`.
+   *
+   * Written by an agent through `raceNews:publish` rather than through a form:
+   * the workflow is "research the weekend, publish what changes a pick", and
+   * the mutation is the surface a person actually touches.
+   */
+  raceNews: defineTable({
+    raceId: v.id('races'),
+    /**
+     * Stable slug for the item, e.g. `antonelli-grid-penalty`, unique per race.
+     *
+     * The idempotency key. Agents retry and the same weekend gets prompted
+     * about more than once, so publishing is an upsert; without this the feed
+     * collects three copies of the same story.
+     */
+    key: v.string(),
+    headline: v.string(),
+    body: v.string(),
+    /**
+     * Which sessions this changes a pick for. Required and non-empty on
+     * purpose: naming the sessions *is* the "does this belong in the feed"
+     * test, and a schema does that job where a comment gets skimmed. It is
+     * also the hook the weekend card uses to flag an item on the Race tab and
+     * leave Qualifying alone.
+     */
+    affectsSessions: v.array(sessionType),
+    sourceName: v.string(),
+    sourceUrl: v.string(),
+    /** Retraction without deletion, so a mistake leaves a trail. */
+    active: v.boolean(),
+    publishedAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_race', ['raceId'])
+    .index('by_race_key', ['raceId', 'key']),
+
   announcements: defineTable({
     message: v.string(),
     active: v.boolean(),

@@ -1,5 +1,6 @@
 import type { FeedEvent } from './types';
 import { LineupChangeItem } from './LineupChangeItem';
+import { RaceNewsItem } from './RaceNewsItem';
 import { JoinedLeagueItem, ScorePublishedItem } from './ScorePublishedItem';
 
 export function FeedItem({
@@ -42,6 +43,8 @@ export function FeedItem({
     >
       {event.type === 'lineup_change' ? (
         <LineupChangeItem event={event} />
+      ) : event.type === 'race_news' ? (
+        <RaceNewsItem event={event} />
       ) : event.type === 'score_published' ||
         event.type === 'results_amended' ||
         event.type === 'session_locked' ? (

@@ -553,8 +553,12 @@ type RawEvent = {
     | 'session_locked'
     | 'joined_league'
     | 'streak_milestone'
-    | 'lineup_change';
-  /** Absent on `lineup_change`, which the site authors rather than a player. */
+    | 'lineup_change'
+    | 'race_news';
+  /**
+   * Absent on `lineup_change` and `race_news`, which the site authors rather
+   * than a player.
+   */
   userId?: Id<'users'>;
   username?: string;
   displayName?: string;
@@ -580,6 +584,12 @@ type RawEvent = {
     inDriverName: string;
   }>;
   lineupNote?: string;
+  newsKey?: string;
+  newsHeadline?: string;
+  newsBody?: string;
+  newsAffectsSessions?: string[];
+  newsSourceName?: string;
+  newsSourceUrl?: string;
   revCount: number;
   createdAt: number;
 };

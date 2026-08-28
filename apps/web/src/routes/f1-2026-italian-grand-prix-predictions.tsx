@@ -52,7 +52,13 @@ const FAQS = [
   {
     question: 'Does Antonelli’s grid penalty change my Monza picks?',
     answer:
-      'It changes your race picks and not your qualifying picks. A grid penalty moves where a driver starts the race; it does not rewrite the qualifying classification, which is what qualifying picks are scored against. Antonelli is unaffected on Saturday and starts near the back on Sunday.',
+      'Both, but for different reasons. On Sunday he starts near the back. On Saturday the penalty gives him nothing to gain from his own grid slot, so Mercedes may use him to tow Russell, which is worth real time at Monza and can move both of them in the order.',
+  },
+  {
+    question:
+      'If Antonelli qualifies P4 and starts P14, what does my qualifying pick score?',
+    answer:
+      'The P4. We score the official qualifying classification, not the starting grid. A grid penalty moves where a driver lines up for the race and does not rewrite where they finished qualifying, so a driver classified P4 counts as P4 for your qualifying picks even when they start P14 on Sunday.',
   },
   {
     question: 'Will Isack Hadjar race at Monza?',

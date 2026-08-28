@@ -551,10 +551,14 @@ function HowToPlayPage() {
                   What about penalties?
                 </dt>
                 <dd className="gpp-reading-copy text-text-muted">
-                  We score the official FIA classification. Grid penalties do
-                  not change the qualifying classification, so your qualifying
-                  picks are unaffected; post-race penalties do change the race
-                  classification, so those sessions are rescored.{' '}
+                  We score the official FIA classification, which is not the
+                  same as the starting grid. A driver who qualifies P4 and takes
+                  a ten-place grid penalty is still{' '}
+                  <strong>classified P4 for qualifying</strong>, and starts P14
+                  on Sunday: your qualifying pick scores against the P4.
+                  Post-race penalties are the other way round, because they do
+                  change the race classification, so those sessions are
+                  rescored.{' '}
                   <Link
                     to="/results-policy"
                     className="font-medium text-accent hover:underline"

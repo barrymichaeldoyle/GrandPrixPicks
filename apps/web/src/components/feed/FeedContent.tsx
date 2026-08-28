@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
+import { NewsGroup } from '@/components/FeedItem/NewsGroup';
+import { groupFeedEvents } from './groupFeedEvents';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
 import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
 import { FollowButton } from '@/components/FollowButton';
@@ -264,37 +266,16 @@ export function FeedContent({
     );
   }
 
-  type Group =
-    | { kind: 'session'; key: string; events: (typeof allEvents)[number][] }
-    | { kind: 'standalone'; event: (typeof allEvents)[number] };
-
-  const groups: Group[] = [];
-  const sessionGroupMap = new Map<string, Group & { kind: 'session' }>();
-
-  for (const event of allEvents) {
-    if (
-      (event.type === 'score_published' || event.type === 'session_locked') &&
-      event.raceId &&
-      event.sessionType
-    ) {
-      const key = `${event.raceId}_${event.sessionType}`;
-      let group = sessionGroupMap.get(key);
-      if (!group) {
-        group = { kind: 'session', key, events: [] };
-        sessionGroupMap.set(key, group);
-        groups.push(group);
-      }
-      group.events.push(event);
-    } else {
-      groups.push({ kind: 'standalone', event });
-    }
-  }
+  const groups = groupFeedEvents(allEvents);
 
   return (
     <div className="space-y-4">
       {groups.map((group) => {
         if (group.kind === 'standalone') {
           return <FeedItem key={group.event._id} event={group.event} />;
+        }
+        if (group.kind === 'news') {
+          return <NewsGroup key={group.events[0]!._id} events={group.events} />;
         }
         const session = allSessions[group.key];
         return (

@@ -1,8 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
+import { TEAM_COLORS } from '@/lib/teamColors';
 import { SESSION_LABELS } from '@/lib/sessions';
 import type { SessionType } from '@/lib/sessions';
 
@@ -25,17 +27,43 @@ import type { FeedEvent } from './types';
  * they know which of their two Top 5s to go back to. That is also why the field
  * is required when publishing — see `docs/race-news.md`.
  */
-export function RaceNewsItem({ event }: { event: FeedEvent }) {
+export function RaceNewsItem({
+  event,
+  grouped = false,
+}: {
+  event: FeedEvent;
+  /**
+   * True when a `NewsGroup` already carries the label and the scoring link for
+   * the whole run. Two consecutive news cards each repeated the eyebrow, the
+   * chips and the same policy link, which is three identical things stacked and
+   * the reason the feed read as a wall.
+   */
+  grouped?: boolean;
+}) {
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const sessions = (event.newsAffectsSessions ?? []) as SessionType[];
+  // The item's own colour, from the driver it is about. Same 3px the badges
+  // and `LineupChangeItem` use, so a run of news reads as a Williams story
+  // then a Mercedes one rather than two grey blocks.
+  const team = event.newsDrivers?.[0]?.team ?? null;
+  const teamColour = (team && TEAM_COLORS[team]) || null;
 
   return (
-    <>
+    <div
+      className={teamColour ? 'gpp-team-bar pl-3' : undefined}
+      style={
+        teamColour
+          ? ({ '--team-colour': teamColour } as CSSProperties)
+          : undefined
+      }
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
-            Weekend news
-          </p>
+          {grouped ? null : (
+            <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
+              Weekend news
+            </p>
+          )}
           {/* Same badge the write-up cards carry, from the same published
               codes, so one news item does not look like two different things
               depending on where you meet it. */}
@@ -68,6 +96,7 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
           reactionCounts={event.reactionCounts}
           viewerReaction={event.viewerReaction}
           onCountClick={() => setReactionsOpen(true)}
+          context="news"
         />
       </div>
 
@@ -94,14 +123,17 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
             ))}
             {/* The chips say which picks to look at again. This says what they
                 are scored against, which is the half that gets misread: a grid
-                penalty moves a start, it does not rewrite a classification. */}
-            <Link
-              to="/results-policy"
-              hash="sessions-heading"
-              className="underline decoration-border-strong underline-offset-4 hover:text-text"
-            >
-              How these are scored
-            </Link>
+                penalty moves a start, it does not rewrite a classification.
+                Grouped, the block says it once at the bottom instead. */}
+            {grouped ? null : (
+              <Link
+                to="/results-policy"
+                hash="sessions-heading"
+                className="underline decoration-border-strong underline-offset-4 hover:text-text"
+              >
+                How these are scored
+              </Link>
+            )}
           </p>
         ) : null}
 
@@ -125,8 +157,9 @@ export function RaceNewsItem({ event }: { event: FeedEvent }) {
         <ReactionsModal
           feedEventId={event._id}
           onClose={() => setReactionsOpen(false)}
+          context="news"
         />
       )}
-    </>
+    </div>
   );
 }

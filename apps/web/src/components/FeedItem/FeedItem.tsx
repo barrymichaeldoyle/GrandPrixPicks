@@ -38,13 +38,17 @@ export function FeedItem({
       className={
         isSocialActivity
           ? 'px-1 py-2.5'
-          : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
+          : // A grouped news card sits inside NewsGroup's own bordered block,
+            // so it must not draw a second border and padding inside it.
+            grouped && event.type === 'race_news'
+            ? ''
+            : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
       {event.type === 'lineup_change' ? (
         <LineupChangeItem event={event} />
       ) : event.type === 'race_news' ? (
-        <RaceNewsItem event={event} />
+        <RaceNewsItem event={event} grouped={grouped} />
       ) : event.type === 'score_published' ||
         event.type === 'results_amended' ||
         event.type === 'session_locked' ? (

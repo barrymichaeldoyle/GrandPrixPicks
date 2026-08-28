@@ -2,14 +2,15 @@ import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
 import { useQuery } from '@/integrations/convex/query';
 import { Pencil, Swords } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
-import { H2HMatchupGrid } from '@/components/H2HMatchupGrid';
 import { H2HPredictionForm } from '@/components/H2HPredictionForm';
+import { H2HWinnersStrip } from '@/components/H2HWinnersStrip';
 import { InlineLoader } from '@/components/InlineLoader';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { RandomizeButton } from '@/components/RandomizeButton';
@@ -41,6 +42,18 @@ interface H2HSectionProps {
       parent can auto-open it (e.g. chained right after a Top 5 save). */
   initialPicksOpen?: boolean;
   onInitialPicksOpenChange?: (open: boolean) => void;
+  /**
+   * Receipt mode: the whole entry for this session is saved, so this section is
+   * one row of a summary block rather than step 2 of a guided flow. Drops the
+   * step badge and demotes the heading; the parent owns the block's title.
+   */
+  compact?: boolean;
+  /**
+   * A sibling share action (the Top 5 one) to sit alongside this section's own,
+   * so a finished entry ends in a single row of buttons instead of one stranded
+   * under each half.
+   */
+  shareSlot?: ReactNode;
 }
 
 export function H2HSection({
@@ -55,6 +68,8 @@ export function H2HSection({
   hasUnsavedEditingChanges = false,
   initialPicksOpen: controlledInitialPicksOpen,
   onInitialPicksOpenChange,
+  compact = false,
+  shareSlot,
 }: H2HSectionProps) {
   const [internalEditing, setInternalEditing] = useState<SessionType | null>(
     null,
@@ -155,10 +170,26 @@ export function H2HSection({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2.5">
-          <StepBadge step={2} done={Boolean(selectedSessionHasH2H)} />
-          <h2 className="text-xl font-semibold text-text">
-            <span className="sm:hidden">H2H Predictions</span>
-            <span className="hidden sm:inline">Head-to-Head Predictions</span>
+          {!compact && (
+            <StepBadge step={2} done={Boolean(selectedSessionHasH2H)} />
+          )}
+          <h2
+            className={
+              compact
+                ? 'text-sm font-semibold text-text'
+                : 'text-xl font-semibold text-text'
+            }
+          >
+            {compact ? (
+              'Head-to-Head'
+            ) : (
+              <>
+                <span className="sm:hidden">H2H Predictions</span>
+                <span className="hidden sm:inline">
+                  Head-to-Head Predictions
+                </span>
+              </>
+            )}
           </h2>
           {hasH2HPredictions && (
             <>
@@ -201,24 +232,27 @@ export function H2HSection({
           <InlineLoader />
         ) : hasH2HPredictions ? (
           <>
-            <H2HMatchupGrid
+            <H2HWinnersStrip
               matchups={matchups}
               selections={h2hPredictions?.[selectedSession] ?? {}}
-              mode="readonly"
-              readonlyClickTooltip="Click edit above to change"
             />
-            {canShareH2HPicks && (
-              <div className="mt-3">
-                <ShareOnXButton
-                  text={h2hPicksShareText}
-                  url={h2hPicksShareUrl}
-                  analyticsEvent="h2h_picks_shared_x"
-                  analyticsProps={{
-                    race_slug: race.slug,
-                    session_type: selectedSession,
-                  }}
-                  label="Share my H2H picks on X"
-                />
+            {(canShareH2HPicks || shareSlot) && (
+              // Top 5 first, so the share row runs in the same order as the
+              // two rows of picks above it.
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {shareSlot}
+                {canShareH2HPicks && (
+                  <ShareOnXButton
+                    text={h2hPicksShareText}
+                    url={h2hPicksShareUrl}
+                    analyticsEvent="h2h_picks_shared_x"
+                    analyticsProps={{
+                      race_slug: race.slug,
+                      session_type: selectedSession,
+                    }}
+                    label="Share my H2H picks on X"
+                  />
+                )}
               </div>
             )}
           </>

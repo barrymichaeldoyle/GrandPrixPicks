@@ -73,6 +73,8 @@ type H2HSectionSlotProps = {
   hasUnsavedEditingChanges: boolean;
   initialPicksOpen: boolean;
   onInitialPicksOpenChange: (open: boolean) => void;
+  compact?: boolean;
+  shareSlot?: ReactNode;
 };
 
 type H2HResultsSectionSlotProps = {
@@ -253,6 +255,12 @@ export function RaceEventPage({
     return `${siteConfig.url}/races/${race.slug}?${params.toString()}`;
   }
 
+  // Mirrors the layout's own `entryComplete`: both halves of the selected
+  // session are saved, so the picks block is a receipt rather than a guided
+  // flow. Here it only decides whether H2H renders compactly and adopts the
+  // Top 5 share button, and both are moot unless the section renders at all.
+  const entryComplete = top5SelectedSessionDone && h2hSelectedSessionDone;
+
   const selectedSessionPicks = selectedSessionData?.picks ?? [];
   const canSharePicks =
     isSignedIn &&
@@ -278,6 +286,19 @@ export function RaceEventPage({
         'share_picks',
       )
     : '';
+
+  const top5ShareButton = canSharePicks ? (
+    <ShareOnXButton
+      text={sharePicksText}
+      url={sharePicksUrl}
+      analyticsEvent="picks_shared_x"
+      analyticsProps={{
+        race_slug: race.slug,
+        session_type: selectedSession,
+      }}
+      label="Share my Top 5 on X"
+    />
+  ) : null;
 
   const shareScoreText = buildScoreShareText({
     raceName: race.name,
@@ -497,19 +518,11 @@ export function RaceEventPage({
                     />
                   </ErrorBoundary>
                 ) : null)}
-              {canSharePicks && (
-                <div className="mt-3">
-                  <ShareOnXButton
-                    text={sharePicksText}
-                    url={sharePicksUrl}
-                    analyticsEvent="picks_shared_x"
-                    analyticsProps={{
-                      race_slug: race.slug,
-                      session_type: selectedSession,
-                    }}
-                    label="Share my picks on X"
-                  />
-                </div>
+              {/* Once the entry is complete this button moves into the H2H
+                  section's share row, so the block ends in one cluster of
+                  actions rather than one stranded under each half. */}
+              {canSharePicks && !entryComplete && (
+                <div className="mt-3">{top5ShareButton}</div>
               )}
             </>
           )
@@ -527,6 +540,10 @@ export function RaceEventPage({
             hasH2HPredictions={hasH2HPredictions}
             initialPicksOpen={h2hInitialPicksOpen}
             onInitialPicksOpenChange={setH2hInitialPicksOpen}
+            compact={entryComplete}
+            shareSlot={
+              canSharePicks && entryComplete ? top5ShareButton : undefined
+            }
           />
         }
         h2hResultsContent={

@@ -127,6 +127,14 @@ export function RaceEventPageLayout({
   // can submit their first H2H entry even if they skipped earlier sessions.
   const showReadonlyH2H =
     raceIsActiveOrPlayable && (hasH2HPredictions || hasPredictions);
+  /*
+   * Both halves of the selected session are saved, so this block stopped being
+   * a guided flow and became a receipt. A receipt does not need step badges, a
+   * progress counter and two `xl` headings restating what the ticked session
+   * tab already says: it needs to show the entry and get out of the way.
+   * `entryComplete` is what switches the block between those two jobs.
+   */
+  const entryComplete = showReadonlyPredictions && top5Done && h2hDone;
 
   return (
     <div className="min-h-full bg-page">
@@ -250,12 +258,16 @@ export function RaceEventPageLayout({
                       <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
                         Your {SESSION_LABELS[selectedSession]} Picks
                       </p>
-                      <span className="text-xs font-medium text-text-muted">
-                        {(top5Done ? 1 : 0) + (h2hDone ? 1 : 0)} of 2 done
-                      </span>
+                      {!entryComplete && (
+                        <span className="text-xs font-medium text-text-muted">
+                          {(top5Done ? 1 : 0) + (h2hDone ? 1 : 0)} of 2 done
+                        </span>
+                      )}
                     </div>
                   )}
-                  <div className="mt-4 space-y-8">
+                  <div
+                    className={`mt-4 ${entryComplete ? 'space-y-5' : 'space-y-8'}`}
+                  >
                     <section
                       data-testid="race-top5-section"
                       className="space-y-2"
@@ -263,9 +275,17 @@ export function RaceEventPageLayout({
                       {showReadonlyPredictions && (
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2.5">
-                            <StepBadge step={1} done={top5Done} />
-                            <h2 className="text-xl font-semibold text-text">
-                              Top 5 Predictions
+                            {!entryComplete && (
+                              <StepBadge step={1} done={top5Done} />
+                            )}
+                            <h2
+                              className={
+                                entryComplete
+                                  ? 'text-sm font-semibold text-text'
+                                  : 'text-xl font-semibold text-text'
+                              }
+                            >
+                              {entryComplete ? 'Top 5' : 'Top 5 Predictions'}
                             </h2>
                             {top5HeaderAside}
                           </div>

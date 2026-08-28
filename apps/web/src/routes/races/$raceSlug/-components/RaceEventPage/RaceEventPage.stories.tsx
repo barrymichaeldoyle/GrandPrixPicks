@@ -518,6 +518,12 @@ function Scenario({
           selectedSession={selectedSession}
           onSelectedSessionChange={setSelectedSession}
           sessionTabOptions={sessionTabOptions}
+          // The catalog scenarios save Top 5 and H2H together, so a scenario
+          // with predictions has both halves of every session done. Without
+          // these the preview sat permanently in the guided state and the
+          // completed receipt could not be seen in Storybook at all.
+          top5SelectedSessionDone={hasPredictions}
+          h2hSelectedSessionDone={hasPredictions}
           cardData={cardData}
           top5Editing={{
             session: top5EditingSession,

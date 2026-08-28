@@ -5,6 +5,8 @@ import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
@@ -17,6 +19,13 @@ import {
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
+const NORMAL_SESSIONS: SessionType[] = ['quali', 'race'];
+const SPRINT_SESSIONS: SessionType[] = [
+  'sprint_quali',
+  'sprint',
+  'quali',
+  'race',
+];
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/spain';
 const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
@@ -71,7 +80,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
     const weatherNow = Date.now();
-    const [race, championship, weather] = await Promise.all([
+    const [race, championship, weather, news] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
       ),
@@ -87,11 +96,14 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
           now: weatherNow,
         }),
       ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
+      ),
     ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship, weather, weatherNow };
+    return { race, championship, weather, weatherNow, news };
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race;
@@ -168,7 +180,8 @@ function formatMadridTime(timestamp: number | undefined) {
 }
 
 function MadridGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow } = Route.useLoaderData();
+  const { race, championship, weather, weatherNow, news } =
+    Route.useLoaderData();
   const isFinished = race.status === 'finished';
 
   return (
@@ -221,6 +234,10 @@ function MadridGrandPrixPredictionsPage() {
         <NoFormGuide />
         <LaMonumental />
         <WatchTable />
+        <WeekendNewsSection
+          items={news.items}
+          weekendSessions={race.hasSprint ? SPRINT_SESSIONS : NORMAL_SESSIONS}
+        />
         <ChampionshipContext championship={championship} />
 
         <section className="py-12 sm:py-16" aria-labelledby="common-questions">

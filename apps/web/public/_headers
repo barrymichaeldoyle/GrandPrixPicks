@@ -1,0 +1,21 @@
+# Merged into the generated `_headers` by Nitro's Cloudflare Pages preset, which
+# reads this file and prepends it (see `writeCFHeaders`). Kept here rather than
+# as Nitro `routeRules` because those need the `h3-rules` package, and a 0.1.0
+# dependency on a nightly Nitro is a poor trade for two cache directives.
+#
+# Vite hashes everything under /assets/, and the preset already marks those
+# immutable. These two directories are copied from `public/` as-is, so they were
+# left on Cloudflare's default of `max-age=0, must-revalidate`: every request
+# round-tripped to origin to be told nothing had changed. The fonts are
+# preloaded, so that sat in front of text rendering.
+#
+# A year, but deliberately not `immutable`: these filenames carry no content
+# hash, and an immutable response cannot be revalidated at all, so replacing a
+# font in place would strand everyone holding the old one. The
+# stale-while-revalidate window lets a replacement propagate without anyone
+# waiting on it.
+/fonts/*
+  cache-control: public, max-age=31536000, stale-while-revalidate=2592000
+
+/flags/*
+  cache-control: public, max-age=31536000, stale-while-revalidate=2592000

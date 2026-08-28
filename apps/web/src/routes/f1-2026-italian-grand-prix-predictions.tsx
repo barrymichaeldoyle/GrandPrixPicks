@@ -5,6 +5,8 @@ import { ArrowRight, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
@@ -17,14 +19,17 @@ import {
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
+const NORMAL_SESSIONS: SessionType[] = ['quali', 'race'];
+const SPRINT_SESSIONS: SessionType[] = [
+  'sprint_quali',
+  'sprint',
+  'quali',
+  'race',
+];
 const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
-const BROWNING_SOURCE =
-  'https://www.gpfans.com/en/f1-news/1089597/williams-f1-team-announce-alex-albon-driver-replacement-luke-browning-italian-grand-prix/';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
-const PENALTY_SOURCE =
-  'https://www.formula1.com/en/latest/article/wolff-confirms-antonelli-is-set-for-grid-penalty-at-italian-grand-prix.4IIgVJdITz0W1xOIrbOPAM';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -82,7 +87,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
-      const [race, weather] = await Promise.all([
+      const [race, weather, news] = await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
         ),
@@ -92,11 +97,14 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
             now: weatherNow,
           }),
         ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
+        ),
       ]);
       if (!race) {
         throw notFound();
       }
-      return { race, weather, weatherNow };
+      return { race, weather, weatherNow, news };
     },
     head: ({ loaderData }) => {
       const race = loaderData?.race;
@@ -174,7 +182,7 @@ function formatMonzaTime(timestamp: number | undefined) {
 }
 
 function ItalianGrandPrixPredictionsPage() {
-  const { race, weather, weatherNow } = Route.useLoaderData();
+  const { race, weather, weatherNow, news } = Route.useLoaderData();
   const isFinished = race.status === 'finished';
 
   return (
@@ -224,10 +232,13 @@ function ItalianGrandPrixPredictionsPage() {
           now={weatherNow}
         />
 
-        <AntonelliPenalty />
+        <WeekendNewsSection
+          items={news.items}
+          weekendSessions={race.hasSprint ? SPRINT_SESSIONS : NORMAL_SESSIONS}
+        />
         <WatchTable />
         <HadjarStatus />
-        <WeekendNotes />
+        <FerrariTribute />
         <ChampionshipContext />
         <PredictionMethod />
 
@@ -323,85 +334,6 @@ function WeekendSchedule({ race }: { race: Race }) {
             <dd className="gpp-mono text-sm text-text sm:text-right">
               {formatMonzaTime(timestamp)}
             </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  );
-}
-
-/**
- * The one fact this weekend that changes a pick outright, which is why it is
- * the first thing after the forecast rather than a line in the standings block.
- *
- * It is also the clearest example this site has of its own scoring rule
- * mattering: the same driver is a good pick in one session and a poor one in
- * the next, because a grid penalty moves a race start and leaves a qualifying
- * classification alone. No F1 news page frames it that way, because no F1 news
- * page is scoring two sessions separately.
- */
-function AntonelliPenalty() {
-  return (
-    <section
-      className="grid gap-7 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
-      aria-labelledby="antonelli-penalty"
-    >
-      <div>
-        <h2
-          id="antonelli-penalty"
-          className="font-title text-2xl font-medium text-text sm:text-3xl"
-        >
-          The championship leader starts at the back
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Mercedes has confirmed a full power unit change for Kimi Antonelli at
-          Monza after the failures in Barcelona and Silverstone, so he takes a
-          grid penalty at his home race. It is at least ten places and reported
-          as a back-of-grid start. Mercedes picked Monza on purpose: if you have
-          to spend a penalty somewhere, spend it where overtaking is easiest.{' '}
-          <ExternalSource href={PENALTY_SOURCE}>
-            Read the confirmation
-          </ExternalSource>
-          .
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Here is the part that matters for your picks, and it splits the
-          weekend in two. A grid penalty moves where a driver starts the race.
-          It does not rewrite the qualifying classification, and qualifying is
-          what your qualifying picks are scored against. Antonelli is as quick
-          on Saturday as he was before the penalty.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Sunday is the opposite. Starting from the back at Monza is more
-          recoverable than almost anywhere else, but a Top 5 finish from there
-          is a genuine ask, and the points he drops open the door for whoever
-          you promote in his place. Treat the two sessions as separate
-          questions, because the scoring does.{' '}
-          <Link
-            to="/results-policy"
-            className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-          >
-            How penalties affect scoring
-          </Link>
-          .
-        </p>
-      </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {[
-          ['Driver', 'Kimi Antonelli'],
-          ['Reason', 'Full power unit change'],
-          ['Penalty', 'Ten places minimum'],
-          ['Qualifying picks', 'Unaffected'],
-          ['Race picks', 'Starts at the back'],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="border-b border-border py-4 last:border-0"
-          >
-            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              {label}
-            </dt>
-            <dd className="mt-1 text-sm text-text">{value}</dd>
           </div>
         ))}
       </dl>
@@ -657,65 +589,35 @@ function PredictionMethod() {
 }
 
 /**
- * The two Monza-specific things that are true this weekend and not true most
- * weekends. Both are here because they change how a session should be read,
- * not as trivia: one makes an FP1 timing sheet misleading, and the other makes
- * a Ferrari unrecognisable on track.
+ * Colour, kept as prose on purpose.
+ *
+ * It changes no pick, so it fails the bar for `raceNews` and would be rejected
+ * by `affectsSessions` if anyone tried to publish it. It earns a paragraph here
+ * only so a differently coloured Ferrari on Friday does not read as a different
+ * car. See `docs/race-news.md` for where that line sits.
  */
-function WeekendNotes() {
+function FerrariTribute() {
   return (
-    <section className="py-12 sm:py-16" aria-labelledby="weekend-notes">
+    <section className="py-12 sm:py-16" aria-labelledby="ferrari-tribute">
       <div className="max-w-3xl">
         <h2
-          id="weekend-notes"
+          id="ferrari-tribute"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
-          Two things to know before FP1
+          Ferrari runs a Schumacher tribute
         </h2>
-      </div>
-
-      <div className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
-        <div className="bg-surface p-5 sm:p-6">
-          <h3 className="font-title text-lg font-medium text-text">
-            Albon is out of FP1
-          </h3>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Luke Browning takes the Williams for first practice, his second FP1
-            outing of the season after Austria. Albon is in the car for
-            everything that counts, so this changes nothing about your picks.
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            It changes how the FP1 sheet reads, though. A reserve driver on his
-            second run of the year is not a measure of that car&rsquo;s pace, so
-            if you are using Friday morning to judge Williams, use FP2 instead.{' '}
-            <ExternalSource href={BROWNING_SOURCE}>
-              Read the announcement
-            </ExternalSource>
-            .
-          </p>
-        </div>
-
-        <div className="bg-surface p-5 sm:p-6">
-          <h3 className="font-title text-lg font-medium text-text">
-            Ferrari runs a Schumacher tribute
-          </h3>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Ferrari has teased a one-off SF-26 livery for its home race,
-            reported as red with black accents and gold wheels after the 1996
-            F310. It marks thirty years since Schumacher&rsquo;s first season in
-            red and his Italian Grand Prix win that year.
-          </p>
-          <p className="gpp-reading-copy mt-3 text-text-muted">
-            Ferrari has not formally revealed it yet, so treat the detail as
-            reported rather than confirmed. Worth knowing only so a differently
-            coloured Ferrari on Friday does not read as a different car: Leclerc
-            and Hamilton are in it as usual.{' '}
-            <ExternalSource href={LIVERY_SOURCE}>
-              Read the report
-            </ExternalSource>
-            .
-          </p>
-        </div>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          Ferrari has teased a one-off SF-26 livery for its home race, reported
+          as red with black accents and gold wheels after the 1996 F310. It
+          marks thirty years since Schumacher&rsquo;s first season in red and
+          his Italian Grand Prix win that year.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Ferrari has not formally revealed it, so treat the detail as reported
+          rather than confirmed. Nothing here changes a pick: Leclerc and
+          Hamilton are in the car as usual.{' '}
+          <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
+        </p>
       </div>
     </section>
   );

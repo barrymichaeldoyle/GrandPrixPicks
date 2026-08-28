@@ -1,6 +1,7 @@
 import {
   REACTION_BY_TYPE,
-  REACTION_OPTIONS,
+  reactionOptionsFor,
+  type ReactionContext,
 } from '@grandprixpicks/shared/reactions';
 import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
 import { api } from '@convex-generated/api';
@@ -18,9 +19,12 @@ import { FollowButton } from '../FollowButton';
 export function ReactionsModal({
   feedEventId,
   onClose,
+  context = 'pick',
 }: {
   feedEventId: Id<'feedEvents'>;
   onClose: () => void;
+  /** Matches the button that opened it, so the wording does not switch. */
+  context?: ReactionContext;
 }) {
   const panelRef = useModalDialog<HTMLDivElement>({ onClose });
   const users = useQuery(api.feed.getReactionUsers, { feedEventId });
@@ -31,10 +35,12 @@ export function ReactionsModal({
   const groups =
     users === undefined
       ? []
-      : REACTION_OPTIONS.map((reaction) => ({
-          reaction,
-          users: users.filter((user) => user?.reactionType === reaction.type),
-        })).filter((group) => group.users.length > 0);
+      : reactionOptionsFor(context)
+          .map((reaction) => ({
+            reaction,
+            users: users.filter((user) => user?.reactionType === reaction.type),
+          }))
+          .filter((group) => group.users.length > 0);
 
   return createPortal(
     <div

@@ -1,6 +1,6 @@
 import {
   REACTION_BY_TYPE,
-  REACTION_OPTIONS,
+  reactionOptionsFor,
 } from '@grandprixpicks/shared/reactions';
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
@@ -38,18 +38,26 @@ export const Route = createFileRoute('/feed/$feedEventId')({
   },
 });
 
-function ReactionsSection({ feedEventId }: { feedEventId: Id<'feedEvents'> }) {
+function ReactionsSection({
+  feedEventId,
+  eventType,
+}: {
+  feedEventId: Id<'feedEvents'>;
+  eventType?: string;
+}) {
   const reactionUsers = useQuery(api.feed.getReactionUsers, { feedEventId });
   const me = useQuery(api.users.me, {});
   const groups =
     reactionUsers === undefined
       ? []
-      : REACTION_OPTIONS.map((reaction) => ({
-          reaction,
-          users: reactionUsers.filter(
-            (user) => user?.reactionType === reaction.type,
-          ),
-        })).filter((group) => group.users.length > 0);
+      : reactionOptionsFor(eventType === 'race_news' ? 'news' : 'pick')
+          .map((reaction) => ({
+            reaction,
+            users: reactionUsers.filter(
+              (user) => user?.reactionType === reaction.type,
+            ),
+          }))
+          .filter((group) => group.users.length > 0);
 
   return (
     <section>
@@ -230,7 +238,10 @@ function FeedEventPage() {
               <FeedItem event={feedEvent.event} />
             )}
             <section className="rounded-sm border border-border bg-surface p-4">
-              <ReactionsSection feedEventId={feedEventId as Id<'feedEvents'>} />
+              <ReactionsSection
+                feedEventId={feedEventId as Id<'feedEvents'>}
+                eventType={feedEvent.event.type}
+              />
             </section>
           </div>
         )}

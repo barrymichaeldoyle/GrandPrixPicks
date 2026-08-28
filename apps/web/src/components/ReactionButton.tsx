@@ -4,7 +4,8 @@ import type {
 } from '@grandprixpicks/shared/reactions';
 import {
   REACTION_BY_TYPE,
-  REACTION_OPTIONS,
+  reactionOptionsFor,
+  type ReactionContext,
   emptyReactionCounts,
 } from '@grandprixpicks/shared/reactions';
 import { api } from '@convex-generated/api';
@@ -16,6 +17,8 @@ import { Tooltip } from '@/components/Tooltip';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 interface ReactionButtonProps {
+  /** Which wording to offer. See `reactionOptionsFor`. */
+  context?: ReactionContext;
   feedEventId: Id<'feedEvents'>;
   reactionCount: number;
   reactionCounts: ReactionCounts;
@@ -44,7 +47,11 @@ export function ReactionButton({
   reactionCounts,
   viewerReaction,
   onCountClick,
+  context = 'pick',
 }: ReactionButtonProps) {
+  // "Great pick" is right on a score and wrong under a news story, so the
+  // wording follows the surface. The stored type is untouched.
+  const options = reactionOptionsFor(context);
   const setReaction = useMutation(api.feed.setReaction);
   const removeReaction = useMutation(api.feed.removeReaction);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -128,9 +135,8 @@ export function ReactionButton({
   const selectedDefinition = selectedReaction
     ? REACTION_BY_TYPE[selectedReaction]
     : null;
-  const topReactions = REACTION_OPTIONS.filter(
-    (reaction) => counts[reaction.type] > 0,
-  )
+  const topReactions = options
+    .filter((reaction) => counts[reaction.type] > 0)
     .sort((a, b) => counts[b.type] - counts[a.type])
     .slice(0, 3);
 
@@ -148,7 +154,7 @@ export function ReactionButton({
             role="menu"
             aria-label="Choose a reaction"
           >
-            {REACTION_OPTIONS.map((reaction) => {
+            {options.map((reaction) => {
               const selected = selectedReaction === reaction.type;
               return (
                 <Tooltip key={reaction.type} content={reaction.label}>

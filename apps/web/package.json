@@ -19,6 +19,7 @@
     "render-reddit-launch": "tsx scripts/render-reddit-launch-posts.mts",
     "render-instagram-pins": "tsx scripts/render-instagram-pinned-posts.mts",
     "render-instagram-h2h": "tsx scripts/render-instagram-h2h-content.mts",
+    "render-monza-news": "tsx scripts/render-monza-news-roundup.mts",
     "preview": "vite preview",
     "preview:cf": "dotenv -e ../../.env.local -- pnpm run build:cf && wrangler pages dev dist",
     "deploy": "pnpm build:cf && wrangler pages deploy dist && pnpm run check:edge-cache",

@@ -12,7 +12,13 @@ import { LoadingScreen } from '../components/ui/LoadingScreen';
 import { useDeleteAccount } from '../hooks/useDeleteAccount';
 import { useSignOutWithCleanup } from '../hooks/useSignOutWithCleanup';
 import { api } from '../integrations/convex/api';
-import { captureAnalyticsEvent } from '../lib/analytics';
+import {
+  captureAnalyticsEvent,
+  getAnalyticsConsent,
+  loadAnalyticsConsent,
+  setAnalyticsConsent,
+  subscribeToAnalyticsConsent,
+} from '../lib/analytics';
 import { obtainExpoPushToken } from '../lib/pushRegistration';
 import { usePushPermission } from '../lib/usePushPermission';
 import { useMobileConfig } from '../providers/mobile-config';
@@ -101,6 +107,9 @@ export function SettingsScreen() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [tzPickerOpen, setTzPickerOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [analyticsAllowed, setAnalyticsAllowed] = useState(
+    getAnalyticsConsent() === true,
+  );
 
   const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const detectedLocaleHour12 = (() => {
@@ -138,6 +147,16 @@ export function SettingsScreen() {
       setDisplayName(me.displayName);
     }
   }, [me?.displayName, isEditingName]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToAnalyticsConsent((consent) => {
+      setAnalyticsAllowed(consent === true);
+    });
+    void loadAnalyticsConsent().then((consent) => {
+      setAnalyticsAllowed(consent === true);
+    });
+    return unsubscribe;
+  }, []);
 
   async function handleSaveName() {
     const trimmed = displayName.trim();
@@ -487,6 +506,18 @@ export function SettingsScreen() {
             value={Boolean(me?.[toggle.key as keyof typeof me] ?? true)}
           />
         ))}
+      </SettingsSection>
+
+      <SettingsSection title="Privacy">
+        <NotificationToggleRow
+          help="Share anonymous feature usage so we can improve the app. No email address or typed text is collected."
+          label="Product analytics"
+          onValueChange={(allowed) => {
+            setAnalyticsAllowed(allowed);
+            void setAnalyticsConsent(allowed);
+          }}
+          value={analyticsAllowed}
+        />
       </SettingsSection>
 
       {/* Account */}

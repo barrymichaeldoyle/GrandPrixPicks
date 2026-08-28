@@ -34,6 +34,32 @@ const funnels = [
     ],
   },
   {
+    name: 'Landing activation: picker to saved prediction',
+    description:
+      'Tracks the complete try-before-signup journey from using the landing picker to a persisted prediction.',
+    steps: [
+      { event: 'landing_picker_viewed', name: 'Picker viewed' },
+      { event: 'landing_first_pick_added', name: 'First pick added' },
+      { event: 'landing_top_five_completed', name: 'Top 5 completed' },
+      {
+        event: 'landing_top5_to_h2h_handoff_completed',
+        name: 'H2H handoff completed',
+      },
+      { event: 'landing_h2h_completed', name: 'H2H completed' },
+      {
+        event: 'landing_prediction_card_save_started',
+        name: 'Save started',
+      },
+      { event: 'landing_auth_started', name: 'Authentication started' },
+      { event: 'landing_auth_completed', name: 'Authentication completed' },
+      {
+        event: 'prediction_saved',
+        name: 'Prediction saved',
+        properties: { source: 'landing' },
+      },
+    ],
+  },
+  {
     name: 'Checkout: pricing to payment complete',
     description: 'Tracks season pass checkout conversion.',
     steps: [
@@ -80,6 +106,43 @@ const funnels = [
         name: 'Feed reaction added',
       },
     ],
+  },
+];
+
+const trends = [
+  {
+    name: 'Weekly product outcomes',
+    description:
+      'Unique visitors and users reaching the core activation, league, and purchase outcomes each week.',
+    series: [
+      { event: '$pageview', name: 'Visitors' },
+      { event: 'landing_picker_viewed', name: 'Landing picker users' },
+      { event: 'prediction_saved', name: 'Predictors' },
+      { event: 'league_joined', name: 'League joiners' },
+      { event: 'purchase_completed', name: 'Purchasers' },
+    ],
+  },
+  {
+    name: 'Daily analytics health',
+    description:
+      'Daily ingestion volume and bounded product failures used for operational alerts.',
+    interval: 'day',
+    dateFrom: '-30d',
+    series: [
+      { event: '$pageview', name: 'Pageviews' },
+      { event: 'prediction_save_failed', name: 'Prediction save failures' },
+      { event: 'checkout_start_failed', name: 'Checkout start failures' },
+      { event: 'checkout_open_failed', name: 'Checkout open failures' },
+    ],
+  },
+];
+
+const retentions = [
+  {
+    name: 'Predictor weekly retention',
+    description:
+      'How often users who save a prediction return to save another prediction in following race weeks.',
+    event: 'prediction_saved',
   },
 ];
 
@@ -149,7 +212,7 @@ async function createDashboard() {
     body: JSON.stringify({
       name: DASHBOARD_NAME,
       description:
-        'Core Grand Prix Picks product funnels managed by apps/web/scripts/setup-posthog.mjs.',
+        'Weekly product decision dashboard for acquisition, activation, prediction completion, social participation, leagues, and verified purchases. Managed by apps/web/scripts/setup-posthog.mjs.',
       tags: TAGS,
     }),
   });
@@ -165,12 +228,19 @@ async function findInsightByName(name) {
 function eventNode(step, order) {
   const properties = [
     ...(step.path
-      ? [{ key: 'path', value: step.path, operator: 'exact', type: 'event' }]
+      ? [
+          {
+            key: '$pathname',
+            value: step.path,
+            operator: 'exact',
+            type: 'event',
+          },
+        ]
       : []),
     ...(step.pathRegex
       ? [
           {
-            key: 'path',
+            key: '$pathname',
             value: step.pathRegex,
             operator: 'regex',
             type: 'event',
@@ -236,19 +306,88 @@ function funnelPayload(funnel, dashboardId) {
   };
 }
 
-async function createInsight(funnel, dashboardId) {
+function trendPayload(trend, dashboardId) {
+  const interval = trend.interval ?? 'week';
+  const dateFrom = trend.dateFrom ?? '-12w';
+  return {
+    name: trend.name,
+    description: trend.description,
+    tags: TAGS,
+    dashboards: [dashboardId],
+    query: {
+      kind: 'InsightVizNode',
+      source: {
+        kind: 'TrendsQuery',
+        dateRange: { date_from: dateFrom },
+        interval,
+        filterTestAccounts: true,
+        trendsFilter: {
+          display: 'ActionsLineGraph',
+          showLegend: true,
+        },
+        series: trend.series.map((series) => ({
+          kind: 'EventsNode',
+          event: series.event,
+          name: series.name,
+          custom_name: series.name,
+          math: 'dau',
+        })),
+      },
+    },
+  };
+}
+
+function retentionPayload(retention, dashboardId) {
+  const entity = { id: retention.event, type: 'events' };
+  return {
+    name: retention.name,
+    description: retention.description,
+    tags: TAGS,
+    dashboards: [dashboardId],
+    query: {
+      kind: 'InsightVizNode',
+      source: {
+        kind: 'RetentionQuery',
+        dateRange: { date_from: '-12w' },
+        filterTestAccounts: true,
+        retentionFilter: {
+          targetEntity: entity,
+          returningEntity: entity,
+          period: 'Week',
+          retentionType: 'retention_recurring',
+          retentionReference: 'total',
+          timeWindowMode: 'strict_calendar_dates',
+          totalIntervals: 8,
+          cumulative: false,
+        },
+      },
+    },
+  };
+}
+
+function managedInsightPayload(definition, dashboardId) {
+  if ('steps' in definition) {
+    return funnelPayload(definition, dashboardId);
+  }
+  if ('series' in definition) {
+    return trendPayload(definition, dashboardId);
+  }
+  return retentionPayload(definition, dashboardId);
+}
+
+async function createInsight(definition, dashboardId) {
   return posthogFetch(`/api/environments/${environmentId}/insights/`, {
     method: 'POST',
-    body: JSON.stringify(funnelPayload(funnel, dashboardId)),
+    body: JSON.stringify(managedInsightPayload(definition, dashboardId)),
   });
 }
 
-async function updateInsight(insightId, funnel, dashboardId) {
+async function updateInsight(insightId, definition, dashboardId) {
   return posthogFetch(
     `/api/environments/${environmentId}/insights/${insightId}/`,
     {
       method: 'PATCH',
-      body: JSON.stringify(funnelPayload(funnel, dashboardId)),
+      body: JSON.stringify(managedInsightPayload(definition, dashboardId)),
     },
   );
 }
@@ -268,20 +407,25 @@ async function main() {
     );
   }
 
-  for (const funnel of funnels) {
-    let existing = await findInsightByName(funnel.name);
-    for (const legacyName of funnel.legacyNames ?? []) {
+  const managedInsights = [...funnels, ...trends, ...retentions];
+  for (const definition of managedInsights) {
+    let existing = await findInsightByName(definition.name);
+    for (const legacyName of definition.legacyNames ?? []) {
       existing ??= await findInsightByName(legacyName);
     }
     if (existing) {
-      const updated = await updateInsight(existing.id, funnel, dashboard.id);
+      const updated = await updateInsight(
+        existing.id,
+        definition,
+        dashboard.id,
+      );
       process.stderr.write(
         `Updated insight: ${updated.name} (${updated.id})\n`,
       );
       continue;
     }
 
-    const created = await createInsight(funnel, dashboard.id);
+    const created = await createInsight(definition, dashboard.id);
     process.stderr.write(`Created insight: ${created.name} (${created.id})\n`);
   }
 

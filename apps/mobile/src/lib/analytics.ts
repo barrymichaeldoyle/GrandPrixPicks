@@ -1,5 +1,9 @@
 import { getCalendars, getLocales } from 'expo-localization';
+import type { AnalyticsEventName } from '@grandprixpicks/shared/analytics';
 import PostHog from 'posthog-react-native';
+import { Platform } from 'react-native';
+
+import { getStoredJson, setStoredJson } from './storage';
 
 type AnalyticsProperties = Record<
   string,
@@ -11,9 +15,53 @@ const posthogHost =
   process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com';
 
 let client: PostHog | null = null;
+let analyticsConsent: boolean | null = null;
+const consentListeners = new Set<(consent: boolean | null) => void>();
+const ANALYTICS_CONSENT_KEY = 'privacy.analytics-consent.v1';
+
+function platformName() {
+  return Platform.OS === 'ios' || Platform.OS === 'android'
+    ? Platform.OS
+    : 'native';
+}
 
 function isEnabled() {
-  return !__DEV__ && Boolean(posthogKey);
+  return !__DEV__ && Boolean(posthogKey) && analyticsConsent === true;
+}
+
+export async function loadAnalyticsConsent(): Promise<boolean | null> {
+  analyticsConsent = await getStoredJson<boolean>(ANALYTICS_CONSENT_KEY);
+  notifyConsentListeners();
+  return analyticsConsent;
+}
+
+export function getAnalyticsConsent(): boolean | null {
+  return analyticsConsent;
+}
+
+export function subscribeToAnalyticsConsent(
+  listener: (consent: boolean | null) => void,
+): () => void {
+  consentListeners.add(listener);
+  return () => consentListeners.delete(listener);
+}
+
+function notifyConsentListeners() {
+  for (const listener of consentListeners) {
+    listener(analyticsConsent);
+  }
+}
+
+export async function setAnalyticsConsent(allowed: boolean): Promise<void> {
+  analyticsConsent = allowed;
+  notifyConsentListeners();
+  await setStoredJson(ANALYTICS_CONSENT_KEY, allowed);
+  if (allowed) {
+    initAnalytics();
+    await client?.optIn();
+  } else {
+    await client?.optOut();
+  }
 }
 
 /**
@@ -59,7 +107,7 @@ export function initAnalytics(): boolean {
   // language from first run, before anyone signs in.
   client.register({
     ...compact(localeProperties()),
-    platform: process.env.EXPO_OS ?? 'native',
+    platform: platformName(),
   });
   client.setPersonProperties(
     compact(localeProperties()),
@@ -83,18 +131,26 @@ function compact(
 }
 
 export function captureAnalyticsEvent(
-  eventName: string,
+  eventName: AnalyticsEventName,
   properties?: AnalyticsProperties,
 ) {
+  initAnalytics();
   client?.capture(eventName, compact(properties));
 }
 
-export function identifyAnalyticsUser(userId: string) {
+export function identifyAnalyticsUser(
+  userId: string,
+  options?: { internal?: boolean },
+) {
+  initAnalytics();
   client?.identify(userId, compact(localeProperties()));
   // Unlike web, RN's `identify` takes capture options as its third argument
   // rather than a `$set_once` bag, so first-touch values are set separately.
   client?.setPersonProperties(
-    compact(localeProperties()),
+    compact({
+      ...localeProperties(),
+      $internal_or_test_user: Boolean(options?.internal),
+    }),
     compact(initialLocaleProperties()),
   );
 }
@@ -106,7 +162,7 @@ export function resetAnalyticsUser() {
   client.reset();
   client.register({
     ...compact(localeProperties()),
-    platform: process.env.EXPO_OS ?? 'native',
+    platform: platformName(),
   });
   client.setPersonProperties(
     compact(localeProperties()),

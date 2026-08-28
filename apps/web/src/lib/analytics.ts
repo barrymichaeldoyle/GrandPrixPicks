@@ -1,4 +1,5 @@
 import type { PostHog } from 'posthog-js';
+import type { AnalyticsEventName } from '@grandprixpicks/shared/analytics';
 
 type AnalyticsProperties = Record<
   string,
@@ -37,6 +38,13 @@ export function initAnalytics() {
         // Product analytics is intentionally event-only. This also prevents
         // DOM text and interaction metadata from entering PostHog implicitly.
         autocapture: false,
+        // Replay is useful for diagnosing activation friction, but it must not
+        // disclose picks, profile details, messages, or form input. Record the
+        // page geometry and interactions while masking every text node/input.
+        session_recording: {
+          maskTextSelector: '*',
+          maskAllInputs: true,
+        },
         opt_out_capturing_by_default: true,
         // We don't run PostHog surveys; skip the extra surveys.js download.
         disable_surveys: true,
@@ -79,7 +87,7 @@ function getPostHog() {
 }
 
 export function captureAnalyticsEvent(
-  eventName: string,
+  eventName: AnalyticsEventName,
   properties?: AnalyticsProperties,
 ) {
   if (!isEnabled()) {
@@ -103,13 +111,18 @@ export function capturePageView(path?: string) {
     return;
   }
 
-  const url = new URL(pagePath, 'https://grandprixpicks.com');
-  captureAnalyticsEvent('$pageview', {
-    path: `${url.pathname}${url.search}`,
+  captureAnalyticsEvent('$pageview', pageViewProperties(pagePath));
+}
+
+/** Stable page dimensions: query strings belong in bounded campaign fields. */
+export function pageViewProperties(path: string): AnalyticsProperties {
+  const url = new URL(path, 'https://grandprixpicks.com');
+  return {
+    path: url.pathname,
     utm_source: url.searchParams.get('utm_source'),
     utm_medium: url.searchParams.get('utm_medium'),
     utm_campaign: url.searchParams.get('utm_campaign'),
-  });
+  };
 }
 
 /**
@@ -160,13 +173,23 @@ function initialLocaleProperties(): AnalyticsProperties {
   };
 }
 
-export function identifyAnalyticsUser(userId: string) {
+export function identifyAnalyticsUser(
+  userId: string,
+  options?: { internal?: boolean },
+) {
   if (!isEnabled()) {
     return;
   }
 
   void getPostHog().then((posthog) => {
-    posthog?.identify(userId, localeProperties(), initialLocaleProperties());
+    posthog?.identify(
+      userId,
+      {
+        ...localeProperties(),
+        $internal_or_test_user: Boolean(options?.internal),
+      },
+      initialLocaleProperties(),
+    );
   });
 }
 

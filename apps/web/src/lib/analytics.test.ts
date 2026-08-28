@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { localeProperties } from './analytics';
+import { localeProperties, pageViewProperties } from './analytics';
 
 describe('localeProperties', () => {
   afterEach(() => {
@@ -36,5 +36,26 @@ describe('localeProperties', () => {
     vi.stubGlobal('navigator', undefined);
 
     expect(localeProperties()).toEqual({});
+  });
+});
+
+describe('pageViewProperties', () => {
+  it('keeps the route stable while preserving bounded campaign dimensions', () => {
+    expect(
+      pageViewProperties(
+        '/?utm_source=bci&utm_medium=sponsorship&utm_campaign=conference',
+      ),
+    ).toEqual({
+      path: '/',
+      utm_source: 'bci',
+      utm_medium: 'sponsorship',
+      utm_campaign: 'conference',
+    });
+  });
+
+  it('does not fragment application routes by their query string', () => {
+    expect(pageViewProperties('/leaderboard?time=weekend').path).toBe(
+      '/leaderboard',
+    );
   });
 });

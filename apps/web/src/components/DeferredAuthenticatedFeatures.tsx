@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/react';
+import { isInternalAnalyticsEmail } from '@grandprixpicks/shared/analytics';
 import * as Sentry from '@sentry/tanstackstart-react';
 import { useEffect, useRef } from 'react';
 
@@ -26,7 +27,11 @@ export function DeferredObservabilityUserSync() {
         });
         // Clerk remains the source of profile data. PostHog only needs the
         // stable account id to join anonymous and authenticated activity.
-        identifyAnalyticsUser(user.id);
+        identifyAnalyticsUser(user.id, {
+          internal: isInternalAnalyticsEmail(
+            user.primaryEmailAddress?.emailAddress,
+          ),
+        });
       }
     } else if (prevIdRef.current !== null) {
       prevIdRef.current = null;

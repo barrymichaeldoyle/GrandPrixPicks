@@ -28,7 +28,7 @@ function PrivacyPage() {
         <PageHeader
           eyebrow="Legal"
           title="Privacy Policy"
-          subtitle="Last updated: July 2026"
+          subtitle="Last updated: August 2026"
         />
 
         <div className="reveal-up reveal-delay-1 prose prose-invert max-w-none space-y-6 text-text-muted">
@@ -73,7 +73,12 @@ function PrivacyPage() {
               may use error-reporting or analytics services (e.g. Sentry and
               PostHog) to improve the app; such services may receive limited
               account, usage, and technical data (e.g. IP address, device info)
-              in accordance with their own policies.
+              in accordance with their own policies. With your analytics
+              consent, the website may also record a masked replay of page
+              layout and interactions to help diagnose usability problems. All
+              visible text and form inputs are masked before capture. You can
+              withdraw analytics consent at any time through Privacy choices;
+              the mobile app provides the same choice in Settings.
             </p>
           </section>
 

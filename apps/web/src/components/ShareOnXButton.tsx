@@ -1,5 +1,6 @@
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { buildXShareIntentUrl } from '@/lib/share';
+import type { AnalyticsEventName } from '@grandprixpicks/shared/analytics';
 
 export function XLogoIcon({ className }: { className?: string }) {
   return (
@@ -20,7 +21,7 @@ interface ShareOnXButtonProps {
   /** URL to attach to the post. */
   url: string;
   /** PostHog event name fired on click. */
-  analyticsEvent: string;
+  analyticsEvent: AnalyticsEventName;
   analyticsProps?: Record<string, string | number | boolean | undefined>;
   label?: string;
   className?: string;

@@ -1,10 +1,15 @@
 import { useUser } from '@clerk/expo';
-import { useEffect, useRef } from 'react';
+import { isInternalAnalyticsEmail } from '@grandprixpicks/shared/analytics';
+import { useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 
 import {
   identifyAnalyticsUser,
   initAnalytics,
+  loadAnalyticsConsent,
   resetAnalyticsUser,
+  setAnalyticsConsent,
+  subscribeToAnalyticsConsent,
 } from '../lib/analytics';
 import { useMobileConfig } from './mobile-config';
 
@@ -14,12 +19,37 @@ import { useMobileConfig } from './mobile-config';
  * sign-out. Events themselves are captured at their call sites.
  */
 export function AnalyticsProvider() {
+  const [consent, setConsent] = useState<boolean | null>(null);
+
   useEffect(() => {
-    initAnalytics();
+    const unsubscribe = subscribeToAnalyticsConsent(setConsent);
+    void loadAnalyticsConsent().then((consent) => {
+      if (consent === true) {
+        initAnalytics();
+      } else if (consent === null) {
+        Alert.alert(
+          'Help improve Grand Prix Picks?',
+          'Allow anonymous product analytics so we can understand which features work and where players get stuck. You can change this later in Settings.',
+          [
+            {
+              text: 'Not now',
+              style: 'cancel',
+              onPress: () => void setAnalyticsConsent(false),
+            },
+            {
+              text: 'Allow analytics',
+              onPress: () => void setAnalyticsConsent(true),
+            },
+          ],
+          { cancelable: false },
+        );
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const { clerkEnabled } = useMobileConfig();
-  if (!clerkEnabled) {
+  if (!clerkEnabled || consent !== true) {
     return null;
   }
   return <ClerkAwareAnalytics />;
@@ -35,7 +65,11 @@ function ClerkAwareAnalytics() {
         return;
       }
       identifiedIdRef.current = user.id;
-      identifyAnalyticsUser(user.id);
+      identifyAnalyticsUser(user.id, {
+        internal: isInternalAnalyticsEmail(
+          user.primaryEmailAddress?.emailAddress,
+        ),
+      });
     } else if (identifiedIdRef.current !== null) {
       identifiedIdRef.current = null;
       resetAnalyticsUser();

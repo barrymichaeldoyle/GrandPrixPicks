@@ -2,11 +2,19 @@ import { listCircuits } from '@grandprixpicks/shared/circuits';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { PageHeader } from '@/components/PageHeader';
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { getCircuitGuideBySlug } from '@/lib/circuitGuides';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 export const Route = createFileRoute('/circuits/')({
   component: CircuitsIndexPage,
+  // The circuit pages are static prose off a shared constant, so they can sit
+  // at the edge for an hour like the other reference pages. This route had no
+  // cache headers at all, which meant every request paid a full server render
+  // for content that changes when someone edits a file.
+  loader: async () => {
+    await setStaticContentCacheHeaders();
+  },
   head: () => {
     const meta = pageMeta({
       title: 'F1 Circuits | Track Types, Overtaking and Upset Risk',

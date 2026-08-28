@@ -1,3 +1,4 @@
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
@@ -13,7 +14,8 @@ import {
 } from '@/lib/site';
 
 export const Route = createFileRoute('/guides/$guideSlug')({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    await setStaticContentCacheHeaders();
     // Front matter only. `head` needs the title, description and FAQ schema;
     // pulling the writing here would put every guide in the client entry,
     // because `loader` is not part of the split chunk `component` gets.

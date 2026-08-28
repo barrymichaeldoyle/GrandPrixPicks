@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import { getCircuit, getCircuitForRace } from '@grandprixpicks/shared/circuits';
+import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
@@ -17,6 +18,7 @@ const SECTIONS = [
 
 export const Route = createFileRoute('/circuits/$circuitSlug')({
   loader: async ({ context, params }) => {
+    await setStaticContentCacheHeaders();
     const circuit = getCircuit(params.circuitSlug);
     // Existence only. Reading the guide itself here would put all 23 of them
     // in the client entry, because `loader` is not part of the split chunk

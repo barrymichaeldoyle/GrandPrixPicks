@@ -184,6 +184,73 @@ export function organizationSchema() {
 }
 
 /**
+ * SportsEvent JSON-LD for a Grand Prix.
+ *
+ * This exists because the same event was described in two places and the two
+ * drifted. The race page built a complete node; the write-up pages hand-wrote a
+ * three-property stub (`name`, `startDate`) as the `about` of their WebPage,
+ * and Search Console rejected it with `Missing field "location"` plus seven
+ * warnings for the fields the race page happened to include and the stub did
+ * not. One builder, so there is no second shape to fall behind.
+ *
+ * `location` is a required parameter rather than an optional one. It is the
+ * field whose absence makes Google discard the item outright, so the type is
+ * the thing that stops the stub being written again: you cannot call this
+ * without saying where the race is held.
+ *
+ * `offers`, `performer` and `organizer` are deliberately absent. They are
+ * warnings, not errors, and each would mean asserting something untrue: we do
+ * not sell tickets, and F1 and the FIA organise the Grand Prix. Markup that
+ * fills a field to clear a warning is worse than markup that leaves it empty.
+ */
+export function sportsEventSchema({
+  name,
+  startAt,
+  path,
+  description,
+  image,
+  location,
+  cancelled = false,
+}: {
+  name: string;
+  /** Race start, epoch ms. */
+  startAt: number;
+  /** Route path of the page that owns this node. */
+  path: string;
+  description: string;
+  image?: string;
+  /** The circuit. Required: without it Google discards the whole item. */
+  location: { name: string; locality: string; country: string };
+  cancelled?: boolean;
+}) {
+  return {
+    '@type': 'SportsEvent',
+    '@id': `${siteConfig.url}${path}#event`,
+    name,
+    startDate: new Date(startAt).toISOString(),
+    // Grands Prix run to a 2-hour limit
+    endDate: new Date(startAt + 2 * 60 * 60 * 1000).toISOString(),
+    eventStatus: cancelled
+      ? 'https://schema.org/EventCancelled'
+      : 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    description,
+    url: `${siteConfig.url}${path}`,
+    sport: 'Formula 1',
+    location: {
+      '@type': 'Place',
+      name: location.name,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: location.locality,
+        addressCountry: location.country,
+      },
+    },
+    ...(image ? { image } : {}),
+  };
+}
+
+/**
  * BreadcrumbList JSON-LD for a page's trail. Unlike FAQPage, breadcrumbs still
  * render as rich results, so they earn their place in the markup.
  *

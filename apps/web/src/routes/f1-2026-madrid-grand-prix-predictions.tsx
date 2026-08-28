@@ -15,7 +15,10 @@ import {
   pageMeta,
   raceOgImageUrl,
   siteConfig,
+  sportsEventSchema,
 } from '@/lib/site';
+
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
@@ -110,6 +113,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
     const title = '2026 Spanish Grand Prix Predictions & Picks | Madrid';
     const description =
       'Make your 2026 Spanish Grand Prix predictions for Madrid’s new Madring. Schedule, what the debut layout asks for, La Monumental, and how to read practice with no form guide.';
+    const circuit = getCircuitForRace(RACE_SLUG);
     const meta = pageMeta({
       title,
       description,
@@ -134,13 +138,22 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
                 dateModified: '2026-08-27',
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
-                about: {
-                  '@type': 'SportsEvent',
-                  name: '2026 Spanish Grand Prix',
-                  ...(race
-                    ? { startDate: new Date(race.raceStartAt).toISOString() }
-                    : {}),
-                },
+                // A complete node or none at all. This was a three-property
+                // stub, which Search Console counted as one invalid Event
+                // (`Missing field "location"`) plus seven warnings. The
+                // builder cannot produce that shape.
+                ...(race && circuit
+                  ? {
+                      about: sportsEventSchema({
+                        name: '2026 Spanish Grand Prix',
+                        startAt: race.raceStartAt,
+                        path: PATH,
+                        description,
+                        image: raceOgImageUrl(RACE_SLUG),
+                        location: circuit,
+                      }),
+                    }
+                  : {}),
               },
               {
                 '@type': 'FAQPage',

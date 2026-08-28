@@ -30,6 +30,7 @@ import {
   pageMeta,
   shareCardOgImageUrl,
   siteConfig,
+  sportsEventSchema,
 } from '@/lib/site';
 import { RaceEventPage } from './-components/RaceEventPage/RaceEventPage';
 import { useRaceWeekendData } from './-hooks/useRaceWeekendData';
@@ -229,42 +230,22 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         children: JSON.stringify({
           '@context': 'https://schema.org',
           '@graph': [
-            {
-              '@type': 'SportsEvent',
-              name: race.name,
-              startDate: new Date(race.raceStartAt).toISOString(),
-              // Grands Prix run to a 2-hour limit
-              endDate: new Date(
-                race.raceStartAt + 2 * 60 * 60 * 1000,
-              ).toISOString(),
-              eventStatus:
-                race.status === 'cancelled'
-                  ? 'https://schema.org/EventCancelled'
-                  : 'https://schema.org/EventScheduled',
-              eventAttendanceMode:
-                'https://schema.org/OfflineEventAttendanceMode',
-              description,
-              url: `${siteConfig.url}/races/${params.raceSlug}`,
-              sport: 'Formula 1',
-              ...(circuit && {
-                location: {
-                  '@type': 'Place',
-                  name: circuit.name,
-                  address: {
-                    '@type': 'PostalAddress',
-                    addressLocality: circuit.locality,
-                    addressCountry: circuit.country,
-                  },
-                },
-              }),
-              // No `organizer`. This used to name Grand Prix Picks, which is a
-              // claim about who runs the Grand Prix rather than about who
-              // wrote the page — untrue, and the kind of untrue a structured
-              // data checker reads as misleading markup. F1 and the FIA
-              // organise the event; we are not going to assert a relationship
-              // to them in schema, so the property is better absent.
-              image: ogImage,
-            },
+            // Built by the shared builder so this node and the write-up
+            // pages' cannot drift apart again; `location` is required there,
+            // which is the field Search Console rejected the stub for.
+            ...(circuit
+              ? [
+                  sportsEventSchema({
+                    name: race.name,
+                    startAt: race.raceStartAt,
+                    path: `/races/${params.raceSlug}`,
+                    description,
+                    image: ogImage,
+                    location: circuit,
+                    cancelled: race.status === 'cancelled',
+                  }),
+                ]
+              : []),
             breadcrumbSchema(`/races/${params.raceSlug}`, [
               { name: 'Races', path: '/races' },
               { name: race.name, path: `/races/${params.raceSlug}` },

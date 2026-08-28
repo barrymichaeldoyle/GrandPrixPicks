@@ -15,7 +15,10 @@ import {
   pageMeta,
   raceOgImageUrl,
   siteConfig,
+  sportsEventSchema,
 } from '@/lib/site';
+
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
@@ -43,6 +46,20 @@ const MONZA_STANDINGS = [
   ['Max Verstappen', 112],
 ] as const;
 
+/*
+ * Durable questions only.
+ *
+ * Two entries were removed for restating something already on the page: one
+ * put the forecast component's own opening paragraph into question form, and
+ * one repeated the Antonelli news item almost word for word.
+ *
+ * The line to hold is that anything which is *news* belongs in `raceNews`,
+ * where it retires with the weekend. An FAQ is hard-coded, so a question about
+ * this weekend's events is stale the moment the weekend ends, while the same
+ * fact published as news simply stops being shown. What stays here are
+ * questions whose answers outlive the race: when it runs, how scoring works,
+ * and what a grid penalty does to a classification.
+ */
 const FAQS = [
   {
     question: 'When is the 2026 Italian Grand Prix?',
@@ -50,13 +67,8 @@ const FAQS = [
       'The Italian Grand Prix runs from 4 to 6 September 2026 at Monza. Qualifying is on Saturday and the 53-lap Grand Prix is on Sunday.',
   },
   {
-    question: 'Does Antonelli’s grid penalty change my Monza picks?',
-    answer:
-      'Both, but for different reasons. On Sunday he starts near the back. On Saturday the penalty gives him nothing to gain from his own grid slot, so Mercedes may use him to tow Russell, which is worth real time at Monza and can move both of them in the order.',
-  },
-  {
     question:
-      'If Antonelli qualifies P4 and starts P14, what does my qualifying pick score?',
+      'If a driver qualifies P4 and a grid penalty drops him to P14, what does my qualifying pick score?',
     answer:
       'The P4. We score the official qualifying classification, not the starting grid. A grid penalty moves where a driver lines up for the race and does not rewrite where they finished qualifying, so a driver classified P4 counts as P4 for your qualifying picks even when they start P14 on Sunday.',
   },
@@ -69,11 +81,6 @@ const FAQS = [
     question: 'What matters most when predicting Monza?',
     answer:
       'Watch straight-line speed alongside braking stability, traction out of the chicanes and representative long-run pace. A lap helped by a strong tow can flatter a car at Monza.',
-  },
-  {
-    question: 'Does the weather change how I should pick at Monza?',
-    answer:
-      'Mainly through grip. Rain in the hours before a session can leave a damp circuit even if it is dry by the time it starts, which cuts the advantage a low-drag car has on the straights and widens the range of drivers who could reach the Top 5. The forecast for each day of the weekend is on this page and updates as it changes.',
   },
   {
     question: 'Are other players’ picks visible before the session?',
@@ -117,6 +124,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
       const title = '2026 Italian Grand Prix Predictions & Picks';
       const description =
         'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
+      const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,
         description,
@@ -141,13 +149,22 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
                   dateModified: '2026-08-24',
                   inLanguage: 'en',
                   isPartOf: { '@id': `${siteConfig.url}/#app` },
-                  about: {
-                    '@type': 'SportsEvent',
-                    name: '2026 Italian Grand Prix',
-                    ...(race
-                      ? { startDate: new Date(race.raceStartAt).toISOString() }
-                      : {}),
-                  },
+                  // A complete node or none at all. This was a three-property
+                  // stub, which Search Console counted as one invalid Event
+                  // (`Missing field "location"`) plus seven warnings. The
+                  // builder cannot produce that shape.
+                  ...(race && circuit
+                    ? {
+                        about: sportsEventSchema({
+                          name: '2026 Italian Grand Prix',
+                          startAt: race.raceStartAt,
+                          path: PATH,
+                          description,
+                          image: raceOgImageUrl(RACE_SLUG),
+                          location: circuit,
+                        }),
+                      }
+                    : {}),
                 },
                 {
                   '@type': 'FAQPage',

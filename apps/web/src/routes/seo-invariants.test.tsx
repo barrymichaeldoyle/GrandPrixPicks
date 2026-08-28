@@ -124,6 +124,29 @@ function contentOf(head: Head, name: string) {
   return head.meta?.find((tag) => tag.name === name)?.content;
 }
 
+/**
+ * Every typed node in a graph, however deeply nested.
+ *
+ * This walks rather than reading `@graph` directly, because reading only the
+ * top level is how a broken node shipped while a test for exactly that node
+ * was passing. The Monza write-up carried its SportsEvent as the `about` of a
+ * WebPage, one level down, so the `location` requirement below never ran
+ * against it and Search Console found the missing field instead.
+ */
+function typedNodes(value: unknown): Record<string, unknown>[] {
+  if (Array.isArray(value)) {
+    return value.flatMap(typedNodes);
+  }
+  if (value === null || typeof value !== 'object') {
+    return [];
+  }
+  const node = value as Record<string, unknown>;
+  const nested = Object.entries(node)
+    .filter(([key]) => key !== '@context')
+    .flatMap(([, child]) => typedNodes(child));
+  return typeof node['@type'] === 'string' ? [node, ...nested] : nested;
+}
+
 describe('SEO invariants across every indexable route', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -204,11 +227,7 @@ describe('SEO invariants across every indexable route', () => {
       const head = await headFor(entry);
       for (const script of head.scripts ?? []) {
         const parsed = JSON.parse(script.children) as Record<string, unknown>;
-        const nodes = (parsed['@graph'] ?? [parsed]) as Record<
-          string,
-          unknown
-        >[];
-        for (const node of nodes) {
+        for (const node of typedNodes(parsed)) {
           const required = REQUIRED_BY_TYPE[node['@type'] as string];
           if (!required) {
             continue;

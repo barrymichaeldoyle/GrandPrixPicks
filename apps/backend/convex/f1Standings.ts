@@ -1,8 +1,11 @@
+import { currentPairings } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
 import type { DatabaseReader } from './_generated/server';
 import { query } from './_generated/server';
 import { loadStintsForSeason, teamForRound } from './lib/lineups';
+import { getCurrentSeason } from './lib/season';
+import { sortByConstructorStanding } from './lib/teammateBattles';
 
 type ReadCtx = { db: DatabaseReader };
 
@@ -340,5 +343,35 @@ export const getF1Championship = query({
   args: { season: v.optional(v.number()) },
   handler: async (ctx, args) => {
     return await loadChampionship(ctx, args.season ?? 2026);
+  },
+});
+
+/**
+ * The current grid's teams in championship order, and nothing else.
+ *
+ * Every server-side H2H view already sorts its rows this way, which is what
+ * made the clients' loading states wrong: with no database of their own they
+ * fall back to last season's order (`teamStandingsIndex`), so the placeholder
+ * rows were drawn in one order and replaced by another, and the reader saw the
+ * teams reshuffle. This query is the missing piece — small enough to hold a
+ * live subscription open next to the real data, so the order is already known
+ * before anything asks for it.
+ *
+ * Teams, not duels: who drives for whom is round-scoped and belongs to the
+ * matchup rows. Only the order is wanted here.
+ */
+export const getConstructorOrder = query({
+  args: { season: v.optional(v.number()) },
+  handler: async (ctx, args): Promise<string[]> => {
+    const season = args.season ?? (await getCurrentSeason(ctx));
+    const points = await loadConstructorPoints(ctx, season);
+    const teams = new Set<string>([
+      ...currentPairings().map((pairing) => pairing.team),
+      ...points.keys(),
+    ]);
+    return sortByConstructorStanding(
+      [...teams].map((team) => ({ team })),
+      points,
+    ).map((entry) => entry.team);
   },
 });

@@ -2,6 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { Avatar } from '../Avatar';
 import { ReactionButton } from '../ReactionButton';
 import { useState } from 'react';
+
+import { useConstructorOrder } from '@/hooks/useConstructorOrder';
 import { DriverBadge, ScoredDriverBadge } from '../DriverBadge';
 import type { FeedEvent } from './types';
 import { H2HPicksDialog } from './H2HPicksDialog';
@@ -18,6 +20,10 @@ export function ScorePublishedItem({
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
+  // Subscribed here rather than inside the dialog: the order has to be in hand
+  // before the dialog opens, or its placeholder rows sort by last season and
+  // reshuffle when the picks land.
+  const teamOrder = useConstructorOrder();
   const isLocked = event.type === 'session_locked';
   const isAmended = event.type === 'results_amended';
 
@@ -224,6 +230,7 @@ export function ScorePublishedItem({
             event.sessionType as 'quali' | 'sprint_quali' | 'sprint' | 'race'
           }
           displayName={event.displayName ?? event.username ?? 'User'}
+          teamOrder={teamOrder}
           onClose={() => setH2hOpen(false)}
         />
       )}

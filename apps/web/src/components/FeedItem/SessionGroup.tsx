@@ -12,6 +12,7 @@ import {
   useState,
 } from 'react';
 import { Flag, Trophy } from 'lucide-react';
+import { useConstructorOrder } from '@/hooks/useConstructorOrder';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { EmptySlot, PickSlot, ResultSlot } from './PickSlot';
 import type { FeedEvent, SessionHeader } from './types';
@@ -117,6 +118,10 @@ function SessionLeaderboardRow({
 }) {
   const [h2hOpen, setH2hOpen] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
+  // Subscribed here rather than inside the dialog: the order has to be in hand
+  // before the dialog opens, or its placeholder rows sort by last season and
+  // reshuffle when the picks land.
+  const teamOrder = useConstructorOrder();
   const total = eventTotalPoints(event);
 
   const picks = [...(event.picks ?? [])].sort(
@@ -218,6 +223,7 @@ function SessionLeaderboardRow({
             event.sessionType as 'quali' | 'sprint_quali' | 'sprint' | 'race'
           }
           displayName={event.displayName ?? event.username ?? 'User'}
+          teamOrder={teamOrder}
           onClose={() => setH2hOpen(false)}
         />
       )}

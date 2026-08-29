@@ -88,6 +88,13 @@ npx convex run --prod raceNews:publish '{
 - **`body`** — one or two sentences. Lead with what it means for a pick, not
   with the news. "Albon races, so Friday morning is not a read on Williams pace"
   beats "Browning has been announced for FP1".
+- **Never invent a position.** "If he qualifies P4 he starts P14" reads as a
+  tip, not an illustration: a player who skims it puts that driver P4. Say what
+  the penalty does to a score in general terms and let the card's "How these
+  are scored" link carry the rest. Numbers that came from the source, like the
+  size of a penalty, are the ones to be specific about, and the size is the
+  first thing a reader wants: "at least 10 places" is the fact, "takes a grid
+  penalty" is half a story.
 - **`sourceUrl`** — the primary source. Prefer formula1.com or the team over
   aggregators. Rejected unless it is a full `http(s)` URL.
 

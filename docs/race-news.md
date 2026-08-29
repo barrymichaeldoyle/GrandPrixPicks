@@ -78,6 +78,21 @@ npx convex run --prod raceNews:retract '{"raceSlug":"italy-2026","key":"antonell
 `list` is the step that prevents duplicates. The `key` makes a repeat safe; `list`
 is what stops the agent needing to guess whether it already ran.
 
+## Writing a body
+
+Two rules earned the hard way on the Antonelli item.
+
+**Be specific about numbers that came from the source.** "Takes a grid penalty"
+is half a story; "at least 10 places, and further if they fit more new parts" is
+the fact a player needs to act on.
+
+**Never invent a position.** The first version of that item explained the
+mechanic with "if he qualifies P4 he is classified P4, and starts P14". As an
+illustration it is clear, and as something skimmed in a feed it is a tip: it
+steers people to put Antonelli P4. Describe what a penalty does to a score in
+general terms instead, and let the card's "How these are scored" link to
+[the results policy](https://grandprixpicks.com/results-policy) carry the detail.
+
 ## Feed behaviour
 
 News is a `race_news` feed event: **authorless**, like `lineup_change`, which the

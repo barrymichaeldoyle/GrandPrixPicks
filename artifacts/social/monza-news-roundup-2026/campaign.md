@@ -110,8 +110,6 @@ Use one native 16:9 summary graphic rather than adapting the portrait carousel.
 > Ferrari's reported Schumacher tribute and engine upgrades, Kimi Antonelli's
 > minimum 10-place grid penalty, Luke Browning replacing Alex Albon in FP1 and
 > Isack Hadjar's still-unconfirmed return.
->
-> Here's what we know so far.
 
 No hashtag and no first-reply link.
 

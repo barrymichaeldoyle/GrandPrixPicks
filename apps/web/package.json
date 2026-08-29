@@ -55,7 +55,8 @@
     "format:check": "pnpm --dir ../.. exec oxfmt --check apps/web",
     "check": "pnpm run format:check && pnpm run lint",
     "knip": "pnpm --dir ../.. knip",
-    "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"
+    "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
+    "social-card": "tsx scripts/render-social-card.mts"
   },
   "dependencies": {
     "@clerk/backend": "3.16.12",
@@ -89,7 +90,7 @@
     "posthog-js": "1.419.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "satori": "0.33.4",
+    "satori": "0.29.0",
     "tailwindcss": "4.3.3"
   },
   "devDependencies": {

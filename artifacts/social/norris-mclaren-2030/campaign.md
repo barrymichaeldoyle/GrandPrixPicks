@@ -17,8 +17,11 @@ surface for context that is interesting without being actionable.
 - Only what the primary source says. No transfer-fee figures: the widely quoted
   120m is tabloid reporting and is not in the Formula 1 announcement.
 - No hashtags on X. A short set on Instagram.
-- End on a question rather than a call to action. The card already carries the
-  domain.
+- End on a fact with some weight, not a question. "Does that make McLaren the
+  team to beat?" is engagement bait and reads as such; the closing line should
+  be something a reader did not already know.
+- Cut filler. "The papaya line-up is settled for a while yet" says nothing that
+  "neither seat is open" does not say better and shorter.
 
 ## Format
 
@@ -57,10 +60,10 @@ the lower-left corner of an image.
 > Lando Norris has signed a new McLaren deal to at least the end of 2030, with
 > a multi-year option beyond it ✍️
 >
-> He joined the team in 2017, and Oscar Piastri is contracted to 2028, so the
-> papaya line-up is settled for a while yet.
+> He arrived in 2017 and has raced for them since 2019. Piastri is signed
+> through 2028.
 >
-> Does that make McLaren the team to beat?
+> Neither McLaren seat is open any time soon.
 
 No hashtags, no link, no first-reply link.
 
@@ -69,13 +72,12 @@ No hashtags, no link, no first-reply link.
 > Lando Norris is staying at McLaren ✍️
 >
 > A new deal keeps him at the team until at least the end of 2030, with a
-> multi-year option beyond that. He joined McLaren in 2017 as a test and
-> development driver and has raced for them since 2019.
+> multi-year option beyond that. He arrived in 2017 as a test and development
+> driver and has raced for them since 2019.
 >
-> Oscar Piastri is contracted to the end of 2028, so the papaya line-up is
-> settled for a while yet.
+> Oscar Piastri is signed through the end of 2028.
 >
-> Does that make McLaren the team to beat?
+> Neither McLaren seat is open any time soon.
 >
 > #F1 #LandoNorris #McLaren
 

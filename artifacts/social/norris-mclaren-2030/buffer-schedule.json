@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T12:16:00Z",
+  "generatedAt": "2026-08-29T12:37:00Z",
   "organizationId": "64f9a17b902afdecc48c8d02",
   "timezone": "Africa/Johannesburg",
   "assetBaseUrl": "https://grandprixpicks.com/social/norris-mclaren-2030",
@@ -15,7 +15,8 @@
       "assetCount": 1,
       "automaticPublishing": true,
       "aiImageDisclosure": false,
-      "verified": true
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/norris-mclaren-2030/norris-mclaren-2030-instagram.png?v=2"
     },
     {
       "channelId": "6a6f4b8a99afb44349e9c0f4",
@@ -28,11 +29,13 @@
       "assetCount": 1,
       "automaticPublishing": true,
       "aiImageDisclosure": false,
-      "verified": true
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/norris-mclaren-2030/norris-mclaren-2030-x.png?v=2"
     }
   ],
   "notes": [
     "aiImageDisclosure is false because both cards are rendered from design tokens by scripts/render-social-card.mts. The Monza roundup set it true because its slides compose over generated collage art.",
-    "verified means the scheduled post was read back from Buffer after the edit and its asset resolved to the expected dimensions (1080x1350 and 1600x900)."
+    "verified means the scheduled post was read back from Buffer after the edit and its asset resolved to the expected dimensions (1080x1350 and 1600x900).",
+    "Asset URLs carry ?v=2. Buffer fetches an image when it is attached and keeps that copy, so republishing the same path with new bytes does not reach an already-scheduled post: the timeline version needed a fresh URL to replace the pre-timeline one."
   ]
 }

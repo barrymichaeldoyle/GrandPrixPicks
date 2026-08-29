@@ -2,9 +2,11 @@ import { Link } from '@tanstack/react-router';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { ExternalLink } from 'lucide-react';
+import type { CSSProperties } from 'react';
 
 import { SESSION_LABELS } from '@/lib/sessions';
 import type { SessionType } from '@/lib/sessions';
+import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
   code: string;
@@ -65,58 +67,78 @@ export function WeekendNewsSection({
       </div>
 
       <div className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
-        {items.map((item) => (
-          // A column so the source row can be pushed to the bottom: the
-          // bodies differ in length, and without it each card's rule and
-          // attribution sit at a different height across the grid.
-          <article
-            key={item.key}
-            className="flex flex-col bg-surface p-4 sm:p-6"
-          >
-            {/* Above the headline rather than beside it: the badge carries the
+        {items.map((item) => {
+          // The card's own colour, from the driver it is about, exactly as the
+          // same item carries it in the feed (`RaceNewsItem`) and as the
+          // tribute section below carries Ferrari's. A run of news then reads
+          // as a Ferrari story then a Williams one, rather than as three grey
+          // blocks a reader has to parse to tell apart.
+          //
+          // First driver, not all of them: an item about two team mates is one
+          // team's story, and the badges already name both.
+          const team = item.drivers?.[0]?.team ?? null;
+          const teamColour = (team && TEAM_COLORS[team]) || null;
+
+          return (
+            // A column so the source row can be pushed to the bottom: the
+            // bodies differ in length, and without it each card's rule and
+            // attribution sit at a different height across the grid.
+            <article
+              key={item.key}
+              className={`flex flex-col bg-surface p-4 sm:p-6 ${
+                teamColour ? 'gpp-team-bar' : ''
+              }`}
+              style={
+                teamColour
+                  ? ({ '--team-colour': teamColour } as CSSProperties)
+                  : undefined
+              }
+            >
+              {/* Above the headline rather than beside it: the badge carries the
                 team colour, so a reader sees this is a Williams story or a
                 Mercedes one before reading a word of it. Codes come from the
                 published record, never from scanning the prose, which on this
                 very card would badge Russell for an item about Antonelli. */}
-            {item.drivers && item.drivers.length > 0 ? (
-              <p className="mb-2 flex flex-wrap items-center gap-1.5 sm:mb-3">
-                {item.drivers.map((driver) => (
-                  <DriverBadge
-                    key={driver.code}
-                    code={driver.code}
-                    team={driver.team}
-                    displayName={driver.displayName}
-                    number={driver.number}
-                    nationality={driver.nationality}
-                    size="sm"
-                    prerenderTooltip={false}
-                  />
-                ))}
+              {item.drivers && item.drivers.length > 0 ? (
+                <p className="mb-2 flex flex-wrap items-center gap-1.5 sm:mb-3">
+                  {item.drivers.map((driver) => (
+                    <DriverBadge
+                      key={driver.code}
+                      code={driver.code}
+                      team={driver.team}
+                      displayName={driver.displayName}
+                      number={driver.number}
+                      nationality={driver.nationality}
+                      size="sm"
+                      prerenderTooltip={false}
+                    />
+                  ))}
+                </p>
+              ) : null}
+              <h3 className="font-title text-lg font-medium text-text">
+                {item.headline}
+              </h3>
+              <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
+                {item.body}
               </p>
-            ) : null}
-            <h3 className="font-title text-lg font-medium text-text">
-              {item.headline}
-            </h3>
-            <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
-              {item.body}
-            </p>
-            <PickImpact
-              affects={item.affectsSessions as SessionType[]}
-              weekendSessions={weekendSessions}
-            />
-            <p className="mt-4 border-t border-border pt-3 max-sm:mt-4 sm:mt-auto sm:pt-4">
-              <a
-                href={item.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="gpp-touch-target inline-flex items-center gap-1 text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-              >
-                {item.sourceName}
-                <ExternalLink className="size-3 shrink-0" aria-hidden />
-              </a>
-            </p>
-          </article>
-        ))}
+              <PickImpact
+                affects={item.affectsSessions as SessionType[]}
+                weekendSessions={weekendSessions}
+              />
+              <p className="mt-4 border-t border-border pt-3 max-sm:mt-4 sm:mt-auto sm:pt-4">
+                <a
+                  href={item.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gpp-touch-target inline-flex items-center gap-1 text-sm font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+                >
+                  {item.sourceName}
+                  <ExternalLink className="size-3 shrink-0" aria-hidden />
+                </a>
+              </p>
+            </article>
+          );
+        })}
       </div>
 
       {/* One link for the section, not one per card. It used to sit inside

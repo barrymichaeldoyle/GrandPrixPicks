@@ -16,7 +16,7 @@ const e = createElement;
  * rather than a lookalike — the cards previously drew a Lucide flag, which was
  * never the brand.
  */
-function brandMark(size: number): ReactNode {
+export function brandMark(size: number): ReactNode {
   return e(
     'svg',
     { width: size, height: size * (40 / 60), viewBox: '0 0 60 40' },
@@ -237,6 +237,13 @@ export interface NextRaceOgData {
  * reads as a blob to fans who know these shapes. The tower is the motif the
  * rest of the system already uses, needs no asset, and fills the dead right
  * half without competing with the headline.
+ *
+ * The bars are solid blocks on `surfaceElevated`, not the 1px hairlines this
+ * started as. Hairlines of varying length on a near-black ground do not read
+ * as a timing screen at any size; they read as a *loading skeleton*, which is
+ * the last thing the site's own link preview should look like. Filled blocks
+ * give the rows enough figure-to-ground contrast to scan as data, and the
+ * leader keeps the one accent tick that says which row is P1.
  */
 function timingTower(): ReactNode {
   const ROWS = 8;
@@ -272,8 +279,8 @@ function timingTower(): ReactNode {
         },
         e('div', {
           style: {
-            width: index === 0 ? 3 : 2,
-            height: 26,
+            width: 3,
+            height: 30,
             marginRight: 18,
             backgroundColor: index === 0 ? colors.accent : colors.borderStrong,
           },
@@ -294,8 +301,9 @@ function timingTower(): ReactNode {
         e('div', {
           style: {
             width: 210 + ((index * 67) % 240),
-            height: 1,
-            backgroundColor: colors.borderStrong,
+            height: 30,
+            backgroundColor:
+              index === 0 ? colors.accentMuted : colors.surfaceElevated,
           },
         }),
       );
@@ -347,16 +355,127 @@ function brandHeadline(): ReactNode {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        fontSize: 76,
+        fontSize: 72,
         fontWeight: 300,
-        letterSpacing: -1.6,
+        letterSpacing: -1.5,
         lineHeight: 1.12,
         color: colors.text,
         maxWidth: 720,
       },
     },
-    e('div', {}, "Everyone's a strategist"),
+    // Typographic apostrophe: the straight quote is the one glyph on this card
+    // that gives away that it was written in a code editor.
+    e('div', {}, 'Everyone’s a strategist'),
     e('div', {}, 'on Sunday. Prove it.'),
+  );
+}
+
+/**
+ * The three ways a Top 5 pick scores, in the semantic colours the app already
+ * uses for exactly this (`resultExact` / `resultNear` / `resultTop5`).
+ *
+ * Mirrors the landing page's scoring tiles down to the square-ended sector
+ * rule, so the card and the page a reader lands on are visibly the same
+ * product. It is also the only thing on this card that says what the game
+ * *is*: the headline sells the feeling and the strip sells the price, and
+ * before this there was nothing between them explaining the mechanic to
+ * somebody who had never heard of the site.
+ *
+ * These colours are load-bearing rather than decorative, which is why three of
+ * them are allowed on a card whose palette is otherwise one rare accent.
+ */
+const SCORING_BANDS = [
+  {
+    points: '5',
+    unit: 'PTS',
+    title: 'Exact position',
+    color: colors.resultExact,
+  },
+  {
+    points: '3',
+    unit: 'PTS',
+    title: 'One position away',
+    color: colors.resultNear,
+  },
+  {
+    points: '1',
+    unit: 'PT',
+    title: 'In the actual top 5',
+    color: colors.resultTop5,
+  },
+] as const;
+
+function scoringTile(band: (typeof SCORING_BANDS)[number]): ReactNode {
+  return e(
+    'div',
+    {
+      key: band.title,
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        width: 232,
+        height: 132,
+        backgroundColor: colors.surface,
+        border: `1px solid ${colors.border}`,
+        // The sector rule is the bottom edge; a border under it would double
+        // the line and round off the colour's square ends.
+        borderBottom: 'none',
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          flexDirection: 'column' as const,
+          flex: 1,
+          padding: '18px 20px 0',
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', alignItems: 'flex-end', gap: 7 } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 42,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              lineHeight: 1,
+              color: band.color,
+            },
+          },
+          band.points,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: 2.2,
+              paddingBottom: 3,
+              color: band.color,
+            },
+          },
+          band.unit,
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 14,
+            fontSize: 19,
+            fontWeight: 600,
+          },
+        },
+        band.title,
+      ),
+    ),
+    e('div', { style: { height: 7, backgroundColor: band.color } }),
   );
 }
 
@@ -372,7 +491,13 @@ function brandHeadline(): ReactNode {
  *
  * No drawn CTA button (not clickable in an OG image) and no domain (the
  * platform already shows it under the card). Accent is scarce: one lime on the
- * tower's P1 tick, plus the strip separator dots.
+ * tower's P1 tick, plus the strip separator dots. The scoring tiles carry the
+ * only other colour, and it is semantic.
+ *
+ * The headline sat at 76px over a ~180px dead band, which is the space the
+ * scoring row now fills. Dropping to 72px is what buys the tiles their width
+ * without the two columns colliding: the longer headline line ends at x≈739
+ * and the tower's labels start at x=800.
  */
 function brandCardFrame(bottomStrip: ReactNode): ReactNode {
   const { width, height } = getOgDimensions('og');
@@ -411,10 +536,23 @@ function brandCardFrame(bottomStrip: ReactNode): ReactNode {
           display: 'flex',
           position: 'absolute' as const,
           left: 64,
-          top: 196,
+          top: 150,
         },
       },
       brandHeadline(),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          gap: 12,
+          position: 'absolute' as const,
+          left: 64,
+          top: 372,
+        },
+      },
+      ...SCORING_BANDS.map(scoringTile),
     ),
     e(
       'div',

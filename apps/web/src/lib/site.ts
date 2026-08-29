@@ -115,6 +115,9 @@ export function noIndexMeta() {
  *
  * @param path — the route path, e.g. '/pricing' or '/races/monaco'
  * @param image — absolute OG image URL (defaults to the shared image)
+ * @param imageAlt — alt text for a page-specific `image`. Without it the
+ *   root's generic "make F1 predictions" alt describes a card it is not on,
+ *   e.g. a race card naming the Italian Grand Prix.
  * @param noIndex — when true, adds `robots: noindex, follow`
  */
 export function pageMeta({
@@ -122,12 +125,14 @@ export function pageMeta({
   description,
   path,
   image = defaultOgImage,
+  imageAlt,
   noIndex = false,
 }: {
   title: string;
   description: string;
   path: string;
   image?: string;
+  imageAlt?: string;
   noIndex?: boolean;
 }) {
   const canonical = canonicalMeta(path);
@@ -144,6 +149,12 @@ export function pageMeta({
       { name: 'twitter:title', content: title },
       { name: 'twitter:description', content: description },
       { name: 'twitter:image', content: image },
+      ...(imageAlt
+        ? ([
+            { property: 'og:image:alt', content: imageAlt },
+            { name: 'twitter:image:alt', content: imageAlt },
+          ] as const)
+        : []),
       ...(noIndex ? noIndexMeta() : []),
       ...canonical.meta,
     ],

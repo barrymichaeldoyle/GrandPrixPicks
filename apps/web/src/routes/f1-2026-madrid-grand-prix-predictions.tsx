@@ -31,7 +31,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
  * news and standings carry it forward on their own. Bump it when the writing
  * changes, not when the data does.
  */
-const PROSE_REVIEWED = '2026-08-27';
+const PROSE_REVIEWED = '2026-08-29';
 
 /**
  * One value for the footer stamp and the schema's `dateModified`. They were
@@ -141,6 +141,8 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       description,
       path: PATH,
       image: raceOgImageUrl(RACE_SLUG),
+      imageAlt:
+        'Grand Prix Picks race card for the 2026 Spanish Grand Prix at the Madring in Madrid.',
     });
 
     return {
@@ -451,7 +453,7 @@ function LaMonumental() {
           id="la-monumental"
           className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
-          La Monumental is a setup problem, not just a corner
+          La Monumental is a setup problem
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
           Turn 12 is a 270 degree right-hander held for 547 metres on 24 percent
@@ -468,8 +470,8 @@ function LaMonumental() {
           everywhere but risks floor damage or a plank infringement through the
           banking. Run it high and the compression is safe but the rest of the
           lap is slower. Formula 3 cars were already touching the track there in
-          testing, so this is a real compromise rather than a theoretical one,
-          and every team is solving it for the first time on Friday.
+          testing, so the compromise is real, and every team is solving it for
+          the first time on Friday.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Teams will not all get it right. That is worth more to a Top 5 than
@@ -521,7 +523,7 @@ function WatchTable() {
     ],
     [
       'Long-run pace',
-      'Repeatable laps rather than one flying effort',
+      'Lap after lap at the same pace',
       'Race picks need tyre behaviour over a stint, which a new surface makes harder to guess.',
     ],
   ] as const;
@@ -590,10 +592,7 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div
-          className="border border-border bg-surface"
-          aria-label="Top six drivers"
-        >
+        <div className="border border-border bg-surface">
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
             <span className="gpp-mono text-xs text-text-muted">
@@ -602,7 +601,9 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
                 : 'CURRENT'}
             </span>
           </div>
-          <ol>
+          {/* The label sits on the list, not the wrapper: an aria-label on a
+              role-less div is ignored by assistive tech. */}
+          <ol aria-label="Top six drivers">
             {drivers.map((driver, index) => (
               <li
                 key={driver.displayName}

@@ -65,8 +65,7 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
             a sentence, and it told a reader nothing they could act on. */}
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Each of these is a reason to go back and look at a pick again. The
-          source is on every card, so you can weigh it yourself rather than take
-          our word for it.
+          source is on every card, so you can weigh each story for yourself.
         </p>
       </div>
 

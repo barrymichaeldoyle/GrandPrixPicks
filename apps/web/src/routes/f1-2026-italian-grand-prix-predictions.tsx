@@ -153,6 +153,8 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         description,
         path: PATH,
         image: raceOgImageUrl(RACE_SLUG),
+        imageAlt:
+          'Grand Prix Picks race card for the 2026 Italian Grand Prix at Monza.',
       });
 
       return {
@@ -423,8 +425,8 @@ function WatchTable() {
     ],
     [
       'Long runs',
-      'Consistent pace rather than one quick lap',
-      'Race picks need tyre behaviour and repeatable pace, not a qualifying tow.',
+      'Consistent pace over several laps',
+      'Race picks live on tyre behaviour and repeatable pace, and a tow-assisted lap shows neither.',
     ],
   ] as const;
 
@@ -451,18 +453,27 @@ function WatchTable() {
           ['80%', 'full throttle'],
           ['1.1', 'km main straight'],
         ].map(([value, label]) => (
-          <div key={label} className="bg-surface p-4 sm:p-5">
-            <dt className="gpp-mono text-2xl text-text">{value}</dt>
-            <dd className="mt-1 text-xs tracking-label text-text-muted uppercase">
+          /* The label is the term and the number is its value, so dt names
+             the stat and dd carries the figure. The column is reversed in CSS
+             because the design still wants the number read first. */
+          <div
+            key={label}
+            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
+          >
+            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
               {label}
-            </dd>
+            </dt>
+            <dd className="gpp-mono text-2xl text-text">{value}</dd>
           </div>
         ))}
       </dl>
 
       <div className="mt-8">
+        {/* Column widths and padding match the rows below exactly — the
+            header was 11rem/px-4 over 10rem/px-5 rows, so LOOK FOR and WHY IT
+            MATTERS sat a half-step off the columns they were naming. */}
         <div
-          className="hidden grid-cols-[11rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid"
+          className="hidden grid-cols-[10rem_1fr_1fr] gap-8 px-4 pb-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:grid sm:px-5"
           aria-hidden
         >
           <span>Signal</span>
@@ -521,8 +532,9 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. Treat that as encouraging, not final: wait for confirmation
-          from the team or the official entry before relying on him in a pick.{' '}
+          at Monza. That is an encouraging sign which still needs confirming:
+          wait for the team or the official entry before relying on him in a
+          pick.{' '}
           <ExternalSource href={HADJAR_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>
@@ -534,14 +546,17 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
           {
             label: 'Monza status',
             code: 'HAD',
-            note: 'Hopeful, not confirmed',
+            note: 'Hopeful, unconfirmed',
           },
           { label: 'Red Bull cover at Zandvoort', code: 'LAW', note: null },
           { label: 'Racing Bulls cover', code: 'TSU', note: null },
         ].map(({ label, code, note }) => {
           const driver = byCode.get(code);
           return (
-            <div key={label} className="border-b border-border py-4">
+            <div
+              key={label}
+              className="border-b border-border py-4 last:border-0"
+            >
               <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
                 {label}
               </dt>
@@ -616,17 +631,16 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div
-          className="border border-border bg-surface"
-          aria-label="Top six drivers"
-        >
+        <div className="border border-border bg-surface">
           <div className="flex justify-between border-b border-border px-4 py-3">
             <h3 className="font-title font-medium text-text">Drivers</h3>
             <span className="gpp-mono text-xs text-text-muted">
               AFTER {championship.roundsScored} ROUNDS
             </span>
           </div>
-          <ol>
+          {/* The label sits on the list, not the wrapper: an aria-label on a
+              role-less div is ignored by assistive tech. */}
+          <ol aria-label="Top six drivers">
             {top.map((driver) => (
               <li
                 key={driver.driverId}
@@ -765,10 +779,10 @@ function FerrariTribute() {
           his Italian Grand Prix win that year.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Ferrari has not formally revealed it, so treat the detail as reported
-          rather than confirmed. Whether a home crowd and a throwback livery are
-          worth anything to Leclerc and Hamilton on Sunday is between you and
-          your Top 5.{' '}
+          Ferrari has not formally revealed it, so treat the specifics as
+          unconfirmed. Whether a home crowd and a throwback livery are worth
+          anything to Leclerc and Hamilton on Sunday is between you and your Top
+          5.{' '}
           <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>
@@ -814,8 +828,8 @@ function NorrisContract() {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           It takes the loudest driver market question off the table for the rest
           of the season, and it changes nothing about this weekend: the same two
-          drivers are in the same two cars at Monza. Read it as context for the
-          McLaren duel rather than as form.{' '}
+          drivers are in the same two cars at Monza. File it as background to
+          the McLaren duel.{' '}
           <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
             Read the announcement
           </ExternalSource>

@@ -61,7 +61,7 @@ const SIZES = {
     width: 1600,
     height: 900,
     pad: 88,
-    headline: 92,
+    headline: 88,
     standfirst: 33,
     factLabel: 19,
     factValue: 40,
@@ -96,6 +96,25 @@ export interface SocialNewsCard {
   kicker?: string;
   /** Up to three label/value pairs. Values are set in mono. */
   facts: { label: string; value: string }[];
+  /**
+   * An optional span-of-years bar. When present it replaces the stacked facts
+   * as the card's main block and the facts drop to a compact row beneath it.
+   *
+   * Use it when the story *is* a duration. A contract card is three dates and
+   * a headline; drawn as a bar, the length of the commitment is the thing you
+   * see before reading a word, which is the whole point of the news.
+   */
+  timeline?: {
+    /** First and last labelled year of the axis. */
+    from: number;
+    to: number;
+    /** Where the solid run ends. Anything past it renders as the option tail. */
+    solidTo: number;
+    /** Team colour for the filled run. */
+    color: string;
+    marks: { year: number; label: string }[];
+    tailLabel?: string;
+  };
 }
 
 function topStrip(eyebrow: string): ReactNode {
@@ -184,7 +203,11 @@ function driverKicker(
   );
 }
 
-function factBlock(fact: { label: string; value: string }, s: Size): ReactNode {
+function factBlock(
+  fact: { label: string; value: string },
+  s: Size,
+  compact = false,
+): ReactNode {
   return e(
     'div',
     {
@@ -209,12 +232,148 @@ function factBlock(fact: { label: string; value: string }, s: Size): ReactNode {
       'div',
       {
         style: {
-          fontSize: s.factValue,
+          fontSize: compact ? s.factValue * 0.62 : s.factValue,
           fontWeight: 600,
           marginTop: 8,
         },
       },
       fact.value,
+    ),
+  );
+}
+
+/**
+ * The span-of-years bar.
+ *
+ * Laid out with percentage offsets against the axis rather than flex, because
+ * the marks have to line up with real years: a mark at 2026 sits where 2026
+ * actually falls, not wherever a flex row happens to put it. Satori supports
+ * percentage `left` on an absolutely positioned child, which is the only piece
+ * of arithmetic this needs.
+ *
+ * The tail past `solidTo` is the same colour at low opacity: an option that has
+ * not been taken up should read as lighter than a signed commitment, and a
+ * second hue would put a fourth colour on a card that allows two.
+ */
+function timelineBar(
+  timeline: NonNullable<SocialNewsCard['timeline']>,
+  s: Size,
+): ReactNode {
+  const span = timeline.to - timeline.from;
+  const railHeight = s.factsColumn ? 18 : 15;
+
+  /** A year's position along the axis, as a percentage of its full width. */
+  function pct(year: number): number {
+    return ((year - timeline.from) / span) * 100;
+  }
+
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        marginTop: s.factsColumn ? 56 : 44,
+      },
+    },
+    // Rail: unfilled ground, solid run, then the option tail.
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'relative' as const,
+          width: '100%',
+          height: railHeight,
+          backgroundColor: colors.surfaceElevated,
+        },
+      },
+      e('div', {
+        style: {
+          position: 'absolute' as const,
+          left: 0,
+          top: 0,
+          width: `${pct(timeline.solidTo)}%`,
+          height: railHeight,
+          backgroundColor: timeline.color,
+        },
+      }),
+      e('div', {
+        style: {
+          position: 'absolute' as const,
+          left: `${pct(timeline.solidTo)}%`,
+          top: 0,
+          width: `${100 - pct(timeline.solidTo)}%`,
+          height: railHeight,
+          backgroundColor: timeline.color,
+          opacity: 0.32,
+        },
+      }),
+    ),
+    // Marks: a 3px tick at the real year, its figure in mono, its label under.
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          position: 'relative' as const,
+          width: '100%',
+          height: s.factsColumn ? 122 : 104,
+        },
+      },
+      ...timeline.marks.map((mark) =>
+        e(
+          'div',
+          {
+            key: mark.label,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              position: 'absolute' as const,
+              left: `${pct(mark.year)}%`,
+              top: 0,
+              // The last mark would otherwise run off the right edge.
+              transform:
+                pct(mark.year) > 85 ? 'translateX(-100%)' : 'translateX(0)',
+              alignItems: pct(mark.year) > 85 ? 'flex-end' : 'flex-start',
+            },
+          },
+          e('div', {
+            style: {
+              width: 3,
+              height: 14,
+              backgroundColor: colors.borderStrong,
+            },
+          }),
+          e(
+            'div',
+            {
+              style: {
+                fontSize: s.factsColumn ? 38 : 33,
+                fontWeight: 600,
+                fontFamily: 'IBM Plex Mono',
+                marginTop: 12,
+              },
+            },
+            String(mark.year),
+          ),
+          e(
+            'div',
+            {
+              style: {
+                fontSize: s.factLabel - 2,
+                fontWeight: 600,
+                fontFamily: 'IBM Plex Mono',
+                textTransform: 'uppercase' as const,
+                letterSpacing: 2,
+                color: colors.textMuted,
+                marginTop: 6,
+              },
+            },
+            mark.label,
+          ),
+        ),
+      ),
     ),
   );
 }
@@ -280,19 +439,30 @@ export function socialNewsCard(
         },
         data.standfirst,
       ),
+      data.timeline ? timelineBar(data.timeline, s) : null,
+      // The facts row is dropped from the wide card whenever a timeline is
+      // shown. 900px does not hold a top strip, kicker, two-line headline,
+      // two-line standfirst, an axis AND a facts row: the block overflowed and
+      // shunted the kicker into the strip above it. The portrait frame has the
+      // room, and on X the same facts are in the post copy anyway.
       e(
         'div',
         {
           style: {
             display: 'flex',
-            flexDirection: s.factsColumn
-              ? ('column' as const)
-              : ('row' as const),
-            gap: s.factsGap,
-            marginTop: s.factsColumn ? 56 : 48,
+            flexDirection:
+              data.timeline || !s.factsColumn
+                ? ('row' as const)
+                : ('column' as const),
+            gap: data.timeline ? 56 : s.factsGap,
+            marginTop: data.timeline ? 44 : s.factsColumn ? 56 : 48,
           },
         },
-        ...data.facts.slice(0, 3).map((fact) => factBlock(fact, s)),
+        ...(data.timeline && !s.factsColumn
+          ? []
+          : data.facts
+              .slice(0, 3)
+              .map((fact) => factBlock(fact, s, !!data.timeline))),
       ),
     ),
     // The system's one hairline, then the call to action. The domain is the

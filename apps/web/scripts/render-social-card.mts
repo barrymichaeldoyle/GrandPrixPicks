@@ -51,10 +51,22 @@ const STORIES: Record<string, SocialNewsCard> = {
       code: 'NOR',
       color: TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
     },
+    // The timeline carries "joined in 2017" and "signed to 2030", so the
+    // facts row is only what it cannot show: the other side of the garage.
+    timeline: {
+      from: 2017,
+      to: 2032,
+      solidTo: 2030,
+      color: TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
+      marks: [
+        { year: 2017, label: 'Joined' },
+        { year: 2019, label: 'Race debut' },
+        { year: 2030, label: 'Signed until' },
+      ],
+    },
     facts: [
-      { label: 'Signed until', value: 'End of 2030' },
-      { label: 'Piastri until', value: 'End of 2028' },
-      { label: 'At McLaren since', value: '2017' },
+      { label: 'Piastri contracted to', value: 'End of 2028' },
+      { label: 'Beyond 2030', value: 'Multi-year option' },
     ],
   },
 };

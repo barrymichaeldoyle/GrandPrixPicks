@@ -26,10 +26,22 @@ No carousel. One story with three facts does not fill six slides, and padding
 it out would be obvious. One asset per channel, matching the Dutch GP community
 picks campaign:
 
-| Channel   | Asset                             | Size      |
-| --------- | --------------------------------- | --------- |
+| Channel   | Asset                               | Size      |
+| --------- | ----------------------------------- | --------- |
 | Instagram | `norris-mclaren-2030-instagram.png` | 1080x1350 |
 | X         | `norris-mclaren-2030-x.png`         | 1600x900  |
+
+The card's graphic is a **contract timeline**: a McLaren-papaya bar running
+2017 to 2030, with the multi-year option past 2030 as the same colour at low
+opacity, and marks at the three sourced dates. The story is a span of years, so
+drawn as a bar the length of the commitment is legible before a word is read.
+Every year on it comes from the Formula 1 announcement; Piastri has no bar of
+his own because the source gives his end date but not his start.
+
+The wide card shows the timeline without the facts row beneath it. 900px does
+not hold a top strip, kicker, two-line headline, two-line standfirst, an axis
+and a facts row: the block overflows and shunts the kicker into the strip
+above. The portrait frame has the room.
 
 Rendered from design tokens, not collage art:
 `pnpm --filter @grandprixpicks/web social-card norris-mclaren-2030`. This is a

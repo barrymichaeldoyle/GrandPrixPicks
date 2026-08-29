@@ -51,7 +51,7 @@ export function WeekendNewsSection({
   }
 
   return (
-    <section className="py-12 sm:py-16" aria-labelledby="weekend-news">
+    <section className="py-8 sm:py-16" aria-labelledby="weekend-news">
       <div className="max-w-3xl">
         <h2
           id="weekend-news"
@@ -71,7 +71,7 @@ export function WeekendNewsSection({
           // attribution sit at a different height across the grid.
           <article
             key={item.key}
-            className="flex flex-col bg-surface p-5 sm:p-6"
+            className="flex flex-col bg-surface p-4 sm:p-6"
           >
             {/* Above the headline rather than beside it: the badge carries the
                 team colour, so a reader sees this is a Williams story or a
@@ -79,7 +79,7 @@ export function WeekendNewsSection({
                 published record, never from scanning the prose, which on this
                 very card would badge Russell for an item about Antonelli. */}
             {item.drivers && item.drivers.length > 0 ? (
-              <p className="mb-3 flex flex-wrap items-center gap-1.5">
+              <p className="mb-2 flex flex-wrap items-center gap-1.5 sm:mb-3">
                 {item.drivers.map((driver) => (
                   <DriverBadge
                     key={driver.code}
@@ -97,7 +97,9 @@ export function WeekendNewsSection({
             <h3 className="font-title text-lg font-medium text-text">
               {item.headline}
             </h3>
-            <p className="gpp-reading-copy mt-3 text-text-muted">{item.body}</p>
+            <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
+              {item.body}
+            </p>
             <PickImpact
               affects={item.affectsSessions as SessionType[]}
               weekendSessions={weekendSessions}

@@ -85,7 +85,7 @@ export function WeekendWeatherForecast({
 
   return (
     <section
-      className="py-12 sm:py-16"
+      className="py-8 sm:py-16"
       aria-labelledby="weekend-weather-heading"
     >
       <div className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -123,41 +123,53 @@ export function WeekendWeatherForecast({
         </div>
       )}
 
+      {/*
+        One row per day on a phone, three columns from `sm`. Stacked as day /
+        condition / numbers with the icon floating off to the right, each day
+        ran to about 127px for four short strings, and the three of them filled
+        a phone screen before the reader reached the hour-by-hour detail this
+        section exists for. Same shape as `WeatherFeedCard`, deliberately: the
+        two are the same information in two places.
+      */}
       <div className="grid gap-px bg-border sm:grid-cols-3">
         {forecast.days.map((day) => (
-          <div key={day.localDate} className="bg-surface px-4 py-5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-title font-medium text-text">
+          <div key={day.localDate} className="bg-surface px-4 py-3 sm:py-5">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-1">
+              <p className="font-title min-w-0 font-medium text-text">
                 {formatDay(day.localDate, forecast.timeZone)}
               </p>
-              <WeatherIcon
-                conditionCode={
-                  day.hasThunderRisk ? 'thunder' : day.dominantConditionCode
-                }
-                className={
-                  day.hasThunderRisk
-                    ? 'h-5 w-5 text-error'
-                    : 'h-5 w-5 text-text-muted'
-                }
-              />
-            </div>
-            <p className="mt-3 text-sm text-text-muted">
-              {day.hasThunderRisk
-                ? 'Thunderstorm risk'
-                : conditionLabel(day.dominantConditionCode)}
-            </p>
-            <div className="gpp-mono mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text">
-              <span>
-                {Math.round(day.minTemperatureC)}–
-                {Math.round(day.maxTemperatureC)}°C
-              </span>
-              <span>{precipitationLabel(day)}</span>
-              {day.maxWindGustMps != null && (
-                <span className="inline-flex items-center gap-1">
-                  <Wind className="h-3.5 w-3.5" aria-hidden />
-                  {Math.round(day.maxWindGustMps * 3.6)} km/h gusts
-                </span>
-              )}
+              {/* Right-aligned while it shares a row, left-aligned once the day
+                  has a column of its own. */}
+              <div className="flex min-w-0 flex-col items-end text-right sm:items-start sm:text-left">
+                <p className="flex items-center gap-1.5 text-sm text-text-muted">
+                  <WeatherIcon
+                    conditionCode={
+                      day.hasThunderRisk ? 'thunder' : day.dominantConditionCode
+                    }
+                    className={
+                      day.hasThunderRisk
+                        ? 'h-5 w-5 shrink-0 text-error'
+                        : 'h-5 w-5 shrink-0 text-text-muted'
+                    }
+                  />
+                  {day.hasThunderRisk
+                    ? 'Thunderstorm risk'
+                    : conditionLabel(day.dominantConditionCode)}
+                </p>
+                <div className="gpp-mono mt-1 flex flex-wrap justify-end gap-x-3 gap-y-0.5 text-sm text-text sm:mt-2 sm:justify-start sm:gap-x-4 sm:gap-y-1">
+                  <span>
+                    {Math.round(day.minTemperatureC)}–
+                    {Math.round(day.maxTemperatureC)}°C
+                  </span>
+                  <span>{precipitationLabel(day)}</span>
+                  {day.maxWindGustMps != null && (
+                    <span className="inline-flex items-center gap-1">
+                      <Wind className="h-3.5 w-3.5" aria-hidden />
+                      {Math.round(day.maxWindGustMps * 3.6)} km/h gusts
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -205,8 +217,8 @@ export function WeekendWeatherForecast({
                       key={period.startsAt}
                       className={
                         highlighted
-                          ? 'bg-accent-muted px-3 py-4'
-                          : 'bg-surface px-3 py-4'
+                          ? 'bg-accent-muted px-3 py-2.5 sm:py-4'
+                          : 'bg-surface px-3 py-2.5 sm:py-4'
                       }
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -222,16 +234,16 @@ export function WeekendWeatherForecast({
                         />
                       </div>
                       {highlighted && (
-                        <p className="mt-2 text-xs font-semibold text-accent">
+                        <p className="mt-1 text-xs font-semibold text-accent sm:mt-2">
                           {period.sessions
                             .map((session) => session.label)
                             .join(' · ')}
                         </p>
                       )}
-                      <p className="mt-2 text-sm text-text-muted">
+                      <p className="mt-1 text-sm text-text-muted sm:mt-2">
                         {conditionLabel(period.conditionCode)}
                       </p>
-                      <p className="gpp-mono mt-1 text-sm text-text">
+                      <p className="gpp-mono mt-0.5 text-sm text-text sm:mt-1">
                         {period.temperatureC}°C
                         <span className="text-text-muted"> · </span>
                         {period.precipitationProbability != null
@@ -250,12 +262,12 @@ export function WeekendWeatherForecast({
                     that is missing rather than leaving a hole. */}
                 {uncovered.length > 0 && (
                   <li
-                    className={`bg-surface px-3 py-4 ${fillerSpan(day.periods.length)}`}
+                    className={`bg-surface px-3 py-2.5 sm:py-4 ${fillerSpan(day.periods.length)}`}
                   >
                     <p className="gpp-mono text-sm text-text-muted">
                       Not yet forecast
                     </p>
-                    <p className="mt-2 text-sm text-text-muted">
+                    <p className="mt-1 text-sm text-text-muted sm:mt-2">
                       {uncovered.map((session) => session.label).join(' · ')}{' '}
                       {uncovered.length === 1 ? 'is' : 'are'} beyond the model
                       range for now. Check back closer to the weekend.
@@ -319,7 +331,9 @@ function TimelineShell({
   children: ReactNode;
 }) {
   if (!settled) {
-    return <div className="mt-8 space-y-8">{children}</div>;
+    return (
+      <div className="mt-6 space-y-6 sm:mt-8 sm:space-y-8">{children}</div>
+    );
   }
 
   return (
@@ -331,7 +345,7 @@ function TimelineShell({
         />
         Hour-by-hour detail
       </summary>
-      <div className="mt-6 space-y-8">{children}</div>
+      <div className="mt-4 space-y-6 sm:mt-6 sm:space-y-8">{children}</div>
     </details>
   );
 }

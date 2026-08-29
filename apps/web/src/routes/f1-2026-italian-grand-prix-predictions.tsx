@@ -304,7 +304,7 @@ function ItalianGrandPrixPredictionsPage() {
         <FerrariTribute />
         <PredictionMethod />
 
-        <section className="py-12 sm:py-16" aria-labelledby="common-questions">
+        <section className="py-8 sm:py-16" aria-labelledby="common-questions">
           <h2
             id="common-questions"
             className="font-title text-2xl font-medium text-text"
@@ -382,7 +382,9 @@ function WeekendSchedule({ race }: { race: Race }) {
       aria-labelledby="weekend-timing"
       className="rounded-sm bg-surface-elevated"
     >
-      <div className="flex flex-col items-start gap-1 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      {/* One row from the start, like the rows it heads. Both halves are short
+          enough to share a line at 320px. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 sm:py-3">
         <h2 id="weekend-timing" className="font-title font-medium text-text">
           Weekend schedule
         </h2>
@@ -392,10 +394,14 @@ function WeekendSchedule({ race }: { race: Race }) {
         {sessions.map(([label, timestamp]) => (
           <div
             key={label}
-            className="grid gap-1 border-b border-border/60 px-4 py-2.5 last:border-b-0 sm:grid-cols-[6.5rem_1fr] sm:gap-3"
+            /* Two columns on a phone as well, not just from `sm`. Stacked,
+               each session spent two lines and the whole schedule ran to
+               315px, for a label and a time that sit side by side with room
+               to spare. */
+            className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 sm:grid-cols-[6.5rem_1fr] sm:py-2.5"
           >
             <dt className="text-sm text-text-muted">{label}</dt>
-            <dd className="gpp-mono text-sm text-text sm:text-right">
+            <dd className="gpp-mono text-right text-sm text-text">
               {formatMonzaTime(timestamp)}
             </dd>
           </div>
@@ -430,7 +436,7 @@ function WatchTable() {
   ] as const;
 
   return (
-    <section className="py-12 sm:py-16" aria-labelledby="what-to-watch">
+    <section className="py-8 sm:py-16" aria-labelledby="what-to-watch">
       <div className="max-w-3xl">
         <h2
           id="what-to-watch"
@@ -492,7 +498,7 @@ function WatchTable() {
 function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
   return (
     <section
-      className="grid gap-7 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
       aria-labelledby="hadjar-status"
     >
       <div>
@@ -576,7 +582,7 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
   }
 
   return (
-    <section className="py-12 sm:py-16" aria-labelledby="championship-context">
+    <section className="py-8 sm:py-16" aria-labelledby="championship-context">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div>
           <h2
@@ -680,7 +686,7 @@ function PredictionMethod() {
   ] as const;
 
   return (
-    <div className="grid gap-10 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]">
+    <div className="grid gap-10 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <section aria-labelledby="build-top-five">
         <h2
           id="build-top-five"
@@ -726,7 +732,7 @@ function PredictionMethod() {
  */
 function FerrariTribute() {
   return (
-    <section className="py-12 sm:py-16" aria-labelledby="ferrari-tribute">
+    <section className="py-8 sm:py-16" aria-labelledby="ferrari-tribute">
       {/* The one section whose subject is a team's own colour, so it gets the
           same 3px bar the driver badges use rather than a fourth kind of
           accent. Ferrari red is read from the tokens, not typed in here. */}

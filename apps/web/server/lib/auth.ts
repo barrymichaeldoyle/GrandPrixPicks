@@ -94,6 +94,19 @@ function getClerkCookieSuffix(): Promise<string | null> {
  * The unsuffixed cookie is the pre-suffix Clerk format, so it only counts when
  * this instance has no suffixed cookie on the request.
  */
+/**
+ * The `__client_uat` cookie name this instance actually writes, resolved
+ * server-side so a browser-side reader does not have to hash the publishable
+ * key before first paint.
+ *
+ * Null when the key is unset, in which case only the unsuffixed pre-suffix
+ * cookie name applies — the same fallback {@link isClerkSessionPresent} uses.
+ */
+export async function getClerkSessionCookieName(): Promise<string | null> {
+  const suffix = await getClerkCookieSuffix();
+  return suffix ? `__client_uat_${suffix}` : null;
+}
+
 export async function isClerkSessionPresent(
   request: Request,
 ): Promise<boolean> {

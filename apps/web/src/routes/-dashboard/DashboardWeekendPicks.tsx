@@ -34,6 +34,7 @@ import type { RaceWriteup } from '@/lib/raceWriteups';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
+import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useNow } from '@/lib/testing/now';
 
 import { DashboardPicksSummary } from './DashboardPicksSummary';
@@ -190,6 +191,27 @@ function DashboardWeekendPicksReady({
     includeNotRacing: true,
   });
   const drivers = liveDrivers ?? initialDrivers;
+
+  /**
+   * Holds the sign-in curtain until this card knows which card it is.
+   *
+   * `DashboardPage`'s gate stops at the weekend, which is only enough to render
+   * the *skeleton*: that reserves a full 22-driver grid, because on a first
+   * entry the picker is what fills it. A player who has already picked gets the
+   * short saved-picks summary instead, and the step that decides between them
+   * is derived from these three reads. Lifting the curtain before they land put
+   * the tall card on screen for a beat and then collapsed it under the thumb of
+   * someone who had just arrived.
+   *
+   * On a normal signed-in load the SSR seeds answer all three on the first
+   * render, so this is only ever held on a handoff, where SSR had no viewer to
+   * read as. See `./ssr`.
+   */
+  useAuthCurtainGate(
+    myPredictions !== undefined &&
+      myH2H !== undefined &&
+      liveDrivers !== undefined,
+  );
 
   const existingTop5 = firstWeekendTop5(myPredictions?.predictions);
   const existingH2H = firstWeekendH2H(myH2H, action?.sessionType);

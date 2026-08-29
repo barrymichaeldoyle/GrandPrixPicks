@@ -2,7 +2,10 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 import { createContext, useContext } from 'react';
 
-import { isClerkSessionPresent } from '../../../server/lib/auth';
+import {
+  getClerkSessionCookieName,
+  isClerkSessionPresent,
+} from '../../../server/lib/auth';
 
 /**
  * Viewer auth state resolved on the server during SSR. Lets the header render
@@ -12,10 +15,19 @@ import { isClerkSessionPresent } from '../../../server/lib/auth';
  */
 export type InitialAuth = {
   isSignedIn: boolean;
+  /**
+   * The `__client_uat` cookie name this Clerk instance writes, or null when it
+   * writes the unsuffixed pre-suffix name. Shipped to the browser so the
+   * pre-paint auth reconciliation in `__root.tsx` can apply the *same* rule
+   * this render did — a stale cookie from another Clerk instance must not be
+   * read as a session, in either place. See `isClerkSessionPresent`.
+   */
+  sessionCookieName: string | null;
 };
 
 const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
   isSignedIn: false,
+  sessionCookieName: null,
 };
 
 /**
@@ -32,7 +44,11 @@ const ANONYMOUS_INITIAL_AUTH: InitialAuth = {
 export const fetchInitialAuth = createServerFn({ method: 'GET' }).handler(
   async (): Promise<InitialAuth> => {
     try {
-      return { isSignedIn: await isClerkSessionPresent(getRequest()) };
+      const [isSignedIn, sessionCookieName] = await Promise.all([
+        isClerkSessionPresent(getRequest()),
+        getClerkSessionCookieName(),
+      ]);
+      return { isSignedIn, sessionCookieName };
     } catch {
       // SSR auth is a progressive enhancement: on any failure fall back to
       // anonymous and let Clerk's client SDK resolve auth, rather than failing

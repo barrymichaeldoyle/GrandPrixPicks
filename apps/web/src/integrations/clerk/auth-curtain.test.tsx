@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthCurtainHost, useAuthCurtainGate } from './auth-curtain';
+import { AUTH_HANDOFF_ATTRIBUTE } from './pre-paint-curtain';
 import { ViewerSessionProvider } from './viewer-session-context';
 
 (
@@ -33,18 +34,20 @@ describe('AuthCurtainHost', () => {
     handoff,
     confirmedSignedIn,
     gate,
+    label = 'Signing you in',
   }: {
     handoff: boolean;
     confirmedSignedIn: boolean;
     /** Omitted means the page mounts no gate at all. */
     gate?: boolean;
+    label?: string;
   }) {
     act(() =>
       root.render(
         <ViewerSessionProvider
           value={{ isSignedIn: true, confirmedSignedIn, isLoaded: true }}
         >
-          <AuthCurtainHost handoff={handoff}>
+          <AuthCurtainHost handoff={handoff} label={label}>
             {gate === undefined ? <p>page content</p> : <Gate ready={gate} />}
           </AuthCurtainHost>
         </ViewerSessionProvider>,
@@ -61,6 +64,34 @@ describe('AuthCurtainHost', () => {
   function curtain() {
     return container.querySelector('[role="status"]');
   }
+
+  it('takes the pre-paint curtain down when its own is finished', () => {
+    // The two are one loader from the visitor's side: the attribute keeps the
+    // document hidden across the window React did not exist for, and React owns
+    // the moment it stops being needed. Clearing it on mount instead would open
+    // a hole between the two curtains.
+    document.documentElement.setAttribute(AUTH_HANDOFF_ATTRIBUTE, '');
+    render({ handoff: true, confirmedSignedIn: false });
+    expect(document.documentElement.hasAttribute(AUTH_HANDOFF_ATTRIBUTE)).toBe(
+      true,
+    );
+
+    render({ handoff: true, confirmedSignedIn: true });
+    expect(document.documentElement.hasAttribute(AUTH_HANDOFF_ATTRIBUTE)).toBe(
+      false,
+    );
+  });
+
+  it('names what the visitor is actually waiting for', () => {
+    // A returning player on a resumed tab reaches this curtain too, and is not
+    // being signed in.
+    render({
+      handoff: true,
+      confirmedSignedIn: false,
+      label: 'Loading your dashboard',
+    });
+    expect(curtain()?.textContent).toContain('Loading your dashboard');
+  });
 
   it('renders nothing extra outside a handoff, however loud the gates are', () => {
     // The anonymous path. A gate that is not ready must not conjure a curtain

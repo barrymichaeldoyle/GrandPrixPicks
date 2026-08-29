@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 import { useBodyScrollLock } from '@/hooks/useModalDialog';
 
+import { AUTH_HANDOFF_ATTRIBUTE } from './pre-paint-curtain';
 import { useViewerSession } from './useViewerSession';
 
 /**
@@ -69,8 +70,18 @@ export function useAuthCurtainGate(ready: boolean) {
  */
 export function AuthCurtainHost({
   handoff,
+  label,
   children,
-}: PropsWithChildren<{ handoff: boolean }>) {
+}: PropsWithChildren<{
+  handoff: boolean;
+  /**
+   * What the visitor is actually waiting for. A sign-in and a resumed tab both
+   * end at the same assembled dashboard, but only one of them is signing
+   * anybody in, and telling a returning player they are being signed in is a
+   * small lie they can feel.
+   */
+  label: string;
+}>) {
   const { confirmedSignedIn } = useViewerSession();
   const [pendingGates, setPendingGates] = useState(0);
   const [expired, setExpired] = useState(false);
@@ -90,6 +101,11 @@ export function AuthCurtainHost({
 
   useEffect(() => {
     if (!active) {
+      // Hands the pre-paint curtain over. It covered the window this component
+      // did not exist for, and clearing the attribute here rather than on mount
+      // is what makes the two one continuous loader: the document stays hidden
+      // by CSS until React's own curtain has finished with it.
+      document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
       return;
     }
     const timer = window.setTimeout(() => setExpired(true), CURTAIN_TIMEOUT_MS);
@@ -98,7 +114,7 @@ export function AuthCurtainHost({
 
   return (
     <AuthCurtainContext.Provider value={{ active, registerGate }}>
-      {active ? <SigningInCurtain /> : null}
+      {active ? <SigningInCurtain label={label} /> : null}
       {children}
     </AuthCurtainContext.Provider>
   );
@@ -116,7 +132,7 @@ export function AuthCurtainHost({
  * was invisible, and the handoff ended on a page scrolled somewhere the visitor
  * never chose. The lock is the same counted one the modals use.
  */
-function SigningInCurtain() {
+function SigningInCurtain({ label }: { label: string }) {
   useBodyScrollLock(true);
 
   return (
@@ -130,7 +146,7 @@ function SigningInCurtain() {
         aria-hidden
       />
       <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-        Signing you in
+        {label}
       </p>
     </div>
   );

@@ -37,7 +37,14 @@ import {
 } from '@/integrations/clerk/initial-auth';
 import { isClerkFreeRoute } from '@/integrations/clerk/clerk-free-routes';
 import { preloadClerkRuntime } from '@/integrations/clerk/preload';
+import {
+  APP_SHELL_ATTRIBUTE,
+  AUTH_HANDOFF_ATTRIBUTE,
+  PRE_PAINT_CURTAIN_CSS,
+  prePaintCurtainScript,
+} from '@/integrations/clerk/pre-paint-curtain';
 import { hasClerkSessionCookie } from '@/integrations/clerk/session-cookie';
+import { useSsrViewerDataMissing } from '@/integrations/clerk/ssr-viewer-data';
 import {
   ClerkRuntimeControlProvider,
   useClerkRuntimeControl,
@@ -89,6 +96,14 @@ const ClerkSignInOverlay = lazy(() =>
 interface MyRouterContext {
   queryClient: QueryClient;
 }
+
+/**
+ * How long after a Clerk redirect the session cookie may still show up and
+ * count as this arrival's. Long enough for the SDK to finish booting on a
+ * phone, short enough that a curtain never lands on top of a page the visitor
+ * has already started reading.
+ */
+const SESSION_ARRIVAL_WINDOW_MS = 1_200;
 
 /**
  * Warmed at document parse so the first Sign in click does not open with a DNS
@@ -327,7 +342,17 @@ function RootDocument({ children }: PropsWithChildren) {
   }, []);
 
   return (
-    <html lang="en" className="dark" data-theme="dark">
+    <html
+      lang="en"
+      className="dark"
+      data-theme="dark"
+      /* The pre-paint script marks this element before React reaches it, which
+         is the whole point of it (see `pre-paint-curtain.ts`) and is exactly the
+         "modified before hydration" case this attribute exists for. Without it
+         every signed-in arrival logs a hydration mismatch for an attribute
+         React never rendered and does not own. */
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -335,6 +360,21 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
+        {/* Blocking, and only on a document the server rendered logged out:
+            that is the one render the browser can already know is about to be
+            replaced. See `pre-paint-curtain.ts`. */}
+        {initialAuth.isSignedIn ? null : (
+          <>
+            <style
+              dangerouslySetInnerHTML={{ __html: PRE_PAINT_CURTAIN_CSS }}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: prePaintCurtainScript(initialAuth.sessionCookieName),
+              }}
+            />
+          </>
+        )}
         <HeadContent />
       </head>
       <body>
@@ -342,6 +382,7 @@ function RootDocument({ children }: PropsWithChildren) {
             sit here are gone: backgrounds are flat colour in this system, and
             a full-viewport gradient is the single biggest thing standing
             between the app and "calm". */}
+        {initialAuth.isSignedIn ? null : <PrePaintCurtain />}
         <AppMotionProvider>
           <InitialAuthProvider value={initialAuth}>
             <AppRuntimeBoundary
@@ -406,6 +447,38 @@ function RootDocument({ children }: PropsWithChildren) {
 }
 
 /**
+ * The curtain the pre-paint script reveals, and the reason it can reveal
+ * anything at all: this markup ships in the server's HTML, so raising it costs
+ * one attribute and no round trip.
+ *
+ * Visually identical to `SigningInCurtain` in `auth-curtain.tsx` on purpose —
+ * React's curtain takes over from this one mid-load, and a handoff between two
+ * loaders is only invisible if they are the same loader. Change one, change
+ * both.
+ *
+ * `display:none` by default (see `PRE_PAINT_CURTAIN_CSS`), so a signed-out
+ * visitor renders it and never sees it.
+ */
+function PrePaintCurtain() {
+  return (
+    <div
+      id="gpp-pre-paint-curtain"
+      className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page"
+      role="status"
+      aria-live="polite"
+    >
+      <Loader2
+        className="h-8 w-8 animate-spin text-accent motion-reduce:animate-none"
+        aria-hidden
+      />
+      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
+        Signing you in
+      </p>
+    </div>
+  );
+}
+
+/**
  * The visible app frame.
  *
  * Only reason it is a component: while the sign-in curtain is up this has to go
@@ -424,6 +497,9 @@ function AppShell({ children }: PropsWithChildren) {
         active ? ' invisible' : ''
       }`}
       inert={active}
+      /* The pre-paint curtain hides this by attribute, before React exists to
+         pass `active`. Same intent, one lifecycle earlier. */
+      {...{ [APP_SHELL_ATTRIBUTE]: '' }}
     >
       {children}
     </div>
@@ -455,16 +531,35 @@ function AppRuntimeBoundary({
   /** A Clerk redirect landed back on this page; the handshake needs the runtime. */
   const [returningFromClerk, setReturningFromClerk] = useState(false);
   /**
-   * Narrower than `returningFromClerk`: a `__clerk*` callback parameter is only
-   * ever a sign-in handshake, whereas an accounts.dev referrer also covers a
-   * hosted sign-*out*. Only the unambiguous case may raise the curtain, or a
-   * signing-out visitor would stare at "Signing you in" until it timed out.
+   * The browser holds a session this document was not rendered with, so the
+   * page on screen is the logged-out one and is about to be replaced.
+   *
+   * This used to be inferred from a `__clerk*` callback parameter or an
+   * `accounts.dev` referrer, and both readings were wrong on production. Signing
+   * in with Google or Apple returns through *this instance's* Clerk host
+   * (`clerk.grandprixpicks.com`), which is not `accounts.dev`, so the referrer
+   * never matched and the curtain never went up on the one arrival that needs
+   * it most. Meanwhile a sign-*out* redirect does carry a handshake parameter,
+   * so the only time the loader appeared was over a visitor on their way out,
+   * where it read "Signing you in" until it timed out.
+   *
+   * The session cookie has neither failure. It is the same signal SSR read, so
+   * "server and browser disagree" is exactly what it detects; it says nothing
+   * about which host redirected here; and sign-out clears it before returning,
+   * so a departure can never raise a sign-in curtain.
    */
-  const [clerkHandshake, setClerkHandshake] = useState(false);
+  const [sessionMissedByServer, setSessionMissedByServer] = useState(false);
   /** The modal reported a session, so the page becomes the signed-in app. */
   const [signedInViaModal, setSignedInViaModal] = useState(false);
   /** Provider mounted but idle: pays the Clerk boot cost before the click. */
   const [runtimeWarm, setRuntimeWarm] = useState(false);
+  /**
+   * The server rendered this viewer's page without their data, so what is on
+   * screen is a skeleton that the client is about to replace. Unlike the two
+   * signals above this one is known during the server render, so the curtain
+   * ships in the HTML rather than being applied to it.
+   */
+  const ssrViewerDataMissing = useSsrViewerDataMissing();
   const [signInOpen, setSignInOpen] = useState(false);
   /** Clicked, modal not on screen yet. Drives the button's own pending state. */
   const [signInPending, setSignInPending] = useState(false);
@@ -504,11 +599,46 @@ function AppRuntimeBoundary({
       new URLSearchParams(window.location.search).keys(),
     ).some((key) => key.startsWith('__clerk'));
 
-    if (fromClerk || hasClerkCallback) {
+    // Read once, here, rather than during render: the cookie is not a React
+    // input, and the pre-paint script has already acted on the same read.
+    const missedSession = !initialSignedIn && hasClerkSessionCookie();
+
+    if (fromClerk || hasClerkCallback || missedSession) {
       setReturningFromClerk(true);
     }
-    if (hasClerkCallback) {
-      setClerkHandshake(true);
+    if (missedSession) {
+      setSessionMissedByServer(true);
+    } else if (initialSignedIn || !hasClerkCallback) {
+      // Nothing to hand off to. Whatever the pre-paint script concluded from
+      // the cookie, it is not true any more (a session that ended between the
+      // two reads), and its curtain has to come down here or it stays up until
+      // its own timeout over a page that is finished underneath it.
+      document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
+    } else {
+      // A Clerk redirect landed on a document the server rendered signed out,
+      // and the session cookie is not here *yet*. Both outcomes are still open:
+      // Clerk is about to write one (a sign-in whose SDK boot lost the race
+      // with our hydration), or it never will (a sign-out, which returns
+      // through the same redirect carrying the same parameters and leaves the
+      // cookie at `0`).
+      //
+      // So watch instead of guessing, which is what the old code could not do:
+      // it read the parameter as proof of a sign-in, and the one time the
+      // curtain actually appeared was over someone signing out, reading
+      // "Signing you in" until it timed out.
+      const startedAt = Date.now();
+      const poll = window.setInterval(() => {
+        if (hasClerkSessionCookie()) {
+          window.clearInterval(poll);
+          setReturningFromClerk(true);
+          setSessionMissedByServer(true);
+        } else if (Date.now() - startedAt > SESSION_ARRIVAL_WINDOW_MS) {
+          // Past this point a curtain would be an interruption rather than a
+          // cover: whatever is on screen has been on screen long enough to read.
+          window.clearInterval(poll);
+          document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
+        }
+      }, 60);
     }
 
     /**
@@ -630,7 +760,8 @@ function AppRuntimeBoundary({
    * Both inputs are set client-side only, so SSR renders `false` for everyone
    * and an anonymous visit is byte-identical to what it was before.
    */
-  const authHandoff = signedInViaModal || clerkHandshake;
+  const authHandoff =
+    signedInViaModal || sessionMissedByServer || ssrViewerDataMissing;
 
   return (
     <ClerkRuntimeControlProvider value={runtimeControl}>
@@ -652,7 +783,14 @@ function AppRuntimeBoundary({
         }
       >
         <AuthenticatedAppRuntime assumeSignedIn={authHandoff}>
-          <AuthCurtainHost handoff={authHandoff}>
+          <AuthCurtainHost
+            handoff={authHandoff}
+            label={
+              signedInViaModal || sessionMissedByServer
+                ? 'Signing you in'
+                : 'Loading your dashboard'
+            }
+          >
             {/* Inside the curtain host rather than beside the runtime's other
                 post-sign-in effects, because it has to be able to hold the
                 curtain: `useAuthCurtainGate` reads a context this provides, and

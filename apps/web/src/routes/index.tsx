@@ -150,6 +150,19 @@ export const Route = createFileRoute('/')({
       drivers: data.drivers,
       h2hMatchups: data.h2hMatchups,
       dashboard,
+      /*
+       * "The server rendered this viewer's page without their data", which is
+       * what raises the sign-in curtain (see `useSsrViewerDataMissing`).
+       *
+       * It has to be decided here rather than inferred from `dashboard` alone,
+       * because `dashboard` is null for two unrelated reasons: the SSR read
+       * came up empty (a `__session` token that had expired, which is most cold
+       * phone loads), and *every client navigation*, which skips the read
+       * entirely. Reading the null on its own put a full-screen loader over an
+       * ordinary tap back to the dashboard.
+       */
+      ssrViewerDataMissing:
+        typeof document === 'undefined' && dashboard === null,
       now,
     };
   },

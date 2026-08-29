@@ -120,14 +120,22 @@ export function WeatherFeedCard({
 
   return (
     <article className="mb-4 overflow-hidden rounded-sm border border-border bg-surface">
-      <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
-        <div>
+      <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+        <div className="min-w-0">
           <h3 className="font-title flex items-center gap-2 font-medium text-text">
-            <CloudSun className="h-5 w-5 text-text-muted" aria-hidden />
+            <CloudSun
+              className="h-5 w-5 shrink-0 text-text-muted"
+              aria-hidden
+            />
             {formatDay(session.startsAt, forecast.timeZone)} weather
           </h3>
-          <p className="mt-1 text-sm text-text-muted">
-            Around the next session · {race.name}
+          {/* One line on a phone, and the phrase gives way rather than the
+              name: "Around the next session" is the sentence's filler, the
+              Grand Prix is the fact. Truncating the whole string instead left
+              "Italian ..." on a 390px screen. */}
+          <p className="mt-0.5 truncate text-xs text-text-muted sm:mt-1 sm:text-sm">
+            <span className="hidden sm:inline">Around the next session · </span>
+            {race.name}
           </p>
         </div>
         <p className="gpp-mono shrink-0 text-xs text-text-muted">
@@ -135,12 +143,22 @@ export function WeatherFeedCard({
         </p>
       </header>
 
-      <p className="px-4 pt-4 text-sm leading-6 text-text sm:px-5">
+      <p className="px-4 pt-3 text-sm leading-6 text-text sm:px-5 sm:pt-4">
         {forecastNarrative(forecast, session)}
       </p>
 
+      {/*
+        A phone reads these as a list of three moments, so each window is one
+        row there: when on the left, what on the right. Stacked as four separate
+        lines they ran to about 200px each and pushed the rest of the feed off
+        a 390px screen for information that is four short strings.
+
+        From `sm` the three windows become columns instead, and a left/right
+        split inside a ~200px column would be cramped, so the same two blocks
+        stack again — one layout, two shapes, via the grid's column count.
+      */}
       <div
-        className={`mt-4 grid gap-px bg-border ${
+        className={`mt-3 grid gap-px bg-border sm:mt-4 ${
           windows.length === 1
             ? 'sm:grid-cols-1'
             : windows.length === 2
@@ -153,12 +171,12 @@ export function WeatherFeedCard({
             key={window.label}
             className={
               window.highlighted
-                ? 'bg-accent-muted px-4 py-4'
-                : 'bg-surface-elevated px-4 py-4'
+                ? 'bg-accent-muted px-4 py-2.5 sm:py-4'
+                : 'bg-surface-elevated px-4 py-2.5 sm:py-4'
             }
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-1">
+              <div className="min-w-0">
                 <p
                   className={
                     window.highlighted
@@ -168,26 +186,35 @@ export function WeatherFeedCard({
                 >
                   {window.label}
                 </p>
-                <p className="gpp-mono mt-1 text-xs text-text-muted">
+                <p className="gpp-mono mt-0.5 text-xs text-text-muted sm:mt-1">
                   {window.detail}
                 </p>
               </div>
-              <WeatherIcon
-                conditionCode={window.summary.conditionCode}
-                className="h-4 w-4 text-text-muted"
-              />
+              {/* Right-aligned on a phone so the two columns read as one row,
+                  left-aligned once it is a column of its own. */}
+              <div className="flex min-w-0 flex-col items-end text-right sm:items-start sm:text-left">
+                <p className="flex items-center gap-1.5 text-sm text-text">
+                  <WeatherIcon
+                    conditionCode={window.summary.conditionCode}
+                    className="h-4 w-4 shrink-0 text-text-muted"
+                  />
+                  {conditionLabel(window.summary.conditionCode)}
+                </p>
+                <p className="gpp-mono mt-0.5 text-xs text-text-muted">
+                  {window.summary.temperatureC}°C · {rainLabel(window.summary)}
+                </p>
+              </div>
             </div>
-            <p className="mt-3 text-sm text-text">
-              {conditionLabel(window.summary.conditionCode)}
-            </p>
-            <p className="gpp-mono mt-1 text-xs text-text-muted">
-              {window.summary.temperatureC}°C · {rainLabel(window.summary)}
-            </p>
           </div>
         ))}
       </div>
 
-      <footer className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      {/* One row at every width. Stacked, these two short lines cost 105px of a
+          phone screen for an attribution and a link, because the link's 44px
+          tap target was sitting on a row of padding of its own. Wrapping is
+          still allowed: at 320px, or with a longer provider name, the link
+          drops to a second line rather than squashing. */}
+      <footer className="flex flex-wrap items-center justify-between gap-x-3 px-4 py-1 sm:px-5 sm:py-4">
         <p className="text-xs text-text-muted">
           Data from{' '}
           <a
@@ -202,7 +229,7 @@ export function WeatherFeedCard({
         {writeup ? (
           <Link
             to={writeup.to}
-            className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-text hover:text-accent"
+            className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-semibold text-text hover:text-accent"
           >
             Full weekend forecast
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -211,7 +238,7 @@ export function WeatherFeedCard({
           <Link
             to="/races/$raceSlug"
             params={{ raceSlug: race.slug }}
-            className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-text hover:text-accent"
+            className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-semibold text-text hover:text-accent"
           >
             Open race weekend
             <ArrowRight className="h-4 w-4" aria-hidden />

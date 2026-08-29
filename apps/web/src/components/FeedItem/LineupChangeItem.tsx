@@ -29,19 +29,9 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
   return (
     <>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
-            Grid change
-          </p>
-          <p className="mt-1 text-sm font-semibold text-text">
-            {event.raceName
-              ? `New line-up from the ${event.raceName}`
-              : 'The line-up has changed'}
-            <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
-              · {formatRelativeTime(event.createdAt)}
-            </span>
-          </p>
-        </div>
+        <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
+          Grid change
+        </p>
         <ReactionButton
           feedEventId={event._id}
           reactionCount={event.reactionCount}
@@ -50,6 +40,19 @@ export function LineupChangeItem({ event }: { event: FeedEvent }) {
           onCountClick={() => setReactionsOpen(true)}
         />
       </div>
+
+      {/* Below the row, not inside it: sharing the eyebrow's column meant
+          being laid out ~90px narrower than the card and wrapping that much
+          early, under a button with nothing beside it. Same fix as
+          `RaceNewsItem`. */}
+      <p className="mt-1 text-sm font-semibold text-text">
+        {event.raceName
+          ? `New line-up from the ${event.raceName}`
+          : 'The line-up has changed'}
+        <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
+          · {formatRelativeTime(event.createdAt)}
+        </span>
+      </p>
 
       <ul className="mt-3 space-y-px">
         {moves.map((move) => {

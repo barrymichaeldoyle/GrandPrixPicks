@@ -48,6 +48,18 @@ export function RaceNewsItem({
   const team = event.newsDrivers?.[0]?.team ?? null;
   const teamColour = (team && TEAM_COLORS[team]) || null;
 
+  /** Is there anything to sit beside the reaction button on the first row? */
+  const identity = !grouped || (event.newsDrivers?.length ?? 0) > 0;
+
+  const headline = (
+    <p className="text-sm font-semibold text-text not-first:mt-1.5">
+      {event.newsHeadline}
+      <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
+        · {formatRelativeTime(event.createdAt)}
+      </span>
+    </p>
+  );
+
   return (
     <div
       className={teamColour ? 'gpp-team-bar pl-3' : undefined}
@@ -68,7 +80,7 @@ export function RaceNewsItem({
               codes, so one news item does not look like two different things
               depending on where you meet it. */}
           {event.newsDrivers && event.newsDrivers.length > 0 ? (
-            <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <p className="flex flex-wrap items-center gap-1.5 not-first:mt-1.5">
               {event.newsDrivers.map((driver) => (
                 <DriverBadge
                   key={driver.code}
@@ -83,12 +95,11 @@ export function RaceNewsItem({
               ))}
             </p>
           ) : null}
-          <p className="mt-1.5 text-sm font-semibold text-text">
-            {event.newsHeadline}
-            <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
-              · {formatRelativeTime(event.createdAt)}
-            </span>
-          </p>
+          {/* Only when there is nothing else to put beside the button. The
+              headline is always better off across the full card (see below),
+              but an empty column with a lone right-aligned button above it is
+              worse than the narrow headline this avoids. */}
+          {identity ? null : headline}
         </div>
         <ReactionButton
           feedEventId={event._id}
@@ -99,6 +110,17 @@ export function RaceNewsItem({
           context="news"
         />
       </div>
+
+      {/*
+        Full width, and not in the flex column above it.
+        The reaction button is a sibling of the badges, so anything sharing
+        their column is laid out 91px narrower than the card — on a 336px feed
+        card that took the headline from 324px to 233px and wrapped it two or
+        three words early, under a button sitting on the row above with nothing
+        beside it. The body copy never had the problem, which is why the two
+        read as different widths.
+      */}
+      {identity ? headline : null}
 
       {event.newsBody ? (
         <p className="gpp-reading-copy mt-2 text-sm text-text-muted">

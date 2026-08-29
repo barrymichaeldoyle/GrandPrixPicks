@@ -16,19 +16,35 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { DriverBadge } from '../DriverBadge';
 
 /**
- * Constructors' order for the loading rows. This is last season's order, the
- * best a component with no database can do, so a team or two may shift when the
- * live standings arrive with the real rows.
+ * The duels to draw while the picks are in flight.
  *
  * The current pairings only: the season's list also holds the pairings that
  * mid-season driver changes have retired, and including those would draw a
  * team twice.
+ *
+ * `teamOrder` is this season's constructors table, which is what the server
+ * sorts the real rows by. Without it the rows fall back to last season's final
+ * order, and the difference between the two is exactly the reshuffle a reader
+ * used to see the moment their picks landed: on a phone, where all eleven rows
+ * are on screen at once, a couple of teams swapping places reads as the list
+ * being rebuilt underneath them.
  */
-const loadingRows = [...currentPairings()].sort(
-  (a, b) =>
-    teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
-    a.team.localeCompare(b.team),
-);
+export function loadingRowsFor(teamOrder: readonly string[] | undefined) {
+  const liveIndex = new Map(teamOrder?.map((team, index) => [team, index]));
+  // A team the live order does not mention sorts after every one it does,
+  // rather than at the top: `?? -1` would put an unknown team ahead of the
+  // championship leader.
+  function rank(team: string): number {
+    return liveIndex.get(team) ?? liveIndex.size;
+  }
+
+  return [...currentPairings()].sort(
+    (a, b) =>
+      rank(a.team) - rank(b.team) ||
+      teamStandingsIndex(a.team) - teamStandingsIndex(b.team) ||
+      a.team.localeCompare(b.team),
+  );
+}
 
 /**
  * The team column, which the loading state can fill in for real.
@@ -67,12 +83,20 @@ export function H2HPicksDialog({
   raceId,
   sessionType,
   displayName,
+  teamOrder,
   onClose,
 }: {
   userId: Id<'users'>;
   raceId: Id<'races'>;
   sessionType: 'quali' | 'sprint_quali' | 'sprint' | 'race';
   displayName: string;
+  /**
+   * This season's constructors order, for the loading rows. Comes from the row
+   * that opened the dialog, which has been subscribed to it since the feed
+   * rendered; asking for it here would arrive no sooner than the picks it is
+   * meant to precede.
+   */
+  teamOrder?: readonly string[];
   onClose: () => void;
 }) {
   const panelRef = useModalDialog<HTMLDivElement>({ onClose });
@@ -135,7 +159,7 @@ export function H2HPicksDialog({
             // waited on is the outcome — which is the only thing that pulses.
             // Nothing here is a different shape from the loaded row, so
             // nothing reflows when it arrives.
-            loadingRows.map((duel) => (
+            loadingRowsFor(teamOrder).map((duel) => (
               <div key={duel.team} className="flex h-9 items-center gap-2 px-4">
                 <TeamCell team={duel.team} />
                 <span className="inline-flex shrink-0 opacity-30">

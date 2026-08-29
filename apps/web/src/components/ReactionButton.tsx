@@ -11,7 +11,7 @@ import {
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useMutation } from 'convex/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { Tooltip } from '@/components/Tooltip';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -55,6 +55,12 @@ export function ReactionButton({
   const setReaction = useMutation(api.feed.setReaction);
   const removeReaction = useMutation(api.feed.removeReaction);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+  // Anchoring alone cannot guarantee the options are reachable: whichever edge
+  // the panel grows from, a trigger near the opposite edge pushes it off a
+  // phone screen. So we measure the panel once it is up and slide it back in.
+  const [pickerShift, setPickerShift] = useState(0);
+  const pickerShiftRef = useRef(0);
   const [optimisticReaction, setOptimisticReaction] = useState<
     ReactionType | null | undefined
   >(undefined);
@@ -62,6 +68,43 @@ export function ReactionButton({
   const [optimisticCounts, setOptimisticCounts] = useState<
     ReactionCounts | undefined
   >();
+
+  useLayoutEffect(() => {
+    if (!pickerOpen) {
+      return;
+    }
+
+    function keepPickerOnScreen() {
+      const panel = pickerRef.current;
+      if (!panel) {
+        return;
+      }
+
+      const margin = 8;
+      const rect = panel.getBoundingClientRect();
+      // Undo the shift already applied so we always reason about where the
+      // popover would sit unaided.
+      const left = rect.left - pickerShiftRef.current;
+      const right = rect.right - pickerShiftRef.current;
+
+      let shift = 0;
+      if (right > window.innerWidth - margin) {
+        shift = window.innerWidth - margin - right;
+      }
+      if (left + shift < margin) {
+        shift = margin - left;
+      }
+
+      pickerShiftRef.current = shift;
+      setPickerShift(shift);
+    }
+
+    // Runs before paint, so a shift left over from the previous open is
+    // corrected (it is subtracted out above) before anyone sees it.
+    keepPickerOnScreen();
+    window.addEventListener('resize', keepPickerOnScreen);
+    return () => window.removeEventListener('resize', keepPickerOnScreen);
+  }, [pickerOpen]);
 
   const selectedReaction =
     optimisticReaction === undefined ? viewerReaction : optimisticReaction;
@@ -148,9 +191,16 @@ export function ReactionButton({
       {pickerOpen && (
         // pb-2 keeps a visual gap above the trigger while remaining inside the
         // hover target — margin would create a dead zone that fires mouseleave.
-        <div className="absolute bottom-full left-0 z-30 pb-2">
+        // Anchored right because the trigger sits at the right edge of a feed
+        // row: growing leftwards keeps the options on a phone screen, and the
+        // measured shift below covers any surface that places it elsewhere.
+        <div
+          ref={pickerRef}
+          className="absolute right-0 bottom-full z-30 w-max max-w-[calc(100vw-1rem)] pb-2"
+          style={{ transform: `translateX(${pickerShift}px)` }}
+        >
           <div
-            className="flex items-center gap-1 rounded-sm border border-border-strong bg-surface-elevated p-1.5"
+            className="flex flex-wrap items-center gap-1 rounded-sm border border-border-strong bg-surface-elevated p-1.5"
             role="menu"
             aria-label="Choose a reaction"
           >

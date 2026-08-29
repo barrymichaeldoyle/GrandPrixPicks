@@ -366,7 +366,19 @@ function brandHeadline(): ReactNode {
     // Typographic apostrophe: the straight quote is the one glyph on this card
     // that gives away that it was written in a code editor.
     e('div', {}, 'Everyone’s a strategist'),
-    e('div', {}, 'on Sunday. Prove it.'),
+    // "Prove it." in chartreuse. This is now the card's primary accent moment,
+    // which is the point: the other three (brand mark, P1 tick, strip dots)
+    // are all chrome, so the loudest colour on the card was never on the words
+    // doing the selling. Split into two boxes rather than a nested span
+    // because satori's inline handling is not reliable enough to trust a
+    // colour change mid-line; the gap stands in for the word space that flex
+    // would otherwise collapse.
+    e(
+      'div',
+      { style: { display: 'flex', gap: 20 } },
+      e('div', {}, 'on Sunday.'),
+      e('div', { style: { color: colors.accent } }, 'Prove it.'),
+    ),
   );
 }
 
@@ -490,9 +502,10 @@ function scoringTile(band: (typeof SCORING_BANDS)[number]): ReactNode {
  * empty. Pins keep the hierarchy stable at thumbnail size.
  *
  * No drawn CTA button (not clickable in an OG image) and no domain (the
- * platform already shows it under the card). Accent is scarce: one lime on the
- * tower's P1 tick, plus the strip separator dots. The scoring tiles carry the
- * only other colour, and it is semantic.
+ * platform already shows it under the card). Accent is scarce and now spent
+ * where it earns most: "Prove it." in the headline, with the tower's P1 tick,
+ * the strip separator dots and the brand mark as chrome behind it. The scoring
+ * tiles carry the only other colour, and it is semantic.
  *
  * The headline sat at 76px over a ~180px dead band, which is the space the
  * scoring row now fills. Dropping to 72px is what buys the tiles their width

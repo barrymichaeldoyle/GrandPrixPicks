@@ -179,7 +179,32 @@ describe('DashboardPicksSummary', () => {
     expect(
       el.querySelector('[data-testid="summary-edit-top5"]'),
     ).not.toBeNull();
-    expect(el.textContent).toContain('Your qualifying picks');
+    // No status line on an open, saved session: the bars, "Edit" and the
+    // countdown in the tab row above say it. Asserting its absence is what
+    // keeps a narrating sentence from creeping back in.
+    expect(el.textContent).not.toContain('Saved.');
+  });
+
+  it('opens the Top 5 editor from a pick badge, like Edit does', () => {
+    const el = render();
+
+    act(() => {
+      el.querySelector<HTMLButtonElement>(
+        '[data-testid="top-five-picks-bar"] button',
+      )!.click();
+    });
+
+    expect(document.querySelector('[data-testid="top5-form"]')).not.toBeNull();
+  });
+
+  it('leaves the pick badges inert once the session is locked', () => {
+    const el = render({
+      session: openSession({ canCreate: false, canEdit: false }),
+    });
+
+    expect(
+      el.querySelectorAll('[data-testid="top-five-picks-bar"] button'),
+    ).toHaveLength(0);
   });
 
   it('opens the Top 5 editor scoped to this session only', () => {
@@ -247,7 +272,9 @@ describe('DashboardPicksSummary', () => {
     expect(
       el.querySelectorAll('[data-testid="summary-h2h-bar"] button'),
     ).toHaveLength(0);
-    expect(el.textContent).toContain('Qualifying picks are locked');
+    expect(el.textContent).toContain(
+      'Locked in. Points land once the results are published.',
+    );
   });
 
   it('prompts for the missing half when team-mate battles are unfinished', () => {

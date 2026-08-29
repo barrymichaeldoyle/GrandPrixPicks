@@ -39,10 +39,15 @@ export function FeedItem({
         isSocialActivity
           ? 'px-1 py-2.5'
           : // A grouped news card sits inside NewsGroup's own bordered block,
-            // so it must not draw a second border and padding inside it.
+            // so it must not draw a second border inside it.
             grouped && event.type === 'race_news'
             ? ''
-            : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
+            : event.type === 'race_news'
+              ? // No padding either way: the news card draws a team bar down
+                // its own left edge, and padding out here would inset the bar
+                // from the card's edge and stop it running the full height.
+                `border border-border/80 bg-surface ${radiusClass} ${borderClass}`
+              : `border border-border/80 bg-surface p-2.5 ${radiusClass} ${borderClass}`
       }
     >
       {event.type === 'lineup_change' ? (

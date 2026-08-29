@@ -3,10 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 
-import { DriverBadge } from '@/components/DriverBadge';
 import { TEAM_COLORS } from '@/lib/teamColors';
-import { SESSION_LABELS } from '@/lib/sessions';
-import type { SessionType } from '@/lib/sessions';
 
 import { ReactionButton } from '../ReactionButton';
 import { formatRelativeTime } from './helpers';
@@ -21,11 +18,20 @@ import type { FeedEvent } from './types';
  * player's ("Barry scored 18"), so dropping the avatar row and leading with a
  * label is what tells a reader at a glance that this is the site talking.
  *
- * The sessions line is the part that earns the card its place. A grid penalty
- * moves a race start and leaves the qualifying classification alone, so naming
- * the sessions it changes turns a headline into something a player can act on:
- * they know which of their two Top 5s to go back to. That is also why the field
- * is required when publishing — see `docs/race-news.md`.
+ * A card is a headline, the story, and where it came from. It also carried
+ * driver badges and a row of REVISIT session chips, and in a feed that is two
+ * labelled rows above two sentences: the badges repeated codes the headline had
+ * already named, and the chips read "Qualifying, Race" on nearly every item.
+ * The driver survives as the team colour on the edge, which is the one thing
+ * the headline cannot say at a glance.
+ *
+ * `affectsSessions` is still required when publishing — see `docs/race-news.md`
+ * — and still drives the write-up page. This surface stops repeating it.
+ *
+ * The card owns its own padding rather than taking it from `FeedItem`, because
+ * the team bar is drawn on this element: with the padding outside, the bar was
+ * inset from the block's edge and short of its neighbours, and a run of leaning
+ * bars only lines up if each one runs the full height of its row.
  */
 export function RaceNewsItem({
   event,
@@ -41,66 +47,89 @@ export function RaceNewsItem({
   grouped?: boolean;
 }) {
   const [reactionsOpen, setReactionsOpen] = useState(false);
-  const sessions = (event.newsAffectsSessions ?? []) as SessionType[];
-  // The item's own colour, from the driver it is about. Same 3px the badges
+  // The item's own colour, from the driver it is about. Same colour the badges
   // and `LineupChangeItem` use, so a run of news reads as a Williams story
-  // then a Mercedes one rather than two grey blocks.
+  // then a Mercedes one rather than two grey blocks. With the badges gone it is
+  // the only thing saying whose story this is before the headline.
   const team = event.newsDrivers?.[0]?.team ?? null;
   const teamColour = (team && TEAM_COLORS[team]) || null;
 
-  /** Is there anything to sit beside the reaction button on the first row? */
-  const identity = !grouped || (event.newsDrivers?.length ?? 0) > 0;
-
-  const headline = (
-    <p className="text-sm font-semibold text-text not-first:mt-1.5">
-      {event.newsHeadline}
-      <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
-        · {formatRelativeTime(event.createdAt)}
-      </span>
-    </p>
-  );
-
   return (
     <div
-      className={teamColour ? 'gpp-team-bar pl-3' : undefined}
+      className={
+        // pl-4, not pl-3: the leaning bar is 8px across at its thick end, and
+        // 12px of padding left 4px between colour and copy on that end only,
+        // which reads as the text drifting rather than the bar tapering.
+        teamColour ? 'gpp-team-bar gpp-team-bar-lean p-2.5 pl-4' : 'p-2.5'
+      }
       style={
         teamColour
           ? ({ '--team-colour': teamColour } as CSSProperties)
           : undefined
       }
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {grouped ? null : (
-            <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
-              Weekend news
-            </p>
-          )}
-          {/* Same badge the write-up cards carry, from the same published
-              codes, so one news item does not look like two different things
-              depending on where you meet it. */}
-          {event.newsDrivers && event.newsDrivers.length > 0 ? (
-            <p className="flex flex-wrap items-center gap-1.5 not-first:mt-1.5">
-              {event.newsDrivers.map((driver) => (
-                <DriverBadge
-                  key={driver.code}
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                  prerenderTooltip={false}
-                />
-              ))}
-            </p>
+      {grouped ? null : (
+        <p className="flex items-center gap-1.5 text-xs font-semibold tracking-label text-accent uppercase">
+          Weekend news
+        </p>
+      )}
+
+      {/*
+        Full width, with nothing beside it.
+        The reaction button used to share this row, which laid the headline out
+        91px narrower than the card — on a 336px feed card that took it from
+        324px to 233px and wrapped it two or three words early, under a button
+        sitting on the row above with nothing beside it. The body copy never had
+        the problem, which is why the two read as different widths. The button
+        now sits in the footer beside the source, where a fixed-width control
+        belongs next to a short line rather than across from a wrapping one.
+      */}
+      <p className="text-sm font-semibold text-text not-first:mt-1.5">
+        {event.newsHeadline}
+        <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-text-muted">
+          · {formatRelativeTime(event.createdAt)}
+        </span>
+      </p>
+
+      {event.newsBody ? (
+        <p className="gpp-reading-copy mt-2 text-sm text-text-muted">
+          {event.newsBody}
+        </p>
+      ) : null}
+
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+          {event.newsSourceUrl && event.newsSourceName ? (
+            // Attribution rather than decoration: the card states something as
+            // fact, so where it came from travels with it, the same standard the
+            // write-up pages hold.
+            <a
+              href={event.newsSourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="gpp-touch-target inline-flex items-center gap-1 text-xs text-text-muted underline decoration-border-strong underline-offset-4 transition-colors hover:text-text"
+            >
+              {event.newsSourceName}
+              <ExternalLink className="size-3 shrink-0" aria-hidden />
+            </a>
           ) : null}
-          {/* Only when there is nothing else to put beside the button. The
-              headline is always better off across the full card (see below),
-              but an empty column with a lone right-aligned button above it is
-              worse than the narrow headline this avoids. */}
-          {identity ? null : headline}
+
+          {/* The one thing the chips carried that was worth keeping: what these
+            picks are scored against, which is the half readers get wrong about
+            a grid penalty. It moves a start, it does not rewrite a
+            classification. Grouped, `NewsGroup` says it once for the whole run
+            instead. */}
+          {grouped ? null : (
+            <Link
+              to="/results-policy"
+              hash="sessions-heading"
+              className="text-xs whitespace-nowrap text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
+            >
+              How these are scored
+            </Link>
+          )}
         </div>
+
         <ReactionButton
           feedEventId={event._id}
           reactionCount={event.reactionCount}
@@ -109,70 +138,6 @@ export function RaceNewsItem({
           onCountClick={() => setReactionsOpen(true)}
           context="news"
         />
-      </div>
-
-      {/*
-        Full width, and not in the flex column above it.
-        The reaction button is a sibling of the badges, so anything sharing
-        their column is laid out 91px narrower than the card — on a 336px feed
-        card that took the headline from 324px to 233px and wrapped it two or
-        three words early, under a button sitting on the row above with nothing
-        beside it. The body copy never had the problem, which is why the two
-        read as different widths.
-      */}
-      {identity ? headline : null}
-
-      {event.newsBody ? (
-        <p className="gpp-reading-copy mt-2 text-sm text-text-muted">
-          {event.newsBody}
-        </p>
-      ) : null}
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        {sessions.length > 0 ? (
-          <p className="flex flex-wrap items-center gap-1.5 text-xs text-text-muted">
-            {/* "Revisit", not "Affects". A grid penalty does not change the
-                qualifying classification, and a chip reading "Affects
-                Qualifying" is exactly how a reader concludes that it does. */}
-            <span className="tracking-label uppercase">Revisit</span>
-            {sessions.map((session) => (
-              <span
-                key={session}
-                className="gpp-mono rounded-sm bg-surface-elevated px-1.5 py-0.5 text-[11px] text-text"
-              >
-                {SESSION_LABELS[session]}
-              </span>
-            ))}
-            {/* The chips say which picks to look at again. This says what they
-                are scored against, which is the half that gets misread: a grid
-                penalty moves a start, it does not rewrite a classification.
-                Grouped, the block says it once at the bottom instead. */}
-            {grouped ? null : (
-              <Link
-                to="/results-policy"
-                hash="sessions-heading"
-                className="underline decoration-border-strong underline-offset-4 hover:text-text"
-              >
-                How these are scored
-              </Link>
-            )}
-          </p>
-        ) : null}
-
-        {event.newsSourceUrl && event.newsSourceName ? (
-          // Attribution rather than decoration: the card states something as
-          // fact, so where it came from travels with it, the same standard the
-          // write-up pages hold.
-          <a
-            href={event.newsSourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="gpp-touch-target inline-flex items-center gap-1 text-xs text-text-muted underline decoration-border-strong underline-offset-4 transition-colors hover:text-text"
-          >
-            {event.newsSourceName}
-            <ExternalLink className="size-3 shrink-0" aria-hidden />
-          </a>
-        ) : null}
       </div>
 
       {reactionsOpen && (

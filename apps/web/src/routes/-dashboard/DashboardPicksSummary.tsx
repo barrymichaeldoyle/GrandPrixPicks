@@ -1,5 +1,5 @@
 import type { Doc, Id } from '@convex-generated/dataModel';
-import { ArrowRight, Check, Pencil } from 'lucide-react';
+import { ArrowRight, Pencil } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { lazy, Suspense, useState } from 'react';
 
@@ -93,49 +93,52 @@ export function DashboardPicksSummary({
   // were already locked when the picks were first submitted.
   const hasCard = top5.length > 0;
 
+  const detail = summaryDetail({ session, editable, hasCard });
+  const action =
+    !hasCard && editable ? (
+      <Button
+        size="sm"
+        variant="primary"
+        onClick={() => setTop5OverlayOpen(true)}
+      >
+        Make {sessionLabel.toLowerCase()} picks
+      </Button>
+    ) : session.hasResult ? (
+      <Button asChild size="sm" variant="secondary" rightIcon={ArrowRight}>
+        <Link
+          to="/races/$raceSlug"
+          params={{ raceSlug }}
+          search={{ from: 'home', session: session.sessionType }}
+        >
+          View results
+        </Link>
+      </Button>
+    ) : null;
+
   return (
     <div data-testid="dashboard-picks-summary">
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-        <div className="min-w-0">
-          {/* `h2` for the same reason as the invitation heading it swaps
-              with: the card title above it is the page `h1`. */}
-          <h2 className="text-xl font-normal text-text">
-            {!hasCard
-              ? `No ${sessionLabel.toLowerCase()} picks`
-              : session.hasResult
-                ? `${sessionLabel} results are in`
-                : editable
-                  ? `Your ${sessionLabel.toLowerCase()} picks`
-                  : `${sessionLabel} picks are locked`}
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            {summaryDetail({ session, editable, h2hComplete, hasCard })}
-          </p>
+      {/* Nothing at all in the usual case. This row held a heading ("Your
+          qualifying picks") over a status line ("Saved. Change anything here
+          until this session locks."), and on a saved, open session both were
+          describing what the rest of the card already shows: the tab row says
+          which session and when it locks, "Edit" says the Top 5 can change, and
+          the duel chips are tappable. `summaryDetail` now returns null for the
+          states something else speaks for, and the row goes with it rather than
+          collapsing to an empty 0px flex box above a 20px margin. */}
+      {detail || action ? (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          {detail ? (
+            <p className="min-w-0 text-sm text-text-muted">{detail}</p>
+          ) : null}
+          {/* `ml-auto` rather than relying on `justify-between`: with no status
+              line the button is the only child and would sit on the left. */}
+          {action ? <div className="ml-auto">{action}</div> : null}
         </div>
-        {!hasCard && editable ? (
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => setTop5OverlayOpen(true)}
-          >
-            Make {sessionLabel.toLowerCase()} picks
-          </Button>
-        ) : session.hasResult ? (
-          <Button asChild size="sm" variant="secondary" rightIcon={ArrowRight}>
-            <Link
-              to="/races/$raceSlug"
-              params={{ raceSlug }}
-              search={{ from: 'home', session: session.sessionType }}
-            >
-              View results
-            </Link>
-          </Button>
-        ) : null}
-      </div>
+      ) : null}
 
       {hasCard ? (
         <>
-          <div className="mt-5">
+          <div>
             <div className={PICKS_LABEL_ROW}>
               <p className="gpp-label text-text-muted">Your Top 5</p>
               {editable ? (
@@ -150,17 +153,24 @@ export function DashboardPicksSummary({
                 </Button>
               ) : null}
             </div>
-            <TopFivePicksBar picks={top5} drivers={drivers} />
+            {/* The cells open the same editor "Edit" does. The duel chips
+                below have always been tappable, so a Top 5 that looked
+                identical and did nothing read as the locked half of the
+                card. */}
+            <TopFivePicksBar
+              picks={top5}
+              drivers={drivers}
+              onEdit={editable ? () => setTop5OverlayOpen(true) : undefined}
+            />
           </div>
 
           <div className="mt-5">
             <div className={PICKS_LABEL_ROW}>
-              <p className="gpp-label flex items-center gap-1.5 text-text-muted">
-                {h2hComplete ? (
-                  <Check size={14} className="text-accent" aria-hidden="true" />
-                ) : null}
-                Team-mate picks
-              </p>
+              {/* No tick. Top 5 never had one (it is always five drivers or
+                  the card does not render), so a tick here read as the two
+                  halves being graded on different scales. Whether the duels are
+                  finished is already the whole point of the hint opposite. */}
+              <p className="gpp-label text-text-muted">Team-mate picks</p>
               {/* A hint, not a heading: quiet, and on the row it belongs to. */}
               {editable && h2hTotal > 0 ? (
                 <p className="text-xs text-text-muted">
@@ -295,21 +305,32 @@ export function DashboardPicksSummary({
   );
 }
 
+/**
+ * The panel's status line, or null when the card already says it.
+ *
+ * Null is the common case, and deliberately so. Every state a player can act on
+ * has a control that states it better than a sentence can: an unsaved session
+ * has a "Make picks" button, unfinished duels have a count and a "Finish"
+ * button, and a saved open session has "Edit", tappable chips and a countdown
+ * in the tab row above. Writing "Saved. Change anything here until this session
+ * locks." underneath all of that is narration.
+ *
+ * What survives is the states with nothing else to speak for them: a locked
+ * session, where the only remaining question is when points arrive, and a
+ * scored one, where the bars below are the picks rather than the results and a
+ * reader should not have to work that out.
+ */
 function summaryDetail({
   session,
   editable,
-  h2hComplete,
   hasCard,
 }: {
   session: DashboardSessionState;
   editable: boolean;
-  h2hComplete: boolean;
   hasCard: boolean;
-}): string {
+}): string | null {
   if (!hasCard) {
-    return editable
-      ? 'Nothing saved for this session yet.'
-      : 'This session locked before you picked for it.';
+    return editable ? null : 'This session locked before you picked for it.';
   }
   if (session.hasResult) {
     return 'This is the card you submitted for this session.';
@@ -317,8 +338,5 @@ function summaryDetail({
   if (!editable) {
     return 'Locked in. Points land once the results are published.';
   }
-  if (!h2hComplete) {
-    return 'Your Top 5 is saved. Finish your team-mate picks to complete the card.';
-  }
-  return 'Saved. Change anything here until this session locks.';
+  return null;
 }

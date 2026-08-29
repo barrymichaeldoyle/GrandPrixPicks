@@ -7,7 +7,6 @@ import type { ReactNode } from 'react';
 import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
-import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -51,13 +50,6 @@ function reviewedFrom(data: {
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
-const NORMAL_SESSIONS: SessionType[] = ['quali', 'race'];
-const SPRINT_SESSIONS: SessionType[] = [
-  'sprint_quali',
-  'sprint',
-  'quali',
-  'race',
-];
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/spain';
 const CORNER_SOURCE =
   'https://www.the-race.com/formula-1/madrid-f1-track-spanish-gp-standout-corner-la-monumental-our-verdict/';
@@ -278,10 +270,7 @@ function MadridGrandPrixPredictionsPage() {
         <NoFormGuide />
         <LaMonumental />
         <WatchTable />
-        <WeekendNewsSection
-          items={news.items}
-          weekendSessions={race.hasSprint ? SPRINT_SESSIONS : NORMAL_SESSIONS}
-        />
+        <WeekendNewsSection items={news.items} />
         <ChampionshipContext championship={championship} />
 
         <section className="py-8 sm:py-16" aria-labelledby="common-questions">

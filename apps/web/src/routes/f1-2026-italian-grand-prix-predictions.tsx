@@ -8,7 +8,6 @@ import { DriverBadge } from '@/components/DriverBadge';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
-import type { SessionType } from '@/lib/sessions';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -52,13 +51,6 @@ function reviewedFrom(data: {
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
-const NORMAL_SESSIONS: SessionType[] = ['quali', 'race'];
-const SPRINT_SESSIONS: SessionType[] = [
-  'sprint_quali',
-  'sprint',
-  'quali',
-  'race',
-];
 const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
 const LIVERY_SOURCE =
@@ -293,10 +285,7 @@ function ItalianGrandPrixPredictionsPage() {
           now={weatherNow}
         />
 
-        <WeekendNewsSection
-          items={news.items}
-          weekendSessions={race.hasSprint ? SPRINT_SESSIONS : NORMAL_SESSIONS}
-        />
+        <WeekendNewsSection items={news.items} />
         <WatchTable />
         {/* Hadjar and the standings both carry a right-hand card; the tribute
             and the contract do not. Run the two carded sections together so the
@@ -505,7 +494,19 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
       className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
       aria-labelledby="hadjar-status"
     >
-      <div>
+      {/* Same team bar the tribute and the contract carry, and for the same
+          reason: this is a story about one team's seat, and the colour says
+          whose before the first line is read. Red Bull's, not Racing Bulls' —
+          the seat in question is the one Lawson is filling. */}
+      <div
+        className="gpp-team-bar pl-4"
+        style={
+          {
+            '--team-colour':
+              TEAM_COLORS['Red Bull Racing'] ?? FALLBACK_TEAM_COLOR,
+          } as CSSProperties
+        }
+      >
         <h2
           id="hadjar-status"
           className="font-title text-2xl font-medium text-text"

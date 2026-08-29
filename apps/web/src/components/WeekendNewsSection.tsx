@@ -1,11 +1,8 @@
 import { Link } from '@tanstack/react-router';
 
-import { DriverBadge } from '@/components/DriverBadge';
 import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
-import { SESSION_LABELS } from '@/lib/sessions';
-import type { SessionType } from '@/lib/sessions';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
@@ -39,15 +36,17 @@ type NewsItem = {
  * an ongoing situation like a fitness watch, colour like a tribute livery, and
  * the circuit analysis. Those are prose, they have no `affectsSessions` answer,
  * and the feed is deliberately not the place for them.
+ *
+ * A card is a headline, the story, and where it came from. It also carried
+ * driver badges and a "worth revisiting" impact line, and stacked one column
+ * wide on a phone that was two labelled rows and a rule wrapped around two
+ * sentences: the badges repeated codes the headline had already named, and the
+ * impact line said "Qualifying and Race" for nearly every item. The driver
+ * survives as the team colour on the card's edge, which is the one thing the
+ * headline cannot say at a glance, and `affectsSessions` is still required when
+ * publishing (see `docs/race-news.md`) and still shown in the feed.
  */
-export function WeekendNewsSection({
-  items,
-  weekendSessions,
-}: {
-  items: NewsItem[];
-  /** Sessions this weekend actually runs, so "unaffected" can name them. */
-  weekendSessions: SessionType[];
-}) {
+export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
   if (items.length === 0) {
     return null;
   }
@@ -61,12 +60,20 @@ export function WeekendNewsSection({
         >
           What changed this weekend
         </h2>
+        {/* Written the way the rest of the page talks: concrete and advisory,
+            not a slogan. "News that moves a pick" was a tagline standing in for
+            a sentence, and it told a reader nothing they could act on. */}
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          News that moves a pick, and which of your picks it moves.
+          Each of these is a reason to go back and look at a pick again. The
+          source is on every card, so you can weigh it yourself rather than take
+          our word for it.
         </p>
       </div>
 
-      <div className="mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
+      {/* `gpp-lean-run` flips each card's bar against the one above it, and
+          does it in CSS because the answer changes when the grid folds from two
+          columns to one. */}
+      <div className="gpp-lean-run gpp-lean-run-sm-2col mt-7 grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-2">
         {items.map((item) => {
           // The card's own colour, from the driver it is about, exactly as the
           // same item carries it in the feed (`RaceNewsItem`) and as the
@@ -86,7 +93,14 @@ export function WeekendNewsSection({
             <article
               key={item.key}
               className={`flex flex-col bg-surface p-4 sm:p-6 ${
-                teamColour ? 'gpp-team-bar' : ''
+                teamColour
+                  ? // Cut to the house lean, direction from `gpp-lean-run`
+                    // above. Deliberately not done to the same items in the
+                    // dashboard feed: stacked in one bordered block the bars
+                    // are short and butted end to end, and the alternation
+                    // reads as noise there rather than rhythm.
+                    'gpp-team-bar gpp-team-bar-lean'
+                  : ''
               }`}
               style={
                 teamColour
@@ -94,38 +108,18 @@ export function WeekendNewsSection({
                   : undefined
               }
             >
-              {/* Above the headline rather than beside it: the badge carries the
-                team colour, so a reader sees this is a Williams story or a
-                Mercedes one before reading a word of it. Codes come from the
-                published record, never from scanning the prose, which on this
-                very card would badge Russell for an item about Antonelli. */}
-              {item.drivers && item.drivers.length > 0 ? (
-                <p className="mb-2 flex flex-wrap items-center gap-1.5 sm:mb-3">
-                  {item.drivers.map((driver) => (
-                    <DriverBadge
-                      key={driver.code}
-                      code={driver.code}
-                      team={driver.team}
-                      displayName={driver.displayName}
-                      number={driver.number}
-                      nationality={driver.nationality}
-                      size="sm"
-                      prerenderTooltip={false}
-                    />
-                  ))}
-                </p>
-              ) : null}
               <h3 className="font-title text-lg font-medium text-text">
                 {item.headline}
               </h3>
               <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
                 {item.body}
               </p>
-              <PickImpact
-                affects={item.affectsSessions as SessionType[]}
-                weekendSessions={weekendSessions}
-              />
-              <p className="mt-4 border-t border-border pt-3 max-sm:mt-4 sm:mt-auto sm:pt-4">
+              {/* No rule above it. The grid already draws a line between every
+                  card, and stacked one column wide that put a second hairline a
+                  few lines above the first: the page read as a stack of rules
+                  with copy trapped between them. Space does the same separating
+                  work here without adding a mark. */}
+              <p className="mt-4 text-right max-sm:mt-4 sm:mt-auto sm:pt-2">
                 <a
                   href={item.sourceUrl}
                   target="_blank"
@@ -150,74 +144,14 @@ export function WeekendNewsSection({
         <Link
           to="/results-policy"
           hash="sessions-heading"
-          className="gpp-touch-target font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+          // `whitespace-nowrap`: it is one phrase and a single link, and
+          // letting it break left "How each session is" on one line and
+          // "scored" alone on the next, which reads as two links.
+          className="gpp-touch-target font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
         >
           How each session is scored
         </Link>
       </p>
     </section>
-  );
-}
-
-/**
- * Which of your Top 5s to go back and look at.
- *
- * The wording is advisory on purpose, and this was got wrong once. "Changes
- * your Qualifying picks" sitting under a headline about a grid penalty reads as
- * *the penalty changed the qualifying result*, which is the single thing
- * players most often get wrong about this game. It does not: a driver
- * classified P4 scores as P4 however far back the penalty makes him start.
- *
- * News never changes how a session is scored, because the scoring rules do not
- * move. What it changes is the outcome you should expect, so the only honest
- * question this line can answer is which picks are worth another look. That is
- * true of every item, which is why it is the default rather than special
- * handling for penalties.
- */
-/**
- * The sessions worth naming for a news item, or `null` when naming them adds
- * nothing.
- *
- * An item touching every session of the weekend says "revisit everything",
- * which is the same as saying nothing at all. Both Monza items affected both
- * of that weekend's sessions, so each card carried an identical highlighted
- * line that told a reader precisely nothing about how the two differed. The
- * line earns its place only when it narrows the weekend down.
- */
-export function pickImpactSessions(
-  affects: SessionType[],
-  weekendSessions: SessionType[],
-): { affected: SessionType[]; unaffected: SessionType[] } | null {
-  const unaffected = weekendSessions.filter(
-    (session) => !affects.includes(session),
-  );
-  return unaffected.length === 0 ? null : { affected: affects, unaffected };
-}
-
-function PickImpact({
-  affects,
-  weekendSessions,
-}: {
-  affects: SessionType[];
-  weekendSessions: SessionType[];
-}) {
-  const impact = pickImpactSessions(affects, weekendSessions);
-  if (!impact) {
-    return null;
-  }
-  const { unaffected } = impact;
-
-  function label(sessions: SessionType[]) {
-    return sessions.map((s) => SESSION_LABELS[s]).join(' and ');
-  }
-
-  return (
-    <p className="mt-3 border-l-2 border-accent/40 pl-3 text-sm text-text">
-      Worth revisiting:{' '}
-      <strong className="font-semibold">{label(affects)}</strong> picks.{' '}
-      <span className="text-text-muted">
-        No need to revisit {label(unaffected)}.
-      </span>
-    </p>
   );
 }

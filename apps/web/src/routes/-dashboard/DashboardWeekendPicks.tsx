@@ -425,10 +425,15 @@ function DashboardWeekendPicksReady({
       aria-labelledby="dashboard-weekend-title"
       data-testid="dashboard-weekend-hero"
     >
-      <div className="border-b border-border p-4 sm:p-5">
-        {/* No wrap: the link belongs in the corner, level with the eyebrow.
-            Wrapping dropped it under the race name, where it read as part of
-            the card's own controls rather than a way out of it. */}
+      {/* No divider here: the tab row below carries it, so the selected tab can
+          sit on the line the way a tab strip should. */}
+      <div className="p-4 sm:p-5">
+        {/* Nothing in this corner any more. It held a "Full weekend" link to
+            the race page, and it was competing with the write-up row at the
+            foot of the card: two ways out, one of them a bare label in small
+            grey text, and the bare label was winning attention it could not
+            repay. The race page is still a tap away from the calendar and from
+            every session row; this card is for picking and for the read. */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {countryCode ? (
@@ -461,28 +466,16 @@ function DashboardWeekendPicksReady({
           {/* There used to be an "N open" pill next to this. The tab row below
               already names every session and its state, so the count was the
               same fact in a louder font. */}
-          {/* One link up here, not two. The preview used to sit underneath this
-              one as a second underlined link, which made the corner read as a
-              pair of equal choices and gave neither any pull. It moved to the
-              card footer, where it can say what it is instead of just naming
-              itself. */}
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: weekend.race.slug }}
-            search={{ from: 'home' }}
-            className="gpp-touch-target mt-0.5 inline-flex shrink-0 items-center gap-1 text-sm whitespace-nowrap text-text-muted underline underline-offset-4 transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
-          >
-            Full weekend
-            <ArrowRight className="size-3.5 shrink-0" aria-hidden />
-          </Link>
         </div>
+      </div>
 
-        {/* This line keeps its slot whatever the selected session is. It used to
-            render only for an open session, so switching to a locked tab
-            removed it and jumped everything below up by a line. A locked
-            session has something to say here anyway. */}
-        <SessionClockLine session={clockSession} now={now} />
-
+      {/* One row, not two.
+          The countdown used to be its own line under the race name, which put
+          "Qualifying locks in 6d" directly above a tab reading "QUALIFYING":
+          the same word twice, in two rows, with a clock icon on each. The tabs
+          say which session, so the clock only has to say when, and the two
+          belong on the same line. */}
+      <div className="flex items-center gap-3 border-b border-border px-4 sm:px-5">
         {/* One session row, two jobs. While the picks are still being made it
             is status only — the picks cascade, so offering a session to choose
             would be asking a question with no consequence. Once there is a
@@ -503,7 +496,7 @@ function DashboardWeekendPicksReady({
             selecting is cheap and there is nothing to defer. */}
         <div
           ref={tabStripRef}
-          className="-mx-4 mt-4 flex [scrollbar-width:none] gap-x-4 overflow-x-auto px-4 [-ms-overflow-style:none] sm:-mx-5 sm:px-5 [&::-webkit-scrollbar]:hidden"
+          className="-mb-px flex min-w-0 flex-1 [scrollbar-width:none] gap-x-4 overflow-x-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           role={showInteractive ? undefined : 'tablist'}
           aria-label={showInteractive ? undefined : 'Weekend sessions'}
           onKeyDown={showInteractive ? undefined : handleTabKeyDown}
@@ -524,6 +517,12 @@ function DashboardWeekendPicksReady({
             />
           ))}
         </div>
+
+        {/* Keeps its slot whatever the selected session is. It used to render
+            only for an open session, so switching to a locked tab removed it
+            and jumped everything below up by a line. A locked session has
+            something to say here anyway. */}
+        <SessionClockLine session={clockSession} now={now} />
       </div>
 
       {/* Only a panel while the strip above is actually a tab strip. When
@@ -719,12 +718,18 @@ function firstWeekendH2H(
 }
 
 /**
- * The one line under the race name, describing whichever session is selected.
+ * The right-hand end of the tab row: when the selected session locks.
+ *
+ * It says "locks in", not "Qualifying locks in". The tab it sits beside is
+ * already the session's name, in accent, and repeating it made the header read
+ * as two rows saying the same word. It carries no icon either, for the same
+ * reason: the tabs carry clock / lock / trophy, and a second one here was the
+ * third clock in a two-row header.
  *
  * It always renders, even when there is nothing to count down to: switching
  * tabs is a comparison, and a line that disappears under a locked session
- * shifts the whole card up by 24px mid-comparison. Locked and scored sessions
- * have their own thing to say in that slot.
+ * shifts the whole card mid-comparison. Locked and scored sessions have their
+ * own thing to say in the slot.
  */
 function SessionClockLine({
   session,
@@ -738,42 +743,30 @@ function SessionClockLine({
   // open session with no `lockAt` pair a clock icon with the sentence "is
   // locked".
   const clock = getSessionClockState(session, now);
-  const isCounting = clock?.kind === 'countdown' || clock?.kind === 'locking';
-  const Icon = clock?.kind === 'results' ? Trophy : isCounting ? Clock3 : Lock;
-  const tone =
-    clock?.kind === 'results'
-      ? 'text-success'
-      : isCounting
-        ? 'text-accent'
-        : 'text-warning';
 
   return (
     <p
-      // `flex-wrap` because the label and the clock are separate flex items:
-      // without it, a 320px screen shrinks both instead of wrapping between
-      // them, and "Qualifying locks in 00h 44m 57s" breaks mid-phrase with a
-      // ragged gap. Wrapping puts the whole clock on the second line.
-      className="gpp-mono mt-3 flex min-h-5 flex-wrap items-center gap-1.5 text-sm text-text-muted"
+      // `shrink-0` against a strip that is `flex-1 min-w-0`: on a narrow phone
+      // the four sprint chips scroll rather than squeezing the clock, because a
+      // half-visible countdown is worse than a scrollable strip.
+      className="gpp-mono flex min-h-5 shrink-0 items-center py-2.5 text-xs whitespace-nowrap text-text-muted"
       suppressHydrationWarning
     >
       {session ? (
-        <>
-          <Icon className={`h-4 w-4 shrink-0 ${tone}`} aria-hidden />
-          {clock?.kind === 'countdown' ? (
-            <>
-              {SESSION_LABELS[session.sessionType]} locks in
-              <strong className="ml-1 font-medium text-text">
-                {formatLockCountdown(clock.msRemaining)}
-              </strong>
-            </>
-          ) : clock?.kind === 'locking' ? (
-            <>{SESSION_LABELS[session.sessionType]} is locking now</>
-          ) : clock?.kind === 'results' ? (
-            <>{SESSION_LABELS[session.sessionType]} results are published</>
-          ) : (
-            <>{SESSION_LABELS[session.sessionType]} is locked</>
-          )}
-        </>
+        clock?.kind === 'countdown' ? (
+          <>
+            locks in
+            <strong className="ml-1.5 font-medium text-text">
+              {formatLockCountdown(clock.msRemaining)}
+            </strong>
+          </>
+        ) : clock?.kind === 'locking' ? (
+          <>locking now</>
+        ) : clock?.kind === 'results' ? (
+          <>results published</>
+        ) : (
+          <>locked</>
+        )
       ) : null}
     </p>
   );
@@ -788,16 +781,15 @@ function SessionClockLine({
 /**
  * The weekend write-up, as the last thing in the card.
  *
- * It is deliberately not in the header beside "Full weekend". Those two were
- * competing: same underline, same corner, one of them a place to go and do
- * something and the other a thing to read, and side by side neither looked
- * worth the tap.
+ * The only route to the write-up from this card, now that the header's "Full
+ * weekend" link is gone. Those two were competing: same underline, same corner,
+ * one a place to go and do something and the other a thing to read, and side by
+ * side neither looked worth the tap.
  *
- * Down here it gets the whole width, so it can lead with what the piece
- * actually says rather than with its own name. The row reads as a continuation
- * of the card (same left stripe, a divider rather than a box) instead of an
- * advert bolted underneath it, and the accent arrow is the only bright thing,
- * which is the one job the accent has in this system.
+ * Down here it gets the whole width and can ask outright. The row reads as a
+ * continuation of the card (same left stripe, a divider rather than a box)
+ * instead of an advert bolted underneath it, and the accent arrow is the only
+ * bright thing, which is the one job the accent has in this system.
  *
  * Placed after the picks on purpose. A player arrives to answer "have I
  * picked?", and the invitation to go deeper belongs after that question is
@@ -816,7 +808,7 @@ function WeekendPreviewLink({ writeup }: { writeup: RaceWriteup }) {
       <span className="min-w-0 flex-1">
         <span className="gpp-label block text-text-muted">Weekend preview</span>
         <span className="mt-0.5 block truncate text-sm font-medium text-text">
-          {writeup.teaser}
+          {writeup.cta}
         </span>
       </span>
       <ArrowRight
@@ -865,11 +857,23 @@ function SessionChip({
       <span className="sr-only">· {status}</span>
     </>
   );
+  // A real tab: the strip sits on the card's divider and the selected chip
+  // draws its own 2px of it in accent. It used to be a text underline, which at
+  // this size is a hairline 6px under a word and reads as emphasis rather than
+  // selection — especially when both sessions are open and therefore both
+  // already accent-coloured. Every chip reserves the 2px, so nothing moves when
+  // selection changes.
+  //
+  // The colour is only ever set once. `border-b-2 border-transparent` in the
+  // base with `border-accent` appended lost: they are the same specificity, so
+  // the winner is whichever Tailwind emits last, and that was `transparent`.
   const base =
-    'inline-flex shrink-0 items-center gap-1 rounded-sm text-[11px] font-semibold tracking-label whitespace-nowrap uppercase transition-colors';
+    'inline-flex shrink-0 items-center gap-1 border-b-2 py-2.5 text-[11px] font-semibold tracking-label whitespace-nowrap uppercase transition-colors';
 
   if (!onSelect) {
-    return <span className={`${base} ${tone}`}>{label}</span>;
+    return (
+      <span className={`${base} ${tone} border-transparent`}>{label}</span>
+    );
   }
 
   return (
@@ -882,8 +886,10 @@ function SessionChip({
       tabIndex={selected ? 0 : -1}
       onClick={onSelect}
       data-testid={`session-tab-${session.sessionType}`}
-      className={`${base} ${tone} gpp-touch-target -mx-1 px-1 decoration-2 underline-offset-[6px] focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
-        selected ? 'underline' : 'opacity-60 hover:opacity-100'
+      className={`${base} ${tone} gpp-touch-target -mx-1 px-1 focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none ${
+        selected
+          ? 'border-accent'
+          : 'border-transparent opacity-60 hover:opacity-100'
       }`}
     >
       {label}

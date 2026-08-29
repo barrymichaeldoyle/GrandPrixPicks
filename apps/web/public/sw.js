@@ -1,6 +1,7 @@
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `gpp-static-${CACHE_VERSION}`;
 const PAGE_CACHE = `gpp-pages-${CACHE_VERSION}`;
+const OFFLINE_URL = '/offline.html';
 
 // Patterns that identify static, long-lived assets safe to cache-first
 const STATIC_PATTERNS = [
@@ -26,10 +27,19 @@ function isCacheablePagePath(pathname) {
   return CACHEABLE_PAGE_PATTERNS.some((p) => p.test(pathname));
 }
 
-// Pre-cache the app shell so the root is available offline
+// Pre-cache a viewer-neutral fallback. Caching `/` here can capture the
+// signed-in SSR document (including viewer-specific navigation) because an
+// install request carries same-origin credentials. Previously visited public
+// pages are still cached by the navigation handler below.
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(caches.open(PAGE_CACHE).then((cache) => cache.add('/')));
+  event.waitUntil(
+    caches
+      .open(PAGE_CACHE)
+      .then((cache) =>
+        cache.add(new Request(OFFLINE_URL, { cache: 'reload' })),
+      ),
+  );
 });
 
 // Clean up caches from previous versions
@@ -61,7 +71,7 @@ self.addEventListener('fetch', (event) => {
     // Vite assets are content-hashed — safe to serve from cache forever
     event.respondWith(cacheFirst(request, STATIC_CACHE));
   } else if (request.mode === 'navigate') {
-    // Pages: try network first, fall back to cached shell if offline
+    // Pages: try network first, then the exact cached page or offline screen.
     event.respondWith(networkFirstWithFallback(request, url));
   }
 });
@@ -95,21 +105,56 @@ function canCacheNavigationResponse(response, url) {
 }
 
 self.addEventListener('push', (event) => {
-  const data = event.data?.json() ?? {};
+  let data = {};
+  try {
+    data = event.data?.json() ?? {};
+  } catch {
+    data = { body: event.data?.text() };
+  }
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'Grand Prix Picks', {
       body: data.body,
       icon: '/android-chrome-192x192.png',
-      badge: '/favicon-32x32.png',
-      data: { url: data.url ?? '/' },
+      badge: '/notification-badge.png',
+      data: { url: safeNotificationUrl(data.url) },
     }),
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url));
+  const targetUrl = safeNotificationUrl(event.notification.data?.url);
+  event.waitUntil(focusOrOpenWindow(targetUrl));
 });
+
+function safeNotificationUrl(value) {
+  if (typeof value !== 'string') return '/';
+  try {
+    const url = new URL(value, self.location.origin);
+    if (url.origin !== self.location.origin) return '/';
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return '/';
+  }
+}
+
+async function focusOrOpenWindow(targetUrl) {
+  const windowClients = await clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true,
+  });
+
+  for (const client of windowClients) {
+    if ('navigate' in client) {
+      await client.navigate(targetUrl);
+    }
+    if ('focus' in client) {
+      return client.focus();
+    }
+  }
+
+  return clients.openWindow(targetUrl);
+}
 
 async function networkFirstWithFallback(request, url) {
   const cache = await caches.open(PAGE_CACHE);
@@ -120,7 +165,8 @@ async function networkFirstWithFallback(request, url) {
     }
     return response;
   } catch {
-    const cached = (await cache.match(request)) ?? (await cache.match('/'));
+    const cached =
+      (await cache.match(request)) ?? (await cache.match(OFFLINE_URL));
     return (
       cached ??
       new Response('Offline', {

@@ -96,6 +96,10 @@ describe('usePWAInstall', () => {
     localStorage.clear();
     setupMatchMedia(false);
     setupIOSPlatform({ platform: 'MacIntel', maxTouchPoints: 0 });
+    Object.defineProperty(window.navigator, 'standalone', {
+      configurable: true,
+      value: false,
+    });
     setupUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
     );
@@ -168,6 +172,24 @@ describe('usePWAInstall', () => {
     unmount();
   });
 
+  it('keeps the install action available when the browser prompt fails', async () => {
+    const { getLatest, unmount } = renderUsePWAInstall();
+    const promptEvent = createBeforeInstallPromptEvent();
+    promptEvent.prompt = vi.fn(() => Promise.reject(new Error('busy')));
+
+    act(() => {
+      window.dispatchEvent(promptEvent);
+    });
+
+    await act(async () => {
+      await getLatest()?.install();
+    });
+
+    expect(getLatest()?.isInstalling).toBe(false);
+    expect(getLatest()?.showBanner).toBe(true);
+    unmount();
+  });
+
   it('marks installed on appinstalled and removes event listeners on cleanup', () => {
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
@@ -208,12 +230,12 @@ describe('usePWAInstall', () => {
     const { getLatest, unmount } = renderUsePWAInstall();
 
     expect(getLatest()?.showBanner).toBe(true);
-    expect(getLatest()?.isIOSSafari).toBe(true);
+    expect(getLatest()?.requiresManualInstall).toBe(true);
 
     unmount();
   });
 
-  it('hides the banner for iOS non-Safari browsers', () => {
+  it('shows manual install instructions for other iOS browsers', () => {
     setupIOSPlatform({ platform: 'iPhone', maxTouchPoints: 5 });
     setupUserAgent(
       'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/122.0.0.0 Mobile/15E148 Safari/604.1',
@@ -221,15 +243,27 @@ describe('usePWAInstall', () => {
 
     const { getLatest, unmount } = renderUsePWAInstall();
 
-    expect(getLatest()?.showBanner).toBe(false);
-    expect(getLatest()?.isIOSSafari).toBe(false);
+    expect(getLatest()?.showBanner).toBe(true);
+    expect(getLatest()?.requiresManualInstall).toBe(true);
 
     const promptEvent = createBeforeInstallPromptEvent();
     act(() => {
       window.dispatchEvent(promptEvent);
     });
-    expect(getLatest()?.showBanner).toBe(false);
+    expect(getLatest()?.showBanner).toBe(true);
 
+    unmount();
+  });
+
+  it('recognizes the legacy iOS standalone flag', () => {
+    Object.defineProperty(window.navigator, 'standalone', {
+      configurable: true,
+      value: true,
+    });
+
+    const { getLatest, unmount } = renderUsePWAInstall();
+
+    expect(getLatest()?.showBanner).toBe(false);
     unmount();
   });
 });

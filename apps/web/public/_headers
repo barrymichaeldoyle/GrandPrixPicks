@@ -19,3 +19,14 @@
 
 /flags/*
   cache-control: public, max-age=31536000, stale-while-revalidate=2592000
+
+# The browser must revalidate these on every visit so PWA updates and metadata
+# changes are discovered promptly, independent of Cloudflare's defaults.
+/sw.js
+  cache-control: no-cache
+
+/manifest.json
+  cache-control: no-cache
+
+/offline.html
+  cache-control: no-cache

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101113" />
+    <title>Offline | Grand Prix Picks</title>
+    <style>
+      @font-face {
+        font-family: Archivo;
+        src: url('/fonts/archivo-latin-var.woff2') format('woff2');
+        font-weight: 300 600;
+        font-display: swap;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        color-scheme: dark;
+        background: #101113;
+      }
+      body {
+        min-height: 100dvh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: max(24px, env(safe-area-inset-top)) 24px
+          max(24px, env(safe-area-inset-bottom));
+        background: #101113;
+        color: #f2f2f0;
+        font:
+          400 16px/1.5 Archivo,
+          ui-sans-serif,
+          system-ui,
+          sans-serif;
+      }
+      main {
+        width: min(100%, 440px);
+        text-align: center;
+      }
+      svg {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 24px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        line-height: 1.2;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+      }
+      p {
+        margin: 0 auto 24px;
+        max-width: 38ch;
+        color: #a7a8ad;
+      }
+      a {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+        border-radius: 2px;
+        background: #d4ff3f;
+        color: #101113;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a:focus-visible {
+        outline: 2px solid #d4ff3f;
+        outline-offset: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg viewBox="0 0 32 32" role="img" aria-label="Grand Prix Picks">
+        <rect width="32" height="32" rx="4" fill="#191a1d" />
+        <g
+          fill="#d4ff3f"
+          transform="translate(16 16) skewX(-12) translate(-16 -16)"
+        >
+          <rect x="5" y="13" width="6" height="12" />
+          <rect x="14" y="7" width="6" height="18" />
+          <rect x="23" y="16" width="6" height="9" />
+        </g>
+      </svg>
+      <h1>You&apos;re offline</h1>
+      <p>
+        Reconnect, then try again. Public pages you opened earlier remain
+        available offline.
+      </p>
+      <a href="/">Try again</a>
+    </main>
+  </body>
+</html>

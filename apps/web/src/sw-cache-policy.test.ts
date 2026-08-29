@@ -12,6 +12,7 @@ interface ServiceWorkerPolicyApi {
     },
     url: URL,
   ) => boolean;
+  safeNotificationUrl: (value: unknown) => string;
 }
 
 function loadServiceWorkerPolicy(): ServiceWorkerPolicyApi {
@@ -24,9 +25,12 @@ function loadServiceWorkerPolicy(): ServiceWorkerPolicyApi {
     'fetch',
     'URL',
     `${swCode}
-return { isCacheablePagePath, canCacheNavigationResponse };`,
+return { isCacheablePagePath, canCacheNavigationResponse, safeNotificationUrl };`,
   ) as (
-    self: { addEventListener: (name: string, cb: EventListener) => void },
+    self: {
+      addEventListener: (name: string, cb: EventListener) => void;
+      location: { origin: string };
+    },
     caches: unknown,
     ResponseCtor: typeof Response,
     fetchFn: typeof fetch,
@@ -34,7 +38,10 @@ return { isCacheablePagePath, canCacheNavigationResponse };`,
   ) => ServiceWorkerPolicyApi;
 
   return factory(
-    { addEventListener: () => undefined },
+    {
+      addEventListener: () => undefined,
+      location: { origin: 'https://example.com' },
+    },
     {},
     Response,
     fetch,
@@ -43,6 +50,15 @@ return { isCacheablePagePath, canCacheNavigationResponse };`,
 }
 
 describe('service worker cache policy', () => {
+  it('precaches a viewer-neutral offline page instead of the SSR home page', () => {
+    const swPath = path.resolve(process.cwd(), 'public/sw.js');
+    const swCode = readFileSync(swPath, 'utf8');
+
+    expect(swCode).toContain("const OFFLINE_URL = '/offline.html'");
+    expect(swCode).toContain('cache.add(new Request(OFFLINE_URL');
+    expect(swCode).not.toContain("cache.add('/')");
+  });
+
   it('only marks allowlisted public routes as cacheable paths', () => {
     const { isCacheablePagePath } = loadServiceWorkerPolicy();
 
@@ -110,5 +126,19 @@ describe('service worker cache policy', () => {
         new URL('https://example.com/me'),
       ),
     ).toBe(false);
+  });
+
+  it('only accepts same-origin notification destinations', () => {
+    const { safeNotificationUrl } = loadServiceWorkerPolicy();
+
+    expect(safeNotificationUrl('/races/australia?tab=picks#top5')).toBe(
+      '/races/australia?tab=picks#top5',
+    );
+    expect(
+      safeNotificationUrl('https://example.com/notifications?id=123'),
+    ).toBe('/notifications?id=123');
+    expect(safeNotificationUrl('https://attacker.example/phish')).toBe('/');
+    expect(safeNotificationUrl('javascript:alert(1)')).toBe('/');
+    expect(safeNotificationUrl(null)).toBe('/');
   });
 });

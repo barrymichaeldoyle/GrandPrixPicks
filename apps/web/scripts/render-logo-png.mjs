@@ -69,6 +69,21 @@ function insetForAdaptiveIcon(svg) {
   );
 }
 
+/**
+ * A maskable web icon needs an opaque full-bleed plate while keeping the mark
+ * inside the central safe zone used by circular and squircle launchers.
+ */
+function insetArtworkForMaskableIcon(svg) {
+  const VIEWBOX = 32;
+  const mid = VIEWBOX / 2;
+  const scale = 0.62;
+
+  return squarePlate(svg).replace(
+    /(<g\b[\s\S]*<\/g>)/,
+    `<g transform="translate(${mid},${mid}) scale(${scale}) translate(-${mid},-${mid})">$1</g>`,
+  );
+}
+
 function insetForCircularCrop(svg) {
   const VIEWBOX = 32;
   const mid = VIEWBOX / 2;
@@ -120,6 +135,13 @@ async function main() {
     renderTarget(Resvg, svg, 'apple-touch-icon.png', 180),
     renderTarget(Resvg, svg, 'android-chrome-192x192.png', 192),
     renderTarget(Resvg, svg, 'android-chrome-512x512.png', 512),
+    renderTarget(
+      Resvg,
+      insetArtworkForMaskableIcon(svg),
+      'maskable-icon-512x512.png',
+      512,
+    ),
+    renderTarget(Resvg, asSilhouette(svg), 'notification-badge.png', 96),
     renderTarget(Resvg, cropSafeSvg, 'logo-storefront.png', 512),
     // SVG is not supported in most email clients.
     renderTarget(Resvg, cropSafeSvg, 'logo-email.png', 64),

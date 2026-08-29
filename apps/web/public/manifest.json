@@ -1,17 +1,30 @@
 {
   "short_name": "GP Picks",
   "name": "Grand Prix Picks - F1 Prediction Game",
+  "id": "/",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
   "description": "Predict the top 5 finishers for each Formula 1 race and compete with friends throughout the season.",
+  "categories": ["games", "sports", "entertainment"],
   "icons": [
     {
       "src": "/android-chrome-192x192.png?v=20260729",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/android-chrome-512x512.png?v=20260729",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon-512x512.png?v=20260829",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",

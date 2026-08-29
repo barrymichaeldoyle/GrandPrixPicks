@@ -37,24 +37,22 @@ function isIOSDevice(): boolean {
   return hasIOSUA || isIPadDesktopUA;
 }
 
-function isSafariBrowser(): boolean {
-  const ua = navigator.userAgent;
-  return /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-}
-
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [isIOSSafari, setIsIOSSafari] = useState(false);
-  const [isIOSNonSafari, setIsIOSNonSafari] = useState(false);
+  const [requiresManualInstall, setRequiresManualInstall] = useState(false);
   // Start hidden; reveal after client-side checks pass
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
     // Already running as an installed PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    const iOSNavigator = navigator as Navigator & { standalone?: boolean };
+    if (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      iOSNavigator.standalone === true
+    ) {
       setIsInstalled(true);
       return;
     }
@@ -64,13 +62,10 @@ export function usePWAInstall() {
     }
     setDismissed(false);
 
-    // iOS requires manual install instructions; only Safari has Add to Home Screen.
+    // iOS/iPadOS browsers use the Share menu rather than
+    // `beforeinstallprompt` for home-screen installation.
     if (isIOSDevice()) {
-      if (isSafariBrowser()) {
-        setIsIOSSafari(true);
-      } else {
-        setIsIOSNonSafari(true);
-      }
+      setRequiresManualInstall(true);
     }
 
     function handleInstallPrompt(e: Event) {
@@ -108,6 +103,10 @@ export function usePWAInstall() {
         recordDismissal();
         setDismissed(true);
       }
+    } catch {
+      // Keep the action available if the browser rejected the prompt before
+      // presenting it (for example, while another install UI was active).
+      setInstallPrompt(promptEvent);
     } finally {
       setIsInstalling(false);
     }
@@ -119,15 +118,12 @@ export function usePWAInstall() {
   }
 
   const showBanner =
-    !isInstalled &&
-    !dismissed &&
-    !isIOSNonSafari &&
-    (!!installPrompt || isIOSSafari);
+    !isInstalled && !dismissed && (!!installPrompt || requiresManualInstall);
 
   return {
     showBanner,
     isInstalling,
-    isIOSSafari,
+    requiresManualInstall,
     install,
     onDismiss,
   };

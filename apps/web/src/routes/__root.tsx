@@ -27,6 +27,7 @@ import { Header } from '@/components/Header';
 import { MobileTabBar } from '@/components/MobileTabBar';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
+import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import {
   AuthCurtainHost,
   useAuthCurtain,
@@ -162,6 +163,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       { title: siteConfig.title },
       { name: 'description', content: siteConfig.description },
       { name: 'theme-color', content: siteConfig.themeColor },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-title', content: 'GP Picks' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'black' },
 
       // Open Graph / Twitter Card
       // NOTE: og:title, og:description, og:image (and twitter: equivalents)
@@ -233,7 +237,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         href: '/apple-touch-icon.png?v=20260729',
       },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg?v=20260729' },
-      { rel: 'manifest', href: '/manifest.json?v=20260729' },
+      { rel: 'manifest', href: '/manifest.json?v=20260829' },
       // canonical link is set per-route — do NOT add a global one here
     ],
   }),
@@ -297,7 +301,9 @@ function RootDocument({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+      navigator.serviceWorker
+        .register('/sw.js', { updateViaCache: 'none' })
+        .catch(console.error);
     }
   }, []);
 
@@ -407,6 +413,10 @@ function RootDocument({ children }: PropsWithChildren) {
                 </a>
                 <Header />
                 <OfflineBanner />
+                {/* Mount before `load`: Chromium can dispatch
+                    `beforeinstallprompt` before deferred global features are
+                    requested, and that event cannot be recovered later. */}
+                <PWAInstallBanner />
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
                 </DeferredFeaturesBoundary>

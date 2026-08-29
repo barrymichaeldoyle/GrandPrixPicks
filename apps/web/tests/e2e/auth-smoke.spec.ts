@@ -51,10 +51,20 @@ test.describe('[auth] smoke', () => {
         '/races/scenario-race-locked-signed-in-complete-h2h-no-results-pwauth-race?session=quali',
     });
 
-    await expect(page.getByTestId('race-top5-section')).toBeVisible();
-    await expect(page.getByTestId('race-h2h-section')).toBeVisible();
-    await expect(page.getByText('Top 5 Predictions')).toBeVisible();
-    await expect(page.getByText('Head-to-Head Predictions')).toBeVisible();
+    const top5Section = page.getByTestId('race-top5-section');
+    const h2hSection = page.getByTestId('race-h2h-section');
+
+    await expect(top5Section).toBeVisible();
+    await expect(h2hSection).toBeVisible();
+    await expect(
+      top5Section.getByRole('heading', { name: 'Top 5', exact: true }),
+    ).toBeVisible();
+    await expect(
+      h2hSection.getByRole('heading', {
+        name: 'Head-to-Head',
+        exact: true,
+      }),
+    ).toBeVisible();
   });
 
   test('shows the signed-in weekend recap on a finished scored race', async ({

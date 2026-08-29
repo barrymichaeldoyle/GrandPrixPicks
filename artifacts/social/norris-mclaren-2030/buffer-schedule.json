@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-08-29T12:16:00Z",
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "timezone": "Africa/Johannesburg",
+  "assetBaseUrl": "https://grandprixpicks.com/social/norris-mclaren-2030",
+  "posts": [
+    {
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6a92be3fe959557ce55c19b3",
+      "dueAt": "2026-08-29T16:30:00.000Z",
+      "localDueAt": "2026-08-29T18:30:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true
+    },
+    {
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6a92be37e959557ce55c18a0",
+      "dueAt": "2026-08-29T16:30:00.000Z",
+      "localDueAt": "2026-08-29T18:30:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true
+    }
+  ],
+  "notes": [
+    "aiImageDisclosure is false because both cards are rendered from design tokens by scripts/render-social-card.mts. The Monza roundup set it true because its slides compose over generated collage art.",
+    "verified means the scheduled post was read back from Buffer after the edit and its asset resolved to the expected dimensions (1080x1350 and 1600x900)."
+  ]
+}

@@ -33,7 +33,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
  * news and standings carry it forward on their own. Bump it when the writing
  * changes, not when the data does.
  */
-const PROSE_REVIEWED = '2026-08-24';
+const PROSE_REVIEWED = '2026-08-29';
 
 /**
  * One value for the footer stamp and the schema's `dateModified`. They were
@@ -63,6 +63,8 @@ const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
+const NORRIS_CONTRACT_SOURCE =
+  'https://www.formula1.com/en/latest/article/lando-norris-commits-future-to-mclaren-as-he-signs-new-deal-until-the-end-of-2030.7ErHTktjoW2mAo5zEEtuA0';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -297,11 +299,13 @@ function ItalianGrandPrixPredictionsPage() {
         />
         <WatchTable />
         {/* Hadjar and the standings both carry a right-hand card; the tribute
-            does not. Run the two carded sections together so the rail does not
-            appear, vanish and reappear, and let the prose-only aside follow. */}
+            and the contract do not. Run the two carded sections together so the
+            rail does not appear, vanish and reappear, and let the prose-only
+            asides follow. */}
         <HadjarStatus byCode={driversByCode} />
         <ChampionshipContext championship={championship} />
         <FerrariTribute />
+        <NorrisContract />
         <PredictionMethod />
 
         <section className="py-8 sm:py-16" aria-labelledby="common-questions">
@@ -765,6 +769,56 @@ function FerrariTribute() {
           worth anything to Leclerc and Hamilton on Sunday is between you and
           your Top 5.{' '}
           <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/*
+ * Deliberately a write-up section and not a `raceNews` item.
+ *
+ * A contract that starts in 2028 changes nothing about who you put in a Top 5
+ * this weekend, so `affectsSessions` has no honest answer and the editorial
+ * gate in `docs/race-news.md` rejects it. It is still the biggest thing said
+ * about a McLaren driver in the week of Monza, which is what a write-up is for.
+ */
+function NorrisContract() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="norris-contract">
+      <div
+        className="gpp-team-bar max-w-3xl pl-4"
+        style={
+          {
+            '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
+          } as CSSProperties
+        }
+      >
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Off track
+        </p>
+        <h2
+          id="norris-contract"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          Norris re-signs with McLaren to 2030
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          McLaren has confirmed a new deal keeping Lando Norris at the team
+          until at least the end of 2030, with a multi-year option beyond that.
+          He joined as a test and development driver in 2017 and has raced for
+          them since 2019. Oscar Piastri is contracted to the end of 2028, so
+          the pairing you pick between is settled for a while yet.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          It takes the loudest driver market question off the table for the rest
+          of the season, and it changes nothing about this weekend: the same two
+          drivers are in the same two cars at Monza. Read it as context for the
+          McLaren duel rather than as form.{' '}
+          <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
+            Read the announcement
+          </ExternalSource>
+          .
         </p>
       </div>
     </section>

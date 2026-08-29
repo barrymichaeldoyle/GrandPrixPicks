@@ -1,7 +1,19 @@
 /**
  * Share-text builders used by both web (X intent) and mobile (native share
- * sheet). Copy conventions: same hashtags and @GrandPrixPicks handle across
- * every share type, with a distinct emoji per type.
+ * sheet).
+ *
+ * Copy conventions: the `@GrandPrixPicks` handle on every share type, with a
+ * distinct emoji per type so a timeline of them does not look automated.
+ *
+ * **No hashtags.** These used to end with `#F1` plus the race's own tag. X
+ * de-emphasised hashtags years ago: they do not help reach, and three of them
+ * under every post reads as noise. The handle stays because it is a real
+ * mention that sends a reader to the account, which is the thing the tags were
+ * failing to do. Instagram is the opposite case and keeps a full tag set, but
+ * nothing here builds Instagram copy — these are X and the native sheet.
+ *
+ * `races.hashtag` is still stored and seeded. It costs nothing to keep and is
+ * the kind of field that is annoying to reconstruct if this is ever revisited.
  */
 
 /** Converts an ISO alpha-2 country code to its Unicode flag emoji. */
@@ -16,27 +28,19 @@ export function countryCodeToFlagEmoji(countryCode?: string | null) {
   );
 }
 
-/** `#F1` plus the race-specific hashtag (e.g. `#MonacoGP`), space-joined. */
-export function formatRaceHashtags(raceHashtag?: string) {
-  return ['#F1', raceHashtag].filter(Boolean).join(' ');
-}
-
 export function buildScoreShareText({
   raceName,
   points,
   isFinal,
   accountHandle,
-  raceHashtag,
 }: {
   raceName: string;
   points: number;
   /** True once every weekend session is scored (final tally vs. running total). */
   isFinal: boolean;
   accountHandle: string;
-  raceHashtag?: string;
 }) {
-  const hashtags = formatRaceHashtags(raceHashtag);
   return isFinal
-    ? `I scored ${points} points at the ${raceName} 🏆\n\nThink you can beat me next round on ${accountHandle}?\n\n${hashtags}`
-    : `${points} points so far at the ${raceName} 📈\n\nFollow the results on ${accountHandle}.\n\n${hashtags}`;
+    ? `I scored ${points} points at the ${raceName} 🏆\n\nThink you can beat me next round on ${accountHandle}?`
+    : `${points} points so far at the ${raceName} 📈\n\nFollow the results on ${accountHandle}.`;
 }

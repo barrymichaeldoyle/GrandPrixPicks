@@ -25,13 +25,12 @@ describe('countryCodeToFlagEmoji', () => {
 });
 
 describe('buildRaceResultShareText', () => {
-  it('formats official results with flags and the seeded race hashtag', () => {
+  it('formats official results with flags and no hashtags', () => {
     expect(
       buildRaceResultShareText({
         raceName: 'Barcelona Grand Prix',
         sessionLabel: 'Qualifying',
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
         drivers: [
           { code: 'VER', nationality: 'NL' },
           { code: 'NOR', nationality: 'GB' },
@@ -41,7 +40,7 @@ describe('buildRaceResultShareText', () => {
         ],
       }),
     ).toBe(
-      'Barcelona Grand Prix Qualifying results 🏎️🏁\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nFull results and player scores on @GrandPrixPicks.\n\n#F1 #SpanishGP',
+      'Barcelona Grand Prix Qualifying results 🏎️🏁\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nFull results and player scores on @GrandPrixPicks.',
     );
   });
 });
@@ -53,7 +52,6 @@ describe('buildPicksShareText', () => {
         raceName: 'Barcelona Grand Prix',
         sessionLabel: 'Qualifying',
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
         picks: [
           { code: 'VER', nationality: 'NL' },
           { code: 'NOR', nationality: 'GB' },
@@ -63,7 +61,7 @@ describe('buildPicksShareText', () => {
         ],
       }),
     ).toBe(
-      'My Qualifying top 5 for the Barcelona Grand Prix 🎯🏎️\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nThink you can beat me on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+      'My Qualifying top 5 for the Barcelona Grand Prix 🎯🏎️\n\nP1 🇳🇱 VER\nP2 🇬🇧 NOR\nP3 🇦🇺 PIA\nP4 🇲🇨 LEC\nP5 🇬🇧 RUS\n\nThink you can beat me on @GrandPrixPicks?',
     );
   });
 });
@@ -76,10 +74,9 @@ describe('buildScoreShareText', () => {
         points: 42,
         isFinal: true,
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'I scored 42 points at the Barcelona Grand Prix 🏆\n\nThink you can beat me next round on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+      'I scored 42 points at the Barcelona Grand Prix 🏆\n\nThink you can beat me next round on @GrandPrixPicks?',
     );
   });
 
@@ -90,10 +87,9 @@ describe('buildScoreShareText', () => {
         points: 18,
         isFinal: false,
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      '18 points so far at the Barcelona Grand Prix 📈\n\nFollow the results on @GrandPrixPicks.\n\n#F1 #SpanishGP',
+      '18 points so far at the Barcelona Grand Prix 📈\n\nFollow the results on @GrandPrixPicks.',
     );
   });
 });
@@ -106,10 +102,9 @@ describe('H2H share text', () => {
         sessionLabel: 'Qualifying',
         winnerCodes: ['NOR', 'LEC', 'VER'],
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'My Qualifying Head-to-Head picks for the Barcelona Grand Prix ⚔️🏎️💨\n\nNOR · LEC · VER\n\n🏁 Think you can beat me on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+      'My Qualifying Head-to-Head picks for the Barcelona Grand Prix ⚔️🏎️💨\n\nNOR · LEC · VER\n\n🏁 Think you can beat me on @GrandPrixPicks?',
     );
   });
 
@@ -126,10 +121,9 @@ describe('H2H share text', () => {
           { code: null, correct: false },
         ],
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'I scored 2/3 on my Barcelona Grand Prix Qualifying Head-to-Head picks ⚔️\n\n✅NOR ✅LEC ❌—\n\nCan you beat my score on @GrandPrixPicks?\n\n#F1 #SpanishGP',
+      'I scored 2/3 on my Barcelona Grand Prix Qualifying Head-to-Head picks ⚔️\n\n✅NOR ✅LEC ❌—\n\nCan you beat my score on @GrandPrixPicks?',
     );
   });
 
@@ -155,10 +149,9 @@ describe('H2H share text', () => {
             loserCode: 'TSU',
           },
         ],
-        raceHashtag: '#SpanishGP',
       }),
     ).toBe(
-      'Barcelona Grand Prix Qualifying Head-to-Head results ⚔️🏁\n\nMcLaren: NOR beat PIA\nFerrari: LEC beat HAM\nRed Bull Racing: VER beat TSU\n\n#F1 #SpanishGP',
+      'Barcelona Grand Prix Qualifying Head-to-Head results ⚔️🏁\n\nMcLaren: NOR beat PIA\nFerrari: LEC beat HAM\nRed Bull Racing: VER beat TSU',
     );
   });
 });

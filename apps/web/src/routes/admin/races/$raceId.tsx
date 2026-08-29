@@ -438,7 +438,6 @@ function AdminRaceDetailPage() {
           sessionLabel: SESSION_LABELS[selectedSession],
           drivers: savedTopFive,
           accountHandle: siteConfig.social.x.handle,
-          raceHashtag: race.hashtag,
         })
       : '';
   const resultShareUrl =
@@ -485,7 +484,6 @@ function AdminRaceDetailPage() {
           raceName: race.name,
           sessionLabel: SESSION_LABELS[selectedSession],
           matchups: h2hReplyMatchups,
-          raceHashtag: race.hashtag,
         })
       : '';
   const h2hResultReplyUrl =

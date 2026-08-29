@@ -131,7 +131,6 @@ export function H2HSection({
         sessionLabel: SESSION_LABELS[selectedSession],
         winnerCodes: myH2HPickCodes,
         accountHandle: siteConfig.social.x.handle,
-        raceHashtag: race.hashtag,
       })
     : '';
   const h2hPicksShareUrl = canShareH2HPicks

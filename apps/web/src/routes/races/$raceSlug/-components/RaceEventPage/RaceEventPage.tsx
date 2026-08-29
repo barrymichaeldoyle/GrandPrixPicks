@@ -273,7 +273,6 @@ export function RaceEventPage({
     sessionLabel: SESSION_LABELS[selectedSession],
     picks: selectedSessionPicks,
     accountHandle: siteConfig.social.x.handle,
-    raceHashtag: race.hashtag,
   });
   const sharePicksUrl = canSharePicks
     ? buildSharePageUrl(
@@ -305,7 +304,6 @@ export function RaceEventPage({
     points: pointsSoFar,
     isFinal: allEventsScored,
     accountHandle: siteConfig.social.x.handle,
-    raceHashtag: race.hashtag,
   });
   const shareScoreUrl = buildSharePageUrl(
     {

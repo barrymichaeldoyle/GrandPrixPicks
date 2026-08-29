@@ -33,7 +33,6 @@ function draftFor(summary: Summary) {
     reserve
       ? `Reserve watch: ${reserve.code} finished P${reserve.position}.`
       : null,
-    `${summary.race.hashtag ?? '#F1'} #GrandPrixPicks`,
   ]
     .filter(Boolean)
     .join('\n\n');

@@ -176,7 +176,6 @@ export function H2HResultsSection({
           correct: item.points > 0,
         })),
         accountHandle: siteConfig.social.x.handle,
-        raceHashtag: race.hashtag,
       })
     : '';
   const h2hShareUrl = myH2HScore

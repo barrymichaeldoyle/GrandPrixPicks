@@ -472,7 +472,6 @@ function WeekendPointsStrip({
         points: totalPoints,
         isFinal,
         accountHandle: '@GrandPrixPicks',
-        raceHashtag: race.hashtag,
       }),
     });
     captureAnalyticsEvent('score_share_opened', {

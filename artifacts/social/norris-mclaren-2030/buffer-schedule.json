@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T12:37:00Z",
+  "generatedAt": "2026-08-29T12:41:00Z",
   "organizationId": "64f9a17b902afdecc48c8d02",
   "timezone": "Africa/Johannesburg",
   "assetBaseUrl": "https://grandprixpicks.com/social/norris-mclaren-2030",
@@ -9,8 +9,8 @@
       "channelName": "grandprixpicks",
       "service": "instagram",
       "bufferPostId": "6a92be3fe959557ce55c19b3",
-      "dueAt": "2026-08-29T16:30:00.000Z",
-      "localDueAt": "2026-08-29T18:30:00+02:00",
+      "dueAt": "2026-08-29T12:50:00.000Z",
+      "localDueAt": "2026-08-29T14:50:00+02:00",
       "status": "scheduled",
       "assetCount": 1,
       "automaticPublishing": true,
@@ -23,8 +23,8 @@
       "channelName": "GrandPrixPicks",
       "service": "twitter",
       "bufferPostId": "6a92be37e959557ce55c18a0",
-      "dueAt": "2026-08-29T16:30:00.000Z",
-      "localDueAt": "2026-08-29T18:30:00+02:00",
+      "dueAt": "2026-08-29T12:50:00.000Z",
+      "localDueAt": "2026-08-29T14:50:00+02:00",
       "status": "scheduled",
       "assetCount": 1,
       "automaticPublishing": true,
@@ -36,6 +36,7 @@
   "notes": [
     "aiImageDisclosure is false because both cards are rendered from design tokens by scripts/render-social-card.mts. The Monza roundup set it true because its slides compose over generated collage art.",
     "verified means the scheduled post was read back from Buffer after the edit and its asset resolved to the expected dimensions (1080x1350 and 1600x900).",
-    "Asset URLs carry ?v=2. Buffer fetches an image when it is attached and keeps that copy, so republishing the same path with new bytes does not reach an already-scheduled post: the timeline version needed a fresh URL to replace the pre-timeline one."
+    "Asset URLs carry ?v=2. Buffer fetches an image when it is attached and keeps that copy, so republishing the same path with new bytes does not reach an already-scheduled post: the timeline version needed a fresh URL to replace the pre-timeline one.",
+    "Published same-day rather than in the 18:30 evening slot the Monza roundup used: this is news that broke that morning, and a contract announcement is worth less the longer it sits."
   ]
 }

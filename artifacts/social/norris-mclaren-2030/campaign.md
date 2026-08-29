@@ -23,6 +23,13 @@ surface for context that is interesting without being actionable.
 - Cut filler. "The papaya line-up is settled for a while yet" says nothing that
   "neither seat is open" does not say better and shorter.
 
+## Schedule
+
+Both posts went out at 14:50 SAST on 29 August 2026, the day the deal was
+announced, rather than waiting for the 18:30 evening slot the Monza roundup
+uses. A same-day contract announcement is worth less the longer it sits, and
+there is no weekend session it needs to be timed around.
+
 ## Format
 
 No carousel. One story with three facts does not fill six slides, and padding

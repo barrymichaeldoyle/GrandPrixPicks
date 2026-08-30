@@ -202,7 +202,7 @@ export function FeedContent({
           message={
             hasLeagues
               ? 'Follow players to see their scores and activity here.'
-              : 'Follow players from the leaderboard to start filling your feed.'
+              : 'Follow players to see their picks and results here.'
           }
         >
           {topToFollow.length > 0 && (

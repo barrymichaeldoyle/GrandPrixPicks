@@ -159,8 +159,11 @@ export function H2HDuelFocusModal({
       setSaved(false);
       setErrorMessage(
         error instanceof Error
-          ? toUserFacingMessage(error)
-          : 'Could not save that pick.',
+          ? toUserFacingMessage(
+              error,
+              'Your Head-to-Head pick wasn’t saved. Try again.',
+            )
+          : 'Your Head-to-Head pick wasn’t saved. Try again.',
       );
     } finally {
       setPending(null);

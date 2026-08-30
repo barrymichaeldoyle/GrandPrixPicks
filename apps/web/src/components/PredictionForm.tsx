@@ -938,8 +938,8 @@ export function PredictionForm({
       setSubmitStatus('error');
       setErrorMessage(
         error instanceof Error
-          ? toUserFacingMessage(error)
-          : 'Failed to submit prediction',
+          ? toUserFacingMessage(error, 'Your Top 5 wasn’t saved. Try again.')
+          : 'Your Top 5 wasn’t saved. Try again.',
       );
     } finally {
       setIsSubmitting(false);

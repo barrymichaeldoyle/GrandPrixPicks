@@ -374,8 +374,11 @@ function useProfileForm({
     } catch (caught) {
       setError(
         caught instanceof Error
-          ? toUserFacingMessage(caught)
-          : 'Failed to update profile',
+          ? toUserFacingMessage(
+              caught,
+              'Your profile wasn’t updated. Try again.',
+            )
+          : 'Your profile wasn’t updated. Try again.',
       );
     } finally {
       setIsSubmitting(false);

@@ -34,7 +34,8 @@ type H2HDraft = { selections?: Record<string, Id<'drivers'>> };
  * wins the race, clears the flag first, and this finds nothing to do.
  *
  * Deliberately silent: no confetti, no toast. The picks were already promised
- * ("These picks come with you"), so their arrival is the expected outcome
+ * ("Your picks are kept when you sign in"), so their arrival is the expected
+ * outcome
  * rather than an event, and the surface the visitor lands on shows them.
  */
 export function PendingPickSubmitter() {

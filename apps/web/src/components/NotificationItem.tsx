@@ -550,7 +550,7 @@ export function NotificationItem({
             <NotificationMeta createdAt={notification.createdAt} />
             {linkPath && (
               <p className="mt-1.5 text-xs font-medium text-accent">
-                Read more
+                View announcement
               </p>
             )}
           </>

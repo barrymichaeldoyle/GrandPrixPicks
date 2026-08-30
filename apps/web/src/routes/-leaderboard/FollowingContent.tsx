@@ -57,8 +57,8 @@ export function FollowingSeasonContent({
     return (
       <NoticeCard
         icon={Users}
-        title="No one here yet"
-        description="Follow other players from their profile to see them on this leaderboard."
+        title="No followed players yet"
+        description="Follow a player from their profile to see them on this leaderboard."
         action={
           <p className="text-sm text-text-muted">
             Browse the global leaderboard to find players to follow.

@@ -389,7 +389,7 @@ export function RaceEventPage({
           icon={Swords}
           description="Pick a winner from each team-mate matchup."
           actionLabel="Pick H2H Winners"
-          disabledNote="Save your Top 5 first to unlock Head-to-Head picks."
+          disabledNote="Save your Top 5 before making Head-to-Head picks."
         />
       </div>
     );

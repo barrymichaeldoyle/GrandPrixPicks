@@ -72,8 +72,11 @@ function SupportPage() {
     } catch (err) {
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Failed to submit support request. Please try again.',
+          ? toUserFacingMessage(
+              err,
+              'Your support request wasn’t sent. Try again.',
+            )
+          : 'Your support request wasn’t sent. Try again.',
       );
     } finally {
       setIsSubmitting(false);

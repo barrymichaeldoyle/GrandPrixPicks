@@ -108,7 +108,7 @@ export function ScoringSection() {
           className="mt-8 border-t border-border pt-6"
         >
           <h3 className="font-title text-lg font-medium text-text">
-            Make a more informed prediction
+            Form and scoring guides
           </h3>
           <p className="gpp-reading-copy mt-2 max-w-3xl text-text-muted">
             Use the live championship order, the official F1 points system and a

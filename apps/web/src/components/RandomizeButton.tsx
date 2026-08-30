@@ -104,7 +104,12 @@ export function RandomizeButton({
         included_h2h: needsH2H,
         h2h_matchup_count: matchups.length,
       });
-      setError(toUserFacingMessage(err));
+      setError(
+        toUserFacingMessage(
+          err,
+          'Your random picks weren’t generated. Try again.',
+        ),
+      );
     } finally {
       setLoading(false);
     }

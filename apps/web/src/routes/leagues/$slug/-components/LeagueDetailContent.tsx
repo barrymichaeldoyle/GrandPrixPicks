@@ -162,8 +162,11 @@ function JoinSection({
       });
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Failed to join league',
+          ? toUserFacingMessage(
+              err,
+              'You couldn’t join this league. Try again.',
+            )
+          : 'You couldn’t join this league. Try again.',
       );
       setIsJoining(false);
     }
@@ -178,11 +181,10 @@ function JoinSection({
             You&apos;ve used all {joinLimit} league spots
           </h2>
           <p className="mx-auto mb-4 max-w-md text-base text-text-muted">
-            Unlock more spots to join this league and keep competing with other
-            groups.
+            Season Pass removes the league-join limit.
           </p>
           <Button asChild size="sm">
-            <Link to="/pricing">Unlock more leagues</Link>
+            <Link to="/pricing">View Season Pass</Link>
           </Button>
         </>
       ) : (

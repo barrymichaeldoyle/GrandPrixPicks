@@ -366,7 +366,7 @@ export function LeagueMembers({
       )}
       {isWeekendLocked && (
         <p className="mb-3 text-sm text-text-muted">
-          Submit your picks to unlock the race weekend standings.
+          Submit your picks to see the race weekend standings.
         </p>
       )}
       {!isWeekendLocked && activeEntries.length === 0 && (

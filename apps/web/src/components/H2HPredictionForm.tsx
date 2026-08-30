@@ -368,8 +368,11 @@ export function H2HPredictionForm({
         setSubmitStatus('error');
         setErrorMessage(
           error instanceof Error
-            ? toUserFacingMessage(error)
-            : 'Failed to submit H2H predictions',
+            ? toUserFacingMessage(
+                error,
+                'Your Head-to-Head picks weren’t saved. Try again.',
+              )
+            : 'Your Head-to-Head picks weren’t saved. Try again.',
         );
       }
     } finally {

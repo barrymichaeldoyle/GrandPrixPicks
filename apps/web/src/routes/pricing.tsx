@@ -41,7 +41,7 @@ export const Route = createFileRoute('/pricing')({
     pageMeta({
       title: 'F1 Season Pass Pricing | Grand Prix Picks',
       description:
-        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season unlocks unlimited leagues and up to five public leagues.',
+        'Season Pass pricing for Grand Prix Picks. One purchase for the full F1 season includes unlimited league joins and up to five public leagues.',
       path: '/pricing',
       noIndex: true,
     }),
@@ -49,7 +49,7 @@ export const Route = createFileRoute('/pricing')({
 
 function PricingPage() {
   // SSR-resolved so the checkout CTA renders the right variant on the first
-  // paint instead of flashing "Sign In to Continue" before Clerk boots.
+  // paint instead of flashing "Sign in to continue" before Clerk boots.
   const { isSignedIn } = useViewerSession();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
@@ -238,7 +238,7 @@ function PricingPage() {
             </Button>
           ) : (
             <SignInActionButton size="sm" rightIcon={ArrowRight}>
-              Sign In to Continue
+              Sign in to continue
             </SignInActionButton>
           )}
 
@@ -319,8 +319,8 @@ function PricingPage() {
           >
             <p className="text-sm text-text-muted">
               No. Grand Prix Picks is free to play, and every player gets one
-              free public league. The pass unlocks unlimited league joins and up
-              to five public leagues.
+              free public league. The pass includes unlimited league joins and
+              up to five public leagues.
             </p>
           </FaqItem>
           <FaqItem icon={HelpCircle} question="Is this a subscription?">

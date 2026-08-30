@@ -574,7 +574,7 @@ function HowToPlayPage() {
           <section className="rounded-xl border border-accent/25 bg-accent-muted/20 p-6 text-center sm:p-8">
             <Flag className="mx-auto mb-3 h-7 w-7 text-accent" aria-hidden />
             <h2 className="font-title text-2xl font-semibold text-text">
-              Ready to make your picks?
+              Make your picks
             </h2>
             <p className="gpp-reading-copy mx-auto mt-2 max-w-xl text-text-muted">
               Choose the current race weekend, rank your Top 5, and save before

@@ -116,8 +116,8 @@ export function DashboardWeekendPicks({
       <NoticeCard
         level="section"
         icon={Flag}
-        title="No race weekend is open yet"
-        description="The next prediction window will appear here as soon as the upcoming weekend is available."
+        title="No prediction window is open"
+        description="View the race calendar for upcoming sessions."
         action={
           <Button asChild size="sm" variant="secondary">
             <Link to="/races">View race calendar</Link>

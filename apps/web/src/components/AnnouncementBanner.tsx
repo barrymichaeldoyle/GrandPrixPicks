@@ -58,7 +58,7 @@ export function AnnouncementBanner() {
     'linkPath' in announcement && announcement.linkPath
       ? {
           to: sanitizeInternalPath(announcement.linkPath),
-          label: announcement.linkLabel ?? 'Read more',
+          label: announcement.linkLabel ?? 'View announcement',
         }
       : undefined;
 

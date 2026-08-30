@@ -467,8 +467,11 @@ function EditLeagueForm({
     } catch (err) {
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Failed to update league',
+          ? toUserFacingMessage(
+              err,
+              'The league settings weren’t updated. Try again.',
+            )
+          : 'The league settings weren’t updated. Try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -585,8 +588,8 @@ function LeaveButton({ leagueId }: { leagueId: Id<'leagues'> }) {
     } catch (err) {
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Failed to leave league',
+          ? toUserFacingMessage(err, 'You’re still in this league. Try again.')
+          : 'You’re still in this league. Try again.',
       );
       setIsLeaving(false);
     }

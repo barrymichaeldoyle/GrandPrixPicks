@@ -33,8 +33,8 @@ export function SeasonPassSection({
           <div>
             <p className="font-semibold text-text">Active for {season}</p>
             <p className="text-sm text-text-muted">
-              Your season pass is active. Unlimited league joins and public
-              league creation are unlocked.
+              You can join unlimited leagues and create up to five public
+              leagues.
             </p>
           </div>
         </div>

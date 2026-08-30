@@ -20,8 +20,8 @@ export function PurchaseSuccessBanner({
               <div>
                 <p className="font-semibold">Season Pass is active</p>
                 <p className="text-sm text-text-muted">
-                  Your {season} season pass is now active. Premium league limits
-                  are unlocked.
+                  You can now join unlimited leagues and create up to five
+                  public leagues in {season}.
                 </p>
               </div>
             </div>

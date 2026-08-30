@@ -106,11 +106,15 @@ function WeekendFollowingContent({
     return (
       <NoticeCard
         icon={Users}
-        title="No one here yet"
+        title={
+          defaultRace.status === 'finished'
+            ? 'No followed players submitted picks this weekend'
+            : 'No followed players yet'
+        }
         description={
           defaultRace.status === 'finished'
-            ? 'None of the people you follow submitted predictions for this weekend.'
-            : 'Follow other players from their profile to see them here.'
+            ? undefined
+            : 'Follow a player from their profile to see them here.'
         }
         action={
           <p className="text-sm text-text-muted">

@@ -94,8 +94,8 @@ export function FeedbackModal({
       });
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'That did not send. Please try again.',
+          ? toUserFacingMessage(err, 'Your feedback wasn’t sent. Try again.')
+          : 'Your feedback wasn’t sent. Try again.',
       );
     } finally {
       setIsSubmitting(false);

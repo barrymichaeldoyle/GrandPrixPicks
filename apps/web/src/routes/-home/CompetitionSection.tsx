@@ -213,12 +213,11 @@ export function CompetitionSection({
             id="landing-competition-heading"
             className="mt-2 text-2xl leading-tight font-light tracking-display text-text sm:text-3xl"
           >
-            One set of picks. Every table.
+            Your picks count on every leaderboard.
           </h2>
           <p className="gpp-reading-copy-lg mt-3 text-text-muted">
-            Your saved predictions count towards the global leaderboard and
-            every private league you join. Make the call once, then see where it
-            puts you.
+            Save once to enter the global leaderboard and every private league
+            you join.
           </p>
         </div>
 

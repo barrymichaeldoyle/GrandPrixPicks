@@ -1,5 +1,12 @@
 # Web copy audit — 30 August 2026
 
+## Resolution
+
+All findings in this audit were resolved on 30 August 2026. The sections below
+retain the original findings and the direction used for the fixes. The shared
+scoring note is now centralized, action boundaries supply specific fallback
+errors, and `pnpm copy:audit` reports no warnings.
+
 ## Scope
 
 This audit applies the rules in `docs/product-voice.md` to player-facing web UI

@@ -348,8 +348,7 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                 Discover Public Leagues
               </h2>
               <p className="text-sm text-text-muted">
-                Browse open leagues and join the communities you want to compete
-                in.
+                Browse public leagues and join one to compete.
               </p>
             </div>
 
@@ -365,11 +364,11 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
                     You&apos;ve used all five public league spots
                   </p>
                   <p className="mt-1 text-sm text-text-muted">
-                    Unlock more spots to keep joining leagues this season.
+                    Season Pass removes the league-join limit.
                   </p>
                 </div>
                 <Button asChild size="sm" className="shrink-0">
-                  <Link to="/pricing">Unlock more leagues</Link>
+                  <Link to="/pricing">View Season Pass</Link>
                 </Button>
               </div>
             ) : null}

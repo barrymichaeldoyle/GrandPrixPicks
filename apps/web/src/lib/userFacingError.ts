@@ -1,6 +1,3 @@
-export const GENERIC_USER_FACING_ERROR_MESSAGE =
-  'Something went wrong. Please try again.';
-
 interface UserFacingErrorDetails {
   message: string;
   isGenericFallback: boolean;
@@ -12,9 +9,9 @@ interface UserFacingErrorDetails {
  */
 export function toUserFacingErrorDetails(
   error: unknown,
+  fallbackMessage: string,
 ): UserFacingErrorDetails {
-  const message =
-    error instanceof Error ? error.message : String(error ?? 'Unknown error');
+  const message = error instanceof Error ? error.message : String(error ?? '');
 
   // Auth
   if (message.includes('Not authenticated')) {
@@ -49,8 +46,8 @@ export function toUserFacingErrorDetails(
 
   // H2H. These have to be matched here, above the Convex-noise branch: every
   // one of them arrives wrapped in "Server Error ... Request ID:", so left to
-  // that branch they all collapse into "Something went wrong", which tells a
-  // player nothing about what to actually do next.
+  // that branch they all collapse into the caller's fallback, which cannot
+  // explain that the Top 5 was the missing piece.
   if (message.includes('Submit your top 5 predictions first')) {
     return {
       message:
@@ -89,7 +86,7 @@ export function toUserFacingErrorDetails(
     message.includes('at handler')
   ) {
     return {
-      message: GENERIC_USER_FACING_ERROR_MESSAGE,
+      message: fallbackMessage,
       isGenericFallback: true,
     };
   }
@@ -101,7 +98,7 @@ export function toUserFacingErrorDetails(
   }
 
   // Already short and safe
-  if (message.length <= 80 && !message.includes('\n')) {
+  if (message && message.length <= 80 && !message.includes('\n')) {
     return {
       message,
       isGenericFallback: false,
@@ -109,11 +106,14 @@ export function toUserFacingErrorDetails(
   }
 
   return {
-    message: GENERIC_USER_FACING_ERROR_MESSAGE,
+    message: fallbackMessage,
     isGenericFallback: true,
   };
 }
 
-export function toUserFacingMessage(error: unknown): string {
-  return toUserFacingErrorDetails(error).message;
+export function toUserFacingMessage(
+  error: unknown,
+  fallbackMessage: string,
+): string {
+  return toUserFacingErrorDetails(error, fallbackMessage).message;
 }

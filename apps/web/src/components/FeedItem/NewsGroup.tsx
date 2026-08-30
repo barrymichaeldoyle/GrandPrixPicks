@@ -1,6 +1,5 @@
-import { Link } from '@tanstack/react-router';
-
 import { Flag } from '@/components/Flag';
+import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
 import { FeedItem } from './FeedItem';
@@ -73,22 +72,7 @@ export function NewsGroup({ events }: { events: FeedEvent[] }) {
         ))}
       </div>
 
-      {/* Once for the block. It explains what the chips above are scored
-          against, which is the half readers get wrong about a grid penalty,
-          and it does not change from one item to the next. */}
-      <p className="border-t border-border/80 px-2.5 py-2 text-xs text-text-muted">
-        A penalty moves where a driver starts, not where they were classified.{' '}
-        <Link
-          to="/results-policy"
-          hash="sessions-heading"
-          // `whitespace-nowrap`: it is one phrase and a single link, and
-          // letting it break left "How each session is" on one line and
-          // "scored" alone on the next, which reads as two links.
-          className="gpp-touch-target font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-        >
-          How each session is scored
-        </Link>
-      </p>
+      <ScoringPolicyNote className="border-t border-border/80 px-2.5 py-2 text-xs text-text-muted" />
     </section>
   );
 }

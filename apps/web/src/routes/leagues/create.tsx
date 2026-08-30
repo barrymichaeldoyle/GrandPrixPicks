@@ -159,8 +159,8 @@ function CreateLeagueContent() {
       }
       setError(
         err instanceof Error
-          ? toUserFacingMessage(err)
-          : 'Failed to create league',
+          ? toUserFacingMessage(err, 'The league wasn’t created. Try again.')
+          : 'The league wasn’t created. Try again.',
       );
     } finally {
       setIsSubmitting(false);

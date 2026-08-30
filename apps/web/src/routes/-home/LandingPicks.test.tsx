@@ -227,7 +227,7 @@ describe('LandingPicks linear journey', () => {
       button(container, 'Continue to team-mate picks')?.click();
     });
 
-    expect(container.textContent).toContain('That’s your prediction card.');
+    expect(container.textContent).toContain('Your prediction is ready.');
     expect(container.textContent).toContain('Sign in to submit');
     // The ask is worded once, on the button, not also as a line of prose.
     expect(container.textContent).not.toContain('Sign in to submit your');

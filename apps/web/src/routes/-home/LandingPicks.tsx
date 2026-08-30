@@ -623,7 +623,7 @@ function PredictionCardIntro({
           moment feel like two requests instead of one. */}
       <p className="text-xl font-medium text-text">
         {includesTopFive
-          ? 'That’s your prediction card.'
+          ? 'Your prediction is ready.'
           : 'All team-mate picks made.'}
       </p>
 
@@ -681,7 +681,7 @@ function PredictionCardSaveWall({ onLockIn }: { onLockIn: () => void }) {
         Sign in to submit
       </Button>
       <p className="text-sm text-text-muted">
-        Free to play. These picks come with you.
+        Free to play. Your picks are kept when you sign in.
       </p>
     </div>
   );

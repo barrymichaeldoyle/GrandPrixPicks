@@ -1,8 +1,7 @@
-import { Link } from '@tanstack/react-router';
-
 import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
+import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
@@ -134,23 +133,7 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
         })}
       </div>
 
-      {/* One link for the section, not one per card. It used to sit inside
-          every impact line, where it wrapped mid-sentence and repeated itself
-          as many times as there was news. What it explains is a rule about
-          scoring, which does not change per item. */}
-      <p className="mt-5 text-sm text-text-muted">
-        A penalty moves where a driver starts, not where they were classified.{' '}
-        <Link
-          to="/results-policy"
-          hash="sessions-heading"
-          // `whitespace-nowrap`: it is one phrase and a single link, and
-          // letting it break left "How each session is" on one line and
-          // "scored" alone on the next, which reads as two links.
-          className="gpp-touch-target font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-        >
-          How each session is scored
-        </Link>
-      </p>
+      <ScoringPolicyNote className="mt-5 text-sm text-text-muted" />
     </section>
   );
 }

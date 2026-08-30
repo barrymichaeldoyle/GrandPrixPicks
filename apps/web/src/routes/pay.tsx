@@ -153,7 +153,7 @@ function PayPage() {
           reason: 'missing_client_token',
         });
         setErrorMessage(
-          'Secure checkout could not start. This one is on us, not you, and nothing has been charged.',
+          'Checkout couldn’t open. Nothing has been charged. Return to pricing and try again.',
         );
         setStatusMessage('Checkout could not be opened.');
         return;
@@ -229,7 +229,7 @@ function PayPage() {
         // carries Paddle.js internals and env var names, and a payment screen
         // is the last place to show either.
         setErrorMessage(
-          'Something went wrong opening the secure checkout window. Nothing has been charged. Try again from pricing, and tell us if it keeps happening.',
+          'Checkout couldn’t open. Nothing has been charged. Return to pricing and try again.',
         );
         setStatusMessage('Checkout could not be opened.');
       }

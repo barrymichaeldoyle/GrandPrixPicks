@@ -57,6 +57,8 @@ const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
 const NORRIS_CONTRACT_SOURCE =
   'https://www.formula1.com/en/latest/article/lando-norris-commits-future-to-mclaren-as-he-signs-new-deal-until-the-end-of-2030.7ErHTktjoW2mAo5zEEtuA0';
+const TYRE_SOURCE =
+  'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -289,6 +291,7 @@ function ItalianGrandPrixPredictionsPage() {
 
         <WeekendNewsSection items={news.items} />
         <WatchTable />
+        <TyreChoice />
         {/* Hadjar and the standings both carry a right-hand card; the tribute
             and the contract do not. Run the two carded sections together so the
             rail does not appear, vanish and reappear, and let the prose-only
@@ -738,6 +741,85 @@ function PredictionMethod() {
         </Link>
       </aside>
     </div>
+  );
+}
+
+/**
+ * The compound nomination, as analysis rather than as news.
+ *
+ * It fails the `raceNews` bar on purpose: every car gets the same three
+ * compounds, so there is no driver it moves in a direction, and
+ * `affectsSessions` would be answering for the whole grid at once. That is the
+ * line `docs/race-news.md` draws between an event and the circuit, and this is
+ * the circuit side of it.
+ *
+ * No team bar, unlike the two sections below. The bar means "this is a team's
+ * story" and is drawn in that team's colour; a tyre nomination belongs to
+ * nobody on the grid, and inventing a colour for Pirelli would spend the
+ * mechanism on the one section that has no claim to it.
+ */
+function TyreChoice() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
+      <div className="max-w-3xl">
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Tyre choice
+        </p>
+        <h2
+          id="tyre-choice"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          Pirelli brings its softest tyres to Monza
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          C3, C4 and C5 is the softest combination in the 2026 range, and Monza
+          is the quickest track it gets used on. That sounds like a two-stop
+          race.
+        </p>
+      </div>
+
+      {/* Same strip the circuit stats use above, for the same reason: three
+          compounds are three values with three labels, and a reader should be
+          able to take them without reading a sentence. The mapping is the part
+          people actually look up. */}
+      <dl className="mt-7 grid grid-cols-3 gap-px overflow-hidden rounded-sm bg-border">
+        {[
+          ['C3', 'hard'],
+          ['C4', 'medium'],
+          ['C5', 'soft'],
+        ].map(([compound, role]) => (
+          <div
+            key={compound}
+            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
+          >
+            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
+              {role}
+            </dt>
+            <dd className="gpp-mono text-2xl text-text">{compound}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-7 max-w-3xl">
+        <p className="gpp-reading-copy text-text-muted">
+          It might not be. Monza asks less of a tyre sideways than anywhere else
+          on the calendar, and lateral load is what usually finishes off a soft
+          compound. Most of the lap is full throttle, and what is left goes
+          through the brakes and the traction zones out of the chicanes. The C5
+          may last longer than its name suggests.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Which way it falls is a thing to read off Friday long runs rather than
+          guess from the nomination. A one-stop puts the value back on track
+          position, and on qualifying pace with it. A two-stop rewards the
+          drivers who look after a tyre over the ones who are quick for a lap.{' '}
+          <ExternalSource href={TYRE_SOURCE}>
+            Read Pirelli&rsquo;s selection
+          </ExternalSource>
+          .
+        </p>
+      </div>
+    </section>
   );
 }
 

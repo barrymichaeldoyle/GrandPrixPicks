@@ -32,7 +32,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
  * news and standings carry it forward on their own. Bump it when the writing
  * changes, not when the data does.
  */
-const PROSE_REVIEWED = '2026-08-29';
+const PROSE_REVIEWED = '2026-08-30';
 
 /**
  * One value for the footer stamp and the schema's `dateModified`. They were
@@ -57,6 +57,8 @@ const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
 const NORRIS_CONTRACT_SOURCE =
   'https://www.formula1.com/en/latest/article/lando-norris-commits-future-to-mclaren-as-he-signs-new-deal-until-the-end-of-2030.7ErHTktjoW2mAo5zEEtuA0';
+const MCLAREN_FORM_SOURCE =
+  'https://www.motorsport.com/f1/news/why-mclaren-must-pass-its-monza-test-before-talking-about-an-f1-title-challenge/10849795/';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
@@ -87,7 +89,7 @@ const FAQS = [
     question:
       'If a driver qualifies P4 and a grid penalty drops him to P14, what does my qualifying pick score?',
     answer:
-      'The P4. We score the official qualifying classification, not the starting grid. A grid penalty moves where a driver lines up for the race and does not rewrite where they finished qualifying, so a driver classified P4 counts as P4 for your qualifying picks even when they start P14 on Sunday.',
+      'The P4. Qualifying picks use the official qualifying classification. The grid penalty is applied afterwards, so a driver classified P4 counts as P4 for your qualifying picks even when they start P14 on Sunday.',
   },
   {
     question: 'Will Isack Hadjar race at Monza?',
@@ -257,9 +259,8 @@ function ItalianGrandPrixPredictionsPage() {
               Italian Grand Prix 2026 predictions
             </h1>
             <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              Top speed matters at Monza, but so do braking stability and
-              traction out of the chicanes. Check all three before choosing your
-              qualifying and race Top 5.
+              Check top speed, braking stability and traction out of the
+              chicanes before choosing your qualifying and race Top 5.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
@@ -298,6 +299,7 @@ function ItalianGrandPrixPredictionsPage() {
             asides follow. */}
         <HadjarStatus byCode={driversByCode} />
         <ChampionshipContext championship={championship} />
+        <McLarenForm />
         <FerrariTribute />
         <NorrisContract />
         <PredictionMethod />
@@ -535,9 +537,8 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. That is an encouraging sign which still needs confirming:
-          wait for the team or the official entry before relying on him in a
-          pick.{' '}
+          at Monza. Red Bull has yet to confirm his return. Wait for the team or
+          the official entry before relying on him in a pick.{' '}
           <ExternalSource href={HADJAR_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>
@@ -622,9 +623,8 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {leader.points - second.points} points
             from {second.displayName}. Use that as a form check, then compare it
-            with the low-downforce pace shown in practice. For the race, read it
-            against the grid penalty above: season form and Sunday&rsquo;s
-            starting order are not the same thing this weekend.
+            with the low-downforce pace shown in practice. Antonelli&rsquo;s
+            penalty makes his Sunday starting position part of that form check.
           </p>
           <Link
             to="/f1-standings"
@@ -695,7 +695,7 @@ function PredictionMethod() {
     ],
     [
       'Check how each qualifying lap was set',
-      'Qualifying matters, but traffic and slipstreams can exaggerate small differences between cars.',
+      'Traffic and slipstreams can exaggerate small differences between cars.',
     ],
     [
       'Account for Turn 1',
@@ -744,6 +744,71 @@ function PredictionMethod() {
   );
 }
 
+function McLarenForm() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="mclaren-form">
+      <div
+        className="gpp-team-bar max-w-3xl pl-4"
+        style={
+          {
+            '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
+          } as CSSProperties
+        }
+      >
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Form check
+        </p>
+        <h2
+          id="mclaren-form"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          Monza is a different test for McLaren
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          McLaren won in Hungary and Zandvoort, both high-downforce races.
+          Andrea Stella says the MCL40 has been weaker on drag and braking.
+          Monza will test both. Check Norris and Piastri&rsquo;s straight-line
+          speed and braking stability on Friday before carrying their recent
+          form into your picks.{' '}
+          <ExternalSource href={MCLAREN_FORM_SOURCE}>
+            Read Stella&rsquo;s assessment
+          </ExternalSource>
+          .
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The three nominated compounds, hardest first.
+ *
+ * The colours are Pirelli's sidewall bands, which makes them data about the
+ * sport rather than palette decisions: the same standing as a team's livery in
+ * `tokens.ts`, and read the same way, as a thin band and never as a fill. They
+ * are local to this page because nothing else in the app names a compound yet;
+ * the second surface that does should move them into the shared tokens beside
+ * `teams`.
+ */
+const TYRE_COMPOUNDS = [
+  { compound: 'C3', role: 'hard', band: '#f0f0f0' },
+  { compound: 'C4', role: 'medium', band: '#ffd500' },
+  { compound: 'C5', role: 'soft', band: '#da291c' },
+] as const;
+
+/** A tyre read end-on: the band is the compound, the hub is just the wheel. */
+function CompoundBand({ color }: { color: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px]"
+      style={{ borderColor: color }}
+    >
+      <span className="h-3.5 w-3.5 rounded-full border border-border" />
+    </span>
+  );
+}
+
 /**
  * The compound nomination, as analysis rather than as news.
  *
@@ -778,35 +843,43 @@ function TyreChoice() {
         </p>
       </div>
 
-      {/* Same strip the circuit stats use above, for the same reason: three
-          compounds are three values with three labels, and a reader should be
-          able to take them without reading a sentence. The mapping is the part
-          people actually look up. */}
+      {/* The same gap-px strip as the circuit stats above, because the job is
+          the same: three values a reader should be able to take without
+          reading a sentence.
+
+          Two things it does that the stats strip does not, both because three
+          cells across a full-width row leave a lot of air:
+
+          - Each cell carries its sidewall band, which is how anybody watching
+            actually tells the compounds apart. It is the mapping people came
+            for, said in the form they already know.
+          - The content is centred rather than left-aligned. A stat reads as a
+            figure in a column; this reads as a set of three, and the set is
+            ordered hardest to softest so the row itself is the scale. */}
       <dl className="mt-7 grid grid-cols-3 gap-px overflow-hidden rounded-sm bg-border">
-        {[
-          ['C3', 'hard'],
-          ['C4', 'medium'],
-          ['C5', 'soft'],
-        ].map(([compound, role]) => (
+        {TYRE_COMPOUNDS.map(({ compound, role, band }) => (
           <div
             key={compound}
-            className="flex flex-col-reverse bg-surface p-4 sm:p-5"
+            className="flex flex-col items-center gap-3 bg-surface px-3 py-5 sm:flex-row sm:justify-center sm:gap-4 sm:px-5"
           >
-            <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-              {role}
-            </dt>
-            <dd className="gpp-mono text-2xl text-text">{compound}</dd>
+            <CompoundBand color={band} />
+            <div className="flex flex-col-reverse items-center sm:items-start">
+              <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
+                {role}
+              </dt>
+              <dd className="gpp-mono text-2xl text-text">{compound}</dd>
+            </div>
           </div>
         ))}
       </dl>
 
       <div className="mt-7 max-w-3xl">
         <p className="gpp-reading-copy text-text-muted">
-          It might not be. Monza asks less of a tyre sideways than anywhere else
-          on the calendar, and lateral load is what usually finishes off a soft
-          compound. Most of the lap is full throttle, and what is left goes
-          through the brakes and the traction zones out of the chicanes. The C5
-          may last longer than its name suggests.
+          Monza asks less of a tyre sideways than anywhere else on the calendar,
+          and lateral load is what usually finishes off a soft compound. Most of
+          the lap is full throttle, and what is left goes through the brakes and
+          the traction zones out of the chicanes. The C5 may last longer than
+          its name suggests.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Which way it falls is a thing to read off Friday long runs rather than
@@ -861,10 +934,8 @@ function FerrariTribute() {
           his Italian Grand Prix win that year.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Ferrari has not formally revealed it, so treat the specifics as
-          unconfirmed. Whether a home crowd and a throwback livery are worth
-          anything to Leclerc and Hamilton on Sunday is between you and your Top
-          5.{' '}
+          Ferrari has yet to reveal the car, so treat the reported details as
+          unconfirmed. Use practice pace to judge Leclerc and Hamilton.{' '}
           <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>
@@ -908,10 +979,8 @@ function NorrisContract() {
           the pairing you pick between is settled for a while yet.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          It takes the loudest driver market question off the table for the rest
-          of the season, and it changes nothing about this weekend: the same two
-          drivers are in the same two cars at Monza. File it as background to
-          the McLaren duel.{' '}
+          Norris and Piastri remain McLaren&rsquo;s Monza pairing. Use the deal
+          as background to their on-track fight.{' '}
           <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
             Read the announcement
           </ExternalSource>

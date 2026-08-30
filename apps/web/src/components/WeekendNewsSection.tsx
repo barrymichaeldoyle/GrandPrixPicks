@@ -59,13 +59,6 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
         >
           What changed this weekend
         </h2>
-        {/* Written the way the rest of the page talks: concrete and advisory,
-            not a slogan. "News that moves a pick" was a tagline standing in for
-            a sentence, and it told a reader nothing they could act on. */}
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Each of these is a reason to go back and look at a pick again. The
-          source is on every card, so you can weigh each story for yourself.
-        </p>
       </div>
 
       {/* `gpp-lean-run` flips each card's bar against the one above it, and

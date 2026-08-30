@@ -22,6 +22,20 @@ const ClerkHeaderUser = lazy(() =>
   })),
 );
 
+/**
+ * The account slot's own floor, matching `min-w-16 sm:min-w-20` on the tabs
+ * beside it.
+ *
+ * The placeholder inside is already the same width as Clerk's real trigger,
+ * but that only holds while *something* is rendered: `UserButton` paints one
+ * empty frame as it mounts, and for that frame the slot collapsed and the
+ * header cluster went 68px wide to 4px and back. Two shifts of 0.001 — the
+ * entire remaining CLS on the signed-in home page once the install banner
+ * moved out of the flow. The floor is on the slot rather than the child so it
+ * holds no matter what the child does.
+ */
+const ME_SLOT_CLASS = 'gpp-header-me-slot min-w-16 sm:min-w-20';
+
 const signInButtonClasses =
   'inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-sm border border-border-strong bg-surface-elevated text-text hover:border-accent/55 hover:bg-accent-muted/35 hover:text-accent-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:opacity-50';
 
@@ -98,14 +112,14 @@ export function HeaderUser() {
 
   if (!confirmedSignedIn) {
     return (
-      <div className="gpp-header-me-slot" data-testid="header-user-loading">
+      <div className={ME_SLOT_CLASS} data-testid="header-user-loading">
         {tabPlaceholder}
       </div>
     );
   }
 
   return (
-    <div className="gpp-header-me-slot" data-testid="header-user-authenticated">
+    <div className={ME_SLOT_CLASS} data-testid="header-user-authenticated">
       <Suspense fallback={tabPlaceholder}>
         <ClerkHeaderUser
           isMobile={isMobile}

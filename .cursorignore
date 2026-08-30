@@ -15,7 +15,6 @@
 !.env.local.example
 !.env.test.example
 *.local
-!.env.local.example
 .dev.vars
 **/.dev.vars
 **/credentials.json

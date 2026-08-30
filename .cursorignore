@@ -1,0 +1,91 @@
+# Cursor ignore — gitignore syntax.
+#
+# .gitignore (and Cursor's default ignore list) only keep files out of the
+# *index*. This file is what actually blocks Agent, Tab, Inline Edit, and
+# @-mentions from reading a path. Terminal and MCP can still reach ignored
+# files; do not treat this as a secrets vault.
+#
+# Do not ignore Convex `_generated/`, `routeTree.gen.ts`, or other typed
+# generated source the agent has to read to work in this repo.
+
+# --- Secrets and credentials ------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.test.example
+*.local
+!.env.local.example
+.dev.vars
+**/.dev.vars
+**/credentials.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.p8
+**/*.mobileprovision
+**/*.keystore
+**/*.jks
+**/*secret*
+**/*secrets*
+
+# --- Local / machine state ----------------------------------------------------
+.DS_Store
+.claude/settings.local.json
+.impeccable
+.impeccable/
+**/.impeccable-live/
+**/.impeccable-live.json
+.lighthouseci
+.lighthouseci-mobile
+.pnpm-store
+todos.json
+count.txt
+*.log
+debug-storybook.log
+
+# --- Install, build, and framework output ---------------------------------
+node_modules/
+dist/
+dist-ssr/
+.output/
+.nitro/
+.tanstack/
+.wrangler/
+.vinxi/
+.types/
+.expo/
+.eas/
+web-build/
+storybook-static/
+.cache/
+coverage/
+.turbo/
+
+# --- Test and browser artifacts --------------------------------------------
+.playwright-mcp/
+**/test-results/
+**/playwright-report/
+**/tests/e2e/.auth/
+**/playwright/.auth/
+
+# --- Design-sync caches (the committed notes/previews stay visible) ------
+/ds-bundle/
+/.ds-sync/
+/.design-sync/.cache/
+/.design-sync/learnings/
+/.design-sync/sb-reference/
+/.design-sync/node_modules
+/.design-sync/*.log
+
+# --- Committed binaries that burn context and never need to be parsed -----
+apps/web/public/social/
+apps/web/public/fonts/
+**/*.woff2
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.gif
+**/*.mp4
+**/*.mp3

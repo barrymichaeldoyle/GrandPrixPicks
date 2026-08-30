@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-08-30T07:16:08Z",
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "timezone": "Africa/Johannesburg",
+  "assetBaseUrl": "https://419fbccc.gpp-social-assets-2026.pages.dev/social/monza-news-roundup-2026",
+  "posts": [
+    {
+      "story": "Pirelli Monza tyre selection",
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6a93d8326521164abcff1508",
+      "dueAt": "2026-08-30T07:30:00.000Z",
+      "localDueAt": "2026-08-30T09:30:00+02:00",
+      "status": "scheduled",
+      "asset": "monza-tyres-instagram.png",
+      "automaticPublishing": true,
+      "aiImageDisclosure": true,
+      "verified": true
+    },
+    {
+      "story": "Pirelli Monza tyre selection",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6a93d837fd08a1d7b4bc58dd",
+      "dueAt": "2026-08-30T07:30:00.000Z",
+      "localDueAt": "2026-08-30T09:30:00+02:00",
+      "status": "scheduled",
+      "asset": "monza-tyres-x.png",
+      "automaticPublishing": true,
+      "aiImageDisclosure": true,
+      "verified": true
+    },
+    {
+      "story": "Alpine full package for Colapinto",
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6a93d848fd08a1d7b4bc59dc",
+      "dueAt": "2026-08-30T13:30:00.000Z",
+      "localDueAt": "2026-08-30T15:30:00+02:00",
+      "status": "scheduled",
+      "asset": "monza-alpine-upgrade-instagram.png",
+      "automaticPublishing": true,
+      "aiImageDisclosure": true,
+      "verified": true
+    },
+    {
+      "story": "Alpine full package for Colapinto",
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6a93d84d61f7ab587cd8512e",
+      "dueAt": "2026-08-30T13:30:00.000Z",
+      "localDueAt": "2026-08-30T15:30:00+02:00",
+      "status": "scheduled",
+      "asset": "monza-alpine-upgrade-x.png",
+      "automaticPublishing": true,
+      "aiImageDisclosure": true,
+      "verified": true
+    }
+  ]
+}

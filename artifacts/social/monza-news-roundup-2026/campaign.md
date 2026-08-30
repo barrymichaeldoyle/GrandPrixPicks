@@ -165,3 +165,68 @@ Do not add hashtags on X. Instagram may use `#ItalianGP #Monza`.
   https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/
 - Autosport: reported Ferrari power-unit and aerodynamic changes —
   https://www.autosport.com/f1/news/ferrari-to-deliver-upgraded-f1-engine-at-italian-gp/10850147/
+
+## Post 4: Pirelli's Monza tyre selection
+
+Scheduled slot: Sunday, 30 August at 09:30 SAST.
+
+Instagram asset: `monza-tyres-instagram.png` at 1080 × 1350.
+
+> Pirelli has selected the softest tyre trio in its 2026 range for Monza.
+>
+> C3, C4 and C5 will be the hard, medium and soft compounds for the Italian
+> Grand Prix.
+>
+> #ItalianGP #Monza
+
+X asset: `monza-tyres-x.png` at 1600 × 900.
+
+> Pirelli has selected C3, C4 and C5 for Monza. It is the softest trio in its
+> 2026 range.
+>
+> They will be the hard, medium and soft compounds for the Italian Grand Prix.
+
+Alt text:
+
+> Grand Prix Picks editorial graphic showing three worn racing slicks beside
+> the Monza straight. The headline says Pirelli has selected the softest tyre
+> trio for Monza, with C3, C4 and C5 identified as hard, medium and soft.
+
+## Post 5: Alpine's full package for Colapinto
+
+Scheduled slot: Sunday, 30 August at 15:30 SAST.
+
+Instagram asset: `monza-alpine-upgrade-instagram.png` at 1080 × 1350.
+
+> Alpine will give Franco Colapinto its complete upgrade package at Monza.
+>
+> The revised floor, diffuser, rear wing and sidepods debuted on Pierre Gasly's
+> A526 at Zandvoort.
+>
+> #ItalianGP #Monza #AlpineF1
+
+X asset: `monza-alpine-upgrade-x.png` at 1600 × 900.
+
+> Alpine will give Franco Colapinto its complete upgrade package at Monza.
+>
+> The revised floor, diffuser, rear wing and sidepods debuted on Pierre Gasly's
+> A526 at Zandvoort.
+
+Alt text:
+
+> Grand Prix Picks editorial graphic showing a generic blue-and-pink Formula
+> car and close-up aerodynamic components in a Monza garage. The headline says
+> Alpine is giving Colapinto its full upgrade package for Monza.
+
+### Additional sources checked on 30 August
+
+- Pirelli: Monza receives the C3, C4 and C5 compound range —
+  https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/
+- Formula 1: Alpine's package comprises a revised floor, diffuser, rear wing
+  and sidepods, with Colapinto receiving it at Monza —
+  https://www.formula1.com/en/latest/article/how-alpines-dutch-gp-upgrades-have-propelled-gasly-to-the-front-of-the-midfield-battle.66MuOGDn4ewCtYgzQUUShR
+- Formula 1: Gasly called the package a positive step after scoring at
+  Zandvoort —
+  https://www.formula1.com/en/latest/article/gasly-praises-alpines-positive-step-after-points-in-zandvoort-while-colapinto-rues-harsh-penalty.4tz3Rnzm4Rb3X8hobfdbwO
+- Formula 1: Andrea Stella on McLaren's braking weakness before Monza —
+  https://www.formula1.com/en/latest/article/norris-driving-at-the-level-of-a-world-champion-says-stella-after-zandvoort.12gIh4xY2pBRcIzrFRvXQ0.12gIh4xY2pBRcIzrFRvXQ0

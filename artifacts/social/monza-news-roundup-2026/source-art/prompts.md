@@ -62,3 +62,48 @@ Every image used the same core direction:
 > motion, red heritage fabric, mechanical texture and an empty helmet. Keep the
 > left 40 percent calm and dark for typography, with the montage concentrated
 > on the right.
+
+## Standalone Monza news: 30 August
+
+These four image layers are paired with separately rendered factual copy and
+Grand Prix Picks branding.
+
+### Tyres
+
+> A new 4:5 tyre-focused Monza collage in the same visual language. Show close
+> fragments of three generic Formula racing slick tyres, tyre blankets, a
+> mechanic's gloved hands, heat haze on the long straight, rubber marbling and
+> track-surface texture. Tyres are the hero but have no lettering, colored
+> compound labels or Pirelli branding. Concentrate imagery on the right and
+> bottom and preserve the left 62 percent as calm dark negative space. No text,
+> logos, sponsor marks, watermark, identifiable person or actual team livery.
+
+### Alpine package
+
+> A new 4:5 upgrade-focused Monza collage in the same visual language. Show a
+> generic blue-and-pink modern open-wheel car emerging from a Monza garage;
+> torn fragments isolate a revised floor edge, diffuser, rear wing and sidepod
+> surfaces, with unlabelled technical pencil sketches. Bright Italian pit-lane
+> daylight cuts into deep garage shadow. Concentrate the car and components on
+> the right and lower half and preserve the left 60 percent as dark negative
+> space. No text, logos, sponsors, watermark, recognizable driver or actual
+> Alpine livery.
+
+### Tyres, wide
+
+> A wide 16:9 premium independent motorsport magazine collage focused on Monza
+> tyres. Three worn generic Formula racing slicks, tyre blankets and gloved
+> hands sit beside the long straight, with rubber marbling, aged ivory paper,
+> torn Italian tricolour fragments and acid-chartreuse registration marks. Keep
+> the left 45 percent calm and near-black for typography. No text, logos,
+> sponsors, watermark or recognizable person.
+
+### Alpine package, wide
+
+> A wide 16:9 premium independent motorsport magazine collage showing a generic
+> blue-and-pink open-wheel car leaving a shadowed Monza garage. Torn-paper
+> fragments isolate the floor edge, diffuser, rear wing and sidepod surfaces,
+> with technical pencil sketches, warm ivory stock and acid-chartreuse
+> registration marks. Keep the left 46 percent calm and dark for typography.
+> No text, logos, sponsors, watermark, recognizable driver or actual team
+> livery.

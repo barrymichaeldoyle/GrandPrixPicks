@@ -12,6 +12,13 @@ Convex agent skills for common tasks can be installed by running
 
 <!-- convex-ai-end -->
 
+## Product Voice
+
+Before writing or changing any user-facing copy, read
+`docs/product-voice.md`. Treat its rules and examples as acceptance criteria.
+Do not invent helper text, headings, taglines, or explanatory prose unless the
+feature requires them.
+
 ## Expo Mobile App
 
 This monorepo includes a WIP Expo app under `apps/mobile`.

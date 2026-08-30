@@ -94,16 +94,12 @@ const H2HPredictionForm = lazy(() =>
 
 export function DashboardWeekendPicks({
   weekend,
-  initialRace,
   initialDrivers,
   initialMatchups,
   initialPredictions,
   initialH2H,
 }: {
   weekend: CurrentWeekend | null | undefined;
-  /** The next race from the route loader, used to name the card before the
-   *  viewer's weekend payload arrives. */
-  initialRace?: Doc<'races'> | null;
   initialDrivers: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
   /** The viewer's saved picks as read during SSR, so a server render shows the
@@ -112,7 +108,7 @@ export function DashboardWeekendPicks({
   initialH2H?: MyH2HPredictions;
 }) {
   if (weekend === undefined) {
-    return <WeekendCardSkeleton race={initialRace} />;
+    return <WeekendCardSkeleton />;
   }
 
   if (weekend === null) {
@@ -135,9 +131,7 @@ export function DashboardWeekendPicks({
   // the pre-auth payload would open the card on the wrong session and show it
   // as locked, so hold the skeleton the extra beat instead.
   if (!weekendReflectsViewer(weekend.sessions)) {
-    // The pre-auth payload is not trustworthy about capabilities, but its race
-    // is the right race, and it beats the loader's copy for freshness.
-    return <WeekendCardSkeleton race={weekend.race ?? initialRace} />;
+    return <WeekendCardSkeleton />;
   }
 
   return (

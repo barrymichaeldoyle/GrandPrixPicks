@@ -7,7 +7,8 @@ import { useState } from 'react';
 import { Button } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
-import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
+import { FeedEmptyState } from '@/components/FeedItem/states';
+import { InlineLoader } from '@/components/InlineLoader';
 
 const MAX_LEAGUE_FEED_EXTRA_PAGES = 4;
 
@@ -73,14 +74,7 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
   }
 
   if (page0 === undefined) {
-    return (
-      <div className="space-y-3">
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-      </div>
-    );
+    return <InlineLoader label="Loading league activity" />;
   }
 
   const allEvents = loadedPages.flatMap((p) => p.events);
@@ -138,10 +132,7 @@ export function LeagueFeed({ leagueId }: { leagueId: Id<'leagues'> }) {
         );
       })}
       {isLoadingMore && (
-        <div className="space-y-3">
-          <FeedItemSkeleton />
-          <FeedItemSkeleton />
-        </div>
+        <InlineLoader label="Loading more activity" className="py-6" />
       )}
       {hasMore && !isLoadingMore && (
         <div className="flex justify-center pt-2">

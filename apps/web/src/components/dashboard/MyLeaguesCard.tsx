@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router';
 import { useQuery } from '@/integrations/convex/query';
 
 import { railCardActionClass } from '@/components/dashboard/RailCardAction';
+import { InlineLoader } from '@/components/InlineLoader';
 
 type MyLeagues = FunctionReturnType<typeof api.leagues.getMyLeagues>;
 
@@ -27,10 +28,11 @@ export function MyLeaguesCard({
           <Users className="h-4 w-4 text-accent" aria-hidden />
           <h2 className="gpp-label text-text-muted">Your leagues</h2>
         </div>
-        <div aria-busy="true" aria-label="Loading your leagues">
-          <div className="mt-3 h-10 animate-pulse rounded bg-surface-muted" />
-          <div className="mt-4 h-9 animate-pulse rounded bg-surface-muted" />
-        </div>
+        <InlineLoader
+          label="Loading your leagues"
+          className="mt-3 h-[5.5rem]"
+          size="sm"
+        />
       </div>
     );
   }

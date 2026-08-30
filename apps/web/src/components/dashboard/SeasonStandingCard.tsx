@@ -3,6 +3,8 @@ import type { FunctionReturnType } from 'convex/server';
 import { ArrowRight, Trophy } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
+import { InlineLoader } from '@/components/InlineLoader';
+
 type SeasonLeaderboard = FunctionReturnType<
   typeof api.leaderboards.getCombinedSeasonLeaderboard
 >;
@@ -32,10 +34,10 @@ export function SeasonStandingCard({
     return (
       <div className="rounded-lg border border-border bg-surface p-4">
         <SeasonStandingHeading />
-        <div
-          className="mt-3 h-10 animate-pulse rounded bg-surface-muted"
-          aria-busy="true"
-          aria-label="Loading your season standing"
+        <InlineLoader
+          label="Loading your season standing"
+          className="mt-3 h-10"
+          size="sm"
         />
         <SeasonStandingLink />
       </div>

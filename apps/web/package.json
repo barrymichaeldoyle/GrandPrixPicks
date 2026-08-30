@@ -25,6 +25,7 @@
     "deploy": "pnpm build:cf && wrangler pages deploy dist && pnpm run check:edge-cache",
     "check:edge-cache": "node scripts/check-edge-cache.mjs",
     "check:orphans": "node scripts/check-orphan-pages.mjs",
+    "copy:audit": "node scripts/check-product-copy.mjs",
     "check:size": "size-limit",
     "cache-rules": "node scripts/apply-cache-rules.mjs",
     "storybook": "storybook dev -p 6006",

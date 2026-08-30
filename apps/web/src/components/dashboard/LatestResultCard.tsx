@@ -4,6 +4,7 @@ import { ArrowRight, Flag } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 import { NoticeCard } from '@/components/NoticeCard';
+import { InlineLoader } from '@/components/InlineLoader';
 import { RaceFlag } from '@/components/RaceFlag';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 
@@ -48,8 +49,11 @@ export function LatestResultCard({
         aria-busy="true"
       >
         <LatestResultHeading />
-        <div className="mt-3 h-4 w-40 animate-pulse rounded bg-surface-muted" />
-        <div className="mt-4 h-10 animate-pulse rounded bg-surface-muted" />
+        <InlineLoader
+          label="Loading latest result"
+          className="mt-3 h-[4.5rem]"
+          size="sm"
+        />
       </div>
     );
   }

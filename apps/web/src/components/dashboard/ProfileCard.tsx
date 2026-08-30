@@ -3,6 +3,7 @@ import type { FunctionReturnType } from 'convex/server';
 import { Link } from '@tanstack/react-router';
 
 import { Avatar } from '@/components/Avatar';
+import { InlineLoader } from '@/components/InlineLoader';
 
 type Me = FunctionReturnType<typeof api.users.me>;
 
@@ -14,14 +15,9 @@ export function ProfileCard({ me }: { me: Me | undefined }) {
         aria-busy="true"
         aria-label="Loading profile"
       >
-        <div className="flex items-center gap-2.5">
-          {/* Matches the `md` Avatar below so nothing shifts when it loads. */}
-          <div className="h-12 w-12 animate-pulse rounded-full bg-surface-muted" />
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <div className="h-3.5 w-24 animate-pulse rounded bg-surface-muted" />
-            <div className="h-2.5 w-16 animate-pulse rounded bg-surface-muted" />
-          </div>
-        </div>
+        {/* Height matches the `md` Avatar row below so nothing shifts when it
+            loads; the shape of the row is not drawn, only waited for. */}
+        <InlineLoader label="Loading profile" className="h-12" size="sm" />
       </div>
     );
   }

@@ -1,10 +1,9 @@
 import { api } from '@convex-generated/api';
-import type { Doc } from '@convex-generated/dataModel';
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense, useEffect } from 'react';
 
 import { DevNowPanel } from '@/components/DevNowPanel';
-import { WeekendCardSkeleton } from '@/components/WeekendCardSkeleton';
+import { InlineLoader } from '@/components/InlineLoader';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
@@ -192,16 +191,15 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const { isSignedIn } = useViewerSession();
-  const { dashboard, drivers, h2hMatchups, nextRace } = Route.useLoaderData();
+  const { dashboard, drivers, h2hMatchups } = Route.useLoaderData();
 
   useEffect(() => {
     document.title = isSignedIn ? DASHBOARD_TITLE : PUBLIC_HOME_TITLE;
   }, [isSignedIn]);
 
   return isSignedIn ? (
-    <Suspense fallback={<DashboardSkeleton race={nextRace} />}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <AuthenticatedDashboard
-        initialRace={nextRace}
         initialDrivers={drivers}
         initialMatchups={h2hMatchups}
         initialDashboard={dashboard}
@@ -217,44 +215,30 @@ function HomePage() {
  *
  * React commits this over the server's markup whether or not the chunk is
  * cached — `React.lazy` suspends at least once on hydration — so this is not a
- * rare path, it is on every signed-in load. It therefore has to be a
- * continuation of what SSR drew rather than a different screen: same page
- * frame, same weekend card, same race name. Get that wrong and the page
- * visibly empties out for a beat and refills.
+ * rare path, it is on every signed-in load.
  *
- * `WeekendCardSkeleton` is the same component the dashboard itself falls back
- * to, which is what keeps the two in step. It costs the landing bundle only its
- * own markup: its dependencies are already there via `SessionClock`.
+ * It draws the page frame and a spinner, nothing else. Standing in for the
+ * dashboard's shape was tried and was worse: placeholder cards at guessed
+ * heights resize at every step of the load, so the outlines jump before the
+ * content lands. One spinner, then the real page in one move.
  */
-function DashboardSkeleton({ race }: { race?: Doc<'races'> | null }) {
+function DashboardSkeleton() {
   // Held for the same reason `DashboardPage` holds: during a sign-in handoff
   // the curtain should lift onto the dashboard, not onto its skeleton. Outside
   // a handoff there is no curtain and this is a no-op.
   useAuthCurtainGate(false);
 
   return (
-    // Frame copied from `AppPageLayout` rather than imported: matching padding
-    // is what stops the swap nudging the page, and importing the layout would
-    // pull the dashboard's frame onto the landing bundle for no other gain.
+    // Frame copied from `AppPageLayout` rather than imported: importing the
+    // layout would pull the dashboard's frame onto the landing bundle for no
+    // other gain.
     <div className="min-h-full bg-page">
       <div
         className="mx-auto w-full max-w-(--page-max) px-4 py-5 sm:py-7"
         aria-label="Loading dashboard"
         aria-busy="true"
       >
-        <div className="grid gap-6 md:items-start lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:gap-7 xl:grid-cols-[240px_minmax(0,1fr)_300px] xl:gap-8">
-          <div className="hidden space-y-4 lg:block">
-            <div className="h-20 animate-pulse rounded-lg border border-border bg-surface" />
-            <div className="h-40 animate-pulse rounded-lg border border-border bg-surface" />
-          </div>
-          <div className="min-w-0 space-y-6">
-            <WeekendCardSkeleton race={race} />
-          </div>
-          <div className="hidden space-y-4 lg:block">
-            <div className="h-32 animate-pulse rounded-lg border border-border bg-surface" />
-            <div className="h-32 animate-pulse rounded-lg border border-border bg-surface" />
-          </div>
-        </div>
+        <InlineLoader label="Loading dashboard" className="py-24 sm:py-28" />
       </div>
     </div>
   );

@@ -1,7 +1,4 @@
-import type { Doc } from '@convex-generated/dataModel';
-
-import { RaceFlag } from '@/components/RaceFlag';
-import { getCountryCodeForRace } from '@/lib/raceCountries';
+import { InlineLoader } from '@/components/InlineLoader';
 
 /**
  * The weekend card's outer shell, shared by the live card and this skeleton.
@@ -40,91 +37,40 @@ export const WEEKEND_CARD_SHELL =
 /**
  * The weekend picks card while its data is still in flight.
  *
- * Shared deliberately, because on a signed-in load this shape is rendered from
- * *two* boundaries and they have to agree. SSR renders the dashboard, then
- * hydration hits the `lazy()` boundary in `routes/index.tsx` and React commits
- * that Suspense fallback over the server's markup — `React.lazy` suspends at
- * least once on hydration even when the chunk is already cached, so preloading
- * cannot prevent it. When the two boundaries rendered different things, the
- * page visibly emptied out mid-load and refilled.
+ * A spinner on the bare page, not a stand-in card. Earlier versions drew the
+ * card shell at roughly the height the picker would take, on the theory that
+ * reserving the space was worth it: the swap is this page's largest CLS
+ * contributor, and collapsing it moves the feed underneath.
  *
- * One component for both means the fallback is a continuation of what SSR drew
- * rather than a different screen, so there is nothing to see when React swaps
- * them.
+ * In practice the reserve was the worse of the two. The shell carries a border
+ * and the full-height accent stripe, so the placeholder read as a real card,
+ * and every step of the load resized it — the guess is never the height the
+ * picker actually lands at, and on a signed-in reload the outline visibly
+ * jumped around before the content arrived. A line that moves twice draws far
+ * more attention than content appearing once.
  *
- * Which race this is, its round and whether it is a sprint weekend are facts
- * about the calendar, not the viewer, and the route loader already has them.
- * Rendering them here is what lets the race name (this page's LCP element)
- * paint with the first paint instead of waiting for Convex to re-answer
- * `getCurrentWeekend` for the authenticated viewer.
+ * So the loading state commits to being a loading state: nothing but a
+ * spinner, and the card pops in whole. What moves now moves once.
  *
- * It is not a way around `weekendReflectsViewer`. Everything the capability
+ * This is rendered from two boundaries on a signed-in load — the `lazy()`
+ * Suspense fallback in `routes/index.tsx` and the dashboard's own pre-viewer
+ * state — and they must agree, which is why it stays one shared component.
+ * `React.lazy` suspends at least once on hydration even with the chunk cached,
+ * so both are on the normal path, and rendering different things from them is
+ * what used to make the page empty out and refill.
+ *
+ * It is not a way around `weekendReflectsViewer`: everything the capability
  * flags govern — which sessions are open, the countdown, what may still be
- * edited, the picks themselves — stays behind the placeholder until the
- * authenticated payload lands. Only the weekend's identity paints early.
- *
- * Landing-page cost is just this markup: `RaceFlag` and `getCountryCodeForRace`
- * are already on that bundle via `SessionClock`.
+ * edited, the picks themselves — stays behind this until the authenticated
+ * payload lands.
  */
-export function WeekendCardSkeleton({
-  race,
-}: {
-  /** Omit when even the calendar is unknown, and the header falls back to bars. */
-  race?: Doc<'races'> | null;
-}) {
-  const countryCode = race ? getCountryCodeForRace(race) : null;
-
+export function WeekendCardSkeleton() {
   return (
-    <div
-      className={WEEKEND_CARD_SHELL}
-      aria-label="Loading current race weekend"
-      aria-busy="true"
-    >
-      <div className="border-b border-border p-4 sm:p-5">
-        {race ? (
-          <div className="flex min-w-0 flex-wrap items-center gap-3">
-            {countryCode ? (
-              <RaceFlag
-                countryCode={countryCode}
-                size="lg"
-                className="overflow-hidden rounded-sm border border-border"
-              />
-            ) : null}
-            <div className="min-w-0">
-              <p className="gpp-label text-text-muted">
-                Round {race.round}
-                {race.hasSprint ? ' · Sprint weekend' : ''}
-              </p>
-              {/* Same classes and same level as the live heading so the swap
-                  costs no reflow and the page does not briefly lose its `h1`.
-                  Not its id, though: two elements must never share one. */}
-              <h1 className="mt-1 text-xl font-semibold tracking-tight text-text sm:text-2xl">
-                {race.name}
-              </h1>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="h-4 w-28 animate-pulse rounded bg-surface-muted" />
-            <div className="mt-3 h-7 w-56 max-w-full animate-pulse rounded bg-surface-muted" />
-          </>
-        )}
-      </div>
-      <div className="p-4 sm:p-5">
-        <div className="h-3 w-20 animate-pulse rounded bg-surface-muted" />
-        <div className="mt-3 h-6 w-44 max-w-full animate-pulse rounded bg-surface-muted" />
-        {/* Stands in for the two-column driver grid, at its real row count, so
-            the card reserves close to the height the picker will occupy and the
-            fill-in does not shove the feed below it down the page. */}
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          {Array.from({ length: 22 }, (_, index) => (
-            <div
-              key={index}
-              className="h-16 animate-pulse rounded bg-surface-muted"
-            />
-          ))}
-        </div>
-      </div>
+    <div aria-busy="true">
+      <InlineLoader
+        label="Loading your race weekend"
+        className="py-24 sm:py-28"
+      />
     </div>
   );
 }

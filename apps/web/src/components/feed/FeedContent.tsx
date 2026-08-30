@@ -11,7 +11,8 @@ import { FeedItem } from '@/components/FeedItem/FeedItem';
 import { NewsGroup } from '@/components/FeedItem/NewsGroup';
 import { groupFeedEvents } from './groupFeedEvents';
 import { SessionGroup } from '@/components/FeedItem/SessionGroup';
-import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
+import { FeedEmptyState } from '@/components/FeedItem/states';
+import { InlineLoader } from '@/components/InlineLoader';
 import { FollowButton } from '@/components/FollowButton';
 
 type FeedPage = NonNullable<
@@ -31,7 +32,7 @@ export function FeedContent({
 }: {
   /**
    * The top of the feed as the server read it, so the section renders with rows
-   * instead of four skeletons. A truncated slice of the real first page (see
+   * instead of a spinner. A truncated slice of the real first page (see
    * `home.getDashboardPageData`), replaced by the live query as soon as it
    * answers. Absent whenever the server could not read as the viewer.
    */
@@ -104,14 +105,10 @@ export function FeedContent({
   }
 
   if (page0 === undefined) {
-    return (
-      <div className="space-y-3">
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-        <FeedItemSkeleton />
-      </div>
-    );
+    // One spinner, not four row skeletons. The rows that land here vary in
+    // height and content, so the skeletons never stood in for anything in
+    // particular: they just made the section flicker on every reload.
+    return <InlineLoader label="Loading activity" />;
   }
 
   // Keep the merged feed chronological even while reactive pages refresh, and
@@ -288,10 +285,7 @@ export function FeedContent({
         );
       })}
       {isLoadingMore && (
-        <div className="space-y-3">
-          <FeedItemSkeleton />
-          <FeedItemSkeleton />
-        </div>
+        <InlineLoader label="Loading more activity" className="py-6" />
       )}
       {hasMore && !isLoadingMore && (
         <div className="flex justify-center pt-2">

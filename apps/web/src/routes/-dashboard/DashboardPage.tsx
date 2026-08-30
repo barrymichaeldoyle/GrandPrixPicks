@@ -24,15 +24,10 @@ import type { DashboardSsrData } from './ssr';
 import { liveOrSsr, weekendReflectsViewer } from './dashboardState';
 
 export function DashboardPage({
-  initialRace,
   initialDrivers = [],
   initialMatchups,
   initialDashboard,
 }: {
-  /** Seeds the weekend card's identity from SSR, so the race name (this page's
-   *  LCP element) does not wait on Convex re-answering for the signed-in
-   *  viewer. See `DashboardWeekendPicksSkeleton`. */
-  initialRace?: Doc<'races'> | null;
   initialDrivers?: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
   /** The viewer's own above-the-fold data, read as the viewer during SSR.
@@ -190,7 +185,6 @@ export function DashboardPage({
     >
       <DashboardWeekendPicks
         weekend={currentWeekend}
-        initialRace={initialRace}
         initialDrivers={initialDrivers}
         initialMatchups={initialMatchups}
         initialPredictions={initialDashboard?.predictions ?? null}

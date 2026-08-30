@@ -1,5 +1,10 @@
 # Grand Prix Picks
 
+Before writing or changing any user-facing copy, read
+`docs/product-voice.md`. Treat its rules and examples as acceptance criteria.
+Do not invent helper text, headings, taglines, or explanatory prose unless the
+feature requires them.
+
 F1 prediction game where users pick their top 5 drivers for each session of a
 race weekend and earn points based on accuracy. Beyond the core Top 5 game it
 also has teammate Head-to-Head (H2H) picks, private leagues, an activity feed,

@@ -20,7 +20,8 @@ import {
 import { Avatar } from '@/components/Avatar';
 import { Button, primaryButtonStyles } from '@/components/Button/Button';
 import { FeedItem } from '@/components/FeedItem/FeedItem';
-import { FeedEmptyState, FeedItemSkeleton } from '@/components/FeedItem/states';
+import { FeedEmptyState } from '@/components/FeedItem/states';
+import { InlineLoader } from '@/components/InlineLoader';
 import { FollowButton } from '@/components/FollowButton';
 import { PageLoader } from '@/components/PageLoader';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
@@ -438,11 +439,7 @@ function ProfilePage() {
 
         {/* Result feed */}
         {userFeed === undefined ? (
-          <div className="space-y-3">
-            <FeedItemSkeleton />
-            <FeedItemSkeleton />
-            <FeedItemSkeleton />
-          </div>
+          <InlineLoader label="Loading activity" />
         ) : userFeed.events.length === 0 ? (
           weekends?.length === 0 ? (
             <div className="rounded-sm border border-border bg-surface p-8 text-center">

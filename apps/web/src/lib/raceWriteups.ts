@@ -57,7 +57,7 @@ const RACE_WRITEUPS = {
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    reviewedAt: '2026-08-29',
+    reviewedAt: '2026-08-31',
     label: 'Madring predictions',
     cta: 'Read the Madring predictions',
   },

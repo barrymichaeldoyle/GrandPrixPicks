@@ -130,6 +130,9 @@ predictions or results that the current phase does not provide.
 
 - Express the phase and lock state in text. Do not rely on color.
 - Keep heading order, semantic lists and definition lists intact.
+- Keep stable `id`s on durable headings so a shared URL can land on that
+  section. Do not treat live-only module ids as shareable; they disappear in
+  the archive.
 - Keep track time zones visible beside session times.
 - If a page updates while open, announce only the concise changed status. Do
   not put the whole article in a live region.

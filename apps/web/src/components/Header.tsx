@@ -2,6 +2,7 @@ import { Link, useLinkProps } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 
 import { primaryButtonStyles } from '@/components/Button/Button';
+import { useHashTargetFocus } from '@/hooks/useHashTargetFocus';
 import { HeaderUser } from '@/integrations/clerk/header-user.tsx';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -51,6 +52,10 @@ export function Header() {
   // client SDK boots. See {@link useViewerSession}.
   const { isSignedIn } = useViewerSession();
   const showSignedOutNav = !isSignedIn;
+  // Hash links already scroll (router + `scroll-margin-top` in styles.css).
+  // Headings are not focusable, so native fragment navigation would leave
+  // keyboard users at the top. This moves focus without touching scroll.
+  useHashTargetFocus();
 
   /**
    * The wordmark is built from `useLinkProps` rather than rendered as a

@@ -165,6 +165,25 @@
     outline-offset: 2px;
   }
 
+  /*
+   * Hash links and skip-to-main land under the sticky header unless the scroll
+   * position leaves a gap. `scroll-mt-*` on a call site still wins (utilities
+   * beat this layer), which is how the landing picker and settings sections
+   * keep a larger offset for extra sticky chrome.
+   *
+   * Limited to headings, landmarks and `:target` rather than every `[id]`, so a
+   * tab option or dialog title scrolled inside a nested container is not padded
+   * by the page header.
+   */
+  :target,
+  :where(h1, h2, h3, h4, h5, h6, main, section, article, aside, header)[id] {
+    scroll-margin-top: calc(var(--nav-height) + 0.75rem);
+  }
+
+  :where(h1, h2, h3, h4, h5, h6)[id]:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   /* Display and h1 sit light; h2 regular. Light type on dark reads bolder, so
    every heading role is one weight step below where it would normally land. */
   h1 {

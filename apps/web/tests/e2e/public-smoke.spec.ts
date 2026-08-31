@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { expectHashTargetBelowHeader } from './helpers/hashTarget';
 import { waitForHydration } from './helpers/hydration';
 import { applyScenario } from './helpers/scenarios';
 
@@ -92,14 +93,20 @@ test.describe('[public] smoke', () => {
     await pickerLink.click();
 
     await expect(page).toHaveURL(/\/#make-picks$/);
-    const target = page.locator('#make-picks');
-    await expect(target).toBeVisible();
+    await expectHashTargetBelowHeader(page, 'make-picks');
+  });
+
+  test('opens a write-up hash below the sticky header', async ({ page }) => {
+    await page.goto('/f1-2026-italian-grand-prix-predictions#track-map');
+
+    const heading = page.getByRole('heading', {
+      name: 'Where overtakes happen',
+    });
+    await waitForHydration(heading);
+    await expectHashTargetBelowHeader(page, 'track-map');
     await expect
       .poll(() =>
-        target.evaluate((element) => {
-          const { top } = element.getBoundingClientRect();
-          return top >= 0 && top < window.innerHeight;
-        }),
+        heading.evaluate((element) => document.activeElement === element),
       )
       .toBe(true);
   });

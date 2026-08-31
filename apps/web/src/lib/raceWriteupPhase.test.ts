@@ -76,7 +76,9 @@ describe('race write-up lifecycle', () => {
   });
 
   it('provides direct labels and actions for every phase', () => {
+    expect(raceWriteupPhaseLabel('evidence')).toBe('Practice');
     expect(raceWriteupPhaseLabel('race-picks')).toBe('Race picks');
+    expect(raceWriteupPhaseLabel('finished')).toBe('Results');
     expect(raceWriteupPrimaryAction('preview', 'Monza')).toBe(
       'Make your Monza picks',
     );
@@ -92,6 +94,24 @@ describe('race write-up lifecycle', () => {
         'The Italian Grand Prix',
         'Live summary',
       ),
-    ).toContain('picks are locked');
+    ).toBe(
+      'The Italian Grand Prix picks are locked. Results will appear on the race page after they are published.',
+    );
+    expect(
+      raceWriteupHeroSummary(
+        'finished',
+        'The Italian Grand Prix',
+        'Live summary',
+      ),
+    ).toBe(
+      'The Italian Grand Prix is complete. Official results and scores are on the race page.',
+    );
+    expect(
+      raceWriteupHeroSummary(
+        'cancelled',
+        'The Italian Grand Prix',
+        'Live summary',
+      ),
+    ).toBe('The Italian Grand Prix was called off.');
   });
 });

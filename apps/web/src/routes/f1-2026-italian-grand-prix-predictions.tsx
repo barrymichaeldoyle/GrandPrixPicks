@@ -88,16 +88,6 @@ const FAQS = [
       'The P4. Qualifying picks use the official qualifying classification. The grid penalty is applied afterwards, so a driver classified P4 counts as P4 for your qualifying picks even when they start P14 on Sunday.',
   },
   {
-    question: 'Will Isack Hadjar race at Monza?',
-    answer:
-      'Hadjar said he was hopeful of returning after missing Zandvoort with a wrist injury. His Monza seat was not confirmed when this guide was reviewed, so check the final entry and team updates before locking a pick.',
-  },
-  {
-    question: 'What matters most when predicting Monza?',
-    answer:
-      'Watch straight-line speed alongside braking stability, traction out of the chicanes and representative long-run pace. A lap helped by a strong tow can flatter a car at Monza.',
-  },
-  {
     question: 'Are other players’ picks visible before the session?',
     answer:
       'No. Picks stay private until the relevant session locks, so nobody can copy another player’s Top 5 before making their own call.',
@@ -146,10 +136,10 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
       const title = '2026 Italian Grand Prix Predictions & Picks';
       const description =
         race?.status === 'finished'
-          ? 'Review the 2026 Italian Grand Prix predictions and Monza results, including the factors that shaped qualifying and the race.'
+          ? '2026 Italian Grand Prix predictions, official Monza results, and how they scored.'
           : race?.status === 'cancelled'
-            ? 'See the status of the cancelled 2026 Italian Grand Prix and the Monza information prepared for the race weekend.'
-            : 'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
+            ? 'The 2026 Italian Grand Prix was called off.'
+            : 'Make your 2026 Italian Grand Prix predictions. Antonelli’s grid penalty does not change his qualifying classification.';
       const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,
@@ -252,7 +242,7 @@ function ItalianGrandPrixPredictionsPage() {
               {raceWriteupHeroSummary(
                 phase,
                 'The Italian Grand Prix',
-                'Check straight-line speed, braking stability and traction out of the chicanes before choosing your qualifying and race Top 5.',
+                'Straight-line speed, braking into the chicanes, and long-run pace decide a Monza Top 5.',
               )}
             </p>
             <RaceWriteupActions
@@ -305,7 +295,7 @@ function ItalianGrandPrixPredictionsPage() {
             id="common-questions"
             className="font-title text-2xl font-medium text-text"
           >
-            Italian Grand Prix prediction questions
+            Common questions
           </h2>
           <div className="mt-7 grid gap-2">
             {FAQS.map((faq) => (
@@ -385,8 +375,7 @@ function WatchTable() {
         </h2>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           A speed-trap result can be inflated by a tow. Compare clean laps,
-          braking performance and long-run pace before moving a driver into your
-          Top 5.
+          braking, and long runs.
         </p>
       </div>
 
@@ -542,10 +531,13 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. Red Bull has yet to confirm his return and has said Lawson
-          drives again if he is not fit, so the seat is the pick, not the
-          driver. Wait for the team or the official entry before locking it in.{' '}
-          <ExternalSource href={HADJAR_SOURCE}>Read the report</ExternalSource>.
+          at Monza. Red Bull has not confirmed who drives. Lawson starts if
+          Hadjar is not fit, so don&rsquo;t lock that pick until the entry is
+          out.{' '}
+          <ExternalSource href={HADJAR_SOURCE}>
+            Sky Sports report
+          </ExternalSource>
+          .
         </p>
       </div>
       <dl className="self-start rounded-sm bg-surface-elevated px-4">
@@ -628,12 +620,10 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {leader.points - second.points} points
-            from {second.displayName}. Use that as a form check, then compare it
-            with the low-downforce pace shown in practice. Antonelli takes a
-            full new power unit at Monza and starts from the back. Treat the two
-            sessions separately: his qualifying result still counts for your
-            qualifying picks, and the penalty only changes where he starts on
-            Sunday.
+            from {second.displayName}. Antonelli takes a full new power unit at
+            Monza and starts from the back. His qualifying result still counts
+            for your qualifying picks. The penalty only changes where he starts
+            on Sunday.
           </p>
           <Link
             to="/f1-standings"
@@ -717,39 +707,22 @@ function PredictionMethod() {
   ] as const;
 
   return (
-    <div className="grid gap-10 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <section aria-labelledby="build-top-five">
-        <h2
-          id="build-top-five"
-          className="font-title text-2xl font-medium text-text"
-        >
-          Before you lock your Top 5
-        </h2>
-        <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-          {steps.map(([title, detail]) => (
-            <li key={title}>
-              <h3 className="font-title font-medium text-text">{title}</h3>
-              <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <aside className="self-start lg:pt-1">
-        <h2 className="font-title text-lg font-medium text-text">
-          Your picks stay private
-        </h2>
-        <p className="mt-3 text-sm leading-6 text-text-muted">
-          Selections are hidden from other players until the relevant session
-          locks.
-        </p>
-        <Link
-          to="/how-to-play"
-          className="mt-3 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
-        >
-          See how scoring works <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
-      </aside>
-    </div>
+    <section className="py-8 sm:py-16" aria-labelledby="build-top-five">
+      <h2
+        id="build-top-five"
+        className="font-title text-2xl font-medium text-text"
+      >
+        Before you lock your Top 5
+      </h2>
+      <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
+        {steps.map(([title, detail]) => (
+          <li key={title}>
+            <h3 className="font-title font-medium text-text">{title}</h3>
+            <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -777,8 +750,7 @@ function McLarenForm() {
           McLaren won in Hungary and Zandvoort, both high-downforce races.
           Andrea Stella says the MCL40 has been weaker on drag and braking.
           Monza will test both. Check Norris and Piastri&rsquo;s straight-line
-          speed and braking stability on Friday before carrying their recent
-          form into your picks.{' '}
+          speed and braking on Friday.{' '}
           <ExternalSource href={MCLAREN_FORM_SOURCE}>
             Read Stella&rsquo;s assessment
           </ExternalSource>
@@ -850,9 +822,6 @@ function TyreChoice() {
         >
           Monza gets the three softest tyres
         </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          The 2026 range runs C1 to C5, and Monza takes the soft end of it.
-        </p>
 
         {/* The circuit stats strip above, exactly: gap-px cells on a border
             fill, figure in mono over a tracked micro label. It reads as a
@@ -864,9 +833,9 @@ function TyreChoice() {
 
             Showing all five is what makes it worth a graphic. Three cells said
             "C3, C4, C5 are hard, medium and soft", which is a mapping the
-            sentence above could carry on its own. Five cells say where those
-            three sit, so "the softest three" stops being a claim the reader has
-            to take on trust, and the relative naming stops being confusing: the
+            heading could carry on its own. Five cells say where those three
+            sit, so "the softest three" stops being a claim the reader has to
+            take on trust, and the relative naming stops being confusing: the
             eye can see that Monza's hard tyre is the middle of the range.
 
             The sidewall band is a 3px top rule per cell rather than a drawn
@@ -929,17 +898,13 @@ function TyreChoice() {
         </div>
 
         <p className="gpp-reading-copy mt-7 text-text-muted">
-          Softer compounds wear faster, but Monza is gentle on tyres. They wear
-          most in fast corners, and Monza has fewer of those than almost
-          anywhere. Most of the lap is full throttle, and the rest is braking
-          and traction out of the chicanes, so the C5 could last longer here
-          than it normally would.
+          Tyres wear most in fast corners. Monza has few of those, so the C5 can
+          last longer here than it usually does.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          The pit lane is what decides the strategy. A stop at Monza costs more
-          time than at almost any other race, so teams will stretch their stints
-          and try to finish on one. Heat is what breaks that plan, and a hot,
-          dry weekend is forecast.
+          A stop at Monza costs more time than at almost any other race, so
+          teams will try to one-stop. Heat is the usual reason that fails, and a
+          hot, dry weekend is forecast.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Friday long runs will settle it. A one-stop puts the weight on
@@ -1000,8 +965,7 @@ function FerrariTribute() {
             See the race suits
           </ExternalSource>
           . Ferrari has yet to reveal the car, so treat the reported livery
-          details as unconfirmed. Use practice pace to judge Leclerc and
-          Hamilton.{' '}
+          details as unconfirmed.{' '}
           <ExternalSource href={LIVERY_SOURCE}>
             Read the livery report
           </ExternalSource>
@@ -1044,12 +1008,7 @@ function NorrisContract() {
           McLaren has confirmed a new deal keeping Lando Norris at the team
           until at least the end of 2030, with a multi-year option beyond that.
           He joined as a test and development driver in 2017 and has raced for
-          them since 2019. Oscar Piastri is contracted to the end of 2028, so
-          the McLaren duel keeps the same two names for a while yet.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Norris and Piastri remain McLaren&rsquo;s Monza pairing. Use the deal
-          as background to their on-track fight.{' '}
+          them since 2019. Oscar Piastri is contracted to the end of 2028.{' '}
           <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
             Read the announcement
           </ExternalSource>
@@ -1087,10 +1046,7 @@ function ColapintoContract() {
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
           Alpine has confirmed Franco Colapinto will stay for 2027, alongside
-          Pierre Gasly who is contracted to at least the end of 2028.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Colapinto and Gasly remain Alpine&rsquo;s Monza pairing.{' '}
+          Pierre Gasly who is contracted to at least the end of 2028.{' '}
           <ExternalSource href={COLAPINTO_CONTRACT_SOURCE}>
             Read the announcement
           </ExternalSource>

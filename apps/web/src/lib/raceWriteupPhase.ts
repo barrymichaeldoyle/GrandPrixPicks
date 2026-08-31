@@ -60,13 +60,13 @@ export function raceWriteupPhaseLabel(phase: RaceWriteupPhase): string {
     case 'preview':
       return 'Weekend preview';
     case 'evidence':
-      return 'Weekend evidence';
+      return 'Practice';
     case 'race-picks':
       return 'Race picks';
     case 'picks-locked':
       return 'Picks locked';
     case 'finished':
-      return 'Weekend complete';
+      return 'Results';
     case 'cancelled':
       return 'Race called off';
   }
@@ -105,8 +105,8 @@ export function raceWriteupHeroSummary(
     case 'picks-locked':
       return `${raceName} picks are locked. Results will appear on the race page after they are published.`;
     case 'finished':
-      return `${raceName} is complete. Review the weekend factors, then see the official results and scoring.`;
+      return `${raceName} is complete. Official results and scores are on the race page.`;
     case 'cancelled':
-      return `${raceName} was called off. The circuit information and pre-weekend analysis remain available.`;
+      return `${raceName} was called off.`;
   }
 }

@@ -24,7 +24,7 @@ import {
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
-import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import { getRaceWriteup, getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import {
   breadcrumbSchema,
   pageMeta,
@@ -55,7 +55,9 @@ const TYRE_SOURCE =
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
 >;
-type StandingsDriver = Championship['drivers'][number];
+type SeasonRace = FunctionReturnType<
+  typeof api.races.listCurrentSeason
+>['races'][number];
 
 /*
  * Durable questions only. Weekend analysis belongs in the sections above, and
@@ -94,7 +96,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();
     const weatherNow = Date.now();
-    const [race, championship, weather, news] = await Promise.all([
+    const [race, championship, weather, news, season] = await Promise.all([
       context.queryClient.ensureQueryData(
         routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
       ),
@@ -112,11 +114,14 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
       context.queryClient.ensureQueryData(
         routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
       ),
+      context.queryClient.ensureQueryData(
+        routeQuery(api.races.listCurrentSeason, {}),
+      ),
     ]);
     if (!race) {
       throw notFound();
     }
-    return { race, championship, weather, weatherNow, news };
+    return { race, championship, weather, weatherNow, news, season };
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race;
@@ -190,12 +195,14 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
 });
 
 function MadridGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news } =
+  const { race, championship, weather, weatherNow, news, season } =
     Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
-  const driversByCode = new Map(
-    championship.drivers.map((driver) => [driver.code, driver]),
+  const pendingRaces = racesStillToScoreBefore(
+    season.races,
+    championship.roundsScored,
+    race.round,
   );
 
   return (
@@ -256,10 +263,13 @@ function MadridGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
-            <ChampionshipContext championship={championship} />
+            <ChampionshipContext
+              championship={championship}
+              pendingRaces={pendingRaces}
+              venueName="Madrid"
+            />
           </>
         ) : null}
-        <TheCall byCode={driversByCode} />
 
         <section className="py-8 sm:py-16" aria-labelledby="common-questions">
           <h2
@@ -544,7 +554,15 @@ function TyreChoice() {
   );
 }
 
-function ChampionshipContext({ championship }: { championship: Championship }) {
+function ChampionshipContext({
+  championship,
+  pendingRaces,
+  venueName,
+}: {
+  championship: Championship;
+  pendingRaces: readonly SeasonRace[];
+  venueName: string;
+}) {
   const drivers = championship.drivers.slice(0, 6);
   const leader = drivers[0];
   const second = drivers[1];
@@ -561,12 +579,18 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
             id="championship-context"
             className="font-title text-2xl font-medium text-text"
           >
-            Championship standings before Madrid
+            Championship standings
           </h2>
           <p className="gpp-reading-copy mt-4 text-text-muted">
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {gap} {gap === 1 ? 'point' : 'points'}{' '}
             from {second.displayName}.
+            {pendingRaces.length > 0 ? (
+              <>
+                {' '}
+                <PendingRacesCopy races={pendingRaces} venueName={venueName} />
+              </>
+            ) : null}
           </p>
           <Link
             to="/f1-standings"
@@ -623,67 +647,67 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
   );
 }
 
-/**
- * A Thursday call, labelled, so the title's promise of a prediction is an
- * actual order. Same five for qualifying and the race: splitting them before
- * anyone has run a timed lap here would be invented. Norris ahead of Russell
- * because he won the last two Grands Prix. The rest is championship order
- * among the cars that have been winning.
- */
-const CALL = [
-  { code: 'ANT', name: 'Kimi Antonelli' },
-  { code: 'NOR', name: 'Lando Norris' },
-  { code: 'RUS', name: 'George Russell' },
-  { code: 'HAM', name: 'Lewis Hamilton' },
-  { code: 'LEC', name: 'Charles Leclerc' },
-] as const;
+function racesStillToScoreBefore(
+  races: readonly SeasonRace[],
+  roundsScored: number,
+  thisRound: number,
+): SeasonRace[] {
+  return races
+    .filter(
+      (race) =>
+        race.round > roundsScored &&
+        race.round < thisRound &&
+        race.status !== 'cancelled',
+    )
+    .sort((a, b) => a.round - b.round);
+}
 
-function TheCall({ byCode }: { byCode: Map<string, StandingsDriver> }) {
+function RaceNameLink({ race }: { race: SeasonRace }) {
+  const writeup = getRaceWriteup(race.slug);
+  if (writeup) {
+    return (
+      <Link
+        to={writeup.to}
+        className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+      >
+        {race.name}
+      </Link>
+    );
+  }
   return (
-    <section className="py-8 sm:py-16" aria-labelledby="the-call">
-      <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Call of 31 August, after Zandvoort
-        </p>
-        <h2
-          id="the-call"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
-        >
-          Qualifying and race Top 5
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Norris is second because he won Hungary and Zandvoort. It changes
-          after Friday.
-        </p>
-      </div>
+    <Link
+      to="/races/$raceSlug"
+      params={{ raceSlug: race.slug }}
+      className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+    >
+      {race.name}
+    </Link>
+  );
+}
 
-      <ol className="mt-7 max-w-xl divide-y divide-border border-y border-border">
-        {CALL.map((pick, index) => {
-          const driver = byCode.get(pick.code);
-          return (
-            <li key={pick.code} className="flex items-center gap-3 py-3">
-              <span className="gpp-mono w-6 text-sm text-text-muted">
-                {index + 1}
-              </span>
-              {driver ? (
-                <DriverBadge
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                  prerenderTooltip={false}
-                />
-              ) : null}
-              <span className="text-sm text-text">
-                {driver?.displayName ?? pick.name}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
+function PendingRacesCopy({
+  races,
+  venueName,
+}: {
+  races: readonly SeasonRace[];
+  venueName: string;
+}) {
+  return (
+    <>
+      The{' '}
+      {races.map((race, index) => (
+        <span key={race.slug}>
+          {index > 0
+            ? index === races.length - 1
+              ? ' and the '
+              : ', the '
+            : null}
+          <RaceNameLink race={race} />
+        </span>
+      ))}{' '}
+      still {races.length === 1 ? 'has' : 'have'} to be scored, so this table
+      will change before {venueName}.
+    </>
   );
 }
 

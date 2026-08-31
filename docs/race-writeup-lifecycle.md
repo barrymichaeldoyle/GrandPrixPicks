@@ -2,8 +2,10 @@
 
 Race write-ups are the reading surface for a Grand Prix weekend. The race page
 is the game: picks, locks, results and scores. A write-up helps a fan decide
-what to pick, records the call that Grand Prix Picks made, and becomes a useful
-archive after the result.
+what to pick, using circuit facts and sourced news, and becomes a useful
+archive after the result. It does not publish a house Top 5. Picks stay
+private until the relevant session locks; if aggregated player picks appear,
+they belong in the finished archive, after the event, not in the preview.
 
 This process applies to every route registered in
 `apps/web/src/lib/raceWriteups.ts`.
@@ -17,8 +19,7 @@ race to finish.
 After the current race, complete one archive pass and move editorial attention
 to the next round:
 
-- Sunday: add the result and prediction scorecard when the classification is
-  available.
+- Sunday: add the official result, and aggregated player picks when they exist.
 - Monday: confirm penalties and the official classification, remove unresolved
   language, update internal links, and freeze the page.
 - Reopen the page only for a factual correction or an amended official result.
@@ -34,7 +35,8 @@ the phase as the contract for copy, modules and actions.
 | Evidence     | FP1 until qualifying locks      | Use on-track evidence                         | Keep live modules current and explain only evidence that can change a pick           |
 | Race picks   | Qualifying lock until race lock | Make the race Top 5                           | Freeze the qualifying call and move the primary action to race picks                 |
 | Picks locked | Race lock until results publish | Review the submitted call                     | Remove forecasts and decision prompts; do not claim that results exist yet           |
-| Finished     | Race results published          | Compare prediction with result                | Show the frozen prediction, official result and scorecard; link to the next race     |
+| Finished     | Race results published          | Compare the field with the result             | Show the official result; aggregated player picks belong here when they exist; link to the next race |
+
 | Cancelled    | Race status is cancelled        | Understand what happened                      | Remove prediction prompts and show the race detail or cancellation notice            |
 
 The database status is authoritative for finished and cancelled races. A clock
@@ -49,45 +51,43 @@ Publish the durable foundation:
 - event identity, session schedule and track time zone;
 - the circuit traits that affect a Top 5;
 - tyre nomination when confirmed;
-- championship context entering the round;
+- championship standings as they currently are, naming any round still to be
+  scored before this weekend;
 - known penalties, driver availability and material car changes;
-- an explicit qualifying Top 5 and race Top 5, labelled with the time of the
-  call;
 - links to the race page and circuit guide.
 
-The title promises predictions, so the page must contain an actual call. Advice
-without a predicted order does not finish that job.
+The title names predictions because that is what the reader is here to make.
+Do not invent a Grand Prix Picks Top 5 to satisfy the title. Circuit facts,
+tyres, standings and sourced news are the preview. Aggregated player picks,
+when they exist, wait until the finished phase.
 
 ### Friday after FP2
 
 This is the main evidence update on a regular weekend. Compare representative
-laps, long runs, tyre use, tow effects and reliability. Change a prediction
-only when the evidence changes the order.
+laps, long runs, tyre use, tow effects and reliability. Add only what can
+change a pick.
 
 ### Saturday after FP3
 
-Make the final qualifying call and freeze it before qualifying locks. Preserve
-the previous update history or timestamp. Never rewrite a prediction after the
-session to make it look closer to the result.
+Record the last practice evidence that still affects qualifying. Do not
+publish a house qualifying order.
 
 ### Saturday after qualifying
 
-Record the official qualifying classification, starting-grid changes and final
-race prediction. Keep qualifying classification and starting position distinct
-when penalties apply.
+Record the official qualifying classification and starting-grid changes. Keep
+qualifying classification and starting position distinct when penalties apply.
 
 ### Sunday and Monday
 
-After results publish, place the frozen prediction beside the official Top 5
-and show its score using the game's scoring rules. Add a short account of the
-facts that decided the result. This is an audit of the prediction, not a full
-race report.
+After results publish, place the official Top 5 on the page. When aggregated
+player picks exist, show them beside that result and how they scored. Add a
+short account of the facts that decided the result. This is an archive, not a
+full race report.
 
 ## Update gate
 
 Edit a live write-up only when at least one condition is true:
 
-- a predicted Top 5 changes;
 - a penalty or driver change affects scoring or availability;
 - conditions materially alter the likely result;
 - a completed session supplies evidence needed for the next pick;
@@ -104,12 +104,14 @@ Use one source for each kind of information:
 - `raceNews`: discrete, sourced weekend events that affect a prediction;
 - weather component: forecast data and its own update time;
 - race and standings queries: schedule, status and championship data;
-- write-up route: circuit analysis, prediction reasoning and frozen calls;
+- write-up route: circuit analysis and sourced context that is not a discrete
+  weekend news item;
 - race page: submitted picks, official results and player scores;
 - circuit guide: facts that remain useful across seasons.
 
 Time-sensitive sections render only while a pick can still change. Durable
-circuit analysis remains in the archive.
+circuit analysis remains in the archive. Aggregated player picks, when built,
+render in the finished phase only.
 
 ## Dates and metadata
 
@@ -146,7 +148,7 @@ predictions or results that the current phase does not provide.
 ## Distribution and measurement
 
 Each substantive phase change can support one social post: initial preview,
-post-FP2 evidence, final race call and prediction scorecard. A weather refresh
+post-FP2 evidence, and the archive once results publish. A weather refresh
 alone is not a distribution event.
 
 When scheduling through Buffer, draft and validate the post before publishing.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /** Matches the `top-[calc(var(--nav-height)+1rem)]` offset callers pin with. */
 const TOP_GAP = 16;
@@ -13,11 +13,10 @@ const BOTTOM_GAP = 8;
  * short rails stick, long ones stay in normal flow and scroll with the page.
  */
 export function useStickyWhenItFits<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
+  const [element, ref] = useState<T | null>(null);
   const [isSticky, setIsSticky] = useState(false);
 
   useEffect(() => {
-    const element = ref.current;
     if (!element) {
       return;
     }
@@ -53,7 +52,7 @@ export function useStickyWhenItFits<T extends HTMLElement>() {
       observer?.disconnect();
       window.removeEventListener('resize', measure);
     };
-  }, []);
+  }, [element]);
 
-  return { ref, isSticky };
+  return [ref, isSticky] as const;
 }

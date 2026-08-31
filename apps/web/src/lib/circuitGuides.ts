@@ -8,6 +8,11 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
  * to the venue rather than to whichever Grand Prix happens to be run there in
  * a given season. A new venue needs an entry in both files.
  *
+ * The 2026 cars have no DRS. The aids are straight mode and Overtake, and the
+ * guides use those names. Both older terms are dead: "DRS" describes a car
+ * that no longer exists, and "manual override mode" is the engineering name
+ * F1 dropped in December 2025 in favour of "Overtake".
+ *
  * These are deliberately qualitative. The value to someone about to rank five
  * drivers is knowing how much the order tends to move at a given track, not a
  * spec sheet they can read anywhere. Keep the voice plain and keep every claim
@@ -37,7 +42,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     layout:
       'The lap flows in long sequences rather than isolated braking zones, so a driver who commits early in a corner keeps the benefit all the way to the next one. Kerbs are aggressive and the walls sit close on the exits, which punishes anyone chasing the last tenth.',
     racing:
-      'The long straights and multiple DRS zones give a genuinely quick car a route past, but the corners in between are hard to follow through. Passes tend to happen in bursts on the run to the heavy braking zones rather than steadily across the lap.',
+      'The long straights and multiple straight-mode zones give a genuinely quick car a route past, but the corners in between are hard to follow through. Passes tend to happen in bursts on the run to the heavy braking zones rather than steadily across the lap.',
     predicting:
       'Being the season opener is the complication, not the track. Nobody has a reliable read on the pecking order yet, testing form is a weak signal, and reliability failures are more common here than at any other point in the year. Treat the back half of your Top 5 as the volatile part and expect at least one surprise.',
     traits: [
@@ -82,7 +87,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     layout:
       'Two long straights bookend a technical middle sector with a set of tight, badly cambered corners that are easy to get wrong. The surface offers less grip than most permanent venues and the track evolves substantially across the weekend.',
     racing:
-      'The straights are long enough for real overtaking and the DRS zones are effective, so the order moves. Heat is the other factor: track temperatures here are punishing and tyre management often decides the closing laps.',
+      'The straights are long enough that a following car can use Overtake to real effect, so the order moves. Heat is the other factor: track temperatures here are punishing and tyre management often decides the closing laps.',
     predicting:
       'Expect the finishing order to differ from the grid. Cars that look quick over one lap in cool conditions can fall away when the surface heats up, so favour drivers with a reputation for looking after tyres over pure qualifying specialists.',
     traits: [
@@ -142,7 +147,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     layout:
       'A handful of corners joined by uphill straights, which puts power and traction at a premium. The climb out of the first corner and the run to the top of the hill reward engine performance, while the downhill final sector is quicker and more flowing than it looks on a map.',
     racing:
-      'Multiple DRS zones and heavy braking zones at the end of uphill straights make this a strong overtaking venue. Track limits at the exit of the final corners are a recurring source of deleted lap times and post-race penalties.',
+      'Multiple straight-mode zones and heavy braking zones at the end of uphill straights make this a strong overtaking venue. Track limits at the exit of the final corners are a recurring source of deleted lap times and post-race penalties.',
     predicting:
       'Because the lap is so short, qualifying gaps compress and small errors are magnified. Expect a grid that does not fully reflect race pace, and expect track limits penalties to move the classification after the flag. Genuinely one of the harder weekends to call precisely.',
     traits: [
@@ -202,7 +207,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     layout:
       'The banking at Hugenholtz and at the final corner lets cars carry far more speed than a flat equivalent would allow, and it changes how the car has to be set up. The lap is short and flowing with very little respite, and the surface offers less grip when sand blows in off the dunes.',
     racing:
-      'Narrow and difficult to pass on. The banked final corner feeds directly onto the main straight, which helps a following car use DRS, but there is not much space anywhere else.',
+      'Narrow and difficult to pass on. The banked final corner feeds directly onto the main straight, which sets up a following car for the run to Turn 1, but there is not much space anywhere else.',
     predicting:
       'Qualifying matters and the field tends to stay in order, so build from the grid. Sand on the racing line and the narrow confines mean incidents are not rare, and a safety car has an outsized effect on a circuit where nobody can pass.',
     traits: [
@@ -247,7 +252,7 @@ const CIRCUIT_GUIDES: Record<string, CircuitGuide> = {
     layout:
       'A low-downforce setup helps down the enormous main straight but hurts through the twisting castle section, and teams have to pick a side. The walls are close for most of the lap and the surface offers little grip.',
     racing:
-      'The main straight is long enough that a slipstream plus DRS is close to unbeatable, so positions change constantly and defending is very hard. Safety cars are near-inevitable given how close the barriers are.',
+      'The main straight is long enough that a slipstream plus Overtake is close to unbeatable, so positions change constantly and defending is very hard. Safety cars are near-inevitable given how close the barriers are.',
     predicting:
       'One of the genuinely chaotic weekends. Results here regularly feature drivers well outside their usual range, and the grid tells you comparatively little. If you are going to take a risk on an outside pick anywhere on the calendar, this is a reasonable place to do it.',
     traits: [

@@ -32,6 +32,8 @@ function useIsOffline() {
 
   useEffect(() => {
     if (!isRawOffline) {
+      // Connection state is external; reconnecting cancels the delayed banner.
+      // oxlint-disable-next-line react/set-state-in-effect
       setShowBanner(false);
       return;
     }

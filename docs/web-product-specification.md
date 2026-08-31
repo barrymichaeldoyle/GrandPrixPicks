@@ -370,6 +370,26 @@ When sufficient results exist, the race page can summarize:
 Results may be amended. The UI and notifications must represent the latest
 published score, not preserve a superseded score as authoritative.
 
+### 8.4 Editorial race write-ups
+
+Selected race weekends have a separate, indexable write-up. The write-up is
+the reading surface; the race detail page remains the play and results surface.
+
+A write-up:
+
+- helps a signed-out visitor understand what can change a Top 5;
+- moves through preview, weekend evidence, race-picks, picks-locked, finished,
+  and cancelled states;
+- removes live forecast, news, and decision prompts when picks can no longer
+  change;
+- preserves durable circuit analysis after the weekend;
+- keeps predictions frozen once their session locks;
+- links to the race page for picks, official results, and scoring;
+- remains on its year-specific canonical URL after the race.
+
+The editorial workflow, update gate, date rules, accessibility requirements,
+and release checklist are defined in `docs/race-writeup-lifecycle.md`.
+
 ## 9. Home route
 
 The `/` route has two separate experiences selected from the server-resolved

@@ -173,6 +173,8 @@ function Button({
     const mergedClassName = [resolvedClassName, childProps.className]
       .filter(Boolean)
       .join(' ');
+    // Forwarded refs are opaque handles; cloneElement does not inspect them.
+    // oxlint-disable-next-line react/refs
     return cloneElement(child, {
       ...(child.props && typeof child.props === 'object' ? child.props : {}),
       className: mergedClassName,

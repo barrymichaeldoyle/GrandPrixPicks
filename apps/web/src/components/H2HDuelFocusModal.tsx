@@ -86,12 +86,16 @@ export function H2HDuelFocusModal({
   );
   useEffect(() => {
     if (matchup) {
+      // Preserve the last matchup while its exit animation finishes.
+      // oxlint-disable-next-line react/set-state-in-effect
       setClosingMatchup(matchup);
     }
   }, [matchup]);
 
   // Reopening on another battle must not inherit the last one's answer.
   useEffect(() => {
+    // The matchup identity defines a fresh local editing session.
+    // oxlint-disable-next-line react/set-state-in-effect
     setOptimisticDriverId(null);
     setErrorMessage('');
     setSaved(false);

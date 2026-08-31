@@ -614,6 +614,8 @@ function AppRuntimeBoundary({
     const missedSession = !initialSignedIn && hasClerkSessionCookie();
 
     if (fromClerk || hasClerkCallback || missedSession) {
+      // Redirect/cookie state is an external browser handoff signal.
+      // oxlint-disable-next-line react/set-state-in-effect
       setReturningFromClerk(true);
     }
     if (missedSession) {

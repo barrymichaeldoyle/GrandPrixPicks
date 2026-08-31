@@ -147,6 +147,9 @@ export function useClerkConvexAuth() {
     latest.current = { getToken, useSessionToken };
   });
 
+  // This stable callback runs only when Convex requests a token, never during
+  // render; the compiler rule cannot follow that external call boundary.
+  // oxlint-disable-next-line react/refs
   const fetchAccessToken = useRef(
     async ({ forceRefreshToken }: { forceRefreshToken: boolean }) =>
       await fetchClerkAccessToken(latest.current.getToken, {

@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, query } from './_generated/server';
+import { internalMutation, internalQuery, query } from './_generated/server';
 
 /**
  * Pick-relevant news for a race weekend. See `docs/race-news.md`.
@@ -33,6 +33,34 @@ const sessionTypesValidator = v.array(sessionTypeValidator);
  * any weekend that has ever happened.
  */
 const MAX_NEWS_PER_RACE = 50;
+
+const raceNewsListResultValidator = v.object({
+  race: v.union(
+    v.null(),
+    v.object({ slug: v.string(), name: v.string(), round: v.number() }),
+  ),
+  items: v.array(
+    v.object({
+      key: v.string(),
+      headline: v.string(),
+      body: v.string(),
+      affectsSessions: sessionTypesValidator,
+      sourceName: v.string(),
+      sourceUrl: v.string(),
+      active: v.boolean(),
+      publishedAt: v.number(),
+      drivers: v.array(
+        v.object({
+          code: v.string(),
+          displayName: v.string(),
+          team: v.union(v.string(), v.null()),
+          number: v.union(v.number(), v.null()),
+          nationality: v.union(v.string(), v.null()),
+        }),
+      ),
+    }),
+  ),
+});
 
 /** The sessions a weekend actually runs. */
 export function sessionsForWeekend(hasSprint: boolean): string[] {
@@ -113,61 +141,75 @@ async function feedEventForNews(
     .unique();
 }
 
+async function listRaceNews(
+  ctx: QueryCtx,
+  raceSlug: string,
+  includeRetracted: boolean,
+) {
+  const race = await raceBySlug(ctx, raceSlug);
+  if (!race) {
+    return { race: null, items: [] };
+  }
+
+  const rows = await ctx.db
+    .query('raceNews')
+    .withIndex('by_race', (q) => q.eq('raceId', race._id))
+    .take(MAX_NEWS_PER_RACE);
+
+  const visible = (
+    includeRetracted ? rows : rows.filter((row) => row.active)
+  ).sort((a, b) => b.publishedAt - a.publishedAt);
+
+  // Resolved here rather than by each caller. The record stores codes,
+  // because who drives for whom is round-scoped and a stored team name would
+  // be a second copy of a moving fact; the badge needs the roster to draw.
+  // Doing it once means the write-up pages and the feed cannot disagree.
+  const roster = await driversForCodes(
+    ctx,
+    visible.flatMap((row) => row.driverCodes ?? []),
+  );
+
+  const items = visible.map((row) => ({
+    key: row.key,
+    headline: row.headline,
+    body: row.body,
+    affectsSessions: row.affectsSessions,
+    sourceName: row.sourceName,
+    sourceUrl: row.sourceUrl,
+    active: row.active,
+    publishedAt: row.publishedAt,
+    drivers: (row.driverCodes ?? []).flatMap((code) => {
+      const driver = roster.get(code);
+      return driver ? [driver] : [];
+    }),
+  }));
+
+  return {
+    race: { slug: race.slug, name: race.name, round: race.round },
+    items,
+  };
+}
+
+/** Active news for public feeds and write-up pages. */
+export const list = query({
+  args: { raceSlug: v.string() },
+  returns: raceNewsListResultValidator,
+  handler: async (ctx, args) => {
+    return await listRaceNews(ctx, args.raceSlug, false);
+  },
+});
+
 /**
- * What is already published for a weekend.
- *
- * Run this first. The `key` makes a repeat publish safe, but this is what stops
- * an agent needing to guess whether it already ran, which is the actual cause
- * of duplicates.
+ * Active and retracted news for the operator audit trail.
  *
  * Run via:
- *   npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'
+ *   npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
  */
-export const list = query({
-  args: { raceSlug: v.string(), includeRetracted: v.optional(v.boolean()) },
+export const listForOperators = internalQuery({
+  args: { raceSlug: v.string() },
+  returns: raceNewsListResultValidator,
   handler: async (ctx, args) => {
-    const race = await raceBySlug(ctx, args.raceSlug);
-    if (!race) {
-      return { race: null, items: [] };
-    }
-
-    const rows = await ctx.db
-      .query('raceNews')
-      .withIndex('by_race', (q) => q.eq('raceId', race._id))
-      .take(MAX_NEWS_PER_RACE);
-
-    const visible = (
-      args.includeRetracted ? rows : rows.filter((r) => r.active)
-    ).sort((a, b) => b.publishedAt - a.publishedAt);
-
-    // Resolved here rather than by each caller. The record stores codes,
-    // because who drives for whom is round-scoped and a stored team name would
-    // be a second copy of a moving fact; the badge needs the roster to draw.
-    // Doing it once means the write-up pages and the feed cannot disagree.
-    const roster = await driversForCodes(
-      ctx,
-      visible.flatMap((row) => row.driverCodes ?? []),
-    );
-
-    const items = visible.map((row) => ({
-      key: row.key,
-      headline: row.headline,
-      body: row.body,
-      affectsSessions: row.affectsSessions,
-      sourceName: row.sourceName,
-      sourceUrl: row.sourceUrl,
-      active: row.active,
-      publishedAt: row.publishedAt,
-      drivers: (row.driverCodes ?? []).flatMap((code) => {
-        const driver = roster.get(code);
-        return driver ? [driver] : [];
-      }),
-    }));
-
-    return {
-      race: { slug: race.slug, name: race.name, round: race.round },
-      items,
-    };
+    return await listRaceNews(ctx, args.raceSlug, true);
   },
 });
 

@@ -48,6 +48,8 @@ export function useUpcomingPredictionBannerDismissal(
 
   useEffect(() => {
     if (!raceSlug) {
+      // A new storage key defines a new dismissal state.
+      // oxlint-disable-next-line react/set-state-in-effect
       setDismissed(false);
       return;
     }

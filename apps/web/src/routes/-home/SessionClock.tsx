@@ -99,6 +99,8 @@ function useViewerLockDate(lockAt: number | undefined, enabled: boolean) {
   } | null>(null);
 
   useEffect(() => {
+    // The viewer timezone is browser-only and intentionally replaces the SSR value.
+    // oxlint-disable-next-line react/set-state-in-effect
     setViewerDate(
       enabled && lockAt !== undefined ? formatViewerLockDate(lockAt) : null,
     );

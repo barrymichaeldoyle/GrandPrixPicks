@@ -70,9 +70,14 @@ export function SessionGroupCard({
   const ranked = [...events].sort(
     (a, b) => eventTotalPoints(b) - eventTotalPoints(a),
   );
+  const rankedWithPosition = ranked.map((event, index) => {
+    const points = eventTotalPoints(event);
+    const firstAtPoints = ranked.findIndex(
+      (candidate) => eventTotalPoints(candidate) === points,
+    );
+    return { event, position: firstAtPoints + 1, index, points };
+  });
   const showRanks = ranked.length > 1;
-  let lastPoints: number | null = null;
-  let lastRank = 0;
 
   return (
     <View className="gap-2">
@@ -90,12 +95,7 @@ export function SessionGroupCard({
         ))}
       </View>
       <View className="overflow-hidden rounded-lg border border-border">
-        {ranked.map((event, i) => {
-          const pts = eventTotalPoints(event);
-          if (pts !== lastPoints) {
-            lastRank = i + 1;
-            lastPoints = pts;
-          }
+        {rankedWithPosition.map(({ event, position, index, points }) => {
           const isViewer = Boolean(viewerId && event.userId === viewerId);
           return (
             <Pressable
@@ -104,7 +104,7 @@ export function SessionGroupCard({
               onPress={() => onPressEvent(event)}
               className={`flex-row items-center gap-2.5 px-2.5 py-2.5 ${
                 isViewer ? 'bg-accent/10' : ''
-              } ${i < ranked.length - 1 ? 'border-b border-border' : ''}`}
+              } ${index < ranked.length - 1 ? 'border-b border-border' : ''}`}
             >
               {showRanks ? (
                 <Numeral
@@ -112,7 +112,7 @@ export function SessionGroupCard({
                   tone={isViewer ? 'accent' : 'muted'}
                   variant="small"
                 >
-                  {lastRank}
+                  {position}
                 </Numeral>
               ) : null}
               <Avatar
@@ -140,7 +140,7 @@ export function SessionGroupCard({
                 </Text>
               </View>
               <View className="min-w-10 items-end">
-                <Numeral variant="small">{pts}</Numeral>
+                <Numeral variant="small">{points}</Numeral>
                 <Text className="text-muted text-[9px] font-semibold uppercase">
                   pts
                 </Text>

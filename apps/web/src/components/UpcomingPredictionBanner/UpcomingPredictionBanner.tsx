@@ -5,6 +5,7 @@ import { useQuery } from '@/integrations/convex/query';
 
 import { useUpcomingPredictionBannerDismissal } from '@/hooks/useUpcomingPredictionBannerDismissal';
 import type { SessionType } from '@/lib/sessions';
+import { useNow } from '@/lib/testing/now';
 import { UpcomingPredictionNudge } from './UpcomingPredictionNudge';
 
 const SPRINT_SESSIONS = ['sprint_quali', 'sprint', 'quali', 'race'] as const;
@@ -52,6 +53,7 @@ export function shouldShowUpcomingH2HNudge(params: {
 
 function useUpcomingPredictionBannerState() {
   const { isLoaded, isSignedIn } = useAuth();
+  const now = useNow(30_000);
   const pathname = useLocation({ select: (location) => location.pathname });
 
   const nextRace = useQuery(api.races.getNextRace, isSignedIn ? {} : 'skip');
@@ -118,8 +120,6 @@ function useUpcomingPredictionBannerState() {
     } as const;
   }
   const activeRace = currentRace;
-  const now = Date.now();
-
   const relevantSessions = activeRace.hasSprint
     ? getOpenUpcomingSessions({
         hasSprint: true,

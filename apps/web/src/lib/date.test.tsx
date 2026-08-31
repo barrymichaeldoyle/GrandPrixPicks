@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -34,7 +34,10 @@ function renderUseCountdown(timestamp: number) {
   let latest: string | null = null;
 
   function TestHarness() {
-    latest = useCountdown(timestamp);
+    const value = useCountdown(timestamp);
+    useEffect(() => {
+      latest = value;
+    }, [value]);
     return null;
   }
 

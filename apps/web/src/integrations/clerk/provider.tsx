@@ -1,7 +1,7 @@
 import { ClerkProvider, useAuth } from '@clerk/tanstack-react-start';
 import { dark } from '@clerk/ui/themes';
 import type { PropsWithChildren } from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { HEADER_NAV_TAB_CLASS } from '@/components/headerNavTabStyles';
 import { useInitialAuth } from './initial-auth';
@@ -147,11 +147,9 @@ function ClerkViewerSessionBridge({
   const [hasConfirmedSession, setHasConfirmedSession] = useState(false);
   const confirmedSignedIn = isLoaded && !!clientSignedIn;
 
-  useEffect(() => {
-    if (confirmedSignedIn) {
-      setHasConfirmedSession(true);
-    }
-  }, [confirmedSignedIn]);
+  if (confirmedSignedIn && !hasConfirmedSession) {
+    setHasConfirmedSession(true);
+  }
 
   return (
     <ViewerSessionProvider

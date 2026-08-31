@@ -6,6 +6,7 @@ import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { listGuideMeta } from '../../src/lib/guideMeta';
+import { listRaceWriteups } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -91,18 +92,14 @@ const staticEntries: SitemapEntry[] = [
     changefreq: 'weekly',
     priority: '0.8',
   },
-  {
-    loc: `${siteConfig.url}/f1-2026-italian-grand-prix-predictions`,
+  // The write-up registry also drives in-app links and each page's reviewed
+  // stamp, so adding or revising one cannot leave the sitemap behind.
+  ...listRaceWriteups().map((writeup): SitemapEntry => ({
+    loc: `${siteConfig.url}${writeup.to}`,
     changefreq: 'daily',
-    lastmod: '2026-08-27T00:00:00.000Z',
+    lastmod: new Date(writeup.reviewedAt).toISOString(),
     priority: '0.8',
-  },
-  {
-    loc: `${siteConfig.url}/f1-2026-madrid-grand-prix-predictions`,
-    changefreq: 'daily',
-    lastmod: '2026-08-27T00:00:00.000Z',
-    priority: '0.8',
-  },
+  })),
   {
     loc: `${siteConfig.url}/f1-standings`,
     changefreq: 'daily',

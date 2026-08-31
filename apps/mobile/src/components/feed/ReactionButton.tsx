@@ -9,7 +9,7 @@ import {
 } from '@grandprixpicks/shared/reactions';
 import { useMutation } from 'convex/react';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { api, type ConvexId } from '../../integrations/convex/api';
 import { captureAnalyticsEvent } from '../../lib/analytics';
@@ -57,22 +57,22 @@ export function ReactionButton({
     ReactionCounts | undefined
   >();
 
+  const optimisticUpdateSettled =
+    optimisticReaction !== undefined &&
+    viewerReaction === optimisticReaction &&
+    reactionCount === optimisticCount;
   const selectedReaction =
-    optimisticReaction === undefined ? viewerReaction : optimisticReaction;
-  const count = optimisticCount ?? reactionCount;
-  const counts = optimisticCounts ?? reactionCounts ?? emptyReactionCounts();
-
-  useEffect(() => {
-    if (
-      optimisticReaction !== undefined &&
-      viewerReaction === optimisticReaction &&
-      reactionCount === optimisticCount
-    ) {
-      setOptimisticReaction(undefined);
-      setOptimisticCount(undefined);
-      setOptimisticCounts(undefined);
-    }
-  }, [optimisticCount, optimisticReaction, reactionCount, viewerReaction]);
+    optimisticReaction === undefined || optimisticUpdateSettled
+      ? viewerReaction
+      : optimisticReaction;
+  const count =
+    optimisticCount === undefined || optimisticUpdateSettled
+      ? reactionCount
+      : optimisticCount;
+  const counts =
+    optimisticCounts === undefined || optimisticUpdateSettled
+      ? (reactionCounts ?? emptyReactionCounts())
+      : optimisticCounts;
 
   function haptic(style: Haptics.ImpactFeedbackStyle) {
     if (process.env.EXPO_OS === 'ios') {

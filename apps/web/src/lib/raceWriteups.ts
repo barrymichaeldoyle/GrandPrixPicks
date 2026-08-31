@@ -19,6 +19,16 @@ export type RaceWriteup = {
   /** Route path for the write-up. */
   to: string;
   /**
+   * Date the hand-written page content was last substantively reviewed.
+   *
+   * The page uses this for its visible reviewed stamp and `dateModified`; the
+   * sitemap uses the same value for `lastmod`. Automated modules carry their
+   * own timestamps and do not claim that the editorial copy was reviewed.
+   * Keeping the date beside the route prevents those crawler-facing signals
+   * drifting.
+   */
+  reviewedAt: string;
+  /**
    * Short link text, for places with no room to say more (the race page
    * header). Names the circuit rather than the round, because it sits next to
    * something that already says which race this is.
@@ -38,25 +48,45 @@ export type RaceWriteup = {
   cta: string;
 };
 
-const RACE_WRITEUPS: Record<string, RaceWriteup> = {
+const RACE_WRITEUPS = {
   'italy-2026': {
     to: '/f1-2026-italian-grand-prix-predictions',
-    label: 'Monza preview',
-    cta: 'Read the full Monza write-up',
+    reviewedAt: '2026-08-31',
+    label: 'Monza predictions',
+    cta: 'Read the Monza predictions',
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
-    label: 'Madring preview',
-    cta: 'Read the full Madring write-up',
+    reviewedAt: '2026-08-29',
+    label: 'Madring predictions',
+    cta: 'Read the Madring predictions',
   },
-};
+} as const satisfies Record<string, RaceWriteup>;
+
+export type RaceWriteupSlug = keyof typeof RACE_WRITEUPS;
+
+/** Every write-up, for crawl surfaces such as the sitemap. */
+export function listRaceWriteups(): readonly RaceWriteup[] {
+  return Object.values(RACE_WRITEUPS);
+}
+
+/**
+ * The reviewed date for a known write-up route.
+ *
+ * Unlike the nullable UI lookup below, editorial routes pass a literal slug,
+ * so a missing registry entry is a type error instead of a silent fallback to
+ * another hand-written date.
+ */
+export function getRaceWriteupReviewedAt(raceSlug: RaceWriteupSlug): string {
+  return RACE_WRITEUPS[raceSlug].reviewedAt;
+}
 
 /** The write-up for a race, or null when that weekend has none. */
 export function getRaceWriteup(
   raceSlug: string | undefined,
 ): RaceWriteup | null {
-  if (!raceSlug) {
+  if (!raceSlug || !(raceSlug in RACE_WRITEUPS)) {
     return null;
   }
-  return RACE_WRITEUPS[raceSlug] ?? null;
+  return RACE_WRITEUPS[raceSlug as RaceWriteupSlug];
 }

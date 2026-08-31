@@ -169,6 +169,8 @@ export function Tooltip({
   }, [distance, isVisible, placement]);
 
   useEffect(() => {
+    // Portals are enabled only after the client document exists.
+    // oxlint-disable-next-line react/set-state-in-effect
     setMounted(true);
     return () => {
       if (openTimeoutRef.current) {
@@ -179,6 +181,8 @@ export function Tooltip({
 
   useEffect(() => {
     if (!isVisible) {
+      // Visibility owns the animation lifecycle for the cached portal content.
+      // oxlint-disable-next-line react/set-state-in-effect
       setDoAnimate(false);
       return;
     }

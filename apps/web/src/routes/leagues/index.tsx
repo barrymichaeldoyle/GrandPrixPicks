@@ -153,6 +153,8 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
   );
 
   useEffect(() => {
+    // Authentication and data availability constrain which tab can exist.
+    // oxlint-disable-next-line react/set-state-in-effect
     setActiveTab(isSignedIn ? 'my' : hasPublicLeagues ? 'discover' : 'my');
   }, [hasPublicLeagues, isSignedIn]);
 

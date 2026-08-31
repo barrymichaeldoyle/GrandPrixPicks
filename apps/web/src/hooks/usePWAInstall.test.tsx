@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -72,7 +72,10 @@ function renderUsePWAInstall() {
   let latest: ReturnType<typeof usePWAInstall> | null = null;
 
   function TestHarness() {
-    latest = usePWAInstall();
+    const value = usePWAInstall();
+    useEffect(() => {
+      latest = value;
+    }, [value]);
     return null;
   }
 

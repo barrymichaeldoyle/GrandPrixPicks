@@ -18,6 +18,7 @@ import type { ConvexId } from '../integrations/convex/api';
 import { api } from '../integrations/convex/api';
 import { captureAnalyticsEvent } from '../lib/analytics';
 import { useRefreshSpinner } from '../lib/useRefreshSpinner';
+import { useNow } from '../lib/useNow';
 import type { LeaderboardStackParamList } from '../navigation/types';
 import { useMobileConfig } from '../providers/mobile-config';
 import { colors } from '../theme/tokens';
@@ -117,6 +118,7 @@ export function LeaderboardScreen() {
   const navigation = useNavigation<NavigationProp<LeaderboardStackParamList>>();
   const convex = useConvex();
   const { refreshing, onRefresh } = useRefreshSpinner();
+  const now = useNow(60_000);
 
   const [timeChoice, setTimeChoice] = useState<TimeScope | null>(null);
   const [mode, setMode] = useState<GameMode>('combined');
@@ -215,6 +217,8 @@ export function LeaderboardScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
+    // A new board identity resets the imperative pagination accumulator.
+    // oxlint-disable-next-line react/set-state-in-effect
     setExtraEntries([]);
     setPagedOffset(PAGE_SIZE);
     setPagedHasMore(null);
@@ -312,7 +316,6 @@ export function LeaderboardScreen() {
     return <LoadingScreen />;
   }
 
-  const now = Date.now();
   const selectableRaces = (allRaces ?? [])
     .filter((r) => isRaceSelectable(r, now))
     .concat(

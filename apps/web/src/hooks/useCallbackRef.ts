@@ -27,5 +27,7 @@ export function useCallbackRef<Args extends unknown[]>(
   // Not memoized, and does not need to be: this function closes over nothing
   // but a ref, so the identity React hands out is irrelevant to correctness.
   // Callers store it in a ref of their own if they need a stable dependency.
+  // The ref is read only when the returned event callback is invoked.
+  // oxlint-disable-next-line react/refs
   return useRef((...args: Args) => callbackRef.current?.(...args)).current;
 }

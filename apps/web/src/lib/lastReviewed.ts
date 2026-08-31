@@ -6,16 +6,14 @@
  * They could drift from the page and, worse, from each other, and they did:
  * both Monza dates still read 24 August after the page was edited on the 28th.
  *
- * A date a human has to remember to bump is a date that is wrong. So the pages
- * derive it instead. Most of what these pages now show is live (the forecast,
- * the weekend's news, the standings), and each of those carries its own
- * timestamp, so the freshest of them is a truthful answer to "when did this
- * page last change".
+ * Race write-ups keep the editorial date in their shared registry so the
+ * visible stamp, structured data and sitemap cannot drift. Live forecast and
+ * news modules carry their own timestamps; they do not claim that the prose
+ * was reviewed again.
  *
- * `editorialDate` is the floor, and it is still hand-written on purpose: it is
- * the date the *prose* was last checked, which no data timestamp can know.
- * Bump it when the writing changes; the live inputs carry it the rest of the
- * time.
+ * The optional timestamps remain useful for non-editorial surfaces that need
+ * the latest meaningful input. Race write-ups intentionally call this with the
+ * editorial date alone.
  */
 export function lastReviewedAt(
   editorialDate: string,

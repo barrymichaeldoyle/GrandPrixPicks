@@ -78,6 +78,8 @@ export function AdSlot({
     // No IntersectionObserver (old browser, jsdom): fall back to rendering the
     // slot rather than never showing an ad.
     if (typeof IntersectionObserver === 'undefined') {
+      // External capability detection intentionally updates the observer state.
+      // oxlint-disable-next-line react/set-state-in-effect
       setShouldRender(true);
       return;
     }

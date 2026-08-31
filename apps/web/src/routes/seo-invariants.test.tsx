@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * The rules that have to hold for *every* page, checked against every page.
+ * The rules that have to hold for every indexable route shape, checked against
+ * every static route plus representative data for each dynamic route.
  *
  * Its sibling `seo-head.test.tsx` asserts what individual routes say — that
  * the home card names the next race, that follow lists are noindex. This file
@@ -70,19 +71,49 @@ const ROUTES: {
   { module: './guides/index', path: '/guides' },
   { module: './circuits/index', path: '/circuits' },
   {
+    module: './circuits/$circuitSlug',
+    path: '/circuits/monza',
+    loader: async () => {
+      const { getCircuit } = await import('@grandprixpicks/shared/circuits');
+      return {
+        loaderData: { circuit: getCircuit('monza') },
+        params: { circuitSlug: 'monza' },
+      };
+    },
+  },
+  {
     module: './f1-standings',
     path: '/f1-standings',
     args: { loaderData: { standings: null } },
   },
   { module: './leaderboard', path: '/leaderboard' },
   { module: './leagues/index', path: '/leagues' },
+  {
+    module: './races/index',
+    path: '/races',
+    args: { loaderData: { races: [], season: 2026 } },
+  },
   { module: './results-policy', path: '/results-policy' },
+  {
+    module: './f1-team-mate-battles',
+    path: '/f1-team-mate-battles',
+    args: { loaderData: { battles: null } },
+  },
   {
     module: './f1-2026-italian-grand-prix-predictions',
     path: '/f1-2026-italian-grand-prix-predictions',
     args: {
       loaderData: {
         race: { raceStartAt: 1_788_699_600_000 },
+      },
+    },
+  },
+  {
+    module: './f1-2026-madrid-grand-prix-predictions',
+    path: '/f1-2026-madrid-grand-prix-predictions',
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_789_304_400_000 },
       },
     },
   },

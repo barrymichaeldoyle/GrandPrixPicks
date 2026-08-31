@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,7 +26,10 @@ function renderHook(initial: HookProps) {
   let latest: ReturnType<typeof useAutoSaveOnFirstComplete> | null = null;
 
   function TestHarness(props: HookProps) {
-    latest = useAutoSaveOnFirstComplete({ ...props, delayMs: DELAY_MS });
+    const value = useAutoSaveOnFirstComplete({ ...props, delayMs: DELAY_MS });
+    useEffect(() => {
+      latest = value;
+    }, [value]);
     return null;
   }
 

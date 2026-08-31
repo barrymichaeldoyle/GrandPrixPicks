@@ -110,8 +110,8 @@ export function AppPageLayout({
   //
   // Pinning is deliberately `lg`-only. In the two-column stage both rails share
   // one grid column, so a sticky rail would ride up over the one below it.
-  const leftRail = useStickyWhenItFits<HTMLElement>();
-  const rightRail = useStickyWhenItFits<HTMLElement>();
+  const [leftRailRef, leftRailIsSticky] = useStickyWhenItFits<HTMLElement>();
+  const [rightRailRef, rightRailIsSticky] = useStickyWhenItFits<HTMLElement>();
   // `max-md:contents` is what lets the rails render once instead of twice.
   //
   // The rails used to be `hidden` below `md` while a second copy of the same
@@ -177,9 +177,9 @@ export function AppPageLayout({
         >
           {hasLeft ? (
             <aside
-              ref={leftRail.ref}
+              ref={leftRailRef}
               aria-label={leftLabel}
-              className={`${leftRail.isSticky ? stickyRailClassName : railClassName} ${leftPlacement}`}
+              className={`${leftRailIsSticky ? stickyRailClassName : railClassName} ${leftPlacement}`}
             >
               {left}
             </aside>
@@ -193,9 +193,9 @@ export function AppPageLayout({
 
           {hasRight ? (
             <aside
-              ref={rightRail.ref}
+              ref={rightRailRef}
               aria-label={rightLabel}
-              className={`${rightRail.isSticky ? stickyRailClassName : railClassName} ${rightPlacement}`}
+              className={`${rightRailIsSticky ? stickyRailClassName : railClassName} ${rightPlacement}`}
             >
               {right}
             </aside>

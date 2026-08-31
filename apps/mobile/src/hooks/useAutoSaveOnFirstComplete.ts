@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 /**
  * Auto-saves a picks form once, shortly after the user first completes it
@@ -30,8 +30,7 @@ export function useAutoSaveOnFirstComplete({
 }) {
   const firedRef = useRef(false);
   const interactedRef = useRef(false);
-  const saveRef = useRef(save);
-  saveRef.current = save;
+  const saveLatest = useEffectEvent(save);
 
   useEffect(() => {
     if (!enabled || !complete || firedRef.current || !interactedRef.current) {
@@ -39,7 +38,7 @@ export function useAutoSaveOnFirstComplete({
     }
     const timer = setTimeout(() => {
       firedRef.current = true;
-      saveRef.current();
+      saveLatest();
     }, delayMs);
     return () => clearTimeout(timer);
   }, [enabled, complete, delayMs, picksSignature]);

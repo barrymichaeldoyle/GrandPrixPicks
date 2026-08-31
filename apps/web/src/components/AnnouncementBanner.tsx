@@ -22,6 +22,8 @@ export function AnnouncementBanner() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    // localStorage is an external client-only source and must be read post-SSR.
+    // oxlint-disable-next-line react/set-state-in-effect
     setDismissedKey(localStorage.getItem(DISMISSED_STORAGE_KEY));
     setHydrated(true);
   }, []);

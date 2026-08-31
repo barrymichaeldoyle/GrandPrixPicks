@@ -34,10 +34,13 @@
     "web-push": "3.6.7"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "5.0.0",
     "@react-email/ui": "6.9.2",
     "@types/react": "19.2.18",
     "@types/web-push": "3.6.4",
+    "convex-test": "0.0.56",
     "typescript": "catalog:",
+    "vite": "8.2.2",
     "vitest": "4.1.11"
   }
 }

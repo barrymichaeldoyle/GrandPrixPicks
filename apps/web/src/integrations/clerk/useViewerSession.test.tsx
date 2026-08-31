@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -25,7 +25,10 @@ let hasConfirmedSession = false;
 let result: ReturnType<typeof useViewerSession>;
 
 function Probe() {
-  result = useViewerSession();
+  const value = useViewerSession();
+  useEffect(() => {
+    result = value;
+  }, [value]);
   return null;
 }
 

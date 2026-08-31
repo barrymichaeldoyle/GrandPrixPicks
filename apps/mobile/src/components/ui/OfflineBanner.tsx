@@ -32,6 +32,8 @@ export function OfflineBanner() {
 
   useEffect(() => {
     if (!isOffline) {
+      // Convex connection state is external; reconnecting cancels the delay.
+      // oxlint-disable-next-line react/set-state-in-effect
       setVisible(false);
       return;
     }

@@ -144,6 +144,8 @@ export function SettingsScreen() {
 
   useEffect(() => {
     if (me?.displayName && !isEditingName) {
+      // Server profile changes refresh the draft only while it is not owned by the editor.
+      // oxlint-disable-next-line react/set-state-in-effect
       setDisplayName(me.displayName);
     }
   }, [me?.displayName, isEditingName]);

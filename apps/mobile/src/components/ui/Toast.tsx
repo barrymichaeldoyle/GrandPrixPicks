@@ -79,7 +79,11 @@ export function Toast({ state, durationMs = 2200, onDismiss }: ToastProps) {
     if (!state) {
       return;
     }
+    // Reanimated shared values are mutable by design; the React rule cannot
+    // distinguish them from ordinary values returned by hooks.
+    // oxlint-disable-next-line react/immutability
     translate.value = withSpring(0, { damping: 18, stiffness: 220 });
+    // oxlint-disable-next-line react/immutability
     opacity.value = withTiming(1, { duration: 180 });
     const timeout = setTimeout(() => {
       translate.value = withTiming(120, { duration: 220 });

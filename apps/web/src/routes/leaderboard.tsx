@@ -216,6 +216,8 @@ function LeaderboardPage() {
   // Sync season combined entries on fresh client data
   useEffect(() => {
     if (clientSeasonCombined && seasonOffset === PAGE_SIZE) {
+      // Fresh page-one data replaces the imperative pagination accumulator.
+      // oxlint-disable-next-line react/set-state-in-effect
       setSeasonEntries(clientSeasonCombined.entries as LeaderboardEntry[]);
       setSeasonHasMore(clientSeasonCombined.hasMore);
     }

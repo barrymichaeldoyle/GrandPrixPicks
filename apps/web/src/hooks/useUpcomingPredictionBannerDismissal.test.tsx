@@ -1,4 +1,4 @@
-import { act } from 'react';
+import { act, useEffect } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,7 +26,10 @@ function renderHook(
     slug?: string | null;
     kind: 'top5' | 'h2h';
   }) {
-    latest = useUpcomingPredictionBannerDismissal(slug, kind);
+    const value = useUpcomingPredictionBannerDismissal(slug, kind);
+    useEffect(() => {
+      latest = value;
+    }, [value]);
     return null;
   }
 

@@ -73,6 +73,7 @@ const PUBLIC_ROUTES = [
   '/f1-standings',
   '/f1-team-mate-battles',
   '/f1-2026-italian-grand-prix-predictions',
+  '/f1-2026-madrid-grand-prix-predictions',
   '/f1-2027-calendar',
   '/circuits',
   '/terms',

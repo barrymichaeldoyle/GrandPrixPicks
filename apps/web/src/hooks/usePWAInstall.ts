@@ -53,6 +53,8 @@ export function usePWAInstall() {
       window.matchMedia('(display-mode: standalone)').matches ||
       iOSNavigator.standalone === true
     ) {
+      // Installation mode is a browser capability discovered after hydration.
+      // oxlint-disable-next-line react/set-state-in-effect
       setIsInstalled(true);
       return;
     }

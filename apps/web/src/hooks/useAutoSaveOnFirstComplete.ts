@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 /**
  * Keeps a completed picks form saved, without making the user hunt for a
@@ -48,8 +48,7 @@ export function useAutoSaveOnFirstComplete({
 }) {
   const firedRef = useRef(false);
   const interactedRef = useRef(false);
-  const saveRef = useRef(save);
-  saveRef.current = save;
+  const saveLatest = useEffectEvent(save);
 
   useEffect(() => {
     if (!enabled || !complete || !dirty || !interactedRef.current) {
@@ -62,7 +61,7 @@ export function useAutoSaveOnFirstComplete({
     const wait = firedRef.current ? (subsequentDelayMs ?? delayMs) : delayMs;
     const timer = setTimeout(() => {
       firedRef.current = true;
-      saveRef.current();
+      saveLatest();
     }, wait);
     return () => clearTimeout(timer);
   }, [enabled, complete, dirty, delayMs, subsequentDelayMs, picksSignature]);

@@ -48,7 +48,11 @@ export function PracticeSocialPanel({
   const generated = summary ? draftFor(summary) : '';
   const [copy, setCopy] = useState(generated);
   const [copied, setCopied] = useState(false);
-  useEffect(() => setCopy(generated), [generated]);
+  useEffect(() => {
+    // A different generated summary starts a fresh editable draft.
+    // oxlint-disable-next-line react/set-state-in-effect
+    setCopy(generated);
+  }, [generated]);
 
   if (!summary || summary.sessions.length === 0) {
     return null;

@@ -204,6 +204,8 @@ function PredictForRace({
 
   useEffect(() => {
     if (!weekendSessions.includes(selectedSession)) {
+      // Backend weekend shape changes can invalidate the selected session.
+      // oxlint-disable-next-line react/set-state-in-effect
       setSelectedSession(nextOpenSession);
     }
   }, [nextOpenSession, selectedSession, weekendSessions]);
@@ -807,6 +809,8 @@ function Top5Section({
   const [editing, setEditing] = useState(cascadeMode);
 
   useEffect(() => {
+    // Session/cascade identity defines a fresh local editing state.
+    // oxlint-disable-next-line react/set-state-in-effect
     setEditing(cascadeMode);
   }, [cascadeMode, selectedSession]);
 
@@ -1131,6 +1135,8 @@ function H2HSection({
   const [editing, setEditing] = useState(cascadeMode);
 
   useEffect(() => {
+    // Session/cascade identity defines a fresh local editing state.
+    // oxlint-disable-next-line react/set-state-in-effect
     setEditing(cascadeMode);
   }, [cascadeMode, selectedSession]);
 

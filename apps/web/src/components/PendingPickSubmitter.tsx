@@ -63,6 +63,8 @@ export function PendingPickSubmitter() {
     // Once only, and before the first await: a second pass would re-submit
     // drafts this one has not finished clearing yet.
     drainedRef.current = true;
+    // Starting this external storage drain is the effect's state transition.
+    // oxlint-disable-next-line react/set-state-in-effect
     setDraining(true);
 
     let cancelled = false;

@@ -3402,7 +3402,7 @@ const LEAGUE_FAKE_USERS = [
   { username: 'SpeedKing', displayName: 'Speed King' },
   { username: 'ApexHunter', displayName: 'Apex Hunter' },
   { username: 'PitLaneHero', displayName: 'Pit Lane Hero' },
-  { username: 'DRSMaster', displayName: 'DRS Master' },
+  { username: 'OvertakeMaster', displayName: 'Overtake Master' },
   { username: 'GridWalker', displayName: 'Grid Walker' },
   { username: 'TyreWhisperer', displayName: 'Tyre Whisperer' },
   { username: 'SlipstreamAce', displayName: 'Slipstream Ace' },
@@ -3422,7 +3422,7 @@ const LEAGUE_FAKE_USERS = [
  *   - User 3: no predictions
  *   - User 4: no predictions
  *
- * League 2 "DRS Zone" (4 members): fake users 5–8
+ * League 2 "Overtake Zone" (4 members): fake users 5–8
  *   - User 5: predictions for quali + race
  *   - User 6: prediction for race only
  *   - User 7: no predictions
@@ -3507,9 +3507,9 @@ export const _seedLeagueScenario = internalMutation({
 
     // League 2: fake users 5–8
     const league2Id = await ctx.db.insert('leagues', {
-      name: 'DRS Zone',
-      slug: 'drs-zone-2026',
-      description: 'Living life in the drag reduction zone.',
+      name: 'Overtake Zone',
+      slug: 'overtake-zone-2026',
+      description: 'Living life in the overtake zone.',
       visibility: 'private',
       password: 'drszone',
       createdBy: fakeUserIds[5],
@@ -3575,7 +3575,7 @@ export const _seedLeagueScenario = internalMutation({
       mainUserEmail: mainUser.email,
       fakeUsersCreated: fakeUserIds.length,
       league1: { id: league1Id, name: 'Pit Wall Prophets', members: 6 },
-      league2: { id: league2Id, name: 'DRS Zone', members: 4 },
+      league2: { id: league2Id, name: 'Overtake Zone', members: 4 },
       predictionsCreated,
     };
   },
@@ -5034,7 +5034,7 @@ export const _seedCurrentWeekendData = internalMutation({
  * of League 2.
  *
  * League 1 "Pit Wall Prophets" (8 members): target user (admin) + fake users 0–6
- * League 2 "DRS Zone" (6 members): target user (member) + fake users 7–11
+ * League 2 "Overtake Zone" (6 members): target user (member) + fake users 7–11
  * League 3 "Backmarkers United" (5 members): fake users 12–16 (no target user)
  */
 export const _seedLeagueLeaderboardData = internalMutation({
@@ -5099,9 +5099,9 @@ export const _seedLeagueLeaderboardData = internalMutation({
 
     // League 2: target user (member) + fake users 7–11
     const league2Id = await ctx.db.insert('leagues', {
-      name: 'DRS Zone',
-      slug: 'drs-zone-2026',
-      description: 'Living life in the drag reduction zone.',
+      name: 'Overtake Zone',
+      slug: 'overtake-zone-2026',
+      description: 'Living life in the overtake zone.',
       visibility: 'private',
       password: 'drszone',
       createdBy: fakeUserIds[7],
@@ -5159,7 +5159,7 @@ export const _seedLeagueLeaderboardData = internalMutation({
     return {
       leaguesCreated: 3,
       league1: { id: league1Id, name: 'Pit Wall Prophets', members: 8 },
-      league2: { id: league2Id, name: 'DRS Zone', members: 6 },
+      league2: { id: league2Id, name: 'Overtake Zone', members: 6 },
       league3: { id: league3Id, name: 'Backmarkers United', members: 5 },
     };
   },
@@ -5791,7 +5791,7 @@ export const _dedupeUsersByUsername = internalMutation({
  *  - 12 fake users
  *  - Follows: main user follows users 0–5, users 0–3 follow back, cross-follows among fakes
  *  - League 1 "Pit Wall Prophets": main user (admin) + fake users 0–4
- *  - League 2 "DRS Zone": fake users 5–8 + main user as member
+ *  - League 2 "Overtake Zone": fake users 5–8 + main user as member
  *  - Australia (round 1): finished 13 days ago — quali + race results/predictions/scores for all
  *  - China (round 2, sprint): finished 6 days ago — all 4 sessions for all
  *  - Japan (round 3): mid-weekend — quali published + scored, race locked (in progress)
@@ -5981,9 +5981,9 @@ export const _seedFeedScenario = internalMutation({
     }
 
     const league2Id = await ctx.db.insert('leagues', {
-      name: 'DRS Zone',
-      slug: 'drs-zone-2026',
-      description: 'Living life in the drag reduction zone.',
+      name: 'Overtake Zone',
+      slug: 'overtake-zone-2026',
+      description: 'Living life in the overtake zone.',
       visibility: 'private',
       password: 'drszone',
       createdBy: fakeUserIds[5],
@@ -6434,7 +6434,7 @@ export const _seedFeedScenario = internalMutation({
       mainUserId: mainUser._id,
       username: mainUser.username,
       fakeUsersCreated: fakeUserIds.length,
-      leagues: { 'Pit Wall Prophets': league1Id, 'DRS Zone': league2Id },
+      leagues: { 'Pit Wall Prophets': league1Id, 'Overtake Zone': league2Id },
       resultsCreated,
       predictionsCreated,
       scoresCreated,

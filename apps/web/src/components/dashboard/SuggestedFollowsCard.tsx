@@ -1,6 +1,6 @@
 import { api } from '@convex-generated/api';
 import { useQuery } from '@/integrations/convex/query';
-import { useRef } from 'react';
+import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
@@ -96,11 +96,14 @@ export function SuggestedFollowsCard() {
    * of people the way a finite list should. Fresh suggestions arrive on the
    * next visit to the page.
    */
-  const pinned = useRef<typeof suggested>(undefined);
-  if (pinned.current === undefined && suggested && suggested.length > 0) {
-    pinned.current = suggested;
+  const [pinned, setPinned] = useState<typeof suggested>(undefined);
+  // React permits a guarded render-time state adjustment. Capturing this
+  // synchronously avoids painting a blank card for one frame when the first
+  // query result arrives, while never accepting reactive replacements.
+  if (pinned === undefined && suggested && suggested.length > 0) {
+    setPinned(suggested);
   }
-  const rows = pinned.current;
+  const rows = pinned ?? suggested;
 
   if (!rows || rows.length === 0) {
     return null;

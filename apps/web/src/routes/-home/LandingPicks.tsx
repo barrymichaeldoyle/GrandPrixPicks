@@ -124,9 +124,9 @@ export function LandingPicks({
    */
   initialStep?: LandingPicksInitialStep;
 }) {
-  const rememberedState = useRef(
+  const [rememberedState] = useState(() =>
     landingPicksMemory.get(String(raceId)),
-  ).current;
+  );
   const [activeStep, setActiveStep] = useState<PicksStep>(
     rememberedState?.activeStep ?? (initialStep === 'top5' ? 'top5' : 'h2h'),
   );

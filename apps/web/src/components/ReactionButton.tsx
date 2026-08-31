@@ -11,7 +11,7 @@ import {
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
 import { useMutation } from 'convex/react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { Tooltip } from '@/components/Tooltip';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -106,22 +106,22 @@ export function ReactionButton({
     return () => window.removeEventListener('resize', keepPickerOnScreen);
   }, [pickerOpen]);
 
+  const optimisticUpdateSettled =
+    optimisticReaction !== undefined &&
+    viewerReaction === optimisticReaction &&
+    reactionCount === optimisticCount;
   const selectedReaction =
-    optimisticReaction === undefined ? viewerReaction : optimisticReaction;
-  const count = optimisticCount ?? reactionCount;
-  const counts = optimisticCounts ?? reactionCounts ?? emptyReactionCounts();
-
-  useEffect(() => {
-    if (
-      optimisticReaction !== undefined &&
-      viewerReaction === optimisticReaction &&
-      reactionCount === optimisticCount
-    ) {
-      setOptimisticReaction(undefined);
-      setOptimisticCount(undefined);
-      setOptimisticCounts(undefined);
-    }
-  }, [optimisticCount, optimisticReaction, reactionCount, viewerReaction]);
+    optimisticReaction === undefined || optimisticUpdateSettled
+      ? viewerReaction
+      : optimisticReaction;
+  const count =
+    optimisticCount === undefined || optimisticUpdateSettled
+      ? reactionCount
+      : optimisticCount;
+  const counts =
+    optimisticCounts === undefined || optimisticUpdateSettled
+      ? (reactionCounts ?? emptyReactionCounts())
+      : optimisticCounts;
 
   function resetOptimisticState() {
     setOptimisticReaction(undefined);

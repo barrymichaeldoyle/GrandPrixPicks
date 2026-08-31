@@ -14,6 +14,8 @@ export function PrivacyChoicesButton({ className }: { className?: string }) {
     // Google's CMP loads asynchronously after the AdSense script, so poll
     // briefly until its revocation API is present, then stop.
     if (canManageConsent()) {
+      // Availability comes from Google's external CMP, not React state.
+      // oxlint-disable-next-line react/set-state-in-effect
       setAvailable(true);
       return;
     }

@@ -462,12 +462,16 @@ function RaceDetailPage() {
 
   useEffect(() => {
     if (!top5EditingSession) {
+      // Closing this editor discards its local dirty marker.
+      // oxlint-disable-next-line react/set-state-in-effect
       setTop5HasUnsavedChanges(false);
     }
   }, [top5EditingSession]);
 
   useEffect(() => {
     if (!h2hEditingSession) {
+      // Closing this editor discards its local dirty marker.
+      // oxlint-disable-next-line react/set-state-in-effect
       setH2hHasUnsavedChanges(false);
     }
   }, [h2hEditingSession]);

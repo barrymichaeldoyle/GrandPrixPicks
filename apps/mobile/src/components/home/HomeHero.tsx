@@ -4,6 +4,7 @@ import { useWindowDimensions } from 'react-native';
 
 import { getCountryCodeForRaceSlug } from '../../lib/raceFlags';
 import { useRaceWeekends } from '../../lib/useRaceWeekends';
+import { useNow } from '../../lib/useNow';
 import { useTypography } from '../../theme/typography';
 import { Image, Text, View } from '../../tw';
 import type { RaceWeekend } from '../../types';
@@ -78,9 +79,10 @@ export function HomeHero() {
   const { races } = useRaceWeekends();
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { width } = useWindowDimensions();
+  const now = useNow(30_000);
   const isNarrow = width < NARROW_WIDTH;
 
-  const featured = getFeatured(races, Date.now());
+  const featured = getFeatured(races, now);
   if (!featured) {
     return null;
   }

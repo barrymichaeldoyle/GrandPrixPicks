@@ -2,13 +2,14 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { PageLoader } from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { trackRegionalPreference } from '@/lib/analytics';
 import { toUserFacingMessage } from '@/lib/userFacingError';
+import { useNow } from '@/lib/testing/now';
 
 import { NotificationsSection } from './settings/-components/NotificationsSection';
 import { ProfileSection } from './settings/-components/ProfileSection';
@@ -105,34 +106,22 @@ function SettingsPage() {
     me,
     optimisticNotificationSettings,
   );
+  const timezoneUpdateSettled =
+    optimisticTimezone !== undefined &&
+    (me?.timezone === optimisticTimezone ||
+      (me?.timezone === undefined && optimisticTimezone === null));
+  const localeUpdateSettled =
+    optimisticLocale !== undefined &&
+    (me?.locale === optimisticLocale ||
+      (me?.locale === undefined && optimisticLocale === null));
   const displayTimezone =
-    optimisticTimezone !== undefined
+    optimisticTimezone !== undefined && !timezoneUpdateSettled
       ? (optimisticTimezone ?? undefined)
       : me?.timezone;
   const displayLocale =
-    optimisticLocale !== undefined
+    optimisticLocale !== undefined && !localeUpdateSettled
       ? (optimisticLocale ?? undefined)
       : me?.locale;
-
-  useEffect(() => {
-    if (
-      optimisticTimezone !== undefined &&
-      (me?.timezone === optimisticTimezone ||
-        (me?.timezone === undefined && optimisticTimezone === null))
-    ) {
-      setOptimisticTimezone(undefined);
-    }
-  }, [optimisticTimezone, me?.timezone]);
-
-  useEffect(() => {
-    if (
-      optimisticLocale !== undefined &&
-      (me?.locale === optimisticLocale ||
-        (me?.locale === undefined && optimisticLocale === null))
-    ) {
-      setOptimisticLocale(undefined);
-    }
-  }, [optimisticLocale, me?.locale]);
 
   function updateNotificationSetting(patch: Partial<NotificationSettings>) {
     setOptimisticNotificationSettings((prev) => ({ ...prev, ...patch }));
@@ -316,6 +305,7 @@ function useProfileForm({
   }) => Promise<unknown>;
   onUsernameChanged: (username: string) => void;
 }) {
+  const now = useNow(60_000);
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
@@ -327,7 +317,7 @@ function useProfileForm({
     ? user.usernameChangedAt + USERNAME_COOLDOWN_MS
     : null;
   const isUsernameLocked =
-    usernameCooldownUntil !== null && Date.now() < usernameCooldownUntil;
+    usernameCooldownUntil !== null && now < usernameCooldownUntil;
 
   function onStartEditing() {
     setDisplayName(user?.displayName ?? '');

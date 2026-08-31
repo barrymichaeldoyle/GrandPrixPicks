@@ -7,6 +7,11 @@ import type { CSSProperties, ReactNode } from 'react';
 import { DriverBadge } from '@/components/DriverBadge';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
+import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
+import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
+import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
+import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -17,6 +22,12 @@ import {
 } from '@/lib/lastReviewed';
 import { routeQuery } from '@/lib/routeQuery';
 import {
+  getRaceWriteupPhase,
+  isRaceWriteupLive,
+  raceWriteupHeroSummary,
+} from '@/lib/raceWriteupPhase';
+import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import {
   breadcrumbSchema,
   pageMeta,
   raceOgImageUrl,
@@ -26,28 +37,10 @@ import {
 
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
-/**
- * The date the hand-written prose on this page was last checked. It is the
- * floor for the reviewed stamp, not the whole answer: the live forecast,
- * news and standings carry it forward on their own. Bump it when the writing
- * changes, not when the data does.
- */
-const PROSE_REVIEWED = '2026-08-30';
+/** The date the hand-written prose on this page was last checked. */
+const PROSE_REVIEWED = getRaceWriteupReviewedAt('italy-2026');
 
-/**
- * One value for the footer stamp and the schema's `dateModified`. They were
- * two hand-typed literals before, which is how they came to disagree.
- */
-function reviewedFrom(data: {
-  weather?: { forecast: { checkedAt: number } } | null;
-  news?: { items: { publishedAt: number }[] } | null;
-}): number {
-  return lastReviewedAt(
-    PROSE_REVIEWED,
-    data.weather?.forecast.checkedAt,
-    ...(data.news?.items ?? []).map((item) => item.publishedAt),
-  );
-}
+const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
@@ -55,8 +48,12 @@ const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
+const SUITS_SOURCE =
+  'https://www.motorsport.com/f1/news/ferrari-pays-tribute-to-michael-schumacher-with-special-italian-gp-race-suits/10850114/';
 const NORRIS_CONTRACT_SOURCE =
   'https://www.formula1.com/en/latest/article/lando-norris-commits-future-to-mclaren-as-he-signs-new-deal-until-the-end-of-2030.7ErHTktjoW2mAo5zEEtuA0';
+const COLAPINTO_CONTRACT_SOURCE =
+  'https://www.formula1.com/en/latest/article/alpine-announce-colapinto-contract-extension-as-team-confirms-unchanged-2027-line-up.DL3dVyZLJm5cHryWcHyPq';
 const MCLAREN_FORM_SOURCE =
   'https://www.motorsport.com/f1/news/why-mclaren-must-pass-its-monza-test-before-talking-about-an-f1-title-challenge/10849795/';
 const TYRE_SOURCE =
@@ -64,7 +61,6 @@ const TYRE_SOURCE =
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
-type Race = NonNullable<FunctionReturnType<typeof api.races.getRaceBySlug>>;
 /*
  * Durable questions only.
  *
@@ -149,9 +145,12 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
       const race = loaderData?.race;
       const title = '2026 Italian Grand Prix Predictions & Picks';
       const description =
-        'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
+        race?.status === 'finished'
+          ? 'Review the 2026 Italian Grand Prix predictions and Monza results, including the factors that shaped qualifying and the race.'
+          : race?.status === 'cancelled'
+            ? 'See the status of the cancelled 2026 Italian Grand Prix and the Monza information prepared for the race weekend.'
+            : 'Make your 2026 Italian Grand Prix predictions. Monza schedule and weather, plus what Antonelli’s grid penalty changes for qualifying against race picks.';
       const circuit = getCircuitForRace(RACE_SLUG);
-      const reviewedAt = reviewedFrom(loaderData ?? {});
       const meta = pageMeta({
         title,
         description,
@@ -175,7 +174,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
                   url: `${siteConfig.url}${PATH}`,
                   name: title,
                   description,
-                  dateModified: reviewedIsoDate(reviewedAt),
+                  dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
                   inLanguage: 'en',
                   isPartOf: { '@id': `${siteConfig.url}/#app` },
                   // A complete node or none at all. This was a three-property
@@ -191,6 +190,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
                           description,
                           image: raceOgImageUrl(RACE_SLUG),
                           location: circuit,
+                          cancelled: race.status === 'cancelled',
                         }),
                       }
                     : {}),
@@ -217,22 +217,6 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
   },
 );
 
-function formatMonzaTime(timestamp: number | undefined) {
-  if (timestamp === undefined) {
-    return 'To be confirmed';
-  }
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/Rome',
-    timeZoneName: 'short',
-  }).format(timestamp);
-}
-
 function ItalianGrandPrixPredictionsPage() {
   const { race, weather, weatherNow, news, championship } =
     Route.useLoaderData();
@@ -241,8 +225,8 @@ function ItalianGrandPrixPredictionsPage() {
   const driversByCode = new Map(
     championship.drivers.map((driver) => [driver.code, driver]),
   );
-  const reviewedAt = reviewedFrom({ weather, news });
-  const isFinished = race.status === 'finished';
+  const phase = getRaceWriteupPhase(race, weatherNow);
+  const isLive = isRaceWriteupLive(phase);
 
   return (
     <div className="min-h-full bg-page">
@@ -251,58 +235,70 @@ function ItalianGrandPrixPredictionsPage() {
           <header>
             <div className="flex items-center gap-3">
               <Flag code="IT" size="xl" />
-              <p className="gpp-mono text-sm text-text-muted">
-                04–06 SEP · MONZA · ROUND {race.round}
-              </p>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="gpp-mono text-sm text-text-muted">
+                  04–06 SEP · MONZA · ROUND {race.round}
+                </p>
+                <span className="text-text-disabled" aria-hidden>
+                  ·
+                </span>
+                <RaceWriteupPhaseLabel phase={phase} />
+              </div>
             </div>
             <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
               Italian Grand Prix 2026 predictions
             </h1>
             <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              Check top speed, braking stability and traction out of the
-              chicanes before choosing your qualifying and race Top 5.
+              {raceWriteupHeroSummary(
+                phase,
+                'The Italian Grand Prix',
+                'Check straight-line speed, braking stability and traction out of the chicanes before choosing your qualifying and race Top 5.',
+              )}
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link
-                to="/races/$raceSlug"
-                params={{ raceSlug: RACE_SLUG }}
-                className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                {isFinished ? 'See Monza results' : 'Make your Monza picks'}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-              <Link
-                to="/circuits/$circuitSlug"
-                params={{ circuitSlug: 'monza' }}
-                className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
-              >
-                Read the Monza circuit guide
-              </Link>
-            </div>
+            <RaceWriteupActions
+              phase={phase}
+              raceSlug={RACE_SLUG}
+              venueName="Monza"
+              circuitName="Monza"
+              circuitSlug="monza"
+            />
           </header>
 
-          <WeekendSchedule race={race} />
+          <RaceWriteupWeekendSchedule
+            race={race}
+            timeZone="Europe/Rome"
+            timeZoneLabel="MONZA TIME"
+          />
         </div>
 
-        <WeekendWeatherForecast
-          race={race}
-          weather={weather}
-          now={weatherNow}
-        />
-
-        <WeekendNewsSection items={news.items} />
+        {isLive ? (
+          <>
+            <WeekendWeatherForecast
+              race={race}
+              weather={weather}
+              now={weatherNow}
+            />
+            <WeekendNewsSection items={news.items} />
+          </>
+        ) : null}
         <WatchTable />
+        <TrackMap />
         <TyreChoice />
         {/* Hadjar and the standings both carry a right-hand card; the tribute
-            and the contract do not. Run the two carded sections together so the
-            rail does not appear, vanish and reappear, and let the prose-only
-            asides follow. */}
-        <HadjarStatus byCode={driversByCode} />
-        <ChampionshipContext championship={championship} />
-        <McLarenForm />
-        <FerrariTribute />
-        <NorrisContract />
-        <PredictionMethod />
+            and the contracts do not. Run the two carded sections together so
+            the rail does not appear, vanish and reappear, and let the
+            prose-only asides follow. */}
+        {isLive ? (
+          <>
+            <HadjarStatus byCode={driversByCode} />
+            <ChampionshipContext championship={championship} />
+            <McLarenForm />
+            <FerrariTribute />
+            <NorrisContract />
+            <ColapintoContract />
+            <PredictionMethod />
+          </>
+        ) : null}
 
         <section className="py-8 sm:py-16" aria-labelledby="common-questions">
           <h2
@@ -332,25 +328,11 @@ function ItalianGrandPrixPredictionsPage() {
           </div>
         </section>
 
-        <section className="rounded-sm bg-surface px-5 py-7 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7">
-          <div>
-            <h2 className="font-title text-xl font-medium text-text">
-              Make your Monza picks
-            </h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-text-muted">
-              Choose five drivers for qualifying and five for the race. You can
-              change them until each session locks.
-            </p>
-          </div>
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: RACE_SLUG }}
-            className="mt-5 inline-flex min-h-11 shrink-0 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:mt-0"
-          >
-            {isFinished ? 'See Monza results' : 'Make your picks'}
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </section>
+        <RaceWriteupClosingPanel
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Monza"
+        />
 
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>
@@ -360,54 +342,11 @@ function ItalianGrandPrixPredictionsPage() {
             <ExternalSource href={HADJAR_SOURCE}>Sky Sports</ExternalSource>.
           </p>
           <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(reviewedAt)}
+            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
           </p>
         </footer>
       </div>
     </div>
-  );
-}
-
-function WeekendSchedule({ race }: { race: Race }) {
-  const sessions = [
-    ['Practice 1', race.fp1StartAt],
-    ['Practice 2', race.fp2StartAt],
-    ['Practice 3', race.fp3StartAt],
-    ['Qualifying', race.qualiStartAt],
-    ['Grand Prix', race.raceStartAt],
-  ] as const;
-
-  return (
-    <section
-      aria-labelledby="weekend-timing"
-      className="rounded-sm bg-surface-elevated"
-    >
-      {/* One row from the start, like the rows it heads. Both halves are short
-          enough to share a line at 320px. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 sm:py-3">
-        <h2 id="weekend-timing" className="font-title font-medium text-text">
-          Weekend schedule
-        </h2>
-        <span className="gpp-mono text-xs text-text-muted">MONZA TIME</span>
-      </div>
-      <dl>
-        {sessions.map(([label, timestamp]) => (
-          <div
-            key={label}
-            /* Two columns on a phone as well, not just from `sm`. Stacked,
-               each session spent two lines and the whole schedule ran to
-               315px, for a label and a time that sit side by side with room
-               to spare. */
-            className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 sm:grid-cols-[6.5rem_1fr] sm:py-2.5"
-          >
-            <dt className="text-sm text-text-muted">{label}</dt>
-            <dd className="gpp-mono text-right text-sm text-text">
-              {formatMonzaTime(timestamp)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }
 
@@ -416,22 +355,22 @@ function WatchTable() {
     [
       'Straight-line pace',
       'Speed without relying on a tow',
-      'A clean speed trace is more useful than the headline trap number.',
+      'A car with low drag is quick on every lap. A tow only helps when there is a car close ahead.',
     ],
     [
       'Heavy braking',
-      'A settled car into Rettifilo and Roggia',
+      'A settled car into Rettifilo (Turns 1–2) and Roggia (Turns 4–5)',
       'Lock-ups or poor rotation make overtaking and tyre life harder.',
     ],
     [
       'Corner exits',
-      'Traction out of both chicanes',
+      'Traction out of the chicanes',
       'A weak exit gives away speed for the length of the next straight.',
     ],
     [
       'Long runs',
       'Consistent pace over several laps',
-      'Race picks live on tyre behaviour and repeatable pace, and a tow-assisted lap shows neither.',
+      'A qualifying lap says nothing about how a car holds its tyres over a stint.',
     ],
   ] as const;
 
@@ -456,7 +395,7 @@ function WatchTable() {
           ['5.793', 'km circuit'],
           ['53', 'race laps'],
           ['80%', 'full throttle'],
-          ['1.1', 'km main straight'],
+          ['1.2', 'km main straight'],
         ].map(([value, label]) => (
           /* The label is the term and the number is its value, so dt names
              the stat and dd carries the figure. The column is reversed in CSS
@@ -504,6 +443,72 @@ function WatchTable() {
   );
 }
 
+/**
+ * The map earns its place by answering a question the prose above cannot: not
+ * what to watch, but *where*. Everything it marks is geography that outlives
+ * the weekend, so nothing in here needs bumping when the entry list changes.
+ *
+ * It is a raster rather than the drawn SVG it replaces, recoloured onto the
+ * design tokens: the artwork arrived on a purple ground, and a picture is not
+ * exempt from the palette just because it is a picture. The three sector lines
+ * keep the F1 sector colours the SVG used, on the same grounds the SVG kept
+ * them — those are data about the sport rather than palette choices.
+ *
+ * `CORNERS` is the bridge between the numbers on the map and the names used in
+ * the prose on this page. Any corner named anywhere on the page appears here
+ * with the number that identifies it on the artwork.
+ */
+const CORNERS = [
+  ['1–2', 'Rettifilo'],
+  ['3', 'Curva Grande'],
+  ['4–5', 'Roggia'],
+  ['6–7', 'Lesmo'],
+  ['8–10', 'Ascari'],
+  ['11', 'Parabolica'],
+] as const;
+
+function TrackMap() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="track-map">
+      <div className="max-w-3xl">
+        <h2
+          id="track-map"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          Where overtakes happen
+        </h2>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Monza has four straight-mode zones. Three end in heavy braking:
+          Rettifilo (Turns 1–2), Roggia (Turns 4–5) and Ascari (Turns 8–10).
+        </p>
+      </div>
+
+      <div className="mt-7 grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.9fr)] lg:items-start">
+        <RaceWriteupTrackMap
+          src="/media/monza-track-map-1600.webp"
+          srcSet="/media/monza-track-map-800.webp 800w, /media/monza-track-map-1600.webp 1600w"
+          sizes="(min-width: 1024px) 38rem, 100vw"
+          width={1600}
+          height={893}
+          circuitName="Monza"
+          corners={CORNERS}
+          alt="Monza lap map. Turns are numbered 1 to 11 clockwise from the end of the main straight, with the three sectors, four straight-mode zones, the speed trap on the main straight, and the Overtake detection and activation points either side of Turn 11."
+        />
+
+        <div className="border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-7">
+          <p className="gpp-reading-copy text-text-muted">
+            The fourth ends at Parabolica (Turn 11), which is quicker and
+            lighter on the brakes than the three chicanes. Overtake detection
+            sits just before it, so a driver who gets through there close behind
+            keeps the tow onto the main straight and can use Overtake down it,
+            into Rettifilo. That is where most passes happen.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
   return (
     <section
@@ -537,8 +542,9 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. Red Bull has yet to confirm his return. Wait for the team or
-          the official entry before relying on him in a pick.{' '}
+          at Monza. Red Bull has yet to confirm his return and has said Lawson
+          drives again if he is not fit, so the seat is the pick, not the
+          driver. Wait for the team or the official entry before locking it in.{' '}
           <ExternalSource href={HADJAR_SOURCE}>Read the report</ExternalSource>.
         </p>
       </div>
@@ -552,7 +558,7 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
             code: 'HAD',
             note: 'Hopeful, unconfirmed',
           },
-          { label: 'Red Bull cover at Zandvoort', code: 'LAW', note: null },
+          { label: 'Red Bull cover, and standby', code: 'LAW', note: null },
           { label: 'Racing Bulls cover', code: 'TSU', note: null },
         ].map(({ label, code, note }) => {
           const driver = byCode.get(code);
@@ -623,8 +629,11 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {leader.points - second.points} points
             from {second.displayName}. Use that as a form check, then compare it
-            with the low-downforce pace shown in practice. Antonelli&rsquo;s
-            penalty makes his Sunday starting position part of that form check.
+            with the low-downforce pace shown in practice. Antonelli takes a
+            full new power unit at Monza and starts from the back. Treat the two
+            sessions separately: his qualifying result still counts for your
+            qualifying picks, and the penalty only changes where he starts on
+            Sunday.
           </p>
           <Link
             to="/f1-standings"
@@ -699,7 +708,7 @@ function PredictionMethod() {
     ],
     [
       'Account for Turn 1',
-      'Rettifilo compresses the field into one heavy stop. A pick near the back of your Top 5 carries extra opening-lap risk.',
+      'Rettifilo (Turns 1–2) compresses the field into one heavy stop at the end of the main straight. A pick near the back of your Top 5 carries extra opening-lap risk.',
     ],
     [
       'Resolve close calls after FP3',
@@ -781,7 +790,18 @@ function McLarenForm() {
 }
 
 /**
- * The three nominated compounds, hardest first.
+ * The whole 2026 slick range, hardest first, not just the three nominated here.
+ *
+ * Five compounds is the entire scale: Pirelli dropped the C6 for 2026 on the
+ * grounds that it sat too close to the C5, so C1 to C5 is all there is and the
+ * page's claim that Monza gets the soft end of the range is something the strip
+ * can now show rather than assert. `role` is the tyre's job *at this race* and
+ * is therefore relative: C3 is the hard tyre at Monza while sitting in the
+ * middle of the range, which is the distinction the scale exists to make.
+ *
+ * A null `role` means the compound is not nominated for this race. Its band is
+ * null with it, because the white / yellow / red sidewall is painted on the
+ * three tyres that turn up, not on a place in the range.
  *
  * The colours are Pirelli's sidewall bands, which makes them data about the
  * sport rather than palette decisions: the same standing as a team's livery in
@@ -790,24 +810,13 @@ function McLarenForm() {
  * the second surface that does should move them into the shared tokens beside
  * `teams`.
  */
-const TYRE_COMPOUNDS = [
+const TYRE_RANGE = [
+  { compound: 'C1', role: null, band: null },
+  { compound: 'C2', role: null, band: null },
   { compound: 'C3', role: 'hard', band: '#f0f0f0' },
   { compound: 'C4', role: 'medium', band: '#ffd500' },
   { compound: 'C5', role: 'soft', band: '#da291c' },
 ] as const;
-
-/** A tyre read end-on: the band is the compound, the hub is just the wheel. */
-function CompoundBand({ color }: { color: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px]"
-      style={{ borderColor: color }}
-    >
-      <span className="h-3.5 w-3.5 rounded-full border border-border" />
-    </span>
-  );
-}
 
 /**
  * The compound nomination, as analysis rather than as news.
@@ -822,6 +831,11 @@ function CompoundBand({ color }: { color: string }) {
  * story" and is drawn in that team's colour; a tyre nomination belongs to
  * nobody on the grid, and inventing a colour for Pirelli would spend the
  * mechanism on the one section that has no claim to it.
+ *
+ * One column, edge to edge: heading, compound strip and closing prose all sit
+ * in the same `max-w-3xl` block. The strip used to break out to the full page
+ * width, which gave the section two different left-to-right extents and was
+ * the only place on the page where a block did that.
  */
 function TyreChoice() {
   return (
@@ -834,58 +848,104 @@ function TyreChoice() {
           id="tyre-choice"
           className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
         >
-          Pirelli brings its softest tyres to Monza
+          Monza gets the three softest tyres
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          C3, C4 and C5 is the softest combination in the 2026 range, and Monza
-          is the quickest track it gets used on. That sounds like a two-stop
-          race.
+          The 2026 range runs C1 to C5, and Monza takes the soft end of it.
         </p>
-      </div>
 
-      {/* The same gap-px strip as the circuit stats above, because the job is
-          the same: three values a reader should be able to take without
-          reading a sentence.
+        {/* The circuit stats strip above, exactly: gap-px cells on a border
+            fill, figure in mono over a tracked micro label. It reads as a
+            different component when it is centred or when it carries a drawn
+            tyre, and it was doing both. Held to the reading column rather than
+            breaking out to the full 5xl page width, the cells land near the
+            same width as the four-up stats row, so the two strips match in
+            density as well as in form.
 
-          Two things it does that the stats strip does not, both because three
-          cells across a full-width row leave a lot of air:
+            Showing all five is what makes it worth a graphic. Three cells said
+            "C3, C4, C5 are hard, medium and soft", which is a mapping the
+            sentence above could carry on its own. Five cells say where those
+            three sit, so "the softest three" stops being a claim the reader has
+            to take on trust, and the relative naming stops being confusing: the
+            eye can see that Monza's hard tyre is the middle of the range.
 
-          - Each cell carries its sidewall band, which is how anybody watching
-            actually tells the compounds apart. It is the mapping people came
-            for, said in the form they already know.
-          - The content is centred rather than left-aligned. A stat reads as a
-            figure in a column; this reads as a set of three, and the set is
-            ordered hardest to softest so the row itself is the scale. */}
-      <dl className="mt-7 grid grid-cols-3 gap-px overflow-hidden rounded-sm bg-border">
-        {TYRE_COMPOUNDS.map(({ compound, role, band }) => (
-          <div
-            key={compound}
-            className="flex flex-col items-center gap-3 bg-surface px-3 py-5 sm:flex-row sm:justify-center sm:gap-4 sm:px-5"
-          >
-            <CompoundBand color={band} />
-            <div className="flex flex-col-reverse items-center sm:items-start">
-              <dt className="mt-1 text-xs tracking-label text-text-muted uppercase">
-                {role}
-              </dt>
-              <dd className="gpp-mono text-2xl text-text">{compound}</dd>
-            </div>
-          </div>
-        ))}
-      </dl>
+            The sidewall band is a 3px top rule per cell rather than a drawn
+            ring. Flat, and on-system as the coloured column marker the
+            scoring-band card already uses. The two compounds that stay at home
+            keep the rule at the same weight but dashed, which is what a dashed
+            hairline already means everywhere else here: the slot exists, and
+            there is nothing in it. They take the sunken fill rather than the
+            page colour, because a transparent cell has no bottom edge of its
+            own and left the strip visibly missing its bottom-left corner. */}
+        <ul
+          aria-label="Pirelli’s 2026 compound range, hardest to softest"
+          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
+        >
+          {TYRE_RANGE.map(({ compound, role, band }) => (
+            <li
+              key={compound}
+              className={
+                role
+                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
+                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
+              }
+              style={band ? { borderTopColor: band } : undefined}
+            >
+              {/* Muted rather than disabled ink. Disabled is the right reading
+                  but it is 3.6:1 behind a 20px numeral, and the sunken fill
+                  plus the dashed rule already say "empty slot" without asking
+                  the one text colour in the ramp that cannot carry it. */}
+              <p
+                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
+              >
+                {compound}
+              </p>
+              {/* The dashed rule and the dimmed figure carry this for anyone
+                  who can see them, and neither survives being read aloud. */}
+              <p
+                className={
+                  role
+                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
+                    : 'sr-only'
+                }
+              >
+                {role ?? 'Not used at Monza'}
+              </p>
+            </li>
+          ))}
+        </ul>
 
-      <div className="mt-7 max-w-3xl">
-        <p className="gpp-reading-copy text-text-muted">
-          Monza asks less of a tyre sideways than anywhere else on the calendar,
-          and lateral load is what usually finishes off a soft compound. Most of
-          the lap is full throttle, and what is left goes through the brakes and
-          the traction zones out of the chicanes. The C5 may last longer than
-          its name suggests.
+        {/* The axis carries the trade-off and nothing else. It read "Harder,
+            lasts longer" against "Softer, more grip", which said half of what
+            the cells underneath already say: HARD sits under C3 and SOFT under
+            C5, so naming the direction again was the same idea twice, in a
+            mirrored pair that sounded written rather than spoken. What is left
+            is the part the row cannot show, and it is the same trade-off the
+            one-stop against two-stop question below spends over a race
+            distance. */}
+        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
+          <span>Lasts longer</span>
+          <span>More grip</span>
+        </div>
+
+        <p className="gpp-reading-copy mt-7 text-text-muted">
+          Softer compounds wear faster, but Monza is gentle on tyres. They wear
+          most in fast corners, and Monza has fewer of those than almost
+          anywhere. Most of the lap is full throttle, and the rest is braking
+          and traction out of the chicanes, so the C5 could last longer here
+          than it normally would.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Which way it falls is a thing to read off Friday long runs rather than
-          guess from the nomination. A one-stop puts the value back on track
-          position, and on qualifying pace with it. A two-stop rewards the
-          drivers who look after a tyre over the ones who are quick for a lap.{' '}
+          The pit lane is what decides the strategy. A stop at Monza costs more
+          time than at almost any other race, so teams will stretch their stints
+          and try to finish on one. Heat is what breaks that plan, and a hot,
+          dry weekend is forecast.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Friday long runs will settle it. A one-stop puts the weight on
+          qualifying and track position. A second stop favours the drivers who
+          look after their tyres over the ones who are only quick over a single
+          lap.{' '}
           <ExternalSource href={TYRE_SOURCE}>
             Read Pirelli&rsquo;s selection
           </ExternalSource>
@@ -934,9 +994,18 @@ function FerrariTribute() {
           his Italian Grand Prix win that year.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Ferrari has yet to reveal the car, so treat the reported details as
-          unconfirmed. Use practice pace to judge Leclerc and Hamilton.{' '}
-          <ExternalSource href={LIVERY_SOURCE}>Read the report</ExternalSource>.
+          Hamilton and Leclerc&rsquo;s race suits are out: red with white
+          stripes, and seven stars on the back for Schumacher&rsquo;s titles.{' '}
+          <ExternalSource href={SUITS_SOURCE}>
+            See the race suits
+          </ExternalSource>
+          . Ferrari has yet to reveal the car, so treat the reported livery
+          details as unconfirmed. Use practice pace to judge Leclerc and
+          Hamilton.{' '}
+          <ExternalSource href={LIVERY_SOURCE}>
+            Read the livery report
+          </ExternalSource>
+          .
         </p>
       </div>
     </section>
@@ -976,12 +1045,53 @@ function NorrisContract() {
           until at least the end of 2030, with a multi-year option beyond that.
           He joined as a test and development driver in 2017 and has raced for
           them since 2019. Oscar Piastri is contracted to the end of 2028, so
-          the pairing you pick between is settled for a while yet.
+          the McLaren duel keeps the same two names for a while yet.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Norris and Piastri remain McLaren&rsquo;s Monza pairing. Use the deal
           as background to their on-track fight.{' '}
           <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
+            Read the announcement
+          </ExternalSource>
+          .
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/*
+ * Same gate as the Norris section: a 2027 seat does not change a Monza Top 5,
+ * so it stays off `raceNews`. The upgrade Colapinto gets this weekend is
+ * already in the feed; this is the contract.
+ */
+function ColapintoContract() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="colapinto-contract">
+      <div
+        className="gpp-team-bar max-w-3xl pl-4"
+        style={
+          {
+            '--team-colour': TEAM_COLORS.Alpine ?? FALLBACK_TEAM_COLOR,
+          } as CSSProperties
+        }
+      >
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Off track
+        </p>
+        <h2
+          id="colapinto-contract"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          Colapinto stays at Alpine for 2027
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          Alpine has confirmed Franco Colapinto will stay for 2027, alongside
+          Pierre Gasly who is contracted to at least the end of 2028.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Colapinto and Gasly remain Alpine&rsquo;s Monza pairing.{' '}
+          <ExternalSource href={COLAPINTO_CONTRACT_SOURCE}>
             Read the announcement
           </ExternalSource>
           .
@@ -1003,7 +1113,7 @@ function ExternalSource({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+      className="inline-block font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
     >
       {children}
       <span className="sr-only"> (opens in a new tab)</span>

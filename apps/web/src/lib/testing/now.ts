@@ -85,6 +85,7 @@ export function useNow(intervalMs = 1_000, initialNow?: number): number {
     }
 
     // Sync to the real clock once hydration has completed.
+    // oxlint-disable-next-line react/set-state-in-effect
     setRealNow(Date.now());
 
     if (intervalMs <= 0) {

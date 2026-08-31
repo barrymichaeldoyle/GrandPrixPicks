@@ -29,6 +29,8 @@ export function usePushPermission() {
   }
 
   useEffect(() => {
+    // Permission is external OS state read on mount and app activation.
+    // oxlint-disable-next-line react/set-state-in-effect
     void refresh();
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {

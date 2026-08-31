@@ -125,6 +125,8 @@ function CompactCard({
 
   useEffect(() => {
     if (!hasManualToggle) {
+      // Follow the controlled default until the viewer takes ownership.
+      // oxlint-disable-next-line react/set-state-in-effect
       setExpanded(defaultExpanded);
     }
   }, [defaultExpanded, hasManualToggle]);
@@ -133,6 +135,8 @@ function CompactCard({
   const [contentMounted, setContentMounted] = useState(false);
   useEffect(() => {
     if (expanded) {
+      // Mount immediately, then retain content only for the exit animation.
+      // oxlint-disable-next-line react/set-state-in-effect
       setContentMounted(true);
     } else {
       const t = setTimeout(() => setContentMounted(false), 220);

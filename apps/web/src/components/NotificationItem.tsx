@@ -187,52 +187,97 @@ function firstName(actor: ReactionActor): string {
   return name.split(' ')[0];
 }
 
+function NotificationActorName({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-semibold text-accent transition-colors group-hover:text-accent-hover">
+      {children}
+    </span>
+  );
+}
+
 function ReactionActorNames({ actors }: { actors: ReactionActor[] }) {
   if (actors.length === 0) {
     return <span className="font-semibold text-text">Someone</span>;
   }
 
-  function Name({ children }: { children: ReactNode }) {
-    return (
-      <span className="font-semibold text-accent transition-colors group-hover:text-accent-hover">
-        {children}
-      </span>
-    );
-  }
-
   if (actors.length === 1) {
     const a = actors[0];
     const label = a.displayName ?? a.username ?? 'Someone';
-    return <Name>{label}</Name>;
+    return <NotificationActorName>{label}</NotificationActorName>;
   }
   if (actors.length === 2) {
     return (
       <>
-        <Name>{firstName(actors[0])}</Name>
+        <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
         <span className="font-semibold text-text"> and </span>
-        <Name>{firstName(actors[1])}</Name>
+        <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
       </>
     );
   }
   if (actors.length === 3) {
     return (
       <>
-        <Name>{firstName(actors[0])}</Name>
+        <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
         <span className="font-semibold text-text">, </span>
-        <Name>{firstName(actors[1])}</Name>
+        <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
         <span className="font-semibold text-text"> and </span>
-        <Name>{firstName(actors[2])}</Name>
+        <NotificationActorName>{firstName(actors[2])}</NotificationActorName>
       </>
     );
   }
   const others = actors.length - 2;
   return (
     <>
-      <Name>{firstName(actors[0])}</Name>
+      <NotificationActorName>{firstName(actors[0])}</NotificationActorName>
       <span className="font-semibold text-text">, </span>
-      <Name>{firstName(actors[1])}</Name>
+      <NotificationActorName>{firstName(actors[1])}</NotificationActorName>
       <span className="font-semibold text-text"> and {others} others</span>
     </>
+  );
+}
+
+function NotificationRowBody({
+  leading,
+  title,
+  trailing,
+  meta,
+  unreadLabel,
+}: {
+  leading: ReactNode;
+  title: ReactNode;
+  trailing?: ReactNode;
+  meta: ReactNode;
+  unreadLabel: ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-3">
+      <div className="flex w-8 shrink-0 items-start pt-0.5">{leading}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2 pr-5">
+          <p className="min-w-0 flex-1 text-sm leading-snug text-text">
+            {unreadLabel}
+            {title}
+          </p>
+          {trailing}
+        </div>
+        {meta}
+      </div>
+    </div>
+  );
+}
+
+function NotificationRow({
+  children,
+  unreadControl,
+}: {
+  children: ReactNode;
+  unreadControl: ReactNode;
+}) {
+  return (
+    <li className="relative">
+      {children}
+      {unreadControl}
+    </li>
   );
 }
 
@@ -280,34 +325,6 @@ export function NotificationItem({
    * share one layout, or marking a row read would reflow it under the thumb
    * that just did it.
    */
-  function RowBody({
-    leading,
-    title,
-    trailing,
-    meta,
-  }: {
-    leading: ReactNode;
-    title: ReactNode;
-    trailing?: ReactNode;
-    meta: ReactNode;
-  }) {
-    return (
-      <div className="flex items-start gap-3 px-4 py-3">
-        <div className="flex w-8 shrink-0 items-start pt-0.5">{leading}</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start gap-2 pr-5">
-            <p className="min-w-0 flex-1 text-sm leading-snug text-text">
-              {unreadLabel}
-              {title}
-            </p>
-            {trailing}
-          </div>
-          {meta}
-        </div>
-      </div>
-    );
-  }
-
   /**
    * The row is one big link, so the per-item control cannot live inside it —
    * nested interactive elements are invalid and unreachable by keyboard. It is
@@ -332,15 +349,6 @@ export function NotificationItem({
       />
     </button>
   ) : null;
-
-  function Row({ children }: { children: ReactNode }) {
-    return (
-      <li className="relative">
-        {children}
-        {unreadControl}
-      </li>
-    );
-  }
 
   const unreadLabel = isUnread ? (
     <span className="sr-only">Unread notification. </span>
@@ -369,7 +377,7 @@ export function NotificationItem({
       .join('');
 
     return (
-      <Row>
+      <NotificationRow unreadControl={unreadControl}>
         <Link
           to={
             notification.feedEventId
@@ -388,7 +396,8 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <RowBody
+          <NotificationRowBody
+            unreadLabel={unreadLabel}
             leading={
               <div className="relative">
                 <Avatar
@@ -421,7 +430,7 @@ export function NotificationItem({
             }
           />
         </Link>
-      </Row>
+      </NotificationRow>
     );
   }
 
@@ -432,7 +441,7 @@ export function NotificationItem({
       : 'Results are in';
 
     return (
-      <Row>
+      <NotificationRow unreadControl={unreadControl}>
         <Link
           to="/races/$raceSlug"
           params={{ raceSlug: notification.raceSlug ?? '' }}
@@ -444,7 +453,8 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <RowBody
+          <NotificationRowBody
+            unreadLabel={unreadLabel}
             leading={
               <NotificationIcon
                 countryCode={countryCode}
@@ -468,7 +478,7 @@ export function NotificationItem({
             }
           />
         </Link>
-      </Row>
+      </NotificationRow>
     );
   }
 
@@ -479,7 +489,7 @@ export function NotificationItem({
       : 'Results were amended';
 
     return (
-      <Row>
+      <NotificationRow unreadControl={unreadControl}>
         <Link
           to="/races/$raceSlug"
           params={{ raceSlug: notification.raceSlug ?? '' }}
@@ -491,7 +501,8 @@ export function NotificationItem({
           onClick={handleClick}
           className={itemClass}
         >
-          <RowBody
+          <NotificationRowBody
+            unreadLabel={unreadLabel}
             leading={
               <NotificationIcon
                 countryCode={countryCode}
@@ -525,7 +536,7 @@ export function NotificationItem({
             }
           />
         </Link>
-      </Row>
+      </NotificationRow>
     );
   }
 
@@ -534,7 +545,8 @@ export function NotificationItem({
     // targets, and a row that predates that check must not render one either.
     const linkPath = sanitizeInternalPath(notification.linkPath);
     const content = (
-      <RowBody
+      <NotificationRowBody
+        unreadLabel={unreadLabel}
         leading={
           // Never race-scoped, so there is no flag to lead with.
           <NotificationIcon countryCode={null} tone="accent" icon={Megaphone} />
@@ -562,7 +574,7 @@ export function NotificationItem({
     // affordance rather than pretending to be clickable; the corner control
     // still marks it read.
     return (
-      <Row>
+      <NotificationRow unreadControl={unreadControl}>
         {linkPath ? (
           <Link to={linkPath} onClick={handleClick} className={itemClass}>
             {content}
@@ -572,7 +584,7 @@ export function NotificationItem({
             {content}
           </div>
         )}
-      </Row>
+      </NotificationRow>
     );
   }
 
@@ -580,7 +592,7 @@ export function NotificationItem({
   // older notifications predate the slug being stored, so those fall back to
   // the dashboard, which carries the same activity stream the feed page did.
   return (
-    <Row>
+    <NotificationRow unreadControl={unreadControl}>
       <Link
         to={notification.raceSlug ? '/races/$raceSlug' : '/'}
         params={
@@ -596,7 +608,8 @@ export function NotificationItem({
         onClick={handleClick}
         className={itemClass}
       >
-        <RowBody
+        <NotificationRowBody
+          unreadLabel={unreadLabel}
           leading={
             <NotificationIcon
               countryCode={countryCode}
@@ -621,6 +634,6 @@ export function NotificationItem({
           }
         />
       </Link>
-    </Row>
+    </NotificationRow>
   );
 }

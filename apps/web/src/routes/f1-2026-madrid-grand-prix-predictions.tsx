@@ -6,6 +6,10 @@ import type { ReactNode } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
+import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
+import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
+import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -16,6 +20,12 @@ import {
 } from '@/lib/lastReviewed';
 import { routeQuery } from '@/lib/routeQuery';
 import {
+  getRaceWriteupPhase,
+  isRaceWriteupLive,
+  raceWriteupHeroSummary,
+} from '@/lib/raceWriteupPhase';
+import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import {
   breadcrumbSchema,
   pageMeta,
   raceOgImageUrl,
@@ -25,28 +35,10 @@ import {
 
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
-/**
- * The date the hand-written prose on this page was last checked. It is the
- * floor for the reviewed stamp, not the whole answer: the live forecast,
- * news and standings carry it forward on their own. Bump it when the writing
- * changes, not when the data does.
- */
-const PROSE_REVIEWED = '2026-08-29';
+/** The date the hand-written prose on this page was last checked. */
+const PROSE_REVIEWED = getRaceWriteupReviewedAt('madrid-2026');
 
-/**
- * One value for the footer stamp and the schema's `dateModified`. They were
- * two hand-typed literals before, which is how they came to disagree.
- */
-function reviewedFrom(data: {
-  weather?: { forecast: { checkedAt: number } } | null;
-  news?: { items: { publishedAt: number }[] } | null;
-}): number {
-  return lastReviewedAt(
-    PROSE_REVIEWED,
-    data.weather?.forecast.checkedAt,
-    ...(data.news?.items ?? []).map((item) => item.publishedAt),
-  );
-}
+const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-madrid-grand-prix-predictions';
 const RACE_SLUG = 'madrid-2026';
@@ -56,7 +48,6 @@ const CORNER_SOURCE =
 const TEST_SOURCE =
   'https://www.grandprix.com/news/madring-praise-red-flags-first-formula-3-test-2026.html';
 
-type Race = NonNullable<FunctionReturnType<typeof api.races.getRaceBySlug>>;
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
 >;
@@ -133,9 +124,12 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
     const race = loaderData?.race;
     const title = '2026 Spanish Grand Prix Predictions & Picks | Madrid';
     const description =
-      'Make your 2026 Spanish Grand Prix predictions for Madrid’s new Madring. Schedule, what the debut layout asks for, La Monumental, and how to read practice with no form guide.';
+      race?.status === 'finished'
+        ? 'Review the 2026 Spanish Grand Prix predictions and Madrid results, including what the first race at the Madring revealed.'
+        : race?.status === 'cancelled'
+          ? 'See the status of the cancelled 2026 Spanish Grand Prix and the Madring information prepared for the race weekend.'
+          : 'Make your 2026 Spanish Grand Prix predictions for Madrid’s new Madring. See the schedule, what the new circuit demands, and how to read practice.';
     const circuit = getCircuitForRace(RACE_SLUG);
-    const reviewedAt = reviewedFrom(loaderData ?? {});
     const meta = pageMeta({
       title,
       description,
@@ -159,7 +153,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
                 url: `${siteConfig.url}${PATH}`,
                 name: title,
                 description,
-                dateModified: reviewedIsoDate(reviewedAt),
+                dateModified: reviewedIsoDate(PROSE_REVIEWED_AT),
                 inLanguage: 'en',
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
                 // A complete node or none at all. This was a three-property
@@ -175,6 +169,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
                         description,
                         image: raceOgImageUrl(RACE_SLUG),
                         location: circuit,
+                        cancelled: race.status === 'cancelled',
                       }),
                     }
                   : {}),
@@ -200,27 +195,11 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   },
 });
 
-function formatMadridTime(timestamp: number | undefined) {
-  if (timestamp === undefined) {
-    return 'To be confirmed';
-  }
-  return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Europe/Madrid',
-    timeZoneName: 'short',
-  }).format(new Date(timestamp));
-}
-
 function MadridGrandPrixPredictionsPage() {
   const { race, championship, weather, weatherNow, news } =
     Route.useLoaderData();
-  const reviewedAt = reviewedFrom({ weather, news });
-  const isFinished = race.status === 'finished';
+  const phase = getRaceWriteupPhase(race, weatherNow);
+  const isLive = isRaceWriteupLive(phase);
 
   return (
     <div className="min-h-full bg-page">
@@ -229,51 +208,59 @@ function MadridGrandPrixPredictionsPage() {
           <header>
             <div className="flex items-center gap-3">
               <Flag code="ES" size="xl" />
-              <p className="gpp-mono text-sm text-text-muted">
-                11–13 SEP · MADRING · ROUND {race.round}
-              </p>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="gpp-mono text-sm text-text-muted">
+                  11–13 SEP · MADRING · ROUND {race.round}
+                </p>
+                <span className="text-text-disabled" aria-hidden>
+                  ·
+                </span>
+                <RaceWriteupPhaseLabel phase={phase} />
+              </div>
             </div>
             <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
               Spanish Grand Prix 2026 predictions
             </h1>
             <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
-              Madrid’s Madring is new, so every driver arrives with the same
-              amount of race data: none. That makes practice worth more than
-              usual and the grid harder to call than at any other round.
+              {raceWriteupHeroSummary(
+                phase,
+                'The Spanish Grand Prix',
+                'Madrid’s Madring is new, so every driver arrives with the same amount of race data: none. That makes practice worth more than usual and the grid harder to call than at any other round.',
+              )}
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link
-                to="/races/$raceSlug"
-                params={{ raceSlug: RACE_SLUG }}
-                className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
-                {isFinished ? 'See Madrid results' : 'Make your Madrid picks'}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-              <Link
-                to="/circuits/$circuitSlug"
-                params={{ circuitSlug: 'madring' }}
-                className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
-              >
-                Read the Madring circuit guide
-              </Link>
-            </div>
+            <RaceWriteupActions
+              phase={phase}
+              raceSlug={RACE_SLUG}
+              venueName="Madrid"
+              circuitName="Madring"
+              circuitSlug="madring"
+            />
           </header>
 
-          <WeekendSchedule race={race} />
+          <RaceWriteupWeekendSchedule
+            race={race}
+            timeZone="Europe/Madrid"
+            timeZoneLabel="MADRID TIME"
+          />
         </div>
 
-        <WeekendWeatherForecast
-          race={race}
-          weather={weather}
-          now={weatherNow}
-        />
+        {isLive ? (
+          <WeekendWeatherForecast
+            race={race}
+            weather={weather}
+            now={weatherNow}
+          />
+        ) : null}
 
         <NoFormGuide />
         <LaMonumental />
         <WatchTable />
-        <WeekendNewsSection items={news.items} />
-        <ChampionshipContext championship={championship} />
+        {isLive ? (
+          <>
+            <WeekendNewsSection items={news.items} />
+            <ChampionshipContext championship={championship} />
+          </>
+        ) : null}
 
         <section className="py-8 sm:py-16" aria-labelledby="common-questions">
           <h2
@@ -296,25 +283,11 @@ function MadridGrandPrixPredictionsPage() {
           </div>
         </section>
 
-        <section className="rounded-sm bg-surface px-5 py-7 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7">
-          <div>
-            <h2 className="font-title text-xl font-medium text-text">
-              Make your Madrid picks
-            </h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-text-muted">
-              Choose five drivers for qualifying and five for the race. You can
-              change them until each session locks.
-            </p>
-          </div>
-          <Link
-            to="/races/$raceSlug"
-            params={{ raceSlug: RACE_SLUG }}
-            className="mt-5 inline-flex min-h-11 shrink-0 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:mt-0"
-          >
-            {isFinished ? 'See Madrid results' : 'Make your picks'}
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </section>
+        <RaceWriteupClosingPanel
+          phase={phase}
+          raceSlug={RACE_SLUG}
+          venueName="Madrid"
+        />
 
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>
@@ -326,54 +299,11 @@ function MadridGrandPrixPredictionsPage() {
             <ExternalSource href={TEST_SOURCE}>Grandprix.com</ExternalSource>.
           </p>
           <p className="gpp-mono mt-2 text-xs">
-            LAST REVIEWED {reviewedStamp(reviewedAt)}
+            LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
           </p>
         </footer>
       </div>
     </div>
-  );
-}
-
-function WeekendSchedule({ race }: { race: Race }) {
-  const sessions = [
-    ['Practice 1', race.fp1StartAt],
-    ['Practice 2', race.fp2StartAt],
-    ['Practice 3', race.fp3StartAt],
-    ['Qualifying', race.qualiStartAt],
-    ['Grand Prix', race.raceStartAt],
-  ] as const;
-
-  return (
-    <section
-      aria-labelledby="weekend-timing"
-      className="rounded-sm bg-surface-elevated"
-    >
-      {/* One row from the start, like the rows it heads. Both halves are short
-          enough to share a line at 320px. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 sm:py-3">
-        <h2 id="weekend-timing" className="font-title font-medium text-text">
-          Weekend schedule
-        </h2>
-        <span className="gpp-mono text-xs text-text-muted">MADRID TIME</span>
-      </div>
-      <dl>
-        {sessions.map(([label, timestamp]) => (
-          <div
-            key={label}
-            /* Two columns on a phone as well, not just from `sm`. Stacked,
-               each session spent two lines and the whole schedule ran to
-               315px, for a label and a time that sit side by side with room
-               to spare. */
-            className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-1 border-b border-border/60 px-4 py-2 last:border-b-0 sm:grid-cols-[6.5rem_1fr] sm:py-2.5"
-          >
-            <dt className="text-sm text-text-muted">{label}</dt>
-            <dd className="gpp-mono text-right text-sm text-text">
-              {formatMadridTime(timestamp)}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }
 
@@ -653,7 +583,7 @@ function ExternalSource({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
+      className="inline-block font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
     >
       {children}
     </a>

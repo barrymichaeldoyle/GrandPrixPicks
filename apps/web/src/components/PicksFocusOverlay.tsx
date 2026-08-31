@@ -1,7 +1,7 @@
 import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useModalDialog } from '@/hooks/useModalDialog';
@@ -45,10 +45,11 @@ export function PicksFocusOverlay({
   children,
 }: PicksFocusOverlayProps) {
   const reduceMotion = useReducedMotion();
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const suspendedRef = useRef(suspended);
-  suspendedRef.current = suspended;
+  const closeFromHistory = useEffectEvent(() => {
+    if (!suspended) {
+      onClose();
+    }
+  });
 
   // Scroll lock, focus trap, Escape and focus restore. `suspended` releases the
   // trap and Escape (not the lock) so a stacked confirm dialog owns them.
@@ -77,9 +78,7 @@ export function PicksFocusOverlay({
         { ...window.history.state, [HISTORY_KEY]: true },
         '',
       );
-      if (!suspendedRef.current) {
-        onCloseRef.current();
-      }
+      closeFromHistory();
     }
     window.addEventListener('popstate', handlePopState);
     return () => {

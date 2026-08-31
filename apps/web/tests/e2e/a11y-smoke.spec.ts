@@ -16,6 +16,10 @@ const PAGES = [
   { path: '/races', name: 'race calendar' },
   { path: '/f1-standings', name: 'standings table' },
   { path: '/pricing', name: 'pricing' },
+  {
+    path: '/f1-2026-italian-grand-prix-predictions',
+    name: 'race write-up',
+  },
 ];
 
 test.describe('[public] a11y smoke', () => {

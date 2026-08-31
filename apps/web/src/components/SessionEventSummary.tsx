@@ -2,6 +2,7 @@ import { CheckCircle2, Lock } from 'lucide-react';
 
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getLockStatusViewModel } from '@/lib/lock';
+import { useNow } from '@/lib/testing/now';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
 import { Pill } from './Pill';
 
@@ -21,7 +22,7 @@ export function SessionEventSummary({
   lockAt,
   hasResults,
   trackTimeZone = 'UTC',
-  now = Date.now(),
+  now,
 }: {
   startsAt: number;
   lockAt: number;
@@ -29,6 +30,8 @@ export function SessionEventSummary({
   trackTimeZone?: string;
   now?: number;
 }) {
+  const liveNow = useNow();
+  const currentNow = now ?? liveNow;
   const {
     settings,
     formatDate,
@@ -37,7 +40,7 @@ export function SessionEventSummary({
     formatTimeZoneAbbreviation,
   } = useUserDateFormat();
   const lockStatus = getLockStatusViewModel({
-    msRemaining: lockAt - now,
+    msRemaining: lockAt - currentNow,
   });
   const isOpen = !hasResults && lockStatus.urgency === 'open';
   const statusUi = hasResults

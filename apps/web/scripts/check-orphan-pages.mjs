@@ -41,6 +41,8 @@ const ALLOWED_ORPHANS = new Set([
  * production, so skipping them costs the check nothing it was built for.
  */
 const SCENARIO_PATH_PREFIX = '/races/scenario-';
+const FETCH_ATTEMPTS = 3;
+const FETCH_TIMEOUT_MS = 15_000;
 
 function isScenarioPath(path) {
   return path.startsWith(SCENARIO_PATH_PREFIX);
@@ -52,11 +54,27 @@ function normalize(pathname) {
 }
 
 async function fetchText(url) {
-  const response = await fetch(url, { redirect: 'follow' });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText} for ${url}`);
+  let lastError;
+  for (let attempt = 1; attempt <= FETCH_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText} for ${url}`);
+      }
+      return await response.text();
+    } catch (error) {
+      lastError = error;
+      if (attempt < FETCH_ATTEMPTS) {
+        console.warn(
+          `- ${new URL(url).pathname}: fetch attempt ${attempt} failed; retrying`,
+        );
+      }
+    }
   }
-  return await response.text();
+  throw lastError;
 }
 
 /** Anchors only, and only outside <script>: JSON-LD is full of URLs that are

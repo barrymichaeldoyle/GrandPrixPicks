@@ -3,7 +3,7 @@ import type { Id } from '@convex-generated/dataModel';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation } from 'convex/react';
 import { useQuery } from '@/integrations/convex/query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { AdminBannerTab } from '@/components/admin/AdminBannerTab';
 import { AdminRacesTab } from '@/components/admin/AdminRacesTab';
@@ -48,15 +48,13 @@ function AdminPage() {
           ? races[races.length - 1]._id
           : null;
 
-  useEffect(() => {
-    if (!selectedRaceId && defaultSelectedRaceId) {
-      setSelectedRaceId(defaultSelectedRaceId);
-    }
-  }, [defaultSelectedRaceId, selectedRaceId]);
+  const effectiveSelectedRaceId = selectedRaceId ?? defaultSelectedRaceId;
 
   const predictionStatus = useQuery(
     api.users.adminPredictionStatusForRace,
-    isAdmin && selectedRaceId ? { raceId: selectedRaceId } : 'skip',
+    isAdmin && effectiveSelectedRaceId
+      ? { raceId: effectiveSelectedRaceId }
+      : 'skip',
   ) as AdminPredictionStatus | undefined;
 
   if (isAdmin === undefined) {
@@ -128,7 +126,7 @@ function AdminPage() {
         ) : activeTab === 'users' ? (
           <AdminUsersTab
             races={races}
-            selectedRaceId={selectedRaceId}
+            selectedRaceId={effectiveSelectedRaceId}
             onSelectRace={setSelectedRaceId}
             predictionStatus={predictionStatus}
             sendingReminders={sendingReminders}

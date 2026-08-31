@@ -79,6 +79,8 @@ export function DriverSearchSelect({
 
   // Sync highlight when options change
   useEffect(() => {
+    // Clamp keyboard state to the externally filtered option collection.
+    // oxlint-disable-next-line react/set-state-in-effect
     setHighlightIndex((i) => Math.min(i, Math.max(0, options.length - 1)));
   }, [options.length]);
 

@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import { useBodyScrollLock } from '@/hooks/useModalDialog';
 
@@ -91,10 +91,10 @@ export function AuthCurtainHost({
   // render would re-run every gate's effect each render, incrementing and
   // decrementing the count forever in dev. It closes over nothing but the
   // setter, so a ref is the honest way to say "this never changes".
-  const registerGate = useRef(() => {
+  const [registerGate] = useState(() => () => {
     setPendingGates((count) => count + 1);
     return () => setPendingGates((count) => count - 1);
-  }).current;
+  });
 
   const active =
     handoff && !expired && (!confirmedSignedIn || pendingGates > 0);

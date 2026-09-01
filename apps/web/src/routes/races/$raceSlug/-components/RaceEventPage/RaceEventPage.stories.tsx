@@ -331,6 +331,7 @@ function Scenario({
   hasPublishedResults,
   allEventsScored,
   scoredSessions,
+  showLiveScoring = false,
 }: {
   race: ReturnType<typeof makeRace>;
   isNextRace: boolean;
@@ -340,6 +341,7 @@ function Scenario({
   hasPublishedResults: boolean;
   allEventsScored: boolean;
   scoredSessions: SessionType[];
+  showLiveScoring?: boolean;
 }) {
   const weekendSessions: readonly SessionType[] = race.hasSprint
     ? ['sprint_quali', 'sprint', 'quali', 'race']
@@ -525,6 +527,30 @@ function Scenario({
           top5SelectedSessionDone={hasPredictions}
           h2hSelectedSessionDone={hasPredictions}
           cardData={cardData}
+          liveSnapshot={
+            showLiveScoring
+              ? {
+                  sessionType: 'race',
+                  order: drivers.map((driver, index) => ({
+                    driverId: driver._id,
+                    position: index + 1,
+                    code: driver.code,
+                    displayName: driver.displayName,
+                    team: driver.team ?? null,
+                    number: driver.number ?? null,
+                    nationality: driver.nationality ?? null,
+                  })),
+                  viewerStanding: {
+                    rank: 4,
+                    topFive: 25,
+                    h2h: 2,
+                    weekend: 39,
+                  },
+                  totalPlayers: 37,
+                  updatedAt: NOW,
+                }
+              : null
+          }
           top5Editing={{
             session: top5EditingSession,
             onSessionChange: setTop5EditingSession,
@@ -634,6 +660,28 @@ export const LockedWithPredictions: Story = {
     renderCatalogScenario(
       raceEventStoryScenarios.race_locked_signed_in_complete_no_results,
     ),
+};
+
+export const RaceLiveScoring: Story = {
+  render: () => (
+    <Scenario
+      race={makeRace({
+        slug: 'dutch-grand-prix',
+        name: 'Dutch Grand Prix',
+        status: 'locked',
+        hasSprint: false,
+        raceStartAt: NOW,
+      })}
+      isNextRace
+      isAuthLoaded
+      isSignedIn
+      hasPredictions
+      hasPublishedResults={false}
+      allEventsScored={false}
+      scoredSessions={[]}
+      showLiveScoring
+    />
+  ),
 };
 
 export const PartialResults: Story = {

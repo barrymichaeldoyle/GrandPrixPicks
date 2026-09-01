@@ -85,6 +85,10 @@ export function useRaceWeekendData({
     api.results.getRaceRank,
     race ? { raceId: race._id } : 'skip',
   );
+  const liveSnapshot = useQuery(
+    api.liveScoring.getActiveSnapshot,
+    race ? { raceId: race._id } : 'skip',
+  );
 
   // Per-session results (fetch when available). Fall back to the loader-seeded
   // result so the finishing order is present during SSR / before the client
@@ -276,6 +280,7 @@ export function useRaceWeekendData({
     publishedSessionSet,
     h2hPointsBySession,
     h2hScoresBySession,
+    liveSnapshot,
     pointsSoFar,
     allEventsScored,
     scoredEventCount,

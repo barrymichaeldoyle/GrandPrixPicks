@@ -7,8 +7,44 @@ import { ArrowRight } from 'lucide-react';
 import { InAppBackLink } from '@/components/InAppBackLink';
 import { getCircuitGuideBySlug } from '@/lib/circuitGuides';
 import { hasCircuitGuide } from '@/lib/circuitGuideSlugs';
+import {
+  type CircuitSeoFacts,
+  getCircuitSeoFacts,
+} from '@/lib/circuitSeoFacts';
 import { routeQuery } from '@/lib/routeQuery';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
+
+/**
+ * What the snippet for a circuit page should say.
+ *
+ * All 23 of these used to run the same sentence with the venue name swapped
+ * in, which is a lot of pages telling a reader nothing that separates one from
+ * another. The facts a person choosing between circuits actually wants — how
+ * hard it is to pass, how often the favourites lose — go first.
+ *
+ * Circuit and place names vary by about 25 characters end to end, so a fixed
+ * sentence lands anywhere from 130 to 190. The closing clause therefore comes
+ * in two lengths and we take whichever puts the whole thing nearer the ~155
+ * that search results show without truncating.
+ */
+function circuitDescription(facts: CircuitSeoFacts, place: string): string {
+  const head = `${facts.shortName} in ${place}: a ${facts.trackType} circuit${
+    facts.trackNote ? ` ${facts.trackNote}` : ''
+  }. Overtaking is ${facts.overtaking}, upset risk ${facts.upsetRisk}.`;
+  const tails = [
+    ' How to read it before you pick.',
+    ' What the lap asks of a car, and how to read it before you pick a Top 5.',
+  ];
+  return (
+    head +
+    tails.reduce((best, tail) =>
+      Math.abs(head.length + tail.length - 155) <
+      Math.abs(head.length + best.length - 155)
+        ? tail
+        : best,
+    )
+  );
+}
 
 /** Prose sections that belong to the venue rather than to a given weekend. */
 const SECTIONS = [
@@ -47,10 +83,33 @@ export const Route = createFileRoute('/circuits/$circuitSlug')({
         path,
       });
     }
+    // Nine of these titles used to run past the ~60 characters a search result
+    // shows, because the official names are long ("Suzuka International Racing
+    // Course" spends 34 on its own). The short name plus a fixed suffix fits
+    // every circuit on the calendar, and `circuitSeoFacts.test.ts` proves it.
+    //
+    // The description used to be one template with the venue name swapped in,
+    // so all 23 circuit pages described themselves identically. The facts that
+    // actually separate one track from another — how hard it is to pass, how
+    // often the favourites lose — are the ones a reader is choosing between.
+    const facts = getCircuitSeoFacts(circuit.slug);
+    // Several circuits are named after the place they sit in, so the obvious
+    // "<name> in <locality>, <country>" renders "Suzuka in Suzuka, Japan" and
+    // "Marina Bay in Singapore, Singapore". Drop whichever half repeats.
+    const place = [circuit.locality, circuit.country]
+      .filter(
+        (part, index, parts) =>
+          part !== facts?.shortName && parts.indexOf(part) === index,
+      )
+      .join(', ');
     return {
       ...pageMeta({
-        title: `${circuit.name} | Circuit Guide, Layout and Racing`,
-        description: `A guide to ${circuit.name} in ${circuit.locality}, ${circuit.country}: what the lap asks of a car, how much the order really moves on Sunday, and how to read it before you pick.`,
+        title: facts
+          ? `${facts.shortName} | F1 Circuit Guide`
+          : `${circuit.name} | F1 Circuit Guide`,
+        description: facts
+          ? circuitDescription(facts, place)
+          : `A guide to ${circuit.name} in ${circuit.locality}, ${circuit.country}: what the lap asks of a car, how much the order really moves on Sunday, and how to read it before you pick.`,
         path,
       }),
       scripts: [

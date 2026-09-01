@@ -12,6 +12,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import { getViewer, requireViewer } from './lib/auth';
+import { scheduleLiveScoring } from './liveScoring';
 import {
   DEFAULT_REACTION_TYPE,
   type ReactionType,
@@ -588,6 +589,11 @@ export const notifyUsersSessionLocked = internalMutation({
     if (!race) {
       return;
     }
+
+    // Race and sprint only. The helper creates the empty snapshot before it
+    // schedules the first action, so duplicate lock jobs cannot create two
+    // self-rescheduling polling loops.
+    await scheduleLiveScoring(ctx, race, args.sessionType);
 
     const now = Date.now();
     const notifiedUserIds: Id<'users'>[] = [];

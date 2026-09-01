@@ -40,6 +40,7 @@ import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 import { H2HResultsSection } from '@/routes/races/$raceSlug/-components/H2HResultsSection';
 import { NextRaceCta } from '@/routes/races/$raceSlug/-components/NextRaceCta';
+import { LiveScoringBoard } from '@/routes/races/$raceSlug/-components/LiveScoringBoard';
 import { H2HSection } from '@/routes/races/$raceSlug/-components/H2HSection';
 import { SignedOutRacePreview } from '@/routes/races/$raceSlug/-components/SignedOutRacePreview';
 import type { RaceWeekendInitialResults } from '@/routes/races/$raceSlug/-hooks/useRaceWeekendData';
@@ -110,6 +111,7 @@ type RaceEventPageProps = {
   cardData: WeekendCardData | null;
   /** The viewer's per-session H2H scores (drives the recap H2H record). */
   h2hScoresBySession?: Partial<Record<SessionType, H2HSessionScore>>;
+  liveSnapshot?: Parameters<typeof LiveScoringBoard>[0]['snapshot'];
   top5Editing: PicksEditingState;
   h2hEditing: PicksEditingState;
   existingTop5PicksBySession?: Partial<
@@ -141,6 +143,7 @@ export function RaceEventPage({
   h2hSelectedSessionDone = false,
   cardData,
   h2hScoresBySession = {},
+  liveSnapshot,
   top5Editing,
   h2hEditing,
   existingTop5PicksBySession,
@@ -441,6 +444,18 @@ export function RaceEventPage({
         backLink={backLink}
         leaderboardLink={leaderboardLink}
         recapContent={recapContent}
+        liveScoringContent={
+          <LiveScoringBoard
+            race={race}
+            snapshot={liveSnapshot}
+            isSignedIn={isSignedIn}
+            topFivePicks={
+              liveSnapshot
+                ? existingTop5PicksBySession?.[liveSnapshot.sessionType]
+                : null
+            }
+          />
+        }
         writeupContent={<RaceWriteupCallout raceSlug={race.slug} />}
         raceReportContent={
           raceReport.length > 0 ? (

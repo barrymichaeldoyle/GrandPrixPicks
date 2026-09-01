@@ -59,6 +59,7 @@ vi.mock('@convex-generated/api', () => ({
       getMatchupsForSeason: 'h2h:getMatchupsForSeason',
       myH2HPredictionsForRace: 'h2h:myH2HPredictionsForRace',
     },
+    liveScoring: { getActiveSnapshot: 'liveScoring:getActiveSnapshot' },
   },
 }));
 

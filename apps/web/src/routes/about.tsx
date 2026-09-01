@@ -156,8 +156,17 @@ function AboutPage() {
               className="font-medium text-accent hover:underline"
             >
               {siteConfig.social.x.handle} on X
-            </a>{' '}
-            and at{' '}
+            </a>
+            ,{' '}
+            <a
+              href={siteConfig.social.instagram.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-accent hover:underline"
+            >
+              {siteConfig.social.instagram.handle} on Instagram
+            </a>
+            , and at{' '}
             <a
               href={siteConfig.social.reddit.url}
               target="_blank"

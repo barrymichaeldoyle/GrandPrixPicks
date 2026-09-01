@@ -910,7 +910,8 @@ function TyreChoice() {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           A stop at Monza costs more time than at almost any other race, so
           teams will try to one-stop. Heat is the usual reason that fails, and a
-          hot, dry weekend is forecast.
+          hot, dry weekend is forecast. Wear is still low at Monza, so it may
+          stay a one-stop.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Friday long runs will settle it. A one-stop puts the weight on

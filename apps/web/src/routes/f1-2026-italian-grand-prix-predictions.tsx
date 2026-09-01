@@ -39,11 +39,6 @@ import {
 
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
-import {
-  MONZA_SETTLED_WEATHER_SUMMARY,
-  MONZA_TYRE_HEAT_SENTENCE,
-} from '@/lib/italy2026MonzaWriteupCopy';
-
 /** The date the hand-written prose on this page was last checked. */
 const PROSE_REVIEWED = getRaceWriteupReviewedAt('italy-2026');
 
@@ -276,7 +271,6 @@ function ItalianGrandPrixPredictionsPage() {
               race={race}
               weather={weather}
               now={weatherNow}
-              settledSummaryOverride={MONZA_SETTLED_WEATHER_SUMMARY}
             />
             <WeekendNewsSection items={news.items} />
           </>
@@ -915,7 +909,9 @@ function TyreChoice() {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           A stop at Monza costs more time than at almost any other race, so
-          teams will try to one-stop. {MONZA_TYRE_HEAT_SENTENCE}
+          teams will try to one-stop. Heat is the usual reason that fails, and a
+          hot, dry weekend is forecast. Wear is still low at Monza, so it may
+          stay a one-stop.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Friday long runs will settle it. A one-stop puts the weight on

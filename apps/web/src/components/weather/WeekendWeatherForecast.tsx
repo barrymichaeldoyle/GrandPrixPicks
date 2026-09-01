@@ -67,13 +67,10 @@ export function WeekendWeatherForecast({
   weather,
   race,
   now,
-  settledSummaryOverride,
 }: {
   weather: RaceWeather | null;
   race: RaceSchedule;
   now: number;
-  /** Hand-written summary for settled weekends when the default range line misleads. */
-  settledSummaryOverride?: string;
 }) {
   if (!weather) {
     return null;
@@ -103,7 +100,7 @@ export function WeekendWeatherForecast({
             {outlook.settled
               ? // Said once. The grid below repeats it in every cell, which is
                 // why it is folded away when there is nothing to report.
-                (settledSummaryOverride ?? outlook.summary)
+                outlook.summary
               : `The forecast runs through each event day, because rain before or after a session can still arrive early, leave a damp circuit, or change the grip available when it starts.`}
           </p>
         </div>

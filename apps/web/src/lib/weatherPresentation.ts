@@ -431,16 +431,35 @@ export function weekendWeatherOutlook(forecast: WeatherForecast): {
       (day.maxWindGustMps ?? 0) * 3.6 >= 45,
   );
 
-  const min = Math.round(Math.min(...days.map((day) => day.minTemperatureC)));
-  const max = Math.round(Math.max(...days.map((day) => day.maxTemperatureC)));
-  const range = min === max ? `${min}°C` : `${min}–${max}°C`;
+  // Highs, not each day's full span.
+  //
+  // The span was `min`-to-`max` across the event days, which put Monza's
+  // "22–34°C" above a grid whose own cells read 22–32, 23–33 and 23–34: the
+  // 22 is a small-hours figure on a weekend where nothing runs before half
+  // twelve. It is also not something the model can be asked to sharpen. This
+  // far out MET returns six-hourly buckets, so the only datum covering a 12:30
+  // practice is an 08:00–14:00 bucket carrying a morning temperature, and a
+  // session-scoped range reports that same misleading 22.
+  //
+  // The high is the number the question is really asking, and it is honest at
+  // any resolution: the day maximum, said as the day maximum.
+  const lowestHigh = Math.round(
+    Math.min(...days.map((day) => day.maxTemperatureC)),
+  );
+  const highestHigh = Math.round(
+    Math.max(...days.map((day) => day.maxTemperatureC)),
+  );
+  const highs =
+    lowestHigh === highestHigh
+      ? `${highestHigh}°C`
+      : `${lowestHigh}–${highestHigh}°C`;
 
   return {
     settled: !notable,
     // Said once, plainly, instead of twelve times across a grid.
     summary: notable
-      ? `Conditions vary across the weekend, ${range}. The session-by-session detail is below.`
-      : `Dry across every session in the current model, ${range}.`,
+      ? `Conditions vary across the weekend, highs of ${highs}. The session-by-session detail is below.`
+      : `Dry across every session in the current model, highs of ${highs}.`,
   };
 }
 

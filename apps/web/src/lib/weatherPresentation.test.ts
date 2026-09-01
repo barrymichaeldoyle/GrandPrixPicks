@@ -120,8 +120,23 @@ describe('weekendWeatherOutlook', () => {
 
     expect(outlook.settled).toBe(true);
     expect(outlook.summary).toBe(
-      'Dry across every session in the current model, 19–30°C.',
+      'Dry across every session in the current model, highs of 28–30°C.',
     );
+  });
+
+  it('states the highs, not a span reaching down to the small hours', () => {
+    // Nothing at Monza runs before half twelve, so a range opening at the day's
+    // 19 describes a temperature no session sees. Six-hourly buckets this far
+    // out cannot be narrowed to the session either, so the honest number is the
+    // day maximum, said as the day maximum.
+    const outlook = weekendWeatherOutlook(
+      forecast({ days: [day({ minTemperatureC: 19, maxTemperatureC: 34 })] }),
+    );
+
+    expect(outlook.summary).toBe(
+      'Dry across every session in the current model, highs of 34°C.',
+    );
+    expect(outlook.summary).not.toContain('19');
   });
 
   it('is not settled when rain is even a modest possibility', () => {
@@ -148,12 +163,14 @@ describe('weekendWeatherOutlook', () => {
     }
   });
 
-  it('keeps a single temperature when the weekend does not move', () => {
+  it('keeps a single temperature when every day peaks the same', () => {
     expect(
       weekendWeatherOutlook(
-        forecast({ days: [day({ minTemperatureC: 22, maxTemperatureC: 22 })] }),
+        forecast({
+          days: [day({ maxTemperatureC: 22 }), day({ maxTemperatureC: 22 })],
+        }),
       ).summary,
-    ).toContain('22°C.');
+    ).toContain('highs of 22°C.');
   });
 
   it('is not settled when there are no days to judge', () => {

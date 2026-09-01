@@ -1,10 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { setStaticContentCacheHeaders } from '@/lib/publicPageCacheHeaders';
-import { CalendarClock, CircleHelp, Flag } from 'lucide-react';
+import { CalendarClock, ChevronRight, Flag } from 'lucide-react';
 
-import { PageHeader } from '@/components/PageHeader';
-import { NoticeCard } from '@/components/NoticeCard';
 import { breadcrumbSchema, pageMeta, siteConfig } from '@/lib/site';
 
 /**
@@ -150,46 +148,44 @@ export const Route = createFileRoute('/f1-2027-calendar')({
 function F1Calendar2027Page() {
   return (
     <div className="min-h-full bg-page">
-      <div className="mx-auto max-w-3xl px-4 py-6">
-        <PageHeader
-          eyebrow="Formula 1"
-          title="The 2027 F1 calendar"
-          subtitle="It is not official yet. Here is what is being reported, and what still has to be confirmed."
-          className="mb-6"
-        />
+      <div className="mx-auto max-w-(--page-max) px-4 py-6 sm:py-8">
+        <header className="max-w-4xl">
+          <p className="mb-2 text-xs font-semibold tracking-label text-accent uppercase">
+            Formula 1
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
+            <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
+              The 2027 F1 calendar
+            </h1>
+            <span className="inline-flex w-fit items-center rounded-full border border-warning/35 bg-warning-muted/40 px-3 py-1 text-xs font-semibold text-warning">
+              No date confirmed
+            </span>
+          </div>
+          <p className="gpp-label mt-3 text-text-muted">
+            Last reviewed {LAST_REVIEWED}
+          </p>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            No 2027 date is confirmed. Formula 1 has said the calendar will be
+            presented in autumn 2026. Until the FIA World Motor Sport Council
+            ratifies it, everything below is a target or a report.
+          </p>
+        </header>
 
-        {/* `section`, not `subsection`: this card sits directly under the h1
-            with no h2 above it, so an h3 here skipped a level and broke the
-            outline a screen reader navigates by. The two levels render at the
-            same size, so this is a change of heading rank only. */}
-        <NoticeCard
-          level="section"
-          icon={CircleHelp}
-          title="No 2027 date is confirmed"
-          description={
-            <>
-              Formula 1 has said the calendar will be presented in autumn 2026.
-              Until the FIA World Motor Sport Council ratifies it, everything
-              below is a target or a report. Last reviewed {LAST_REVIEWED}.
-            </>
-          }
-          className="text-left"
-        />
-
-        <section aria-labelledby="reported-plan" className="mt-10">
+        <section aria-labelledby="reported-plan" className="mt-10 sm:mt-12">
+          <p className="gpp-label mb-1 text-accent uppercase">Reported plan</p>
           <h2
             id="reported-plan"
-            className="font-title text-2xl font-semibold text-text"
+            className="font-title text-2xl font-semibold text-text sm:text-3xl"
           >
             What is being reported
           </h2>
-          <p className="gpp-reading-copy mt-4 text-text-muted">
+          <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
             The table below is reporting, not fixtures. It lists what people are
             asking about now, kept separate from the rest of the page for that
             reason. Last reviewed {LAST_REVIEWED}.
           </p>
-          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
-            <table className="w-full min-w-[22rem] border-collapse text-sm">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
+            <table className="w-full min-w-[20rem] table-fixed border-collapse text-sm sm:min-w-[36rem] sm:table-auto">
               <caption className="sr-only">
                 Reported details for the 2027 Formula 1 calendar, not confirmed
                 fixtures
@@ -198,7 +194,7 @@ function F1Calendar2027Page() {
                 <tr className="border-b border-border bg-surface-muted/50 text-left">
                   <th
                     scope="col"
-                    className="w-[38%] px-4 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:w-48"
+                    className="w-[38%] px-4 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:w-52"
                   >
                     Topic
                   </th>
@@ -215,11 +211,11 @@ function F1Calendar2027Page() {
                   <tr key={row.term} className="border-b border-border/60">
                     <th
                       scope="row"
-                      className="px-4 py-4 align-top font-semibold text-text"
+                      className="px-4 py-3.5 align-top text-sm font-semibold text-text sm:py-4 sm:pr-2"
                     >
                       {row.term}
                     </th>
-                    <td className="gpp-reading-copy px-4 py-4 align-top text-text-muted">
+                    <td className="gpp-reading-copy px-4 py-3.5 align-top text-text-muted sm:py-4">
                       {row.detail}
                     </td>
                   </tr>
@@ -227,29 +223,36 @@ function F1Calendar2027Page() {
               </tbody>
             </table>
           </div>
-          <p className="gpp-reading-meta mt-4 text-text-muted">
+          <p className="gpp-reading-meta mt-4 rounded-lg border border-border/70 bg-surface-muted/30 px-4 py-3 text-text-muted">
             Treat all of it as provisional. Calendars change between the first
             reports and ratification.
           </p>
         </section>
 
-        <section
-          aria-labelledby="common-questions"
-          className="mt-10 border-t border-border pt-8"
-        >
+        <section aria-labelledby="common-questions" className="mt-12 sm:mt-16">
+          <p className="gpp-label mb-1 text-accent uppercase">Questions</p>
           <h2
             id="common-questions"
             className="font-title text-2xl font-semibold text-text"
           >
             Common questions
           </h2>
-          <dl className="mt-8 divide-y divide-border border-t border-border">
-            {FAQS.map((faq) => (
-              <div key={faq.question} className="py-6">
-                <dt className="text-base font-semibold text-text">
+          <dl className="mt-7 border-t border-border">
+            {FAQS.map((faq, index) => (
+              <div
+                key={faq.question}
+                className="border-b border-border py-5 sm:grid sm:grid-cols-[minmax(0,1fr)_1.35fr] sm:items-start sm:gap-8 sm:py-6"
+              >
+                <dt className="font-semibold text-text">
+                  <span
+                    className="mr-2 font-mono text-xs font-normal text-text-muted tabular-nums"
+                    aria-hidden
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
                   {faq.question}
                 </dt>
-                <dd className="gpp-reading-copy mt-3 text-text-muted">
+                <dd className="gpp-reading-copy mt-2 text-text-muted sm:mt-0">
                   {faq.answer}
                 </dd>
               </div>
@@ -259,9 +262,12 @@ function F1Calendar2027Page() {
 
         <section
           aria-labelledby="season-shape"
-          className="mt-10 border-t border-border pt-8"
+          className="mt-10 rounded-lg border border-border/60 bg-surface-muted/20 p-5 sm:mt-12 sm:p-6"
         >
-          <h2 id="season-shape" className="text-lg font-semibold text-text">
+          <h2
+            id="season-shape"
+            className="text-base font-semibold text-text-muted"
+          >
             What a season usually looks like
           </h2>
           <p className="gpp-reading-meta mt-3 text-text-muted">
@@ -270,7 +276,7 @@ function F1Calendar2027Page() {
             and finishing in the back half of the year, with six of those
             weekends run to the sprint format.
           </p>
-          <p className="gpp-reading-meta mt-3 text-text-muted">
+          <p className="gpp-reading-meta mt-3 border-l-2 border-border pl-4 text-text-muted">
             A conventional weekend gives three practice sessions, then
             qualifying, then the Grand Prix. A sprint weekend cuts practice to
             one session and adds sprint qualifying and a short race on Saturday,
@@ -282,36 +288,54 @@ function F1Calendar2027Page() {
           </p>
         </section>
 
-        <aside className="mt-12 border-t border-border pt-8">
-          <h2 className="font-title text-lg font-semibold text-text">
+        <aside
+          aria-labelledby="while-you-wait"
+          className="mt-10 rounded-xl border border-border bg-surface p-5 sm:mt-12 sm:p-6"
+        >
+          <h2
+            id="while-you-wait"
+            className="font-title text-lg font-semibold text-text"
+          >
             While you wait for 2027
           </h2>
-          <ul className="mt-4 space-y-4">
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             <li>
               <Link
                 to="/races"
-                className="inline-flex items-center gap-1.5 font-semibold text-accent hover:text-accent-hover"
+                className="group flex h-full flex-col rounded-lg border border-border p-4 transition-colors hover:border-accent/40 hover:bg-surface-muted/30"
               >
-                <Flag className="h-4 w-4" aria-hidden />
-                The 2026 race calendar
+                <span className="inline-flex items-center gap-2 font-semibold text-text group-hover:text-accent">
+                  <Flag className="h-4 w-4 text-accent" aria-hidden />
+                  The 2026 race calendar
+                  <ChevronRight
+                    className="h-4 w-4 text-text-muted group-hover:text-accent"
+                    aria-hidden
+                  />
+                </span>
+                <span className="gpp-reading-meta mt-2 text-text-muted">
+                  Every round of the current season, with session times and the
+                  lock time for each one.
+                </span>
               </Link>
-              <p className="mt-1 text-sm text-text-muted">
-                Every round of the current season, with session times and the
-                lock time for each one.
-              </p>
             </li>
             <li>
               <Link
                 to="/guides/$guideSlug"
                 params={{ guideSlug: 'f1-race-weekend-format' }}
-                className="inline-flex items-center gap-1.5 font-semibold text-accent hover:text-accent-hover"
+                className="group flex h-full flex-col rounded-lg border border-border p-4 transition-colors hover:border-accent/40 hover:bg-surface-muted/30"
               >
-                <CalendarClock className="h-4 w-4" aria-hidden />
-                What happens across a race weekend
+                <span className="inline-flex items-center gap-2 font-semibold text-text group-hover:text-accent">
+                  <CalendarClock className="h-4 w-4 text-accent" aria-hidden />
+                  What happens across a race weekend
+                  <ChevronRight
+                    className="h-4 w-4 text-text-muted group-hover:text-accent"
+                    aria-hidden
+                  />
+                </span>
+                <span className="gpp-reading-meta mt-2 text-text-muted">
+                  Session by session, and what each one is actually for.
+                </span>
               </Link>
-              <p className="mt-1 text-sm text-text-muted">
-                Session by session, and what each one is actually for.
-              </p>
             </li>
           </ul>
         </aside>

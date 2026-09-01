@@ -63,7 +63,7 @@ const FAQS = [
   {
     question: 'Has the 2027 F1 calendar been confirmed?',
     answer:
-      'Not yet. A Formula 1 calendar becomes official when the FIA World Motor Sport Council ratifies it, which usually happens in the autumn before the season it covers. Until that happens, every date in circulation is a target or a report rather than a fixture.',
+      'Not yet. A Formula 1 calendar becomes official when the FIA World Motor Sport Council ratifies it, which usually happens in the autumn before the season it covers. Until that happens, treat every date in circulation as unofficial.',
   },
   {
     question: 'When will the 2027 F1 calendar be announced?',
@@ -167,7 +167,7 @@ function F1Calendar2027Page() {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             No 2027 date is confirmed. Formula 1 has said the calendar will be
             presented in autumn 2026. Until the FIA World Motor Sport Council
-            ratifies it, everything below is a target or a report.
+            ratifies it, treat the rest of this page as unofficial.
           </p>
         </header>
 
@@ -180,15 +180,14 @@ function F1Calendar2027Page() {
             What is being reported
           </h2>
           <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
-            The table below is reporting, not fixtures. It lists what people are
-            asking about now, kept separate from the rest of the page for that
-            reason. Last reviewed {LAST_REVIEWED}.
+            This is the current reporting. It stays in its own section because
+            people are asking. Last reviewed {LAST_REVIEWED}.
           </p>
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[20rem] table-fixed border-collapse text-sm sm:min-w-[36rem] sm:table-auto">
               <caption className="sr-only">
-                Reported details for the 2027 Formula 1 calendar, not confirmed
-                fixtures
+                Reported details for the 2027 Formula 1 calendar. Still
+                unofficial.
               </caption>
               <thead>
                 <tr className="border-b border-border bg-surface-muted/50 text-left">

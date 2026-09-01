@@ -84,6 +84,8 @@ export function H2HDuelPicker({
   const [justSaved, setJustSaved] = useState(false);
   const timerRef = useRef<number | null>(null);
   const syncedToDraftRef = useRef(false);
+  const duelCardRef = useRef<HTMLDivElement>(null);
+  const shouldFocusDuelRef = useRef(false);
 
   const selectedCount = matchups.filter(
     (matchup) => selections[matchup._id] !== undefined,
@@ -157,8 +159,31 @@ export function H2HDuelPicker({
           ? nextAnywhere
           : Math.min(activeIndex + 1, matchups.length - 1);
 
+    shouldFocusDuelRef.current = true;
     setActiveIndex(nextIndex);
   }
+
+  function focusActiveDuel() {
+    window.requestAnimationFrame(() => {
+      duelCardRef.current
+        ?.querySelector<HTMLButtonElement>('button[aria-label^="Pick "]')
+        ?.focus({ preventScroll: true });
+    });
+  }
+
+  useEffect(() => {
+    if (!shouldFocusDuelRef.current) {
+      return;
+    }
+    const finishedCard =
+      (complete && editingIndex === null) ||
+      (collapsedEdit === 'modal' && complete && editingIndex !== null);
+    if (finishedCard) {
+      return;
+    }
+    shouldFocusDuelRef.current = false;
+    focusActiveDuel();
+  }, [activeIndex, collapsedEdit, complete, editingIndex]);
 
   function pick(driverId: H2HDriver['_id']) {
     if (!matchup) {
@@ -297,7 +322,10 @@ export function H2HDuelPicker({
           used to hold the outgoing duel until its exit finished, so the
           header counter and the card on screen disagreed for the length of
           the transition. */}
-          <div className="rounded-xl border border-border bg-surface p-3 sm:p-5">
+          <div
+            ref={duelCardRef}
+            className="rounded-xl border border-border bg-surface p-3 sm:p-5"
+          >
             {duelCard}
           </div>
 

@@ -39,6 +39,10 @@ vi.mock('framer-motion', () => ({
   m: { div: ({ children }: { children?: ReactNode }) => children },
 }));
 
+const draggableOnKeyDown = vi.fn((event: Event) => {
+  event.preventDefault();
+});
+
 vi.mock('@dnd-kit/core', () => ({
   closestCenter: () => {},
   DndContext: ({ children }: { children?: ReactNode }) => children,
@@ -46,7 +50,10 @@ vi.mock('@dnd-kit/core', () => ({
   PointerSensor: {},
   useDraggable: () => ({
     attributes: { role: 'button', tabIndex: 0 },
-    listeners: {},
+    listeners: {
+      onPointerDown: vi.fn(),
+      onKeyDown: draggableOnKeyDown,
+    },
     setNodeRef: () => {},
     transform: null,
     isDragging: false,
@@ -245,6 +252,31 @@ describe('PredictionForm try-before-signup', () => {
       Array.from(driverButtons).every((driver) => driver.tagName === 'BUTTON'),
     ).toBe(true);
     expect(container.querySelector('[role="button"] button')).toBeNull();
+  });
+
+  it('does not attach dnd-kit keyboard listeners that block Enter or Space', async () => {
+    clearPredictionDraft(draftKey);
+    draggableOnKeyDown.mockClear();
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const driver = container.querySelector<HTMLButtonElement>(
+      '[data-testid="driver-D0"]',
+    );
+    expect(driver).not.toBeNull();
+
+    act(() => {
+      driver?.focus();
+      driver?.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+      );
+      driver?.dispatchEvent(
+        new KeyboardEvent('keydown', { key: ' ', bubbles: true }),
+      );
+    });
+
+    expect(draggableOnKeyDown).not.toHaveBeenCalled();
   });
 
   it('keeps completed-pick guidance compact and beside the heading', async () => {

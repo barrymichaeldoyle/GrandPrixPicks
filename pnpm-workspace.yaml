@@ -206,6 +206,8 @@ overrides:
   # Transitive via @convex-dev/resend's workpool, which does not pin a range
   # that excludes the fix.
   'hono@>=4.0.0 <4.12.34': 4.12.34
+  # Transitive via @react-navigation/core → query-string in the mobile app.
+  'decode-uri-component@<=0.4.2': 0.5.0
 
 patchedDependencies:
   image-size@1.2.1: patches/image-size@1.2.1.patch

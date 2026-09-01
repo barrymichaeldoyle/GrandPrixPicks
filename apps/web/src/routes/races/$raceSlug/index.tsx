@@ -23,6 +23,7 @@ import { routeQuery } from '@/lib/routeQuery';
 import { withLoaderSpan } from '@/lib/loaderSpan';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
+import { racePageWriteupHeadOptions } from '@/lib/raceWriteupSeo';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   breadcrumbSchema,
@@ -269,6 +270,7 @@ export const Route = createFileRoute('/races/$raceSlug/')({
         description,
         path: `/races/${params.raceSlug}`,
         image: ogImage,
+        ...racePageWriteupHeadOptions(params.raceSlug),
       }),
       scripts,
     };

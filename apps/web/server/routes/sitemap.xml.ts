@@ -6,7 +6,7 @@ import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { listGuideMeta } from '../../src/lib/guideMeta';
-import { listRaceWriteups } from '../../src/lib/raceWriteups';
+import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -211,14 +211,20 @@ async function loadRaceEntries() {
         .sort((a, b) => a.round - b.round)
         .flatMap((race) => {
           const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
-          const entries: SitemapEntry[] = [
-            {
-              loc: `${siteConfig.url}/races/${race.slug}`,
-              changefreq: 'daily' as const,
-              lastmod,
-              priority: '0.8',
-            },
-          ];
+          // A race with an editorial write-up canonicalises to it, so listing
+          // the race URL here would ask Google to index a page that points
+          // somewhere else. The practice page below is its own content and
+          // stays listed either way.
+          const entries: SitemapEntry[] = getRaceWriteup(race.slug)
+            ? []
+            : [
+                {
+                  loc: `${siteConfig.url}/races/${race.slug}`,
+                  changefreq: 'daily' as const,
+                  lastmod,
+                  priority: '0.8',
+                },
+              ];
           // A practice page with nothing published is a placeholder line of
           // text. Advertise it only once it has a real classification.
           if (hasPracticeResults.has(race.slug)) {

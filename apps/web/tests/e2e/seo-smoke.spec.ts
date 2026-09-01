@@ -50,6 +50,23 @@ test.describe('[public] seo smoke', () => {
     );
   });
 
+  test('points a written-up race page at its editorial URL', async ({
+    page,
+  }) => {
+    // The race page still serves the game; it just stops competing with the
+    // write-up in search.
+    const response = await page.goto('/races/italy-2026');
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${SITE_URL}/f1-2026-italian-grand-prix-predictions`,
+    );
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, follow',
+    );
+  });
+
   test('emits noindex and a self canonical on follow-list pages', async ({
     page,
   }) => {

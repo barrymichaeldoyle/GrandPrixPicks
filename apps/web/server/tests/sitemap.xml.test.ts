@@ -38,6 +38,14 @@ const RACES = [
     updatedAt: 1_700_000_200_000,
   },
   {
+    _creationTime: 1_700_000_000_900,
+    _id: 'race_4',
+    round: 13,
+    slug: 'italy-2026',
+    status: 'upcoming',
+    updatedAt: 1_700_000_400_000,
+  },
+  {
     _creationTime: 1_700_000_000_800,
     _id: 'race_3',
     round: 8,
@@ -76,7 +84,7 @@ describe('sitemap.xml route', () => {
   });
 
   it('renders static URLs and active race detail URLs as XML', async () => {
-    mockConvex({ slugsWithPractice: ['miami-2026'] });
+    mockConvex({ slugsWithPractice: ['miami-2026', 'italy-2026'] });
 
     const { response, xml } = await renderSitemap();
 
@@ -92,6 +100,20 @@ describe('sitemap.xml route', () => {
     expect(xml).toContain('<lastmod>2023-11-14T22:15:00.000Z</lastmod>');
     expect(xml).not.toContain('<loc>https://grandprixpicks.com/pricing</loc>');
     expect(xml).not.toContain('cancelled-race');
+    // The race page canonicalises to its write-up, so only the write-up is
+    // advertised. The practice page is its own content and stays listed.
+    expect(xml).not.toContain(
+      '<loc>https://grandprixpicks.com/races/italy-2026</loc>',
+    );
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/f1-2026-italian-grand-prix-predictions</loc>',
+    );
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/races/italy-2026/practice</loc>',
+    );
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/f1-predictions-this-weekend</loc>',
+    );
   });
 
   it('includes the content pages that carry the site editorially', async () => {

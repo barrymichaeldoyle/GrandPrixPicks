@@ -118,12 +118,14 @@ export function noIndexMeta() {
  * @param imageAlt — alt text for a page-specific `image`. Without it the
  *   root's generic "make F1 predictions" alt describes a card it is not on,
  *   e.g. a race card naming the Italian Grand Prix.
+ * @param canonicalPath — when set, canonical/og:url point here instead of `path`
  * @param noIndex — when true, adds `robots: noindex, follow`
  */
 export function pageMeta({
   title,
   description,
   path,
+  canonicalPath,
   image = defaultOgImage,
   imageAlt,
   noIndex = false,
@@ -131,11 +133,12 @@ export function pageMeta({
   title: string;
   description: string;
   path: string;
+  canonicalPath?: string;
   image?: string;
   imageAlt?: string;
   noIndex?: boolean;
 }) {
-  const canonical = canonicalMeta(path);
+  const canonical = canonicalMeta(canonicalPath ?? path);
   return {
     meta: [
       { title },

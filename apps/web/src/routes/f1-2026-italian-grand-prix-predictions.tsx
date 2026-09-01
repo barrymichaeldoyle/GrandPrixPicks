@@ -46,12 +46,8 @@ const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
 const HADJAR_SOURCE =
   'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
-const HADJAR_DECISION_GPBLOG_SOURCE =
+const HADJAR_DECISION_SOURCE =
   'https://www.gpblog.com/en/news/hadjar-or-lawson-alongside-verstappen-at-red-bull-heres-when-red-bull-will-decide';
-const HADJAR_DECISION_RN365_SOURCE =
-  'https://racingnews365.com/isack-hadjar-health-update-as-red-bull-plan-injury-evaluation';
-const HADJAR_DECISION_GRANDE_PREMIO_SOURCE =
-  'https://grandepremio.com/en/f1/red-bull-sets-deadline-decision-isack-hadjar-return-following-wrist-injury/';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
 const SUITS_SOURCE =
@@ -537,23 +533,14 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. Red Bull has not confirmed who drives.{' '}
-          <ExternalSource href={HADJAR_DECISION_GPBLOG_SOURCE}>
-            GPblog
+          at Monza. Red Bull has not confirmed who will be driving.{' '}
+          <ExternalSource href={HADJAR_DECISION_SOURCE}>GPblog</ExternalSource>{' '}
+          reports the team expects to decide on Wednesday 2&nbsp;September,
+          after medical checks and likely simulator running. Lawson will start
+          in Hadjar&rsquo;s place if he is not fit to race.{' '}
+          <ExternalSource href={HADJAR_SOURCE}>
+            Sky Sports report
           </ExternalSource>
-          ,{' '}
-          <ExternalSource href={HADJAR_DECISION_RN365_SOURCE}>
-            RacingNews365
-          </ExternalSource>{' '}
-          and{' '}
-          <ExternalSource href={HADJAR_DECISION_GRANDE_PREMIO_SOURCE}>
-            Grande Premio
-          </ExternalSource>{' '}
-          report the team expects to decide on Wednesday 2&nbsp;September, after
-          medical checks and likely simulator running, to give him as much
-          recovery time as possible. Lawson starts if Hadjar is not fit, so
-          don&rsquo;t lock that pick until the entry is out.{' '}
-          <ExternalSource href={HADJAR_SOURCE}>Sky Sports report</ExternalSource>
           .
         </p>
       </div>

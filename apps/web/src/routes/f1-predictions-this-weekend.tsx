@@ -1,5 +1,5 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import type { FunctionReturnType } from 'convex/server';
 
@@ -11,6 +11,7 @@ import { displayTeamName } from '@/lib/display';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getRaceWriteup } from '@/lib/raceWriteups';
+import { predictionsThisWeekendRedirectTarget } from '@/lib/raceWriteupSeo';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -38,6 +39,9 @@ const PATH = '/f1-predictions-this-weekend';
  * not a second race page: no picks UI, no results, no duel grid. Everything it
  * says about a specific weekend it says in order to hand the reader to
  * `/races/$raceSlug`, which is where the game lives.
+ *
+ * When the current round has an editorial write-up, this URL permanently
+ * redirects there so Google keeps one money URL per weekend.
  */
 
 type NextRace = FunctionReturnType<typeof api.races.getQuickPickRace>;
@@ -116,6 +120,15 @@ function groupByTeam(drivers: readonly Driver[]) {
 }
 
 export const Route = createFileRoute('/f1-predictions-this-weekend')({
+  beforeLoad: async ({ context }) => {
+    const race = await context.queryClient.ensureQueryData(
+      routeQuery(api.races.getQuickPickRace, {}),
+    );
+    const redirectTarget = predictionsThisWeekendRedirectTarget(race?.slug);
+    if (redirectTarget) {
+      throw redirect({ to: redirectTarget, statusCode: 301 });
+    }
+  },
   component: PredictionsThisWeekendPage,
   loader: async ({ context }) => {
     await setRaceDataCacheHeaders();

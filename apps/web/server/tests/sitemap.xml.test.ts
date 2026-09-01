@@ -38,6 +38,14 @@ const RACES = [
     updatedAt: 1_700_000_200_000,
   },
   {
+    _creationTime: 1_700_000_000_900,
+    _id: 'race_4',
+    round: 13,
+    slug: 'italy-2026',
+    status: 'upcoming',
+    updatedAt: 1_700_000_400_000,
+  },
+  {
     _creationTime: 1_700_000_000_800,
     _id: 'race_3',
     round: 8,
@@ -92,6 +100,12 @@ describe('sitemap.xml route', () => {
     expect(xml).toContain('<lastmod>2023-11-14T22:15:00.000Z</lastmod>');
     expect(xml).not.toContain('<loc>https://grandprixpicks.com/pricing</loc>');
     expect(xml).not.toContain('cancelled-race');
+    expect(xml).not.toContain(
+      '<loc>https://grandprixpicks.com/races/italy-2026</loc>',
+    );
+    expect(xml).not.toContain(
+      '<loc>https://grandprixpicks.com/f1-predictions-this-weekend</loc>',
+    );
   });
 
   it('includes the content pages that carry the site editorially', async () => {

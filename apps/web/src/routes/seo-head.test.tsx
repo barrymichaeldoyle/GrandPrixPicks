@@ -334,6 +334,36 @@ describe('SEO head metadata', () => {
     });
   });
 
+  it('permanently redirects bare race pages that have write-ups', async () => {
+    const [{ Route: raceRoute }, { redirect }] = await Promise.all([
+      import('./races/$raceSlug/index'),
+      import('@tanstack/react-router'),
+    ]);
+    const { beforeLoad } = raceRoute as unknown as {
+      beforeLoad: (args: {
+        params: { raceSlug: string };
+        search: Record<string, unknown>;
+      }) => void;
+    };
+
+    expect(() =>
+      beforeLoad({ params: { raceSlug: 'italy-2026' }, search: {} }),
+    ).toThrow();
+    expect(redirect).toHaveBeenCalledWith({
+      to: '/f1-2026-italian-grand-prix-predictions',
+      statusCode: 301,
+    });
+
+    vi.mocked(redirect).mockClear();
+    expect(() =>
+      beforeLoad({
+        params: { raceSlug: 'italy-2026' },
+        search: { session: 'quali' },
+      }),
+    ).not.toThrow();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
   it('emits child canonical + noindex for follow list pages', async () => {
     const [{ Route: followersRoute }, { Route: followingRoute }] =
       await Promise.all([

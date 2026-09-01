@@ -6,7 +6,7 @@ import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { listGuideMeta } from '../../src/lib/guideMeta';
-import { listRaceWriteups } from '../../src/lib/raceWriteups';
+import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
 
 type RouteEvent = {
@@ -91,15 +91,6 @@ const staticEntries: SitemapEntry[] = [
     loc: `${siteConfig.url}/f1-team-mate-battles`,
     changefreq: 'weekly',
     priority: '0.8',
-  },
-  {
-    // Always describes the next round, so its content genuinely turns over
-    // every week or two. Priority matches `/races` because it is the other
-    // half of the same job: the calendar lists the season, this one names the
-    // round you can still pick.
-    loc: `${siteConfig.url}/f1-predictions-this-weekend`,
-    changefreq: 'daily',
-    priority: '0.9',
   },
   // The write-up registry also drives in-app links and each page's reviewed
   // stamp, so adding or revising one cannot leave the sitemap behind.
@@ -208,6 +199,7 @@ async function loadRaceEntries() {
       const hasPracticeResults = new Set(slugsWithPractice);
       return races
         .filter((race) => race.status !== 'cancelled')
+        .filter((race) => getRaceWriteup(race.slug) === null)
         .sort((a, b) => a.round - b.round)
         .flatMap((race) => {
           const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);

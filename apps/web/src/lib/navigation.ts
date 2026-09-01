@@ -28,6 +28,7 @@ export const publicNavLinks: SiteNavLink[] = [
 ];
 
 export const footerPlayLinks: SiteNavLink[] = [
+  { to: '/f1-predictions-this-weekend', label: 'Predictions This Weekend' },
   { to: '/how-to-play', label: 'How to Play' },
   { to: '/guides', label: 'F1 Guides' },
   { to: '/races', label: 'Race Calendar', exact: true },

@@ -64,6 +64,18 @@ test.describe('[public] seo smoke', () => {
     );
   });
 
+  test('signed-out HTML does not ship the sign-in curtain copy', async ({
+    request,
+  }) => {
+    for (const path of ['/', '/races']) {
+      const response = await request.get(path);
+      expect(response.status(), path).toBe(200);
+      const html = await response.text();
+      expect(html, path).not.toContain('Signing you in');
+      expect(html, path).not.toContain('id="gpp-pre-paint-curtain"');
+    }
+  });
+
   test('serves sitemap XML including seeded public race routes', async ({
     request,
   }) => {

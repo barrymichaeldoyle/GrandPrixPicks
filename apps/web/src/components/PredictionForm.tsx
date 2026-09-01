@@ -384,6 +384,13 @@ function DraggableDriverCard({
             {surname}
           </span>
         ) : null}
+        {/* `shrink-0` so the marker never eats the surname's width: the name is
+            the thing being picked, and it is the one that truncates well. */}
+        {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
+          <span className="shrink-0 text-[10px] leading-none tracking-label text-text-muted uppercase">
+            Unconfirmed
+          </span>
+        ) : null}
       </span>
       {/* Appended after the visible text so the accessible name still starts
           with what is on the card. */}

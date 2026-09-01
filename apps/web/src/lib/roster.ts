@@ -11,6 +11,8 @@ import type { Doc, Id } from '@convex-generated/dataModel';
 export type RosterDriver = Doc<'drivers'> & {
   team?: string | null;
   racing?: boolean;
+  /** Entry list not yet published for this race. */
+  entryUnconfirmed?: boolean;
 };
 
 /** Whether this driver is in a car for the round the roster was built for. */

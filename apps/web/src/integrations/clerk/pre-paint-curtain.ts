@@ -15,8 +15,23 @@
  * exists. So the reconciliation runs as a blocking script in `<head>`: it
  * compares what the server just rendered against the cookie the browser holds
  * *now*, and when they disagree it marks the document. The accompanying CSS
- * hides the shell and shows the same loader `AuthCurtainHost` would, with no
- * script of ours having had to load first.
+ * hides the shell and draws the loader, with no script of ours having had to
+ * load first.
+ *
+ * The curtain is drawn entirely in CSS, off pseudo-elements on `<html>`, and
+ * that is a deliberate constraint rather than a flourish:
+ *
+ * - **Nothing to clean up.** It exists exactly while the attribute is set, so
+ *   the moment `AuthCurtainHost` clears the attribute the curtain is gone. A
+ *   real element would have to be removed by whoever put it there, and the
+ *   component that clears the attribute is not that owner.
+ * - **Nothing for React to hydrate.** TanStack Start hydrates the whole
+ *   document, so a node injected into `<body>` before hydration sits inside the
+ *   hydration container and mismatches — on precisely the load this exists for.
+ * - **Nothing for a crawler to read.** Signed-out HTML must not ship "Signing
+ *   you in", and `display:none` is not a reliable guarantee against search
+ *   snippets. There is no copy here at all: this covers a sub-second gap and
+ *   hands over to `SigningInCurtain`, which is a real live region with a label.
  *
  * Only ever raised for signed-out-render + live-session-cookie. That direction
  * matters:
@@ -66,8 +81,16 @@ export function prePaintCurtainScript(sessionCookieName: string | null) {
  * because it must beat every utility on the shell — including the `invisible`
  * that `AppShell` applies for React's own curtain, which is the same intent
  * expressed one lifecycle later.
+ *
+ * The token fallbacks are not decoration: this rule is parsed before the app
+ * stylesheet that defines `--page` and `--accent`, and a curtain that paints
+ * transparent is not a curtain. Sized and coloured to match `SigningInCurtain`
+ * so the handoff between the two loaders is invisible; change one, change both.
  */
 export const PRE_PAINT_CURTAIN_CSS = `
 html[${AUTH_HANDOFF_ATTRIBUTE}] [${APP_SHELL_ATTRIBUTE}]{visibility:hidden}
-html:not([${AUTH_HANDOFF_ATTRIBUTE}]) #gpp-pre-paint-curtain{display:none}
+html[${AUTH_HANDOFF_ATTRIBUTE}]::before{content:'';position:fixed;inset:0;z-index:150;background:var(--page,#101113)}
+html[${AUTH_HANDOFF_ATTRIBUTE}]::after{content:'';position:fixed;top:50%;left:50%;z-index:151;box-sizing:border-box;width:2rem;height:2rem;margin:-1rem 0 0 -1rem;border-radius:9999px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent,#d4ff3f);animation:gpp-pre-paint-spin .8s linear infinite}
+@keyframes gpp-pre-paint-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){html[${AUTH_HANDOFF_ATTRIBUTE}]::after{animation:none}}
 `.trim();

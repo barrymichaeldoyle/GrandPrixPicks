@@ -35,6 +35,15 @@ export type RaceWriteup = {
    */
   label: string;
   /**
+   * One sentence on what this weekend's piece actually covers.
+   *
+   * Written from the page's own sections, not from a template, because it is
+   * the only part of the callout that tells a reader whether the write-up is
+   * worth their click. Revise it in the same commit that adds a section, the
+   * way `reviewedAt` is revised when the prose changes.
+   */
+  summary: string;
+  /**
    * The dashboard's line for the piece: an instruction, naming the weekend.
    *
    * It was a teaser describing the contents ("Two things to know before FP1"),
@@ -53,21 +62,36 @@ const RACE_WRITEUPS = {
     to: '/f1-2026-italian-grand-prix-predictions',
     reviewedAt: '2026-08-31',
     label: 'Monza predictions',
+    summary:
+      'What matters at Monza, where the overtakes happen, the tyre choice, and the driver news that moves the grid.',
     cta: 'Read the Monza predictions',
   },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-08-31',
     label: 'Madring predictions',
+    summary:
+      'No form guide for a circuit nobody has raced, so the layout, the tyre choice and the championship picture do the work.',
     cta: 'Read the Madring predictions',
   },
 } as const satisfies Record<string, RaceWriteup>;
 
 export type RaceWriteupSlug = keyof typeof RACE_WRITEUPS;
 
-/** Every write-up, for crawl surfaces such as the sitemap. */
-export function listRaceWriteups(): readonly RaceWriteup[] {
-  return Object.values(RACE_WRITEUPS);
+/**
+ * Every write-up, each carrying the race slug it belongs to.
+ *
+ * The slug is the registry key, so callers that need it were deriving it back
+ * out of the route path. That is a second copy of the mapping, and a second
+ * copy is what let `CircuitGuide` fall a whole weekend behind.
+ */
+export function listRaceWriteups(): readonly (RaceWriteup & {
+  raceSlug: RaceWriteupSlug;
+})[] {
+  return Object.entries(RACE_WRITEUPS).map(([raceSlug, writeup]) => ({
+    ...writeup,
+    raceSlug: raceSlug as RaceWriteupSlug,
+  }));
 }
 
 /**

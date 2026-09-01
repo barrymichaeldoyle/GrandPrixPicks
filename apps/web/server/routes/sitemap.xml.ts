@@ -92,6 +92,15 @@ const staticEntries: SitemapEntry[] = [
     changefreq: 'weekly',
     priority: '0.8',
   },
+  {
+    // Always describes the next round, so its content genuinely turns over
+    // every week or two. Priority matches `/races` because it is the other
+    // half of the same job: the calendar lists the season, this one names the
+    // round you can still pick.
+    loc: `${siteConfig.url}/f1-predictions-this-weekend`,
+    changefreq: 'daily',
+    priority: '0.9',
+  },
   // The write-up registry also drives in-app links and each page's reviewed
   // stamp, so adding or revising one cannot leave the sitemap behind.
   ...listRaceWriteups().map((writeup): SitemapEntry => ({

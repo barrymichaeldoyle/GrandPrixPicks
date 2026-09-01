@@ -334,6 +334,55 @@ describe('H2HDuelPicker', () => {
     ]);
     expect(container.textContent).toContain('Team-mate pick 2 of 2');
   });
+
+  it('focuses the next duel after auto-advance', () => {
+    vi.useFakeTimers();
+    const requestAnimationFrame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callback(0);
+        return 1;
+      });
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    function Harness() {
+      const [selections, setSelections] = useState<
+        Record<string, Id<'drivers'>>
+      >({});
+      return (
+        <H2HDuelPicker
+          matchups={matchups}
+          selections={selections}
+          onSelect={(matchupId, driverId) =>
+            setSelections((current) => ({
+              ...current,
+              [matchupId]: driverId,
+            }))
+          }
+        />
+      );
+    }
+
+    act(() => root?.render(<Harness />));
+
+    const firstPick = container.querySelector<HTMLButtonElement>(
+      '[aria-label="Pick Lando Norris"]',
+    );
+    act(() => {
+      firstPick?.focus();
+      firstPick?.click();
+      vi.runAllTimers();
+    });
+
+    const active = document.activeElement as HTMLButtonElement | null;
+    expect(active?.getAttribute('aria-label')).toMatch(/^Pick /);
+    expect(active?.getAttribute('aria-label')).not.toBe('Pick Lando Norris');
+    expect(container.textContent).toContain('Team-mate pick 2 of 2');
+
+    requestAnimationFrame.mockRestore();
+  });
 });
 
 function matchup(

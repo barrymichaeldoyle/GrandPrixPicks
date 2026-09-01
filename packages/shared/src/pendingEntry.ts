@@ -11,9 +11,7 @@ export type PendingEntryRace = {
   displayRound: number;
 };
 
-export const PENDING_ENTRY_RACES: Readonly<
-  Record<string, PendingEntryRace>
-> = {
+export const PENDING_ENTRY_RACES: Readonly<Record<string, PendingEntryRace>> = {
   // Monza 2026: Red Bull has not confirmed Hadjar's return or Lawson/Tsunoda
   // cover roles. Show the pre-Zandvoort grid rather than the Dutch GP
   // substitutes until the entry is out.

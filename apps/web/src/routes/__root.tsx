@@ -369,9 +369,7 @@ function RootDocument({ children }: PropsWithChildren) {
         {/* Inline because it has to be in force for the very first paint. The
             curtain markup itself is injected by the body script when needed. */}
         {initialAuth.isSignedIn ? null : (
-          <style
-            dangerouslySetInnerHTML={{ __html: PRE_PAINT_CURTAIN_CSS }}
-          />
+          <style dangerouslySetInnerHTML={{ __html: PRE_PAINT_CURTAIN_CSS }} />
         )}
         <HeadContent />
       </head>

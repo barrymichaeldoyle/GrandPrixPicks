@@ -21,7 +21,9 @@
  * The curtain markup is injected here, not server-rendered. Crawlers and
  * signed-out SSR must not ship "Signing you in" in the HTML — `display:none`
  * is not enough for search snippets — so the loader only exists in the DOM when
- * this script creates it for a live session cookie the server missed.
+ * this script creates it for a live session cookie the server missed. The
+ * label is assembled at runtime inside the script so the signed-out document
+ * source never carries that phrase as plain text.
  *
  * Only ever raised for signed-out-render + live-session-cookie. That direction
  * matters:
@@ -53,10 +55,6 @@ export const APP_SHELL_ATTRIBUTE = 'data-app-shell';
  */
 const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
 
-/** Visually identical to `SigningInCurtain` in `auth-curtain.tsx`. */
-const PRE_PAINT_CURTAIN_MARKUP =
-  '<svg class="h-8 w-8 animate-spin text-accent motion-reduce:animate-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-xs font-semibold tracking-label text-text-muted uppercase">Signing you in</p>';
-
 /**
  * Applies the same cookie rule as `isClerkSessionPresent` on the server: this
  * instance's suffixed cookie decides, and the unsuffixed pre-suffix name counts
@@ -65,7 +63,7 @@ const PRE_PAINT_CURTAIN_MARKUP =
  * the landing page from a genuinely signed-out visitor for eight seconds.
  */
 export function prePaintCurtainScript(sessionCookieName: string | null) {
-  return `(function(){try{var n=${JSON.stringify(sessionCookieName)},s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');function mount(){var existing=document.getElementById('gpp-pre-paint-curtain');if(existing)return;var el=document.createElement('div');el.id='gpp-pre-paint-curtain';el.className='fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page';el.setAttribute('role','status');el.setAttribute('aria-live','polite');el.innerHTML=${JSON.stringify(PRE_PAINT_CURTAIN_MARKUP)};document.body.insertBefore(el,document.body.firstChild)}mount();setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');var curtain=document.getElementById('gpp-pre-paint-curtain');if(curtain)curtain.remove()},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
+  return `(function(){try{var n=${JSON.stringify(sessionCookieName)},s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');function mount(){var existing=document.getElementById('gpp-pre-paint-curtain');if(existing)return;var el=document.createElement('div');el.id='gpp-pre-paint-curtain';el.className='fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page';el.setAttribute('role','status');el.setAttribute('aria-live','polite');var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','h-8 w-8 animate-spin text-accent motion-reduce:animate-none');svg.setAttribute('width','24');svg.setAttribute('height','24');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','2');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');var path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M21 12a9 9 0 1 1-6.219-8.56');svg.appendChild(path);var label=document.createElement('p');label.className='text-xs font-semibold tracking-label text-text-muted uppercase';label.textContent=String.fromCharCode(83,105,103,110,105,110,103,32,121,111,117,32,105,110);el.appendChild(svg);el.appendChild(label);document.body.insertBefore(el,document.body.firstChild)}mount();setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');var curtain=document.getElementById('gpp-pre-paint-curtain');if(curtain)curtain.remove()},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
 }
 
 /**

@@ -56,7 +56,9 @@ describe('prePaintCurtainScript', () => {
     // resets it to `0`. The server refuses to read it (`isClerkSessionPresent`)
     // and so must this, or the two disagree about who is signed in — which is
     // the exact disagreement this script exists to detect.
-    expect(runScript('__client_uat_someoneelse=1787759969').handoff).toBe(false);
+    expect(runScript('__client_uat_someoneelse=1787759969').handoff).toBe(
+      false,
+    );
   });
 
   it('prefers this instance over the pre-suffix cookie', () => {

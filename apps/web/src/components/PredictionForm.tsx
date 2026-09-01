@@ -532,12 +532,7 @@ export function PredictionForm({
   const liveDrivers = useQuery(
     api.drivers.listDrivers,
     race
-      ? {
-          round: race.round,
-          season: race.season,
-          includeNotRacing: true,
-          raceSlug: race.slug,
-        }
+      ? { round: race.round, season: race.season, includeNotRacing: true }
       : { includeNotRacing: true },
   );
   const drivers = liveDrivers ?? initialDrivers;

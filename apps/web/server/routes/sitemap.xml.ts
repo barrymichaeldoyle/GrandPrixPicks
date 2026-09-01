@@ -92,6 +92,15 @@ const staticEntries: SitemapEntry[] = [
     changefreq: 'weekly',
     priority: '0.8',
   },
+  {
+    // Always describes the next round, so its content genuinely turns over
+    // every week or two. Priority matches `/races` because it is the other
+    // half of the same job: the calendar lists the season, this one names the
+    // round you can still pick.
+    loc: `${siteConfig.url}/f1-predictions-this-weekend`,
+    changefreq: 'daily',
+    priority: '0.9',
+  },
   // The write-up registry also drives in-app links and each page's reviewed
   // stamp, so adding or revising one cannot leave the sitemap behind.
   ...listRaceWriteups().map((writeup): SitemapEntry => ({
@@ -199,18 +208,23 @@ async function loadRaceEntries() {
       const hasPracticeResults = new Set(slugsWithPractice);
       return races
         .filter((race) => race.status !== 'cancelled')
-        .filter((race) => getRaceWriteup(race.slug) === null)
         .sort((a, b) => a.round - b.round)
         .flatMap((race) => {
           const lastmod = toIsoDate(race.updatedAt ?? race._creationTime);
-          const entries: SitemapEntry[] = [
-            {
-              loc: `${siteConfig.url}/races/${race.slug}`,
-              changefreq: 'daily' as const,
-              lastmod,
-              priority: '0.8',
-            },
-          ];
+          // A race with an editorial write-up canonicalises to it, so listing
+          // the race URL here would ask Google to index a page that points
+          // somewhere else. The practice page below is its own content and
+          // stays listed either way.
+          const entries: SitemapEntry[] = getRaceWriteup(race.slug)
+            ? []
+            : [
+                {
+                  loc: `${siteConfig.url}/races/${race.slug}`,
+                  changefreq: 'daily' as const,
+                  lastmod,
+                  priority: '0.8',
+                },
+              ];
           // A practice page with nothing published is a placeholder line of
           // text. Advertise it only once it has a real classification.
           if (hasPracticeResults.has(race.slug)) {

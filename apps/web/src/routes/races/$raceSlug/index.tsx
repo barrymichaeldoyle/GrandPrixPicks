@@ -1,11 +1,6 @@
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { api } from '@convex-generated/api';
-import {
-  createFileRoute,
-  Link,
-  notFound,
-  redirect,
-} from '@tanstack/react-router';
+import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -28,10 +23,7 @@ import { routeQuery } from '@/lib/routeQuery';
 import { withLoaderSpan } from '@/lib/loaderSpan';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
-import {
-  racePageWriteupHeadOptions,
-  racePageWriteupRedirectTarget,
-} from '@/lib/raceWriteupSeo';
+import { racePageWriteupHeadOptions } from '@/lib/raceWriteupSeo';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   breadcrumbSchema,
@@ -115,15 +107,6 @@ export const Route = createFileRoute('/races/$raceSlug/')({
           shareSession: search.session,
         },
   component: RaceDetailPage,
-  beforeLoad: ({ params, search }) => {
-    const redirectTarget = racePageWriteupRedirectTarget(
-      params.raceSlug,
-      search,
-    );
-    if (redirectTarget) {
-      throw redirect({ to: redirectTarget, statusCode: 301 });
-    }
-  },
   loader: ({ context, params, deps }) =>
     withLoaderSpan('/races/$raceSlug', 2, async () => {
       await setRaceDataCacheHeaders();

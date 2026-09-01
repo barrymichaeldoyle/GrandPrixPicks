@@ -334,34 +334,42 @@ describe('SEO head metadata', () => {
     });
   });
 
-  it('permanently redirects bare race pages that have write-ups', async () => {
-    const [{ Route: raceRoute }, { redirect }] = await Promise.all([
-      import('./races/$raceSlug/index'),
-      import('@tanstack/react-router'),
-    ]);
-    const { beforeLoad } = raceRoute as unknown as {
-      beforeLoad: (args: {
+  it('hands a written-up race page to its write-up canonical', async () => {
+    const { Route: raceRoute } = await import('./races/$raceSlug/index');
+    const { head } = raceRoute as unknown as {
+      head: (args: {
+        loaderData: undefined;
         params: { raceSlug: string };
-        search: Record<string, unknown>;
-      }) => void;
+      }) => HeadResult;
     };
 
-    expect(() =>
-      beforeLoad({ params: { raceSlug: 'italy-2026' }, search: {} }),
-    ).toThrow();
-    expect(redirect).toHaveBeenCalledWith({
-      to: '/f1-2026-italian-grand-prix-predictions',
-      statusCode: 301,
+    const written = head({
+      loaderData: undefined,
+      params: { raceSlug: 'italy-2026' },
+    });
+    expect(written.meta).toContainEqual({
+      name: 'robots',
+      content: 'noindex, follow',
+    });
+    expect(written.links).toContainEqual({
+      rel: 'canonical',
+      href: 'https://grandprixpicks.com/f1-2026-italian-grand-prix-predictions',
     });
 
-    vi.mocked(redirect).mockClear();
-    expect(() =>
-      beforeLoad({
-        params: { raceSlug: 'italy-2026' },
-        search: { session: 'quali' },
-      }),
-    ).not.toThrow();
-    expect(redirect).not.toHaveBeenCalled();
+    // A weekend nobody wrote up is untouched: it is still the only page for
+    // that race, so it stays indexable and self-canonical.
+    const plain = head({
+      loaderData: undefined,
+      params: { raceSlug: 'miami-2026' },
+    });
+    expect(plain.meta).not.toContainEqual({
+      name: 'robots',
+      content: 'noindex, follow',
+    });
+    expect(plain.links).toContainEqual({
+      rel: 'canonical',
+      href: 'https://grandprixpicks.com/races/miami-2026',
+    });
   });
 
   it('emits child canonical + noindex for follow list pages', async () => {

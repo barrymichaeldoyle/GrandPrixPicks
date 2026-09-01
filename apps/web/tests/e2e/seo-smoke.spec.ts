@@ -50,22 +50,21 @@ test.describe('[public] seo smoke', () => {
     );
   });
 
-  test('retires bare write-up race pages to their editorial URL', async ({
-    request,
+  test('points a written-up race page at its editorial URL', async ({
+    page,
   }) => {
-    for (const [racePath, writeupPath] of [
-      ['/races/italy-2026', '/f1-2026-italian-grand-prix-predictions'],
-      ['/races/madrid-2026', '/f1-2026-madrid-grand-prix-predictions'],
-    ] as const) {
-      const response = await request.get(racePath, { maxRedirects: 0 });
-      expect(response.status(), racePath).toBe(301);
-      expect(response.headers()['location'], racePath).toBe(writeupPath);
-    }
-
-    const deepLink = await request.get('/races/italy-2026?session=quali', {
-      maxRedirects: 0,
-    });
-    expect(deepLink.status()).toBe(200);
+    // The race page still serves the game; it just stops competing with the
+    // write-up in search.
+    const response = await page.goto('/races/italy-2026');
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${SITE_URL}/f1-2026-italian-grand-prix-predictions`,
+    );
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex, follow',
+    );
   });
 
   test('emits noindex and a self canonical on follow-list pages', async ({

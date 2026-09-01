@@ -5,7 +5,6 @@ import {
   raceWriteupPrimaryAction,
   type RaceWriteupPhase,
 } from '@/lib/raceWriteupPhase';
-import { raceWriteupPrimaryLink } from '@/lib/raceWriteupSeo';
 
 type RaceWriteupActionsProps = {
   circuitName?: string;
@@ -24,8 +23,6 @@ export function RaceWriteupActions({
   raceSlug,
   venueName,
 }: RaceWriteupActionsProps) {
-  const linkTarget = raceWriteupPrimaryLink(phase, raceSlug);
-
   return (
     <div
       className={
@@ -35,7 +32,8 @@ export function RaceWriteupActions({
       }
     >
       <Link
-        {...linkTarget}
+        to="/races/$raceSlug"
+        params={{ raceSlug }}
         className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         {raceWriteupPrimaryAction(phase, venueName, compact)}

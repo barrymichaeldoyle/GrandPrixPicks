@@ -35,6 +35,7 @@ describe('WriteUpNewsPhoto', () => {
           creditUrl="https://commons.wikimedia.org/wiki/File:FIA_F1_Austria_2026_Nr._46_Browning_(1).jpg"
           licenseName="CC BY-SA 4.0"
           licenseUrl="https://creativecommons.org/licenses/by-sa/4.0/"
+          modificationNote="resized"
         />,
       ),
     );
@@ -49,7 +50,7 @@ describe('WriteUpNewsPhoto', () => {
     );
 
     const caption = container!.querySelector('figcaption')!.textContent;
-    expect(caption).toBe('Photo: Lukas Raich, CC BY-SA 4.0');
+    expect(caption).toBe('Photo: Lukas Raich, CC BY-SA 4.0 (resized)');
 
     expect(
       container!.querySelector<HTMLAnchorElement>(

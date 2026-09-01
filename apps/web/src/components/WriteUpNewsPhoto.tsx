@@ -7,6 +7,7 @@ export type WriteUpNewsPhotoProps = {
   creditUrl: string;
   licenseName: string;
   licenseUrl: string;
+  modificationNote?: string;
 };
 
 /** Write-up news photo with the house CC attribution caption. */
@@ -19,6 +20,7 @@ export function WriteUpNewsPhoto({
   creditUrl,
   licenseName,
   licenseUrl,
+  modificationNote,
 }: WriteUpNewsPhotoProps) {
   return (
     <figure className="mt-3">
@@ -50,6 +52,7 @@ export function WriteUpNewsPhoto({
         >
           {licenseName}
         </a>
+        {modificationNote ? ` (${modificationNote})` : null}
       </figcaption>
     </figure>
   );

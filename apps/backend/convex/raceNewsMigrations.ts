@@ -1,12 +1,27 @@
+import { v } from 'convex/values';
+
 import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import {
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
 } from './lib/italy2026MonzaNewsCopy';
-import { BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE } from './lib/raceNewsWriteUpImage';
+import {
+  BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE,
+  writeUpImageFieldsMatch,
+} from './lib/raceNewsWriteUpImage';
 
-const BROWNING_NEWS_KEY = 'browning-williams-fp1';
+const BROWNING_NEWS_KEY = 'browning-williams-fp1' as const;
+
+const addItaly2026BrowningWriteUpPhotoResultValidator = v.object({
+  action: v.union(
+    v.literal('race_not_found'),
+    v.literal('not_found'),
+    v.literal('unchanged'),
+    v.literal('updated'),
+  ),
+  key: v.literal(BROWNING_NEWS_KEY),
+});
 
 /**
  * Republish Barry-approved Monza write-up copy for the Alpine and Ferrari news
@@ -56,13 +71,14 @@ export const updateItaly2026MonzaNewsCopy = internalMutation({
  */
 export const addItaly2026BrowningWriteUpPhoto = internalMutation({
   args: {},
-  handler: async (ctx): Promise<{ action: string; key: string }> => {
+  returns: addItaly2026BrowningWriteUpPhotoResultValidator,
+  handler: async (ctx) => {
     const race = await ctx.db
       .query('races')
       .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
       .unique();
     if (!race) {
-      return { action: 'race_not_found', key: BROWNING_NEWS_KEY };
+      return { action: 'race_not_found' as const, key: BROWNING_NEWS_KEY };
     }
 
     const existing = await ctx.db
@@ -72,16 +88,12 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
       )
       .unique();
     if (!existing) {
-      return { action: 'not_found', key: BROWNING_NEWS_KEY };
+      return { action: 'not_found' as const, key: BROWNING_NEWS_KEY };
     }
 
     const image = BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE;
-    if (
-      existing.writeUpImage?.src === image.src &&
-      existing.writeUpImage.creditName === image.creditName &&
-      existing.writeUpImage.licenseName === image.licenseName
-    ) {
-      return { action: 'unchanged', key: BROWNING_NEWS_KEY };
+    if (writeUpImageFieldsMatch(existing.writeUpImage, image)) {
+      return { action: 'unchanged' as const, key: BROWNING_NEWS_KEY };
     }
 
     await ctx.db.patch(existing._id, {
@@ -89,6 +101,6 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
       updatedAt: Date.now(),
     });
 
-    return { action: 'updated', key: BROWNING_NEWS_KEY };
+    return { action: 'updated' as const, key: BROWNING_NEWS_KEY };
   },
 });

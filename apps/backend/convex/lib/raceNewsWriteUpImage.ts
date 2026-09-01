@@ -10,6 +10,7 @@ export const raceNewsWriteUpImageValidator = v.object({
   creditUrl: v.string(),
   licenseName: v.string(),
   licenseUrl: v.string(),
+  modificationNote: v.optional(v.string()),
 });
 
 export type RaceNewsWriteUpImage = {
@@ -21,7 +22,30 @@ export type RaceNewsWriteUpImage = {
   creditUrl: string;
   licenseName: string;
   licenseUrl: string;
+  modificationNote?: string;
 };
+
+/** True when every stored write-up image field matches the expected record. */
+export function writeUpImageFieldsMatch(
+  existing: RaceNewsWriteUpImage | undefined,
+  expected: RaceNewsWriteUpImage,
+): boolean {
+  if (!existing) {
+    return false;
+  }
+
+  return (
+    existing.src === expected.src &&
+    existing.alt === expected.alt &&
+    existing.width === expected.width &&
+    existing.height === expected.height &&
+    existing.creditName === expected.creditName &&
+    existing.creditUrl === expected.creditUrl &&
+    existing.licenseName === expected.licenseName &&
+    existing.licenseUrl === expected.licenseUrl &&
+    existing.modificationNote === expected.modificationNote
+  );
+}
 
 /** Lukas Raich, CC BY-SA 4.0. Austria 2026; used on the Monza Browning FP1 card. */
 export const BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE: RaceNewsWriteUpImage = {
@@ -34,4 +58,5 @@ export const BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE: RaceNewsWriteUpImage = {
     'https://commons.wikimedia.org/wiki/File:FIA_F1_Austria_2026_Nr._46_Browning_(1).jpg',
   licenseName: 'CC BY-SA 4.0',
   licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+  modificationNote: 'resized',
 };

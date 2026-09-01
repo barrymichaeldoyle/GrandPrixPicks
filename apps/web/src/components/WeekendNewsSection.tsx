@@ -22,6 +22,7 @@ type NewsWriteUpImage = {
   creditUrl: string;
   licenseName: string;
   licenseUrl: string;
+  modificationNote?: string;
 };
 
 type NewsItem = {

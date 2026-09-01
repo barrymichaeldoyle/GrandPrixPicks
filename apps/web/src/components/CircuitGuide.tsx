@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 import type { CircuitGuide as CircuitGuideContent } from '@/lib/circuitGuides';
 import { getCircuitGuide } from '@/lib/circuitGuides';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 
 /** Prose fields in reading order. `character` is shown above as the intro. */
 type ProseKey = Exclude<keyof CircuitGuideContent, 'traits' | 'character'>;
@@ -38,7 +39,10 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
     return null;
   }
   const circuit = getCircuitForRace(raceSlug);
-  const hasDedicatedPredictionGuide = raceSlug === 'italy-2026';
+  // From the registry, not a hardcoded slug. This read `raceSlug ===
+  // 'italy-2026'` and had already fallen behind: the Madring write-up shipped
+  // and this nav never learned about it.
+  const writeup = getRaceWriteup(raceSlug);
 
   return (
     <section
@@ -95,17 +99,17 @@ export function CircuitGuide({ raceSlug, raceName }: CircuitGuideProps) {
         ))}
       </div>
 
-      {(hasDedicatedPredictionGuide || circuit) && (
+      {(writeup || circuit) && (
         <nav
           aria-label={`${raceName} guides`}
           className="mt-6 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:gap-x-6"
         >
-          {hasDedicatedPredictionGuide && (
+          {writeup && (
             <Link
-              to="/f1-2026-italian-grand-prix-predictions"
+              to={writeup.to}
               className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent underline decoration-accent/40 underline-offset-4 hover:text-accent-hover hover:decoration-current"
             >
-              Read the 2026 Monza prediction guide
+              {writeup.cta}
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           )}

@@ -29,33 +29,33 @@ const PAGE_DESCRIPTION =
 
 const REPORTED_ROWS = [
   {
-    term: 'Announcement',
+    term: 'When it will be announced',
     detail:
-      'Autumn 2026. F1 has called that the normal plan, with room to adjust until the end of the year.',
+      'Formula 1 has said it will publish the calendar in autumn 2026, and may still change it before the year is out.',
   },
   {
     term: 'Season size',
     detail:
-      '24 Grands Prix. Stefano Domenicali has said that target still holds if the opener has to move.',
+      '24 Grands Prix. Stefano Domenicali has said that still holds even if the opening races have to move.',
   },
   {
-    term: 'Opening rounds',
+    term: 'Where it starts',
     detail:
-      'Bahrain in the middle of March, Saudi Arabia the following weekend. Current reporting puts those on the weekends of 12–14 March and 19–21 March.',
+      'Bahrain in mid-March, then Saudi Arabia a week later. Reports currently have those as 12–14 March and 19–21 March.',
   },
   {
     term: 'Returning venues',
     detail: 'Portimão and Istanbul Park.',
   },
   {
-    term: 'Pre-season testing',
+    term: 'Testing',
     detail:
-      'Bahrain, last week of February, on the current plan. Barcelona has been mentioned as a standby if the Middle East cannot host it.',
+      'Bahrain, last week of February, on the current plan. Barcelona is the standby if that cannot happen.',
   },
   {
-    term: 'If Bahrain and Jeddah cannot run',
+    term: 'If Bahrain and Saudi Arabia cannot open the season',
     detail:
-      'F1 has said it has other plans. Reporting has pointed to China as a possible March opener.',
+      'Formula 1 says it has other options. Reports have named China as a possible March start.',
   },
 ] as const;
 
@@ -180,14 +180,12 @@ function F1Calendar2027Page() {
             What is being reported
           </h2>
           <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
-            This is the current reporting. It stays in its own section because
-            people are asking. Last reviewed {LAST_REVIEWED}.
+            Nothing here is official yet. Last reviewed {LAST_REVIEWED}.
           </p>
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[20rem] table-fixed border-collapse text-sm sm:min-w-[36rem] sm:table-auto">
               <caption className="sr-only">
-                Reported details for the 2027 Formula 1 calendar. Still
-                unofficial.
+                Unofficial 2027 Formula 1 calendar details.
               </caption>
               <thead>
                 <tr className="border-b border-border bg-surface-muted/50 text-left">

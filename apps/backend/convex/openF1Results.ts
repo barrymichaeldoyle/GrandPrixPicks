@@ -11,6 +11,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx } from './_generated/server';
 import {
   action,
+  env,
   internalAction,
   internalMutation,
   internalQuery,
@@ -248,6 +249,96 @@ export function buildSessionDiscoveryUrl(
 
 const RATE_LIMIT_RETRIES = 4;
 const RATE_LIMIT_BACKOFF_MS = 2_000;
+const TOKEN_EXPIRY_SKEW_MS = 30_000;
+
+let tokenCache: { accessToken: string; expiresAt: number } | null = null;
+
+export class OpenF1AuthenticationError extends Error {
+  override name = 'OpenF1AuthenticationError';
+}
+
+function parseTokenResponse(value: unknown): {
+  accessToken: string;
+  expiresIn: number;
+} {
+  const expiresIn =
+    isRecord(value) &&
+    (typeof value.expires_in === 'number' ||
+      typeof value.expires_in === 'string')
+      ? Number(value.expires_in)
+      : Number.NaN;
+  if (
+    !isRecord(value) ||
+    typeof value.access_token !== 'string' ||
+    !Number.isFinite(expiresIn) ||
+    expiresIn <= 0
+  ) {
+    throw new OpenF1AuthenticationError('OpenF1 token response was incomplete');
+  }
+  return { accessToken: value.access_token, expiresIn };
+}
+
+/** Exchange the paid-plan credentials without ever persisting the token. */
+export async function fetchOpenF1AccessToken(
+  forceRefresh = false,
+): Promise<string> {
+  const now = Date.now();
+  if (!forceRefresh && tokenCache && tokenCache.expiresAt > now) {
+    return tokenCache.accessToken;
+  }
+
+  const username = env.OPEN_F1_USERNAME;
+  const password = env.OPEN_F1_PASSWORD;
+  if (!username || !password) {
+    throw new OpenF1AuthenticationError(
+      'OPEN_F1_USERNAME and OPEN_F1_PASSWORD are not configured',
+    );
+  }
+
+  const body = new URLSearchParams({
+    grant_type: 'password',
+    username,
+    password,
+  });
+  let response: Response;
+  try {
+    response = await fetch('https://api.openf1.org/token', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
+  } catch (error) {
+    throw new OpenF1AuthenticationError(
+      `OpenF1 token exchange failed: ${errorMessage(error)}`,
+    );
+  }
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new OpenF1AuthenticationError(
+      `OpenF1 token exchange failed with HTTP ${response.status}${
+        detail ? `: ${detail.slice(0, 300)}` : ''
+      }`,
+    );
+  }
+
+  let tokenPayload: unknown;
+  try {
+    tokenPayload = (await response.json()) as unknown;
+  } catch (error) {
+    throw new OpenF1AuthenticationError(
+      `OpenF1 token response was not JSON: ${errorMessage(error)}`,
+    );
+  }
+  const parsed = parseTokenResponse(tokenPayload);
+  tokenCache = {
+    accessToken: parsed.accessToken,
+    expiresAt: now + parsed.expiresIn * 1_000 - TOKEN_EXPIRY_SKEW_MS,
+  };
+  return parsed.accessToken;
+}
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -275,12 +366,40 @@ export function isLiveSessionRestriction(error: unknown): boolean {
  * unverifiable.
  */
 export async function fetchJson(url: URL): Promise<unknown> {
+  let accessToken: string | null = null;
+  try {
+    accessToken = await fetchOpenF1AccessToken();
+  } catch (error) {
+    // Paid access is an enhancement to the existing ingestion path. If the
+    // subscription, credentials, or token endpoint are unavailable, keep the
+    // anonymous request working so post-session results still arrive.
+    console.warn(`OpenF1 authentication unavailable: ${errorMessage(error)}`);
+  }
+
+  let refreshedAfterUnauthorized = false;
   for (let attempt = 0; ; attempt += 1) {
     const response = await fetch(url, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
     });
     if (response.ok) {
       return (await response.json()) as unknown;
+    }
+    if (response.status === 401 && accessToken && !refreshedAfterUnauthorized) {
+      refreshedAfterUnauthorized = true;
+      tokenCache = null;
+      try {
+        accessToken = await fetchOpenF1AccessToken(true);
+      } catch (error) {
+        console.warn(
+          `OpenF1 token refresh unavailable; retrying anonymously: ${errorMessage(error)}`,
+        );
+        accessToken = null;
+      }
+      attempt -= 1;
+      continue;
     }
     if (response.status !== 429 || attempt >= RATE_LIMIT_RETRIES) {
       // The body carries the only account of why. Without it every refusal
@@ -649,6 +768,13 @@ export const smokeTest = internalAction({
         );
         return { ok: true, skipped: 'live_session_in_progress' as const };
       }
+      if (error instanceof OpenF1AuthenticationError) {
+        console.warn(
+          `OpenF1 smoke test skipped: ${errorMessage(error)}. ` +
+            'Paid access is unavailable; anonymous result polling remains enabled.',
+        );
+        return { ok: true, skipped: 'authentication_unavailable' as const };
+      }
       throw error;
     }
   },
@@ -659,6 +785,10 @@ export const smokeTest = internalAction({
  * what counts as a deployment failure.
  */
 async function runSmokeTest(ctx: ActionCtx, sessionKey: number) {
+  // Explicitly exercise the token endpoint. fetchJson deliberately falls back
+  // to anonymous access, so relying on it alone would let a broken paid-plan
+  // setup pass unnoticed outside a live session.
+  await fetchOpenF1AccessToken(true);
   const sessionUrl = new URL('https://api.openf1.org/v1/sessions');
   sessionUrl.searchParams.set('session_key', String(sessionKey));
   const sessionRows = parseOpenF1Sessions(await fetchJson(sessionUrl));

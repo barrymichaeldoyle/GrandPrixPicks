@@ -38,6 +38,7 @@ type RaceEventPageLayoutProps = {
   leaderboardLink?: ReactNode;
   /** Weekend recap "moment", shown under the header once fully scored. */
   recapContent?: ReactNode;
+  liveScoringContent?: ReactNode;
   /**
    * A short factual account of the weekend, built from the published
    * classifications. The page's only prose of its own: everything else on it
@@ -85,6 +86,7 @@ export function RaceEventPageLayout({
   backLink,
   leaderboardLink,
   recapContent,
+  liveScoringContent,
   writeupContent,
   raceReportContent,
   nextRaceCtaContent,
@@ -186,6 +188,8 @@ export function RaceEventPageLayout({
         {raceReportContent}
 
         {recapContent}
+
+        {liveScoringContent}
 
         {leadWithCircuitGuide && circuitGuideContent}
 

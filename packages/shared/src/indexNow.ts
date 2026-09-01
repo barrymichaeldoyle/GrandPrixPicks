@@ -40,3 +40,25 @@ export function indexNowUrlsForPublishedResult(
     `${base}/`,
   ];
 }
+
+/**
+ * The pages a published practice session changes.
+ *
+ * Deliberately narrow. A practice classification rewrites its own page and the
+ * race page that links to it, and touches nothing else: no championship table
+ * moves, and no player is scored on practice.
+ *
+ * The practice page is the one that matters here, because it is the only URL
+ * on the site whose *indexability* changes rather than its content. Before FP1
+ * it renders a placeholder line and ships `noindex` (see the route's `head`);
+ * the moment a classification lands it becomes a real page. Nothing else tells
+ * a search engine that, so without this ping the flip is invisible until the
+ * next organic crawl.
+ */
+export function indexNowUrlsForPublishedPractice(
+  origin: string,
+  raceSlug: string,
+): string[] {
+  const base = origin.replace(/\/$/, '');
+  return [`${base}/races/${raceSlug}/practice`, `${base}/races/${raceSlug}`];
+}

@@ -24,6 +24,7 @@ import { withLoaderSpan } from '@/lib/loaderSpan';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { encodeShareCardSearch, parseShareCard } from '@/lib/og/shareCard';
 import { racePageWriteupHeadOptions } from '@/lib/raceWriteupSeo';
+import { getCircuitSeoFacts } from '@/lib/circuitSeoFacts';
 import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 import {
   breadcrumbSchema,
@@ -219,9 +220,11 @@ export const Route = createFileRoute('/races/$raceSlug/')({
               shareCard?.variant === 'h2h_score')
           ? `${SESSION_LABELS[shareCard.session]} team-mate Head-to-Head results for the ${race.name}.`
           : race
-            ? race.status === 'finished'
-              ? `Full results and top 5 finishers for the ${race.season} ${race.name}. See how F1 predictions scored on Grand Prix Picks.`
-              : `Pick your top 5 finishers for the ${race.season} ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`
+            ? raceDescription(
+                race,
+                loaderData?.initialResults?.resultsBySession?.race
+                  ?.enrichedClassification,
+              )
             : 'Pick your top 5 finishers for this Grand Prix. Earn up to 25 points per session and compete on the season leaderboard.';
     const scripts: { type: string; children: string }[] = [];
     if (race) {
@@ -276,6 +279,42 @@ export const Route = createFileRoute('/races/$raceSlug/')({
     };
   },
 });
+
+/**
+ * What the snippet for a race page should say.
+ *
+ * Both halves of this used to be one template with the race name swapped in,
+ * so twelve finished races described themselves identically and six upcoming
+ * ones did the same. A page that says "full results for the X Grand Prix"
+ * tells a searcher nothing they did not know from the title; naming the winner
+ * is the whole reason they are searching.
+ *
+ * Everything used here is already in the loader, so neither branch costs a
+ * query. When a finished race has no published classification the wording
+ * falls back rather than asserting a result that does not exist.
+ */
+function raceDescription(
+  race: { name: string; season: number; slug: string; status: string },
+  classification: { position: number; displayName: string }[] | undefined,
+): string {
+  if (race.status === 'finished') {
+    const podium = (classification ?? [])
+      .filter((entry) => entry.position <= 3)
+      .sort((a, b) => a.position - b.position);
+    if (podium.length === 3) {
+      return `${podium[0].displayName} won the ${race.season} ${race.name} ahead of ${podium[1].displayName} and ${podium[2].displayName}. Full classification, and how Grand Prix Picks players scored their top 5.`;
+    }
+    return `Full classification and top 5 finishers for the ${race.season} ${race.name}, with qualifying results and how Grand Prix Picks players scored their predictions.`;
+  }
+
+  // For a race nobody has run yet, the differentiator is the venue: how hard
+  // it is to pass there is exactly the judgement a player is about to make.
+  const facts = getCircuitSeoFacts(getCircuitForRace(race.slug)?.slug ?? '');
+  if (facts) {
+    return `Pick your top 5 for the ${race.season} ${race.name} at ${facts.shortName}, where overtaking is ${facts.overtaking} and upset risk is ${facts.upsetRisk}. Free to play, 25 points a session.`;
+  }
+  return `Pick your top 5 finishers for the ${race.season} ${race.name}. Earn up to 25 points per session and compete on the season leaderboard.`;
+}
 
 /**
  * The finishing order as an `ItemList`, for a race that has one.
@@ -405,6 +444,7 @@ function RaceDetailPage() {
     publishedSessionSet,
     h2hPointsBySession,
     h2hScoresBySession,
+    liveSnapshot,
     pointsSoFar,
     allEventsScored,
     scoredEventCount,
@@ -588,6 +628,7 @@ function RaceDetailPage() {
         h2hSelectedSessionDone={isH2HSavedForSession(selectedSession)}
         cardData={cardData}
         h2hScoresBySession={h2hScoresBySession}
+        liveSnapshot={liveSnapshot}
         top5Editing={{
           session: top5EditingSession,
           onSessionChange: setTop5EditingSession,

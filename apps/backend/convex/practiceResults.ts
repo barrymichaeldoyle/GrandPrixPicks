@@ -39,6 +39,7 @@ const OPEN_F1_SESSION_NAMES: Record<PracticeSessionType, string> = {
 type PracticeTask = {
   raceId: Id<'races'>;
   raceName: string;
+  raceSlug: string;
   season: number;
   sessionType: PracticeSessionType;
   sessionStartAt: number;
@@ -360,6 +361,7 @@ export const getDuePracticeSessions = internalQuery({
           due.push({
             raceId: race._id,
             raceName: race.name,
+            raceSlug: race.slug,
             season: race.season,
             sessionType,
             sessionStartAt,
@@ -510,12 +512,27 @@ async function populateDuePractice(ctx: ActionCtx) {
   for (const task of tasks) {
     try {
       const result = await fetchPracticeResult(task);
-      await ctx.runMutation(internal.practiceResults.upsertPracticeResult, {
-        raceId: task.raceId,
-        sessionType: task.sessionType,
-        mode: task.mode,
-        ...result,
-      });
+      const outcome = await ctx.runMutation(
+        internal.practiceResults.upsertPracticeResult,
+        {
+          raceId: task.raceId,
+          sessionType: task.sessionType,
+          mode: task.mode,
+          ...result,
+        },
+      );
+      // Only on the first classification for a session. That is the moment the
+      // practice page stops being `noindex` (see the route's `head`) and
+      // becomes a real page, which is the one change a search engine cannot
+      // infer. Later reconciles adjust lap times on a page already in the
+      // index, and pinging for those would spend quota to say very little.
+      if (outcome === 'created') {
+        await ctx.scheduler.runAfter(
+          0,
+          internal.indexNow.submitPublishedPractice,
+          { raceSlug: task.raceSlug },
+        );
+      }
       await ctx.runMutation(
         internal.practiceResults.recordPracticePollAttempt,
         {

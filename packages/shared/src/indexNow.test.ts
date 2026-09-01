@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   INDEXNOW_KEY,
   INDEXNOW_KEY_PATH,
+  indexNowUrlsForPublishedPractice,
   indexNowUrlsForPublishedResult,
 } from './indexNow';
 
@@ -49,6 +50,45 @@ describe('indexNow', () => {
     );
 
     expect(urls).toContain('https://grandprixpicks.com/races/australia-2026');
+    expect(urls.every((url) => !url.includes('.com//'))).toBe(true);
+  });
+
+  it('submits the practice page a first classification makes indexable', () => {
+    const urls = indexNowUrlsForPublishedPractice(
+      'https://grandprixpicks.com',
+      'australia-2026',
+    );
+
+    // This is the whole point of the practice ping: before FP1 the page ships
+    // `noindex`, and nothing else tells a search engine that it stopped.
+    expect(urls).toContain(
+      'https://grandprixpicks.com/races/australia-2026/practice',
+    );
+    expect(urls).toContain('https://grandprixpicks.com/races/australia-2026');
+  });
+
+  it('does not spend practice quota on tables practice cannot move', () => {
+    const urls = indexNowUrlsForPublishedPractice(
+      'https://grandprixpicks.com',
+      'australia-2026',
+    );
+
+    // Nobody is scored on practice and no championship point changes hands, so
+    // submitting the standings would be asking Bing to recrawl an identical
+    // page.
+    expect(urls.some((url) => url.includes('/f1-standings'))).toBe(false);
+    expect(urls.some((url) => url.includes('/leaderboard'))).toBe(false);
+    expect(urls.some((url) => url.includes('/f1-team-mate-battles'))).toBe(
+      false,
+    );
+  });
+
+  it('does not double the slash for practice either', () => {
+    const urls = indexNowUrlsForPublishedPractice(
+      'https://grandprixpicks.com/',
+      'australia-2026',
+    );
+
     expect(urls.every((url) => !url.includes('.com//'))).toBe(true);
   });
 });

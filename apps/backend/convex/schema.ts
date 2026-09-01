@@ -335,6 +335,40 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
 
+  // One high-churn document per live race session. It doubles as the
+  // idempotency marker for the self-rescheduling worker: creating the empty
+  // document at lock time ensures duplicate lock jobs cannot start duplicate
+  // 15-second polling loops.
+  liveSnapshots: defineTable({
+    raceId: v.id('races'),
+    sessionType: v.union(v.literal('sprint'), v.literal('race')),
+    order: v.array(
+      v.object({
+        driverId: v.id('drivers'),
+        position: v.number(),
+        status: v.optional(
+          v.union(
+            v.literal('dnf'),
+            v.literal('dns'),
+            v.literal('dsq'),
+            v.literal('nc'),
+          ),
+        ),
+      }),
+    ),
+    standings: v.array(
+      v.object({
+        userId: v.id('users'),
+        rank: v.number(),
+        topFive: v.number(),
+        h2h: v.number(),
+        weekend: v.number(),
+      }),
+    ),
+    source: v.literal('openf1-position'),
+    updatedAt: v.number(),
+  }).index('by_raceId_and_sessionType', ['raceId', 'sessionType']),
+
   // Admin opt-in for warning players that a session's results will rely on
   // the delayed OpenF1 fallback instead of immediate manual publication.
   unattendedResultSessions: defineTable({

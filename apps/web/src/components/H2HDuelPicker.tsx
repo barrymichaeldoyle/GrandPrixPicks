@@ -159,7 +159,14 @@ export function H2HDuelPicker({
           ? nextAnywhere
           : Math.min(activeIndex + 1, matchups.length - 1);
 
-    shouldFocusDuelRef.current = true;
+    // Only ask for focus when the index actually moves. setActiveIndex with
+    // the value it already has bails out of the render, so the flag would
+    // survive to be consumed by a later render nobody asked for. The equal
+    // case is the clamp on the last duel, which goes finished and skips the
+    // focus move regardless.
+    if (nextIndex !== activeIndex) {
+      shouldFocusDuelRef.current = true;
+    }
     setActiveIndex(nextIndex);
   }
 

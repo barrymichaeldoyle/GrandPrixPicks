@@ -22,5 +22,9 @@
   {
     "name": "raceNewsMigrations:updateItaly2026MonzaNewsCopy",
     "args": {}
+  },
+  {
+    "name": "raceScheduleMigrations:correctSingapore2026SprintSchedule",
+    "args": {}
   }
 ]

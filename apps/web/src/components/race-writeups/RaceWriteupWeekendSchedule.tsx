@@ -2,6 +2,9 @@ type ScheduleRace = {
   fp1StartAt?: number;
   fp2StartAt?: number;
   fp3StartAt?: number;
+  hasSprint?: boolean;
+  sprintQualiStartAt?: number;
+  sprintStartAt?: number;
   qualiStartAt?: number;
   raceStartAt: number;
 };
@@ -31,13 +34,22 @@ export function RaceWriteupWeekendSchedule({
   timeZone: string;
   timeZoneLabel: string;
 }) {
-  const sessions = [
-    ['Practice 1', race.fp1StartAt],
-    ['Practice 2', race.fp2StartAt],
-    ['Practice 3', race.fp3StartAt],
-    ['Qualifying', race.qualiStartAt],
-    ['Grand Prix', race.raceStartAt],
-  ] as const;
+  const sessions: readonly (readonly [string, number | undefined])[] =
+    race.hasSprint
+      ? [
+          ['Practice 1', race.fp1StartAt],
+          ['Sprint Qualifying', race.sprintQualiStartAt],
+          ['Sprint', race.sprintStartAt],
+          ['Qualifying', race.qualiStartAt],
+          ['Grand Prix', race.raceStartAt],
+        ]
+      : [
+          ['Practice 1', race.fp1StartAt],
+          ['Practice 2', race.fp2StartAt],
+          ['Practice 3', race.fp3StartAt],
+          ['Qualifying', race.qualiStartAt],
+          ['Grand Prix', race.raceStartAt],
+        ];
 
   return (
     <section

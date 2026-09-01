@@ -74,6 +74,22 @@ const RACE_WRITEUPS = {
       'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',
     cta: 'Read the Sepang predictions',
   },
+  'singapore-2026': {
+    to: '/f1-2026-singapore-grand-prix-predictions',
+    reviewedAt: '2026-09-01',
+    label: 'Singapore predictions',
+    summary:
+      'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',
+    cta: 'Read the Singapore predictions',
+  },
+  'azerbaijan-2026': {
+    to: '/f1-2026-azerbaijan-grand-prix-predictions',
+    reviewedAt: '2026-09-01',
+    label: 'Baku predictions',
+    summary:
+      'Why Baku races on Saturday in 2026, where the lap is won and lost, and how to treat a mixed qualifying order.',
+    cta: 'Read the Baku predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-08-31',

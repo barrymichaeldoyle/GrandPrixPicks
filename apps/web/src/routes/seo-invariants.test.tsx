@@ -136,6 +136,24 @@ const ROUTES: {
     },
   },
   {
+    module: './f1-2026-singapore-grand-prix-predictions',
+    path: '/f1-2026-singapore-grand-prix-predictions',
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_791_720_000_000 },
+      },
+    },
+  },
+  {
+    module: './f1-2026-azerbaijan-grand-prix-predictions',
+    path: '/f1-2026-azerbaijan-grand-prix-predictions',
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_790_420_400_000 },
+      },
+    },
+  },
+  {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     args: {

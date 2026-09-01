@@ -64,6 +64,7 @@ import type * as push from "../push.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as raceNews from "../raceNews.js";
 import type * as raceNewsMigrations from "../raceNewsMigrations.js";
+import type * as raceScheduleMigrations from "../raceScheduleMigrations.js";
 import type * as races from "../races.js";
 import type * as reactionMigrations from "../reactionMigrations.js";
 import type * as results from "../results.js";
@@ -138,6 +139,7 @@ declare const fullApi: ApiFromModules<{
   pushNotifications: typeof pushNotifications;
   raceNews: typeof raceNews;
   raceNewsMigrations: typeof raceNewsMigrations;
+  raceScheduleMigrations: typeof raceScheduleMigrations;
   races: typeof races;
   reactionMigrations: typeof reactionMigrations;
   results: typeof results;

@@ -107,6 +107,12 @@ describe('sitemap.xml route', () => {
       '<loc>https://grandprixpicks.com/f1-2026-bahrain-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
     );
     expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
+    );
+    expect(xml).toContain(
+      '<loc>https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
+    );
+    expect(xml).toContain(
       '<loc>https://grandprixpicks.com/f1-2026-madrid-grand-prix-predictions</loc>\n    <lastmod>2026-08-31T00:00:00.000Z</lastmod>',
     );
     expect(xml).toContain('<loc>https://grandprixpicks.com/guides</loc>');

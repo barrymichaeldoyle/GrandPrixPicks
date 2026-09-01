@@ -1,4 +1,9 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import {
+  hasPendingEntryList,
+  lineupRoundForCalendarRound,
+  markPendingEntryDrivers,
+} from '@grandprixpicks/shared/pendingEntry';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -165,11 +170,19 @@ export const getHomePageData = query({
     // The landing picker must offer the grid that is actually racing next, so
     // the roster is resolved for the upcoming round: an injured driver is not
     // pickable and his stand-in is, each under the team they will drive for.
+    // When the entry list is still pending (Monza 2026), show the last agreed
+    // grid rather than the Zandvoort substitute lineup as confirmed.
+    const pickRound = nextRace
+      ? lineupRoundForCalendarRound(nextRace.season, nextRace.round)
+      : null;
     const drivers = nextRace
-      ? rosterForRound(
-          allDrivers,
-          await loadStintsForSeason(ctx, nextRace.season),
-          nextRace.round,
+      ? markPendingEntryDrivers(
+          nextRace.slug,
+          rosterForRound(
+            allDrivers,
+            await loadStintsForSeason(ctx, nextRace.season),
+            pickRound!,
+          ),
         )
       : allDrivers;
 
@@ -205,7 +218,7 @@ export const getHomePageData = query({
     // skeleton boxes waiting on a websocket round trip for data the SSR render
     // already had in hand.
     const h2hMatchups = nextRace
-      ? await loadMatchupsForSeason(ctx, nextRace.season, nextRace.round)
+      ? await loadMatchupsForSeason(ctx, nextRace.season, pickRound!)
       : [];
 
     const season = await getDefaultLeaderboardSeason(ctx);
@@ -241,6 +254,7 @@ export const getHomePageData = query({
       topPlayers,
       drivers,
       h2hMatchups,
+      entryListPending: nextRace ? hasPendingEntryList(nextRace.slug) : false,
     };
   },
 });

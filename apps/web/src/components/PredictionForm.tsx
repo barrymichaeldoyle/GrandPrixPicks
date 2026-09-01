@@ -381,6 +381,11 @@ function DraggableDriverCard({
             {surname}
           </span>
         ) : null}
+        {'entryUnconfirmed' in driver && driver.entryUnconfirmed ? (
+          <span className="text-[10px] leading-none text-text-muted">
+            Unconfirmed
+          </span>
+        ) : null}
       </span>
       {/* Appended after the visible text so the accessible name still starts
           with what is on the card. */}
@@ -527,7 +532,12 @@ export function PredictionForm({
   const liveDrivers = useQuery(
     api.drivers.listDrivers,
     race
-      ? { round: race.round, season: race.season, includeNotRacing: true }
+      ? {
+          round: race.round,
+          season: race.season,
+          includeNotRacing: true,
+          raceSlug: race.slug,
+        }
       : { includeNotRacing: true },
   );
   const drivers = liveDrivers ?? initialDrivers;

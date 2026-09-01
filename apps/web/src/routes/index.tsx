@@ -148,6 +148,7 @@ export const Route = createFileRoute('/')({
       topPlayers: data.topPlayers,
       drivers: data.drivers,
       h2hMatchups: data.h2hMatchups,
+      entryListPending: data.entryListPending,
       dashboard,
       /*
        * "The server rendered this viewer's page without their data", which is
@@ -253,6 +254,7 @@ function PublicLandingPage() {
     topPlayers,
     drivers,
     h2hMatchups,
+    entryListPending,
     now: serverNow,
   } = Route.useLoaderData();
   // The visible clocks only show whole minutes. Updating the entire landing
@@ -329,6 +331,7 @@ function PublicLandingPage() {
             sessionLabel={nextSession.label}
             initialDrivers={drivers}
             initialMatchups={h2hMatchups}
+            entryListPending={entryListPending}
           />
         ) : null}
 

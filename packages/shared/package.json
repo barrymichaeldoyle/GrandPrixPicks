@@ -23,6 +23,7 @@
     "./indexNow": "./src/indexNow.ts",
     "./internalPath": "./src/internalPath.ts",
     "./notifications": "./src/notifications.ts",
+    "./pendingEntry": "./src/pendingEntry.ts",
     "./picks": "./src/picks.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./reactions": "./src/reactions.ts",

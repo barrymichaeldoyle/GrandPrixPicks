@@ -1,3 +1,8 @@
+import {
+  lineupRoundForCalendarRound,
+  markPendingEntryDrivers,
+  pendingEntrySlugForCalendarRound,
+} from '@grandprixpicks/shared/pendingEntry';
 import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
@@ -19,6 +24,10 @@ export const listDrivers = query({
      */
     round: v.optional(v.number()),
     season: v.optional(v.number()),
+    /** When rendering a specific race, pass its slug so a pending entry list
+     * can resolve to the honest preview grid rather than the substitute
+     * lineup. */
+    raceSlug: v.optional(v.string()),
     /**
      * Also return drivers who are not racing this round, each flagged
      * `racing: false`. For callers that have to resolve a SAVED pick, which
@@ -35,7 +44,8 @@ export const listDrivers = query({
   handler: async (ctx, args) => {
     const current = await getCurrentSeasonAndRound(ctx);
     const season = args.season ?? current.season;
-    const round = args.round ?? current.round;
+    const requestedRound = args.round ?? current.round;
+    const round = lineupRoundForCalendarRound(season, requestedRound);
 
     // Sized for the whole table, not for a grid: every driver who has raced
     // this season has a row, including ones no longer in a seat, and the round
@@ -57,11 +67,18 @@ export const listDrivers = query({
       ? annotateRosterForRound(drivers, stints, round)
       : rosterForRound(drivers, stints, round);
 
+    const resolvedSlug =
+      args.raceSlug ??
+      pendingEntrySlugForCalendarRound(season, requestedRound);
+    const resolved = resolvedSlug
+      ? markPendingEntryDrivers(resolvedSlug, roster)
+      : roster;
+
     // The index gives alphabetical order, so both apps re-sorted this by hand
     // into team order and had to agree on the tie-breaks to stay in step.
     // Sorting here means the pool, the duel grid and the feed all come out of
     // the same championship, and a scored race moves them together.
     const teamPoints = await loadConstructorPoints(ctx, season);
-    return roster.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
+    return resolved.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
   },
 });

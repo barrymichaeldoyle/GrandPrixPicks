@@ -26,6 +26,7 @@ describe('site navigation', () => {
 
   it('keeps useful public pages reachable without exposing personal app destinations', () => {
     expect(footerPlayLinks).toEqual([
+      { to: '/f1-predictions-this-weekend', label: 'Predictions This Weekend' },
       { to: '/how-to-play', label: 'How to Play' },
       { to: '/guides', label: 'F1 Guides' },
       { to: '/races', label: 'Race Calendar', exact: true },

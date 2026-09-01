@@ -1,4 +1,8 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
+import {
+  markPendingEntryDrivers,
+  pendingEntryNoteForSlug,
+} from '@grandprixpicks/shared/pendingEntry';
 import { v } from 'convex/values';
 
 import type { Doc, Id } from './_generated/dataModel';
@@ -165,11 +169,17 @@ export const getHomePageData = query({
     // The landing picker must offer the grid that is actually racing next, so
     // the roster is resolved for the upcoming round: an injured driver is not
     // pickable and his stand-in is, each under the team they will drive for.
+    // A race still waiting on its entry list (Monza 2026) is offered as the
+    // lineup that last raced, with the seats that could still change flagged:
+    // see `pendingEntry.ts` for why this is a mark and not an earlier round.
     const drivers = nextRace
-      ? rosterForRound(
-          allDrivers,
-          await loadStintsForSeason(ctx, nextRace.season),
-          nextRace.round,
+      ? markPendingEntryDrivers(
+          nextRace.slug,
+          rosterForRound(
+            allDrivers,
+            await loadStintsForSeason(ctx, nextRace.season),
+            nextRace.round,
+          ),
         )
       : allDrivers;
 
@@ -241,6 +251,7 @@ export const getHomePageData = query({
       topPlayers,
       drivers,
       h2hMatchups,
+      entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,
     };
   },
 });

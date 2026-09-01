@@ -23,6 +23,7 @@ import {
 } from '@/components/PracticeResultsModal';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { StartPicksCta } from '@/components/StartPicksCta';
+import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { RaceScoreCard } from '@/components/RaceScoreCard/RaceScoreCard';
 import type { WeekendCardData } from '@/components/RaceScoreCard/types';
 import { Tooltip } from '@/components/Tooltip';
@@ -440,6 +441,7 @@ export function RaceEventPage({
         backLink={backLink}
         leaderboardLink={leaderboardLink}
         recapContent={recapContent}
+        writeupContent={<RaceWriteupCallout raceSlug={race.slug} />}
         raceReportContent={
           raceReport.length > 0 ? (
             <p className="gpp-reading-copy-lg mt-6 max-w-[68ch] text-text-muted">

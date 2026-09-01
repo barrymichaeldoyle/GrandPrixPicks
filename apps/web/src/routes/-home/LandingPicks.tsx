@@ -107,6 +107,7 @@ export function LandingPicks({
   initialDrivers,
   initialMatchups,
   initialStep = 'top5',
+  entryListNote = null,
 }: {
   raceId: Id<'races'>;
   raceName: string;
@@ -118,6 +119,12 @@ export function LandingPicks({
   initialDrivers: Doc<'drivers'>[];
   /** Same, for the team-mate step a returning visitor resumes straight onto. */
   initialMatchups?: H2HMatchup[];
+  /**
+   * What the official entry list has not settled yet, when it has not. Written
+   * beside the flagged seats it describes (`pendingEntry.ts`) so this line and
+   * the grid below it cannot disagree.
+   */
+  entryListNote?: string | null;
   /**
    * Initial funnel entry point. The default is the real signed-out journey;
    * focused previews can open directly on either teammate-pick state.
@@ -474,6 +481,11 @@ export function LandingPicks({
               ? 'Choose your Top 5'
               : 'Pick each team-mate winner'}
           </h2>
+          {entryListNote ? (
+            <p className="gpp-reading-copy mt-3 max-w-3xl text-sm text-text-muted">
+              {entryListNote}
+            </p>
+          ) : null}
         </div>
 
         <div

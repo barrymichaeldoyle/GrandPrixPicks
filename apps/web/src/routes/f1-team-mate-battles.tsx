@@ -25,6 +25,43 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
  */
 const SEASON = CURRENT_SEASON;
 const PATH = '/f1-team-mate-battles';
+
+/**
+ * Questions people actually type, answered in the page's own prose.
+ *
+ * Search Console has this page at position 4.0 for "where can i see a
+ * head-to-head comparison of teammates: qualifying record, race finishes, and
+ * points?" and 16.3 overall, with a cluster behind it that the page never
+ * answered in words: "h2h f1 meaning" (11.0), "f1 head to head" (51.0), "race
+ * h2h" (52.0), "f1 team mate head to head" (53.0).
+ *
+ * Each answer covers ground the "How these records are counted" section below
+ * does not. That section owns what a session win is, retirements and
+ * disqualifications, and grid penalties; repeating any of it here would be the
+ * same idea said twice on one page.
+ */
+const FAQS = [
+  {
+    question: 'What does H2H mean in Formula 1?',
+    answer:
+      'Head-to-head, usually shortened to H2H. It compares two drivers directly rather than placing them in the championship. On this page it always means the two drivers in the same team.',
+  },
+  {
+    question: 'What happens when a team changes its line-up mid-season?',
+    answer:
+      'The old pairing keeps the rounds it actually ran and the replacement starts a record of its own, each labelled with the rounds it covers. The two are never merged, because they are different contests.',
+  },
+  {
+    question: 'Do these records reset each season?',
+    answer: `Yes. Every record on this page covers the ${SEASON} season only.`,
+  },
+  {
+    question:
+      'Can a driver lead the head-to-head and still be behind on points?',
+    answer:
+      'Yes. The head-to-head counts sessions won, not points scored. A retirement from the lead costs a driver a full race win in points while changing only one session in this table.',
+  },
+] as const;
 type TeammateBattles = FunctionReturnType<typeof api.h2h.getTeammateBattles>;
 type BattleTeam = TeammateBattles['teams'][number];
 type BattleDriver = BattleTeam['drivers'][number];
@@ -100,6 +137,15 @@ export const Route = createFileRoute('/f1-team-mate-battles')({
                       dateModified: new Date(battles.lastUpdated).toISOString(),
                     }
                   : {}),
+              },
+              {
+                '@type': 'FAQPage',
+                '@id': `${siteConfig.url}${PATH}#faq`,
+                mainEntity: FAQS.map((faq) => ({
+                  '@type': 'Question',
+                  name: faq.question,
+                  acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+                })),
               },
               breadcrumbSchema(PATH, [
                 { name: 'Team-mate head-to-head', path: PATH },
@@ -448,6 +494,27 @@ function TeammateBattlesPage() {
               .
             </p>
           </div>
+        </section>
+
+        <section className="mt-10" aria-labelledby="common-questions">
+          <h2
+            id="common-questions"
+            className="font-title text-xl font-semibold text-text"
+          >
+            Common questions
+          </h2>
+          <dl className="mt-4 max-w-4xl border-t border-border">
+            {FAQS.map((faq) => (
+              <div key={faq.question} className="border-b border-border py-4">
+                <dt className="text-base font-semibold text-text">
+                  {faq.question}
+                </dt>
+                <dd className="mt-2 text-lg leading-7 text-text-muted">
+                  {faq.answer}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </section>
 
         <section className="mt-8 rounded-sm border border-accent/25 bg-accent-muted/20 p-6 text-center sm:p-8">

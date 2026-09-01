@@ -13,6 +13,7 @@ import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPha
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -27,6 +28,7 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import { SCHUMACHER_TRIBUTE_WRITEUP_IMAGE } from '@/lib/italy2026WriteUpImages';
 import {
   breadcrumbSchema,
   pageMeta,
@@ -956,6 +958,7 @@ function FerrariTribute() {
         >
           Ferrari runs a Schumacher tribute
         </h2>
+        <WriteUpNewsPhoto {...SCHUMACHER_TRIBUTE_WRITEUP_IMAGE} />
         <p className="gpp-reading-copy mt-4 text-text-muted">
           Ferrari has teased a one-off SF-26 livery for its home race, reported
           as red with black accents and gold wheels after the 1996 F310. It

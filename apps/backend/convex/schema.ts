@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import {
   reactionCountsValidator,
   reactionTypeValidator,
@@ -753,6 +754,11 @@ export default defineSchema({
      * circuit and belongs to no driver.
      */
     driverCodes: v.optional(v.array(v.string())),
+    /**
+     * Optional photo for race write-up pages only. The feed card deliberately
+     * does not render this field.
+     */
+    writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     /** Retraction without deletion, so a mistake leaves a trail. */
     active: v.boolean(),
     publishedAt: v.number(),

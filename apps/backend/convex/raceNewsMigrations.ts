@@ -4,6 +4,9 @@ import {
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
 } from './lib/italy2026MonzaNewsCopy';
+import { BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE } from './lib/raceNewsWriteUpImage';
+
+const BROWNING_NEWS_KEY = 'browning-williams-fp1';
 
 /**
  * Republish Barry-approved Monza write-up copy for the Alpine and Ferrari news
@@ -44,5 +47,48 @@ export const updateItaly2026MonzaNewsCopy = internalMutation({
     });
 
     return { alpine, ferrari };
+  },
+});
+
+/**
+ * Attach the Barry-approved Browning FP1 write-up photo without touching copy.
+ * Idempotent: safe to rerun on every deploy.
+ */
+export const addItaly2026BrowningWriteUpPhoto = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ action: string; key: string }> => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
+      .unique();
+    if (!race) {
+      return { action: 'race_not_found', key: BROWNING_NEWS_KEY };
+    }
+
+    const existing = await ctx.db
+      .query('raceNews')
+      .withIndex('by_race_key', (q) =>
+        q.eq('raceId', race._id).eq('key', BROWNING_NEWS_KEY),
+      )
+      .unique();
+    if (!existing) {
+      return { action: 'not_found', key: BROWNING_NEWS_KEY };
+    }
+
+    const image = BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE;
+    if (
+      existing.writeUpImage?.src === image.src &&
+      existing.writeUpImage.creditName === image.creditName &&
+      existing.writeUpImage.licenseName === image.licenseName
+    ) {
+      return { action: 'unchanged', key: BROWNING_NEWS_KEY };
+    }
+
+    await ctx.db.patch(existing._id, {
+      writeUpImage: image,
+      updatedAt: Date.now(),
+    });
+
+    return { action: 'updated', key: BROWNING_NEWS_KEY };
   },
 });

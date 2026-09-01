@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
@@ -12,6 +13,17 @@ type NewsDriver = {
   nationality: string | null;
 };
 
+type NewsWriteUpImage = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  creditName: string;
+  creditUrl: string;
+  licenseName: string;
+  licenseUrl: string;
+};
+
 type NewsItem = {
   key: string;
   headline: string;
@@ -20,6 +32,7 @@ type NewsItem = {
   sourceName: string;
   sourceUrl: string;
   drivers?: NewsDriver[];
+  writeUpImage?: NewsWriteUpImage;
 };
 
 /**
@@ -102,6 +115,9 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
               <h3 className="font-title text-lg font-medium text-text">
                 {item.headline}
               </h3>
+              {item.writeUpImage ? (
+                <WriteUpNewsPhoto {...item.writeUpImage} />
+              ) : null}
               <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
                 {item.body}
               </p>

@@ -299,7 +299,7 @@ function DraggableDriverCard({
   disabled: boolean;
   onTap: () => void;
 }) {
-  const { attributes, listeners, setNodeRef } = useDraggable({
+  const { listeners, setNodeRef } = useDraggable({
     id: driver._id,
     disabled,
   });
@@ -308,8 +308,11 @@ function DraggableDriverCard({
   return (
     <button
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      // Drag is pointer-only: dnd-kit's keyboard listener calls preventDefault
+      // on Enter/Space, which blocks native button activation (WCAG 2.1.1).
+      onPointerDown={(event) => {
+        listeners?.onPointerDown?.(event);
+      }}
       type="button"
       data-testid={`driver-${driver.code}`}
       onClick={(e) => {

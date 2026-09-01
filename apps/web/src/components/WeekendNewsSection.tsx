@@ -2,6 +2,10 @@ import { ExternalLink } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
 import { ScoringPolicyNote } from '@/components/ScoringPolicyNote';
+import {
+  WriteUpNewsPhoto,
+  type WriteUpNewsPhotoProps,
+} from '@/components/WriteUpNewsPhoto';
 import { TEAM_COLORS } from '@/lib/teamColors';
 
 type NewsDriver = {
@@ -20,6 +24,10 @@ type NewsItem = {
   sourceName: string;
   sourceUrl: string;
   drivers?: NewsDriver[];
+  // The component's own props, not a copy of them: these are forwarded whole
+  // with a spread, so a field added to the photo and to the Convex validator
+  // must not be silently dropped here with no type error.
+  writeUpImage?: WriteUpNewsPhotoProps;
 };
 
 /**
@@ -49,6 +57,20 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
   if (items.length === 0) {
     return null;
   }
+
+  // A photo makes its card roughly 200px taller than a text-only one, and the
+  // source row is pinned to the bottom, so the card beside it ends up with that
+  // much dead space between its last line and its attribution. An odd number of
+  // items also leaves the last cell of the grid empty. Both holes are the same
+  // hole: let the tall card span two rows and the text cards stack beside it.
+  //
+  // Only for an odd count, because that is when the spare cell exists. At an
+  // even count the grid is already full and spanning would open a new hole one
+  // row down.
+  const spanningKey =
+    items.length >= 3 && items.length % 2 === 1
+      ? items.find((item) => item.writeUpImage)?.key
+      : undefined;
 
   return (
     <section className="py-8 sm:py-16" aria-labelledby="weekend-news">
@@ -84,6 +106,8 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
             <article
               key={item.key}
               className={`flex flex-col bg-surface p-4 sm:p-6 ${
+                item.key === spanningKey ? 'sm:row-span-2' : ''
+              } ${
                 teamColour
                   ? // Cut to the house lean, direction from `gpp-lean-run`
                     // above. Deliberately not done to the same items in the
@@ -102,6 +126,9 @@ export function WeekendNewsSection({ items }: { items: NewsItem[] }) {
               <h3 className="font-title text-lg font-medium text-text">
                 {item.headline}
               </h3>
+              {item.writeUpImage ? (
+                <WriteUpNewsPhoto {...item.writeUpImage} />
+              ) : null}
               <p className="gpp-reading-copy mt-2 text-text-muted sm:mt-3">
                 {item.body}
               </p>

@@ -51,7 +51,7 @@ const HADJAR_SOURCE =
 const HADJAR_DECISION_SOURCE =
   'https://www.gpblog.com/en/news/hadjar-or-lawson-alongside-verstappen-at-red-bull-heres-when-red-bull-will-decide';
 const LIVERY_SOURCE =
-  'https://www.motorsport.com/f1/news/f1-ferrari-surprise-sf-26-to-run-special-michael-schumacher-livery-at-monza/10849464/';
+  'https://www.motorsport.com/f1/news/ferrari-unveils-michael-schumacher-inspired-f1-livery-for-italian-gp/10851263/';
 const SUITS_SOURCE =
   'https://www.motorsport.com/f1/news/ferrari-pays-tribute-to-michael-schumacher-with-special-italian-gp-race-suits/10850114/';
 const NORRIS_CONTRACT_SOURCE =
@@ -961,10 +961,9 @@ function FerrariTribute() {
             not agree. Stacked on a phone the photo belongs under the heading
             and above the prose; beside the text it starts at the top of the
             section, level with the eyebrow rather than a heading's height
-            below it. */}
-        {/* `auto 1fr` so the photo's extra height lands in the prose row.
-              Left implicit, both rows share it and a gap opens between the
-              heading and its first line. */}
+            below it. The rows are `auto 1fr` so the photo's extra height lands
+            in the prose row; left implicit, both rows share it and a gap opens
+            between the heading and its first line. */}
         <div className="md:grid md:grid-cols-[minmax(0,1fr)_auto] md:grid-rows-[auto_1fr] md:items-start md:gap-x-7">
           <div className="md:col-start-1 md:row-start-1 md:max-w-3xl">
             <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
@@ -982,10 +981,12 @@ function FerrariTribute() {
           </div>
           <div className="md:col-start-1 md:row-start-2 md:max-w-3xl md:min-w-0">
             <p className="gpp-reading-copy mt-4 text-text-muted">
-              Ferrari has teased a one-off SF-26 livery for its home race,
-              reported as red with black accents and gold wheels after the 1996
-              F310. It marks thirty years since Schumacher&rsquo;s first season
-              in red and his Italian Grand Prix win that year.
+              Ferrari has revealed a one-off SF-26 livery for Monza, thirty
+              years after Schumacher&rsquo;s first season in red. The car is
+              extra red, with the white gone from the engine cover, retro driver
+              numbers, Schumacher&rsquo;s signature on the cover, gold on the
+              BBS rims, and his seven stars on the nose. Barrichello and Vettel
+              will take the F2002 around on Saturday and Sunday.
             </p>
             <p className="gpp-reading-copy mt-3 text-text-muted">
               Hamilton and Leclerc&rsquo;s race suits are out: red with white
@@ -994,8 +995,7 @@ function FerrariTribute() {
               <ExternalSource href={SUITS_SOURCE}>
                 See the race suits
               </ExternalSource>
-              . Ferrari has yet to reveal the car, so treat the reported livery
-              details as unconfirmed.{' '}
+              .{' '}
               <ExternalSource href={LIVERY_SOURCE}>
                 Read the livery report
               </ExternalSource>

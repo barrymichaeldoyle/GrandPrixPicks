@@ -64,6 +64,44 @@ auditConfig:
     - GHSA-w3rx-r6r6-pgpr
     - GHSA-5p2g-fcmc-qvqq
 
+    # decode-uri-component DoS (GHSA-vcc3-ghjq-m6fr): decoding malformed
+    # percent-encoded input is superlinear. `decode()` retried the whole string
+    # once per token, and each retry ran a recursive splitter over the token
+    # array, so cost climbs far faster than input length. Measured on 0.2.2:
+    # 400 tokens (1.2 KB) takes 3.1s of blocked CPU, and the curve puts a ~10 KB
+    # string in the minutes. One malformed deep link is enough.
+    #
+    # Ignored for the same reason as image-size above: **we patch it
+    # ourselves**, and pnpm audit matches on version number, not file content,
+    # so 0.2.2 keeps matching the advisory forever. See
+    # patches/decode-uri-component@0.2.2.patch. The patch is upstream's own fix
+    # backported: `decode()` becomes a single left-to-right O(n) scan that
+    # decodes valid UTF-8 runs and emits everything else literally. Verified
+    # both ways: 32 inputs covering the BOM, lone continuation bytes, truncated
+    # sequences, `+`, bare `%` and multi-byte characters return byte-identical
+    # results to unpatched 0.2.2, and the 400-token input drops from 3118ms to
+    # 0ms (20,000 tokens: 5ms).
+    #
+    # Upgrading is not an option, and this is not a case of nobody having got
+    # to it yet. The advisory names >=0.4.3 as patched; **0.4.3 was never
+    # published**. The registry has 0.1.0, 0.2.0, 0.2.1, 0.2.2, 0.3.0, 0.4.0,
+    # 0.4.1, 0.5.0, so the only release outside the vulnerable range is 0.5.0,
+    # which is `"type": "module"`. The single consumer is CJS:
+    #   decode-uri-component@0.2.2 <- query-string@7.1.3 <- @react-navigation/
+    #   core@7.21.13 <- @react-navigation/native (all 6 paths)
+    # and query-string calls `require('decode-uri-component')(value)`. Against
+    # an ESM module that require returns the namespace object, not the
+    # function, so forcing 0.5.0 turns every deep link into a TypeError at
+    # runtime rather than a build error. (An override to 0.5.0 was tried on
+    # this branch in 4b21cc6 and reverted in e12bd9d.) 0.5.0 also drops the
+    # `+`-to-space replacement query-string@7 relies on: `a+b` decodes to
+    # `a b` on 0.2.2 and on this patch, `a+b` on 0.5.0.
+    #
+    # Revisit when @react-navigation/core drops query-string@7, or when
+    # query-string ships a CJS build depending on a fixed release. Either
+    # deletes the patch rather than updating it.
+    - GHSA-vcc3-ghjq-m6fr
+
 catalog:
   convex: 1.45.0
   typescript: 7.0.2
@@ -208,4 +246,5 @@ overrides:
   'hono@>=4.0.0 <4.12.34': 4.12.34
 
 patchedDependencies:
+  decode-uri-component@0.2.2: patches/decode-uri-component@0.2.2.patch
   image-size@1.2.1: patches/image-size@1.2.1.patch

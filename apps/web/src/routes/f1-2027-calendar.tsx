@@ -25,26 +25,26 @@ const LAST_REVIEWED = '1 September 2026';
 
 const PAGE_TITLE = 'F1 2027 Calendar | Grand Prix Picks';
 const PAGE_DESCRIPTION =
-  'The 2027 Formula 1 calendar is not official yet. Autumn announcement, the reported 24-race plan, and what happens if the opener has to move.';
+  'The 2027 F1 calendar is not official yet. F1 says it will publish in autumn 2026. Here is the 24-race plan being discussed and what happens if the opener moves.';
 
 const REPORTED_ROWS = [
   {
-    term: 'When it will be announced',
+    term: 'When it comes out',
     detail:
-      'Formula 1 has said it will publish the calendar in autumn 2026, and may still change it before the year is out.',
+      'Formula 1 has said autumn 2026. It may still change the list before the year ends.',
   },
   {
-    term: 'Season size',
+    term: 'How many races',
     detail:
-      '24 Grands Prix. Stefano Domenicali has said that still holds even if the opening races have to move.',
+      '24. F1 has said that number still holds if the first races have to move.',
   },
   {
-    term: 'Where it starts',
+    term: 'Season opener',
     detail:
-      'Bahrain in mid-March, then Saudi Arabia a week later. Reports currently have those as 12–14 March and 19–21 March.',
+      'Bahrain in mid-March, then Saudi Arabia a week later. Reports currently have 12–14 March and 19–21 March.',
   },
   {
-    term: 'Returning venues',
+    term: 'Tracks coming back',
     detail: 'Portimão and Istanbul Park.',
   },
   {
@@ -53,9 +53,9 @@ const REPORTED_ROWS = [
       'Bahrain, last week of February, on the current plan. Barcelona is the standby if that cannot happen.',
   },
   {
-    term: 'If Bahrain and Saudi Arabia cannot open the season',
+    term: 'If the Middle East races cannot run',
     detail:
-      'Formula 1 says it has other options. Reports have named China as a possible March start.',
+      'F1 says it has other options. Reports have named China as a possible March start.',
   },
 ] as const;
 
@@ -63,37 +63,36 @@ const FAQS = [
   {
     question: 'Has the 2027 F1 calendar been confirmed?',
     answer:
-      'Not yet. A Formula 1 calendar becomes official when the FIA World Motor Sport Council ratifies it, which usually happens in the autumn before the season it covers. Until that happens, treat every date in circulation as unofficial.',
+      'No. F1 has not published it, and the FIA has not ratified it. Treat every date you see as unofficial.',
   },
   {
-    question: 'When will the 2027 F1 calendar be announced?',
+    question: 'When will it be announced?',
     answer:
-      'Formula 1 has said it will be presented in the autumn. Stefano Domenicali has described that as a normal plan that can still be adjusted until the end of the year.',
+      'F1 has said autumn 2026, with room to change it before the year is out.',
   },
   {
-    question: 'When does the 2027 F1 season start?',
+    question: 'When does the 2027 season start?',
     answer:
-      'No start date is official. Current reporting puts Bahrain on the weekend of 12–14 March, with Saudi Arabia the following weekend, but nothing is confirmed until the calendar is ratified.',
+      'Nothing is official. Reports have Bahrain on 12–14 March and Saudi Arabia the next weekend.',
   },
   {
-    question: 'How many races will there be in 2027?',
-    answer:
-      "Reporting, and F1's own target, has pointed to 24 Grands Prix. For comparison, the 2026 season on Grand Prix Picks runs to 22 rounds.",
+    question: 'How many races in 2027?',
+    answer: 'F1 is targeting 24. The 2026 season on this site has 22.',
   },
   {
-    question: 'What if Bahrain and Jeddah cannot run?',
+    question: 'What if Bahrain and Saudi Arabia cannot open the season?',
     answer:
-      'Nothing is locked. Domenicali has said F1 has other plans if the Middle East situation is not resolved, and that the 24-race target still stands. Reporting has pointed to China as a possible season opener in that case.',
+      'F1 says it has other plans. Reports have pointed to China as a possible March opener.',
   },
   {
-    question: 'Will there be sprint races in 2027?',
+    question: 'Will there be sprints in 2027?',
     answer:
-      'Almost certainly, though the number and the venues are not confirmed. Recent seasons have run six sprint weekends, each replacing two practice sessions with sprint qualifying and a short race.',
+      'Almost certainly, but the number and venues are not set. Recent seasons have used six sprint weekends.',
   },
   {
-    question: 'Where will the confirmed 2027 dates appear?',
+    question: 'Where will the official dates appear?',
     answer:
-      'On this page, and on the race calendar once the rounds are loaded. Predictions open per round, so each Grand Prix becomes playable as its sessions are scheduled.',
+      'On this page, and on the 2027 race list once the rounds are loaded.',
   },
 ] as const;
 
@@ -105,8 +104,7 @@ export const Route = createFileRoute('/f1-2027-calendar')({
       title: PAGE_TITLE,
       description: PAGE_DESCRIPTION,
       path: '/f1-2027-calendar',
-      imageAlt:
-        'F1 2027 calendar: unofficial status and the reported 24-race plan',
+      imageAlt: 'F1 2027 calendar, still unofficial',
     });
     return {
       ...meta,
@@ -158,49 +156,38 @@ function F1Calendar2027Page() {
               The 2027 F1 calendar
             </h1>
             <span className="inline-flex w-fit items-center rounded-full border border-warning/35 bg-warning-muted/40 px-3 py-1 text-xs font-semibold text-warning">
-              No date confirmed
+              Unofficial
             </span>
           </div>
           <p className="gpp-label mt-3 text-text-muted">
             Last reviewed {LAST_REVIEWED}
           </p>
           <p className="gpp-reading-copy mt-4 text-text-muted">
-            No 2027 date is confirmed. Formula 1 has said the calendar will be
-            presented in autumn 2026. Until the FIA World Motor Sport Council
-            ratifies it, treat the rest of this page as unofficial.
+            Formula 1 has not signed off a 2027 calendar. It has said it will
+            publish one in autumn 2026. Dates can still move after that, until
+            the FIA ratifies the list.
           </p>
         </header>
 
-        <section aria-labelledby="reported-plan" className="mt-10 sm:mt-12">
-          <p className="gpp-label mb-1 text-accent uppercase">Reported plan</p>
+        <section aria-labelledby="plan-so-far" className="mt-10 sm:mt-12">
           <h2
-            id="reported-plan"
+            id="plan-so-far"
             className="font-title text-2xl font-semibold text-text sm:text-3xl"
           >
-            What is being reported
+            The 2027 plan so far
           </h2>
           <p className="gpp-reading-copy mt-3 max-w-3xl text-text-muted">
-            Nothing here is official yet. Last reviewed {LAST_REVIEWED}.
+            Last reviewed {LAST_REVIEWED}.
           </p>
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[20rem] table-fixed border-collapse text-sm sm:min-w-[36rem] sm:table-auto">
               <caption className="sr-only">
                 Unofficial 2027 Formula 1 calendar details.
               </caption>
-              <thead>
-                <tr className="border-b border-border bg-surface-muted/50 text-left">
-                  <th
-                    scope="col"
-                    className="w-[38%] px-4 py-3 text-xs font-semibold tracking-label text-text-muted uppercase sm:w-52"
-                  >
-                    Topic
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-3 text-xs font-semibold tracking-label text-text-muted uppercase"
-                  >
-                    Reported detail
-                  </th>
+              <thead className="sr-only">
+                <tr>
+                  <th scope="col">Item</th>
+                  <th scope="col">Detail</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,34 +208,24 @@ function F1Calendar2027Page() {
             </table>
           </div>
           <p className="gpp-reading-meta mt-4 rounded-lg border border-border/70 bg-surface-muted/30 px-4 py-3 text-text-muted">
-            Treat all of it as provisional. Calendars change between the first
-            reports and ratification.
+            Dates can still move before the FIA list is final.
           </p>
         </section>
 
-        <section aria-labelledby="common-questions" className="mt-12 sm:mt-16">
-          <p className="gpp-label mb-1 text-accent uppercase">Questions</p>
+        <section aria-labelledby="questions" className="mt-12 sm:mt-16">
           <h2
-            id="common-questions"
+            id="questions"
             className="font-title text-2xl font-semibold text-text"
           >
-            Common questions
+            Questions
           </h2>
           <dl className="mt-7 border-t border-border">
-            {FAQS.map((faq, index) => (
+            {FAQS.map((faq) => (
               <div
                 key={faq.question}
                 className="border-b border-border py-5 sm:grid sm:grid-cols-[minmax(0,1fr)_1.35fr] sm:items-start sm:gap-8 sm:py-6"
               >
-                <dt className="font-semibold text-text">
-                  <span
-                    className="mr-2 font-mono text-xs font-normal text-text-muted tabular-nums"
-                    aria-hidden
-                  >
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  {faq.question}
-                </dt>
+                <dt className="font-semibold text-text">{faq.question}</dt>
                 <dd className="gpp-reading-copy mt-2 text-text-muted sm:mt-0">
                   {faq.answer}
                 </dd>
@@ -265,35 +242,24 @@ function F1Calendar2027Page() {
             id="season-shape"
             className="text-base font-semibold text-text-muted"
           >
-            What a season usually looks like
+            A normal F1 season
           </h2>
           <p className="gpp-reading-meta mt-3 text-text-muted">
-            The shape of a season is far more predictable than its dates. The
-            2026 season on this site runs to 22 rounds, opening in early March
-            and finishing in the back half of the year, with six of those
-            weekends run to the sprint format.
-          </p>
-          <p className="gpp-reading-meta mt-3 border-l-2 border-border pl-4 text-text-muted">
-            A conventional weekend gives three practice sessions, then
-            qualifying, then the Grand Prix. A sprint weekend cuts practice to
-            one session and adds sprint qualifying and a short race on Saturday,
-            which means four scoreable sessions here instead of two.
-          </p>
-          <p className="gpp-reading-meta mt-3 text-text-muted">
-            None of that depends on the 2027 calendar being published, so it is
-            worth understanding before the dates land.
+            A season runs from March to December. A normal weekend is practice,
+            qualifying, then the race. A sprint weekend drops two practices and
+            adds a short Saturday race.
           </p>
         </section>
 
         <aside
-          aria-labelledby="while-you-wait"
+          aria-labelledby="this-season"
           className="mt-10 rounded-xl border border-border bg-surface p-5 sm:mt-12 sm:p-6"
         >
           <h2
-            id="while-you-wait"
+            id="this-season"
             className="font-title text-lg font-semibold text-text"
           >
-            While you wait for 2027
+            This season
           </h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             <li>
@@ -310,8 +276,7 @@ function F1Calendar2027Page() {
                   />
                 </span>
                 <span className="gpp-reading-meta mt-2 text-text-muted">
-                  Every round of the current season, with session times and the
-                  lock time for each one.
+                  Session times and lock times for every round this year.
                 </span>
               </Link>
             </li>
@@ -330,7 +295,7 @@ function F1Calendar2027Page() {
                   />
                 </span>
                 <span className="gpp-reading-meta mt-2 text-text-muted">
-                  Session by session, and what each one is actually for.
+                  Each session, and what it is for.
                 </span>
               </Link>
             </li>

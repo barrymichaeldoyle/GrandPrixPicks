@@ -4,9 +4,7 @@ import { internalMutation } from './_generated/server';
 import { scheduleSessionLockNotifications } from './inAppNotifications';
 import { scheduleReminder } from './notifications';
 
-const SINGAPORE_2026_SPRINT_QUALIFYING = Date.parse(
-  '2026-10-09T12:30:00Z',
-);
+const SINGAPORE_2026_SPRINT_QUALIFYING = Date.parse('2026-10-09T12:30:00Z');
 const SINGAPORE_2026_SPRINT = Date.parse('2026-10-10T09:00:00Z');
 
 /** Correct the two sprint sessions that were originally stored one day late. */

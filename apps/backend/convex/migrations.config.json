@@ -18,5 +18,9 @@
   {
     "name": "reactionMigrations:backfillFeedReactionCounts",
     "args": {}
+  },
+  {
+    "name": "raceNewsMigrations:updateItaly2026MonzaNewsCopy",
+    "args": {}
   }
 ]

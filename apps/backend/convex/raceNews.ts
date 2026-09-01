@@ -385,6 +385,11 @@ export const publish = internalMutation({
       sourceName: args.sourceName,
       sourceUrl: args.sourceUrl,
       driverCodes,
+      // Spread rather than assigned, so republishing corrected copy for an item
+      // that has a photo does not have to restate the photo to keep it. The
+      // trade is that `publish` cannot clear one: `patch` leaves an omitted key
+      // alone. A photo attached to the wrong item comes off with `retract` and
+      // a republish, or a hand patch.
       ...(args.writeUpImage !== undefined
         ? { writeUpImage: args.writeUpImage }
         : {}),

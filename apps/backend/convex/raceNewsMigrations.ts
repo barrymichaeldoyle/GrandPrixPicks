@@ -14,12 +14,7 @@ import {
 const BROWNING_NEWS_KEY = 'browning-williams-fp1' as const;
 
 const addItaly2026BrowningWriteUpPhotoResultValidator = v.object({
-  action: v.union(
-    v.literal('race_not_found'),
-    v.literal('not_found'),
-    v.literal('unchanged'),
-    v.literal('updated'),
-  ),
+  action: v.union(v.literal('unchanged'), v.literal('updated')),
   key: v.literal(BROWNING_NEWS_KEY),
 });
 
@@ -78,7 +73,7 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
       .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
       .unique();
     if (!race) {
-      return { action: 'race_not_found' as const, key: BROWNING_NEWS_KEY };
+      throw new Error('italy-2026 race not found');
     }
 
     const existing = await ctx.db
@@ -88,7 +83,14 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
       )
       .unique();
     if (!existing) {
-      return { action: 'not_found' as const, key: BROWNING_NEWS_KEY };
+      // Loud, because the deploy runner only fails on a non-zero exit: a
+      // returned `not_found` would print into the build log and go green, and
+      // the photo would silently never appear. Retraction sets `active: false`
+      // rather than deleting, so the row survives anything short of a hand
+      // deletion and this cannot start failing deploys on its own.
+      throw new Error(
+        `No italy-2026 news item with key "${BROWNING_NEWS_KEY}". Publish it before attaching the photo.`,
+      );
     }
 
     const image = BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE;

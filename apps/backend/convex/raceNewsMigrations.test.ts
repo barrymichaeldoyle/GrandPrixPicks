@@ -80,4 +80,41 @@ describe('addItaly2026BrowningWriteUpPhoto', () => {
       writeUpImage: BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE,
     });
   });
+
+  it('fails loudly when the news item it patches is missing', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 13,
+        name: 'Italian Grand Prix',
+        slug: 'italy-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_000,
+        status: 'upcoming',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+    });
+
+    // The deploy runner only fails on a non-zero exit, so a returned
+    // `not_found` would go green with the photo silently unattached.
+    await expect(
+      t.mutation(
+        internal.raceNewsMigrations.addItaly2026BrowningWriteUpPhoto,
+        {},
+      ),
+    ).rejects.toThrow('browning-williams-fp1');
+  });
+
+  it('fails loudly when the race is missing', async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.mutation(
+        internal.raceNewsMigrations.addItaly2026BrowningWriteUpPhoto,
+        {},
+      ),
+    ).rejects.toThrow('italy-2026');
+  });
 });

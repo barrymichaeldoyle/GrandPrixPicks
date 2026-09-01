@@ -66,6 +66,14 @@ const RACE_WRITEUPS = {
       'What matters at Monza, where the overtakes happen, the tyre choice, and the driver news that moves the grid.',
     cta: 'Read the Monza predictions',
   },
+  'bahrain-2026': {
+    to: '/f1-2026-bahrain-grand-prix-predictions',
+    reviewedAt: '2026-09-01',
+    label: 'Sepang predictions',
+    summary:
+      'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',
+    cta: 'Read the Sepang predictions',
+  },
   'madrid-2026': {
     to: '/f1-2026-madrid-grand-prix-predictions',
     reviewedAt: '2026-08-31',

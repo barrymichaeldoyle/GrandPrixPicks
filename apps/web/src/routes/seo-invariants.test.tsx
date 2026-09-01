@@ -127,6 +127,15 @@ const ROUTES: {
     },
   },
   {
+    module: './f1-2026-bahrain-grand-prix-predictions',
+    path: '/f1-2026-bahrain-grand-prix-predictions',
+    args: {
+      loaderData: {
+        race: { raceStartAt: 1_791_097_200_000 },
+      },
+    },
+  },
+  {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     args: {

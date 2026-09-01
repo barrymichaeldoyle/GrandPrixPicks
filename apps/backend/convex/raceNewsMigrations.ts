@@ -11,7 +11,14 @@ import {
  */
 export const updateItaly2026MonzaNewsCopy = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  // The return type is annotated rather than inferred. This module is part of
+  // `internal`, and the handler calls `internal.raceNews.publish`, so inferring
+  // it makes the type depend on itself: TS7022, and the backend then emits no
+  // declarations at all. Every Convex query type in the web app degrades to
+  // `{}` when that happens, which is a repo-wide typecheck failure traced back
+  // to one missing annotation. Nothing reads these two values, so `unknown`
+  // is the honest shape and keeps the cycle broken.
+  handler: async (ctx): Promise<{ alpine: unknown; ferrari: unknown }> => {
     const alpine = await ctx.runMutation(internal.raceNews.publish, {
       raceSlug: 'italy-2026',
       key: 'colapinto-alpine-upgrade',

@@ -13,8 +13,10 @@ This process applies to every route registered in
 ## Publishing overlap
 
 Work on consecutive write-ups overlaps. Publish the next race's durable page
-seven to ten days before its first practice session. Do not wait for the current
-race to finish.
+four to six weeks before its first practice session. A new page needs time to be
+crawled and indexed before race-week demand arrives. Do not wait for the current
+race to finish, and do not delay the durable foundation while waiting for
+weekend-specific news.
 
 After the current race, complete one archive pass and move editorial attention
 to the next round:

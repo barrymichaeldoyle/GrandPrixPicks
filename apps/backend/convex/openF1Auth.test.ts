@@ -36,8 +36,10 @@ describe('OpenF1 paid access', () => {
 
     const tokenRequest = fetchMock.mock.calls[0];
     expect(tokenRequest?.[0]).toBe('https://api.openf1.org/token');
-    const tokenBody = tokenRequest?.[1]?.body as URLSearchParams | undefined;
-    expect(String(tokenBody?.get('username'))).toBe('paid@example.com');
+    const tokenBody = tokenRequest?.[1]?.body;
+    expect(typeof tokenBody).toBe('string');
+    const tokenParams = new URLSearchParams(tokenBody as string);
+    expect(tokenParams.get('username')).toBe('paid@example.com');
     expect(
       new Headers(fetchMock.mock.calls[1]?.[1]?.headers).get('Authorization'),
     ).toBe('Bearer paid-token');

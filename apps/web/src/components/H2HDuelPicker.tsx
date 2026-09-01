@@ -175,13 +175,16 @@ export function H2HDuelPicker({
     if (!shouldFocusDuelRef.current) {
       return;
     }
+    // Consume the request either way. A finished card has no duel to focus,
+    // and leaving the flag set would fire this move later, on a render the
+    // user never asked to be pulled into.
+    shouldFocusDuelRef.current = false;
     const finishedCard =
       (complete && editingIndex === null) ||
       (collapsedEdit === 'modal' && complete && editingIndex !== null);
     if (finishedCard) {
       return;
     }
-    shouldFocusDuelRef.current = false;
     focusActiveDuel();
   }, [activeIndex, collapsedEdit, complete, editingIndex]);
 

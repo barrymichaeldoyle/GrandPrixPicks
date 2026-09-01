@@ -10,15 +10,15 @@ Read `docs/product-voice.md` before writing any player-facing string here.
 
 Do not rebuild these. Read them first.
 
-| Concern | Where | State |
-| --- | --- | --- |
-| Poll OpenF1 after a session, publish, score | `openF1Results.pollDueResults`, 5-minute cron | Live, unconditional |
-| Session discovery, payload validation, driver-number mapping | `openF1Results.parseOpenF1Results`, `fetchOfficialClassification` | Live |
-| Publish + score + notify once | `results.autoPublishResults` → `publishResultsCore` | Live |
-| Reconcile against the official classification | `resultsRecheck`, at +3h / +12h / +72h (`lib/recheckSchedule.ts`) | Live |
-| Amend / rollback | `results.adminRollbackResults`, admin UI | Live |
-| Deploy-time smoke test | `openF1Results.smokeTest` | Live |
-| Delay banner when Barry is away | `openF1Results.adminSetUnattended` | Live |
+| Concern                                                      | Where                                                             | State               |
+| ------------------------------------------------------------ | ----------------------------------------------------------------- | ------------------- |
+| Poll OpenF1 after a session, publish, score                  | `openF1Results.pollDueResults`, 5-minute cron                     | Live, unconditional |
+| Session discovery, payload validation, driver-number mapping | `openF1Results.parseOpenF1Results`, `fetchOfficialClassification` | Live                |
+| Publish + score + notify once                                | `results.autoPublishResults` → `publishResultsCore`               | Live                |
+| Reconcile against the official classification                | `resultsRecheck`, at +3h / +12h / +72h (`lib/recheckSchedule.ts`) | Live                |
+| Amend / rollback                                             | `results.adminRollbackResults`, admin UI                          | Live                |
+| Deploy-time smoke test                                       | `openF1Results.smokeTest`                                         | Live                |
+| Delay banner when Barry is away                              | `openF1Results.adminSetUnattended`                                | Live                |
 
 `getDuePolls` takes every scoring session of every non-cancelled race in the
 last four days and publishes the first valid result it sees. There is no flag

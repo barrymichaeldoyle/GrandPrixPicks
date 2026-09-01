@@ -13,6 +13,7 @@ import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPha
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -27,6 +28,7 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import { SCHUMACHER_TRIBUTE_WRITEUP_IMAGE } from '@/lib/italy2026WriteUpImages';
 import {
   breadcrumbSchema,
   pageMeta,
@@ -939,42 +941,68 @@ function FerrariTribute() {
       {/* The one section whose subject is a team's own colour, so it gets the
           same 3px bar the driver badges use rather than a fourth kind of
           accent. Ferrari red is read from the tokens, not typed in here. */}
+      {/* The one write-up section wider than the `max-w-3xl` the others use.
+          The prose still stops at that measure: the extra width is the margin
+          the photo sits in, which would otherwise be empty page. */}
       <div
-        className="gpp-team-bar max-w-3xl pl-4"
+        className="gpp-team-bar pl-4"
         style={
           {
             '--team-colour': TEAM_COLORS.Ferrari ?? FALLBACK_TEAM_COLOR,
           } as CSSProperties
         }
       >
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Weekend colour
-        </p>
-        <h2
-          id="ferrari-tribute"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
-        >
-          Ferrari runs a Schumacher tribute
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Ferrari has teased a one-off SF-26 livery for its home race, reported
-          as red with black accents and gold wheels after the 1996 F310. It
-          marks thirty years since Schumacher&rsquo;s first season in red and
-          his Italian Grand Prix win that year.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Hamilton and Leclerc&rsquo;s race suits are out: red with white
-          stripes, and seven stars on the back for Schumacher&rsquo;s titles.{' '}
-          <ExternalSource href={SUITS_SOURCE}>
-            See the race suits
-          </ExternalSource>
-          . Ferrari has yet to reveal the car, so treat the reported livery
-          details as unconfirmed.{' '}
-          <ExternalSource href={LIVERY_SOURCE}>
-            Read the livery report
-          </ExternalSource>
-          .
-        </p>
+        {/* Two columns from `md` up, one on a phone. A portrait photo at the
+            width of a reading column pushes every word of the section below the
+            fold and stretches the Ferrari bar past the copy it marks; in the
+            margin beside the text it stays a supporting picture.
+
+            Placed explicitly rather than by source order, because the two do
+            not agree. Stacked on a phone the photo belongs under the heading
+            and above the prose; beside the text it starts at the top of the
+            section, level with the eyebrow rather than a heading's height
+            below it. */}
+        {/* `auto 1fr` so the photo's extra height lands in the prose row.
+              Left implicit, both rows share it and a gap opens between the
+              heading and its first line. */}
+        <div className="md:grid md:grid-cols-[minmax(0,1fr)_auto] md:grid-rows-[auto_1fr] md:items-start md:gap-x-7">
+          <div className="md:col-start-1 md:row-start-1 md:max-w-3xl">
+            <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+              Weekend colour
+            </p>
+            <h2
+              id="ferrari-tribute"
+              className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            >
+              Ferrari runs a Schumacher tribute
+            </h2>
+          </div>
+          <div className="md:col-start-2 md:row-span-2 md:row-start-1 md:w-56 lg:w-72">
+            <WriteUpNewsPhoto {...SCHUMACHER_TRIBUTE_WRITEUP_IMAGE} />
+          </div>
+          <div className="md:col-start-1 md:row-start-2 md:max-w-3xl md:min-w-0">
+            <p className="gpp-reading-copy mt-4 text-text-muted">
+              Ferrari has teased a one-off SF-26 livery for its home race,
+              reported as red with black accents and gold wheels after the 1996
+              F310. It marks thirty years since Schumacher&rsquo;s first season
+              in red and his Italian Grand Prix win that year.
+            </p>
+            <p className="gpp-reading-copy mt-3 text-text-muted">
+              Hamilton and Leclerc&rsquo;s race suits are out: red with white
+              stripes, and seven stars on the back for Schumacher&rsquo;s
+              titles.{' '}
+              <ExternalSource href={SUITS_SOURCE}>
+                See the race suits
+              </ExternalSource>
+              . Ferrari has yet to reveal the car, so treat the reported livery
+              details as unconfirmed.{' '}
+              <ExternalSource href={LIVERY_SOURCE}>
+                Read the livery report
+              </ExternalSource>
+              .
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -24,6 +24,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:addItaly2026BrowningWriteUpPhoto",
+    "args": {}
+  },
+  {
     "name": "raceScheduleMigrations:correctSingapore2026SprintSchedule",
     "args": {}
   }

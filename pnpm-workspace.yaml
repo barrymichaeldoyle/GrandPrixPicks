@@ -162,6 +162,7 @@ overrides:
   'brace-expansion@>=1.0.0 <1.1.18': 1.1.18
   'brace-expansion@>=2.0.0 <2.1.4': 2.1.4
   'brace-expansion@>=3.0.0 <5.0.9': 5.0.9
+  'decode-uri-component@<=0.4.2': 0.5.0
   'dompurify@<3.4.13': 3.4.13
   'h3@<2.0.1-rc.21': 2.0.1-rc.21
   'lodash@<4.18.0': 4.18.1

@@ -1,5 +1,4 @@
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
-import { lineupRoundForCalendarRound } from '@grandprixpicks/shared/pendingEntry';
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import { v } from 'convex/values';
 
@@ -161,12 +160,10 @@ export const getMatchupsForSeason = query({
   args: { season: v.optional(v.number()), round: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const current = await getCurrentSeasonAndRound(ctx);
-    const season = args.season ?? current.season;
-    const requestedRound = args.round ?? current.round;
     return await loadMatchupsForSeason(
       ctx,
-      season,
-      lineupRoundForCalendarRound(season, requestedRound),
+      args.season ?? current.season,
+      args.round ?? current.round,
     );
   },
 });

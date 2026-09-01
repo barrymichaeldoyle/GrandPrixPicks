@@ -1,8 +1,7 @@
 import type { SessionType } from '@grandprixpicks/shared/sessions';
 import {
-  hasPendingEntryList,
-  lineupRoundForCalendarRound,
   markPendingEntryDrivers,
+  pendingEntryNoteForSlug,
 } from '@grandprixpicks/shared/pendingEntry';
 import { v } from 'convex/values';
 
@@ -170,18 +169,16 @@ export const getHomePageData = query({
     // The landing picker must offer the grid that is actually racing next, so
     // the roster is resolved for the upcoming round: an injured driver is not
     // pickable and his stand-in is, each under the team they will drive for.
-    // When the entry list is still pending (Monza 2026), show the last agreed
-    // grid rather than the Zandvoort substitute lineup as confirmed.
-    const pickRound = nextRace
-      ? lineupRoundForCalendarRound(nextRace.season, nextRace.round)
-      : null;
+    // A race still waiting on its entry list (Monza 2026) is offered as the
+    // lineup that last raced, with the seats that could still change flagged:
+    // see `pendingEntry.ts` for why this is a mark and not an earlier round.
     const drivers = nextRace
       ? markPendingEntryDrivers(
           nextRace.slug,
           rosterForRound(
             allDrivers,
             await loadStintsForSeason(ctx, nextRace.season),
-            pickRound!,
+            nextRace.round,
           ),
         )
       : allDrivers;
@@ -218,7 +215,7 @@ export const getHomePageData = query({
     // skeleton boxes waiting on a websocket round trip for data the SSR render
     // already had in hand.
     const h2hMatchups = nextRace
-      ? await loadMatchupsForSeason(ctx, nextRace.season, pickRound!)
+      ? await loadMatchupsForSeason(ctx, nextRace.season, nextRace.round)
       : [];
 
     const season = await getDefaultLeaderboardSeason(ctx);
@@ -254,7 +251,7 @@ export const getHomePageData = query({
       topPlayers,
       drivers,
       h2hMatchups,
-      entryListPending: nextRace ? hasPendingEntryList(nextRace.slug) : false,
+      entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,
     };
   },
 });

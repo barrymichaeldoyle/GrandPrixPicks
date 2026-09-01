@@ -366,25 +366,25 @@ function RootDocument({ children }: PropsWithChildren) {
               'var __name=(target,value)=>Object.defineProperty(target,"name",{value,configurable:true});',
           }}
         />
-        {/* Inline because it has to be in force for the very first paint. The
-            curtain markup itself is injected by the body script when needed. */}
+        {/* Blocking, and only on a document the server rendered logged out:
+            that is the one render the browser can already know is about to be
+            replaced. The curtain is drawn by the CSS, so nothing of it reaches
+            signed-out HTML. See `pre-paint-curtain.ts`. */}
         {initialAuth.isSignedIn ? null : (
-          <style dangerouslySetInnerHTML={{ __html: PRE_PAINT_CURTAIN_CSS }} />
+          <>
+            <style
+              dangerouslySetInnerHTML={{ __html: PRE_PAINT_CURTAIN_CSS }}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: prePaintCurtainScript(initialAuth.sessionCookieName),
+              }}
+            />
+          </>
         )}
         <HeadContent />
       </head>
       <body>
-        {/* Blocking at the top of `<body>` so the script can inject a curtain
-            when the browser holds a session the server did not render with.
-            The markup is not server-rendered: crawlers must not see "Signing
-            you in" in signed-out HTML. See `pre-paint-curtain.ts`. */}
-        {initialAuth.isSignedIn ? null : (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: prePaintCurtainScript(initialAuth.sessionCookieName),
-            }}
-          />
-        )}
         {/* The screen-blended atmosphere field and grain overlay that used to
             sit here are gone: backgrounds are flat colour in this system, and
             a full-viewport gradient is the single biggest thing standing
@@ -456,6 +456,16 @@ function RootDocument({ children }: PropsWithChildren) {
   );
 }
 
+/**
+ * The visible app frame.
+ *
+ * Only reason it is a component: while the sign-in curtain is up this has to go
+ * `inert`, so nothing behind the loader is focusable or reachable by a screen
+ * reader. `visibility: hidden` rather than `display: none` because the page
+ * underneath must keep mounting and fetching (its curtain gates depend on it).
+ * Outside a handoff `active` is false and this renders the same DOM it always
+ * did, with no extra attributes.
+ */
 function AppShell({ children }: PropsWithChildren) {
   const { active } = useAuthCurtain();
 

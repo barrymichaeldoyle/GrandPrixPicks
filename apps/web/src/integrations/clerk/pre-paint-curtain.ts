@@ -12,18 +12,26 @@
  * dashboard.
  *
  * Nothing in React can prevent that, because the flash happens before React
- * exists. So the reconciliation runs as a blocking script at the top of
- * `<body>`: it compares what the server just rendered against the cookie the
- * browser holds *now*, and when they disagree it marks the document and injects
- * the same loader `AuthCurtainHost` would, with no script of ours having had
- * to load first.
+ * exists. So the reconciliation runs as a blocking script in `<head>`: it
+ * compares what the server just rendered against the cookie the browser holds
+ * *now*, and when they disagree it marks the document. The accompanying CSS
+ * hides the shell and draws the loader, with no script of ours having had to
+ * load first.
  *
- * The curtain markup is injected here, not server-rendered. Crawlers and
- * signed-out SSR must not ship "Signing you in" in the HTML — `display:none`
- * is not enough for search snippets — so the loader only exists in the DOM when
- * this script creates it for a live session cookie the server missed. The
- * label is assembled at runtime inside the script so the signed-out document
- * source never carries that phrase as plain text.
+ * The curtain is drawn entirely in CSS, off pseudo-elements on `<html>`, and
+ * that is a deliberate constraint rather than a flourish:
+ *
+ * - **Nothing to clean up.** It exists exactly while the attribute is set, so
+ *   the moment `AuthCurtainHost` clears the attribute the curtain is gone. A
+ *   real element would have to be removed by whoever put it there, and the
+ *   component that clears the attribute is not that owner.
+ * - **Nothing for React to hydrate.** TanStack Start hydrates the whole
+ *   document, so a node injected into `<body>` before hydration sits inside the
+ *   hydration container and mismatches — on precisely the load this exists for.
+ * - **Nothing for a crawler to read.** Signed-out HTML must not ship "Signing
+ *   you in", and `display:none` is not a reliable guarantee against search
+ *   snippets. There is no copy here at all: this covers a sub-second gap and
+ *   hands over to `SigningInCurtain`, which is a real live region with a label.
  *
  * Only ever raised for signed-out-render + live-session-cookie. That direction
  * matters:
@@ -63,7 +71,7 @@ const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
  * the landing page from a genuinely signed-out visitor for eight seconds.
  */
 export function prePaintCurtainScript(sessionCookieName: string | null) {
-  return `(function(){try{var n=${JSON.stringify(sessionCookieName)},s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');function mount(){var existing=document.getElementById('gpp-pre-paint-curtain');if(existing)return;var el=document.createElement('div');el.id='gpp-pre-paint-curtain';el.className='fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page';el.setAttribute('role','status');el.setAttribute('aria-live','polite');var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','h-8 w-8 animate-spin text-accent motion-reduce:animate-none');svg.setAttribute('width','24');svg.setAttribute('height','24');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','2');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');svg.setAttribute('aria-hidden','true');var path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','M21 12a9 9 0 1 1-6.219-8.56');svg.appendChild(path);var label=document.createElement('p');label.className='text-xs font-semibold tracking-label text-text-muted uppercase';label.textContent=String.fromCharCode(83,105,103,110,105,110,103,32,121,111,117,32,105,110);el.appendChild(svg);el.appendChild(label);document.body.insertBefore(el,document.body.firstChild)}mount();setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');var curtain=document.getElementById('gpp-pre-paint-curtain');if(curtain)curtain.remove()},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
+  return `(function(){try{var n=${JSON.stringify(sessionCookieName)},s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}')},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
 }
 
 /**
@@ -73,7 +81,16 @@ export function prePaintCurtainScript(sessionCookieName: string | null) {
  * because it must beat every utility on the shell — including the `invisible`
  * that `AppShell` applies for React's own curtain, which is the same intent
  * expressed one lifecycle later.
+ *
+ * The token fallbacks are not decoration: this rule is parsed before the app
+ * stylesheet that defines `--page` and `--accent`, and a curtain that paints
+ * transparent is not a curtain. Sized and coloured to match `SigningInCurtain`
+ * so the handoff between the two loaders is invisible; change one, change both.
  */
 export const PRE_PAINT_CURTAIN_CSS = `
 html[${AUTH_HANDOFF_ATTRIBUTE}] [${APP_SHELL_ATTRIBUTE}]{visibility:hidden}
+html[${AUTH_HANDOFF_ATTRIBUTE}]::before{content:'';position:fixed;inset:0;z-index:150;background:var(--page,#101113)}
+html[${AUTH_HANDOFF_ATTRIBUTE}]::after{content:'';position:fixed;top:50%;left:50%;z-index:151;box-sizing:border-box;width:2rem;height:2rem;margin:-1rem 0 0 -1rem;border-radius:9999px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent,#d4ff3f);animation:gpp-pre-paint-spin .8s linear infinite}
+@keyframes gpp-pre-paint-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){html[${AUTH_HANDOFF_ATTRIBUTE}]::after{animation:none}}
 `.trim();

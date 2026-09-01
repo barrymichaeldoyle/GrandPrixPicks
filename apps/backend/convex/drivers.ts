@@ -1,5 +1,4 @@
 import {
-  lineupRoundForCalendarRound,
   markPendingEntryDrivers,
   pendingEntrySlugForCalendarRound,
 } from '@grandprixpicks/shared/pendingEntry';
@@ -40,8 +39,7 @@ export const listDrivers = query({
   handler: async (ctx, args) => {
     const current = await getCurrentSeasonAndRound(ctx);
     const season = args.season ?? current.season;
-    const requestedRound = args.round ?? current.round;
-    const round = lineupRoundForCalendarRound(season, requestedRound);
+    const round = args.round ?? current.round;
 
     // Sized for the whole table, not for a grid: every driver who has raced
     // this season has a row, including ones no longer in a seat, and the round
@@ -63,12 +61,11 @@ export const listDrivers = query({
       ? annotateRosterForRound(drivers, stints, round)
       : rosterForRound(drivers, stints, round);
 
-    const resolvedSlug = pendingEntrySlugForCalendarRound(
-      season,
-      requestedRound,
-    );
-    const resolved = resolvedSlug
-      ? markPendingEntryDrivers(resolvedSlug, roster)
+    // The roster is always this round's real lineup; a race still waiting on
+    // its entry list only gets its provisional seats flagged.
+    const pendingSlug = pendingEntrySlugForCalendarRound(season, round);
+    const marked = pendingSlug
+      ? markPendingEntryDrivers(pendingSlug, roster)
       : roster;
 
     // The index gives alphabetical order, so both apps re-sorted this by hand
@@ -76,6 +73,6 @@ export const listDrivers = query({
     // Sorting here means the pool, the duel grid and the feed all come out of
     // the same championship, and a scored race moves them together.
     const teamPoints = await loadConstructorPoints(ctx, season);
-    return resolved.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
+    return marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
   },
 });

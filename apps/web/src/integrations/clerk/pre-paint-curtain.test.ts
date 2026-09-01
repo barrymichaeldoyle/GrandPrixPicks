@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  APP_SHELL_ATTRIBUTE,
   AUTH_HANDOFF_ATTRIBUTE,
+  PRE_PAINT_CURTAIN_CSS,
   prePaintCurtainScript,
 } from './pre-paint-curtain';
 
@@ -71,6 +73,38 @@ describe('prePaintCurtainScript', () => {
     // that rendered perfectly well underneath it.
     expect(document.documentElement.hasAttribute(AUTH_HANDOFF_ATTRIBUTE)).toBe(
       false,
+    );
+  });
+});
+
+describe('PRE_PAINT_CURTAIN_CSS', () => {
+  it('draws the curtain off the attribute, so clearing it takes the curtain down', () => {
+    // The whole reason this is CSS: `AuthCurtainHost` clears the attribute when
+    // React's own curtain resolves, and it must not also have to find and
+    // remove markup somebody else created. Every rule that paints has to be
+    // scoped to the attribute, or the curtain outlives the handoff.
+    const painting = PRE_PAINT_CURTAIN_CSS.split('\n').filter(
+      (rule) => rule.includes('::before') || rule.includes('::after'),
+    );
+
+    expect(painting.length).toBeGreaterThan(0);
+    for (const rule of painting) {
+      expect(rule).toContain(`[${AUTH_HANDOFF_ATTRIBUTE}]`);
+    }
+  });
+
+  it('hides the shell it covers', () => {
+    expect(PRE_PAINT_CURTAIN_CSS).toContain(
+      `html[${AUTH_HANDOFF_ATTRIBUTE}] [${APP_SHELL_ATTRIBUTE}]{visibility:hidden}`,
+    );
+  });
+
+  it('ships no copy for a crawler to read', () => {
+    // Signed-out HTML carries this stylesheet inline. `SigningInCurtain` is
+    // where the label lives, and it only ever renders for a real session.
+    expect(PRE_PAINT_CURTAIN_CSS).not.toContain('Signing you in');
+    expect(prePaintCurtainScript('__client_uat_i2Gq7zuC')).not.toContain(
+      'Signing you in',
     );
   });
 });

@@ -51,7 +51,7 @@ export type RaceWriteup = {
 const RACE_WRITEUPS = {
   'italy-2026': {
     to: '/f1-2026-italian-grand-prix-predictions',
-    reviewedAt: '2026-08-31',
+    reviewedAt: '2026-09-01',
     label: 'Monza predictions',
     cta: 'Read the Monza predictions',
   },

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 
+import { raceNewsWriteUpImageValidator } from './lib/raceNewsWriteUpImage';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, query } from './_generated/server';
@@ -58,6 +59,7 @@ const raceNewsListResultValidator = v.object({
           nationality: v.union(v.string(), v.null()),
         }),
       ),
+      writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     }),
   ),
 });
@@ -182,6 +184,7 @@ async function listRaceNews(
       const driver = roster.get(code);
       return driver ? [driver] : [];
     }),
+    writeUpImage: row.writeUpImage,
   }));
 
   return {
@@ -325,6 +328,7 @@ export const publish = internalMutation({
      * team, a circuit or the weather belongs to no driver.
      */
     driverCodes: v.optional(v.array(v.string())),
+    writeUpImage: v.optional(raceNewsWriteUpImageValidator),
     dryRun: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -381,6 +385,14 @@ export const publish = internalMutation({
       sourceName: args.sourceName,
       sourceUrl: args.sourceUrl,
       driverCodes,
+      // Spread rather than assigned, so republishing corrected copy for an item
+      // that has a photo does not have to restate the photo to keep it. The
+      // trade is that `publish` cannot clear one: `patch` leaves an omitted key
+      // alone. A photo attached to the wrong item comes off with `retract` and
+      // a republish, or a hand patch.
+      ...(args.writeUpImage !== undefined
+        ? { writeUpImage: args.writeUpImage }
+        : {}),
       active: true,
       updatedAt: now,
     };

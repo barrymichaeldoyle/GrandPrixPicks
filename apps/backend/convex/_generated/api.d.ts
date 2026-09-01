@@ -45,6 +45,7 @@ import type * as lib_leaderboard from "../lib/leaderboard.js";
 import type * as lib_leaguePassword from "../lib/leaguePassword.js";
 import type * as lib_lineups from "../lib/lineups.js";
 import type * as lib_notificationChannels from "../lib/notificationChannels.js";
+import type * as lib_raceNewsWriteUpImage from "../lib/raceNewsWriteUpImage.js";
 import type * as lib_raceTimezones from "../lib/raceTimezones.js";
 import type * as lib_reactions from "../lib/reactions.js";
 import type * as lib_recheckSchedule from "../lib/recheckSchedule.js";
@@ -120,6 +121,7 @@ declare const fullApi: ApiFromModules<{
   "lib/leaguePassword": typeof lib_leaguePassword;
   "lib/lineups": typeof lib_lineups;
   "lib/notificationChannels": typeof lib_notificationChannels;
+  "lib/raceNewsWriteUpImage": typeof lib_raceNewsWriteUpImage;
   "lib/raceTimezones": typeof lib_raceTimezones;
   "lib/reactions": typeof lib_reactions;
   "lib/recheckSchedule": typeof lib_recheckSchedule;

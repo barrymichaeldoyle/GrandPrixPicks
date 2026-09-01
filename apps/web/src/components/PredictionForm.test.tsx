@@ -39,6 +39,10 @@ vi.mock('framer-motion', () => ({
   m: { div: ({ children }: { children?: ReactNode }) => children },
 }));
 
+const draggableOnKeyDown = vi.fn((event: Event) => {
+  event.preventDefault();
+});
+
 vi.mock('@dnd-kit/core', () => ({
   closestCenter: () => {},
   DndContext: ({ children }: { children?: ReactNode }) => children,
@@ -46,7 +50,10 @@ vi.mock('@dnd-kit/core', () => ({
   PointerSensor: {},
   useDraggable: () => ({
     attributes: { role: 'button', tabIndex: 0 },
-    listeners: {},
+    listeners: {
+      onPointerDown: vi.fn(),
+      onKeyDown: draggableOnKeyDown,
+    },
     setNodeRef: () => {},
     transform: null,
     isDragging: false,
@@ -245,6 +252,53 @@ describe('PredictionForm try-before-signup', () => {
       Array.from(driverButtons).every((driver) => driver.tagName === 'BUTTON'),
     ).toBe(true);
     expect(container.querySelector('[role="button"] button')).toBeNull();
+  });
+
+  it('adds a driver on Enter or Space instead of swallowing the key', async () => {
+    clearPredictionDraft(draftKey);
+    draggableOnKeyDown.mockClear();
+    await act(async () => {
+      root.render(<PredictionForm raceId={RACE_ID} />);
+    });
+
+    const driver = container.querySelector<HTMLButtonElement>(
+      '[data-testid="driver-D0"]',
+    );
+    expect(driver).not.toBeNull();
+
+    const keys = ['Enter', ' '].map(
+      (key) =>
+        new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }),
+    );
+    act(() => {
+      driver?.focus();
+      for (const key of keys) {
+        driver?.dispatchEvent(key);
+      }
+    });
+
+    // dnd-kit's draggable keyboard listener is what used to eat these: it
+    // preventDefaults Enter and Space to start a drag, so the browser never
+    // ran the button's activation behaviour.
+    expect(draggableOnKeyDown).not.toHaveBeenCalled();
+    expect(keys.map((key) => key.defaultPrevented)).toEqual([false, false]);
+
+    // jsdom stops at the keydown — it does not derive the click a browser
+    // fires from Enter on a button — so stand in for that activation and
+    // check the pick actually lands.
+    act(() => {
+      driver?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    // The pick landed in slot 1: the pool card carries its position and drops
+    // out of the pool. (The picks list itself renders through the `m.div`
+    // mock, which forwards children but not test ids.)
+    const picked = container.querySelector<HTMLButtonElement>(
+      '[data-testid="driver-D0"]',
+    );
+    expect(picked?.textContent).toContain('P1');
+    expect(picked?.textContent).toContain('already picked');
+    expect(picked?.disabled).toBe(true);
   });
 
   it('keeps completed-pick guidance compact and beside the heading', async () => {

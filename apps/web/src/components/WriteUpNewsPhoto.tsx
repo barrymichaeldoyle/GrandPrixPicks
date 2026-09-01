@@ -53,6 +53,7 @@ export function WriteUpNewsPhoto({
           {licenseName}
         </a>
         {modificationNote ? ` (${modificationNote})` : null}
+        {modificationNote ? ` (${modificationNote})` : null}
       </figcaption>
     </figure>
   );

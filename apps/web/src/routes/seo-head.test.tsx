@@ -276,7 +276,11 @@ describe('SEO head metadata', () => {
       | undefined;
     const description = head.meta?.find((tag) => tag.name === 'description');
     const graph = JSON.parse(head.scripts?.[0]?.children ?? '{}')['@graph'] as
-      | { '@type': string; numberOfItems?: number }[]
+      | {
+          '@type': string;
+          mainEntity?: { acceptedAnswer: { text: string }; name: string }[];
+          numberOfItems?: number;
+        }[]
       | undefined;
 
     expect(title?.title.length).toBeLessThanOrEqual(60);
@@ -290,12 +294,24 @@ describe('SEO head metadata', () => {
     ]);
     expect(graph?.map((node) => node['@type'])).toEqual([
       'WebPage',
+      'FAQPage',
       'BreadcrumbList',
       'ItemList',
     ]);
     expect(
       graph?.find((node) => node['@type'] === 'ItemList')?.numberOfItems,
     ).toBe(1);
+
+    // The FAQ is the page's answer to the "h2h f1 meaning" query cluster, so
+    // the term itself has to appear in a question, not only in the prose that
+    // happens to sit above it.
+    const faqs = graph?.find((node) => node['@type'] === 'FAQPage')?.mainEntity;
+    expect(faqs?.length).toBeGreaterThan(0);
+    expect(faqs?.some((faq) => faq.name.includes('H2H'))).toBe(true);
+    for (const faq of faqs ?? []) {
+      expect(faq.name.endsWith('?'), faq.name).toBe(true);
+      expect(faq.acceptedAnswer.text.length).toBeGreaterThan(40);
+    }
   });
 
   it('sends the pre-rename spelling on to the page permanently', async () => {

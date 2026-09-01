@@ -368,7 +368,8 @@ function RootDocument({ children }: PropsWithChildren) {
         />
         {/* Blocking, and only on a document the server rendered logged out:
             that is the one render the browser can already know is about to be
-            replaced. See `pre-paint-curtain.ts`. */}
+            replaced. The curtain is drawn by the CSS, so nothing of it reaches
+            signed-out HTML. See `pre-paint-curtain.ts`. */}
         {initialAuth.isSignedIn ? null : (
           <>
             <style
@@ -388,7 +389,6 @@ function RootDocument({ children }: PropsWithChildren) {
             sit here are gone: backgrounds are flat colour in this system, and
             a full-viewport gradient is the single biggest thing standing
             between the app and "calm". */}
-        {initialAuth.isSignedIn ? null : <PrePaintCurtain />}
         <AppMotionProvider>
           <InitialAuthProvider value={initialAuth}>
             <AppRuntimeBoundary
@@ -453,38 +453,6 @@ function RootDocument({ children }: PropsWithChildren) {
         <Scripts />
       </body>
     </html>
-  );
-}
-
-/**
- * The curtain the pre-paint script reveals, and the reason it can reveal
- * anything at all: this markup ships in the server's HTML, so raising it costs
- * one attribute and no round trip.
- *
- * Visually identical to `SigningInCurtain` in `auth-curtain.tsx` on purpose —
- * React's curtain takes over from this one mid-load, and a handoff between two
- * loaders is only invisible if they are the same loader. Change one, change
- * both.
- *
- * `display:none` by default (see `PRE_PAINT_CURTAIN_CSS`), so a signed-out
- * visitor renders it and never sees it.
- */
-function PrePaintCurtain() {
-  return (
-    <div
-      id="gpp-pre-paint-curtain"
-      className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page"
-      role="status"
-      aria-live="polite"
-    >
-      <Loader2
-        className="h-8 w-8 animate-spin text-accent motion-reduce:animate-none"
-        aria-hidden
-      />
-      <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-        Signing you in
-      </p>
-    </div>
   );
 }
 

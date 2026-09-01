@@ -43,6 +43,12 @@ type RaceEventPageLayoutProps = {
    * classifications. The page's only prose of its own: everything else on it
    * comes from the shared circuit guide.
    */
+  /**
+   * The weekend write-up callout. Sits directly under the header, above the
+   * race report, because on an upcoming weekend it is the most substantial
+   * thing on the page and the reason the race page links out at all.
+   */
+  writeupContent?: ReactNode;
   raceReportContent?: ReactNode;
   /** Hand-off to the next weekend, once this one is done. */
   nextRaceCtaContent?: ReactNode;
@@ -79,6 +85,7 @@ export function RaceEventPageLayout({
   backLink,
   leaderboardLink,
   recapContent,
+  writeupContent,
   raceReportContent,
   nextRaceCtaContent,
   practiceResultsContent,
@@ -173,6 +180,8 @@ export function RaceEventPageLayout({
               : undefined
           }
         />
+
+        {writeupContent}
 
         {raceReportContent}
 

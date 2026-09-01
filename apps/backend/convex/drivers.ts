@@ -1,3 +1,7 @@
+import {
+  markPendingEntryDrivers,
+  pendingEntrySlugForCalendarRound,
+} from '@grandprixpicks/shared/pendingEntry';
 import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
@@ -57,11 +61,18 @@ export const listDrivers = query({
       ? annotateRosterForRound(drivers, stints, round)
       : rosterForRound(drivers, stints, round);
 
+    // The roster is always this round's real lineup; a race still waiting on
+    // its entry list only gets its provisional seats flagged.
+    const pendingSlug = pendingEntrySlugForCalendarRound(season, round);
+    const marked = pendingSlug
+      ? markPendingEntryDrivers(pendingSlug, roster)
+      : roster;
+
     // The index gives alphabetical order, so both apps re-sorted this by hand
     // into team order and had to agree on the tie-breaks to stay in step.
     // Sorting here means the pool, the duel grid and the feed all come out of
     // the same championship, and a scored race moves them together.
     const teamPoints = await loadConstructorPoints(ctx, season);
-    return roster.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
+    return marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
   },
 });

@@ -100,6 +100,24 @@ const ROUTES: {
     args: { loaderData: { battles: null } },
   },
   {
+    module: './f1-predictions-this-weekend',
+    path: '/f1-predictions-this-weekend',
+    // The longest race name on the calendar, because the description
+    // interpolates it and the SERP length rule is what this file exists for.
+    args: {
+      loaderData: {
+        race: {
+          name: 'Mexico City Grand Prix',
+          raceStartAt: 1_793_026_800_000,
+          round: 20,
+          season: 2026,
+          slug: 'mexico-2026',
+          status: 'upcoming',
+        },
+      },
+    },
+  },
+  {
     module: './f1-2026-italian-grand-prix-predictions',
     path: '/f1-2026-italian-grand-prix-predictions',
     args: {

@@ -206,9 +206,6 @@ overrides:
   # Transitive via @convex-dev/resend's workpool, which does not pin a range
   # that excludes the fix.
   'hono@>=4.0.0 <4.12.34': 4.12.34
-  # Lifts query-string's decode-uri-component (react-navigation → metro) to the
-  # patched line for GHSA-vcc3-ghjq-m6fr.
-  'decode-uri-component@<=0.4.2': '>=0.4.3'
 
 patchedDependencies:
   image-size@1.2.1: patches/image-size@1.2.1.patch

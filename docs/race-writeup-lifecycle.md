@@ -29,15 +29,15 @@ to the next round:
 The web app derives a page phase from race status and session lock times. Use
 the phase as the contract for copy, modules and actions.
 
-| Phase        | Boundary                        | Reader's job                                  | Page behavior                                                                                        |
-| ------------ | ------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Preview      | Published until FP1             | Understand the circuit and make an early call | Show schedule, forecast, known changes, durable analysis and both prediction actions                 |
-| Evidence     | FP1 until qualifying locks      | Use on-track evidence                         | Keep live modules current and explain only evidence that can change a pick                           |
-| Race picks   | Qualifying lock until race lock | Make the race Top 5                           | Freeze the qualifying call and move the primary action to race picks                                 |
-| Picks locked | Race lock until results publish | Review the submitted call                     | Remove forecasts and decision prompts; do not claim that results exist yet                           |
+| Phase        | Boundary                        | Reader's job                                  | Page behavior                                                                        |
+| ------------ | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Preview      | Published until FP1             | Understand the circuit and make an early call | Show schedule, forecast, known changes, durable analysis and both prediction actions |
+| Evidence     | FP1 until qualifying locks      | Use on-track evidence                         | Keep live modules current and explain only evidence that can change a pick           |
+| Race picks   | Qualifying lock until race lock | Make the race Top 5                           | Freeze the qualifying call and move the primary action to race picks                 |
+| Picks locked | Race lock until results publish | Review the submitted call                     | Remove forecasts and decision prompts; do not claim that results exist yet           |
 | Finished     | Race results published          | Compare the field with the result             | Show the official result; aggregated player picks belong here when they exist; link to the next race |
 
-| Cancelled | Race status is cancelled | Understand what happened | Remove prediction prompts and show the race detail or cancellation notice |
+| Cancelled    | Race status is cancelled        | Understand what happened                      | Remove prediction prompts and show the race detail or cancellation notice            |
 
 The database status is authoritative for finished and cancelled races. A clock
 crossing the scheduled race start only means picks are locked.

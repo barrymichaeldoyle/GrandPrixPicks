@@ -7,6 +7,7 @@ import { CircuitSummary } from '@/components/CircuitSummary';
 import { InAppBackLink } from '@/components/InAppBackLink';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { breadcrumbSchema, pageMeta } from '@/lib/site';
 import { routeQuery } from '@/lib/routeQuery';
 
@@ -80,6 +81,18 @@ function practiceDescription(
 
 export const Route = createFileRoute('/races/$raceSlug/practice')({
   loader: async ({ context, params }) => {
+    // This route never opted into a cache tier, and it was the only public
+    // race-data page that did not. Without an origin `cache-control` the edge
+    // rule falls back to its own default TTL and holds the document for hours:
+    // prod was serving this page with `age: 5642` and no revalidation, so a
+    // classification published mid-weekend stayed invisible to anyone landing
+    // here from search, and a deploy did not dislodge it either.
+    //
+    // Sixty seconds with a short stale window, matching every other race-data
+    // route — the client's Convex subscription corrects the document a moment
+    // after hydration regardless.
+    await setRaceDataCacheHeaders();
+
     const race = await context.queryClient.ensureQueryData(
       routeQuery(api.races.getRaceBySlug, { slug: params.raceSlug }),
     );

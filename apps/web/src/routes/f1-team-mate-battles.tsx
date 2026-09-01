@@ -1,5 +1,6 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName, pairingRoundSpanLabel } from '@/lib/display';
+import { pairingAnchorAliases, pairingAnchorIds } from '@/lib/pairingAnchors';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -293,6 +295,40 @@ function TeammateBattlesPage() {
     battles.sessionCounts.sprintQualifying + battles.sessionCounts.sprint;
   const includeSprints = sprintSessions > 0;
   const pairingCounts = pairingCountByTeam(battles.teams);
+  const anchorIds = pairingAnchorIds(battles.teams);
+  // A pairing heading is keyed alphabetically so the anchor survives the duel
+  // flipping, but someone quoting the record writes it in the order they said
+  // it ("Verstappen leads Hadjar" -> #verstappen-hadjar). The browser does
+  // nothing with a fragment that matches no element, so without this the link
+  // silently lands at the top of the page. Resolve any accepted spelling to
+  // the heading it means, and correct the URL so the next copy is canonical.
+  //
+  // Progressive enhancement: the anchors the page itself emits are already
+  // canonical and need no JavaScript. This only rescues hand-written ones.
+  const teams = battles.teams;
+  useEffect(() => {
+    function resolveHash() {
+      const raw = decodeURIComponent(
+        globalThis.location.hash.slice(1),
+      ).toLowerCase();
+      // An exact match is the browser's job and it has already done it.
+      if (raw === '' || document.getElementById(raw) != null) {
+        return;
+      }
+      const canonical = pairingAnchorAliases(teams).get(raw);
+      const target =
+        canonical == null ? null : document.getElementById(canonical);
+      if (canonical == null || target == null) {
+        return;
+      }
+      globalThis.history.replaceState(null, '', `#${canonical}`);
+      target.scrollIntoView();
+    }
+
+    resolveHash();
+    globalThis.addEventListener('hashchange', resolveHash);
+    return () => globalThis.removeEventListener('hashchange', resolveHash);
+  }, [teams]);
 
   return (
     <div className="min-h-full bg-page">
@@ -351,7 +387,7 @@ function TeammateBattlesPage() {
             {battles.teams.map((team, index) => {
               const [lead, trail] = team.drivers;
               const drawn = lead.total === trail.total;
-              const headingId = `team-${team.matchupId}`;
+              const headingId = anchorIds.get(team.matchupId)!;
               const spanLabel =
                 pairingCounts.get(team.team)! > 1 && team.fromRound != null
                   ? pairingRoundSpanLabel(team.fromRound, team.toRound)
@@ -364,7 +400,7 @@ function TeammateBattlesPage() {
                 <section
                   key={team.matchupId}
                   aria-labelledby={headingId}
-                  className={`py-4 ${
+                  className={`group py-4 ${
                     isUnpairedLastTeam
                       ? 'lg:col-span-2 lg:mx-auto lg:w-[calc(50%-1.25rem)]'
                       : ''
@@ -387,6 +423,21 @@ function TeammateBattlesPage() {
                         </span>
                       ) : null}
                     </h2>
+                    {/*
+                      An anchor nobody can see is an anchor nobody cites, so the
+                      link has to be reachable — but a permalink is a background
+                      affordance, not a call to action, so it stays quiet until
+                      the pairing is hovered and appears on keyboard focus.
+                    */}
+                    <a
+                      href={`#${headingId}`}
+                      className="rounded-sm px-1 text-sm text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-accent focus-visible:opacity-100"
+                    >
+                      <span aria-hidden>#</span>
+                      <span className="sr-only">
+                        Link to {displayTeamName(team.team)} head-to-head
+                      </span>
+                    </a>
                   </div>
 
                   <p className="sr-only">

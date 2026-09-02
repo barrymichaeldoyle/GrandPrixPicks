@@ -327,7 +327,7 @@ export const LineupChange: Story = {
         },
       ],
       lineupNote:
-        'Isack Hadjar broke his wrist during boxing training and is out for the Dutch Grand Prix. Liam Lawson steps up to Red Bull alongside Max Verstappen, and Yuki Tsunoda takes the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar is expected back in his car for Monza.',
+        'Isack Hadjar injured his wrist during boxing training and missed the Dutch Grand Prix. Liam Lawson stepped up to Red Bull alongside Max Verstappen, and Yuki Tsunoda took the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar will also miss Monza while he continues his recovery.',
       reactionCount: 6,
       reactionCounts: { fire: 2, nice: 1, wow: 3, funny: 0, oof: 0 },
       createdAt: NOW - 20 * MINUTE,

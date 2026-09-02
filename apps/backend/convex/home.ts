@@ -169,9 +169,9 @@ export const getHomePageData = query({
     // The landing picker must offer the grid that is actually racing next, so
     // the roster is resolved for the upcoming round: an injured driver is not
     // pickable and his stand-in is, each under the team they will drive for.
-    // A race still waiting on its entry list (Monza 2026) is offered as the
-    // lineup that last raced, with the seats that could still change flagged:
-    // see `pendingEntry.ts` for why this is a mark and not an earlier round.
+    // A race still waiting on its entry list is offered as the lineup that
+    // last raced, with the seats that could still change flagged: see
+    // `pendingEntry.ts` for why this is a mark and not an earlier round.
     const drivers = nextRace
       ? markPendingEntryDrivers(
           nextRace.slug,

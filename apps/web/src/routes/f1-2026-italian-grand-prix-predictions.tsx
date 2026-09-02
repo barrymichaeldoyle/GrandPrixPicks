@@ -46,10 +46,10 @@ const PROSE_REVIEWED_AT = lastReviewedAt(PROSE_REVIEWED);
 
 const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
-const HADJAR_SOURCE =
-  'https://www.skysports.com/f1/news/12433/13575278/isack-hadjar-red-bull-driver-hopeful-of-monza-return-after-wrist-injury-forces-him-out-of-dutch-grand-prix';
-const HADJAR_DECISION_SOURCE =
-  'https://www.gpblog.com/en/news/hadjar-or-lawson-alongside-verstappen-at-red-bull-heres-when-red-bull-will-decide';
+const HADJAR_AUTOSPORT_SOURCE =
+  'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/';
+const HADJAR_RACING_NEWS_365_SOURCE =
+  'https://racingnews365.com/breaking-isack-hadjar-to-miss-italian-grand-prix-as-injury-pain-persists';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/ferrari-unveils-michael-schumacher-inspired-f1-livery-for-italian-gp/10851263/';
 const SUITS_SOURCE =
@@ -278,7 +278,7 @@ function ItalianGrandPrixPredictionsPage() {
         <WatchTable />
         <TrackMap />
         <TyreChoice />
-        {/* Hadjar and the standings both carry a right-hand card; the tribute
+        {/* The line-up and the standings both carry a right-hand card; the tribute
             and the contracts do not. Run the two carded sections together so
             the rail does not appear, vanish and reappear, and let the
             prose-only asides follow. */}
@@ -332,8 +332,11 @@ function ItalianGrandPrixPredictionsPage() {
           <p>
             Race facts and schedule:{' '}
             <ExternalSource href={F1_EVENT_SOURCE}>Formula 1</ExternalSource>.
-            Driver availability:{' '}
-            <ExternalSource href={HADJAR_SOURCE}>Sky Sports</ExternalSource>.
+            Driver line-up:{' '}
+            <ExternalSource href={HADJAR_AUTOSPORT_SOURCE}>
+              Autosport
+            </ExternalSource>
+            .
           </p>
           <p className="gpp-mono mt-2 text-xs">
             LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
@@ -525,25 +528,29 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
           id="hadjar-status"
           className="font-title text-2xl font-medium text-text"
         >
-          Hadjar is hopeful of returning at Monza
+          Hadjar will miss Monza
         </h2>
         <p className="gpp-reading-copy mt-4 text-text-muted">
-          Isack Hadjar missed the Dutch Grand Prix after hurting his wrist while
-          boxing during the summer break. Sky Sports reported a small crack in a
-          wrist bone. Liam Lawson filled his Red Bull seat, while Yuki Tsunoda
-          moved into Lawson’s Racing Bulls car alongside Arvid Lindblad.
+          Isack Hadjar will miss a second race with the left-wrist injury that
+          kept him out at Zandvoort. Liam Lawson stays alongside Max Verstappen
+          at Red Bull, while Yuki Tsunoda stays alongside Arvid Lindblad at
+          Racing Bulls.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          Hadjar said he hoped the extra recovery time would allow him to race
-          at Monza. Red Bull has not confirmed who will be driving.{' '}
-          <ExternalSource href={HADJAR_DECISION_SOURCE}>GPblog</ExternalSource>{' '}
-          reports the team expects to decide on Wednesday 2&nbsp;September,
-          after medical checks and likely simulator running. Lawson will start
-          in Hadjar&rsquo;s place if he is not fit to race.{' '}
-          <ExternalSource href={HADJAR_SOURCE}>
-            Sky Sports report
+          Red Bull is giving Hadjar more recovery time rather than risking the
+          wrist on Monza&rsquo;s kerbs.{' '}
+          <ExternalSource href={HADJAR_AUTOSPORT_SOURCE}>
+            Autosport
+          </ExternalSource>{' '}
+          and{' '}
+          <ExternalSource href={HADJAR_RACING_NEWS_365_SOURCE}>
+            RacingNews365
           </ExternalSource>
-          .
+          {' '}report the same race line-up used at Zandvoort.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Ayumu Iwasa replaces Verstappen in FP1 under the rookie-session rule.
+          Verstappen returns for FP2 and remains in the race line-up.
         </p>
       </div>
       <dl className="self-start rounded-sm bg-surface-elevated px-4">
@@ -554,10 +561,10 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
           {
             label: 'Monza status',
             code: 'HAD',
-            note: 'Hopeful, unconfirmed',
+            note: 'Out',
           },
-          { label: 'Red Bull cover, and standby', code: 'LAW', note: null },
-          { label: 'Racing Bulls cover', code: 'TSU', note: null },
+          { label: 'Red Bull', code: 'LAW', note: 'Racing' },
+          { label: 'Racing Bulls', code: 'TSU', note: 'Racing' },
         ].map(({ label, code, note }) => {
           const driver = byCode.get(code);
           return (

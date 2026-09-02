@@ -4,6 +4,7 @@ import {
   footerF1Links,
   footerLegalLinks,
   footerPlayLinks,
+  footerPrimaryLink,
   footerSupportLinks,
   primaryNavLinks,
   publicNavLinks,
@@ -25,10 +26,13 @@ describe('site navigation', () => {
   });
 
   it('keeps useful public pages reachable without exposing personal app destinations', () => {
+    expect(footerPrimaryLink).toEqual({
+      to: '/f1-predictions-this-weekend',
+      label: 'Predictions this weekend',
+      exact: true,
+    });
     expect(footerPlayLinks).toEqual([
-      { to: '/f1-predictions-this-weekend', label: 'Predictions This Weekend' },
       { to: '/how-to-play', label: 'How to Play' },
-      { to: '/guides', label: 'F1 Guides' },
       { to: '/races', label: 'Race Calendar', exact: true },
       { to: '/leaderboard', label: 'Global Leaderboard' },
       { to: '/leagues', label: 'Prediction Leagues' },
@@ -38,12 +42,12 @@ describe('site navigation', () => {
       { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
       { to: '/f1-2027-calendar', label: '2027 Calendar' },
       { to: '/circuits', label: 'F1 Circuits' },
-      { to: '/results-policy', label: 'Results & Penalties' },
     ]);
     expect(footerSupportLinks).toEqual([
       { to: '/about', label: 'About' },
       { to: '/support', label: 'Support' },
       { to: '/pricing', label: 'Season Pass' },
+      { to: '/results-policy', label: 'Results & Penalties' },
     ]);
     expect(footerLegalLinks).toEqual([
       { to: '/refund-policy', label: 'Refund Policy' },
@@ -52,6 +56,7 @@ describe('site navigation', () => {
     ]);
 
     const footerDestinations = [
+      footerPrimaryLink,
       ...footerPlayLinks,
       ...footerF1Links,
       ...footerSupportLinks,
@@ -70,7 +75,7 @@ describe('site navigation', () => {
       { to: '/about', label: 'About' },
       { to: '/support', label: 'Support' },
       { to: '/pricing', label: 'Season Pass' },
-      { to: '/results-policy', label: 'Results Policy' },
+      { to: '/results-policy', label: 'Results & Penalties' },
       { to: '/terms', label: 'Terms' },
       { to: '/privacy', label: 'Privacy' },
       { to: '/refund-policy', label: 'Refunds' },

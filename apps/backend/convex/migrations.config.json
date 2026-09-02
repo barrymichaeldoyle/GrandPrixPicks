@@ -28,6 +28,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:publishItaly2026HadjarUpdate",
+    "args": {}
+  },
+  {
     "name": "raceScheduleMigrations:correctSingapore2026SprintSchedule",
     "args": {}
   }

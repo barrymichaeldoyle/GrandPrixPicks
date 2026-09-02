@@ -31,17 +31,8 @@ export type PendingEntryRace = {
   note: string;
 };
 
-export const PENDING_ENTRY_RACES: Readonly<Record<string, PendingEntryRace>> = {
-  // Monza 2026: Hadjar is expected back from the wrist injury that put Lawson
-  // in the Red Bull and Tsunoda in the Racing Bulls from round 12, but Red Bull
-  // has not confirmed who drives. Both cover seats stay pickable and flagged.
-  'italy-2026': {
-    season: 2026,
-    round: 13,
-    unconfirmedDriverCodes: ['LAW', 'TSU'],
-    note: "Red Bull hasn't confirmed its Monza line-up. Lawson and Tsunoda hold the seats until the entry list is out.",
-  },
-};
+export const PENDING_ENTRY_RACES: Readonly<Record<string, PendingEntryRace>> =
+  {};
 
 export function pendingEntryForSlug(slug: string): PendingEntryRace | null {
   return PENDING_ENTRY_RACES[slug] ?? null;

@@ -27,10 +27,14 @@ export const publicNavLinks: SiteNavLink[] = [
   { to: '/guides', label: 'Guides' },
 ];
 
+export const footerPrimaryLink: SiteNavLink = {
+  to: '/f1-predictions-this-weekend',
+  label: 'Predictions this weekend',
+  exact: true,
+};
+
 export const footerPlayLinks: SiteNavLink[] = [
-  { to: '/f1-predictions-this-weekend', label: 'Predictions This Weekend' },
   { to: '/how-to-play', label: 'How to Play' },
-  { to: '/guides', label: 'F1 Guides' },
   { to: '/races', label: 'Race Calendar', exact: true },
   { to: '/leaderboard', label: 'Global Leaderboard' },
   { to: '/leagues', label: 'Prediction Leagues' },
@@ -41,13 +45,13 @@ export const footerF1Links: SiteNavLink[] = [
   { to: '/f1-team-mate-battles', label: 'Team-mate Battles' },
   { to: '/f1-2027-calendar', label: '2027 Calendar' },
   { to: '/circuits', label: 'F1 Circuits' },
-  { to: '/results-policy', label: 'Results & Penalties' },
 ];
 
 export const footerSupportLinks: SiteNavLink[] = [
   { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
+  { to: '/results-policy', label: 'Results & Penalties' },
 ];
 
 /**
@@ -62,7 +66,7 @@ export const railFooterLinks: SiteNavLink[] = [
   { to: '/about', label: 'About' },
   { to: '/support', label: 'Support' },
   { to: '/pricing', label: 'Season Pass' },
-  { to: '/results-policy', label: 'Results Policy' },
+  { to: '/results-policy', label: 'Results & Penalties' },
   { to: '/terms', label: 'Terms' },
   { to: '/privacy', label: 'Privacy' },
   { to: '/refund-policy', label: 'Refunds' },

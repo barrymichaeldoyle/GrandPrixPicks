@@ -117,6 +117,12 @@ describe('round-scoped pairings', () => {
     expect(teamFor(12, 'TSU')).toBe('Racing Bulls');
   });
 
+  it('keeps the replacement line-up for Monza in round 13', () => {
+    expect(teamFor(13, 'HAD')).toBeNull();
+    expect(teamFor(13, 'LAW')).toBe('Red Bull Racing');
+    expect(teamFor(13, 'TSU')).toBe('Racing Bulls');
+  });
+
   it('keeps the pairings on each side of the swap as separate records', () => {
     // The point of round-scoping: round 11 must still read as
     // Verstappen-vs-Hadjar rather than being relabelled by a later change.
@@ -236,7 +242,7 @@ describe('currentPairings', () => {
 });
 
 describe('seat moves', () => {
-  // Hadjar broke his wrist before round 12. Lawson moves up to Red Bull and
+  // Hadjar injured his wrist before round 12. Lawson moves up to Red Bull and
   // Tsunoda takes the Racing Bulls seat Lawson vacated, so two seats change
   // hands at the same boundary and one of them is filled by the driver who
   // left the other.

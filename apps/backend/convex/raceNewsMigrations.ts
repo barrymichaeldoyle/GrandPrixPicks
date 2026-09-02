@@ -5,6 +5,9 @@ import { internalMutation } from './_generated/server';
 import {
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
+  HADJAR_DUTCH_GP_LINEUP_NOTE,
+  HADJAR_MONZA_ABSENCE_BODY,
+  IWASA_MONZA_FP1_BODY,
 } from './lib/italy2026MonzaNewsCopy';
 import {
   BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE,
@@ -57,6 +60,49 @@ export const updateItaly2026MonzaNewsCopy = internalMutation({
     });
 
     return { alpine, ferrari };
+  },
+});
+
+/**
+ * Publish the settled Monza replacement line-up, separate Verstappen's FP1
+ * rookie handover from the race grid, and retire the stale "expected back"
+ * sentence on the original Zandvoort line-up event. Idempotent.
+ */
+export const publishItaly2026HadjarUpdate = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx): Promise<null> => {
+    await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'hadjar-misses-monza',
+      headline: 'Hadjar misses Monza; Lawson and Tsunoda stay in',
+      body: HADJAR_MONZA_ABSENCE_BODY,
+      affectsSessions: ['quali', 'race'],
+      driverCodes: ['HAD', 'LAW', 'TSU'],
+      sourceName: 'Autosport',
+      sourceUrl:
+        'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/',
+    });
+
+    await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'iwasa-red-bull-fp1',
+      headline: 'Iwasa replaces Verstappen for Monza FP1',
+      body: IWASA_MONZA_FP1_BODY,
+      affectsSessions: ['quali', 'race'],
+      driverCodes: ['VER'],
+      sourceName: 'Autosport',
+      sourceUrl:
+        'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/',
+    });
+
+    await ctx.runMutation(internal.feed.writeLineupChangeFeedEvent, {
+      season: 2026,
+      round: 12,
+      note: HADJAR_DUTCH_GP_LINEUP_NOTE,
+    });
+
+    return null;
   },
 });
 

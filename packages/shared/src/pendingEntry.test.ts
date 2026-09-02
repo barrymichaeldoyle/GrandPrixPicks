@@ -30,11 +30,8 @@ describe('PENDING_ENTRY_RACES', () => {
 });
 
 describe('pendingEntrySlugForCalendarRound', () => {
-  it('finds the race waiting on its entry list', () => {
-    expect(pendingEntrySlugForCalendarRound(2026, 13)).toBe('italy-2026');
-  });
-
-  it('leaves every other round alone', () => {
+  it('leaves rounds with a settled entry list alone', () => {
+    expect(pendingEntrySlugForCalendarRound(2026, 13)).toBeNull();
     expect(pendingEntrySlugForCalendarRound(2026, 12)).toBeNull();
     expect(pendingEntrySlugForCalendarRound(2025, 13)).toBeNull();
   });
@@ -48,12 +45,9 @@ describe('markPendingEntryDrivers', () => {
     { code: 'LIN' },
   ] as const;
 
-  it('flags the provisional seats on Monza only', () => {
+  it('leaves the settled Monza grid unflagged', () => {
     expect(markPendingEntryDrivers('italy-2026', drivers)).toEqual([
-      { code: 'VER' },
-      { code: 'LAW', entryUnconfirmed: true },
-      { code: 'TSU', entryUnconfirmed: true },
-      { code: 'LIN' },
+      ...drivers,
     ]);
     expect(markPendingEntryDrivers('netherlands-2026', drivers)).toEqual([
       ...drivers,
@@ -65,6 +59,6 @@ describe('markPendingEntryDrivers', () => {
     expect(markPendingEntryDrivers('italy-2026', drivers)).toHaveLength(
       drivers.length,
     );
-    expect(hasPendingEntryList('italy-2026')).toBe(true);
+    expect(hasPendingEntryList('italy-2026')).toBe(false);
   });
 });

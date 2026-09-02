@@ -1,14 +1,15 @@
 import { Link } from '@tanstack/react-router';
 
+import { primaryButtonStyles } from '@/components/Button/Button';
 import {
   footerF1Links,
   footerLegalLinks,
   footerPlayLinks,
+  footerPrimaryLink,
   footerSupportLinks,
 } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from './PrivacyChoicesButton';
-import { FriendGameLink } from './FriendGameLink';
 import { BrandMark } from './BrandMark.tsx';
 import { XLogoIcon } from './ShareOnXButton';
 
@@ -92,7 +93,7 @@ const socialLinks = [
 ] as const;
 
 const socialLinkClass =
-  'inline-flex min-h-6 items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none';
+  'inline-flex min-h-6 items-center gap-1 rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:min-h-11';
 
 function MadeByCredit({
   className,
@@ -118,7 +119,7 @@ function MadeByCredit({
         href="https://www.linkedin.com/in/barry-michael-doyle-11369683/"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-8 w-8 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+        className="flex h-8 w-8 items-center justify-center rounded-sm text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:h-11 pointer-coarse:w-11"
         aria-label="Barry Michael Doyle on LinkedIn"
       >
         <LinkedInIcon className="h-3.5 w-3.5" />
@@ -130,20 +131,21 @@ function MadeByCredit({
 export function Footer() {
   const year = new Date().getFullYear();
   const footerLinkClass =
-    'inline-flex min-h-6 items-center rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none';
+    'inline-flex min-h-6 items-center rounded-sm text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:min-h-11';
+  const footerLinkActiveClass = `${footerLinkClass} text-text underline decoration-border-strong underline-offset-4`;
 
   return (
-    <footer className="relative mt-auto overflow-hidden border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
+    <footer className="relative mt-auto border-t border-border bg-surface pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+max(1rem,env(safe-area-inset-bottom,0px)))] sm:pb-[calc(var(--bottom-overlay-offset,0px)+var(--app-bottom-overlay-offset,0px)+1rem)]">
       {/* Same frame as the header and every page container
           (`max-w-(--page-max) px-4`). This was `max-w-6xl`, 128px narrower,
           so the footer columns sat 64px inboard of the nav and of the page
           content above them on any viewport past 1152px. */}
       <div className="relative mx-auto w-full max-w-(--page-max) px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted min-[360px]:grid-cols-2 min-[360px]:gap-x-6 sm:gap-10 lg:grid-cols-[1.35fr_0.9fr_1fr_1.05fr]">
-          <div className="space-y-3 min-[360px]:col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-1 gap-8 text-sm text-text-muted min-[360px]:grid-cols-2 min-[360px]:gap-x-6 sm:grid-cols-3 sm:gap-10 lg:grid-cols-[1.35fr_0.9fr_1fr_1.05fr]">
+          <div className="space-y-3 min-[360px]:col-span-2 sm:col-span-3 lg:col-span-1">
             <Link
               to="/"
-              className="group flex items-center gap-1.5 rounded-sm text-base text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:outline-none"
+              className="group flex items-center gap-1.5 rounded-sm text-base text-text focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none pointer-coarse:min-h-11"
             >
               <BrandMark className="h-4 w-6 shrink-0 text-accent" />
               <span className="font-semibold tracking-[0.06em] uppercase transition-colors group-hover:text-accent">
@@ -153,8 +155,15 @@ export function Footer() {
             <p className="max-w-sm text-sm text-text-muted">
               A free-to-play F1 prediction game for every race weekend.
             </p>
+            <Link
+              to={footerPrimaryLink.to}
+              className={`${primaryButtonStyles('sm')} mt-1`}
+              activeOptions={{ exact: footerPrimaryLink.exact }}
+            >
+              {footerPrimaryLink.label}
+            </Link>
             <div className="space-y-2 pt-1 text-xs">
-              <div className="flex flex-wrap items-center gap-x-4">
+              <div className="flex flex-wrap items-center gap-x-4 pointer-coarse:gap-x-5">
                 {socialLinks.map((link) => (
                   <a
                     key={link.key}
@@ -169,7 +178,6 @@ export function Footer() {
                   </a>
                 ))}
               </div>
-              <FriendGameLink linkClassName={footerLinkClass} />
               {/* Desktop: sits with the brand column. Mobile puts this at the
                   foot of the stack — nav and legal matter more when space is
                   tight (see the bottom bar below). */}
@@ -186,10 +194,23 @@ export function Footer() {
             </h2>
             <nav
               aria-label="Footer game navigation"
-              className="flex flex-col gap-2 text-sm"
+              className="flex flex-col gap-1 text-sm pointer-coarse:gap-0"
             >
               {footerPlayLinks.map((link) => (
-                <Link key={link.to} to={link.to} className={footerLinkClass}>
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={footerLinkClass}
+                  activeProps={{
+                    className: footerLinkActiveClass,
+                    'aria-current': 'page' as const,
+                  }}
+                  activeOptions={
+                    link.exact
+                      ? { exact: true, includeSearch: false }
+                      : { includeSearch: false }
+                  }
+                >
                   {link.label}
                 </Link>
               ))}
@@ -202,26 +223,44 @@ export function Footer() {
             </h2>
             <nav
               aria-label="Footer Formula 1 navigation"
-              className="flex flex-col gap-2 text-sm"
+              className="flex flex-col gap-1 text-sm pointer-coarse:gap-0"
             >
               {footerF1Links.map((link) => (
-                <Link key={link.to} to={link.to} className={footerLinkClass}>
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={footerLinkClass}
+                  activeProps={{
+                    className: footerLinkActiveClass,
+                    'aria-current': 'page' as const,
+                  }}
+                  activeOptions={{ includeSearch: false }}
+                >
                   {link.label}
                 </Link>
               ))}
             </nav>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 min-[360px]:col-span-2 sm:col-span-1">
             <h2 className="font-title text-xs font-semibold tracking-label text-text uppercase">
               Support
             </h2>
             <nav
               aria-label="Footer support navigation"
-              className="flex flex-col gap-2 text-sm"
+              className="flex flex-col gap-1 text-sm pointer-coarse:gap-0"
             >
               {footerSupportLinks.map((link) => (
-                <Link key={link.to} to={link.to} className={footerLinkClass}>
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={footerLinkClass}
+                  activeProps={{
+                    className: footerLinkActiveClass,
+                    'aria-current': 'page' as const,
+                  }}
+                  activeOptions={{ includeSearch: false }}
+                >
                   {link.label}
                 </Link>
               ))}
@@ -233,10 +272,19 @@ export function Footer() {
           <p>© {year} Barry Michael Doyle Software Solutions (Pty) Ltd</p>
           <nav
             aria-label="Footer legal navigation"
-            className="flex flex-wrap gap-x-3 gap-y-1 text-[11px]"
+            className="flex flex-wrap gap-x-3 gap-y-1 pointer-coarse:gap-x-4 pointer-coarse:gap-y-0"
           >
             {footerLegalLinks.map((link) => (
-              <Link key={link.to} to={link.to} className={footerLinkClass}>
+              <Link
+                key={link.to}
+                to={link.to}
+                className={footerLinkClass}
+                activeProps={{
+                  className: footerLinkActiveClass,
+                  'aria-current': 'page' as const,
+                }}
+                activeOptions={{ includeSearch: false }}
+              >
                 {link.label}
               </Link>
             ))}
@@ -248,7 +296,7 @@ export function Footer() {
           />
         </div>
 
-        <p className="mt-4 text-center text-[11px] leading-relaxed text-text-muted">
+        <p className="mx-auto mt-4 max-w-4xl text-left text-xs leading-relaxed text-text-muted sm:text-center">
           This website is unofficial and is not associated in any way with the
           Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD
           CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula

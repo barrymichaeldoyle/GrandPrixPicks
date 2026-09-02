@@ -4,6 +4,7 @@ import { convexTest } from 'convex-test';
 import { describe, expect, it } from 'vitest';
 
 import { internal } from './_generated/api';
+import { HADJAR_DUTCH_GP_LINEUP_NOTE } from './lib/italy2026MonzaNewsCopy';
 import { BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE } from './lib/raceNewsWriteUpImage';
 import schema from './schema';
 
@@ -12,6 +13,103 @@ const modules = import.meta.glob('./**/*.ts');
 const BROWNING_HEADLINE = 'Luke Browning replaces Alex Albon in FP1';
 const BROWNING_BODY =
   'Albon races, so Friday morning is not a read on Williams pace.';
+
+describe('publishItaly2026HadjarUpdate', () => {
+  it('publishes separate race-line-up and FP1 items idempotently', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const now = 100;
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 12,
+        name: 'Dutch Grand Prix',
+        slug: 'netherlands-2026',
+        raceStartAt: 1_000,
+        predictionLockAt: 900,
+        status: 'finished',
+        createdAt: now,
+        updatedAt: now,
+      });
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 13,
+        name: 'Italian Grand Prix',
+        slug: 'italy-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_900,
+        status: 'upcoming',
+        createdAt: now,
+        updatedAt: now,
+      });
+      for (const driver of [
+        ['HAD', 'Isack Hadjar', 'Red Bull Racing'],
+        ['LAW', 'Liam Lawson', 'Red Bull Racing'],
+        ['TSU', 'Yuki Tsunoda', 'Racing Bulls'],
+        ['VER', 'Max Verstappen', 'Red Bull Racing'],
+      ] as const) {
+        await ctx.db.insert('drivers', {
+          code: driver[0],
+          displayName: driver[1],
+          team: driver[2],
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    });
+
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026HadjarUpdate,
+      {},
+    );
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026HadjarUpdate,
+      {},
+    );
+
+    const state = await t.run(async (ctx) => {
+      const race = await ctx.db
+        .query('races')
+        .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
+        .unique();
+      if (!race) {
+        throw new Error('missing italy-2026 race');
+      }
+      const news = await ctx.db
+        .query('raceNews')
+        .withIndex('by_race', (q) => q.eq('raceId', race._id))
+        .collect();
+      const lineupEvent = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_type_season_round', (q) =>
+          q
+            .eq('type', 'lineup_change')
+            .eq('season', 2026)
+            .eq('round', 12),
+        )
+        .unique();
+      return { news, lineupEvent };
+    });
+
+    expect(state.news).toHaveLength(2);
+    expect(state.news).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: 'hadjar-misses-monza',
+          headline: 'Hadjar misses Monza; Lawson and Tsunoda stay in',
+          driverCodes: ['HAD', 'LAW', 'TSU'],
+        }),
+        expect.objectContaining({
+          key: 'iwasa-red-bull-fp1',
+          headline: 'Iwasa replaces Verstappen for Monza FP1',
+          driverCodes: ['VER'],
+        }),
+      ]),
+    );
+    expect(state.lineupEvent?.lineupNote).toBe(
+      HADJAR_DUTCH_GP_LINEUP_NOTE,
+    );
+  });
+});
 
 describe('addItaly2026BrowningWriteUpPhoto', () => {
   it('attaches the write-up photo without changing headline or body', async () => {

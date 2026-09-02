@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
+  HADJAR_DUTCH_GP_LINEUP_NOTE,
+  HADJAR_MONZA_ABSENCE_BODY,
+  IWASA_MONZA_FP1_BODY,
 } from './italy2026MonzaNewsCopy';
 
 describe('italy2026MonzaNewsCopy', () => {
@@ -21,5 +24,17 @@ describe('italy2026MonzaNewsCopy', () => {
       'Ferrari will run its ADUO2 power unit in both cars at Monza without grid penalties. Motorsport.com reports a gain of about 15 horsepower. Leclerc and Hamilton also get a more efficient rear wing and other Monza-specific changes.',
     );
     expect(FERRARI_ENGINE_UPGRADE_BODY).not.toMatch(/two tenths per lap/);
+  });
+
+  it('keeps Hadjar and Iwasa as separate race and FP1 stories', () => {
+    expect(HADJAR_MONZA_ABSENCE_BODY).toBe(
+      "Hadjar will miss a second race with the left-wrist injury that kept him out at Zandvoort. Lawson stays alongside Verstappen at Red Bull, while Tsunoda stays alongside Lindblad at Racing Bulls. Red Bull is giving Hadjar more recovery time rather than risking the wrist on Monza's kerbs.",
+    );
+    expect(IWASA_MONZA_FP1_BODY).toBe(
+      'Iwasa replaces Verstappen in FP1 as Red Bull fulfils a rookie-session requirement. Verstappen returns for FP2 and remains in the race line-up.',
+    );
+    expect(HADJAR_DUTCH_GP_LINEUP_NOTE).toContain(
+      'Hadjar will also miss Monza',
+    );
   });
 });

@@ -66,10 +66,11 @@ export type TeammatePairing = {
 export const TEAMMATE_PAIRINGS_2026: ReadonlyArray<TeammatePairing> = [
   { team: 'McLaren', driver1Code: 'NOR', driver2Code: 'PIA', fromRound: 1 },
   { team: 'Ferrari', driver1Code: 'LEC', driver2Code: 'HAM', fromRound: 1 },
-  // Hadjar broke his wrist before round 12 (Dutch GP). Lawson steps up from
+  // Hadjar injured his wrist before round 12 (Dutch GP). Lawson steps up from
   // Racing Bulls to partner Verstappen; Tsunoda takes the vacated Racing Bulls
-  // seat. Open-ended on purpose: Hadjar is expected back, and his return is a
-  // third pairing from whichever round he is fit for, not an edit to these.
+  // seat. Open-ended on purpose: Hadjar remains out for Monza, and his return
+  // is a third pairing from whichever later round he is fit for, not an edit
+  // to these.
   {
     team: 'Red Bull Racing',
     driver1Code: 'VER',

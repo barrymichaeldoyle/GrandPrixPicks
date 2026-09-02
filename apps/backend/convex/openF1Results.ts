@@ -308,7 +308,7 @@ export async function fetchOpenF1AccessToken(
         Accept: 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body,
+      body: body.toString(),
     });
   } catch (error) {
     throw new OpenF1AuthenticationError(

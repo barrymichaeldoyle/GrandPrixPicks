@@ -41,6 +41,19 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../src/lib/teamColors';
  * instead of retyped into a shell.
  */
 const STORIES: Record<string, SocialNewsCard> = {
+  'monza-four-signals-2026': {
+    eyebrow: 'Monza 2026',
+    kicker: 'Prediction guide',
+    headline: 'Four things to watch at Monza',
+    standfirst:
+      'Compare clean laps, braking, corner exits and long runs before making your Top 5.',
+    facts: [
+      { label: 'Straight-line pace', value: 'Without a tow' },
+      { label: 'Heavy braking', value: 'Stable into chicanes' },
+      { label: 'Corner exits', value: 'Strong traction' },
+      { label: 'Long runs', value: 'Consistent pace' },
+    ],
+  },
   'norris-mclaren-2030': {
     eyebrow: 'Contract news',
     kicker: 'McLaren',

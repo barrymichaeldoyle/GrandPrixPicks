@@ -94,7 +94,7 @@ export interface SocialNewsCard {
   driver?: { code: string; color: string };
   /** Optional kicker beside the chip, e.g. the team name. */
   kicker?: string;
-  /** Up to three label/value pairs. Values are set in mono. */
+  /** Up to four label/value pairs. Values are set in mono. */
   facts: { label: string; value: string }[];
   /**
    * An optional span-of-years bar. When present it replaces the stacked facts
@@ -207,12 +207,17 @@ function factBlock(
   fact: { label: string; value: string },
   s: Size,
   compact = false,
+  dense = false,
 ): ReactNode {
   return e(
     'div',
     {
       key: fact.label,
-      style: { display: 'flex', flexDirection: 'column' as const },
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        ...(dense ? { flexBasis: 0, flexGrow: 1, minWidth: 0 } : {}),
+      },
     },
     e(
       'div',
@@ -232,7 +237,11 @@ function factBlock(
       'div',
       {
         style: {
-          fontSize: compact ? s.factValue * 0.62 : s.factValue,
+          fontSize: compact
+            ? s.factValue * 0.62
+            : dense
+              ? s.factValue * 0.78
+              : s.factValue,
           fontWeight: 600,
           marginTop: 8,
         },
@@ -383,6 +392,7 @@ export function socialNewsCard(
   size: SocialCardSize,
 ): ReactNode {
   const s = SIZES[size];
+  const denseFacts = !s.factsColumn && data.facts.length === 4;
 
   return e(
     'div',
@@ -454,15 +464,15 @@ export function socialNewsCard(
               data.timeline || !s.factsColumn
                 ? ('row' as const)
                 : ('column' as const),
-            gap: data.timeline ? 56 : s.factsGap,
+            gap: data.timeline ? 56 : denseFacts ? 44 : s.factsGap,
             marginTop: data.timeline ? 44 : s.factsColumn ? 56 : 48,
           },
         },
         ...(data.timeline && !s.factsColumn
           ? []
           : data.facts
-              .slice(0, 3)
-              .map((fact) => factBlock(fact, s, !!data.timeline))),
+              .slice(0, 4)
+              .map((fact) => factBlock(fact, s, !!data.timeline, denseFacts))),
       ),
     ),
     // The system's one hairline, then the call to action. The domain is the

@@ -1,5 +1,11 @@
 #!/bin/sh
 set -eu
 
+# `ci:check` runs the audit through `audit:warn`, which reports advisories
+# without failing. That matches the CI job, whose audit step is
+# `continue-on-error: true`: every advisory we carry is a transitive dev
+# dependency that never reaches the bundle, and there is usually no fixed
+# release to move to. Blocking a push on one only teaches people --no-verify,
+# which would skip the lint, types and tests that do matter.
 echo "[pre-push] Running ci:check..."
 exec pnpm ci:check

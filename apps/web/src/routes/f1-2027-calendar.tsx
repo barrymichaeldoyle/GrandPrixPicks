@@ -45,7 +45,7 @@ const REPORTED_ROWS = [
   },
   {
     term: 'Tracks coming back',
-    detail: 'Portimão and Istanbul Park.',
+    detail: 'Istanbul Park is confirmed. Reports have Portimão returning too.',
   },
   {
     term: 'Testing',
@@ -77,7 +77,7 @@ const FAQS = [
   },
   {
     question: 'How many races in 2027?',
-    answer: 'F1 is targeting 24. The 2026 season on this site has 22.',
+    answer: 'F1 is targeting 24. The 2026 season on this site has 23.',
   },
   {
     question: 'What if Bahrain and Saudi Arabia cannot open the season?',

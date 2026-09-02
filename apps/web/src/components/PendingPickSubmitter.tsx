@@ -17,6 +17,43 @@ type Top5Draft = { picks?: Id<'drivers'>[] };
 type H2HDraft = { selections?: Record<string, Id<'drivers'>> };
 
 /**
+ * Top 5 before Head-to-Head, always.
+ *
+ * `submitH2HPredictions` refuses a card from a player with no Top 5 for that
+ * race ("Submit your top 5 predictions first"), so for a first-time player
+ * these two submissions are ordered rather than independent. Nothing ordered
+ * them: the loop below took `sessionStorage` in enumeration order, and the
+ * intent flags are written Top 5 first, which looked like it was enough.
+ *
+ * It was not. `Storage.key()` order is implementation-defined, and Chrome
+ * enumerates it *sorted*, where `gpp:web:h2h:` sorts ahead of `gpp:web:top5:`.
+ * So the H2H card was always submitted first, always hit the gate, and -- since
+ * a failed drain drops the intent and keeps only the draft -- was never
+ * retried. Every player whose first-ever submission came through the landing
+ * card lost the whole Head-to-Head half of it, silently, on signup. Their
+ * second weekend worked, because by then they had a Top 5 on file, which is
+ * why this survived: it only ever broke for brand new players.
+ *
+ * Sorting makes the dependency explicit instead of leaving it to the browser.
+ */
+function orderTopFiveFirst(keys: string[]) {
+  return [...keys].sort((left, right) => {
+    const leftKind = parseWebDraftStorageKey(left)?.kind;
+    const rightKind = parseWebDraftStorageKey(right)?.kind;
+    if (leftKind === rightKind) {
+      return 0;
+    }
+    if (leftKind === 'top5') {
+      return -1;
+    }
+    if (rightKind === 'top5') {
+      return 1;
+    }
+    return 0;
+  });
+}
+
+/**
  * Saves the picks a visitor made before they had an account.
  *
  * The forms each carry their own version of this, firing when auth lands on a
@@ -31,7 +68,10 @@ type H2HDraft = { selections?: Record<string, Id<'drivers'>> };
  * So the recovery does not live in a form. This runs inside the authenticated
  * runtime, on every page, and drains whatever is pending wherever the visitor
  * happens to land. The forms keep their own path — when one *is* mounted it
- * wins the race, clears the flag first, and this finds nothing to do.
+ * usually wins the race, clears the flag first, and this finds nothing to do.
+ * The exception is the H2H form, which now stands down while a Top 5 is also
+ * pending, because that pair has to reach the server in order and only this
+ * loop can guarantee it. See the comment on its auto-submit effect.
  *
  * Deliberately silent: no confetti, no toast. The picks were already promised
  * ("Your picks are kept when you sign in"), so their arrival is the expected
@@ -56,7 +96,7 @@ export function PendingPickSubmitter() {
     if (!isAuthenticated || drainedRef.current) {
       return;
     }
-    const keys = listPendingSubmitDraftKeys();
+    const keys = orderTopFiveFirst(listPendingSubmitDraftKeys());
     if (keys.length === 0) {
       return;
     }

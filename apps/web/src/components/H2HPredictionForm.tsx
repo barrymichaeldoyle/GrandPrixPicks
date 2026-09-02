@@ -1,6 +1,9 @@
 import { api } from '@convex-generated/api';
 import type { Id } from '@convex-generated/dataModel';
-import { getWebH2HDraftStorageKey } from '@grandprixpicks/shared/picks';
+import {
+  getWebH2HDraftStorageKey,
+  getWebTop5DraftStorageKey,
+} from '@grandprixpicks/shared/picks';
 import { useConvexAuth, useMutation } from 'convex/react';
 import { Check, Save } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
@@ -426,6 +429,25 @@ export function H2HPredictionForm({
       !allSelected ||
       isSubmitting
     ) {
+      return;
+    }
+    // A Top 5 still waiting on the same sign-in has to reach the server first,
+    // and this form is in no position to send it: `submitH2HPredictions`
+    // refuses a card from someone with no Top 5 for the race, which is exactly
+    // the state a brand new player is in.
+    //
+    // The ordering bug actually observed was in the drain, not here, and is
+    // fixed there. This is the other half of the same invariant rather than a
+    // second fix for it: wherever this form *is* mounted when auth lands (the
+    // race page, where it survives the transition) it fires on its own and
+    // would beat an ordered drain to the server. Clearing the intent flag
+    // before submitting is what makes that unrecoverable, so the cheap move is
+    // not to start.
+    //
+    // Standing down is safe. `PendingPickSubmitter` is mounted app-wide inside
+    // the authenticated runtime, snapshots both keys at sign-in, and submits
+    // them in order.
+    if (hasPendingSubmit(getWebTop5DraftStorageKey(raceId, sessionType))) {
       return;
     }
     autoSubmitFiredRef.current = true;

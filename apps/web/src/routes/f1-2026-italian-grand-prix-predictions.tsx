@@ -545,8 +545,8 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
           and{' '}
           <ExternalSource href={HADJAR_RACING_NEWS_365_SOURCE}>
             RacingNews365
-          </ExternalSource>
-          {' '}report the same race line-up used at Zandvoort.
+          </ExternalSource>{' '}
+          report the same race line-up used at Zandvoort.
         </p>
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Ayumu Iwasa replaces Verstappen in FP1 under the rookie-session rule.

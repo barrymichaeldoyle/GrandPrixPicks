@@ -81,10 +81,7 @@ describe('publishItaly2026HadjarUpdate', () => {
       const lineupEvent = await ctx.db
         .query('feedEvents')
         .withIndex('by_type_season_round', (q) =>
-          q
-            .eq('type', 'lineup_change')
-            .eq('season', 2026)
-            .eq('round', 12),
+          q.eq('type', 'lineup_change').eq('season', 2026).eq('round', 12),
         )
         .unique();
       return { news, lineupEvent };
@@ -105,9 +102,7 @@ describe('publishItaly2026HadjarUpdate', () => {
         }),
       ]),
     );
-    expect(state.lineupEvent?.lineupNote).toBe(
-      HADJAR_DUTCH_GP_LINEUP_NOTE,
-    );
+    expect(state.lineupEvent?.lineupNote).toBe(HADJAR_DUTCH_GP_LINEUP_NOTE);
   });
 });
 

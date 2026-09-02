@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '../teamColors';
 import type { OgImageSize } from './styles';
 import { colors, getOgDimensions } from './styles';
 
@@ -226,27 +227,41 @@ export interface NextRaceOgData {
   lockDate: string;
   /** Track-local lock time with zone, e.g. "14:00 CEST". */
   lockTime: string;
+  /** Town the circuit is in, e.g. "Monza". Falls back to the season. */
+  venue?: string;
   flagSrc?: string;
 }
 
 /**
- * A timing tower bleeding off the right edge: positions over gap bars, fading
- * as they descend.
+ * A five-slot pick sheet: the product itself, at the size it is played.
  *
- * There is no licensed circuit artwork in the repo, and a freehand silhouette
- * reads as a blob to fans who know these shapes. The tower is the motif the
- * rest of the system already uses, needs no asset, and fills the dead right
- * half without competing with the headline.
+ * This replaces a "timing tower" of grey bars whose lengths were derived from
+ * `(index * 67) % 240`. The comment above it argued that filled blocks would
+ * not read as a loading skeleton. They did — random-length grey bars on a
+ * near-black ground is the exact shape of a skeleton, and the site's own link
+ * preview looked like a page that had not finished loading.
  *
- * The bars are solid blocks on `surfaceElevated`, not the 1px hairlines this
- * started as. Hairlines of varying length on a near-black ground do not read
- * as a timing screen at any size; they read as a *loading skeleton*, which is
- * the last thing the site's own link preview should look like. Filled blocks
- * give the rows enough figure-to-ground contrast to scan as data, and the
- * leader keeps the one accent tick that says which row is P1.
+ * Real rows fix that, and they do a job the tower never did: a stranger who
+ * has never heard of the site can see what playing it produces. Slot number,
+ * team colour confined to 3px, driver code — the same three parts as a row in
+ * `PredictionForm`.
+ *
+ * The codes are a fixed illustrative Top 5, not a house prediction and not
+ * live data: this card is cached by scrapers for weeks, so anything that moves
+ * with results would be wrong more often than right. `YOUR TOP 5` in the
+ * header is what keeps it reading as an example rather than as a tip. Update
+ * the list when the grid changes, the same way any other hard-coded roster
+ * fact is updated.
  */
-function timingTower(): ReactNode {
-  const ROWS = 8;
+const SHEET_ROWS = [
+  { code: 'VER', team: 'Red Bull Racing' },
+  { code: 'NOR', team: 'McLaren' },
+  { code: 'LEC', team: 'Ferrari' },
+  { code: 'RUS', team: 'Mercedes' },
+  { code: 'PIA', team: 'McLaren' },
+] as const;
+
+function pickSheet(): ReactNode {
   return e(
     'div',
     {
@@ -254,77 +269,82 @@ function timingTower(): ReactNode {
         display: 'flex',
         flexDirection: 'column' as const,
         position: 'absolute' as const,
-        // Overhangs so the longest bars run off the frame — a slice of a
-        // timing screen, not a widget parked in the corner. The right offset
-        // keeps the container's left edge (x = 1200 − width − right) clear of
-        // the headline box, which ends at x = 784; at -120 the P-labels start
-        // at x = 800 and nothing collides.
-        right: -120,
-        top: 96,
-        width: 520,
+        right: 64,
+        top: 128,
+        width: 396,
+        backgroundColor: colors.surface,
+        border: `1px solid ${colors.border}`,
       },
     },
-    ...Array.from({ length: ROWS }, (_, index) => {
-      const opacity = 1 - index / (ROWS + 1.2);
-      return e(
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          padding: '17px 22px',
+          borderBottom: `1px solid ${colors.border}`,
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          fontWeight: 600,
+          letterSpacing: 2.6,
+          color: colors.textMuted,
+        },
+      },
+      'YOUR TOP 5',
+    ),
+    ...SHEET_ROWS.map((row, index) =>
+      e(
         'div',
         {
-          key: String(index),
+          key: row.code,
           style: {
             display: 'flex',
             alignItems: 'center',
-            height: 48,
-            opacity,
+            height: 61,
+            padding: '0 22px',
+            borderBottom:
+              index === SHEET_ROWS.length - 1
+                ? 'none'
+                : `1px solid ${colors.border}`,
           },
         },
+        e(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              width: 38,
+              fontFamily: 'IBM Plex Mono',
+              fontSize: 21,
+              fontWeight: 600,
+              color: colors.textMuted,
+            },
+          },
+          String(index + 1),
+        ),
         e('div', {
           style: {
             width: 3,
-            height: 30,
+            height: 28,
             marginRight: 18,
-            backgroundColor: index === 0 ? colors.accent : colors.borderStrong,
+            backgroundColor: TEAM_COLORS[row.team] ?? FALLBACK_TEAM_COLOR,
           },
         }),
         e(
           'div',
           {
             style: {
-              width: 48,
-              fontSize: 20,
+              display: 'flex',
+              flex: 1,
+              fontSize: 25,
               fontWeight: 600,
-              fontFamily: 'IBM Plex Mono',
-              color: index === 0 ? colors.text : colors.textMuted,
+              letterSpacing: 0.4,
             },
           },
-          `P${index + 1}`,
+          row.code,
         ),
-        e('div', {
-          style: {
-            width: 210 + ((index * 67) % 240),
-            height: 30,
-            backgroundColor:
-              index === 0 ? colors.accentMuted : colors.surfaceElevated,
-          },
-        }),
-      );
-    }),
-  );
-}
-
-/** Lime separator dots — the one accent allowance on the brand card strip. */
-function stripSep(): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        margin: '0 16px',
-        fontSize: 22,
-        fontWeight: 600,
-        fontFamily: 'IBM Plex Mono',
-        color: colors.accent,
-      },
-    },
-    '·',
+      ),
+    ),
   );
 }
 
@@ -355,27 +375,24 @@ function brandHeadline(): ReactNode {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        fontSize: 72,
+        fontSize: 64,
         fontWeight: 300,
-        letterSpacing: -1.5,
-        lineHeight: 1.12,
-        color: colors.text,
-        maxWidth: 720,
+        letterSpacing: -1.6,
+        lineHeight: 1.1,
+        maxWidth: 640,
       },
     },
     // Typographic apostrophe: the straight quote is the one glyph on this card
     // that gives away that it was written in a code editor.
     e('div', {}, 'Everyone’s a strategist'),
-    // "Prove it." in chartreuse. This is now the card's primary accent moment,
-    // which is the point: the other three (brand mark, P1 tick, strip dots)
-    // are all chrome, so the loudest colour on the card was never on the words
-    // doing the selling. Split into two boxes rather than a nested span
-    // because satori's inline handling is not reliable enough to trust a
+    // "Prove it." in chartreuse, and the only accent on the card that lands on
+    // a word rather than on chrome. Split into two boxes rather than a nested
+    // span because satori's inline handling is not reliable enough to trust a
     // colour change mid-line; the gap stands in for the word space that flex
     // would otherwise collapse.
     e(
       'div',
-      { style: { display: 'flex', gap: 20 } },
+      { style: { display: 'flex', gap: 18 } },
       e('div', {}, 'on Sunday.'),
       e('div', { style: { color: colors.accent } }, 'Prove it.'),
     ),
@@ -383,136 +400,104 @@ function brandHeadline(): ReactNode {
 }
 
 /**
- * The three ways a Top 5 pick scores, in the semantic colours the app already
- * uses for exactly this (`resultExact` / `resultNear` / `resultTop5`).
+ * The mechanic, in two spoken lines.
  *
- * Mirrors the landing page's scoring tiles down to the square-ended sector
- * rule, so the card and the page a reader lands on are visibly the same
- * product. It is also the only thing on this card that says what the game
- * *is*: the headline sells the feeling and the strip sells the price, and
- * before this there was nothing between them explaining the mechanic to
- * somebody who had never heard of the site.
- *
- * These colours are load-bearing rather than decorative, which is why three of
- * them are allowed on a card whose palette is otherwise one rare accent.
+ * This is what the three bordered scoring tiles used to say. The tiles set
+ * 5 / 3 / 1 in magenta, green and yellow, which put four saturated hues on a
+ * card whose palette is one rare accent, and they said in ~130px of chrome
+ * what a sentence says in a line. The numbers still matter — they are the
+ * detail that decides whether a stranger bothers — so they stay, as prose.
  */
-const SCORING_BANDS = [
-  {
-    points: '5',
-    unit: 'PTS',
-    title: 'Exact position',
-    color: colors.resultExact,
-  },
-  {
-    points: '3',
-    unit: 'PTS',
-    title: 'One position away',
-    color: colors.resultNear,
-  },
-  {
-    points: '1',
-    unit: 'PT',
-    title: 'In the actual top 5',
-    color: colors.resultTop5,
-  },
-] as const;
-
-function scoringTile(band: (typeof SCORING_BANDS)[number]): ReactNode {
+function brandSubtext(): ReactNode {
   return e(
     'div',
     {
-      key: band.title,
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        width: 232,
-        height: 132,
-        backgroundColor: colors.surface,
-        border: `1px solid ${colors.border}`,
-        // The sector rule is the bottom edge; a border under it would double
-        // the line and round off the colour's square ends.
-        borderBottom: 'none',
+        marginTop: 32,
+        maxWidth: 600,
+        fontSize: 25,
+        fontWeight: 300,
+        lineHeight: 1.4,
+        color: colors.textMuted,
+      },
+    },
+    e('div', {}, 'Pick your Top 5 for every session.'),
+    e('div', {}, 'An exact position scores 5, one off scores 3.'),
+  );
+}
+
+/**
+ * A label over a figure, the way the app sets every piece of timing data.
+ *
+ * `mono` follows the site's split rather than taste: IBM Plex Mono is for
+ * figures a reader compares or reads off a clock, Archivo for names.
+ */
+function bandStat(
+  label: string,
+  value: string,
+  align: 'flex-start' | 'flex-end',
+  mono = false,
+): ReactNode {
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        alignItems: align,
       },
     },
     e(
       'div',
       {
         style: {
-          display: 'flex',
-          flexDirection: 'column' as const,
-          flex: 1,
-          padding: '18px 20px 0',
+          fontFamily: 'IBM Plex Mono',
+          fontSize: 15,
+          letterSpacing: 2.6,
+          color: colors.textMuted,
         },
       },
-      e(
-        'div',
-        { style: { display: 'flex', alignItems: 'flex-end', gap: 7 } },
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 42,
-              fontWeight: 600,
-              fontFamily: 'IBM Plex Mono',
-              lineHeight: 1,
-              color: band.color,
-            },
-          },
-          band.points,
-        ),
-        e(
-          'div',
-          {
-            style: {
-              fontSize: 15,
-              fontWeight: 600,
-              letterSpacing: 2.2,
-              paddingBottom: 3,
-              color: band.color,
-            },
-          },
-          band.unit,
-        ),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            marginTop: 14,
-            fontSize: 19,
-            fontWeight: 600,
-          },
-        },
-        band.title,
-      ),
+      label,
     ),
-    e('div', { style: { height: 7, backgroundColor: band.color } }),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          marginTop: 7,
+          fontFamily: mono ? 'IBM Plex Mono' : 'Archivo',
+          fontSize: 31,
+          fontWeight: 600,
+        },
+      },
+      value,
+    ),
   );
 }
 
 /**
- * Shared brand-card chrome: small wordmark, hook-first headline, timing tower
- * on the right, mono strip along the bottom. Priority for a stranger scrolling
- * a group chat is hook → urgency → brand — never the other way around.
+ * Shared brand-card chrome: wordmark, headline, mechanic, pick sheet, and a
+ * data band along the bottom. Priority for a stranger scrolling a group chat
+ * is hook → what the game is → which race and by when.
+ *
+ * The band is the change that matters. The race and the lock deadline used to
+ * be one 22px mono line under three explainer tiles, which put the only fact
+ * on the card that expires — the reason somebody taps *now* rather than later
+ * — at the bottom of the visual order. It is now a two-column figure row,
+ * labelled the way the app labels timing data, and it is the second thing the
+ * eye reaches after the headline.
  *
  * Laid out with absolute pins rather than flex space-between: Satori does not
  * reliably stretch an absolutely-positioned column to the full frame height,
- * which left the urgency strip floating under the headline and the bottom half
- * empty. Pins keep the hierarchy stable at thumbnail size.
+ * which left the band floating under the headline and the bottom half empty.
+ * Pins keep the hierarchy stable at thumbnail size.
  *
  * No drawn CTA button (not clickable in an OG image) and no domain (the
- * platform already shows it under the card). Accent is scarce and now spent
- * where it earns most: "Prove it." in the headline, with the tower's P1 tick,
- * the strip separator dots and the brand mark as chrome behind it. The scoring
- * tiles carry the only other colour, and it is semantic.
- *
- * The headline sat at 76px over a ~180px dead band, which is the space the
- * scoring row now fills. Dropping to 72px is what buys the tiles their width
- * without the two columns colliding: the longer headline line ends at x≈739
- * and the tower's labels start at x=800.
+ * platform already shows it under the card).
  */
-function brandCardFrame(bottomStrip: ReactNode): ReactNode {
+function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
   const { width, height } = getOgDimensions('og');
 
   return e(
@@ -529,7 +514,6 @@ function brandCardFrame(bottomStrip: ReactNode): ReactNode {
         overflow: 'hidden' as const,
       },
     },
-    timingTower(),
     e(
       'div',
       {
@@ -547,66 +531,56 @@ function brandCardFrame(bottomStrip: ReactNode): ReactNode {
       {
         style: {
           display: 'flex',
+          flexDirection: 'column' as const,
           position: 'absolute' as const,
           left: 64,
-          top: 150,
+          top: 160,
         },
       },
       brandHeadline(),
+      brandSubtext(),
     ),
-    e(
-      'div',
-      {
-        style: {
-          display: 'flex',
-          gap: 12,
-          position: 'absolute' as const,
-          left: 64,
-          top: 372,
-        },
+    pickSheet(),
+    // The system's one elevation mechanism, separating the pitch from the data.
+    e('div', {
+      style: {
+        position: 'absolute' as const,
+        left: 64,
+        right: 64,
+        bottom: 122,
+        height: 1,
+        backgroundColor: colors.border,
       },
-      ...SCORING_BANDS.map(scoringTile),
-    ),
+    }),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
           position: 'absolute' as const,
           left: 64,
           right: 64,
           bottom: 48,
-          fontSize: 22,
-          fontWeight: 600,
-          fontFamily: 'IBM Plex Mono',
-          letterSpacing: 1.6,
-          color: colors.text,
         },
       },
-      bottomStrip,
+      bandLeft,
+      bandRight,
     ),
   );
 }
 
 /**
  * Evergreen fallback for off-season / render failures / non-race pages.
- * Same hook-first layout as the live next-race card; the strip is the mechanic
- * summary so it never names a round that will be stale next week.
+ *
+ * Same layout as the live next-race card, with the band carrying facts that
+ * cannot go stale: there is no round to name and no deadline to count down.
  */
 export function defaultBrandTemplate(): ReactNode {
   return brandCardFrame(
-    e(
-      'div',
-      { style: { display: 'flex', alignItems: 'center' } },
-      e('div', {}, 'QUALI'),
-      stripSep(),
-      e('div', {}, 'SPRINT'),
-      stripSep(),
-      e('div', {}, 'RACE'),
-      stripSep(),
-      e('div', { style: { color: colors.textMuted } }, 'FREE TO PLAY'),
-    ),
+    bandStat('EVERY RACE WEEKEND', 'QUALI · SPRINT · RACE', 'flex-start'),
+    bandStat('ENTRY', 'FREE TO PLAY', 'flex-end'),
   );
 }
 
@@ -621,33 +595,29 @@ export function defaultBrandTemplate(): ReactNode {
  * the off-season fallback.
  */
 export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
-  const shortRaceName = data.raceName
-    .replace(/\s+Grand Prix$/i, ' GP')
-    .toUpperCase();
+  const roundLabel = data.venue
+    ? `ROUND ${data.round} · ${data.venue.toUpperCase()}`
+    : `ROUND ${data.round} · ${data.season}`;
 
   return brandCardFrame(
     e(
       'div',
-      { style: { display: 'flex', alignItems: 'center' } },
+      { style: { display: 'flex', alignItems: 'center', gap: 18 } },
       data.flagSrc
         ? e('img', {
             src: data.flagSrc,
-            width: 36,
-            height: 24,
-            style: {
-              marginRight: 14,
-              borderRadius: 1,
-              objectFit: 'cover' as const,
-            },
+            width: 46,
+            height: 31,
+            style: { borderRadius: 1, objectFit: 'cover' as const },
           })
         : null,
-      e('div', {}, shortRaceName),
-      stripSep(),
-      e(
-        'div',
-        { style: { color: colors.textMuted } },
-        `PICKS LOCK ${data.lockDate} ${data.lockTime}`,
-      ),
+      bandStat(roundLabel, data.raceName.toUpperCase(), 'flex-start'),
+    ),
+    bandStat(
+      'PICKS LOCK',
+      `${data.lockDate}  ${data.lockTime}`,
+      'flex-end',
+      true,
     ),
   );
 }

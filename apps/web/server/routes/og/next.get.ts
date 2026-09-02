@@ -1,6 +1,7 @@
 import { api } from '@convex-generated/api';
 import type { Doc } from '@convex-generated/dataModel';
 import { ConvexHttpClient } from 'convex/browser';
+import { getCircuitForRace } from '@grandprixpicks/shared/circuits';
 
 import { formatRaceLocalLockDate } from '../../../src/lib/raceLockTime';
 import { getNextSessionLockAt } from '../../../src/lib/raceSessions';
@@ -71,6 +72,9 @@ export default async function handler(event: RouteEvent) {
           season: race.season,
           lockDate: lock.date.toUpperCase(),
           lockTime: lock.time,
+          // The town, not the full circuit name: "MONZA" is what a fan calls
+          // the round, and "Autodromo Nazionale Monza" does not fit the band.
+          venue: getCircuitForRace(race.slug)?.locality,
           flagSrc,
         }),
       ),

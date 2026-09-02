@@ -132,10 +132,10 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
       const title = '2026 Bahrain Grand Prix Predictions | Sepang';
       const description =
         race?.status === 'finished'
-          ? '2026 Bahrain Grand Prix predictions, official Sepang results, and how they scored.'
+          ? '2026 Bahrain Grand Prix predictions scored against the official Sepang classification. See who called the top 5 at a track the 2026 cars had never run.'
           : race?.status === 'cancelled'
             ? 'The 2026 Bahrain Grand Prix was called off.'
-            : 'The 2026 Bahrain Grand Prix runs at Sepang in Malaysia on 4 October. Nobody has raced a 2026 car here. Make your predictions.';
+            : 'The 2026 Bahrain Grand Prix runs at Sepang in Malaysia on 4 October. Nobody has raced a 2026 car here. Pick a top 5 for qualifying and the race.';
       const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,

@@ -34,7 +34,7 @@ export const Route = createFileRoute('/f1-standings')({
     // rather than an em dash, per the copy convention.
     const description = leader
       ? `${SEASON} Formula 1 championship standings: ${leader.displayName} leads on ${leader.points} points. Full drivers' and constructors' tables, updated after every race.`
-      : `${SEASON} Formula 1 championship standings: full drivers' and constructors' points, updated after every race.`;
+      : `${SEASON} Formula 1 championship standings: the full drivers' and constructors' points tables, updated after every race of the season.`;
 
     const scripts: { type: string; children: string }[] = [];
     if (standings && standings.drivers.length > 0) {

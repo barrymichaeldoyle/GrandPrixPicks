@@ -128,10 +128,10 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
     const title = '2026 Spanish Grand Prix Predictions & Picks | Madrid';
     const description =
       race?.status === 'finished'
-        ? '2026 Spanish Grand Prix predictions, official Madring results, and how they scored.'
+        ? '2026 Spanish Grand Prix predictions scored against the official Madring classification. See who read the new Madrid circuit right in its first year.'
         : race?.status === 'cancelled'
           ? 'The 2026 Spanish Grand Prix was called off.'
-          : '2026 Spanish Grand Prix at Madrid’s Madring. First race here; practice is the form guide.';
+          : '2026 Spanish Grand Prix predictions for Madrid’s Madring. Nobody has raced here, so practice is the form guide. Pick a top 5 for qualifying and the race.';
     const circuit = getCircuitForRace(RACE_SLUG);
     const meta = pageMeta({
       title,

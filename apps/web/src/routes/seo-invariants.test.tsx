@@ -39,6 +39,16 @@ const SITE_URL = 'https://grandprixpicks.com';
 /** Google truncates around 60 characters of title and 155 of description. */
 const MAX_TITLE = 60;
 const MAX_DESCRIPTION = 160;
+/**
+ * A description far under the limit wastes the snippet rather than breaking
+ * it, so this is a floor and not a hard rule: Bing's site scan is what
+ * surfaced it, flagging pages whose descriptions gave a searcher less than the
+ * SERP had room for. 120 is the shortest of the descriptions we were happy
+ * with, not a number Google publishes. Padding a line to clear it defeats the
+ * point; add a fact the reader needs, or the copy is better left short and
+ * this floor is the thing to change.
+ */
+const MIN_DESCRIPTION = 120;
 
 type MetaTag = {
   content?: string;
@@ -54,6 +64,18 @@ type Head = {
 };
 
 /**
+ * The race states whose copy is written by hand and therefore worth checking.
+ *
+ * A write-up's `head()` branches on `race.status`, so a fixture without one
+ * only ever exercises the upcoming copy. That is how the finished
+ * descriptions drifted to 80 characters unnoticed: you see that string for a
+ * few weeks a year, months after writing it, and never while developing.
+ */
+const RACE_STATUSES = ['upcoming', 'finished', 'cancelled'] as const;
+
+type RaceStatus = (typeof RACE_STATUSES)[number];
+
+/**
  * Every indexable route, with whatever its `head()` needs to run.
  *
  * `loaderData` is real data, not a stub, wherever the route has a fixture to
@@ -65,6 +87,8 @@ const ROUTES: {
   loader?: () => Promise<unknown>;
   module: string;
   path: string;
+  /** Set on routes whose `head()` branches on `race.status`. */
+  statuses?: readonly RaceStatus[];
 }[] = [
   { module: './about', path: '/about' },
   { module: './how-to-play', path: '/how-to-play' },
@@ -120,6 +144,7 @@ const ROUTES: {
   {
     module: './f1-2026-italian-grand-prix-predictions',
     path: '/f1-2026-italian-grand-prix-predictions',
+    statuses: RACE_STATUSES,
     args: {
       loaderData: {
         race: { raceStartAt: 1_788_699_600_000 },
@@ -129,6 +154,7 @@ const ROUTES: {
   {
     module: './f1-2026-bahrain-grand-prix-predictions',
     path: '/f1-2026-bahrain-grand-prix-predictions',
+    statuses: RACE_STATUSES,
     args: {
       loaderData: {
         race: { raceStartAt: 1_791_097_200_000 },
@@ -138,6 +164,7 @@ const ROUTES: {
   {
     module: './f1-2026-singapore-grand-prix-predictions',
     path: '/f1-2026-singapore-grand-prix-predictions',
+    statuses: RACE_STATUSES,
     args: {
       loaderData: {
         race: { raceStartAt: 1_791_720_000_000 },
@@ -147,6 +174,7 @@ const ROUTES: {
   {
     module: './f1-2026-azerbaijan-grand-prix-predictions',
     path: '/f1-2026-azerbaijan-grand-prix-predictions',
+    statuses: RACE_STATUSES,
     args: {
       loaderData: {
         race: { raceStartAt: 1_790_420_400_000 },
@@ -156,6 +184,7 @@ const ROUTES: {
   {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
+    statuses: RACE_STATUSES,
     args: {
       loaderData: {
         race: { raceStartAt: 1_789_304_400_000 },
@@ -184,12 +213,33 @@ const ROUTES: {
   },
 ];
 
-async function headFor(entry: (typeof ROUTES)[number]): Promise<Head> {
+async function headFor(
+  entry: (typeof ROUTES)[number],
+  status?: RaceStatus,
+): Promise<Head> {
   const module = (await import(/* @vite-ignore */ entry.module)) as {
     Route: { head: (args?: unknown) => Head };
   };
   const args = entry.loader ? await entry.loader() : entry.args;
-  return module.Route.head(args);
+  return module.Route.head(status ? withRaceStatus(args, status) : args);
+}
+
+/**
+ * The same loader payload with the race forced into `status`.
+ *
+ * The race object is spread rather than mutated because `args` is shared
+ * across the states in one route's loop, and a mutated fixture would leak the
+ * last status into whichever assertion ran next.
+ */
+function withRaceStatus(args: unknown, status: RaceStatus) {
+  const typed = args as { loaderData?: { race?: Record<string, unknown> } };
+  return {
+    ...typed,
+    loaderData: {
+      ...typed.loaderData,
+      race: { ...typed.loaderData?.race, status },
+    },
+  };
 }
 
 function titleOf(head: Head) {
@@ -230,16 +280,32 @@ describe('SEO invariants across every indexable route', () => {
 
   for (const entry of ROUTES) {
     describe(entry.path, () => {
-      it('keeps its title and description inside SERP limits', async () => {
-        const head = await headFor(entry);
-        const title = titleOf(head);
-        const description = contentOf(head, 'description');
+      // A route that branches on race status gets one case per state; the
+      // rest run once, with whatever their fixture already says.
+      for (const status of entry.statuses ?? [undefined]) {
+        const label = status
+          ? `keeps its ${status} title and description inside SERP limits`
+          : 'keeps its title and description inside SERP limits';
 
-        expect(title, 'missing <title>').toBeTruthy();
-        expect(title!.length).toBeLessThanOrEqual(MAX_TITLE);
-        expect(description, 'missing meta description').toBeTruthy();
-        expect(description!.length).toBeLessThanOrEqual(MAX_DESCRIPTION);
-      });
+        it(label, async () => {
+          const head = await headFor(entry, status);
+          const title = titleOf(head);
+          const description = contentOf(head, 'description');
+
+          expect(title, 'missing <title>').toBeTruthy();
+          expect(title!.length).toBeLessThanOrEqual(MAX_TITLE);
+          expect(description, 'missing meta description').toBeTruthy();
+          expect(description!.length).toBeLessThanOrEqual(MAX_DESCRIPTION);
+
+          // A cancelled race is held to the ceiling but not the floor. "The
+          // 2026 Bahrain Grand Prix was called off." is the whole story, and
+          // padding it to clear a minimum would be inventing copy to satisfy
+          // a test, which `docs/product-voice.md` rules out.
+          if (status !== 'cancelled') {
+            expect(description!.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION);
+          }
+        });
+      }
 
       it('is indexable and canonicalises to itself', async () => {
         const head = await headFor(entry);

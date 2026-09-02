@@ -107,7 +107,7 @@ export const Route = createFileRoute(
     const title = '2026 Singapore Grand Prix Predictions & Sprint Picks';
     const description =
       race?.status === 'finished'
-        ? '2026 Singapore Grand Prix and Sprint predictions, official Marina Bay results, and how they scored.'
+        ? '2026 Singapore Grand Prix predictions scored against the official Marina Bay classification. See who called the top 5 across the sprint and the race.'
         : race?.status === 'cancelled'
           ? 'The 2026 Singapore Grand Prix was called off.'
           : 'Make your 2026 Singapore Grand Prix and Sprint predictions. Marina Bay hosts its first sprint weekend, with one practice session.';

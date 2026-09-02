@@ -140,10 +140,10 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
       const title = '2026 Italian Grand Prix Predictions & Picks';
       const description =
         race?.status === 'finished'
-          ? '2026 Italian Grand Prix predictions, official Monza results, and how they scored.'
+          ? '2026 Italian Grand Prix predictions scored against the official Monza classification. See who called the top 5 for qualifying and the race.'
           : race?.status === 'cancelled'
             ? 'The 2026 Italian Grand Prix was called off.'
-            : 'Make your 2026 Italian Grand Prix predictions. Antonelli’s grid penalty does not change his qualifying classification.';
+            : '2026 Italian Grand Prix predictions at Monza. Pick a top 5 for qualifying and the race. Antonelli’s grid penalty does not change his qualifying classification.';
       const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,

@@ -109,10 +109,10 @@ export const Route = createFileRoute(
     const title = '2026 Azerbaijan Grand Prix Predictions & Picks | Baku';
     const description =
       race?.status === 'finished'
-        ? '2026 Azerbaijan Grand Prix predictions, official Baku results, and how they scored.'
+        ? '2026 Azerbaijan Grand Prix predictions scored against the official Baku classification. See who called the top 5 on a street circuit that punishes a mistake.'
         : race?.status === 'cancelled'
           ? 'The 2026 Azerbaijan Grand Prix was called off.'
-          : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday.';
+          : 'Make your 2026 Azerbaijan Grand Prix predictions. Baku races on Saturday this year, with practice starting Thursday. Pick a top 5 for every session.';
     const circuit = getCircuitForRace(RACE_SLUG);
     const meta = pageMeta({
       title,

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/refund-policy')({
     pageMeta({
       title: 'Refund Policy | Grand Prix Picks',
       description:
-        'Refund policy for Grand Prix Picks purchases, processed in accordance with Paddle refund terms.',
+        'Refund policy for Grand Prix Picks season pass purchases, processed in accordance with Paddle refund terms. How to request a refund and what happens next.',
       path: '/refund-policy',
     }),
 });

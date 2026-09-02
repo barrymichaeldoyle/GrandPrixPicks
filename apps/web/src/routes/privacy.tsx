@@ -16,7 +16,7 @@ export const Route = createFileRoute('/privacy')({
     pageMeta({
       title: 'Privacy Policy | Grand Prix Picks',
       description:
-        'Privacy policy for Grand Prix Picks. How we collect, use, and protect your information.',
+        'Privacy policy for Grand Prix Picks: what we collect when you play the F1 prediction game, how we use it, and how to delete your account and its data.',
       path: '/privacy',
     }),
 });

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/terms')({
     pageMeta({
       title: 'Terms of Service | Grand Prix Picks',
       description:
-        'Terms of service for Grand Prix Picks. Rules and conditions for using the prediction game.',
+        'Terms of service for Grand Prix Picks: the rules and conditions for using the F1 prediction game, buying a season pass, and running your account.',
       path: '/terms',
     }),
 });

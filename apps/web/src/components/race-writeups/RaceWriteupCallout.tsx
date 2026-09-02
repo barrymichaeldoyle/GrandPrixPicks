@@ -20,7 +20,14 @@ import { getRaceWriteup } from '@/lib/raceWriteups';
  * markup, so it survives into the SSR HTML. That matters beyond the reader:
  * this is the inbound link that keeps the write-up out of `check:orphans`.
  */
-export function RaceWriteupCallout({ raceSlug }: { raceSlug: string }) {
+export function RaceWriteupCallout({
+  raceSlug,
+  className = 'mt-6',
+}: {
+  raceSlug: string;
+  /** Lets a parent section own the vertical rhythm without duplicating this UI. */
+  className?: string;
+}) {
   const writeup = getRaceWriteup(raceSlug);
   if (!writeup) {
     return null;
@@ -29,7 +36,7 @@ export function RaceWriteupCallout({ raceSlug }: { raceSlug: string }) {
   return (
     <section
       aria-labelledby="weekend-writeup-heading"
-      className="mt-6 rounded-sm border border-accent/25 bg-accent-muted/20 p-4 sm:p-5"
+      className={`${className} rounded-sm border border-accent/25 bg-accent-muted/20 p-4 sm:p-5`}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">

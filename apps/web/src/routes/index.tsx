@@ -4,10 +4,12 @@ import { lazy, Suspense, useEffect } from 'react';
 
 import { DevNowPanel } from '@/components/DevNowPanel';
 import { InlineLoader } from '@/components/InlineLoader';
+import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { SHOW_DEV_TIME_CONTROLS } from '@/lib/devFlags';
 import { setHomeCacheHeaders } from '@/lib/homeCacheHeaders';
+import { getRaceWriteup } from '@/lib/raceWriteups';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   CURRENT_SEASON,
@@ -333,6 +335,14 @@ function PublicLandingPage() {
             initialMatchups={h2hMatchups}
             entryListNote={entryListNote}
           />
+        ) : null}
+
+        {nextRace && getRaceWriteup(nextRace.slug) ? (
+          <div className="border-t border-border px-4 py-8 sm:py-10">
+            <div className="mx-auto w-full max-w-5xl">
+              <RaceWriteupCallout raceSlug={nextRace.slug} className="mt-0" />
+            </div>
+          </div>
         ) : null}
 
         <ScoringSection />

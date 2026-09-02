@@ -73,3 +73,22 @@ export const footerLegalLinks: SiteNavLink[] = [
   { to: '/terms', label: 'Terms of Service' },
   { to: '/privacy', label: 'Privacy Policy' },
 ];
+
+/**
+ * A link out to someone else's F1 game.
+ *
+ * `rel` is `noopener` *without* `noreferrer`, unlike every other outbound link
+ * in the footer. `noreferrer` suppresses the `Referer` header, so the click
+ * would arrive in their analytics as direct traffic; we want the destination to
+ * be able to see where it came from without being told.
+ *
+ * Kept to a single entry on purpose. One is a recommendation, a list is a
+ * directory, and a directory in the footer is a traffic leak on every page of
+ * the site.
+ */
+export const friendGameLink = {
+  href: 'https://podiumlegend.com/',
+  label: 'Podium Legend',
+  /** Their own description of the game, not ours. */
+  description: 'a free F1 driver career game',
+} as const;

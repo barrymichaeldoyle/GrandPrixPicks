@@ -5,6 +5,7 @@ import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { railFooterLinks } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from '@/components/PrivacyChoicesButton';
+import { FriendGameLink } from '@/components/FriendGameLink';
 
 /**
  * Deliberately sized to WCAG 2.2 AA (24x24 CSS px) rather than the 44px touch
@@ -47,21 +48,27 @@ export function RailFooterLinks() {
   }
 
   return (
-    <nav
-      aria-label="Site information"
-      // Taller rows on touch need the wrap gap opened up too, so two stacked
-      // rows of links do not present adjacent hit areas with nothing between.
-      className="flex flex-wrap gap-x-2.5 gap-y-1 border-t border-border pt-4 text-[11px] leading-relaxed text-text-muted pointer-coarse:gap-x-4 pointer-coarse:gap-y-0"
-    >
-      {railFooterLinks.map((link) => (
-        <Link key={link.to} to={link.to} className={linkClass}>
-          {link.label}
-        </Link>
-      ))}
-      <PrivacyChoicesButton className={linkClass} />
-      <span>
-        © {year} {siteConfig.title}
-      </span>
-    </nav>
+    // The border and top padding moved off the <nav> when the outbound link
+    // joined it: the rule separates the rail's content from all of the small
+    // print, not just from the navigation half of it.
+    <div className="space-y-1 border-t border-border pt-4 text-[11px] leading-relaxed text-text-muted">
+      <FriendGameLink linkClassName={linkClass} />
+      <nav
+        aria-label="Site information"
+        // Taller rows on touch need the wrap gap opened up too, so two stacked
+        // rows of links do not present adjacent hit areas with nothing between.
+        className="flex flex-wrap gap-x-2.5 gap-y-1 pointer-coarse:gap-x-4 pointer-coarse:gap-y-0"
+      >
+        {railFooterLinks.map((link) => (
+          <Link key={link.to} to={link.to} className={linkClass}>
+            {link.label}
+          </Link>
+        ))}
+        <PrivacyChoicesButton className={linkClass} />
+        <span>
+          © {year} {siteConfig.title}
+        </span>
+      </nav>
+    </div>
   );
 }

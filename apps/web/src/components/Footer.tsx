@@ -8,6 +8,7 @@ import {
 } from '@/lib/navigation';
 import { siteConfig } from '@/lib/site';
 import { PrivacyChoicesButton } from './PrivacyChoicesButton';
+import { FriendGameLink } from './FriendGameLink';
 import { BrandMark } from './BrandMark.tsx';
 import { XLogoIcon } from './ShareOnXButton';
 
@@ -168,6 +169,7 @@ export function Footer() {
                   </a>
                 ))}
               </div>
+              <FriendGameLink linkClassName={footerLinkClass} />
               {/* Desktop: sits with the brand column. Mobile puts this at the
                   foot of the stack — nav and legal matter more when space is
                   tight (see the bottom bar below). */}

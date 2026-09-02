@@ -5,6 +5,8 @@ import {
   buildWeatherTimeline,
   conditionLabel,
   forecastNarrative,
+  sessionWeatherLine,
+  summarizeSessionWindow,
   weekendWeatherOutlook,
   type WeatherDay,
   type WeatherForecast,
@@ -177,5 +179,53 @@ describe('weekendWeatherOutlook', () => {
     // No data is not the same as good weather, so this must not collapse the
     // detail on the strength of an empty array.
     expect(weekendWeatherOutlook(forecast({ days: [] })).settled).toBe(false);
+  });
+});
+
+describe('session weather line', () => {
+  const sessions = buildWeatherSessions({
+    raceStartAt: raceAt,
+    qualiStartAt: Date.UTC(2026, 8, 6, 16),
+  });
+  function session(key: string) {
+    return sessions.find((candidate) => candidate.key === key)!;
+  }
+
+  function line(key: string, override: Partial<WeatherForecast> = {}) {
+    const summary = summarizeSessionWindow(forecast(override), session(key));
+    return summary && sessionWeatherLine(summary);
+  }
+
+  it('drops a rain chance nobody would pick differently on', () => {
+    expect(line('race')).toBe('Clear · 21°C');
+  });
+
+  it('keeps the chance, without repeating a condition that says rain', () => {
+    expect(line('quali')).toBe('Rain · 22°C · 70%');
+  });
+
+  it('names what the chance is of when the condition does not', () => {
+    expect(
+      line('race', {
+        hours: forecast().hours.map((hour) => ({
+          ...hour,
+          conditionCode: 'partlycloudy_day',
+          precipitationProbability: 40,
+        })),
+      }),
+    ).toBe('Partly cloudy · 21°C · 40% rain');
+  });
+
+  it('has nothing to say about a session the forecast no longer covers', () => {
+    // The row falls back to the next session on this, so a null here is what
+    // keeps a locked tab from showing an empty forecast.
+    expect(
+      summarizeSessionWindow(forecast(), {
+        key: 'fp1',
+        label: 'Practice 1',
+        startsAt: Date.UTC(2026, 8, 5, 13),
+        endsAt: Date.UTC(2026, 8, 5, 14),
+      }),
+    ).toBeNull();
   });
 });

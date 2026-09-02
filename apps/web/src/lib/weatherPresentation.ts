@@ -152,7 +152,7 @@ function mostSignificantCondition(hours: WeatherHour[]): string {
   );
 }
 
-export function summarizeWeatherHours(
+function summarizeWeatherHours(
   hours: WeatherHour[],
 ): WeatherWindowSummary | null {
   if (hours.length === 0) {
@@ -479,4 +479,48 @@ export function localDateKey(at: number, timeZone: string): string {
     month: '2-digit',
     day: '2-digit',
   }).format(new Date(at));
+}
+
+/**
+ * The forecast for a session itself, with nothing either side of it.
+ *
+ * Null once the session has passed out of the forecast window, which is what
+ * lets a caller fall back to a session there is still something to say about.
+ */
+export function summarizeSessionWindow(
+  forecast: WeatherForecast,
+  session: WeatherSession,
+): WeatherWindowSummary | null {
+  return summarizeWeatherHours(
+    forecast.hours.filter((hour) =>
+      weatherHourOverlaps(hour, session.startsAt, session.endsAt),
+    ),
+  );
+}
+
+/**
+ * One line of forecast: what it is, how warm, and how likely rain is.
+ *
+ * The chance is dropped below 20%, where it is not a fact anyone picks
+ * differently on, and loses its trailing "rain" whenever the condition has
+ * already said the word.
+ */
+export function sessionWeatherLine(summary: WeatherWindowSummary): string {
+  const label = conditionLabel(summary.conditionCode);
+  const parts = [label, `${summary.temperatureC}°C`];
+
+  const probability = summary.precipitationProbability;
+  if (probability != null && probability >= 20) {
+    const normalized = normalizeConditionCode(summary.conditionCode);
+    const wet =
+      normalized.includes('rain') ||
+      normalized.includes('thunder') ||
+      normalized.includes('sleet') ||
+      normalized.includes('snow');
+    parts.push(`${Math.round(probability)}%${wet ? '' : ' rain'}`);
+  } else if (probability == null && summary.precipitationAmountMm > 0) {
+    parts.push(`${summary.precipitationAmountMm.toFixed(1)} mm`);
+  }
+
+  return parts.join(' · ');
 }

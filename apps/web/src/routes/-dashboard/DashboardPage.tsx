@@ -14,7 +14,6 @@ import { SuggestedFollowsCard } from '@/components/dashboard/SuggestedFollowsCar
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
-import { WeatherFeedCard } from '@/components/weather/WeatherFeedCard';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
 import { useState } from 'react';
@@ -185,6 +184,8 @@ export function DashboardPage({
     >
       <DashboardWeekendPicks
         weekend={currentWeekend}
+        weather={weather}
+        weatherNow={weatherNow}
         initialDrivers={initialDrivers}
         initialMatchups={initialMatchups}
         initialPredictions={initialDashboard?.predictions ?? null}
@@ -200,11 +201,6 @@ export function DashboardPage({
         >
           Activity
         </h2>
-        <WeatherFeedCard
-          race={currentWeekend?.race}
-          weather={weather}
-          now={weatherNow}
-        />
         <FeedContent initialPage={initialDashboard?.feedPreview} />
       </section>
 

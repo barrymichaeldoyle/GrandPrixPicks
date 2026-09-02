@@ -128,8 +128,7 @@ export function WeekendWeatherForecast({
         condition / numbers with the icon floating off to the right, each day
         ran to about 127px for four short strings, and the three of them filled
         a phone screen before the reader reached the hour-by-hour detail this
-        section exists for. Same shape as `WeatherFeedCard`, deliberately: the
-        two are the same information in two places.
+        section exists for.
       */}
       <div className="grid gap-px bg-border sm:grid-cols-3">
         {forecast.days.map((day) => (

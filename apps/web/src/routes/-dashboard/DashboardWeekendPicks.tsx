@@ -24,6 +24,7 @@ import { PicksSaveStatus } from '@/components/PicksSaveStatus';
 import { PredictionForm } from '@/components/PredictionForm';
 import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
+import { WeatherSessionLine } from '@/components/weather/WeatherSessionLine';
 import {
   WEEKEND_CARD_SHELL,
   WeekendCardSkeleton,
@@ -33,6 +34,7 @@ import { getCountryCodeForRace } from '@/lib/raceCountries';
 import type { RaceWriteup } from '@/lib/raceWriteups';
 import { getRaceWriteup } from '@/lib/raceWriteups';
 import type { SessionType } from '@/lib/sessions';
+import type { RaceWeather } from '@/lib/weatherPresentation';
 import { SESSION_LABELS, SESSION_LABELS_SHORT } from '@/lib/sessions';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { useNow } from '@/lib/testing/now';
@@ -94,12 +96,18 @@ const H2HPredictionForm = lazy(() =>
 
 export function DashboardWeekendPicks({
   weekend,
+  weather,
+  weatherNow,
   initialDrivers,
   initialMatchups,
   initialPredictions,
   initialH2H,
 }: {
   weekend: CurrentWeekend | null | undefined;
+  weather: RaceWeather | null | undefined;
+  /** Frozen on the first render in `DashboardPage`, so the forecast the server
+   *  picked is the one that hydrates. */
+  weatherNow: number;
   initialDrivers: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
   /** The viewer's saved picks as read during SSR, so a server render shows the
@@ -137,6 +145,8 @@ export function DashboardWeekendPicks({
   return (
     <DashboardWeekendPicksReady
       weekend={weekend}
+      weather={weather}
+      weatherNow={weatherNow}
       initialDrivers={initialDrivers}
       initialMatchups={initialMatchups}
       initialPredictions={initialPredictions}
@@ -147,12 +157,16 @@ export function DashboardWeekendPicks({
 
 function DashboardWeekendPicksReady({
   weekend,
+  weather,
+  weatherNow,
   initialDrivers,
   initialMatchups,
   initialPredictions,
   initialH2H,
 }: {
   weekend: CurrentWeekend;
+  weather: RaceWeather | null | undefined;
+  weatherNow: number;
   initialDrivers: Doc<'drivers'>[];
   initialMatchups?: H2HMatchup[];
   initialPredictions?: MyWeekendPredictions;
@@ -556,6 +570,16 @@ function DashboardWeekendPicksReady({
           />
         ) : null}
       </div>
+
+      {/* Under the picks and above the write-up link: a player reads down to
+          "have I picked?", and the forecast is the first thing that might send
+          them back into the card to change an answer. */}
+      <WeatherSessionLine
+        race={weekend.race}
+        weather={weather}
+        now={weatherNow}
+        sessionKey={clockSession?.sessionType}
+      />
 
       {writeup ? <WeekendPreviewLink writeup={writeup} /> : null}
 

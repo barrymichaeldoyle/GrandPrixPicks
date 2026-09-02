@@ -32,6 +32,47 @@ const RELOAD_COOLDOWN_MS = 20_000;
 const STALE_CHUNK_MESSAGE =
   /failed to fetch dynamically imported module|error loading dynamically imported module|importing a module script failed|unable to preload css|'?text\/html'? is not a valid javascript mime type/i;
 
+/**
+ * The other shape a vanished chunk takes, and the one that reached the tray as
+ * a fatal `Cannot read properties of undefined (reading 'component')`.
+ *
+ * TanStack does not rethrow the import rejection. `lazyRouteComponent` catches
+ * it, leaves the module undefined, and the next line reads `res[exportName]`
+ * off that — so what surfaces is a plain `TypeError` whose message says
+ * nothing about chunks and never matches the wording above.
+ *
+ * Matching that message would be far too broad: it is the single most common
+ * TypeError in any React app, and treating it as a stale chunk would silently
+ * reload people past real bugs. So the judgement is made on the stack instead.
+ * Only a failure raised inside TanStack's own lazy-route loading counts, which
+ * no application-level TypeError can be.
+ */
+const LAZY_ROUTE_LOADER_FRAME =
+  /lazyRouteComponent|router-core\/dist\/esm\/load-client/;
+
+export function isLazyRouteChunkFailure(error: unknown): boolean {
+  if (!(error instanceof Error) || error.name !== 'TypeError') {
+    return false;
+  }
+  return LAZY_ROUTE_LOADER_FRAME.test(error.stack ?? '');
+}
+
+/**
+ * The same judgement from Sentry's parsed frames, which is all `beforeSend`
+ * gets — by then the `Error` is an event and the stack is a frame list.
+ */
+export function hasLazyRouteChunkFrame(
+  type: string | undefined,
+  frameSources: (string | undefined)[],
+): boolean {
+  if (type !== 'TypeError') {
+    return false;
+  }
+  return frameSources.some((source) =>
+    LAZY_ROUTE_LOADER_FRAME.test(source ?? ''),
+  );
+}
+
 export function isStaleChunkError(error: unknown): boolean {
   const message =
     error instanceof Error

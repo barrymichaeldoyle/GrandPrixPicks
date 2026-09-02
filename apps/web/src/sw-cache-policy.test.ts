@@ -13,6 +13,9 @@ interface ServiceWorkerPolicyApi {
     url: URL,
   ) => boolean;
   safeNotificationUrl: (value: unknown) => string;
+  isFreshEnoughToServe: (response: {
+    headers: { get: (name: string) => string | null };
+  }) => boolean;
 }
 
 function loadServiceWorkerPolicy(): ServiceWorkerPolicyApi {
@@ -25,7 +28,7 @@ function loadServiceWorkerPolicy(): ServiceWorkerPolicyApi {
     'fetch',
     'URL',
     `${swCode}
-return { isCacheablePagePath, canCacheNavigationResponse, safeNotificationUrl };`,
+return { isCacheablePagePath, canCacheNavigationResponse, safeNotificationUrl, isFreshEnoughToServe };`,
   ) as (
     self: {
       addEventListener: (name: string, cb: EventListener) => void;
@@ -126,6 +129,29 @@ describe('service worker cache policy', () => {
         new URL('https://example.com/me'),
       ),
     ).toBe(false);
+  });
+
+  it('refuses a stale page as an offline fallback', () => {
+    const { isFreshEnoughToServe } = loadServiceWorkerPolicy();
+    function stamped(value: string | null) {
+      return { headers: { get: () => value } };
+    }
+    const DAY = 24 * 60 * 60 * 1000;
+
+    expect(isFreshEnoughToServe(stamped(String(Date.now())))).toBe(true);
+    expect(isFreshEnoughToServe(stamped(String(Date.now() - DAY)))).toBe(true);
+
+    // The June-bundle case: old enough that the functions it calls may be gone.
+    expect(isFreshEnoughToServe(stamped(String(Date.now() - 60 * DAY)))).toBe(
+      false,
+    );
+    expect(isFreshEnoughToServe(stamped(String(Date.now() - 4 * DAY)))).toBe(
+      false,
+    );
+
+    // Entries cached before the stamp existed carry no header at all.
+    expect(isFreshEnoughToServe(stamped(null))).toBe(false);
+    expect(isFreshEnoughToServe(stamped('not-a-number'))).toBe(false);
   });
 
   it('only accepts same-origin notification destinations', () => {

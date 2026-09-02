@@ -6,6 +6,8 @@ import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
 import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
 import {
+  hasLazyRouteChunkFrame,
+  isLazyRouteChunkFailure,
   isStaleChunkError,
   listenForStaleChunks,
   reloadForStaleChunk,
@@ -33,7 +35,10 @@ export function getRouter() {
       // Nothing is broken for them that new HTML would not fix, so reload
       // instead of showing a red flag. `vite:preloadError` below catches most
       // of these first; this is the path for the ones that reach the boundary.
-      if (isStaleChunkError(error) && reloadForStaleChunk()) {
+      if (
+        (isStaleChunkError(error) || isLazyRouteChunkFailure(error)) &&
+        reloadForStaleChunk()
+      ) {
         return null;
       }
       return <ErrorFallback error={error} />;
@@ -83,6 +88,19 @@ export function getRouter() {
         // report — only a record of how often we deployed while people were
         // reading, which is not what this tray is for.
         if (isStaleChunkError(message)) {
+          return null;
+        }
+        // The same thing wearing TanStack's TypeError instead of Vite's
+        // wording. Judged on the frames, never on that message alone.
+        const exception = event.exception?.values?.[0];
+        if (
+          hasLazyRouteChunkFrame(
+            exception?.type,
+            (exception?.stacktrace?.frames ?? []).map(
+              (frame) => frame.module ?? frame.filename,
+            ),
+          )
+        ) {
           return null;
         }
         return event;

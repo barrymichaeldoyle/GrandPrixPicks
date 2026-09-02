@@ -51,6 +51,9 @@ import { Route as AdminRacesRaceIdRouteImport } from './routes/admin/races/$race
 import { Route as LeaguesSlugSettingsRouteImport } from './routes/leagues/$slug/settings'
 import { Route as PUsernameFollowersRouteImport } from './routes/p/$username/followers'
 import { Route as PUsernameFollowingRouteImport } from './routes/p/$username/following'
+import { Route as PocChinwagIndexRouteImport } from './routes/poc/chinwag/index'
+import { Route as PocChinwagDemoRouteImport } from './routes/poc/chinwag/demo'
+import { Route as PocChinwagResultsRouteImport } from './routes/poc/chinwag/results'
 import { Route as RacesRaceSlugIndexRouteImport } from './routes/races/$raceSlug/index'
 import { Route as RacesRaceSlugPracticeRouteImport } from './routes/races/$raceSlug/practice'
 
@@ -270,6 +273,21 @@ const PUsernameFollowingRoute = PUsernameFollowingRouteImport.update({
   path: '/following',
   getParentRoute: () => PUsernameRoute,
 } as any)
+const PocChinwagIndexRoute = PocChinwagIndexRouteImport.update({
+  id: '/poc/chinwag/',
+  path: '/poc/chinwag/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PocChinwagDemoRoute = PocChinwagDemoRouteImport.update({
+  id: '/poc/chinwag/demo',
+  path: '/poc/chinwag/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PocChinwagResultsRoute = PocChinwagResultsRouteImport.update({
+  id: '/poc/chinwag/results',
+  path: '/poc/chinwag/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RacesRaceSlugIndexRoute = RacesRaceSlugIndexRouteImport.update({
   id: '/races/$raceSlug/',
   path: '/races/$raceSlug/',
@@ -324,7 +342,10 @@ export interface FileRoutesByFullPath {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/poc/chinwag/demo': typeof PocChinwagDemoRoute
+  '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
+  '/poc/chinwag/': typeof PocChinwagIndexRoute
   '/races/$raceSlug/': typeof RacesRaceSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -369,7 +390,10 @@ export interface FileRoutesByTo {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/poc/chinwag/demo': typeof PocChinwagDemoRoute
+  '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
+  '/poc/chinwag': typeof PocChinwagIndexRoute
   '/races/$raceSlug': typeof RacesRaceSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -416,7 +440,10 @@ export interface FileRoutesById {
   '/leagues/$slug/settings': typeof LeaguesSlugSettingsRoute
   '/p/$username/followers': typeof PUsernameFollowersRoute
   '/p/$username/following': typeof PUsernameFollowingRoute
+  '/poc/chinwag/demo': typeof PocChinwagDemoRoute
+  '/poc/chinwag/results': typeof PocChinwagResultsRoute
   '/races/$raceSlug/practice': typeof RacesRaceSlugPracticeRoute
+  '/poc/chinwag/': typeof PocChinwagIndexRoute
   '/races/$raceSlug/': typeof RacesRaceSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -464,7 +491,10 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/poc/chinwag/demo'
+    | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
+    | '/poc/chinwag/'
     | '/races/$raceSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -509,7 +539,10 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/poc/chinwag/demo'
+    | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
+    | '/poc/chinwag'
     | '/races/$raceSlug'
   id:
     | '__root__'
@@ -555,7 +588,10 @@ export interface FileRouteTypes {
     | '/leagues/$slug/settings'
     | '/p/$username/followers'
     | '/p/$username/following'
+    | '/poc/chinwag/demo'
+    | '/poc/chinwag/results'
     | '/races/$raceSlug/practice'
+    | '/poc/chinwag/'
     | '/races/$raceSlug/'
   fileRoutesById: FileRoutesById
 }
@@ -597,7 +633,10 @@ export interface RootRouteChildren {
   LeaguesIndexRoute: typeof LeaguesIndexRoute
   RacesIndexRoute: typeof RacesIndexRoute
   AdminRacesRaceIdRoute: typeof AdminRacesRaceIdRoute
+  PocChinwagDemoRoute: typeof PocChinwagDemoRoute
+  PocChinwagResultsRoute: typeof PocChinwagResultsRoute
   RacesRaceSlugPracticeRoute: typeof RacesRaceSlugPracticeRoute
+  PocChinwagIndexRoute: typeof PocChinwagIndexRoute
   RacesRaceSlugIndexRoute: typeof RacesRaceSlugIndexRoute
 }
 
@@ -897,6 +936,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PUsernameFollowingRouteImport
       parentRoute: typeof PUsernameRoute
     }
+    '/poc/chinwag/': {
+      id: '/poc/chinwag/'
+      path: '/poc/chinwag'
+      fullPath: '/poc/chinwag/'
+      preLoaderRoute: typeof PocChinwagIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/poc/chinwag/demo': {
+      id: '/poc/chinwag/demo'
+      path: '/poc/chinwag/demo'
+      fullPath: '/poc/chinwag/demo'
+      preLoaderRoute: typeof PocChinwagDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/poc/chinwag/results': {
+      id: '/poc/chinwag/results'
+      path: '/poc/chinwag/results'
+      fullPath: '/poc/chinwag/results'
+      preLoaderRoute: typeof PocChinwagResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/races/$raceSlug/': {
       id: '/races/$raceSlug/'
       path: '/races/$raceSlug'
@@ -994,7 +1054,10 @@ const rootRouteChildren: RootRouteChildren = {
   LeaguesIndexRoute: LeaguesIndexRoute,
   RacesIndexRoute: RacesIndexRoute,
   AdminRacesRaceIdRoute: AdminRacesRaceIdRoute,
+  PocChinwagDemoRoute: PocChinwagDemoRoute,
+  PocChinwagResultsRoute: PocChinwagResultsRoute,
   RacesRaceSlugPracticeRoute: RacesRaceSlugPracticeRoute,
+  PocChinwagIndexRoute: PocChinwagIndexRoute,
   RacesRaceSlugIndexRoute: RacesRaceSlugIndexRoute,
 }
 export const routeTree = rootRouteImport

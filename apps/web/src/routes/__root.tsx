@@ -58,6 +58,7 @@ import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools';
 import { clerkFrontendApiOrigin } from '@/lib/clerkOrigin';
 import { ensureAdSenseLoaded } from '@/lib/adsense';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
+import { isBareRoute } from '@/lib/bareRoutes';
 import { showsGlobalFooter } from '@/lib/globalFooter';
 import { isNotificationArrival } from '@/lib/notificationArrival';
 import { CURRENT_SEASON, siteConfig } from '@/lib/site';
@@ -298,6 +299,7 @@ export function NotFoundPage() {
 function RootDocument({ children }: PropsWithChildren) {
   const { initialAuth } = Route.useLoaderData();
   const pathname = useLocation({ select: (location) => location.pathname });
+  const bare = isBareRoute(pathname);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -401,9 +403,15 @@ function RootDocument({ children }: PropsWithChildren) {
               {/* Unread count in the tab title, tab icon and OS badge. Renders
                   no visible DOM, so it sits outside the shell rather than in
                   the header next to the bell it mirrors. */}
-              <AuthenticatedDeferredFeature>
-                <UnreadTabIndicator />
-              </AuthenticatedDeferredFeature>
+              {/* Not on a bare route. It writes the last `<link rel="icon">` in
+                  the document by design, and prefixes the title with an unread
+                  count — both of which are Grand Prix Picks chrome, and the
+                  creator poll is someone else's page wearing their own icon. */}
+              {bare ? null : (
+                <AuthenticatedDeferredFeature>
+                  <UnreadTabIndicator />
+                </AuthenticatedDeferredFeature>
+              )}
               <AppShell>
                 <a
                   href="#main-content"
@@ -411,27 +419,29 @@ function RootDocument({ children }: PropsWithChildren) {
                 >
                   Skip to main content
                 </a>
-                <Header />
+                {bare ? null : <Header />}
                 <OfflineBanner />
                 {/* Mount before `load`: Chromium can dispatch
                     `beforeinstallprompt` before deferred global features are
                     requested, and that event cannot be recovered later. */}
-                <PWAInstallBanner />
+                {bare ? null : <PWAInstallBanner />}
                 <DeferredFeaturesBoundary>
                   <DeferredShellFeatures />
                 </DeferredFeaturesBoundary>
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <AuthenticatedDeferredFeature>
-                    <DeferredPredictionBanner />
-                  </AuthenticatedDeferredFeature>
+                  {bare ? null : (
+                    <AuthenticatedDeferredFeature>
+                      <DeferredPredictionBanner />
+                    </AuthenticatedDeferredFeature>
+                  )}
                   <main id="main-content" className="min-h-0 flex-1">
                     <ErrorBoundary>{children}</ErrorBoundary>
                   </main>
-                  <ShellFooter />
+                  {bare ? null : <ShellFooter />}
                   {/* Signed-in only, and only below 844px — see MobileTabBar.
                       Inside AppShell so the sign-in curtain makes it inert
                       along with everything else behind the loader. */}
-                  <MobileTabBar />
+                  {bare ? null : <MobileTabBar />}
                   <TanStackDevtools
                     config={{
                       position: 'bottom-right',

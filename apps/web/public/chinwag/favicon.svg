@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Chinwag predictions">
+  <!--
+    The poll's own mark, in Tommo's coral (#f78786) with his near-black (#303030).
+    He has not set a favicon on his own site (it still serves the Squarespace
+    default), so there was nothing of his to borrow and the Grand Prix Picks
+    chartreuse would have put our brand in his tab.
+    A four-square chequer reads at 16px where a cropped photo or lettering does
+    not, and it is the one motif that says motor racing without saying us.
+  -->
+  <rect width="32" height="32" rx="6" fill="#f78786"/>
+  <g fill="#303030">
+    <rect x="7" y="7" width="9" height="9"/>
+    <rect x="16" y="16" width="9" height="9"/>
+  </g>
+</svg>

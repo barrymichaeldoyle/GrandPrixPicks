@@ -51,8 +51,12 @@ const CLERK_FREE_EXACT = new Set([
   '/terms',
 ]);
 
-/** Prefixes whose whole subtree is public content: race pages, guides. */
-const CLERK_FREE_PREFIXES = ['/races/', '/guides/'];
+/**
+ * Prefixes whose whole subtree is public content: race pages, guides, and the
+ * creator-poll POC, which is a signed-out page for someone else's audience and
+ * must never ask them for an account.
+ */
+const CLERK_FREE_PREFIXES = ['/poc/', '/races/', '/guides/'];
 
 /** Trailing slashes and casing vary by how a link was written or pasted. */
 function normalize(pathname: string): string {

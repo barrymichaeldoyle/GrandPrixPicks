@@ -5,6 +5,7 @@ import {
 import { compareDriversByTeam } from '@grandprixpicks/shared/teams';
 import { v } from 'convex/values';
 
+import type { QueryCtx } from './_generated/server';
 import { query } from './_generated/server';
 import { loadConstructorPoints } from './f1Standings';
 import {
@@ -36,43 +37,66 @@ export const listDrivers = query({
      */
     includeNotRacing: v.optional(v.boolean()),
   },
-  handler: async (ctx, args) => {
-    const current = await getCurrentSeasonAndRound(ctx);
-    const season = args.season ?? current.season;
-    const round = args.round ?? current.round;
-
-    // Sized for the whole table, not for a grid: every driver who has raced
-    // this season has a row, including ones no longer in a seat, and the round
-    // filter below is what narrows it to 20-odd. Truncating here would drop
-    // drivers out of the pick pool silently.
-    const drivers = await ctx.db
-      .query('drivers')
-      .withIndex('by_displayName')
-      .take(60);
-
-    // The roster is resolved as it stood in this round, so an injured driver
-    // drops out of the pool for the rounds he misses and his stand-in appears
-    // in his place — without either of them being deleted, which would break
-    // every result that already references them. A past race page asking for
-    // its own round therefore still shows the grid that actually raced it,
-    // each driver under the team they drove for at the time.
-    const stints = await loadStintsForSeason(ctx, season);
-    const roster = args.includeNotRacing
-      ? annotateRosterForRound(drivers, stints, round)
-      : rosterForRound(drivers, stints, round);
-
-    // The roster is always this round's real lineup; a race still waiting on
-    // its entry list only gets its provisional seats flagged.
-    const pendingSlug = pendingEntrySlugForCalendarRound(season, round);
-    const marked = pendingSlug
-      ? markPendingEntryDrivers(pendingSlug, roster)
-      : roster;
-
-    // The index gives alphabetical order, so both apps re-sorted this by hand
-    // into team order and had to agree on the tie-breaks to stay in step.
-    // Sorting here means the pool, the duel grid and the feed all come out of
-    // the same championship, and a scored race moves them together.
-    const teamPoints = await loadConstructorPoints(ctx, season);
-    return marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
-  },
+  handler: async (ctx, args) => loadRosterForRound(ctx, args),
 });
+
+/**
+ * The body of {@link listDrivers}, callable from another query.
+ *
+ * Extracted so a second reader (the creator poll's dropdowns) gets the same
+ * round-correct grid without a `ctx.runQuery` subtransaction, and without a
+ * second copy of the stint/pending/ordering rules drifting from this one.
+ */
+export async function loadRosterForRound(
+  ctx: QueryCtx,
+  args: {
+    round?: number;
+    season?: number;
+    includeNotRacing?: boolean;
+    /**
+     * Already-loaded constructor points, to save a second pass over the
+     * season's results. A caller that needs the driver table anyway (the
+     * creator poll orders by it) has these in hand already.
+     */
+    teamPoints?: ReadonlyMap<string, number>;
+  },
+) {
+  const current = await getCurrentSeasonAndRound(ctx);
+  const season = args.season ?? current.season;
+  const round = args.round ?? current.round;
+
+  // Sized for the whole table, not for a grid: every driver who has raced
+  // this season has a row, including ones no longer in a seat, and the round
+  // filter below is what narrows it to 20-odd. Truncating here would drop
+  // drivers out of the pick pool silently.
+  const drivers = await ctx.db
+    .query('drivers')
+    .withIndex('by_displayName')
+    .take(60);
+
+  // The roster is resolved as it stood in this round, so an injured driver
+  // drops out of the pool for the rounds he misses and his stand-in appears
+  // in his place — without either of them being deleted, which would break
+  // every result that already references them. A past race page asking for
+  // its own round therefore still shows the grid that actually raced it,
+  // each driver under the team they drove for at the time.
+  const stints = await loadStintsForSeason(ctx, season);
+  const roster = args.includeNotRacing
+    ? annotateRosterForRound(drivers, stints, round)
+    : rosterForRound(drivers, stints, round);
+
+  // The roster is always this round's real lineup; a race still waiting on
+  // its entry list only gets its provisional seats flagged.
+  const pendingSlug = pendingEntrySlugForCalendarRound(season, round);
+  const marked = pendingSlug
+    ? markPendingEntryDrivers(pendingSlug, roster)
+    : roster;
+
+  // The index gives alphabetical order, so both apps re-sorted this by hand
+  // into team order and had to agree on the tie-breaks to stay in step.
+  // Sorting here means the pool, the duel grid and the feed all come out of
+  // the same championship, and a scored race moves them together.
+  const teamPoints =
+    args.teamPoints ?? (await loadConstructorPoints(ctx, season));
+  return marked.sort((a, b) => compareDriversByTeam(a, b, teamPoints));
+}

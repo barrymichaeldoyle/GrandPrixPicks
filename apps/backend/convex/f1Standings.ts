@@ -229,7 +229,12 @@ export async function loadConstructorPoints(
   return new Map(constructors.map((c) => [c.team, c.points]));
 }
 
-async function loadChampionship(ctx: ReadCtx, season: number) {
+/**
+ * Exported so a caller that needs both tables gets them from one pass. The
+ * creator poll orders its picker by constructor points and then by driver
+ * points, and loading those separately would scan the season's results twice.
+ */
+export async function loadChampionship(ctx: ReadCtx, season: number) {
   const races = await ctx.db
     .query('races')
     .withIndex('by_season_round', (q) => q.eq('season', season))

@@ -21,6 +21,9 @@ const sessionType = v.union(
  * from the comment. Keep it a real union so `Doc<'races'>['status']` carries
  * the type through to both apps.
  */
+/** Which half of a creator poll's race weekend a row belongs to. */
+const creatorPollPhase = v.union(v.literal('pre'), v.literal('post'));
+
 const raceStatus = v.union(
   v.literal('upcoming'),
   v.literal('locked'),
@@ -539,6 +542,83 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_status', ['status']),
+
+  // ============ CREATOR POLLS ============
+
+  /**
+   * A creator's weekly six-question audience poll (see
+   * `docs/creator-poll-poc.md`). One row per creator, re-pointed at a new race
+   * each weekend rather than recreated, so the poll's URL never changes.
+   *
+   * Deliberately not a prediction: nothing here is ever scored against a
+   * result. It is a vote the creator reads out on their show.
+   */
+  creatorPolls: defineTable({
+    /** URL segment, e.g. `chinwag`. */
+    slug: v.string(),
+    creatorName: v.string(),
+    showName: v.string(),
+    /** Which race the poll is currently asking about. */
+    raceId: v.id('races'),
+    /**
+     * Which half of his weekend the poll is on. He streams two shows every
+     * round, a Predictions one before and a Race Report after, and runs the
+     * Bangers & Clangers segment in both. `pre` asks who will; `post` asks who
+     * did, and drops pole and race winner because those are facts by then.
+     *
+     * Optional so the rows this POC already wrote stay valid. Every write sets
+     * it, and readers go through `pollPhase()`, which reads undefined as `pre`.
+     */
+    phase: v.optional(creatorPollPhase),
+    status: v.union(v.literal('open'), v.literal('closed')),
+    /**
+     * Advance and open/close this poll from the race calendar instead of by
+     * hand. Off until someone turns it on, so a manual poll is never moved
+     * under its owner.
+     */
+    autoAdvance: v.optional(v.boolean()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_slug', ['slug']),
+
+  /**
+   * One vote. `voterKey` is a random id the browser generates and keeps in
+   * `localStorage`; a returning voter patches their row instead of adding a
+   * second. That is the whole de-duplication story, and it is weaker than
+   * Google's per-account limit on purpose: the alternative stores a derived
+   * identifier for someone else's audience in our database.
+   *
+   * Scoped by `raceId` as well as `pollId` so re-pointing the poll at the next
+   * race is a single field write, and last weekend's votes stay readable.
+   */
+  creatorPollVotes: defineTable({
+    pollId: v.id('creatorPolls'),
+    raceId: v.id('races'),
+    /** See `creatorPolls.phase`. Optional for the same reason. */
+    phase: v.optional(creatorPollPhase),
+    voterKey: v.string(),
+    /**
+     * Driver codes for the driver questions, team names for the team ones.
+     *
+     * Pole and race winner are asked before the race and not after, so they are
+     * absent on a `post` vote rather than empty.
+     */
+    poleDriverCode: v.optional(v.string()),
+    winnerDriverCode: v.optional(v.string()),
+    bangerDriverCode: v.string(),
+    clangerDriverCode: v.string(),
+    bangerTeam: v.string(),
+    clangerTeam: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_poll_race_phase', ['pollId', 'raceId', 'phase'])
+    .index('by_poll_race_phase_voter', [
+      'pollId',
+      'raceId',
+      'phase',
+      'voterKey',
+    ]),
 
   // ============ LEAGUES ============
 

@@ -37,4 +37,15 @@ crons.interval(
   {},
 );
 
+// The creator poll walks itself through a race weekend: predictions open, they
+// close when qualifying starts, the Race Report vote opens at the flag, and the
+// whole thing rolls on to the next round. Only polls that opted in are touched.
+// Fifteen minutes is well inside the tolerance of every boundary it watches.
+crons.interval(
+  'advance creator polls',
+  { minutes: 15 },
+  internal.creatorPolls.advanceScheduledPolls,
+  {},
+);
+
 export default crons;

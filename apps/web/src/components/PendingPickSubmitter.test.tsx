@@ -114,6 +114,29 @@ describe('PendingPickSubmitter', () => {
     expect(loadPredictionDraft(H2H_KEY)).toBeNull();
   });
 
+  it('submits the Top 5 before the H2H card whichever order storage hands them over', async () => {
+    // Seeded H2H first, which is the order that broke it. `Storage.key()` order
+    // is implementation-defined: Chrome enumerates sorted, and `gpp:web:h2h:`
+    // sorts ahead of `gpp:web:top5:`, so the drain sent the duels first every
+    // time. `submitH2HPredictions` rejects a card from a player with no Top 5
+    // for the race, so every first-time player lost their whole H2H half on
+    // signup -- and a failed drain drops the intent, so nothing retried it.
+    //
+    // jsdom happens to enumerate in insertion order, so seeding H2H first is
+    // what reproduces Chrome's ordering here.
+    seedH2H();
+    seedTop5();
+    convexAuth.isAuthenticated = true;
+
+    await render();
+
+    expect(top5Spy).toHaveBeenCalled();
+    expect(h2hSpy).toHaveBeenCalled();
+    expect(top5Spy.mock.invocationCallOrder[0]).toBeLessThan(
+      h2hSpy.mock.invocationCallOrder[0],
+    );
+  });
+
   it('does nothing at all while signed out', async () => {
     seedTop5();
     seedH2H();

@@ -24,6 +24,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:publishItaly2026AronAlpineFp1",
+    "args": {}
+  },
+  {
     "name": "raceNewsMigrations:addItaly2026BrowningWriteUpPhoto",
     "args": {}
   },

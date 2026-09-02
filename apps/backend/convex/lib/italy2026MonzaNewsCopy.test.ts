@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ARON_ALPINE_FP1_BODY,
+  ARON_ALPINE_FP1_HEADLINE,
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
 } from './italy2026MonzaNewsCopy';
@@ -21,5 +23,15 @@ describe('italy2026MonzaNewsCopy', () => {
       'Ferrari will run its ADUO2 power unit in both cars at Monza without grid penalties. Motorsport.com reports a gain of about 15 horsepower. Leclerc and Hamilton also get a more efficient rear wing and other Monza-specific changes.',
     );
     expect(FERRARI_ENGINE_UPGRADE_BODY).not.toMatch(/two tenths per lap/);
+  });
+
+  it('uses the approved Aron FP1 headline and body', () => {
+    expect(ARON_ALPINE_FP1_HEADLINE).toBe(
+      "Paul Aron replaces Gasly in Alpine's FP1",
+    );
+    expect(ARON_ALPINE_FP1_BODY).toBe(
+      "Alpine reserve Paul Aron drives Gasly's car in FP1. Gasly returns for FP2. Use FP2 for your first look at Gasly with the Monza upgrade package both he and Colapinto are running.",
+    );
+    expect(ARON_ALPINE_FP1_BODY).not.toMatch(/Colapinto gets the same package/);
   });
 });

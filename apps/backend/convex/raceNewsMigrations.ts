@@ -3,6 +3,8 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import {
+  ARON_ALPINE_FP1_BODY,
+  ARON_ALPINE_FP1_HEADLINE,
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
 } from './lib/italy2026MonzaNewsCopy';
@@ -57,6 +59,29 @@ export const updateItaly2026MonzaNewsCopy = internalMutation({
     });
 
     return { alpine, ferrari };
+  },
+});
+
+/**
+ * Publish Barry-approved Monza FP1 driver-swap news for Alpine. Idempotent: safe
+ * to rerun on every deploy.
+ */
+export const publishItaly2026AronAlpineFp1 = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ aron: unknown }> => {
+    const aron = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'aron-alpine-fp1',
+      headline: ARON_ALPINE_FP1_HEADLINE,
+      body: ARON_ALPINE_FP1_BODY,
+      affectsSessions: ['quali'],
+      driverCodes: ['GAS'],
+      sourceName: 'Formula 1',
+      sourceUrl:
+        'https://www.formula1.com/en/latest/article/aron-set-for-next-fp1-run-with-alpine-at-monza.3X5Psl55Co2cFyrpqwzrGt',
+    });
+
+    return { aron };
   },
 });
 

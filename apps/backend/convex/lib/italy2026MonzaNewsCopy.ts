@@ -5,3 +5,9 @@ export const COLAPINTO_ALPINE_UPGRADE_BODY =
 
 export const FERRARI_ENGINE_UPGRADE_BODY =
   'Ferrari will run its ADUO2 power unit in both cars at Monza without grid penalties. Motorsport.com reports a gain of about 15 horsepower. Leclerc and Hamilton also get a more efficient rear wing and other Monza-specific changes.';
+
+export const ARON_ALPINE_FP1_HEADLINE =
+  "Paul Aron replaces Gasly in Alpine's FP1";
+
+export const ARON_ALPINE_FP1_BODY =
+  "Alpine reserve Paul Aron drives Gasly's car in FP1. Gasly returns for FP2. Use FP2 for your first look at Gasly with the Monza upgrade package both he and Colapinto are running.";

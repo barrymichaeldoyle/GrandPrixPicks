@@ -85,9 +85,10 @@ const FAQS = [
       'The Spanish Grand Prix runs from 11 to 13 September 2026 at the Madring in Madrid. Qualifying is on Saturday and the 57-lap Grand Prix is on Sunday.',
   },
   {
-    question: 'Is this the same race as the Barcelona-Catalunya Grand Prix?',
+    question:
+      'Is the Madrid Grand Prix the same race as the Spanish Grand Prix?',
     answer:
-      'No. 2026 has two races in Spain. The Barcelona-Catalunya Grand Prix was in June. This round is the Spanish Grand Prix, in Madrid.',
+      'Yes. Madrid Grand Prix is the common shorthand for the 2026 Spanish Grand Prix at the Madring. It is separate from the Barcelona-Catalunya Grand Prix, which was held in June.',
   },
   {
     question: 'Has Formula 1 raced at the Madring before?',
@@ -155,13 +156,13 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
   },
   head: ({ loaderData }) => {
     const race = loaderData?.race;
-    const title = '2026 Spanish Grand Prix Predictions & Picks | Madrid';
+    const title = '2026 Madrid Grand Prix Predictions | Spanish GP Picks';
     const description =
       race?.status === 'finished'
-        ? '2026 Spanish Grand Prix predictions scored against the official Madring classification. See who read the new Madrid circuit right in its first year.'
+        ? '2026 Madrid Grand Prix predictions scored against the official Spanish Grand Prix classification. See who read the new Madring circuit right in its first year.'
         : race?.status === 'cancelled'
           ? 'The 2026 Spanish Grand Prix was called off.'
-          : '2026 Spanish Grand Prix predictions for Madrid’s Madring. Nobody has raced here, so practice is the form guide. Pick a top 5 for qualifying and the race.';
+          : '2026 Madrid Grand Prix predictions for the Spanish Grand Prix at the Madring. Practice is the only form guide before qualifying and the race.';
     const circuit = getCircuitForRace(RACE_SLUG);
     const meta = pageMeta({
       title,
@@ -191,15 +192,18 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
                 isPartOf: { '@id': `${siteConfig.url}/#app` },
                 ...(race && circuit
                   ? {
-                      about: sportsEventSchema({
-                        name: '2026 Spanish Grand Prix',
-                        startAt: race.raceStartAt,
-                        path: PATH,
-                        description,
-                        image: raceOgImageUrl(RACE_SLUG),
-                        location: circuit,
-                        cancelled: race.status === 'cancelled',
-                      }),
+                      about: {
+                        ...sportsEventSchema({
+                          name: '2026 Spanish Grand Prix',
+                          startAt: race.raceStartAt,
+                          path: PATH,
+                          description,
+                          image: raceOgImageUrl(RACE_SLUG),
+                          location: circuit,
+                          cancelled: race.status === 'cancelled',
+                        }),
+                        alternateName: '2026 Madrid Grand Prix',
+                      },
                     }
                   : {}),
               },
@@ -214,7 +218,7 @@ export const Route = createFileRoute('/f1-2026-madrid-grand-prix-predictions')({
               },
               breadcrumbSchema(PATH, [
                 { name: 'Races', path: '/races' },
-                { name: 'Spanish Grand Prix predictions', path: PATH },
+                { name: 'Madrid Grand Prix predictions', path: PATH },
               ]),
             ],
           }),
@@ -258,7 +262,7 @@ function MadridGrandPrixPredictionsPage() {
               </div>
             </div>
             <h1 className="font-title mt-4 max-w-3xl text-4xl font-light tracking-tight text-text sm:text-5xl">
-              Spanish Grand Prix 2026 predictions
+              2026 Spanish Grand Prix predictions
             </h1>
             <p className="gpp-reading-copy-lg mt-5 max-w-2xl text-text-muted">
               {raceWriteupHeroSummary(

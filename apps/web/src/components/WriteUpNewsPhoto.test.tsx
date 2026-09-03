@@ -86,12 +86,12 @@ describe('WriteUpNewsPhoto', () => {
   it('caps a portrait photo so it cannot outgrow the reading column', () => {
     render({
       ...BROWNING,
-      src: '/media/rick-dikeman-schumacher-ferrari-indianapolis-2002-900.webp',
+      src: '/media/rick-dikeman-schumacher-ferrari-indianapolis-2002-896.webp',
       srcSet: undefined,
       sizes: undefined,
       alt: 'Michael Schumacher in Ferrari overalls, riding a folding scooter down the Indianapolis pit lane in 2002',
-      width: 900,
-      height: 1350,
+      width: 896,
+      height: 1120,
       context: 'Indianapolis, 2002',
     });
 

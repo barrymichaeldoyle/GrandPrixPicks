@@ -28,7 +28,13 @@ import {
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
 import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
-import { SCHUMACHER_TRIBUTE_WRITEUP_IMAGE } from '@/lib/italy2026WriteUpImages';
+import {
+  COLAPINTO_WRITEUP_IMAGE,
+  HADJAR_WRITEUP_IMAGE,
+  MCLAREN_PAIR_WRITEUP_IMAGE,
+  MONZA_TRACKSIDE_WRITEUP_IMAGE,
+  SCHUMACHER_TRIBUTE_WRITEUP_IMAGE,
+} from '@/lib/italy2026WriteUpImages';
 import {
   breadcrumbSchema,
   pageMeta,
@@ -62,6 +68,48 @@ const MCLAREN_FORM_SOURCE =
   'https://www.motorsport.com/f1/news/why-mclaren-must-pass-its-monza-test-before-talking-about-an-f1-title-challenge/10849795/';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
+/**
+ * The write-up section that carries a photo in its margin.
+ *
+ * Copy on the left at the page's reading measure, picture on the right, one
+ * column on a phone. The two are siblings rather than the picture living inside
+ * the copy's block, because the copy's block is what carries the team bar and
+ * the bar has to end where the copy ends: wrapped around both, it ran the full
+ * height of the taller one, which is always the photo, and drew a 3px team
+ * colour down a few hundred pixels of empty page.
+ *
+ * `items-start` keeps the photo at the top of the section rather than centred
+ * against the copy, so the tops of the two columns agree even though their
+ * bottoms do not.
+ */
+const WRITEUP_WITH_PHOTO =
+  'md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-7';
+
+/**
+ * Its photo column, and the same 16rem on every section that has one, including
+ * the three-column line-up section further up.
+ *
+ * One width down the page is what makes the pictures read as a column rather
+ * than as separately sized illustrations. The height is left to the photo:
+ * a 4:5 portrait stands 320px here and a 3:2 landscape 213px, which is how a
+ * section that is one sentence long stops carrying a picture twice the height
+ * of its own copy. Which shape a photo takes is decided with the photo, in
+ * `italy2026WriteUpImages.ts`.
+ */
+const WRITEUP_PHOTO_COLUMN =
+  // `pl-4` on a phone only. Stacked, the photo sits under copy that is already
+  // indented by the width of its team bar, and a picture starting 16px to the
+  // left of every line above it reads as a bleed rather than as alignment.
+  // Beside the copy from `md` up there is nothing to line up with, so it goes.
+  //
+  // No width cap below `md`: stacked, a landscape photo should run the width of
+  // the copy it follows, and capping it at 16rem left it stopping a third of
+  // the way short of every line above it, which reads as a thumbnail somebody
+  // forgot to finish. A portrait still needs the cap — at full phone width it
+  // paints 488px tall — and gets it from `WriteUpNewsPhoto`, which knows the
+  // photo's own shape.
+  'mt-3 pl-4 md:mt-0 md:w-48 md:pl-0 lg:w-64';
+
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
 
@@ -499,6 +547,13 @@ function TrackMap() {
             keeps the tow onto the main straight and can use Overtake down it,
             into Rettifilo. That is where most passes happen.
           </p>
+          {/* The drawn lap and the real thing, in one column. The map is the
+              taller element by a long way, so this side ended a third of the
+              way down it and left the rest of the column empty; a photograph of
+              the kerbs the map draws as lines is the one picture that belongs
+              next to it. Landscape, unlike every other photo on the page: a
+              portrait here would stand taller than the map it is explaining. */}
+          <WriteUpNewsPhoto {...MONZA_TRACKSIDE_WRITEUP_IMAGE} />
         </div>
       </div>
     </section>
@@ -507,16 +562,28 @@ function TrackMap() {
 
 function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
   return (
+    // Three columns from `lg`: the copy, the driver it is about, and the card
+    // that answers who is actually in the seats. Two columns left the reading
+    // measure at nearly 700px and the photo with nowhere to go but under the
+    // prose, where it pushed the section past the seat card by the height of a
+    // portrait. Three brings the measure back to about 70 characters and ends
+    // all three columns within a line or two of each other.
     <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_16rem_18rem]"
       aria-labelledby="hadjar-status"
     >
       {/* Same team bar the tribute and the contract carry, and for the same
           reason: this is a story about one team's seat, and the colour says
           whose before the first line is read. Red Bull's, not Racing Bulls' —
           the seat in question is the one Lawson is filling. */}
+      {/* Capped between `md` and `lg`. This section's grid is `lg:`, so on a
+          tablet it is still one column and the copy ran the full 736px — about
+          a hundred characters a line, where the eye loses its place returning
+          to the left margin. The two-column sections below cap at `md:` for the
+          same reason; they just get help from their grid earlier. Above `lg`
+          the 1fr column is narrower than any cap, so it lifts. */}
       <div
-        className="gpp-team-bar pl-4"
+        className="gpp-team-bar pl-4 md:max-w-[65ch] lg:max-w-none"
         style={
           {
             '--team-colour':
@@ -552,6 +619,19 @@ function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
           Ayumu Iwasa replaces Verstappen in FP1 under the rookie-session rule.
           Verstappen returns for FP2 and remains in the race line-up.
         </p>
+      </div>
+      {/* Outside the team bar, which marks the copy and stops with it. Inside
+          it the bar ran the full height of the tallest thing in the column,
+          which was the photo, and a 3px team colour down 400px of empty page
+          reads as a section that has not ended. */}
+      {/* No width cap of its own. It carried `max-w-64`, which the `pl-4`
+          then ate 16px of, so this portrait painted 240px wide on a phone
+          while the tribute's painted 256 — two pictures of the same shape at
+          two widths, for no reason a reader could see. The cap belongs to
+          `WriteUpNewsPhoto`, which knows whether the photo is a portrait; the
+          `lg` width comes from this section's own 16rem grid track. */}
+      <div className="self-start pl-4 lg:pl-0">
+        <WriteUpNewsPhoto {...HADJAR_WRITEUP_IMAGE} />
       </div>
       <dl className="self-start rounded-sm bg-surface-elevated px-4">
         {/* This card is about who is in which seat, which is the one thing
@@ -742,33 +822,38 @@ function PredictionMethod() {
 function McLarenForm() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="mclaren-form">
-      <div
-        className="gpp-team-bar max-w-3xl pl-4"
-        style={
-          {
-            '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
-          } as CSSProperties
-        }
-      >
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Form check
-        </p>
-        <h2
-          id="mclaren-form"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+      <div className={WRITEUP_WITH_PHOTO}>
+        <div
+          className="gpp-team-bar pl-4 md:max-w-3xl"
+          style={
+            {
+              '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
+            } as CSSProperties
+          }
         >
-          Monza is a different test for McLaren
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          McLaren won in Hungary and Zandvoort, both high-downforce races.
-          Andrea Stella says the MCL40 has been weaker on drag and braking.
-          Monza will test both. Check Norris and Piastri&rsquo;s straight-line
-          speed and braking on Friday.{' '}
-          <ExternalSource href={MCLAREN_FORM_SOURCE}>
-            Read Stella&rsquo;s assessment
-          </ExternalSource>
-          .
-        </p>
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Form check
+          </p>
+          <h2
+            id="mclaren-form"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            Monza is a different test for McLaren
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            McLaren won in Hungary and Zandvoort, both high-downforce races.
+            Andrea Stella says the MCL40 has been weaker on drag and braking.
+            Monza will test both. Check Norris and Piastri&rsquo;s straight-line
+            speed and braking on Friday.{' '}
+            <ExternalSource href={MCLAREN_FORM_SOURCE}>
+              Read Stella&rsquo;s assessment
+            </ExternalSource>
+            .
+          </p>
+        </div>
+        <div className={WRITEUP_PHOTO_COLUMN}>
+          <WriteUpNewsPhoto {...MCLAREN_PAIR_WRITEUP_IMAGE} />
+        </div>
       </div>
     </section>
   );
@@ -949,67 +1034,47 @@ function FerrariTribute() {
       {/* The one section whose subject is a team's own colour, so it gets the
           same 3px bar the driver badges use rather than a fourth kind of
           accent. Ferrari red is read from the tokens, not typed in here. */}
-      {/* The one write-up section wider than the `max-w-3xl` the others use.
-          The prose still stops at that measure: the extra width is the margin
-          the photo sits in, which would otherwise be empty page. */}
-      <div
-        className="gpp-team-bar pl-4"
-        style={
-          {
-            '--team-colour': TEAM_COLORS.Ferrari ?? FALLBACK_TEAM_COLOR,
-          } as CSSProperties
-        }
-      >
-        {/* Two columns from `md` up, one on a phone. A portrait photo at the
-            width of a reading column pushes every word of the section below the
-            fold and stretches the Ferrari bar past the copy it marks; in the
-            margin beside the text it stays a supporting picture.
-
-            Placed explicitly rather than by source order, because the two do
-            not agree. Stacked on a phone the photo belongs under the heading
-            and above the prose; beside the text it starts at the top of the
-            section, level with the eyebrow rather than a heading's height
-            below it. The rows are `auto 1fr` so the photo's extra height lands
-            in the prose row; left implicit, both rows share it and a gap opens
-            between the heading and its first line. */}
-        <div className="md:grid md:grid-cols-[minmax(0,1fr)_auto] md:grid-rows-[auto_1fr] md:items-start md:gap-x-7">
-          <div className="md:col-start-1 md:row-start-1 md:max-w-3xl">
-            <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-              Weekend colour
-            </p>
-            <h2
-              id="ferrari-tribute"
-              className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
-            >
-              Ferrari runs a Schumacher tribute
-            </h2>
-          </div>
-          <div className="md:col-start-2 md:row-span-2 md:row-start-1 md:w-56 lg:w-72">
-            <WriteUpNewsPhoto {...SCHUMACHER_TRIBUTE_WRITEUP_IMAGE} />
-          </div>
-          <div className="md:col-start-1 md:row-start-2 md:max-w-3xl md:min-w-0">
-            <p className="gpp-reading-copy mt-4 text-text-muted">
-              Ferrari has revealed a one-off SF-26 livery for Monza, thirty
-              years after Schumacher&rsquo;s first season in red. The car is
-              extra red, with the white gone from the engine cover, retro driver
-              numbers, Schumacher&rsquo;s signature on the cover, gold on the
-              BBS rims, and his seven stars on the nose. Barrichello and Vettel
-              will take the F2002 around on Saturday and Sunday.
-            </p>
-            <p className="gpp-reading-copy mt-3 text-text-muted">
-              Hamilton and Leclerc&rsquo;s race suits are out: red with white
-              stripes, and seven stars on the back for Schumacher&rsquo;s
-              titles.{' '}
-              <ExternalSource href={SUITS_SOURCE}>
-                See the race suits
-              </ExternalSource>
-              .{' '}
-              <ExternalSource href={LIVERY_SOURCE}>
-                Read the livery report
-              </ExternalSource>
-              .
-            </p>
-          </div>
+      <div className={WRITEUP_WITH_PHOTO}>
+        <div
+          className="gpp-team-bar pl-4 md:max-w-3xl"
+          style={
+            {
+              '--team-colour': TEAM_COLORS.Ferrari ?? FALLBACK_TEAM_COLOR,
+            } as CSSProperties
+          }
+        >
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Weekend colour
+          </p>
+          <h2
+            id="ferrari-tribute"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            Ferrari runs a Schumacher tribute
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            Ferrari has revealed a one-off SF-26 livery for Monza, thirty years
+            after Schumacher&rsquo;s first season in red. The car is extra red,
+            with the white gone from the engine cover, retro driver numbers,
+            Schumacher&rsquo;s signature on the cover, gold on the BBS rims, and
+            his seven stars on the nose. Barrichello and Vettel will take the
+            F2002 around on Saturday and Sunday.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Hamilton and Leclerc&rsquo;s race suits are out: red with white
+            stripes, and seven stars on the back for Schumacher&rsquo;s titles.{' '}
+            <ExternalSource href={SUITS_SOURCE}>
+              See the race suits
+            </ExternalSource>
+            .{' '}
+            <ExternalSource href={LIVERY_SOURCE}>
+              Read the livery report
+            </ExternalSource>
+            .
+          </p>
+        </div>
+        <div className={WRITEUP_PHOTO_COLUMN}>
+          <WriteUpNewsPhoto {...SCHUMACHER_TRIBUTE_WRITEUP_IMAGE} />
         </div>
       </div>
     </section>
@@ -1067,31 +1132,36 @@ function NorrisContract() {
 function ColapintoContract() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="colapinto-contract">
-      <div
-        className="gpp-team-bar max-w-3xl pl-4"
-        style={
-          {
-            '--team-colour': TEAM_COLORS.Alpine ?? FALLBACK_TEAM_COLOR,
-          } as CSSProperties
-        }
-      >
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Off track
-        </p>
-        <h2
-          id="colapinto-contract"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+      <div className={WRITEUP_WITH_PHOTO}>
+        <div
+          className="gpp-team-bar pl-4 md:max-w-3xl"
+          style={
+            {
+              '--team-colour': TEAM_COLORS.Alpine ?? FALLBACK_TEAM_COLOR,
+            } as CSSProperties
+          }
         >
-          Colapinto stays at Alpine for 2027
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Alpine has confirmed Franco Colapinto will stay for 2027, alongside
-          Pierre Gasly who is contracted to at least the end of 2028.{' '}
-          <ExternalSource href={COLAPINTO_CONTRACT_SOURCE}>
-            Read the announcement
-          </ExternalSource>
-          .
-        </p>
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Off track
+          </p>
+          <h2
+            id="colapinto-contract"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            Colapinto stays at Alpine for 2027
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            Alpine has confirmed Franco Colapinto will stay for 2027, alongside
+            Pierre Gasly who is contracted to at least the end of 2028.{' '}
+            <ExternalSource href={COLAPINTO_CONTRACT_SOURCE}>
+              Read the announcement
+            </ExternalSource>
+            .
+          </p>
+        </div>
+        <div className={WRITEUP_PHOTO_COLUMN}>
+          <WriteUpNewsPhoto {...COLAPINTO_WRITEUP_IMAGE} />
+        </div>
       </div>
     </section>
   );

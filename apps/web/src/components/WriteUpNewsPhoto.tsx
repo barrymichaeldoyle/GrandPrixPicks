@@ -52,7 +52,7 @@ export function WriteUpNewsPhoto({
         height={height}
         decoding="async"
         loading="lazy"
-        className="h-auto w-full rounded-sm"
+        className="h-auto w-full rounded-lg"
         alt={alt}
       />
       {/* The caption breaks between its two credits and nowhere else. It sits

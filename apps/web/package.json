@@ -57,7 +57,8 @@
     "check": "pnpm run format:check && pnpm run lint",
     "knip": "pnpm --dir ../.. knip",
     "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
-    "social-card": "tsx scripts/render-social-card.mts"
+    "social-card": "tsx scripts/render-social-card.mts",
+    "social-madrid-lap-map": "tsx scripts/render-madrid-lap-map.mts"
   },
   "dependencies": {
     "@clerk/backend": "3.17.0",

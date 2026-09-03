@@ -10,6 +10,7 @@ import type { SessionHeader } from '../../components/feed/SessionGroupCard';
 import { SessionGroupCard } from '../../components/feed/SessionGroupCard';
 import { HomeExplore } from '../../components/home/HomeExplore';
 import { HomeHero } from '../../components/home/HomeHero';
+import { RaceRecapCard } from '../../components/home/RaceRecapCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingScreen } from '../../components/ui/LoadingScreen';
@@ -190,6 +191,10 @@ export function FeedScreen() {
         }
         ListHeaderComponent={
           <View className="gap-2">
+            {/* Above the hero for the eight hours after a race starts. The
+                hero's whole job is the next event, and a player who has just
+                watched a Grand Prix came here for the one that finished. */}
+            <RaceRecapCard className="mb-3" />
             <HomeHero />
             {groups.length > 0 ? (
               <Text className="text-muted mb-2 px-1 text-[11px] font-bold uppercase">

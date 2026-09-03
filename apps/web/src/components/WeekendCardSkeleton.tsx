@@ -30,9 +30,25 @@ import { InlineLoader } from '@/components/InlineLoader';
  * Inner padding is untouched: the container bleeds, the content never touches
  * the glass.
  */
-export const WEEKEND_CARD_SHELL =
+const WEEKEND_CARD_BASE =
   'gpp-stripe overflow-hidden border-b border-border bg-surface ' +
-  '-mt-5 max-md:-mx-4 sm:-mt-7 md:mt-0 md:rounded-lg md:border';
+  'max-md:-mx-4 md:rounded-lg md:border';
+
+/**
+ * `leading` is whether this card is the first thing under the header.
+ *
+ * It usually is, and then it takes the negative top margin described above.
+ * Inside the results-first window it is not: the race recap takes that place
+ * and the picks card follows it, so the offset has to come off or the picks
+ * card climbs over the recap. A stacked card also takes its top border back —
+ * the leading card borrows the header's, and a card floating in the middle of
+ * the page with only a bottom edge reads as unfinished.
+ */
+export function weekendCardShell(leading: boolean) {
+  return leading
+    ? `${WEEKEND_CARD_BASE} -mt-5 sm:-mt-7 md:mt-0`
+    : `${WEEKEND_CARD_BASE} max-md:border-t`;
+}
 
 /**
  * The weekend picks card while its data is still in flight.

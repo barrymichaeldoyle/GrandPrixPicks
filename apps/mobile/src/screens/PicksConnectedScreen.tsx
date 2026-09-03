@@ -14,6 +14,7 @@ import { Share } from 'react-native';
 
 import { DraggableTop5 } from '../components/predict/DraggableTop5';
 import { H2HMatchupGrid } from '../components/predict/H2HMatchupGrid';
+import { RaceRecapCard } from '../components/home/RaceRecapCard';
 import { SessionResultsCard } from '../components/races/SessionResultsCard';
 import { PracticeResultsSheet } from '../components/races/practice-results-sheet';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -255,6 +256,12 @@ function PredictForRace({
         contentContainerClassName="gap-[18px] px-4 pt-3 pb-10"
         showsVerticalScrollIndicator={false}
       >
+        {/* Above the picker, for the eight hours after a race starts. This
+            screen advances to the next round the moment results publish, which
+            is the moment a player most wants the one that just finished. It
+            renders nothing outside that window. */}
+        <RaceRecapCard />
+
         <PageHeader race={race} selectedSession={selectedSession} now={now} />
 
         {(practiceResults?.length ?? 0) > 0 ? (

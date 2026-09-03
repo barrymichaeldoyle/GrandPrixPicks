@@ -25,6 +25,7 @@
     "./notifications": "./src/notifications.ts",
     "./pendingEntry": "./src/pendingEntry.ts",
     "./picks": "./src/picks.ts",
+    "./raceRecap": "./src/raceRecap.ts",
     "./raceTimezones": "./src/raceTimezones.ts",
     "./reactions": "./src/reactions.ts",
     "./scoring": "./src/scoring.ts",

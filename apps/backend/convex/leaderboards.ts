@@ -75,7 +75,7 @@ async function getLeagueMemberIds(
   return memberIds;
 }
 
-async function getFollowedUserIds(
+export async function getFollowedUserIds(
   ctx: QueryCtx,
   followerId: Id<'users'>,
 ): Promise<Set<string>> {

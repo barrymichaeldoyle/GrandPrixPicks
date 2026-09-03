@@ -9,7 +9,8 @@ import {
 import { captureAnalyticsEvent } from '@/lib/analytics';
 import { sizedAvatarUrl } from '@/lib/avatar';
 
-import { PointsCell, RankDelta } from './TimingTower';
+import { RankDelta } from '@/components/RankDelta';
+import { PointsCell } from './TimingTower';
 
 /**
  * A row of the global table, as the home loader projects it from

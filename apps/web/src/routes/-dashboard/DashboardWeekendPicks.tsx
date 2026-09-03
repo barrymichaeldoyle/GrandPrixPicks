@@ -26,7 +26,7 @@ import { RaceFlag } from '@/components/RaceFlag';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
 import { WeatherSessionLine } from '@/components/weather/WeatherSessionLine';
 import {
-  WEEKEND_CARD_SHELL,
+  weekendCardShell,
   WeekendCardSkeleton,
 } from '@/components/WeekendCardSkeleton';
 import { deferUntilAfterLoad } from '@/lib/deferUntilAfterLoad';
@@ -102,6 +102,7 @@ export function DashboardWeekendPicks({
   initialMatchups,
   initialPredictions,
   initialH2H,
+  leading = true,
 }: {
   weekend: CurrentWeekend | null | undefined;
   weather: RaceWeather | null | undefined;
@@ -114,6 +115,8 @@ export function DashboardWeekendPicks({
    *  card filled in rather than an empty one. See `./ssr`. */
   initialPredictions?: MyWeekendPredictions;
   initialH2H?: MyH2HPredictions;
+  /** False while the race recap sits above this card; see `weekendCardShell`. */
+  leading?: boolean;
 }) {
   if (weekend === undefined) {
     return <WeekendCardSkeleton />;
@@ -151,6 +154,7 @@ export function DashboardWeekendPicks({
       initialMatchups={initialMatchups}
       initialPredictions={initialPredictions}
       initialH2H={initialH2H}
+      leading={leading}
     />
   );
 }
@@ -163,6 +167,7 @@ function DashboardWeekendPicksReady({
   initialMatchups,
   initialPredictions,
   initialH2H,
+  leading,
 }: {
   weekend: CurrentWeekend;
   weather: RaceWeather | null | undefined;
@@ -171,6 +176,7 @@ function DashboardWeekendPicksReady({
   initialMatchups?: H2HMatchup[];
   initialPredictions?: MyWeekendPredictions;
   initialH2H?: MyH2HPredictions;
+  leading: boolean;
 }) {
   const now = useNow(1_000, weekend.serverNow);
   const action = getDashboardWeekendAction(weekend.sessions);
@@ -429,7 +435,7 @@ function DashboardWeekendPicksReady({
   return (
     <section
       id="dashboard-weekend-picks"
-      className={`scroll-mt-28 ${WEEKEND_CARD_SHELL}`}
+      className={`scroll-mt-28 ${weekendCardShell(leading)}`}
       aria-labelledby="dashboard-weekend-title"
       data-testid="dashboard-weekend-hero"
     >

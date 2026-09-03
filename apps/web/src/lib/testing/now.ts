@@ -103,3 +103,63 @@ export function useNow(intervalMs = 1_000, initialNow?: number): number {
 
   return overrideNow ?? realNow;
 }
+
+/**
+ * Whether the clock is still short of `timestamp`.
+ *
+ * A single scheduled timeout rather than a tick. `useNow` re-renders its whole
+ * subtree on every interval, which is right for a countdown that has to show
+ * seconds and wrong for a boundary that is crossed once: the dashboard's
+ * results-first window ends eight hours after a race starts, and paying a
+ * re-render of the page and its feed every minute to notice that is a poor
+ * trade. This re-renders exactly twice — once on mount to correct the SSR
+ * snapshot, once when the boundary passes.
+ *
+ * `initialNow` serves the same purpose as in `useNow`: seeding with the
+ * server's clock keeps the hydration render's answer identical to the one the
+ * server rendered.
+ *
+ * Dev time travel still works. An override is absolute, so no timer is needed:
+ * the value changes through the store subscription instead.
+ */
+export function useIsBefore(
+  timestamp: number | null | undefined,
+  initialNow?: number,
+): boolean {
+  const overrideNow = useDevNowOverride();
+  const [realNow, setRealNow] = useState(() => initialNow ?? Date.now());
+
+  useEffect(() => {
+    if (overrideNow != null || timestamp == null) {
+      return;
+    }
+
+    // Sync to the real clock once hydration has completed, as `useNow` does.
+    // oxlint-disable-next-line react/set-state-in-effect
+    setRealNow(Date.now());
+
+    const msRemaining = timestamp - Date.now();
+    if (msRemaining <= 0) {
+      return;
+    }
+
+    // `setTimeout` fires immediately for delays past the 32-bit limit, which
+    // would spin. A boundary more than 24 days out cannot be this one, so
+    // capping simply means "look again then".
+    const id = window.setTimeout(
+      () => {
+        setRealNow(Date.now());
+      },
+      Math.min(msRemaining + 1_000, 2_147_483_000),
+    );
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [timestamp, overrideNow]);
+
+  if (timestamp == null) {
+    return false;
+  }
+  return (overrideNow ?? realNow) < timestamp;
+}

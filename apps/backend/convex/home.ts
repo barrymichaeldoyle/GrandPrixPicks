@@ -17,13 +17,16 @@ import {
   loadUserPredictionHistory,
 } from './predictions';
 import { loadCurrentWeekend } from './races';
+import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
 import { loadStintsForSeason, rosterForRound } from './lib/lineups';
 import {
   getDefaultLeaderboardSeason,
+  getFollowedUserIds,
   loadCombinedSeasonLeaderboard,
   loadCombinedSeasonRows,
 } from './leaderboards';
+import { assignCompetitionRanks } from './lib/leaderboard';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
 
 const SESSION_ORDER: Array<SessionType> = [
@@ -344,6 +347,244 @@ async function loadDashboardRails(ctx: QueryCtx, viewer: Doc<'users'>) {
 }
 
 /**
+ * How long a finished Grand Prix stays the dashboard's lead card.
+ *
+ * Measured from the race start, not from the moment results are published: the
+ * point is to give the weekend a player just played the top of their page for
+ * the rest of that day, and the publish time is an operational detail they
+ * never see. A race that is scored later than this still reaches them through
+ * the `LatestResultCard` rail, which has no window.
+ */
+export const RESULTS_FIRST_WINDOW_MS = 8 * 60 * 60 * 1000;
+
+/**
+ * How far back the recap looks for the race it describes.
+ *
+ * Wider than the window above on purpose. Convex queries re-run when their data
+ * changes, never because time passed, so a query that filtered on the window
+ * itself would keep answering `null` after the window opened and keep answering
+ * with a race after it closed. The backend returns the race and the instant the
+ * window ends; the client, which does have a clock, decides whether to promote
+ * it. See `RaceRecapCard`.
+ */
+const RECAP_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+
+/** Rows in the recap's followed-players table, viewer included. */
+const RECAP_FRIEND_ROWS = 5;
+
+type RaceScoreRow = {
+  userId: Id<'users'>;
+  top5Points: number;
+  h2hPoints: number;
+};
+
+/**
+ * Top 5 and H2H points each player scored at one race, kept apart.
+ *
+ * `loadRacePointsByUser` above sums them, which is all the landing page's rank
+ * movement needs. The recap prints the two numbers separately, and it needs the
+ * whole field to rank the viewer inside it, so it makes its own pass.
+ *
+ * No identities here. `h2hScores` carries none, so filling them in means a
+ * lookup per player, and the recap names at most six of them.
+ */
+async function loadRaceScoreRows(
+  ctx: QueryCtx,
+  raceId: Id<'races'>,
+): Promise<Map<string, RaceScoreRow>> {
+  const rows = new Map<string, RaceScoreRow>();
+
+  function add(
+    userId: Id<'users'>,
+    field: 'top5Points' | 'h2hPoints',
+    points: number,
+  ) {
+    let row = rows.get(userId);
+    if (!row) {
+      row = { userId, top5Points: 0, h2hPoints: 0 };
+      rows.set(userId, row);
+    }
+    row[field] += points;
+  }
+
+  for await (const score of ctx.db
+    .query('scores')
+    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
+    add(score.userId, 'top5Points', score.points);
+  }
+  for await (const score of ctx.db
+    .query('h2hScores')
+    .withIndex('by_race_session', (q) => q.eq('raceId', raceId))) {
+    add(score.userId, 'h2hPoints', score.points);
+  }
+
+  return rows;
+}
+
+/**
+ * The race that just ran, and how the viewer did in it.
+ *
+ * Exists because the dashboard used to move on the moment a Grand Prix was
+ * scored: the weekend query switches to the next round, and a player who had
+ * just watched a race met a picker for the following one. The result they had
+ * been playing for was a small card in a side rail. This returns the same
+ * weekend as the lead card for the rest of the day, with the people they follow
+ * beside them, and the picker keeps its place directly underneath.
+ *
+ * `status` is `pending` between the start of the race and the publish that
+ * scores it. That state is deliberately still returned rather than treated as
+ * "nothing to show": it is the half of the window where a player is most likely
+ * to be looking, and telling them the results are not in yet is a better answer
+ * than silently promoting the next race.
+ *
+ * Null when no race has started recently, which is most of the calendar.
+ */
+export async function loadRaceRecap(ctx: QueryCtx) {
+  const now = Date.now();
+  const viewer = await getViewer(ctx);
+
+  // `take(3)` rather than `first()`: a cancelled round still has a start time,
+  // and the recap must skip it rather than lead with a race nobody ran.
+  const recent = await ctx.db
+    .query('races')
+    .withIndex('by_raceStartAt', (q) =>
+      q.gt('raceStartAt', now - RECAP_LOOKBACK_MS).lte('raceStartAt', now),
+    )
+    .order('desc')
+    .take(3);
+  const race = recent.find((candidate) => candidate.status !== 'cancelled');
+
+  if (!race) {
+    return null;
+  }
+
+  const raceSummary = {
+    id: race._id,
+    slug: race.slug,
+    name: race.name,
+    round: race.round,
+    raceStartAt: race.raceStartAt,
+  };
+  const windowEndsAt = race.raceStartAt + RESULTS_FIRST_WINDOW_MS;
+
+  const scoreRows = await loadRaceScoreRows(ctx, race._id);
+  if (scoreRows.size === 0) {
+    return {
+      race: raceSummary,
+      windowEndsAt,
+      serverNow: now,
+      status: 'pending' as const,
+      playerCount: 0,
+      viewer: null,
+      friends: [],
+      friendCount: 0,
+    };
+  }
+
+  const ranked = assignCompetitionRanks(
+    [...scoreRows.values()].sort((a, b) => {
+      const aTotal = a.top5Points + a.h2hPoints;
+      const bTotal = b.top5Points + b.h2hPoints;
+      return aTotal !== bTotal
+        ? bTotal - aTotal
+        : String(a.userId).localeCompare(String(b.userId));
+    }),
+    (row) => row.top5Points + row.h2hPoints,
+  );
+
+  if (!viewer) {
+    return {
+      race: raceSummary,
+      windowEndsAt,
+      serverNow: now,
+      status: 'scored' as const,
+      playerCount: ranked.length,
+      viewer: null,
+      friends: [],
+      friendCount: 0,
+    };
+  }
+
+  const viewerRow = ranked.find((row) => row.userId === viewer._id) ?? null;
+
+  // Season position, and what it was before this race. There is no stored rank
+  // history, so "before" is reconstructed the same way the landing page's
+  // timing tower does it — see `rankBeforeLastScoredRace`.
+  const season = await getDefaultLeaderboardSeason(ctx);
+  const seasonRows = await loadCombinedSeasonRows(ctx, { season });
+  const seasonRow = seasonRows.find((row) => row.userId === viewer._id) ?? null;
+  const previousSeasonRank = seasonRow
+    ? rankBeforeLastScoredRace(
+        seasonRows,
+        new Map(
+          [...scoreRows.values()].map((row) => [
+            row.userId,
+            row.top5Points + row.h2hPoints,
+          ]),
+        ),
+      ).get(viewer._id)
+    : undefined;
+
+  const followedIds = await getFollowedUserIds(ctx, viewer._id);
+  // `getFollowedUserIds` includes the follower, so the viewer is already in
+  // this list and is not added twice.
+  const friendRows = ranked.filter((row) => followedIds.has(row.userId));
+
+  // The viewer's own row always makes the table, even when the people they
+  // follow all beat them. A comparison card that can leave you out of it is the
+  // one shape this must not have.
+  const shown = friendRows.slice(0, RECAP_FRIEND_ROWS);
+  if (viewerRow && !shown.some((row) => row.userId === viewer._id)) {
+    shown.splice(RECAP_FRIEND_ROWS - 1, 1, viewerRow);
+  }
+
+  const identities = await Promise.all(
+    shown.map((row) => ctx.db.get(row.userId)),
+  );
+
+  return {
+    race: raceSummary,
+    windowEndsAt,
+    serverNow: now,
+    status: 'scored' as const,
+    playerCount: ranked.length,
+    viewer: viewerRow
+      ? {
+          points: viewerRow.top5Points + viewerRow.h2hPoints,
+          top5Points: viewerRow.top5Points,
+          h2hPoints: viewerRow.h2hPoints,
+          rank: viewerRow.rank,
+          fieldSize: ranked.length,
+          seasonRank: seasonRow?.rank ?? null,
+          // Positive is a climb. Null means there is nothing to compare
+          // against: no points before this race, so the player entered the
+          // table here rather than moving up the length of it.
+          seasonRankDelta:
+            seasonRow && previousSeasonRank !== undefined
+              ? previousSeasonRank - seasonRow.rank
+              : null,
+        }
+      : null,
+    // Raw identity, no `ANONYMOUS_NAME` fallback: the card links each row to
+    // a profile, and a synthesised name would be a link to a route that does
+    // not resolve. Absent means "render the name, skip the link".
+    friends: shown.map((row, index) => ({
+      userId: row.userId,
+      ...toUserIdentity(identities[index]),
+      rank: row.rank,
+      points: row.top5Points + row.h2hPoints,
+      isViewer: row.userId === viewer._id,
+    })),
+    friendCount: friendRows.filter((row) => row.userId !== viewer._id).length,
+  };
+}
+
+export const getRaceRecap = query({
+  args: {},
+  handler: async (ctx) => await loadRaceRecap(ctx),
+});
+
+/**
  * Everything the signed-in dashboard needs above the fold, in one query.
  *
  * This exists for SSR. The dashboard's own components each read their own
@@ -377,16 +618,24 @@ export const getDashboardPageData = query({
       return null;
     }
 
-    const [me, weekend, rails] = await Promise.all([
+    const [me, weekend, recap, rails] = await Promise.all([
       loadMe(ctx),
       loadCurrentWeekend(ctx),
+      loadRaceRecap(ctx),
       loadDashboardRails(ctx, viewer),
     ]);
 
     // Between-seasons, or any moment with no open weekend: there is no raceId
     // to ask the pick queries about, and no card for them to fill in.
     if (!weekend) {
-      return { me, weekend: null, predictions: null, h2h: null, ...rails };
+      return {
+        me,
+        weekend: null,
+        recap,
+        predictions: null,
+        h2h: null,
+        ...rails,
+      };
     }
 
     const [predictions, h2h] = await Promise.all([
@@ -394,6 +643,6 @@ export const getDashboardPageData = query({
       loadMyH2HPredictionsForRace(ctx, { raceId: weekend.race._id }),
     ]);
 
-    return { me, weekend, predictions, h2h, ...rails };
+    return { me, weekend, recap, predictions, h2h, ...rails };
   },
 });

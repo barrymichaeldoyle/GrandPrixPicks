@@ -16,9 +16,12 @@ import { AdSlot } from '@/components/AdSlot';
 import { FeedContent } from '@/components/feed/FeedContent';
 import { useAuthCurtainGate } from '@/integrations/clerk/auth-curtain';
 import { AD_SLOTS } from '@/lib/adsense';
+import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
+import { useIsBefore } from '@/lib/testing/now';
 import { useState } from 'react';
 
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
+import { RaceRecapCard } from './RaceRecapCard';
 import type { DashboardSsrData } from './ssr';
 import { liveOrSsr, weekendReflectsViewer } from './dashboardState';
 
@@ -92,6 +95,39 @@ export function DashboardPage({
     latestScoredWeekend ? { raceId: latestScoredWeekend.raceId } : 'skip',
   );
 
+  /*
+   * The results-first window. For the eight hours after a race starts, the
+   * weekend that just ran leads this page and the picker for the next round
+   * follows it: a player who has just watched a Grand Prix came here to see how
+   * they did, and the calendar advancing the moment results are published took
+   * that away from them.
+   *
+   * The backend applies no clock of its own — a Convex query re-runs when its
+   * data changes, never because time passed — so it returns the race and the
+   * instant the window closes, and the boundary is read here. See
+   * `home.loadRaceRecap`.
+   */
+  const recap = liveOrSsr(
+    useQuery(api.home.getRaceRecap, {}),
+    /*
+     * `initialDashboard ? … : undefined`, not `?? undefined` as the cards above
+     * use. Their null is rare; this one is the normal state of most of the
+     * calendar, because there is no race in the last 24 hours. Collapsing it to
+     * `undefined` would hand the curtain gate below a "still loading" on nearly
+     * every load and wait for a socket answer the server already had.
+     */
+    initialDashboard ? initialDashboard.recap : undefined,
+  );
+  const withinResultsWindow = useIsBefore(
+    recap?.windowEndsAt,
+    recap?.serverNow,
+  );
+  const promotedRecap = promotedRaceRecap(
+    recap,
+    currentWeekend?.race._id,
+    withinResultsWindow,
+  );
+
   // Ready once there is a weekend to show, whoever produced it. Waiting on
   // `history` here would have held every server-rendered card behind the one
   // query this page no longer needs before first paint.
@@ -113,6 +149,7 @@ export function DashboardPage({
       seasonLeaderboard !== undefined &&
       leagues !== undefined &&
       weather !== undefined &&
+      recap !== undefined &&
       latestResultReady,
   );
 
@@ -161,12 +198,18 @@ export function DashboardPage({
             <SuggestedFollowsCard />
           </RailItem>
           <RailItem order={3}>
-            <LatestResultCard
-              weekend={latestScoredWeekend}
-              leaderboard={latestRaceLeaderboard}
-              loading={!latestResultReady}
-              hideWhenEmpty
-            />
+            {/* Nothing here while the same race is leading the page. Two
+                cards reporting one result, a column apart, is the kind of
+                repetition the rail exists to avoid. */}
+            {promotedRecap !== null &&
+            latestScoredWeekend?.raceId === promotedRecap.race.id ? null : (
+              <LatestResultCard
+                weekend={latestScoredWeekend}
+                leaderboard={latestRaceLeaderboard}
+                loading={!latestResultReady}
+                hideWhenEmpty
+              />
+            )}
           </RailItem>
           {/* Under the latest result, which is the moment a player has just
               seen how they did and has an opinion about the game. On a phone
@@ -182,7 +225,10 @@ export function DashboardPage({
         </>
       }
     >
+      {promotedRecap ? <RaceRecapCard recap={promotedRecap} /> : null}
+
       <DashboardWeekendPicks
+        leading={promotedRecap === null}
         weekend={currentWeekend}
         weather={weather}
         weatherNow={weatherNow}

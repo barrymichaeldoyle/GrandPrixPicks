@@ -9,6 +9,10 @@
   },
   "trailingComma": "all",
   "ignorePatterns": [
+    ".agents",
+    ".claude",
+    "apps/backend/.agents",
+    "apps/backend/.claude",
     "apps/backend/convex/_generated",
     "apps/web/src/routeTree.gen.ts",
     "convex/_generated",

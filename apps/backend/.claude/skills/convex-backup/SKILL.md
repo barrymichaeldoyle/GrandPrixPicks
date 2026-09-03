@@ -1,6 +1,6 @@
 ---
 name: convex-backup
-description: 'Set up Convex backups and run a restore DRILL that proves recovery — snapshot, restore into a throwaway preview, assert the data came back — plus a schedule matched to your RPO and a gated recovery runbook.'
+description: "Set up Convex backups and run a restore DRILL that proves recovery — snapshot, restore into a throwaway preview, assert the data came back — plus a schedule matched to your RPO and a gated recovery runbook."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/convex-backup.json — do not edit by hand. -->

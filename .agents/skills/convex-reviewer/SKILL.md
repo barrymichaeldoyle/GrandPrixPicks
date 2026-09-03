@@ -1,6 +1,6 @@
 ---
 name: convex-reviewer
-description: 'Convex code reviewer — security, auth, validators, performance, and pattern checks for code in a convex/ directory. Use to review or audit Convex functions before shipping.'
+description: "Convex code reviewer — security, auth, validators, performance, and pattern checks for code in a convex/ directory. Use to review or audit Convex functions before shipping."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/convex-reviewer.json — do not edit by hand. -->

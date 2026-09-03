@@ -1,6 +1,6 @@
 ---
 name: convex-expert
-description: 'Convex backend specialist. Use this agent for any code inside a `convex/` directory — function definitions, schemas, indexes, queries, mutations, actions, HTTP endpoints, cron jobs, file storage, auth wiring, and component installation. Knows the object-form function syntax, validator patterns, resource limits, and component ecosystem that generic Claude routinely gets wrong.'
+description: "Convex backend specialist. Use this agent for any code inside a `convex/` directory — function definitions, schemas, indexes, queries, mutations, actions, HTTP endpoints, cron jobs, file storage, auth wiring, and component installation. Knows the object-form function syntax, validator patterns, resource limits, and component ecosystem that generic Claude routinely gets wrong."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/convex-expert.json — do not edit by hand. -->

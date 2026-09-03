@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight } from 'lucide-react';
 
 import {
   raceWriteupPrimaryAction,
@@ -11,6 +11,7 @@ type RaceWriteupActionsProps = {
   circuitSlug?: string;
   compact?: boolean;
   phase: RaceWriteupPhase;
+  primaryActionTargetId?: string;
   raceSlug: string;
   venueName: string;
 };
@@ -20,6 +21,7 @@ export function RaceWriteupActions({
   circuitSlug,
   compact = false,
   phase,
+  primaryActionTargetId,
   raceSlug,
   venueName,
 }: RaceWriteupActionsProps) {
@@ -31,14 +33,24 @@ export function RaceWriteupActions({
           : 'mt-7 flex flex-wrap items-center gap-3'
       }
     >
-      <Link
-        to="/races/$raceSlug"
-        params={{ raceSlug }}
-        className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      >
-        {raceWriteupPrimaryAction(phase, venueName, compact)}
-        <ArrowRight className="h-4 w-4" aria-hidden />
-      </Link>
+      {primaryActionTargetId ? (
+        <a
+          href={`#${primaryActionTargetId}`}
+          className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          {raceWriteupPrimaryAction(phase, venueName, compact)}
+          <ArrowDown className="h-4 w-4" aria-hidden />
+        </a>
+      ) : (
+        <Link
+          to="/races/$raceSlug"
+          params={{ raceSlug }}
+          className="inline-flex min-h-11 items-center gap-2 rounded-sm bg-accent px-5 font-semibold text-text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          {raceWriteupPrimaryAction(phase, venueName, compact)}
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      )}
       {!compact && circuitName && circuitSlug ? (
         <Link
           to="/circuits/$circuitSlug"

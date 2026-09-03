@@ -1,6 +1,6 @@
 ---
 name: convex-self-heal
-description: 'Production error → triaged, root-caused, repaired, and certified (tsc + rehearsal + reproduce-then-gone) fix PR for a human to merge — then confirm the error stops recurring. Never auto-merges.'
+description: "Production error → triaged, root-caused, repaired, and certified (tsc + rehearsal + reproduce-then-gone) fix PR for a human to merge — then confirm the error stops recurring. Never auto-merges."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/self-heal.json — do not edit by hand. -->

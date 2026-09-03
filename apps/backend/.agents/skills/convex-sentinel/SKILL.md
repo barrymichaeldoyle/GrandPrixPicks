@@ -1,6 +1,6 @@
 ---
 name: convex-sentinel
-description: 'Set up Sentinel production error capture in your own Convex deployment.'
+description: "Set up Sentinel production error capture in your own Convex deployment."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/sentinel.json — do not edit by hand. -->

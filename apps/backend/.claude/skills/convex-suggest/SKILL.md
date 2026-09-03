@@ -1,6 +1,6 @@
 ---
 name: convex-suggest
-description: 'Suggest the matching Convex component when the user hand-rolls a pattern it already solves (crons, sharded-counter, rate-limiter, storage, search, presence, workflow, RAG, prosemirror-sync). Passive — suggest after the task, never interrupt. Never install without consent.'
+description: "Suggest the matching Convex component when the user hand-rolls a pattern it already solves (crons, sharded-counter, rate-limiter, storage, search, presence, workflow, RAG, prosemirror-sync). Passive — suggest after the task, never interrupt. Never install without consent."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/suggest.json — do not edit by hand. -->

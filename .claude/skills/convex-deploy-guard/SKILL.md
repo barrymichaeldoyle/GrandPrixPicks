@@ -1,6 +1,6 @@
 ---
 name: convex-deploy-guard
-description: 'Classify + announce the target Convex deployment before any deployment-affecting command; fresh explicit consent for prod actions; session read-only mode.'
+description: "Classify + announce the target Convex deployment before any deployment-affecting command; fresh explicit consent for prod actions; session read-only mode."
 ---
 
 <!-- GENERATED from convex-agents content/capabilities/deploy-guard.json — do not edit by hand. -->

@@ -3,7 +3,8 @@
 A race-week post built on the lap map drawn for the 2026 Madrid write-up. Facts
 were checked against the write-up on 3 September 2026.
 
-Status: prepared. Scheduling awaits approval.
+Status: scheduled on both channels for Monday 7 September, 18:30 SAST.
+Post ids and verification are in `buffer-schedule.json`.
 
 ## Purpose
 
@@ -12,10 +13,10 @@ the map is the only picture of it anybody has. This post shows the lap, states
 the three numbers that describe it, and sends readers to the guide that says
 what the corners do.
 
-## Proposed schedule
+## Schedule
 
-Monday, 7 September at 18:30 SAST. Race week starts the following Thursday, so
-this is the lead-in rather than the weekend post.
+Monday, 7 September at 18:30 SAST, on both channels. Race week starts the
+following Thursday, so this is the lead-in rather than the weekend post.
 
 ## Composition
 
@@ -50,9 +51,9 @@ The art is the write-up's own map, kept as a PNG in `source-art/` because
 satori cannot decode the WebP the site serves. Re-export it whenever the map
 changes, or the post and the page drift apart.
 
-The map is an illustration: generated art, recoloured onto the design tokens
-and corrected by hand. It is a schematic of a circuit, not a photograph and not
-a depiction of anybody, so neither post sets a platform AI flag.
+The map is an illustration of a circuit layout, drawn and recoloured onto the
+design tokens by the scripts in this repo. It is a diagram, not a photograph
+and not a depiction of anybody.
 
 ## X
 

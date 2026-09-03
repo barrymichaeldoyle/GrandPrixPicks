@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-09-03T19:48:00Z",
+  "organizationId": "64f9a17b902afdecc48c8d02",
+  "timezone": "Africa/Johannesburg",
+  "assetBaseUrl": "https://grandprixpicks.com/social/madrid-lap-map-2026",
+  "posts": [
+    {
+      "channelId": "6a6f4b8a99afb44349e9c0f4",
+      "channelName": "GrandPrixPicks",
+      "service": "twitter",
+      "bufferPostId": "6a99ced07820340df41bb665",
+      "dueAt": "2026-09-07T16:30:00.000Z",
+      "localDueAt": "2026-09-07T18:30:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/madrid-lap-map-2026/madrid-lap-map-2026-x.png?v=1"
+    },
+    {
+      "channelId": "6a7050c899afb44349f18cbd",
+      "channelName": "grandprixpicks",
+      "service": "instagram",
+      "bufferPostId": "6a99cedad54bb74a29790262",
+      "dueAt": "2026-09-07T16:30:00.000Z",
+      "localDueAt": "2026-09-07T18:30:00+02:00",
+      "status": "scheduled",
+      "assetCount": 1,
+      "automaticPublishing": true,
+      "aiImageDisclosure": false,
+      "verified": true,
+      "assetUrl": "https://grandprixpicks.com/social/madrid-lap-map-2026/madrid-lap-map-2026-instagram.png?v=1"
+    }
+  ],
+  "notes": [
+    "verified means each post was read back from Buffer after creation, and its asset resolved to the expected dimensions (1600x900 and 1080x1350).",
+    "Asset URLs carry ?v=1. Buffer fetches an image when it is attached and keeps that copy, so republishing the same path with new bytes does not reach an already-scheduled post. Both files were confirmed byte-identical to the local renders before attaching: the Instagram one served a stale copy for several minutes after the deploy and was polled until it matched.",
+    "aiImageDisclosure is false. The cards are diagrams of a circuit layout, rendered and recoloured by the scripts in this repo.",
+    "Scheduled four days ahead of the meeting rather than in race week: this is the lead-in, and the write-up it points at is already live."
+  ]
+}

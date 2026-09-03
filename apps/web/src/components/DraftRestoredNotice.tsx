@@ -1,7 +1,24 @@
-import { RotateCcw } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 import { Button } from './Button/Button';
+
+function StartOverIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      aria-hidden
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
+  );
+}
 
 export function DraftRestoredNotice({
   target,
@@ -25,10 +42,10 @@ export function DraftRestoredNotice({
         <Button
           variant="text"
           size="inline"
-          leftIcon={RotateCcw}
           aria-label="Start over with empty picks"
           onClick={onDiscard}
         >
+          <StartOverIcon />
           Start over
         </Button>
       </div>,

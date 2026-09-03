@@ -1,4 +1,3 @@
-import { Maximize2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -83,7 +82,21 @@ export function RaceWriteupTrackMap({
             controlCorner === 'bottom-right' ? 'bottom-2' : 'top-2'
           } inline-flex min-h-9 items-center gap-1.5 rounded-sm border border-border bg-surface-elevated px-2.5 text-xs font-semibold text-text-muted hover:border-border-strong hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
         >
-          <Maximize2 className="h-3.5 w-3.5" aria-hidden />
+          <svg
+            viewBox="0 0 24 24"
+            className="h-3.5 w-3.5"
+            aria-hidden
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 3h6v6" />
+            <path d="m21 3-7 7" />
+            <path d="m3 21 7-7" />
+            <path d="M9 21H3v-6" />
+          </svg>
           Enlarge
         </button>
       </div>
@@ -170,7 +183,19 @@ function EnlargedMap({
             className="-mr-1 rounded-sm p-1 text-text-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             aria-label="Close the lap map"
           >
-            <X className="h-5 w-5" />
+            <svg
+              viewBox="0 0 24 24"
+              className="h-5 w-5"
+              aria-hidden
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
         </div>
         {/*

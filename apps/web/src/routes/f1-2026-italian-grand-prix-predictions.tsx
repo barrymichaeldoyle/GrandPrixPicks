@@ -5,20 +5,18 @@ import { ArrowRight, Plus } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
-import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
+import { DeferredRaceWriteupPicks } from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
-import {
-  DeferredRaceWriteupPicks,
-  RACE_WRITEUP_PICKS_ANCHOR,
-} from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
+import { RACE_WRITEUP_PICKS_ANCHOR } from '@/components/race-writeups/raceWriteupPicksAnchor';
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
+import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   lastReviewedAt,

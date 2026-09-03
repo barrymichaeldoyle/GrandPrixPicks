@@ -4,10 +4,8 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  DeferredRaceWriteupPicks,
-  RACE_WRITEUP_PICKS_ANCHOR,
-} from './DeferredRaceWriteupPicks';
+import { RACE_WRITEUP_PICKS_ANCHOR } from './raceWriteupPicksAnchor';
+import { DeferredRaceWriteupPicks } from './DeferredRaceWriteupPicks';
 
 vi.mock('./RaceWriteupPicksForm', () => ({
   RaceWriteupPicksForm: () => <div data-testid="prediction-form" />,

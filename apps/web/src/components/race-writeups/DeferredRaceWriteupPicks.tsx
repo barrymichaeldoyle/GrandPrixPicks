@@ -1,13 +1,40 @@
 import type { Id } from '@convex-generated/dataModel';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import {
+  Component,
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 
-import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { InlineLoader } from '@/components/InlineLoader';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
-export const RACE_WRITEUP_PICKS_ANCHOR = 'make-picks';
+import { RACE_WRITEUP_PICKS_ANCHOR } from './raceWriteupPicksAnchor';
+
+export { RACE_WRITEUP_PICKS_ANCHOR };
 
 const PRELOAD_MARGIN = '700px';
+
+class PicksSectionErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 const RaceWriteupPicksForm = lazy(() =>
   import('./RaceWriteupPicksForm').then((module) => ({
@@ -103,7 +130,7 @@ export function DeferredRaceWriteupPicks({
 
       <div className="mt-7">
         {shouldLoad ? (
-          <ErrorBoundary
+          <PicksSectionErrorBoundary
             fallback={
               <p className="py-8 text-sm text-text-muted">
                 The picker could not load.{' '}
@@ -125,7 +152,7 @@ export function DeferredRaceWriteupPicks({
                 season={season}
               />
             </Suspense>
-          </ErrorBoundary>
+          </PicksSectionErrorBoundary>
         ) : (
           fallback
         )}

@@ -30,7 +30,7 @@ export function resolveMotionFeatures(
   return module?.motionFeatures ?? fallback;
 }
 
-export function loadMotionFeatures(): Promise<typeof domMax> {
+function loadMotionFeatures(): Promise<typeof domMax> {
   return import('./motionFeatures')
     .then((module) => resolveMotionFeatures(module, domMax))
     .catch(() => domMax);

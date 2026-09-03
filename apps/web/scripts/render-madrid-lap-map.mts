@@ -51,10 +51,11 @@ const map = `data:image/png;base64,${readFileSync(
   path.join(artifactOutputDir, 'source-art', 'madrid-lap-map.png'),
 ).toString('base64')}`;
 
+/** Third fact is the one worth knowing, not the third measurement. */
 const FACTS = [
   ['Length', '5.416 km'],
   ['Corners', '22'],
-  ['Race', '57 laps'],
+  ['Turn 12', '550 m banked'],
 ] as const;
 
 /**
@@ -172,40 +173,30 @@ function instagram(): ReactNode {
           flexDirection: 'column',
           position: 'absolute',
           left: 64,
-          top: 168,
-          width: 900,
+          top: 172,
+          width: 950,
         },
       },
       eyebrow('MADRING  /  ROUND 14  /  11–13 SEPTEMBER'),
+      // Bigger than the X card's headline, and the only prose on the frame.
+      // A standfirst under it pushed the map down to where the numbers and the
+      // call to action had to fight for the last 200px, and in a feed a second
+      // paragraph is read by nobody: the caption is right there.
       e(
         'div',
         {
           style: {
             display: 'flex',
             flexDirection: 'column',
-            marginTop: 30,
-            fontSize: 92,
+            marginTop: 34,
+            fontSize: 104,
             fontWeight: 600,
-            letterSpacing: -4.6,
-            lineHeight: 0.94,
+            letterSpacing: -5.2,
+            lineHeight: 0.93,
           },
         },
         e('div', { style: { display: 'flex' } }, 'Nobody has'),
         e('div', { style: { display: 'flex' } }, 'raced here.'),
-      ),
-      e(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            maxWidth: 830,
-            marginTop: 30,
-            fontSize: 29,
-            lineHeight: 1.35,
-            color: colors.textMuted,
-          },
-        },
-        'Turn 12 is the longest banked corner on the calendar: 550 m at 24 percent.',
       ),
     ),
     // Full bleed. The map carries its own surface, so an inset would put a
@@ -217,7 +208,7 @@ function instagram(): ReactNode {
       style: {
         position: 'absolute',
         left: 0,
-        top: 536,
+        top: 470,
         width: INSTAGRAM_WIDTH,
         height: mapHeight,
       },
@@ -231,7 +222,7 @@ function instagram(): ReactNode {
           position: 'absolute',
           left: 64,
           right: 64,
-          top: 1176,
+          top: 1122,
         },
       },
       ...FACTS.map(([label, value]) =>
@@ -270,7 +261,47 @@ function instagram(): ReactNode {
         ),
       ),
     ),
-    footer(64, 46, 'flex-start'),
+    // The one loud element on the card, and the system's own rule about it:
+    // the accent is the call to action, so the call to action is the accent.
+    // A dark card in a feed of photographs needs one bright edge to stop a
+    // thumb, and a domain set in 15px mono at the bottom is not it.
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 116,
+          paddingLeft: 64,
+          paddingRight: 64,
+          backgroundColor: colors.accent,
+          color: colors.textOnAccent,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', fontSize: 38, fontWeight: 600 } },
+        'Make your picks',
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 20,
+            fontWeight: 600,
+            letterSpacing: 2.4,
+          },
+        },
+        'GRANDPRIXPICKS.COM',
+      ),
+    ),
   ]);
 }
 

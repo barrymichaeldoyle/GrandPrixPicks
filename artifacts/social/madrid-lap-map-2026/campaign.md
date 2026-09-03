@@ -28,6 +28,13 @@ not reach, bottom right, aligned to the same gutter the logo sits on. Type
 dropped into the middle of the lap reads as part of the diagram, and it landed
 a badge's width from Turn 18.
 
+Instagram stacks: headline, map, numbers, then a full-width accent bar carrying
+the call to action. The bar is the one loud element and it follows the system's
+own rule, that the accent is the call to action. Without it the card was four
+shades of near-black in a feed of photographs, and the only bright thing on it
+was a 15px domain in the corner. The standfirst came off at the same time: a
+second paragraph goes unread in a feed, and the caption is directly below.
+
 ## Format
 
 | Channel   | Asset                               | Size      |

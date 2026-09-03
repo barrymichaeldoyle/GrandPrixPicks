@@ -388,10 +388,11 @@ const F1_RACES_2026: Array<{
   },
   {
     round: 7,
-    // "Barcelona" (not "Spanish") — 2026 has two Spanish races; round 14 in
-    // Madrid is the official Spanish GP. Slug stays spain-2026 to preserve
-    // existing URLs and the timezone mapping.
-    name: 'Barcelona Grand Prix',
+    // Officially the Barcelona-Catalunya Grand Prix from 2026: Spain has two
+    // races this season and the "Spanish Grand Prix" name went with round 14
+    // in Madrid. Slug stays spain-2026 to preserve existing URLs and the
+    // timezone mapping, so slug and name disagree here on purpose.
+    name: 'Barcelona-Catalunya Grand Prix',
     hashtag: '#BarcelonaGP #SpanishGP',
     slug: 'spain-2026',
     fp1Date: '2026-06-12T11:30:00Z',
@@ -470,7 +471,11 @@ const F1_RACES_2026: Array<{
   },
   {
     round: 14,
-    name: 'Madrid Grand Prix',
+    // The official name is the Spanish Grand Prix: from 2026 the country name
+    // travels with Madrid, and Barcelona keeps its own. The slug stays
+    // `madrid-2026` because it is a live URL, so slug and name disagree here
+    // on purpose.
+    name: 'Spanish Grand Prix',
     hashtag: '#MadridGP #SpanishGP',
     slug: 'madrid-2026',
     fp1Date: '2026-09-11T11:30:00Z',
@@ -2713,6 +2718,94 @@ export const backfillRaceHashtags = internalMutation({
     }
 
     return { updated, skipped, total: races.length };
+  },
+});
+
+/**
+ * Sync every race's display name from the seed calendar, and carry the rename
+ * into the places that copied the old one.
+ *
+ * A rename is the one field `seedRaces` can fix that nothing else can, but
+ * reaching for `seedRaces` to change a string rewrites every session and lock
+ * time on all 23 races and reschedules their reminders. That is a lot of blast
+ * radius mid-season, and a hand-corrected session time would be silently
+ * reverted by it. This patches `name` and nothing else, the way
+ * `backfillRaceHashtags` does for its one field.
+ *
+ * `feedEvents` and `inAppNotifications` denormalize `raceName` at write time,
+ * so a rename alone leaves the archive saying the old thing forever. Those
+ * snapshots are frozen on purpose where they record *what was true then* (a
+ * driver's seat, the way `seatMoves` does), but a race's name is not that: it
+ * was always the name, we simply had it wrong. So this corrects them in place
+ * rather than preserving the error, reaching only the races that actually
+ * moved.
+ *
+ * Idempotent throughout: anything already carrying the right name is skipped,
+ * so the return value says what actually moved.
+ */
+export const backfillRaceNames = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const nameBySlug = new Map(
+      F1_RACES_2026.map((race) => [race.slug, race.name]),
+    );
+    const races = await ctx.db.query('races').collect();
+    const renamed: { slug: string; from: string; to: string }[] = [];
+    const touched: { raceId: Id<'races'>; name: string }[] = [];
+    let skipped = 0;
+
+    for (const race of races) {
+      const name = nameBySlug.get(race.slug);
+      if (!name || name === race.name) {
+        skipped++;
+        continue;
+      }
+      renamed.push({ slug: race.slug, from: race.name, to: name });
+      touched.push({ raceId: race._id, name });
+      await ctx.db.patch(race._id, { name, updatedAt: Date.now() });
+    }
+
+    let feedEventsUpdated = 0;
+    let notificationsUpdated = 0;
+
+    // Only the renamed races can have stale copies, and both tables index by
+    // raceId, so this reads their rows rather than every row there has ever
+    // been. `feedEvents` grows by a few dozen every weekend, and a full scan
+    // here would work today and quietly stop fitting in a mutation somewhere
+    // in a later season.
+    for (const { raceId, name } of touched) {
+      const events = await ctx.db
+        .query('feedEvents')
+        .withIndex('by_race_session', (q) => q.eq('raceId', raceId))
+        .collect();
+      for (const event of events) {
+        if (!event.raceName || event.raceName === name) {
+          continue;
+        }
+        await ctx.db.patch(event._id, { raceName: name });
+        feedEventsUpdated++;
+      }
+
+      const notifications = await ctx.db
+        .query('inAppNotifications')
+        .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', raceId))
+        .collect();
+      for (const notification of notifications) {
+        if (!notification.raceName || notification.raceName === name) {
+          continue;
+        }
+        await ctx.db.patch(notification._id, { raceName: name });
+        notificationsUpdated++;
+      }
+    }
+
+    return {
+      renamed,
+      skipped,
+      total: races.length,
+      feedEventsUpdated,
+      notificationsUpdated,
+    };
   },
 });
 

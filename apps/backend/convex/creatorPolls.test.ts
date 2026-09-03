@@ -197,7 +197,7 @@ describe('creatorPolls', () => {
       const next = await ctx.db.insert('races', {
         season: 2026,
         round: 14,
-        name: 'Madrid Grand Prix',
+        name: 'Spanish Grand Prix',
         slug: 'madrid-2026',
         raceStartAt: 4_000,
         predictionLockAt: 3_000,
@@ -215,7 +215,7 @@ describe('creatorPolls', () => {
     const results = await t.query(api.creatorPolls.getResults, {
       slug: 'chinwag',
     });
-    expect(results?.race.name).toBe('Madrid Grand Prix');
+    expect(results?.race.name).toBe('Spanish Grand Prix');
     expect(results?.totalVotes).toBe(0);
   });
 

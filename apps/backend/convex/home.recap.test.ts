@@ -85,6 +85,22 @@ async function addSeasonPoints(
   }
 }
 
+/**
+ * Publishing the race result is what makes a weekend final, so a fixture that
+ * wants a scored race has to write one. Qualifying scores alone do not count:
+ * they exist from Saturday, while the race is still to be run.
+ */
+async function publishRaceResult(ctx: Ctx, raceId: Id<'races'>) {
+  await ctx.db.insert('results', {
+    raceId,
+    sessionType: 'race',
+    classification: [],
+    scoringStatus: 'complete',
+    publishedAt: 0,
+    updatedAt: 0,
+  });
+}
+
 async function addRace(
   ctx: Ctx,
   args: {
@@ -181,6 +197,7 @@ describe('home.getRaceRecap', () => {
         raceStartAt: Date.now() - 3 * HOUR,
         status: 'finished',
       });
+      await publishRaceResult(ctx, race);
 
       const viewer = await addUser(ctx, 'viewer');
       const friend = await addUser(ctx, 'friend');
@@ -252,6 +269,7 @@ describe('home.getRaceRecap', () => {
         raceStartAt: Date.now() - 3 * HOUR,
         status: 'finished',
       });
+      await publishRaceResult(ctx, race);
 
       const viewer = await addUser(ctx, 'viewer');
       await addRaceScore(ctx, { userId: viewer, raceId: race, top5Points: 1 });
@@ -279,5 +297,136 @@ describe('home.getRaceRecap', () => {
     expect(recap?.friends).toHaveLength(5);
     expect(recap?.friends.at(-1)?.isViewer).toBe(true);
     expect(recap?.friendCount).toBe(6);
+  });
+  it('reports a running race as live, from the snapshot standings', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const race = await addRace(ctx, {
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        // Started an hour ago: inside the two-hour live window.
+        raceStartAt: Date.now() - HOUR,
+        status: 'locked',
+      });
+
+      const viewer = await addUser(ctx, 'viewer');
+      const friend = await addUser(ctx, 'friend');
+      const stranger = await addUser(ctx, 'stranger');
+      await ctx.db.insert('follows', {
+        followerId: viewer,
+        followeeId: friend,
+        createdAt: 0,
+      });
+
+      // Qualifying was scored yesterday. The recap must not read these as a
+      // finished weekend while the race is still running.
+      await addRaceScore(ctx, { userId: viewer, raceId: race, top5Points: 9 });
+
+      const driver = await ctx.db.insert('drivers', {
+        code: 'VER',
+        displayName: 'Max Verstappen',
+        number: 1,
+        createdAt: 0,
+        updatedAt: 0,
+      });
+      await ctx.db.insert('liveSnapshots', {
+        raceId: race,
+        sessionType: 'race',
+        order: [{ driverId: driver, position: 1 }],
+        standings: [
+          { userId: stranger, rank: 1, topFive: 20, h2h: 3, weekend: 30 },
+          { userId: viewer, rank: 2, topFive: 12, h2h: 2, weekend: 23 },
+          { userId: friend, rank: 3, topFive: 5, h2h: 1, weekend: 11 },
+        ],
+        source: 'openf1-position',
+        updatedAt: Date.now(),
+      });
+    });
+
+    const recap = await t
+      .withIdentity({ subject: 'viewer' })
+      .query(api.home.getRaceRecap, {});
+
+    expect(recap?.status).toBe('live');
+    expect(recap?.live?.sessionType).toBe('race');
+    expect(recap?.playerCount).toBe(3);
+    expect(recap?.viewer).toMatchObject({
+      points: 23,
+      top5Points: 12,
+      h2hPoints: 2,
+      rank: 2,
+      fieldSize: 3,
+    });
+    // Nothing settled enough to report a season move mid-session.
+    expect(recap?.viewer?.seasonRank).toBeNull();
+    expect(recap?.viewer?.seasonRankDelta).toBeNull();
+    expect(recap?.friends.map((row) => row.username)).toEqual([
+      'viewer',
+      'friend',
+    ]);
+  });
+
+  it('does not call a weekend scored on qualifying points alone', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const race = await addRace(ctx, {
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        raceStartAt: Date.now() - HOUR,
+        status: 'locked',
+      });
+      const viewer = await addUser(ctx, 'viewer');
+      // Saturday's points, no race result, and nothing reporting live.
+      await addRaceScore(ctx, { userId: viewer, raceId: race, top5Points: 9 });
+    });
+
+    const recap = await t
+      .withIdentity({ subject: 'viewer' })
+      .query(api.home.getRaceRecap, {});
+
+    expect(recap?.status).toBe('pending');
+  });
+
+  it('stops calling a race live once its result is published', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const race = await addRace(ctx, {
+        round: 16,
+        name: 'Bahrain Grand Prix',
+        slug: 'bahrain-2026',
+        raceStartAt: Date.now() - HOUR,
+        status: 'finished',
+      });
+      const viewer = await addUser(ctx, 'viewer');
+      const driver = await ctx.db.insert('drivers', {
+        code: 'VER',
+        displayName: 'Max Verstappen',
+        number: 1,
+        createdAt: 0,
+        updatedAt: 0,
+      });
+      await ctx.db.insert('liveSnapshots', {
+        raceId: race,
+        sessionType: 'race',
+        order: [{ driverId: driver, position: 1 }],
+        standings: [
+          { userId: viewer, rank: 1, topFive: 12, h2h: 2, weekend: 23 },
+        ],
+        source: 'openf1-position',
+        updatedAt: Date.now(),
+      });
+      await publishRaceResult(ctx, race);
+      await addRaceScore(ctx, { userId: viewer, raceId: race, top5Points: 14 });
+    });
+
+    const recap = await t
+      .withIdentity({ subject: 'viewer' })
+      .query(api.home.getRaceRecap, {});
+
+    // The published result wins: the stale snapshot's 23 must not survive it.
+    expect(recap?.status).toBe('scored');
+    expect(recap?.viewer?.points).toBe(14);
   });
 });

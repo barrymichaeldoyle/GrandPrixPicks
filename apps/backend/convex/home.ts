@@ -16,6 +16,7 @@ import {
   loadMyWeekendPredictions,
   loadUserPredictionHistory,
 } from './predictions';
+import { loadActiveSnapshot } from './liveScoring';
 import { loadCurrentWeekend } from './races';
 import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
@@ -421,6 +422,76 @@ async function loadRaceScoreRows(
   return rows;
 }
 
+/** One player's place in a race field, however that field was measured. */
+type RecapStandingRow = {
+  userId: Id<'users'>;
+  rank: number;
+  points: number;
+  top5Points: number;
+  h2hPoints: number;
+};
+
+/**
+ * The viewer's own row, and the followed players beside them.
+ *
+ * Shared by the live and the scored paths, which differ only in where the
+ * ranked field comes from. Everything social about the card is decided here so
+ * the two cannot drift into showing different people.
+ */
+async function buildRecapAudience(
+  ctx: QueryCtx,
+  viewer: Doc<'users'> | null,
+  ranked: ReadonlyArray<RecapStandingRow>,
+) {
+  if (!viewer) {
+    return { viewer: null, friends: [], friendCount: 0 };
+  }
+
+  const viewerRow = ranked.find((row) => row.userId === viewer._id) ?? null;
+
+  const followedIds = await getFollowedUserIds(ctx, viewer._id);
+  // `getFollowedUserIds` includes the follower, so the viewer is already in
+  // this list and is not added twice.
+  const friendRows = ranked.filter((row) => followedIds.has(row.userId));
+
+  // The viewer's own row always makes the table, even when the people they
+  // follow all beat them. A comparison card that can leave you out of it is the
+  // one shape this must not have.
+  const shown = friendRows.slice(0, RECAP_FRIEND_ROWS);
+  if (viewerRow && !shown.some((row) => row.userId === viewer._id)) {
+    shown.splice(RECAP_FRIEND_ROWS - 1, 1, viewerRow);
+  }
+
+  const identities = await Promise.all(
+    shown.map((row) => ctx.db.get(row.userId)),
+  );
+
+  return {
+    viewer: viewerRow
+      ? {
+          points: viewerRow.points,
+          top5Points: viewerRow.top5Points,
+          h2hPoints: viewerRow.h2hPoints,
+          rank: viewerRow.rank,
+          fieldSize: ranked.length,
+          seasonRank: null as number | null,
+          seasonRankDelta: null as number | null,
+        }
+      : null,
+    // Raw identity, no `ANONYMOUS_NAME` fallback: the card links each row to a
+    // profile, and a synthesised name would be a link to a route that does not
+    // resolve. Absent means "render the name, skip the link".
+    friends: shown.map((row, index) => ({
+      userId: row.userId,
+      ...toUserIdentity(identities[index]),
+      rank: row.rank,
+      points: row.points,
+      isViewer: row.userId === viewer._id,
+    })),
+    friendCount: friendRows.filter((row) => row.userId !== viewer._id).length,
+  };
+}
+
 /**
  * The race that just ran, and how the viewer did in it.
  *
@@ -431,11 +502,19 @@ async function loadRaceScoreRows(
  * weekend as the lead card for the rest of the day, with the people they follow
  * beside them, and the picker keeps its place directly underneath.
  *
- * `status` is `pending` between the start of the race and the publish that
- * scores it. That state is deliberately still returned rather than treated as
- * "nothing to show": it is the half of the window where a player is most likely
- * to be looking, and telling them the results are not in yet is a better answer
- * than silently promoting the next race.
+ * Three states, and the one that decides between them is whether the *race
+ * session* has a published result. Not "are there any scores for this race":
+ * qualifying is scored on Saturday, so by the time the cars line up on Sunday
+ * this race already has `scores` rows, and reading those would report a
+ * finished weekend to someone watching the race.
+ *
+ * - `scored`  the race result is published. Final.
+ * - `live`    OpenF1 is still reporting a running order for it. Provisional,
+ *             and every number here moves; see `liveScoring.loadActiveSnapshot`
+ *             for what counts as still running.
+ * - `pending` neither. The race has been run and nothing is reporting on it,
+ *             which OpenF1 makes rare: it means a race that left the picker
+ *             without ever being scored.
  *
  * Null when no race has started recently, which is most of the calendar.
  */
@@ -467,18 +546,77 @@ export async function loadRaceRecap(ctx: QueryCtx) {
   };
   const windowEndsAt = race.raceStartAt + RESULTS_FIRST_WINDOW_MS;
 
+  /*
+   * The race session's own result, which is the only thing that makes this
+   * weekend final. `races.status` says the same thing, but it says it as a
+   * consequence of this row being written, so this is the fact and that is the
+   * echo of it.
+   */
+  const raceResult = await ctx.db
+    .query('results')
+    .withIndex('by_race_session', (q) =>
+      q.eq('raceId', race._id).eq('sessionType', 'race'),
+    )
+    .first();
+
+  const base = { race: raceSummary, windowEndsAt, serverNow: now };
+  const empty = {
+    playerCount: 0,
+    viewer: null,
+    friends: [],
+    friendCount: 0,
+  };
+
+  if (!raceResult) {
+    const snapshot = await loadActiveSnapshot(ctx, race);
+    if (!snapshot) {
+      return { ...base, ...empty, status: 'pending' as const, live: null };
+    }
+
+    /*
+     * The snapshot already carries the whole field, ranked, with each player's
+     * live Top 5 and H2H and their weekend total including the sessions already
+     * published. So the live card is the same shape as the scored one with a
+     * different source, and nothing is re-derived here.
+     */
+    const ranked = snapshot.standings.map((row) => ({
+      userId: row.userId,
+      rank: row.rank,
+      points: row.weekend,
+      top5Points: row.topFive,
+      h2hPoints: row.h2h,
+    }));
+    const audience = await buildRecapAudience(ctx, viewer, ranked);
+
+    return {
+      ...base,
+      status: 'live' as const,
+      live: {
+        sessionType: snapshot.sessionType,
+        updatedAt: snapshot.updatedAt,
+      },
+      playerCount: ranked.length,
+      ...audience,
+      viewer: audience.viewer
+        ? {
+            ...audience.viewer,
+            /*
+             * No season position while a session is running. It would be the
+             * most tempting number on the card and the least honest one: a
+             * provisional standing recomputed every fifteen seconds, presented
+             * beside a settled one. The weekend numbers are what is genuinely
+             * in play.
+             */
+            seasonRank: null,
+            seasonRankDelta: null,
+          }
+        : null,
+    };
+  }
+
   const scoreRows = await loadRaceScoreRows(ctx, race._id);
   if (scoreRows.size === 0) {
-    return {
-      race: raceSummary,
-      windowEndsAt,
-      serverNow: now,
-      status: 'pending' as const,
-      playerCount: 0,
-      viewer: null,
-      friends: [],
-      friendCount: 0,
-    };
+    return { ...base, ...empty, status: 'scored' as const, live: null };
   }
 
   const ranked = assignCompetitionRanks(
@@ -490,22 +628,24 @@ export async function loadRaceRecap(ctx: QueryCtx) {
         : String(a.userId).localeCompare(String(b.userId));
     }),
     (row) => row.top5Points + row.h2hPoints,
-  );
+  ).map((row) => ({
+    userId: row.userId,
+    rank: row.rank,
+    points: row.top5Points + row.h2hPoints,
+    top5Points: row.top5Points,
+    h2hPoints: row.h2hPoints,
+  }));
 
-  if (!viewer) {
+  const audience = await buildRecapAudience(ctx, viewer, ranked);
+  if (!viewer || !audience.viewer) {
     return {
-      race: raceSummary,
-      windowEndsAt,
-      serverNow: now,
+      ...base,
       status: 'scored' as const,
+      live: null,
       playerCount: ranked.length,
-      viewer: null,
-      friends: [],
-      friendCount: 0,
+      ...audience,
     };
   }
-
-  const viewerRow = ranked.find((row) => row.userId === viewer._id) ?? null;
 
   // Season position, and what it was before this race. There is no stored rank
   // history, so "before" is reconstructed the same way the landing page's
@@ -516,66 +656,27 @@ export async function loadRaceRecap(ctx: QueryCtx) {
   const previousSeasonRank = seasonRow
     ? rankBeforeLastScoredRace(
         seasonRows,
-        new Map(
-          [...scoreRows.values()].map((row) => [
-            row.userId,
-            row.top5Points + row.h2hPoints,
-          ]),
-        ),
+        new Map(ranked.map((row) => [row.userId, row.points])),
       ).get(viewer._id)
     : undefined;
 
-  const followedIds = await getFollowedUserIds(ctx, viewer._id);
-  // `getFollowedUserIds` includes the follower, so the viewer is already in
-  // this list and is not added twice.
-  const friendRows = ranked.filter((row) => followedIds.has(row.userId));
-
-  // The viewer's own row always makes the table, even when the people they
-  // follow all beat them. A comparison card that can leave you out of it is the
-  // one shape this must not have.
-  const shown = friendRows.slice(0, RECAP_FRIEND_ROWS);
-  if (viewerRow && !shown.some((row) => row.userId === viewer._id)) {
-    shown.splice(RECAP_FRIEND_ROWS - 1, 1, viewerRow);
-  }
-
-  const identities = await Promise.all(
-    shown.map((row) => ctx.db.get(row.userId)),
-  );
-
   return {
-    race: raceSummary,
-    windowEndsAt,
-    serverNow: now,
+    ...base,
     status: 'scored' as const,
+    live: null,
     playerCount: ranked.length,
-    viewer: viewerRow
-      ? {
-          points: viewerRow.top5Points + viewerRow.h2hPoints,
-          top5Points: viewerRow.top5Points,
-          h2hPoints: viewerRow.h2hPoints,
-          rank: viewerRow.rank,
-          fieldSize: ranked.length,
-          seasonRank: seasonRow?.rank ?? null,
-          // Positive is a climb. Null means there is nothing to compare
-          // against: no points before this race, so the player entered the
-          // table here rather than moving up the length of it.
-          seasonRankDelta:
-            seasonRow && previousSeasonRank !== undefined
-              ? previousSeasonRank - seasonRow.rank
-              : null,
-        }
-      : null,
-    // Raw identity, no `ANONYMOUS_NAME` fallback: the card links each row to
-    // a profile, and a synthesised name would be a link to a route that does
-    // not resolve. Absent means "render the name, skip the link".
-    friends: shown.map((row, index) => ({
-      userId: row.userId,
-      ...toUserIdentity(identities[index]),
-      rank: row.rank,
-      points: row.top5Points + row.h2hPoints,
-      isViewer: row.userId === viewer._id,
-    })),
-    friendCount: friendRows.filter((row) => row.userId !== viewer._id).length,
+    ...audience,
+    viewer: {
+      ...audience.viewer,
+      seasonRank: seasonRow?.rank ?? null,
+      // Positive is a climb. Null means there is nothing to compare against: no
+      // points before this race, so the player entered the table here rather
+      // than moving up the length of it.
+      seasonRankDelta:
+        seasonRow && previousSeasonRank !== undefined
+          ? previousSeasonRank - seasonRow.rank
+          : null,
+    },
   };
 }
 

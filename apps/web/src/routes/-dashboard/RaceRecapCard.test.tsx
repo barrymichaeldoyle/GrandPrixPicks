@@ -29,6 +29,7 @@ function recap(overrides: Partial<RaceRecap> = {}): RaceRecap {
     windowEndsAt: 1_000 + 8 * 60 * 60 * 1000,
     serverNow: 2_000,
     status: 'scored',
+    live: null,
     playerCount: 3,
     viewer: {
       points: 24,
@@ -76,6 +77,34 @@ describe('RaceRecapCard', () => {
     expect(view.textContent).toContain('24');
     expect(view.textContent).toContain('P2');
     expect(view.textContent).toContain('of 3');
+  });
+
+  it('marks a running session as in progress and says the order can change', () => {
+    const view = render(
+      <RaceRecapCard
+        recap={recap({
+          status: 'live',
+          live: { sessionType: 'race', updatedAt: 2_000 },
+        })}
+      />,
+    );
+
+    expect(view.textContent).toContain('Race in progress');
+    expect(view.textContent).toContain(
+      'The running order is live and can change',
+    );
+    // Still shows the provisional standing: that is the point of the state.
+    expect(view.textContent).toContain('P2');
+    // A live weekend has no settled leaderboard to send anyone to.
+    expect(view.textContent).not.toContain('Weekend leaderboard');
+    expect(view.textContent).toContain('Live scoring');
+  });
+
+  it('does not caveat a published result', () => {
+    const view = render(<RaceRecapCard recap={recap()} />);
+
+    expect(view.textContent).not.toContain('can change');
+    expect(view.textContent).toContain('Full breakdown');
   });
 
   it('says results are pending rather than showing a score of nothing', () => {

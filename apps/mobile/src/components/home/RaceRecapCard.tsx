@@ -1,6 +1,7 @@
 import type { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { resolveDisplayName } from '@grandprixpicks/shared/displayName';
+import { SESSION_LABELS } from '@grandprixpicks/shared/sessions';
 import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '../../lib/useNow';
 import { api } from '../../integrations/convex/api';
@@ -57,6 +58,12 @@ export function RaceRecapCard({
   }
 
   const viewer = promoted.viewer;
+  /*
+   * One binding, not a boolean beside a nullable field: TypeScript narrows the
+   * property expression rather than the object, so a boolean's guard would not
+   * travel to the reads below. Non-null means "a session is running".
+   */
+  const live = promoted.status === 'live' ? promoted.live : null;
 
   return (
     <Pressable
@@ -69,9 +76,18 @@ export function RaceRecapCard({
       <View className="flex-row items-center gap-3">
         <FlagImage raceSlug={promoted.race.slug} />
         <View className="flex-1">
-          <Text className="text-muted text-[10px] font-bold uppercase">
-            {`Round ${promoted.race.round} · Result`}
-          </Text>
+          <View className="flex-row items-center gap-1.5">
+            {live ? (
+              <View className="h-1.5 w-1.5 rounded-full bg-accent" />
+            ) : null}
+            <Text className="text-muted text-[10px] font-bold uppercase">
+              {`Round ${promoted.race.round} · ${
+                live
+                  ? `${SESSION_LABELS[live.sessionType]} in progress`
+                  : 'Result'
+              }`}
+            </Text>
+          </View>
           <Text
             className="text-foreground mt-0.5 text-lg font-bold"
             numberOfLines={1}
@@ -113,6 +129,14 @@ export function RaceRecapCard({
           You had no picks for this race.
         </Text>
       )}
+
+      {/* Said once, under the numbers it qualifies, in the same words the web
+          card and the race page's live board use. */}
+      {live ? (
+        <Text className="text-muted text-[11px]">
+          The running order is live and can change, including after the flag.
+        </Text>
+      ) : null}
 
       {promoted.friends.length > 1 ? (
         <View className="gap-1 border-t border-border pt-3">

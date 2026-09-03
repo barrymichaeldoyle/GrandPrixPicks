@@ -2,25 +2,29 @@
  * Whether the race that just ran should lead the app, ahead of the picker for
  * the next round.
  *
- * Shared because web and mobile answer it about the same two facts and must not
+ * Shared because web and mobile answer it about the same facts and must not
  * drift: a player who opens one and then the other should not find the weekend
  * promoted in one place and buried in the other.
  *
- * Two conditions, and the second is the interesting one. The recap must not be
- * promoted while the picker below is still showing the same race, which is the
- * state every Grand Prix passes through: `races.status` only becomes `finished`
- * when the race result is published, and until then `getCurrentWeekend` keeps
- * returning that race. Without this check the two hours between lights out and
- * the flag put "Bahrain Grand Prix - Results pending" directly above a "Bahrain
- * Grand Prix" picks card.
+ * The interesting condition is the last one. While the picker below is still
+ * showing this same race, the recap only earns its place if it has something
+ * the picker does not:
  *
- * OpenF1 publishes within minutes of the flag, so on a normal weekend this
- * hands over cleanly: the picker advances to the next round in the same update
- * that gives the recap its scores. What survives is the case the pending state
- * is actually for, a race that has dropped out of the picker without ever being
- * scored, where saying so is better than silently leading with the next round.
+ * - `live` and `scored` do. One is the running order as it stands, the other is
+ *   the result. Both are news about a race the picker can only show saved picks
+ *   for.
+ * - `pending` does not. It is the same race name and nothing else, and every
+ *   Grand Prix passes through it: `races.status` only becomes `finished` when
+ *   the race result is published, so until then `getCurrentWeekend` keeps
+ *   returning that race. Promoting it put "Bahrain Grand Prix - Results
+ *   pending" directly above a "Bahrain Grand Prix" picks card.
+ *
+ * Once the race is scored the picker moves on to the next round by itself, and
+ * the recap is the only place that weekend still appears.
  */
-export function promotedRaceRecap<T extends { race: { id: string } }>(
+export function promotedRaceRecap<
+  T extends { race: { id: string }; status: 'pending' | 'live' | 'scored' },
+>(
   recap: T | null | undefined,
   currentWeekendRaceId: string | undefined,
   isWithinWindow: boolean,
@@ -28,5 +32,8 @@ export function promotedRaceRecap<T extends { race: { id: string } }>(
   if (!recap || !isWithinWindow) {
     return null;
   }
-  return recap.race.id === currentWeekendRaceId ? null : recap;
+  if (recap.race.id !== currentWeekendRaceId) {
+    return recap;
+  }
+  return recap.status === 'pending' ? null : recap;
 }

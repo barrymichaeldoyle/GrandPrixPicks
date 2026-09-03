@@ -4,7 +4,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -468,6 +468,49 @@ export const pollLiveSession = internalAction({
   },
 });
 
+/**
+ * The snapshot a race should currently be shown with, or null.
+ *
+ * Three things disqualify one: an empty running order, a clock past the
+ * session's live deadline, and a published result for that session, which makes
+ * the snapshot history rather than news.
+ *
+ * Extracted so `home.loadRaceRecap` decides "is this race in progress" with the
+ * same rules the race page uses. Returns the raw document; the query below adds
+ * the driver detail only that page needs, which is 22 reads the recap has no
+ * use for.
+ */
+export async function loadActiveSnapshot(
+  ctx: QueryCtx,
+  race: Doc<'races'>,
+): Promise<Doc<'liveSnapshots'> | null> {
+  const snapshots = await ctx.db
+    .query('liveSnapshots')
+    .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', race._id))
+    .take(2);
+
+  for (const snapshot of snapshots.sort((a, b) => b.updatedAt - a.updatedAt)) {
+    if (
+      snapshot.order.length === 0 ||
+      Date.now() > liveDeadlineAt(race, snapshot.sessionType)
+    ) {
+      continue;
+    }
+    const result = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', race._id).eq('sessionType', snapshot.sessionType),
+      )
+      .unique();
+    if (result) {
+      continue;
+    }
+    return snapshot;
+  }
+
+  return null;
+}
+
 export const getActiveSnapshot = query({
   args: { raceId: v.id('races') },
   returns: v.any(),
@@ -476,30 +519,8 @@ export const getActiveSnapshot = query({
     if (!race) {
       return null;
     }
-    const snapshots = await ctx.db
-      .query('liveSnapshots')
-      .withIndex('by_raceId_and_sessionType', (q) =>
-        q.eq('raceId', args.raceId),
-      )
-      .take(2);
-    for (const snapshot of snapshots.sort(
-      (a, b) => b.updatedAt - a.updatedAt,
-    )) {
-      if (
-        snapshot.order.length === 0 ||
-        Date.now() > liveDeadlineAt(race, snapshot.sessionType)
-      ) {
-        continue;
-      }
-      const result = await ctx.db
-        .query('results')
-        .withIndex('by_race_session', (q) =>
-          q.eq('raceId', args.raceId).eq('sessionType', snapshot.sessionType),
-        )
-        .unique();
-      if (result) {
-        continue;
-      }
+    const snapshot = await loadActiveSnapshot(ctx, race);
+    if (snapshot) {
       const viewer = await getViewer(ctx);
       const order = await Promise.all(
         snapshot.order.map(async (entry) => {

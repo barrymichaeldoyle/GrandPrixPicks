@@ -18,6 +18,7 @@ function recap(overrides: Partial<RaceRecap> = {}): RaceRecap {
     windowEndsAt: RACE.raceStartAt + 8 * 60 * 60 * 1000,
     serverNow: Date.now(),
     status: 'scored',
+    live: null,
     playerCount: 128,
     viewer: {
       points: 24,
@@ -83,7 +84,34 @@ export const ViewerOnly: Story = {
   args: { recap: recap() },
 };
 
-/** The race has run and nothing is scored yet. */
+/** Mid-race: provisional, and it has to read that way at a glance. */
+export const RaceInProgress: Story = {
+  args: {
+    recap: recap({
+      status: 'live',
+      live: { sessionType: 'race', updatedAt: Date.now() },
+      // Provisional standings, so the rows differ from the scored stories.
+      friends: [
+        { ...FRIENDS[0], rank: 9, points: 24 },
+        { ...FRIENDS[1], rank: 21, points: 18 },
+        { ...FRIENDS[2], rank: 55, points: 9 },
+      ],
+      friendCount: 2,
+      viewer: {
+        points: 18,
+        top5Points: 15,
+        h2hPoints: 3,
+        rank: 21,
+        fieldSize: 128,
+        // No season position while a session is running.
+        seasonRank: null,
+        seasonRankDelta: null,
+      },
+    }),
+  },
+};
+
+/** The race has run, nothing is reporting on it, and nothing is scored. */
 export const ResultsPending: Story = {
   args: {
     recap: recap({ status: 'pending', viewer: null, playerCount: 0 }),

@@ -11,6 +11,7 @@ import { createElement as e } from 'react';
 import satori from 'satori';
 
 import { loadFonts } from '../src/lib/og/fonts';
+import { brandMark } from '../src/lib/og/templates';
 
 /**
  * The Madrid lap map, as a post.
@@ -51,58 +52,45 @@ const map = `data:image/png;base64,${readFileSync(
 ).toString('base64')}`;
 
 const FACTS = [
-  ['Layout', '5.416 km'],
+  ['Length', '5.416 km'],
   ['Corners', '22'],
   ['Race', '57 laps'],
 ] as const;
 
-function mark(scale = 1): ReactNode {
-  return e(
-    'div',
-    { style: { display: 'flex', alignItems: 'flex-end', gap: 7 * scale } },
-    ...[39, 60, 32].map((height, index) =>
-      e('div', {
-        key: String(index),
-        style: {
-          width: 20 * scale,
-          height: height * scale,
-          backgroundColor: colors.accent,
-          transform: 'skew(-12deg)',
-        },
-      }),
-    ),
-  );
-}
-
-function brandRail(width: number, gutter: number, top: number): ReactNode {
+/**
+ * The logo lockup: the mark from `templates.ts` and the wordmark beside it.
+ *
+ * The mark is the app's own SVG rather than three skewed divs that look like
+ * it, which is the drift `brandMark` exists to prevent. A post that carries a
+ * near-miss of the logo is worse than one that carries none.
+ */
+function logo(gutter: number, top: number): ReactNode {
   return e(
     'div',
     {
       style: {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        gap: 16,
         position: 'absolute',
         left: gutter,
         top,
-        width: width - gutter * 2,
       },
     },
+    brandMark(38),
     e(
       'div',
       {
         style: {
           display: 'flex',
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 17,
+          fontSize: 22,
           fontWeight: 600,
-          letterSpacing: 3,
+          letterSpacing: 3.4,
           color: colors.text,
         },
       },
-      'GRAND PRIX PICKS  /  MADRID',
+      'GRAND PRIX PICKS',
     ),
-    mark(0.5),
   );
 }
 
@@ -175,7 +163,7 @@ function footer(
 function instagram(): ReactNode {
   const mapHeight = Math.round(INSTAGRAM_WIDTH / MAP_RATIO);
   return canvas(INSTAGRAM_WIDTH, INSTAGRAM_HEIGHT, [
-    brandRail(INSTAGRAM_WIDTH, 64, 56),
+    logo(64, 54),
     e(
       'div',
       {
@@ -188,7 +176,7 @@ function instagram(): ReactNode {
           width: 900,
         },
       },
-      eyebrow('ROUND 14  /  11–13 SEPTEMBER'),
+      eyebrow('MADRING  /  ROUND 14  /  11–13 SEPTEMBER'),
       e(
         'div',
         {
@@ -217,7 +205,7 @@ function instagram(): ReactNode {
             color: colors.textMuted,
           },
         },
-        'Formula 1 has never been to the Madring. Practice is the form guide.',
+        'Turn 12 is the longest banked corner on the calendar: 550 m at 24 percent.',
       ),
     ),
     // Full bleed. The map carries its own surface, so an inset would put a
@@ -303,18 +291,25 @@ function xCard(): ReactNode {
         height: X_HEIGHT,
       },
     }),
-    brandRail(X_WIDTH, 64, 48),
-    // Inside the lap, which is the only part of this frame with no corner,
-    // label or sector line in it.
+    logo(64, 46),
+    // The lap encloses a big empty middle, but type dropped in there sits
+    // between the corners and reads as part of the diagram. The ground the lap
+    // does not reach is the bottom right, so the type goes there and the
+    // picture stays a picture. It is also where the eye lands last.
     e(
       'div',
       {
         style: {
           display: 'flex',
           flexDirection: 'column',
+          // Right-aligned to the frame's own gutter: the block's straight edge
+          // then lines up with the margin the logo sits on, and the ragged one
+          // faces the empty middle instead of the edge of the card.
+          alignItems: 'flex-end',
+          textAlign: 'right',
           position: 'absolute',
-          left: 322,
-          top: 358,
+          right: 64,
+          top: 486,
           width: 560,
         },
       },
@@ -341,7 +336,7 @@ function xCard(): ReactNode {
           style: {
             display: 'flex',
             maxWidth: 520,
-            marginTop: 26,
+            marginTop: 24,
             fontSize: 26,
             lineHeight: 1.35,
             color: colors.textMuted,
@@ -349,8 +344,22 @@ function xCard(): ReactNode {
         },
         '5.416 km, 22 corners, 57 laps.',
       ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            marginTop: 30,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 16,
+            fontWeight: 600,
+            letterSpacing: 2.4,
+            color: colors.accent,
+          },
+        },
+        'GRANDPRIXPICKS.COM',
+      ),
     ),
-    footer(64, 48, 'flex-end'),
   ]);
 }
 

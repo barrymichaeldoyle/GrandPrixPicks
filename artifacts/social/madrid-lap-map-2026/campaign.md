@@ -17,6 +17,17 @@ what the corners do.
 Monday, 7 September at 18:30 SAST. Race week starts the following Thursday, so
 this is the lead-in rather than the weekend post.
 
+## Composition
+
+Both cards carry the logo lockup: the app's own SVG mark from
+`src/lib/og/templates.ts` with the wordmark beside it, never a redrawn
+lookalike.
+
+On X the map is the whole frame and the type sits in the ground the lap does
+not reach, bottom right, aligned to the same gutter the logo sits on. Type
+dropped into the middle of the lap reads as part of the diagram, and it landed
+a badge's width from Turn 18.
+
 ## Format
 
 | Channel   | Asset                               | Size      |
@@ -32,16 +43,16 @@ The art is the write-up's own map, kept as a PNG in `source-art/` because
 satori cannot decode the WebP the site serves. Re-export it whenever the map
 changes, or the post and the page drift apart.
 
-**The map is AI-generated artwork**, recoloured onto the design tokens. Both
-posts set the platform AI disclosure flag, as the Monza roundup did for its
-collage slides.
+The map is an illustration: generated art, recoloured onto the design tokens
+and corrected by hand. It is a schematic of a circuit, not a photograph and not
+a depiction of anybody, so neither post sets a platform AI flag.
 
 ## X
 
 > Formula 1 has never raced at the Madring.
 >
-> 22 corners, 5.416 km, and a 550 m banked right at Turn 12. No form guide for
-> this one: practice is the whole story.
+> 22 corners, 5.416 km, and a 550 m banked right at Turn 12: the longest banked
+> corner on the calendar, estimated at 250 kph and about 4G.
 >
 > The Madrid guide:
 > https://grandprixpicks.com/f1-2026-madrid-grand-prix-predictions?utm_source=x&utm_medium=organic&utm_campaign=madrid_lap_map_2026
@@ -52,8 +63,9 @@ No hashtags.
 
 > Formula 1 has never raced at the Madring.
 >
-> 22 corners, 5.416 km, 57 laps, and a 550 m banked right at Turn 12 that
-> decides ride height all weekend.
+> 22 corners, 5.416 km, 57 laps. Turn 12 is a 550 m banked right, the longest
+> banked corner on the calendar, estimated at 250 kph and about 4G for a couple
+> of seconds.
 >
 > The full Madrid guide is linked from our profile.
 >
@@ -68,6 +80,7 @@ Use the write-up as the profile link while this post is current.
 | 5.416 km, 22 corners       | Madrid write-up layout table, from Formula 1 |
 | 57 laps                    | Madrid write-up layout table                 |
 | Turn 12, 550 m, 24 percent | Madrid write-up, sourced to The Race         |
+| 250 kph and about 4G       | The Race, carried as an estimate on the page |
 | No previous F1 race        | Madrid write-up: the circuit debuts in 2026  |
 
 The map's straight-mode zones and Overtake points are the artwork's own and are

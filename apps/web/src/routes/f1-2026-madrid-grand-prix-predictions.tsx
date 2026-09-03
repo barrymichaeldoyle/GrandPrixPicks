@@ -618,7 +618,7 @@ function WatchTable() {
     [
       'Friday running',
       'The first time the whole grid is here',
-      'Ferrari has already filmed, on demonstration tyres. Everyone else starts from zero.',
+      'Even Ferrari’s filming day was 100 km a driver on demonstration tyres.',
     ],
     [
       'Ride height changes',

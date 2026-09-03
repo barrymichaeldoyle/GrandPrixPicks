@@ -1,4 +1,4 @@
-import { LazyMotion, MotionConfig } from 'framer-motion';
+import { domMax, LazyMotion, MotionConfig } from 'framer-motion';
 import type { PropsWithChildren } from 'react';
 
 /**
@@ -17,9 +17,23 @@ import type { PropsWithChildren } from 'react';
  * `strict` makes the swap enforceable: any `motion.*` left behind (or added
  * later) throws instead of silently pulling the full engine back onto the
  * critical path. Use `m.*` from 'framer-motion' instead.
+ *
+ * LazyMotion destructures whatever `features()` resolves. A chunk that fails
+ * soft (empty module) or hard (network) must never resolve `undefined`, or
+ * Mobile Safari throws "Right side of assignment cannot be destructured".
+ * `domMax` is the synchronous backstop so the page still renders.
  */
-function loadMotionFeatures() {
-  return import('./motionFeatures').then((module) => module.motionFeatures);
+export function resolveMotionFeatures(
+  module: { motionFeatures?: typeof domMax } | null | undefined,
+  fallback: typeof domMax = domMax,
+): typeof domMax {
+  return module?.motionFeatures ?? fallback;
+}
+
+export function loadMotionFeatures(): Promise<typeof domMax> {
+  return import('./motionFeatures')
+    .then((module) => resolveMotionFeatures(module, domMax))
+    .catch(() => domMax);
 }
 
 export function AppMotionProvider({ children }: PropsWithChildren) {

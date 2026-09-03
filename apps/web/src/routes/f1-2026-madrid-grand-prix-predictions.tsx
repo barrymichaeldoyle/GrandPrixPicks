@@ -9,6 +9,7 @@ import { Flag } from '@/components/Flag';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
+import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
@@ -297,6 +298,7 @@ function MadridGrandPrixPredictionsPage() {
 
         <NoFormGuide />
         <FormulaThreeTest />
+        <TrackMap />
         <LaMonumental />
         <WatchTable />
         <TyreChoice />
@@ -547,6 +549,61 @@ function TrackReadiness() {
           all weekend, so a Friday order is a weaker guide here than it is
           anywhere else on the calendar.
         </p>
+      </div>
+    </section>
+  );
+}
+
+/** Turn numbers as printed on the lap map, paired with the name in the prose. */
+const CORNERS = [
+  ['5–7', 'Chicane'],
+  ['12', 'La Monumental'],
+  ['16–22', 'Exhibition halls'],
+] as const;
+
+/**
+ * The corner numbers the rest of the page uses, drawn once.
+ *
+ * Three sections name turns by number (the F3 crash corners, La Monumental,
+ * the tight run through the halls) and no reader has ever seen this lap, so
+ * the map goes above the section that leans on it hardest rather than at the
+ * foot of the page. La Monumental is the one corner here with a name anybody
+ * has published; the other two legend entries describe a stretch of lap the
+ * prose already talks about, rather than inventing names nobody will use on
+ * Sunday.
+ */
+function TrackMap() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="track-map">
+      <div className="max-w-3xl">
+        <h2
+          id="track-map"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          What the lap looks like
+        </h2>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Sector 1 is the long run from Turn 1 to Turn 5. Sector 2 carries the
+          banking at Turn 12. Sector 3 is the tight section through the
+          exhibition halls.
+        </p>
+      </div>
+
+      {/* Full width rather than beside a column of copy. The other write-up
+          runs a photograph next to its map; the only picture this page has is
+          Jarama, and it belongs with 1981. */}
+      <div className="mt-7">
+        <RaceWriteupTrackMap
+          src="/media/madrid-track-map-1600.webp"
+          srcSet="/media/madrid-track-map-800.webp 800w, /media/madrid-track-map-1600.webp 1600w"
+          sizes="(min-width: 1024px) 60rem, 100vw"
+          width={1600}
+          height={893}
+          circuitName="Madring"
+          corners={CORNERS}
+          controlCorner="bottom-right"
+          alt="Madring lap map. Turns are numbered 1 to 22, with the three sectors, the start/finish line between Turn 22 and Turn 1, the two straight mode zones, the speed trap in sector 1, and the Overtake detection and activation points at the end of the lap."
+        />
       </div>
     </section>
   );

@@ -28,6 +28,12 @@ export type RaceWriteupTrackMapProps = {
   corners: readonly (readonly [string, string])[];
   /** Names the circuit in the enlarged view's heading, e.g. "Monza". */
   circuitName: string;
+  /**
+   * Which corner of the map the enlarge control sits on. It has to land on
+   * empty ground, and which corner is empty is a fact about the drawn lap:
+   * Monza's is the top right, Madrid's is the bottom right.
+   */
+  controlCorner?: 'top-right' | 'bottom-right';
 };
 
 export function RaceWriteupTrackMap({
@@ -39,16 +45,17 @@ export function RaceWriteupTrackMap({
   alt,
   corners,
   circuitName,
+  controlCorner = 'top-right',
 }: RaceWriteupTrackMapProps) {
   const [enlarged, setEnlarged] = useState(false);
 
   return (
     <figure>
       {/*
-        The control sits on the map's own top-right corner, which on these maps
-        is empty ground. On its own line under the figure it read as a third
-        caption competing with the legend, when what it does is act on the
-        picture it is now sitting on.
+        The control sits on a corner of the map that is empty ground. On its own
+        line under the figure it read as a third caption competing with the
+        legend, when what it does is act on the picture it is now sitting on.
+        Which corner is free is a property of the drawn lap, so it is a prop.
 
         A button rather than a link to the image file. The map is 16:9, so held
         to a phone's 366px the whole lap is legible but the turn badges render
@@ -72,7 +79,9 @@ export function RaceWriteupTrackMap({
           type="button"
           onClick={() => setEnlarged(true)}
           aria-label="Enlarge the map"
-          className="absolute top-2 right-2 inline-flex min-h-9 items-center gap-1.5 rounded-sm border border-border bg-surface-elevated px-2.5 text-xs font-semibold text-text-muted hover:border-border-strong hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className={`absolute right-2 ${
+            controlCorner === 'bottom-right' ? 'bottom-2' : 'top-2'
+          } inline-flex min-h-9 items-center gap-1.5 rounded-sm border border-border bg-surface-elevated px-2.5 text-xs font-semibold text-text-muted hover:border-border-strong hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
         >
           <Maximize2 className="h-3.5 w-3.5" aria-hidden />
           Enlarge

@@ -337,8 +337,12 @@ function PublicLandingPage() {
           />
         ) : null}
 
+        {/* No rule of its own above the callout. The landing sections are
+            divided by one, and giving the callout a second put it in a band
+            between two lines, which read as a section of its own rather than
+            as the tail of the picks it follows. */}
         {nextRace && getRaceWriteup(nextRace.slug) ? (
-          <div className="border-t border-border px-4 py-8 sm:py-10">
+          <div className="px-4 pb-10 sm:pb-14">
             <div className="mx-auto w-full max-w-5xl">
               <RaceWriteupCallout raceSlug={nextRace.slug} className="mt-0" />
             </div>

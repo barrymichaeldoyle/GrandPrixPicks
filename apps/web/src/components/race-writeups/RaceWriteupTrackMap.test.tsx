@@ -25,13 +25,14 @@ describe('race write-up track map', () => {
     root = null;
   });
 
-  function render() {
+  function render(controlCorner?: 'top-right' | 'bottom-right') {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
     act(() =>
       root!.render(
         <RaceWriteupTrackMap
+          controlCorner={controlCorner}
           src="/media/monza-track-map-1600.webp"
           srcSet="/media/monza-track-map-800.webp 800w"
           sizes="100vw"
@@ -112,6 +113,21 @@ describe('race write-up track map', () => {
     });
 
     expect(dialog()).toBeNull();
+  });
+
+  /*
+   * The control has to land on empty ground, and which corner is empty differs
+   * per map: Monza's lap leaves the top right free, Madrid's the bottom right.
+   */
+  it('puts the enlarge control on the corner the map leaves free', () => {
+    render();
+    expect(enlargeButton().className).toContain('top-2');
+
+    act(() => root!.unmount());
+    container!.remove();
+
+    render('bottom-right');
+    expect(enlargeButton().className).toContain('bottom-2');
   });
 
   /*

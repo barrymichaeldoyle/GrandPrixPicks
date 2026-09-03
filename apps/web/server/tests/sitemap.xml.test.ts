@@ -135,7 +135,7 @@ describe('sitemap.xml route', () => {
       '<loc>https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
     );
     expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-madrid-grand-prix-predictions</loc>\n    <lastmod>2026-08-31T00:00:00.000Z</lastmod>',
+      '<loc>https://grandprixpicks.com/f1-2026-madrid-grand-prix-predictions</loc>\n    <lastmod>2026-09-03T00:00:00.000Z</lastmod>',
     );
     expect(xml).toContain('<loc>https://grandprixpicks.com/guides</loc>');
     expect(xml).toContain(

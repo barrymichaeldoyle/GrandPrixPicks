@@ -11,6 +11,7 @@ import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupC
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -24,6 +25,7 @@ import {
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
+import { JARAMA_WRITEUP_IMAGE } from '@/lib/madrid2026WriteUpImages';
 import { getRaceWriteup, getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import {
   breadcrumbSchema,
@@ -51,10 +53,23 @@ const FILMING_SOURCE =
   'https://www.madring.com/en/press-releases/ferrari-estrena-madring';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
+const F3_OFFICIAL_SOURCE =
+  'https://www.fiaformula3.com/en/latest/article/fia-formula-3-to-hold-official-tests-at-madring-in-august-as-the-2026-f3-season-finale-expands-with-additional-feature-race.1VGQYdEuNMGEGVM51PyEDH';
+const RED_FLAG_SOURCE =
+  'https://www.planetf1.com/news/madring-spanish-grand-prix-2026-red-flags';
+const LAP_TIME_SOURCE =
+  'https://www.pitdebrief.com/post/2026-f3-in-season-testing-madrid-2/';
+const THEFT_SOURCE =
+  'https://www.grandprix.com/news/police-investigate-cable-theft-at-madring.html';
+const BUILD_SOURCE =
+  'https://www.racingcircuits.info/europe/spain/madring.html';
+const SAINZ_SOURCE =
+  'https://www.planetf1.com/news/carlos-sainz-lands-new-role-ahead-of-key-f1-2026-arrival';
 
 type Championship = FunctionReturnType<
   typeof api.f1Standings.getF1Championship
 >;
+type StandingsDriver = Championship['drivers'][number];
 type SeasonRace = FunctionReturnType<
   typeof api.races.listCurrentSeason
 >['races'][number];
@@ -78,6 +93,21 @@ const FAQS = [
     question: 'Has Formula 1 raced at the Madring before?',
     answer:
       'No. This is the circuit’s debut. Madrid last held a Grand Prix at Jarama in 1981.',
+  },
+  {
+    question: 'Is the Madring ready for the Spanish Grand Prix?',
+    answer:
+      'The circuit was signed off by the FIA for Formula 1 on 23 June 2026, and Formula 3 completed a two-day test on it in August. Around 300 metres of cable was stolen from a tunnel section on 31 August and Spanish police are investigating, but the race schedule is unchanged.',
+  },
+  {
+    question: 'What did the Formula 3 test show about the Madring?',
+    answer:
+      'Thirty drivers ran over two days in August and the test produced 19 red flags, 11 of them cars in the barriers. Ugo Ugochukwu set the fastest lap at 1:49.034. The times do not transfer to Formula 1, but the corners that caught drivers do.',
+  },
+  {
+    question: 'How likely is a safety car at the Madring?',
+    answer:
+      'There is no Formula 1 history to count from. The lap is walled for long stretches and the Formula 3 test stopped 19 times in two days, so treat the chance of a safety car as higher than at a permanent circuit when you pick a race Top 5.',
   },
   {
     question: 'Are other players’ picks visible before the session?',
@@ -204,6 +234,11 @@ function MadridGrandPrixPredictionsPage() {
     championship.roundsScored,
     race.round,
   );
+  // Read off the standings rather than hard-coded, so a seat change during the
+  // season cannot leave this section naming a driver at their old team.
+  const spanishDrivers = championship.drivers.filter(
+    (driver) => driver.nationality === 'ES',
+  );
 
   return (
     <div className="min-h-full bg-page">
@@ -257,9 +292,15 @@ function MadridGrandPrixPredictionsPage() {
         ) : null}
 
         <NoFormGuide />
+        <FormulaThreeTest />
         <LaMonumental />
         <WatchTable />
         <TyreChoice />
+        {/* The build and the theft answer "will this happen at all", which
+            stops being a question the moment the race runs. The F3 test and
+            the Spanish drivers stay: both are still true in the archive. */}
+        {isLive ? <TrackReadiness /> : null}
+        <SpanishDrivers drivers={spanishDrivers} />
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
@@ -309,6 +350,22 @@ function MadridGrandPrixPredictionsPage() {
             Ferrari filming:{' '}
             <ExternalSource href={FILMING_SOURCE}>Madring</ExternalSource>.
             Tyres: <ExternalSource href={TYRE_SOURCE}>Pirelli</ExternalSource>.
+            F3 test format:{' '}
+            <ExternalSource href={F3_OFFICIAL_SOURCE}>
+              FIA Formula 3
+            </ExternalSource>
+            . Test red flags:{' '}
+            <ExternalSource href={RED_FLAG_SOURCE}>PlanetF1</ExternalSource>.
+            Test times:{' '}
+            <ExternalSource href={LAP_TIME_SOURCE}>Pit Debrief</ExternalSource>.
+            Cable theft:{' '}
+            <ExternalSource href={THEFT_SOURCE}>Grandprix.com</ExternalSource>.
+            Construction and homologation:{' '}
+            <ExternalSource href={BUILD_SOURCE}>
+              RacingCircuits.info
+            </ExternalSource>
+            . Ambassador role:{' '}
+            <ExternalSource href={SAINZ_SOURCE}>PlanetF1</ExternalSource>.
           </p>
           <p className="gpp-mono mt-2 text-xs">
             LAST REVIEWED {reviewedStamp(PROSE_REVIEWED_AT)}
@@ -363,6 +420,130 @@ function NoFormGuide() {
           </div>
         ))}
       </dl>
+    </section>
+  );
+}
+
+/**
+ * The only on-track evidence that exists for this circuit, and therefore the
+ * section that answers the one above.
+ *
+ * The red flag count is the fact worth carrying: it is not colour, it is the
+ * closest thing this weekend has to a safety car probability. Formula 3 is not
+ * Formula 1, so the copy claims the shape of the risk rather than a number.
+ */
+function FormulaThreeTest() {
+  return (
+    <section
+      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      aria-labelledby="f3-test"
+    >
+      <div>
+        <h2
+          id="f3-test"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          The only laps anyone has run here
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          Formula 3 tested at the Madring on 24 and 25 August, 30 drivers across
+          10 teams over two days. It is the entire body of competitive running
+          this circuit has.{' '}
+          <ExternalSource href={F3_OFFICIAL_SOURCE}>
+            The FIA&rsquo;s test announcement
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          It produced 19 red flags. Eleven were cars in the barriers, at corners
+          spread around the lap: the braking zone into the Turn 5 to 7 chicane,
+          the exit of Turn 3, Turn 14 and Turn 17 all caught somebody.{' '}
+          <ExternalSource href={RED_FLAG_SOURCE}>
+            PlanetF1 on the red flags
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Formula 3 cars are heavier on mistakes than Formula 1 cars and a test
+          is not a race, so the times do not transfer. Where the circuit
+          punishes an error does. A lap with that many walls close enough to end
+          a session makes a safety car more likely than at a permanent track,
+          and a safety car is the thing most likely to put a driver in the
+          finishing Top 5 who was not running there.
+        </p>
+      </div>
+      <dl className="self-start rounded-sm bg-surface-elevated px-4">
+        {[
+          ['Test', '24–25 August 2026'],
+          ['Runners', '30 drivers, 10 teams'],
+          ['Red flags', '19 over two days'],
+          ['Fastest lap', 'Ugochukwu, 1:49.034'],
+          ['Carries over', 'Where it bites'],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            className="border-b border-border py-4 last:border-0"
+          >
+            <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+              {label}
+            </dt>
+            <dd className="mt-1 text-sm text-text">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+/**
+ * Live-only. "Is the circuit finished" is a real question for a venue this new
+ * and a search people are running this week, and it stops being either the
+ * moment the race runs.
+ *
+ * The theft is the reason a reader arrives at this section; the surface age is
+ * the reason the section changes a pick. Both, in that order.
+ */
+function TrackReadiness() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="track-readiness">
+      <div className="max-w-3xl">
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Circuit readiness
+        </p>
+        <h2
+          id="track-readiness"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          The track is finished. The rest of it is not
+        </h2>
+        <p className="gpp-reading-copy mt-5 text-text-muted">
+          The final layer of asphalt went down on 31 May and the FIA signed the
+          circuit off for Formula 1 on 23 June. Work since then has been
+          grandstands, hospitality and temporary infrastructure.{' '}
+          <ExternalSource href={BUILD_SOURCE}>
+            RacingCircuits.info on the build
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          On Sunday 31 August about 300 metres of cable was taken from a tunnel
+          section of the circuit, cut from generators powering site
+          installations. Spanish police are investigating and no arrests have
+          been made. Nothing in the race schedule has changed.{' '}
+          <ExternalSource href={THEFT_SOURCE}>
+            Grandprix.com on the theft
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          The asphalt is the part that reaches a Top 5. A surface three months
+          old starts the weekend green, and there is a lot of support running to
+          rubber it in: Formula 2 is here, and Formula 3 closes its season over
+          two qualifying sessions, a sprint and two feature races. Grip climbs
+          all weekend, so a Friday order is a weaker guide here than it is
+          anywhere else on the calendar.
+        </p>
+      </div>
     </section>
   );
 }
@@ -549,6 +730,93 @@ function TyreChoice() {
           </ExternalSource>
           .
         </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Two Spanish drivers and a 45-year gap, which is the fact this weekend is
+ * actually about outside the game.
+ *
+ * The list is filtered off the standings rather than written down, so a
+ * mid-season seat change cannot leave this paragraph naming an old team, and
+ * the closing line exists because a home race is exactly the sort of thing a
+ * player talks themselves into moving up a Top 5.
+ */
+function SpanishDrivers({ drivers }: { drivers: readonly StandingsDriver[] }) {
+  if (drivers.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_18rem]"
+      aria-labelledby="spanish-drivers"
+    >
+      <div>
+        <h2
+          id="spanish-drivers"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
+        >
+          Madrid last held a Grand Prix in 1981
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          The last one ran at Jarama, north of the city, and Formula 1 has not
+          been back to Madrid since. Barcelona held the Spanish Grand Prix from
+          1991 until last season, and now runs as the Barcelona-Catalunya Grand
+          Prix, so in 2026 the country has two races.
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Carlos Sainz has been the circuit&rsquo;s ambassador since 2025 and
+          said at its presentation that he would be racing 20 minutes from home.{' '}
+          <ExternalSource href={SAINZ_SOURCE}>
+            PlanetF1 on the ambassador role
+          </ExternalSource>
+          .
+        </p>
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Neither Spanish driver is worth moving up a Top 5 for the crowd. What
+          the ambassador role is worth is simulator time on a layout nobody else
+          had a reason to learn early.
+        </p>
+      </div>
+      {/* The card is two rows against three paragraphs of copy, so the column
+          ends well short of the section. The photo takes the rest of it, the
+          way the Monza track map carries one beneath its aside. */}
+      <div className="self-start">
+        <div className="border border-border bg-surface">
+          <div className="border-b border-border px-4 py-3">
+            <h3 className="font-title font-medium text-text">
+              Spanish drivers
+            </h3>
+          </div>
+          <ul aria-label="Spanish drivers on the 2026 grid">
+            {drivers.map((driver) => (
+              <li
+                key={driver.driverId}
+                className="flex items-center gap-2 border-b border-border/60 px-4 py-3 last:border-b-0"
+              >
+                <DriverBadge
+                  code={driver.code}
+                  team={driver.team}
+                  displayName={driver.displayName}
+                  number={driver.number}
+                  nationality={driver.nationality}
+                  size="sm"
+                  prerenderTooltip={false}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm text-text">
+                  {driver.displayName}
+                </span>
+                <span className="gpp-mono text-xs text-text-muted">
+                  P{driver.position}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <WriteUpNewsPhoto {...JARAMA_WRITEUP_IMAGE} />
       </div>
     </section>
   );

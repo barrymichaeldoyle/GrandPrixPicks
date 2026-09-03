@@ -73,6 +73,10 @@ const COLAPINTO_CONTRACT_SOURCE =
   'https://www.formula1.com/en/latest/article/alpine-announce-colapinto-contract-extension-as-team-confirms-unchanged-2027-line-up.DL3dVyZLJm5cHryWcHyPq';
 const MCLAREN_FORM_SOURCE =
   'https://www.motorsport.com/f1/news/why-mclaren-must-pass-its-monza-test-before-talking-about-an-f1-title-challenge/10849795/';
+const MCLAREN_H_WING_MOTORSPORT_SOURCE =
+  'https://www.motorsport.com/f1/news/mclaren-to-run-rotating-rear-wing-in-italy-f1-calls-it-h-wing/10851399/';
+const MCLAREN_H_WING_RN365_SOURCE =
+  'https://racingnews365.com/mclaren-confirm-return-of-eye-catching-f1-upgrade-at-italian-gp';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
 /** Pirelli's own Monza preview: the rebuilt kerbs, the Turn 5 run-off, the rears. */
@@ -938,6 +942,20 @@ function McLarenForm() {
             speed and braking on Friday.{' '}
             <ExternalSource href={MCLAREN_FORM_SOURCE}>
               Read Stella&rsquo;s assessment
+            </ExternalSource>
+            .
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            McLaren will run its H-Wing, a rotating rear wing, on both cars at
+            Monza. It tested a revised version in Hungary FP1 and has brought it
+            back with a new low-drag rear wing. McLaren will also test smaller
+            low-drag options before choosing its qualifying setup.{' '}
+            <ExternalSource href={MCLAREN_H_WING_MOTORSPORT_SOURCE}>
+              Motorsport.com
+            </ExternalSource>
+            .{' '}
+            <ExternalSource href={MCLAREN_H_WING_RN365_SOURCE}>
+              RacingNews365
             </ExternalSource>
             .
           </p>

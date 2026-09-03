@@ -14,8 +14,6 @@ import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
 import { RACE_WRITEUP_PICKS_ANCHOR } from './raceWriteupPicksAnchor';
 
-export { RACE_WRITEUP_PICKS_ANCHOR };
-
 const PRELOAD_MARGIN = '700px';
 
 class PicksSectionErrorBoundary extends Component<

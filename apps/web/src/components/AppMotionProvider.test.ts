@@ -1,22 +1,47 @@
 import { domMax } from 'framer-motion';
 import { describe, expect, it } from 'vitest';
 
-import { resolveMotionFeatures } from './AppMotionProvider';
+import { loadMotionFeatures } from './motionFeaturesLoader';
 
-describe('resolveMotionFeatures', () => {
-  it('returns the lazy chunk when motionFeatures is present', () => {
+async function expectToRemainPending(promise: Promise<unknown>) {
+  let state = 'pending';
+  void promise.then(
+    () => {
+      state = 'fulfilled';
+    },
+    () => {
+      state = 'rejected';
+    },
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(state).toBe('pending');
+}
+
+describe('loadMotionFeatures', () => {
+  it('returns the lazy chunk when motionFeatures is present', async () => {
     const lazyFeatures = { renderer: domMax.renderer } as typeof domMax;
 
-    expect(
-      resolveMotionFeatures({ motionFeatures: lazyFeatures }, domMax),
-    ).toBe(lazyFeatures);
+    await expect(
+      loadMotionFeatures(() =>
+        Promise.resolve({ motionFeatures: lazyFeatures }),
+      ),
+    ).resolves.toBe(lazyFeatures);
   });
 
-  it('falls back when the dynamic chunk resolves without motionFeatures', () => {
-    const fallback = { renderer: domMax.renderer } as typeof domMax;
+  it.each([{}, undefined, null])(
+    'stays pending when the dynamic chunk resolves as %s',
+    async (module) => {
+      await expectToRemainPending(
+        loadMotionFeatures(() => Promise.resolve(module)),
+      );
+    },
+  );
 
-    expect(resolveMotionFeatures({}, fallback)).toBe(fallback);
-    expect(resolveMotionFeatures(undefined, fallback)).toBe(fallback);
-    expect(resolveMotionFeatures(null, fallback)).toBe(fallback);
+  it('stays pending when the dynamic import rejects', async () => {
+    await expectToRemainPending(
+      loadMotionFeatures(() => Promise.reject(new Error('chunk failed'))),
+    );
   });
 });

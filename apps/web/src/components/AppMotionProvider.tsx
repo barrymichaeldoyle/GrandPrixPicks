@@ -1,9 +1,7 @@
 import { LazyMotion, MotionConfig } from 'framer-motion';
 import type { PropsWithChildren } from 'react';
 
-import type { motionFeaturesFallback } from './motionFeaturesFallback';
-
-type MotionFeatureBundle = typeof motionFeaturesFallback;
+import { loadMotionFeatures } from './motionFeaturesLoader';
 
 /**
  * Framer Motion, minus its feature set, on the critical path.
@@ -25,33 +23,9 @@ type MotionFeatureBundle = typeof motionFeaturesFallback;
  * LazyMotion destructures whatever `features()` resolves. A chunk that fails
  * soft (empty module) or hard (network) must never resolve `undefined`, or
  * Mobile Safari throws "Right side of assignment cannot be destructured".
- * A separate fallback chunk loads only when the primary import fails.
+ * The loader stays pending on failure so the already-rendered page can finish
+ * its stale-chunk reload without producing another unhandled rejection.
  */
-export function resolveMotionFeatures<T extends MotionFeatureBundle>(
-  module: { motionFeatures?: T } | null | undefined,
-  fallback: T,
-): T {
-  return module?.motionFeatures ?? fallback;
-}
-
-function loadFallbackFeatures(): Promise<MotionFeatureBundle> {
-  return import('./motionFeaturesFallback').then(
-    (module) => module.motionFeaturesFallback,
-  );
-}
-
-function loadMotionFeatures(): Promise<MotionFeatureBundle> {
-  return import('./motionFeatures')
-    .then((module) => {
-      const features = module.motionFeatures;
-      if (features != null) {
-        return features;
-      }
-      return loadFallbackFeatures();
-    })
-    .catch(() => loadFallbackFeatures());
-}
-
 export function AppMotionProvider({ children }: PropsWithChildren) {
   return (
     <LazyMotion features={loadMotionFeatures} strict>

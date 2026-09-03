@@ -32,6 +32,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:publishItaly2026MonzaFp1Seats",
+    "args": {}
+  },
+  {
     "name": "raceScheduleMigrations:correctSingapore2026SprintSchedule",
     "args": {}
   }

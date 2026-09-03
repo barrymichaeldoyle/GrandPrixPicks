@@ -14,3 +14,23 @@ export const IWASA_MONZA_FP1_BODY =
 
 export const HADJAR_DUTCH_GP_LINEUP_NOTE =
   'Isack Hadjar injured his wrist during boxing training and missed the Dutch Grand Prix. Liam Lawson stepped up to Red Bull alongside Max Verstappen, and Yuki Tsunoda took the vacated Racing Bulls seat next to Arvid Lindblad. Hadjar will also miss Monza while he continues his recovery.';
+
+/*
+ * The two FP1 seats that landed after the 2 September review.
+ *
+ * Written against PlanetF1 and Formula 1 respectively, and deliberately not
+ * against each other: with Iwasa and Browning already published, Monza carries
+ * four FP1 cards, and a first draft of these two opened with the same clause as
+ * the other two. A reader meeting four near-identical paragraphs stops reading
+ * the fourth. Each one now leads on the fact only it has.
+ *
+ * What is missing from the Aron body is on purpose. The source says both
+ * Alpines run the Zandvoort upgrade package and that Aron goes to the
+ * simulator afterwards; it does not say Alpine wants his read on the package,
+ * and the upgrade is already its own card (`colapinto-alpine-upgrade`).
+ */
+export const HERTA_MONZA_FP1_BODY =
+  'Perez is back in the car from FP2, so Friday morning is not a read on his pace. It is Herta’s third FP1 of the season, after Barcelona and Hungary.';
+
+export const ARON_MONZA_FP1_BODY =
+  'Gasly is back in the car from FP2 and the rest of the weekend. Aron then works the Enstone simulator that evening to help fine-tune the set-up.';

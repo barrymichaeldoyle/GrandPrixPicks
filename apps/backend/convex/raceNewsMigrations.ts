@@ -3,10 +3,12 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import {
+  ARON_MONZA_FP1_BODY,
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
   HADJAR_DUTCH_GP_LINEUP_NOTE,
   HADJAR_MONZA_ABSENCE_BODY,
+  HERTA_MONZA_FP1_BODY,
   IWASA_MONZA_FP1_BODY,
 } from './lib/italy2026MonzaNewsCopy';
 import {
@@ -150,5 +152,55 @@ export const addItaly2026BrowningWriteUpPhoto = internalMutation({
     });
 
     return { action: 'updated' as const, key: BROWNING_NEWS_KEY };
+  },
+});
+
+/**
+ * The Cadillac and Alpine FP1 seats, which landed after the other Monza items
+ * had already been published.
+ *
+ * Both were first published by hand through `raceNews:publish`, which is the
+ * designed authoring surface (see `docs/race-news.md`) and is why this
+ * migration is a mirror rather than the original act. It exists so the two are
+ * reproducible from code like the other five: a deploy replays them as a no-op,
+ * and prod rebuilt from scratch comes back with all seven rather than five.
+ *
+ * That makes the copy here the source of truth. Editing a body in
+ * `italy2026MonzaNewsCopy.ts` republishes it on the next deploy; editing it in
+ * prod by hand is undone by the same deploy. Idempotent either way, because
+ * `raceNews.publish` upserts on `(raceId, key)`.
+ */
+export const publishItaly2026MonzaFp1Seats = internalMutation({
+  args: {},
+  // Annotated for the same TS7022 reason as `updateItaly2026MonzaNewsCopy`
+  // above: this module is part of `internal` and calls `internal.raceNews`.
+  handler: async (ctx): Promise<{ herta: unknown; aron: unknown }> => {
+    const herta = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'herta-cadillac-fp1',
+      headline: 'Herta drives Perez\u2019s Cadillac in FP1',
+      body: HERTA_MONZA_FP1_BODY,
+      affectsSessions: ['quali', 'race'],
+      // Perez, not Herta: Herta is not on the roster and cannot be picked, and
+      // the point of the item is who is in the car for everything that counts.
+      driverCodes: ['PER'],
+      sourceName: 'PlanetF1',
+      sourceUrl:
+        'https://www.planetf1.com/news/sergio-perez-colton-herta-italian-grand-prix-2026-fp1',
+    });
+
+    const aron = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'aron-alpine-fp1',
+      headline: 'Aron drives Gasly\u2019s Alpine in FP1',
+      body: ARON_MONZA_FP1_BODY,
+      affectsSessions: ['quali', 'race'],
+      driverCodes: ['GAS'],
+      sourceName: 'Formula 1',
+      sourceUrl:
+        'https://www.formula1.com/en/latest/article/aron-set-for-next-fp1-run-with-alpine-at-monza.3X5Psl55Co2cFyrpqwzrGt',
+    });
+
+    return { herta, aron };
   },
 });

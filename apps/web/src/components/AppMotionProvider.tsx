@@ -1,5 +1,9 @@
-import { domMax, LazyMotion, MotionConfig } from 'framer-motion';
+import { LazyMotion, MotionConfig } from 'framer-motion';
 import type { PropsWithChildren } from 'react';
+
+import type { motionFeaturesFallback } from './motionFeaturesFallback';
+
+type MotionFeatureBundle = typeof motionFeaturesFallback;
 
 /**
  * Framer Motion, minus its feature set, on the critical path.
@@ -21,19 +25,31 @@ import type { PropsWithChildren } from 'react';
  * LazyMotion destructures whatever `features()` resolves. A chunk that fails
  * soft (empty module) or hard (network) must never resolve `undefined`, or
  * Mobile Safari throws "Right side of assignment cannot be destructured".
- * `domMax` is the synchronous backstop so the page still renders.
+ * A separate fallback chunk loads only when the primary import fails.
  */
-export function resolveMotionFeatures(
-  module: { motionFeatures?: typeof domMax } | null | undefined,
-  fallback: typeof domMax = domMax,
-): typeof domMax {
+export function resolveMotionFeatures<T extends MotionFeatureBundle>(
+  module: { motionFeatures?: T } | null | undefined,
+  fallback: T,
+): T {
   return module?.motionFeatures ?? fallback;
 }
 
-function loadMotionFeatures(): Promise<typeof domMax> {
+function loadFallbackFeatures(): Promise<MotionFeatureBundle> {
+  return import('./motionFeaturesFallback').then(
+    (module) => module.motionFeaturesFallback,
+  );
+}
+
+function loadMotionFeatures(): Promise<MotionFeatureBundle> {
   return import('./motionFeatures')
-    .then((module) => resolveMotionFeatures(module, domMax))
-    .catch(() => domMax);
+    .then((module) => {
+      const features = module.motionFeatures;
+      if (features != null) {
+        return features;
+      }
+      return loadFallbackFeatures();
+    })
+    .catch(() => loadFallbackFeatures());
 }
 
 export function AppMotionProvider({ children }: PropsWithChildren) {

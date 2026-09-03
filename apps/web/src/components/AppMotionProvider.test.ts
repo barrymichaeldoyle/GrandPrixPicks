@@ -7,9 +7,9 @@ describe('resolveMotionFeatures', () => {
   it('returns the lazy chunk when motionFeatures is present', () => {
     const lazyFeatures = { renderer: domMax.renderer } as typeof domMax;
 
-    expect(resolveMotionFeatures({ motionFeatures: lazyFeatures })).toBe(
-      lazyFeatures,
-    );
+    expect(
+      resolveMotionFeatures({ motionFeatures: lazyFeatures }, domMax),
+    ).toBe(lazyFeatures);
   });
 
   it('falls back when the dynamic chunk resolves without motionFeatures', () => {

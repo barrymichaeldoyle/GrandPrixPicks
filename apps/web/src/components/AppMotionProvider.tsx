@@ -1,6 +1,8 @@
 import { LazyMotion, MotionConfig } from 'framer-motion';
 import type { PropsWithChildren } from 'react';
 
+import { loadMotionFeatures } from './motionFeaturesLoader';
+
 /**
  * Framer Motion, minus its feature set, on the critical path.
  *
@@ -17,11 +19,13 @@ import type { PropsWithChildren } from 'react';
  * `strict` makes the swap enforceable: any `motion.*` left behind (or added
  * later) throws instead of silently pulling the full engine back onto the
  * critical path. Use `m.*` from 'framer-motion' instead.
+ *
+ * LazyMotion destructures whatever `features()` resolves. A chunk that fails
+ * soft (empty module) or hard (network) must never resolve `undefined`, or
+ * Mobile Safari throws "Right side of assignment cannot be destructured".
+ * The loader stays pending on failure so the already-rendered page can finish
+ * its stale-chunk reload without producing another unhandled rejection.
  */
-function loadMotionFeatures() {
-  return import('./motionFeatures').then((module) => module.motionFeatures);
-}
-
 export function AppMotionProvider({ children }: PropsWithChildren) {
   return (
     <LazyMotion features={loadMotionFeatures} strict>

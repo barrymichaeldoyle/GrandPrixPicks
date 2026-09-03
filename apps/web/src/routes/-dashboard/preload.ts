@@ -9,7 +9,7 @@ import { hasClerkSessionCookie } from '@/integrations/clerk/session-cookie';
  * renders the real dashboard, but hydration reached the `lazy()` boundary
  * before the chunk had even been requested, so React replaced the server's
  * markup with the Suspense fallback and the page visibly went backwards: the
- * weekend card, the Activity heading and the rail cards all vanished for a beat
+ * weekend card, the feed and the rail cards all vanished for a beat
  * and came back. On a throttled phone that swap was measured at ~1.2s wide, and
  * it was ~98% of the page's cumulative layout shift as well as the thing
  * setting LCP.

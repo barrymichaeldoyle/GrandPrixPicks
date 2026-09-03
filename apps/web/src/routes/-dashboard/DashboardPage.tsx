@@ -194,15 +194,7 @@ export function DashboardPage({
 
       {/* No "See all" any more: this *is* all of it. The standalone /feed page
           rendered the same component and has been removed. */}
-      <section aria-labelledby="dashboard-activity-heading">
-        <h2
-          id="dashboard-activity-heading"
-          className="mb-3 text-sm font-semibold tracking-label text-text uppercase"
-        >
-          Activity
-        </h2>
-        <FeedContent initialPage={initialDashboard?.feedPreview} />
-      </section>
+      <FeedContent initialPage={initialDashboard?.feedPreview} />
 
       {/* Below the feed, which is the one place on this page an ad can go
           without interrupting anything: the picks card and the rails are what

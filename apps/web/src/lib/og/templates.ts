@@ -375,11 +375,11 @@ function brandHeadline(): ReactNode {
       style: {
         display: 'flex',
         flexDirection: 'column' as const,
-        fontSize: 64,
+        fontSize: 68,
         fontWeight: 300,
-        letterSpacing: -1.6,
+        letterSpacing: -1.8,
         lineHeight: 1.1,
-        maxWidth: 640,
+        maxWidth: 660,
       },
     },
     // Typographic apostrophe: the straight quote is the one glyph on this card
@@ -400,35 +400,6 @@ function brandHeadline(): ReactNode {
 }
 
 /**
- * The mechanic, in two spoken lines.
- *
- * This is what the three bordered scoring tiles used to say. The tiles set
- * 5 / 3 / 1 in magenta, green and yellow, which put four saturated hues on a
- * card whose palette is one rare accent, and they said in ~130px of chrome
- * what a sentence says in a line. The numbers still matter — they are the
- * detail that decides whether a stranger bothers — so they stay, as prose.
- */
-function brandSubtext(): ReactNode {
-  return e(
-    'div',
-    {
-      style: {
-        display: 'flex',
-        flexDirection: 'column' as const,
-        marginTop: 32,
-        maxWidth: 600,
-        fontSize: 25,
-        fontWeight: 300,
-        lineHeight: 1.4,
-        color: colors.textMuted,
-      },
-    },
-    e('div', {}, 'Pick your Top 5 for every session.'),
-    e('div', {}, 'An exact position scores 5, one off scores 3.'),
-  );
-}
-
-/**
  * A label over a figure, the way the app sets every piece of timing data.
  *
  * `mono` follows the site's split rather than taste: IBM Plex Mono is for
@@ -439,6 +410,7 @@ function bandStat(
   value: string,
   align: 'flex-start' | 'flex-end',
   mono = false,
+  rail = false,
 ): ReactNode {
   return e(
     'div',
@@ -447,6 +419,17 @@ function bandStat(
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: align,
+        // The same 3px accent rail the landing page puts beside its session
+        // clock. It is the one thing on the card marking why a reader should
+        // tap now rather than later.
+        //
+        // Spread rather than set to `undefined`: satori 0.29 runs every style
+        // value through its own expander, and an undefined `borderLeft` throws
+        // there. Every OG route catches its own errors and serves the static
+        // fallback, so that mistake ships as a card that never names the race.
+        ...(rail
+          ? { borderLeft: `3px solid ${colors.accent}`, paddingLeft: 22 }
+          : {}),
       },
     },
     e(
@@ -534,11 +517,10 @@ function brandCardFrame(bandLeft: ReactNode, bandRight: ReactNode): ReactNode {
           flexDirection: 'column' as const,
           position: 'absolute' as const,
           left: 64,
-          top: 160,
+          top: 196,
         },
       },
       brandHeadline(),
-      brandSubtext(),
     ),
     pickSheet(),
     // The system's one elevation mechanism, separating the pitch from the data.
@@ -616,7 +598,8 @@ export function nextRaceTemplate(data: NextRaceOgData): ReactNode {
     bandStat(
       'PICKS LOCK',
       `${data.lockDate}  ${data.lockTime}`,
-      'flex-end',
+      'flex-start',
+      true,
       true,
     ),
   );

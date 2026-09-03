@@ -6,8 +6,7 @@ import { ErrorFallback } from './components/error/ErrorFallback';
 import * as TanstackQuery from './integrations/tanstack-query/root-provider';
 import { deferUntilAfterLoad } from './lib/deferUntilAfterLoad';
 import {
-  hasLazyRouteChunkFrame,
-  isLazyRouteChunkFailure,
+  isReloadingForStaleChunk,
   isStaleChunkError,
   listenForStaleChunks,
   reloadForStaleChunk,
@@ -35,10 +34,14 @@ export function getRouter() {
       // Nothing is broken for them that new HTML would not fix, so reload
       // instead of showing a red flag. `vite:preloadError` below catches most
       // of these first; this is the path for the ones that reach the boundary.
-      if (
-        (isStaleChunkError(error) || isLazyRouteChunkFailure(error)) &&
-        reloadForStaleChunk()
-      ) {
+      //
+      // The first branch is for a reload already under way: whatever failed
+      // downstream of it is the teardown, not a fault, and a red flag flashing
+      // over the last frames before the new page arrives helps nobody.
+      if (isReloadingForStaleChunk()) {
+        return null;
+      }
+      if (isStaleChunkError(error) && reloadForStaleChunk()) {
         return null;
       }
       return <ErrorFallback error={error} />;
@@ -69,6 +72,14 @@ export function getRouter() {
       ),
       sendDefaultPii: true,
       beforeSend(event) {
+        // We have already called `reload()`; this page is being torn down and
+        // is about to be replaced by one built from the new HTML. Anything it
+        // raises on the way out is the teardown, not a defect — including the
+        // `undefined` that Vite's preload helper resolves dynamic imports with
+        // once we have handled the failure. See `staleChunk.ts`.
+        if (isReloadingForStaleChunk()) {
+          return null;
+        }
         const message = event.exception?.values?.[0]?.value ?? '';
         if (message.includes('localhost:3030')) {
           return null;
@@ -88,19 +99,6 @@ export function getRouter() {
         // report — only a record of how often we deployed while people were
         // reading, which is not what this tray is for.
         if (isStaleChunkError(message)) {
-          return null;
-        }
-        // The same thing wearing TanStack's TypeError instead of Vite's
-        // wording. Judged on the frames, never on that message alone.
-        const exception = event.exception?.values?.[0];
-        if (
-          hasLazyRouteChunkFrame(
-            exception?.type,
-            (exception?.stacktrace?.frames ?? []).map(
-              (frame) => frame.module ?? frame.filename,
-            ),
-          )
-        ) {
           return null;
         }
         return event;

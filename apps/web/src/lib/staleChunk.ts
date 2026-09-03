@@ -33,44 +33,49 @@ const STALE_CHUNK_MESSAGE =
   /failed to fetch dynamically imported module|error loading dynamically imported module|importing a module script failed|unable to preload css|'?text\/html'? is not a valid javascript mime type/i;
 
 /**
- * The other shape a vanished chunk takes, and the one that reached the tray as
- * a fatal `Cannot read properties of undefined (reading 'component')`.
+ * Whether we have already called `reload()` and are waiting for it to commit.
  *
- * TanStack does not rethrow the import rejection. `lazyRouteComponent` catches
- * it, leaves the module undefined, and the next line reads `res[exportName]`
- * off that — so what surfaces is a plain `TypeError` whose message says
- * nothing about chunks and never matches the wording above.
+ * `location.reload()` does not stop JavaScript: the current page keeps running
+ * its microtasks until the navigation commits. That gap is not quiet, because
+ * of how Vite's preload helper ends:
  *
- * Matching that message would be far too broad: it is the single most common
- * TypeError in any React app, and treating it as a stale chunk would silently
- * reload people past real bugs. So the judgement is made on the stack instead.
- * Only a failure raised inside TanStack's own lazy-route loading counts, which
- * no application-level TypeError can be.
+ *     if (!event.defaultPrevented) throw err   // in the catch handler
+ *     ...
+ *     return promise.then(() => baseModule().catch(handlePreloadError))
+ *
+ * The `preventDefault` below stops Vite rethrowing an error we are handling —
+ * and that also stops `handlePreloadError` throwing, so the `catch` returns
+ * normally and **the dynamic import resolves with `undefined`**. Every awaiting
+ * caller then destructures or dereferences nothing:
+ *
+ *   - TanStack reads `res[exportName]` and raises
+ *     "Cannot read properties of undefined (reading 'component')".
+ *   - Framer Motion's `LazyMotion` destructures `{ renderer, ...features }` and
+ *     raises "Right side of assignment cannot be destructured".
+ *
+ * Neither message mentions a chunk and neither is a defect: they are the sound
+ * of a page being torn down mid-reload. They arrived in the tray as
+ * GRAND-PRIX-PICKS-24 and -25.
+ *
+ * The judgement is made on cause, not on wording or stack frames. An earlier
+ * version matched `lazyRouteComponent` in the frame list, which cannot work:
+ * a production build has no such string in it — the module names only come
+ * back when Sentry applies source maps server-side, long after `beforeSend`
+ * has run on the visitor's machine. The flag has no such blind spot, and it
+ * covers callers we have not met yet rather than the two we have.
+ *
+ * In-memory on purpose. It describes this page, which is about to be replaced;
+ * the fresh one must report its errors normally, so there is nothing to clear.
  */
-const LAZY_ROUTE_LOADER_FRAME =
-  /lazyRouteComponent|router-core\/dist\/esm\/load-client/;
+let reloadInFlight = false;
 
-export function isLazyRouteChunkFailure(error: unknown): boolean {
-  if (!(error instanceof Error) || error.name !== 'TypeError') {
-    return false;
-  }
-  return LAZY_ROUTE_LOADER_FRAME.test(error.stack ?? '');
+export function isReloadingForStaleChunk(): boolean {
+  return reloadInFlight;
 }
 
-/**
- * The same judgement from Sentry's parsed frames, which is all `beforeSend`
- * gets — by then the `Error` is an event and the stack is a frame list.
- */
-export function hasLazyRouteChunkFrame(
-  type: string | undefined,
-  frameSources: (string | undefined)[],
-): boolean {
-  if (type !== 'TypeError') {
-    return false;
-  }
-  return frameSources.some((source) =>
-    LAZY_ROUTE_LOADER_FRAME.test(source ?? ''),
-  );
+/** Test seam: the flag is otherwise one-way for the life of the page. */
+export function resetStaleChunkReloadState(): void {
+  reloadInFlight = false;
 }
 
 export function isStaleChunkError(error: unknown): boolean {
@@ -115,6 +120,7 @@ export function reloadForStaleChunk(): boolean {
     // better outcome than the error screen.
   }
 
+  reloadInFlight = true;
   window.location.reload();
   return true;
 }

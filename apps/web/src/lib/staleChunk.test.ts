@@ -1,21 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import {
-  hasLazyRouteChunkFrame,
-  isLazyRouteChunkFailure,
+  isReloadingForStaleChunk,
   isStaleChunkError,
+  listenForStaleChunks,
+  reloadForStaleChunk,
+  resetStaleChunkReloadState,
 } from './staleChunk';
-
-/** The stack Sentry recorded for GRAND-PRIX-PICKS-24, trimmed to two frames. */
-const LAZY_ROUTE_STACK = `TypeError: Cannot read properties of undefined (reading 'component')
-    at n (@tanstack+react-router@1.170.32/node_modules/@tanstack/react-router/dist/esm/lazyRouteComponent.js:27:12)
-    at @tanstack+router-core@1.171.27/node_modules/@tanstack/router-core/dist/esm/load-client.js:41:3`;
-
-function typeErrorWithStack(message: string, stack: string): Error {
-  const error = new TypeError(message);
-  error.stack = stack;
-  return error;
-}
 
 describe('isStaleChunkError', () => {
   it('matches the wording each browser uses for a chunk that would not load', () => {
@@ -30,63 +29,151 @@ describe('isStaleChunkError', () => {
     expect(isStaleChunkError('Unable to preload CSS')).toBe(true);
   });
 
-  it('does not match the TypeError TanStack raises for the same cause', () => {
-    expect(isStaleChunkError(LAZY_ROUTE_STACK)).toBe(false);
-  });
-});
-
-describe('isLazyRouteChunkFailure', () => {
-  it('matches a TypeError raised inside the lazy-route loader', () => {
+  it('leaves the teardown TypeErrors alone', () => {
+    // These are what a handled preload failure turns awaiting callers into.
+    // They are suppressed by the reload flag, on cause — never by their
+    // wording, which is indistinguishable from a real bug's.
     expect(
-      isLazyRouteChunkFailure(
-        typeErrorWithStack(
+      isStaleChunkError(
+        new TypeError(
           "Cannot read properties of undefined (reading 'component')",
-          LAZY_ROUTE_STACK,
-        ),
-      ),
-    ).toBe(true);
-  });
-
-  it('leaves an ordinary application TypeError alone', () => {
-    // The exact same message from our own code must still reach the boundary,
-    // or a real bug turns into a silent reload loop.
-    expect(
-      isLazyRouteChunkFailure(
-        typeErrorWithStack(
-          "Cannot read properties of undefined (reading 'component')",
-          `TypeError: Cannot read properties of undefined (reading 'component')
-    at RaceDetailPage (src/routes/races/$raceSlug/index.tsx:212:9)`,
         ),
       ),
     ).toBe(false);
-  });
-
-  it('ignores non-TypeErrors and non-Errors', () => {
-    const notATypeError = new Error('boom');
-    notATypeError.stack = LAZY_ROUTE_STACK;
-    expect(isLazyRouteChunkFailure(notATypeError)).toBe(false);
-    expect(isLazyRouteChunkFailure(LAZY_ROUTE_STACK)).toBe(false);
-    expect(isLazyRouteChunkFailure(undefined)).toBe(false);
+    expect(
+      isStaleChunkError(
+        new TypeError('Right side of assignment cannot be destructured'),
+      ),
+    ).toBe(false);
   });
 });
 
-describe('hasLazyRouteChunkFrame', () => {
-  it('reaches the same verdict from Sentry frames', () => {
-    expect(
-      hasLazyRouteChunkFrame('TypeError', [
-        '@tanstack+react-router@1.170.32/node_modules/@tanstack/react-router/dist/esm/lazyRouteComponent',
-        undefined,
-      ]),
-    ).toBe(true);
+describe('reloadForStaleChunk', () => {
+  let reload: ReturnType<typeof vi.fn>;
 
-    expect(
-      hasLazyRouteChunkFrame('TypeError', ['src/routes/races/$raceSlug/index']),
-    ).toBe(false);
+  beforeEach(() => {
+    resetStaleChunkReloadState();
+    window.sessionStorage.clear();
+    reload = vi.fn();
+    vi.spyOn(window, 'location', 'get').mockReturnValue({
+      ...window.location,
+      reload,
+    } as unknown as Location);
+  });
 
-    expect(
-      hasLazyRouteChunkFrame('ReferenceError', [
-        '@tanstack/react-router/dist/esm/lazyRouteComponent',
-      ]),
-    ).toBe(false);
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetStaleChunkReloadState();
+    window.sessionStorage.clear();
+  });
+
+  it('reloads once and reports that it handled the failure', () => {
+    expect(isReloadingForStaleChunk()).toBe(false);
+
+    expect(reloadForStaleChunk()).toBe(true);
+
+    expect(reload).toHaveBeenCalledTimes(1);
+    expect(isReloadingForStaleChunk()).toBe(true);
+  });
+
+  it('stays raised for the rest of the page, so teardown noise is suppressed', () => {
+    reloadForStaleChunk();
+
+    // `location.reload()` does not stop JavaScript. Everything that runs
+    // between here and the navigation committing — the `undefined` Vite hands
+    // back to awaiting dynamic imports, and every TypeError that follows —
+    // must read as teardown, not as a defect.
+    expect(isReloadingForStaleChunk()).toBe(true);
+  });
+
+  it('does not reload twice inside the cooldown', () => {
+    expect(reloadForStaleChunk()).toBe(true);
+    expect(reloadForStaleChunk()).toBe(false);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('still reloads when sessionStorage is unavailable', () => {
+    // Safari in Lockdown Mode and some private windows throw on access.
+    vi.spyOn(window.sessionStorage, 'getItem').mockImplementation(() => {
+      throw new Error('denied');
+    });
+    vi.spyOn(window.sessionStorage, 'setItem').mockImplementation(() => {
+      throw new Error('denied');
+    });
+
+    expect(reloadForStaleChunk()).toBe(true);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('listenForStaleChunks', () => {
+  let reload: ReturnType<typeof vi.fn>;
+
+  // Once, not per test: the listener is global and has no disposer, so
+  // registering it in `beforeEach` would stack a fresh copy for every case.
+  beforeAll(() => {
+    listenForStaleChunks();
+  });
+
+  beforeEach(() => {
+    resetStaleChunkReloadState();
+    window.sessionStorage.clear();
+    reload = vi.fn();
+    vi.spyOn(window, 'location', 'get').mockReturnValue({
+      ...window.location,
+      reload,
+    } as unknown as Location);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetStaleChunkReloadState();
+    window.sessionStorage.clear();
+  });
+
+  /**
+   * Vite's preload helper, transcribed from the shipped bundle. The shape is
+   * the whole point: `handlePreloadError` only rethrows when the event was not
+   * prevented, so preventing it makes `.catch()` return normally and the
+   * import resolve with `undefined`.
+   */
+  function vitePreload<T>(load: () => Promise<T>): Promise<T | undefined> {
+    function handlePreloadError(err: unknown): undefined {
+      const event = new Event('vite:preloadError', { cancelable: true });
+      (event as Event & { payload?: unknown }).payload = err;
+      window.dispatchEvent(event);
+      if (!event.defaultPrevented) {
+        throw err;
+      }
+      return undefined;
+    }
+    return load().catch(handlePreloadError);
+  }
+
+  it('reloads and swallows the error when a chunk fails to load', async () => {
+    const result = await vitePreload(() =>
+      Promise.reject(new Error('Failed to fetch dynamically imported module')),
+    );
+
+    expect(reload).toHaveBeenCalledTimes(1);
+    // The contract the rest of the fix rests on: preventing the event costs us
+    // the rejection, so callers are handed `undefined` and go on to throw
+    // their own unrelated-looking TypeErrors. That is why the flag exists.
+    expect(result).toBeUndefined();
+    expect(isReloadingForStaleChunk()).toBe(true);
+  });
+
+  it('lets the error through when it is not taking the reload', async () => {
+    // Second failure inside the cooldown: reloading did not help, so this is
+    // a real fault and must reach the error boundary as a rejection.
+    await expect(
+      vitePreload(() => Promise.reject(new Error('boom'))),
+    ).resolves.toBeUndefined();
+    reload.mockClear();
+
+    await expect(
+      vitePreload(() => Promise.reject(new Error('boom'))),
+    ).rejects.toThrow('boom');
+    expect(reload).not.toHaveBeenCalled();
   });
 });

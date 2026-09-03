@@ -170,3 +170,79 @@ export const MONZA_TRACKSIDE_WRITEUP_IMAGE = {
   licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
   modificationNote: 'resized',
 } as const satisfies WriteUpNewsPhotoProps;
+
+/**
+ * Yu Chu Chin, CC BY-SA 4.0. Melbourne 2026; the Norris contract section.
+ *
+ * The third photo from the Melbourne Walk set, and the same shape as the
+ * Colapinto one for the same two reasons: the source frame is landscape, and
+ * the section is a single paragraph that a 320px portrait would tower over.
+ * The two contract sections sit one after the other, so a reader meets the
+ * same photographer, the same morning and the same shape twice, which is what
+ * makes them read as a pair rather than as two unrelated announcements.
+ */
+export const NORRIS_WRITEUP_IMAGE = {
+  ...WRITEUP_LANDSCAPE,
+  ...MELBOURNE_2026_CREDIT,
+  src: '/media/yu-chu-chin-norris-mclaren-melbourne-2026-900.webp',
+  srcSet:
+    '/media/yu-chu-chin-norris-mclaren-melbourne-2026-450.webp 450w, /media/yu-chu-chin-norris-mclaren-melbourne-2026-900.webp 900w',
+  alt: 'Lando Norris in a McLaren shirt, surrounded by fans at the 2026 Australian Grand Prix',
+  creditUrl:
+    'https://commons.wikimedia.org/wiki/File:Lando_Norris_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_(028A7958).jpg',
+} as const satisfies WriteUpNewsPhotoProps;
+
+/**
+ * TaurusEmerald, CC BY-SA 4.0. August 2026; beside the compound strip.
+ *
+ * The one portrait on the page that is not a person. A wheel is round, and the
+ * 3:2 crop of a square frame cuts the top and bottom off it, which takes the
+ * P ZERO and PIRELLI lettering with them: the two marks that say what this is.
+ * 4:5 keeps both and trims the sidewall left and right, where there is nothing
+ * to lose. The section is long enough to stand beside 320px of picture, which
+ * is the other half of the portrait test.
+ *
+ * A current-season tyre, deliberately. Pirelli's compounds are renamed and
+ * renumbered often enough that an older photo would be a different product
+ * illustrating a 2026 nomination.
+ */
+export const PIRELLI_COMPOUND_WRITEUP_IMAGE = {
+  ...WRITEUP_PORTRAIT,
+  src: '/media/taurusemerald-pirelli-medium-slick-2026-896.webp',
+  srcSet:
+    '/media/taurusemerald-pirelli-medium-slick-2026-448.webp 448w, /media/taurusemerald-pirelli-medium-slick-2026-896.webp 896w',
+  alt: 'A Pirelli P Zero medium slick tyre on a Formula 1 car, with the yellow P Zero and Pirelli lettering on the sidewall',
+  context: 'August 2026',
+  creditName: 'TaurusEmerald',
+  creditUrl:
+    'https://commons.wikimedia.org/wiki/File:Pirelli_P_Zero_Formula_1_Medium_Slick_Tyre_2026.jpg',
+  licenseName: 'CC BY-SA 4.0',
+  licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/',
+} as const satisfies WriteUpNewsPhotoProps;
+
+/**
+ * Eustace Bagge, CC BY 4.0. Monza 2025; beside the heat hazard.
+ *
+ * The second photo from the same photographer's Monza weekend, and the second
+ * on the page that is a car rather than a person. It is here because the
+ * subject is the weather: hard overhead sun, a shadow directly under the car
+ * and bleached gravel are what the section is about, and none of that survives
+ * being described in a caption instead.
+ *
+ * The Williams is incidental and the section carries no team bar, because a
+ * heat hazard is declared for the meeting rather than for anybody's car. Same
+ * reasoning as the compound nomination it sits next to.
+ */
+export const MONZA_HEAT_WRITEUP_IMAGE = {
+  ...WRITEUP_LANDSCAPE,
+  src: '/media/eustace-bagge-albon-williams-monza-2025-900.webp',
+  srcSet:
+    '/media/eustace-bagge-albon-williams-monza-2025-450.webp 450w, /media/eustace-bagge-albon-williams-monza-2025-900.webp 900w',
+  alt: 'Alexander Albon’s Williams on track at Monza in 2025, under hard overhead sun with its shadow directly beneath it',
+  context: 'Monza, 2025',
+  creditName: 'Eustace Bagge',
+  creditUrl:
+    'https://commons.wikimedia.org/wiki/File:Alexander_Albon_2025_Italian_Grand_Prix_FP3.jpg',
+  licenseName: 'CC BY 4.0',
+  licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
+} as const satisfies WriteUpNewsPhotoProps;

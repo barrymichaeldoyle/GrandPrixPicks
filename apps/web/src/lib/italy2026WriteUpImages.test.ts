@@ -9,7 +9,10 @@ import {
   COLAPINTO_WRITEUP_IMAGE,
   HADJAR_WRITEUP_IMAGE,
   MCLAREN_PAIR_WRITEUP_IMAGE,
+  MONZA_HEAT_WRITEUP_IMAGE,
   MONZA_TRACKSIDE_WRITEUP_IMAGE,
+  NORRIS_WRITEUP_IMAGE,
+  PIRELLI_COMPOUND_WRITEUP_IMAGE,
   SCHUMACHER_TRIBUTE_WRITEUP_IMAGE,
 } from './italy2026WriteUpImages';
 
@@ -28,6 +31,9 @@ const ALL: [string, WriteUpNewsPhotoProps][] = [
   ['Colapinto', COLAPINTO_WRITEUP_IMAGE],
   ['McLaren pair', MCLAREN_PAIR_WRITEUP_IMAGE],
   ['Monza trackside', MONZA_TRACKSIDE_WRITEUP_IMAGE],
+  ['Norris', NORRIS_WRITEUP_IMAGE],
+  ['Pirelli compound', PIRELLI_COMPOUND_WRITEUP_IMAGE],
+  ['Monza heat', MONZA_HEAT_WRITEUP_IMAGE],
 ];
 
 /** Every file the record points at, from `src` and from every `srcSet` entry. */

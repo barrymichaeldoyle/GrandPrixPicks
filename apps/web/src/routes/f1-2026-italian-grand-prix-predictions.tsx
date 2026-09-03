@@ -9,6 +9,10 @@ import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
+import {
+  DeferredRaceWriteupPicks,
+  RACE_WRITEUP_PICKS_ANCHOR,
+} from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
@@ -32,7 +36,10 @@ import {
   COLAPINTO_WRITEUP_IMAGE,
   HADJAR_WRITEUP_IMAGE,
   MCLAREN_PAIR_WRITEUP_IMAGE,
+  MONZA_HEAT_WRITEUP_IMAGE,
   MONZA_TRACKSIDE_WRITEUP_IMAGE,
+  NORRIS_WRITEUP_IMAGE,
+  PIRELLI_COMPOUND_WRITEUP_IMAGE,
   SCHUMACHER_TRIBUTE_WRITEUP_IMAGE,
 } from '@/lib/italy2026WriteUpImages';
 import {
@@ -68,6 +75,14 @@ const MCLAREN_FORM_SOURCE =
   'https://www.motorsport.com/f1/news/why-mclaren-must-pass-its-monza-test-before-talking-about-an-f1-title-challenge/10849795/';
 const TYRE_SOURCE =
   'https://press.pirelli.com/tyre-compounds-selected-for-zandvoort-monza-and-madrid/';
+/** Pirelli's own Monza preview: the rebuilt kerbs, the Turn 5 run-off, the rears. */
+const PIRELLI_MONZA_SOURCE =
+  'https://press.pirelli.com/pirelli-headlines-italian-grand-prix-weekend-at-monza/';
+const HEAT_HAZARD_SOURCE =
+  'https://www.motorsport.com/f1/news/fia-declares-heat-hazard-for-f1s-italian-gp-in-monza/10851743/';
+const SAFETY_CAR_SOURCE =
+  'https://www.motorsport.com/f1/news/lightning-mcqueen-debuts-as-f1-track-vehicle-at-italian-gp/10851782/';
+
 /**
  * The write-up section that carries a photo in its margin.
  *
@@ -84,6 +99,34 @@ const TYRE_SOURCE =
  */
 const WRITEUP_WITH_PHOTO =
   'md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-x-7';
+
+/**
+ * The same section with the picture down the left instead.
+ *
+ * Six of these sections run within a screen or two of each other, and every one
+ * of them putting the photo in the right margin turned a page of different
+ * stories into one repeated template. Alternating gives the run a rhythm and,
+ * more usefully, gives each section an edge the eye can tell from the last.
+ *
+ * The DOM order does not change: copy first, photo second, in every section,
+ * mirrored or not. That is what a screen reader and a phone both get, and both
+ * want the story before the illustration. The swap is grid placement only,
+ * which is why the copy and photo blocks each name their column explicitly
+ * rather than relying on the order they appear in.
+ *
+ * The cost of that is a tab through a mirrored section going right to left: the
+ * source link in the copy, then the credit under the photo beside it. It is the
+ * right trade. Reordering the DOM would fix the focus path and break the two
+ * things that matter more — the stacking order on a phone, where the picture
+ * would arrive before the story it illustrates, and the same for anyone reading
+ * the page linearly. A caption after the copy it belongs to is still a
+ * meaningful sequence; a photo before its own headline is not.
+ */
+const WRITEUP_WITH_PHOTO_MIRRORED =
+  'md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-start md:gap-x-7';
+
+/** The copy block of a mirrored section: second column, same row. */
+const WRITEUP_COPY_MIRRORED = 'md:col-start-2 md:row-start-1';
 
 /**
  * Its photo column, and the same 16rem on every section that has one, including
@@ -109,6 +152,22 @@ const WRITEUP_PHOTO_COLUMN =
   // paints 488px tall — and gets it from `WriteUpNewsPhoto`, which knows the
   // photo's own shape.
   'mt-3 pl-4 md:mt-0 md:w-48 md:pl-0 lg:w-64';
+
+/**
+ * The same column in a section that carries no team bar.
+ *
+ * The `pl-4` above exists to line a stacked photo up with copy that a 3px bar
+ * has already pushed 16px right. Where there is no bar there is nothing to line
+ * up with, and the indent reads as a picture nudged out of the column for no
+ * reason.
+ */
+const WRITEUP_PHOTO_COLUMN_FLUSH = 'mt-3 md:mt-0 md:w-48 lg:w-64';
+
+/** The photo column of a mirrored section: first column, same row. */
+const WRITEUP_PHOTO_COLUMN_MIRRORED = `${WRITEUP_PHOTO_COLUMN} md:col-start-1 md:row-start-1`;
+
+/** And the same without the phone indent, for a section with no team bar. */
+const WRITEUP_PHOTO_COLUMN_MIRRORED_FLUSH = `${WRITEUP_PHOTO_COLUMN_FLUSH} md:col-start-1 md:row-start-1`;
 
 const F1_EVENT_SOURCE = 'https://www.formula1.com/en/racing/2026/italy';
 const F1_STANDINGS_SOURCE = 'https://www.formula1.com/en/results/2026/drivers';
@@ -299,6 +358,9 @@ function ItalianGrandPrixPredictionsPage() {
             </p>
             <RaceWriteupActions
               phase={phase}
+              primaryActionTargetId={
+                isLive ? RACE_WRITEUP_PICKS_ANCHOR : undefined
+              }
               raceSlug={RACE_SLUG}
               venueName="Monza"
               circuitName="Monza"
@@ -326,6 +388,10 @@ function ItalianGrandPrixPredictionsPage() {
         <WatchTable />
         <TrackMap />
         <TyreChoice />
+        {/* Straight after the compound strip, because the tyre section's
+            one-stop question is the thing the heat decides, and outside the
+            gate below for the reason given on the component. */}
+        <HeatHazard showPickRead={isLive} />
         {/* The line-up and the standings both carry a right-hand card; the tribute
             and the contracts do not. Run the two carded sections together so
             the rail does not appear, vanish and reappear, and let the
@@ -336,6 +402,7 @@ function ItalianGrandPrixPredictionsPage() {
             <ChampionshipContext championship={championship} />
             <McLarenForm />
             <FerrariTribute />
+            <SafetyCarLivery />
             <NorrisContract />
             <ColapintoContract />
             <PredictionMethod />
@@ -370,11 +437,22 @@ function ItalianGrandPrixPredictionsPage() {
           </div>
         </section>
 
-        <RaceWriteupClosingPanel
-          phase={phase}
-          raceSlug={RACE_SLUG}
-          venueName="Monza"
-        />
+        {isLive ? (
+          <DeferredRaceWriteupPicks
+            phase={phase}
+            raceId={race._id}
+            round={race.round}
+            season={race.season}
+            raceSlug={RACE_SLUG}
+            venueName="Monza"
+          />
+        ) : (
+          <RaceWriteupClosingPanel
+            phase={phase}
+            raceSlug={RACE_SLUG}
+            venueName="Monza"
+          />
+        )}
 
         <footer className="mt-10 pb-4 text-sm leading-6 text-text-muted">
           <p>
@@ -524,6 +602,19 @@ function TrackMap() {
         <p className="gpp-reading-copy mt-3 text-text-muted">
           Monza has four straight-mode zones. Three end in heavy braking:
           Rettifilo (Turns 1–2), Roggia (Turns 4–5) and Ascari (Turns 8–10).
+        </p>
+        {/* Geography, so it belongs with the map rather than in the news feed:
+            it is the braking point of all three chicanes and it holds for the
+            season. The Turn 5 change is the half a reader can act on. Gravel
+            ended a lap that ran wide there; asphalt hands the time back and
+            leaves track limits to do the punishing. */}
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          The kerbs at Turns 1, 4 and 8 have been rebuilt for 2026, and the
+          gravel on the exit of Roggia is now asphalt run-off.{' '}
+          <ExternalSource href={PIRELLI_MONZA_SOURCE}>
+            Read Pirelli&rsquo;s Monza preview
+          </ExternalSource>
+          .
         </p>
       </div>
 
@@ -822,9 +913,9 @@ function PredictionMethod() {
 function McLarenForm() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="mclaren-form">
-      <div className={WRITEUP_WITH_PHOTO}>
+      <div className={WRITEUP_WITH_PHOTO_MIRRORED}>
         <div
-          className="gpp-team-bar pl-4 md:max-w-3xl"
+          className={`gpp-team-bar pl-4 md:max-w-3xl ${WRITEUP_COPY_MIRRORED}`}
           style={
             {
               '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
@@ -851,7 +942,7 @@ function McLarenForm() {
             .
           </p>
         </div>
-        <div className={WRITEUP_PHOTO_COLUMN}>
+        <div className={WRITEUP_PHOTO_COLUMN_MIRRORED}>
           <WriteUpNewsPhoto {...MCLAREN_PAIR_WRITEUP_IMAGE} />
         </div>
       </div>
@@ -910,108 +1001,229 @@ const TYRE_RANGE = [
 function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
-      <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Tyre choice
-        </p>
-        <h2
-          id="tyre-choice"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
-        >
-          Monza gets the three softest tyres
-        </h2>
+      <div className={WRITEUP_WITH_PHOTO_MIRRORED}>
+        <div className={`md:max-w-3xl ${WRITEUP_COPY_MIRRORED}`}>
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Tyre choice
+          </p>
+          <h2
+            id="tyre-choice"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            Monza gets the three softest tyres
+          </h2>
 
-        {/* The circuit stats strip above, exactly: gap-px cells on a border
-            fill, figure in mono over a tracked micro label. It reads as a
-            different component when it is centred or when it carries a drawn
-            tyre, and it was doing both. Held to the reading column rather than
-            breaking out to the full 5xl page width, the cells land near the
-            same width as the four-up stats row, so the two strips match in
-            density as well as in form.
+          {/* The circuit stats strip above, exactly: gap-px cells on a border
+              fill, figure in mono over a tracked micro label. It reads as a
+              different component when it is centred or when it carries a drawn
+              tyre, and it was doing both. Held to the reading column rather than
+              breaking out to the full 5xl page width, the cells land near the
+              same width as the four-up stats row, so the two strips match in
+              density as well as in form.
 
-            Showing all five is what makes it worth a graphic. Three cells said
-            "C3, C4, C5 are hard, medium and soft", which is a mapping the
-            heading could carry on its own. Five cells say where those three
-            sit, so "the softest three" stops being a claim the reader has to
-            take on trust, and the relative naming stops being confusing: the
-            eye can see that Monza's hard tyre is the middle of the range.
+              Showing all five is what makes it worth a graphic. Three cells said
+              "C3, C4, C5 are hard, medium and soft", which is a mapping the
+              heading could carry on its own. Five cells say where those three
+              sit, so "the softest three" stops being a claim the reader has to
+              take on trust, and the relative naming stops being confusing: the
+              eye can see that Monza's hard tyre is the middle of the range.
 
-            The sidewall band is a 3px top rule per cell rather than a drawn
-            ring. Flat, and on-system as the coloured column marker the
-            scoring-band card already uses. The two compounds that stay at home
-            keep the rule at the same weight but dashed, which is what a dashed
-            hairline already means everywhere else here: the slot exists, and
-            there is nothing in it. They take the sunken fill rather than the
-            page colour, because a transparent cell has no bottom edge of its
-            own and left the strip visibly missing its bottom-left corner. */}
-        <ul
-          aria-label="Pirelli’s 2026 compound range, hardest to softest"
-          className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
-        >
-          {TYRE_RANGE.map(({ compound, role, band }) => (
-            <li
-              key={compound}
-              className={
-                role
-                  ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
-                  : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
-              }
-              style={band ? { borderTopColor: band } : undefined}
-            >
-              {/* Muted rather than disabled ink. Disabled is the right reading
-                  but it is 3.6:1 behind a 20px numeral, and the sunken fill
-                  plus the dashed rule already say "empty slot" without asking
-                  the one text colour in the ramp that cannot carry it. */}
-              <p
-                className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
-              >
-                {compound}
-              </p>
-              {/* The dashed rule and the dimmed figure carry this for anyone
-                  who can see them, and neither survives being read aloud. */}
-              <p
+              The sidewall band is a 3px top rule per cell rather than a drawn
+              ring. Flat, and on-system as the coloured column marker the
+              scoring-band card already uses. The two compounds that stay at home
+              keep the rule at the same weight but dashed, which is what a dashed
+              hairline already means everywhere else here: the slot exists, and
+              there is nothing in it. They take the sunken fill rather than the
+              page colour, because a transparent cell has no bottom edge of its
+              own and left the strip visibly missing its bottom-left corner. */}
+          <ul
+            aria-label="Pirelli’s 2026 compound range, hardest to softest"
+            className="mt-7 grid grid-cols-5 gap-px overflow-hidden rounded-sm bg-border"
+          >
+            {TYRE_RANGE.map(({ compound, role, band }) => (
+              <li
+                key={compound}
                 className={
                   role
-                    ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
-                    : 'sr-only'
+                    ? 'border-t-[3px] bg-surface px-2 py-4 sm:px-5 sm:py-5'
+                    : 'border-t-[3px] border-dashed border-border bg-surface-sunken px-2 py-4 sm:px-5 sm:py-5'
                 }
+                style={band ? { borderTopColor: band } : undefined}
               >
-                {role ?? 'Not used at Monza'}
-              </p>
-            </li>
-          ))}
-        </ul>
+                {/* Muted rather than disabled ink. Disabled is the right
+                    reading but it is 3.6:1 behind a 20px numeral, and the
+                    sunken fill plus the dashed rule already say "empty slot"
+                    without asking the one text colour in the ramp that cannot
+                    carry it. */}
+                <p
+                  className={`gpp-mono text-xl sm:text-2xl ${role ? 'text-text' : 'text-text-muted'}`}
+                >
+                  {compound}
+                </p>
+                {/* The dashed rule and the dimmed figure carry this for
+                    anyone who can see them, and neither survives being read
+                    aloud. */}
+                <p
+                  className={
+                    role
+                      ? 'mt-1 text-[10px] tracking-label text-text-muted uppercase sm:text-xs'
+                      : 'sr-only'
+                  }
+                >
+                  {role ?? 'Not used at Monza'}
+                </p>
+              </li>
+            ))}
+          </ul>
 
-        {/* The axis carries the trade-off and nothing else. It read "Harder,
-            lasts longer" against "Softer, more grip", which said half of what
-            the cells underneath already say: HARD sits under C3 and SOFT under
-            C5, so naming the direction again was the same idea twice, in a
-            mirrored pair that sounded written rather than spoken. What is left
-            is the part the row cannot show, and it is the same trade-off the
-            one-stop against two-stop question below spends over a race
-            distance. */}
-        <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
-          <span>Lasts longer</span>
-          <span>More grip</span>
+          {/* The axis carries the trade-off and nothing else. It read "Harder,
+              lasts longer" against "Softer, more grip", which said half of what
+              the cells underneath already say: HARD sits under C3 and SOFT under
+              C5, so naming the direction again was the same idea twice, in a
+              mirrored pair that sounded written rather than spoken. What is left
+              is the part the row cannot show, and it is the same trade-off the
+              one-stop against two-stop question below spends over a race
+              distance. */}
+          <div className="mt-2 flex justify-between gap-4 text-[10px] tracking-label text-text-muted uppercase sm:text-xs">
+            <span>Lasts longer</span>
+            <span>More grip</span>
+          </div>
+
+          <p className="gpp-reading-copy mt-7 text-text-muted">
+            Tyres wear most in fast corners. Monza has few of those, so the C5
+            can last longer here than it usually does.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            A stop at Monza costs more time than at almost any other race, so
+            teams will try to one-stop. Heat is the usual reason that fails.
+            Pirelli expects the rears to overheat out of the chicanes rather
+            than wear out, which keeps a one-stop on.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Friday long runs will settle it. A one-stop puts the weight on
+            qualifying and track position. A second stop favours the drivers who
+            look after their tyres over the ones who are only quick over a
+            single lap.{' '}
+            <ExternalSource href={TYRE_SOURCE}>
+              Read Pirelli&rsquo;s selection
+            </ExternalSource>
+            .
+          </p>
         </div>
+        <div className={WRITEUP_PHOTO_COLUMN_MIRRORED_FLUSH}>
+          <WriteUpNewsPhoto {...PIRELLI_COMPOUND_WRITEUP_IMAGE} />
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        <p className="gpp-reading-copy mt-7 text-text-muted">
-          Tyres wear most in fast corners. Monza has few of those, so the C5 can
-          last longer here than it usually does.
+/**
+ * The heat hazard, as a write-up section rather than as `raceNews`.
+ *
+ * It is declared for the meeting, so it lands on all twenty-two cars at once
+ * and `affectsSessions` would be answering for the whole grid. Same side of the
+ * line as the compound nomination directly above it, and it carries no team bar
+ * for the same reason: it belongs to nobody on the grid.
+ *
+ * What it deliberately does not do is repeat the forecast. The weather
+ * component further up serves live numbers that move, and a hand-typed 36°C
+ * beside a component saying 33°C is the page arguing with itself. The threshold
+ * and the regulation are what the component cannot say, so they are what is
+ * here.
+ *
+ * Outside the `isLive` block, unlike the liveries and the seat news. Those stop
+ * mattering the moment the race starts; a heat hazard is half the explanation
+ * of the result, so a reader arriving at the finished page to work out why a
+ * one-stop turned into two still needs it. That decides the tense: the
+ * declaration is stated as something that happened, and the regulation as what
+ * a heat hazard does, so neither sentence needs revisiting on Sunday night.
+ *
+ * `showPickRead` is the one part that does expire. "Read FP2" is advice for
+ * somebody still choosing, and it is worse than useless once the grid has
+ * formed, so it is the only paragraph the phase gates.
+ */
+function HeatHazard({ showPickRead }: { showPickRead: boolean }) {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="heat-hazard">
+      <div className={WRITEUP_WITH_PHOTO}>
+        <div className="md:max-w-3xl">
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Heat
+          </p>
+          <h2
+            id="heat-hazard"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            The FIA has declared a heat hazard
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            The official forecast put the heat index above 31°C for the race,
+            which is the threshold in Article B1.5.10. It is the first heat
+            hazard since Austria in June.
+          </p>
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            A heat hazard makes the driver cooling system mandatory and raises
+            the minimum weight by 5kg to cover the kit and its battery. Wearing
+            the vest is still the driver&rsquo;s choice, and anyone who leaves
+            it off carries 0.5kg of ballast instead.{' '}
+            <ExternalSource href={HEAT_HAZARD_SOURCE}>
+              Read the race director&rsquo;s notice
+            </ExternalSource>
+            .
+          </p>
+          {showPickRead ? (
+            <p className="gpp-reading-copy mt-3 text-text-muted">
+              FP2 is the session to read: it runs closest to Sunday&rsquo;s
+              track temperature, so it shows who is managing the rears.
+            </p>
+          ) : null}
+        </div>
+        <div className={WRITEUP_PHOTO_COLUMN_FLUSH}>
+          <WriteUpNewsPhoto {...MONZA_HEAT_WRITEUP_IMAGE} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/*
+ * The safety car livery, on the same gate as the Ferrari tribute below.
+ *
+ * It changes no pick, so `raceNews` would reject it, and it earns a paragraph
+ * here for the same reason the tribute does: a reader who sees a repainted car
+ * lead the field on Sunday should already know why. No team bar, because the
+ * safety car is not a team's.
+ *
+ * The manufacturer is deliberately unnamed. Mercedes is the sole 2026 supplier
+ * and the livery is on the F1 safety car, but no source says both in one
+ * sentence, and joining two of them is how a page invents a fact.
+ *
+ * No photo either. Every picture of this livery is F1's or Disney's, and the
+ * freely licensed safety cars on Commons are older cars in the standard
+ * colours: a photo of the thing this section says has been repainted.
+ */
+function SafetyCarLivery() {
+  return (
+    <section className="py-8 sm:py-16" aria-labelledby="safety-car-livery">
+      <div className="max-w-3xl">
+        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+          Safety car
         </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          A stop at Monza costs more time than at almost any other race, so
-          teams will try to one-stop. Heat is the usual reason that fails, and a
-          hot, dry weekend is forecast. Wear is still low at Monza, so it may
-          stay a one-stop.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Friday long runs will settle it. A one-stop puts the weight on
-          qualifying and track position. A second stop favours the drivers who
-          look after their tyres over the ones who are only quick over a single
-          lap.{' '}
-          <ExternalSource href={TYRE_SOURCE}>
-            Read Pirelli&rsquo;s selection
+        <h2
+          id="safety-car-livery"
+          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+        >
+          The safety car runs in Lightning McQueen colours
+        </h2>
+        <p className="gpp-reading-copy mt-4 text-text-muted">
+          Formula 1 and Disney have put a Cars livery on the safety car for
+          Monza, twenty years after the film. A full-size Lightning McQueen,
+          badged as a Formula 1 track vehicle, laps the circuit over the
+          weekend. It is the same safety car at the same speeds, so a deployment
+          costs the field what it always does.{' '}
+          <ExternalSource href={SAFETY_CAR_SOURCE}>
+            Read the Monza report
           </ExternalSource>
           .
         </p>
@@ -1092,33 +1304,39 @@ function FerrariTribute() {
 function NorrisContract() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="norris-contract">
-      <div
-        className="gpp-team-bar max-w-3xl pl-4"
-        style={
-          {
-            '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
-          } as CSSProperties
-        }
-      >
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Off track
-        </p>
-        <h2
-          id="norris-contract"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+      <div className={WRITEUP_WITH_PHOTO_MIRRORED}>
+        <div
+          className={`gpp-team-bar pl-4 md:max-w-3xl ${WRITEUP_COPY_MIRRORED}`}
+          style={
+            {
+              '--team-colour': TEAM_COLORS.McLaren ?? FALLBACK_TEAM_COLOR,
+            } as CSSProperties
+          }
         >
-          Norris re-signs with McLaren to 2030
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          McLaren has confirmed a new deal keeping Lando Norris at the team
-          until at least the end of 2030, with a multi-year option beyond that.
-          He joined as a test and development driver in 2017 and has raced for
-          them since 2019. Oscar Piastri is contracted to the end of 2028.{' '}
-          <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
-            Read the announcement
-          </ExternalSource>
-          .
-        </p>
+          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
+            Off track
+          </p>
+          <h2
+            id="norris-contract"
+            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          >
+            Norris re-signs with McLaren to 2030
+          </h2>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            McLaren has confirmed a new deal keeping Lando Norris at the team
+            until at least the end of 2030, with a multi-year option beyond
+            that. He joined as a test and development driver in 2017 and has
+            raced for them since 2019. Oscar Piastri is contracted to the end of
+            2028.{' '}
+            <ExternalSource href={NORRIS_CONTRACT_SOURCE}>
+              Read the announcement
+            </ExternalSource>
+            .
+          </p>
+        </div>
+        <div className={WRITEUP_PHOTO_COLUMN_MIRRORED}>
+          <WriteUpNewsPhoto {...NORRIS_WRITEUP_IMAGE} />
+        </div>
       </div>
     </section>
   );

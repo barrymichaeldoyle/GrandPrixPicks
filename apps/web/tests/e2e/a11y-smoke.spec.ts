@@ -15,6 +15,16 @@ const PAGES = [
   { path: '/', name: 'landing' },
   { path: '/races', name: 'race calendar' },
   { path: '/f1-standings', name: 'standings table' },
+  /*
+   * A second data table, which the rule above would normally exclude. It earns
+   * its place because it is not only a table: the position deltas are a
+   * colour-and-glyph pattern with `role="img"` labels, sitting inside
+   * `aria-hidden` wrappers whose job is to let an `sr-only` sentence carry the
+   * fact instead. That construction is what put a focusable tooltip trigger
+   * inside an aria-hidden region here once already — a serious violation that
+   * the standings table cannot reproduce, because it has no deltas.
+   */
+  { path: '/f1-qualifying-standings', name: 'qualifying standings deltas' },
   { path: '/pricing', name: 'pricing' },
   {
     path: '/f1-2026-italian-grand-prix-predictions',

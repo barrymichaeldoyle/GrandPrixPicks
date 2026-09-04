@@ -256,11 +256,11 @@ function F1QualifyingStandingsPage() {
                   id="biggest-movers"
                   className="mb-1 text-lg font-semibold text-text"
                 >
-                  Biggest gaps to the championship
+                  Where the two tables disagree
                 </h2>
                 <p className="gpp-reading-copy mb-4 text-sm text-text-muted">
-                  Where a driver's qualifying position and their championship
-                  position disagree most.
+                  The drivers whose qualifying position sits furthest from their
+                  championship position.
                 </p>
                 <ul className="grid gap-x-6 sm:grid-cols-2 sm:gap-y-4 lg:grid-cols-3">
                   {movers.map((mover) => (

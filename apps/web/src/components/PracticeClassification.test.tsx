@@ -102,6 +102,61 @@ describe('WeekendPracticeSection', () => {
     expect(region?.textContent).toContain('Driver 20 (fp2)');
   });
 
+  it('opens on the newest session and tabs the earlier ones', () => {
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="italy-2026"
+        results={[session('fp2', 20), session('fp1', 20)]}
+      />,
+    );
+
+    const tabs = [...view.querySelectorAll('[role="tab"]')];
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['FP1', 'FP2']);
+    expect(tabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+    ]);
+    expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
+
+    act(() => {
+      (tabs[0] as HTMLButtonElement).click();
+    });
+
+    expect(view.textContent).toContain('FP1 · Driver 1 (fp1) fastest');
+    expect(view.textContent).toContain('Driver 6 (fp1)');
+    expect(view.textContent).not.toContain('Driver 6 (fp2)');
+  });
+
+  it('leaves a single published session untabbed', () => {
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="italy-2026"
+        results={[session('fp1', 20)]}
+      />,
+    );
+
+    expect(view.querySelectorAll('[role="tab"]').length).toBe(0);
+  });
+
+  it('follows the newest session until a reader picks a tab', () => {
+    const view = render(
+      <WeekendPracticeSection
+        raceSlug="italy-2026"
+        results={[session('fp1', 20)]}
+      />,
+    );
+    act(() => {
+      root?.render(
+        <WeekendPracticeSection
+          raceSlug="italy-2026"
+          results={[session('fp1', 20), session('fp2', 20)]}
+        />,
+      );
+    });
+
+    expect(view.textContent).toContain('FP2 · Driver 1 (fp2) fastest');
+  });
+
   it('renders nothing while no practice session is published', () => {
     const view = render(
       <WeekendPracticeSection raceSlug="italy-2026" results={[]} />,

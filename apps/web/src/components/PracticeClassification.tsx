@@ -6,6 +6,7 @@ import { useId, useState } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { practiceGapOrLap } from '@/components/PracticeResultsCard';
+import { TabSwitch } from '@/components/TabSwitch';
 import { captureAnalyticsEvent } from '@/lib/analytics';
 
 export type PracticeResults = FunctionReturnType<
@@ -13,26 +14,45 @@ export type PracticeResults = FunctionReturnType<
 >;
 
 type PracticeEntry = PracticeResults[number]['entries'][number];
+type PracticeSessionType = PracticeResults[number]['sessionType'];
 
 const SESSION_LABELS = { fp1: 'FP1', fp2: 'FP2', fp3: 'FP3' } as const;
+
+/** Friday morning to Saturday morning, the order the sessions ran in. */
+const SESSION_ORDER = ['fp1', 'fp2', 'fp3'] as const;
 
 /** How many rows the closed card shows: the classification's scoring-relevant top. */
 const PRACTICE_COLLAPSED_ROWS = 6;
 
 /**
- * The session a returning player wants is the newest one, so FP3 wins over FP2
- * wins over FP1. Older sessions stay a link away rather than a tab.
+ * The session a returning player wants first is the newest one, so FP3 wins
+ * over FP2 wins over FP1. On the dashboard card that is the only session shown;
+ * the write-up puts the earlier ones behind tabs.
  */
 export function latestPracticeResult(
   results: PracticeResults,
 ): PracticeResults[number] | null {
   return (
-    (['fp3', 'fp2', 'fp1'] as const)
+    [...SESSION_ORDER]
+      .reverse()
       .map((sessionType) =>
         results.find((result) => result.sessionType === sessionType),
       )
       .find((result) => result !== undefined) ?? null
   );
+}
+
+/** Published sessions in the order they ran, so the tabs read FP1, FP2, FP3. */
+function publishedPracticeSessions(
+  results: PracticeResults,
+): PracticeResults[number][] {
+  return SESSION_ORDER.flatMap((sessionType) => {
+    const result = results.find(
+      (candidate) =>
+        candidate.sessionType === sessionType && candidate.entries.length > 0,
+    );
+    return result ? [result] : [];
+  });
 }
 
 function ClassificationRow({ entry }: { entry: PracticeEntry }) {
@@ -79,11 +99,15 @@ function PracticePageLink({ raceSlug }: { raceSlug: string }) {
 }
 
 /**
- * Latest free practice, closed on the top six, with the rest disclosed in place.
+ * Free practice, closed on the top six, with the rest disclosed in place.
  *
  * `card` is the dashboard chrome: a bordered block with a micro "Practice"
- * label. `section` is the write-up: the same table under a page heading, so it
- * sits next to "What changed this weekend" at the same type scale.
+ * label, showing the newest session only, because a returning player wants the
+ * freshest fact and the card has to stay short. `section` is the write-up: the
+ * same table under a page heading, next to "What changed this weekend" at the
+ * same type scale, and there every published session gets a tab. FP1 at a
+ * low-drag circuit is not FP2 with different fuel and a rookie in four of the
+ * cars, and a write-up is read on Friday night as well as Saturday.
  *
  * Remaining rows stay mounted while closed (height 0, `inert`, `aria-hidden`).
  * On a public write-up that is also what lets crawlers index a 22-car
@@ -101,23 +125,45 @@ export function PracticeClassification({
   analyticsSurface: 'dashboard' | 'writeup';
 }) {
   const [expanded, setExpanded] = useState(false);
+  // `null` follows the newest session, so a page left open on the default tab
+  // moves to FP2 when FP2 publishes. Choosing a tab pins it.
+  const [pinnedSession, setPinnedSession] =
+    useState<PracticeSessionType | null>(null);
   const headingId = useId();
   const toggleId = useId();
   const panelId = useId();
-  const latest = results ? latestPracticeResult(results) : null;
-  if (!latest || latest.entries.length === 0) {
+  const tablesId = useId();
+  const tabsId = `${useId().replaceAll(':', '')}-practice-tabs`;
+  const sessions = results ? publishedPracticeSessions(results) : [];
+  const newest = sessions.at(-1);
+  if (!newest) {
     return null;
   }
 
-  const sessionLabel = SESSION_LABELS[latest.sessionType];
-  const leader = latest.entries.find((entry) => entry.position === 1);
+  const showTabs = layout === 'section' && sessions.length > 1;
+  const selected =
+    (showTabs && pinnedSession
+      ? sessions.find((session) => session.sessionType === pinnedSession)
+      : undefined) ?? newest;
+
+  const sessionLabel = SESSION_LABELS[selected.sessionType];
+  const leader = selected.entries.find((entry) => entry.position === 1);
   const fact = leader
     ? `${sessionLabel} · ${leader.displayName} fastest`
     : sessionLabel;
-  const top = latest.entries.slice(0, PRACTICE_COLLAPSED_ROWS);
-  const rest = latest.entries.slice(PRACTICE_COLLAPSED_ROWS);
+  const top = selected.entries.slice(0, PRACTICE_COLLAPSED_ROWS);
+  const rest = selected.entries.slice(PRACTICE_COLLAPSED_ROWS);
   const half = Math.ceil(rest.length / 2);
   const restColumns = [rest.slice(0, half), rest.slice(half)];
+
+  function selectSession(sessionType: PracticeSessionType) {
+    setPinnedSession(sessionType);
+    captureAnalyticsEvent('session_results_tab_selected', {
+      session_type: sessionType,
+      race_slug: raceSlug,
+      surface: analyticsSurface,
+    });
+  }
 
   function toggleExpanded() {
     const next = !expanded;
@@ -160,14 +206,14 @@ export function PracticeClassification({
             ) : (
               <>
                 <ChevronDown size={14} aria-hidden />
-                {`Show full results (P${PRACTICE_COLLAPSED_ROWS + 1}–P${latest.entries.length})`}
+                {`Show full results (P${PRACTICE_COLLAPSED_ROWS + 1}–P${selected.entries.length})`}
               </>
             )}
           </button>
           <div
             id={panelId}
             role="region"
-            aria-label={`Positions ${PRACTICE_COLLAPSED_ROWS + 1} to ${latest.entries.length}`}
+            aria-label={`Positions ${PRACTICE_COLLAPSED_ROWS + 1} to ${selected.entries.length}`}
             aria-hidden={!expanded}
             inert={!expanded}
             className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out ${
@@ -235,7 +281,32 @@ export function PracticeClassification({
         </div>
         <p className="mt-2 text-sm font-semibold text-text">{fact}</p>
         <div className="mt-7 overflow-hidden rounded-sm border border-border bg-surface">
-          {tables}
+          {showTabs ? (
+            <div className="border-b border-border p-2">
+              <TabSwitch
+                value={selected.sessionType}
+                onChange={selectSession}
+                options={sessions.map((session) => ({
+                  value: session.sessionType,
+                  label: SESSION_LABELS[session.sessionType],
+                }))}
+                className="flex gap-1"
+                buttonClassName="flex-1"
+                ariaLabel="Free practice session"
+                id={tabsId}
+                panelId={tablesId}
+              />
+            </div>
+          ) : null}
+          <div
+            id={tablesId}
+            role={showTabs ? 'tabpanel' : undefined}
+            aria-labelledby={
+              showTabs ? `${tabsId}-${selected.sessionType}` : undefined
+            }
+          >
+            {tables}
+          </div>
         </div>
       </section>
     );

@@ -1,9 +1,9 @@
 import { api } from '@convex-generated/api';
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
-import type { ReactNode } from 'react';
 
 import { Flag } from '@/components/Flag';
+import { ExternalSource } from '@/components/race-writeups/ExternalSource';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
@@ -556,25 +556,5 @@ function SaturdayEvidence() {
         </div>
       </div>
     </section>
-  );
-}
-
-function ExternalSource({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-block font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-    >
-      {children}
-      <span className="sr-only"> (opens in a new tab)</span>
-    </a>
   );
 }

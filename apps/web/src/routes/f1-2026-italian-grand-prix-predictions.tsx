@@ -1,12 +1,14 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
-import { ArrowRight, Plus } from 'lucide-react';
-import type { CSSProperties, ReactNode } from 'react';
+import { Plus } from 'lucide-react';
+import type { CSSProperties } from 'react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
 import { Flag } from '@/components/Flag';
+import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import {
@@ -408,7 +410,11 @@ function ItalianGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <MonzaSeats byCode={driversByCode} />
-            <ChampionshipContext championship={championship} />
+            <RaceWriteupChampionshipContext
+              championship={championship}
+              venueName="Monza"
+              sourceUrl={F1_STANDINGS_SOURCE}
+            />
             <McLarenForm />
             <FerrariTribute />
             <SafetyCarLivery />
@@ -752,99 +758,6 @@ type Championship = FunctionReturnType<
 >;
 type StandingsDriver = Championship['drivers'][number];
 
-function ChampionshipContext({ championship }: { championship: Championship }) {
-  const top = championship.drivers.slice(0, 6);
-  const [leader, second] = top;
-  if (!leader || !second) {
-    return null;
-  }
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="championship-context">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div>
-          <h2
-            id="championship-context"
-            className="font-title text-2xl font-medium text-text"
-          >
-            Championship standings before Monza
-          </h2>
-          {/* The numbers are read from the same data as the table beside it.
-              They used to be written into the prose, which was accurate until
-              the next race was scored and then quietly disagreed with the
-              standings sitting next to it. */}
-          {/* The standings and nothing else. Three sentences on Antonelli's
-              power unit used to close this paragraph, which was the same fact
-              the news section above already carries, in a section about the
-              championship, ending on what it means for a pick. An FAQ entry
-              was removed for exactly that (see `FAQS`); this was the same
-              duplication one section further down. */}
-          <p className="gpp-reading-copy mt-4 text-text-muted">
-            After {championship.roundsScored} rounds, {leader.displayName} leads
-            the drivers&rsquo; table by {leader.points - second.points} points
-            from {second.displayName}.
-          </p>
-          <Link
-            to="/f1-standings"
-            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
-          >
-            View full 2026 standings{' '}
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-        <div className="border border-border bg-surface">
-          <div className="flex justify-between border-b border-border px-4 py-3">
-            <h3 className="font-title font-medium text-text">Drivers</h3>
-            <span className="gpp-mono text-xs text-text-muted">
-              AFTER {championship.roundsScored} ROUNDS
-            </span>
-          </div>
-          {/* The label sits on the list, not the wrapper: an aria-label on a
-              role-less div is ignored by assistive tech. */}
-          <ol aria-label="Top six drivers">
-            {top.map((driver) => (
-              <li
-                key={driver.driverId}
-                className="grid grid-cols-[1.25rem_auto_1fr_auto] items-center gap-2 border-b border-border/60 px-4 py-2.5 last:border-b-0"
-              >
-                <span className="gpp-mono text-sm text-text-muted">
-                  {driver.position}
-                </span>
-                {/* The badge carries the team colour in its 3px bar, which is
-                    what makes a name scannable as a Mercedes or a Ferrari
-                    rather than a string to read. `prerenderTooltip` off: six
-                    rows should not preload six flags nobody hovers. */}
-                <DriverBadge
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                  prerenderTooltip={false}
-                />
-                <span className="min-w-0 truncate text-sm text-text">
-                  {driver.displayName}
-                </span>
-                <span className="gpp-mono text-sm text-text">
-                  {driver.points} PTS
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="border-t border-border px-4 py-3 text-xs leading-5 text-text-muted">
-            Scored through round {championship.roundsScored}
-            {championship.lastUpdated
-              ? `, updated ${reviewedStamp(championship.lastUpdated)}`
-              : ''}
-            . <ExternalSource href={F1_STANDINGS_SOURCE}>Source</ExternalSource>
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function McLarenForm() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="mclaren-form">
@@ -1042,11 +955,16 @@ function TyreChoice() {
             Pirelli expects the rears to overheat out of the chicanes rather
             than wear out, which keeps a one-stop on.
           </p>
+          {/* "Friday long runs will settle it" opened this paragraph and was
+              the fourth time the page sent the reader to Friday: the hero, the
+              signal table's long-run row and the heat section's FP2 read all
+              say it, and the heat section says which session and why. What is
+              left here is the part only this section can say, which is what
+              each strategy does to a Top 5. */}
           <p className="gpp-reading-copy mt-3 text-text-muted">
-            Friday long runs will settle it. A one-stop puts the weight on
-            qualifying and track position. A second stop favours the drivers who
-            look after their tyres over the ones who are only quick over a
-            single lap.{' '}
+            A one-stop puts the weight on qualifying and track position. A
+            second stop favours the drivers who look after their tyres over the
+            ones who are only quick over a single lap.{' '}
             <ExternalSource href={TYRE_SOURCE}>
               Read Pirelli&rsquo;s selection
             </ExternalSource>
@@ -1310,25 +1228,5 @@ function ColapintoContract() {
         </div>
       </div>
     </section>
-  );
-}
-
-function ExternalSource({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-block font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-    >
-      {children}
-      <span className="sr-only"> (opens in a new tab)</span>
-    </a>
   );
 }

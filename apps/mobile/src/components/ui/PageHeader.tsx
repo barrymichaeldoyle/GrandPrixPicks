@@ -22,11 +22,7 @@ type PageHeaderProps = {
  * No eyebrow slot, for the same reason web dropped one: the caps category word
  * above the title only ever repeated the title.
  */
-export function PageHeader({
-  title,
-  subtitle,
-  action,
-}: PageHeaderProps) {
+export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   const { titleFontFamily } = useTypography();
 
   return (

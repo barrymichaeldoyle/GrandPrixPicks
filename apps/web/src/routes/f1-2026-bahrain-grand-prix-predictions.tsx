@@ -1,11 +1,11 @@
 import { api } from '@convex-generated/api';
-import { createFileRoute, Link, notFound } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 import type { FunctionReturnType } from 'convex/server';
-import { ArrowRight } from 'lucide-react';
-import type { ReactNode } from 'react';
 
-import { DriverBadge } from '@/components/DriverBadge';
 import { Flag } from '@/components/Flag';
+import { ExternalSource } from '@/components/race-writeups/ExternalSource';
+import { RaceNameLink } from '@/components/race-writeups/RaceNameLink';
+import { RaceWriteupChampionshipContext } from '@/components/race-writeups/RaceWriteupChampionshipContext';
 import { RaceWriteupActions } from '@/components/race-writeups/RaceWriteupActions';
 import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupClosingPanel';
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
@@ -25,7 +25,7 @@ import {
   isRaceWriteupLive,
   raceWriteupHeroSummary,
 } from '@/lib/raceWriteupPhase';
-import { getRaceWriteup, getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
+import { getRaceWriteupReviewedAt } from '@/lib/raceWriteups';
 import {
   breadcrumbSchema,
   pageMeta,
@@ -55,9 +55,6 @@ const PIRELLI_DATA_SOURCE =
 const START_TIME_SOURCE =
   'https://www.news.gp/en/fia-confirms-start-time-for-relocated-bahrain-grand-prix';
 
-type Championship = FunctionReturnType<
-  typeof api.f1Standings.getF1Championship
->;
 type SeasonRace = FunctionReturnType<
   typeof api.races.listCurrentSeason
 >['races'][number];
@@ -222,11 +219,6 @@ function BahrainGrandPrixPredictionsPage() {
     Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
-  const pendingRaces = racesStillToScoreBefore(
-    season.races,
-    championship.roundsScored,
-    race.round,
-  );
 
   return (
     <div className="min-h-full bg-page">
@@ -292,9 +284,10 @@ function BahrainGrandPrixPredictionsPage() {
           <>
             <WeekendNewsSection items={news.items} />
             <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
-            <ChampionshipContext
+            <RaceWriteupChampionshipContext
               championship={championship}
-              pendingRaces={pendingRaces}
+              races={season.races}
+              thisRound={race.round}
               venueName="Sepang"
             />
           </>
@@ -703,182 +696,5 @@ function TripleHeader({
         </ol>
       ) : null}
     </section>
-  );
-}
-
-function ChampionshipContext({
-  championship,
-  pendingRaces,
-  venueName,
-}: {
-  championship: Championship;
-  pendingRaces: readonly SeasonRace[];
-  venueName: string;
-}) {
-  const drivers = championship.drivers.slice(0, 6);
-  const leader = drivers[0];
-  const second = drivers[1];
-  if (!leader || !second) {
-    return null;
-  }
-  const gap = leader.points - second.points;
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="championship-context">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div>
-          <h2
-            id="championship-context"
-            className="font-title text-2xl font-medium text-text"
-          >
-            Championship standings
-          </h2>
-          <p className="gpp-reading-copy mt-4 text-text-muted">
-            After {championship.roundsScored} rounds, {leader.displayName} leads
-            the drivers&rsquo; table by {gap} {gap === 1 ? 'point' : 'points'}{' '}
-            from {second.displayName}.
-            {pendingRaces.length > 0 ? (
-              <>
-                {' '}
-                <PendingRacesCopy races={pendingRaces} venueName={venueName} />
-              </>
-            ) : null}
-          </p>
-          <Link
-            to="/f1-standings"
-            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover"
-          >
-            View full 2026 standings{' '}
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-        <div className="border border-border bg-surface">
-          <div className="flex justify-between border-b border-border px-4 py-3">
-            <h3 className="font-title font-medium text-text">Drivers</h3>
-            <span className="gpp-mono text-xs text-text-muted">
-              AFTER {championship.roundsScored} ROUNDS
-            </span>
-          </div>
-          <ol aria-label="Top six drivers">
-            {drivers.map((driver) => (
-              <li
-                key={driver.driverId}
-                className="grid grid-cols-[1.25rem_auto_1fr_auto] items-center gap-2 border-b border-border/60 px-4 py-2.5 last:border-b-0"
-              >
-                <span className="gpp-mono text-sm text-text-muted">
-                  {driver.position}
-                </span>
-                <DriverBadge
-                  code={driver.code}
-                  team={driver.team}
-                  displayName={driver.displayName}
-                  number={driver.number}
-                  nationality={driver.nationality}
-                  size="sm"
-                  prerenderTooltip={false}
-                />
-                <span className="min-w-0 truncate text-sm text-text">
-                  {driver.displayName}
-                </span>
-                <span className="gpp-mono text-sm text-text">
-                  {driver.points} PTS
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="border-t border-border px-4 py-3 text-xs leading-5 text-text-muted">
-            Scored through round {championship.roundsScored}
-            {championship.lastUpdated
-              ? `, updated ${reviewedStamp(championship.lastUpdated)}`
-              : ''}
-            .
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function racesStillToScoreBefore(
-  races: readonly SeasonRace[],
-  roundsScored: number,
-  thisRound: number,
-): SeasonRace[] {
-  return races
-    .filter(
-      (race) =>
-        race.round > roundsScored &&
-        race.round < thisRound &&
-        race.status !== 'cancelled',
-    )
-    .sort((a, b) => a.round - b.round);
-}
-
-function RaceNameLink({ race }: { race: SeasonRace }) {
-  const writeup = getRaceWriteup(race.slug);
-  if (writeup) {
-    return (
-      <Link
-        to={writeup.to}
-        className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-      >
-        {race.name}
-      </Link>
-    );
-  }
-  return (
-    <Link
-      to="/races/$raceSlug"
-      params={{ raceSlug: race.slug }}
-      className="font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-    >
-      {race.name}
-    </Link>
-  );
-}
-
-function PendingRacesCopy({
-  races,
-  venueName,
-}: {
-  races: readonly SeasonRace[];
-  venueName: string;
-}) {
-  return (
-    <>
-      The{' '}
-      {races.map((race, index) => (
-        <span key={race.slug}>
-          {index > 0
-            ? index === races.length - 1
-              ? ' and the '
-              : ', the '
-            : null}
-          <RaceNameLink race={race} />
-        </span>
-      ))}{' '}
-      still {races.length === 1 ? 'has' : 'have'} to be scored, so this table
-      will change before {venueName}.
-    </>
-  );
-}
-
-function ExternalSource({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-block font-semibold whitespace-nowrap text-text underline decoration-border-strong underline-offset-4 hover:text-accent"
-    >
-      {children}
-      <span className="sr-only"> (opens in a new tab)</span>
-    </a>
   );
 }

@@ -281,7 +281,6 @@ function BahrainGrandPrixPredictionsPage() {
               pendingRaces={pendingRaces}
               venueName="Sepang"
             />
-            <PredictionMethod />
           </>
         ) : null}
 
@@ -493,6 +492,15 @@ function WatchTable() {
           Two long straights joined by a hairpin, and a middle sector of fast,
           wide corners. Passing is easier here than at most circuits, so
           qualifying decides less than it usually does.
+        </p>
+        {/* The one line worth keeping from the deleted "Before you lock your
+            Top 5" list: the rest of it restated this table, the form guide
+            above and the tyre section below. Afternoon rain at Sepang is a
+            durable fact about the place rather than this weekend's forecast,
+            so it belongs beside the signals and not in the live forecast. */}
+        <p className="gpp-reading-copy mt-3 text-text-muted">
+          Afternoon showers arrive quickly here, so wet-weather form this season
+          is worth weighing when you settle the back of a Top 5.
         </p>
       </div>
 
@@ -783,46 +791,6 @@ function ChampionshipContext({
           </p>
         </div>
       </div>
-    </section>
-  );
-}
-
-function PredictionMethod() {
-  const steps = [
-    [
-      'Treat old Sepang form as background',
-      'A 2017 result tells you about a circuit, not about a 2026 car. Use it for the shape of the lap and nothing else.',
-    ],
-    [
-      'Watch Friday long runs closely',
-      'Degradation on this surface is the biggest unknown of the weekend, and it separates a one-stop from a two-stop.',
-    ],
-    [
-      'Discount qualifying a little',
-      'Both long straights end in wide braking zones, so drivers can recover here in a way they cannot at Monaco or Singapore.',
-    ],
-    [
-      'Leave room for rain',
-      'Tropical showers arrive fast in the afternoon. Consider who has held up in a wet race this season before you settle the back of your Top 5.',
-    ],
-  ] as const;
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="build-top-five">
-      <h2
-        id="build-top-five"
-        className="font-title text-2xl font-medium text-text"
-      >
-        Before you lock your Top 5
-      </h2>
-      <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-        {steps.map(([title, detail]) => (
-          <li key={title}>
-            <h3 className="font-title font-medium text-text">{title}</h3>
-            <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

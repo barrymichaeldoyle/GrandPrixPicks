@@ -68,7 +68,7 @@ const RACE_WRITEUPS = {
   },
   'bahrain-2026': {
     to: '/f1-2026-bahrain-grand-prix-predictions',
-    reviewedAt: '2026-09-01',
+    reviewedAt: '2026-09-04',
     label: 'Sepang predictions',
     summary:
       'Why a Bahrain Grand Prix is running in Malaysia, what nine years without a Formula 1 race has done to the circuit, and the tyre choice that opens up strategy.',
@@ -76,7 +76,7 @@ const RACE_WRITEUPS = {
   },
   'singapore-2026': {
     to: '/f1-2026-singapore-grand-prix-predictions',
-    reviewedAt: '2026-09-01',
+    reviewedAt: '2026-09-04',
     label: 'Singapore predictions',
     summary:
       'Singapore’s first sprint weekend, the single practice session before competitive running, and what matters at Marina Bay.',
@@ -84,7 +84,7 @@ const RACE_WRITEUPS = {
   },
   'azerbaijan-2026': {
     to: '/f1-2026-azerbaijan-grand-prix-predictions',
-    reviewedAt: '2026-09-01',
+    reviewedAt: '2026-09-04',
     label: 'Baku predictions',
     summary:
       'Why Baku races on Saturday in 2026, where the lap is won and lost, and how to treat a mixed qualifying order.',

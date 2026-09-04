@@ -243,7 +243,6 @@ function SingaporeGrandPrixPredictionsPage() {
               thisRound={race.round}
               venueName="Singapore"
             />
-            <PredictionMethod />
           </>
         ) : null}
 
@@ -557,46 +556,6 @@ function SaturdayEvidence() {
           </ol>
         </div>
       </div>
-    </section>
-  );
-}
-
-function PredictionMethod() {
-  const steps = [
-    [
-      'Use FP1 for car behaviour',
-      'Look for traction, kerb control and cooling trouble. There is no later practice session to correct a weak baseline.',
-    ],
-    [
-      'Keep the two qualifying sessions separate',
-      'Sprint Qualifying sets the Sprint grid. Saturday qualifying sets the Grand Prix grid.',
-    ],
-    [
-      'Let the Sprint move close calls',
-      'It is the best long-run evidence available, especially for the final two places in a Grand Prix Top 5.',
-    ],
-    [
-      'Protect track position',
-      'Passing is difficult. A quick driver starting deep in the field carries more recovery risk here than at Sepang.',
-    ],
-  ] as const;
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="build-top-five">
-      <h2
-        id="build-top-five"
-        className="font-title text-2xl font-medium text-text"
-      >
-        Before you lock your Top 5
-      </h2>
-      <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-        {steps.map(([title, detail]) => (
-          <li key={title}>
-            <h3 className="font-title font-medium text-text">{title}</h3>
-            <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

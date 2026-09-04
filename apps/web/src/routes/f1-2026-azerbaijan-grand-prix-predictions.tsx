@@ -245,7 +245,6 @@ function AzerbaijanGrandPrixPredictionsPage() {
               thisRound={race.round}
               venueName="Baku"
             />
-            <PredictionMethod />
           </>
         ) : null}
 
@@ -544,46 +543,6 @@ function RiskAndRecovery() {
           mistake from cars that lacked pace all weekend.
         </p>
       </div>
-    </section>
-  );
-}
-
-function PredictionMethod() {
-  const steps = [
-    [
-      'Start with straight-line efficiency',
-      'A quick first sector is not enough if the car loses heavily on the run from Turn 16 to Turn 1.',
-    ],
-    [
-      'Check the reason for a poor grid spot',
-      'A wall touch or yellow flag is different from a car that was slow in every qualifying segment.',
-    ],
-    [
-      'Do not assume a Safety Car',
-      'Keep it as a risk factor, but build the Top 5 around pace that works through a normal one-stop race.',
-    ],
-    [
-      'Watch the wind',
-      'A driver repeatedly missing the same braking point may be fighting an unstable car rather than making one mistake.',
-    ],
-  ] as const;
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="build-top-five">
-      <h2
-        id="build-top-five"
-        className="font-title text-2xl font-medium text-text"
-      >
-        Before you lock your Top 5
-      </h2>
-      <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-        {steps.map(([title, detail]) => (
-          <li key={title}>
-            <h3 className="font-title font-medium text-text">{title}</h3>
-            <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

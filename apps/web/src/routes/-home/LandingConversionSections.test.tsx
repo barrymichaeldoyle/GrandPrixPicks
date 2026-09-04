@@ -78,35 +78,45 @@ describe('landing conversion sections', () => {
     act(() =>
       root.render(
         <CompetitionSection
-          season={2026}
-          players={[
-            {
-              rank: 1,
-              userId: 'user-1',
-              username: 'overcut-king',
-              displayName: 'Overcut King',
-              points: 317,
-              rankDelta: 0,
-            },
-            {
-              rank: 2,
-              userId: 'user-2',
-              username: 'apex-predator',
-              displayName: 'Apex Predator',
-              points: 282,
-              rankDelta: 2,
-            },
-          ]}
+          picksAnchorId="landing-picks"
+          board={{
+            raceName: 'Dutch Grand Prix',
+            raceSlug: 'dutch-grand-prix',
+            round: 12,
+            playerCount: 14,
+            players: [
+              {
+                rank: 1,
+                userId: 'user-1',
+                username: 'overcut-king',
+                points: 93,
+              },
+              {
+                rank: 2,
+                userId: 'user-2',
+                username: 'apex-predator',
+                points: 81,
+              },
+            ],
+          }}
         />,
       ),
     );
 
     expect(container.textContent).toContain(
-      'Your picks count on every leaderboard.',
+      'Every weekend is scored from zero.',
     );
-    expect(container.textContent).toContain('Overcut King');
+    // The board is one race weekend, named and sized, not the season table.
+    expect(container.textContent).toContain('Dutch Grand Prix');
+    expect(container.textContent).toContain('14 players');
+    // The handle, never a display name: public boards are named by username.
+    expect(container.textContent).toContain('overcut-king');
     expect(container.textContent).toContain('Sunday Strategists');
+    // The invented league has to say so on screen, not only to a screen reader.
+    expect(container.textContent).toContain('Example');
     expect(container.querySelector('a[href="/leaderboard"]')).not.toBeNull();
+    // The section's own call to action, back to the picker it argues for.
+    expect(container.querySelector('a[href="#landing-picks"]')).not.toBeNull();
 
     const leagueButton = Array.from(container.querySelectorAll('button')).find(
       (button) => button.textContent?.includes('Start a league'),

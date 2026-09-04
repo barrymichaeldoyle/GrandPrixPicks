@@ -147,7 +147,7 @@ export const Route = createFileRoute('/')({
       mostRecentStartedRace: data.mostRecentStartedRace,
       nextRaceResults: data.nextRaceResults,
       recentRaceResults: data.recentRaceResults,
-      topPlayers: data.topPlayers,
+      weekendBoard: data.weekendBoard,
       drivers: data.drivers,
       h2hMatchups: data.h2hMatchups,
       entryListNote: data.entryListNote,
@@ -253,7 +253,7 @@ function PublicLandingPage() {
     mostRecentStartedRace,
     nextRaceResults,
     recentRaceResults,
-    topPlayers,
+    weekendBoard,
     drivers,
     h2hMatchups,
     entryListNote,
@@ -363,8 +363,8 @@ function PublicLandingPage() {
         <ScoringSection dividerAbove={writeupCalloutRace === null} />
 
         <CompetitionSection
-          players={topPlayers}
-          season={featuredRace?.season ?? CURRENT_SEASON}
+          board={weekendBoard}
+          picksAnchorId={nextRace && nextSession ? LANDING_PICKS_ANCHOR : null}
         />
       </div>
 

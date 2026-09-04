@@ -197,10 +197,14 @@ export const getHomePageData = query({
     // scored yet (mid-weekend) or may be a dev-only scenario race with no
     // entries. Searching back six rounds covers a summer break.
     let lastScoredRacePoints = new Map<string, number>();
+    // Captured alongside the points because the landing board is that race's
+    // board and has to name it. Same loop, same reads.
+    let lastScoredRace: Doc<'races'> | null = null;
     for (const race of startedRaces.slice(0, 6)) {
       const racePoints = await loadRacePointsByUser(ctx, race._id);
       if (racePoints.size > 0) {
         lastScoredRacePoints = racePoints;
+        lastScoredRace = race;
         break;
       }
     }
@@ -224,35 +228,75 @@ export const getHomePageData = query({
 
     const season = await getDefaultLeaderboardSeason(ctx);
     const allRows = await loadCombinedSeasonRows(ctx, { season });
-    const previousRanks = rankBeforeLastScoredRace(
-      allRows,
-      lastScoredRacePoints,
+
+    /*
+     * The landing page's board is ONE race weekend, not the season.
+     *
+     * A visitor arriving at round 13 met a table whose leader had 678 points
+     * over 12 races, which states the size of the gap rather than the terms of
+     * entry: the season is a thing they have already lost. A weekend board is
+     * the same competition scoped to something they can still enter, the
+     * numbers are small enough to read as a score, and the order genuinely
+     * differs from the season order — players outside the season top five turn
+     * up in the weekend top five, which is the claim the page is making.
+     *
+     * It is the most recently SCORED race, not the upcoming one. The current
+     * weekend has no scores until qualifying is published, so an upcoming-race
+     * board would be empty from Monday to Friday, which is worse than the
+     * season table it replaced. `lastScoredRace` is already resolved above.
+     *
+     * Identities come from the season rows that are loaded anyway: anyone with
+     * race points has a `seasonStandings` row, because that table is
+     * denormalised from the same scores. `ctx.db.get` covers the case where
+     * one is missing rather than letting a player render as Anonymous.
+     */
+    const identityByUserId = new Map(
+      allRows.map((row) => [
+        row.userId as string,
+        { username: row.username, avatarUrl: row.avatarUrl },
+      ]),
     );
-    const topPlayers = allRows.slice(0, 10).map((row) => {
-      const previousRank = previousRanks.get(row.userId);
-      return {
-        rank: row.rank,
-        userId: row.userId,
-        username: row.username ?? ANONYMOUS_NAME,
-        displayName: row.displayName,
-        avatarUrl: row.avatarUrl,
-        points: row.top5Points + row.h2hPoints,
-        top5Points: row.top5Points,
-        h2hPoints: row.h2hPoints,
-        raceCount: row.raceCount,
-        // Positive is a climb. Null means there is nothing to compare against:
-        // the player had no points before this race, so they are new to the
-        // table rather than having moved up the whole length of it.
-        rankDelta: previousRank === undefined ? null : previousRank - row.rank,
-      };
-    });
+    const rankedWeekend = assignCompetitionRanks(
+      [...lastScoredRacePoints.entries()]
+        .map(([userId, points]) => ({ userId, points }))
+        .sort((a, b) =>
+          a.points !== b.points
+            ? b.points - a.points
+            : a.userId.localeCompare(b.userId),
+        ),
+      (row) => row.points,
+    );
+    const weekendPlayers = await Promise.all(
+      rankedWeekend.slice(0, 5).map(async (row) => {
+        const identity =
+          identityByUserId.get(row.userId) ??
+          toUserIdentity(await ctx.db.get(row.userId as Id<'users'>));
+        return {
+          rank: row.rank,
+          userId: row.userId,
+          username: identity.username ?? ANONYMOUS_NAME,
+          avatarUrl: identity.avatarUrl,
+          points: row.points,
+        };
+      }),
+    );
+    const weekendBoard =
+      lastScoredRace && weekendPlayers.length > 0
+        ? {
+            raceName: lastScoredRace.name,
+            raceSlug: lastScoredRace.slug,
+            round: lastScoredRace.round,
+            playerCount: lastScoredRacePoints.size,
+            players: weekendPlayers,
+          }
+        : null;
 
     return {
       nextRace,
       mostRecentStartedRace,
       nextRaceResults,
       recentRaceResults,
-      topPlayers,
+      weekendBoard,
       drivers,
       h2hMatchups,
       entryListNote: nextRace ? pendingEntryNoteForSlug(nextRace.slug) : null,

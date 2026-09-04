@@ -13,6 +13,7 @@ import { Button } from '@/components/Button/Button';
 import type { H2HMatchup } from '@/components/H2HMatchupGrid';
 import { PicksFocusOverlay } from '@/components/PicksFocusOverlay';
 import { TopFivePicksBar } from '@/components/TopFivePicksBar';
+import { PICKS_ANCHOR, useRegisterPicksAnchor } from '@/lib/picksAnchor';
 import { resolvePicks } from '@/lib/roster';
 import {
   useClerkRuntimeControl,
@@ -65,7 +66,7 @@ const H2HPredictionForm = lazy(() =>
   })),
 );
 
-export const LANDING_PICKS_ANCHOR = 'make-picks';
+export const LANDING_PICKS_ANCHOR = PICKS_ANCHOR;
 
 type LandingPicksMemory = {
   activeStep: PicksStep;
@@ -131,6 +132,7 @@ export function LandingPicks({
    */
   initialStep?: LandingPicksInitialStep;
 }) {
+  useRegisterPicksAnchor();
   const [rememberedState] = useState(() =>
     landingPicksMemory.get(String(raceId)),
   );

@@ -3,11 +3,12 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { InlineLoader } from '@/components/InlineLoader';
+import { PICKS_ANCHOR, useRegisterPicksAnchor } from '@/lib/picksAnchor';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
 import { RaceWriteupNextLinks } from './RaceWriteupNextLinks';
 
-export const RACE_WRITEUP_PICKS_ANCHOR = 'make-picks';
+export const RACE_WRITEUP_PICKS_ANCHOR = PICKS_ANCHOR;
 
 const PRELOAD_MARGIN = '700px';
 
@@ -32,9 +33,19 @@ function copyForPhase(phase: RaceWriteupPhase, venueName: string) {
 }
 
 /**
- * Keeps the editorial route light while letting its primary action finish on
- * the same page. The section heading and fallback link are server-rendered;
- * the drag-and-drop picker, its auth code and its data reads start only when a
+ * The page this section is embedded in.
+ *
+ * Both surfaces render the identical picker; they are distinguished only so
+ * the conversion funnel can separate a reader who came for the write-up from
+ * one who landed on the predictions hub, which is the page the footer's
+ * primary button points at.
+ */
+type RaceWriteupPicksSurface = 'writeup' | 'predictions_hub';
+
+/**
+ * Keeps the host route light while letting its primary action finish on the
+ * same page. The section heading and fallback link are server-rendered; the
+ * drag-and-drop picker, its auth code and its data reads start only when a
  * reader gets within roughly one viewport of the section.
  */
 export function DeferredRaceWriteupPicks({
@@ -43,6 +54,7 @@ export function DeferredRaceWriteupPicks({
   round,
   season,
   raceSlug,
+  surface = 'writeup',
   venueName,
 }: {
   phase: RaceWriteupPhase;
@@ -50,10 +62,12 @@ export function DeferredRaceWriteupPicks({
   round: number;
   season: number;
   raceSlug: string;
+  surface?: RaceWriteupPicksSurface;
   venueName: string;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const [shouldLoad, setShouldLoad] = useState(false);
+  useRegisterPicksAnchor();
   const copy = copyForPhase(phase, venueName);
 
   useEffect(() => {
@@ -102,7 +116,9 @@ export function DeferredRaceWriteupPicks({
         </h2>
         <p className="gpp-reading-copy mt-2 text-text-muted">{copy.body}</p>
         <RaceWriteupNextLinks
-          placement="picks_section"
+          placement={
+            surface === 'writeup' ? 'picks_section' : 'hub_picks_section'
+          }
           raceSlug={raceSlug}
           venueName={venueName}
         />
@@ -126,6 +142,7 @@ export function DeferredRaceWriteupPicks({
           >
             <Suspense fallback={fallback}>
               <RaceWriteupPicksForm
+                analyticsSource={surface}
                 phase={phase}
                 raceId={raceId}
                 round={round}

@@ -21,6 +21,27 @@ const LINK_BEARING_SECTIONS = [
 // Vitest runs with `apps/web` as the working directory.
 const ROUTES_DIR = `${process.cwd()}/src/routes/`;
 
+/**
+ * The predictions hub is not a write-up, but it carries the same obligation
+ * for a stronger reason: the footer's primary button points at it from every
+ * page on the site. It spent its first life describing the weekend and handing
+ * off to `/races/$raceSlug`, which made the site's loudest call to action open
+ * onto a page that could not take a prediction.
+ */
+describe('predictions hub', () => {
+  it('takes the picks on the page rather than handing off', () => {
+    const source = readFileSync(
+      `${ROUTES_DIR}f1-predictions-this-weekend.tsx`,
+      'utf8',
+    );
+
+    expect(source).toContain('<DeferredRaceWriteupPicks');
+    // The header button has to reach it without a navigation, or the section
+    // below is just a longer corridor.
+    expect(source).toContain('RACE_WRITEUP_PICKS_ANCHOR');
+  });
+});
+
 describe('race write-up outbound links', () => {
   for (const writeup of listRaceWriteups()) {
     it(`${writeup.to} ends on the picks and the leaderboard`, () => {

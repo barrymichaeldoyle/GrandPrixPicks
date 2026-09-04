@@ -7,11 +7,14 @@ import { useQuery } from '@/integrations/convex/query';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
 export function RaceWriteupPicksForm({
+  analyticsSource,
   phase,
   raceId,
   round,
   season,
 }: {
+  /** Which page the picker is embedded in, for the conversion funnel. */
+  analyticsSource: 'writeup' | 'predictions_hub';
   phase: RaceWriteupPhase;
   raceId: Id<'races'>;
   round: number;
@@ -47,7 +50,7 @@ export function RaceWriteupPicksForm({
       initialDrivers={drivers}
       existingPicks={existingPicks ?? undefined}
       sessionType={sessionType}
-      analyticsSource="writeup"
+      analyticsSource={analyticsSource}
       mobileActionFirst
     />
   );

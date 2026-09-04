@@ -6,6 +6,7 @@ import { useHashTargetFocus } from '@/hooks/useHashTargetFocus';
 import { HeaderUser } from '@/integrations/clerk/header-user.tsx';
 import { useViewerSession } from '@/integrations/clerk/useViewerSession';
 import { captureAnalyticsEvent } from '@/lib/analytics';
+import { PICKS_ANCHOR, useHasPicksAnchorOnPage } from '@/lib/picksAnchor';
 import { BrandMark } from './BrandMark.tsx';
 import { APP_NAV_TABS, NavTab } from './NavTab.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
@@ -52,6 +53,9 @@ export function Header() {
   // client SDK boots. See {@link useViewerSession}.
   const { isSignedIn } = useViewerSession();
   const showSignedOutNav = !isSignedIn;
+  // Keeps the CTA on this page when this page can take the picks. See
+  // {@link useHasPicksAnchorOnPage}.
+  const hasOwnPicker = useHasPicksAnchorOnPage();
   // Hash links already scroll (router + `scroll-margin-top` in styles.css).
   // Headings are not focusable, so native fragment navigation would leave
   // keyboard users at the top. This moves focus without touching scroll.
@@ -188,12 +192,13 @@ export function Header() {
             {showSignedOutNav ? <HeaderUser /> : null}
             {showSignedOutNav ? (
               <a
-                href="/#make-picks"
+                href={hasOwnPicker ? `#${PICKS_ANCHOR}` : `/#${PICKS_ANCHOR}`}
                 aria-label="Make your picks"
                 className={`${primaryButtonStyles('sm')} gpp-public-header-cta px-2.5 whitespace-nowrap min-[390px]:px-4`}
                 onClick={() => {
                   captureAnalyticsEvent('public_header_cta_clicked', {
                     source_path: window.location.pathname,
+                    same_page_picker: hasOwnPicker,
                   });
                   if (window.location.pathname === '/') {
                     captureAnalyticsEvent('landing_hero_cta_clicked', {

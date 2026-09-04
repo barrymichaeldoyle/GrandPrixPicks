@@ -6,15 +6,22 @@ const LINK_CLASS =
   'font-semibold text-text underline decoration-border-strong underline-offset-4 hover:text-accent';
 
 /**
- * Where the write-up sits on the page, and so which links it owes the reader.
+ * Where the picks section sits, and so which links it owes the reader.
  *
  * The closing panel's primary action already goes to the race page, so
  * repeating that link beside it would say the same thing twice. The in-page
  * picker replaces that button with a same-page anchor, which is why the picks
- * section carries both: without it the page a crawler reads has no link to the
+ * sections carry both: without it the page a crawler reads has no link to the
  * round it is written about.
+ *
+ * The two picks placements are the same links from different pages, kept apart
+ * only so the funnel can tell an editorial reader from someone who arrived on
+ * the predictions hub.
  */
-type RaceWriteupNextLinksPlacement = 'closing_panel' | 'picks_section';
+type RaceWriteupNextLinksPlacement =
+  | 'closing_panel'
+  | 'picks_section'
+  | 'hub_picks_section';
 
 /**
  * Where a reader goes when the write-up runs out: this round's picks, and the
@@ -51,7 +58,7 @@ export function RaceWriteupNextLinks({
 
   return (
     <p className="mt-4 text-sm leading-6 text-text-muted">
-      {placement === 'picks_section' ? (
+      {placement === 'closing_panel' ? null : (
         <>
           Duels and results are on the{' '}
           <Link
@@ -64,7 +71,7 @@ export function RaceWriteupNextLinks({
           </Link>
           .{' '}
         </>
-      ) : null}
+      )}
       <Link
         to="/leaderboard"
         className={LINK_CLASS}

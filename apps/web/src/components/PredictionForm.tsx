@@ -472,7 +472,7 @@ interface PredictionFormProps {
   /** Moves restored-draft status into parent chrome such as a step header. */
   draftNoticeTarget?: HTMLElement | null;
   /** Adds conversion-funnel properties/events without changing app forms. */
-  analyticsSource?: 'landing' | 'writeup';
+  analyticsSource?: 'landing' | 'writeup' | 'predictions_hub';
   /** On narrow screens, put the actionable driver pool before the review list. */
   mobileActionFirst?: boolean;
   /** Called once when this mounted form first reaches five picks. */

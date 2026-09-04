@@ -2,15 +2,25 @@ import { api } from '@convex-generated/api';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import type { FunctionReturnType } from 'convex/server';
+import { ArrowDown, ArrowRight } from 'lucide-react';
 
 import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { RaceFlag } from '@/components/RaceFlag';
+import {
+  DeferredRaceWriteupPicks,
+  RACE_WRITEUP_PICKS_ANCHOR,
+} from '@/components/race-writeups/DeferredRaceWriteupPicks';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
-import { displayTeamName } from '@/lib/display';
+import { abbreviateGrandPrix, displayTeamName } from '@/lib/display';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import { getCountryCodeForRace } from '@/lib/raceCountries';
 import { getRaceWriteup } from '@/lib/raceWriteups';
+import {
+  getRaceWriteupPhase,
+  isRaceWriteupLive,
+  raceWriteupPrimaryAction,
+} from '@/lib/raceWriteupPhase';
 import { routeQuery } from '@/lib/routeQuery';
 import {
   breadcrumbSchema,
@@ -34,10 +44,17 @@ const PATH = '/f1-predictions-this-weekend';
  * the site was actually *about* making picks; the homepage is half landing page
  * and half dashboard, and the race pages are named after one Grand Prix each.
  *
- * So this is one stable URL that always describes the next round. It is a hub,
- * not a second race page: no picks UI, no results, no duel grid. Everything it
- * says about a specific weekend it says in order to hand the reader to
- * `/races/$raceSlug`, which is where the game lives.
+ * So this is one stable URL that always describes the next round.
+ *
+ * It began as a hub that only handed off: it described the weekend and pointed
+ * at `/races/$raceSlug` for the picks. That made it a corridor, and it was the
+ * corridor the footer's primary button on every page opened onto, so the site's
+ * loudest call to action led to a page that could not take a prediction. It now
+ * finishes the job in place, the way the editorial write-ups do: the round's
+ * Top 5 picker is on the page, and the header's button is a same-page anchor.
+ *
+ * It is still not a second race page. Results and duels stay on
+ * `/races/$raceSlug`, which is linked from beside the picker.
  */
 
 type NextRace = FunctionReturnType<typeof api.races.getQuickPickRace>;
@@ -236,6 +253,19 @@ function PredictionsThisWeekendPage() {
   const writeup = getRaceWriteup(race?.slug);
   const teams = groupByTeam(drivers);
 
+  // The loader's clock, like `headingFor` above, so the server and the client
+  // agree on whether this round is still open. `getQuickPickRace` can return a
+  // race that has already locked, and offering a picker for it would be a
+  // promise the mutation refuses to keep.
+  const phase = race ? getRaceWriteupPhase(race, now) : null;
+  const picksOpen = phase !== null && isRaceWriteupLive(phase);
+  // "Italian GP", not "Monza": the venue reads better but a hub covers every
+  // round, including the ones whose circuit locality is not what anyone calls
+  // the weekend (Sepang's is Kuala Lumpur).
+  const venueName = race ? abbreviateGrandPrix(race.name) : '';
+  const actionClass =
+    'inline-flex items-center gap-2 rounded-sm bg-accent px-4 py-2 text-base font-semibold text-text-on-accent transition-colors hover:bg-accent-hover';
+
   return (
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
@@ -267,24 +297,59 @@ function PredictionsThisWeekendPage() {
             )
           }
           actions={
-            race ? (
-              <Link
-                to="/races/$raceSlug"
-                params={{ raceSlug: race.slug }}
-                className="inline-flex items-center rounded-sm bg-accent px-4 py-2 text-base font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
-              >
-                Make your picks
-              </Link>
-            ) : (
-              <Link
-                to="/races"
-                className="inline-flex items-center rounded-sm bg-accent px-4 py-2 text-base font-semibold text-text-on-accent transition-colors hover:bg-accent-hover"
-              >
-                Browse the race calendar
-              </Link>
-            )
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+              {race && phase ? (
+                picksOpen ? (
+                  <a
+                    href={`#${RACE_WRITEUP_PICKS_ANCHOR}`}
+                    className={actionClass}
+                  >
+                    {raceWriteupPrimaryAction(phase, venueName, true)}
+                    <ArrowDown className="h-4 w-4" aria-hidden />
+                  </a>
+                ) : (
+                  <Link
+                    to="/races/$raceSlug"
+                    params={{ raceSlug: race.slug }}
+                    className={actionClass}
+                  >
+                    {raceWriteupPrimaryAction(phase, venueName, true)}
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                )
+              ) : (
+                <Link to="/races" className={actionClass}>
+                  Browse the race calendar
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              )}
+              {/* The weekend's write-up, where one exists. It sat at the foot
+                  of the page in a list of related links, which made the read
+                  look like a step on the way to the picks rather than the
+                  optional extra it is. */}
+              {writeup ? (
+                <Link
+                  to={writeup.to}
+                  className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-text-muted underline decoration-border-strong underline-offset-4 hover:text-text"
+                >
+                  {writeup.cta}
+                </Link>
+              ) : null}
+            </div>
           }
         />
+
+        {race && phase && picksOpen ? (
+          <DeferredRaceWriteupPicks
+            phase={phase}
+            raceId={race._id}
+            round={race.round}
+            season={race.season}
+            raceSlug={race.slug}
+            surface="predictions_hub"
+            venueName={venueName}
+          />
+        ) : null}
 
         {race && circuit ? (
           <div className="mt-8">
@@ -296,18 +361,20 @@ function PredictionsThisWeekendPage() {
           </div>
         ) : null}
 
+        {/* Kept alongside the picker rather than folded into it. The picker is
+            a flat pool that hydrates on the client; this is the line-up by
+            team, and it is the only driver content a crawler sees on the page.
+            It was headed "Who you can pick" over a line telling the reader to
+            choose five, which is the picker's job now, so both said the same
+            thing twice. */}
         {teams.length > 0 ? (
-          <section className="mt-10" aria-labelledby="pick-pool">
+          <section className="mt-10" aria-labelledby="round-line-up">
             <h2
-              id="pick-pool"
+              id="round-line-up"
               className="font-title text-xl font-semibold text-text"
             >
-              Who you can pick
+              Line-up for this round
             </h2>
-            <p className="mt-2 max-w-3xl text-lg leading-7 text-text-muted">
-              The grid for this round. Choose five and put them in the order you
-              expect them to finish.
-            </p>
             <div className="mt-5 grid gap-x-10 gap-y-3 border-y border-border py-3 sm:grid-cols-2">
               {teams.map(({ team, drivers: lineup }) => (
                 <div key={team} className="py-3">
@@ -402,16 +469,6 @@ function PredictionsThisWeekendPage() {
 
         <nav className="mt-10 border-t border-border pt-6" aria-label="Related">
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-base">
-            {writeup ? (
-              <li>
-                <Link
-                  to={writeup.to}
-                  className="font-medium text-accent hover:underline"
-                >
-                  {writeup.cta}
-                </Link>
-              </li>
-            ) : null}
             <li>
               <Link
                 to="/races"

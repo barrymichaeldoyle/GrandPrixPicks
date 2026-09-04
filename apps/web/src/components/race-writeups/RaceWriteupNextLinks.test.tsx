@@ -48,7 +48,9 @@ describe('race write-up next links', () => {
     root = null;
   });
 
-  function render(placement: 'closing_panel' | 'picks_section') {
+  function render(
+    placement: 'closing_panel' | 'picks_section' | 'hub_picks_section',
+  ) {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -77,6 +79,30 @@ describe('race write-up next links', () => {
     expect(
       render('closing_panel').map((link) => link.getAttribute('href')),
     ).toEqual(['/leaderboard']);
+  });
+
+  // The hub embeds the same picker, so its section owes the reader the same
+  // two links; only the funnel property distinguishes them.
+  it('gives the hub picks section the same links under its own placement', () => {
+    const [racePage, leaderboard] = render('hub_picks_section');
+
+    expect(
+      [racePage, leaderboard].map((link) => link.getAttribute('href')),
+    ).toEqual(['/races/italy-2026', '/leaderboard']);
+
+    container!.addEventListener('click', (event) => event.preventDefault());
+    act(() => racePage.click());
+
+    expect(captureAnalyticsEvent.mock.calls).toEqual([
+      [
+        'race_writeup_next_link_clicked',
+        {
+          destination: 'race_page',
+          placement: 'hub_picks_section',
+          race_slug: 'italy-2026',
+        },
+      ],
+    ]);
   });
 
   it('reports which link was taken and from where', () => {

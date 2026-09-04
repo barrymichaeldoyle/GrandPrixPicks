@@ -53,7 +53,6 @@ function AboutPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
         <PageHeader
-          eyebrow="About"
           title="About Grand Prix Picks"
           subtitle="An independent Formula 1 prediction game, built and run by one person."
         />

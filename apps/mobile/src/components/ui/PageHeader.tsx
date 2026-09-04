@@ -6,36 +6,31 @@ import { Text, View } from '../../tw';
 type PageHeaderProps = {
   title: string;
   subtitle?: string;
-  /** Small accent label above the title. */
-  eyebrow?: string;
   /** Optional element rendered to the right of the title (e.g. action button). */
   action?: ReactNode;
 };
 
 /**
  * The header for every top-level screen: flat on the screen background, with
- * an accent eyebrow, an Archivo display title and optional supporting copy.
- * Mirrors web's `PageHeader`.
+ * an Archivo display title and optional supporting copy. Mirrors web's
+ * `PageHeader`.
  *
  * This replaced the old bordered `PageHero` panel and its teal glow. Keep it
  * flat — screens are rows and sections on the background, not cards stacked
  * on cards.
+ *
+ * No eyebrow slot, for the same reason web dropped one: the caps category word
+ * above the title only ever repeated the title.
  */
 export function PageHeader({
   title,
   subtitle,
-  eyebrow,
   action,
 }: PageHeaderProps) {
   const { titleFontFamily } = useTypography();
 
   return (
     <View className="gap-1.5 pb-3">
-      {eyebrow ? (
-        <Text className="text-[11px] font-extrabold tracking-[1.5px] text-accent uppercase">
-          {eyebrow}
-        </Text>
-      ) : null}
       <View className="flex-row items-end justify-between gap-3">
         <Text
           numberOfLines={2}

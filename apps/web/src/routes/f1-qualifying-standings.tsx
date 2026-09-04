@@ -218,7 +218,6 @@ function F1QualifyingStandingsPage() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          eyebrow="Formula 1"
           title={`${season} F1 Qualifying Championship`}
           subtitle={
             <>

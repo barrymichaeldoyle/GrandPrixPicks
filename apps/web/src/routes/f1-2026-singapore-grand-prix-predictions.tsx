@@ -321,12 +321,9 @@ function FirstSingaporeSprint() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="first-sprint">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          First Singapore sprint
-        </p>
         <h2
           id="first-sprint"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           One hour of practice before the first pick locks
         </h2>
@@ -464,12 +461,9 @@ function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Tyre choice
-        </p>
         <h2
           id="tyre-choice"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           Singapore gets the softest three tyres
         </h2>
@@ -532,12 +526,9 @@ function SaturdayEvidence() {
     <section className="py-8 sm:py-16" aria-labelledby="saturday-evidence">
       <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div>
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Saturday
-          </p>
           <h2
             id="saturday-evidence"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             The Sprint is the only race-pace evidence before qualifying
           </h2>

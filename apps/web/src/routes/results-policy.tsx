@@ -163,7 +163,6 @@ function ResultsPolicyPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          eyebrow="Results policy"
           title="How results and penalties are scored"
           subtitle="Your picks are scored against the official classification for each session. If that classification changes, we update the scores."
           actions={
@@ -189,9 +188,6 @@ function ResultsPolicyPage() {
           aria-labelledby="principle-heading"
           className="border-y border-border py-10 sm:py-14"
         >
-          <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-            The one rule
-          </p>
           <h2
             id="principle-heading"
             className="font-title text-2xl font-semibold text-text"
@@ -216,9 +212,6 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="mb-8 max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-              What that means per session
-            </p>
             <h2
               id="sessions-heading"
               className="font-title text-2xl font-semibold text-text"
@@ -301,9 +294,6 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-              Retirements and non-starters
-            </p>
             <h2
               id="retirements-heading"
               className="font-title text-2xl font-semibold text-text"
@@ -345,9 +335,6 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="mb-8 max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-              How a change reaches you
-            </p>
             <h2
               id="timeline-heading"
               className="font-title text-2xl font-semibold text-text"
@@ -382,9 +369,6 @@ function ResultsPolicyPage() {
           className="border-b border-border py-10 sm:py-14"
         >
           <div className="max-w-3xl">
-            <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-              Fairness
-            </p>
             <h2
               id="fairness-heading"
               className="font-title text-2xl font-semibold text-text"
@@ -422,9 +406,6 @@ function ResultsPolicyPage() {
         </section>
 
         <section aria-labelledby="faq-heading" className="py-10 sm:py-14">
-          <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-            Questions
-          </p>
           <h2
             id="faq-heading"
             className="font-title text-2xl font-semibold text-text"

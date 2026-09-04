@@ -115,9 +115,6 @@ export function PracticeResultsModal({
       >
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
-            <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-              Form guide
-            </p>
             <h2
               id="practice-results-title"
               className="text-lg font-semibold text-text"

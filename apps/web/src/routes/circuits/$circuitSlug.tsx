@@ -162,10 +162,7 @@ function CircuitPage() {
         </InAppBackLink>
 
         <header className="mt-5">
-          <p className="text-xs font-semibold tracking-label text-accent uppercase">
-            Circuit
-          </p>
-          <h1 className="font-title mt-1 text-3xl font-semibold text-text sm:text-4xl">
+          <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
             {circuit.name}
           </h1>
           <p className="mt-2 text-sm text-text-muted">

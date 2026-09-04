@@ -203,9 +203,6 @@ function ProfilePage() {
                 size="lg"
               />
               <div className="min-w-0">
-                <p className="mb-0.5 text-xs font-semibold tracking-label text-accent uppercase">
-                  {isOwner ? 'My results' : 'Player profile'}
-                </p>
                 <div className="flex items-center gap-2">
                   <h1 className="font-title truncate text-xl font-semibold text-text sm:text-2xl lg:text-3xl">
                     {displayName}

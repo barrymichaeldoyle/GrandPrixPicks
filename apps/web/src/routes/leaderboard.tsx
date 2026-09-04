@@ -360,7 +360,6 @@ function LeaderboardPage() {
     >
       <div>
         <PageHeader
-          eyebrow={timeScope === 'weekend' ? 'Race weekend' : 'Season rankings'}
           title="Leaderboard"
           subtitle={
             <>

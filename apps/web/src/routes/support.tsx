@@ -126,7 +126,6 @@ function SupportPage() {
     <div className="bg-page">
       <div className="mx-auto max-w-3xl px-4 py-8">
         <PageHeader
-          eyebrow="Need Help?"
           title="Contact Support"
           subtitle="Found a bug, need help, or have feedback? Send a message directly to Barry."
         />

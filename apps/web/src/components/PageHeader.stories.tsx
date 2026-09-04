@@ -18,7 +18,6 @@ type Story = StoryObj;
 export const Full: Story = {
   render: () => (
     <PageHeader
-      eyebrow="Game guide"
       title="How scoring works"
       subtitle="Pick five drivers per session. Points depend on how close each pick lands to the driver's actual finishing position, so order matters as much as who you back."
       actions={<Button>Make your picks</Button>}
@@ -33,18 +32,16 @@ export const TitleOnly: Story = {
 export const WithEyebrow: Story = {
   render: () => (
     <PageHeader
-      eyebrow="Legal"
       title="Privacy policy"
       subtitle="What we collect, why we collect it, and how to get it deleted."
     />
   ),
 };
 
-/** A long title should wrap without the eyebrow or copy losing alignment. */
+/** A long title should wrap without the copy losing alignment. */
 export const LongTitle: Story = {
   render: () => (
     <PageHeader
-      eyebrow="Season pass"
       title="Everything you need for race weekend"
       subtitle="One payment covers the whole season."
     />

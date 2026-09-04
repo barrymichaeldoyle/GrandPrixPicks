@@ -123,10 +123,7 @@ function GuidePage() {
 
         <article className="mt-6">
           <header>
-            <p className="text-xs font-semibold tracking-label text-accent uppercase">
-              Guide
-            </p>
-            <h1 className="font-title mt-1 text-3xl font-semibold text-text sm:text-4xl">
+            <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
               {guide.title}
             </h1>
             <p className="gpp-reading-copy-lg mt-3 text-text-muted">

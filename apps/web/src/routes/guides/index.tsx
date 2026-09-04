@@ -53,7 +53,6 @@ function GuidesIndexPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          eyebrow="Guides"
           title="Formula 1, explained"
           subtitle="How the weekend is structured, how points are awarded, and how to turn all of that into a better prediction."
         />

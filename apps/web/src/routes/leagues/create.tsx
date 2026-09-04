@@ -189,7 +189,6 @@ function CreateLeagueContent() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-3xl px-4 py-6">
         <PageHeader
-          eyebrow="League Setup"
           title="Create League"
           subtitle={`Set up a league for the ${season} season and invite friends.`}
         />

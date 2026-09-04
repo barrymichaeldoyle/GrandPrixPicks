@@ -25,7 +25,6 @@ function RefundPolicyPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          eyebrow="Legal"
           title="Refund Policy"
           subtitle="Last updated: August 2026"
         />

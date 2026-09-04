@@ -26,12 +26,9 @@ export function CircuitSummary({ raceSlug }: { raceSlug: string }) {
       aria-labelledby="circuit-summary-heading"
       className="mt-10 border-t border-border pt-8"
     >
-      <p className="text-xs font-semibold tracking-label text-accent uppercase">
-        The circuit
-      </p>
       <h2
         id="circuit-summary-heading"
-        className="font-title mt-1 text-xl font-semibold text-text"
+        className="font-title text-xl font-semibold text-text"
       >
         {circuit.name}
       </h2>

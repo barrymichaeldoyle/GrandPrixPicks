@@ -368,12 +368,9 @@ function WhyMalaysia() {
       aria-labelledby="why-malaysia"
     >
       <div>
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          The calendar change
-        </p>
         <h2
           id="why-malaysia"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           A Bahrain Grand Prix in Malaysia
         </h2>
@@ -435,12 +432,9 @@ function NoCurrentForm() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="no-current-form">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Form guide
-        </p>
         <h2
           id="no-current-form"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           The last Formula 1 race here was in 2017
         </h2>
@@ -587,12 +581,9 @@ function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Tyre choice
-        </p>
         <h2
           id="tyre-choice"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           Sepang gets the middle three tyres
         </h2>
@@ -677,12 +668,9 @@ function TripleHeader({
   return (
     <section className="py-8 sm:py-16" aria-labelledby="triple-header">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Three weekends
-        </p>
         <h2
           id="triple-header"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           The middle race of a triple-header
         </h2>

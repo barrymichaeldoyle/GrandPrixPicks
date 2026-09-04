@@ -296,7 +296,7 @@ export function LeaderboardScreen() {
   if (!convexEnabled) {
     return (
       <View className="flex-1 bg-page">
-        <Header timeScope="season" subtitle="2026 standings" />
+        <Header subtitle="2026 standings" />
         <EmptyState
           body="Configure Convex to see standings."
           icon="trophy-outline"
@@ -428,7 +428,7 @@ export function LeaderboardScreen() {
 
   return (
     <View className="flex-1 bg-page">
-      <Header timeScope={timeScope} subtitle={subtitle} />
+      <Header subtitle={subtitle} />
       <FlatList
         contentContainerClassName="px-4 pb-8"
         data={rest}
@@ -512,20 +512,10 @@ export function LeaderboardScreen() {
   );
 }
 
-function Header({
-  timeScope,
-  subtitle,
-}: {
-  timeScope: TimeScope;
-  subtitle: string;
-}) {
+function Header({ subtitle }: { subtitle: string }) {
   return (
     <View className="px-4 pt-3 pb-3">
-      <PageHeader
-        eyebrow={timeScope === 'weekend' ? 'Race Weekend' : 'Season Rankings'}
-        subtitle={subtitle}
-        title="Leaderboard"
-      />
+      <PageHeader subtitle={subtitle} title="Leaderboard" />
     </View>
   );
 }

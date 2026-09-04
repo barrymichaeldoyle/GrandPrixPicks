@@ -857,12 +857,9 @@ function McLarenForm() {
             } as CSSProperties
           }
         >
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Form check
-          </p>
           <h2
             id="mclaren-form"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             Monza is a different test for McLaren
           </h2>
@@ -952,12 +949,9 @@ function TyreChoice() {
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className={WRITEUP_WITH_PHOTO_MIRRORED}>
         <div className={`md:max-w-3xl ${WRITEUP_COPY_MIRRORED}`}>
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Tyre choice
-          </p>
           <h2
             id="tyre-choice"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             Monza gets the three softest tyres
           </h2>
@@ -1097,12 +1091,9 @@ function HeatHazard({ showPickRead }: { showPickRead: boolean }) {
     <section className="py-8 sm:py-16" aria-labelledby="heat-hazard">
       <div className={WRITEUP_WITH_PHOTO}>
         <div className="md:max-w-3xl">
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Heat
-          </p>
           <h2
             id="heat-hazard"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             The FIA has declared a heat hazard
           </h2>
@@ -1156,12 +1147,9 @@ function SafetyCarLivery() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="safety-car-livery">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Safety car
-        </p>
         <h2
           id="safety-car-livery"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           The safety car runs in Lightning McQueen colours
         </h2>
@@ -1204,12 +1192,9 @@ function FerrariTribute() {
             } as CSSProperties
           }
         >
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Weekend colour
-          </p>
           <h2
             id="ferrari-tribute"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             Ferrari runs a Schumacher tribute
           </h2>
@@ -1262,12 +1247,9 @@ function NorrisContract() {
             } as CSSProperties
           }
         >
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Off track
-          </p>
           <h2
             id="norris-contract"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             Norris re-signs with McLaren to 2030
           </h2>
@@ -1308,12 +1290,9 @@ function ColapintoContract() {
             } as CSSProperties
           }
         >
-          <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-            Off track
-          </p>
           <h2
             id="colapinto-contract"
-            className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+            className="font-title text-2xl font-medium text-text sm:text-3xl"
           >
             Colapinto stays at Alpine for 2027
           </h2>

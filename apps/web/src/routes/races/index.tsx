@@ -213,8 +213,7 @@ function RacesPage() {
           ) : (
             <div className="reveal-up reveal-delay-2">
               <PageHeader
-                eyebrow={`${season} season`}
-                title="Race calendar"
+                title={`${season} race calendar`}
                 subtitle="Pick the top five before each session locks."
                 actionsPlacement="trailing"
                 actions={
@@ -309,10 +308,7 @@ function RacesPage() {
               aria-label="All rounds"
               className="mt-10 border-t border-border pt-6"
             >
-              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                Full calendar
-              </p>
-              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+              <h2 className="font-title text-xl font-semibold text-text">
                 Every round of the {season} season
               </h2>
               <p className="mt-1 text-sm text-text-muted">
@@ -339,10 +335,7 @@ function RacesPage() {
               aria-label="Practice results by round"
               className="mt-10 border-t border-border pt-6"
             >
-              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                Practice results
-              </p>
-              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+              <h2 className="font-title text-xl font-semibold text-text">
                 Free practice classifications
               </h2>
               <p className="mt-1 text-sm text-text-muted">
@@ -370,10 +363,7 @@ function RacesPage() {
               aria-label="Weekend previews"
               className="mt-10 border-t border-border pt-6"
             >
-              <p className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                Weekend previews
-              </p>
-              <h2 className="font-title mt-1 text-xl font-semibold text-text">
+              <h2 className="font-title text-xl font-semibold text-text">
                 Read up before you pick
               </h2>
               <p className="mt-1 text-sm text-text-muted">

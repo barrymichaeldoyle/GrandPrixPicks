@@ -521,12 +521,9 @@ function TrackReadiness() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="track-readiness">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Circuit readiness
-        </p>
         <h2
           id="track-readiness"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           The track is finished. The rest of it is not
         </h2>
@@ -744,12 +741,9 @@ function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Tyre choice
-        </p>
         <h2
           id="tyre-choice"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           Madrid gets the medium tyres
         </h2>

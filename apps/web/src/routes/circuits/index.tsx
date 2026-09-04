@@ -61,7 +61,6 @@ function CircuitsIndexPage() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
         <PageHeader
-          eyebrow="Circuits"
           title="Every circuit, compared"
           subtitle="The same three judgements for every track on the calendar. Track type tells you what kind of place it is, overtaking tells you whether Sunday can undo Saturday, and upset risk tells you how much to trust the favourites."
         />

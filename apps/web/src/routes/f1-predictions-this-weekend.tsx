@@ -270,7 +270,6 @@ function PredictionsThisWeekendPage() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          eyebrow="Formula 1"
           title={headingFor(race, now)}
           subtitle={
             race ? (

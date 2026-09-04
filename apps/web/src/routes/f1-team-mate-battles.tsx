@@ -334,7 +334,6 @@ function TeammateBattlesPage() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          eyebrow="Formula 1"
           title={`${SEASON} F1 team-mate head-to-head`}
           subtitle={
             <p className="text-base">

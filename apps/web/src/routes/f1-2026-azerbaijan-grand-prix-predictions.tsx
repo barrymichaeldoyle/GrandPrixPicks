@@ -317,12 +317,9 @@ function SaturdayRace() {
       aria-labelledby="saturday-race"
     >
       <div>
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Calendar change
-        </p>
         <h2
           id="saturday-race"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           The Grand Prix is on Saturday
         </h2>
@@ -461,12 +458,9 @@ function TyreChoice() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="tyre-choice">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Tyre choice
-        </p>
         <h2
           id="tyre-choice"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           Baku gets the softest three tyres
         </h2>
@@ -529,12 +523,9 @@ function RiskAndRecovery() {
   return (
     <section className="py-8 sm:py-16" aria-labelledby="risk-and-recovery">
       <div className="max-w-3xl">
-        <p className="gpp-mono text-xs tracking-label text-text-muted uppercase">
-          Pick risk
-        </p>
         <h2
           id="risk-and-recovery"
-          className="font-title mt-3 text-2xl font-medium text-text sm:text-3xl"
+          className="font-title text-2xl font-medium text-text sm:text-3xl"
         >
           A mixed grid does not guarantee a recovery drive
         </h2>

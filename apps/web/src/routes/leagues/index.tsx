@@ -202,7 +202,6 @@ function LeaguesContent({ isSignedIn }: { isSignedIn: boolean }) {
       <div>
         <div className="mb-7">
           <PageHeader
-            eyebrow="Social play"
             title="Leagues"
             subtitle="Create, join, and compete with friends."
             actionsPlacement="trailing"
@@ -539,7 +538,6 @@ function LeaguesPageSkeleton() {
     <AppPageLayout>
       <div>
         <PageHeader
-          eyebrow="Social play"
           title="Leagues"
           subtitle="Create, join, and compete with friends."
         />

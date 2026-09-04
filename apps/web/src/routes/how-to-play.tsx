@@ -129,7 +129,6 @@ function HowToPlayPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-4 py-6">
         <PageHeader
-          eyebrow="Game guide"
           title="How to Play"
           subtitle="Pick the drivers you think will finish ahead, score points in every session, and climb the leaderboard."
           actions={
@@ -198,9 +197,6 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="max-w-3xl">
-              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-                Sessions
-              </p>
               <h2
                 id="sessions-heading"
                 className="font-title text-2xl font-semibold text-text"
@@ -250,9 +246,6 @@ function HowToPlayPage() {
             className="border-t border-border py-10 sm:py-14"
           >
             <div className="mb-4">
-              <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-                Top 5 scoring
-              </p>
               <h2
                 id="top-five-heading"
                 className="font-title text-2xl font-semibold text-text"
@@ -409,9 +402,6 @@ function HowToPlayPage() {
           >
             <div className="grid gap-8 sm:grid-cols-[1fr_13rem] sm:items-center">
               <div>
-                <p className="mb-1 text-xs font-semibold tracking-label text-accent uppercase">
-                  Bonus game
-                </p>
                 <h2
                   id="h2h-heading"
                   className="font-title text-xl font-semibold text-text"

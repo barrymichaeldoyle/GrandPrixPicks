@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 
 type PageHeaderProps = {
-  /** Small accent label above the title, e.g. "Legal" or "Game guide". */
-  eyebrow?: string;
   title: string;
   /**
    * Show the title as a placeholder because the data behind it has not arrived.
@@ -30,14 +28,18 @@ type PageHeaderProps = {
 };
 
 /**
- * The header for every top-level page: flat on the page background, with an
- * accent eyebrow, a display title and optional supporting copy.
+ * The header for every top-level page: flat on the page background, with a
+ * display title and optional supporting copy.
  *
  * This replaced the old bordered `PageHero` panel. Keep it flat — the
  * site's page-level idiom is sections separated by hairline rules on the page
  * background, not a card stacked on top of more cards. If a page needs a
- * visual anchor, give it a stronger eyebrow or a first section, not a border
- * around the title.
+ * visual anchor, give it a first section, not a border around the title.
+ *
+ * There is deliberately no eyebrow slot. Every page that had one used it for a
+ * tracked-uppercase category word ("LEGAL", "FORMULA 1", "GUIDES") that the
+ * title beneath it already said, so the line cost a reader nothing but noise.
+ * If a page has a fact worth putting above the title, it belongs in the title.
  *
  * This is for pages you *read*. A utility destination reached from the nav
  * (notifications) wants its own small header instead: a display title over a
@@ -45,7 +47,6 @@ type PageHeaderProps = {
  * half a phone screen of nothing on a page the reader opened on purpose.
  */
 export function PageHeader({
-  eyebrow,
   title,
   titleLoading = false,
   subtitle,
@@ -62,11 +63,6 @@ export function PageHeader({
 
   const heading = (
     <div>
-      {eyebrow ? (
-        <p className="mb-2 text-xs font-semibold tracking-label text-accent uppercase">
-          {eyebrow}
-        </p>
-      ) : null}
       <h1 className={titleClass}>
         {titleLoading ? (
           <>

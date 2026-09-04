@@ -25,7 +25,6 @@ function TermsPage() {
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-4xl px-4 py-6">
         <PageHeader
-          eyebrow="Legal"
           title="Terms of Service"
           subtitle="Last updated: February 2026"
         />

@@ -180,10 +180,7 @@ function SettingsPage() {
     <div className="bg-page">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <header className="mb-6 max-w-2xl">
-          <p className="text-xs font-semibold tracking-[0.2em] text-accent uppercase">
-            Account
-          </p>
-          <h1 className="font-title mt-1 text-3xl leading-tight font-semibold text-text sm:text-4xl">
+          <h1 className="font-title text-3xl leading-tight font-semibold text-text sm:text-4xl">
             Settings
           </h1>
           <p className="gpp-reading-copy mt-2 text-text-muted">
@@ -206,9 +203,6 @@ function SettingsPage() {
             aria-label="Settings sections"
             className="sticky top-20 z-10 -mx-1 flex gap-1 overflow-x-auto bg-page/95 px-1 py-1 md:top-24 md:mx-0 md:flex-col md:overflow-visible md:bg-transparent md:p-0"
           >
-            <p className="mb-2 hidden text-xs font-semibold tracking-label text-text-muted uppercase md:block">
-              Sections
-            </p>
             {SETTINGS_NAV.map((item) => (
               <a
                 key={item.href}

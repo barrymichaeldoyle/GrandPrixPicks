@@ -148,9 +148,6 @@ function F1Calendar2027Page() {
     <div className="min-h-full bg-page">
       <div className="mx-auto max-w-(--page-max) px-4 py-6 sm:py-8">
         <header className="max-w-4xl">
-          <p className="mb-2 text-xs font-semibold tracking-label text-accent uppercase">
-            Formula 1
-          </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4">
             <h1 className="font-title text-3xl font-semibold text-text sm:text-4xl">
               The 2027 F1 calendar

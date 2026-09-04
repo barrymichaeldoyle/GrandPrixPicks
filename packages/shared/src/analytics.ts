@@ -91,6 +91,7 @@ export const analyticsEventNames = [
   'purchase_completed',
   'push_permission_result',
   'push_pre_prompt_dismissed',
+  'race_writeup_next_link_clicked',
   'score_share_opened',
   'score_shared_x',
   'screen_viewed',

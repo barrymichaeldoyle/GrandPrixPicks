@@ -5,6 +5,8 @@ import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { InlineLoader } from '@/components/InlineLoader';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
+import { RaceWriteupNextLinks } from './RaceWriteupNextLinks';
+
 export const RACE_WRITEUP_PICKS_ANCHOR = 'make-picks';
 
 const PRELOAD_MARGIN = '700px';
@@ -99,6 +101,11 @@ export function DeferredRaceWriteupPicks({
           {copy.heading}
         </h2>
         <p className="gpp-reading-copy mt-2 text-text-muted">{copy.body}</p>
+        <RaceWriteupNextLinks
+          placement="picks_section"
+          raceSlug={raceSlug}
+          venueName={venueName}
+        />
       </div>
 
       <div className="mt-7">

@@ -1,4 +1,5 @@
 import { RaceWriteupActions } from './RaceWriteupActions';
+import { RaceWriteupNextLinks } from './RaceWriteupNextLinks';
 import type { RaceWriteupPhase } from '@/lib/raceWriteupPhase';
 
 function closingCopy(phase: RaceWriteupPhase, venueName: string) {
@@ -52,6 +53,11 @@ export function RaceWriteupClosingPanel({
         <p className="mt-2 max-w-xl text-sm leading-6 text-text-muted">
           {copy.body}
         </p>
+        <RaceWriteupNextLinks
+          placement="closing_panel"
+          raceSlug={raceSlug}
+          venueName={venueName}
+        />
       </div>
       <RaceWriteupActions
         compact

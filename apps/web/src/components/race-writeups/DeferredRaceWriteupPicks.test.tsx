@@ -9,6 +9,22 @@ import {
   RACE_WRITEUP_PICKS_ANCHOR,
 } from './DeferredRaceWriteupPicks';
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({
+    children,
+    params,
+    to,
+  }: {
+    children: React.ReactNode;
+    params?: { raceSlug: string };
+    to: string;
+  }) => (
+    <a href={params ? to.replace('$raceSlug', params.raceSlug) : to}>
+      {children}
+    </a>
+  ),
+}));
+
 vi.mock('./RaceWriteupPicksForm', () => ({
   RaceWriteupPicksForm: () => <div data-testid="prediction-form" />,
 }));
@@ -80,6 +96,19 @@ describe('deferred race write-up picks', () => {
     expect(section.textContent).toContain('Make your Monza picks');
     expect(section.querySelector('[data-testid="prediction-form"]')).toBeNull();
     expect(section.querySelector('[role="status"]')).not.toBeNull();
+  });
+
+  // The picker replaces the hero's race-page button with a same-page anchor,
+  // so without these the page a crawler reads has no link to the round it is
+  // written about and none to the board the picks feed.
+  it('links out to the race page and the leaderboard before the picker loads', () => {
+    render();
+    const hrefs = [...container!.querySelectorAll('section > div a')].map(
+      (link) => link.getAttribute('href'),
+    );
+
+    expect(hrefs).toContain('/races/italy-2026');
+    expect(hrefs).toContain('/leaderboard');
   });
 
   it('loads the interactive picker as the section approaches the viewport', async () => {

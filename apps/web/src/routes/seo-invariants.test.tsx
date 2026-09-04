@@ -89,6 +89,8 @@ const ROUTES: {
   path: string;
   /** Set on routes whose `head()` branches on `race.status`. */
   statuses?: readonly RaceStatus[];
+  /** Set on the hand-written weekend write-ups. */
+  writeup?: true;
 }[] = [
   { module: './about', path: '/about' },
   { module: './how-to-play', path: '/how-to-play' },
@@ -145,6 +147,7 @@ const ROUTES: {
     module: './f1-2026-italian-grand-prix-predictions',
     path: '/f1-2026-italian-grand-prix-predictions',
     statuses: RACE_STATUSES,
+    writeup: true,
     args: {
       loaderData: {
         race: { raceStartAt: 1_788_699_600_000 },
@@ -155,6 +158,7 @@ const ROUTES: {
     module: './f1-2026-bahrain-grand-prix-predictions',
     path: '/f1-2026-bahrain-grand-prix-predictions',
     statuses: RACE_STATUSES,
+    writeup: true,
     args: {
       loaderData: {
         race: { raceStartAt: 1_791_097_200_000 },
@@ -165,6 +169,7 @@ const ROUTES: {
     module: './f1-2026-singapore-grand-prix-predictions',
     path: '/f1-2026-singapore-grand-prix-predictions',
     statuses: RACE_STATUSES,
+    writeup: true,
     args: {
       loaderData: {
         race: { raceStartAt: 1_791_720_000_000 },
@@ -175,6 +180,7 @@ const ROUTES: {
     module: './f1-2026-azerbaijan-grand-prix-predictions',
     path: '/f1-2026-azerbaijan-grand-prix-predictions',
     statuses: RACE_STATUSES,
+    writeup: true,
     args: {
       loaderData: {
         race: { raceStartAt: 1_790_420_400_000 },
@@ -185,6 +191,7 @@ const ROUTES: {
     module: './f1-2026-madrid-grand-prix-predictions',
     path: '/f1-2026-madrid-grand-prix-predictions',
     statuses: RACE_STATUSES,
+    writeup: true,
     args: {
       loaderData: {
         race: { raceStartAt: 1_789_304_400_000 },
@@ -344,6 +351,37 @@ describe('SEO invariants across every indexable route', () => {
       });
     });
   }
+
+  /**
+   * A write-up is a page about one race, answering questions about it, and
+   * both of those are rich results Google will only give a page that says so
+   * in schema. The per-type block below checks a `SportsEvent` that exists;
+   * this checks that it exists at all, on every weekend page, for every state
+   * its `head()` branches on. Four of the five carried both from the start and
+   * the fifth is one copy-paste away from carrying neither.
+   */
+  it('gives every race write-up a SportsEvent and an FAQPage', async () => {
+    const missing: string[] = [];
+
+    for (const entry of ROUTES.filter((route) => route.writeup)) {
+      for (const status of entry.statuses ?? [undefined]) {
+        vi.resetModules();
+        const head = await headFor(entry, status);
+        const types = (head.scripts ?? []).flatMap((script) =>
+          typedNodes(JSON.parse(script.children)).map(
+            (node) => node['@type'] as string,
+          ),
+        );
+        for (const required of ['SportsEvent', 'FAQPage']) {
+          if (!types.includes(required)) {
+            missing.push(`${entry.path} (${status}) has no ${required}`);
+          }
+        }
+      }
+    }
+
+    expect(missing, missing.join('\n')).toEqual([]);
+  });
 
   /**
    * Per-type requirements, checked wherever that type appears.

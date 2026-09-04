@@ -64,6 +64,18 @@ export const APP_SHELL_ATTRIBUTE = 'data-app-shell';
 const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
 
 /**
+ * Where this script publishes the cookie name it was given, for the rest of the
+ * app to read synchronously.
+ *
+ * Resolving the name means hashing the publishable key, which is async and so
+ * unavailable to a module-scope or event-handler read. The server has already
+ * done that work to build this script, so it hands the answer over here rather
+ * than making every browser-side reader guess at it — see
+ * `hasClerkSessionCookie`, which got the guess wrong.
+ */
+export const SESSION_COOKIE_NAME_GLOBAL = '__gppClerkSessionCookieName';
+
+/**
  * Applies the same cookie rule as `isClerkSessionPresent` on the server: this
  * instance's suffixed cookie decides, and the unsuffixed pre-suffix name counts
  * only in its absence. A browser that once visited another Clerk instance keeps
@@ -71,7 +83,7 @@ const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
  * the landing page from a genuinely signed-out visitor for eight seconds.
  */
 export function prePaintCurtainScript(sessionCookieName: string | null) {
-  return `(function(){try{var n=${JSON.stringify(sessionCookieName)},s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}')},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
+  return `(function(){try{var n=${JSON.stringify(sessionCookieName)};window.${SESSION_COOKIE_NAME_GLOBAL}=n;var s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}')},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
 }
 
 /**

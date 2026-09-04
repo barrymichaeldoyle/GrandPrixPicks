@@ -234,6 +234,10 @@ const ROUTES: {
     },
   },
   { module: './f1-2027-calendar', path: '/f1-2027-calendar' },
+  {
+    module: './f1-2027-driver-line-up',
+    path: '/f1-2027-driver-line-up',
+  },
   { module: './terms', path: '/terms' },
   { module: './privacy', path: '/privacy' },
   { module: './refund-policy', path: '/refund-policy' },

@@ -544,6 +544,12 @@ function F1StandingsPage() {
             {SEASON} qualifying championship
           </Link>
           <Link
+            to="/f1-2027-driver-line-up"
+            className="font-medium text-accent underline-offset-2 hover:underline"
+          >
+            2027 driver line-up
+          </Link>
+          <Link
             to="/guides/$guideSlug"
             params={{ guideSlug: 'f1-points-system-explained' }}
             className="font-medium text-accent underline-offset-2 hover:underline"

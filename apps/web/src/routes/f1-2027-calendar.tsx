@@ -164,6 +164,15 @@ function F1Calendar2027Page() {
             publish one in autumn 2026. Dates can still move after that, until
             the FIA ratifies the list.
           </p>
+          <p className="gpp-reading-copy mt-4 text-text-muted">
+            <Link
+              to="/f1-2027-driver-line-up"
+              className="font-medium text-accent underline-offset-2 hover:underline"
+            >
+              The 2027 driver line-up
+            </Link>{' '}
+            is tracked on its own page, seat by seat.
+          </p>
         </header>
 
         <section aria-labelledby="plan-so-far" className="mt-10 sm:mt-12">

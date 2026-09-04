@@ -6,6 +6,7 @@ import { listCircuits } from '@grandprixpicks/shared/circuits';
 
 import { getCircuitGuideBySlug } from '../../src/lib/circuitGuides';
 import { listGuideMeta } from '../../src/lib/guideMeta';
+import { LINE_UP_2027_REVIEWED_AT } from '../../src/lib/lineUp2027';
 import { listRaceWriteups, getRaceWriteup } from '../../src/lib/raceWriteups';
 import { siteConfig } from '../../src/lib/site';
 
@@ -125,6 +126,14 @@ const staticEntries: SitemapEntry[] = [
     loc: `${siteConfig.url}/f1-2027-calendar`,
     changefreq: 'weekly',
     priority: '0.6',
+  },
+  {
+    // `lastmod` comes from the data file's own reviewed date, so a seat
+    // announcement cannot be edited in without the sitemap saying so.
+    loc: `${siteConfig.url}/f1-2027-driver-line-up`,
+    changefreq: 'weekly',
+    lastmod: new Date(LINE_UP_2027_REVIEWED_AT).toISOString(),
+    priority: '0.7',
   },
   {
     loc: `${siteConfig.url}/leagues`,

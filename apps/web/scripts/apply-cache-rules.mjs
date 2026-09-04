@@ -59,9 +59,27 @@ const signedIn =
   `and http.cookie contains "__client_uat=" ` +
   `and not http.cookie contains "__client_uat=0"))`;
 
-/** The only three routes that call applySsrCacheControl(). */
-const paths =
-  '(http.request.uri.path eq "/" or http.request.uri.path eq "/f1-standings" or http.request.uri.path eq "/f1-qualifying-standings")';
+/**
+ * The routes that call applySsrCacheControl() and are worth an edge entry.
+ *
+ * A route asking for a cache-control header does nothing on its own: without
+ * a path here, Pages answers `cf-cache-status: DYNAMIC` and pays a full SSR
+ * render per request. The two 2027 pages were exactly that — hand-maintained
+ * static content, changing only on deploy, re-rendered for every crawler.
+ *
+ * Adding a path means re-running this script; the rule set is replaced whole.
+ */
+const CACHEABLE_PATHS = [
+  '/',
+  '/f1-standings',
+  '/f1-qualifying-standings',
+  '/f1-2027-calendar',
+  '/f1-2027-driver-line-up',
+];
+
+const paths = `(${CACHEABLE_PATHS.map(
+  (path) => `http.request.uri.path eq "${path}"`,
+).join(' or ')})`;
 
 const rules = [
   {

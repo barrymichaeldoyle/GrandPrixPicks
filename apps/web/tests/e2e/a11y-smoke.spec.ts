@@ -30,6 +30,12 @@ const PAGES = [
    * delta that way.
    */
   { path: '/f1-qualifying-standings', name: 'qualifying standings deltas' },
+  {
+    // Three status pills whose colour is backed by their own text, plus a
+    // table header row that only exists for screen readers.
+    path: '/f1-2027-driver-line-up',
+    name: '2027 line-up statuses',
+  },
   { path: '/pricing', name: 'pricing' },
   {
     path: '/f1-2026-italian-grand-prix-predictions',

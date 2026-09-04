@@ -1931,3 +1931,205 @@ export function sessionResultsTemplate({
     ),
   );
 }
+
+export type LineUp2027OpenSeat = {
+  driver: string;
+  team: string;
+  color: string;
+};
+
+/** One of the three status counts, as a labelled figure. */
+function seatCountBlock(
+  label: string,
+  value: number,
+  color: string,
+): ReactNode {
+  return e(
+    'div',
+    {
+      key: label,
+      style: { display: 'flex', flexDirection: 'column' as const, flex: 1 },
+    },
+    e('div', {
+      style: { width: 34, height: 3, backgroundColor: color, marginBottom: 14 },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 56,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          lineHeight: 1,
+        },
+      },
+      String(value),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 17,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          letterSpacing: 1.8,
+          color: colors.textMuted,
+          marginTop: 12,
+        },
+      },
+      label,
+    ),
+  );
+}
+
+/** One driver whose seat has no 2027 contract behind it. */
+function openSeatRow(seat: LineUp2027OpenSeat): ReactNode {
+  return e(
+    'div',
+    {
+      key: seat.driver,
+      style: { display: 'flex', alignItems: 'center', gap: 14, flex: 1 },
+    },
+    e('div', {
+      style: { width: 3, height: 34, backgroundColor: seat.color },
+    }),
+    e(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column' as const } },
+      e(
+        'div',
+        { style: { fontSize: 28, fontWeight: 600, fontFamily: 'Archivo' } },
+        seat.driver,
+      ),
+      e(
+        'div',
+        {
+          style: {
+            fontSize: 16,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            letterSpacing: 1.6,
+            color: colors.textMuted,
+            marginTop: 3,
+          },
+        },
+        seat.team.toUpperCase(),
+      ),
+    ),
+  );
+}
+
+/**
+ * The link-preview card for `/f1-2027-driver-line-up`.
+ *
+ * Leads with the count rather than a grid of 22 names, because the count is
+ * the thing that changes and the thing somebody shares the page for. The two
+ * out-of-contract drivers get their names on the card for the same reason:
+ * they are the story, and a card that only said "2027 line-up" would give a
+ * scroller no reason to tap.
+ *
+ * Every value comes from `src/lib/lineUp2027.ts` by way of the route handler,
+ * so the card cannot drift from the page it fronts.
+ */
+export function lineUp2027Template({
+  reviewedLabel,
+  signed,
+  expected,
+  outOfContract,
+  total,
+  openSeats,
+}: {
+  reviewedLabel: string;
+  signed: number;
+  expected: number;
+  outOfContract: number;
+  total: number;
+  openSeats: LineUp2027OpenSeat[];
+}): ReactNode {
+  return layout(
+    'og',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          marginBottom: 40,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 19,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              letterSpacing: 2,
+              color: colors.textMuted,
+            },
+          },
+          '2027 DRIVER LINE-UP',
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 46,
+              fontWeight: 600,
+              fontFamily: 'Archivo',
+              marginTop: 4,
+            },
+          },
+          `${signed} of ${total} seats signed`,
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            fontSize: 15,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            letterSpacing: 1.6,
+            color: colors.textMuted,
+          },
+        },
+        `REVIEWED ${reviewedLabel.toUpperCase()}`,
+      ),
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40, marginBottom: 44 } },
+      seatCountBlock('SIGNED', signed, colors.accent),
+      seatCountBlock('EXPECTED', expected, colors.borderStrong),
+      seatCountBlock('OUT OF CONTRACT', outOfContract, colors.warning),
+    ),
+    e('div', {
+      style: { height: 1, backgroundColor: colors.border, marginBottom: 26 },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 15,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          letterSpacing: 1.8,
+          color: colors.textMuted,
+          marginBottom: 18,
+        },
+      },
+      'STILL TO BE DECIDED',
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40 } },
+      ...openSeats.slice(0, 2).map(openSeatRow),
+    ),
+  );
+}

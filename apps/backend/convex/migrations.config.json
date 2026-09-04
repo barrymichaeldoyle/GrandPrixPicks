@@ -24,6 +24,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:publishItaly2026MercedesAndWilliamsNews",
+    "args": {}
+  },
+  {
     "name": "raceNewsMigrations:addItaly2026BrowningWriteUpPhoto",
     "args": {}
   },

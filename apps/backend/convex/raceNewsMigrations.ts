@@ -3,13 +3,16 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import {
+  ANTONELLI_MONZA_PENALTY_BODY,
   ARON_MONZA_FP1_BODY,
+  BROWNING_WILLIAMS_FP1_BODY,
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
   HADJAR_DUTCH_GP_LINEUP_NOTE,
   HADJAR_MONZA_ABSENCE_BODY,
   HERTA_MONZA_FP1_BODY,
   IWASA_MONZA_FP1_BODY,
+  MERCEDES_MONZA_TOW_BODY,
 } from './lib/italy2026MonzaNewsCopy';
 import {
   BROWNING_WILLIAMS_FP1_WRITEUP_IMAGE,
@@ -202,5 +205,73 @@ export const publishItaly2026MonzaFp1Seats = internalMutation({
     });
 
     return { herta, aron };
+  },
+});
+
+/**
+ * The Mercedes and Williams items, plus the qualifying tow.
+ *
+ * The penalty and the Browning FP1 seat were published by hand and never
+ * mirrored into code, so a deploy left them alone while the other five were
+ * republished from `italy2026MonzaNewsCopy.ts`. Editing those two bodies
+ * therefore behaved differently from editing any of the rest, which is the
+ * kind of split that ends with prod and the repo quietly disagreeing. All
+ * eight Monza items are reproducible from code now.
+ *
+ * `browning-williams-fp1` carries a photo. Republishing keeps it:
+ * `raceNews.publish` omits `writeUpImage` from the patch when the caller does
+ * not pass one, and `addItaly2026BrowningWriteUpPhoto` runs after this anyway.
+ *
+ * Idempotent, like the others.
+ */
+export const publishItaly2026MercedesAndWilliamsNews = internalMutation({
+  args: {},
+  // Annotated for the same TS7022 reason as `updateItaly2026MonzaNewsCopy`.
+  handler: async (
+    ctx,
+  ): Promise<{ antonelli: unknown; tow: unknown; browning: unknown }> => {
+    const antonelli = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'antonelli-grid-penalty',
+      headline: 'Antonelli is expected to start from the back at Monza',
+      body: ANTONELLI_MONZA_PENALTY_BODY,
+      affectsSessions: ['quali', 'race'],
+      driverCodes: ['ANT', 'RUS'],
+      sourceName: 'Motorsport.com',
+      sourceUrl:
+        'https://www.motorsport.com/f1/news/george-russell-also-set-for-f1-engine-penalty-but-mercedes-yet-to-decide-when/10850409/',
+    });
+
+    // Qualifying only, where the penalty item is qualifying and race: a tow
+    // changes how to read Russell's lap and does nothing to Sunday.
+    const tow = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'mercedes-monza-qualifying-tow',
+      headline: 'Antonelli will tow Russell in Monza qualifying',
+      body: MERCEDES_MONZA_TOW_BODY,
+      affectsSessions: ['quali'],
+      // Russell first: his is the qualifying pick this changes, and his is the
+      // lap the tow is for.
+      driverCodes: ['RUS', 'ANT'],
+      sourceName: 'Formula 1',
+      sourceUrl:
+        'https://www.formula1.com/en/latest/article/russell-insists-mercedes-will-work-as-a-team-in-monza-qualifying-before-antonelli-grid-penalty.3KS3yXktFxuX0VZ9c14Wzn',
+    });
+
+    const browning = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: BROWNING_NEWS_KEY,
+      headline: 'Luke Browning drives Albon\u2019s Williams in FP1',
+      body: BROWNING_WILLIAMS_FP1_BODY,
+      affectsSessions: ['quali', 'race'],
+      // Albon, not Browning: Browning is not on the roster and cannot be
+      // picked, and the point of the item is who is in the car afterwards.
+      driverCodes: ['ALB'],
+      sourceName: 'GPFans',
+      sourceUrl:
+        'https://www.gpfans.com/en/f1-news/1089597/williams-f1-team-announce-alex-albon-driver-replacement-luke-browning-italian-grand-prix/',
+    });
+
+    return { antonelli, tow, browning };
   },
 });

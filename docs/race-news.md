@@ -83,7 +83,17 @@ is what stops the agent needing to guess whether it already ran.
 
 ## Writing a body
 
-Two rules earned the hard way on the Antonelli item.
+**Report the news; do not instruct the reader.** These bodies have two
+surfaces, and the second one is public: the write-up page renders them under
+"What changed this weekend" for anyone arriving from a search, who has no picks
+in front of them. So a body opens on what happened, and any line about how to
+read the session comes last and only when it changes something. "Treat Russell
+as unpenalised at Monza" and "Use FP2 for your first comparison" were both cut
+for this. The section ends with the scoring-policy note and every card links
+"How these are scored", so an instruction in the prose is the weakest sentence
+on the card as well as the one that dates fastest.
+
+Three more rules, the first two earned the hard way on the Antonelli item.
 
 **Be specific about numbers that came from the source.** "Takes a grid penalty"
 is half a story; "at least 10 places, and further if they fit more new parts" is
@@ -95,6 +105,13 @@ illustration it is clear, and as something skimmed in a feed it is a tip: it
 steers people to put Antonelli P4. Describe what a penalty does to a score in
 general terms instead, and let the card's "How these are scored" link to
 [the results policy](https://grandprixpicks.com/results-policy) carry the detail.
+
+**One source per card.** A record holds one `sourceUrl`, so a fact that link
+does not support does not belong in that body. Antonelli's Monza tow arrived
+from formula1.com the morning after his penalty had been published against a
+Motorsport.com report, and it became `mercedes-monza-qualifying-tow` rather than
+a fourth sentence: its own source, and `["quali"]` where the penalty is
+`["quali","race"]`.
 
 ## Feed behaviour
 

@@ -85,9 +85,25 @@ npx convex run --prod raceNews:publish '{
   key **edits the existing item in place**, which is what you want when a fact
   firms up. A new key posts a second item.
 - **`headline`** — one line, plain. What happened, and to whom.
-- **`body`** — one or two sentences. Lead with what it means for a pick, not
-  with the news. "Albon races, so Friday morning is not a read on Williams pace"
-  beats "Browning has been announced for FP1".
+- **`body`** — one to three sentences, and they are reporting. Lead with what
+  happened and who it happened to, then, if it still needs saying, one closing
+  clause on how to read the session. These bodies are not feed-only: the
+  write-up page renders every one of them under "What changed this weekend",
+  which is a page we want strangers to find, and a card that opens by telling
+  the reader what to do with their picks reads as a tip sheet rather than as
+  news. "Browning takes over Albon's Williams for Friday morning. Albon is back
+  in the car from FP2, so FP1 is not a read on Williams pace" beats "Use FP2 for
+  your first comparison of Albon and Williams".
+- **Never address the reader's picks in the imperative.** "Treat Russell as
+  unpenalised" and "Use FP2 for your first comparison" are the shape to avoid.
+  The section already ends with the scoring-policy note and every card links
+  "How these are scored", so the instruction is both redundant and the weakest
+  sentence on the card. State the fact and let it do the work.
+- **One story per key, one source per card.** A new fact the item's `sourceUrl`
+  does not support is a new item with its own source, not a fourth sentence on
+  an existing body. It usually has a narrower `affectsSessions` too: Antonelli's
+  Monza penalty is `["quali","race"]`, the tow he gives Russell in qualifying is
+  `["quali"]`.
 - **Never invent a position.** "If he qualifies P4 he starts P14" reads as a
   tip, not an illustration: a player who skims it puts that driver P4. Say what
   the penalty does to a score in general terms and let the card's "How these

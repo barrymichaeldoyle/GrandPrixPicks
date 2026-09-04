@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ANTONELLI_MONZA_PENALTY_BODY,
   ARON_MONZA_FP1_BODY,
+  BROWNING_WILLIAMS_FP1_BODY,
   COLAPINTO_ALPINE_UPGRADE_BODY,
   FERRARI_ENGINE_UPGRADE_BODY,
   HADJAR_DUTCH_GP_LINEUP_NOTE,
   HADJAR_MONZA_ABSENCE_BODY,
   HERTA_MONZA_FP1_BODY,
   IWASA_MONZA_FP1_BODY,
+  MERCEDES_MONZA_TOW_BODY,
 } from './italy2026MonzaNewsCopy';
 
 describe('italy2026MonzaNewsCopy', () => {
@@ -42,7 +45,7 @@ describe('italy2026MonzaNewsCopy', () => {
 
   it('keeps the four FP1 bodies from repeating each other', () => {
     expect(HERTA_MONZA_FP1_BODY).toBe(
-      'Perez is back in the car from FP2, so Friday morning is not a read on his pace. It is Herta\u2019s third FP1 of the season, after Barcelona and Hungary.',
+      'It is Herta\u2019s third FP1 of the season for Cadillac, after Barcelona and Hungary. Perez is back in the car from FP2, so Friday morning is not a read on his pace.',
     );
     expect(ARON_MONZA_FP1_BODY).toBe(
       'Gasly is back in the car from FP2 and the rest of the weekend. Aron then works the Enstone simulator that evening to help fine-tune the set-up.',
@@ -65,5 +68,30 @@ describe('italy2026MonzaNewsCopy', () => {
     // does simulator work afterwards. It does not say Alpine wants his read on
     // the package, and `colapinto-alpine-upgrade` already tells that story.
     expect(ARON_MONZA_FP1_BODY).not.toMatch(/upgrade|package|floor|diffuser/i);
+  });
+
+  it('reports the news before it addresses a pick', () => {
+    // The write-up page renders these bodies under "What changed this
+    // weekend", so each card opens on what happened. The sentence about how
+    // to read the session comes second where it is worth keeping at all, and
+    // the two bodies that closed with an instruction no longer do: the
+    // section's scoring note and each card's "How these are scored" link
+    // already carry that.
+    expect(ANTONELLI_MONZA_PENALTY_BODY).not.toMatch(
+      /Qualifying picks use|Treat Russell/,
+    );
+    expect(BROWNING_WILLIAMS_FP1_BODY).not.toMatch(/Use FP2/);
+    expect(HERTA_MONZA_FP1_BODY.split('. ')[0]).toMatch(/third FP1/);
+  });
+
+  it('keeps the qualifying tow off the penalty card', () => {
+    // One sourceUrl per record. The penalty item cites Motorsport.com, which
+    // does not carry the Thursday tow quotes, so the tow is its own item with
+    // its own F1.com source and its own narrower affectsSessions.
+    expect(ANTONELLI_MONZA_PENALTY_BODY).not.toMatch(/tow|slipstream/i);
+    expect(MERCEDES_MONZA_TOW_BODY).toMatch(/tow for Russell in qualifying/);
+    expect(MERCEDES_MONZA_TOW_BODY).toMatch(/straight mode/);
+    // 2026 terminology: there is no DRS to name.
+    expect(MERCEDES_MONZA_TOW_BODY).not.toMatch(/DRS/);
   });
 });

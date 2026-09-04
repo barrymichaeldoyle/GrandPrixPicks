@@ -30,7 +30,32 @@ export const HADJAR_DUTCH_GP_LINEUP_NOTE =
  * and the upgrade is already its own card (`colapinto-alpine-upgrade`).
  */
 export const HERTA_MONZA_FP1_BODY =
-  'Perez is back in the car from FP2, so Friday morning is not a read on his pace. It is Herta’s third FP1 of the season, after Barcelona and Hungary.';
+  'It is Herta’s third FP1 of the season for Cadillac, after Barcelona and Hungary. Perez is back in the car from FP2, so Friday morning is not a read on his pace.';
 
 export const ARON_MONZA_FP1_BODY =
   'Gasly is back in the car from FP2 and the rest of the weekend. Aron then works the Enstone simulator that evening to help fine-tune the set-up.';
+
+/*
+ * The two items that were only ever published by hand, now mirrored here so
+ * the whole Monza weekend is reproducible from code like the other five.
+ *
+ * Both lost a closing sentence addressed to the reader's picks. The write-up
+ * page renders these bodies under "What changed this weekend" and is one of
+ * the pages we want found, so a card reads better as reporting than as
+ * instructions: the section already ends with the scoring-policy note, and
+ * every card already links "How these are scored". See `docs/race-news.md`.
+ */
+export const ANTONELLI_MONZA_PENALTY_BODY =
+  'Mercedes has confirmed a full power unit change for Antonelli at his home race, which is expected to put him at the back of the grid on Sunday. Russell needs the same parts at some point this season, but Mercedes plans to take that penalty at Baku rather than Monza.';
+
+export const BROWNING_WILLIAMS_FP1_BODY =
+  'Browning takes over Albon’s Williams for Friday morning. Albon is back in the car from FP2 and for the rest of the weekend, so FP1 is not a read on Williams pace.';
+
+/*
+ * The tow is its own card rather than a fourth sentence on the penalty item.
+ * One `sourceUrl` per record, and the penalty item's Motorsport.com report
+ * does not carry the Thursday quotes; it also lands on qualifying alone, where
+ * the penalty item is qualifying and race.
+ */
+export const MERCEDES_MONZA_TOW_BODY =
+  'Antonelli starts from the back with his power unit penalty, which frees him to run a tow for Russell in qualifying. Russell says Mercedes offered the plan and that they will try it, and Antonelli says he will do it if the team asks. Russell also expects a slipstream to be worth less than it once was, with the wings open in straight mode.';

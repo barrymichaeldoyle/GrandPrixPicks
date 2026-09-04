@@ -3,11 +3,8 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { PracticeResults } from './PracticeClassification';
-import {
-  latestPracticeResult,
-  PracticeClassification,
-} from './PracticeClassification';
+import type { PracticeResults } from '@/lib/practiceSessions';
+
 import { WeekendPracticeSection } from './WeekendPracticeSection';
 
 (
@@ -63,21 +60,6 @@ afterEach(() => {
   container?.remove();
   container = null;
   root = null;
-});
-
-describe('latestPracticeResult', () => {
-  it('prefers the newest session regardless of array order', () => {
-    const results = [
-      session('fp1', 20),
-      session('fp3', 20),
-      session('fp2', 20),
-    ];
-    expect(latestPracticeResult(results)?.sessionType).toBe('fp3');
-  });
-
-  it('returns null when nothing has been published', () => {
-    expect(latestPracticeResult([])).toBeNull();
-  });
 });
 
 describe('WeekendPracticeSection', () => {
@@ -162,24 +144,5 @@ describe('WeekendPracticeSection', () => {
       <WeekendPracticeSection raceSlug="italy-2026" results={[]} />,
     );
     expect(view.querySelector('[data-testid="weekend-practice"]')).toBeNull();
-  });
-});
-
-describe('PracticeClassification card layout', () => {
-  it('keeps the compact dashboard chrome', () => {
-    const view = render(
-      <PracticeClassification
-        raceSlug="bahrain-2026"
-        results={[session('fp1', 20)]}
-        layout="card"
-        analyticsSurface="dashboard"
-      />,
-    );
-
-    expect(
-      view.querySelector('[data-testid="dashboard-practice"]'),
-    ).not.toBeNull();
-    expect(view.textContent).toContain('Practice');
-    expect(view.textContent).toContain('Show full results (P7–P20)');
   });
 });

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { CircuitSummary } from '@/components/CircuitSummary';
+import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { InAppBackLink } from '@/components/InAppBackLink';
 import { PracticeResultsPanel } from '@/components/PracticeResultsCard';
 import { captureAnalyticsEvent } from '@/lib/analytics';
@@ -215,6 +216,8 @@ function PracticeResultsPage() {
           </Link>{' '}
           to see how much of it carried over.
         </p>
+
+        <RaceWriteupCallout raceSlug={race.slug} className="mt-8" />
 
         <CircuitSummary raceSlug={race.slug} />
 

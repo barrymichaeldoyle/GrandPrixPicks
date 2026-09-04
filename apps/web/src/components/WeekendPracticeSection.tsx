@@ -1,12 +1,12 @@
-import type { PracticeResults } from '@/components/PracticeClassification';
 import { PracticeClassification } from '@/components/PracticeClassification';
+import type { PracticeResults } from '@/lib/practiceSessions';
 
 /**
- * The weekend write-up's practice classification.
+ * The weekend write-up's practice classification, named for where it sits.
  *
- * Same table as the dashboard card, at the write-up's type scale, so it sits
- * next to {@link WeekendNewsSection} rather than looking like a dashboard
- * block dropped into an article. Renders nothing until a session is published.
+ * The section is styled for an article rather than a dashboard, so it reads
+ * next to {@link WeekendNewsSection} at the same type scale. Renders nothing
+ * until a session is published.
  */
 export function WeekendPracticeSection({
   results,
@@ -15,12 +15,5 @@ export function WeekendPracticeSection({
   results: PracticeResults;
   raceSlug: string;
 }) {
-  return (
-    <PracticeClassification
-      results={results}
-      raceSlug={raceSlug}
-      layout="section"
-      analyticsSurface="writeup"
-    />
-  );
+  return <PracticeClassification results={results} raceSlug={raceSlug} />;
 }

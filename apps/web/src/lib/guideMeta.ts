@@ -131,6 +131,48 @@ const GUIDE_META: readonly GuideMeta[] = [
     ],
   },
   {
+    slug: 'f1-half-points-races',
+    publishedAt: '2026-09-05',
+    title: 'Every F1 race that did not pay full points',
+    metaTitle: 'F1 Half Points: Every Race That Paid Less | Grand Prix Picks',
+    metaDescription:
+      'Half points have been awarded six times in Formula 1 history. The full list, why each race was stopped, and the sliding scale that replaced the half-points rule.',
+    summary:
+      'Six times in seventy-odd years, a Grand Prix has paid less than it should have. Here is every one, and the rule that decides it now.',
+    faqs: [
+      {
+        question: 'How many times have half points been awarded in F1?',
+        answer:
+          'Six: the 1975 Spanish and Austrian Grands Prix, the 1984 Monaco Grand Prix, the 1991 Australian Grand Prix, the 2009 Malaysian Grand Prix and the 2021 Belgian Grand Prix. 1975 is the only season to have two.',
+      },
+      {
+        question: 'Does Formula 1 still award half points?',
+        answer:
+          'No. Half points were replaced for 2022 by a sliding scale that pays a different amount depending on how much of the race was completed. A race that runs past three-quarters distance still pays full points.',
+      },
+      {
+        question: 'Why did the 2021 Belgian Grand Prix award half points?',
+        answer:
+          'The race never ran under green flags. The field completed a couple of laps behind the safety car in heavy rain, which was enough to classify a result and award half points under the rules of the time. The reaction to it is what produced the current sliding scale.',
+      },
+      {
+        question: 'What is the shortest race in Formula 1 history?',
+        answer:
+          'The 1991 Australian Grand Prix at Adelaide. It was stopped after 16 of a scheduled 81 laps in torrential rain, and the classification was taken from lap 14. Ayrton Senna won it.',
+      },
+      {
+        question: 'Who is the only woman to score points in Formula 1?',
+        answer:
+          'Lella Lombardi, at the 1975 Spanish Grand Prix. She finished sixth in a race that paid half points, so her score stands as half a point: the only half-point total in the championship record.',
+      },
+      {
+        question: 'How many laps does an F1 race need for full points?',
+        answer:
+          'Three-quarters of the scheduled distance. Below that, the sliding scale introduced for 2022 pays a reduced set of points, and a race that does not complete two laps pays nothing at all.',
+      },
+    ],
+  },
+  {
     slug: 'how-to-predict-f1-top-five',
     publishedAt: '2026-08-03',
     title: 'How to predict an F1 top five',

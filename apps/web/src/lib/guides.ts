@@ -132,6 +132,118 @@ const GUIDE_BODIES: Record<string, GuideBody> = {
       },
     ],
   },
+  'f1-half-points-races': {
+    sections: [
+      {
+        heading: 'The six races',
+        paragraphs: [
+          'Formula 1 has awarded half points six times. Every one of them was a race that stopped early, and all but one stopped because of rain. 1975 is the only season that produced two.',
+        ],
+        list: [
+          {
+            term: '1975 Spanish Grand Prix',
+            detail:
+              'Stopped after 29 of 75 laps at Montjuïc Park, when Rolf Stommelen’s car went into a spectator area and four people were killed. Jochen Mass won, the only Grand Prix victory of his career.',
+          },
+          {
+            term: '1975 Austrian Grand Prix',
+            detail:
+              'Stopped after 29 laps in heavy rain at the Österreichring. Vittorio Brambilla won, also the only victory of his career, and crashed on his slowing down lap.',
+          },
+          {
+            term: '1984 Monaco Grand Prix',
+            detail:
+              'Stopped after 31 laps in heavy rain. Alain Prost won from Ayrton Senna, who was closing on him quickly enough that the stoppage is still argued about.',
+          },
+          {
+            term: '1991 Australian Grand Prix',
+            detail:
+              'Stopped after 16 of 81 laps at Adelaide in torrential rain, and classified from lap 14. It remains the shortest race in championship history. Ayrton Senna won.',
+          },
+          {
+            term: '2009 Malaysian Grand Prix',
+            detail:
+              'Red-flagged on lap 33 at Sepang as a monsoon arrived and the light went, and classified from lap 31. Jenson Button won, in the season Brawn came from nowhere.',
+          },
+          {
+            term: '2021 Belgian Grand Prix',
+            detail:
+              'A couple of laps behind the safety car at Spa and nothing else. Max Verstappen was classified the winner of a race that never ran green, which is what forced the rule to change.',
+          },
+        ],
+      },
+      {
+        heading: 'Why sources disagree about the lap counts',
+        paragraphs: [
+          'Look these races up and you will find different lap numbers for the same race. That is not sloppiness. When a race is stopped, the classification is not taken from the lap the red flag came out on. It is taken from the last lap completed before the leaders were shown the flag, which in practice is usually two laps earlier.',
+          'So the 1991 Australian Grand Prix ran to lap 16 and was classified on lap 14, and the 2009 Malaysian Grand Prix was red-flagged on lap 33 and classified on lap 31. Both numbers are correct; they answer different questions. The classified lap is the one that decides the result, and it is the one that counts towards the distance thresholds below.',
+        ],
+      },
+      {
+        heading: 'The rule that produced them',
+        paragraphs: [
+          'For most of the sport’s history the rule was a single cliff edge. A race that reached three-quarters of its scheduled distance paid full points. A race stopped before that paid half, with the fractions rounded nowhere: sixth place in a half-points race scored half a point.',
+          'That is how the championship record ends up with a half in it. Lella Lombardi finished sixth in the 1975 Spanish Grand Prix and scored half a point, which makes her the only woman to have scored in Formula 1 and the only driver to hold a half-point total.',
+          'The problem with a cliff edge is that it treats a race stopped one lap short of three-quarters distance exactly the same as a race that never started properly. Spa in 2021 was the case that made this impossible to ignore. Two laps behind a safety car paid the same proportion as a race that had run for an hour and a half.',
+        ],
+      },
+      {
+        heading: 'What happens now',
+        paragraphs: [
+          'From 2022 the cliff edge became a staircase. How much of the race was completed decides which of four scales applies, and a race that does not manage two laps pays nothing at all.',
+        ],
+        list: [
+          {
+            term: 'Under 2 laps',
+            detail:
+              'No points. The race is treated as though it did not happen.',
+          },
+          {
+            term: '2 laps to 25%',
+            detail: 'The top five score, on a 6-4-3-2-1 scale.',
+          },
+          {
+            term: '25% to 50%',
+            detail: 'The top nine score: 13, 10, 8, 6, 5, 4, 3, 2, 1.',
+          },
+          {
+            term: '50% to 75%',
+            detail: 'The top ten score: 19, 14, 12, 9, 8, 6, 5, 3, 2, 1.',
+          },
+          {
+            term: 'Over 75%',
+            detail: 'Full points, exactly as any other Grand Prix.',
+          },
+        ],
+      },
+      {
+        heading: 'The rule got tested immediately',
+        paragraphs: [
+          'The 2022 Japanese Grand Prix was stopped, restarted, and ran to its two-hour limit having covered a little over half the scheduled distance. Everyone in the paddock expected the reduced scale, and Max Verstappen expected to leave Suzuka without the championship.',
+          'Full points were awarded instead, because the reduction as written applied to races that were abandoned rather than races that were stopped and resumed. Verstappen took 25 points and the title on the spot, and found out on the podium. The wording was rewritten for 2023.',
+        ],
+      },
+      {
+        heading: 'What it means for your predictions',
+        paragraphs: [
+          'Grand Prix Picks scores the official classification, so a shortened race is scored on the order that was declared rather than the order the cars were running in when the red flag came out. On the two occasions above, that is a different order.',
+          'The reduced scale does not change how your picks are scored. Predicting a top five is worth the same whether the race pays 25 points to its winner or 6, because you are being scored on the accuracy of the order and not on the points the drivers collect.',
+        ],
+      },
+    ],
+    liveLinks: [
+      {
+        to: '/f1-standings',
+        label: 'F1 championship standings',
+        detail: 'Where the points have actually landed this season.',
+      },
+      {
+        to: '/races',
+        label: 'Race calendar',
+        detail: 'Every round of the season, with session times for each one.',
+      },
+    ],
+  },
   'f1-points-system-explained': {
     sections: [
       {

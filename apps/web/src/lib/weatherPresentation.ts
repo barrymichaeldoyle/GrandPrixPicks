@@ -13,7 +13,7 @@ export type WeatherHour = {
   windDirectionDegrees?: number;
 };
 
-export type WeatherDay = {
+type WeatherDay = {
   localDate: string;
   minTemperatureC: number;
   maxTemperatureC: number;
@@ -344,10 +344,20 @@ function localTime(timestamp: number, timeZone: string): string {
   }).format(timestamp);
 }
 
-export function forecastNarrative(
+/**
+ * What the hours around a session say that the session's own row cannot.
+ *
+ * Null on a session with nothing either side of it, which is the common case
+ * and the point: the strip already prints the condition, the temperature and
+ * the rain chance for every session, so a sentence repeating one of those rows
+ * in words is the page saying the same thing twice. What a row genuinely cannot
+ * carry is timing — rain that lands an hour after the flag, or a wet morning
+ * before a dry afternoon — and that is all this returns.
+ */
+export function forecastAlert(
   forecast: WeatherForecast,
   session: WeatherSession,
-): string {
+): string | null {
   const before = forecast.hours.filter((hour) =>
     weatherHourOverlaps(
       hour,
@@ -371,25 +381,16 @@ export function forecastNarrative(
       normalizeConditionCode(hour.conditionCode).includes('thunder'),
   );
 
-  let lead: string;
-  if (duringRain >= 50) {
-    lead = `Rain is currently in the forecast during ${session.label.toLowerCase()}.`;
-  } else if (duringRain >= 20) {
-    lead = `Showers are possible during ${session.label.toLowerCase()}.`;
-  } else {
-    lead = `${session.label} currently looks dry.`;
-  }
-
   if (afterThunder) {
-    return `${lead} Thunderstorm risk rises after the session from around ${localTime(afterThunder.at, forecast.timeZone)}, so a change in timing could still matter.`;
+    return `Thunderstorm risk rises after ${session.label.toLowerCase()} from around ${localTime(afterThunder.at, forecast.timeZone)}, so a change in timing could still matter.`;
   }
   if (afterRain >= 50 && duringRain < 50) {
-    return `${lead} Wetter weather is forecast later, so a change in timing could still matter.`;
+    return `Wetter weather is forecast after ${session.label.toLowerCase()}, so a change in timing could still matter.`;
   }
   if (beforeRain >= 50 && duringRain < 50) {
-    return `${lead} Rain is forecast earlier in the day and may leave a damp or low-grip circuit.`;
+    return `Rain is forecast before ${session.label.toLowerCase()} and may leave a damp or low-grip circuit.`;
   }
-  return `${lead} Conditions either side of the session are currently fairly stable.`;
+  return null;
 }
 
 export function nextWeatherSession(
@@ -397,70 +398,6 @@ export function nextWeatherSession(
   now: number,
 ): WeatherSession | null {
   return sessions.find((session) => session.endsAt >= now) ?? null;
-}
-
-/**
- * Whether this weekend's weather is worth reading in detail.
- *
- * The hour-by-hour grid is the largest block on a race write-up: on a settled
- * Monza weekend it ran to 1080px, a fifth of the page, sat directly under the
- * hero, and said "dry" twelve times. The news items that actually move a pick
- * sat below it at half the height. The problem was never the grid's design, it
- * was that the grid is the same size whether or not it has anything to say.
- *
- * So the page asks first. A settled forecast collapses to its day summaries and
- * puts the detail behind a disclosure; anything that could change a session
- * keeps the full timeline open. The thresholds are deliberately low, because
- * the cost of opening the detail on a dry weekend is some scrolling, while the
- * cost of hiding it on a wet one is a reader missing the thing they came for.
- */
-export function weekendWeatherOutlook(forecast: WeatherForecast): {
-  settled: boolean;
-  summary: string;
-} {
-  const days = forecast.days;
-  if (days.length === 0) {
-    return { settled: false, summary: '' };
-  }
-
-  const notable = days.some(
-    (day) =>
-      day.hasThunderRisk ||
-      (day.maxPrecipitationProbability ?? 0) >= 20 ||
-      day.totalPrecipitationMm > 0.2 ||
-      (day.maxWindGustMps ?? 0) * 3.6 >= 45,
-  );
-
-  // Highs, not each day's full span.
-  //
-  // The span was `min`-to-`max` across the event days, which put Monza's
-  // "22–34°C" above a grid whose own cells read 22–32, 23–33 and 23–34: the
-  // 22 is a small-hours figure on a weekend where nothing runs before half
-  // twelve. It is also not something the model can be asked to sharpen. This
-  // far out MET returns six-hourly buckets, so the only datum covering a 12:30
-  // practice is an 08:00–14:00 bucket carrying a morning temperature, and a
-  // session-scoped range reports that same misleading 22.
-  //
-  // The high is the number the question is really asking, and it is honest at
-  // any resolution: the day maximum, said as the day maximum.
-  const lowestHigh = Math.round(
-    Math.min(...days.map((day) => day.maxTemperatureC)),
-  );
-  const highestHigh = Math.round(
-    Math.max(...days.map((day) => day.maxTemperatureC)),
-  );
-  const highs =
-    lowestHigh === highestHigh
-      ? `${highestHigh}°C`
-      : `${lowestHigh}–${highestHigh}°C`;
-
-  return {
-    settled: !notable,
-    // Said once, plainly, instead of twelve times across a grid.
-    summary: notable
-      ? `Conditions vary across the weekend, highs of ${highs}. The session-by-session detail is below.`
-      : `Dry across every session in the current model, highs of ${highs}.`,
-  };
 }
 
 /**

@@ -21,7 +21,6 @@ import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWrite
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
-import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   lastReviewedAt,
@@ -382,34 +381,33 @@ function ItalianGrandPrixPredictionsPage() {
             race={race}
             timeZone="Europe/Rome"
             timeZoneLabel="MONZA TIME"
+            weather={isLive ? weather : null}
+            now={weatherNow}
           />
         </div>
 
+        {/* Directly under the hero, whose schedule card now carries the
+            forecast: the hazard is a threshold that forecast crossed, and
+            leaving it below the track map and the compound strip had a reader
+            meeting the consequence long after the numbers that caused it. Its
+            own gate stays open on a finished page, where it simply leads. */}
+        <HeatHazard showPickRead={isLive} />
+        {/* Then what changed this week, and the seats it moved straight after
+            the feed item that reports it. */}
         {isLive ? (
           <>
-            <WeekendWeatherForecast
-              race={race}
-              weather={weather}
-              now={weatherNow}
-            />
             <WeekendNewsSection items={news.items} />
+            <MonzaSeats byCode={driversByCode} />
             <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
           </>
         ) : null}
         <WatchTable />
         <TrackMap />
         <TyreChoice />
-        {/* Straight after the compound strip, because the tyre section's
-            one-stop question is the thing the heat decides, and outside the
-            gate below for the reason given on the component. */}
-        <HeatHazard showPickRead={isLive} />
-        {/* The line-up and the standings both carry a right-hand card; the tribute
-            and the contracts do not. Run the two carded sections together so
-            the rail does not appear, vanish and reappear, and let the
-            prose-only asides follow. */}
+        {/* The standings carry a right-hand card, the tribute and the contracts
+            do not, so the prose-only asides follow rather than interleave. */}
         {isLive ? (
           <>
-            <MonzaSeats byCode={driversByCode} />
             <RaceWriteupChampionshipContext
               championship={championship}
               venueName="Monza"
@@ -681,7 +679,7 @@ function TrackMap() {
  *
  * Three paragraphs opened this section, and every sentence of them was already
  * on the page: `raceNews` carries the injury, the two seats it moves and the
- * FP1 rookie run, as items the reader meets several sections higher. News that
+ * FP1 rookie run, as items the feed directly above already reports. News that
  * moves a pick belongs in the feed, where it retires itself when the weekend
  * ends, rather than hand-typed into prose that does not. What the feed cannot
  * do is show the affected seats at once, in team colour, which is what the
@@ -700,11 +698,18 @@ function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
       >
         Who takes Hadjar&rsquo;s seat
       </h2>
-      {/* The card first, because it is the answer, and the portrait beside it
-          rather than under it: stacked, a 20rem photo pushed the section to
-          twice the height of the three rows that are its point. */}
-      <div className="mt-7 grid gap-7 sm:grid-cols-[minmax(0,18rem)_16rem] sm:items-start">
-        <dl className="rounded-sm bg-surface-elevated px-4">
+      {/* The same two columns every other photo section on this page uses, so
+          the portrait lands in the one 16rem rail the eye is already following
+          down the page. Stacked in a narrow 18rem card it left the right half
+          of a 64rem page blank, which read as a section that had lost its
+          copy \u2014 because it had. */}
+      <div className={`mt-7 ${WRITEUP_WITH_PHOTO}`}>
+        {/* Three across from `sm`, not three rows. Each row is a label, a
+            badge and four words; stacked they are a list the eye reads
+            downwards, side by side they are the comparison the section is
+            actually making \u2014 one seat empty, one filled, one untouched \u2014 and
+            they fill the column rather than trailing off half way. */}
+        <dl className="grid gap-px overflow-hidden rounded-sm bg-border sm:grid-cols-3">
           {/* Team colour is the one thing a list of three names cannot say:
               without it a reader is left working out that two of these seats
               are Red Bull's and one is Racing Bulls'. */}
@@ -717,14 +722,14 @@ function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
             return (
               <div
                 key={label}
-                className="border-b border-border py-4 last:border-0"
+                className="bg-surface-elevated px-4 py-4 sm:px-5 sm:py-5"
               >
                 <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
                   {label}
                 </dt>
-                <dd className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text">
+                <dd className="mt-3 text-sm text-text">
                   {driver ? (
-                    <>
+                    <span className="flex flex-wrap items-center gap-2">
                       <DriverBadge
                         code={driver.code}
                         team={driver.team}
@@ -735,10 +740,14 @@ function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
                         prerenderTooltip={false}
                       />
                       <span>{driver.displayName}</span>
-                    </>
+                    </span>
                   ) : null}
                   {note ? (
-                    <span className={driver ? 'text-text-muted' : undefined}>
+                    <span
+                      className={
+                        driver ? 'mt-2 block text-text-muted' : undefined
+                      }
+                    >
                       {note}
                     </span>
                   ) : null}
@@ -747,7 +756,9 @@ function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
             );
           })}
         </dl>
-        <WriteUpNewsPhoto {...HADJAR_WRITEUP_IMAGE} />
+        <div className={WRITEUP_PHOTO_COLUMN_FLUSH}>
+          <WriteUpNewsPhoto {...HADJAR_WRITEUP_IMAGE} />
+        </div>
       </div>
     </section>
   );
@@ -983,12 +994,11 @@ function TyreChoice() {
  * The heat hazard, as a write-up section rather than as `raceNews`.
  *
  * It is declared for the meeting, so it lands on all twenty-two cars at once
- * and `affectsSessions` would be answering for the whole grid. Same side of the
- * line as the compound nomination directly above it, and it carries no team bar
- * for the same reason: it belongs to nobody on the grid.
+ * and `affectsSessions` would be answering for the whole grid. It carries no
+ * team bar for the same reason: it belongs to nobody on the grid.
  *
- * What it deliberately does not do is repeat the forecast. The weather
- * component further up serves live numbers that move, and a hand-typed 36°C
+ * What it deliberately does not do is repeat the forecast. The schedule card
+ * in the hero above serves live numbers that move, and a hand-typed 36°C
  * beside a component saying 33°C is the page arguing with itself. The threshold
  * and the regulation are what the component cannot say, so they are what is
  * here.

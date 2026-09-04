@@ -14,7 +14,6 @@ import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWrite
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
-import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
   lastReviewedAt,
@@ -284,16 +283,10 @@ function MadridGrandPrixPredictionsPage() {
             race={race}
             timeZone="Europe/Madrid"
             timeZoneLabel="MADRID TIME"
-          />
-        </div>
-
-        {isLive ? (
-          <WeekendWeatherForecast
-            race={race}
-            weather={weather}
+            weather={isLive ? weather : null}
             now={weatherNow}
           />
-        ) : null}
+        </div>
 
         <NoFormGuide />
         <FormulaThreeTest />

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { RaceWeather, WeatherHour } from '@/lib/weatherPresentation';
 
-import { WeekendWeatherForecast } from './WeekendWeatherForecast';
+import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 
 const HOUR = 60 * 60_000;
 
@@ -83,18 +83,20 @@ function weatherWith(hours: WeatherHour[], now: number): RaceWeather {
   };
 }
 
-describe('WeekendWeatherForecast', () => {
+describe('WeekendWeatherDetail', () => {
   it('says a session that has already run is not waiting on the model', () => {
     // Mid-afternoon on Friday: the provider starts at the current hour, so
     // Practice 1 has dropped out of the forecast behind us.
     const now = Date.UTC(2026, 8, 4, 13, 22);
     const html = renderToStaticMarkup(
-      <WeekendWeatherForecast
+      <RaceWriteupWeekendSchedule
+        race={race}
+        timeZone="Europe/Rome"
+        timeZoneLabel="MONZA TIME"
         weather={weatherWith(
           [...hoursForDay(0, 15), ...hoursForDay(1), ...hoursForDay(2)],
           now,
         )}
-        race={race}
         now={now}
       />,
     );
@@ -109,12 +111,14 @@ describe('WeekendWeatherForecast', () => {
     // hours yet and checking back is the useful thing to say.
     const now = Date.UTC(2026, 7, 30, 9);
     const html = renderToStaticMarkup(
-      <WeekendWeatherForecast
+      <RaceWriteupWeekendSchedule
+        race={race}
+        timeZone="Europe/Rome"
+        timeZoneLabel="MONZA TIME"
         weather={weatherWith(
           [...hoursForDay(0), ...hoursForDay(1), ...hoursForDay(2, 6, 12)],
           now,
         )}
-        race={race}
         now={now}
       />,
     );

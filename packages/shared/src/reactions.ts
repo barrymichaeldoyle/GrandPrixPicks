@@ -53,6 +53,33 @@ export function reactionOptionsFor(
   }));
 }
 
+/**
+ * How one stored reaction should be shown on a given surface.
+ *
+ * **Use this, not `REACTION_BY_TYPE`, anywhere a context is in hand.** Every
+ * surface that offers reactions got the context right for the *picker* — it
+ * calls `reactionOptionsFor` — and then reached for the context-free map to
+ * draw the reaction somebody actually left. On a news card that put the two
+ * side by side: a fire reaction rendered as "🔥 Great pick" on the button while
+ * the count beside it, built from the same context list as the picker, showed
+ * 🌶️. A reader could pick "Spicy" and be told they had said "Great pick" about
+ * a grid penalty.
+ */
+export function reactionOptionFor(
+  context: ReactionContext,
+  type: ReactionType,
+): { type: ReactionType; emoji: string; label: string } {
+  const override = context === 'news' ? NEWS_OVERRIDES[type] : undefined;
+  return { ...REACTION_BY_TYPE[type], ...(override ?? {}) };
+}
+
+/**
+ * The pick wording, by type.
+ *
+ * Correct only where the reaction is genuinely about a pick — a notification
+ * saying somebody reacted to *your* score, for instance. Prefer
+ * `reactionOptionFor` on any surface that can also show news.
+ */
 export const REACTION_BY_TYPE = Object.fromEntries(
   REACTION_OPTIONS.map((reaction) => [reaction.type, reaction]),
 ) as Record<ReactionType, (typeof REACTION_OPTIONS)[number]>;

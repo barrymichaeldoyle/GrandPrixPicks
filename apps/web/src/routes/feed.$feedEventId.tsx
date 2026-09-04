@@ -1,5 +1,5 @@
 import {
-  REACTION_BY_TYPE,
+  reactionOptionFor,
   reactionOptionsFor,
 } from '@grandprixpicks/shared/reactions';
 import { api } from '@convex-generated/api';
@@ -47,10 +47,14 @@ function ReactionsSection({
 }) {
   const reactionUsers = useQuery(api.feed.getReactionUsers, { feedEventId });
   const me = useQuery(api.users.me, {});
+  // One context for the whole section: the group headings and the badge beside
+  // each name have to agree about whether a fire reaction is "Great pick" or
+  // "Spicy", and deriving it twice is how they came to disagree.
+  const context = eventType === 'race_news' ? 'news' : 'pick';
   const groups =
     reactionUsers === undefined
       ? []
-      : reactionOptionsFor(eventType === 'race_news' ? 'news' : 'pick')
+      : reactionOptionsFor(context)
           .map((reaction) => ({
             reaction,
             users: reactionUsers.filter(
@@ -129,9 +133,11 @@ function ReactionsSection({
                         </div>
                       </Link>
                       <span
-                        aria-label={REACTION_BY_TYPE[user.reactionType].label}
+                        aria-label={
+                          reactionOptionFor(context, user.reactionType).label
+                        }
                       >
-                        {REACTION_BY_TYPE[user.reactionType].emoji}
+                        {reactionOptionFor(context, user.reactionType).emoji}
                       </span>
                       {me && user.userId !== me._id && (
                         <FollowButton followeeId={user.userId} />

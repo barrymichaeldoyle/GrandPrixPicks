@@ -15,9 +15,8 @@ import type { WriteUpNewsPhotoProps } from '@/components/WriteUpNewsPhoto';
  * photo and the section, not a preference:
  *
  * - `WRITEUP_PORTRAIT` (4:5) — one person, in a section with enough copy to
- *   stand beside 320px of picture. Hadjar (three paragraphs and a seat card)
- *   and the Schumacher tribute, whose whole point is the full figure on a
- *   scooter and which no landscape crop survives.
+ *   stand beside 320px of picture. The Schumacher tribute, whose whole point is
+ *   the full figure on a scooter and which no landscape crop survives.
  * - `WRITEUP_LANDSCAPE` (3:2) — two people, a car, or a circuit; and any
  *   section that is a paragraph or two, where 320px of portrait left more
  *   empty column than copy. At the same width this stands 213px.
@@ -80,19 +79,19 @@ const MELBOURNE_2026_CREDIT = {
 /**
  * Yu Chu Chin, CC BY-SA 4.0. Melbourne 2026; the seat Hadjar is missing.
  *
- * The one photo that overrides the shared `sizes`, because it is the one in a
- * section whose grid is `lg:` rather than `md:`. On a tablet the other
- * portraits are already beside their copy in a 12rem column; this one is still
- * stacked and paints 20rem. Inheriting the shared hint had it asking for the
- * 448 file to fill a 320px box on a 2x screen, which is a visibly soft photo.
+ * Landscape by the same rule as Colapinto below, arrived at from the other
+ * direction. It was a portrait when its section carried three paragraphs and a
+ * seat card; the paragraphs are `raceNews` items now, and what is left is a
+ * three-cell strip about 120px tall, which a 320px portrait turned into a
+ * section that was mostly empty column again. At the same width this stands
+ * 213px, which is the strip and its heading.
  */
 export const HADJAR_WRITEUP_IMAGE = {
-  ...WRITEUP_PORTRAIT,
+  ...WRITEUP_LANDSCAPE,
   ...MELBOURNE_2026_CREDIT,
-  sizes: '(min-width: 1024px) 16rem, (min-width: 640px) 20rem, 16rem',
-  src: '/media/yu-chu-chin-hadjar-red-bull-melbourne-2026-896.webp',
+  src: '/media/yu-chu-chin-hadjar-red-bull-melbourne-2026-900.webp',
   srcSet:
-    '/media/yu-chu-chin-hadjar-red-bull-melbourne-2026-448.webp 448w, /media/yu-chu-chin-hadjar-red-bull-melbourne-2026-896.webp 896w',
+    '/media/yu-chu-chin-hadjar-red-bull-melbourne-2026-450.webp 450w, /media/yu-chu-chin-hadjar-red-bull-melbourne-2026-900.webp 900w',
   alt: 'Isack Hadjar in Red Bull team kit, walking through the paddock at the 2026 Australian Grand Prix',
   creditUrl:
     'https://commons.wikimedia.org/wiki/File:Isack_Hadjar_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_(028A8755).jpg',

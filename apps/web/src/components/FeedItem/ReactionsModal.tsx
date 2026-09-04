@@ -1,5 +1,5 @@
 import {
-  REACTION_BY_TYPE,
+  reactionOptionFor,
   reactionOptionsFor,
   type ReactionContext,
 } from '@grandprixpicks/shared/reactions';
@@ -120,9 +120,11 @@ export function ReactionsModal({
                         </span>
                       </Link>
                       <span
-                        aria-label={REACTION_BY_TYPE[user.reactionType].label}
+                        aria-label={
+                          reactionOptionFor(context, user.reactionType).label
+                        }
                       >
-                        {REACTION_BY_TYPE[user.reactionType].emoji}
+                        {reactionOptionFor(context, user.reactionType).emoji}
                       </span>
                       {me && user.userId !== me._id && (
                         <FollowButton

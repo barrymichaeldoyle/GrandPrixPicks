@@ -11,7 +11,6 @@ import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPha
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
 import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
-import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import {
   lastReviewedAt,
   reviewedIsoDate,
@@ -226,16 +225,10 @@ function SingaporeGrandPrixPredictionsPage() {
             race={race}
             timeZone="Asia/Singapore"
             timeZoneLabel="SINGAPORE TIME"
-          />
-        </div>
-
-        {isLive ? (
-          <WeekendWeatherForecast
-            race={race}
-            weather={weather}
+            weather={isLive ? weather : null}
             now={weatherNow}
           />
-        ) : null}
+        </div>
 
         <FirstSingaporeSprint />
         <WatchTable />

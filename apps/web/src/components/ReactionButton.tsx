@@ -3,7 +3,7 @@ import type {
   ReactionType,
 } from '@grandprixpicks/shared/reactions';
 import {
-  REACTION_BY_TYPE,
+  reactionOptionFor,
   reactionOptionsFor,
   type ReactionContext,
   emptyReactionCounts,
@@ -175,8 +175,11 @@ export function ReactionButton({
     }
   }
 
+  // Resolved through the context, like the picker and the count beside it. The
+  // context-free map made a news card contradict itself: the trigger said
+  // "🔥 Great pick" next to a 🌶️ in its own count.
   const selectedDefinition = selectedReaction
-    ? REACTION_BY_TYPE[selectedReaction]
+    ? reactionOptionFor(context, selectedReaction)
     : null;
   const topReactions = options
     .filter((reaction) => counts[reaction.type] > 0)

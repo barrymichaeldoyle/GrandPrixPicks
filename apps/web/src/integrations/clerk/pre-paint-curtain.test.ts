@@ -4,8 +4,13 @@ import {
   APP_SHELL_ATTRIBUTE,
   AUTH_HANDOFF_ATTRIBUTE,
   PRE_PAINT_CURTAIN_CSS,
+  PRE_PAINT_TIMEOUT_GLOBAL,
   prePaintCurtainScript,
 } from './pre-paint-curtain';
+
+function marked() {
+  return window as unknown as Record<string, unknown>;
+}
 
 /**
  * The script is a string that runs before anything else on the page, so these
@@ -27,6 +32,7 @@ function runScript(
 }
 
 afterEach(() => {
+  delete marked()[PRE_PAINT_TIMEOUT_GLOBAL];
   document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
   vi.useRealTimers();
 });
@@ -74,6 +80,24 @@ describe('prePaintCurtainScript', () => {
     expect(document.documentElement.hasAttribute(AUTH_HANDOFF_ATTRIBUTE)).toBe(
       false,
     );
+  });
+
+  it('leaves a mark when it had to take itself down', () => {
+    vi.useFakeTimers();
+    runScript('__client_uat_i2Gq7zuC=1787759969');
+    vi.advanceTimersByTime(8_000);
+    // The script cannot report this itself: reporting needs the bundle whose
+    // absence is usually why it fired. `reportPrePaintCurtainTimeout` sends it.
+    expect(marked()[PRE_PAINT_TIMEOUT_GLOBAL]).toBe(1);
+  });
+
+  it('leaves no mark when React took the curtain down in time', () => {
+    vi.useFakeTimers();
+    runScript('__client_uat_i2Gq7zuC=1787759969');
+    // What `AuthCurtainHost` does the moment its own curtain resolves.
+    document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
+    vi.advanceTimersByTime(8_000);
+    expect(marked()[PRE_PAINT_TIMEOUT_GLOBAL]).toBeUndefined();
   });
 });
 

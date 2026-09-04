@@ -76,6 +76,19 @@ const PRE_PAINT_CURTAIN_TIMEOUT_MS = 8_000;
 export const SESSION_COOKIE_NAME_GLOBAL = '__gppClerkSessionCookieName';
 
 /**
+ * Set by the script when its own ceiling fires, i.e. React never got far enough
+ * to take the curtain down itself.
+ *
+ * That is a strictly worse failure than the one `AuthCurtainHost` reports — a
+ * chunk that never loaded, a parse error, a browser that never ran the app —
+ * and the script cannot report it, because reporting needs the very bundle that
+ * did not arrive. So it leaves a mark instead, and whichever part of the app
+ * does eventually boot sends it. If nothing ever boots there is nobody to tell,
+ * which is the honest limit of a report written in the page it is reporting on.
+ */
+export const PRE_PAINT_TIMEOUT_GLOBAL = '__gppPrePaintCurtainTimedOut';
+
+/**
  * Applies the same cookie rule as `isClerkSessionPresent` on the server: this
  * instance's suffixed cookie decides, and the unsuffixed pre-suffix name counts
  * only in its absence. A browser that once visited another Clerk instance keeps
@@ -83,7 +96,7 @@ export const SESSION_COOKIE_NAME_GLOBAL = '__gppClerkSessionCookieName';
  * the landing page from a genuinely signed-out visitor for eight seconds.
  */
 export function prePaintCurtainScript(sessionCookieName: string | null) {
-  return `(function(){try{var n=${JSON.stringify(sessionCookieName)};window.${SESSION_COOKIE_NAME_GLOBAL}=n;var s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}')},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
+  return `(function(){try{var n=${JSON.stringify(sessionCookieName)};window.${SESSION_COOKIE_NAME_GLOBAL}=n;var s=null,p=null,c=document.cookie?document.cookie.split(';'):[];for(var i=0;i<c.length;i++){var e=c[i].indexOf('=');if(e<0)continue;var k=c[i].slice(0,e).trim(),v=c[i].slice(e+1).trim();if(n&&k===n)s=v;else if(k==='__client_uat')p=v;}var u=s!==null?s:p;if(!u||u==='0')return;var d=document.documentElement;d.setAttribute('${AUTH_HANDOFF_ATTRIBUTE}','');setTimeout(function(){if(!d.hasAttribute('${AUTH_HANDOFF_ATTRIBUTE}'))return;d.removeAttribute('${AUTH_HANDOFF_ATTRIBUTE}');window.${PRE_PAINT_TIMEOUT_GLOBAL}=1},${PRE_PAINT_CURTAIN_TIMEOUT_MS})}catch(_){}})()`;
 }
 
 /**

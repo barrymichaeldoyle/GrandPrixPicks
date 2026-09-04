@@ -68,3 +68,105 @@ export function hasClerkSessionCookie(): boolean {
   const value = suffixed ?? unsuffixed;
   return value !== null && value !== '' && value !== '0';
 }
+
+/**
+ * Delete `__client_uat` cookies that belong to a Clerk instance this app no
+ * longer uses.
+ *
+ * These are write-once litter. Clerk suffixes the cookie per instance, and a
+ * browser that has visited this origin under an older instance keeps that
+ * instance's cookie at a live timestamp indefinitely: no SDK on the page owns
+ * it, so nothing ever ticks it to `0` or expires it early. Readers here now
+ * ignore them, so this is no longer a correctness fix — it removes the input
+ * that produced the bug, so the next reader written by somebody who has not
+ * read {@link hasClerkSessionCookie} has nothing to get wrong.
+ *
+ * The gate is deliberately narrow. It runs only when *this* instance's suffixed
+ * cookie is present on the jar, because that is the one situation in which the
+ * others are provably dead:
+ *
+ * - Another instance's suffixed cookie is not ours by definition.
+ * - The unsuffixed name is the pre-suffix format. It is a legitimate fallback
+ *   when this instance has no suffixed cookie, so it can only be dropped once
+ *   we have seen ours. Deleting it in the fallback case would sign the visitor
+ *   out of an app that had not migrated.
+ *
+ * With no name published (the key is unset, or no pre-paint script ran) nothing
+ * is provable and nothing is touched.
+ *
+ * A cookie can only be expired from a path and domain that match how it was
+ * set, which we cannot read back, so this writes the plausible combinations for
+ * this origin. Failing to clear one costs nothing: the readers already ignore
+ * it. Returns the names it attempted, for tests and for the console.
+ */
+export function expireForeignClerkSessionCookies(): string[] {
+  if (typeof document === 'undefined') {
+    return [];
+  }
+
+  const sessionCookieName = publishedSessionCookieName();
+  if (!sessionCookieName) {
+    return [];
+  }
+
+  const present = new Map<string, string>();
+  for (const entry of document.cookie.split(';')) {
+    const separator = entry.indexOf('=');
+    if (separator === -1) {
+      continue;
+    }
+    present.set(
+      entry.slice(0, separator).trim(),
+      entry.slice(separator + 1).trim(),
+    );
+  }
+
+  // Our own cookie has to be here, or none of the others are provably dead.
+  if (!present.has(sessionCookieName)) {
+    return [];
+  }
+
+  const stale = [...present.keys()].filter(
+    (name) => name.startsWith('__client_uat') && name !== sessionCookieName,
+  );
+
+  for (const name of stale) {
+    for (const domain of expiryDomains()) {
+      document.cookie = `${name}=; Max-Age=0; path=/${
+        domain ? `; domain=${domain}` : ''
+      }`;
+    }
+  }
+
+  return stale;
+}
+
+function publishedSessionCookieName(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const published = (window as unknown as Record<string, unknown>)[
+    SESSION_COOKIE_NAME_GLOBAL
+  ];
+  return typeof published === 'string' && published ? published : null;
+}
+
+/**
+ * The domains a cookie on this host could have been set for: the host itself,
+ * the host with a leading dot, and the registrable domain both ways. Clerk sets
+ * these on the parent domain so they are shared with its own subdomain, and an
+ * expiry whose domain does not match the original is silently ignored.
+ */
+function expiryDomains(): (string | undefined)[] {
+  const host = window.location.hostname;
+  const domains = new Set<string | undefined>([undefined, host, `.${host}`]);
+
+  const labels = host.split('.');
+  if (labels.length > 2) {
+    const registrable = labels.slice(-2).join('.');
+    domains.add(registrable);
+    domains.add(`.${registrable}`);
+  }
+
+  return [...domains];
+}

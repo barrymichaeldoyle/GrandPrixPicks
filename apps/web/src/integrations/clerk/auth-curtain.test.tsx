@@ -3,8 +3,20 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AuthCurtainHost, useAuthCurtainGate } from './auth-curtain';
-import { AUTH_HANDOFF_ATTRIBUTE } from './pre-paint-curtain';
+const captureMessage = vi.fn();
+vi.mock('@sentry/tanstackstart-react', () => ({
+  captureMessage: (...args: unknown[]) => captureMessage(...args),
+}));
+
+import {
+  AuthCurtainHost,
+  reportPrePaintCurtainTimeout,
+  useAuthCurtainGate,
+} from './auth-curtain';
+import {
+  AUTH_HANDOFF_ATTRIBUTE,
+  PRE_PAINT_TIMEOUT_GLOBAL,
+} from './pre-paint-curtain';
 import { ViewerSessionProvider } from './viewer-session-context';
 
 (
@@ -171,5 +183,102 @@ describe('AuthCurtainHost', () => {
     act(() => void vi.advanceTimersByTime(8_000));
     expect(curtain()).toBeNull();
     expect(container.textContent).toContain('page content');
+  });
+
+  /**
+   * The ceiling exists so nobody is stranded, which is exactly why it hid a
+   * two-week bug. Reaching it is never normal, so it has to be reported.
+   */
+  it('reports a curtain that ran out of time', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({ handoff: true, confirmedSignedIn: false, gate: false });
+    act(() => void vi.advanceTimersByTime(8_000));
+
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+    const [message, options] = captureMessage.mock.calls[0] as [
+      string,
+      { level: string; tags: Record<string, string> },
+    ];
+    expect(message).toBe('Auth curtain timed out');
+    expect(options.level).toBe('error');
+    // Clerk never confirmed, so this is the auth bug rather than a slow page.
+    expect(options.tags.curtain_waiting_for).toBe('clerk');
+  });
+
+  it('names a stuck page gate as a different failure from a stuck Clerk', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({ handoff: true, confirmedSignedIn: true, gate: false });
+    act(() => void vi.advanceTimersByTime(8_000));
+
+    const [, options] = captureMessage.mock.calls[0] as [
+      string,
+      { tags: Record<string, string> },
+    ];
+    expect(options.tags.curtain_waiting_for).toBe('gates');
+  });
+
+  it('says nothing when the handoff resolves in time', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    render({ handoff: true, confirmedSignedIn: false, gate: false });
+    render({ handoff: true, confirmedSignedIn: true, gate: true });
+
+    act(() => void vi.advanceTimersByTime(30_000));
+    expect(captureMessage).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The report reads its detail from a ref for this reason. Listing
+   * `pendingGates` in the effect's dependency array would restart the eight
+   * seconds every time a gate registered or released, so a page that flapped
+   * one while the curtain stayed up would never reach the ceiling at all.
+   *
+   * `confirmedSignedIn` is false throughout, which pins `active` true, so the
+   * gate count is the only thing changing here. A flap that also flips `active`
+   * legitimately restarts the clock: the curtain is down in that window, so
+   * nobody is trapped.
+   */
+  it('keeps counting while a gate flaps under a curtain that stays up', () => {
+    vi.useFakeTimers();
+    captureMessage.mockClear();
+    for (let tick = 0; tick < 8; tick++) {
+      render({ handoff: true, confirmedSignedIn: false, gate: tick % 2 === 0 });
+      act(() => void vi.advanceTimersByTime(1_100));
+    }
+
+    expect(curtain()).toBeNull();
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('reportPrePaintCurtainTimeout', () => {
+  const marked = window as unknown as Record<string, unknown>;
+
+  afterEach(() => {
+    delete marked[PRE_PAINT_TIMEOUT_GLOBAL];
+  });
+
+  it('says nothing when the script never timed out', () => {
+    captureMessage.mockClear();
+    reportPrePaintCurtainTimeout();
+    expect(captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('reports the mark the script leaves, and only once', () => {
+    captureMessage.mockClear();
+    marked[PRE_PAINT_TIMEOUT_GLOBAL] = 1;
+
+    reportPrePaintCurtainTimeout();
+    reportPrePaintCurtainTimeout();
+
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+    const [message, options] = captureMessage.mock.calls[0] as [
+      string,
+      { tags: Record<string, string> },
+    ];
+    expect(message).toBe('Pre-paint auth curtain timed out');
+    expect(options.tags.curtain_waiting_for).toBe('boot');
   });
 });

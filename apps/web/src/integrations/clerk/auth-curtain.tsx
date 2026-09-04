@@ -1,10 +1,15 @@
+import * as Sentry from '@sentry/tanstackstart-react';
 import { Loader2 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
+import { errorDiagnosticTags } from '@/components/error/diagnostics';
 import { useBodyScrollLock } from '@/hooks/useModalDialog';
 
-import { AUTH_HANDOFF_ATTRIBUTE } from './pre-paint-curtain';
+import {
+  AUTH_HANDOFF_ATTRIBUTE,
+  PRE_PAINT_TIMEOUT_GLOBAL,
+} from './pre-paint-curtain';
 import { useViewerSession } from './useViewerSession';
 
 /**
@@ -14,6 +19,81 @@ import { useViewerSession } from './useViewerSession';
  * visitor cannot dismiss. Partial content beats a stuck loader.
  */
 const CURTAIN_TIMEOUT_MS = 8_000;
+
+/**
+ * Report a curtain that ran out of time.
+ *
+ * The ceiling exists so a visitor is never stranded behind a spinner, and that
+ * is exactly why it hides the bugs it catches. A signed-out visitor spent two
+ * weeks getting "Signing you in" over a dashboard whose queries could never
+ * resolve, and the only reason it was ever found is that somebody happened to
+ * open the site and say so. The loader did its job; nothing told us it had had
+ * to.
+ *
+ * This fires only when the ceiling is reached, which is only ever a bug — every
+ * healthy handoff resolves in well under eight seconds — so it is a signal with
+ * no steady-state noise, not a metric.
+ *
+ * `waitingFor` is the whole diagnosis. `clerk` means Clerk never confirmed a
+ * session we were told existed (a stale cookie, a dead session, a failed boot);
+ * `gates` means Clerk confirmed but a route never reported its content ready
+ * (a Convex read that never resolved, a gate whose owner unmounted holding it).
+ * They are different bugs in different files.
+ */
+function reportCurtainTimeout({
+  label,
+  confirmedSignedIn,
+  pendingGates,
+}: {
+  label: string;
+  confirmedSignedIn: boolean;
+  pendingGates: number;
+}) {
+  try {
+    Sentry.captureMessage('Auth curtain timed out', {
+      level: 'error',
+      tags: {
+        ...errorDiagnosticTags(),
+        curtain_waiting_for: confirmedSignedIn ? 'gates' : 'clerk',
+      },
+      extra: { label, confirmedSignedIn, pendingGates },
+    });
+  } catch {
+    // A report is never worth taking the page down for, least of all on the
+    // path that exists to rescue a page that is already struggling.
+  }
+}
+
+/**
+ * Send the pre-paint script's own timeout, if it fired.
+ *
+ * Separate from {@link reportCurtainTimeout} because it is a separate failure:
+ * that one means the app booted and could not finish the handoff, this one
+ * means the app did not boot in time to try. Reported once per document, from
+ * whichever code does eventually run.
+ */
+export function reportPrePaintCurtainTimeout() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const marked = window as unknown as Record<string, unknown>;
+  if (!marked[PRE_PAINT_TIMEOUT_GLOBAL]) {
+    return;
+  }
+  delete marked[PRE_PAINT_TIMEOUT_GLOBAL];
+
+  try {
+    Sentry.captureMessage('Pre-paint auth curtain timed out', {
+      level: 'error',
+      tags: {
+        ...errorDiagnosticTags(),
+        curtain_waiting_for: 'boot',
+      },
+    });
+  } catch {
+    // Same reasoning as the React curtain: never throw from the rescue path.
+  }
+}
 
 type AuthCurtain = {
   /** The handoff is in progress: page content must stay hidden and inert. */
@@ -99,6 +179,11 @@ export function AuthCurtainHost({
   const active =
     handoff && !expired && (!confirmedSignedIn || pendingGates > 0);
 
+  // What the curtain was still waiting for, for the timeout report. A ref so
+  // reading it cannot restart the timeout that reads it.
+  const stateRef = useRef({ confirmedSignedIn, pendingGates });
+  stateRef.current = { confirmedSignedIn, pendingGates };
+
   useEffect(() => {
     if (!active) {
       // Hands the pre-paint curtain over. It covered the window this component
@@ -108,9 +193,16 @@ export function AuthCurtainHost({
       document.documentElement.removeAttribute(AUTH_HANDOFF_ATTRIBUTE);
       return;
     }
-    const timer = window.setTimeout(() => setExpired(true), CURTAIN_TIMEOUT_MS);
+    const timer = window.setTimeout(() => {
+      setExpired(true);
+      // Read through the ref rather than the closure: listing these in the
+      // dependency array would restart the eight seconds every time a gate
+      // registered or released, so a page that flaps a gate would never reach
+      // the ceiling at all — which is the one thing the ceiling exists for.
+      reportCurtainTimeout({ label, ...stateRef.current });
+    }, CURTAIN_TIMEOUT_MS);
     return () => window.clearTimeout(timer);
-  }, [active]);
+  }, [active, label]);
 
   return (
     <AuthCurtainContext.Provider value={{ active, registerGate }}>

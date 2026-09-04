@@ -30,6 +30,7 @@ import { PendingPickSubmitter } from '@/components/PendingPickSubmitter';
 import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import {
   AuthCurtainHost,
+  reportPrePaintCurtainTimeout,
   useAuthCurtain,
 } from '@/integrations/clerk/auth-curtain';
 import {
@@ -44,7 +45,10 @@ import {
   PRE_PAINT_CURTAIN_CSS,
   prePaintCurtainScript,
 } from '@/integrations/clerk/pre-paint-curtain';
-import { hasClerkSessionCookie } from '@/integrations/clerk/session-cookie';
+import {
+  expireForeignClerkSessionCookies,
+  hasClerkSessionCookie,
+} from '@/integrations/clerk/session-cookie';
 import { useSsrViewerDataMissing } from '@/integrations/clerk/ssr-viewer-data';
 import {
   ClerkRuntimeControlProvider,
@@ -586,6 +590,17 @@ function AppRuntimeBoundary({
     const hasClerkCallback = Array.from(
       new URLSearchParams(window.location.search).keys(),
     ).some((key) => key.startsWith('__clerk'));
+
+    // Report a pre-paint curtain that had to time itself out, and clear the
+    // mark so a client-side navigation does not report it twice. The script
+    // cannot send this itself: reporting needs the bundle whose absence is
+    // usually the reason it fired.
+    reportPrePaintCurtainTimeout();
+
+    // Drop another Clerk instance's leftover cookies before anything reads
+    // them. Cosmetic now that every reader applies the suffix rule, and that is
+    // the point: the litter that caused the bug stops existing.
+    expireForeignClerkSessionCookies();
 
     // Read once, here, rather than during render: the cookie is not a React
     // input, and the pre-paint script has already acted on the same read.

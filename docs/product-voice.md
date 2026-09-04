@@ -67,6 +67,24 @@ Prefer:
 > Grid penalties don’t change qualifying results.  
 > **How scoring works**
 
+### Result changes
+
+An amendment note is read by people whose score just moved, and the fastest
+available reading has to be the true one. Lead with the movement, then the
+reason. A note that opens on the ruling makes the reader parse a clause before
+they learn who gained and who lost, and a name next to a verb reads as its
+subject.
+
+Avoid:
+
+> The FIA International Court of Appeal reinstated Gasly's two five-second
+> penalties. Hadjar takes third.
+
+Prefer:
+
+> Gasly drops to seventh and Hadjar takes third. The FIA International Court of
+> Appeal reinstated Gasly's two five-second penalties.
+
 ### Access
 
 Avoid:

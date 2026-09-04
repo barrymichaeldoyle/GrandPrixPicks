@@ -24,7 +24,11 @@ import { DashboardPracticeCard } from './DashboardPracticeCard';
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
 import { RaceRecapCard } from './RaceRecapCard';
 import type { DashboardSsrData } from './ssr';
-import { liveOrSsr, weekendReflectsViewer } from './dashboardState';
+import {
+  liveOrSsr,
+  weekendPicksReady,
+  weekendReflectsViewer,
+} from './dashboardState';
 
 export function DashboardPage({
   initialDrivers = [],
@@ -256,7 +260,13 @@ export function DashboardPage({
 
       {/* No "See all" any more: this *is* all of it. The standalone /feed page
           rendered the same component and has been removed. */}
-      <FeedContent initialPage={initialDashboard?.feedPreview} />
+      <FeedContent
+        initialPage={initialDashboard?.feedPreview}
+        /* The picks card above is spinning on exactly the loads where this
+           section has no seed either, so let it do the waiting for both. One
+           spinner on the page, not two. */
+        showLoader={weekendPicksReady(currentWeekend)}
+      />
 
       {/* Below the feed, which is the one place on this page an ad can go
           without interrupting anything: the picks card and the rails are what

@@ -29,6 +29,7 @@ const MAX_EXTRA_PAGES = 4;
 
 export function FeedContent({
   initialPage,
+  showLoader = true,
 }: {
   /**
    * The top of the feed as the server read it, so the section renders with rows
@@ -37,6 +38,14 @@ export function FeedContent({
    * answers. Absent whenever the server could not read as the viewer.
    */
   initialPage?: FeedPage | null;
+  /**
+   * False while something above this section is already showing a spinner, on
+   * a page that hosts both. The stream then waits silently instead of adding a
+   * second one: it is below the fold, it has no seed in exactly the loads where
+   * the block above has none either, and both answers come off the same socket,
+   * so by the time the spinner above lifts the rows are normally already here.
+   */
+  showLoader?: boolean;
 } = {}) {
   const [extraCursors, setExtraCursors] = useState<(string | null)[]>(
     Array(MAX_EXTRA_PAGES).fill(null),
@@ -108,7 +117,7 @@ export function FeedContent({
     // One spinner, not four row skeletons. The rows that land here vary in
     // height and content, so the skeletons never stood in for anything in
     // particular: they just made the section flicker on every reload.
-    return <InlineLoader label="Loading activity" />;
+    return showLoader ? <InlineLoader label="Loading activity" /> : null;
   }
 
   // Keep the merged feed chronological even while reactive pages refresh, and

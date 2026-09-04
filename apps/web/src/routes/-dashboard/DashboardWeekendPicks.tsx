@@ -45,7 +45,7 @@ import {
   getSessionClockState,
   liveOrSsr,
   nextSessionTabIndex,
-  weekendReflectsViewer,
+  weekendPicksReady,
   type DashboardSessionState,
 } from './dashboardState';
 
@@ -118,7 +118,11 @@ export function DashboardWeekendPicks({
   /** False while the race recap sits above this card; see `weekendCardShell`. */
   leading?: boolean;
 }) {
-  if (weekend === undefined) {
+  // `undefined` (no answer yet) and the pre-auth payload both land here:
+  // everything below reads the weekend's per-session capabilities, and
+  // rendering the pre-auth one would open the card on the wrong session and
+  // show it as locked. Hold the skeleton the extra beat instead.
+  if (!weekendPicksReady(weekend)) {
     return <WeekendCardSkeleton />;
   }
 
@@ -136,13 +140,6 @@ export function DashboardWeekendPicks({
         }
       />
     );
-  }
-
-  // Everything below reads the weekend's per-session capabilities. Rendering
-  // the pre-auth payload would open the card on the wrong session and show it
-  // as locked, so hold the skeleton the extra beat instead.
-  if (!weekendReflectsViewer(weekend.sessions)) {
-    return <WeekendCardSkeleton />;
   }
 
   return (

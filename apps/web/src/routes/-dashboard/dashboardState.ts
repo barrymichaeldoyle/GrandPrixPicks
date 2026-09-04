@@ -217,3 +217,30 @@ export function liveOrSsr<T>(
 ): T | undefined {
   return live !== undefined ? live : fromSsr;
 }
+
+/**
+ * Whether the weekend picks card has everything it needs to render.
+ *
+ * False while the query has not answered, and false again for the pre-auth
+ * payload, whose capabilities are not the viewer's — see
+ * `weekendReflectsViewer`. Those are the card's two skeleton branches, so it
+ * is one predicate rather than two conditions two components have to keep in
+ * step.
+ *
+ * The dashboard's centre column has two things that can be waiting at once,
+ * this card and the activity feed below it, and both wait in exactly the same
+ * situation: a load where the server could not read as the viewer, so neither
+ * has a seed and both come off the same socket. A spinner each said "wait"
+ * twice on one page. The feed reads this to stay silent while the card above
+ * it is the one doing the waiting.
+ *
+ * Narrows, so the card can go straight to rendering on the true branch.
+ */
+export function weekendPicksReady<
+  T extends { sessions: readonly DashboardSessionState[] },
+>(weekend: T | null | undefined): weekend is T | null {
+  if (weekend === undefined) {
+    return false;
+  }
+  return weekend === null || weekendReflectsViewer(weekend.sessions);
+}

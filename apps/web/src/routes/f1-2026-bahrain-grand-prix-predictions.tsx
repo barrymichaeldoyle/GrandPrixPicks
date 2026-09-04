@@ -11,6 +11,7 @@ import { RaceWriteupClosingPanel } from '@/components/race-writeups/RaceWriteupC
 import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPhaseLabel';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
 import {
@@ -99,33 +100,47 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
-      const [race, championship, weather, news, season] = await Promise.all([
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
-        ),
-        // Live. This page is published well ahead of the weekend, so three
-        // rounds are still to be scored before it and a hand-typed table would
-        // be wrong long before anybody reads it in October.
-        context.queryClient.ensureQueryData(
-          routeQuery(api.f1Standings.getF1Championship, {}),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.weather.getByRaceSlug, {
-            raceSlug: RACE_SLUG,
-            now: weatherNow,
-          }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
-        ),
-        context.queryClient.ensureQueryData(
-          routeQuery(api.races.listCurrentSeason, {}),
-        ),
-      ]);
+      const [race, championship, weather, news, season, practice] =
+        await Promise.all([
+          context.queryClient.ensureQueryData(
+            routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
+          ),
+          // Live. This page is published well ahead of the weekend, so three
+          // rounds are still to be scored before it and a hand-typed table would
+          // be wrong long before anybody reads it in October.
+          context.queryClient.ensureQueryData(
+            routeQuery(api.f1Standings.getF1Championship, {}),
+          ),
+          context.queryClient.ensureQueryData(
+            routeQuery(api.weather.getByRaceSlug, {
+              raceSlug: RACE_SLUG,
+              now: weatherNow,
+            }),
+          ),
+          context.queryClient.ensureQueryData(
+            routeQuery(api.raceNews.list, { raceSlug: RACE_SLUG }),
+          ),
+          context.queryClient.ensureQueryData(
+            routeQuery(api.races.listCurrentSeason, {}),
+          ),
+          context.queryClient.ensureQueryData(
+            routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
+              raceSlug: RACE_SLUG,
+            }),
+          ),
+        ]);
       if (!race) {
         throw notFound();
       }
-      return { race, championship, weather, weatherNow, news, season };
+      return {
+        race,
+        championship,
+        weather,
+        weatherNow,
+        news,
+        season,
+        practice,
+      };
     },
     head: ({ loaderData }) => {
       const race = loaderData?.race;
@@ -203,7 +218,7 @@ export const Route = createFileRoute('/f1-2026-bahrain-grand-prix-predictions')(
 );
 
 function BahrainGrandPrixPredictionsPage() {
-  const { race, championship, weather, weatherNow, news, season } =
+  const { race, championship, weather, weatherNow, news, season, practice } =
     Route.useLoaderData();
   const phase = getRaceWriteupPhase(race, weatherNow);
   const isLive = isRaceWriteupLive(phase);
@@ -276,6 +291,7 @@ function BahrainGrandPrixPredictionsPage() {
         {isLive ? (
           <>
             <WeekendNewsSection items={news.items} />
+            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
             <ChampionshipContext
               championship={championship}
               pendingRaces={pendingRaces}

@@ -34,7 +34,7 @@ const RESULTS_TAB_LABELS: Record<ResultsTab, string> = {
   quali: 'Quali',
 };
 
-export function formatLap(seconds?: number) {
+function formatLap(seconds?: number) {
   if (seconds === undefined) {
     return '—';
   }
@@ -67,7 +67,7 @@ function splitIntoColumns<T>(entries: T[]): [T[], T[]] {
 }
 
 /** Position, driver, and the one number that matters: the gap, or the time at the front. */
-export function CompactPracticeRow({
+function CompactPracticeRow({
   entry,
 }: {
   entry: PracticeResult['entries'][number];

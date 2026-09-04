@@ -616,6 +616,25 @@ export const getPracticeResultsForRace = query({
 });
 
 /**
+ * Same payload as {@link getPracticeResultsForRace}, keyed by slug so a
+ * write-up loader can fetch it in the same wave as news and weather without
+ * waiting on the race document for an id.
+ */
+export const getPracticeResultsForRaceSlug = query({
+  args: { raceSlug: v.string() },
+  handler: async (ctx, args) => {
+    const race = await ctx.db
+      .query('races')
+      .withIndex('by_slug', (q) => q.eq('slug', args.raceSlug))
+      .unique();
+    if (!race) {
+      return [];
+    }
+    return await loadPracticeResultsForRace(ctx, race._id);
+  },
+});
+
+/**
  * Stable, presentation-neutral payload for social copy, share cards, and
  * editorial tooling. It intentionally contains facts rather than generated
  * prose so each channel can choose its own voice.

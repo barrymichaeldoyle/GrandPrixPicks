@@ -17,6 +17,7 @@ import { RaceWriteupPhaseLabel } from '@/components/race-writeups/RaceWriteupPha
 import { RaceWriteupTrackMap } from '@/components/race-writeups/RaceWriteupTrackMap';
 import { RaceWriteupWeekendSchedule } from '@/components/race-writeups/RaceWriteupWeekendSchedule';
 import { WeekendNewsSection } from '@/components/WeekendNewsSection';
+import { WeekendPracticeSection } from '@/components/WeekendPracticeSection';
 import { WriteUpNewsPhoto } from '@/components/WriteUpNewsPhoto';
 import { WeekendWeatherForecast } from '@/components/weather/WeekendWeatherForecast';
 import { setRaceDataCacheHeaders } from '@/lib/publicPageCacheHeaders';
@@ -218,7 +219,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
     loader: async ({ context }) => {
       await setRaceDataCacheHeaders();
       const weatherNow = Date.now();
-      const [race, weather, news, championship] = await Promise.all([
+      const [race, weather, news, championship, practice] = await Promise.all([
         context.queryClient.ensureQueryData(
           routeQuery(api.races.getRaceBySlug, { slug: RACE_SLUG }),
         ),
@@ -238,11 +239,16 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
         context.queryClient.ensureQueryData(
           routeQuery(api.f1Standings.getF1Championship, {}),
         ),
+        context.queryClient.ensureQueryData(
+          routeQuery(api.practiceResults.getPracticeResultsForRaceSlug, {
+            raceSlug: RACE_SLUG,
+          }),
+        ),
       ]);
       if (!race) {
         throw notFound();
       }
-      return { race, weather, weatherNow, news, championship };
+      return { race, weather, weatherNow, news, championship, practice };
     },
     head: ({ loaderData }) => {
       const race = loaderData?.race;
@@ -321,7 +327,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
 );
 
 function ItalianGrandPrixPredictionsPage() {
-  const { race, weather, weatherNow, news, championship } =
+  const { race, weather, weatherNow, news, championship, practice } =
     Route.useLoaderData();
   // One roster lookup for the sections that name drivers, so a badge and the
   // standings beside it can never disagree about a seat.
@@ -385,6 +391,7 @@ function ItalianGrandPrixPredictionsPage() {
               now={weatherNow}
             />
             <WeekendNewsSection items={news.items} />
+            <WeekendPracticeSection results={practice} raceSlug={RACE_SLUG} />
           </>
         ) : null}
         <WatchTable />

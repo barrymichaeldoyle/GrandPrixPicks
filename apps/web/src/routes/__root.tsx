@@ -813,11 +813,15 @@ function AppRuntimeBoundary({
  * Stand-in for the whole app while the authenticated runtime chunk resolves for
  * someone we already know is signed in. Deliberately not `AnonymousAppRuntime`:
  * this window must not render the app's logged-out face.
+ *
+ * Fixed at `z-[152]` for the same reason as `SigningInCurtain`: the pre-paint
+ * curtain may still be up during this window and draws its own spinner at
+ * z-151, which showed through as a second loader when this sat in normal flow.
  */
 function RuntimeBootCurtain() {
   return (
     <div
-      className="flex min-h-[var(--app-viewport-height,100dvh)] flex-col items-center justify-center gap-4 bg-page"
+      className="fixed inset-0 z-[152] flex flex-col items-center justify-center gap-4 bg-page"
       role="status"
       aria-live="polite"
     >

@@ -111,6 +111,13 @@ export function prePaintCurtainScript(sessionCookieName: string | null) {
  * stylesheet that defines `--page` and `--accent`, and a curtain that paints
  * transparent is not a curtain. Sized and coloured to match `SigningInCurtain`
  * so the handoff between the two loaders is invisible; change one, change both.
+ *
+ * The z-indexes are part of that contract. This curtain stays up until React's
+ * has *resolved*, so React's curtains (`SigningInCurtain`,
+ * `RuntimeBootCurtain`) render underneath it and must sit above this spinner's
+ * z-151 to cover it — they use z-152. When they sat at or below it, the spinner
+ * here stayed visible on top of theirs, a little off from their own (theirs is
+ * pushed up by its label), and a redirect sign-in showed two loaders at once.
  */
 export const PRE_PAINT_CURTAIN_CSS = `
 html[${AUTH_HANDOFF_ATTRIBUTE}] [${APP_SHELL_ATTRIBUTE}]{visibility:hidden}

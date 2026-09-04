@@ -223,13 +223,19 @@ export function AuthCurtainHost({
  * under the loader: the curtain is opaque and fixed, so what moved behind it
  * was invisible, and the handoff ended on a page scrolled somewhere the visitor
  * never chose. The lock is the same counted one the modals use.
+ *
+ * `z-[152]` is relative to the pre-paint curtain, which stays up until this one
+ * resolves (see the effect above) and draws its spinner at z-151. Anything
+ * lower left that spinner visible on top of this curtain — whose own spinner
+ * sits ~1rem higher because of the label below it — so a redirect sign-in
+ * showed two loaders side by side. Above 151, this curtain covers it whole.
  */
 function SigningInCurtain({ label }: { label: string }) {
   useBodyScrollLock(true);
 
   return (
     <div
-      className="fixed inset-0 z-[150] flex flex-col items-center justify-center gap-4 bg-page"
+      className="fixed inset-0 z-[152] flex flex-col items-center justify-center gap-4 bg-page"
       role="status"
       aria-live="polite"
     >

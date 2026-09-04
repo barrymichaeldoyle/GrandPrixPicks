@@ -34,12 +34,26 @@ const RESULTS_TAB_LABELS: Record<ResultsTab, string> = {
   quali: 'Quali',
 };
 
-function formatLap(seconds?: number) {
+export function formatLap(seconds?: number) {
   if (seconds === undefined) {
     return '—';
   }
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${(seconds % 60).toFixed(3).padStart(6, '0')}`;
+}
+
+/** Leader's lap, or the gap behind them. The one number a compact row shows. */
+export function practiceGapOrLap(entry: {
+  position: number;
+  bestLapSeconds?: number;
+  gapToLeaderSeconds?: number;
+}): string {
+  if (entry.position === 1) {
+    return formatLap(entry.bestLapSeconds);
+  }
+  return entry.gapToLeaderSeconds === undefined
+    ? '\u2014'
+    : `+${entry.gapToLeaderSeconds.toFixed(3)}`;
 }
 
 /**
@@ -53,7 +67,7 @@ function splitIntoColumns<T>(entries: T[]): [T[], T[]] {
 }
 
 /** Position, driver, and the one number that matters: the gap, or the time at the front. */
-function CompactPracticeRow({
+export function CompactPracticeRow({
   entry,
 }: {
   entry: PracticeResult['entries'][number];
@@ -68,13 +82,10 @@ function CompactPracticeRow({
         displayName={entry.displayName}
         team={entry.team ?? undefined}
         size="sm"
+        prerenderTooltip={false}
       />
       <span className="gpp-mono text-right text-xs font-semibold text-text">
-        {entry.position === 1
-          ? formatLap(entry.bestLapSeconds)
-          : entry.gapToLeaderSeconds === undefined
-            ? '\u2014'
-            : `+${entry.gapToLeaderSeconds.toFixed(3)}`}
+        {practiceGapOrLap(entry)}
       </span>
     </div>
   );

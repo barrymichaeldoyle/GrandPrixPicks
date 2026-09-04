@@ -20,6 +20,7 @@ import { promotedRaceRecap } from '@grandprixpicks/shared/raceRecap';
 import { useIsBefore } from '@/lib/testing/now';
 import { useState } from 'react';
 
+import { DashboardPracticeCard } from './DashboardPracticeCard';
 import { DashboardWeekendPicks } from './DashboardWeekendPicks';
 import { RaceRecapCard } from './RaceRecapCard';
 import type { DashboardSsrData } from './ssr';
@@ -237,6 +238,21 @@ export function DashboardPage({
         initialPredictions={initialDashboard?.predictions ?? null}
         initialH2H={initialDashboard?.h2h ?? null}
       />
+
+      {/* Under the picks, above the feed: practice informs the pick above it
+          but scores nothing, so it must not lead. Keyed by race so the
+          disclosure state cannot carry over when the weekend advances. Like
+          the feed, it does not hold the auth curtain — the SSR seed means it
+          is normally in the server HTML anyway, taking its space before the
+          feed renders below it. */}
+      {currentWeekend ? (
+        <DashboardPracticeCard
+          key={currentWeekend.race._id}
+          raceId={currentWeekend.race._id}
+          raceSlug={currentWeekend.race.slug}
+          initialResults={initialDashboard?.practice ?? undefined}
+        />
+      ) : null}
 
       {/* No "See all" any more: this *is* all of it. The standalone /feed page
           rendered the same component and has been removed. */}

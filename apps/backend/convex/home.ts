@@ -17,6 +17,7 @@ import {
   loadUserPredictionHistory,
 } from './predictions';
 import { loadActiveSnapshot } from './liveScoring';
+import { loadPracticeResultsForRace } from './practiceResults';
 import { loadCurrentWeekend } from './races';
 import { toUserIdentity } from './lib/userIdentity';
 import { loadMe } from './users';
@@ -779,15 +780,17 @@ export const getDashboardPageData = query({
         recap,
         predictions: null,
         h2h: null,
+        practice: null,
         ...rails,
       };
     }
 
-    const [predictions, h2h] = await Promise.all([
+    const [predictions, h2h, practice] = await Promise.all([
       loadMyWeekendPredictions(ctx, { raceId: weekend.race._id }),
       loadMyH2HPredictionsForRace(ctx, { raceId: weekend.race._id }),
+      loadPracticeResultsForRace(ctx, weekend.race._id),
     ]);
 
-    return { me, weekend, recap, predictions, h2h, ...rails };
+    return { me, weekend, recap, predictions, h2h, practice, ...rails };
   },
 });

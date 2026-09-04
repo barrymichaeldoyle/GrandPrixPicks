@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
-import type { ActionCtx } from './_generated/server';
+import type { ActionCtx, QueryCtx } from './_generated/server';
 import {
   internalAction,
   internalMutation,
@@ -576,33 +576,43 @@ export const backfillPracticeResults = internalAction({
   handler: populateDuePractice,
 });
 
+/**
+ * The body of {@link getPracticeResultsForRace}, callable from another query.
+ *
+ * Extracted so `home.getDashboardPageData` can seed the dashboard's practice
+ * card with this exact shape: the card's live subscription is this query, so
+ * the SSR value and the socket's first answer must not be merely similar.
+ */
+export async function loadPracticeResultsForRace(
+  ctx: QueryCtx,
+  raceId: Id<'races'>,
+) {
+  const [results, drivers] = await Promise.all([
+    ctx.db
+      .query('practiceResults')
+      .withIndex('by_raceId_and_sessionType', (q) => q.eq('raceId', raceId))
+      .take(3),
+    ctx.db.query('drivers').take(40),
+  ]);
+  const canonicalNumbers = new Set(
+    drivers.flatMap((driver) =>
+      driver.number === undefined ? [] : [driver.number],
+    ),
+  );
+  return results.map((result) => ({
+    sessionType: result.sessionType,
+    publishedAt: result.publishedAt,
+    entries: result.entries.map((entry) => ({
+      ...entry,
+      team: entry.team ?? null,
+      isReserve: !canonicalNumbers.has(entry.driverNumber),
+    })),
+  }));
+}
+
 export const getPracticeResultsForRace = query({
   args: { raceId: v.id('races') },
-  handler: async (ctx, args) => {
-    const [results, drivers] = await Promise.all([
-      ctx.db
-        .query('practiceResults')
-        .withIndex('by_raceId_and_sessionType', (q) =>
-          q.eq('raceId', args.raceId),
-        )
-        .take(3),
-      ctx.db.query('drivers').take(40),
-    ]);
-    const canonicalNumbers = new Set(
-      drivers.flatMap((driver) =>
-        driver.number === undefined ? [] : [driver.number],
-      ),
-    );
-    return results.map((result) => ({
-      sessionType: result.sessionType,
-      publishedAt: result.publishedAt,
-      entries: result.entries.map((entry) => ({
-        ...entry,
-        team: entry.team ?? null,
-        isReserve: !canonicalNumbers.has(entry.driverNumber),
-      })),
-    }));
-  },
+  handler: async (ctx, args) => loadPracticeResultsForRace(ctx, args.raceId),
 });
 
 /**

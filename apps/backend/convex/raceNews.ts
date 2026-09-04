@@ -118,6 +118,29 @@ async function raceBySlug(ctx: QueryCtx | MutationCtx, slug: string) {
     .unique();
 }
 
+/**
+ * The race an operator named, by slug or by id.
+ *
+ * The audit trail gets read from wherever the operator already is, and that is
+ * often not a slug: a feed event, a `races` row and the admin surfaces all hand
+ * back an id. Refusing one of the two identifiers the caller is holding buys
+ * nothing, so this takes either and says so when it gets neither.
+ */
+async function raceByRef(
+  ctx: QueryCtx,
+  ref: { raceSlug?: string; raceId?: Id<'races'> },
+): Promise<Doc<'races'> | null> {
+  if (ref.raceSlug !== undefined) {
+    return await raceBySlug(ctx, ref.raceSlug);
+  }
+  if (ref.raceId !== undefined) {
+    return await ctx.db.get(ref.raceId);
+  }
+  throw new Error(
+    'Name the race: pass raceSlug (for example "italy-2026") or raceId.',
+  );
+}
+
 async function newsByKey(
   ctx: QueryCtx | MutationCtx,
   raceId: Id<'races'>,
@@ -145,10 +168,9 @@ async function feedEventForNews(
 
 async function listRaceNews(
   ctx: QueryCtx,
-  raceSlug: string,
+  race: Doc<'races'> | null,
   includeRetracted: boolean,
 ) {
-  const race = await raceBySlug(ctx, raceSlug);
   if (!race) {
     return { race: null, items: [] };
   }
@@ -198,21 +220,28 @@ export const list = query({
   args: { raceSlug: v.string() },
   returns: raceNewsListResultValidator,
   handler: async (ctx, args) => {
-    return await listRaceNews(ctx, args.raceSlug, false);
+    return await listRaceNews(ctx, await raceBySlug(ctx, args.raceSlug), false);
   },
 });
 
 /**
  * Active and retracted news for the operator audit trail.
  *
+ * Takes either identifier, because an operator arriving from a feed event or a
+ * `races` row is holding an id rather than a slug.
+ *
  * Run via:
  *   npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
+ *   npx convex run --prod raceNews:listForOperators '{"raceId":"jd7..."}'
  */
 export const listForOperators = internalQuery({
-  args: { raceSlug: v.string() },
+  args: {
+    raceSlug: v.optional(v.string()),
+    raceId: v.optional(v.id('races')),
+  },
   returns: raceNewsListResultValidator,
   handler: async (ctx, args) => {
-    return await listRaceNews(ctx, args.raceSlug, true);
+    return await listRaceNews(ctx, await raceByRef(ctx, args), true);
   },
 });
 

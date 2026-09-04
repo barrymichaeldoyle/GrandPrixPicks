@@ -57,6 +57,50 @@ describe('race news access boundary', () => {
     ]);
   });
 
+  it('reads the operator audit trail by race id as well as by slug', async () => {
+    const t = convexTest(schema, modules);
+    const raceId = await t.run(async (ctx) => {
+      return await ctx.db.insert('races', {
+        season: 2026,
+        round: 13,
+        name: 'Italian Grand Prix',
+        slug: 'italy-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_000,
+        status: 'upcoming',
+        createdAt: 100,
+        updatedAt: 100,
+      });
+    });
+
+    await t.mutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'grid-penalty',
+      headline: 'A headline',
+      body: 'Pick advice.',
+      affectsSessions: ['race'],
+      sourceName: 'Example',
+      sourceUrl: 'https://example.com/penalty',
+    });
+
+    const byId = await t.query(internal.raceNews.listForOperators, { raceId });
+    expect(byId.race).toMatchObject({ slug: 'italy-2026' });
+    expect(byId.items).toMatchObject([{ key: 'grid-penalty' }]);
+    expect(byId).toEqual(
+      await t.query(internal.raceNews.listForOperators, {
+        raceSlug: 'italy-2026',
+      }),
+    );
+  });
+
+  it('says which identifier to pass when the operator names no race', async () => {
+    const t = convexTest(schema, modules);
+
+    await expect(
+      t.query(internal.raceNews.listForOperators, {}),
+    ).rejects.toThrow(/raceSlug/);
+  });
+
   it('rejects the removed includeRetracted argument on the public query', async () => {
     const t = convexTest(schema, modules);
 

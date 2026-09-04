@@ -58,6 +58,7 @@ Without it, three runs put three Antonelli items in the feed.
 npx convex run --prod raceNews:list '{"raceSlug":"italy-2026"}'
 
 # inspect the operator audit trail, including retracted items
+# (takes raceId instead of raceSlug too)
 npx convex run --prod raceNews:listForOperators '{"raceSlug":"italy-2026"}'
 
 # 2. rehearse

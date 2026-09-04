@@ -12,7 +12,7 @@ import {
   streamRankedLeaderboardRows,
 } from './lib/leaderboard';
 import { ANONYMOUS_NAME } from '@grandprixpicks/shared/displayName';
-import { toUserIdentity } from './lib/userIdentity';
+import { toPublicEntry, toUserIdentity } from './lib/userIdentity';
 
 type CombinedRow = {
   userId: Id<'users'>;
@@ -188,15 +188,17 @@ export const getSeasonLeaderboard = query({
     const enrichedRows = mapRowsToLeaderboardEntries(
       ranked.pageRows,
       viewer?._id,
-    );
+    ).map(toPublicEntry);
 
+    // The viewer's own row is stripped alongside everyone else's. Showing them
+    // their real name in a table of usernames would read as a leak, not a
+    // courtesy — and it is the row they screenshot.
     const viewerEntry =
       viewer && ranked.viewerRank !== null && ranked.viewerRow
         ? {
             rank: ranked.viewerRank,
             userId: viewer._id,
             username: viewer.username ?? ANONYMOUS_NAME,
-            displayName: viewer.displayName,
             avatarUrl: viewer.avatarUrl,
             points: ranked.viewerRow.totalPoints,
             raceCount: ranked.viewerRow.raceCount,
@@ -424,7 +426,8 @@ export async function loadCombinedSeasonLeaderboard(
     );
 
     const allRows = await loadCombinedSeasonRows(ctx, { season });
-    const viewerEntry = buildCombinedViewerEntry(allRows, viewer);
+    const viewerRow = buildCombinedViewerEntry(allRows, viewer);
+    const viewerEntry = viewerRow ? toPublicEntry(viewerRow) : null;
 
     const paginatedRows = allRows.slice(offset, offset + limit);
     const hasMore = offset + limit < allRows.length;
@@ -433,7 +436,6 @@ export async function loadCombinedSeasonLeaderboard(
       rank: row.rank,
       userId: row.userId,
       username: row.username ?? ANONYMOUS_NAME,
-      displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
       top5Points: row.top5Points,
@@ -607,7 +609,6 @@ export const getCombinedRaceLeaderboard = query({
       rank: row.rank,
       userId: row.userId,
       username: row.username ?? ANONYMOUS_NAME,
-      displayName: row.displayName,
       avatarUrl: row.avatarUrl,
       points: row.top5Points + row.h2hPoints,
       top5Points: row.top5Points,
@@ -690,7 +691,6 @@ export const getH2HRaceLeaderboard = query({
         rank: row.rank,
         userId: row.userId,
         username: user?.username ?? ANONYMOUS_NAME,
-        displayName: user?.displayName,
         avatarUrl: user?.avatarUrl,
         points: row.points,
         correctPicks: row.correctPicks,
@@ -1161,7 +1161,9 @@ export async function getRaceLeaderboardForViewer(
     });
   }
 
-  const entries = mapRaceScoresToLeaderboardEntries([...userMap.values()]);
+  const entries = mapRaceScoresToLeaderboardEntries([...userMap.values()]).map(
+    toPublicEntry,
+  );
 
   return { status: 'visible' as const, reason: null, entries };
 }

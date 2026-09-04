@@ -234,7 +234,7 @@ export function FeedContent({
                       search={{ from: undefined, fromLabel: undefined }}
                       className="truncate text-sm font-semibold text-text hover:text-accent"
                     >
-                      {p.displayName || p.username}
+                      {p.username}
                     </Link>
                     <p className="truncate text-xs text-text-muted">
                       Rank #{p.rank} · {p.points.toLocaleString()} pts

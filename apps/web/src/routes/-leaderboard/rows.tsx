@@ -47,6 +47,10 @@ export function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
           search={{ from: undefined, fromLabel: undefined }}
           className="flex items-center gap-2 font-medium text-text"
         >
+          {/* Present on league and friends boards, absent on the global one:
+              the public queries strip it (see `toPublicEntry`). This single
+              expression is what renders that rule, so the fallback is the
+              feature, not defensive coding. */}
           <span className="font-medium text-text">
             {entry.displayName ?? entry.username}
           </span>

@@ -36,7 +36,6 @@ function leaderboard(entry: { top5Points: number; h2hPoints: number }) {
         rank: 1,
         userId: viewerId,
         username: 'you',
-        displayName: 'You',
         avatarUrl: undefined,
         points: entry.top5Points + entry.h2hPoints,
         ...entry,

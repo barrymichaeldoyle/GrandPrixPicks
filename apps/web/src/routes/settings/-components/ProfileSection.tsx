@@ -77,6 +77,12 @@ export function ProfileSection({
                   maxLength={50}
                   className="w-full rounded-sm border border-border bg-page px-3 py-2 text-text placeholder:text-text-muted/50 focus:border-accent focus:ring-1 focus:ring-accent focus:outline-none"
                 />
+                {/* Where a name appears decides whether someone puts their
+                    real one in it, so the field has to say. */}
+                <p className="mt-1 text-sm text-text-muted">
+                  Shown on your profile and in your leagues. Leaderboards use
+                  your username.
+                </p>
               </div>
               <div>
                 <label

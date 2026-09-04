@@ -118,8 +118,16 @@ function table(
   return {
     lastUpdated: null,
     roundsScored: drivers.length > 0 ? 1 : 0,
+    roundsTotal: 24,
+    calendar: [],
+    lastRound: null,
+    nextRound: null,
+    pointsRemaining: 0,
     drivers: drivers as unknown as ChampionshipTable['drivers'],
-    constructors: constructors.map((entry) => ({ ...entry, wins: 0 })),
+    constructors: constructors.map((entry) => ({
+      ...entry,
+      wins: 0,
+    })) as unknown as ChampionshipTable['constructors'],
   };
 }
 

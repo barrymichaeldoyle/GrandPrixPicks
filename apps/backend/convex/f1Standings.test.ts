@@ -2,12 +2,16 @@ import { describe, expect, test } from 'vitest';
 
 import {
   type ChampionshipSessionResult,
+  type ChampionshipSessionType,
   compareCountback,
+  countbackNotes,
+  emptyDriverTally,
   type DriverTally,
   pointsForPosition,
   RACE_POINTS,
   rankChampionship,
   rankConstructorStandings,
+  remainingPoints,
   resultChangedAt,
   type SeasonResults,
   SPRINT_POINTS,
@@ -345,5 +349,400 @@ describe('rankChampionship lastUpdated', () => {
 
   test('is null before anything is published', () => {
     expect(rank([]).lastUpdated).toBeNull();
+  });
+});
+
+/**
+ * A season small enough to check by hand, built the way the real loader builds
+ * one: a roster, round-scoped stints, a calendar with a sprint in it, and the
+ * sessions that have been scored so far.
+ */
+function season({
+  sessions,
+  stints = {},
+  rounds = 3,
+  sprintRounds = [],
+}: {
+  sessions: {
+    sessionType: ChampionshipSessionType;
+    round: number;
+    classification: string[];
+  }[];
+  stints?: Record<
+    string,
+    { team: string; fromRound: number; toRound?: number }[]
+  >;
+  rounds?: number;
+  sprintRounds?: number[];
+}): SeasonResults {
+  const codes = [
+    ...new Set(sessions.flatMap((session) => session.classification)),
+  ].sort();
+  const drivers = codes.map((code) => ({
+    _id: code,
+    code: code.toUpperCase(),
+    displayName: code,
+    team: stints[code]?.[0]?.team ?? 'Red Bull Racing',
+  }));
+
+  return {
+    sessions: sessions.map((session) => ({ ...session, changedAt: 1 })),
+    drivers,
+    stints: new Map(
+      Object.entries(stints).map(([driverId, rows]) => [
+        driverId,
+        rows.map((row) => ({ ...row, driverId })),
+      ]),
+    ),
+    races: Array.from({ length: rounds }, (_, index) => ({
+      round: index + 1,
+      name: `Round ${index + 1} Grand Prix`,
+      slug: `round-${index + 1}`,
+      startAt: index + 1,
+      hasSprint: sprintRounds.includes(index + 1),
+    })),
+    driversById: new Map(drivers.map((driver) => [driver._id, driver])),
+  } as unknown as SeasonResults;
+}
+
+function rankReal(data: SeasonResults) {
+  return rankChampionship(data, {
+    sessionTypes: ['race', 'sprint'],
+    headlineSession: 'race',
+    podiumDepth: 3,
+    includeHistory: true,
+  });
+}
+
+/**
+ * The mid-season move the page has to explain: Lawson at Racing Bulls for
+ * rounds 1–2, at Red Bull from round 3.
+ */
+function moveSeason(): SeasonResults {
+  return season({
+    sessions: [
+      { sessionType: 'race', round: 1, classification: ['law', 'ver', 'lin'] },
+      { sessionType: 'race', round: 2, classification: ['ver', 'lin', 'law'] },
+      {
+        sessionType: 'sprint',
+        round: 2,
+        classification: ['lin', 'ver', 'law'],
+      },
+      { sessionType: 'race', round: 3, classification: ['law', 'lin', 'ver'] },
+    ],
+    sprintRounds: [2],
+    stints: {
+      law: [
+        { team: 'Racing Bulls', fromRound: 1, toRound: 2 },
+        { team: 'Red Bull Racing', fromRound: 3 },
+      ],
+      lin: [{ team: 'Racing Bulls', fromRound: 1 }],
+      ver: [{ team: 'Red Bull Racing', fromRound: 1 }],
+    },
+  });
+}
+
+describe('drivers reconcile with constructors', () => {
+  /**
+   * The defect this guards: a driver's points and his team's only add up if
+   * each round's points are credited to the seat he was in that weekend. Sum
+   * the per-round history back up through each driver's stints and the two
+   * tables have to agree exactly, mid-season move included.
+   */
+  test('every team total is its drivers points scored while at that team', () => {
+    const table = rankReal(moveSeason());
+
+    const rebuilt = new Map<string, number>();
+    for (const driver of table.drivers) {
+      for (const round of driver.pointsByRound) {
+        const team =
+          driver.teamHistory.find(
+            (stint) =>
+              round.round >= stint.fromRound &&
+              (stint.toRound === null || round.round <= stint.toRound),
+          )?.team ?? driver.team;
+        if (!team) {
+          continue;
+        }
+        rebuilt.set(team, (rebuilt.get(team) ?? 0) + round.points);
+      }
+    }
+
+    for (const team of table.constructors) {
+      expect([team.team, rebuilt.get(team.team)]).toEqual([
+        team.team,
+        team.points,
+      ]);
+    }
+  });
+
+  test('a driver keeps every point across the move', () => {
+    const table = rankReal(moveSeason());
+    const lawson = table.drivers.find((driver) => driver.code === 'LAW');
+    // Two wins, a third place, and third in the sprint.
+    expect(lawson?.points).toBe(25 + 15 + 6 + 25);
+    expect(lawson?.pointsByRound.at(-1)?.cumulative).toBe(lawson?.points);
+  });
+});
+
+describe('standings history', () => {
+  function table() {
+    return rankReal(moveSeason());
+  }
+
+  test('reports the position change since the previous round', () => {
+    const lawson = table().drivers.find((driver) => driver.code === 'LAW');
+    // Lawson is second after round 2 and wins round 3 to lead.
+    expect(lawson?.previousPosition).toBe(2);
+    expect(lawson?.position).toBe(1);
+    expect(lawson?.positionChange).toBe(1);
+  });
+
+  test('has no change to report before a second round is scored', () => {
+    const opening = rankReal(
+      season({
+        sessions: [
+          { sessionType: 'race', round: 1, classification: ['ver', 'law'] },
+        ],
+      }),
+    );
+    expect(opening.drivers[0].previousPosition).toBeNull();
+    expect(opening.drivers[0].positionChange).toBeNull();
+  });
+
+  test('ends each history on the position the table prints', () => {
+    for (const driver of table().drivers) {
+      expect(driver.pointsByRound.at(-1)?.position).toBe(driver.position);
+    }
+    for (const team of table().constructors) {
+      expect(team.pointsByRound.at(-1)?.position).toBe(team.position);
+    }
+  });
+
+  test('keeps a driver on zero in the table rather than dropping them', () => {
+    const table = rankReal(
+      season({
+        sessions: [
+          {
+            sessionType: 'race',
+            round: 1,
+            classification: ['ver', 'law', 'lin'],
+          },
+        ],
+      }),
+    );
+    // Everyone who has raced holds a position after every round.
+    expect(
+      table.drivers.every((driver) => driver.pointsByRound.length === 1),
+    ).toBe(true);
+  });
+});
+
+describe('history is opt-in', () => {
+  /**
+   * The race write-ups embed this table in their SSR payload to say who leads.
+   * Sending them ~800 rows of round history nobody draws is pure page weight,
+   * so the history only travels when a caller asks for it.
+   */
+  test('leaves the round history out unless it is asked for', () => {
+    const table = rankChampionship(moveSeason(), {
+      sessionTypes: ['race', 'sprint'],
+      headlineSession: 'race',
+      podiumDepth: 3,
+    });
+    expect(table.drivers.every((d) => d.pointsByRound.length === 0)).toBe(true);
+    expect(table.constructors.every((c) => c.pointsByRound.length === 0)).toBe(
+      true,
+    );
+  });
+
+  test('still reports the position change, which is read off that history', () => {
+    const table = rankChampionship(moveSeason(), {
+      sessionTypes: ['race', 'sprint'],
+      headlineSession: 'race',
+      podiumDepth: 3,
+    });
+    expect(
+      table.drivers.find((driver) => driver.code === 'LAW')?.positionChange,
+    ).toBe(1);
+  });
+});
+
+describe('per-round points', () => {
+  test('splits a sprint weekend into the race and the sprint', () => {
+    const round2 = rankReal(moveSeason())
+      .drivers.find((driver) => driver.code === 'LIN')
+      ?.pointsByRound.find((row) => row.round === 2);
+    // Second in the race (18) and a sprint win (8) on the same weekend.
+    expect(round2).toMatchObject({ points: 26, sprintPoints: 8 });
+  });
+
+  test('leaves a weekend with no sprint on zero', () => {
+    const round1 = rankReal(moveSeason())
+      .drivers.find((driver) => driver.code === 'LIN')
+      ?.pointsByRound.find((row) => row.round === 1);
+    expect(round1?.sprintPoints).toBe(0);
+  });
+});
+
+describe('gaps', () => {
+  const table = rankReal(moveSeason());
+
+  test('measures the leader at zero and everyone else behind them', () => {
+    expect(table.drivers[0].gapToLeader).toBe(0);
+    expect(table.drivers[0].gapToAhead).toBeNull();
+    expect(table.drivers[1].gapToLeader).toBe(
+      table.drivers[0].points - table.drivers[1].points,
+    );
+    expect(table.drivers[1].gapToAhead).toBe(table.drivers[1].gapToLeader);
+  });
+
+  test('measures a team the same way', () => {
+    expect(table.constructors[0].gapToLeader).toBe(0);
+    expect(table.constructors.at(-1)?.gapToLeader).toBe(
+      table.constructors[0].points - (table.constructors.at(-1)?.points ?? 0),
+    );
+  });
+});
+
+describe('countbackNotes', () => {
+  test('names the finish that separated two drivers level on points', () => {
+    // Both on 43: one has a win and a second, the other two seconds.
+    const notes = countbackNotes([
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1, 1],
+        },
+      },
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [0, 2],
+        },
+      },
+    ]);
+    expect(notes).toEqual([
+      { finishPosition: 1, count: 1 },
+      { finishPosition: 1, count: 0 },
+    ]);
+  });
+
+  test('drops to the next finishing position when wins are level', () => {
+    const notes = countbackNotes([
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1, 2],
+        },
+      },
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1, 1],
+        },
+      },
+    ]);
+    expect(notes).toEqual([
+      { finishPosition: 2, count: 2 },
+      { finishPosition: 2, count: 1 },
+    ]);
+  });
+
+  test('says nothing about an entry nobody is level with', () => {
+    const notes = countbackNotes([
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 50,
+          headlinePositionCounts: [2],
+        },
+      },
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1],
+        },
+      },
+    ]);
+    expect(notes).toEqual([null, null]);
+  });
+
+  test('says nothing when the countback cannot separate them either', () => {
+    const notes = countbackNotes([
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1],
+        },
+      },
+      {
+        stats: {
+          ...emptyDriverTally(),
+          points: 43,
+          headlinePositionCounts: [1],
+        },
+      },
+    ]);
+    expect(notes).toEqual([null, null]);
+  });
+});
+
+describe('remainingPoints', () => {
+  const races = [
+    { round: 1, name: 'One', slug: 'one', startAt: 1, hasSprint: false },
+    { round: 2, name: 'Two', slug: 'two', startAt: 2, hasSprint: true },
+    { round: 3, name: 'Three', slug: 'three', startAt: 3, hasSprint: false },
+  ];
+
+  test('counts a win in every race and sprint still to come', () => {
+    expect(remainingPoints(races, [], ['race', 'sprint'])).toBe(25 * 3 + 8);
+  });
+
+  test('drops a session once it has been scored', () => {
+    expect(
+      remainingPoints(
+        races,
+        [
+          { round: 1, sessionType: 'race' },
+          { round: 2, sessionType: 'sprint' },
+        ],
+        ['race', 'sprint'],
+      ),
+    ).toBe(25 * 2);
+  });
+
+  test('never counts a sprint on a weekend that has none', () => {
+    expect(remainingPoints([races[0]], [], ['race', 'sprint'])).toBe(25);
+  });
+});
+
+describe('season shape', () => {
+  test('dates the table by the last round scored, not the last on the calendar', () => {
+    const table = rankReal(moveSeason());
+    expect(table.roundsScored).toBe(3);
+    expect(table.roundsTotal).toBe(3);
+    expect(table.lastRound?.round).toBe(3);
+    expect(table.nextRound).toBeNull();
+  });
+
+  test('points to the next Grand Prix while the season is still running', () => {
+    const table = rankReal(
+      season({
+        sessions: [
+          { sessionType: 'race', round: 1, classification: ['ver', 'law'] },
+        ],
+        rounds: 4,
+      }),
+    );
+    expect(table.lastRound?.round).toBe(1);
+    expect(table.nextRound?.round).toBe(2);
+    expect(table.pointsRemaining).toBe(25 * 3);
   });
 });

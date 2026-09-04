@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ANTONELLI_MONZA_PENALTY_BODY,
+  ANTONELLI_MONZA_PU_SPEC_BODY,
   ARON_MONZA_FP1_BODY,
   BROWNING_WILLIAMS_FP1_BODY,
   COLAPINTO_ALPINE_UPGRADE_BODY,
@@ -82,6 +83,23 @@ describe('italy2026MonzaNewsCopy', () => {
     );
     expect(BROWNING_WILLIAMS_FP1_BODY).not.toMatch(/Use FP2/);
     expect(HERTA_MONZA_FP1_BODY.split('. ')[0]).toMatch(/third FP1/);
+  });
+
+  it('keeps the engine spec off the penalty card', () => {
+    // Same rule as the tow, one weekend later. The penalty card's
+    // Motorsport.com report is about when Russell takes his penalty and never
+    // mentions ADUO, so the spec of Antonelli's unit is its own item with the
+    // report that does carry it.
+    expect(ANTONELLI_MONZA_PENALTY_BODY).not.toMatch(/ADUO|upgrade/i);
+    expect(ANTONELLI_MONZA_PU_SPEC_BODY).toMatch(/ADUO upgrade/);
+    expect(ANTONELLI_MONZA_PU_SPEC_BODY).toMatch(
+      /October, at Austin or Mexico City/,
+    );
+    // Never invent a position, and never tell the reader what to do with a
+    // pick: this card exists to stop "full power unit change" being read as a
+    // performance step, and the section's scoring note carries the rest.
+    expect(ANTONELLI_MONZA_PU_SPEC_BODY).not.toMatch(/\bP\d/);
+    expect(ANTONELLI_MONZA_PU_SPEC_BODY).not.toMatch(/Treat |Expect |Use /);
   });
 
   it('keeps the qualifying tow off the penalty card', () => {

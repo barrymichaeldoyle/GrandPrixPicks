@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { internal } from './_generated/api';
 import {
+  ANTONELLI_MONZA_PU_SPEC_BODY,
   ARON_MONZA_FP1_BODY,
   HADJAR_DUTCH_GP_LINEUP_NOTE,
   HERTA_MONZA_FP1_BODY,
@@ -359,6 +360,67 @@ describe('publishItaly2026MonzaFp1Seats', () => {
     expect(untouched).toMatchObject({
       headline: BROWNING_HEADLINE,
       body: BROWNING_BODY,
+      active: true,
+    });
+  });
+});
+
+describe('publishItaly2026MercedesEngineSpec', () => {
+  it('publishes the engine spec as its own item, badged to Antonelli', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      const now = 100;
+      await ctx.db.insert('races', {
+        season: 2026,
+        round: 13,
+        name: 'Italian Grand Prix',
+        slug: 'italy-2026',
+        raceStartAt: 2_000,
+        predictionLockAt: 1_900,
+        status: 'upcoming',
+        createdAt: now,
+        updatedAt: now,
+      });
+      await ctx.db.insert('drivers', {
+        code: 'ANT',
+        displayName: 'Kimi Antonelli',
+        team: 'Mercedes',
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+
+    // Twice, because this runs on every deploy.
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026MercedesEngineSpec,
+      {},
+    );
+    await t.mutation(
+      internal.raceNewsMigrations.publishItaly2026MercedesEngineSpec,
+      {},
+    );
+
+    const news = await t.run(async (ctx) => {
+      const race = await ctx.db
+        .query('races')
+        .withIndex('by_slug', (q) => q.eq('slug', 'italy-2026'))
+        .unique();
+      if (!race) {
+        throw new Error('missing italy-2026 race');
+      }
+      return await ctx.db
+        .query('raceNews')
+        .withIndex('by_race', (q) => q.eq('raceId', race._id))
+        .collect();
+    });
+
+    expect(news).toHaveLength(1);
+    expect(news[0]).toMatchObject({
+      key: 'antonelli-monza-engine-spec',
+      headline: 'Antonelli\u2019s new Monza engine is not the Mercedes upgrade',
+      body: ANTONELLI_MONZA_PU_SPEC_BODY,
+      driverCodes: ['ANT'],
+      affectsSessions: ['quali', 'race'],
       active: true,
     });
   });

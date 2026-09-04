@@ -28,6 +28,10 @@
     "args": {}
   },
   {
+    "name": "raceNewsMigrations:publishItaly2026MercedesEngineSpec",
+    "args": {}
+  },
+  {
     "name": "raceNewsMigrations:addItaly2026BrowningWriteUpPhoto",
     "args": {}
   },

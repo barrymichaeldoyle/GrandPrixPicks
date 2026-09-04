@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import { internalMutation } from './_generated/server';
 import {
   ANTONELLI_MONZA_PENALTY_BODY,
+  ANTONELLI_MONZA_PU_SPEC_BODY,
   ARON_MONZA_FP1_BODY,
   BROWNING_WILLIAMS_FP1_BODY,
   COLAPINTO_ALPINE_UPGRADE_BODY,
@@ -273,5 +274,39 @@ export const publishItaly2026MercedesAndWilliamsNews = internalMutation({
     });
 
     return { antonelli, tow, browning };
+  },
+});
+
+/**
+ * What Antonelli's Monza power unit actually is.
+ *
+ * `antonelli-grid-penalty` says Mercedes is fitting a full new unit, and with
+ * Ferrari's ADUO2 card published on the same weekend that reads as a
+ * performance step. It is not one: the upgrade Mercedes is entitled to comes in
+ * October. The penalty card's source does not say so, so this is a separate
+ * item with the report that does, like `mercedes-monza-qualifying-tow`.
+ *
+ * Idempotent, like the others.
+ */
+export const publishItaly2026MercedesEngineSpec = internalMutation({
+  args: {},
+  // Annotated for the same TS7022 reason as `updateItaly2026MonzaNewsCopy`.
+  handler: async (ctx): Promise<{ spec: unknown }> => {
+    const spec = await ctx.runMutation(internal.raceNews.publish, {
+      raceSlug: 'italy-2026',
+      key: 'antonelli-monza-engine-spec',
+      headline: 'Antonelli’s new Monza engine is not the Mercedes upgrade',
+      body: ANTONELLI_MONZA_PU_SPEC_BODY,
+      affectsSessions: ['quali', 'race'],
+      // Antonelli alone. Russell is on the penalty and tow cards because those
+      // move his picks; the October upgrade date moves nobody's Monza pick but
+      // the one driver whose new engine is being mistaken for it.
+      driverCodes: ['ANT'],
+      sourceName: 'Motorsport.com',
+      sourceUrl:
+        'https://au.motorsport.com/f1/news/f1-mercedes-no-aduo-at-monza-new-pu-due-in-october/10851590/',
+    });
+
+    return { spec };
   },
 });

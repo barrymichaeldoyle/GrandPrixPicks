@@ -59,3 +59,16 @@ export const BROWNING_WILLIAMS_FP1_BODY =
  */
 export const MERCEDES_MONZA_TOW_BODY =
   'Antonelli starts from the back with his power unit penalty, which frees him to run a tow for Russell in qualifying. Russell says Mercedes offered the plan and that they will try it, and Antonelli says he will do it if the team asks. Russell also expects a slipstream to be worth less than it once was, with the wings open in straight mode.';
+
+/*
+ * The spec of Antonelli's Monza power unit, which the penalty card cannot
+ * carry: its Motorsport.com report is about when Russell takes his penalty and
+ * says nothing about ADUO. One source per card, so this is its own item with
+ * its own source, the same way the qualifying tow is.
+ *
+ * It is published because "full power unit change" reads as a performance step
+ * to anyone who has met the Ferrari ADUO2 card two rows up, and a Mercedes
+ * that has not gained anything this weekend is a different pick.
+ */
+export const ANTONELLI_MONZA_PU_SPEC_BODY =
+  'The fresh power unit that sends Antonelli to the back at Monza is his fifth of the season and built to Mercedes’ current spec. Mercedes has been granted an ADUO upgrade and is holding it back: that revised spec is due in October, at Austin or Mexico City.';

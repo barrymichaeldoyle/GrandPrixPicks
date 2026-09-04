@@ -402,7 +402,7 @@ function ItalianGrandPrixPredictionsPage() {
             prose-only asides follow. */}
         {isLive ? (
           <>
-            <HadjarStatus byCode={driversByCode} />
+            <MonzaSeats byCode={driversByCode} />
             <ChampionshipContext championship={championship} />
             <McLarenForm />
             <FerrariTribute />
@@ -665,126 +665,79 @@ function TrackMap() {
   );
 }
 
-function HadjarStatus({ byCode }: { byCode: Map<string, StandingsDriver> }) {
+/**
+ * The seats, and nothing but the seats.
+ *
+ * Three paragraphs opened this section, and every sentence of them was already
+ * on the page: `raceNews` carries the injury, the two seats it moves and the
+ * FP1 rookie run, as items the reader meets several sections higher. News that
+ * moves a pick belongs in the feed, where it retires itself when the weekend
+ * ends, rather than hand-typed into prose that does not. What the feed cannot
+ * do is show the affected seats at once, in team colour, which is what the
+ * card is for and the only reason the section stayed.
+ *
+ * No team bar left either. The bar marks a block of copy as one team's story;
+ * with the copy gone the card carries the colour itself, in the 3px bar of
+ * each badge, which is the same mechanism doing the same job one level down.
+ */
+function MonzaSeats({ byCode }: { byCode: Map<string, StandingsDriver> }) {
   return (
-    // Three columns from `lg`: the copy, the driver it is about, and the card
-    // that answers who is actually in the seats. Two columns left the reading
-    // measure at nearly 700px and the photo with nowhere to go but under the
-    // prose, where it pushed the section past the seat card by the height of a
-    // portrait. Three brings the measure back to about 70 characters and ends
-    // all three columns within a line or two of each other.
-    <section
-      className="grid gap-7 py-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_16rem_18rem]"
-      aria-labelledby="hadjar-status"
-    >
-      {/* Same team bar the tribute and the contract carry, and for the same
-          reason: this is a story about one team's seat, and the colour says
-          whose before the first line is read. Red Bull's, not Racing Bulls' —
-          the seat in question is the one Lawson is filling. */}
-      {/* Capped between `md` and `lg`. This section's grid is `lg:`, so on a
-          tablet it is still one column and the copy ran the full 736px — about
-          a hundred characters a line, where the eye loses its place returning
-          to the left margin. The two-column sections below cap at `md:` for the
-          same reason; they just get help from their grid earlier. Above `lg`
-          the 1fr column is narrower than any cap, so it lifts. */}
-      <div
-        className="gpp-team-bar pl-4 md:max-w-[65ch] lg:max-w-none"
-        style={
-          {
-            '--team-colour':
-              TEAM_COLORS['Red Bull Racing'] ?? FALLBACK_TEAM_COLOR,
-          } as CSSProperties
-        }
+    <section className="py-8 sm:py-16" aria-labelledby="monza-seats">
+      <h2
+        id="monza-seats"
+        className="font-title text-2xl font-medium text-text"
       >
-        <h2
-          id="hadjar-status"
-          className="font-title text-2xl font-medium text-text"
-        >
-          Hadjar will miss Monza
-        </h2>
-        <p className="gpp-reading-copy mt-4 text-text-muted">
-          Isack Hadjar will miss a second race with the left-wrist injury that
-          kept him out at Zandvoort. Liam Lawson stays alongside Max Verstappen
-          at Red Bull, while Yuki Tsunoda stays alongside Arvid Lindblad at
-          Racing Bulls.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Red Bull is giving Hadjar more recovery time rather than risking the
-          wrist on Monza&rsquo;s kerbs.{' '}
-          <ExternalSource href={HADJAR_AUTOSPORT_SOURCE}>
-            Autosport
-          </ExternalSource>{' '}
-          and{' '}
-          <ExternalSource href={HADJAR_RACING_NEWS_365_SOURCE}>
-            RacingNews365
-          </ExternalSource>{' '}
-          report the same race line-up used at Zandvoort.
-        </p>
-        <p className="gpp-reading-copy mt-3 text-text-muted">
-          Ayumu Iwasa replaces Verstappen in FP1 under the rookie-session rule.
-          Verstappen returns for FP2 and remains in the race line-up.
-        </p>
-      </div>
-      {/* Outside the team bar, which marks the copy and stops with it. Inside
-          it the bar ran the full height of the tallest thing in the column,
-          which was the photo, and a 3px team colour down 400px of empty page
-          reads as a section that has not ended. */}
-      {/* No width cap of its own. It carried `max-w-64`, which the `pl-4`
-          then ate 16px of, so this portrait painted 240px wide on a phone
-          while the tribute's painted 256 — two pictures of the same shape at
-          two widths, for no reason a reader could see. The cap belongs to
-          `WriteUpNewsPhoto`, which knows whether the photo is a portrait; the
-          `lg` width comes from this section's own 16rem grid track. */}
-      <div className="self-start pl-4 lg:pl-0">
+        Who takes Hadjar&rsquo;s seat
+      </h2>
+      {/* The card first, because it is the answer, and the portrait beside it
+          rather than under it: stacked, a 20rem photo pushed the section to
+          twice the height of the three rows that are its point. */}
+      <div className="mt-7 grid gap-7 sm:grid-cols-[minmax(0,18rem)_16rem] sm:items-start">
+        <dl className="rounded-sm bg-surface-elevated px-4">
+          {/* Team colour is the one thing a list of three names cannot say:
+              without it a reader is left working out that two of these seats
+              are Red Bull's and one is Racing Bulls'. */}
+          {[
+            { label: 'Out at Monza', code: 'HAD', note: 'Left-wrist injury' },
+            { label: 'Red Bull', code: 'LAW', note: 'In Hadjar\u2019s seat' },
+            { label: 'Racing Bulls', code: 'TSU', note: 'Unchanged' },
+          ].map(({ label, code, note }) => {
+            const driver = byCode.get(code);
+            return (
+              <div
+                key={label}
+                className="border-b border-border py-4 last:border-0"
+              >
+                <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
+                  {label}
+                </dt>
+                <dd className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text">
+                  {driver ? (
+                    <>
+                      <DriverBadge
+                        code={driver.code}
+                        team={driver.team}
+                        displayName={driver.displayName}
+                        number={driver.number}
+                        nationality={driver.nationality}
+                        size="sm"
+                        prerenderTooltip={false}
+                      />
+                      <span>{driver.displayName}</span>
+                    </>
+                  ) : null}
+                  {note ? (
+                    <span className={driver ? 'text-text-muted' : undefined}>
+                      {note}
+                    </span>
+                  ) : null}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
         <WriteUpNewsPhoto {...HADJAR_WRITEUP_IMAGE} />
       </div>
-      <dl className="self-start rounded-sm bg-surface-elevated px-4">
-        {/* This card is about who is in which seat, which is the one thing
-            team colour exists to show. Names alone left a reader working out
-            that two of these are Red Bull and one is Racing Bulls. */}
-        {[
-          {
-            label: 'Monza status',
-            code: 'HAD',
-            note: 'Out',
-          },
-          { label: 'Red Bull', code: 'LAW', note: 'Racing' },
-          { label: 'Racing Bulls', code: 'TSU', note: 'Racing' },
-        ].map(({ label, code, note }) => {
-          const driver = byCode.get(code);
-          return (
-            <div
-              key={label}
-              className="border-b border-border py-4 last:border-0"
-            >
-              <dt className="text-xs font-semibold tracking-label text-text-muted uppercase">
-                {label}
-              </dt>
-              <dd className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text">
-                {driver ? (
-                  <>
-                    <DriverBadge
-                      code={driver.code}
-                      team={driver.team}
-                      displayName={driver.displayName}
-                      number={driver.number}
-                      nationality={driver.nationality}
-                      size="sm"
-                      prerenderTooltip={false}
-                    />
-                    <span>{driver.displayName}</span>
-                  </>
-                ) : null}
-                {note ? (
-                  <span className={driver ? 'text-text-muted' : undefined}>
-                    {note}
-                  </span>
-                ) : null}
-              </dd>
-            </div>
-          );
-        })}
-      </dl>
     </section>
   );
 }

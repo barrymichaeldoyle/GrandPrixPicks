@@ -91,35 +91,85 @@ export async function getExpoTokensForUser(
   return tokens;
 }
 
-async function getExpoTokensByUser(
-  ctx: MutationCtx,
-): Promise<Map<Id<'users'>, Array<string>>> {
-  const tokensByUser = new Map<Id<'users'>, Array<string>>();
-  for await (const row of ctx.db.query('expoPushTokens')) {
-    const existing = tokensByUser.get(row.userId) ?? [];
-    existing.push(row.token);
-    tokensByUser.set(row.userId, existing);
-  }
-  return tokensByUser;
+/**
+ * Fan-outs page the roster instead of loading it whole. Reading every push row
+ * and every subscriber in one transaction has a ceiling, and the two sends that
+ * would reach it first are the two that matter most: the pre-race reminder and
+ * the results push. Past that ceiling the mutation throws rather than degrades,
+ * so the symptom is a notification that simply never arrives. Each page
+ * reschedules itself, the same shape as
+ * `inAppNotifications.broadcastAnnouncement`.
+ */
+const PUSH_FANOUT_PAGE_SIZE = 100;
+
+type PushTargets = {
+  subscriptions: Array<PushSubscriptionPayload>;
+  tokens: Array<string>;
+};
+
+type PushFanoutResult = {
+  queued: number;
+  done: boolean;
+  /** Set on an early-out, so a skipped run reads as such in the logs. */
+  reason?: string;
+};
+
+function emptyPushTargets(): PushTargets {
+  return { subscriptions: [], tokens: [] };
 }
 
-async function getSubscriptionsByUser(
+function pushTargetCount(targets: PushTargets): number {
+  return targets.subscriptions.length + targets.tokens.length;
+}
+
+/**
+ * Append one user's devices to `targets`. Both lookups are by index, so this
+ * stays cheap per recipient. Call it only after the user's channel opt-out has
+ * passed: a roster full of people who never enabled push then costs one read
+ * each rather than a walk of both device tables.
+ */
+async function addUserPushTargets(
   ctx: MutationCtx,
-): Promise<Map<Id<'users'>, Array<PushSubscriptionPayload>>> {
-  const subscriptionsByUser = new Map<
-    Id<'users'>,
-    Array<PushSubscriptionPayload>
-  >();
-  for await (const sub of ctx.db.query('pushSubscriptions')) {
-    const existing = subscriptionsByUser.get(sub.userId) ?? [];
-    existing.push({
-      endpoint: sub.endpoint,
-      p256dh: sub.p256dh,
-      auth: sub.auth,
+  targets: PushTargets,
+  userId: Id<'users'>,
+): Promise<void> {
+  targets.subscriptions.push(...(await getSubscriptionsForUser(ctx, userId)));
+  targets.tokens.push(...(await getExpoTokensForUser(ctx, userId)));
+}
+
+async function dispatchPushTargets(
+  ctx: MutationCtx,
+  targets: PushTargets,
+  message: { title: string; body: string; url: string },
+): Promise<number> {
+  if (targets.subscriptions.length > 0) {
+    await scheduleSendPushBatches(ctx, {
+      subscriptions: targets.subscriptions,
+      ...message,
     });
-    subscriptionsByUser.set(sub.userId, existing);
   }
-  return subscriptionsByUser;
+  if (targets.tokens.length > 0) {
+    await scheduleSendExpoPushBatches(ctx, {
+      tokens: targets.tokens,
+      ...message,
+    });
+  }
+  return pushTargetCount(targets);
+}
+
+/** Has this user submitted a pick for any session of the race? */
+async function hasPredictionForRace(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+  raceId: Id<'races'>,
+): Promise<boolean> {
+  const existing = await ctx.db
+    .query('predictions')
+    .withIndex('by_user_race_session', (q) =>
+      q.eq('userId', userId).eq('raceId', raceId),
+    )
+    .first();
+  return existing !== null;
 }
 
 export const saveSubscription = mutation({
@@ -241,132 +291,93 @@ export const getSubscriptionsForUsers = internalQuery({
 });
 
 /**
- * Internal mutation: finds subscribed users (optionally filtering to those
- * without predictions), then fans out sendPushBatch.
+ * Internal mutation: reminds subscribed users about a race, one page of the
+ * roster per transaction, rescheduling itself until the roster is exhausted.
+ *
+ * `filterUnpredicted` picks the send: the 2h "last chance" run reaches only
+ * people with nothing submitted, the 24h run splits the roster into a reminder
+ * for those and a lock warning for everyone who has already picked.
  */
 export const sendPushRemindersForRace = internalMutation({
   args: {
     raceId: v.id('races'),
     filterUnpredicted: v.boolean(),
+    cursor: v.optional(v.union(v.string(), v.null())),
+    queued: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<PushFanoutResult> => {
+    const queuedSoFar = args.queued ?? 0;
     const race = await ctx.db.get(args.raceId);
+    // Re-checked on every page rather than only the first: if the weekend locks
+    // while the fan-out is still paging, the remaining pages stop instead of
+    // nagging people about picks they can no longer make.
     if (!race || race.status !== 'upcoming') {
-      return { skipped: true, reason: 'Race not upcoming' };
+      return { queued: queuedSoFar, done: true, reason: 'Race not upcoming' };
     }
 
-    const subscriptionsByUser = await getSubscriptionsByUser(ctx);
-    const expoTokensByUser = await getExpoTokensByUser(ctx);
-    if (subscriptionsByUser.size === 0 && expoTokensByUser.size === 0) {
-      return { skipped: true, reason: 'No push subscriptions' };
-    }
+    const page = await ctx.db.query('users').paginate({
+      numItems: PUSH_FANOUT_PAGE_SIZE,
+      cursor: args.cursor ?? null,
+    });
 
-    const subscribedUserIds = [
-      ...new Set([...subscriptionsByUser.keys(), ...expoTokensByUser.keys()]),
-    ];
-    const subscribedUsers = await Promise.all(
-      subscribedUserIds.map((userId) => ctx.db.get(userId)),
-    );
-    const userById = new Map(
-      subscribedUsers
-        .filter((u): u is NonNullable<typeof u> => u !== null)
-        .map((u) => [u._id as string, u]),
-    );
+    const unpredicted = emptyPushTargets();
+    const predicted = emptyPushTargets();
 
-    const usersWithPredictions = new Set<string>();
-    for await (const prediction of ctx.db
-      .query('predictions')
-      .withIndex('by_race_session', (q) => q.eq('raceId', args.raceId))) {
-      usersWithPredictions.add(prediction.userId as string);
-    }
-
-    async function sendToUsers(
-      userIds: Array<string>,
-      message: { title: string; body: string; url: string },
-    ): Promise<number> {
-      const subs = userIds.flatMap(
-        (id) => subscriptionsByUser.get(id as Id<'users'>) ?? [],
-      );
-      const tokens = userIds.flatMap(
-        (id) => expoTokensByUser.get(id as Id<'users'>) ?? [],
-      );
-      if (subs.length > 0) {
-        await scheduleSendPushBatches(ctx, {
-          subscriptions: subs,
-          ...message,
-        });
-      }
-      if (tokens.length > 0) {
-        await scheduleSendExpoPushBatches(ctx, { tokens, ...message });
-      }
-      return subs.length + tokens.length;
-    }
-
-    // 2h "last chance" path: only unpredicted users who opted in to reminders.
-    if (args.filterUnpredicted) {
-      const targetUserIds = subscribedUserIds
-        .map((id) => id as string)
-        .filter(
-          (id) =>
-            !usersWithPredictions.has(id) &&
-            (() => {
-              const u = userById.get(id);
-              return u ? wantsPushPredictionReminders(u) : false;
-            })(),
-        );
-
-      if (targetUserIds.length === 0) {
-        return { skipped: true, reason: 'No target users' };
-      }
-
-      const queued = await sendToUsers(targetUserIds, {
-        title: `⏰ ${race.name}`,
-        body: `Picks close in 2 hours. You haven't made your predictions yet!`,
-        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`,
-      });
-      return { queued };
-    }
-
-    // 24h path: split into unpredicted (existing reminder) + predicted (new
-    // "lock approaching" reminder, separate opt-out).
-    const unpredictedTargets: Array<string> = [];
-    const predictedTargets: Array<string> = [];
-    for (const id of subscribedUserIds.map((x) => x as string)) {
-      const user = userById.get(id);
-      if (!user) {
+    for (const user of page.page) {
+      if (await hasPredictionForRace(ctx, user._id, args.raceId)) {
+        // The 2h send exists to catch people with nothing in; someone who has
+        // already picked has nothing left to be warned about.
+        if (args.filterUnpredicted || !wantsPushPredictionLockReminders(user)) {
+          continue;
+        }
+        await addUserPushTargets(ctx, predicted, user._id);
         continue;
       }
-      if (usersWithPredictions.has(id)) {
-        if (wantsPushPredictionLockReminders(user)) {
-          predictedTargets.push(id);
-        }
-      } else if (wantsPushPredictionReminders(user)) {
-        unpredictedTargets.push(id);
+
+      if (!wantsPushPredictionReminders(user)) {
+        continue;
       }
+      await addUserPushTargets(ctx, unpredicted, user._id);
     }
 
-    let queued = 0;
+    let queued = queuedSoFar;
 
-    if (unpredictedTargets.length > 0) {
-      queued += await sendToUsers(unpredictedTargets, {
-        title: `🏎️ ${race.name}`,
-        body: `Picks are open. You have 24 hours to make your predictions`,
-        url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
-      });
+    if (pushTargetCount(unpredicted) > 0) {
+      queued += await dispatchPushTargets(
+        ctx,
+        unpredicted,
+        args.filterUnpredicted
+          ? {
+              title: `⏰ ${race.name}`,
+              body: `Picks close in 2 hours. You haven't made your predictions yet!`,
+              url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=last_chance`,
+            }
+          : {
+              title: `🏎️ ${race.name}`,
+              body: `Picks are open. You have 24 hours to make your predictions`,
+              url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=prediction_reminder`,
+            },
+      );
     }
 
-    if (predictedTargets.length > 0) {
-      queued += await sendToUsers(predictedTargets, {
+    if (pushTargetCount(predicted) > 0) {
+      queued += await dispatchPushTargets(ctx, predicted, {
         title: `🔒 ${race.name}`,
         body: `Your picks are in. Picks lock in 24 hours, so edit before then.`,
         url: `/races/${race.slug}?utm_source=push&utm_medium=push&utm_campaign=lock_approaching`,
       });
     }
 
-    if (queued === 0) {
-      return { skipped: true, reason: 'No target users' };
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(0, internal.push.sendPushRemindersForRace, {
+        raceId: args.raceId,
+        filterUnpredicted: args.filterUnpredicted,
+        cursor: page.continueCursor,
+        queued,
+      });
     }
-    return { queued };
+
+    return { queued, done: page.isDone };
   },
 });
 
@@ -415,37 +426,40 @@ export async function scheduleSendExpoPushBatches(
 }
 
 /**
- * Internal mutation: fans out push notifications to all subscribed users
- * when session results are published.
+ * Internal mutation: tells subscribed users a session has been scored, one page
+ * of the roster per transaction, rescheduling itself until it is exhausted.
+ *
+ * Continuation pages keep this function's name, so
+ * `notifications.cancelQueuedResultNotifications` still cancels them: the
+ * emergency stop can now halt a send part-way through the roster instead of
+ * arriving after one transaction has already dispatched every batch.
  */
 export const sendPushResultsForSession = internalMutation({
   args: {
     raceId: v.id('races'),
     sessionType: sessionTypeValidator,
+    cursor: v.optional(v.union(v.string(), v.null())),
+    queued: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<PushFanoutResult> => {
+    const queuedSoFar = args.queued ?? 0;
     const race = await ctx.db.get(args.raceId);
     if (!race) {
-      return { skipped: true, reason: 'Race not found' };
+      return { queued: queuedSoFar, done: true, reason: 'Race not found' };
     }
 
-    const subscriptionsByUser = await getSubscriptionsByUser(ctx);
-    const expoTokensByUser = await getExpoTokensByUser(ctx);
-    if (subscriptionsByUser.size === 0 && expoTokensByUser.size === 0) {
-      return { skipped: true, reason: 'No push subscriptions' };
-    }
+    const page = await ctx.db.query('users').paginate({
+      numItems: PUSH_FANOUT_PAGE_SIZE,
+      cursor: args.cursor ?? null,
+    });
 
-    const subscribedUserIds = [
-      ...new Set([...subscriptionsByUser.keys(), ...expoTokensByUser.keys()]),
-    ];
-    const subscribedUsers = await Promise.all(
-      subscribedUserIds.map((userId) => ctx.db.get(userId)),
-    );
-    const usersWithResultPushEnabled = new Set(
-      subscribedUsers
-        .filter((u) => u && wantsPushResults(u))
-        .map((u) => u!._id as string),
-    );
+    const targets = emptyPushTargets();
+    for (const user of page.page) {
+      if (!wantsPushResults(user)) {
+        continue;
+      }
+      await addUserPushTargets(ctx, targets, user._id);
+    }
 
     const sessionLabel = SESSION_LABELS_FULL[args.sessionType];
     const title = `🏁 ${race.name}: ${sessionLabel} results`;
@@ -457,25 +471,21 @@ export const sendPushResultsForSession = internalMutation({
     // which must know any path we send here or the tap does nothing).
     const url = `/leaderboard?time=weekend&raceId=${race._id}&utm_source=push&utm_medium=push&utm_campaign=results`;
 
-    const subscriptions = [...subscriptionsByUser.entries()]
-      .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))
-      .flatMap(([, userSubscriptions]) => userSubscriptions);
-    const tokens = [...expoTokensByUser.entries()]
-      .filter(([userId]) => usersWithResultPushEnabled.has(userId as string))
-      .flatMap(([, userTokens]) => userTokens);
-
-    if (subscriptions.length === 0 && tokens.length === 0) {
-      return { skipped: true, reason: 'No eligible subscriptions' };
+    let queued = queuedSoFar;
+    if (pushTargetCount(targets) > 0) {
+      queued += await dispatchPushTargets(ctx, targets, { title, body, url });
     }
 
-    if (subscriptions.length > 0) {
-      await scheduleSendPushBatches(ctx, { subscriptions, title, body, url });
-    }
-    if (tokens.length > 0) {
-      await scheduleSendExpoPushBatches(ctx, { tokens, title, body, url });
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(0, internal.push.sendPushResultsForSession, {
+        raceId: args.raceId,
+        sessionType: args.sessionType,
+        cursor: page.continueCursor,
+        queued,
+      });
     }
 
-    return { queued: subscriptions.length + tokens.length };
+    return { queued, done: page.isDone };
   },
 });
 

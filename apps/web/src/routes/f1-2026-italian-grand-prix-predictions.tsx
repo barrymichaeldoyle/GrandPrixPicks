@@ -409,7 +409,6 @@ function ItalianGrandPrixPredictionsPage() {
             <SafetyCarLivery />
             <NorrisContract />
             <ColapintoContract />
-            <PredictionMethod />
           </>
         ) : null}
 
@@ -642,6 +641,17 @@ function TrackMap() {
             keeps the tow onto the main straight and can use Overtake down it,
             into Rettifilo. That is where most passes happen.
           </p>
+          {/* The one line the deleted "Before you lock your Top 5" section
+              carried that nothing else on the page did: what the geography
+              above means for the order of a pick. It belongs here, beside the
+              corner it is about, rather than in a list of method steps that
+              restated the tow, the long runs and the practice sessions the
+              sections above had already covered. */}
+          <p className="gpp-reading-copy mt-3 text-text-muted">
+            Rettifilo compresses the field into one heavy stop on lap one, so a
+            driver at the back of your Top 5 carries more opening-lap risk here
+            than at most circuits.
+          </p>
           {/* The drawn lap and the real thing, in one column. The map is the
               taller element by a long way, so this side ended a third of the
               way down it and left the rest of the column empty; a photograph of
@@ -873,46 +883,6 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
           </p>
         </div>
       </div>
-    </section>
-  );
-}
-
-function PredictionMethod() {
-  const steps = [
-    [
-      'Compare like-for-like practice laps',
-      'Check whether the drivers ran similar fuel, tyres and track conditions. At Monza, note who had a tow.',
-    ],
-    [
-      'Check how each qualifying lap was set',
-      'Traffic and slipstreams can exaggerate small differences between cars.',
-    ],
-    [
-      'Account for Turn 1',
-      'Rettifilo (Turns 1–2) compresses the field into one heavy stop at the end of the main straight. A pick near the back of your Top 5 carries extra opening-lap risk.',
-    ],
-    [
-      'Resolve close calls after FP3',
-      'Use final practice, weather and confirmed driver availability before separating closely matched drivers.',
-    ],
-  ] as const;
-
-  return (
-    <section className="py-8 sm:py-16" aria-labelledby="build-top-five">
-      <h2
-        id="build-top-five"
-        className="font-title text-2xl font-medium text-text"
-      >
-        Before you lock your Top 5
-      </h2>
-      <ul className="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-        {steps.map(([title, detail]) => (
-          <li key={title}>
-            <h3 className="font-title font-medium text-text">{title}</h3>
-            <p className="gpp-reading-copy mt-1 text-text-muted">{detail}</p>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

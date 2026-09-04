@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { listRaceWriteups } from '../../src/lib/raceWriteups';
+import { siteConfig } from '../../src/lib/site';
+
 const queryMock = vi.fn();
 
 vi.mock('convex/browser', () => ({
@@ -122,21 +125,19 @@ describe('sitemap.xml route', () => {
     const { xml } = await renderSitemap();
 
     expect(xml).toContain('<loc>https://grandprixpicks.com/about</loc>');
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-italian-grand-prix-predictions</loc>\n    <lastmod>2026-09-03T00:00:00.000Z</lastmod>',
-    );
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-bahrain-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
-    );
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-singapore-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
-    );
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-azerbaijan-grand-prix-predictions</loc>\n    <lastmod>2026-09-01T00:00:00.000Z</lastmod>',
-    );
-    expect(xml).toContain(
-      '<loc>https://grandprixpicks.com/f1-2026-madrid-grand-prix-predictions</loc>\n    <lastmod>2026-09-03T00:00:00.000Z</lastmod>',
-    );
+    // Every write-up, carrying the review date the registry holds for it.
+    // The dates were typed out here, which meant editing the prose on a
+    // write-up and bumping its `reviewedAt` broke a sitemap test that has no
+    // opinion about prose. What is worth proving is the wiring: each write-up
+    // reaches the sitemap, and its `lastmod` is its own review date rather
+    // than the deploy or a neighbour's.
+    const writeups = listRaceWriteups();
+    expect(writeups.length).toBeGreaterThan(0);
+    for (const writeup of writeups) {
+      expect(xml).toContain(
+        `<loc>${siteConfig.url}${writeup.to}</loc>\n    <lastmod>${new Date(writeup.reviewedAt).toISOString()}</lastmod>`,
+      );
+    }
     expect(xml).toContain('<loc>https://grandprixpicks.com/guides</loc>');
     expect(xml).toContain(
       '<loc>https://grandprixpicks.com/guides/f1-sprint-weekends-explained</loc>',

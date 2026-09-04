@@ -109,9 +109,9 @@ export function ScrollToPicksCta({ targetId }: { targetId: string }) {
       <a
         href={`#${targetId}`}
         className={primaryButtonStyles('md')}
-        // Suppresses the duplicate CTA in the app header while this page owns the
-        // action (see `.gpp-public-header-cta` in styles.css). The sticky strip
-        // takes the action over the moment this scrolls away.
+        // Suppresses the duplicate CTA in the app header while this page owns
+        // the action (see `.gpp-public-header-cta` in styles.css). The header
+        // button takes it back the moment this scrolls away.
         data-landing-hero-cta="true"
         onClick={() =>
           captureAnalyticsEvent('landing_hero_cta_clicked', {

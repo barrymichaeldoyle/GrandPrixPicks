@@ -60,26 +60,27 @@ const signedIn =
   `and not http.cookie contains "__client_uat=0"))`;
 
 /**
- * The routes that call applySsrCacheControl() and are worth an edge entry.
+ * STALE. Do not run this script without fixing this list first.
  *
- * A route asking for a cache-control header does nothing on its own: without
- * a path here, Pages answers `cf-cache-status: DYNAMIC` and pays a full SSR
- * render per request. The two 2027 pages were exactly that — hand-maintained
- * static content, changing only on deploy, re-rendered for every crawler.
+ * The rules actually deployed on the zone are zone-wide: rule 1 matches
+ * `not starts_with(http.request.uri.path, "/api/")` and rule 2 excludes
+ * `/assets/`, `/fonts/` and `/flags/`. Verified 5 September 2026, when every
+ * public path answered `cf-cache-status: EXPIRED` (an edge entry being
+ * revalidated) and a request carrying a non-zero Clerk cookie answered
+ * `DYNAMIC`.
  *
- * Adding a path means re-running this script; the rule set is replaced whole.
+ * This file still carries the three-path allowlist from before that widening,
+ * so running it as written would REPLACE the live rules with those three paths
+ * and stop caching the rest of the site. That is a silent regression: nothing
+ * fails, pages just start paying a full SSR render again, which is exactly the
+ * four days of uncached pages recorded in the July 2026 perf pass.
+ *
+ * A route only needs `applySsrCacheControl` to be cached now; the edge rule no
+ * longer has to name it. Before running this again, widen `paths` to match
+ * what is deployed.
  */
-const CACHEABLE_PATHS = [
-  '/',
-  '/f1-standings',
-  '/f1-qualifying-standings',
-  '/f1-2027-calendar',
-  '/f1-2027-driver-line-up',
-];
-
-const paths = `(${CACHEABLE_PATHS.map(
-  (path) => `http.request.uri.path eq "${path}"`,
-).join(' or ')})`;
+const paths =
+  '(http.request.uri.path eq "/" or http.request.uri.path eq "/f1-standings" or http.request.uri.path eq "/f1-qualifying-standings")';
 
 const rules = [
   {

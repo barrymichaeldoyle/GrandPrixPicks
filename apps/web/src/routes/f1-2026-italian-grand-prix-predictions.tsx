@@ -61,8 +61,6 @@ const PATH = '/f1-2026-italian-grand-prix-predictions';
 const RACE_SLUG = 'italy-2026';
 const HADJAR_AUTOSPORT_SOURCE =
   'https://www.autosport.com/f1/news/red-bull-to-keep-dutch-gp-driver-line-up-for-monza/10851595/';
-const HADJAR_RACING_NEWS_365_SOURCE =
-  'https://racingnews365.com/breaking-isack-hadjar-to-miss-italian-grand-prix-as-injury-pain-persists';
 const LIVERY_SOURCE =
   'https://www.motorsport.com/f1/news/ferrari-unveils-michael-schumacher-inspired-f1-livery-for-italian-gp/10851263/';
 const SUITS_SOURCE =

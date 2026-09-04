@@ -6,7 +6,10 @@ import {
   type DriverTally,
   pointsForPosition,
   RACE_POINTS,
+  rankChampionship,
   rankConstructorStandings,
+  resultChangedAt,
+  type SeasonResults,
   SPRINT_POINTS,
   tallyBy,
   tallyDriverPoints,
@@ -258,5 +261,89 @@ describe('constructor points across a mid-season driver move', () => {
     );
     expect(tally.get('Red Bull Racing')?.points).toBe(18 + 18);
     expect(tally.has('law')).toBe(false);
+  });
+});
+
+describe('resultChangedAt', () => {
+  const PUBLISHED = 1780857459945; // Monaco, 7 June
+  const AMENDED = 1788525329790; // the correction, 4 September
+
+  test('is the first publish while nothing has been rewritten', () => {
+    expect(
+      resultChangedAt({ publishedAt: PUBLISHED, updatedAt: PUBLISHED }),
+    ).toBe(PUBLISHED);
+  });
+
+  /**
+   * The bug this replaced: `publishedAt` is frozen at the first publish, so a
+   * penalty or an OpenF1 reconciliation months later changed the championship
+   * points without moving the standings page's "Last updated" line (or its
+   * `dateModified`). Monaco was corrected on 4 September and the table went on
+   * claiming it was last updated on 23 August.
+   */
+  test('moves to the amendment when a result is corrected later', () => {
+    expect(
+      resultChangedAt({ publishedAt: PUBLISHED, updatedAt: AMENDED }),
+    ).toBe(AMENDED);
+  });
+
+  test('falls back to the publish time on a row with no updatedAt', () => {
+    expect(resultChangedAt({ publishedAt: PUBLISHED })).toBe(PUBLISHED);
+  });
+
+  test('never goes backwards if updatedAt somehow predates the publish', () => {
+    expect(
+      resultChangedAt({ publishedAt: AMENDED, updatedAt: PUBLISHED }),
+    ).toBe(AMENDED);
+  });
+});
+
+describe('rankChampionship lastUpdated', () => {
+  function rank(sessions: { round: number; changedAt: number }[]) {
+    return rankChampionship(
+      {
+        sessions: sessions.map((session) => ({
+          sessionType: 'race' as const,
+          round: session.round,
+          classification: ['ver'],
+          changedAt: session.changedAt,
+        })),
+        drivers: [],
+        stints: new Map(),
+        driversById: new Map(),
+      } as unknown as SeasonResults,
+      {
+        sessionTypes: ['race', 'sprint'],
+        headlineSession: 'race',
+        podiumDepth: 3,
+      },
+    );
+  }
+
+  test('reports the most recent change across the season', () => {
+    expect(
+      rank([
+        { round: 1, changedAt: 100 },
+        { round: 2, changedAt: 300 },
+      ]).lastUpdated,
+    ).toBe(300);
+  });
+
+  /**
+   * An old round corrected today dates the whole table today, even though a
+   * later round was published first. "Last updated" is about the standings, not
+   * about the newest race.
+   */
+  test('an amended early round dates the table, not the latest round', () => {
+    expect(
+      rank([
+        { round: 6, changedAt: 900 },
+        { round: 12, changedAt: 300 },
+      ]).lastUpdated,
+    ).toBe(900);
+  });
+
+  test('is null before anything is published', () => {
+    expect(rank([]).lastUpdated).toBeNull();
   });
 });

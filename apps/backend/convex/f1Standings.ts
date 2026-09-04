@@ -283,6 +283,34 @@ export async function loadConstructorPoints(
 }
 
 /**
+ * When a session's classification last changed, for the standings' "Last
+ * updated" line.
+ *
+ * Not `publishedAt`, which is deliberately frozen at the *first* publish and
+ * never moved again (see `publishResultsCore`) — that is what "published"
+ * means, and the race page relies on it. But points move on every subsequent
+ * write too: a steward's penalty applied by hand, or the reconciler taking a
+ * correction from the official classification hours or months later. Reading
+ * `publishedAt` here dated the table to the original publish and left it
+ * claiming to be weeks old within a minute of a correction landing, on a page
+ * whose entire promise is being current — and told Google the same thing
+ * through `dateModified`.
+ *
+ * `updatedAt` moves on any republish, including one that rewrites identical
+ * points (a statuses-only backfill, an admin re-saving the same order). Dating
+ * the table a few hours fresh in that case is the right way to be wrong: the
+ * session really was rewritten, and the alternative needs a before-and-after
+ * tally we do not keep. A recheck that finds nothing in sync touches only
+ * `lastRecheckedAt`, so a quiet reconciliation pass never moves this.
+ */
+export function resultChangedAt(result: {
+  publishedAt: number;
+  updatedAt?: number;
+}): number {
+  return Math.max(result.publishedAt, result.updatedAt ?? 0);
+}
+
+/**
  * Every published session of a season, with the roster and lineup facts needed
  * to attribute them, read in one pass.
  *
@@ -302,7 +330,7 @@ export async function loadSeasonResults(ctx: ReadCtx, season: number) {
     .filter((race) => race.status !== 'cancelled')
     .sort((a, b) => a.round - b.round);
 
-  const sessions: (ChampionshipSessionResult & { publishedAt: number })[] = [];
+  const sessions: (ChampionshipSessionResult & { changedAt: number })[] = [];
 
   for (const race of orderedRaces) {
     const raceResults = await ctx.db
@@ -319,7 +347,7 @@ export async function loadSeasonResults(ctx: ReadCtx, season: number) {
         round: race.round,
         classification: result.classification as string[],
         dnfDriverIds: result.dnfDriverIds as string[] | undefined,
-        publishedAt: result.publishedAt,
+        changedAt: resultChangedAt(result),
       });
     }
   }
@@ -370,7 +398,7 @@ export function rankChampionship(
   );
 
   const lastUpdated = sessions.reduce(
-    (latest, session) => Math.max(latest, session.publishedAt),
+    (latest, session) => Math.max(latest, session.changedAt),
     0,
   );
   const roundsScored = new Set(

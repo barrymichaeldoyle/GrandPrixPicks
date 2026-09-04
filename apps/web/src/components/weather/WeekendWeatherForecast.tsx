@@ -191,6 +191,19 @@ export function WeekendWeatherForecast({
                 period.sessions.some((held) => held.key === session.key),
               ),
           );
+          // A session goes missing from the forecast at both ends of the
+          // weekend, and only one of them means "not yet". The model runs
+          // about nine days out, so a distant session has no hours yet; but
+          // the provider also starts at the current hour, so a session that
+          // has already run has no hours any more. Telling someone to check
+          // back closer to the weekend for a practice session they watched
+          // this morning is the wrong half of that.
+          const alreadyRun = uncovered.filter(
+            (session) => session.endsAt <= now,
+          );
+          const notYetForecast = uncovered.filter(
+            (session) => session.endsAt > now,
+          );
           return (
             <section
               key={day.localDate}
@@ -256,21 +269,35 @@ export function WeekendWeatherForecast({
                 })}
                 {/* A short day used to leave the rest of the grid as one empty
                     block, which on race day meant the Grand Prix itself showed
-                    an apparently broken container. It is not broken: the model
-                    only runs about nine days out. Say so, and name the session
-                    that is missing rather than leaving a hole. */}
+                    an apparently broken container. It is not broken: the hours
+                    either ran out ahead of the model or fell behind the current
+                    hour. Say which, and name the session rather than leaving a
+                    hole. */}
                 {uncovered.length > 0 && (
                   <li
                     className={`bg-surface px-3 py-2.5 sm:py-4 ${fillerSpan(day.periods.length)}`}
                   >
                     <p className="gpp-mono text-sm text-text-muted">
-                      Not yet forecast
+                      {notYetForecast.length > 0
+                        ? 'Not yet forecast'
+                        : 'Already run'}
                     </p>
-                    <p className="mt-1 text-sm text-text-muted sm:mt-2">
-                      {uncovered.map((session) => session.label).join(' · ')}{' '}
-                      {uncovered.length === 1 ? 'is' : 'are'} beyond the model
-                      range for now. Check back closer to the weekend.
-                    </p>
+                    {notYetForecast.length > 0 && (
+                      <p className="mt-1 text-sm text-text-muted sm:mt-2">
+                        {notYetForecast
+                          .map((session) => session.label)
+                          .join(' · ')}{' '}
+                        {notYetForecast.length === 1 ? 'is' : 'are'} beyond the
+                        model range for now. Check back closer to the weekend.
+                      </p>
+                    )}
+                    {alreadyRun.length > 0 && (
+                      <p className="mt-1 text-sm text-text-muted sm:mt-2">
+                        {alreadyRun.map((session) => session.label).join(' · ')}{' '}
+                        {alreadyRun.length === 1 ? 'has' : 'have'} run. The
+                        forecast starts from the current hour.
+                      </p>
+                    )}
                   </li>
                 )}
               </ol>

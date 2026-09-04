@@ -1039,6 +1039,115 @@ export const emergencyMoveResultToSession = internalMutation({
   },
 });
 
+/**
+ * CLI/dashboard only — not callable from the public Convex API.
+ *
+ * Rewords an amendment that has already been published, without republishing
+ * the result.
+ *
+ * The note is denormalised into the feed and the bell at publish time, so the
+ * same sentence exists in three places and a correction has to reach all of
+ * them or the surfaces disagree about what happened.
+ *
+ * There was no way to do this before, and the obvious substitute is wrong:
+ * republishing the identical classification with new prose re-arms
+ * `amendmentNotificationPending`, so every player gets a second push and a
+ * second bell for a ruling they were already told about. That is the spam this
+ * codebase already learned about once.
+ *
+ * What it deliberately does not touch:
+ *
+ * - `amendedAt` — the amendment happened when it happened. Rewriting the
+ *   sentence is not a new decision, and the race page dates the banner from it.
+ * - `updatedAt` — the standings read `max(publishedAt, updatedAt)` for their
+ *   "Last updated" line (see `resultChangedAt`). No points moved here, so the
+ *   championship must not claim to have changed.
+ * - `notificationsSent` / `amendmentNotificationPending` — nobody is notified.
+ * - the classification, and therefore every score derived from it.
+ *
+ * Refuses a session with no amendment on it: this corrects the record of a
+ * decision, it cannot invent one. Use `adminPublishResults` for that.
+ *
+ * Run via:
+ *   npx convex run --prod results:emergencyReviseAmendmentNote \
+ *     '{"raceId":"...","sessionType":"race","amendmentNote":"..."}'
+ */
+export const emergencyReviseAmendmentNote = internalMutation({
+  args: {
+    raceId: v.id('races'),
+    sessionType: sessionTypeValidator,
+    amendmentNote: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const amendmentNote = args.amendmentNote.trim();
+    if (!amendmentNote) {
+      throw new Error('amendmentNote must not be empty');
+    }
+
+    const result = await ctx.db
+      .query('results')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .unique();
+
+    if (!result) {
+      throw new Error(`No result found for session "${args.sessionType}"`);
+    }
+    if (!result.amendedAt || !result.amendmentNote) {
+      throw new Error(
+        `Session "${args.sessionType}" has no published amendment to reword`,
+      );
+    }
+
+    const previousNote = result.amendmentNote;
+    await ctx.db.patch(result._id, { amendmentNote });
+
+    // Only `results_amended` rows carry the note. A `score_published` event for
+    // the same session belongs to a player whose points did not move, and it
+    // never showed the sentence in the first place.
+    const feedEvents = await ctx.db
+      .query('feedEvents')
+      .withIndex('by_race_session', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .collect();
+
+    let feedEventsUpdated = 0;
+    for (const event of feedEvents) {
+      if (event.amendmentNote === undefined) {
+        continue;
+      }
+      await ctx.db.patch(event._id, { amendmentNote });
+      feedEventsUpdated += 1;
+    }
+
+    const notifications = await ctx.db
+      .query('inAppNotifications')
+      .withIndex('by_raceId_and_sessionType', (q) =>
+        q.eq('raceId', args.raceId).eq('sessionType', args.sessionType),
+      )
+      .collect();
+
+    let notificationsUpdated = 0;
+    for (const notification of notifications) {
+      if (notification.amendmentNote === undefined) {
+        continue;
+      }
+      await ctx.db.patch(notification._id, { amendmentNote });
+      notificationsUpdated += 1;
+    }
+
+    return {
+      ok: true,
+      previousNote,
+      amendmentNote,
+      feedEventsUpdated,
+      notificationsUpdated,
+    };
+  },
+});
+
 // ============ Top-5 scoring fan-out ============
 
 export const scoreTopFiveForSession = internalMutation({

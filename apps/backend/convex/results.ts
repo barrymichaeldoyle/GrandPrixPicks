@@ -866,8 +866,20 @@ export const emergencyPublishResults = internalMutation({
     dnfDriverIds: v.optional(v.array(v.id('drivers'))),
     suppressNotifications: v.optional(v.boolean()),
     amendmentNote: v.optional(v.string()),
+    // Same escape hatch as the admin form's "Stop auto-reconciling", which the
+    // CLI had no way to reach. An amendment that lands before the official
+    // feed catches up needs it: without a pause the next reconciliation pass
+    // reads the stale feed, reverts the amendment, and — because the change is
+    // points-affecting — notifies everyone a second time.
+    pauseRecheck: v.optional(v.boolean()),
   },
-  handler: async (ctx, args) => publishResultsCore(ctx, args),
+  handler: async (ctx, args) => {
+    const { pauseRecheck, ...rest } = args;
+    return publishResultsCore(ctx, {
+      ...rest,
+      ...(pauseRecheck ? { recheckSchedule: 'pause' as const } : {}),
+    });
+  },
 });
 
 /**

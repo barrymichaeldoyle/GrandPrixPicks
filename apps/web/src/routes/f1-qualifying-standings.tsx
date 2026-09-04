@@ -30,13 +30,13 @@ export const Route = createFileRoute('/f1-qualifying-standings')({
     const season = standings?.season;
     const leader = standings?.drivers[0];
     const title = season
-      ? `${season} F1 Qualifying Standings: The Saturday Championship`
-      : 'F1 Qualifying Standings: The Saturday Championship';
+      ? `${season} F1 Qualifying Standings: If Only Qualifying Counted`
+      : 'F1 Qualifying Standings: If Only Qualifying Counted';
     // Kept short enough that the longest driver name on the grid still leaves
     // it inside the 160-character SERP limit, like `/f1-standings`.
     const description = leader
-      ? `${leader.displayName} leads the ${season} F1 qualifying championship: the season scored on qualifying alone, with every driver's gap to the real standings.`
-      : `The Formula 1 season scored on qualifying results only: drivers' and constructors' tables, with every driver's gap to the real championship standings.`;
+      ? `${leader.displayName} leads the ${season} F1 qualifying standings: the season scored on qualifying alone, with every driver's real championship position alongside.`
+      : `The Formula 1 season scored on qualifying alone: drivers' and constructors' tables, with every driver's real World Championship position alongside.`;
 
     const scripts: { type: string; children: string }[] = [];
     if (standings && standings.drivers.length > 0) {
@@ -221,10 +221,9 @@ function F1QualifyingStandingsPage() {
           title={`${season} F1 Qualifying Championship`}
           subtitle={
             <>
-              The {season} season scored on qualifying alone. Every qualifying
-              session pays the Grand Prix points table and every sprint
-              qualifying pays the sprint table, so the standings show one-lap
-              pace with Sunday taken out.{' '}
+              Who would be leading the {season} championship if only qualifying
+              counted. Qualifying is scored with the Grand Prix points table and
+              sprint qualifying with the sprint table.{' '}
               {hasResults && leader ? (
                 <>
                   {leader.displayName} leads on {leader.qualifyingPoints} points
@@ -253,14 +252,10 @@ function F1QualifyingStandingsPage() {
               <section aria-labelledby="biggest-movers">
                 <h2
                   id="biggest-movers"
-                  className="mb-1 text-lg font-semibold text-text"
+                  className="mb-4 text-lg font-semibold text-text"
                 >
-                  Where the two tables disagree
+                  Drivers furthest from their championship position
                 </h2>
-                <p className="gpp-reading-copy mb-4 text-sm text-text-muted">
-                  The drivers whose qualifying position sits furthest from their
-                  championship position.
-                </p>
                 <ul className="grid gap-x-6 sm:grid-cols-2 sm:gap-y-4 lg:grid-cols-3">
                   {movers.map((mover) => (
                     <MoverCard key={mover.driverId} mover={mover} />
@@ -334,11 +329,13 @@ function F1QualifyingStandingsPage() {
                         scope="col"
                         className="w-14 px-2 py-2.5 text-right sm:w-auto sm:px-3"
                       >
-                        {/* Spelled out rather than a bare delta glyph: the
-                            column is the whole point of the page and a header
-                            has to survive being read on its own. */}
+                        {/* Named after what it compares rather than "Change":
+                            the delta is this table against the World
+                            Championship, not movement since the last round,
+                            which is what a change column means everywhere
+                            else on the site. */}
                         <span className="sm:hidden">+/−</span>
-                        <span className="hidden sm:inline">Change</span>
+                        <span className="hidden sm:inline">vs WDC</span>
                       </th>
                       <th
                         scope="col"
@@ -446,7 +443,7 @@ function F1QualifyingStandingsPage() {
                           className="px-2 py-2.5 text-right sm:px-3"
                         >
                           <span className="sm:hidden">+/−</span>
-                          <span className="hidden sm:inline">Change</span>
+                          <span className="hidden sm:inline">vs WCC</span>
                         </th>
                         <th
                           scope="col"
@@ -513,18 +510,18 @@ function F1QualifyingStandingsPage() {
               </h2>
               <div className="gpp-reading-copy space-y-3 text-sm text-text-muted">
                 <p>
-                  Formula 1 awards no points for qualifying. This table applies
-                  the Grand Prix points table (25-18-15-12-10-8-6-4-2-1) to the
-                  qualifying classification, and the sprint table
-                  (8-7-6-5-4-3-2-1) to sprint qualifying, because those are the
-                  sessions that set each grid.
+                  Formula 1 awards no points for qualifying, so this table
+                  borrows the ones it awards on Sunday: the Grand Prix points
+                  (25-18-15-12-10-8-6-4-2-1) go to the qualifying
+                  classification, and the sprint points (8-7-6-5-4-3-2-1) to
+                  sprint qualifying.
                 </p>
                 <p>
-                  Poles and front rows count from qualifying only. A driver with
-                  no time set scores nothing and does not take a grid slot from
-                  the drivers behind them. Teams are scored on the drivers who
-                  qualified for them at that round, so a mid-season move does
-                  not carry points to a new team.
+                  Poles and front rows count qualifying only, never sprint
+                  qualifying. A driver who sets no time scores nothing, and
+                  everyone behind them moves up a place. Points stay with the
+                  team a driver qualified for at that round, so a mid-season
+                  move takes nothing to the new team.
                 </p>
                 <p>
                   Positions come from the same published classifications that
@@ -543,7 +540,7 @@ function F1QualifyingStandingsPage() {
           </div>
         ) : (
           <NoticeCard
-            description={`No ${season} qualifying results have been published yet. The qualifying championship will appear here after the first session.`}
+            description={`No ${season} qualifying results yet. This table starts after the first qualifying session of the season.`}
           />
         )}
 

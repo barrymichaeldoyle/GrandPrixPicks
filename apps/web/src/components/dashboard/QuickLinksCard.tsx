@@ -1,4 +1,11 @@
-import { CalendarDays, ListOrdered, Swords } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  CalendarDays,
+  ListOrdered,
+  MapPin,
+  Swords,
+  Timer,
+} from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 /**
@@ -21,9 +28,20 @@ const gameLinks = [
 const f1Links = [
   { to: '/f1-standings' as const, label: 'F1 standings', icon: ListOrdered },
   {
+    to: '/f1-qualifying-standings' as const,
+    label: 'Qualifying championship',
+    icon: Timer,
+  },
+  {
     to: '/f1-team-mate-battles' as const,
     label: 'Team-mate battles',
     icon: Swords,
+  },
+  { to: '/circuits' as const, label: 'F1 circuits', icon: MapPin },
+  {
+    to: '/f1-2027-driver-line-up' as const,
+    label: '2027 driver line-up',
+    icon: ArrowLeftRight,
   },
 ];
 

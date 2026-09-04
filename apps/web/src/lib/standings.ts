@@ -17,7 +17,8 @@ export type Championship = FunctionReturnType<
 export type DriverRow = Championship['drivers'][number];
 export type ConstructorRow = Championship['constructors'][number];
 export type CalendarRound = Championship['calendar'][number];
-export type CountbackNote = DriverRow['countback'];
+/** How a tie was settled, as the query reports it. */
+type CountbackNote = DriverRow['countback'];
 
 /**
  * The three-letter round label the charts put on their x-axis.

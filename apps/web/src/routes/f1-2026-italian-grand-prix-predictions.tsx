@@ -254,7 +254,7 @@ export const Route = createFileRoute('/f1-2026-italian-grand-prix-predictions')(
           ? '2026 Italian Grand Prix predictions scored against the official Monza classification. See who called the top 5 for qualifying and the race.'
           : race?.status === 'cancelled'
             ? 'The 2026 Italian Grand Prix was called off.'
-            : '2026 Italian Grand Prix predictions at Monza. Pick a top 5 for qualifying and the race. Antonelli’s grid penalty does not change his qualifying classification.';
+            : '2026 Italian Grand Prix predictions at Monza. Pick a top 5 for qualifying and the race, with the form, tyre choice and driver news that decide a Monza result.';
       const circuit = getCircuitForRace(RACE_SLUG);
       const meta = pageMeta({
         title,
@@ -511,8 +511,8 @@ function WatchTable() {
           What matters at Monza
         </h2>
         <p className="gpp-reading-copy mt-3 text-text-muted">
-          A speed-trap result can be inflated by a tow. Compare clean laps,
-          braking, and long runs.
+          A speed-trap result can be inflated by a tow, so clean laps, braking
+          and long runs are what separate the cars here.
         </p>
       </div>
 
@@ -805,13 +805,16 @@ function ChampionshipContext({ championship }: { championship: Championship }) {
               They used to be written into the prose, which was accurate until
               the next race was scored and then quietly disagreed with the
               standings sitting next to it. */}
+          {/* The standings and nothing else. Three sentences on Antonelli's
+              power unit used to close this paragraph, which was the same fact
+              the news section above already carries, in a section about the
+              championship, ending on what it means for a pick. An FAQ entry
+              was removed for exactly that (see `FAQS`); this was the same
+              duplication one section further down. */}
           <p className="gpp-reading-copy mt-4 text-text-muted">
             After {championship.roundsScored} rounds, {leader.displayName} leads
             the drivers&rsquo; table by {leader.points - second.points} points
-            from {second.displayName}. Antonelli takes a full new power unit at
-            Monza and starts from the back. His qualifying result still counts
-            for your qualifying picks. The penalty only changes where he starts
-            on Sunday.
+            from {second.displayName}.
           </p>
           <Link
             to="/f1-standings"
@@ -938,8 +941,8 @@ function McLarenForm() {
           <p className="gpp-reading-copy mt-4 text-text-muted">
             McLaren won in Hungary and Zandvoort, both high-downforce races.
             Andrea Stella says the MCL40 has been weaker on drag and braking.
-            Monza will test both. Check Norris and Piastri&rsquo;s straight-line
-            speed and braking on Friday.{' '}
+            Monza tests both, and Friday is where it shows in Norris and
+            Piastri&rsquo;s straight-line speed.{' '}
             <ExternalSource href={MCLAREN_FORM_SOURCE}>
               Read Stella&rsquo;s assessment
             </ExternalSource>
@@ -1192,8 +1195,8 @@ function HeatHazard({ showPickRead }: { showPickRead: boolean }) {
           </p>
           {showPickRead ? (
             <p className="gpp-reading-copy mt-3 text-text-muted">
-              FP2 is the session to read: it runs closest to Sunday&rsquo;s
-              track temperature, so it shows who is managing the rears.
+              FP2 runs closest to Sunday&rsquo;s track temperature, so it is the
+              session that shows who is managing the rears.
             </p>
           ) : null}
         </div>

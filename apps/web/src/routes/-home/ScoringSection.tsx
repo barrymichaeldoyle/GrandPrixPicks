@@ -30,11 +30,26 @@ const scoringBands = [
   },
 ] as const;
 
-export function ScoringSection() {
+/**
+ * `dividerAbove` is false when the write-up callout sits directly above this
+ * section. That callout is a fully outlined box, so it closes the block it
+ * ends on its own, and the section rule landed a second hairline forty pixels
+ * under the first: two lines with nothing between them, which reads as a
+ * mistake rather than as a division. The rule still earns its place when the
+ * callout is absent, where this section follows the open bottom edge of the
+ * picks.
+ */
+export function ScoringSection({
+  dividerAbove = true,
+}: {
+  dividerAbove?: boolean;
+}) {
   return (
     <section
       aria-labelledby="landing-scoring-heading"
-      className="border-t border-border px-4 py-12 sm:py-16"
+      className={`px-4 py-12 sm:py-16 ${
+        dividerAbove ? 'border-t border-border' : ''
+      }`}
     >
       <div className="mx-auto w-full max-w-5xl">
         <div className="max-w-3xl">

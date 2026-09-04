@@ -103,6 +103,7 @@ export const analyticsEventNames = [
   'top5_editor_opened',
   'top5_picks_completed',
   'user_followed',
+  'user_registered',
   'user_unfollowed',
   'x_follow_prompt_completed',
 ] as const;

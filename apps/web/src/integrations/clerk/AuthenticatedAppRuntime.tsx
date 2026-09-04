@@ -47,7 +47,16 @@ function AfterSignInIntentNavigator() {
   return null;
 }
 
-/** Syncs the user's Clerk profile to Convex once per app load. */
+/**
+ * Syncs the user's Clerk profile to Convex once per app load, and reports the
+ * account's registration the one time it happens.
+ *
+ * The signup is worth its own event because `auth_completed` cannot stand in
+ * for it: a returning player fires that on every sign-in, so a funnel ending
+ * there counts people who already had accounts as acquisition. The backend
+ * decides, from the account row rather than from anything the client knows, so
+ * a reload or a second device cannot report the same signup twice.
+ */
 function ProfileSync() {
   const { isSignedIn } = useAuth();
   const syncProfile = useMutation(api.users.syncProfile);
@@ -59,6 +68,10 @@ function ProfileSync() {
       void syncProfile({
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         locale: navigator.language,
+      }).then((result) => {
+        if (result?.isNewSignup) {
+          captureAnalyticsEvent('user_registered');
+        }
       });
     }
   }, [isSignedIn, syncProfile]);

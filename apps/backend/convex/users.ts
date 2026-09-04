@@ -3,7 +3,7 @@ import type { FunctionReference } from 'convex/server';
 import { v } from 'convex/values';
 
 import { internal } from './_generated/api';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, mutation, query } from './_generated/server';
 import {
@@ -580,17 +580,68 @@ export const me = query({
   handler: async (ctx) => await loadMe(ctx),
 });
 
-/** Sync the current user's profile from Clerk identity claims. */
+/**
+ * How long after an account row is created a load still counts as the signup.
+ *
+ * The stamp alone would report every existing player as a new signup the first
+ * time they loaded the app after this shipped, and a backfill would only move
+ * that problem to whoever signed up while it ran. Age answers it without
+ * either: an account minutes old is the person who just registered, an account
+ * from June is not, and both end up stamped so neither is asked twice.
+ *
+ * An hour is far longer than sign-up to first load, deliberately: the cost of
+ * a window too wide is nothing, and the cost of one too narrow is a missing
+ * registration.
+ */
+const SIGNUP_REPORT_WINDOW_MS = 60 * 60 * 1000;
+
+/**
+ * Stamp the account as counted, and say whether this was the registration.
+ *
+ * Returns true at most once per account, which is what makes it usable as a
+ * funnel step: the client fires the event on the answer, and a reload, a
+ * second tab or a new device cannot fire it again.
+ */
+export async function markSignupReported(
+  ctx: { db: Pick<MutationCtx['db'], 'patch'> },
+  viewer: Pick<Doc<'users'>, '_id' | 'createdAt' | 'signupReportedAt'>,
+  now: number,
+): Promise<boolean> {
+  if (viewer.signupReportedAt !== undefined) {
+    return false;
+  }
+  await ctx.db.patch(viewer._id, { signupReportedAt: now });
+  return now - viewer.createdAt < SIGNUP_REPORT_WINDOW_MS;
+}
+
+/**
+ * Sync the current user's profile from Clerk identity claims.
+ *
+ * Also answers whether this load is the account's registration. The web app
+ * runs this once per load for signed-in users, which makes it the one place
+ * that sees a new account without having to guess from `auth_completed`, an
+ * event a returning player fires every time they sign in.
+ *
+ * Only the web app calls this. A player who registers on mobile and opens the
+ * web app within the hour will be reported here instead, tagged with the wrong
+ * platform; giving mobile its own call is what fixes that, not a wider window.
+ */
 export const syncProfile = mutation({
   args: {
     timezone: v.optional(v.string()),
     locale: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await getOrCreateViewer(ctx, {
+    const viewer = await getOrCreateViewer(ctx, {
       timezone: args.timezone,
       locale: args.locale,
     });
+    if (!viewer) {
+      return { isNewSignup: false };
+    }
+    return {
+      isNewSignup: await markSignupReported(ctx, viewer, Date.now()),
+    };
   },
 });
 

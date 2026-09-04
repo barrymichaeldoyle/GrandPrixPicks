@@ -79,6 +79,14 @@ export default defineSchema({
     // undefined as 0. Backfilled by users:backfillFollowCounts.
     followerCount: v.optional(v.number()),
     followingCount: v.optional(v.number()),
+    // When this account was counted as a signup in analytics. It is a
+    // bookkeeping stamp, not a second `createdAt`: the row can be created by
+    // whichever mutation the new player happens to reach first (submitting a
+    // landing draft, joining a league), so "did we already report this one"
+    // has to be a fact about the row rather than about the call site.
+    // Undefined on every account that predates the field; see syncProfile for
+    // why that does not make them all look like new signups.
+    signupReportedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

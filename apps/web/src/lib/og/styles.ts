@@ -50,6 +50,10 @@ export const colors = {
   resultNear: tokens.resultNear,
   resultTop5: tokens.resultTop5,
   resultMiss: tokens.resultMiss,
+  // Position deltas, so the qualifying-championship card's movement column
+  // reads in the same green/red the app's RankDelta uses.
+  deltaUp: tokens.deltaUp,
+  deltaDown: tokens.deltaDown,
   // Race status, using the same semantic tokens the app's status badges use.
   statusUpcoming: tokens.success,
   statusLocked: tokens.warning,

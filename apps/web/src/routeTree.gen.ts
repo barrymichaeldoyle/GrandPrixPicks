@@ -18,6 +18,7 @@ import { Route as F12026MadridGrandPrixPredictionsRouteImport } from './routes/f
 import { Route as F12026SingaporeGrandPrixPredictionsRouteImport } from './routes/f1-2026-singapore-grand-prix-predictions'
 import { Route as F12027CalendarRouteImport } from './routes/f1-2027-calendar'
 import { Route as F1PredictionsThisWeekendRouteImport } from './routes/f1-predictions-this-weekend'
+import { Route as F1QualifyingStandingsRouteImport } from './routes/f1-qualifying-standings'
 import { Route as F1StandingsRouteImport } from './routes/f1-standings'
 import { Route as F1TeamMateBattlesRouteImport } from './routes/f1-team-mate-battles'
 import { Route as F1TeammateBattlesRouteImport } from './routes/f1-teammate-battles'
@@ -108,6 +109,11 @@ const F1PredictionsThisWeekendRoute =
     path: '/f1-predictions-this-weekend',
     getParentRoute: () => rootRouteImport,
   } as any)
+const F1QualifyingStandingsRoute = F1QualifyingStandingsRouteImport.update({
+  id: '/f1-qualifying-standings',
+  path: '/f1-qualifying-standings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const F1StandingsRoute = F1StandingsRouteImport.update({
   id: '/f1-standings',
   path: '/f1-standings',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
+  '/f1-qualifying-standings': typeof F1QualifyingStandingsRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
+  '/f1-qualifying-standings': typeof F1QualifyingStandingsRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/f1-2026-singapore-grand-prix-predictions': typeof F12026SingaporeGrandPrixPredictionsRoute
   '/f1-2027-calendar': typeof F12027CalendarRoute
   '/f1-predictions-this-weekend': typeof F1PredictionsThisWeekendRoute
+  '/f1-qualifying-standings': typeof F1QualifyingStandingsRoute
   '/f1-standings': typeof F1StandingsRoute
   '/f1-team-mate-battles': typeof F1TeamMateBattlesRoute
   '/f1-teammate-battles': typeof F1TeammateBattlesRoute
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | '/f1-2026-singapore-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-predictions-this-weekend'
+    | '/f1-qualifying-standings'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/f1-2026-singapore-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-predictions-this-weekend'
+    | '/f1-qualifying-standings'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -555,6 +566,7 @@ export interface FileRouteTypes {
     | '/f1-2026-singapore-grand-prix-predictions'
     | '/f1-2027-calendar'
     | '/f1-predictions-this-weekend'
+    | '/f1-qualifying-standings'
     | '/f1-standings'
     | '/f1-team-mate-battles'
     | '/f1-teammate-battles'
@@ -605,6 +617,7 @@ export interface RootRouteChildren {
   F12026SingaporeGrandPrixPredictionsRoute: typeof F12026SingaporeGrandPrixPredictionsRoute
   F12027CalendarRoute: typeof F12027CalendarRoute
   F1PredictionsThisWeekendRoute: typeof F1PredictionsThisWeekendRoute
+  F1QualifyingStandingsRoute: typeof F1QualifyingStandingsRoute
   F1StandingsRoute: typeof F1StandingsRoute
   F1TeamMateBattlesRoute: typeof F1TeamMateBattlesRoute
   F1TeammateBattlesRoute: typeof F1TeammateBattlesRoute
@@ -703,6 +716,13 @@ declare module '@tanstack/react-router' {
       path: '/f1-predictions-this-weekend'
       fullPath: '/f1-predictions-this-weekend'
       preLoaderRoute: typeof F1PredictionsThisWeekendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/f1-qualifying-standings': {
+      id: '/f1-qualifying-standings'
+      path: '/f1-qualifying-standings'
+      fullPath: '/f1-qualifying-standings'
+      preLoaderRoute: typeof F1QualifyingStandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/f1-standings': {
@@ -1026,6 +1046,7 @@ const rootRouteChildren: RootRouteChildren = {
     F12026SingaporeGrandPrixPredictionsRoute,
   F12027CalendarRoute: F12027CalendarRoute,
   F1PredictionsThisWeekendRoute: F1PredictionsThisWeekendRoute,
+  F1QualifyingStandingsRoute: F1QualifyingStandingsRoute,
   F1StandingsRoute: F1StandingsRoute,
   F1TeamMateBattlesRoute: F1TeamMateBattlesRoute,
   F1TeammateBattlesRoute: F1TeammateBattlesRoute,

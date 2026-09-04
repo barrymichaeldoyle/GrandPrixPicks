@@ -17,7 +17,9 @@ type ReadCtx = { db: DatabaseReader };
  * official F1 points system.
  *
  * Only main-race and sprint sessions award championship points; qualifying and
- * sprint qualifying do not.
+ * sprint qualifying do not. The primitives here are session-agnostic, though,
+ * because `qualifyingChampionship.ts` runs the same accumulator over Saturday
+ * to answer "what if only qualifying counted" — see `tallyBy`.
  */
 
 // Official F1 points: main race scores the top 10, the sprint scores the top 8.
@@ -32,8 +34,26 @@ export function pointsForPosition(
   return position >= 1 && position <= table.length ? table[position - 1] : 0;
 }
 
+/**
+ * Every session type a championship can be scored over, and the table it pays.
+ *
+ * The two qualifying entries are not an official points system — F1 awards
+ * nothing on Saturday. They exist so the alternative championship can be
+ * stated in one line a reader will accept: a session that sets the grid for a
+ * race pays the race table, and one that sets the grid for a sprint pays the
+ * sprint table. Any other mapping needs defending in the copy as well as here.
+ */
+export const POINTS_TABLES = {
+  race: RACE_POINTS,
+  sprint: SPRINT_POINTS,
+  quali: RACE_POINTS,
+  sprint_quali: SPRINT_POINTS,
+} as const satisfies Record<string, readonly number[]>;
+
+export type ChampionshipSessionType = keyof typeof POINTS_TABLES;
+
 export type ChampionshipSessionResult = {
-  sessionType: 'race' | 'sprint';
+  sessionType: ChampionshipSessionType;
   /** Championship round, which decides who a driver scored *for*. */
   round: number;
   /** Ordered driver ids, index 0 = P1. */
@@ -44,36 +64,62 @@ export type ChampionshipSessionResult = {
 
 export type DriverTally = {
   points: number;
-  /** Wins in a main race (P1). */
+  /**
+   * Firsts in the headline session: race wins for the real championship, poles
+   * for the qualifying one.
+   */
   wins: number;
-  /** Podium finishes in a main race (P1–P3). */
+  /**
+   * Top-`podiumDepth` finishes in the headline session: podiums (P1–P3) for the
+   * real championship, front rows (P1–P2) for the qualifying one.
+   */
   podiums: number;
   /**
-   * How many times this driver finished in each main-race position, index 0 =
-   * P1. Drives the official championship tie-break (see `compareCountback`).
+   * How many times this driver finished in each headline-session position,
+   * index 0 = P1. Drives the championship tie-break (see `compareCountback`).
    */
-  racePositionCounts: number[];
+  headlinePositionCounts: number[];
 };
 
 export function emptyDriverTally(): DriverTally {
-  return { points: 0, wins: 0, podiums: 0, racePositionCounts: [] };
+  return { points: 0, wins: 0, podiums: 0, headlinePositionCounts: [] };
 }
+
+/**
+ * Which session type's finishing positions the headline counts and the
+ * tie-break are read from, and how deep a "podium" runs.
+ *
+ * Defaulted to the real championship so every existing caller is unchanged.
+ * The qualifying championship passes `quali` and a depth of 2, because the
+ * Saturday equivalent of a podium is the front row.
+ */
+export type TallyOptions = {
+  headlineSession?: ChampionshipSessionType;
+  podiumDepth?: number;
+};
+
+const DEFAULT_TALLY_OPTIONS = {
+  headlineSession: 'race',
+  podiumDepth: 3,
+} as const satisfies Required<TallyOptions>;
 
 /**
  * F1's tie-break ("countback"): between drivers level on points, the one with
  * more wins is ahead; still level, more second places; then thirds, and so on
  * down the field. Returns a comparator result (negative = `a` ranks higher).
  *
- * Only main-race finishes count, matching how `wins` and `podiums` are tallied.
+ * Only headline-session finishes count, matching how `wins` and `podiums` are
+ * tallied.
  */
 export function compareCountback(a: DriverTally, b: DriverTally): number {
   const depth = Math.max(
-    a.racePositionCounts.length,
-    b.racePositionCounts.length,
+    a.headlinePositionCounts.length,
+    b.headlinePositionCounts.length,
   );
   for (let index = 0; index < depth; index++) {
     const diff =
-      (b.racePositionCounts[index] ?? 0) - (a.racePositionCounts[index] ?? 0);
+      (b.headlinePositionCounts[index] ?? 0) -
+      (a.headlinePositionCounts[index] ?? 0);
     if (diff !== 0) {
       return diff;
     }
@@ -87,8 +133,9 @@ export function compareCountback(a: DriverTally, b: DriverTally): number {
  */
 export function tallyDriverPoints(
   sessions: ChampionshipSessionResult[],
+  options: TallyOptions = {},
 ): Map<string, DriverTally> {
-  return tallyBy(sessions, (driverId) => driverId);
+  return tallyBy(sessions, (driverId) => driverId, options);
 }
 
 /**
@@ -107,7 +154,12 @@ export function tallyBy(
     driverId: string,
     session: ChampionshipSessionResult,
   ) => string | null,
+  options: TallyOptions = {},
 ): Map<string, DriverTally> {
+  const { headlineSession, podiumDepth } = {
+    ...DEFAULT_TALLY_OPTIONS,
+    ...options,
+  };
   const tally = new Map<string, DriverTally>();
   function ensure(id: string): DriverTally {
     const existing = tally.get(id);
@@ -120,7 +172,7 @@ export function tallyBy(
   }
 
   for (const session of sessions) {
-    const table = session.sessionType === 'race' ? RACE_POINTS : SPRINT_POINTS;
+    const table = POINTS_TABLES[session.sessionType];
     const retired = new Set(session.dnfDriverIds ?? []);
     // Classifying position is counted independently of the array index:
     // retirements score nothing *and* must not consume a scoring position, so
@@ -141,15 +193,16 @@ export function tallyBy(
         continue;
       }
       driver.points += pointsForPosition(position, table);
-      // Wins and podiums are counted from main races only, matching how F1
-      // reports them (sprint wins are tracked separately in the real world).
-      if (session.sessionType === 'race') {
-        driver.racePositionCounts[position - 1] =
-          (driver.racePositionCounts[position - 1] ?? 0) + 1;
+      // Wins and podiums come from the headline session only, matching how F1
+      // reports them: a sprint win is tracked separately from a Grand Prix win,
+      // and by the same logic a sprint-qualifying pole is not a pole.
+      if (session.sessionType === headlineSession) {
+        driver.headlinePositionCounts[position - 1] =
+          (driver.headlinePositionCounts[position - 1] ?? 0) + 1;
         if (position === 1) {
           driver.wins += 1;
         }
-        if (position <= 3) {
+        if (position <= podiumDepth) {
           driver.podiums += 1;
         }
       }
@@ -189,9 +242,9 @@ export function rankConstructorStandings(
     current.podiums += stats.podiums;
     // A team's countback is its drivers' finishes pooled together, so the
     // constructors' tie-break follows the same "most P1s, then P2s…" rule.
-    stats.racePositionCounts.forEach((count, index) => {
-      current.racePositionCounts[index] =
-        (current.racePositionCounts[index] ?? 0) + count;
+    stats.headlinePositionCounts.forEach((count, index) => {
+      current.headlinePositionCounts[index] =
+        (current.headlinePositionCounts[index] ?? 0) + count;
     });
     teamTally.set(team, current);
   }
@@ -230,11 +283,16 @@ export async function loadConstructorPoints(
 }
 
 /**
- * Exported so a caller that needs both tables gets them from one pass. The
- * creator poll orders its picker by constructor points and then by driver
- * points, and loading those separately would scan the season's results twice.
+ * Every published session of a season, with the roster and lineup facts needed
+ * to attribute them, read in one pass.
+ *
+ * Both championships are computed from the same rows — the real one keeps
+ * race and sprint, the qualifying one keeps quali and sprint qualifying — and
+ * the page that shows the gap between them needs both. Collecting all four
+ * session types once means that page costs the same reads as either table
+ * alone, rather than walking the season twice.
  */
-export async function loadChampionship(ctx: ReadCtx, season: number) {
+export async function loadSeasonResults(ctx: ReadCtx, season: number) {
   const races = await ctx.db
     .query('races')
     .withIndex('by_season_round', (q) => q.eq('season', season))
@@ -244,9 +302,7 @@ export async function loadChampionship(ctx: ReadCtx, season: number) {
     .filter((race) => race.status !== 'cancelled')
     .sort((a, b) => a.round - b.round);
 
-  const sessions: ChampionshipSessionResult[] = [];
-  let lastUpdated = 0;
-  let roundsScored = 0;
+  const sessions: (ChampionshipSessionResult & { publishedAt: number })[] = [];
 
   for (const race of orderedRaces) {
     const raceResults = await ctx.db
@@ -254,24 +310,17 @@ export async function loadChampionship(ctx: ReadCtx, season: number) {
       .withIndex('by_race_session', (q) => q.eq('raceId', race._id))
       .take(8);
 
-    let scoredThisRound = false;
     for (const result of raceResults) {
-      if (result.sessionType !== 'race' && result.sessionType !== 'sprint') {
+      if (!(result.sessionType in POINTS_TABLES)) {
         continue;
       }
       sessions.push({
-        sessionType: result.sessionType,
+        sessionType: result.sessionType as ChampionshipSessionType,
         round: race.round,
         classification: result.classification as string[],
         dnfDriverIds: result.dnfDriverIds as string[] | undefined,
+        publishedAt: result.publishedAt,
       });
-      lastUpdated = Math.max(lastUpdated, result.publishedAt);
-      if (result.sessionType === 'race') {
-        scoredThisRound = true;
-      }
-    }
-    if (scoredThisRound) {
-      roundsScored += 1;
     }
   }
 
@@ -282,11 +331,56 @@ export async function loadChampionship(ctx: ReadCtx, season: number) {
     .take(60);
 
   const stints = await loadStintsForSeason(ctx, season);
-  const driversById = new Map(
-    drivers.map((driver) => [driver._id as string, driver]),
+
+  return {
+    sessions,
+    drivers,
+    stints,
+    driversById: new Map(
+      drivers.map((driver) => [driver._id as string, driver]),
+    ),
+  };
+}
+
+export type SeasonResults = Awaited<ReturnType<typeof loadSeasonResults>>;
+
+/**
+ * Rank a season's sessions into a drivers' and a constructors' table.
+ *
+ * Shared by both championships: the only things that differ are which session
+ * types are counted, which one is the headline (races, or qualifying), and how
+ * deep the headline's "podium" runs.
+ */
+export function rankChampionship(
+  data: SeasonResults,
+  {
+    sessionTypes,
+    headlineSession,
+    podiumDepth,
+  }: {
+    sessionTypes: readonly ChampionshipSessionType[];
+    headlineSession: ChampionshipSessionType;
+    podiumDepth: number;
+  },
+) {
+  const { drivers, driversById, stints } = data;
+  const counted = new Set<string>(sessionTypes);
+  const sessions = data.sessions.filter((session) =>
+    counted.has(session.sessionType),
   );
 
-  const tally = tallyDriverPoints(sessions);
+  const lastUpdated = sessions.reduce(
+    (latest, session) => Math.max(latest, session.publishedAt),
+    0,
+  );
+  const roundsScored = new Set(
+    sessions
+      .filter((session) => session.sessionType === headlineSession)
+      .map((session) => session.round),
+  ).size;
+
+  const options = { headlineSession, podiumDepth };
+  const tally = tallyDriverPoints(sessions, options);
 
   // List the whole grid, the way the official table does: a driver who has
   // not scored (or who debuts mid-season) still belongs in the standings on
@@ -323,24 +417,49 @@ export async function loadChampionship(ctx: ReadCtx, season: number) {
   //
   // Drivers with no stint recorded fall back to their current team, so this
   // matches the old behaviour for every season seeded before stints existed.
-  const teamTally = tallyBy(sessions, (driverId, session) => {
-    const stintTeam = teamForRound(stints, driverId, session.round);
-    if (stintTeam) {
-      return stintTeam;
-    }
-    return driversById.get(driverId)?.team ?? null;
-  });
+  const teamTally = tallyBy(
+    sessions,
+    (driverId, session) => {
+      const stintTeam = teamForRound(stints, driverId, session.round);
+      if (stintTeam) {
+        return stintTeam;
+      }
+      return driversById.get(driverId)?.team ?? null;
+    },
+    options,
+  );
 
   const constructorStandings = rankConstructorStandings(
     [...teamTally.entries()].map(([team, stats]) => ({ team, stats })),
   );
 
   return {
-    season,
     lastUpdated: lastUpdated || null,
     roundsScored,
     drivers: driverStandings,
     constructors: constructorStandings,
+  };
+}
+
+export type ChampionshipTable = ReturnType<typeof rankChampionship>;
+
+/** The session types that award real World Championship points. */
+export const CHAMPIONSHIP_SESSIONS = ['race', 'sprint'] as const;
+
+/**
+ * Exported so a caller that needs both tables gets them from one pass. The
+ * creator poll orders its picker by constructor points and then by driver
+ * points, and loading those separately would scan the season's results twice.
+ */
+export async function loadChampionship(ctx: ReadCtx, season: number) {
+  const data = await loadSeasonResults(ctx, season);
+  return {
+    season,
+    ...rankChampionship(data, {
+      sessionTypes: CHAMPIONSHIP_SESSIONS,
+      headlineSession: 'race',
+      podiumDepth: 3,
+    }),
   };
 }
 

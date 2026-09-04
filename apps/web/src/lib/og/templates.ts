@@ -1249,6 +1249,258 @@ export function practiceResultsTemplate({
   );
 }
 
+// ────────── Qualifying Championship Card ──────────
+
+export type QualifyingChampionshipEntry = {
+  position: number;
+  code: string;
+  color: string;
+  points: number;
+  /** Places better (positive) or worse (negative) than the real championship. */
+  delta: number;
+};
+
+/**
+ * The signed movement column, drawn rather than typed: Archivo and IBM Plex
+ * Mono carry no reliable ▲/▼ glyphs, and satori renders whatever the font
+ * lacks as tofu. Same green/red semantics as the app's `RankDelta`.
+ */
+function deltaCell(delta: number): ReactNode {
+  if (delta === 0) {
+    return e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          justifyContent: 'flex-end',
+          width: 64,
+          fontSize: 19,
+          fontFamily: 'IBM Plex Mono',
+          color: colors.textMuted,
+        },
+      },
+      '–',
+    );
+  }
+  const up = delta > 0;
+  const color = up ? colors.deltaUp : colors.deltaDown;
+  return e(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 5,
+        width: 64,
+      },
+    },
+    e(
+      'svg',
+      { width: 11, height: 11, viewBox: '0 0 24 24' },
+      e('path', {
+        d: up ? 'M12 4 2.5 20h19z' : 'M12 20 2.5 4h19z',
+        fill: color,
+      }),
+    ),
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          fontSize: 20,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          color,
+        },
+      },
+      String(Math.abs(delta)),
+    ),
+  );
+}
+
+function qualifyingChampionshipRow(
+  entry: QualifyingChampionshipEntry,
+): ReactNode {
+  return e(
+    'div',
+    {
+      key: entry.code,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        height: 42,
+        paddingLeft: 8,
+        paddingRight: 12,
+        borderRadius: 2,
+        backgroundColor: entry.position <= 2 ? colors.surface : 'transparent',
+      },
+    },
+    e(
+      'div',
+      {
+        style: {
+          width: 36,
+          fontSize: 22,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          // Saturday's podium is the front row, so only P1 and P2 take a
+          // medal colour — the same depth the page's table shades.
+          color:
+            entry.position <= 2
+              ? PODIUM_COLORS[entry.position - 1]
+              : colors.textMuted,
+        },
+      },
+      String(entry.position),
+    ),
+    e('div', {
+      style: {
+        width: 3,
+        height: 24,
+        marginRight: 14,
+        backgroundColor: entry.color,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          flex: 1,
+          fontSize: 22,
+          fontWeight: 600,
+          fontFamily: 'Archivo',
+          color: colors.text,
+        },
+      },
+      entry.code,
+    ),
+    deltaCell(entry.delta),
+    // A fixed points column rather than flex against the delta: right-aligned
+    // mono butted against right-aligned mono read as one number ("▲11 140"
+    // rendered as 11140).
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          justifyContent: 'flex-end',
+          width: 76,
+          marginLeft: 22,
+          fontSize: 21,
+          fontFamily: 'IBM Plex Mono',
+          color: entry.position === 1 ? colors.accent : colors.text,
+        },
+      },
+      String(entry.points),
+    ),
+  );
+}
+
+/**
+ * The OG card for `/f1-qualifying-standings`: the top ten of the season scored
+ * on qualifying alone, each with their movement against the real championship.
+ *
+ * Standard OG size, because this sits under a link rather than being posted as
+ * the brand account — the platform supplies the headline, so the card's job is
+ * to look like the table the page delivers.
+ */
+export function qualifyingChampionshipTemplate({
+  season,
+  roundsScored,
+  entries,
+}: {
+  season: number;
+  roundsScored: number;
+  entries: QualifyingChampionshipEntry[];
+}): ReactNode {
+  const top = entries.slice(0, 10);
+  const half = Math.ceil(top.length / 2);
+  const columns = [top.slice(0, half), top.slice(half)];
+
+  return layout(
+    'og',
+    e(
+      'div',
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          marginBottom: 24,
+        },
+      },
+      e(
+        'div',
+        { style: { display: 'flex', flexDirection: 'column' as const } },
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 19,
+              fontWeight: 600,
+              fontFamily: 'IBM Plex Mono',
+              letterSpacing: 2,
+              color: colors.textMuted,
+            },
+          },
+          `${season} · AFTER ${roundsScored} ${roundsScored === 1 ? 'ROUND' : 'ROUNDS'}`,
+        ),
+        e(
+          'div',
+          {
+            style: {
+              fontSize: 42,
+              fontWeight: 600,
+              fontFamily: 'Archivo',
+              marginTop: 4,
+            },
+          },
+          'Qualifying Championship',
+        ),
+      ),
+      e(
+        'div',
+        {
+          style: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'flex-end',
+            fontSize: 15,
+            fontWeight: 600,
+            fontFamily: 'IBM Plex Mono',
+            letterSpacing: 1.6,
+            lineHeight: 1.6,
+            color: colors.textMuted,
+            textAlign: 'right' as const,
+          },
+        },
+        e('div', {}, 'CHANGE SHOWN AGAINST'),
+        e('div', {}, 'THE WORLD CHAMPIONSHIP'),
+      ),
+    ),
+    e(
+      'div',
+      { style: { display: 'flex', gap: 40 } },
+      ...columns.map((column, index) =>
+        e(
+          'div',
+          {
+            key: `col-${index}`,
+            style: {
+              display: 'flex',
+              flexDirection: 'column' as const,
+              flex: 1,
+              gap: 2,
+            },
+          },
+          ...column.map(qualifyingChampionshipRow),
+        ),
+      ),
+    ),
+  );
+}
+
 // ────────── Team-mate H2H Results Card (social broadcast) ──────────
 
 export type H2HCardRow = {

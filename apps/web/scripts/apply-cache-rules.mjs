@@ -59,9 +59,9 @@ const signedIn =
   `and http.cookie contains "__client_uat=" ` +
   `and not http.cookie contains "__client_uat=0"))`;
 
-/** The only two routes that call applySsrCacheControl(). */
+/** The only three routes that call applySsrCacheControl(). */
 const paths =
-  '(http.request.uri.path eq "/" or http.request.uri.path eq "/f1-standings")';
+  '(http.request.uri.path eq "/" or http.request.uri.path eq "/f1-standings" or http.request.uri.path eq "/f1-qualifying-standings")';
 
 const rules = [
   {

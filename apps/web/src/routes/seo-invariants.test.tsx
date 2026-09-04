@@ -112,6 +112,41 @@ const ROUTES: {
     path: '/f1-standings',
     args: { loaderData: { standings: null } },
   },
+  {
+    module: './f1-qualifying-standings',
+    path: '/f1-qualifying-standings',
+    // A populated table with the longest driver name on the grid leading it,
+    // because the description interpolates the leader and the SERP length
+    // rule is what this file exists for.
+    args: {
+      loaderData: {
+        standings: {
+          season: 2026,
+          lastUpdated: 1_788_800_000_000,
+          roundsScored: 12,
+          drivers: [
+            {
+              driverId: 'driver-1',
+              code: 'ANT',
+              displayName: 'Andrea Kimi Antonelli',
+              team: 'Mercedes',
+              nationality: 'Italian',
+              number: 12,
+              qualifyingPosition: 1,
+              championshipPosition: 3,
+              wins: 4,
+              podiums: 8,
+              delta: 2,
+              qualifyingPoints: 180,
+              championshipPoints: 150,
+            },
+          ],
+          constructors: [],
+          movers: [],
+        },
+      },
+    },
+  },
   { module: './leaderboard', path: '/leaderboard' },
   { module: './leagues/index', path: '/leagues' },
   {

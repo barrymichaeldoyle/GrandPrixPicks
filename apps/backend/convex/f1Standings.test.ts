@@ -14,12 +14,12 @@ import {
 
 /** A tally carrying only the finishing positions the countback cares about. */
 function tallyWithFinishes(...positions: number[]): DriverTally {
-  const racePositionCounts: number[] = [];
+  const headlinePositionCounts: number[] = [];
   for (const position of positions) {
-    racePositionCounts[position - 1] =
-      (racePositionCounts[position - 1] ?? 0) + 1;
+    headlinePositionCounts[position - 1] =
+      (headlinePositionCounts[position - 1] ?? 0) + 1;
   }
-  return { points: 0, wins: 0, podiums: 0, racePositionCounts };
+  return { points: 0, wins: 0, podiums: 0, headlinePositionCounts };
 }
 
 describe('pointsForPosition', () => {
@@ -121,8 +121,8 @@ describe('tallyDriverPoints', () => {
     ]);
 
     // One P1 and one P2 apiece from the two races.
-    expect(tally.get('ver')?.racePositionCounts).toEqual([1, 1]);
-    expect(tally.get('nor')?.racePositionCounts).toEqual([1, 1]);
+    expect(tally.get('ver')?.headlinePositionCounts).toEqual([1, 1]);
+    expect(tally.get('nor')?.headlinePositionCounts).toEqual([1, 1]);
   });
 });
 

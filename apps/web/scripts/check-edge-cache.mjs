@@ -26,7 +26,7 @@ const SIGNED_IN_COOKIE =
   process.env.EDGE_CACHE_CHECK_COOKIE ?? '__client_uat_ghhmdBz_';
 
 /** The only routes that call `applySsrCacheControl`. */
-const PATHS = ['/', '/f1-standings'];
+const PATHS = ['/', '/f1-standings', '/f1-qualifying-standings'];
 
 const ATTEMPTS = 6;
 const RETRY_MS = 1500;

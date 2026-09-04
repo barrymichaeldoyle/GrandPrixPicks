@@ -7,7 +7,7 @@ import { DriverBadge } from '@/components/DriverBadge';
 import { PageHeader } from '@/components/PageHeader';
 import { formatDateLong, type UserDateSettings } from '@/lib/date';
 import { displayTeamName } from '@/lib/display';
-import { setF1StandingsCacheHeaders } from '@/lib/f1StandingsCacheHeaders';
+import { setChampionshipCacheHeaders } from '@/lib/championshipCacheHeaders';
 import { routeQuery } from '@/lib/routeQuery';
 import { pageMeta, siteConfig } from '@/lib/site';
 import { FALLBACK_TEAM_COLOR, TEAM_COLORS } from '@/lib/teamColors';
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/f1-standings')({
       context.queryClient.ensureQueryData(
         routeQuery(api.f1Standings.getF1Championship, { season: SEASON }),
       ),
-      setF1StandingsCacheHeaders(),
+      setChampionshipCacheHeaders(),
     ]);
     return { standings };
   },
@@ -387,6 +387,12 @@ function F1StandingsPage() {
         )}
 
         <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-sm">
+          <Link
+            to="/f1-qualifying-standings"
+            className="font-medium text-accent underline-offset-2 hover:underline"
+          >
+            {SEASON} qualifying championship
+          </Link>
           <Link
             to="/guides/$guideSlug"
             params={{ guideSlug: 'f1-points-system-explained' }}

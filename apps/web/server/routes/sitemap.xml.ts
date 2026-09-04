@@ -115,6 +115,11 @@ const staticEntries: SitemapEntry[] = [
     priority: '0.8',
   },
   {
+    loc: `${siteConfig.url}/f1-qualifying-standings`,
+    changefreq: 'daily',
+    priority: '0.7',
+  },
+  {
     // Reviewed by hand rather than generated, so a weekly changefreq is a
     // promise we can keep. It becomes the round list once 2027 is ratified.
     loc: `${siteConfig.url}/f1-2027-calendar`,

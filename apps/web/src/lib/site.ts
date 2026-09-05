@@ -83,6 +83,19 @@ export function shareCardOgImageUrl(search: Record<string, string>) {
 }
 
 /**
+ * Absolute URL for a guide's own OG card.
+ *
+ * The slug travels in the query string so one endpoint serves every guide;
+ * because it is part of the URL, a scraper caches each guide's card separately
+ * and a new guide previews as itself the first time it is posted.
+ *
+ * @param slug — the guide's slug, as it appears in `guideMeta.ts`
+ */
+export function guideOgImageUrl(slug: string) {
+  return `${ogBaseUrl}/og/guide?slug=${slug}`;
+}
+
+/**
  * Returns canonical meta tags (og:url, twitter:url) and the canonical link
  * for a given path. Use in each route's `head()` to set per-page canonical URLs.
  *

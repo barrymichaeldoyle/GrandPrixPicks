@@ -2133,3 +2133,73 @@ export function lineUp2027Template({
     ),
   );
 }
+
+/**
+ * The link-preview card for any `/guides/<slug>` article.
+ *
+ * One template for every guide, because a guide's card has exactly the job its
+ * front matter already does: name the subject and give a reason to tap. Both
+ * strings come from `guideMeta.ts` by way of the route handler, so a card
+ * cannot describe a guide differently from the page it fronts, and a new guide
+ * gets a card by existing rather than by anyone remembering to draw one.
+ *
+ * Deliberately typographic. The other data cards lead with a number because
+ * they front a number; a guide fronts a sentence, and inventing a statistic to
+ * decorate it would put something on the card that is not on the page.
+ */
+export function guideTemplate({
+  title,
+  summary,
+}: {
+  title: string;
+  summary: string;
+}): ReactNode {
+  return layout(
+    'og',
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 19,
+          fontWeight: 600,
+          fontFamily: 'IBM Plex Mono',
+          letterSpacing: 2,
+          color: colors.textMuted,
+        },
+      },
+      'F1 GUIDE',
+    ),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 56,
+          fontWeight: 600,
+          fontFamily: 'Archivo',
+          lineHeight: 1.12,
+          marginTop: 14,
+        },
+      },
+      title,
+    ),
+    e('div', {
+      style: {
+        height: 1,
+        backgroundColor: colors.border,
+        marginTop: 32,
+        marginBottom: 24,
+      },
+    }),
+    e(
+      'div',
+      {
+        style: {
+          fontSize: 26,
+          lineHeight: 1.4,
+          color: colors.textMuted,
+        },
+      },
+      summary,
+    ),
+  );
+}

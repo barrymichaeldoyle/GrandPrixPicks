@@ -7,7 +7,7 @@ import { getGuide } from '@/lib/guides';
 import { getGuideMeta, listGuideMeta } from '@/lib/guideMeta';
 import {
   breadcrumbSchema,
-  defaultOgImage,
+  guideOgImageUrl,
   organizationSchema,
   pageMeta,
   siteConfig,
@@ -40,6 +40,8 @@ export const Route = createFileRoute('/guides/$guideSlug')({
         title: guide.metaTitle,
         description: guide.metaDescription,
         path: `/guides/${guide.slug}`,
+        image: guideOgImageUrl(guide.slug),
+        imageAlt: guide.title,
       }),
       scripts: [
         {
@@ -58,7 +60,7 @@ export const Route = createFileRoute('/guides/$guideSlug')({
                 // an unrevised guide was not modified, and saying otherwise
                 // is a freshness claim we would be making up.
                 dateModified: guide.updatedAt ?? guide.publishedAt,
-                image: defaultOgImage,
+                image: guideOgImageUrl(guide.slug),
                 author: {
                   '@type': 'Person',
                   name: siteConfig.author.name,

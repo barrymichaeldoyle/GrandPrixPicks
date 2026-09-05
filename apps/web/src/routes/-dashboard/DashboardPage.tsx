@@ -25,6 +25,7 @@ import { DashboardWeekendPicks } from './DashboardWeekendPicks';
 import { RaceRecapCard } from './RaceRecapCard';
 import type { DashboardSsrData } from './ssr';
 import {
+  firstSessionLockAt,
   liveOrSsr,
   weekendPicksReady,
   weekendReflectsViewer,
@@ -133,6 +134,27 @@ export function DashboardPage({
     withinResultsWindow,
   );
 
+  /*
+   * The centre column's reading order turns on the weekend's first lock. Until
+   * it passes, practice informs a pick that is still open and sits above the
+   * feed. Once it passes, the feed is carrying every followed player's picks
+   * for the session that just locked — what a player opens the page for during
+   * a session — and practice is lap times from before the grid was set, so the
+   * two swap.
+   *
+   * Read from the clock rather than from the payload's `isLocked`, for the
+   * same reason as the results-first window above: a Convex query re-runs when
+   * its data changes and never because time passed, so a page left open
+   * through qualifying would otherwise keep the pre-lock order until something
+   * else happened to refresh the weekend. Seeded with `serverNow` so the
+   * server and the hydration render agree on the order.
+   */
+  const firstLockAt = currentWeekend
+    ? firstSessionLockAt(currentWeekend.sessions)
+    : null;
+  const beforeFirstLock = useIsBefore(firstLockAt, currentWeekend?.serverNow);
+  const practiceLeadsFeed = firstLockAt === null || beforeFirstLock;
+
   // Ready once there is a weekend to show, whoever produced it. Waiting on
   // `history` here would have held every server-rendered card behind the one
   // query this page no longer needs before first paint.
@@ -157,6 +179,15 @@ export function DashboardPage({
       recap !== undefined &&
       latestResultReady,
   );
+
+  const practiceCard = currentWeekend ? (
+    <DashboardPracticeCard
+      key={currentWeekend.race._id}
+      raceId={currentWeekend.race._id}
+      raceSlug={currentWeekend.race.slug}
+      initialResults={initialDashboard?.practice ?? undefined}
+    />
+  ) : null;
 
   return (
     <AppPageLayout
@@ -243,20 +274,13 @@ export function DashboardPage({
         initialH2H={initialDashboard?.h2h ?? null}
       />
 
-      {/* Under the picks, above the feed: practice informs the pick above it
-          but scores nothing, so it must not lead. Keyed by race so the
-          disclosure state cannot carry over when the weekend advances. Like
-          the feed, it does not hold the auth curtain — the SSR seed means it
-          is normally in the server HTML anyway, taking its space before the
-          feed renders below it. */}
-      {currentWeekend ? (
-        <DashboardPracticeCard
-          key={currentWeekend.race._id}
-          raceId={currentWeekend.race._id}
-          raceSlug={currentWeekend.race.slug}
-          initialResults={initialDashboard?.practice ?? undefined}
-        />
-      ) : null}
+      {/* Under the picks: practice informs the pick above it but scores
+          nothing, so it must not lead. Keyed by race so the disclosure state
+          cannot carry over when the weekend advances. Like the feed, it does
+          not hold the auth curtain — the SSR seed means it is normally in the
+          server HTML anyway, taking its space before the feed renders below
+          it. */}
+      {practiceLeadsFeed ? practiceCard : null}
 
       {/* No "See all" any more: this *is* all of it. The standalone /feed page
           rendered the same component and has been removed. */}
@@ -267,6 +291,10 @@ export function DashboardPage({
            spinner on the page, not two. */
         showLoader={weekendPicksReady(currentWeekend)}
       />
+
+      {/* After the lock, below the feed rather than above it. See
+          `practiceLeadsFeed`. */}
+      {practiceLeadsFeed ? null : practiceCard}
 
       {/* Below the feed, which is the one place on this page an ad can go
           without interrupting anything: the picks card and the rails are what

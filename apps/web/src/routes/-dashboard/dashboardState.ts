@@ -244,3 +244,33 @@ export function weekendPicksReady<
   }
   return weekend === null || weekendReflectsViewer(weekend.sessions);
 }
+
+/**
+ * When the weekend's first session locks, or null when no session has a lock
+ * time.
+ *
+ * That instant is what the centre column's reading order turns on. Before it,
+ * practice informs a pick that is still open and belongs above the feed. After
+ * it, the feed is carrying every followed player's picks for the session that
+ * just locked, which is what a player opens the page for, and practice has
+ * become lap times from before the grid was set.
+ *
+ * The earliest lock of the weekend rather than the one that just passed,
+ * because there is nothing to go back to: a sprint weekend reveals at sprint
+ * qualifying and a normal one at qualifying, and from either moment on the
+ * feed has picks in it.
+ */
+export function firstSessionLockAt(
+  sessions: readonly DashboardSessionState[],
+): number | null {
+  let earliest: number | null = null;
+  for (const session of sessions) {
+    if (
+      session.lockAt !== null &&
+      (earliest === null || session.lockAt < earliest)
+    ) {
+      earliest = session.lockAt;
+    }
+  }
+  return earliest;
+}

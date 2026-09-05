@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DashboardSessionState } from './dashboardState';
 import {
+  firstSessionLockAt,
   getDashboardWeekendAction,
   getSessionClockState,
   liveOrSsr,
@@ -264,5 +265,32 @@ describe('liveOrSsr', () => {
     expect(liveOrSsr(0, 99)).toBe(0);
     expect(liveOrSsr('', 'ssr')).toBe('');
     expect(liveOrSsr(false, true)).toBe(false);
+  });
+});
+
+describe('firstSessionLockAt', () => {
+  it('takes the earliest lock, not the first session listed', () => {
+    expect(
+      firstSessionLockAt([
+        session({ sessionType: 'race', lockAt: 9_000 }),
+        session({ sessionType: 'quali', lockAt: 3_000 }),
+      ]),
+    ).toBe(3_000);
+  });
+
+  it('ignores sessions with no lock time', () => {
+    expect(
+      firstSessionLockAt([
+        session({ sessionType: 'quali', lockAt: null }),
+        session({ sessionType: 'race', lockAt: 5_000 }),
+      ]),
+    ).toBe(5_000);
+  });
+
+  it('is null when nothing on the weekend has a lock time', () => {
+    // The dashboard reads this as "nothing has locked", so practice keeps its
+    // place above the feed rather than being demoted by a missing schedule.
+    expect(firstSessionLockAt([session({ lockAt: null })])).toBeNull();
+    expect(firstSessionLockAt([])).toBeNull();
   });
 });

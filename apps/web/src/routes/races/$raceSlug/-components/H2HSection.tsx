@@ -5,7 +5,6 @@ import { Pencil, Swords } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
-import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
@@ -17,7 +16,6 @@ import { RandomizeButton } from '@/components/RandomizeButton';
 import { ShareOnXButton } from '@/components/ShareOnXButton';
 import { StartPicksCta } from '@/components/StartPicksCta';
 import { StepBadge } from '@/components/StepBadge';
-import { Tooltip } from '@/components/Tooltip';
 import { encodeShareCardSearch } from '@/lib/og/shareCard';
 import { getRaceSessionLockAt } from '@/lib/raceSessions';
 import type { SessionType } from '@/lib/sessions';
@@ -190,27 +188,20 @@ export function H2HSection({
               </>
             )}
           </h2>
-          {hasH2HPredictions && (
-            <>
-              {canEditSelectedSession ? (
-                <Button
-                  variant="text"
-                  size="inline"
-                  leftIcon={Pencil}
-                  onClick={() => setEditingSession(selectedSession)}
-                  title={`Edit ${SESSION_LABELS[selectedSession]} H2H Predictions`}
-                  data-testid="h2h-edit-button"
-                >
-                  <span className="hidden sm:inline">Edit</span>
-                </Button>
-              ) : (
-                <Tooltip content="This session has started. Predictions can't be changed">
-                  <span className="inline-flex" data-testid="h2h-locked-badge">
-                    <Badge variant="locked" />
-                  </span>
-                </Tooltip>
-              )}
-            </>
+          {/* Locked shows as the absence of Edit, not as a badge: the
+              session line above already says "Locked" once for both halves.
+              See `top5HeaderAside`. */}
+          {hasH2HPredictions && canEditSelectedSession && (
+            <Button
+              variant="text"
+              size="inline"
+              leftIcon={Pencil}
+              onClick={() => setEditingSession(selectedSession)}
+              title={`Edit ${SESSION_LABELS[selectedSession]} H2H Predictions`}
+              data-testid="h2h-edit-button"
+            >
+              <span className="hidden sm:inline">Edit</span>
+            </Button>
           )}
         </div>
         <div className="flex items-center gap-2">

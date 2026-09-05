@@ -5,7 +5,6 @@ import { Pencil, Swords, Trophy } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { useState } from 'react';
 
-import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button/Button';
 import { CircuitGuide } from '@/components/CircuitGuide';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -26,7 +25,6 @@ import { StartPicksCta } from '@/components/StartPicksCta';
 import { RaceWriteupCallout } from '@/components/race-writeups/RaceWriteupCallout';
 import { RaceScoreCard } from '@/components/RaceScoreCard/RaceScoreCard';
 import type { WeekendCardData } from '@/components/RaceScoreCard/types';
-import { Tooltip } from '@/components/Tooltip';
 import type { ShareCard } from '@/lib/og/shareCard';
 import { encodeShareCardSearch } from '@/lib/og/shareCard';
 import type { SessionType } from '@/lib/sessions';
@@ -474,17 +472,14 @@ export function RaceEventPage({
           <PracticeResultsCard raceId={race._id} raceSlug={race.slug} />
         }
         initialTop5Content={renderInitialCtas()}
+        /* No lock badge here. The session line above already carries one
+           "Locked" pill for the whole session, and this header sat under it
+           saying the same thing a third time (the session tab says it too).
+           One status mechanism, in the session header — the absent Edit
+           button is what tells you this half is closed. */
         top5HeaderAside={
           canManagePredictions && selectedSessionData ? (
             <div className="flex items-center gap-2">
-              {selectedSessionData.isLocked &&
-              !selectedSessionData.hasResults ? (
-                <Tooltip content="This session has started. Predictions can't be changed">
-                  <span className="shrink-0" data-testid="top5-locked-badge">
-                    <Badge variant="locked" />
-                  </span>
-                </Tooltip>
-              ) : null}
               {canEditSelectedSession ? (
                 <Button
                   variant="text"

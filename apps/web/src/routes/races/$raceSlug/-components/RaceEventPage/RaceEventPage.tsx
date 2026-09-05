@@ -297,7 +297,7 @@ export function RaceEventPage({
         race_slug: race.slug,
         session_type: selectedSession,
       }}
-      label="Share my Top 5 on X"
+      label="Share my Top 5"
     />
   ) : null;
 
@@ -340,7 +340,7 @@ export function RaceEventPage({
               all_events_scored: allEventsScored,
               points: pointsSoFar,
             }}
-            label="Share my weekend on X"
+            label="Share my weekend"
           />
         }
       />
@@ -579,7 +579,7 @@ export function RaceEventPage({
                     all_events_scored: allEventsScored,
                     points: pointsSoFar,
                   }}
-                  label="Share my score on X"
+                  label="Share my score"
                 />
               </div>
             )}

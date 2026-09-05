@@ -1,11 +1,7 @@
-import { CheckCircle2, Lock } from 'lucide-react';
-
 import { useUserDateFormat } from '@/lib/useUserDateFormat';
 import { getLockStatusViewModel } from '@/lib/lock';
 import { useNow } from '@/lib/testing/now';
 import { PredictionCountdownBadge } from './PredictionCountdownBadge';
-import { Pill } from './Pill';
-import { Tooltip } from './Tooltip';
 
 const sessionDateOptions: Intl.DateTimeFormatOptions = {
   weekday: 'short',
@@ -43,21 +39,20 @@ export function SessionEventSummary({
   const lockStatus = getLockStatusViewModel({
     msRemaining: lockAt - currentNow,
   });
-  const isOpen = !hasResults && lockStatus.urgency === 'open';
-  const statusUi = hasResults
-    ? {
-        label: 'Published',
-        icon: CheckCircle2,
-        tone: 'accent' as const,
-      }
-    : {
-        label: lockStatus.label,
-        icon: Lock,
-        tone: lockStatus.badgeTone,
-      };
-
-  const StatusIcon = statusUi.icon;
-  const shouldPulseLockStatusBadge = lockStatus.shouldPulse;
+  /*
+   * The only status this line still shows. A closed session used to get a
+   * "Locked" or "Published" pill here, which the session tab above already
+   * says — in amber, for the same session, four inches away.
+   *
+   * The countdown stays because it is not a restatement of the tab: the tab
+   * says the session is open, this says how long that lasts. It covers
+   * `closing_soon` as well as `open`, which the old `urgency === 'open'` test
+   * did not — that state used to fall through to the pill, so gating purely on
+   * `isOpen` would have left the last hour before a lock, the hour the
+   * deadline matters most, with nothing on this line at all. It pulses there,
+   * as the pill did.
+   */
+  const showCountdown = !hasResults && !lockStatus.isLocked;
   const trackDate = formatInTimeZone(
     startsAt,
     trackTimeZone,
@@ -79,16 +74,6 @@ export function SessionEventSummary({
   const localTimeZoneLabel = formatTimeZoneAbbreviation(
     startsAt,
     viewerTimeZone,
-  );
-
-  const statusPill = (
-    <Pill
-      tone={statusUi.tone}
-      className={`gap-1 ${shouldPulseLockStatusBadge ? 'animate-pulse' : ''}`}
-    >
-      <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
-      {statusUi.label}
-    </Pill>
   );
 
   return (
@@ -130,28 +115,14 @@ export function SessionEventSummary({
           </span>
         </dd>
       </dl>
-      <div className="shrink-0 self-start sm:self-center">
-        {isOpen ? (
-          // The countdown already implies the session is open — skip the
-          // redundant "Open" pill and show a single badge.
+      {showCountdown && (
+        <div className="shrink-0 self-start sm:self-center">
           <PredictionCountdownBadge
             predictionLockAt={lockAt}
-            className="text-xs"
+            className={`text-xs ${lockStatus.shouldPulse ? 'animate-pulse' : ''}`}
           />
-        ) : /*
-             The page's one lock statement, so it carries the explanation the
-             per-section badges used to. Wrapped only when locked: an empty
-             tooltip is still a tab stop and a `cursor-help` on something with
-             nothing to say.
-           */
-        lockStatus.isLocked && !hasResults ? (
-          <Tooltip content="This session has started. Predictions can't be changed">
-            {statusPill}
-          </Tooltip>
-        ) : (
-          statusPill
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

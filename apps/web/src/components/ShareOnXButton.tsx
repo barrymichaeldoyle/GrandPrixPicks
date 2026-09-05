@@ -23,6 +23,11 @@ interface ShareOnXButtonProps {
   /** PostHog event name fired on click. */
   analyticsEvent: AnalyticsEventName;
   analyticsProps?: Record<string, string | number | boolean | undefined>;
+  /**
+   * Visible button text. Leave "on X" out of it: the logo beside it already
+   * says where the post goes, and the accessible name below adds it back for
+   * anyone who cannot see the logo.
+   */
   label?: string;
   className?: string;
 }
@@ -32,7 +37,7 @@ export function ShareOnXButton({
   url,
   analyticsEvent,
   analyticsProps,
-  label = 'Share on X',
+  label = 'Share',
   className = '',
 }: ShareOnXButtonProps) {
   return (
@@ -40,6 +45,7 @@ export function ShareOnXButton({
       href={buildXShareIntentUrl(text, url)}
       target="_blank"
       rel="noopener noreferrer"
+      aria-label={`${label} on X`}
       onClick={() => captureAnalyticsEvent(analyticsEvent, analyticsProps)}
       className={`inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:border-accent hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none ${className}`}
     >

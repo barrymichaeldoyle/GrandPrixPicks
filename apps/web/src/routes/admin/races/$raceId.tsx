@@ -932,7 +932,7 @@ function AdminRaceDetailPage() {
                   race_slug: race.slug,
                   session_type: selectedSession,
                 }}
-                label={`Share ${SESSION_LABELS[selectedSession]} results on X`}
+                label={`Share ${SESSION_LABELS[selectedSession]} results`}
                 className="border-slate-600 px-4 py-3 text-sm text-white hover:border-yellow-400 hover:text-yellow-400 focus-visible:ring-yellow-400/60 focus-visible:ring-offset-slate-800"
               />
             )}

@@ -580,7 +580,7 @@ export function H2HResultsSection({
                   total_picks: myH2HScore?.totalPicks,
                   points: myH2HScore?.points,
                 }}
-                label="Share my H2H score on X"
+                label="Share my H2H score"
               />
             </div>
           )}

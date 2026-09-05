@@ -240,7 +240,7 @@ export function H2HSection({
                       race_slug: race.slug,
                       session_type: selectedSession,
                     }}
-                    label="Share my H2H picks on X"
+                    label="Share my H2H"
                   />
                 )}
               </div>
